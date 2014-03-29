@@ -1,0 +1,45 @@
+<div id="portmetrics">
+
+    <div id="portmetrics-{{ counter_type }}" class="nav-metrics-container">
+        <a href="javascript:void(0);" class="all-graph-opener button secondary small">Show all graphs</a>
+        <a href="javascript:void(0);" class="all-graph-closer button secondary small">Hide all graphs</a>
+
+        <div class="toBeFixed-wrapper">
+          <div class="toBeFixed">
+            <h5>Controls for all graphs</h5>
+            <div class="button-bar">
+              <ul class="button-group all-graph-buttons"></ul>
+              <ul class="button-group all-graph-url-switcher">
+                {% for counter_type in counter_types %}
+                    <li>
+                        <a href="javascript:void(0);" class="graph-switcher button tiny secondary">{{ counter_type }}</a>
+                    </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <ul class="no-bullet">
+            {% for ifc in interfaces %}
+
+                <li>
+                    <span id="port-graph-toggler-{{ counter_type }}{{ ifc.id }}" class="graph-toggler">
+                        <i class="fa fa-chevron-right"></i>
+                        <strong>{{ ifc.ifname }}</strong>
+                        {% if ifc.ifalias %} ({{ ifc.ifalias }}){% endif %}
+                    </span>
+
+                    <div class="graphitegraph hide"
+                         data-url="{% for counter_type in counter_types %}{% url interface-counter-graph ifc.id counter_type %}{% if not forloop.last %};{% endif %}{% endfor %}"
+                         data-handler-id="port-graph-toggler-{{ counter_type }}{{ ifc.id }}">
+                        <div><a href="{% url ipdevinfo-interface-details netbox.sysname ifc.id %}" title="Port details for {{ ifc.ifname }}">Port details</a></div>
+                    </div>
+
+                </li>
+
+            {% endfor %}
+        </ul>
+    </div>
+
+</div>

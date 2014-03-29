@@ -20,9 +20,24 @@
 
 require(['libs/jquery'], function () {
     $(function () {
-        create_bounding_box();
+        var $timePanelToggler = $('#time-panel-toggler'),
+            $icon = $timePanelToggler.find('i');
+        $timePanelToggler.on('click', function () {
+            $('#time-panel').slideToggle(function () {
+                var $panel = $(this);
+                if ($panel.is(':visible')) {
+                    $icon.removeClass('fa-caret-down').addClass('fa-caret-up');
+                } else {
+                    $icon.removeClass('fa-caret-up').addClass('fa-caret-down');
+                }
+            });
+        });
     });
 
+    /* Start creating map when all content is rendered */
+    $(window).load(function () {
+        create_bounding_box();
+    });
 
 var zoom=6;
 
@@ -99,20 +114,7 @@ function getLong(position) {
                 theme: NAV.cssPath + '/openlayers.css'
             });
 
-        addLayersIfHeight();
-
-    }
-
-    function addLayersIfHeight() {
-        /* There is a race condition somewhere that the layers are added before Viewport has any height.
-           This problem is experienced by other people aswell when width and height is 100% and not a
-           fixed value. We solve this by adding layers after the viewport has gotten height. */
-        var height = themap.getSize().h;
-        if (height === 0) {
-            setTimeout(addLayersIfHeight, 200);
-        } else {
-            addLayers();
-        }
+        addLayers();
     }
 
     function addLayers() {
@@ -121,7 +123,8 @@ function getLong(position) {
                 netLayer.update();
             });
 
-        mapnikLayer = new OpenLayers.Layer.OSM("OpenStreetMap", '/info/osm_map_redirect/${z}/${x}/${y}.png');
+        mapnikLayer = new OpenLayers.Layer.OSM("OpenStreetMap", NAV.proxyOsmUrl + '/${z}/${x}/${y}.png');
+        mapnikLayer.tileOptions = {crossOriginKeyword: null};
         themap.addLayer(mapnikLayer);
 
         netLayer = new NetworkLayer('Networks', getDataUrl, {
@@ -139,10 +142,6 @@ function getLong(position) {
                 }
             });
         themap.addLayer(netLayer);
-
-        posControl = new PositionControl('pos');
-        themap.addControl(posControl);
-        posControl.activate();
 
         if (parameters.bbox) {
             var requestedBounds = OpenLayers.Bounds.fromArray(parameters.bbox);
@@ -172,15 +171,15 @@ function getLong(position) {
  * Updating the displayed loading status:
  */
 function netLayerLoadStart() {
-    document.getElementById('geomap-heading').innerHTML = 'Geomap (<img src="' + NAV.imagePath + '/geomap/loading.gif" alt=""/> loading data ...)';
+//    document.getElementById('geomap-spinner').style.display = 'block';
     document.getElementsByClassName('navbody')[0].className = 'navbody loading';
 }
 function netLayerLoadEnd() {
-    document.getElementById('geomap-heading').innerHTML = "Geomap";
+//    document.getElementById('geomap-spinner').style.display = 'none';
     document.getElementsByClassName('navbody')[0].className = 'navbody';
 }
 function netLayerLoadCancel() {
-    document.getElementById('geomap-heading').innerHTML = "Geomap";
+//    document.getElementById('geomap-spinner').style.display = 'none';
     document.getElementsByClassName('navbody')[0].className = 'navbody';
 }
 

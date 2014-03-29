@@ -3,21 +3,29 @@
 
 {% block content %}
 
-    <h3>{{ caption }}</h3>
+  <h3>{{ caption }}</h3>
 
-    {% if replaces %}
-        <p class="alert-box secondary">
-            This message will replace
-            <a href="{% url messages-view replaces.id %}">{{ replaces.title }}</a>
-            from {{ replaces.publish_start|date:"DATETIME_FORMAT_SHORT" }}
-            by {{ replaces.author }}
-        </p>
-    {% endif %}
+  <p>
+  {% if message %}
+    <a href="{% url messages-view message.id %}">Back to message</a>
+  {% else %}
+    <a href="{% url messages-home %}">See active messages</a>
+  {% endif %}
+  </p>
 
-    <div class="row">
-        <div class="column medium-6">
-            {% crispy form %}
-        </div>
+  {% if replaces %}
+    <p class="alert-box secondary">
+      This message will replace
+      <a href="{% url messages-view replaces.id %}">{{ replaces.title }}</a>
+      from {{ replaces.publish_start|date:"DATETIME_FORMAT_SHORT" }}
+      by {{ replaces.author }}
+    </p>
+  {% endif %}
+
+  <div class="row">
+    <div class="column medium-6">
+      {% crispy form %}
     </div>
+  </div>
 
 {% endblock %}

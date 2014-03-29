@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+{% load tools %}
 
 
 {% block base_content %}
-  <h2>Layer 2 Traceroute</h2>
+  {% with tool=current_user_data.tools|get_tool:'Layer 2 Traceroute' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
 
   <div id="l2trace">
 

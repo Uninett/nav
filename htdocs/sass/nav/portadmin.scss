@@ -1,132 +1,21 @@
+@import "../navsettings";
 
-/* Media queries  for small screens */
-
-.text-right { text-align: right; }
-.text-center { text-align: center;}
-.float-right { float: right; padding: 0; }
-
-#errors {
-    background-color: #FFBABA;
-}
-
-#infoboxcontainer h4 {
-    text-align: center;
-}
-
-div.infobox {
-	margin-bottom: 1em;	
-}
-
-#infoboxcontainer, #portadmin-interfacecontainer {
-    width: 480px;
-}
-
-/*
- * Styles for the table
- */
-
-#portadmin-interfacecontainer {
-    border-spacing: 0;
-}
-
-#portadmin-interfacecontainer td {
-	height: 30px;
-	vertical-align: middle;
-}
-
-#portadmin-interfacecontainer input[type="text"] {
-    width: 100%;
-}
-
-#portadmin-interfacecontainer tr.changed td {
-	background-color: #BDE5F8;
-}
-
-#portadmin-interfacecontainer tr.success td {
-    background-color: #228b22;
-}
-
-#portadmin-interfacecontainer tr.error td {
-    background: #FFBABA url('/images/lys/red.png') 10px no-repeat;
-}
-
-#portadmin-interfacecontainer tr.error td span {
-    display: block;
-    margin-left: 30px;
-}
-
-/* Action row styles */
-#portadmin-interfacecontainer tr.actionrow td {
-    height: 0;
-    margin: 0;
-}
-
-#portadmin-interfacecontainer tr.actionrow .slider span {
-    display: inline-block;
-    width: 45%;
-}
-
-#portadmin-interfacecontainer tr.actionrow button {
-    width: 80%;
-}
-
-#portadmin-interfacecontainer tr.actionrow div {
-    text-align: center;
-}
-
-
-/*
- * Styles for information boxes 
- */
-caption .saveall_button {
-    float: right;
-}
-
-
-/*
- * Styles for small screens
- */
-
-@media only screen and (max-width : 480px) {
-    #infoboxcontainer, #portadmin-interfacecontainer, #portadmin-trunktable {
-        width: 100%;
+#portadmin-wrapper {
+    .changed {
+        background-color: bisque;
     }
-
-
-    #portadmin-trunktable {
-        table-layout: fixed;
+    .success {
+        background-color: $success-box-bg;
     }
-
-    /* Hide description column on small screens */
-    #portadmin-trunktable td:nth-child(2),
-    #portadmin-trunktable th:nth-child(2) {
-        display: none;
+    .error {
+        background-color: $alert-box-bg;
     }
-
-    /* Make headers as small as possible */
-    #portadmin-trunktable th:nth-child(1),
-    #portadmin-trunktable th:nth-child(4),
-    #portadmin-trunktable th:nth-child(5) {
-        -o-text-overflow: ellipsis;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        white-space: nowrap;
-        width: 25px;
+    .error-column {
+        line-height: inherit;
+        margin: 0;
+        .alert-box {
+            margin: 0;
+        }
     }
-
-
-}
-
-@media only screen and (max-width : 320px) {
-
-    /* Hide indicators on small screens */
-    #portadmin-interfacecontainer td:nth-child(2),
-    #portadmin-interfacecontainer td:nth-child(3),
-    #portadmin-interfacecontainer th:nth-child(2),
-    #portadmin-interfacecontainer th:nth-child(3) {
-        display: none;
-    }
-
-
 }
 

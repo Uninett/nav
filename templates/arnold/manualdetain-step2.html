@@ -7,18 +7,73 @@
 
   {% include 'arnold/back.html' %}
 
-  <h4>Manual detention</h4>
-
   {% if error %}
     <div class="alert-box alert">{{ error }}</div>
   {% endif %}
 
   <div class="row">
-    <div class="medium-6 column">
-      <div class="panel">
-        {% crispy form %}
-      </div>
-    </div>
-  </div>
+    <div class="large-8 column">
+      <div class="panel white">
+
+      {% comment %}
+      This form consists of a manually added list of radio buttons to choose interfaces.
+      It is not feasible to add all the information to the labels otherwise.
+      {% endcomment %}
+      <form action="" method="POST" class="manualDetentionForm">
+        <fieldset>
+          <legend>Manual detention of {{ target }}</legend>
+
+          {# Wrapper for radio button port list #}
+          <div id="div_interface-list" class="ctrlHolder {% if form.camtuple.errors %}error{% endif %}">
+            <label for="interface-list">Choose port (trunks can not be detained)*</label>
+            {% for error in form.camtuple.errors %}
+              <small class="errorField">{{ error }}</small>
+            {% endfor %}
+
+            <ul id="interface-list" class="no-bullet">
+            {% for candidate in candidates %}
+              <li>
+                <label>
+                  {# Show input field. Disable if interface is a trunk. #}
+                  <input type="radio" name="camtuple" value="{{ candidate.camid }}"
+                         {% if candidate.interface.trunk %}disabled{% endif %}
+                         {% if form.camtuple.value == candidate.camid|slugify %}checked{% endif %}> {# slugify converts to string. #}
+
+                  {# Add link to port details #}
+                  Port
+                  <a target="_blank" href="{% url ipdevinfo-interface-details candidate.interface.netbox.sysname candidate.interface.id %}">
+                    {{ candidate.interface.ifname }}
+                  </a>
+                  at
+                  {# Add link to ipdevinfo #}
+                  <a target="_blank" href="{% url ipdevinfo-details-by-name candidate.interface.netbox.sysname %}">
+                    {{ candidate.interface.netbox.sysname }}
+                  </a>
+
+                  {# If port is a trunk, mark it. #}
+                  {% if candidate.interface.trunk %}
+                    <span class="label alert">Trunk</span>
+                  {% endif %}
+
+                  {# Format endtime #}
+                  {% if candidate.endtime > now %}
+                    <span class="label secondary">Active now</span>
+                  {% else %}
+                    &nbsp;<strong>Last active:</strong> {{ candidate.endtime|time_since }} ago
+                  {% endif %}
+                </label>
+              </li>
+            {% endfor %}
+            </ul>
+          </div>
+
+          {# Display form for setting detention choices. #}
+          {% crispy form %}
+        </fieldset>
+      </form>
+      </div>  {# formcontainer #}
+
+    </div>  {# column #}
+  </div>  {# row #}
 
 {% endblock %}

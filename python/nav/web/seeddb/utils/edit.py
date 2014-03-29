@@ -32,11 +32,12 @@ from django.db.models import Q
 from nav.web.message import new_message, Messages
 from nav.models.manage import Netbox
 
-def render_edit(request, model, form_model, object_id, redirect, \
-        identifier_attr='pk', title_attr='pk', template='seeddb/edit.html', \
-        lon=None, lat=None, extra_context=None):
-    """Handles editing for objects in seeddb.
-    """
+
+def render_edit(request, model, form_model, object_id, redirect,
+                identifier_attr='pk', title_attr='pk',
+                template='seeddb/edit.html',
+                lon=None, lat=None, extra_context=None):
+    """Handles editing for objects in seeddb."""
 
     if not extra_context:
         extra_context = {}
@@ -46,7 +47,7 @@ def render_edit(request, model, form_model, object_id, redirect, \
         obj, identifier_attr, title_attr)
     verbose_name = model._meta.verbose_name
 
-    if not obj and lat and lon:
+    if not obj and (lat and lon):
         obj = model(position='({0},{1})'.format(lat, lon))
 
     if request.method == 'POST':
@@ -59,7 +60,8 @@ def render_edit(request, model, form_model, object_id, redirect, \
                         "Saved %s %s" % (verbose_name, title),
                         Messages.SUCCESS)
             try:
-                return HttpResponseRedirect(reverse(redirect, args=(identifier,)))
+                return HttpResponseRedirect(
+                    reverse(redirect, args=(identifier,)))
             except NoReverseMatch:
                 return HttpResponseRedirect(reverse(redirect))
     else:
@@ -69,6 +71,7 @@ def render_edit(request, model, form_model, object_id, redirect, \
         'object': obj,
         'form': form,
         'title': 'Add new %s' % verbose_name,
+        'verbose_name': verbose_name,
         'sub_active': {'add': True},
     }
     if obj and obj.pk:
@@ -77,8 +80,8 @@ def render_edit(request, model, form_model, object_id, redirect, \
             'sub_active': {'edit': True},
         })
     extra_context.update(context)
-    return render_to_response(template,
-        extra_context, RequestContext(request))
+    return render_to_response(template, extra_context, RequestContext(request))
+
 
 def _get_object(model, object_id, identifier_attr):
     """Fetches the object where identifier_attr=object_id.

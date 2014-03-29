@@ -16,6 +16,8 @@
  *
  */
 
+@import "../navsettings";
+
 /* Mixins for tabs */
  @mixin tab_base {
     display: none;
@@ -111,19 +113,26 @@
             &.ui-tabs-selected { 
                 @include tab_selected; 
             }
+            &.ui-state-error {
+                a {
+                    background-color: $alert-box-bg;
+                    color: $alert-box-color;
+                    &:after {
+                        font-family: FontAwesome;
+                        margin-left: 0.3em;
+                        top: 0;
+                        content: "\f06a";
+                    }
+                }
+            }
         }
     }
     .ui-tabs-panel { 
         @include tab_content; 
     }
     .ui-tabs-hide { 
-        display: none !important;
         position: absolute;
         left: -10000px;
-    }
-
-    .ui-state-error {
-        color: #b94a48;
     }
 }
 

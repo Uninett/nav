@@ -1,7 +1,13 @@
 {% extends "status/base.html" %}
 
 {% block base_header_additional_head %}
-  {#    <meta http-equiv="refresh" content="30" />#}
+  <script>
+    require(['libs/jquery'], function () {
+      $('.f-dropdown .close-button').click(function () {
+        $(document).foundation('dropdown', 'close', $(this).parents('.f-dropdown:first'));
+      });
+    });
+  </script>
 {% endblock %}
 
 {% block content %}
@@ -19,10 +25,14 @@
     {% if section.history %}
       <table class="listtable full-width">
         <caption>
-          {{ section.prefs.name }}
-          <span class="subtitle">
-          ({{ section.type_title }})
-          </span>
+          {% if section.prefs.name == section.type_title %}
+            {{ section.type_title }}
+          {% else %}
+            {{ section.prefs.name }}
+            <span class="subtitle">
+            ({{ section.type_title }})
+            </span>
+          {% endif %}
           <a href="{{ section.devicehistory_url }}" class="right">History</a>
         </caption>
 
@@ -64,6 +74,27 @@
                          title="Set this device on maintenance until it is up and running again."
                          class="tiny button secondary"/>
                 </form>
+              </td>
+            {% endifequal %}
+
+            {# Special treatment of linkdown events #}
+            {% ifequal section.devicehistory_type "a_linkDown" %}
+              <td>
+                <a href="javascript:void(0);" class="button tiny secondary"
+                   data-dropdown="resolve-alert-{{ row.alerthistid }}">
+                  Clear
+                </a>
+                <div id="resolve-alert-{{ row.alerthistid }}" class="f-dropdown content">
+                  <h5>Clear this alert?</h5>
+                  <p>If this is a real alert it might come back later.</p>
+                  <form action="{% url resolve-alert %}" method="POST">
+                    <input type="hidden" name="alertid" value="{{ row.alerthistid }}"/>
+                    <input type="submit" value="Resolve"
+                           title="Mark this as resolved"
+                           class="tiny button left"/>
+                  </form>
+                  <span class="button tiny secondary close-button left">Leave it</span>
+                </div>
               </td>
             {% endifequal %}
           </tr>

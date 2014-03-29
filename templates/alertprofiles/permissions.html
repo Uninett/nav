@@ -1,86 +1,92 @@
 {% extends "alertprofiles/base.html" %}
 
 {% block tabcontent %}
-<table class="listtable">
-    <caption>
-        Groups<br />
-        <span class="subtitle">Choose a group to set it's permissions</span>
-    </caption>
+
+  <div id="alert-profiles-permissions-help" class="reveal-modal" data-reveal>
+    <p>
+      Set which filter groups the different user groups are allowed
+      to receive alerts for.
+    </p>
+
+    <p>
+      Denying a user group to receive alerts from a certain filter group will
+      not hide that filter group from the interface, so the users of that
+      user group can still add the filter group to their profiles. They
+      still won't receive any alerts that matches that filter group though.
+    </p>
+  </div>
+
+  <div class="row">
+   <div class="small-12 column">
+     <a class="button small secondary right" data-reveal data-reveal-id="alert-profiles-permissions-help">Help</a>
+     <h4>Choose a group to set it's permissions</h4>
+   </div>
+  </div>
+
+
+  <table class="listtable">
+    <caption>Groups</caption>
 
     <thead>
-        <tr>
-            <th>Name</th>
-            {# if not selected_group #}
-            <th>Description</th>
-            {# endif #}
-        </tr>
+      <tr>
+        <th>Name</th>
+        {# if not selected_group #}
+        <th>Description</th>
+        {# endif #}
+      </tr>
     </thead>
 
     <tbody>
     {% for group in groups %}
-        <tr>
-            <td>
-                <a href="{% url alertprofiles-permissions-detail group.id %}">{{ group.name }}</a>
-            </td>
-            {# if not selected_group #}
-            <td>{{ group.description }}</td>
-            {# endif #}
-        </tr>
+      <tr>
+        <td>
+            <a href="{% url alertprofiles-permissions-detail group.id %}">{{ group.name }}</a>
+        </td>
+        {# if not selected_group #}
+        <td>{{ group.description }}</td>
+        {# endif #}
+      </tr>
     {% endfor %}
     </tbody>
-</table>
+  </table>
 
-{% if selected_group %}
-<form action="{% url alertprofiles-permissions-save %}" method="post">
-<table class="listtable">
-    <caption>
-        Permissions for {{ selected_group.name }}<br />
-        <span class="subtitle">Choose which alerts this group can
-        receive</span>
-    </caption>
 
-    <thead>
+  {% if selected_group %}
+    <form action="{% url alertprofiles-permissions-save %}" method="post">
+      <table class="listtable full-width">
+        <caption>Set permissions for {{ selected_group.name }}</caption>
+
+        <thead>
         <tr>
-            <th></th>
-            <th>Name</th>
-            <th>Description</th>
+          <th></th>
+          <th>Name</th>
+          <th>Description</th>
         </tr>
-    </thead>
+        </thead>
 
-    <tbody>
-    {% for fg in filter_groups %}
-        <tr>
-            <td><input type="checkbox" name="filter_group" value="{{ fg.id }}" id="filterid_{{ fg.id }}"
-            {% for perm in permissions %}
+        <tbody>
+        {% for fg in filter_groups %}
+          <tr>
+            <td>
+              <input type="checkbox" name="filter_group" value="{{ fg.id }}" id="filterid_{{ fg.id }}"
+              {% for perm in permissions %}
                 {% ifequal perm.id fg.id %}
                 checked="checked"
                 {% endifequal %}
-            {% endfor %}
-                /></td>
+              {% endfor %}
+                />
+            </td>
             <td><label for="filterid_{{ fg.id }}">{{ fg.name }}</label></td>
             <td>{{ fg.description }}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
-<div>
-    <input type="hidden" name="group" value="{{ selected_group.id }}" />
-    <input type="submit" value="save" />
-</div>
-</form>
-{% endif %}
-
-<div class="infobox">
-    <p>
-        Here you can set which filter groups the different user groups are
-        allowed to receive alerts for.
-    </p>
-    <p>
-        Denying a user group to receive alerts from a certain filter group will
-        not hide that filter group from the interface, so the users of that
-        user group can still add the filter group to their profiles. They
-        still won't receive any alerts that matches that filter group though.
-    </p>
-</div>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <div>
+        <input type="hidden" name="group" value="{{ selected_group.id }}" />
+        <input type="submit" value="Save permissions" class="button small" />
+      </div>
+    </form>
+  {% endif %}
 
 {% endblock %}

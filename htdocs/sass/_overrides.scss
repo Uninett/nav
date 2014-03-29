@@ -27,17 +27,28 @@
 
     &.success { @include alert-style($success-box-bg, $success-box-color, $success-box-border); }
     &.alert { @include alert-style($alert-box-bg, $alert-box-color, $alert-box-border); }
+    &.error { @include alert-style($alert-box-bg, $alert-box-color, $alert-box-border); }
     &.secondary { @include alert-style($info-box-bg, $info-box-color, $info-box-border); }
   }
 
 // Adds class for marking a button as active.
-// Shadow and color styles copied from mixin inset-shadow()
 button, .button {
     &.active {
-        box-shadow: $shiny-edge-size $shiny-edge-active-color inset;
-        background-color: darken($primary-color, $button-function-factor);
-        &.secondary { background-color: darken($secondary-color, $button-function-factor); }
-        &.alert { background-color: darken($alert-color, $button-function-factor); }
-        &.success { background-color: darken($success-color, $button-function-factor); }
+        background-color: scale-color($primary-color, $lightness: $button-function-factor);
+        &.secondary { background-color: scale-color($secondary-color, $lightness: $button-function-factor); }
+        &.alert { background-color: scale-color($alert-color, $lightness: $button-function-factor); }
+        &.success { background-color: scale-color($success-color, $lightness: $button-function-factor); }
+    }
+}
+
+// Add a white version of the panel
+.panel.white {
+    background-color: white;
+}
+
+// Override navbars default height because it casus display problems on medium screens
+@media #{$medium-up} {
+    .top-bar {
+        height: auto;
     }
 }

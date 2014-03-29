@@ -30,7 +30,7 @@ INFINITY = datetime.datetime.max
 MINIMUM_UPTIME_MINS = 60
 
 db_conn = None
-logger = None
+_logger = logging.getLogger('nav.maintengine')
 
 
 def _get_dbconn():
@@ -48,18 +48,9 @@ def _get_db():
     return _get_dbconn().cursor()
 
 
-def get_logger(log_name=None, log_file=None, log_format=None):
-    """Initialize logging setup"""
-    global logger
-    try:
-        # Make sure we don't initialize logging setup several times (in case
-        # of module reloads and such)
-        if logger:
-            return logger
-    except Exception, ex:
-        pass
+def init_logging(log_file=None, log_format=None):
+    """Initializes logging setup for maintenance engine"""
     root = logging.getLogger('')
-    logger = logging.getLogger(log_name)
     formatter = None
     if log_format:
         formatter = logging.Formatter(log_format)
@@ -77,7 +68,7 @@ def get_logger(log_name=None, log_file=None, log_format=None):
                 handler.setFormatter(formatter)
             root.addHandler(handler)
         nav.logs.set_log_levels()
-    return logger
+    return _logger
 
 
 def schedule():
@@ -177,15 +168,15 @@ def check_tasks_without_end():
                 boxes_still_on_maint.append(str(box_id))
         if len(boxes_still_on_maint) > 0:
             # Some boxes are still down...
-            get_logger().debug(
-                'Maintenance task %d: Boxes %s are still on maintenance' %
-                     (maint_id, ", ".join(boxes_still_on_maint)))
+            _logger.debug(
+                "Maintenance task %d: Boxes still on maintenance: %r",
+                maint_id, boxes_still_on_maint)
         else:
             # All affected boxes for this maintenance task have been up
             # again for the minimum time.
             time_now = datetime.datetime.now()
-            get_logger().warn("Maintenance task %d: Set end at %s" %
-                              (maint_id, str(time_now)))
+            _logger.warn("Maintenance task %d: Set end at %s",
+                         maint_id, time_now)
             sql = """UPDATE maint_task
                             SET maint_end = %s
                         WHERE maint_taskid = %s"""
@@ -194,13 +185,15 @@ def check_tasks_without_end():
 
 
 def check_state(events, maxdate_boxes):
-    """Checks if there are some maintenance tasks to be set active or
-    passed."""
+    """
+    Checks if there are some maintenance tasks to be set active or passed.
+    """
+    time_now = datetime.datetime.now()
 
     db = _get_db()
     sql = """SELECT maint_taskid FROM maint_task
-        WHERE maint_start < NOW() AND state = 'scheduled'"""
-    db.execute(sql)
+        WHERE maint_start < %s AND state = 'scheduled'"""
+    db.execute(sql, (time_now,))
     for (taskid,) in db.fetchall():
         sched_event = {}
         sched_event['type'] = 'active'
@@ -208,8 +201,8 @@ def check_state(events, maxdate_boxes):
         events.append(sched_event)
 
     sql = """SELECT maint_taskid, maint_end FROM maint_task
-        WHERE maint_end < NOW() AND state = 'active'"""
-    db.execute(sql)
+        WHERE maint_end < %s AND state = 'active'"""
+    db.execute(sql, (time_now,))
     for (taskid, maint_end) in db.fetchall():
         active_event = {}
         active_event['type'] = 'passed'
@@ -220,9 +213,9 @@ def check_state(events, maxdate_boxes):
     # Get boxes that should still stay on maintenance
     sql = """SELECT max(maint_end) AS maint_end, key, value
         FROM maint_task INNER JOIN maint_component USING (maint_taskid)
-        WHERE state = 'active' AND maint_end > NOW()
+        WHERE state = 'active' AND maint_end > %s
         GROUP BY key, value"""
-    db.execute(sql)
+    db.execute(sql, (time_now,))
     for (maint_end, key, value) in db.fetchall():
         boxids = get_boxids_by_key(key, value)
         for boxid in boxids:
@@ -267,20 +260,18 @@ def send_event(events, maxdate_boxes, boxes_off_maintenance):
                         WHERE locationid = %(locationid)s"""
                     data = {'locationid': val}
 
-                    get_logger().debug("location query: %s", sql % data)
+                    _logger.debug("location query: %s", sql % data)
                     db.execute(sql, data)
-                    get_logger().debug("location number of results: %d" %
-                                       db.rowcount)
+                    _logger.debug("location number of results: %d", db.rowcount)
                 elif key == 'room':
                     sql = """SELECT netboxid, sysname, deviceid
                         FROM netbox
                         WHERE roomid = %(roomid)s"""
                     data = {'roomid': val}
 
-                    get_logger().debug("room query: %s", sql % data)
+                    _logger.debug("room query: %s", sql % data)
                     db.execute(sql, data)
-                    get_logger().debug("room number of results: %d" %
-                                       db.rowcount)
+                    _logger.debug("room number of results: %d", db.rowcount)
 
                 for (netboxid, sysname, deviceid) in db.fetchall():
                     netboxes.append({'netboxid': netboxid,
@@ -294,10 +285,9 @@ def send_event(events, maxdate_boxes, boxes_off_maintenance):
                     WHERE netboxid = %(netboxid)s"""
                 data = {'netboxid': int(val)}
 
-                get_logger().debug("netbox query: %s", sql % data)
+                _logger.debug("netbox query: %s", sql % data)
                 db.execute(sql, data)
-                get_logger().debug("netbox number of results: %d" %
-                                   db.rowcount)
+                _logger.debug("netbox number of results: %d", db.rowcount)
                 result = db.fetchone()
 
                 if result:
@@ -313,10 +303,9 @@ def send_event(events, maxdate_boxes, boxes_off_maintenance):
                     WHERE serviceid = %(serviceid)s"""
                 data = {'serviceid': int(val)}
 
-                get_logger().debug("service query: %s", sql % data)
+                _logger.debug("service query: %s", sql % data)
                 db.execute(sql, data)
-                get_logger().debug("service number of results: %d" %
-                                   db.rowcount)
+                _logger.debug("service number of results: %d", db.rowcount)
                 result = db.fetchone()
 
                 if result:
@@ -337,7 +326,7 @@ def send_event(events, maxdate_boxes, boxes_off_maintenance):
                 if event_type == 'passed' and netbox['netboxid'] in maxdate_boxes:
                     netbox_id = netbox['netboxid']
                     if maxdate_boxes[netbox_id] > curr_event['maint_end']:
-                        get_logger().debug(
+                        _logger.debug(
                             "Skip stop event for netbox %s. It's on "
                             "maintenance until %s.",
                             str(netbox['netboxid']),
@@ -365,7 +354,7 @@ def send_event(events, maxdate_boxes, boxes_off_maintenance):
 
                 # Add event to eventq
                 result = event.post()
-                get_logger().debug("Event: %s, Result: %s", event, result)
+                _logger.debug("Event: %s, Result: %s", event, result)
 
         # Update state
         sql = """UPDATE maint_task
@@ -448,23 +437,23 @@ def remove_forgotten(boxes_off_maintenance):
 
         # If it's a service, we have to set subid also
         if subid is None:
-            get_logger().info("Box %s (%d) is on unscheduled maintenance. " +
-                        "Taking off maintenance now.", sysname, netboxid)
+            _logger.info("Box %s (%d) is on unscheduled maintenance. "
+                         "Taking off maintenance now.", sysname, netboxid)
             subid = False
         else:
-            get_logger().info("Service (%d) at box %s (%d) is on " +
-                              " unscheduled maintenance. Taking " +
-                              "off maintenance...",
-                subid, sysname, netboxid)
+            _logger.info(
+                "Service (%d) at box %s (%d) is on unscheduled maintenance. "
+                "Taking off maintenance...", subid, sysname, netboxid)
             subid = int(subid)
 
         # Create event
-        event = nav.event.Event(source=source, target=target,
+        event = nav.event.Event(
+            source=source, target=target,
             deviceid=deviceid, netboxid=netboxid, subid=subid,
             eventtypeid=eventtype, state=state, value=value, severity=severity)
 
         result = event.post()
-        get_logger().debug("Event: %s, Result: %s", event, result)
+        _logger.debug("Event: %s, Result: %s", event, result)
 
     # Commit transaction
     _get_dbconn().commit()

@@ -211,7 +211,8 @@ class StatCpuAverage(Stat):
     title = 'CPU Highest Average'
     data_filter = 'highestAverage({serieslist}, {rows})'
     graph_filter = '{target}'
-    serieslist = 'nav.devices.*.cpu.*.loadavg5min'
+    serieslist = 'group(nav.devices.*.cpu.*.loadavg5min,' \
+                 'nav.devices.*.cpu.cpu.utilization)'
 
     def __init__(self, *args, **kwargs):
         super(StatCpuAverage, self).__init__(*args, **kwargs)

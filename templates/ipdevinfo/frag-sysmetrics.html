@@ -1,0 +1,94 @@
+{% load thresholds %}
+
+<div id="sysmetrics">
+  {% if netbox %}
+    {% regroup system_metrics|find_rules by group as metric_groups %}
+
+    <div id="metrictabs">
+
+      {% if metric_groups %}
+      <ul>
+        {% for group in metric_groups %}
+          <li>
+            <a href="#metric{{ group.grouper }}">{{ group.grouper|capfirst }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+
+      {% elif graphite_error %}
+
+          <p data-alert class="alert-box alert">
+              Unable to get a response from Graphite!
+          </p>
+
+      {% else %}
+
+          <p data-alert class="alert-box secondary">
+              No metrics were found.
+          </p>
+
+      {% endif %}
+
+      {% for group in metric_groups %}
+        <div id="metric{{ group.grouper }}" class="nav-metrics-container">
+          <a href="javascript:void(0);" class="all-graph-opener button secondary small">Show all graphs</a>
+          <a href="javascript:void(0);" class="all-graph-closer button secondary small">Hide all graphs</a>
+
+          <div class="all-graph-buttons"></div>
+
+          <table class="listtable">
+
+            <caption>{{ group.grouper|capfirst }}</caption>
+
+            <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Threshold</th>
+              <th>&nbsp;</th>
+            <tr>
+            </thead>
+
+            <tbody>
+            {% for metric in group.list %}
+              <tr>
+                <td id="graph-toggler-{{ group.grouper }}-{{ forloop.counter }}" class="graph-toggler">
+                    <i class="fa fa-chevron-right"></i>&nbsp;{{ metric.suffix }}
+                </td>
+                <td>
+                  {% if metric.thresholds %}
+                    {% for rule in metric.thresholds %}
+                      <strong>
+                        <a href="{% url threshold-edit rule.id %}"
+                           {% if rule.description %}title="{{ rule.description }}"{% endif %}>
+                          {{ rule.alert }}
+                        </a>
+                      </strong>{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                  {% else %}
+                    &ndash;
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{% url threshold-add metric.id %}"
+                     title="Add a new threshold rule for this metric"
+                     class="tiny button secondary">
+                    Add
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="graphitegraph hide" colspan="3"
+                    data-url="{% url graphite-render-url metric.id %}"
+                    data-handler-id="graph-toggler-{{ group.grouper }}-{{ forloop.counter }}"></td>
+              </tr>
+            {% endfor %}
+            </tbody>
+
+          </table>
+
+        </div>
+      {% endfor %}
+
+    </div>
+  {% endif %}
+</div>

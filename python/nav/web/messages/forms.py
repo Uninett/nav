@@ -33,7 +33,8 @@ class MessageForm(ModelForm):
         self.helper = FormHelper()
         self.helper.form_action = ""
         self.helper.form_method = 'POST'
-        self.helper.add_input(Submit('submit', 'Save message'))
+        self.helper.add_input(Submit('submit', 'Save message',
+                                     css_class='small'))
 
         # Since the m2m uses through, we need to fetch initial data manually
         initials = []

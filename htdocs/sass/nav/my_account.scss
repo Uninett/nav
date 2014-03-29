@@ -1,0 +1,11 @@
+@import "../navsettings";
+
+#navigation-preferences { 
+	.asteriskField {
+		display:none;
+	}
+
+	.link-delete label{
+		color:$alert-color;
+	}
+}

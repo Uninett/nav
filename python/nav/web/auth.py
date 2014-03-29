@@ -22,44 +22,9 @@ import os
 import logging
 
 from nav.web import ldapauth
-from nav.models.profiles import Account, AccountNavbar
+from nav.models.profiles import Account
 
 logger = logging.getLogger("nav.web.auth")
-
-# FIXME Should probably be refactored out if this file, as it does not directly
-# have anything to do with authentication.
-def _find_user_preferences(user, req):
-    if not hasattr(user, "preferences"):
-        # if user preferences is not loaded, it's time to do so
-        user['preferences'] = {
-            'navbar': [],
-            'qlink1': [],
-            'qlink2': [],
-            'hidelogo': 0,
-        }
-        prefs = AccountNavbar.objects.select_related(
-            'navbarlink'
-        ).filter(account__id=user['id'])
-
-        if prefs.count() == 0:
-            # if user has no preferences set, use default preferences
-            prefs = AccountNavbar.objects.select_related(
-                'navbarlink'
-            ).filter(account__id=0)
-
-        for pref in prefs:
-            link = {
-                'name': pref.navbarlink.name,
-                'uri': pref.navbarlink.uri,
-            }
-            if pref.positions.count('navbar'):
-                user['preferences']['navbar'].append(link)
-            if pref.positions.count('qlink1'):
-                user['preferences']['qlink1'].append(link)
-            if pref.positions.count('qlink2'):
-                user['preferences']['qlink2'].append(link)
-        if req:
-            req.session.save() # remember this to next time
 
 
 def authenticate(username, password):
@@ -73,14 +38,14 @@ def authenticate(username, password):
     # Try to find the account in the database. If it's not found we can try
     # LDAP.
     try:
-        account = Account.objects.get(login=username)
+        account = Account.objects.get(login__iexact=username)
     except Account.DoesNotExist:
         if ldapauth.available:
             user = ldapauth.authenticate(username, password)
             # If we authenticated, store the user in database.
             if user:
                 account = Account(
-                    login=username,
+                    login=user.username,
                     name=user.get_real_name(),
                     ext_sync='ldap'
                 )
@@ -93,7 +58,7 @@ def authenticate(username, password):
         ldapauth.available and not auth):
         try:
             auth = ldapauth.authenticate(username, password)
-        except ldapauth.Error:
+        except ldapauth.NoAnswerError:
             # Fallback to stored password if ldap is unavailable
             auth = False
         else:

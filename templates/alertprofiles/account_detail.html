@@ -2,7 +2,7 @@
 
 {% block tabcontent %}
 
-  <a href="#" class="right" data-reveal-id="account_details">Groups and permissions</a>
+  <a href="#" class="right" data-reveal-id="account_details" data-reveal>Groups and permissions</a>
 
   {% if active_profile %}
     <h4>Active profile:
@@ -26,7 +26,7 @@
 
   {% endif %}
 
-  <div id="account_details" class="reveal-modal">
+  <div id="account_details" class="reveal-modal" data-reveal>
     <div class="row">
 
       <div class="column medium-4">

@@ -8,9 +8,6 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
         this.fetch_navlets_url = this.container.attr('data-list-navlets');
         this.save_ordering_url = this.container.attr('data-save-order-url');
 
-        this.activateOrderingButton = $('#navlet-ordering-activate');
-        this.saveOrderingButton = $('#navlet-ordering-save');
-
         this.navletSelector = '.navlet';
         this.sorterSelector = '.navletColumn';
 
@@ -25,9 +22,16 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
             this.column2 = $('<div class="large-6 medium-6 column navletColumn"/>').appendTo($row);
         },
         fetchNavlets: function () {
-            var that = this;
-            $.getJSON(this.fetch_navlets_url, function (data) {
-                var navlets = data, i, l;
+            var that = this,
+                request_config = {
+                    cache: false, // Need to disable caching because of IE
+                    dataType: 'json',
+                    url: this.fetch_navlets_url
+                },
+                request = $.ajax(request_config);
+
+            request.done(function (data) {
+                var i, l;
                 for (i = 0, l = data.length; i < l; i++) {
                     that.addNavlet(data[i]);
                 }
@@ -59,26 +63,21 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
             var that = this;
 
             this.container.find(this.sorterSelector).sortable({
-                disabled: true,
                 connectWith: '.navletColumn',
                 forcePlaceholderSize: true,
-                placeholder: 'highlight'
+                handle: '.navlet-drag-button',
+                placeholder: 'highlight',
+                start: function () {
+                    that.getNavlets().addClass('outline');
+                },
+                stop: function () {
+                    that.getNavlets().removeClass('outline');
+                },
+                update: function () {
+                    that.saveOrder(that.findOrder());
+                }
             });
 
-            this.activateOrderingButton.click(function () {
-                that.activateOrdering();
-            });
-
-            this.saveOrderingButton.click(function () {
-                that.saveOrder(that.findOrder());
-            });
-
-        },
-        activateOrdering: function () {
-            this.getSorter().sortable('option', 'disabled', false);
-            this.getNavlets().addClass('outline');
-            this.activateOrderingButton.hide();
-            this.saveOrderingButton.show();
         },
         findOrder: function () {
             var ordering = {column1: {}, column2: {}};
@@ -91,15 +90,7 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
             return ordering;
         },
         saveOrder: function (ordering) {
-            var that = this,
-                jqxhr = $.post(this.save_ordering_url, JSON.stringify(ordering));
-
-             jqxhr.done(function () {
-                 that.getSorter().sortable('option', 'disabled', true);
-                 that.getNavlets().removeClass('outline');
-                 that.activateOrderingButton.show();
-                 that.saveOrderingButton.hide();
-             });
+            $.post(this.save_ordering_url, JSON.stringify(ordering));
         },
         getNavlets: function (column) {
             if (column) {
@@ -108,10 +99,6 @@ define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController)
                 return this.container.find(this.navletSelector);
             }
         },
-        getSorter: function () {
-            return this.container.find(this.sorterSelector);
-        }
-
     };
 
     return NavletsController;

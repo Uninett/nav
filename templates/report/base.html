@@ -1,15 +1,18 @@
 {% extends "base.html" %}
+{% load tools %}
 
 {% block base_header_additional_head %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/report.css"  />
-    <script>require(["src/report"]);</script>
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/report.css"/>
+  <script>require(["src/report"]);</script>
 {% endblock base_header_additional_head %}
 
 {% block base_content %}
 
-    <h2>{{ heading }}</h2>
+  {% with tool=current_user_data.tools|get_tool:'Report' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
 
-    {% block content %}
-    {% endblock content %}
+  {% block content %}
+  {% endblock content %}
 
 {% endblock base_content %}

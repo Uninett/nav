@@ -1,5 +1,3 @@
-@import "../foundation/components/global";
-
 #netboxes .dataTables_wrapper {
     display: inline-block;
     margin-bottom: 1em;
@@ -39,22 +37,6 @@ img.textbottom {
     vertical-align: text-bottom;
 }
 
-#downloadify {
-    padding-top: 5px;
-}
-
-.helperdialog div {
-    background-color: #ced8e3;
-    padding: 1em;
-    margin: 1em 0;
-}
-
-
-/* Slider styles */
-.slider-wrapper {
-    width: 600px;
-}
-
 /* Drag styles */
 .drag {
     cursor: grab;
@@ -70,24 +52,14 @@ img.textbottom {
 
 /* Image cards */
 .imagecard {
+    background-color: white;
     border: 1px solid #DDDDDD;
-    display: inline-block;
-    vertical-align: top;
     padding: 0.5em 1em;
-    margin-right: 2em;
-    margin-bottom: 2em;
-    width: 100%;
-    .heading {
-        margin-bottom: 0.3em;
-    }
     img {
         width: 100%;
-        margin-bottom: 0.3em;
     }
     .actions {
         overflow: hidden;
-        margin-bottom: 0.3em;
-        clear: both;
         i {
             margin-left: 0.5em;
             cursor: pointer;
@@ -96,20 +68,129 @@ img.textbottom {
     .meta {
         font-size: 0.7em;
     }
-    p.drag {
-        margin-bottom: 0;
-        text-align: center;
-        i {
-            color: #bbbbbb;
+    .heading {
+        border-bottom: 1px solid #DDDDDD;
+        input {
+            margin-bottom: 0;
         }
     }
 }
 
-/* Use Foundation variable to set styles based on media queries
- * See: http://foundation.zurb.com/docs/v/4.3.2/media-queries.html
- */
-@media #{$small} {
-    .imagecard {
-        width: 300px;
+
+/* Image Clearing adjustments on Room Info tab. block-grid and clearing-thumbs classes clash */
+.clearing-thumbs {
+    &[class*="block-grid-"] {
+        margin-left: -10px;
+        li { margin-right: auto; }
     }
 }
+
+/* Prevent OpenStreetmap to show through the image clearing */
+.clearing-blackout {
+    z-index: 1010;
+}
+
+#room_map {
+    height: 300px;
+    width: auto;
+}
+
+/* Feedback when user is on the upload page */
+.user-feedback {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    z-index: 10000;
+    > div {
+        margin-left: auto;
+        margin-right: auto;
+        width: 300px;
+        top: -50px;
+    }
+}
+
+
+/*
+ * Styles for everything in the environment tab
+ */
+
+.room-sensor {
+    width: 300px;
+    margin-bottom: 3em;
+    .legendwrapper {
+        margin-bottom: 0.5em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        span {
+            color: grey;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+    }
+    .current {
+        width: 300px;
+        &.counter {
+            width: 150px;
+            padding-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        height: 200px;
+        .counter-node {
+            background-color: steelblue;
+            color: white;
+            font-family: Arial;
+            height: 150px;
+            line-height: 9em;
+            text-align: center;
+            width: 150px;
+            .values {
+                display: inline-block;
+                line-height: normal;
+                vertical-align: middle;
+                .value {
+                    font-size: 3em;
+                }
+            }
+        }
+    }
+    .rs-graph {
+        position: relative;
+        margin-top: 1em;
+        .rs-ynode {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 40px;
+        }
+        .rs-graphnode {
+            margin-left: 40px;
+            position: relative;
+        }
+    }
+}
+
+.rickshaw_graph {
+    .detail {
+        z-index: 100;
+        .date { color: #a0a0a0 }
+        .x_label { display: none }
+        .item { line-height: 1.4; padding: 0.5em }
+        .series_value { padding-right: 20px; width: 200px; white-space: pre-wrap}
+        .detail_swatch {
+            float: right;
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            margin: 2px 4px 0 0
+        }
+    }
+    .x_tick .title {
+        bottom: -15px;
+        left: -19px;
+    }
+}
+

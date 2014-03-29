@@ -36,7 +36,7 @@ def get_sensor_meta(metric_path):
         return dict()
     assert isinstance(sensor, Sensor)
 
-    meta = dict(alias=sensor.name)
+    meta = dict(alias=sensor.human_readable.replace("\n", " ") or sensor.name)
     scale = (sensor.get_data_scale_display()
              if sensor.data_scale != sensor.SCALE_UNITS else None) or ''
     uom = (sensor.unit_of_measurement
@@ -76,6 +76,14 @@ META_LOOKUPS = (
      dict(unit="bytes", yUnitSystem="binary")),
     (re.compile(r'\.(roundTripTime|responseTime)$'), dict(unit="seconds")),
 
+    (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.ping\.roundTripTime$'),
+     dict(alias="{sysname}", title="Ping packet round trip time")),
+    (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.ping\.packetLoss$'),
+     dict(alias="{sysname}", title="Ping packet loss")),
+
+    (re.compile(r'\.ipdevpoll\..*\.runtime$'),
+     dict(transform="keepLastValue({id})")),
+
 )
 
 
@@ -89,9 +97,9 @@ class Graph(object):
     """
     def __init__(self, title=u'', width=480, height=250, targets=None,
                  magic_targets=None):
-        self.args = dict(template=u'nav',
-                         title=title, width=width, height=height,
-                         yMin=0)
+        self.args = dict(template=u'nav', width=width, height=height, yMin=0)
+        if title:
+            self.args['title'] = title
 
         if targets:
             for target in targets:
@@ -146,6 +154,8 @@ class Graph(object):
             self.args['vtitle'] = meta['unit']
         if meta['yUnitSystem']:
             self.args['yUnitSystem'] = meta['yUnitSystem']
+        if 'title' in meta:
+            self.args['title'] = meta['title']
 
         return target
 

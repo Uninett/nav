@@ -1,0 +1,10 @@
+{% if formset.non_form_errors %}
+  {% if formset_error_title %}<h3>{{ formset_error_title }}</h3>{% endif %}
+  {% for non_form_error in formset.non_form_errors %}
+    <div class="alert-box alert">
+      {{ non_form_error }}
+    </div>
+  {% endfor %}
+
+{% endif %}
+

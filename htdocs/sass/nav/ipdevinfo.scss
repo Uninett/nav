@@ -72,7 +72,7 @@
 
 /* Port legend box */
 #portlegend table th, #portlegend table td {
-	padding: 0.3em;
+	padding: 0.5em;
 }
 #portlegend table td {
 	padding-right: 1em;
@@ -82,50 +82,52 @@
 	padding: 0.2em;
 }
 
-/* Speed legend */
-.passive {
-	background: #ccc;
-}
-.disabled {
-	background: #c99;
-}
-.Mb10 {
-	background: #deebf7;
-}
-.Mb100 {
-	background: #c6dbef;
-}
-.Mb1000 {
-	background: #aecae1;
-}
-.Mb10000 {
-	background: #8baed6;
+.module, #portlegend {
+    /* Speed legend */
+    .passive {
+        background: #ccc;
+    }
+    .disabled {
+        background: #c99;
+    }
+    .Mb10 {
+        background: #deebf7;
+    }
+    .Mb100 {
+        background: #c6dbef;
+    }
+    .Mb1000 {
+        background: #aecae1;
+    }
+    .Mb10000 {
+        background: #8baed6;
+    }
+    /* Frame legend */
+    .hduplex {
+        border: 1px dashed #666;
+    }
+    .fduplex {
+        border: 1px solid #666;
+    }
+    .trunk {
+        border: 3px double #666;
+    }
+    .blocked {
+        text-decoration: line-through;
+    }
+
+    /* Activity legend */
+    .inactive {
+        border: 1px dashed #666;
+    }
+    .active {
+        border: 1px dashed #333;
+    }
+    .link {
+        border: 1px solid #666;
+    }
 }
 
-/* Frame legend */
-.hduplex {
-	border: 1px dashed #666;
-}
-.fduplex {
-	border: 1px solid #666;
-}
-.trunk {
-	border: 3px double #666;
-}
-.blocked {
-	text-decoration: line-through;
-}
-
-/* Activity legend */
-.inactive {
-	border: 1px dashed #666;
-}
-.active {
-	border: 1px dashed #333;
-}
-.link {
-	border: 1px solid #666;
-}
 
 /* Service table */
 .status_up {
@@ -153,6 +155,11 @@
     text-align: right;
 }
 
+table.module {
+  border-collapse: separate;
+  border-spacing: 0.2em;
+}
+
 table.module td div.portcell {
     position: relative;
     width: 100%;
@@ -165,35 +172,33 @@ table.module td div.portcell span.oplayer {
     font-size: 0.8em;
 }
 
-
-/* Affected */
-
-#affected {
-    border: 1px solid #999;
-    border-radius: 5px;
-    padding: 1em;
-    background-color: #eee;
-}
-
-#affected input[type=submit] {
-    padding: 0.3em 1em;
-}
-
-#affected h3 img {
-    vertical-align: baseline;
-}
-
 #metrictabs.ui-tabs, #moduletabs.ui-tabs {
 	display:block;
 }
 
-
-/* Graphs */
-.graphitegraph {
-    margin-right: 1em;
-    margin-bottom: 1em;
+#portmetrics {
+    strong {
+        margin-left: 0.4em;
+    }
+    .graphitegraph {
+        margin-left: 1.5em;
+        img {
+            border: 1px solid #DDDDDD;
+        }
+    }
+    .floatme {
+        background: #ffffff;
+        border-bottom: 2px solid white;
+        border-right: 2px solid white;
+        position: fixed;
+        top: 0px;
+        z-index: 200;
+        button, .button {
+            margin-bottom: 0;
+        }
+        .button-group:last-child {
+            margin-right: 0;
+        }
+    }
 }
 
-.graph-toggler {
-    cursor: pointer;
-}

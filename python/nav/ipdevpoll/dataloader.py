@@ -83,7 +83,6 @@ class NetboxLoader(dict):
                              AND eventtypeid='snmpAgentState'
                              AND end_time >= 'infinity' """
         queryset = (manage.Netbox.objects.select_related(*related).
-                    filter(up='y').
                     extra(select={'snmp_up': snmp_up_query}))
         netbox_list = storage.shadowify_queryset(queryset)
         netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)
@@ -142,6 +141,7 @@ def is_netbox_changed(netbox1, netbox2):
                  'read_only',
                  'snmp_version',
                  'device',
+                 'up',
                  'snmp_up',
                  ):
         if getattr(netbox1, attr) != getattr(netbox2, attr):

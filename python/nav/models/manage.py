@@ -37,7 +37,8 @@ from nav.metrics.templates import (
     metric_prefix_for_ports,
     metric_prefix_for_device,
     metric_path_for_packet_loss,
-    metric_path_for_roundtrip_time
+    metric_path_for_roundtrip_time,
+    metric_path_for_sensor
 )
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
@@ -93,6 +94,10 @@ class Netbox(models.Model):
 
     def __unicode__(self):
         return self.get_short_sysname()
+
+    def is_up(self):
+        """Returns True if the Netbox isn't known to be down or in shadow"""
+        return self.up == self.UP_UP
 
     def get_absolute_url(self):
         kwargs = {
@@ -655,9 +660,6 @@ class NetboxType(models.Model):
             specific = self.sysobjectid[len(prefix):]
             enterprise = specific.split('.')[0]
             return long(enterprise)
-        else:
-            raise ValueError("%r is not a valid sysObjectID" %
-                             self.sysobjectid)
 
 #######################################################################
 ### Device management
@@ -1337,6 +1339,12 @@ class Sensor(models.Model):
     class Meta:
         db_table = 'sensor'
 
+    def get_metric_name(self):
+        return metric_path_for_sensor(self.netbox.sysname, self.internal_name)
+
+    def get_graph_url(self):
+        return get_simple_graph_url([self.get_metric_name()])
+
 
 class PowerSupplyOrFan(models.Model):
     STATE_UP = u'y'
@@ -1365,6 +1373,11 @@ class PowerSupplyOrFan(models.Model):
     class Meta:
         db_table = 'powersupply_or_fan'
 
+    def get_unresolved_alerts(self):
+        """Returns a queryset of unresolved psuState alerts for this unit"""
+        return self.netbox.get_unresolved_alerts().filter(
+            event_type__id__in=['psuState', 'fanState'],
+            subid=self.id)
 
 class UnrecognizedNeighbor(models.Model):
     id = models.AutoField(primary_key=True)

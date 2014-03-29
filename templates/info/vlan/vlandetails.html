@@ -105,16 +105,16 @@
 
     {% comment %} Graph with stacked ip-address count from all ipv4 and ipv6 prefixes {% endcomment %}
     <h2>Vlan graphs</h2>
-    <div class="vlangraph float-left" data-vlan="{{ vlan.id }}" data-family="4"></div>
+    <div class="vlangraph graphitegraph left" data-vlan="{{ vlan.id }}" data-family="4"></div>
 
-    <div class="vlangraph float-left" data-vlan="{{ vlan.id }}" data-family="6"></div>
+    <div class="vlangraph graphitegraph left" data-vlan="{{ vlan.id }}" data-family="6"></div>
 
     <div class="float-clear"></div>
 
     {% comment %} Graph for each prefix containing ip-addresses, mac-addresses and size of range {% endcomment %}
     <h2>Prefix graphs</h2>
     {% for prefix in prefixes %}
-        <div class="prefixgraph float-left" data-prefix="{{ prefix.id }}"></div>
+        <div class="prefixgraph graphitegraph left" data-prefix="{{ prefix.id }}"></div>
     {% endfor %}
 
     <div class="float-clear"></div>

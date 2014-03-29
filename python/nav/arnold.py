@@ -93,7 +93,7 @@ class ChangePortVlanError(GeneralException):
 
 
 class NoDatabaseInformationError(GeneralException):
-    """Could not find information in database for id"""
+    """No information available for id"""
     pass
 
 
@@ -157,7 +157,7 @@ class NoReadWriteCommunityError(GeneralException):
     pass
 
 
-def find_id_information(ip_or_mac, limit):
+def find_id_information(ip_or_mac, limit, trunk_ok=False):
     """Look in arp and cam tables to find camtuple with ip_or_mac
 
     Returns $limit number of Candidates
@@ -209,7 +209,7 @@ def find_id_information(ip_or_mac, limit):
 
     cursor.execute(query, [ip_or_mac, limit])
     result = dictfetchall(cursor)
-    candidates = create_candidates(result)
+    candidates = create_candidates(result, trunk_ok)
     if candidates:
         return candidates
     else:
@@ -244,7 +244,7 @@ def dictfetchall(cursor):
         zip([col[0] for col in desc], row)) for row in cursor.fetchall()]
 
 
-def create_candidates(caminfos):
+def create_candidates(caminfos, trunk_ok=False):
     """Create candidates"""
     candidates = []
     for caminfo in caminfos:
@@ -252,7 +252,7 @@ def create_candidates(caminfos):
             caminfo['ip'] = '0.0.0.0'
         try:
             interface = Interface.objects.get(pk=caminfo['interfaceid'])
-            raise_if_detainment_not_allowed(interface)
+            raise_if_detainment_not_allowed(interface, trunk_ok=trunk_ok)
         except (Interface.DoesNotExist, DetainmentNotAllowedError):
             continue
         else:
@@ -262,9 +262,9 @@ def create_candidates(caminfos):
     return candidates
 
 
-def find_computer_info(ip_or_mac):
+def find_computer_info(ip_or_mac, trunk_ok=False):
     """Return the latest entry from the cam table for ip_or_mac"""
-    return find_id_information(ip_or_mac, 5)[0]
+    return find_id_information(ip_or_mac, 5, trunk_ok)[0]
 
 
 def disable(candidate, justification, username, comment="", autoenablestep=0):
@@ -303,12 +303,12 @@ def quarantine(candidate, qvlan, justification, username, comment="",
                 identity.status, identity.ip, identity.mac))
 
 
-def check_target(target):
+def check_target(target, trunk_ok=False):
     """Check if target can be blocked or not"""
     LOGGER.debug('Checking target %s', target)
     if find_input_type(target) == 'IP':
         check_non_block(target)
-    find_computer_info(target)
+    find_computer_info(target, trunk_ok)
 
 
 def check_identity(candidate):
@@ -354,7 +354,7 @@ def create_event(identity, comment, username):
     event.save()
 
 
-def raise_if_detainment_not_allowed(interface):
+def raise_if_detainment_not_allowed(interface, trunk_ok=False):
     """Raises an exception if this interface should not be detained"""
     netbox = interface.netbox
     config = get_config(CONFIGFILE)
@@ -365,7 +365,7 @@ def raise_if_detainment_not_allowed(interface):
         LOGGER.info("Not allowed to detain on %s" % (netbox.category.id))
         raise WrongCatidError(netbox.category)
 
-    if interface.trunk:
+    if not trunk_ok and interface.trunk:
         LOGGER.info("Cannot detain on a trunk")
         raise BlockonTrunkError
 
@@ -464,6 +464,7 @@ def change_port_vlan(identity, vlan):
         LOGGER.info('Setting vlan %s on interface %s' % (vlan, interface))
         try:
             agent.set_vlan(interface.ifindex, vlan)
+            agent.restart_if(interface.ifindex)
         except Exception as error:
             raise ChangePortVlanError(error)
         else:

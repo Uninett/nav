@@ -1,0 +1,18 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  <form method="POST" action="{% url get-user-navlet navlet.navlet_id %}">
+    <input type="hidden" name="id" value="{{ navlet.navlet_id }}">
+
+    <label for="graphWidgetUrl">URL</label>
+    <input id="graphWidgetUrl" type="text" name="url"
+           value="{{ graph_url|default_if_none:'' }}" placeholder="URL">
+
+    <label for="chart_refresh_interval">Refresh interval in seconds (requires reload of page)</label>
+    <input id="chart_refresh_interval" type="text" name="interval" value="{{ interval }}">
+
+    <input type="submit" value="Save changes" class="button small">
+  </form>
+
+{% endblock %}

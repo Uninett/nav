@@ -37,6 +37,12 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 'class': 'navlet'
             });
 
+            $div.addClass(this.navlet.navlet_class);
+
+            if (this.navlet.highlight) {
+                $div.addClass('colorblock-navlet');
+            }
+
             this.renderNode.append($div);
             return $div;
         },
@@ -123,7 +129,11 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             /* Applies listeners to the relevant elements */
             this.applyModeListener();
             this.applyRemoveListener();
+//            this.applyReloadListener();
             this.applySubmitListener();
+            if (this.navlet.is_title_editable) {
+                this.applyTitleListener();
+            }
             this.applyOnRenderedListener();
         },
         applyModeListener: function () {
@@ -156,6 +166,13 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 }
             });
         },
+        applyReloadListener: function () {
+            var that = this,
+                reloadButton = this.node.find('.navlet-reload-button');
+            reloadButton.on('click', function () {
+                that.renderNavlet();
+            });
+        },
         applySubmitListener: function () {
             /*
              * Make sure a form in edit-mode is submitted by ajax, so that the
@@ -183,8 +200,42 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 });
             }
         },
+        applyTitleListener: function () {
+            /* Feel free to refactor this mess */
+            var self = this;
+            this.node.find('.subheader').click(function () {
+                var $header = $(this),
+                    $container = $($header.parents('.title-container').get(0)),
+                    $input = $('<input type="text">').val($header.find('.navlet-title').text());
+
+                $header.hide();
+                $container.append($input);
+                $input.on('keydown', function (event) {
+                    if (event.which === 13) {
+                        var request = $.post($header.attr('data-set-title'),
+                            {
+                                'id': self.navlet.id,
+                                'preferences': JSON.stringify({
+                                    'title': $input.val()
+                                })
+                            }
+                        );
+                        request.done(function () {
+                            $header.find('.navlet-title').text($input.val());
+                        });
+                        request.error(function () {
+                            alert("The Oompa Loompas didn't want to change the title (an error occured) - sorry!");
+                        });
+                        request.always(function () {
+                            $input.remove();
+                            $header.show();
+                        });
+                    }
+                });
+            });
+        },
         applyOnRenderedListener: function () {
-            this.container.triggerHandler('navlet-rendered', [this.node]);
+            this.container.trigger('navlet-rendered', [this.node]);
         },
         displayError: function (errorMessage) {
             this.getOrCreateErrorElement().text(errorMessage);

@@ -21,6 +21,7 @@ from nav.models.thresholds import ThresholdRule
 
 register = template.Library()
 
+
 @register.filter
 def find_rules(metrics):
     """
@@ -28,7 +29,8 @@ def find_rules(metrics):
     list.
 
     :param metrics: A list of modifiable dict() objects that each must at
-                    least contain the key 'id', which should refer to a metric id.
+                    least contain the key 'id', which should refer to a metric
+                    id.
     :type metrics: list(dict(), ...)
     :return: The modified metrics list, with each dict() object having a
              thresholds key added.
@@ -41,6 +43,15 @@ def find_rules(metrics):
             if pat.match(metric['id']):
                 thresholds.append(rule)
     return metrics
+
+
+@register.filter
+def find_thresholds(metric):
+    """Finds the threshold set for this metric"""
+    rules = [(r.get_pattern(), r) for r in ThresholdRule.objects.all()]
+    thresholds = [rule for pat, rule in rules if pat.match(metric)]
+    return ",".join([t.alert for t in thresholds])
+
 
 @register.filter
 def alerts(rules):

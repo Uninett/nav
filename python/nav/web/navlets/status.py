@@ -13,11 +13,12 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+# pylint: disable=E1101
 """Status navlet"""
+
 import simplejson
 from datetime import datetime
 from django.http import HttpResponse
-from django.shortcuts import redirect
 
 from nav.django.utils import get_account
 from nav.models.manage import Netbox
@@ -25,6 +26,7 @@ from nav.models.profiles import AccountNavlet
 from nav.web.navlets import (Navlet, REFRESH_INTERVAL, NAVLET_MODE_VIEW,
                              NAVLET_MODE_EDIT)
 from nav.web.webfront.utils import boxes_down
+from nav.web.status.sections import get_user_sections
 
 
 class StatusNavlet(Navlet):
@@ -37,6 +39,17 @@ class StatusNavlet(Navlet):
 
     def get_template_basename(self):
         return "status"
+
+    def get(self, request, *args, **kwargs):
+        """Fetch all status and display it to user"""
+        sections = get_user_sections(request.account)
+        problems = 0
+        for section in sections:
+            if section.history and section.devicehistory_type != 'a_boxDown':
+                problems += len(section.history)
+        context = self.get_context_data(**kwargs)
+        context['problems'] = problems
+        return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
         context = super(StatusNavlet, self).get_context_data(**kwargs)
@@ -58,6 +71,7 @@ class StatusNavlet(Navlet):
         return context
 
     def post(self, request):
+        """Save refresh interval for this widget"""
         account = get_account(request)
         try:
             interval = int(request.POST.get('interval')) * 1000

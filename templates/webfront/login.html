@@ -4,37 +4,42 @@
 <html>
 
 <head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-    <title>NAV Login</title>
-    <link rel="stylesheet" href="/static/css/nav.css" />
-    <link rel="stylesheet" href="/static/css/nav/login.css" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NAV Login</title>
+  <link rel="stylesheet" href="/static/css/nav.css"/>
+  <link rel="stylesheet" href="/static/css/nav/login.css"/>
 </head>
 
 <body onload="document.getElementById('id_username').focus();">
 
-<div class="row logincontainer">
-    <div class="large-3 medium-4 large-centered medium-centered column">
-        <img src="{{ STATIC_URL }}images/main/navlogo-281x100.png" alt="NAV" class="navlogo"/>
+<div class="row">
+  <div class="small-12 column">
 
-        {% if origin %}
-            <div class="alert-box secondary">
-                After successfully logging in, you will be redirected to:<br/>
-                {{ origin }}
-            </div>
-        {% endif %}
+    <div class="panel logincontainer">
+      <div class="logo-wrapper">
+        <a href="/">
+          <img src="{{ STATIC_URL }}images/main/nav-logo-black.svg" alt="NAV"
+               class="navlogo"/>
+        </a>
+      </div>
 
-        {% if errors %}
-            <div class="alert-box alert">
-                <ul class="no-bullet">
-                    {% for e in errors %}
-                        <li>{{ e }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endif %}
+      {% for e in errors %}
+        <div class="alert-box alert">
+          {{ e }}
+        </div>
+      {% endfor %}
 
-        {% crispy form %}
+      {% if origin %}
+        <div class="alert-box secondary">
+          After successfully logging in, you will be redirected to:<br/>
+          {{ origin }}
+        </div>
+      {% endif %}
+
+      {% crispy form %}
     </div>
+  </div>
 </div>
 
 </body>

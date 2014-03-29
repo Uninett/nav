@@ -3,6 +3,7 @@
 
 {% block base_header_additional_head %}
     <link href="{{ STATIC_URL }}css/nav/info_room.css"  rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"  rel="stylesheet">
     <script>require(["src/info_room_upload"]);</script>
 {% endblock %}
 
@@ -10,56 +11,68 @@
 
   <div class="row">
     <div class="column small-12">
-      <a href="#" data-reveal-id="add_image_help" class="small secondary button right">Help</a>
-      <h4>Images in {{ room.id }}</h4>
+      <a href="#" data-reveal-id="add_image_help" class="small secondary button right" data-reveal>Help</a>
+      <h3>Images for {{ room.id }}</h3>
     </div>
   </div>
 
-  <div id="add_image_help" class="reveal-modal">
+  <div id="add_image_help" class="reveal-modal" data-reveal>
     <ul class="inside">
       <li>
         Add an image by clicking the file dialog, locating the image you want and clicking "Upload image"
       </li>
       <li>
-        Captions may contain html - you can for instance create links
-      </li>
-      <li>
-        Sort the images by dragging the <img src="{{ STATIC_URL }}images/icons/drag.png"> (if more than 1 image)
+        Sort the images by dragging the <i class="fa fa-arrows"></i> (if more than 1 image)
       </li>
     </ul>
   </div>
+
+  <p><a href="{% url room-info room.id %}">Back to room</a></p>
 
   <form action="{% url room-info-upload room.id %}" method="POST" enctype="multipart/form-data">
     {% crispy uploadform %}
   </form>
 
-  <div id="editimages">
+  <div class="user-feedback">
+    {% for message in messages %}
+      <div class="alert-box {{ message.tags }}" data-alert>
+        {{ message }}
+        <a href="#" class="close">&times;</a>
+      </div>
+    {% endfor %}
+  </div>
+
+  <ul id="editimages" class="large-block-grid-4">
   {% for image in room.image_set.all %}
-  <div data-imageid="{{ image.id }}" class="imagecard">
-    <div class="actions">
-      <i class="fa fa-times right delete" title="Delete image"></i>
-      <i class="fa fa-edit right edit" title="Edit image caption"></i>
-    </div>
-    <div class="heading">{{ image.title|safe }}</div>
+    <li class="imagecardcontainer">
+      <div data-imageid="{{ image.id }}" class="imagecard">
+        <div class="actions">
+          <i class="fa fa-times right delete" title="Delete image"></i>
+          <i class="fa fa-edit right edit" title="Edit image caption"></i>
+          <i class="fa fa-arrows right drag"
+             title="Change display order by dragging the image"></i>
+        </div>
+        <h5 class="heading">{{ image.title|safe }}</h5>
 
-    {% if image.image_exists and image.is_readable %}
-      <img src="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}">
-    {% else %}
-      {% if not image.image_exists %}
-        <span class="alert-box alert">Image does not exist</span>
-      {% else %}
-        <span class="alert-box alert">Image exists but is not readable</span>
-      {% endif %}
-    {% endif %}
+        {% if image.image_exists and image.is_readable %}
+          <img src="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}">
+        {% else %}
+          {% if not image.image_exists %}
+            <span class="alert-box alert">Image does not exist</span>
+          {% else %}
+            <span class="alert-box alert">Image exists but is not readable</span>
+          {% endif %}
+        {% endif %}
 
-    <div class="meta">
-      <div class="left">{{ image.uploader.name }}</div>
-      <div class="right">{{ image.created }}</div>
-    </div>
-    <div class="float-clear"></div>
-    <p class="drag"><i class="fa fa-bars" title="Change display order by dragging the image"></i></p>
-  </div>
+        <div class="meta">
+          <div class="left">{{ image.uploader.name }}</div>
+          <div class="right">{{ image.created }}</div>
+        </div>
+        <div class="float-clear"></div>
+      </div>
+    </li>
+
   {% endfor %}
-  </div>
+  </ul>
 
 {% endblock %}

@@ -1,26 +1,113 @@
 /* Custom global styles */
+@import '../navsettings';
+
+/* NAV logo top-bar style */
+.top-bar {
+    .name h1 {
+        a {
+            padding: 0;
+            .nav-logo {
+                position: relative;
+                height: 28px;
+                top: -2px;
+            }
+        }
+    }
+}
+
+@media #{$medium-up} {
+    #navbar-search-form {
+        width: 400px;
+    }
+}
+
+/* MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP  */
+#megadroptoggler {
+    i {
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 16px;
+    }
+}
 
 #megadrop {
-    background-color: #f8f8ff;
-    border: 1px solid #dcdcdc;
+    background-color: white;
+    border-bottom: 5px solid #027BBB;
     position: absolute;
-    top: 45px;
-    z-index: 100;
+    z-index: 10000;
+    -webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
     ul {
         margin-top: 1em;
         li {
-            margin: 0.2em 0;
+            margin: 1em 0;
+            a { color: black; }
         }
     }
     img {
-        height: 32px;
-        width: 32px;
+        height: 24px;
+        width: 24px;
+    }
+    h5 { margin-top: 1.3em; }
+}
+
+/* Dashboard control center */
+#widgets-action-add {
+    background-color: $topbar-bg-color;
+    box-shadow: 0px 3px 5px grey;  // Christine allowed this =)
+    padding: 0.5rem 0.6rem 0.4rem 0.7rem;
+    position: absolute;
+    right: 0;
+    top: 0;
+    i { color: white; }
+    &:hover {
+        background-color: $primary-color;
+        cursor: pointer;
     }
 }
 
-footer {
-    font-size: 0.9em;
+
+/* Padding for all pages */
+
+.top-bar, #megadrop {
+    padding-left: $global-padding;
+    padding-right: $global-padding;
 }
+
+.navbody, .breadcrumbs {
+    padding-left: $body-padding;
+    padding-right: $body-padding;
+}
+
+@media #{$small-only} {
+    footer, .top-bar, #megadrop {
+        padding-left: $global-padding-small;
+        padding-right: $global-padding-small;
+    }
+
+    .navbody, .breadcrumbs {
+        padding-left: $body-padding-small;
+        padding-right: $body-padding-small;
+    }
+}
+
+.navbody {
+    margin-bottom: 1em;
+}
+
+.breadcrumbs {
+    padding-top: 0.5625em;
+    padding-bottom: 0.5625em;
+}
+
+/* Background-color for main display elements  */
+.tabs .tabcontent, .ui-tabs .ui-tabs-panel, .accordion .tabactive {
+    background-color: #fff;
+}
+
+fieldset legend {
+    background-color: transparent;
+}
+
 
 .full-width {
     width: 100%;
@@ -46,16 +133,6 @@ footer {
         vertical-align: middle;
     }
 }
-
-
-/* Custom base page styles */
-
-#toolboxdropdown img {
-    height: 24px;
-    width: 24px;
-    vertical-align: middle;
-}
-
 
 /* Custom form styles */
 
@@ -113,10 +190,6 @@ ul.ui-tabs-nav {
 
 /* List styles */
 
-ul, ol, dl {
-    margin-left: 1.2em;
-}
-
 ul.errorlist {
     margin-bottom: 0;
     list-style-type: none;
@@ -159,7 +232,6 @@ li.list-header {
     font-size:28px;
     position:relative;
     top:3px;
-    padding:0 10px 0 15px;
 }
 
 
@@ -209,8 +281,48 @@ form.inline-form {
     overflow: auto;
 }
 
-
+/* Reveal modal should always be as high as possible */
+//.reveal-modal {
+//    top: 0px;
+//}
 /* Alert icon */
 .deleteicon {
     color: #d2322d;
+}
+
+
+/* NAV header */
+.nav-header {
+    h2 {
+        margin-bottom: 0;
+    }
+    h5 {
+        position: relative;
+        font-size: 1em;
+        top: -10px;
+    }
+}
+
+/* Debug */
+#debug {
+    background-color: #ffffff;
+}
+
+/* Foundation does strange things with select multiple */
+select[multiple] {
+    background: #FFFFFF;
+    height: auto;
+}
+
+/* Style graphtite graph elements */
+.graphitegraph {
+    margin-right: 1em;
+    margin-bottom: 1em;
+    button {
+        margin-bottom: 0;
+    }
+}
+
+.graph-toggler {
+    cursor: pointer;
 }

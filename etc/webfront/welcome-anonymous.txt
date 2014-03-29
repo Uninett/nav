@@ -1,4 +1,4 @@
-<h2>Welcome to NAV!</h2>
-
 <p>This is where you can put a welcome message and some information
 about your NAV installation for anonymous users.</p>
+
+<a href="https://nav.uninett.no/user_guide?s[]=welcome#the_index_page">See how to do that</a>

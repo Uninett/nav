@@ -1,5 +1,4 @@
 name=Machine Tracker
 uri=/machinetracker/
 icon=/images/toolbox/machinetracker.png
-description=This tool lets you find MAC adresses that are or have been connected to a given switch port. You can also find the switch port used by a MAC or IP adress in a given timerange.
-priority=60
+description=Search NAV's logs of IP and MAC address activity to find where and when hosts in your network have been active.

@@ -2,79 +2,98 @@
 
 {% block content %}
 
-{% if not current_user_data.account.is_default_account %}
-  <a href="{% url messages-edit message.id %}" class="button small">Edit</a>
-  <a href="{% url messages-followup message.id %}" class="button small">Follow up</a>
-{% endif %}
+  <p><a href="{% url messages-home %}">See active messages</a></p>
 
-<table class="vertitable">
+  <table class="vertitable">
     <caption>{{ message.title }}</caption>
-        <tr>
-            <th>Published</th>
-            <td>{{ message.publish_start|date:"DATETIME_FORMAT_SHORT" }}</td>
-        </tr>
-        <tr>
-            <th>Author</th>
-            <td>{{ message.author }}</td>
-        </tr>
-        <tr>
-            <th>Description</th>
-            <td>{{ message.description }}</td>
-        </tr>
-        <tr>
-            <th>Technical description</th>
-            <td>{{ message.tech_description }}</td>
-        </tr>
-        {% if message.maintenance_tasks %}
-        <tr>
-            <th>Related maintenance tasks</th>
-            <td>
-                {% for task_mapper in message.maintenance_tasks.all %}
-                    <li>
-                        <a href="{% url maintenance-view task_mapper.maintenance_task.pk %}">
-                            {{ task_mapper.maintenance_task.description }}
-                        </a>
-                        , from {{ task_mapper.maintenance_task.start_time|date:"DATETIME_FORMAT_SHORT" }}
-                        to {{ task_mapper.maintenance_task.end_time|date:"DATETIME_FORMAT_SHORT" }}
-                        , current state is <i>{{ task_mapper.maintenance_task.state }}</i>
-                    </li>
-                {% endfor %}
-            </td>
-        </tr>
+
+    <tr>
+      <th>Published</th>
+      <td>{{ message.publish_start|date:"DATETIME_FORMAT_SHORT" }}</td>
+    </tr>
+
+    <tr>
+      <th>Author</th>
+      <td>{{ message.author }}</td>
+    </tr>
+
+    <tr>
+      <th>Description</th>
+      <td>{{ message.description }}</td>
+    </tr>
+
+    <tr>
+      <th>Technical description</th>
+      <td>{{ message.tech_description }}</td>
+    </tr>
+
+    {% if message.maintenance_tasks %}
+      <tr>
+        <th>Related maintenance tasks</th>
+        <td>
+          {% for task_mapper in message.maintenance_tasks.all %}
+            <li>
+              <a href="{% url maintenance-view task_mapper.maintenance_task.pk %}">
+                {{ task_mapper.maintenance_task.description }}
+              </a>
+              ,
+              from {{ task_mapper.maintenance_task.start_time|date:"DATETIME_FORMAT_SHORT" }}
+              to {{ task_mapper.maintenance_task.end_time|date:"DATETIME_FORMAT_SHORT" }}
+              , current state is
+              <i>{{ task_mapper.maintenance_task.state }}</i>
+            </li>
+          {% endfor %}
+        </td>
+      </tr>
+    {% endif %}
+
+    <tr>
+      <th>Expires</th>
+      <td>{{ message.publish_end|date:"DATETIME_FORMAT_SHORT" }}
+        {% if message.publish_end > now %}
+          <a href="{% url messages-expire message.id %}"
+             class="button secondary tiny">Expire now</a>
         {% endif %}
-        <tr>
-            <th>Expires</th>
-            <td>{{ message.publish_end|date:"DATETIME_FORMAT_SHORT" }}
-                {% if message.publish_end > now %}
-                    <a href="{% url messages-expire message.id %}" class="button tiny">Expire now</a>
-                {% endif %}
-            </td>
-        </tr>
-        {% if message.replaces_message %}
-            <tr>
-                <th>Replaces message</th>
-                <td>
-                    <a href="{% url messages-view message.replaces_message.id %}">
-                        {{ message.replaces_message.title }},
-                    </a>
-                        from {{ message.replaces_message.publish_start|date:"DATETIME_FORMAT_SHORT" }},
-                        by {{ message.replaces_message.author }}
-                </td>
-            </tr>
-        {% endif %}
-        {% for item in message.replaced_by.all %}
-            <tr>
-                <th>Replaced by</th>
-                <td>
-                    <a href="{% url messages-view item.id %}">
-                        {{ item.title }},
-                    </a>
-                        from {{ item.publish_start|date:"DATETIME_FORMAT_SHORT" }},
-                        by {{ item.author }}
-                </td>
-            </tr>
-        {% endfor %}
-</table>
+      </td>
+    </tr>
+
+    {% if message.replaces_message %}
+      <tr>
+        <th>Replaces message</th>
+        <td>
+          <a href="{% url messages-view message.replaces_message.id %}">
+            {{ message.replaces_message.title }},
+          </a>
+          from {{ message.replaces_message.publish_start|date:"DATETIME_FORMAT_SHORT" }},
+          by {{ message.replaces_message.author }}
+        </td>
+      </tr>
+    {% endif %}
+
+    {% for item in message.replaced_by.all %}
+      <tr>
+        <th>Replaced by</th>
+        <td>
+          <a href="{% url messages-view item.id %}">
+            {{ item.title }},
+          </a>
+          from {{ item.publish_start|date:"DATETIME_FORMAT_SHORT" }},
+          by {{ item.author }}
+        </td>
+      </tr>
+    {% endfor %}
+
+  </table>
+
+  {% if not current_user_data.account.is_default_account %}
+    <a href="{% url messages-edit message.id %}" class="button small">
+      Edit this message
+    </a>
+    <a href="{% url messages-followup message.id %}" class="button small">
+      Follow up this message
+    </a>
+  {% endif %}
+
 
 
 {% endblock %}

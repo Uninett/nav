@@ -17,13 +17,15 @@
 from django.conf.urls.defaults import url, patterns
 
 from nav.web.messages.views import active, historic, planned
-from nav.web.messages.views import save, followup
+from nav.web.messages.views import save, followup, redirect_to_active
 from nav.web.messages.views import view, expire
 from nav.web.messages.feeds import ActiveMessagesFeed
 
 urlpatterns = patterns('',
 
-    url(r'^$', active,
+    url(r'^$', redirect_to_active),
+
+    url(r'^active/$', active,
         name='messages-home'),
 
     url(r'^create/$', save,
@@ -35,10 +37,10 @@ urlpatterns = patterns('',
     url(r'^active/$', active,
         name='messages-active'),
 
-    url(r'^planned/$', planned,
+    url(r'^scheduled/$', planned,
         name='messages-planned'),
 
-    url(r'^historic/$', historic,
+    url(r'^archive/$', historic,
         name='messages-historic'),
 
     url(r'^view/(?P<message_id>\d+)$', view,

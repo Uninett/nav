@@ -11,25 +11,21 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
         };
     }
 
-    var nav_ajax_queue = [];  // Queue for rows we are saving
+    var nav_ajax_queue = [];  // Queue for cards we are saving
     var queue_data = {};  // Object containing data for ajax requests
 
     /* Generic spinner created for display in the middle of a cell */
     var spinner = new Spinner({length: 3, width: 2, radius: 5});
-
+    var parentSelector = '.port_row';
 
     $(document).ready(function(){
+        var $wrapper = $('#portadmin-wrapper');
 
-        var interfaceTable = $('#portadmin-interfacecontainer');
-        var infoBox = $('#infobox');
-
-        if (interfaceTable.length) {
-            addTrunkSelectedListener(interfaceTable);
-            addChangeListener(interfaceTable);
-            addSaveListener(interfaceTable);
-            addSaveAllListener(interfaceTable);
-            addUndoListener(interfaceTable);
-            addToggleVlanInfoListener(infoBox);
+        if ($wrapper.length) {
+            addTrunkSelectedListener($wrapper);
+            addChangeListener($wrapper);
+            addSaveListener($wrapper);
+            addSaveAllListener($wrapper);
         }
     });
 
@@ -37,8 +33,8 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
      * If user selects the trunk value in a drop-down list, the user shall
      * be redirected to the trunk edit page.
      */
-    function addTrunkSelectedListener(table) {
-        $(table).find('.vlanlist').on('change click', function (event) {
+    function addTrunkSelectedListener($wrapper) {
+        $wrapper.find('.vlanlist').on('change click', function (event) {
             var $select = $(this);
             if ($select.val() === 'trunk') {
                 event.stopPropagation();
@@ -48,24 +44,23 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
     }
 
     /*
-     * Add changelisteners to the tbody element to avoid adding 3
-     * listeners for each row. Also split up events to avoid acting
+     * Add changelisteners the wrapper. Also split up events to avoid acting
      * on irrelevant changes.
      */
-    function addChangeListener(table) {
-        $(table).find('tbody').on('keyup change', '.ifalias', function (event) {
-            actOnChange($(event.target).parents('tr'));
+    function addChangeListener($wrapper) {
+        $wrapper.on('keyup change', '.ifalias', function (event) {
+            actOnChange($(event.target).parents(parentSelector));
         });
-        $(table).find('tbody').on('change', '.vlanlist', function (event) {
-            actOnChange($(event.target).parents('tr'));
+        $wrapper.on('change', '.vlanlist', function (event) {
+            actOnChange($(event.target).parents(parentSelector));
         });
-        $(table).find('tbody').on('click', '.voicevlan', function (event) {
-            actOnChange($(event.target).parents('tr'));
+        $wrapper.on('click', '.voicevlan', function (event) {
+            actOnChange($(event.target).parents(parentSelector));
         });
     }
 
     /*
-     * Mark row changed or not based on values in row
+     * Mark card changed or not based on values in card
      */
     function actOnChange(row) {
         if (textFieldChanged(row) || dropDownChanged(row) || voiceVlanChanged(row)) {
@@ -75,14 +70,11 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
         }
     }
 
-    function addSaveListener(element) {
-        /*
-        Save when clicking on the save buttons. As the save button is in
-        another row than the form, find the correct row and run save on it.
-        */
-        $('.save', element).click(function (event) {
-            var motherId = $(event.target).parents('tr').attr('data-mother-row');
-            saveRow.call($('#' + motherId));
+    function addSaveListener($wrapper) {
+        /* Save when clicking on the save buttons. */
+        $wrapper.on('click', '.portadmin-save', function (event) {
+            var $row = $(event.target).parents(parentSelector);
+            saveRow($row);
         });
     }
 
@@ -91,55 +83,8 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
     }
 
     function bulkSave() {
-        $("tr.changed").each(saveRow);
-    }
-
-    /*
-     * Undo the changes the user has done on the form fields
-     */
-    function addUndoListener(element) {
-        $('.undo', element).click(function (event) {
-            var motherId = $(event.target).parents('tr').attr('data-mother-row');
-            var $row = $('#' + motherId);
-            var $ifalias = $row.find(".ifalias");
-            var $vlan = $row.find(".vlanlist");
-            var $voicevlan = $row.find(".voicevlan");
-
-            // Set ifalias back to original value
-            $ifalias.val($ifalias.attr('data-orig'));
-
-            // Set vlan back to original value
-            $vlan.val($('[data-orig]', $vlan).val());
-
-            // Check or uncheck telephone checkbox
-            if ($voicevlan.length) {
-                if ($voicevlan.attr('data-orig').toLowerCase() === 'true') {
-                    $voicevlan.prop('checked', 'checked');
-                } else {
-                    $voicevlan.prop('checked', false);
-                }
-            }
-
-            clearChangedState($row);
-        });
-    }
-
-    function addToggleVlanInfoListener(element) {
-        // Toggler for the available vlans list
-        $('.toggler', element).click(function () {
-            var vlanlist = $('ul', element),
-                expandButton = $('.toggler.expand'),
-                collapseButton = $('.toggler.collapse');
-
-            if (vlanlist.is(':visible')) {
-                vlanlist.hide();
-                expandButton.removeClass('hidden');
-                collapseButton.addClass('hidden');
-            } else {
-                vlanlist.show();
-                expandButton.addClass('hidden');
-                collapseButton.removeClass('hidden');
-            }
+        $(".changed").each(function (index, card) {
+            saveRow($(card));
         });
     }
 
@@ -172,46 +117,30 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
     function markAsChanged(row) {
         var $row = $(row);
         if (!$row.hasClass('changed')) {
-            showActionRow($row);
             $row.addClass("changed");
         }
-    }
-
-    function showActionRow($row) {
-        /* Slide down the actionrow */
-        $($row.nextAll('.actionrow')[0]).find('.slider').slideDown();
     }
 
     function markAsUnchanged(row) {
         var $row = $(row);
         if ($row.hasClass('changed')) {
-            hideActionRow($row);
             $row.removeClass("changed");
         }
-    }
-
-    function hideActionRow($row) {
-        $($row.nextAll('.actionrow')[0]).find('.slider').slideUp();
     }
 
     function clearChangedState(row) {
         markAsUnchanged(row);
     }
 
-    function saveRow() {
+    function saveRow($row) {
         /*
          * This funcion does an ajax call to save the information given by the user
          * when the save-button is clicked.
          */
 
-        var $row = $(this);
-        if (!$row.is('tr')) {
-            $row = $row.parents('tr');
-        }
-
         var rowid = $row.prop('id');
         if (!rowid) {
-            console.log('Could not find id of row ' + $row);
+            console.log('Could not find id of card ' + $row);
             return;
         }
 
@@ -242,7 +171,8 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
 
     function saveInterface($row, interfaceData) {
         var rowid = $row.prop('id');
-        // If a save on this row is already in progress, do nothing.
+        console.log('Saving interface with id ' + rowid);
+        // If a save on this card is already in progress, do nothing.
         if (nav_ajax_queue.indexOf(rowid) > -1) {
             return;
         }
@@ -261,15 +191,13 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
     function doAjaxRequest(rowid) {
         var $row = $('#' + rowid);
         var interfaceData = queue_data[rowid];
-        var actionCell = $($row.nextAll('.actionrow')[0]).find('td').get(0);
         $.ajax({url: "save_interfaceinfo",
             data: interfaceData,
             dataType: 'json',
             type: 'POST',
             beforeSend: function () {
-                $('tr.error').remove();
-                disableButtons(actionCell);
-                spinner.spin(actionCell);
+                disableButtons($row);
+                spinner.spin($row);
             },
             success: function () {
                 clearChangedState($row);
@@ -282,7 +210,7 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
             },
             complete: function (jqXhr) {
                 removeFromQueue(rowid);
-                enableButtons(actionCell);
+                enableButtons($row);
                 spinner.stop();
                 if (nav_ajax_queue.length === 0) {
                     enableSaveallButtons();
@@ -294,44 +222,39 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
         });
     }
 
-    function disableButtons(cell) {
-        $(cell).find('button').prop('disabled', true);
+    function disableButtons(row) {
+        $(row).find('button').prop('disabled', true);
     }
 
-    function enableButtons(cell) {
-        $(cell).find('button').prop('disabled', false);
+    function enableButtons(row) {
+        $(row).find('button').prop('disabled', false);
     }
 
     function indicateSuccess($row) {
-        /* Animate row to indicate success */
-        var $cells = $row.find('td');
-
+        /* Highlight card to indicate success */
+        removeAlerts($row);
         $row.addClass('success');
-        $cells.animate({'background-color': '#FFF'}, 1000, function () {
-            $cells.removeAttr('style');
+        setTimeout(function () {
             $row.removeClass('success');
-        });
+        }, 1500);
     }
 
     function indicateError($row, messages) {
-        var $newRow = $('<tr/>').addClass('error'),
-            $cell = $('<td class="" colspan="10"/>'),
-            $message = $('<span/>');
-
-        var error = '';
+        var rowid = $row.prop('id'),
+            $errorContainer = $('#' + rowid + '-errors');
+        removeAlerts($errorContainer);
         for (var x = 0, l = messages.length; x < l; x++) {
-            error += messages[x].message + '. ';
-        }
-        $message.text(error);
-
-        $newRow.append($cell.append($message));
-        $newRow.insertAfter($row);
-
-        $newRow.click(function () {
-            $(this).hide(1000, function () {
+            var $alertBox = $('<div>').addClass('alert-box alert').html(messages[x].message);
+            $errorContainer.append($alertBox);
+            $alertBox.click(function () {
                 $(this).remove();
             });
-        });
+        }
+        $errorContainer.show();
+    }
+
+    function removeAlerts($container) {
+        $container.find('.alert-box').remove();
     }
 
     function updateDefaults($row, data) {

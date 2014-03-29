@@ -15,14 +15,18 @@
 #
 """Views for status tool"""
 
+from datetime import datetime
 from django.template import RequestContext
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 
 from nav.django.utils import get_account
+from nav.django.decorators import require_admin
 from nav.models.profiles import StatusPreference
 from nav.models.manage import Organization, Category
+from nav.models.fields import INFINITY
+from nav.models.event import AlertHistory
 from nav.web.message import Messages, new_message
 
 from nav.web.status.sections import get_user_sections, get_section_model
@@ -272,3 +276,19 @@ def delete_section(request):
 
     new_message(request, 'Deleted selected sections', Messages.SUCCESS)
     return HttpResponseRedirect(reverse('status-preferences'))
+
+
+@require_admin
+def resolve_alert(request):
+    """Resolve an alert by settings end_time = now"""
+    alertid = request.REQUEST.get('alertid')
+    alert = get_object_or_404(AlertHistory, pk=alertid)
+    if alert.end_time == INFINITY:
+        alert.end_time = datetime.now()
+        alert.save()
+        if request.is_ajax():
+            return HttpResponse()
+        else:
+            return redirect('status-index')
+
+    return HttpResponse(status=400)

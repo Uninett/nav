@@ -4,20 +4,18 @@ require(
         "info/global_dt_filters",
         "info/table_info_converter",
         "plugins/room_mapper",
+        "plugins/sensors_controller",
         "dt_plugins/natsort",
         "dt_plugins/altsort",
         "dt_plugins/date_title_sort",
         "dt_plugins/modulesort",
         "libs/jquery",
-        "libs/jquery.nivo.slider.pack",
         "libs/jquery-ui-1.8.21.custom.min",
         "libs/jquery.dataTables.min",
-        "libs/downloadify.min",
-        "libs/swfobject"
     ],
-    function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper) {
+    function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, SensorsController) {
         /* Run javascript at document ready */
-        $(document).ready(function () {
+        $(window).load(function () {
 
             if ($('#infotabs').length != 0) {
                 add_tabs();
@@ -25,13 +23,9 @@ require(
                 add_streetmap();
             }
 
-            if ($('#mapcontainer').length > 0) {
-                fetchRoomPositions($('#mapcontainer'));
-            }
-
-            var $slider = $('#slider');
-            if ($slider.length) {
-                addImageSlider($slider);
+            var $mapContainer = $('#mapcontainer');
+            if ($mapContainer.length > 0) {
+                fetchRoomPositions($mapContainer);
             }
         });
 
@@ -43,6 +37,11 @@ require(
                 ajaxOptions: {
                     error: request_error,
                     success: request_success
+                },
+                load: function (event, ui) {
+                    if (ui.panel.id === 'sensors') {
+                        applyEnvironmentHandlers();
+                    }
                 }
             };
             var tabs = $('#infotabs').tabs(tabconfig);
@@ -57,8 +56,9 @@ require(
         function request_success() {
             enrich_tables();
             add_filters();
-//            add_csv_download();
-            add_helper_dialog();
+            add_csv_download();
+            $(document).foundation('reveal');  // Apply reveal after ajax request
+            $(document).foundation('tooltip');  // Apply tooltip after ajax request
         }
 
         /* Add navigation to jQuery ui tabs */
@@ -124,31 +124,10 @@ require(
         }
 
         function add_csv_download() {
-            var tables = $('#netboxes table.netbox');
-
-            var config = {
-                filename: 'interfaces.csv',
-                data: function () {
-                    return table_info_converter.create_csv(tables);
-                },
-                transparent: false,
-                swf: '/js/extras/downloadify.swf',
-                downloadImage: NAV.imagePath + '/roominfo/csv.png',
-                width: 41,
-                height: 13,
-                append: false
-            };
-            $('#downloadify').downloadify(config);
-        }
-
-        function add_helper_dialog() {
-            var dialog = $('#searchhelptext').dialog({
-                autoOpen: false,
-                title: 'Search help',
-                width: 500
-            });
-            $('#searchhelp').click(function () {
-                dialog.dialog('open');
+            var tables = $('#netboxes').find('table.netbox');
+            var $form = $('#csv-download-form');
+            $form.submit(function () {
+                $form.find('[name=rows]').val(table_info_converter.create_csv(tables));
             });
         }
 
@@ -158,11 +137,37 @@ require(
             });
         }
 
-        function addImageSlider($element) {
-            $element.nivoSlider({
-                controlNavThumbs: true,
-                effect: 'fade',
-                manualAdvance: true
+        function applyEnvironmentHandlers() {
+            /* Does stuff with the environment tab when it's loaded */
+            var $page = $('#sensors'),
+                $sensors = $page.find('.room-sensor'),
+                $filters = $page.find('.sub-nav dd');
+
+
+            new SensorsController($sensors);
+            // Apply controller for each sensor
+
+            // Filter controls
+            $filters.on('click', function (event) {
+                var $target = $(event.target),
+                    $parent = $target.parent('dd');
+                $filters.removeClass('active');
+                $parent.addClass('active');
+
+                switch ($target.attr('data-action')) {
+                    case 'all':
+                        $page.find('.rs-graph').show();
+                        $page.find('.current').show();
+                        break;
+                    case 'charts':
+                        $page.find('.rs-graph').show();
+                        $page.find('.current').hide();
+                        break;
+                    case 'gauges':
+                        $page.find('.rs-graph').hide();
+                        $page.find('.current').show();
+                        break;
+                }
             });
         }
 

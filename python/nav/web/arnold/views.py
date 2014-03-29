@@ -25,7 +25,8 @@ from django.db.models import Q
 from datetime import datetime, timedelta
 
 from nav.arnold import (open_port, disable, quarantine, GeneralException,
-                        find_id_information, find_input_type, check_target)
+                        find_id_information, find_input_type, check_target,
+                        NoDatabaseInformationError)
 from nav.models.arnold import (Identity, Justification, QuarantineVlan,
                                DetentionProfile)
 from nav.models.manage import Cam, Interface
@@ -215,7 +216,7 @@ def render_manual_detention_step_one(request):
         form = ManualDetentionTargetForm(request.POST)
         if form.is_valid():
             try:
-                check_target(form.cleaned_data['target'])
+                check_target(form.cleaned_data['target'], trunk_ok=True)
                 return redirect('arnold-manual-detention-step-two',
                                 form.cleaned_data['target'])
             except GeneralException, err:
@@ -235,11 +236,8 @@ def render_manual_detention_step_two(request, target):
     """Controller for rendering interface choices when manualy detaining"""
 
     error = ""
-    candidates = find_id_information(target, 3)
-    camtuples = {}
-    for candidate in candidates:
-        camtuples[str(candidate.camid)] = candidate
-    camtuple_choices = [(str(x.camid), humanize(x)) for x in candidates]
+    candidates = find_id_information(target, 3, trunk_ok=True)
+    camtuple_choices = [(x.camid, humanize(x)) for x in candidates]
 
     if request.method == 'POST':
         form = ManualDetentionForm(request.POST)
@@ -251,13 +249,12 @@ def render_manual_detention_step_two(request, target):
 
     else:
         form = ManualDetentionForm(initial={'target': target})
-        form.fields['camtuple'].choices = camtuple_choices
 
     return render_to_response('arnold/manualdetain-step2.html',
                               create_context('Manual detention', {
                                   'active': {'manualdetention': True},
                                   'target': target,
-                                  'camtuples': camtuples,
+                                  'candidates': candidates,
                                   'form': form,
                                   'now': datetime.now(),
                                   'error': error

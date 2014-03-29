@@ -14,10 +14,10 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Forms and view functions for SeedDB's Room view"""
+from ..forms import RoomForm, RoomFilterForm, RoomMoveForm
 
-from django import forms
-
-from nav.models.manage import Location, Room
+from nav.models.manage import Room
 from nav.bulkparse import RoomBulkParser
 from nav.bulkimport import RoomImporter
 
@@ -30,35 +30,30 @@ from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 from nav.web.seeddb.utils.bulk import render_bulkimport
 
-class RoomFilterForm(forms.Form):
-    location = forms.ModelChoiceField(
-        Location.objects.order_by('id').all(), required=False)
-
-class RoomForm(forms.ModelForm):
-    location = forms.ModelChoiceField(
-        queryset=Location.objects.order_by('id'))
-    class Meta:
-        model = Room
-
-class RoomMoveForm(forms.Form):
-    location = forms.ModelChoiceField(
-        Location.objects.order_by('id').all(), required=False)
 
 class RoomInfo(SeeddbInfo):
+    """Room info object"""
     active = {'room': True}
     caption = 'Rooms'
-    tab_template = 'seeddb/tabs_room.html'
+    tab_template = 'seeddb/tabs_generic.html'
     _title = 'Rooms'
     _navpath = [('Rooms', reverse_lazy('seeddb-room'))]
     delete_url = reverse_lazy('seeddb-room')
+    back_url = reverse_lazy('seeddb-room')
+    add_url = reverse_lazy('seeddb-room-edit')
+    bulk_url = reverse_lazy('seeddb-room-bulk')
+
 
 def room(request):
+    """Controller for listing, moving and deleting rooms"""
     return view_switcher(request,
-        list_view=room_list,
-        move_view=room_move,
-        delete_view=room_delete)
+                         list_view=room_list,
+                         move_view=room_move,
+                         delete_view=room_delete)
+
 
 def room_list(request):
+    """Controller for listing rooms. Used in room()"""
     info = RoomInfo()
     value_list = (
         'id', 'location', 'description', 'position', 'optional_1',
@@ -66,29 +61,37 @@ def room_list(request):
     query = Room.objects.all()
     filter_form = RoomFilterForm(request.GET)
     return render_list(request, query, value_list, 'seeddb-room-edit',
-        filter_form=filter_form,
-        extra_context=info.template_context)
+                       filter_form=filter_form,
+                       extra_context=info.template_context)
+
 
 def room_move(request):
+    """Controller for moving rooms. Used in room()"""
     info = RoomInfo()
     return move(request, Room, RoomMoveForm, 'seeddb-room',
-        extra_context=info.template_context)
+                extra_context=info.template_context)
+
 
 def room_delete(request):
+    """Controller for deleting rooms. Used in room()"""
     info = RoomInfo()
     return render_delete(request, Room, 'seeddb-room',
-        whitelist=SEEDDB_EDITABLE_MODELS,
-        extra_context=info.template_context)
+                         whitelist=SEEDDB_EDITABLE_MODELS,
+                         extra_context=info.template_context)
 
-def room_edit(request, room_id=None):
+
+def room_edit(request, room_id=None, lat=None, lon=None):
+    """Controller for editing a room"""
     info = RoomInfo()
     extra_context = {'map': True}
     extra_context.update(info.template_context)
     return render_edit(request, Room, RoomForm, room_id,
-        'seeddb-room-edit',
-        extra_context=extra_context)
+                       'seeddb-room-edit', lon=lon, lat=lat,
+                       extra_context=extra_context)
+
 
 def room_bulk(request):
+    """Controller for bulk editing rooms"""
     info = RoomInfo()
     return render_bulkimport(
         request, RoomBulkParser, RoomImporter,

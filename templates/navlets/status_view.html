@@ -9,15 +9,14 @@
                 &ndash;
                 <span class="subtitle">
                             {{ boxes_down|length }} IP device{{ boxes_down|pluralize }} down,
-                            {{ num_shadow }} in shadow
+                            of these {{ num_shadow }} are in shadow
                 </span>
             </caption>
 
             <thead>
             <tr>
                 <th>Sysname</th>
-                <th>IP</th>
-                <th>Down since</th>
+                <th class="hide-for-medium-down">IP</th>
                 <th>Downtime</th>
             </tr>
             </thead>
@@ -28,15 +27,27 @@
                     <td>
                         <a href="{% url ipdevinfo-details-by-name b.netbox.sysname %}">
                             {{ b.netbox.sysname }}</a></td>
-                    <td>{{ b.netbox.ip }}</td>
-                    <td>{{ b.start_time|date:"DATETIME_FORMAT" }}</td>
+                    <td class="hide-for-medium-down">{{ b.netbox.ip }}</td>
                     <td>{{ b.start_time|timesince:date_now }}</td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
+
+        {% if problems %}
+          <p class="alert-box alert">
+            There are also {{ problems }} other problems.
+            <a href="{% url status-index %}">See the full list.</a>
+          </p>
+        {% endif %}
     {% else %}
-        <p>No boxes down</p>
+        <p class="alert-box success">No boxes down - yay!</p>
+        {% if problems %}
+          <p class="alert-box alert">
+            However there are {{ problems }} other problems.
+            <a href="{% url status-index %}">See the full list.</a>
+          </p>
+        {% endif %}
     {% endif %}
 
 {% endblock %}

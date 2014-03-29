@@ -30,10 +30,6 @@ Getting help
 First steps
 ===========
 
-.. NOTE:: NAV's Sphinx-based documentation is still in the process of being
-   built and structured.  If there's something you can't find here, you should
-   check with NAV's `wiki pages`_.
-
 See also :doc:`the release notes <release-notes>` for this version (|version|).
 
 * **From scratch:**

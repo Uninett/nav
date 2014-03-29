@@ -37,14 +37,19 @@ from nav.web.seeddb.utils.edit import render_edit, _get_object
 from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.utils.delete import render_delete
 
+
 class PrefixInfo(SeeddbInfo):
     active = {'prefix': True}
     caption = 'Prefix'
-    tab_template = 'seeddb/tabs_prefix.html'
+    tab_template = 'seeddb/tabs_generic.html'
     _title = 'Prefix'
     _navpath = [('Prefix', reverse_lazy('seeddb-prefix'))]
     delete_url = reverse_lazy('seeddb-prefix')
+    back_url = reverse_lazy('seeddb-prefix')
+    add_url = reverse_lazy('seeddb-prefix-edit')
+    bulk_url = reverse_lazy('seeddb-prefix-bulk')
     hide_move = True
+
 
 class PrefixForm(forms.ModelForm):
     net_address = CIDRField(label="Prefix/mask (CIDR)")
@@ -52,18 +57,22 @@ class PrefixForm(forms.ModelForm):
         model = Prefix
         fields = ('net_address',)
 
+
 class PrefixVlanForm(forms.ModelForm):
     net_type = forms.ModelChoiceField(
         queryset=NetType.objects.filter(edit=True))
     class Meta:
         model = Vlan
-        fields = ('description', 'net_ident', 'vlan', 'organization', 'usage', 'net_type')
+        fields = ('description', 'net_ident', 'vlan', 'organization', 'usage',
+                  'net_type')
+
 
 def prefix(request):
     return view_switcher(request,
-        list_view=prefix_list,
-        delete_view=prefix_delete,
-        move_view=not_implemented)
+                         list_view=prefix_list,
+                         delete_view=prefix_delete,
+                         move_view=not_implemented)
+
 
 def prefix_list(request):
     info = PrefixInfo()
@@ -72,13 +81,15 @@ def prefix_list(request):
         'net_address', 'vlan__net_type', 'vlan__organization',
         'vlan__net_ident', 'vlan__usage', 'vlan__description', 'vlan__vlan')
     return render_list(request, query, value_list, 'seeddb-prefix-edit',
-        extra_context=info.template_context)
+                       extra_context=info.template_context)
+
 
 def prefix_delete(request):
     info = PrefixInfo()
     return render_delete(request, Prefix, 'seeddb-prefix',
-        whitelist=SEEDDB_EDITABLE_MODELS,
-        extra_context=info.template_context)
+                         whitelist=SEEDDB_EDITABLE_MODELS,
+                         extra_context=info.template_context)
+
 
 def prefix_bulk(request):
     info = PrefixInfo()
@@ -114,6 +125,7 @@ def prefix_edit(request, prefix_id=None):
     })
     return render_to_response('seeddb/edit_prefix.html',
         context, RequestContext(request))
+
 
 def get_prefix_and_vlan(prefix_id):
     prefix = _get_object(Prefix, prefix_id, 'pk')
