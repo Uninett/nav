@@ -24,9 +24,8 @@ CISCO-ENTITY-FRU-CONTROL-MIB to collect sensor-oids and read statuses.
 
 from twisted.internet import defer
 
-from nav.mibs import mibretriever
+from nav.mibs import mibretriever, reduce_index
 
-from nav.mibs.entity_mib import EntityTable
 
 class CiscoEntityFruControlMib(mibretriever.MibRetriever):
     """
@@ -46,9 +45,8 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
         """Retrive table with the given name. """
         df = self.retrieve_table(table_name)
         df.addCallback(self.translate_result)
-        named_table = yield df
-        status_table = EntityTable(named_table)
-        defer.returnValue(status_table)
+        named_table = yield df.addCallback(reduce_index)
+        defer.returnValue(named_table)
 
     @defer.inlineCallbacks
     def _get_fantray_status_table(self):
