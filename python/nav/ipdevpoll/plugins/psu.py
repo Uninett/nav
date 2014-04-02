@@ -123,7 +123,7 @@ class PowerSupplyUnit(Plugin):
     @defer.inlineCallbacks
     def _handle_unit(self, psu_or_fan):
         self._logger.debug('PSU:FAN: %s', psu_or_fan)
-        internal_index = psu_or_fan.get('_internal_index', None)
+        internal_index = psu_or_fan.get('_internal_index', psu_or_fan.get(0))
         is_up = 'u'
         sensor_oid = None
         control = self.entity_fru_control
