@@ -65,7 +65,7 @@ class PrefixForm(forms.ModelForm):
 
 
 class PrefixVlanForm(forms.ModelForm):
-    """Modelform with additional fields for editing prefixes"""
+    """Modelform for Vlan with additional fields for editing prefixes"""
     net_type = forms.ModelChoiceField(
         queryset=NetType.objects.filter(edit=True))
 
