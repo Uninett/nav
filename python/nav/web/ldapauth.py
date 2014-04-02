@@ -238,10 +238,10 @@ class LDAPUser(object):
 
         user_dn, attrs = result[0]
         if uid_attr in attrs:
-            uid = attrs[uid_attr][0]
+            uid = attrs[uid_attr][0].decode(encoding)
         else:
             uid = self.username
-        return user_dn, uid
+        return user_dn.decode(encoding), uid
 
     def get_real_name(self):
         """
