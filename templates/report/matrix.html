@@ -32,15 +32,15 @@
       {% endif %}
     {% endwith %}
 
-    <table id="subnet-matrix" class="full-width">
+    <table id="subnet-matrix" class="full-width {% if ipv4 %}ipv4{% else %}ipv6{% endif %} ">
         <thead>
           <tr>
             <th>
               {{ matrix.start_net.prefixlen }} ... {{ sub }}
             </th>
 
-            {% for heading in matrix.column_headings %}
-              <th>{{ heading }}</th>
+            {% for heading in matrix.visible_column_headings %}
+              <th colspan="{{ matrix.heading_colspan }}">{{ heading }}</th>
             {% endfor %}
 
           </tr>
@@ -58,8 +58,15 @@
             {% for cell in subnet %}
               <td colspan="{{ cell.colspan }}"
                   style="background: {{ cell.color }};"
+                  {% if cell.content != '&nbsp;' %}
+                    {% if forloop.counter != 1 and cell.colspan in hide_for %}data-tooltip title='{{ cell.content }}'{% endif %}
+                  {% endif %}
                   {% if cell.color %}class="add-border"{% endif %}>
+              {% if forloop.counter == 1 or cell.colspan not in hide_for %}
                 {{ cell.content|safe }}
+              {% else %}
+                &nbsp;
+              {% endif %}
               </td>
             {% empty %}
               <td class="blank" colspan="{{ matrix.num_columns|add:"1" }}"></td>

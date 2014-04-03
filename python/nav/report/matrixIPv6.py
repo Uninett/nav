@@ -33,6 +33,7 @@ class MatrixIPv6(Matrix):
     def __init__(self, start_net, end_net=None):
         Matrix.__init__(self, start_net, end_net=end_net, bits_in_matrix=4)
         self.column_headings = ["%X" % i for i in range(0, 16)]
+        self.visible_column_headings = self.column_headings
         self.num_columns = len(self.column_headings)
         self.color_configuration = ColorConfig(configfile)
 

@@ -158,8 +158,9 @@ def matrix_report(request):
         matrix = MatrixIPv6(scope, end_net=end_net)
     elif scope.version() == 4:
         if scope.prefixlen() < 24:
-            end_net = IP(scope.net().strNormal() + '/27')
-            matrix = MatrixIPv4(scope, show_unused, end_net=end_net)
+            end_net = IP(scope.net().strNormal() + '/30')
+            matrix = MatrixIPv4(scope, show_unused, end_net=end_net,
+                                bits_in_matrix=6)
         else:
             max_leaf = getMaxLeaf(tree)
             bits_in_matrix = max_leaf.prefixlen() - scope.prefixlen()
@@ -177,10 +178,15 @@ def matrix_report(request):
 
     matrix.build()
 
+    hide_content_for_colspan = []
+    if scope.version() == 4:
+        hide_content_for_colspan = [1, 2, 4]
+
     context.update({
         'matrix': matrix,
         'sub': matrix.end_net.prefixlen() - matrix.bits_in_matrix,
-        'ipv4': scope.version() == 4
+        'ipv4': scope.version() == 4,
+        'hide_for': hide_content_for_colspan
     })
 
     return render_to_response(
