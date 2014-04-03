@@ -171,8 +171,24 @@ Version 4.0b1
  the documentation.
 
 
+Version 3.15.8
+(released 03 Apr 2014)
+
+ Bugfixes:
+
+  * LP#1300117 (Fix for bug 1295092 causes ipdevpoll inventory jobs to crash for
+                Cisco devices)
+  * LP#1301251 (LDAP users with non-ASCII characters in their name cause login
+                page to crash when user lookup method is 'search' (MS AD))
+  * LP#1301343 (CDP cache is never refreshed on devices that do not respond to
+                CDP-MIB::cdpGlobalLastChange)
+  * LP#1301349 (Module down alerts fail to mention the module's name)
+  * LP#1301794 (LDAP group membership verification crashes with
+                UnicodeDecodeError when username contains non-ASCII chars)
+
+
 Version 3.15.7
-(released 27 Feb 2014)
+(released 27 Mar 2014)
 
  Bugfixes:
 
