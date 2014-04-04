@@ -93,6 +93,75 @@ separate howto guide: :doc:`/howto/migrate-rrd-to-graphite`.
           </howto/migrate-rrd-to-graphite>` **before** starting NAV 4.
 
 
+Files to remove
+---------------
+
+Many files have been removed or moved around since NAV 3.15. Unless you
+upgraded NAV using a package manager (such as APT), you may need/want to
+remove some obsolete files and directories (here prefixed by /usr/local/nav)::
+
+  /usr/local/nav/bin/cleanrrds.py
+  /usr/local/nav/bin/extract_cricket_oids.py
+  /usr/local/nav/bin/fillthresholds.py
+  /usr/local/nav/bin/getBoksMacs.sh
+  /usr/local/nav/bin/mcc.py
+  /usr/local/nav/bin/migrate_cricket.py
+  /usr/local/nav/bin/networkDiscovery.sh
+  /usr/local/nav/bin/ping.py
+  /usr/local/nav/bin/thresholdMon.py
+  /usr/local/nav/etc/cricket-config/
+  /usr/local/nav/etc/cricket-views.conf
+  /usr/local/nav/etc/cron.d/cricket
+  /usr/local/nav/etc/cron.d/thresholdMon
+  /usr/local/nav/etc/mcc.conf
+  /usr/local/nav/etc/subtree-sets
+  /usr/local/nav/lib/python/nav/activeipcollector/rrdcontroller.py
+  /usr/local/nav/lib/python/nav/ipdevpoll/plugins/oidprofiler.py
+  /usr/local/nav/lib/python/nav/mcc/
+  /usr/local/nav/lib/python/nav/netmap/rrd.py
+  /usr/local/nav/lib/python/nav/statemon/rrd.py
+  /usr/local/nav/lib/python/nav/web/cricket.py
+  /usr/local/nav/lib/python/nav/web/rrdviewer/
+  /usr/local/nav/share/htdocs/cricket/
+  /usr/local/nav/share/htdocs/images/
+  /usr/local/nav/share/htdocs/js/
+  /usr/local/nav/share/htdocs/style/
+  /usr/local/nav/share/templates/alertprofiles/address_tab.html
+  /usr/local/nav/share/templates/alertprofiles/filter_group_tab.html
+  /usr/local/nav/share/templates/alertprofiles/filter_tab.html
+  /usr/local/nav/share/templates/alertprofiles/matchfield_tab.html
+  /usr/local/nav/share/templates/alertprofiles/profile_tab.html
+  /usr/local/nav/share/templates/devicehistory/history_view_filter.html
+  /usr/local/nav/share/templates/devicehistory/paginator.html
+  /usr/local/nav/share/templates/ipdevinfo/frag-datasources.html
+  /usr/local/nav/share/templates/seeddb/tabs_cabling.html
+  /usr/local/nav/share/templates/seeddb/tabs_location.html
+  /usr/local/nav/share/templates/seeddb/tabs_netboxgroup.html
+  /usr/local/nav/share/templates/seeddb/tabs_netbox.html
+  /usr/local/nav/share/templates/seeddb/tabs_organization.html
+  /usr/local/nav/share/templates/seeddb/tabs_patch.html
+  /usr/local/nav/share/templates/seeddb/tabs_prefix.html
+  /usr/local/nav/share/templates/seeddb/tabs_room.html
+  /usr/local/nav/share/templates/seeddb/tabs_service.html
+  /usr/local/nav/share/templates/seeddb/tabs_type.html
+  /usr/local/nav/share/templates/seeddb/tabs_usage.html
+  /usr/local/nav/share/templates/seeddb/tabs_vendor.html
+  /usr/local/nav/share/templates/threshold/bulkset.html
+  /usr/local/nav/share/templates/threshold/delete.html
+  /usr/local/nav/share/templates/threshold/edit.html
+  /usr/local/nav/share/templates/threshold/listall.html
+  /usr/local/nav/share/templates/threshold/manageinterface.html
+  /usr/local/nav/share/templates/threshold/managenetbox.html
+  /usr/local/nav/share/templates/threshold/not-logged-in.html
+  /usr/local/nav/share/templates/threshold/select.html
+  /usr/local/nav/share/templates/threshold/start.html
+  /usr/local/nav/share/templates/webfront/preferences_navigation.html
+  /usr/local/nav/share/templates/webfront/toolbox_big_frag.html
+  /usr/local/nav/share/templates/webfront/toolbox_small_frag.html
+  /usr/local/nav/var/cricket-data/
+  /usr/local/nav/var/log/cricket/
+
+
 NAV 3.15
 ========
 

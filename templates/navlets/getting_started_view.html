@@ -2,15 +2,6 @@
 
 {% block navlet-content %}
 
-  <div id="blappTest" clasS="hide">
-    Well, we don't really have a guide yet...sorry! Enjoy the penguin as you
-    wait.
-
-    <img src="http://gothiquepie.webs.com/photos/Random/dancing_peng.gif"
-         style="display: block"
-         alt="Dancing penguin">
-  </div>
-
   <p>
     Welcome to NAV. You have excellent taste in network management utilities.
   </p>
@@ -24,7 +15,7 @@
         </a>
       </div>
       <div class="column medium-6">
-        <a id="removeMe" href="javascript:void(0);"
+        <a href="{% url seeddb-netbox-edit %}#joyride"
            class="button small secondary full-width">
           Take me to the setup guide
         </a>

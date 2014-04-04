@@ -1,5 +1,5 @@
-Subject: Module {{name}}, box {{netbox.sysname}} does not reply to requests
+Subject: Module {{module.name}}, box {{netbox.sysname}} does not reply to requests
 
-Module {{name}}, box {{netbox.sysname}} ({{netbox.ip}}) does not reply to
+Module {{module.name}}, box {{netbox.sysname}} ({{netbox.ip}}) does not reply to
 requests and will be declared down soon if the situation does not change.
 Detected {{time}}.

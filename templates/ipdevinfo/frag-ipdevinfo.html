@@ -44,10 +44,11 @@
           <th>Device groups</th>
           <td>
             {% for netboxgroup in netboxgroups %}
-              <a class="navtag"
-                 href="{% url netbox-group-detail netboxgroup.category_id %}">
+              <span class="label secondary">
+              <a href="{% url netbox-group-detail netboxgroup.category_id %}">
                 {{ netboxgroup.category_id }}
               </a>
+              </span>
             {% endfor %}
           </td>
         </tr>

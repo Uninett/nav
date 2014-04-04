@@ -105,9 +105,14 @@
 
     {% comment %} Graph with stacked ip-address count from all ipv4 and ipv6 prefixes {% endcomment %}
     <h2>Vlan graphs</h2>
-    <div class="vlangraph graphitegraph left" data-vlan="{{ vlan.id }}" data-family="4"></div>
 
-    <div class="vlangraph graphitegraph left" data-vlan="{{ vlan.id }}" data-family="6"></div>
+    {% if has_v4 %}
+        <div class="vlangraph graphitegraph left" data-vlan="{{ vlan.id }}" data-family="4"></div>
+    {% endif %}
+
+    {% if has_v6 %}
+        <div class="vlangraph graphitegraph left" data-vlan="{{ vlan.id }}" data-family="6"></div>
+    {% endif %}
 
     <div class="float-clear"></div>
 

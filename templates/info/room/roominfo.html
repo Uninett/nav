@@ -38,7 +38,7 @@
     <div id="infotabs" class="ui-helper-hidden">
         <ul>
             <li><a href="#roominfo">Room info</a></li>
-            <li><a href="#deviceinfo">Device info</a></li>
+            <li><a href="{% url room-info-deviceinfo room.id %}" title="deviceinfo">Device info <span class="tab-spinner">&nbsp;</span></a></li>
             <li><a href="{% url room-info-netboxes room.id %}" title="netboxinterfaces">Netbox interfaces <span class="tab-spinner">&nbsp;</span></a></li>
             <li><a href="{% url room-info-sensors room.id %}" title="sensors">Environment sensors <span class="tab-spinner">&nbsp;</span></a></li>
         </ul>
@@ -47,15 +47,7 @@
           {% include 'info/room/roominfo_main.html' %}
         </div>
 
-        <div id="deviceinfo">
-            <table id="deviceinfotable" class="listtable">
-                <caption>Netboxes</caption>
-
-                {% with all_netboxes as netboxes %}
-                    {% include 'info/fragments/netboxes.html' %}
-                {% endwith %}
-            </table>
-        </div>
+        <div id="deviceinfo"></div>
 
         <div id="netboxinterfaces"></div>
 

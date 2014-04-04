@@ -701,7 +701,7 @@ class LinkStateSection(_Section):
         'Down since',
         'Downtime',
         'History',
-        'Resolve',
+        '',
     ]
     devicehistory_type = 'a_linkDown'
 

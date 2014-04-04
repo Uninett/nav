@@ -101,3 +101,24 @@ class LdapUserTestCase(TestCase):
         })
         u = nav.web.ldapauth.LDAPUser(u"zaphod", conn)
         u.bind(u"æøå")
+
+    @patch.dict("nav.web.ldapauth._config._sections",
+                {'ldap': {'__name__': 'ldap',
+                          'basedn': 'cn=users,dc=example,dc=org',
+                          'lookupmethod': 'direct',
+                          'uid_attr': 'uid',
+                          'encoding': 'utf-8'},
+                 })
+    def test_is_group_member_for_non_ascii_user_should_not_raise(self):
+        """LP#1301794"""
+        def fake_search(base, scope, filtr):
+            str(base)
+            str(filtr)
+            return []
+
+        conn = Mock(**{
+            'search_s.side_effect': fake_search,
+        })
+        u = nav.web.ldapauth.LDAPUser(u"Ægir", conn)
+        u.is_group_member('cn=noc-operators,cn=groups,dc=example,dc=com')
+

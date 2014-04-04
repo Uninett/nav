@@ -65,7 +65,7 @@
     <div class="results">
         {% include "machinetracker/mac_tracker.html" %}
     </div>
-{% else %}
+{% endif %}
 
 <div id="valid-search-terms" class="reveal-modal" data-reveal>
     <h4>Search Hints</h4>
@@ -84,7 +84,5 @@
         </li>
     </ul>
 </div>
-
-{% endif %}
 
 {% endblock content %}

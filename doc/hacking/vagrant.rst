@@ -67,8 +67,8 @@ for more information about hacking with JavaScript in NAV.
           should probably **never** use :program:`npm` to install NAV
           requirements in a production environment.
 
-.. _Node Version Manager: <https://github.com/uninett-nav/nvm>
-.. _Node.js: <http://nodejs.org>
+.. _Node Version Manager: https://github.com/uninett-nav/nvm
+.. _Node.js: http://nodejs.org
 
 
 15-vagrant-user.sh

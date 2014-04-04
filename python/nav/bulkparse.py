@@ -232,7 +232,7 @@ class NetboxGroupBulkParser(BulkParser):
 class NetboxTypeBulkParser(BulkParser):
     """Parses the type bulk format"""
     format = ('vendorid', 'typename', 'sysobjectid',
-              'description', 'cdp', 'tftp')
+              'description')
     required = 3
 
 

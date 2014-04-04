@@ -55,7 +55,7 @@ def netboxtype_list(request):
     query = NetboxType.objects.all()
     filter_form = NetboxTypeFilterForm(request.GET)
     value_list = (
-        'name', 'vendor', 'description', 'sysobjectid', 'cdp', 'tftp')
+        'name', 'vendor', 'description', 'sysobjectid')
     return render_list(request, query, value_list, 'seeddb-type-edit',
                        filter_form=filter_form,
                        extra_context=info.template_context)

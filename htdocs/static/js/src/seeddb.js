@@ -10,6 +10,26 @@ require([
         tableSelector = '#seeddb-content';
 
     function executeOnLoad() {
+        /* Start joyride if url endswith #joyride */
+        if (location.hash === '#joyride') {
+            $(document).foundation({
+                'joyride': {
+                    'pre_ride_callback': function () {
+                        var cards = $('.joyride-tip-guide').find('.joyride-content-wrapper');
+                        cards.each(function (index, element) {
+                            var counter = $('<small>')
+                                .attr('style', 'position:absolute;bottom:1.5rem;right:1.25rem')
+                                .html(index + 1 + ' of ' + cards.length);
+                            $(element).append(counter);
+                        });
+                    },
+                    'modal': false
+                }
+            });
+            $(document).foundation('joyride', 'start');
+        }
+
+
         if ($('#map').length) {
             populateMap(initMap());     // Show map for coordinates
         }

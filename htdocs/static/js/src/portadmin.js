@@ -117,6 +117,7 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
     function markAsChanged(row) {
         var $row = $(row);
         if (!$row.hasClass('changed')) {
+            $row.find('.portadmin-save').removeClass('secondary');
             $row.addClass("changed");
         }
     }
@@ -124,6 +125,7 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
     function markAsUnchanged(row) {
         var $row = $(row);
         if ($row.hasClass('changed')) {
+            $row.find('.portadmin-save').addClass('secondary');
             $row.removeClass("changed");
         }
     }

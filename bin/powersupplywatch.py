@@ -125,7 +125,7 @@ VENDOR_PSU_STATES = {
     },
     VENDOR_HP: {
         HP_PSU_PS_NOT_PRESENT: STATE_UNKNOWN,
-        HP_PSU_PS_NOT_PLUGGED: STATE_UNKNOWN,
+        HP_PSU_PS_NOT_PLUGGED: STATE_DOWN,
         HP_PSU_PS_POWERED: STATE_UP,
         HP_PSU_PS_FAILED: STATE_DOWN,
         HP_PSU_PS_PERM_FAILURE: STATE_DOWN,
@@ -136,7 +136,6 @@ VENDOR_PSU_STATES = {
 LOGFILE = join(buildconf.localstatedir, "log/powersupplywatch.log")
 LOGFORMAT = "[%(asctime)s] [%(levelname)s] %(message)s"
 LOGGER = logging.getLogger('nav.powersupplywatch')
-_snmp_handles = {}
 
 
 def main():
@@ -268,12 +267,9 @@ def check_psus_and_fans(to_check, dryrun=False):
 
 
 def get_snmp_handle(netbox):
-    """Allocate an Snmp-handle for a given netbox"""
-    if not netbox.sysname in _snmp_handles:
-        LOGGER.debug('Allocate SNMP-handle for %s', netbox.sysname)
-        _snmp_handles[netbox.sysname] = Snmp(netbox.ip, netbox.read_only,
-                                             netbox.snmp_version)
-    return _snmp_handles.get(netbox.sysname, None)
+    """Allocates an Snmp-handle for a given netbox"""
+    LOGGER.debug('Allocate SNMP-handle for %s', netbox.sysname)
+    return Snmp(netbox.ip, netbox.read_only, netbox.snmp_version)
 
 
 def handle_status(psu_or_fan, status, dry_run=False):
