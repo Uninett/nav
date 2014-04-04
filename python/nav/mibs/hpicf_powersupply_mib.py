@@ -1,5 +1,5 @@
-# encoding: utf-8
-# Copyright 2008 - 2011 (C) UNINETT AS
+#
+# Copyright 2008 - 2011, 2014 (C) UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -24,6 +24,8 @@ from twisted.internet import defer
 from nav.mibs import reduce_index
 from nav.mibs import mibretriever
 
+from nav.models.manage import PowerSupplyOrFan as PSU
+
 
 class HpIcfPowerSupplyMib(mibretriever.MibRetriever):
     """ A class for collecting powersupply states from HP netboxes."""
@@ -45,20 +47,20 @@ class HpIcfPowerSupplyMib(mibretriever.MibRetriever):
         defer.returnValue(psu_table)
 
     def _get_psu_status(self, psu_status):
-        """Return the current powersupply-status.  Status is returned as a
-        single character.  Return-values: u = unknown, y = ok, n = failed,
-        w = warning
+        """Returns the current powersupply status.
+
+        :returns: A state value from
+                  nav.models.manage.PowerSupplyOrFan.STATE_CHOICES
+
         """
-        status = 'u'
-        if psu_status == 'psNotPresent' or psu_status == 'psNotPlugged':
-            status = 'u'
-        elif psu_status == 'psPowered':
-            status = 'y'
-        elif psu_status == 'psFailed' or psu_status == 'psPermFailure':
-            status = 'n'
+        if psu_status == 'psPowered':
+            return PSU.STATE_UP
+        elif psu_status in ('psNotPlugged', 'psFailed', 'psPermFailure'):
+            return PSU.STATE_DOWN
         elif psu_status == 'psMax':
-            status = 'w'
-        return status
+            return PSU.STATE_WARNING
+        else:
+            return PSU.STATE_UNKNOWN
 
     @defer.inlineCallbacks
     def is_psu_up(self, idx):
