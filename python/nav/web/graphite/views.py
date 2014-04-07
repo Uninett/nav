@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 import urllib2
+from urlparse import urljoin
 from django.conf import settings
 from django.http import HttpResponse
 from nav.metrics import CONFIG
@@ -33,7 +34,7 @@ def index(request, uri):
 
     base = CONFIG.get('graphiteweb', 'base')
     query = _inject_default_arguments(request.GET)
-    url = base + uri + ('?' + query) if query else ''
+    url = urljoin(base, uri + ('?' + query) if query else '')
 
     LOGGER.debug("proxying request to %r", url)
     req = urllib2.Request(url)
