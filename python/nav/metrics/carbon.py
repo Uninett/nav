@@ -17,11 +17,14 @@
 This module implements various common API to send metrics to a
 Graphite/Carbon backend. It currently only supports the UDP line protocol,
 as it's the easiest to implement, and will also work without vodoo in
-asynchronous programs (i .e. such as ipdevpoll, which is implented using
+asynchronous programs (i .e. such as ipdevpoll, which is implemented using
 Twisted).
 """
+import logging
 import socket
 from nav.metrics import CONFIG
+
+_logger = logging.getLogger(__name__)
 
 # Maximum payload to allow for a UDP packet containing metrics destined for
 # Graphite. A value of 1472 should be ok to stay within the standard ethernet
@@ -48,6 +51,8 @@ def send_metrics_to(metric_tuples, host, port=2003):
         carbon = socket.socket(_socktype_from_addr(host), socket.SOCK_DGRAM)
         carbon.connect((host, port))
 
+    _logger.debug("sending carbon metrics to [%s]:%s: %r",
+                  host, port, metric_tuples)
     for packet in metrics_to_packets(metric_tuples):
         carbon.send(packet)
 

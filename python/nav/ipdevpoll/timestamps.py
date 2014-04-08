@@ -142,6 +142,11 @@ class TimestampChecker(object):
         uptime_deviation = self.snmpv2mib.get_uptime_deviation(
             old_uptime, new_uptime)
 
+        if None in new_times:
+            self._logger.debug("%r: None in timestamp list: %r",
+                               self.var_name, new_times)
+            self._logger.warning("%r: retrieved empty timestamp", self.var_name)
+            return True
         if old_times != new_times:
             self._logger.debug("%r: timestamps have changed: %r / %r",
                                self.var_name, old_times, new_times)

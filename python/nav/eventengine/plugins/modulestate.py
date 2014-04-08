@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012 UNINETT
+# Copyright (C) 2012, 2014 UNINETT
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -38,7 +38,7 @@ class ModuleStateHandler(delayedstate.DelayedStateHandler):
         return self._target
 
     def _get_up_alert(self):
-        alert = AlertGenerator(self.event)
+        alert = self._get_alert()
         alert.alert_type = "moduleUp"
         return alert
 
@@ -55,13 +55,20 @@ class ModuleStateHandler(delayedstate.DelayedStateHandler):
         module.save()
 
     def _get_down_alert(self):
-        alert = AlertGenerator(self.event)
+        alert = self._get_alert()
         alert.alert_type = "moduleDown"
+        return alert
+
+    def _get_alert(self):
+        alert = AlertGenerator(self.event)
+        target = self.get_target()
+        if target:
+            alert['module'] = target
         return alert
 
     def _post_down_warning(self):
         """Posts the actual warning alert"""
-        alert = AlertGenerator(self.event)
+        alert = self._get_alert()
         alert.alert_type = "moduleDownWarning"
         alert.state = self.event.STATE_STATELESS
         self._logger.info("%s: Posting %s alert",
