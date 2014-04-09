@@ -131,7 +131,7 @@ class SearchForm(forms.Form):
         searchtype = cleaned_data.get('searchtype')
         searchvalue = cleaned_data.get('searchvalue')
 
-        if searchtype == 'ip':
+        if searchvalue and searchtype == 'ip':
             try:
                 IP(searchvalue)
             except ValueError:
