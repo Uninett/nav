@@ -79,8 +79,24 @@
 }
 
 .WatchDogWidget {
-    .watchdog-tests {
-        margin-right: 64px;
+    .zhedog {
         width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        opacity: 0.05;
+        z-index: 0;
+    }
+
+    .watchdog-tests {
+        position: relative;
+        z-index: 1;
+        li {
+            padding: 0.2em 0;
+        }
+        .label {
+            width: 60px;
+        }
     }
 }

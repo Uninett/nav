@@ -1,18 +1,26 @@
 {% extends 'navlets/base.html' %}
+{% load watchdog %}
 
 {% block navlet-content %}
 
-  <img src="{{ STATIC_URL }}images/icons/watchdog_black.svg" class="right">
+  <img src="{{ STATIC_URL }}images/icons/watchdog_black.svg" class="zhedog">
 
-  <table class="listtable hover watchdog-tests">
-    <tbody>
+  <ul class="watchdog-tests no-bullet">
     {% for test in tests %}
-      <tr>
-        <td>{{ test.name }}</td>
-        <td><span class="label success">{{ test.status }}</span></td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+      <li>{{ test.name }}
+          <span class="label {{ test.status|map_to_class }} right">
+            {{ test.status|map_to_word }}
+          </span>
 
+          <ul class="hide">
+            {% for error in test.errors %}
+              <li>
+                <small>{{ error }}</small>
+              </li>
+            {% endfor %}
+          </ul>
+
+      </li>
+    {% endfor %}
+  </ul>
 {% endblock %}

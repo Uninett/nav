@@ -37,6 +37,11 @@ require(['plugins/room_mapper', 'plugins/navlets_controller', 'libs/jquery', 'li
                 $(document).foundation('joyride', 'start');
             });
 
+            /* Need some way of doing javascript stuff on widgets */
+            $navletsContainer.on('click', '.watchdog-tests .label.alert', function (event) {
+                $(event.target).next('ul').toggle();
+            });
+
         });
 
     }
