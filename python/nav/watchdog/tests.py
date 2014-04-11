@@ -15,7 +15,11 @@
 #
 """Test classes for WatchDog"""
 
-from nav.models.manage import IpdevpollJobLog
+import collections
+import itertools
+
+from nav.asyncdns import reverse_lookup
+from nav.models.manage import IpdevpollJobLog, Netbox
 
 
 STATUS_OK = 'ok'
@@ -39,8 +43,8 @@ class TestResult(object):
 class Test(object):
     """Interface for all test classes"""
 
-    self.name = 'Test'
-    self.description = 'A WatchDog test'
+    name = 'Test'
+    description = 'A WatchDog test'
 
     def __init__(self):
         self.status = STATUS_UNKNOWN
@@ -66,8 +70,8 @@ class Test(object):
 class TestOverdueJobs(Test):
     """Tests if there are any overdue ipdevpoll jobs"""
 
-    self.name = 'Overdue jobs'
-    self.description = 'Tests if there exists any overdue ipdevpoll jobs'
+    name = 'Overdue jobs'
+    description = 'Tests if there exists any overdue ipdevpoll jobs'
 
     @staticmethod
     def _get_errors():
@@ -91,8 +95,8 @@ class TestOverdueJobs(Test):
 class TestFailedJobs(Test):
     """Tests if there are any ipdevpolljobs that have failed"""
 
-    self.name = 'Failed jobs'
-    self.description = 'Tests if there exists any failed ipdevpoll jobs'
+    name = 'Failed jobs'
+    description = 'Tests if there exists any failed ipdevpoll jobs'
 
     @staticmethod
     def _get_errors():
@@ -111,3 +115,36 @@ class TestFailedJobs(Test):
         """
 
         return [TestResult(x) for x in IpdevpollJobLog.objects.raw(query)]
+
+
+class TestDuplicateHostnameForIP(Test):
+    """
+    Tests of there are any number of IP-addresses that resolve to the same
+    hostname
+    """
+
+    name = 'Duplicate Hostname'
+    description = 'Tests if there are IP-addresses that resolve to the ' \
+                  'same hostname'
+
+    @staticmethod
+    def _get_errors():
+        """Fetches duplicate hostnames"""
+        ip_addresses = [n.ip for n in Netbox.objects.all()]
+        reverse_names = reverse_lookup(ip_addresses)
+        flatten = list(itertools.chain(*reverse_names.values()))
+        duplicates = set([x for x in flatten if flatten.count(x) > 1])
+        results = collections.defaultdict(list)
+
+        for hostname in duplicates:
+            for ip, hostlist in reverse_names.items():
+                if hostname in hostlist:
+                    results[hostname].append(ip)
+
+        errors = []
+        for hostname, iplist in results.items():
+            error = 'The hostname {} is used by these IP-addresses: {}'.format(
+                hostname, ', '.join(iplist))
+            errors.append(TestResult(error))
+
+        return errors
