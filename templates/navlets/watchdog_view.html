@@ -1,0 +1,18 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  <img src="{{ STATIC_URL }}images/icons/watchdog_black.svg" class="right">
+
+  <table class="listtable hover watchdog-tests">
+    <tbody>
+    {% for test in tests %}
+      <tr>
+        <td>{{ test.name }}</td>
+        <td><span class="label success">{{ test.status }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+{% endblock %}
