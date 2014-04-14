@@ -3,8 +3,6 @@
 
 {% block navlet-content %}
 
-{#  <img src="{{ STATIC_URL }}images/icons/watchdog_black.svg" class="zhedog">#}
-
   <ul class="watchdog-tests no-bullet">
     {% for test in tests %}
       <li>{{ test.name }}
@@ -12,13 +10,13 @@
             {{ test.status|map_to_word }}
           </span>
 
-          <ul class="hide">
-            {% for error in test.errors %}
-              <li>
-                <small>{{ error }}</small>
-              </li>
-            {% endfor %}
-          </ul>
+        <ul class="hide">
+          {% for error in test.errors %}
+            <li>
+              <small>{{ error }}</small>
+            </li>
+          {% endfor %}
+        </ul>
 
       </li>
     {% endfor %}
