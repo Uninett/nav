@@ -17,6 +17,8 @@
 
 import collections
 import itertools
+from datetime import datetime, timedelta
+from django.utils.timesince import timesince
 
 from nav.asyncdns import reverse_lookup
 from nav.models.manage import IpdevpollJobLog, Netbox
@@ -30,11 +32,12 @@ STATUS_UNKNOWN = 'unknown'
 class TestResult(object):
     """Result for test errors"""
 
-    def __init__(self, error):
-        self.error = error
+    def __init__(self, description, obj=None):
+        self.description = description  # The human readable description
+        self.obj = obj  # An optional object representing the test
 
     def __unicode__(self):
-        return unicode(self.error)
+        return unicode(self.description)
 
     def __str__(self):
         return unicode(self).encode('utf-8')
@@ -75,7 +78,12 @@ class TestOverdueJobs(Test):
 
     @staticmethod
     def _get_errors():
-        """Fetches the overdue jobs from ipdevpolljoblog"""
+        """
+        Fetches the overdue jobs from ipdevpolljoblog. Because some jobs will
+        take some time to run, give some slack to what is considered overdue.
+        """
+        slack = 120  # Seconds
+
         query = """
           SELECT ijl.* FROM ipdevpoll_job_log AS ijl
           JOIN
@@ -89,7 +97,17 @@ class TestOverdueJobs(Test):
           WHERE now() - interval '1 second' * interval > end_time;
         """
 
-        return [TestResult(x) for x in IpdevpollJobLog.objects.raw(query)]
+        errors = []
+        for job in IpdevpollJobLog.objects.raw(query):
+            should_have_run = job.end_time + timedelta(seconds=job.interval)
+            overdue_by = datetime.now() - should_have_run
+            if overdue_by.seconds > slack:
+                time_since = timesince(datetime.now() - overdue_by)
+                descr = "Job {} on {} is overdue by {}".format(
+                    job.job_name, job.netbox.sysname, time_since)
+                errors.append(TestResult(descr, job))
+
+        return errors
 
 
 class TestFailedJobs(Test):
@@ -114,7 +132,8 @@ class TestFailedJobs(Test):
           WHERE success = 'f'
         """
 
-        return [TestResult(x) for x in IpdevpollJobLog.objects.raw(query)]
+        return [TestResult(str(x), x)
+                for x in IpdevpollJobLog.objects.raw(query)]
 
 
 class TestDuplicateHostnameForIP(Test):
