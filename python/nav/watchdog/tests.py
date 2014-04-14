@@ -94,7 +94,8 @@ class TestOverdueJobs(Test):
           ) AS foo
           USING (netboxid, job_name, end_time)
           JOIN netbox ON (ijl.netboxid = netbox.netboxid)
-          WHERE now() - interval '1 second' * interval > end_time;
+          WHERE now() - interval '1 second' * interval > end_time
+          ORDER BY netboxid;
         """
 
         errors = []
@@ -130,6 +131,7 @@ class TestFailedJobs(Test):
           USING (netboxid, job_name, end_time)
           JOIN netbox ON (ijl.netboxid = netbox.netboxid)
           WHERE success = 'f'
+          ORDER BY netboxid;
         """
 
         return [TestResult(str(x), x)
