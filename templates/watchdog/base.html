@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load tools %}
+
+
+{% block base_content %}
+
+  {% with tool=current_user_data.tools|get_tool:'WatchDog' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
+  <table class="vertitable">
+    <caption>NAV overview</caption>
+    <tbody>
+    <tr>
+      <th>IP Devices</th>
+      <td>{{ num_ip_devices }}</td>
+    </tr>
+    <tr>
+      <th>Active IP (v4/v6)</th>
+      <td>{{ num_active }} ({{ num_active_ipv4 }}/{{ num_active_ipv6 }})</td>
+    </tr>
+    <tr>
+      <th>Arp rows</th>
+      <td>{{ num_arp }}</td>
+    </tr>
+    <tr>
+      <th>Cam rows</th>
+      <td>{{ num_cam }}</td>
+    </tr>
+    </tbody>
+  </table>
+
+{% endblock %}

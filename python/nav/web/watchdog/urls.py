@@ -13,22 +13,11 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Module comment"""
+"""URL config for WatchDog"""
 
-from . import Navlet
-from nav.watchdog.util import get_statuses
+from django.conf.urls import patterns, url
 
-
-class WatchDogWidget(Navlet):
-    """Widget for displaying WatchDog status"""
-
-    title = 'WatchDog'
-    description = 'Displays important statuses for NAV'
-
-    def get_context_data(self, **kwargs):
-        context = super(WatchDogWidget, self).get_context_data(**kwargs)
-        context['tests'] = get_statuses()
-        return context
-
-    def get_template_basename(self):
-        return 'watchdog'
+urlpatterns = patterns(
+    'nav.web.watchdog.views',
+    url('^$', 'render_index', name='watchdog-index')
+)

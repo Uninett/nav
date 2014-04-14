@@ -14,3 +14,32 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Controllers for WatchDog requests"""
+
+from django.shortcuts import render
+from nav.models.fields import INFINITY
+from nav.models.manage import Arp, Cam, Netbox
+
+
+def render_index(request):
+    """Controller for WatchDog index"""
+    num_active, num_ipv6, num_ipv4 = get_active_addresses()
+
+    context = {
+        'num_active': num_active,
+        'num_active_ipv6': num_ipv6,
+        'num_active_ipv4': num_ipv4,
+        'num_arp': Arp.objects.count(),
+        'num_cam': Cam.objects.count(),
+        'num_ip_devices': Netbox.objects.count()
+    }
+
+    return render(request, 'watchdog/base.html', context)
+
+
+def get_active_addresses():
+    """Get active addresses on the network"""
+    active = Arp.objects.filter(end_time=INFINITY)
+    num_active = active.count()
+    num_active_ipv6 = active.extra(where=['family(ip)=6']).count()
+    num_active_ipv4 = active.extra(where=['family(ip)=4']).count()
+    return num_active, num_active_ipv6, num_active_ipv4

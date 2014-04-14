@@ -47,6 +47,7 @@ urlpatterns += patterns('',
     (r'^threshold/', include('nav.web.threshold.urls')),
     (r'^graphite/', include('nav.web.graphite.urls')),
     (r'^navlets/', include('nav.web.navlets.urls')),
+    (r'^watchdog/', include('nav.web.watchdog.urls')),
 
     (r'^useradmin/', include('nav.web.useradmin.urls')),
 )
