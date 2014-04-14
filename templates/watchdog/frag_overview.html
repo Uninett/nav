@@ -1,0 +1,32 @@
+<ul id="nav-overview" class="small-block-grid-2 large-block-grid-3">
+  <li>
+    <div>
+      <h5>IP Devices</h5>
+      {{ num_ip_devices }}
+    </div>
+  </li>
+  <li>
+    <div>
+      <h5>Serial numbers</h5>
+      {{ num_serials }}
+    </div>
+  </li>
+  <li>
+    <div>
+      <h5>Active IP (v4/v6)</h5>
+      {{ num_active }} ({{ num_active_ipv4 }}/{{ num_active_ipv6 }})
+    </div>
+  </li>
+  <li>
+    <div>
+      <h5>Arp rows</h5>
+      {{ num_arp }}
+    </div>
+  </li>
+  <li>
+    <div>
+      <h5>Cam rows</h5>
+      {{ num_cam }}
+    </div>
+  </li>
+</ul>

@@ -1,0 +1,24 @@
+{% load watchdog %}
+
+<div id="watchdog-tests" class="panel white">
+
+  <ul class="watchdog-tests">
+    {% for test in tests %}
+      <li>{{ test.name }}
+        <span class="label {{ test.status|map_to_class }} right">
+          {{ test.status|map_to_word }}
+        </span>
+
+        <ul class="hide">
+          {% for error in test.errors %}
+            <li>
+              <small>{{ error }}</small>
+            </li>
+          {% endfor %}
+        </ul>
+
+      </li>
+    {% endfor %}
+  </ul>
+
+</div> {# .panel #}

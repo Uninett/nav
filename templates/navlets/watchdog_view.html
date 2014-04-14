@@ -3,7 +3,7 @@
 
 {% block navlet-content %}
 
-  <ul class="watchdog-tests no-bullet">
+  <ul class="watchdog-tests">
     {% for test in tests %}
       <li>{{ test.name }}
           <span class="label {{ test.status|map_to_class }} right">
@@ -21,4 +21,17 @@
       </li>
     {% endfor %}
   </ul>
+
+  <div class="row">
+    <div class="column small-6">
+      <a href="{% url watchdog-index %}">See full overview</a>
+    </div>
+    <div class="column small-6 text-right">
+      <a href="{% url watchdog-index %}">
+        <img src="{{ STATIC_URL }}images/icons/watchdog_black.svg" width="24"/>
+      </a>
+    </div>
+  </div>
+
+
 {% endblock %}

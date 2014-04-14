@@ -2,32 +2,27 @@
 {% load tools %}
 
 
+{% block base_header_additional_head %}
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/nav/watchdog.css"/>
+  <script type="text/javascript">require(['src/watchdog']);</script>
+{% endblock %}
+
 {% block base_content %}
 
   {% with tool=current_user_data.tools|get_tool:'WatchDog' %}
     {% include 'nav_header.html' %}
   {% endwith %}
 
-  <table class="vertitable">
-    <caption>NAV overview</caption>
-    <tbody>
-    <tr>
-      <th>IP Devices</th>
-      <td>{{ num_ip_devices }}</td>
-    </tr>
-    <tr>
-      <th>Active IP (v4/v6)</th>
-      <td>{{ num_active }} ({{ num_active_ipv4 }}/{{ num_active_ipv6 }})</td>
-    </tr>
-    <tr>
-      <th>Arp rows</th>
-      <td>{{ num_arp }}</td>
-    </tr>
-    <tr>
-      <th>Cam rows</th>
-      <td>{{ num_cam }}</td>
-    </tr>
-    </tbody>
-  </table>
+  <div class="row">
+    <div class="medium-6 column">
+      <h4>NAV status tests</h4>
+      {% include 'watchdog/frag_tests.html' %}
+    </div> {# .column #}
+
+    <div class="medium-6 column">
+      <h4>NAV overview</h4>
+      {% include 'watchdog/frag_overview.html' %}
+    </div> {# .column #}
+  </div> {# .row #}
 
 {% endblock %}

@@ -15,22 +15,31 @@
 #
 """Controllers for WatchDog requests"""
 
+from django.core.urlresolvers import reverse
 from django.shortcuts import render
+
 from nav.models.fields import INFINITY
-from nav.models.manage import Arp, Cam, Netbox
+from nav.models.manage import Arp, Cam, Netbox, Device
+from nav.web.utils import create_title
+from nav.watchdog.util import get_statuses
 
 
 def render_index(request):
     """Controller for WatchDog index"""
+    navpath = [('Home', '/'), ('WatchDog', )]
     num_active, num_ipv6, num_ipv4 = get_active_addresses()
 
     context = {
+        'navpath': navpath,
+        'title': create_title(navpath),
         'num_active': num_active,
         'num_active_ipv6': num_ipv6,
         'num_active_ipv4': num_ipv4,
         'num_arp': Arp.objects.count(),
         'num_cam': Cam.objects.count(),
-        'num_ip_devices': Netbox.objects.count()
+        'num_ip_devices': Netbox.objects.count(),
+        'num_serials': Device.objects.distinct('serial').count(),
+        'tests': get_statuses()
     }
 
     return render(request, 'watchdog/base.html', context)
