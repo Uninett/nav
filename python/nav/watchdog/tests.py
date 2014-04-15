@@ -169,3 +169,39 @@ class TestDuplicateHostnameForIP(Test):
             errors.append(TestResult(error))
 
         return errors
+
+
+class TestNoRouterInterfaces(Test):
+    """Test if any router has no router-interfaces"""
+
+    name = 'No router interfaces'
+    description = 'Tests if there are routers that do not have any router interfaces'
+
+    @staticmethod
+    def _get_errors():
+        """Fetches routers with no router interfaces"""
+        results = []
+        for netbox in Netbox.objects.filter(category__in=['GW', 'GSW']):
+            if netbox.get_gwports().count() <= 0:
+                descr = "{} has no router-interfaces".format(netbox.sysname)
+                results.append(TestResult(descr, netbox))
+
+        return results
+
+
+class TestNoSwitchPorts(Test):
+    """Test if any switch has no switch ports"""
+
+    name = 'No switch ports'
+    description = 'Tests if there are any switches that do not have any switch ports'
+
+    @staticmethod
+    def _get_errors():
+        """Fetches switches with no switch ports"""
+        results = []
+        for netbox in Netbox.objects.filter(category__in=['GSW', 'SW']):
+            if netbox.get_swports().count() <= 0:
+                descr = "{} has no switch ports".format(netbox.sysname)
+                results.append(TestResult(descr, netbox))
+
+        return results

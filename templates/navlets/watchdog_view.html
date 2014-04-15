@@ -5,7 +5,7 @@
 
   <ul class="watchdog-tests">
     {% for test in tests %}
-      <li>{{ test.name }}
+      <li>{{ test.name }} <span class="fa fa-info-circle" title="{{ test.description }}"></span>
           <span class="label {{ test.status|map_to_class }} right">
             {{ test.status|map_to_word }}
           </span>
