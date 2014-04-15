@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 from django.utils.timesince import timesince
 
 from nav.asyncdns import reverse_lookup
-from nav.models.manage import IpdevpollJobLog, Netbox
+from nav.models.manage import IpdevpollJobLog, Netbox, Arp, Cam
 
 
 STATUS_OK = 'ok'
@@ -203,5 +203,58 @@ class TestNoSwitchPorts(Test):
             if netbox.get_swports().count() <= 0:
                 descr = "{} has no switch ports".format(netbox.sysname)
                 results.append(TestResult(descr, netbox))
+
+        return results
+
+
+class TestAbnormalInterfaceCount(Test):
+    """Tests for abnormal interface counts on devices"""
+
+    # Random number, should be sanitized. Max for a Cisco 7200 with
+    # 12.3T software is 20000. 5000 is above most of the other though.
+    # But what is the case where this test is needed?
+    abnormal_amount = 5000
+    name = 'Abnormal interface count'
+    description = 'Tests if there are IP Devices with more than {} ' \
+        'interfaces'.format(abnormal_amount)
+
+    def _get_errors(self):
+        """Fetches netboxes with an abnormal amount of interfaces"""
+        results = []
+        for netbox in Netbox.objects.all().order_by('sysname'):
+            count = netbox.interface_set.count()
+            if count > self.abnormal_amount:
+                descr = "{} has {} interfaces".format(netbox.sysname, count)
+                results.append(TestResult(descr, netbox))
+
+        return results
+
+
+class TestNewCamAndArpRecords(Test):
+    """Tests for new Arp and Cam records"""
+
+    recently = 60 * 60  # 1 hour in seconds
+    name = "ARP and CAM"
+    description = "Tests if ARP and CAM has been collected the last hour"
+
+    def _get_errors(self):
+        """Checks for latest cam and arp"""
+        latest_cam = Cam.objects.all().order_by('-start_time')[0]
+        latest_arp = Arp.objects.all().order_by('-start_time')[0]
+
+        now = datetime.now()
+        cam_diff = now - latest_cam.start_time
+        arp_diff = now - latest_arp.start_time
+
+        results = []
+        if cam_diff.seconds > self.recently:
+            descr = 'CAM-records has not been collected the last {}'.format(
+                timesince(latest_cam.start_time))
+            results.append(TestResult(descr, latest_cam))
+
+        if arp_diff.seconds > self.recently:
+            descr = 'ARP-records has not been collected the last {}'.format(
+                    timesince(latest_arp.start_time))
+            results.append(TestResult(descr, latest_arp))
 
         return results
