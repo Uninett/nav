@@ -53,8 +53,7 @@ class Test(object):
         self.status = STATUS_UNKNOWN
         self.errors = []
 
-    @staticmethod
-    def _get_errors():
+    def _get_errors(self):
         """Gets error list for this test"""
         raise NotImplementedError
 
@@ -76,8 +75,7 @@ class TestOverdueJobs(Test):
     name = 'Overdue jobs'
     description = 'Tests if there exists any overdue ipdevpoll jobs'
 
-    @staticmethod
-    def _get_errors():
+    def _get_errors(self):
         """
         Fetches the overdue jobs from ipdevpolljoblog. Because some jobs will
         take some time to run, give some slack to what is considered overdue.
@@ -117,8 +115,7 @@ class TestFailedJobs(Test):
     name = 'Failed jobs'
     description = 'Tests if there exists any failed ipdevpoll jobs'
 
-    @staticmethod
-    def _get_errors():
+    def _get_errors(self):
         """Fetches failed ipdevpoll jobs"""
         query = """
           SELECT ijl.* FROM ipdevpoll_job_log AS ijl
@@ -148,8 +145,7 @@ class TestDuplicateHostnameForIP(Test):
     description = 'Tests if there are IP-addresses that resolve to the ' \
                   'same hostname'
 
-    @staticmethod
-    def _get_errors():
+    def _get_errors(self):
         """Fetches duplicate hostnames"""
         ip_addresses = [n.ip for n in Netbox.objects.all()]
         reverse_names = reverse_lookup(ip_addresses)
@@ -175,10 +171,10 @@ class TestNoRouterInterfaces(Test):
     """Test if any router has no router-interfaces"""
 
     name = 'No router interfaces'
-    description = 'Tests if there are routers that do not have any router interfaces'
+    description = 'Tests if there are routers that do not have any router ' \
+                  'interfaces'
 
-    @staticmethod
-    def _get_errors():
+    def _get_errors(self):
         """Fetches routers with no router interfaces"""
         results = []
         for netbox in Netbox.objects.filter(category__in=['GW', 'GSW']):
@@ -193,10 +189,10 @@ class TestNoSwitchPorts(Test):
     """Test if any switch has no switch ports"""
 
     name = 'No switch ports'
-    description = 'Tests if there are any switches that do not have any switch ports'
+    description = 'Tests if there are any switches that do not have any ' \
+                  'switch ports'
 
-    @staticmethod
-    def _get_errors():
+    def _get_errors(self):
         """Fetches switches with no switch ports"""
         results = []
         for netbox in Netbox.objects.filter(category__in=['GSW', 'SW']):
@@ -251,6 +247,7 @@ class TestNewCamAndArpRecords(Test):
         return results
 
     def test_cam(self):
+        """Test latest CAM record"""
         now = datetime.now()
         recently = timedelta(seconds=self.slack)
         latest_cam = self.get_latest(Cam)
@@ -262,6 +259,7 @@ class TestNewCamAndArpRecords(Test):
                 return TestResult(descr, latest_cam)
 
     def test_arp(self):
+        """Test latest ARP record"""
         now = datetime.now()
         recently = timedelta(seconds=self.slack)
         latest_arp = self.get_latest(Arp)
