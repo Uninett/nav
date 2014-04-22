@@ -17,8 +17,10 @@
 
 from unittest import TestCase
 from mock import Mock, patch
+from datetime import datetime, timedelta
 
 from nav.watchdog.tests import (TestResult, TestDuplicateHostnameForIP,
+                                TestNewCamAndArpRecords,
                                 STATUS_UNKNOWN, STATUS_NOT_OK, STATUS_OK)
 
 
@@ -62,3 +64,54 @@ class TestDuplicateHostname(TestCase):
     def test_errors_should_be_of_type_testresult(self):
         self.test.run()
         self.assertIsInstance(self.test.errors.pop(), TestResult)
+
+
+@patch('nav.watchdog.tests.TestNewCamAndArpRecords.get_latest')
+class TestNewCamAndArp(TestCase):
+
+    def create_mock_time(self, seconds):
+        return Mock(start_time=datetime.now() - timedelta(seconds=seconds))
+
+    def test_no_arp_or_cam_records(self, get_latest):
+        get_latest.return_value = None
+        test = TestNewCamAndArpRecords()
+        self.assertEqual(test.get_status(), STATUS_OK)
+
+    def test_cam_not_collected(self, get_latest):
+        get_latest.return_value = self.create_mock_time(
+            TestNewCamAndArpRecords.slack + 10)
+        test = TestNewCamAndArpRecords()
+        self.assertIsInstance(test.test_cam(), TestResult)
+
+    def test_cam_collected(self, get_latest):
+        get_latest.return_value = self.create_mock_time(
+            TestNewCamAndArpRecords.slack - 10)
+        test = TestNewCamAndArpRecords()
+        self.assertIsNone(test.test_cam())
+
+    def test_arp_not_collected(self, get_latest):
+        get_latest.return_value = self.create_mock_time(
+            TestNewCamAndArpRecords.slack + 10)
+        test = TestNewCamAndArpRecords()
+        self.assertIsInstance(test.test_arp(), TestResult)
+
+    def test_arp_collected(self, get_latest):
+        get_latest.return_value = self.create_mock_time(
+            TestNewCamAndArpRecords.slack - 10)
+        test = TestNewCamAndArpRecords()
+        self.assertIsNone(test.test_arp())
+
+    def test_both_collected(self, get_latest):
+        get_latest.return_value = self.create_mock_time(
+            TestNewCamAndArpRecords.slack - 10)
+        test = TestNewCamAndArpRecords()
+        self.assertEqual(test.get_status(), STATUS_OK)
+        self.assertEqual(len(test.errors), 0)
+
+    def test_none_collected(self, get_latest):
+        get_latest.return_value = self.create_mock_time(
+            TestNewCamAndArpRecords.slack + 10)
+        test = TestNewCamAndArpRecords()
+        self.assertEqual(test.get_status(), STATUS_NOT_OK)
+        self.assertEqual(len(test.errors), 2)
+

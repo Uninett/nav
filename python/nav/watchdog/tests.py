@@ -233,28 +233,51 @@ class TestAbnormalInterfaceCount(Test):
 class TestNewCamAndArpRecords(Test):
     """Tests for new Arp and Cam records"""
 
-    recently = 60 * 60  # 1 hour in seconds
+    slack = 60 * 60  # 1 hour in seconds
     name = "ARP and CAM"
     description = "Tests if ARP and CAM has been collected the last hour"
 
     def _get_errors(self):
         """Checks for latest cam and arp"""
-        latest_cam = Cam.objects.all().order_by('-start_time')[0]
-        latest_arp = Arp.objects.all().order_by('-start_time')[0]
-
-        now = datetime.now()
-        cam_diff = now - latest_cam.start_time
-        arp_diff = now - latest_arp.start_time
-
         results = []
-        if cam_diff.seconds > self.recently:
-            descr = 'CAM-records has not been collected the last {}'.format(
-                timesince(latest_cam.start_time))
-            results.append(TestResult(descr, latest_cam))
 
-        if arp_diff.seconds > self.recently:
-            descr = 'ARP-records has not been collected the last {}'.format(
-                    timesince(latest_arp.start_time))
-            results.append(TestResult(descr, latest_arp))
+        arp_result = self.test_arp()
+        if arp_result:
+            results.append(arp_result)
+        cam_result = self.test_cam()
+        if cam_result:
+            results.append(cam_result)
 
         return results
+
+    def test_cam(self):
+        now = datetime.now()
+        recently = timedelta(seconds=self.slack)
+        latest_cam = self.get_latest(Cam)
+        if latest_cam:
+            cam_diff = now - latest_cam.start_time
+            if cam_diff > recently:
+                descr = 'CAM-records has not been collected ' \
+                        'the last {}'.format(timesince(latest_cam.start_time))
+                return TestResult(descr, latest_cam)
+
+    def test_arp(self):
+        now = datetime.now()
+        recently = timedelta(seconds=self.slack)
+        latest_arp = self.get_latest(Arp)
+        if latest_arp:
+            arp_diff = now - latest_arp.start_time
+            if arp_diff > recently:
+                descr = 'ARP-records has not been collected the ' \
+                        'last {}'.format(timesince(latest_arp.start_time))
+                return TestResult(descr, latest_arp)
+
+    @staticmethod
+    def get_latest(thing):
+        """Get latest Cam or Arp record"""
+        try:
+            latest = thing.objects.all().order_by('-start_time')[0]
+        except IndexError:
+            return None
+        else:
+            return latest
