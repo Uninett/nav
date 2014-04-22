@@ -19,5 +19,6 @@ from django.conf.urls import patterns, url
 
 urlpatterns = patterns(
     'nav.web.watchdog.views',
-    url('^$', 'render_index', name='watchdog-index')
+    url('^$', 'render_index', name='watchdog-index'),
+    url('^overview/$', 'render_overview', name='watchdog-overview'),
 )

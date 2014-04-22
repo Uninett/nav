@@ -14,8 +14,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Controllers for WatchDog requests"""
-
-from django.core.urlresolvers import reverse
 from django.shortcuts import render
 
 from nav.models.fields import INFINITY
@@ -27,11 +25,20 @@ from nav.watchdog.util import get_statuses
 def render_index(request):
     """Controller for WatchDog index"""
     navpath = [('Home', '/'), ('WatchDog', )]
-    num_active, num_ipv6, num_ipv4 = get_active_addresses()
 
     context = {
         'navpath': navpath,
         'title': create_title(navpath),
+        'tests': get_statuses()
+    }
+
+    return render(request, 'watchdog/base.html', context)
+
+
+def render_overview(request):
+    """Controller for rendering the overview part of WatchDog"""
+    num_active, num_ipv6, num_ipv4 = get_active_addresses()
+    context = {
         'num_active': num_active,
         'num_active_ipv6': num_ipv6,
         'num_active_ipv4': num_ipv4,
@@ -39,10 +46,8 @@ def render_index(request):
         'num_cam': Cam.objects.count(),
         'num_ip_devices': Netbox.objects.count(),
         'num_serials': Device.objects.distinct('serial').count(),
-        'tests': get_statuses()
     }
-
-    return render(request, 'watchdog/base.html', context)
+    return render(request, 'watchdog/frag_overview.html', context)
 
 
 def get_active_addresses():
