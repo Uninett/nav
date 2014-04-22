@@ -4,9 +4,9 @@
 
   {% include 'watchdog/frag_tests.html' %}
 
-  <a href="{% url watchdog-index %}">See full overview</a>
   <a href="{% url watchdog-index %}" class="right">
     <img src="{{ STATIC_URL }}images/icons/watchdog_black.svg" width="24"/>
   </a>
+  <a href="{% url watchdog-index %}">See full overview</a>
 
 {% endblock %}
