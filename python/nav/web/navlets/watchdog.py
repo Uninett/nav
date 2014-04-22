@@ -24,6 +24,7 @@ class WatchDogWidget(Navlet):
 
     title = 'WatchDog'
     description = 'Displays important statuses for NAV'
+    refresh_interval = 1000 * 60 * 10  # Refresh every 10 minutes
 
     def get_context_data(self, **kwargs):
         context = super(WatchDogWidget, self).get_context_data(**kwargs)
