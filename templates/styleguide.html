@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
+{% load verbatim %}
 
 {% block base_header_additional_head %}
   <style>
@@ -30,7 +31,7 @@
 
 
 
-  <h3>NAV Style Guide</h3>
+  <h2>NAV Style Guide</h2>
 
 
   {# INTRODUCTION #}
@@ -49,6 +50,37 @@
   </div>
 
 
+
+
+  {# Page headers #}
+  <h3 class="underline">Page headers</h3>
+  <p>
+    The page header for a tool or equivalent is created by including the
+    template <code>nav_header.html</code>. This template expects a tool
+    to be defined. It must contain 'name' and 'description' members.
+  </p>
+
+  <p>
+    For existing tools:
+      {% verbatim %}
+      <pre class="prettyprint">
+      {% load tools %}
+      {% with tool=current_user_data.tools|get_tool:'toolname' %}
+        {% include 'nav_header.html' %}
+      {% endwith %}</pre>
+      {% endverbatim %}
+  </p>
+
+  <p>
+    A fake tool for a page that is not a tool: create a dictionary with a
+    'name' and a 'description' key. Pass it to the template.
+      {% verbatim %}
+      <pre class="prettyprint">
+      {% with tool=somedict %}
+        {% include 'nav_header.html' %}
+      {% endwith %}</pre>
+      {% endverbatim %}
+  </p>
 
 
   <div class="row">
