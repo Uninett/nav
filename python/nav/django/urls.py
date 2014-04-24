@@ -19,6 +19,7 @@ from django.conf import settings
 from django.conf.urls.defaults import patterns, include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from nav.web.webfront.urls import urlpatterns
+from nav.web.styleguide import styleguide_index
 
 urlpatterns += patterns('',
     (r'^status/', include('nav.web.status.urls')),
@@ -50,6 +51,7 @@ urlpatterns += patterns('',
     (r'^watchdog/', include('nav.web.watchdog.urls')),
 
     (r'^useradmin/', include('nav.web.useradmin.urls')),
+    (r'^styleguide/', styleguide_index),
 )
 
 handler500 = 'nav.django.views.custom_500'
