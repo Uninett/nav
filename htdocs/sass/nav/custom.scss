@@ -264,6 +264,10 @@ form.inline-form {
     }
 }
 
+form label .fa {
+    line-height: 1.5em;
+}
+
 
 /* This will align the label from crispy forms to the right of the checkbox */
 .checkboxinput + label {
