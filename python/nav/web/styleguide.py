@@ -16,8 +16,43 @@
 """Renders the styleguide"""
 
 from django.shortcuts import render
+from django import forms
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import Layout, Column, Row, Fieldset
+
+
+class StyleFormOne(forms.Form):
+    """Form displaying use of helptext"""
+    name = forms.CharField(help_text='Your name')
+    address = forms.CharField(help_text='Your address')
+
+
+class StyleFormTwo(forms.Form):
+    """More complex form"""
+    name = forms.CharField(help_text='Your name')
+    address = forms.CharField(help_text='Your address')
+
+    def __init__(self, *args, **kwargs):
+        super(StyleFormTwo, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = ''
+        self.helper.form_method = 'POST'
+        self.helper.layout = Layout(
+            Fieldset(
+                'Address form',
+                Row(
+                    Column('name', css_class='small-6'),
+                    Column('address', css_class='small-6')
+                )
+            )
+        )
 
 
 def styleguide_index(request):
     """Controller for rendering the styleguide"""
-    return render(request, 'styleguide.html')
+    context = {
+        'form1': StyleFormOne(),
+        'form2': StyleFormTwo()
+    }
+
+    return render(request, 'styleguide.html', context)

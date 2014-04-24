@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
   <style>
@@ -280,6 +281,9 @@
         There are many customizations done to the crispy forms. Basically, if you
         need to create forms - ask on mail/jabber/irc.
       </p>
+
+      {% crispy form1 %}
+      {% crispy form2 %}
 
     </div>
 
