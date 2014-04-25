@@ -4,6 +4,7 @@ require([
     'libs/jquery',
     'libs/jquery.dataTables.min',
     'libs/OpenLayers',
+    'libs/modernizr',
     'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect) {
 
     var tableWrapper = '#tablewrapper',
@@ -239,6 +240,16 @@ require([
     }
 
     function enrichTable() {
+        var $wrapper = $(tableWrapper),
+            keyPrefix = 'nav.seeddb.rowcount',
+            key = [keyPrefix, $wrapper.attr('data-forpage')].join('.'),
+            numRows = 10;
+        if (Modernizr.localstorage) {
+            var value = localStorage.getItem(key);
+            if (value !== null) { numRows = value; }
+        }
+
+
         /* Apply DataTable */
         var table = $(tableSelector).dataTable({
             "bPaginate": true,      // Pagination
@@ -264,10 +275,19 @@ require([
                 [10, 25, 50, -1],   // Choices for number of entries to display
                 [10, 25, 50, "All"] // Text for the choices
             ],
+            "iDisplayLength": numRows,  // The default number of rows to display
             "oLanguage": {"sInfo": "_START_-_END_ of _TOTAL_"}  // Format of number of entries visibile
         });
 
         table.fnSort([[1, 'asc']]);  // When loaded, sort ascending on second column
+
+        /* Store rowcount when user changes it */
+        if (Modernizr.localstorage) {
+            $wrapper.find('.dataTables_length select').change(function () {
+                var newValue = $(event.target).val();
+                localStorage.setItem(key, newValue);
+            });
+        }
     }
 
 });
