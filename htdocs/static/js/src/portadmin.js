@@ -14,6 +14,12 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
     var nav_ajax_queue = [];  // Queue for cards we are saving
     var queue_data = {};  // Object containing data for ajax requests
 
+    /* Mapping for ifadminstatus */
+    var ifAdminStatusMapping = {
+        1: true,
+        2: false
+    };
+
     /* Generic spinner created for display in the middle of a cell */
     var spinner = new Spinner({length: 3, width: 2, radius: 5});
     var parentSelector = '.port_row';
@@ -57,13 +63,16 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
         $wrapper.on('click', '.voicevlan', function (event) {
             actOnChange($(event.target).parents(parentSelector));
         });
+        $wrapper.on('change', '.ifadminstatus', function (event) {
+            actOnChange($(event.target).parents(parentSelector));
+        });
     }
 
     /*
      * Mark card changed or not based on values in card
      */
     function actOnChange(row) {
-        if (textFieldChanged(row) || dropDownChanged(row) || voiceVlanChanged(row)) {
+        if (textFieldChanged(row) || dropDownChanged(row) || voiceVlanChanged(row) || adminStatusChanged(row)) {
             markAsChanged(row);
         } else {
             markAsUnchanged(row);
@@ -109,6 +118,17 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
             var origOption = $checkbox.attr('data-orig').toLowerCase() === 'true';
             var checkedValue = $checkbox.prop('checked');
             return checkedValue ^ origOption;
+        } else {
+            return false;
+        }
+    }
+
+    function adminStatusChanged(row) {
+        var $checkbox = $(row).find('.ifadminstatus');
+        if ($checkbox.length) {
+            var origOption = ifAdminStatusMapping[$checkbox.attr('data-orig')];
+            var checkedValue = $checkbox.prop('checked');
+            return origOption ^ checkedValue;
         } else {
             return false;
         }
@@ -164,6 +184,14 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
         }
         if (voiceVlanChanged($row)) {
             data.voicevlan = $row.find(".voicevlan").prop('checked');
+        }
+        if (adminStatusChanged($row)) {
+            var adminStatusChecked = $row.find(".ifadminstatus").prop('checked');
+            if (adminStatusChecked) {
+                data.ifadminstatus = 1;
+            } else {
+                data.ifadminstatus = 2;
+            }
         }
         if ($row.find(".voicevlan").prop('checked')) {
             data.voice_activated = true;
@@ -269,6 +297,9 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
         if ('voicevlan' in data) {
             updateVoiceDefault($row, data.voicevlan);
         }
+        if ('ifadminstatus' in data) {
+            updateAdminStatusDefault($row, data.ifadminstatus);
+        }
     }
 
     function updateIfAliasDefault($row, ifalias) {
@@ -294,6 +325,14 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
             if (old_value !== new_value) {
                 $voice_element.attr('data-orig', new_value);
             }
+        }
+    }
+
+    function updateAdminStatusDefault($row, new_value) {
+        var $adminStatusCheckbox = $row.find('.ifadminstatus');
+        var old_value = $adminStatusCheckbox.attr('data-orig');
+        if (old_value !== new_value) {
+            $adminStatusCheckbox.attr('data-orig', new_value);
         }
     }
 

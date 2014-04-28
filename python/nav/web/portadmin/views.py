@@ -37,7 +37,8 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      find_allowed_vlans_for_user_on_netbox,
                                      find_allowed_vlans_for_user,
                                      filter_vlans, fetch_voice_vlans,
-                                     should_check_access_rights)
+                                     should_check_access_rights,
+                                     mark_detained_interfaces)
 from nav.Snmp.errors import SnmpError, TimeOutException
 from nav.portadmin.snmputils import SNMPFactory
 from .forms import SearchForm
@@ -182,6 +183,7 @@ def populate_infodict(request, account, netbox, interfaces):
         allowed_vlans = find_and_populate_allowed_vlans(account, netbox,
                                                         interfaces, fac)
         voice_vlan = fetch_voice_vlan_for_netbox(request, fac)
+        mark_detained_interfaces(interfaces)
     except TimeOutException:
         readonly = True
         messages.error(request, "Timeout when contacting %s. Values displayed "
@@ -311,6 +313,7 @@ def set_interface_values(account, interface, request):
         set_voice_vlan(fac, interface, request)
         set_ifalias(account, fac, interface, request)
         set_vlan(account, fac, interface, request)
+        set_admin_status(fac, interface, request)
         write_to_memory(fac)
         save_to_database([interface])
 
@@ -399,6 +402,30 @@ def set_voice_vlan(fac, interface, request):
                 fac.set_access(interface, interface.vlan)
         except (SnmpError, ValueError) as error:
             messages.error(request, "Error setting voicevlan: %s" % error)
+
+
+def set_admin_status(fac, interface, request):
+    """Set admin status for the interface
+    :type fac: nav.portadmin.snmputils.SNMPFactory
+    :type request: django.http.HttpRequest
+    """
+    status_up = '1'
+    status_down = '2'
+    account = request.account
+
+    if 'ifadminstatus' in request.POST:
+        adminstatus = request.POST['ifadminstatus']
+        try:
+            if adminstatus == status_up:
+                _logger.info('%s: Setting ifadminstatus for %s to %s',
+                             account.login, interface, 'up')
+                fac.set_if_up(interface.ifindex)
+            elif adminstatus == status_down:
+                _logger.info('%s: Setting ifadminstatus for %s to %s',
+                             account.login, interface, 'down')
+                fac.set_if_down(interface.ifindex)
+        except (SnmpError, ValueError) as error:
+            messages.error(request, "Error setting ifadminstatus: %s" % error)
 
 
 def write_to_memory(fac):

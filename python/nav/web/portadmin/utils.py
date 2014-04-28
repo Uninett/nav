@@ -22,6 +22,7 @@ from django.template.loaders.filesystem import Loader
 from nav.models.profiles import AccountGroup
 from nav.path import sysconfdir
 from nav.portadmin.snmputils import SNMPFactory, FantasyVlan
+from nav.models.arnold import Identity
 from operator import attrgetter
 from os.path import join
 
@@ -282,3 +283,16 @@ def should_check_access_rights(account):
     """Return boolean indicating that this user is restricted"""
     return (is_vlan_authorization_enabled() and
             not is_administrator(account))
+
+
+def mark_detained_interfaces(interfaces):
+    """Mark interfaces detained in Arnold
+    :type interfaces: list[nav.models.manage.Interface]
+    """
+    for interface in interfaces:
+        # If interface is administratively down, check if Arnold is the source
+        if interface.ifadminstatus == 2 and interface.identity_set.filter(
+                status='disabled').count() > 0:
+            interface.detained = True
+        if interface.identity_set.filter(status='quarantined').count() > 0:
+            interface.detained = True
