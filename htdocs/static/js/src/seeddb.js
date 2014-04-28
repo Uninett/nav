@@ -135,11 +135,15 @@ require([
 
         if (position_string === '') {
             center = new OpenLayers.LonLat(0, 0);
-            navigator.geolocation.getCurrentPosition(
-                gotPosition,
-                errorGettingPosition,
-                {timeout: 1000}  // Default is infinity, yay. No map for you.
-            );
+            if (Modernizr.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    gotPosition,
+                    errorGettingPosition,
+                    {timeout: 1000}  // Default is infinity, yay. No map for you.
+                );
+            } else {
+                deferred.resolve(center);
+            }
         }
         else {
             center = parseLonLat(position_string.slice(1, -1));
