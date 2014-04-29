@@ -10,5 +10,8 @@
 .watchdog-tests {
     .label {
         width: 60px;
+        &.alert {
+            cursor: pointer;
+        }
     }
 }

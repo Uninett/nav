@@ -82,6 +82,9 @@
     .watchdog-tests {
         li {
             padding: 0.2em 0;
+            .label.alert {
+                cursor: pointer;
+            }
         }
         .label {
             width: 60px;
