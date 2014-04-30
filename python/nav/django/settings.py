@@ -161,7 +161,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.sessions',
     'crispy_forms',
-    'crispy_forms_foundation'
+    'crispy_forms_foundation',
+    'django_hstore',
 )
 
 # Hack for hackers to use features like debug_toolbar etc.
