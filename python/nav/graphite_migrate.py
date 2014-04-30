@@ -64,7 +64,11 @@ class Migrator(object):
             _logger.info('Migrating %s', rrdfile)
             mapping = self.find_metrics(rrdfile)
             if mapping:
-                convert_to_whisper(rrdfile, mapping, self.extra_retention)
+                try:
+                    convert_to_whisper(rrdfile, mapping, self.extra_retention)
+                except Exception:
+                    _logger.exception("Unhandled error during conversion of %r",
+                                      rrdfile)
 
     def find_metrics(self, rrdfile):
         """Find metrics for datasources"""
