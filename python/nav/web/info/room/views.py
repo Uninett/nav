@@ -97,6 +97,7 @@ def roominfo(request, roomid):
     room = Room.objects.get(id=roomid)
     images = room.image_set.all()
     navpath = get_path() + [(room.id,)]
+    room.sorted_data = sorted(room.data.items())
 
     return render_to_response("info/room/roominfo.html",
                               {"room": room,
