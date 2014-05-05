@@ -61,7 +61,7 @@ function (hstore_container_source, hstore_row_source) {
             });
         },
         'addDeleteListener': function () {
-            this.hstore_container.on('click', '.deleteicon', function (event) {
+            this.hstore_container.on('click', '.button.alert', function (event) {
                 $($(event.target).parents('.row')[0]).remove();
             });
         },

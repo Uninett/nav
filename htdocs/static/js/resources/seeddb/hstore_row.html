@@ -1,11 +1,20 @@
 <div class="row collapse">
   <div class="small-5 column">
-    <input type="text" value="{{ this.key }}">
+    <label>
+      Attribute key
+      <input type="text" value="{{ this.key }}">
+    </label>
   </div>
   <div class="small-6 column">
-    <input type="text" value="{{ this.value }}">
+    <label>
+      Attribute value
+      <input type="text" value="{{ this.value }}">
+    </label>
   </div>
-  <div class="small-1 column text-right">
-    <i class="fa fa-times-circle deleteicon"></i>
+  <div class="small-1 column">
+    <label>
+      &nbsp;
+    <a class="button alert postfix">X</a>
+    </label>
   </div>
 </div>

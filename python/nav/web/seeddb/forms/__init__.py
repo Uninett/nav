@@ -74,7 +74,7 @@ class RoomFilterForm(forms.Form):
 class RoomForm(forms.ModelForm):
     """Form for editing/adding rooms"""
     location = forms.ModelChoiceField(queryset=Location.objects.order_by('id'))
-    data = DictionaryField(widget=forms.Textarea())
+    data = DictionaryField(widget=forms.Textarea(), label='Attributes')
 
     class Meta:
         model = Room
