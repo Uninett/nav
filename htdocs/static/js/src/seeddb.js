@@ -1,11 +1,12 @@
 require([
     'plugins/checkbox_selector',
     'plugins/quickselect',
+    'plugins/seeddb_hstore',
     'libs/jquery',
     'libs/jquery.dataTables.min',
     'libs/OpenLayers',
     'libs/modernizr',
-    'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect) {
+    'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect, FormFuck) {
 
     var tableWrapper = '#tablewrapper',
         tableSelector = '#seeddb-content';
@@ -45,6 +46,13 @@ require([
 
         new CheckboxSelector('#select', '.selector').add();
         new QuickSelect('.quickselect');
+
+
+        /* Add form to hstore fields in room */
+        var $textarea = $('textarea#id_data');
+        if ($textarea.length) {
+            new FormFuck($textarea);
+        }
     }
 
     /* Internet Explorer caching leads to onload event firing before script

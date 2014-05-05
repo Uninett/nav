@@ -52,3 +52,15 @@
 .tabcontent form table.edit {
     min-width: 50%;
 }
+
+
+/* Style thekey value pairs for editing hstore fields */
+.hstoreValues {
+    .deleteicon {
+        font-size: large;
+        line-height: 2.1;
+    }
+    .column {
+        margin-bottom: 0.5em;
+    }
+}

@@ -17,6 +17,7 @@
 """Forms for seeddb pages"""
 
 from django import forms
+from django_hstore.forms import DictionaryField
 
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column,
@@ -73,6 +74,7 @@ class RoomFilterForm(forms.Form):
 class RoomForm(forms.ModelForm):
     """Form for editing/adding rooms"""
     location = forms.ModelChoiceField(queryset=Location.objects.order_by('id'))
+    data = DictionaryField(widget=forms.Textarea())
 
     class Meta:
         model = Room
