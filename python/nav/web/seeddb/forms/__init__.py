@@ -108,6 +108,8 @@ class OrganizationForm(forms.ModelForm):
     parent = forms.ModelChoiceField(
         queryset=Organization.objects.order_by('id'),
         required=False)
+    data = DictionaryField(widget=forms.Textarea(), label='Attributes',
+                           required=False)
 
     class Meta:
         model = Organization
