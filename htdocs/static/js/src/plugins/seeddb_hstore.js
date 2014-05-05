@@ -15,7 +15,7 @@ function (hstore_container_source, hstore_row_source) {
             pairs = this.parseDict($element.val()),
             that = this;
 
-                $element.hide();
+        $element.hide();
 
         /* Compile templates */
         this.hstore_container_template = Handlebars.compile(hstore_container_source);
@@ -25,6 +25,7 @@ function (hstore_container_source, hstore_row_source) {
         this.hstore_container = $(this.hstore_container_template());
         $container.append(this.hstore_container);
         this.addDeleteListener();
+        this.addNewRowListener();
         $container.append(this.createAddButton());
 
         /* Append the existing input fields */
@@ -39,9 +40,8 @@ function (hstore_container_source, hstore_row_source) {
 
     HstoreForm.prototype = {
         'parseDict': function (dict) {
-            var obj = JSON.parse(dict),
-                keys = [],
-                objs = [];
+            var obj, keys = [], objs = [];
+            obj = dict ? JSON.parse(dict) : {};
             for (var key in obj) {
                 if (obj.hasOwnProperty(key)) {
                     keys.push(key);
@@ -55,7 +55,7 @@ function (hstore_container_source, hstore_row_source) {
         },
         'createAddButton': function () {
             var that = this;
-            return $('<button>').text('Add row').addClass('small').on('click', function (event) {
+            return $('<button>').text('Add row').addClass('small secondary').on('click', function (event) {
                 event.preventDefault();
                 that.addRow();
             });
@@ -63,6 +63,17 @@ function (hstore_container_source, hstore_row_source) {
         'addDeleteListener': function () {
             this.hstore_container.on('click', '.button.alert', function (event) {
                 $($(event.target).parents('.row')[0]).remove();
+            });
+        },
+        'addNewRowListener': function () {
+            /* Automatically add a new row if the last value field got focus
+               and the key attribute is not empty */
+            var that = this;
+            this.hstore_container.on('focus', '.hstore_value', function (event) {
+                var value_fields = that.hstore_container.find('.hstore_value');
+                if (event.target === value_fields[value_fields.length - 1]) {
+                    that.addRow();
+                }
             });
         },
         'addRow': function (data) {
@@ -78,6 +89,7 @@ function (hstore_container_source, hstore_row_source) {
             for (var i = 0, l = pairs.length; i < l; i++) {
                 this.addRow(pairs[i]);
             }
+            this.addRow();
         },
         'writeDict': function ($container, $element) {
             var data = {};
