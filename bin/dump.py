@@ -64,15 +64,14 @@ class Handlers:
             lineout(line)
 
     def org(self):
-        header("#orgid[:parent:description:optional1:optional2:optional3]")
+        header("#orgid[:parent:description:attribute=value[:attribute=value]]")
         for org in manage.Organization.objects.all():
             if org.parent:
                 parent = org.parent.id
             else:
                 parent = ""
-            line = [org.id, parent, org.description or "",
-                    org.optional_1 or "", org.optional_2 or "",
-                    org.optional_3 or ""]
+            line = [org.id, parent, org.description or ""]
+            line.extend(['%s=%s' % x for x in org.data.items()])
             lineout(line)
 
     def netboxgroup(self):
@@ -97,11 +96,10 @@ class Handlers:
         header("#roomid[:locationid:descr:opt1:opt2:opt3:opt4:position]")
         for room in manage.Room.objects.all():
             line = [room.id, room.location.id if room.location else "",
-                    room.description or "", room.optional_1 or "",
-                    room.optional_2 or "", room.optional_3 or "",
-                    room.optional_4 or ""]
+                    room.description or ""]
             if room.position:
                 line.append("(%s, %s)" % room.position)
+            line.extend(['%s=%s' % x for x in room.data.items()])
             lineout(line)
 
     def type(self):
