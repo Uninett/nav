@@ -143,8 +143,7 @@
                 {% for tool in column %}
                   <li>
                     <a href="{{ tool.uri }}" title="{{ tool.description }}">
-                      <img src="{{ STATIC_URL }}{{ tool.icon }}"
-                           alt="{{ tool.name }}">
+                      <img src="{{ tool.icon }}" alt="{{ tool.name }}">
                       {{ tool.name }}
                     </a>
                   </li>
