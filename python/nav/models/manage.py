@@ -537,6 +537,8 @@ class Organization(models.Model):
     contact = VarcharField(db_column='contact', blank=True)
     data = hstore.DictionaryField()
 
+    objects = hstore.HStoreManager()
+
     class Meta:
         db_table = 'org'
         verbose_name = 'organization'
