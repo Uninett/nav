@@ -72,7 +72,7 @@ class Test(object):
 class TestOverdueJobs(Test):
     """Tests if there are any overdue ipdevpoll jobs"""
 
-    name = 'Overdue jobs'
+    name = 'Job duration'
     description = 'Tests if there exists any overdue ipdevpoll jobs'
 
     def _get_errors(self):
@@ -112,7 +112,7 @@ class TestOverdueJobs(Test):
 class TestFailedJobs(Test):
     """Tests if there are any ipdevpolljobs that have failed"""
 
-    name = 'Failed jobs'
+    name = 'Job status'
     description = 'Tests if there exists any failed ipdevpoll jobs'
 
     def _get_errors(self):
@@ -141,7 +141,7 @@ class TestDuplicateHostnameForIP(Test):
     hostname
     """
 
-    name = 'Duplicate Hostname'
+    name = 'Hostname sanity'
     description = 'Tests if there are IP-addresses that resolve to the ' \
                   'same hostname'
 
@@ -170,7 +170,7 @@ class TestDuplicateHostnameForIP(Test):
 class TestNoRouterInterfaces(Test):
     """Test if any router has no router-interfaces"""
 
-    name = 'No router interfaces'
+    name = 'Router interface count'
     description = 'Tests if there are routers that do not have any router ' \
                   'interfaces'
 
@@ -188,7 +188,7 @@ class TestNoRouterInterfaces(Test):
 class TestNoSwitchPorts(Test):
     """Test if any switch has no switch ports"""
 
-    name = 'No switch ports'
+    name = 'Switch port count'
     description = 'Tests if there are any switches that do not have any ' \
                   'switch ports'
 
@@ -210,7 +210,7 @@ class TestAbnormalInterfaceCount(Test):
     # 12.3T software is 20000. 5000 is above most of the other though.
     # But what is the case where this test is needed?
     abnormal_amount = 5000
-    name = 'Abnormal interface count'
+    name = 'Total interface count'
     description = 'Tests if there are IP Devices with more than {} ' \
         'interfaces'.format(abnormal_amount)
 
