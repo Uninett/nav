@@ -3,15 +3,23 @@
     li div {
         background-color: white;
         border: 1px solid #CCCCCC;
+        font-weight: 300;
         padding: 0.5em;
     }
 }
 
 .watchdog-tests {
-    .label {
-        width: 60px;
-        &.alert {
+    li {
+        padding: 0.2em;
+        .label.alert {
             cursor: pointer;
         }
+        &:nth-child(odd) {
+            background-color: #F9F9F9;
+        }
+    }
+    .label {
+        line-height: 1.4em;
+        width: 60px;
     }
 }
