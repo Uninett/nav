@@ -69,9 +69,9 @@ function (hstore_container_source, hstore_row_source) {
             /* Automatically add a new row if the last value field got focus
                and the key attribute is not empty */
             var that = this;
-            this.hstore_container.on('focus', '.hstore_value', function (event) {
+            this.hstore_container.on('keyup', '.hstore_value', function (event) {
                 var value_fields = that.hstore_container.find('.hstore_value');
-                if (event.target === value_fields[value_fields.length - 1]) {
+                if (event.target === value_fields[value_fields.length - 1] && event.target.value.length > 0) {
                     that.addRow();
                 }
             });
