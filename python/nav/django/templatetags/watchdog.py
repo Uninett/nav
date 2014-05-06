@@ -49,7 +49,7 @@ def map_to_word(status):
 def map_to_faclass(status):
     """Return Font Awesome class based on status"""
     mapping = {
-        STATUS_NOT_OK: 'fa-times',
+        STATUS_NOT_OK: 'fa-exclamation',
         STATUS_OK: 'fa-check'
     }
 
