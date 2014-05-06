@@ -1,4 +1,4 @@
 Subject: Threshold cleared for {{ metric }}
 
-The metric {{ metric }} was measured at {{ value }} on {{ time }},
+The metric {{ metric }} was measured at {{ measured_value }} on {{ time }},
 clearing the configured threshold of {% firstof clear alert %}
