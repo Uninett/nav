@@ -15,6 +15,9 @@
 #
 """Main Django URL configuration"""
 
+import sys
+import os
+import nav
 from django.conf import settings
 from django.conf.urls.defaults import patterns, include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
@@ -53,6 +56,17 @@ urlpatterns += patterns('',
     (r'^useradmin/', include('nav.web.useradmin.urls')),
     (r'^styleguide/', styleguide_index),
 )
+
+# Load local url-config
+_local_url_filepath = os.path.join(nav.buildconf.sysconfdir, 'python',
+                                   'local_urls.py')
+if os.path.isfile(_local_url_filepath):
+    sys.path.append(_local_url_filepath)
+    try:
+        import local_urls
+        urlpatterns += local_urls.urlpatterns
+    except (ImportError, TypeError):
+        pass
 
 handler500 = 'nav.django.views.custom_500'
 

@@ -16,9 +16,11 @@
 """Viev functions for the roominfo subsystem"""
 
 import logging
+import re
 import os
 import csv
 import json
+from collections import defaultdict
 from os.path import join
 from django.core.urlresolvers import reverse
 from django.db.models import Q

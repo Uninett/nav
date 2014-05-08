@@ -93,7 +93,6 @@ function (moment, CounterDisplay, JohnGauge) {
                     value: value,
                     max: this.maxValue,
                     thresholds: this.thresholds,
-                    precision: 1,
                     radius: 110
                 });
             } else {

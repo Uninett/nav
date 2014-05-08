@@ -17,10 +17,12 @@ define(['libs/d3.v2'], function () {
             min = config.min || 0,
             max = config.max || 100,
             value = config.value || 0,
+            url = config.url || null,
+            refreshInterval = config.refreshInterval || 60, // seconds
+            invertScale = config.invertScale || false,
             thresholds = config.thresholds || [];
 
-        this.precision = config.precision || null;
-        this.notation = config.notation || '\u00B0';  // Default is degrees
+        this.symbol = config.symbol || '\u00B0';  // Default is degrees
         this.animationSpeed = 1000;  // Speed of value transitions
 
         /* Create SVG element */
@@ -35,7 +37,10 @@ define(['libs/d3.v2'], function () {
         this.myScale = d3.scale.linear().domain([min, max]).range([-90 * (pi/180), 90 * (pi/180)]);
 
         /* Create linear scale for color transitions */
-        this.color = this.createColorScale(min, max, thresholds);
+        this.color = this.createColorScale(min, max, thresholds, invertScale);
+
+        this.fontSizeScale = d3.scale.linear().domain([50, 150]).range([14, 30]);
+        this.smallfontSizeScale = d3.scale.linear().domain([50, 150]).range([8, 20]);
 
         /* Define arc */
         this.arc = d3.svg.arc().outerRadius(radius).innerRadius(ir).startAngle(this.myScale(min));
@@ -55,26 +60,47 @@ define(['libs/d3.v2'], function () {
             .attr('d', this.arc);
 
         /* Draw text elements */
-        this.valueText = this.createTexts(ir, min, max);
+        this.valueText = this.createTexts(radius, ir, min, max);
 
         /* Draw thresholds */
         this.drawThresholds(thresholds);
 
-        /* Initialize gauge with given value */
-        this.refresh(value);
+        /* If an url is set, fetch data from it */
+        if (url !== null) {
+            var self = this;
+            setInterval(function () {
+                self.loadData(url);
+            }, refreshInterval * 1000);
+            this.loadData(url);
+        } else {
+            /* Initialize gauge with given value */
+            this.refresh(value);
+        }
     }
 
     JohnGauge.prototype = {
+        loadData: function (url) {
+            var self = this;
+            d3.json(url, function (json, error) {
+                var datapoints = json[0].datapoints,
+                    value = datapoints[datapoints.length - 1][0] ||
+                            datapoints[datapoints.length - 2][0];
+                self.refresh(value);
+            });
+        },
         refresh: function (value) {
             var self = this;
-            if (this.precision !== null) {
-                value = value.toFixed(this.precision);
+
+            if (value === null) {
+                this.valueText.text('N/A');
+                value = 0;
+            } else {
+                this.valueText.text(value + this.symbol);
             }
 
             /* Transition arc and color to new value */
             this.valueArc.transition().duration(this.animationSpeed).call(arcTween, value)
                 .transition().duration(this.animationSpeed).attr('fill', this.color(value));
-            this.valueText.text(value + this.notation);
 
             function arcTween(transition, newValue) {
                 /* Calculates end angles while transitioning */
@@ -88,13 +114,13 @@ define(['libs/d3.v2'], function () {
             }
 
         },
-        createTexts: function (ir, min, max) {
+        createTexts: function (radius, ir, min, max) {
             /* Create text that displays value */
             var valueText = this.vis.append('text')
-                .text(min + this.notation)
+                .text(min + this.symbol)
                 .attr('font-family', 'Arial')
-                .attr('y', -ir/2 + 12.5)
-                .attr('font-size', '25px')
+                .attr('y', -ir/2 + this.fontSizeScale(radius) / 2)
+                .attr('font-size', this.fontSizeScale(radius) + 'px')
                 .attr('fill', 'black')
                 .attr('font-weight', 'bold')
                 .attr('text-anchor', 'middle'),
@@ -104,7 +130,7 @@ define(['libs/d3.v2'], function () {
                 .text(min)
                 .attr('font-family', 'Arial')
                 .attr('fill', '#b3b3b3')
-                .attr('font-size', '14px')
+                .attr('font-size', this.smallfontSizeScale(radius) + 'px')
                 .attr('y', '0')
                 .attr('x', 5 - ir)
                 .attr('text-anchor', 'start'),
@@ -114,21 +140,26 @@ define(['libs/d3.v2'], function () {
                 .text(max)
                 .attr('font-family', 'Arial')
                 .attr('fill', '#b3b3b3')
-                .attr('font-size', '14px')
+                .attr('font-size', this.smallfontSizeScale(radius) + 'px')
                 .attr('y', '0')
                 .attr('x', ir - 5)
                 .attr('text-anchor', 'end');
 
             return valueText;
         },
-        createColorScale: function (min, max, thresholds) {
+        createColorScale: function (min, max, thresholds, invert) {
             if (thresholds.length === 1) {
                 max = thresholds[0];
             }
+            var colors = ["#a9d70b", "#f9c802", "#ff0000"];
+            if (invert) {
+                colors = ["#ff0000", "#f9c802", "#a9d70b"];
+            }
+
             return d3.scale.linear()
                 .domain([min, (max - min) / 2, max])
                 .interpolate(d3.interpolateRgb)
-                .range(["#a9d70b", "#f9c802", "#ff0000"]);
+                .range(colors);
         },
         createGradient: function (nodeId) {
             /* Greate gradient for background arc */

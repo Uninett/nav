@@ -19,7 +19,8 @@
             'cssPath': '{{ STATIC_URL }}css/nav',
             'imagePath': '{{ STATIC_URL }}images',
             'proxyOsmUrl': '{% url base_osm_map_redirect %}',
-            'addGraphWidgetUrl': '{% url add-user-navlet-graph %}'
+            'addGraphWidgetUrl': '{% url add-user-navlet-graph %}',
+            'graphiteRenderUrl': '{% url graphite-render %}'
         };
     </script>
     <script src="{{ STATIC_URL }}js/require_config.js"></script>

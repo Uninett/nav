@@ -122,3 +122,8 @@ def add_interval(value, seconds):
         return value + timedelta(seconds=seconds)
     except TypeError:
         return value
+
+
+@register.filter
+def get_graph_url(obj, time_frame):
+    return obj.get_graph_url(time_frame=time_frame)

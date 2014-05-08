@@ -1346,8 +1346,9 @@ class Sensor(models.Model):
     def get_metric_name(self):
         return metric_path_for_sensor(self.netbox.sysname, self.internal_name)
 
-    def get_graph_url(self):
-        return get_simple_graph_url([self.get_metric_name()])
+    def get_graph_url(self, time_frame='1day'):
+        return get_simple_graph_url([self.get_metric_name()],
+                                    time_frame=time_frame)
 
 
 class PowerSupplyOrFan(models.Model):
