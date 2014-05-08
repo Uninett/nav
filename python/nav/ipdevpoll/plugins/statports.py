@@ -56,6 +56,11 @@ LOGGED_COUNTERS = USED_COUNTERS + IP_COUNTERS
 
 
 class StatPorts(Plugin):
+    @classmethod
+    def can_handle(cls, netbox):
+        daddy_says_ok = super(StatPorts, cls).can_handle(netbox)
+        return daddy_says_ok and netbox.category.id != 'EDGE'
+
     @defer.inlineCallbacks
     def handle(self):
         stats = yield self._get_stats()
