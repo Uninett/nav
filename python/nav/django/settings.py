@@ -165,6 +165,7 @@ INSTALLED_APPS = (
     'nav.django', 
     'django.contrib.staticfiles',
     'django.contrib.sessions',
+    'django.contrib.humanize',
     'crispy_forms',
     'crispy_forms_foundation',
     'django_hstore',
