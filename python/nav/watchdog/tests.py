@@ -113,7 +113,7 @@ class TestFailedJobs(Test):
     """Tests if there are any ipdevpolljobs that have failed"""
 
     name = 'Job status'
-    description = 'Tests if there exists any failed ipdevpoll jobs'
+    description = 'Tests if there are any ipdevpoll jobs that repeatedly fails'
 
     def _get_errors(self):
         """Fetches failed ipdevpoll jobs"""
@@ -131,8 +131,18 @@ class TestFailedJobs(Test):
           ORDER BY netboxid;
         """
 
-        return [TestResult(str(x), x)
-                for x in IpdevpollJobLog.objects.raw(query)]
+        results = []
+        fail_count = 3  # Number of successive failed jobs that equals problem
+        for failed in IpdevpollJobLog.objects.raw(query):
+            last_jobs = IpdevpollJobLog.objects.filter(
+                netbox=failed.netbox, job_name=failed.job_name)\
+                .order_by('end_time')[0:fail_count]
+            if all([not job.success for job in last_jobs]):
+                descr = "Job {} on {} has failed the last {} times.".format(
+                    failed.job_name, failed.netbox, fail_count)
+                results.append(TestResult(descr, failed))
+
+        return results
 
 
 class TestDuplicateHostnameForIP(Test):
