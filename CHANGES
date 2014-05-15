@@ -1,3 +1,12 @@
+Version 3.15.9
+(released 15 May 2014)
+
+ Bugfixes:
+
+  * LP#1302403 (Unplugged HP power supplies are marked with "unknown" state)
+  * LP#1304455 (Submitting an empty search form crashes Arnold)
+
+
 Version 3.15.8
 (released 03 Apr 2014)
 
