@@ -7,8 +7,8 @@ Checklist for releasing a new NAV version
 CI status check
 ---------------
 
-* Verify that the `stable` jobs in Jenkins, at
-  https://nav.uninett.no/jenkins , are all green.
+* Verify that the `stable` jobs in Hudson, at
+  https://ci.nav.uninett.no/ , are all green.
 * If any tests are failing, these must be resolved before moving forward.
 
 
@@ -27,7 +27,7 @@ Getting the code
 * Start by cloning the official stable branch (or use `hg pull` to update your
   existing clone)::
 
-    hg clone https://metanav.uninett.no/hg/stable
+    hg clone https://nav.uninett.no/hg/stable
     cd stable
     hg up tip
 

@@ -21,7 +21,7 @@ Getting help
 
 * Report a bug in our `bug tracker`_.
 
-.. _wiki pages: http://metanav.uninett.no/
+.. _wiki pages: https://nav.uninett.no/wiki/
 .. _nav-users mailing list archives: https://postlister.uninett.no/sympa/arc/nav-users
 .. _the nav-users mailing list: https://postlister.uninett.no/sympa/info/nav-users
 .. _#nav IRC channel: irc://irc.freenode.net/nav

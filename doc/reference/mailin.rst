@@ -7,7 +7,7 @@ software into NAV events.  These events can then be processed by NAV's event-
 and alert systems.
 
 See also `the original blueprint specification for MailIn
-<https://nav.uninett.no/devel:blueprints:mailin>`_.
+<https://nav.uninett.no/wiki/devel:blueprints:mailin>`_.
 
 
 Configuring MailIn
