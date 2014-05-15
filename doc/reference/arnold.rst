@@ -5,7 +5,7 @@ Arnold
 External documentation
 ----------------------
 
-More documentation about Arnold is located at https://nav.uninett.no/arnold
+More documentation about Arnold is located at https://nav.uninett.no/wiki/arnold
 
 
 Missing interfaces
