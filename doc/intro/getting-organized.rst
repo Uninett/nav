@@ -54,7 +54,7 @@ adopted, these allow NAV to categorize each VLAN into a *usage category* and
 an owner (an organizational unit from the previously defined hierarchy).
 
 `Read the guidelines in our wiki to learn how to do this
-<https://nav.uninett.no/subnetsandvlans>`_. Usage categories are also defined
+<https://nav.uninett.no/wiki/subnetsandvlans>`_. Usage categories are also defined
 using the SeedDB tool.
 
 
