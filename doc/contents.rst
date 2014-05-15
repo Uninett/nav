@@ -19,6 +19,7 @@ NAV documentation contents
     howto/debugging-topology
     howto/migrate-data
     howto/migrate-rrd-to-graphite
+    howto/using_the_api
     faq/faq
     reference/index
     ../release-notes
