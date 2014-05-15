@@ -22,15 +22,26 @@ Twisted).
 """
 import logging
 import socket
+import time
+import warnings
 from nav.metrics import CONFIG
 
 _logger = logging.getLogger(__name__)
+_error_timestamp = 0
 
 # Maximum payload to allow for a UDP packet containing metrics destined for
 # Graphite. A value of 1472 should be ok to stay within the standard ethernet
 # MTU of 1500 bytes using IPv4. Larger values will cause packet
 # fragmentation, but should still work.
 MAX_UDP_PAYLOAD = 1400
+
+# Minimum interval between socket error log entries, in seconds
+SOCKET_ERROR_MESSAGE_INTERVAL = 1
+
+
+class CarbonWarning(UserWarning):
+    """Custom warning class for Carbon connection related warnings"""
+    pass
 
 
 def send_metrics_to(metric_tuples, host, port=2003):
@@ -53,8 +64,49 @@ def send_metrics_to(metric_tuples, host, port=2003):
 
     _logger.debug("sending carbon metrics to [%s]:%s: %r",
                   host, port, metric_tuples)
-    for packet in metrics_to_packets(metric_tuples):
-        carbon.send(packet)
+    try:
+        for packet in metrics_to_packets(metric_tuples):
+            carbon.send(packet)
+    except socket.error as error:
+        _handle_error(error, host, port)
+
+
+def _handle_error(error, host, port):
+    """
+    Logs Carbon connection errors, but never more frequently than
+    SOCKET_ERROR_MESSAGE_INTERVAL seconds.
+    """
+    # pylint: disable=W0601
+    global _error_timestamp
+    root = logging.getLogger('')
+    msg = "unable to send metrics to carbon ([%s]:%s): %s" % (host, port,
+                                                              error)
+
+    if _error_timestamp < time.time() - SOCKET_ERROR_MESSAGE_INTERVAL:
+        # Reset the timestamp of the last logged socket error
+        _error_timestamp = time.time()
+
+        _logger.error(msg)
+
+        if not root.handlers:
+            # When logging appears disabled, use the warnings system
+            _reset_warning_registry()
+            warnings.warn(msg, CarbonWarning)
+
+
+# The __warningregistry__ global is only available after the first warning has
+# been issued.
+# pylint: disable=E0602
+def _reset_warning_registry():
+    try:
+        __warningregistry__
+    except NameError:
+        pass
+    else:
+        for key in __warningregistry__.keys():
+            _, cls, _ = key
+            if cls is CarbonWarning:
+                del __warningregistry__[key]
 
 
 def send_metrics(metric_tuples):

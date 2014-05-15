@@ -1,4 +1,4 @@
 name=Messages
 uri=/messages/active
-icon=/images/toolbox/messages.png
+icon=/static/images/toolbox/messages.png
 description=Read and publish operational messages.

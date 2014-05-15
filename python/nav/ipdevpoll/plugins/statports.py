@@ -56,10 +56,16 @@ LOGGED_COUNTERS = USED_COUNTERS + IP_COUNTERS
 
 
 class StatPorts(Plugin):
+    @classmethod
+    def can_handle(cls, netbox):
+        daddy_says_ok = super(StatPorts, cls).can_handle(netbox)
+        return daddy_says_ok and netbox.category.id != 'EDGE'
+
     @defer.inlineCallbacks
     def handle(self):
+        timestamp = time.time()
         stats = yield self._get_stats()
-        tuples = list(self._make_metrics(stats))
+        tuples = list(self._make_metrics(stats, timestamp))
         if tuples:
             self._logger.debug("Counters collected")
             send_metrics(tuples)
@@ -81,8 +87,8 @@ class StatPorts(Plugin):
 
         defer.returnValue(stats)
 
-    def _make_metrics(self, stats):
-        timestamp = time.time()
+    def _make_metrics(self, stats, timestamp=None):
+        timestamp = timestamp or time.time()
         hc_counters = False
 
         for row in stats.itervalues():
