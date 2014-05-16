@@ -37,6 +37,7 @@ from .serializers import (RoomSerializer, NetboxSerializer, PrefixSerializer,
 from .helpers import prefix_collector
 
 EXPIRE_DELTA = timedelta(days=365)
+MINIMUMPREFIXLENGTH = 4
 
 
 @api_view(('GET',))
@@ -106,22 +107,42 @@ class RoutedPrefixList(NAVAPIMixin, ListAPIView):
         return prefixes
 
 
+def get_times(request):
+    """Gets start and endtime from request"""
+    starttime = request.GET.get('starttime')
+    endtime = request.GET.get('endtime')
+    if starttime:
+        starttime = iso8601.parse_date(starttime)
+    if endtime:
+        endtime = iso8601.parse_date(endtime)
+    return starttime, endtime
+
+
+class PrefixUsageList(NAVAPIMixin, APIView):
+    """Makes prefix usage for all prefixes available"""
+    def get(self, request):
+        prefixes = []
+
+        try:
+            starttime, endtime = get_times(request)
+        except (ValueError, iso8601.ParseError):
+            return Response(
+                'start or endtime not formatted correctly. Use iso8601 format',
+                status=status.HTTP_400_BAD_REQUEST)
+
+        for prefix in Prefix.objects.all():
+            tmp_prefix = IP(prefix.net_address)
+            if tmp_prefix.len() >= MINIMUMPREFIXLENGTH:
+                prefixes.append(tmp_prefix)
+
+        serializer = PrefixUsageSerializer(
+            prefix_collector.fetch_usages(prefixes, starttime, endtime))
+
+        return Response(serializer.data)
+
+
 class PrefixUsageDetail(NAVAPIMixin, APIView):
     """Makes prefix usage accessible from api"""
-
-    MINIMUMPREFIXLENGTH = 4
-
-    @staticmethod
-    def get_times(request):
-        """Gets start and endtime from request"""
-        starttime = request.GET.get('starttime')
-        endtime = request.GET.get('endtime')
-        if starttime:
-            starttime = iso8601.parse_date(starttime)
-        if endtime:
-            endtime = iso8601.parse_date(endtime)
-        return starttime, endtime
-
     def get(self, request, prefix):
         """Handles get request for prefix usage"""
 
@@ -130,12 +151,12 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
         except ValueError:
             return Response("Bad prefix", status=status.HTTP_400_BAD_REQUEST)
 
-        if len(prefix) < self.MINIMUMPREFIXLENGTH:
+        if prefix.len() < MINIMUMPREFIXLENGTH:
             return Response("Prefix is too small",
                             status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            starttime, endtime = self.get_times(request)
+            starttime, endtime = get_times(request)
         except (ValueError, iso8601.ParseError):
             return Response(
                 'start or endtime not formatted correctly. Use iso8601 format',

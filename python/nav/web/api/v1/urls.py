@@ -47,6 +47,8 @@ urlpatterns = patterns(
 
     url(r"^prefix/routed/?$", views.RoutedPrefixList.as_view(),
         name="v1-api-prefixes-routed"),
-    url(r"^activeip/(?P<prefix>.*)$", views.PrefixUsageDetail.as_view(),
+    url(r"^prefix/usage/?$", views.PrefixUsageList.as_view(),
+        name="v1-api-prefixes-usage"),
+    url(r"^prefix/usage/(?P<prefix>.*)$", views.PrefixUsageDetail.as_view(),
         name="v1-api-prefix-usage"),
 )
