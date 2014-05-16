@@ -49,6 +49,7 @@ def api_root(request, format=None):
         'interface': reverse('v1-api-interfaces', request=request),
         'prefix': reverse('v1-api-prefixes', request=request),
         'prefix_routed': reverse('v1-api-prefixes-routed', request=request),
+        'prefix_usage': reverse('v1-api-prefixes-usage', request=request),
     })
 
 
@@ -118,32 +119,37 @@ def get_times(request):
     return starttime, endtime
 
 
-class PrefixUsageList(NAVAPIMixin, APIView):
+class PrefixUsageList(NAVAPIMixin, ListAPIView):
     """Makes prefix usage for all prefixes available"""
-    def get(self, request):
-        prefixes = []
+    serializer_class = PrefixUsageSerializer
 
+    def get(self, request, *args, **kwargs):
+        """Override get method to verify url parameters"""
         try:
-            starttime, endtime = get_times(request)
+            get_times(request)
         except (ValueError, iso8601.ParseError):
             return Response(
                 'start or endtime not formatted correctly. Use iso8601 format',
                 status=status.HTTP_400_BAD_REQUEST)
+        return super(PrefixUsageList, self).get(request, *args, **kwargs)
 
+    def get_queryset(self):
+        """Override to provide custom queryset"""
+        prefixes = []
+        starttime, endtime = get_times(self.request)
         for prefix in Prefix.objects.all():
             tmp_prefix = IP(prefix.net_address)
             if tmp_prefix.len() >= MINIMUMPREFIXLENGTH:
                 prefixes.append(tmp_prefix)
 
-        serializer = PrefixUsageSerializer(
-            prefix_collector.fetch_usages(prefixes, starttime, endtime))
-
-        return Response(serializer.data)
+        return prefix_collector.fetch_usages(prefixes, starttime, endtime)
 
 
 class PrefixUsageDetail(NAVAPIMixin, APIView):
     """Makes prefix usage accessible from api"""
-    def get(self, request, prefix):
+
+    @staticmethod
+    def get(request, prefix):
         """Handles get request for prefix usage"""
 
         try:
