@@ -16,11 +16,10 @@
 """URL mapping for the various API versions"""
 
 from django.conf.urls import include, patterns, url
-from django.shortcuts import redirect
 from nav.web.api.v1 import urls as v1_urls
 
 urlpatterns = patterns(
     '',
-    url(r'^$', include(v1_urls)),
+    url(r'^', include(v1_urls)),
     url(r'^1/', include(v1_urls)),
 )
