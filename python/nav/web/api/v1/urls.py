@@ -21,8 +21,8 @@ from django.conf.urls import url, patterns
 
 room_list = views.RoomViewSet.as_view({'get': 'list'})
 room_detail = views.RoomViewSet.as_view({'get': 'retrieve'})
-netbox_list = views.RoomViewSet.as_view({'get': 'list'})
-netbox_detail = views.RoomViewSet.as_view({'get': 'retrieve'})
+netbox_list = views.NetboxViewSet.as_view({'get': 'list'})
+netbox_detail = views.NetboxViewSet.as_view({'get': 'retrieve'})
 interface_list = views.InterfaceViewSet.as_view({'get': 'list'})
 interface_detail = views.InterfaceViewSet.as_view({'get': 'retrieve'})
 prefix_list = views.PrefixViewSet.as_view({'get': 'list'})
