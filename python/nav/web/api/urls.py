@@ -16,32 +16,37 @@
 # pylint: disable=E1101
 """Urlconf for the NAV REST api"""
 
+from nav.web.api import views
 from django.conf.urls import url, patterns
-from .views import (RoomList, RoomDetail, NetboxList, NetboxDetail,
-                    PrefixUsageDetail, get_or_create_token, PrefixDetail,
-                    PrefixList, RoutedPrefixList, api_root, InterfaceDetail,
-                    InterfaceList)
+
+room_list = views.RoomViewSet.as_view({'get': 'list'})
+room_detail = views.RoomViewSet.as_view({'get': 'retrieve'})
+netbox_list = views.RoomViewSet.as_view({'get': 'list'})
+netbox_detail = views.RoomViewSet.as_view({'get': 'retrieve'})
+interface_list = views.InterfaceViewSet.as_view({'get': 'list'})
+interface_detail = views.InterfaceViewSet.as_view({'get': 'retrieve'})
+prefix_list = views.PrefixViewSet.as_view({'get': 'list'})
+prefix_detail = views.PrefixViewSet.as_view({'get': 'retrieve'})
 
 urlpatterns = patterns(
     "",
-    url(r"^$", api_root, name="api-inventory"),
-    url(r"^token/$", get_or_create_token, name="api-token"),
+    url(r'^$', views.api_root, name="api-root"),
+    url(r'^token/$', views.get_or_create_token, name="api-token"),
 
-    url(r"^room/$", RoomList.as_view(), name="api-rooms"),
-    url(r"^room/(?P<pk>\w+)$", RoomDetail.as_view(), name="api-room"),
+    url(r"^room/$", room_list, name="api-rooms"),
+    url(r"^room/(?P<pk>\w+)$", room_detail, name="api-room"),
 
-    url(r"^netbox/$", NetboxList.as_view(), name="api-netboxes"),
-    url(r"^netbox/(?P<pk>\d+)$", NetboxDetail.as_view(), name="api-netbox"),
+    url(r"^netbox/$", netbox_list, name="api-netboxes"),
+    url(r"^netbox/(?P<pk>\d+)$", netbox_detail, name="api-netbox"),
 
-    url(r"^interface/$", InterfaceList.as_view(), name="api-interfaces"),
-    url(r"^interface/(?P<pk>\d+)$", InterfaceDetail.as_view(),
-        name="api-interface"),
+    url(r"^interface/$", interface_list, name="api-interfaces"),
+    url(r"^interface/(?P<pk>\d+)$", interface_detail, name="api-interface"),
 
-    url(r"^prefix/routed/?$",
-        RoutedPrefixList.as_view(), name="api-prefixes-routed"),
-    url(r"^prefix/?$", PrefixList.as_view(), name="api-prefixes"),
-    url(r"^prefix/(?P<pk>\d+)/?$", PrefixDetail.as_view(),
-        name="api-prefix"),
-    url(r"^activeip/(?P<prefix>.*)$", PrefixUsageDetail.as_view(),
+    url(r"^prefix/$", prefix_list, name="api-prefixes"),
+    url(r"^prefix/(?P<pk>\d+)$", prefix_detail, name="api-prefix"),
+
+    url(r"^prefix/routed/?$", views.RoutedPrefixList.as_view(),
+        name="api-prefixes-routed"),
+    url(r"^activeip/(?P<prefix>.*)$", views.PrefixUsageDetail.as_view(),
         name="api-prefix-usage"),
 )

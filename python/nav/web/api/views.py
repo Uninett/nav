@@ -21,13 +21,13 @@ from datetime import datetime, timedelta
 import iso8601
 
 from provider.utils import long_token
-from rest_framework import status, filters
+from rest_framework import status, filters, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.reverse import reverse
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView
 from nav.models.api import APIToken
 from nav.models.manage import Room, Netbox, Prefix, Interface
 
@@ -41,11 +41,13 @@ EXPIRE_DELTA = timedelta(days=365)
 
 @api_view(('GET',))
 def api_root(request, format=None):
+    """Create api root for informing about possible endpoints"""
     return Response({
-        'rooms': reverse('api-rooms', request=request),
-        'netboxes': reverse('api-netboxes', request=request),
-        'prefixes': reverse('api-prefixes', request=request),
-        'interfaces': reverse('api-interfaces', request=request),
+        'room': reverse('api-rooms', request=request),
+        'netbox': reverse('api-netboxes', request=request),
+        'interface': reverse('api-interfaces', request=request),
+        'prefix': reverse('api-prefixes', request=request),
+        'prefix_routed': reverse('api-prefixes-routed', request=request),
     })
 
 
@@ -57,71 +59,47 @@ class NAVAPIMixin(APIView):
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
 
 
-class RoomList(NAVAPIMixin, ListAPIView):
+class RoomViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Makes rooms accessible from api"""
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
     filter_fields = ('location', 'description')
 
 
-class RoomDetail(NAVAPIMixin, RetrieveAPIView):
-    """Makes room details accessible from api"""
-    queryset = Room.objects.all()
-    serializer_class = RoomSerializer
-
-
-class NetboxList(NAVAPIMixin, ListAPIView):
+class NetboxViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Makes netboxes accessible from api"""
     queryset = Netbox.objects.all()
     serializer_class = NetboxSerializer
-    filter_fields = ('sysname', 'room', 'organization')
+    filter_fields = ('sysname', 'room', 'organization', 'category')
     search_fields = ('sysname', )
 
 
-class NetboxDetail(NAVAPIMixin, RetrieveAPIView):
-    """Makes netbox accessible from api"""
-    queryset = Netbox.objects.all()
-    serializer_class = NetboxSerializer
-
-
-class InterfaceList(NAVAPIMixin, ListAPIView):
+class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Makes interfaces accessible from api"""
     queryset = Interface.objects.all()
     serializer_class = InterfaceSerializer
 
 
-class InterfaceDetail(NAVAPIMixin, RetrieveAPIView):
-    """Makes interface accessible from api"""
-    queryset = Interface.objects.all()
-    serializer_class = InterfaceSerializer
-
-
-class PrefixList(NAVAPIMixin, ListAPIView):
+class PrefixViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Makes prefixes available from api"""
     queryset = Prefix.objects.all()
     serializer_class = PrefixSerializer
 
 
-class PrefixDetail(NAVAPIMixin, RetrieveAPIView):
-    """Makes prefix available from api"""
-    queryset = Prefix.objects.all()
-    serializer_class = PrefixSerializer
-
-
-class RoutedPrefixList(NAVAPIMixin, APIView):
+class RoutedPrefixList(NAVAPIMixin, ListAPIView):
     """Fetches routed prefixes"""
     _router_categories = ['GSW', 'GW']
+    serializer_class = PrefixSerializer
 
-    def get(self, request):
-        """Handles get requests"""
+    def get_queryset(self):
         prefixes = Prefix.objects.filter(
             gwportprefix__interface__netbox__category__in=
             self._router_categories)
-        if 'family' in request.GET:
+        if 'family' in self.request.GET:
             prefixes = prefixes.extra(where=['family(netaddr)=%s'],
-                                      params=[request.GET.get('family')])
-        serializer = PrefixSerializer(prefixes)
-        return Response(serializer.data)
+                                      params=[self.request.GET.get('family')])
+
+        return prefixes
 
 
 class PrefixUsageDetail(NAVAPIMixin, APIView):
