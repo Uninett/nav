@@ -78,12 +78,16 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Makes interfaces accessible from api"""
     queryset = Interface.objects.all()
     serializer_class = InterfaceSerializer
+    filter_fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
+                     'ifadminstatus', 'iftype', 'baseport')
+    search_fields = ('ifalias', 'ifdescr', 'ifname')
 
 
 class PrefixViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Makes prefixes available from api"""
     queryset = Prefix.objects.all()
     serializer_class = PrefixSerializer
+    filter_fields = ('vlan', 'net_address', 'vlan__vlan')
 
 
 class RoutedPrefixList(NAVAPIMixin, ListAPIView):
