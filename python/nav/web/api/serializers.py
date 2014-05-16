@@ -16,7 +16,7 @@
 # pylint: disable=R0903
 """Serializers for the NAV REST api"""
 
-from nav.models.manage import Room, Netbox, Prefix
+from nav.models.manage import Room, Netbox, Prefix, Interface
 from rest_framework import serializers
 
 
@@ -24,6 +24,12 @@ class NetboxSerializer(serializers.ModelSerializer):
     """Serializer for the netbox model"""
     class Meta:
         model = Netbox
+
+
+class InterfaceSerializer(serializers.ModelSerializer):
+    """Serializer for the interface model"""
+    class Meta:
+        model = Interface
 
 
 class RoomSerializer(serializers.ModelSerializer):
