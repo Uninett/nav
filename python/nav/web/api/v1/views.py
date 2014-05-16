@@ -43,11 +43,11 @@ EXPIRE_DELTA = timedelta(days=365)
 def api_root(request, format=None):
     """Create api root for informing about possible endpoints"""
     return Response({
-        'room': reverse('api-rooms', request=request),
-        'netbox': reverse('api-netboxes', request=request),
-        'interface': reverse('api-interfaces', request=request),
-        'prefix': reverse('api-prefixes', request=request),
-        'prefix_routed': reverse('api-prefixes-routed', request=request),
+        'room': reverse('v1-api-rooms', request=request),
+        'netbox': reverse('v1-api-netboxes', request=request),
+        'interface': reverse('v1-api-interfaces', request=request),
+        'prefix': reverse('v1-api-prefixes', request=request),
+        'prefix_routed': reverse('v1-api-prefixes-routed', request=request),
     })
 
 
