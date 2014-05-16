@@ -21,20 +21,32 @@ from datetime import datetime, timedelta
 import iso8601
 
 from provider.utils import long_token
-from rest_framework import status
+from rest_framework import status, filters
+from rest_framework.decorators import api_view
+from rest_framework.reverse import reverse
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from nav.models.api import APIToken
-from nav.models.manage import Room, Netbox, Prefix
+from nav.models.manage import Room, Netbox, Prefix, Interface
 
 from .auth import APIPermission, APIAuthentication
 from .serializers import (RoomSerializer, NetboxSerializer, PrefixSerializer,
-                          PrefixUsageSerializer)
+                          PrefixUsageSerializer, InterfaceSerializer)
 from .helpers import prefix_collector
 
 EXPIRE_DELTA = timedelta(days=365)
+
+
+@api_view(('GET',))
+def api_root(request, format=None):
+    return Response({
+        'rooms': reverse('api-rooms', request=request),
+        'netboxes': reverse('api-netboxes', request=request),
+        'prefixes': reverse('api-prefixes', request=request),
+        'interfaces': reverse('api-interfaces', request=request),
+    })
 
 
 class NAVAPIMixin(APIView):
@@ -42,12 +54,14 @@ class NAVAPIMixin(APIView):
     authentication_classes = (APIAuthentication,)
     permission_classes = (APIPermission,)
     renderer_classes = (JSONRenderer,)
+    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
 
 
 class RoomList(NAVAPIMixin, ListAPIView):
     """Makes rooms accessible from api"""
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
+    filter_fields = ('location', 'description')
 
 
 class RoomDetail(NAVAPIMixin, RetrieveAPIView):
@@ -60,12 +74,26 @@ class NetboxList(NAVAPIMixin, ListAPIView):
     """Makes netboxes accessible from api"""
     queryset = Netbox.objects.all()
     serializer_class = NetboxSerializer
+    filter_fields = ('sysname', 'room', 'organization')
+    search_fields = ('sysname', )
 
 
 class NetboxDetail(NAVAPIMixin, RetrieveAPIView):
     """Makes netbox accessible from api"""
     queryset = Netbox.objects.all()
     serializer_class = NetboxSerializer
+
+
+class InterfaceList(NAVAPIMixin, ListAPIView):
+    """Makes interfaces accessible from api"""
+    queryset = Interface.objects.all()
+    serializer_class = InterfaceSerializer
+
+
+class InterfaceDetail(NAVAPIMixin, RetrieveAPIView):
+    """Makes interface accessible from api"""
+    queryset = Interface.objects.all()
+    serializer_class = InterfaceSerializer
 
 
 class PrefixList(NAVAPIMixin, ListAPIView):

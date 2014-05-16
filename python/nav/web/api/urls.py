@@ -19,23 +19,28 @@
 from django.conf.urls import url, patterns
 from .views import (RoomList, RoomDetail, NetboxList, NetboxDetail,
                     PrefixUsageDetail, get_or_create_token, PrefixDetail,
-                    PrefixList, RoutedPrefixList)
+                    PrefixList, RoutedPrefixList, api_root, InterfaceDetail,
+                    InterfaceList)
 
 urlpatterns = patterns(
     "",
-    url(r"^$", RoomList.as_view(), name="api-inventory"),  # TODO: Fix this
+    url(r"^$", api_root, name="api-inventory"),
     url(r"^token/$", get_or_create_token, name="api-token"),
 
-    url(r"^rooms/$", RoomList.as_view(), name="api-rooms"),
-    url(r"^rooms/(?P<pk>\w+)$", RoomDetail.as_view(), name="api-room"),
+    url(r"^room/$", RoomList.as_view(), name="api-rooms"),
+    url(r"^room/(?P<pk>\w+)$", RoomDetail.as_view(), name="api-room"),
 
-    url(r"^netboxes/$", NetboxList.as_view(), name="api-netboxes"),
-    url(r"^netboxes/(?P<pk>\d+)$", NetboxDetail.as_view(), name="api-netbox"),
+    url(r"^netbox/$", NetboxList.as_view(), name="api-netboxes"),
+    url(r"^netbox/(?P<pk>\d+)$", NetboxDetail.as_view(), name="api-netbox"),
 
-    url(r"^prefixes/routed/?$",
+    url(r"^interface/$", InterfaceList.as_view(), name="api-interfaces"),
+    url(r"^interface/(?P<pk>\d+)$", InterfaceDetail.as_view(),
+        name="api-interface"),
+
+    url(r"^prefix/routed/?$",
         RoutedPrefixList.as_view(), name="api-prefixes-routed"),
-    url(r"^prefixes/?$", PrefixList.as_view(), name="api-prefixes"),
-    url(r"^prefixes/(?P<pk>\d+)/?$", PrefixDetail.as_view(),
+    url(r"^prefix/?$", PrefixList.as_view(), name="api-prefixes"),
+    url(r"^prefix/(?P<pk>\d+)/?$", PrefixDetail.as_view(),
         name="api-prefix"),
     url(r"^activeip/(?P<prefix>.*)$", PrefixUsageDetail.as_view(),
         name="api-prefix-usage"),
