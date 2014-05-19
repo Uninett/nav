@@ -167,8 +167,8 @@ class LocationBulkParser(BulkParser):
 
 class OrgBulkParser(BulkParser):
     """Parses the organization bulk format"""
-    format = ('orgid',
-              'parent', 'description', 'opt1', 'opt2', 'opt3')
+    format = ('orgid', 'parent', 'description')
+    restkey = 'attr'
     required = 1
 
 
@@ -200,9 +200,8 @@ class PrefixBulkParser(BulkParser):
 
 class RoomBulkParser(BulkParser):
     """Parses the room bulk format"""
-    format = ('roomid',
-              'locationid', 'descr',
-              'opt1', 'opt2', 'opt3', 'opt4', 'position')
+    format = ('roomid', 'locationid', 'descr', 'position')
+    restkey = 'attr'
     required = 1
 
 

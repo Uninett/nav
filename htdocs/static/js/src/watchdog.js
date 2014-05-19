@@ -25,7 +25,7 @@ require(['libs/jquery', 'libs/spin.min'], function () {
 
     $(function () {
         $('#watchdog-tests').on('click', '.label.alert', function (event) {
-            $(event.target).next().toggle();
+            $(event.target).closest('li').find('ul').toggle();
         });
 
         fetchOverview();

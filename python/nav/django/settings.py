@@ -137,6 +137,11 @@ CACHE_BACKEND = 'file:///tmp/nav_cache?timeout=60'
 
 SECRET_KEY = nav_config.get('SECRET_KEY', None) # Must be set in nav.conf!
 
+# Because registering hstore extension in a database may lead to problems
+# with type conversion, force registering of hstore on each new connection
+# See https://github.com/djangonauts/django-hstore/pull/35
+DJANGO_HSTORE_GLOBAL_REGISTER = False
+
 NAVLETS = (
     'nav.web.navlets.machinetracker.MachineTrackerNavlet',
     'nav.web.navlets.status.StatusNavlet',
@@ -160,8 +165,10 @@ INSTALLED_APPS = (
     'nav.django', 
     'django.contrib.staticfiles',
     'django.contrib.sessions',
+    'django.contrib.humanize',
     'crispy_forms',
-    'crispy_forms_foundation'
+    'crispy_forms_foundation',
+    'django_hstore',
 )
 
 # Hack for hackers to use features like debug_toolbar etc.

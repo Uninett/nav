@@ -44,6 +44,7 @@ import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
 from nav.models.rrd import RrdDataSource
+from django_hstore import hstore
 import nav.models.event
 
 
@@ -496,11 +497,10 @@ class Room(models.Model):
     location = models.ForeignKey('Location', db_column='locationid',
                                  blank=True, null=True)
     description = VarcharField(db_column='descr', blank=True)
-    optional_1 = VarcharField(db_column='opt1', blank=True)
-    optional_2 = VarcharField(db_column='opt2', blank=True)
-    optional_3 = VarcharField(db_column='opt3', blank=True)
-    optional_4 = VarcharField(db_column='opt4', blank=True)
     position = PointField(null=True, blank=True, default=None)
+    data = hstore.DictionaryField()
+
+    objects = hstore.HStoreManager()
 
     class Meta:
         db_table = 'room'
@@ -535,9 +535,9 @@ class Organization(models.Model):
                                blank=True, null=True)
     description = VarcharField(db_column='descr', blank=True)
     contact = VarcharField(db_column='contact', blank=True)
-    optional_1 = VarcharField(db_column='opt1', blank=True)
-    optional_2 = VarcharField(db_column='opt2', blank=True)
-    optional_3 = VarcharField(db_column='opt3', blank=True)
+    data = hstore.DictionaryField()
+
+    objects = hstore.HStoreManager()
 
     class Meta:
         db_table = 'org'
