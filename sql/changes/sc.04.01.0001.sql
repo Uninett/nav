@@ -1,9 +1,6 @@
 -- Tested: Should not do anything bad other than print errors if run several times.
 
--- Add hstore extension to postgres
-CREATE EXTENSION hstore;
-
--- Add field data to room
+-- Add field data to room - requires the hstore extension to be installed.
 ALTER TABLE room ADD COLUMN data hstore;
 
 -- Copy all information from opt-fields to hstore
