@@ -31,7 +31,7 @@ To run NAV, these software packages are required:
 
  * Apache2
  * mod_wsgi
- * PostgreSQL >= 9.1
+ * PostgreSQL >= 9.1 (With the hstore extension available)
  * Graphite_
  * Python >= 2.7.0
  * nbtscan = 1.5.1
@@ -59,6 +59,7 @@ The following Python modules are required:
  * :mod:`django-crispy-forms` == 1.3.2
  * :mod:`crispy-forms-foundation` == 0.2.3
  * :mod:`feedparser` >= 5.1.2,<5.2
+ * :mod:`django-hstore` == 1.2.3
 
 The following python modules are optional:
 
