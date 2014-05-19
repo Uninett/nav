@@ -1,3 +1,20 @@
+Version 4.0.2
+(released 15 May 2014)
+
+ Bugfixes:
+
+  * LP#1302403 (Unplugged HP power supplies are marked with "unknown" state)
+  * LP#1303804 (No graphs are rendered if graphite base url doesn't end with a
+                slash)
+  * LP#1304279 (values in threshold alerts are always 100)
+  * LP#1304455 (Submitting an empty search form crashes Arnold)
+  * LP#1314503 (migrate_to_whisper.py crashes on mismatches between RRD files
+                and database)
+  * LP#1316091 (pping dies when carbon is unavailable)
+  * LP#1316600 (external tools have no icons)
+  * LP#1316965 (NAV 4.0 collects port traffic stats from EDGE devices)
+
+
 Version 4.0.1
 (released 03 Apr 2014)
 
@@ -186,6 +203,15 @@ Version 4.0b1
  version we recommend installing NAV on a separate, perhaps virtual, server,
  and migrate production data according to the data migration howto found in
  the documentation.
+
+
+Version 3.15.9
+(released 15 May 2014)
+
+ Bugfixes:
+
+  * LP#1302403 (Unplugged HP power supplies are marked with "unknown" state)
+  * LP#1304455 (Submitting an empty search form crashes Arnold)
 
 
 Version 3.15.8
