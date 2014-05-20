@@ -17,48 +17,26 @@
 """Urlconf for the NAV REST api"""
 
 from nav.web.api.v1 import views
-from django.conf.urls import url, patterns
+from django.conf.urls import url, patterns, include
+from rest_framework import routers
 
-room_list = views.RoomViewSet.as_view({'get': 'list'})
-room_detail = views.RoomViewSet.as_view({'get': 'retrieve'})
-netbox_list = views.NetboxViewSet.as_view({'get': 'list'})
-netbox_detail = views.NetboxViewSet.as_view({'get': 'retrieve'})
-interface_list = views.InterfaceViewSet.as_view({'get': 'list'})
-interface_detail = views.InterfaceViewSet.as_view({'get': 'retrieve'})
-cam_list = views.CamViewSet.as_view({'get': 'list'})
-cam_detail = views.CamViewSet.as_view({'get': 'retrieve'})
-arp_list = views.ArpViewSet.as_view({'get': 'list'})
-arp_detail = views.ArpViewSet.as_view({'get': 'retrieve'})
-prefix_list = views.PrefixViewSet.as_view({'get': 'list'})
-prefix_detail = views.PrefixViewSet.as_view({'get': 'retrieve'})
+router = routers.SimpleRouter()
+router.register(r'room', views.RoomViewSet)
+router.register(r'netbox', views.NetboxViewSet)
+router.register(r'interface', views.InterfaceViewSet)
+router.register(r'prefix', views.PrefixViewSet)
+router.register(r'cam', views.CamViewSet, base_name='cam')
+router.register(r'arp', views.ArpViewSet, base_name='arp')
 
 urlpatterns = patterns(
     "",
-    url(r'^$', views.api_root, name="v1-api-root"),
-    url(r'^token/$', views.get_or_create_token, name="v1-api-token"),
-
-    url(r"^room/$", room_list, name="v1-api-rooms"),
-    url(r"^room/(?P<pk>\w+)$", room_detail, name="v1-api-room"),
-
-    url(r"^netbox/$", netbox_list, name="v1-api-netboxes"),
-    url(r"^netbox/(?P<pk>\d+)$", netbox_detail, name="v1-api-netbox"),
-
-    url(r"^interface/$", interface_list, name="v1-api-interfaces"),
-    url(r"^interface/(?P<pk>\d+)$", interface_detail, name="v1-api-interface"),
-
-    url(r"^cam/$", cam_list, name="v1-api-cams"),
-    url(r"^cam/(?P<pk>\d+)$", cam_detail, name="v1-api-cam"),
-
-    url(r"^arp/$", arp_list, name="v1-api-arps"),
-    url(r"^arp/(?P<pk>\d+)$", arp_detail, name="v1-api-arp"),
-
-    url(r"^prefix/$", prefix_list, name="v1-api-prefixes"),
-    url(r"^prefix/(?P<pk>\d+)$", prefix_detail, name="v1-api-prefix"),
-
+    url(r'^$', views.api_root),
+    url(r'^', include(router.urls)),
+    url(r'^token/$', views.get_or_create_token, name="token"),
     url(r"^prefix/routed/?$", views.RoutedPrefixList.as_view(),
-        name="v1-api-prefixes-routed"),
+        name="prefix-routed-list"),
     url(r"^prefix/usage/?$", views.PrefixUsageList.as_view(),
-        name="v1-api-prefixes-usage"),
+        name="prefix-usage-list"),
     url(r"^prefix/usage/(?P<prefix>.*)$", views.PrefixUsageDetail.as_view(),
-        name="v1-api-prefix-usage"),
+        name="prefix-usage-detail"),
 )

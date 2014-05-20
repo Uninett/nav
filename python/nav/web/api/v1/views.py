@@ -45,14 +45,14 @@ MINIMUMPREFIXLENGTH = 4
 def api_root(request):
     """Create api root for informing about possible endpoints"""
     return Response({
-        'room': reverse('v1-api-rooms', request=request),
-        'netbox': reverse('v1-api-netboxes', request=request),
-        'interface': reverse('v1-api-interfaces', request=request),
-        'cam': reverse('v1-api-cams', request=request),
-        'arp': reverse('v1-api-arps', request=request),
-        'prefix': reverse('v1-api-prefixes', request=request),
-        'prefix_routed': reverse('v1-api-prefixes-routed', request=request),
-        'prefix_usage': reverse('v1-api-prefixes-usage', request=request),
+        'room': reverse('api:1:room-list', request=request),
+        'netbox': reverse('api:1:netbox-list', request=request),
+        'interface': reverse('api:1:interface-list', request=request),
+        'cam': reverse('api:1:cam-list', request=request),
+        'arp': reverse('api:1:arp-list', request=request),
+        'prefix': reverse('api:1:prefix-list', request=request),
+        'prefix_routed': reverse('api:1:prefix-routed-list', request=request),
+        'prefix_usage': reverse('api:1:prefix-usage-list', request=request),
     })
 
 
