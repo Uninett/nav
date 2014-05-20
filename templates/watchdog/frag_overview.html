@@ -1,3 +1,5 @@
+{% load humanize %}
+
 <ul class="small-block-grid-2 large-block-grid-3">
   <li>
     <div>
@@ -13,20 +15,20 @@
   </li>
   <li>
     <div>
-      <h5>Active IP (v4/v6)</h5>
-      {{ num_active }} ({{ num_active_ipv4 }}/{{ num_active_ipv6 }})
+      <h5>Active IPs (v4/v6)</h5>
+      {{ num_active|intcomma }} ({{ num_active_ipv4|intcomma }}/{{ num_active_ipv6|intcomma }})
     </div>
   </li>
   <li>
     <div>
       <h5>Arp records</h5>
-      {{ num_arp }}
+      {{ num_arp|intcomma }}
     </div>
   </li>
   <li>
     <div>
       <h5>Cam records</h5>
-      {{ num_cam }}
+      {{ num_cam|intcomma }}
     </div>
   </li>
 </ul>

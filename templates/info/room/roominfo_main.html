@@ -21,27 +21,17 @@
         </td>
       </tr>
       <tr>
-        <th>opt1</th>
-        <td>{{ room.optional_1|urlize }}</td>
-      </tr>
-      <tr>
-        <th>opt2</th>
-        <td>{{ room.optional_2|urlize }}</td>
-      </tr>
-      <tr>
-        <th>opt3</th>
-        <td>{{ room.optional_3|urlize }}</td>
-      </tr>
-      <tr>
-        <th>opt4</th>
-        <td>{{ room.optional_4|urlize }}</td>
-      </tr>
-      <tr>
         <th>Position</th>
         <td class="position" data-roomname="{{ room.id }}">
           {% if room.position %}{{ room.position|join:', ' }}{% endif %}
         </td>
       </tr>
+      {% for key, value in room.sorted_data %}
+      <tr>
+        <th>{{ key }}</th>
+        <td>{{ value|urlize }}</td>
+      </tr>
+      {% endfor %}
       </tbody>
     </table>
 

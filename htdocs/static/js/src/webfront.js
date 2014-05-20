@@ -39,7 +39,7 @@ require(['plugins/room_mapper', 'plugins/navlets_controller', 'libs/jquery', 'li
 
             /* Need some way of doing javascript stuff on widgets */
             $navletsContainer.on('click', '.watchdog-tests .label.alert', function (event) {
-                $(event.target).next('ul').toggle();
+                $(event.target).closest('li').find('ul').toggle();
             });
 
         });

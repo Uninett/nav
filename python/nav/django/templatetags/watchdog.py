@@ -43,3 +43,14 @@ def map_to_word(status):
     }
 
     return mapping.get(status, '')
+
+
+@register.filter
+def map_to_faclass(status):
+    """Return Font Awesome class based on status"""
+    mapping = {
+        STATUS_NOT_OK: 'fa-exclamation',
+        STATUS_OK: 'fa-check'
+    }
+
+    return mapping.get(status, '')

@@ -296,6 +296,7 @@ class Synchronizer(object):
         """Begins the synchronization process."""
         self.verify_namespaces()
         self.verify_search_path()
+        self.verify_hstore_extension()
 
         if self.is_empty_database():
             print "Your database appears empty"
@@ -361,6 +362,33 @@ class Synchronizer(object):
             "WHERE tablename = 'schema_change_log'")
         count = self.cursor.fetchone()[0]
         return count == 1
+
+    def verify_hstore_extension(self):
+        """
+        Installs the hstore extension to dbname if not already present.
+
+        Installation takes place in the namespace mentioned first in the
+        search path, which should be the manage namespace in NAV's case.
+
+        """
+        postgres_opts = ConnectionParameters.for_postgres_user()
+        postgres_opts.export(os.environ)
+
+        self.cursor.execute(
+            "SELECT COUNT(*) FROM pg_extension WHERE extname='hstore'")
+        count, = self.cursor.fetchone()
+        if count > 0:
+            return
+
+        print "Creating hstore extension in database {0}".format(
+            self.connect_options.dbname)
+
+        trap_and_die(subprocess.CalledProcessError,
+                     "Failed to install the hstore extension, maybe you need "
+                     "to run as the postgres superuser?",
+                     check_call,
+                     ["psql", "--quiet", "-c", "CREATE EXTENSION hstore;",
+                      self.connect_options.dbname])
 
     def install_baseline(self):
         """Installs the baseline NAV schema"""

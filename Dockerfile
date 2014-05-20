@@ -34,7 +34,8 @@ RUN apt-get -y --no-install-recommends build-dep \
             locales mercurial subversion git-core python-virtualenv python-pip \
             build-essential librrd-dev python-dev autoconf automake libsnmp15 \
             cron sudo libapache2-mod-wsgi rubygems inotify-tools python-cairo \
-            postgresql-9.1 postgresql-client openssh-server supervisor
+            postgresql-9.1 postgresql-contrib-9.1 postgresql-client openssh-server \
+            supervisor
 
 RUN pip install whisper carbon graphite-web django-tagging
 
