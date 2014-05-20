@@ -5,8 +5,7 @@ The NAV API
 Disclaimer
 ----------
 
-**The API in NAV 4.0 is a proof-of-concept.** That basically means that it is
-not really ready to use, lacks a lot of functionality and is subject to change.
+**The API in NAV 4.1 is in it's infancy.** Expect some rough edges.
 
 About
 -----
@@ -54,28 +53,35 @@ The NAV API currently only outputs JSON formatted data. Other output formats may
 be included in the future.
 
 
-Current available endpoints
----------------------------
+Browsing the API
+----------------
 
-The following urls will provide you with data:
-
-- ``/api/netboxes/``
-- ``/api/netboxes/<id>``
-- ``/api/rooms/``
-- ``/api/rooms/<id>``
-- ``/api/prefixes/``
-- ``/api/prefixes/<id>``
+The API is semi-browsable with a browser. As it uses the token to authenticate
+and authorize, you need to find a way to include that in your browser
+requests. If you use Chrome this can be used with the extension
+``ModHeader``. As the output is JSON and not HTML, we also recommend the
+extension ``JSON Formatter`` or similar.
 
 
-Planned additions
------------------
+Available endpoints
+-------------------
 
-The API as it is lacks a lot of functionality. This is a list of some of the
-things that are planned:
+The available endpoints is listed if you go to the root of the api - ``/api/``.
 
-- Add an api root
-- Add filtering and search
-- Saner urls (i.e. netboxes/ -> netbox/)
-- Make api browsable from NAV
-- Make more data availble
-- API versioning
+
+Paging
+------
+
+The API supports paging of results. The current default maximum number of
+results from a query is 100. If the query returns more than that, it will
+provide a link to the next page of results.
+
+You can specify the number of results on a page by setting the ``page_size``
+parameter in your request.
+
+
+Searching and filtering
+-----------------------
+
+The API supports searching and filtering of data. A search is different from
+a filter in that a filter is more specific.

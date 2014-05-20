@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013 UNINETT AS
+# Copyright (C) 2014 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -13,30 +13,13 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# pylint: disable=E1101
-"""Urlconf for the NAV REST api"""
+"""URL mapping for the various API versions"""
 
-from django.conf.urls import url, patterns
-from .views import (RoomList, RoomDetail, NetboxList, NetboxDetail,
-                    PrefixUsageDetail, get_or_create_token, PrefixDetail,
-                    PrefixList, RoutedPrefixList)
+from django.conf.urls import include, patterns, url
+from nav.web.api.v1 import urls as v1_urls
 
 urlpatterns = patterns(
-    "",
-    url(r"^$", RoomList.as_view(), name="api-inventory"),  # TODO: Fix this
-    url(r"^token/$", get_or_create_token, name="api-token"),
-
-    url(r"^rooms/$", RoomList.as_view(), name="api-rooms"),
-    url(r"^rooms/(?P<pk>\w+)$", RoomDetail.as_view(), name="api-room"),
-
-    url(r"^netboxes/$", NetboxList.as_view(), name="api-netboxes"),
-    url(r"^netboxes/(?P<pk>\d+)$", NetboxDetail.as_view(), name="api-netbox"),
-
-    url(r"^prefixes/routed/?$",
-        RoutedPrefixList.as_view(), name="api-prefixes-routed"),
-    url(r"^prefixes/?$", PrefixList.as_view(), name="api-prefixes"),
-    url(r"^prefixes/(?P<pk>\d+)/?$", PrefixDetail.as_view(),
-        name="api-prefix"),
-    url(r"^activeip/(?P<prefix>.*)$", PrefixUsageDetail.as_view(),
-        name="api-prefix-usage"),
+    '',
+    url(r'^', include(v1_urls)),
+    url(r'^1/', include(v1_urls, namespace='1')),
 )

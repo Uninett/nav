@@ -164,6 +164,12 @@ INSTALLED_APPS = (
     'crispy_forms_foundation'
 )
 
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
+    'PAGINATE_BY': 100,
+    'PAGINATE_BY_PARAM': 'page_size',
+}
+
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
 sys.path.append(os.path.join(nav.buildconf.sysconfdir, "python"))

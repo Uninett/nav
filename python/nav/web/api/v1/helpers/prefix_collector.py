@@ -31,10 +31,15 @@ class UsageResult(object):
         """
         self.prefix = prefix
         self.active_addresses = active_addresses
-        self.max_addresses = len(self.prefix)
+        self.max_addresses = self.prefix.len()
         self.usage = self.active_addresses / float(self.max_addresses) * 100
         self.starttime = starttime
         self.endtime = endtime if self.starttime else None
+
+
+def fetch_usages(prefixes, starttime, endtime):
+    """Fetch usage for a list of prefixes"""
+    return [fetch_usage(prefix, starttime, endtime) for prefix in prefixes]
 
 
 def fetch_usage(prefix, starttime, endtime):
