@@ -22,20 +22,18 @@ import iso8601
 
 from provider.utils import long_token
 from rest_framework import status, filters, viewsets
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.reverse import reverse
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from nav.models.api import APIToken
-from nav.models.manage import Room, Netbox, Prefix, Interface, Cam, Arp
+from nav.models import manage
 from nav.models.fields import INFINITY
 
+from nav.web.api.v1 import serializers
 from .auth import APIPermission, APIAuthentication
-from .serializers import (RoomSerializer, NetboxSerializer, PrefixSerializer,
-                          PrefixUsageSerializer, InterfaceSerializer,
-                          CamSerializer, ArpSerializer)
 from .helpers import prefix_collector
 
 EXPIRE_DELTA = timedelta(days=365)
@@ -43,7 +41,8 @@ MINIMUMPREFIXLENGTH = 4
 
 
 @api_view(('GET',))
-def api_root(request, format=None):
+@renderer_classes((JSONRenderer,))
+def api_root(request):
     """Create api root for informing about possible endpoints"""
     return Response({
         'room': reverse('v1-api-rooms', request=request),
@@ -67,23 +66,23 @@ class NAVAPIMixin(APIView):
 
 class RoomViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Makes rooms accessible from api"""
-    queryset = Room.objects.all()
-    serializer_class = RoomSerializer
+    queryset = manage.Room.objects.all()
+    serializer_class = serializers.RoomSerializer
     filter_fields = ('location', 'description')
 
 
 class NetboxViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Makes netboxes accessible from api"""
-    queryset = Netbox.objects.all()
-    serializer_class = NetboxSerializer
+    queryset = manage.Netbox.objects.all()
+    serializer_class = serializers.NetboxSerializer
     filter_fields = ('sysname', 'room', 'organization', 'category')
     search_fields = ('sysname', )
 
 
 class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Makes interfaces accessible from api"""
-    queryset = Interface.objects.all()
-    serializer_class = InterfaceSerializer
+    queryset = manage.Interface.objects.all()
+    serializer_class = serializers.InterfaceSerializer
     filter_fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
                      'ifadminstatus', 'iftype', 'baseport')
     search_fields = ('ifalias', 'ifdescr', 'ifname')
@@ -91,12 +90,12 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
 class CamViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Makes cam accessible from api"""
-    serializer_class = CamSerializer
+    serializer_class = serializers.CamSerializer
     filter_fields = ('mac', 'netbox', 'ifindex', 'port')
 
     def get_queryset(self):
         """Filter on custom parameters"""
-        queryset = Cam.objects.all()
+        queryset = manage.Cam.objects.all()
         active = self.request.QUERY_PARAMS.get('active', None)
         if active:
             queryset = queryset.filter(end_time=INFINITY)
@@ -106,12 +105,12 @@ class CamViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
 class ArpViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Makes cam accessible from api"""
-    serializer_class = ArpSerializer
+    serializer_class = serializers.ArpSerializer
     filter_fields = ('ip', 'mac', 'netbox', 'prefix')
 
     def get_queryset(self):
         """Filter on custom parameters"""
-        queryset = Arp.objects.all()
+        queryset = manage.Arp.objects.all()
         active = self.request.QUERY_PARAMS.get('active', None)
         if active:
             queryset = queryset.filter(end_time=INFINITY)
@@ -121,18 +120,18 @@ class ArpViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
 class PrefixViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Makes prefixes available from api"""
-    queryset = Prefix.objects.all()
-    serializer_class = PrefixSerializer
+    queryset = manage.Prefix.objects.all()
+    serializer_class = serializers.PrefixSerializer
     filter_fields = ('vlan', 'net_address', 'vlan__vlan')
 
 
 class RoutedPrefixList(NAVAPIMixin, ListAPIView):
     """Fetches routed prefixes"""
     _router_categories = ['GSW', 'GW']
-    serializer_class = PrefixSerializer
+    serializer_class = serializers.PrefixSerializer
 
     def get_queryset(self):
-        prefixes = Prefix.objects.filter(
+        prefixes = manage.Prefix.objects.filter(
             gwportprefix__interface__netbox__category__in=
             self._router_categories)
         if 'family' in self.request.GET:
@@ -155,7 +154,7 @@ def get_times(request):
 
 class PrefixUsageList(NAVAPIMixin, ListAPIView):
     """Makes prefix usage for all prefixes available"""
-    serializer_class = PrefixUsageSerializer
+    serializer_class = serializers.PrefixUsageSerializer
 
     def get(self, request, *args, **kwargs):
         """Override get method to verify url parameters"""
@@ -171,7 +170,7 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
         """Override to provide custom queryset"""
         prefixes = []
         starttime, endtime = get_times(self.request)
-        for prefix in Prefix.objects.all():
+        for prefix in manage.Prefix.objects.all():
             tmp_prefix = IP(prefix.net_address)
             if tmp_prefix.len() >= MINIMUMPREFIXLENGTH:
                 prefixes.append(tmp_prefix)
@@ -202,7 +201,7 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
                 'start or endtime not formatted correctly. Use iso8601 format',
                 status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = PrefixUsageSerializer(
+        serializer = serializers.PrefixUsageSerializer(
             prefix_collector.fetch_usage(prefix, starttime, endtime))
 
         return Response(serializer.data)

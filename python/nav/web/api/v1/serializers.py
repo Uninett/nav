@@ -16,45 +16,45 @@
 # pylint: disable=R0903
 """Serializers for the NAV REST api"""
 
-from nav.models.manage import Room, Netbox, Prefix, Interface, Cam, Arp
+from nav.models import manage
 from rest_framework import serializers
 
 
 class NetboxSerializer(serializers.ModelSerializer):
     """Serializer for the netbox model"""
     class Meta:
-        model = Netbox
+        model = manage.Netbox
 
 
 class InterfaceSerializer(serializers.ModelSerializer):
     """Serializer for the interface model"""
     class Meta:
-        model = Interface
+        model = manage.Interface
 
 
 class CamSerializer(serializers.ModelSerializer):
     """Serializer for the cam model"""
     class Meta:
-        model = Cam
+        model = manage.Cam
 
 
 class ArpSerializer(serializers.ModelSerializer):
     """Serializer for the arp model"""
     class Meta:
-        model = Arp
+        model = manage.Arp
 
 
 class RoomSerializer(serializers.ModelSerializer):
     """Serializer for the room model"""
     class Meta:
-        model = Room
+        model = manage.Room
         fields = ('id', 'location', 'description', 'position')
 
 
 class PrefixSerializer(serializers.ModelSerializer):
     """Serializer for prefix model"""
     class Meta:
-        model = Prefix
+        model = manage.Prefix
 
 
 class PrefixUsageSerializer(serializers.Serializer):
