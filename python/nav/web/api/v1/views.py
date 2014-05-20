@@ -29,11 +29,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from nav.models.api import APIToken
-from nav.models.manage import Room, Netbox, Prefix, Interface
+from nav.models.manage import Room, Netbox, Prefix, Interface, Cam, Arp
+from nav.models.fields import INFINITY
 
 from .auth import APIPermission, APIAuthentication
 from .serializers import (RoomSerializer, NetboxSerializer, PrefixSerializer,
-                          PrefixUsageSerializer, InterfaceSerializer)
+                          PrefixUsageSerializer, InterfaceSerializer,
+                          CamSerializer, ArpSerializer)
 from .helpers import prefix_collector
 
 EXPIRE_DELTA = timedelta(days=365)
@@ -47,6 +49,8 @@ def api_root(request, format=None):
         'room': reverse('v1-api-rooms', request=request),
         'netbox': reverse('v1-api-netboxes', request=request),
         'interface': reverse('v1-api-interfaces', request=request),
+        'cam': reverse('v1-api-cams', request=request),
+        'arp': reverse('v1-api-arps', request=request),
         'prefix': reverse('v1-api-prefixes', request=request),
         'prefix_routed': reverse('v1-api-prefixes-routed', request=request),
         'prefix_usage': reverse('v1-api-prefixes-usage', request=request),
@@ -83,6 +87,36 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     filter_fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
                      'ifadminstatus', 'iftype', 'baseport')
     search_fields = ('ifalias', 'ifdescr', 'ifname')
+
+
+class CamViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """Makes cam accessible from api"""
+    serializer_class = CamSerializer
+    filter_fields = ('mac', 'netbox', 'ifindex', 'port')
+
+    def get_queryset(self):
+        """Filter on custom parameters"""
+        queryset = Cam.objects.all()
+        active = self.request.QUERY_PARAMS.get('active', None)
+        if active:
+            queryset = queryset.filter(end_time=INFINITY)
+
+        return queryset
+
+
+class ArpViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """Makes cam accessible from api"""
+    serializer_class = ArpSerializer
+    filter_fields = ('ip', 'mac', 'netbox', 'prefix')
+
+    def get_queryset(self):
+        """Filter on custom parameters"""
+        queryset = Arp.objects.all()
+        active = self.request.QUERY_PARAMS.get('active', None)
+        if active:
+            queryset = queryset.filter(end_time=INFINITY)
+
+        return queryset
 
 
 class PrefixViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):

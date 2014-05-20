@@ -25,6 +25,10 @@ netbox_list = views.NetboxViewSet.as_view({'get': 'list'})
 netbox_detail = views.NetboxViewSet.as_view({'get': 'retrieve'})
 interface_list = views.InterfaceViewSet.as_view({'get': 'list'})
 interface_detail = views.InterfaceViewSet.as_view({'get': 'retrieve'})
+cam_list = views.CamViewSet.as_view({'get': 'list'})
+cam_detail = views.CamViewSet.as_view({'get': 'retrieve'})
+arp_list = views.ArpViewSet.as_view({'get': 'list'})
+arp_detail = views.ArpViewSet.as_view({'get': 'retrieve'})
 prefix_list = views.PrefixViewSet.as_view({'get': 'list'})
 prefix_detail = views.PrefixViewSet.as_view({'get': 'retrieve'})
 
@@ -41,6 +45,12 @@ urlpatterns = patterns(
 
     url(r"^interface/$", interface_list, name="v1-api-interfaces"),
     url(r"^interface/(?P<pk>\d+)$", interface_detail, name="v1-api-interface"),
+
+    url(r"^cam/$", cam_list, name="v1-api-cams"),
+    url(r"^cam/(?P<pk>\d+)$", cam_detail, name="v1-api-cam"),
+
+    url(r"^arp/$", arp_list, name="v1-api-arps"),
+    url(r"^arp/(?P<pk>\d+)$", arp_detail, name="v1-api-arp"),
 
     url(r"^prefix/$", prefix_list, name="v1-api-prefixes"),
     url(r"^prefix/(?P<pk>\d+)$", prefix_detail, name="v1-api-prefix"),
