@@ -34,13 +34,11 @@ require(
             var tabconfig = {
                 cache: true, // cache loaded pages
                 spinner: '<img src="' + NAV.imagePath + '/main/process-working.gif">',
-                ajaxOptions: {
-                    error: request_error,
-                    success: request_success
-                },
                 load: function (event, ui) {
                     if (ui.panel.id === 'sensors') {
                         applyEnvironmentHandlers();
+                    } else if (ui.panel.id === 'netboxinterfaces') {
+                        applyNetboxInterfacesHandlers();
                     }
                 }
             };
@@ -53,7 +51,7 @@ require(
             $('<div class="messages error">Could not load netbox interfaces</div>').appendTo('#ui-tabs-1');
         }
 
-        function request_success() {
+        function applyNetboxInterfacesHandlers() {
             enrich_tables();
             add_filters();
             add_csv_download();
