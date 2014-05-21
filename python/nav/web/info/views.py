@@ -66,6 +66,9 @@ def process_form(form):
     """Processor for searchform on main page"""
     query = form.cleaned_data['query']
 
+    if not query:
+        return []
+
     searchproviders = [RoomSearchProvider(query),
                        NetboxSearchProvider(query),
                        InterfaceSearchProvider(query),

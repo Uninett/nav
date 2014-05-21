@@ -264,6 +264,7 @@ class NavbarLink(models.Model):
 
     class Meta:
         db_table = u'navbarlink'
+        ordering = ('id', )
 
     def __unicode__(self):
         return '%s=%s' % (self.name, self.uri)

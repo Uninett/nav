@@ -22,6 +22,7 @@
 #
 FROM mbrekkevold/wheezy-no
 
+ENV DEBIAN_FRONTEND noninteractive
 
 #### Install various build and runtime requirements as Debian packages ####
 
