@@ -65,8 +65,9 @@ urlpatterns = patterns('',
         name='machinetracker-swp_search'),
 
     # NetBIOS
-    url(r'^netbios/$', netbios_search,
-        name='machinetracker-netbios'),
+    url(r'^netbios/$', netbios_search, name='machinetracker-netbios'),
+    url(r'^netbios/\?search=(?P<search>\w+)&days=(?P<days>\d+)$',
+        netbios_search, name='machinetracker-netbios-search'),
 
     # Old machinetrakcer links.
      url(r'^swp\?switch=(?P<netbox_sysname>[\w\d._-]+)'
