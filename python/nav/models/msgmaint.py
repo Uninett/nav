@@ -18,6 +18,8 @@
 
 from django.db import models
 
+from datetime import datetime, timedelta
+
 from nav.models.fields import (VarcharField, LegacyGenericForeignKey,
                                DateTimeInfinityField)
 
@@ -31,8 +33,9 @@ class Message(models.Model):
     title = VarcharField()
     description = models.TextField()
     tech_description = models.TextField(null=True, blank=True)
-    publish_start = models.DateTimeField()
-    publish_end = models.DateTimeField()
+    publish_start = models.DateTimeField(default=datetime.now())
+    publish_end = models.DateTimeField(
+        default=datetime.now() + timedelta(days=7))
     author = VarcharField()
     last_changed = models.DateTimeField()
     replaces_message = models.ForeignKey('self', db_column='replaces_message',
