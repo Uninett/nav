@@ -56,7 +56,7 @@ def organization_list(request):
     query = Organization.objects.all()
     filter_form = OrganizationFilterForm(request.GET)
     value_list = (
-        'id', 'parent', 'description')
+        'id', 'parent', 'description', 'data')
     return render_list(request, query, value_list, 'seeddb-organization-edit',
                        filter_form=filter_form,
                        extra_context=info.template_context)
