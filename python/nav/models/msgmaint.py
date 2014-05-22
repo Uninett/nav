@@ -17,9 +17,7 @@
 """Django ORM wrapper for the NAV manage database"""
 
 from django.db import models
-
 from datetime import datetime, timedelta
-
 from nav.models.fields import (VarcharField, LegacyGenericForeignKey,
                                DateTimeInfinityField)
 
@@ -38,12 +36,14 @@ class Message(models.Model):
         default=datetime.now() + timedelta(days=7))
     author = VarcharField()
     last_changed = models.DateTimeField()
-    replaces_message = models.ForeignKey('self', db_column='replaces_message',
+    replaces_message = models.ForeignKey(
+        'self', db_column='replaces_message',
         related_name='replaced_by', null=True)
-    maintenance_tasks = models.ManyToManyField('MaintenanceTask',
-        through='MessageToMaintenanceTask', null=True, blank=True)
+    maintenance_tasks = models.ManyToManyField(
+        'MaintenanceTask', through='MessageToMaintenanceTask',
+        null=True, blank=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'message'
 
     def __unicode__(self):
@@ -72,7 +72,7 @@ class MaintenanceTask(models.Model):
     author = VarcharField()
     state = VarcharField(choices=STATES)
 
-    class Meta:
+    class Meta(object):
         db_table = 'maint_task'
 
     def __unicode__(self):
@@ -85,12 +85,12 @@ class MaintenanceComponent(models.Model):
 
     id = models.AutoField(primary_key=True)  # Serial for faking primary key
     maintenance_task = models.ForeignKey(MaintenanceTask,
-        db_column='maint_taskid')
+                                         db_column='maint_taskid')
     key = VarcharField()
     value = VarcharField()
     component = LegacyGenericForeignKey('key', 'value')
 
-    class Meta:
+    class Meta(object):
         db_table = 'maint_component'
         unique_together = (('maint_task', 'key', 'value'),)  # Primary key
 
@@ -104,11 +104,11 @@ class MessageToMaintenanceTask(models.Model):
 
     id = models.AutoField(primary_key=True)  # Serial for faking primary key
     message = models.ForeignKey(Message, db_column='messageid',
-        related_name='maintenance_tasks')
-    maintenance_task = models.ForeignKey(MaintenanceTask,
-        db_column='maint_taskid', related_name='messages')
+                                related_name='maintenance_tasks')
+    maintenance_task = models.ForeignKey(
+        MaintenanceTask, db_column='maint_taskid', related_name='messages')
 
-    class Meta:
+    class Meta(object):
         db_table = 'message_to_maint_task'
         unique_together = (('message', 'maintenance_task'),)  # Primary key
 
