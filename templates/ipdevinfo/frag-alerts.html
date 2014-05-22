@@ -9,6 +9,7 @@
             <thead>
             <tr>
                 <th>Event</th>
+                <th>Message</th>
                 <th>Start</th>
                 <th>End</th>
                 <th>Downtime</th>
@@ -17,7 +18,7 @@
 
             <tfoot>
             <tr>
-                <th colspan="4">
+                <th colspan="5">
                     {% if alert_info.is_more_alerts %}
                         Showing {{ alert_info.alerts|length }} of
                         {{ alert_info.count }} alerts, see
@@ -39,7 +40,8 @@
             {% if alert_info.count %}
                 {% for a in alert_info.alerts %}
                     <tr class="{% cycle oddrow,evenrow %}">
-                        <td title="{{ a.message|default:"" }}">{{ a.type }}</td>
+                        <td>{{ a.type }}</td>
+                        <td>{{ a.message|default:"" }}</td>
                         <td>{{ a.alert.start_time|date|default:"N/A" }}
                             {{ a.alert.start_time|time }}</td>
                         {% if a.alert.is_open %}
