@@ -36,7 +36,8 @@ load-plugins=
 # W0142: Used * or ** magic. For NAV, this is good stuff :)
 # W0232: Class has no __init__ member. We inherit a lot of those.
 # R0924: Badly implemented Container
-disable=W0142,W0232,R0924
+# R0903: Too Few Public methods - just annoyingly common and not a problem
+disable=W0142,W0232,R0924,R0903
 
 
 [REPORTS]
