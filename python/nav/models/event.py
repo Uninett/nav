@@ -186,7 +186,7 @@ class EventMixIn(object):
         problem.
 
         """
-        id_keys = ('device_id', 'netbox_id', 'subid', 'event_type_id')
+        id_keys = ('netbox_id', 'subid', 'event_type_id')
         values = (getattr(self, key) for key in id_keys)
         return tuple(values)
 
