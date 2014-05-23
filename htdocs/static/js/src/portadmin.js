@@ -147,7 +147,7 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
         }
 
         // Post data and wait for json-formatted returndata. Display status information to user
-        saveInterface($row, create_ajax_data($row));
+        saveInterface(create_ajax_data($row));
     }
 
     function create_ajax_data($row) {
@@ -171,8 +171,8 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
         return data;
     }
 
-    function saveInterface($row, interfaceData) {
-        var rowid = $row.prop('id');
+    function saveInterface(interfaceData) {
+        var rowid = interfaceData.interfaceid;
         console.log('Saving interface with id ' + rowid);
         // If a save on this card is already in progress, do nothing.
         if (nav_ajax_queue.indexOf(rowid) > -1) {
@@ -205,6 +205,10 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
                 clearChangedState($row);
                 indicateSuccess($row);
                 updateDefaults($row, interfaceData);
+                // Restart the interface if a vlan change is done.
+                if (interfaceData.hasOwnProperty('vlan')) {
+                    restartInterface(interfaceData.interfaceid);
+                }
             },
             error: function (jqXhr) {
                 console.log(jqXhr.responseText);
@@ -222,6 +226,11 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
                 }
             }
         });
+    }
+
+    function restartInterface(interfaceid) {
+        /* Do a request to restart the interface with given id */
+        $.post('restart_interface', {'interfaceid': interfaceid});
     }
 
     function disableButtons(row) {

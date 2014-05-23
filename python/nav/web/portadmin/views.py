@@ -360,8 +360,6 @@ def set_vlan(account, fac, interface, request):
             else:
                 fac.set_vlan(interface.ifindex, vlan)
 
-            # Restart interface so that client fetches new address
-            fac.restart_if(interface.ifindex)
             interface.vlan = vlan
             _logger.info('%s: %s:%s - vlan set to %s' % (
                 account.login, interface.netbox.get_short_sysname(),
@@ -493,3 +491,27 @@ def handle_trunk_edit(request, agent, interface):
         agent.set_trunk(interface, native_vlan, trunked_vlans)
     else:
         agent.set_access(interface, native_vlan)
+
+
+def restart_interface(request):
+    """Restart the interface by setting admin status to down and up"""
+    if request.method == 'POST':
+        try:
+            interface = Interface.objects.get(
+                pk=request.POST.get('interfaceid'))
+        except Interface.DoesNotExist:
+            return HttpResponse(status=404)
+
+        try:
+            fac = SNMPFactory.get_instance(interface.netbox)
+        except SnmpError, error:
+            _logger.error('Error getting snmpfactory instance when '
+                          'restarting interface %s: %s',
+                          interface.netbox, error)
+            return HttpResponse(status=500)
+
+        # Restart interface so that client fetches new address
+        fac.restart_if(interface.ifindex)
+        return HttpResponse()
+
+    return HttpResponse(status=400)

@@ -18,7 +18,8 @@
 from django.conf.urls.defaults import patterns, url
 from nav.web.portadmin.views import (index, search_by_ip, search_by_sysname,
                                      search_by_interfaceid,
-                                     save_interfaceinfo, render_trunk_edit)
+                                     save_interfaceinfo, render_trunk_edit,
+                                     restart_interface)
 
 urlpatterns = patterns('',
     url(r'^$', index, name='portadmin-index'),
@@ -31,6 +32,7 @@ urlpatterns = patterns('',
         name='portadmin-interface'),
 
     url(r'^save_interfaceinfo', save_interfaceinfo),
+    url(r'^restart_interface', restart_interface),
     url(r'^trunk/(?P<interfaceid>\d+)', render_trunk_edit,
         name="portadmin-render-trunk-edit"),
 
