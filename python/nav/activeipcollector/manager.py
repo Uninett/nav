@@ -55,6 +55,8 @@ def store_tuple(db_tuple):
     prefix, when, ip_count, mac_count = db_tuple
     ip_range = find_range(prefix)
 
+    when = get_timestamp(when)
+
     metrics = [
         (metric_path_for_prefix(prefix, 'ip_count'), (when, ip_count)),
         (metric_path_for_prefix(prefix, 'mac_count'), (when, mac_count)),
@@ -85,12 +87,4 @@ def get_timestamp(timestamp=None):
         """Find epoch from a datetime object"""
         return int(time.mktime(timestamp.timetuple()))
 
-    halfhour = 60 * 30
-    epoch = get_epoch() if timestamp else int(time.time())
-    difference = epoch % halfhour
-    if difference > halfhour / 2:
-        epoch += (halfhour - difference)
-    else:
-        epoch -= difference
-
-    return epoch
+    return get_epoch() if timestamp else int(time.time())
