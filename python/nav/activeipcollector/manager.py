@@ -52,8 +52,7 @@ def store_tuple(db_tuple):
     :param db_tuple: a row from a rrd_fetchall object
 
     """
-    prefix, timestamp, ip_count, mac_count = db_tuple
-    when = get_timestamp(timestamp)
+    prefix, when, ip_count, mac_count = db_tuple
     ip_range = find_range(prefix)
 
     metrics = [
