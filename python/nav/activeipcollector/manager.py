@@ -24,7 +24,7 @@ import nav.activeipcollector.collector as collector
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_path_for_prefix
 
-LOG = logging.getLogger('ipcollector.manager')
+LOG = logging.getLogger(__name__)
 DATABASE_CATEGORY = 'activeip'
 
 
@@ -43,7 +43,7 @@ def store(data):
     for db_tuple in data:
         store_tuple(db_tuple)
 
-    LOG.info('Sent %s updates' % (len(data)))
+    LOG.info('Sent %s updates', len(data))
 
 
 def store_tuple(db_tuple):
