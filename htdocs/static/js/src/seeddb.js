@@ -182,7 +182,7 @@ require([
     }
 
     function parseLonLat(llStr) {
-        var re = /^([0-9]*[.]?[0-9]+), *([0-9]*[.]?[0-9]+)$/;
+        var re = /^(-?[0-9]*[.]?[0-9]+), *(-?[0-9]*[.]?[0-9]+)$/;
         var arr = re.exec(llStr);
         if (arr === null) {
             throw 'error: incorrectly formatted latitude, longitude string "' +
