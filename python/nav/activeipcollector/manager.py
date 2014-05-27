@@ -40,8 +40,14 @@ def store(data):
     are to store
 
     """
-    for db_tuple in data:
-        store_tuple(db_tuple)
+
+    # Suspecting package drop - dividing into chunks and giving some
+    # breathing room for each batch of updates.
+    chunks = [data[x:x+100] for x in xrange(0, len(data), 100)]
+    for chunk in chunks:
+        for db_tuple in chunk:
+            store_tuple(db_tuple)
+        time.sleep(2)
 
     LOG.info('Sent %s updates', len(data))
 
