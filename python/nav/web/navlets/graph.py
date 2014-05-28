@@ -30,6 +30,7 @@ class GraphWidget(Navlet):
     is_editable = True
     is_title_editable = True
     refresh_interval = 1000 * 60 * 10
+    image_reload = True
 
     def get_template_basename(self):
         return 'graph'

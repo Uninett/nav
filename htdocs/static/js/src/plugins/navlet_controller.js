@@ -102,12 +102,22 @@ define(['libs/jquery', 'libs/spin.min'], function () {
              * Remember to stop refreshing on edit
              */
             var that = this,
-                preferences = this.navlet.preferences;
+                preferences = this.navlet.preferences,
+                image = this.node.find('img[data-image-reload]'),
+                imageUrl = image.attr('src');
 
             if (mode === 'VIEW' && preferences && preferences.refresh_interval) {
-                this.refresh = setTimeout(function () {
-                    that.renderNavlet.call(that);
-                }, preferences.refresh_interval);
+                /* If this is a reload of image only */
+                if (this.navlet.image_reload) {
+                    this.refresh = setInterval(function () {
+                        /* The random part is courtesy IE */
+                        image.attr('src', imageUrl + '&bust=' + Math.random());
+                    }, preferences.refresh_interval);
+                } else {
+                    this.refresh = setTimeout(function () {
+                        that.renderNavlet.call(that);
+                    }, preferences.refresh_interval);
+                }
             } else if (mode === 'EDIT' && this.refresh) {
                 clearTimeout(this.refresh);
             }

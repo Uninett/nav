@@ -83,6 +83,12 @@ class Navlet(TemplateView):
     description = 'No description'
     is_editable = False
     is_title_editable = False
+
+    # Set to true if we are to reload only an image. This is useful for
+    # loading charts that may take some time to display, thus making the
+    # widget 'jump'. The image in question needs the attribute
+    # 'data-image-reload'
+    image_reload = False
     preferences = {}  # See DEFAULT PREFERENCES for adding default values here
     navlet_id = None
     highlight = None
@@ -166,12 +172,14 @@ def create_navlet_object(usernavlet):
     navlet_class = get_navlet_from_name(navlet_module)
     highlight = navlet_class.highlight
     is_title_editable = navlet_class.is_title_editable
+    image_reload = navlet_class.image_reload
 
     return {'id': usernavlet.id, 'url': url,
             'column': usernavlet.column,
             'preferences': usernavlet.preferences,
             'highlight': highlight,
             'navlet_class': navlet_module.split('.')[-1],
+            'image_reload': image_reload,
             'is_title_editable': is_title_editable}
 
 
