@@ -13,6 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+# pylint: disable=E1101
 """Navlets - the NAV version of portlets
 
 To use create a Navlet do the following:
@@ -121,7 +122,7 @@ class Navlet(TemplateView):
         return context
 
 
-def list_navlets(request):
+def list_navlets(_):
     """Gives a json-response with all navlets modulestring, title and desc"""
     return HttpResponse(json.dumps(get_navlets()))
 
@@ -148,7 +149,7 @@ def get_navlet_from_name(navletmodule):
                             fromlist=[lastmod])
         cls = getattr(module, clsname)
     except AttributeError:
-        _logger.error('Could not import %s' % navletmodule)
+        _logger.error('Could not import %s', navletmodule)
     else:
         return cls
 
@@ -376,4 +377,3 @@ def set_navlet_preferences(request):
             return HttpResponse()
 
     return HttpResponse(status=400)
-
