@@ -189,12 +189,19 @@ def dispatcher(request, navlet_id):
     The as_view method takes any attribute and adds it to the instance
     as long as it is defined on the Navlet class
     """
-    account = get_account(request)
-    account_navlet = AccountNavlet.objects.get(account=account, pk=navlet_id)
-    cls = get_navlet_from_name(account_navlet.navlet)
-    view = cls.as_view(preferences=account_navlet.preferences,
-                       navlet_id=navlet_id)
-    return view(request)
+    account = request.account
+    try:
+        account_navlet = AccountNavlet.objects.get(
+            account=account, pk=navlet_id)
+    except AccountNavlet.DoesNotExist, error:
+        _logger.error('%s tried to fetch widget with id %s: %s',
+                      account, navlet_id, error)
+        return HttpResponse(status=404)
+    else:
+        cls = get_navlet_from_name(account_navlet.navlet)
+        view = cls.as_view(preferences=account_navlet.preferences,
+                           navlet_id=navlet_id)
+        return view(request)
 
 
 def add_user_navlet(request):
