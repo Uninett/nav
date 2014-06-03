@@ -34,6 +34,7 @@ class VlanGraphNavlet(Navlet):
     title = "Vlan Graph"
     is_editable = True
     refresh_interval = 1000 * 60 * 10  # Refresh every 10 minutes
+    image_reload = True
 
     def get_template_basename(self):
         return "vlangraph"

@@ -30,6 +30,7 @@ from django.views.generic.list_detail import object_list
 from nav.metrics.errors import GraphiteUnreachableError
 
 from nav.models.manage import Netbox, Module, Interface, Prefix, Arp, Cam
+from nav.models.arnold import Identity
 from nav.models.service import Service
 
 from nav.ipdevpoll.config import get_job_descriptions
@@ -476,6 +477,14 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
         port_metrics = []
         graphite_error = True
 
+    # If interface is detained in Arnold, this should be visible on the
+    # port details view
+    try:
+        detention = port.identity_set.get(
+            status__in=['quarantined', 'disabled'])
+    except Identity.DoesNotExist:
+        detention = None
+
     return render_to_response(
         'ipdevinfo/port-details.html',
         {
@@ -486,9 +495,10 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             'title': title,
             'port_metrics': port_metrics,
             'graphite_error': graphite_error,
+            'detention': detention,
         },
-        context_instance=RequestContext(request,
-                                        processors=[search_form_processor]))
+        context_instance=RequestContext(
+            request, processors=[search_form_processor]))
 
 
 def port_counter_graph(request, interfaceid, kind='Octets'):

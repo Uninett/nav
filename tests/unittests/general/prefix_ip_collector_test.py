@@ -15,8 +15,6 @@ class TestPrefixIpCollector(unittest.TestCase):
         self.assertEqual(find_range('2001:700:0:251e::/64'), 0)
 
     def test_find_timestamp(self):
-        ts = datetime(2012, 10, 04, 14, 32)
-        self.assertEqual(get_timestamp(ts), 1349353800)
-        ts = datetime(2012, 10, 04, 14, 28)
+        ts = datetime(2012, 10, 04, 14, 30)
         self.assertEqual(get_timestamp(ts), 1349353800)
 

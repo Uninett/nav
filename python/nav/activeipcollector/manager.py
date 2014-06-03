@@ -24,7 +24,7 @@ import nav.activeipcollector.collector as collector
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_path_for_prefix
 
-LOG = logging.getLogger('ipcollector.manager')
+LOG = logging.getLogger(__name__)
 DATABASE_CATEGORY = 'activeip'
 
 
@@ -40,10 +40,16 @@ def store(data):
     are to store
 
     """
-    for db_tuple in data:
-        store_tuple(db_tuple)
 
-    LOG.info('Sent %s updates' % (len(data)))
+    # Suspecting package drop - dividing into chunks and giving some
+    # breathing room for each batch of updates.
+    chunks = [data[x:x+100] for x in xrange(0, len(data), 100)]
+    for chunk in chunks:
+        for db_tuple in chunk:
+            store_tuple(db_tuple)
+        time.sleep(2)
+
+    LOG.info('Sent %s updates', len(data))
 
 
 def store_tuple(db_tuple):
@@ -52,9 +58,10 @@ def store_tuple(db_tuple):
     :param db_tuple: a row from a rrd_fetchall object
 
     """
-    prefix, timestamp, ip_count, mac_count = db_tuple
-    when = get_timestamp(timestamp)
+    prefix, when, ip_count, mac_count = db_tuple
     ip_range = find_range(prefix)
+
+    when = get_timestamp(when)
 
     metrics = [
         (metric_path_for_prefix(prefix, 'ip_count'), (when, ip_count)),
@@ -86,12 +93,4 @@ def get_timestamp(timestamp=None):
         """Find epoch from a datetime object"""
         return int(time.mktime(timestamp.timetuple()))
 
-    halfhour = 60 * 30
-    epoch = get_epoch() if timestamp else int(time.time())
-    difference = epoch % halfhour
-    if difference > halfhour / 2:
-        epoch += (halfhour - difference)
-    else:
-        epoch -= difference
-
-    return epoch
+    return get_epoch() if timestamp else int(time.time())
