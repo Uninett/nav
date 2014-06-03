@@ -15,8 +15,7 @@ require(
     ],
     function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, SensorsController) {
         /* Run javascript at document ready */
-        $(window).load(function () {
-
+        $(function () {
             if ($('#infotabs').length) {
                 add_tabs();
                 add_navigation();
