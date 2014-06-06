@@ -6,7 +6,7 @@
 
     <a href="{% url netbox-group-edit netboxgroup.pk %}" class="button small">Edit device group</a>
 
-    <table class="listtable">
+    <table class="listtable netbox_availability_list">
         <caption>Netboxes in {{ netboxgroup.pk }}</caption>
         {% with netboxgroup.netbox_set.all as netboxes %}
             {% include 'info/fragments/netboxes.html' %}
