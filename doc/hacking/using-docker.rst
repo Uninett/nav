@@ -6,7 +6,7 @@ Docker is a lightweight virtualization framework for creating isolated
 environments, useful both in development and production [*]_.
 For more information on Docker visit their homepage_ or read the documentation_.
 
-.. :NOTE:: This guide is written for NAV 4.0 or later.
+.. Note:: This guide is written for NAV 4.0 or later.
 
 Installing Docker
 -----------------
@@ -14,9 +14,9 @@ Docker has updated documentation on how to install it for most linux
 distributions [*]_. Due to its dependency on a relatively new kernel (3.8+),
 some distributions such as Debian stable will need to use a backports kernel.
 
-.. :NOTE:: To avoid having to use sudo with docker commands it is recommended
-to add your user to the **docker** group. You may need to relogin for it to
-take effect.
+.. Tip:: To avoid having to use sudo with docker commands it is recommended
+         to add your user to the **docker** group. You may need to relogin for it to
+         take effect.
 
 Building the Docker image
 -------------------------
@@ -29,8 +29,8 @@ Where `IMAGE_NAME` is the name you wish to give the built image and `PATH` is
 the path to the NAV root directory containing the dockerfile.
     * If you are currently in the NAV root directory you need only use a **\.** for PATH.
 
-This would be the perfect time to grab some coffee (and maybe redecorate your
-living room), as this may take a while.
+.. Tip:: This would be the perfect time to grab some coffee (and maybe redecorate your
+         living room), as this may take a while.
 
 
 Creating and running the container
@@ -40,7 +40,7 @@ following command::
 
     sudo docker run -v <PATH>:/source -d --name <CONTAINER_NAME> -p <HOST_PORT1>:80 -p <HOST_PORT2>:22 <IMAGE_NAME>
 
-Where
+Where:
     * `PATH` is the path to the NAV root directory.
     * `CONTAINER_NAME` is the name you wish to give the container (optional but recommended).
     * `HOST_PORT1` is the port number on the host that should map to container port 80.
