@@ -61,6 +61,7 @@ class Matrix:
             add_missing_nets=True)
         self.tree_nets = self.extract_tree_nets()
         self.matrix_nets = self.extract_matrix_nets()
+        self.heading_colspan = 1
         self.nodes = None
 
     def build(self):

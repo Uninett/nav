@@ -1,0 +1,21 @@
+{% load watchdog %}
+
+<ul class="watchdog-tests no-bullet">
+  {% for test in tests %}
+  <li>
+    <span title="{{ test.description }}">{{ test.name }}</span>
+    <span class="label {{ test.status|map_to_class }} right">
+      <i class="fa fa-lg {{ test.status|map_to_faclass }}"></i>
+    </span>
+
+    <ul class="hide">
+      {% for error in test.errors %}
+      <li style="list-style-type: circle">
+        <small>{{ error }}</small>
+      </li>
+      {% endfor %}
+    </ul>
+
+  </li>
+  {% endfor %}
+</ul>

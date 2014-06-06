@@ -44,6 +44,7 @@ import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
 from nav.models.rrd import RrdDataSource
+from django_hstore import hstore
 import nav.models.event
 
 
@@ -139,6 +140,10 @@ class Netbox(models.Model):
         logs = IpdevpollJobLog.objects.raw(query, [self.id])
         return list(logs)
 
+    def get_gwport_count(self):
+        """Returns the number of all interfaces that have IP addresses."""
+        return self.get_gwports().count()
+
     def get_gwports(self):
         """Returns all interfaces that have IP addresses."""
         return Interface.objects.filter(netbox=self,
@@ -149,6 +154,10 @@ class Netbox(models.Model):
 
         ports = self.get_gwports().select_related('module', 'netbox')
         return Interface.sort_ports_by_ifname(ports)
+
+    def get_swport_count(self):
+        """Returns the number of all interfaces that are switch ports."""
+        return self.get_swports().count()
 
     def get_swports(self):
         """Returns all interfaces that are switch ports."""
@@ -488,11 +497,10 @@ class Room(models.Model):
     location = models.ForeignKey('Location', db_column='locationid',
                                  blank=True, null=True)
     description = VarcharField(db_column='descr', blank=True)
-    optional_1 = VarcharField(db_column='opt1', blank=True)
-    optional_2 = VarcharField(db_column='opt2', blank=True)
-    optional_3 = VarcharField(db_column='opt3', blank=True)
-    optional_4 = VarcharField(db_column='opt4', blank=True)
     position = PointField(null=True, blank=True, default=None)
+    data = hstore.DictionaryField()
+
+    objects = hstore.HStoreManager()
 
     class Meta:
         db_table = 'room'
@@ -527,9 +535,9 @@ class Organization(models.Model):
                                blank=True, null=True)
     description = VarcharField(db_column='descr', blank=True)
     contact = VarcharField(db_column='contact', blank=True)
-    optional_1 = VarcharField(db_column='opt1', blank=True)
-    optional_2 = VarcharField(db_column='opt2', blank=True)
-    optional_3 = VarcharField(db_column='opt3', blank=True)
+    data = hstore.DictionaryField()
+
+    objects = hstore.HStoreManager()
 
     class Meta:
         db_table = 'org'
@@ -633,10 +641,6 @@ class NetboxType(models.Model):
     vendor = models.ForeignKey('Vendor', db_column='vendorid')
     name = VarcharField(db_column='typename', verbose_name="type name")
     sysobjectid = VarcharField(unique=True)
-    cdp = models.BooleanField(default=False)
-    tftp = models.BooleanField(default=False)
-    cs_at_vlan = models.BooleanField()
-    chassis = models.BooleanField(default=True)
     description = VarcharField(db_column='descr')
 
     class Meta:
@@ -1342,8 +1346,9 @@ class Sensor(models.Model):
     def get_metric_name(self):
         return metric_path_for_sensor(self.netbox.sysname, self.internal_name)
 
-    def get_graph_url(self):
-        return get_simple_graph_url([self.get_metric_name()])
+    def get_graph_url(self, time_frame='1day'):
+        return get_simple_graph_url([self.get_metric_name()],
+                                    time_frame=time_frame)
 
 
 class PowerSupplyOrFan(models.Model):

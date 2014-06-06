@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load tools %}
+
+
+{% block base_header_additional_head %}
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/nav/watchdog.css"/>
+  <script type="text/javascript">require(['src/watchdog']);</script>
+{% endblock %}
+
+{% block base_content %}
+
+  {% with tool=current_user_data.tools|get_tool:'WatchDog' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
+  <div class="row">
+    <div class="medium-6 column">
+      <h4>NAV status tests</h4>
+
+      <div id="watchdog-tests" class="panel white">
+        {% include 'watchdog/frag_tests.html' %}
+      </div>
+    </div>
+    {# .column #}
+
+    <div class="medium-6 column">
+      <h4>NAV overview</h4>
+
+      <div id="watchdog-overview" data-url="{% url watchdog-overview %}"></div>
+    </div>
+    {# .column #}
+  </div> {# .row #}
+
+{% endblock %}

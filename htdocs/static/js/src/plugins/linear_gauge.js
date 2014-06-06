@@ -4,15 +4,19 @@ define(['libs/d3.v2'], function () {
 
     function LinearGauge(config) {
         this.nodeId = config.nodeId;
-        this.url = config.url;
+        this.url = config.url || null;
         this.max = config.max || 8;
         this.height = config.height || 150;
         this.width = config.width || 40;
         this.animationSpeed = 1500;
         this.refreshInterval = 60;  // In seconds
+        this.precision = config.precision || null;  // Number of decimals for value
+        this.threshold = config.threshold || null;
 
         this.container = d3.select('#' + this.nodeId).append('svg')
-            .attr('width', this.width).attr('height', this.height);
+            .attr('width', this.width).attr('height', this.height)
+            .style('background-color', '#eee')
+            .style('border', '1px solid #aaaaaa');
         this.createGradient();
 
         var self = this;
@@ -33,23 +37,33 @@ define(['libs/d3.v2'], function () {
             }).attr('fill', 'url(#' + self.nodeId + 'gradient)');
 
         // Draw value on bar
-        this.barText = groupEnter.append('text').attr('x', this.width / 2).attr('y', function (d) {
+        this.barText = groupEnter.append('text')
+            .attr('fill', '#555')
+            .attr('font', '16px Arial')
+            .attr('text-anchor', 'middle')
+            .attr('x', this.width / 2).attr('y', function (d) {
                 return self.y(d) + 3;
             }).attr('dy', '0.85em').text(function (d) {
                 return d;
             });
 
         // Draw a line to better indicate value
-        this.barLine = groupEnter.append('line').attr('x1', 0).attr('y1', function (d) {
+        this.barLine = groupEnter.append('line')
+            .attr('stroke', '#555')
+            .attr('x1', 0).attr('y1', function (d) {
                 return self.y(d);
             }).attr('x2', this.width).attr('y2', function (d) {
                 return self.y(d);
             });
 
-        setInterval(function () {
-            self.loadData();
-        }, this.refreshInterval * 1000);
-        this.loadData();
+        if (this.url !== null) {
+            setInterval(function () {
+                self.loadData();
+            }, this.refreshInterval * 1000);
+            this.loadData();
+        } else {
+            self.update(0);
+        }
     }
 
     LinearGauge.prototype = {
@@ -63,24 +77,28 @@ define(['libs/d3.v2'], function () {
             gradient.append("svg:stop").attr("offset", "50%").attr("stop-color", "yellow");
             gradient.append("svg:stop").attr("offset", "100%").attr("stop-color", "red");
         },
-	loadData: function() {
+        loadData: function() {
 
-        var self = this;
-        d3.json(this.url, function (json, error) {
-            var datapoints = json[0].datapoints;
-            value = datapoints[datapoints.length - 1][0] || datapoints[datapoints.length - 2][0];
-            self.update([value]);
-        });
-/*
-         var value = Math.floor(Math.random() * (this.max + 1));
-         this.update([value]);
-*/
-    },
+            var self = this;
+            d3.json(this.url, function (json, error) {
+                var datapoints = json[0].datapoints,
+                    value = datapoints[datapoints.length - 1][0] || datapoints[datapoints.length - 2][0];
+
+                if (self.precision !== null) {
+                    value = new Number(value).toFixed(self.precision);
+                }
+                self.update(value);
+            });
+    /*
+             var value = Math.floor(Math.random() * (this.max + 1));
+             this.update([value]);
+    */
+        },
         update: function (data) {
             var self = this;
 
             // Update and transition bar
-            this.bar.data(data)
+            this.bar.data([data])
                 .transition()
                 .duration(this.animationSpeed)
                 .attr('y', function (d) {
@@ -89,12 +107,22 @@ define(['libs/d3.v2'], function () {
                     return self.height - self.y(d);
                 });
 
+            /* Make bar red if threshold is passed */
+            if (this.threshold && data > this.threshold) {
+                this.bar.attr('fill', 'red');
+                this.thresholdPassed = true;
+            } else if (this.thresholdPassed && data < this.threshold) {
+                this.bar.attr('fill', 'url(#' + self.nodeId + 'gradient)');
+            }
+
             // Update and transition value
-            this.barText.data(data)
+            this.barText.data([data])
                 .transition()
                 .duration(this.animationSpeed)
                 .attr('y', function (d) {
-                    if (d > (self.max * 0.75)) {
+                    if (d > self.max) {
+                        return self.y(self.max) + 3;
+                    } else if (d > (self.max * 0.75)) {
                         return self.y(d) + 3;
                     } else {
                         return self.y(d) - 20;
@@ -104,14 +132,14 @@ define(['libs/d3.v2'], function () {
                 });
 
             // Update and transition line
-            this.barLine.data(data)
+            this.barLine.data([data])
                 .transition()
                 .duration(this.animationSpeed)
                 .attr('y1', function (d) {
                     return self.y(d);
                 }).attr('y2', function (d) {
                     return self.y(d);
-                });
+               });
         }
     };
 

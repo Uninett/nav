@@ -19,5 +19,5 @@
 class GraphiteUnreachableError(Exception):
     """The graphite-web API is unreachable"""
     def __init__(self, msg, cause=None):
-        super(GraphiteUnreachableError, self).__init__(msg)
+        super(GraphiteUnreachableError, self).__init__(msg + " (%s)" % cause)
         self.cause = cause

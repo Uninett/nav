@@ -31,7 +31,7 @@ def escape_metric_name(string):
     """
     for char in "./ ()":
         string = string.replace(char, "_")
-    return string
+    return string.replace('\x00', '')  # some devices have crazy responses!
 
 
 def join_series(names):

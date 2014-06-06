@@ -1,0 +1,47 @@
+{% load crispy_forms_field %}
+
+{% if field.is_hidden %}
+  {{ field }}
+{% else %}
+  <div id="div_{{ field.auto_id }}"
+       class="ctrlHolder
+       {% if field.errors and form_show_errors %} error{% endif %}
+       {% if field|is_checkbox %} checkbox{% endif %}
+       {% if field.css_classes %} {{ field.css_classes }}{% endif %}">
+    {% spaceless %}
+
+      {% if field.label %}
+        {% if field|is_checkbox %}
+          {% crispy_field field %}
+        {% endif %}
+
+        <label for="{{ field.id_for_label }}"
+               {% if field.field.required %}class="requiredField"{% endif %}>
+          {{ field.label|safe }}{% if field.field.required %}
+            <span class="asteriskField">*</span>{% endif %}
+          {% if field.help_text %}
+            &nbsp;<i id="hint_{{ field.auto_id }}" class="fa fa-info-circle right"
+                     data-tooltip title="
+                  {{ field.help_text }}
+                  "></i>
+          {% endif %}
+        </label>
+
+      {% endif %}
+
+      {% if not field|is_checkbox %}
+        {% crispy_field field %}
+      {% endif %}
+
+      {% if form_show_errors %}
+        {% for error in field.errors %}
+          <small id="error_{{ forloop.counter }}_{{ field.auto_id }}"
+                 class="error">
+            {{ error }}
+          </small>
+        {% endfor %}
+      {% endif %}
+
+    {% endspaceless %}
+  </div>
+{% endif %}

@@ -19,14 +19,32 @@
 
 #subnet-matrix {
     td:first-child, th:first-child {
-        width: 12%;
+        width: 10.4%;
         text-align: left;
     }
     td, th {
-        width: 11%;
+        padding-left: 0;
+        padding-right: 0;
         text-align: center;
         &.add-border {
             border: 1px solid #FFFFFF;
         }
     }
+    &.ipv4 {
+        td, th {
+            width: 1.4%;
+        }
+        th {
+            text-align: left;
+        }
+    }
+    &.ipv6 {
+        td, th {
+            width: 5.625%;
+        }
+    }
+}
+
+.tooltip a {
+    color: #dcdcdc;
 }

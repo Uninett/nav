@@ -1,0 +1,454 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load verbatim %}
+
+{% block base_header_additional_head %}
+  <style>
+  h3.underline {
+    border-bottom: 1px solid #cccccc;
+  }
+  </style>
+  <script>
+    require(['libs/jquery-ui-1.8.21.custom.min'], function () {
+      $(function () {
+
+        /* Code for activating jquery ui tabs. We usually hide the tabs until
+           they are rendered to avoid screen jumping */
+        $('#jqueryuitabs').tabs().show();
+
+        /* This is the code for closing the content dropdown */
+        $('.f-dropdown .close-button').click(function () {
+          $(document).foundation('dropdown', 'close', $(this).parents('.f-dropdown:first'));
+        });
+
+      });
+    });
+  </script>
+{% endblock %}
+
+{% block base_content %}
+
+
+
+  <h2>NAV Style Guide</h2>
+
+
+  {# INTRODUCTION #}
+  <div class="panel white">
+    <p>
+      Use this guide to get a hint of what components you should use when
+      creating content for NAV. The code is not provided - we expect that you
+      are familiar enough with developer tools to get the information you need.
+    </p>
+
+    <p>
+      As we use <a href="http://foundation.zurb.com/">Foundation 5</a>,
+      the components <a href="http://foundation.zurb.com/docs/" title="Foundation 5 documentation">available there</a>
+      will not be listed unless there is relevant information regarding the component and how we use it.
+    </p>
+  </div>
+
+
+
+
+  {# Page headers #}
+  <h3 class="underline">Page headers</h3>
+  <p>
+    The page header for a tool or equivalent is created by including the
+    template <code>nav_header.html</code>. This template expects a tool
+    to be defined. It must contain 'name' and 'description' members.
+  </p>
+
+  <p>
+    For existing tools:
+      {% verbatim %}
+      <pre class="prettyprint">
+      {% load tools %}
+      {% with tool=current_user_data.tools|get_tool:'toolname' %}
+        {% include 'nav_header.html' %}
+      {% endwith %}</pre>
+      {% endverbatim %}
+  </p>
+
+  <p>
+    A fake tool for a page that is not a tool: create a dictionary with a
+    'name' and a 'description' key. Pass it to the template.
+      {% verbatim %}
+      <pre class="prettyprint">
+      {% with tool=somedict %}
+        {% include 'nav_header.html' %}
+      {% endwith %}</pre>
+      {% endverbatim %}
+  </p>
+
+
+  <div class="row">
+    {# Headings #}
+    <div class="small-6 column">
+      <h3 class="underline">Headings</h3>
+      <h1>h1 - never used</h1>
+      <h2>h2 - also never used</h2>
+      <h3>h3 - Normally used as heading</h3>
+      <h4>h4 - seldom used</h4>
+      <h5>h5 - Normally used as 'second' heading</h5>
+      <h6>h6 - not used</h6>
+    </div> {# Left column #}
+
+    {# PANELS #}
+    <div class="small-6 column">
+      <h3 class="underline">Panels</h3>
+
+      <p>Used to divide content into groups. Also useful if the page is very
+        'grey'. White panel should be used in almost all cases</p>
+      <div class="panel">.panel</div>
+      <div class="panel white">.panel .white</div>
+    </div> {# Right column #}
+  </div>
+
+
+
+
+  <div class="row">
+    {# BUTTONS #}
+    <div class="small-6 column">
+      <h3 class="underline">Buttons</h3>
+      <table>
+        <tbody>
+        <tr>
+          <td><a href="#" class="button">.button</a></td>
+          <td>This color is the primary color, used for intended primary actions</td>
+        </tr>
+        <tr>
+          <td><a href="#" class="button small">.button .small</a></td>
+          <td>The most used buttonsize</td>
+        </tr>
+        <tr>
+          <td><a href="#" class="button tiny">.button .tiny</a></td>
+          <td>Used inside tables, lists etc.</td>
+        </tr>
+        <tr>
+          <td><a href="#" class="button secondary">.button .secondary</a></td>
+          <td>Used for actions that are not primary</td>
+        </tr>
+        <tr>
+          <td><a href="#" class="button alert">.button .alert</a></td>
+          <td> Used for instance for deleting stuff</td>
+        </tr>
+        <tr>
+          <td><a href="#" class="button success">.button .success</a></td>
+          <td>This button exists</td>
+        </tr>
+        <tr>
+          <td colspan="2"><a href="#" class="button small expand">.button .small .expand</a></td>
+        </tr>
+        </tbody>
+      </table>
+
+    </div> {# Left column #}
+
+    {# TABLES #}
+    <div class="small-6 column">
+      <h3 class="underline">Tables</h3>
+      <table class="listtable">
+        <caption>table .listtable</caption>
+        <thead>
+          <tr>
+            <th>Heading 1</th>
+            <th>Heading 2</th>
+            <th>Heading 3</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Content 1</td>
+            <td>Content 2</td>
+            <td>Content 3</td>
+          </tr>
+          <tr>
+            <td>Content 1</td>
+            <td>Content 2</td>
+            <td>Content 3</td>
+          </tr>
+          <tr>
+            <td>Content 1</td>
+            <td>Content 2</td>
+            <td>Content 3</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3">Footer 1</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <table class="listtable expand">
+        <caption>table .listtable.expand</caption>
+        <thead>
+          <tr>
+            <th>Heading 1</th>
+            <th>Heading 2</th>
+            <th>Heading 3</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Content 1</td>
+            <td>Content 2</td>
+            <td>Content 3</td>
+          </tr>
+          <tr>
+            <td>Content 1</td>
+            <td>Content 2</td>
+            <td>Content 3</td>
+          </tr>
+          <tr>
+            <td>Content 1</td>
+            <td>Content 2</td>
+            <td>Content 3</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3">Footer 1</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <table class="vertitable">
+        <caption>table .vertitable</caption>
+        <tr>
+          <th>Heading</th>
+          <td>Something</td>
+          <td>Something else</td>
+        </tr>
+        <tr>
+          <th>Longer Heading</th>
+          <td>Something</td>
+          <td>Something else</td>
+        </tr>
+        <tr>
+          <th>Head</th>
+          <td>Something</td>
+          <td>Something else</td>
+        </tr>
+      </table>
+
+    </div> {# Right column #}
+  </div>
+
+
+
+
+  {# TABS #}
+  <h3 class="underline">Tabs</h3>
+  <div class="row">
+    <div class="small-6 column">
+
+      {# NAV tabs #}
+      <h5>NAV Tabs</h5>
+      <div class="tabs">
+        <ul>
+          <li class="tabactive"><a href="#">Tab 1</a></li>
+          <li><a href="#">Tab 2</a></li>
+        </ul>
+
+        <div class="tabcontent">
+          <p>
+            These tabs work by loading a new page for each tab, that is, the
+            tab goes to the same page where the tab content changes. They do
+            not require javascript to work.
+          </p>
+          <p>
+            The advantage with these tabs is that, in addition to not require
+            Javascript (if that is an advantage), they also collapse to
+            accordion layout on small screens.
+          </p>
+        </div>
+      </div>
+
+      {# JQuery UI tabs #}
+      <h5>jQuery UI Tabs</h5>
+
+      <div id="jqueryuitabs" class="ui-helper-hidden">
+        <ul>
+          <li><a href="#jqueryuitab1">Tab 1</a></li>
+          <li><a href="/doc/py-modindex.html">Tab 2 <span class="tab-spinner"> </span></a></li>
+        </ul>
+
+        <div id="jqueryuitab1">
+          <p>
+            These tabs need javascript to work. You can link to url to access
+            content with AJAX. If you do that you can use the title attribute
+            to say what element the content should go in. Otherwise it just
+            follows order.
+          </p>
+        </div>
+
+        <div id="jqueryuitab2"></div>
+
+      </div> {# Tabs #}
+
+    </div>
+
+    {# TABS #}
+    <div class="small-6 column">
+
+      <div class="tabs tabs-vertical">
+        <ul>
+          <li class="tabactive"><a href="#">Tab 1</a></li>
+          <li><a href="#">Tab 2</a></li>
+        </ul>
+
+        <div class="tabcontent">
+          <p>
+            We have vertical tabs. They also collapse to accordion layout
+            on small screens. As you see, they are far from perfect...
+          </p>
+        </div>
+      </div>
+
+    </div>  {# Right column #}
+  </div> {# Row #}
+
+
+
+
+  <div class="row">
+
+    {# FORMS #}
+    <div class="small-6 column">
+      <h3 class="underline">Forms</h3>
+      <p>
+        We use <a href="http://django-crispy-forms.readthedocs.org/en/latest/">django-crispy-forms</a>
+        for "easy" and nice form layout. The advantages are:
+      </p>
+
+      <ul>
+        <li>you never need more than one line in the template to display a form.</li>
+        <li>errors are automatically displayed</li>
+        <li>form input is automatically remembered</li>
+        <li>all forms are customized to look like they should</li>
+      </ul>
+
+      <p>
+        There are many customizations done to the crispy forms. Basically, if you
+        need to create forms - ask on mail/jabber/irc.
+      </p>
+
+      {% crispy form1 %}
+      {% crispy form2 %}
+
+    </div>
+
+    {# FONTS #}
+    <div class="small-6 column">
+
+      <h3 class="underline">Icons</h3>
+      <p>
+        We use <a href="http://fortawesome.github.io/Font-Awesome/">Font
+        Awesome</a> icon fonts. They are used in buttons as well as general
+        icons. Example: <i class="fa fa-fighter-jet"></i>
+      </p>
+
+      <a href="javascript:void(0);" class="button">Awesome<i class="fa fa-thumbs-up"></i></a>
+
+      <p>
+        They can also be used in css-classes. That requires a bit of black magic which someone has
+        <a href="http://stackoverflow.com/questions/20782368/use-font-awesome-icon-as-css-content">posted
+          solutions to</a>. Here is a brief teaser:
+      </p>
+
+      <pre class="prettyprint">
+  .someclass:after|before {
+      font-family: FontAwesome;
+      content: "\f06a";
+  }   </pre>
+      <br>
+
+      <p>
+        The list of codes is located
+        <a href="http://fortawesome.github.io/Font-Awesome/cheatsheet/">here</a>
+        (replace the <code>&#x</code> with a <code>\</code>).
+      </p>
+
+    </div> {# column #}
+  </div> {# row #}
+
+
+
+
+  {# OTHER TIDBITS #}
+  <div class="row">
+    <div class="small-6 column">
+
+      {# User chioce pattern #}
+      <h3 class="underline">Quick action pattern</h3>
+      <p>
+        To quickly let a user do a choice without directly displaying a form,
+        we use this pattern. It uses Foundation content dropdowns, but also
+        needs javascript for the decline action. Thus it's kinda code-verbose,
+        but nice for the user.
+      </p>
+
+      <a href="javascript:void(0);" class="button"
+         data-dropdown="action-pattern-demo" data-options="align:right">
+        I want to see how it works
+      </a>
+
+      <div id="action-pattern-demo" class="f-dropdown content">
+        <p>This is a demo of the action pattern thingy</p>
+        <form>
+          <input type="submit" value="Do something"
+                 title="Do something"
+                 class="button expand"/>
+        </form>
+        <span class="button secondary close-button expand">Don't</span>
+      </div>
+
+    </div> {# left column #}
+
+
+    <div class="small-6 column">
+      {# Dropdowns #}
+      <h3 class="underline">Dropdowns</h3>
+      <p>
+        In addition to the Foundation dropdowns we use <a
+              href="http://ivaynberg.github.io/select2/">Select2</a> dropdowns.
+        Select2 is nice when the content in the dropdown needs to be
+        searchable, and it supports optgroups which Foundation does not.
+        Also, Select2 has a wealth of other stuff it can do.
+      </p>
+
+      <form>
+        <label>
+          Select2 dropdown
+          <select class="select2">
+            <option>Just add</option>
+            <option>class</option>
+            <option>.select2</option>
+          </select>
+        </label>
+      </form>
+
+      <form>
+        <label>
+          Foundation dropdown
+          <select>
+            <option>Option 1</option>
+            <option>Option 2</option>
+            <option>Option 3</option>
+          </select>
+        </label>
+      </form>
+
+
+    </div> {# Right column #}
+
+  </div> {# row #}
+
+
+
+  <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+
+{% endblock base_content %}

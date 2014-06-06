@@ -13,6 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+# pylint: disable=E1101
 """Navlets - the NAV version of portlets
 
 To use create a Navlet do the following:
@@ -83,6 +84,12 @@ class Navlet(TemplateView):
     description = 'No description'
     is_editable = False
     is_title_editable = False
+
+    # Set to true if we are to reload only an image. This is useful for
+    # loading charts that may take some time to display, thus making the
+    # widget 'jump'. The image in question needs the attribute
+    # 'data-image-reload'
+    image_reload = False
     preferences = {}  # See DEFAULT PREFERENCES for adding default values here
     navlet_id = None
     highlight = None
@@ -115,7 +122,7 @@ class Navlet(TemplateView):
         return context
 
 
-def list_navlets(request):
+def list_navlets(_):
     """Gives a json-response with all navlets modulestring, title and desc"""
     return HttpResponse(json.dumps(get_navlets()))
 
@@ -142,7 +149,7 @@ def get_navlet_from_name(navletmodule):
                             fromlist=[lastmod])
         cls = getattr(module, clsname)
     except AttributeError:
-        _logger.error('Could not import %s' % navletmodule)
+        _logger.error('Could not import %s', navletmodule)
     else:
         return cls
 
@@ -166,12 +173,14 @@ def create_navlet_object(usernavlet):
     navlet_class = get_navlet_from_name(navlet_module)
     highlight = navlet_class.highlight
     is_title_editable = navlet_class.is_title_editable
+    image_reload = navlet_class.image_reload
 
     return {'id': usernavlet.id, 'url': url,
             'column': usernavlet.column,
             'preferences': usernavlet.preferences,
             'highlight': highlight,
             'navlet_class': navlet_module.split('.')[-1],
+            'image_reload': image_reload,
             'is_title_editable': is_title_editable}
 
 
@@ -181,12 +190,19 @@ def dispatcher(request, navlet_id):
     The as_view method takes any attribute and adds it to the instance
     as long as it is defined on the Navlet class
     """
-    account = get_account(request)
-    account_navlet = AccountNavlet.objects.get(account=account, pk=navlet_id)
-    cls = get_navlet_from_name(account_navlet.navlet)
-    view = cls.as_view(preferences=account_navlet.preferences,
-                       navlet_id=navlet_id)
-    return view(request)
+    account = request.account
+    try:
+        account_navlet = AccountNavlet.objects.get(
+            account=account, pk=navlet_id)
+    except AccountNavlet.DoesNotExist, error:
+        _logger.error('%s tried to fetch widget with id %s: %s',
+                      account, navlet_id, error)
+        return HttpResponse(status=404)
+    else:
+        cls = get_navlet_from_name(account_navlet.navlet)
+        view = cls.as_view(preferences=account_navlet.preferences,
+                           navlet_id=navlet_id)
+        return view(request)
 
 
 def add_user_navlet(request):
@@ -361,4 +377,3 @@ def set_navlet_preferences(request):
             return HttpResponse()
 
     return HttpResponse(status=400)
-

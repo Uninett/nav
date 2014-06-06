@@ -1,15 +1,37 @@
 require([
     'plugins/checkbox_selector',
     'plugins/quickselect',
+    'plugins/seeddb_hstore',
     'libs/jquery',
     'libs/jquery.dataTables.min',
     'libs/OpenLayers',
-    'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect) {
+    'libs/modernizr',
+    'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect, FormFuck) {
 
     var tableWrapper = '#tablewrapper',
         tableSelector = '#seeddb-content';
 
     function executeOnLoad() {
+        /* Start joyride if url endswith #joyride */
+        if (location.hash === '#joyride') {
+            $(document).foundation({
+                'joyride': {
+                    'pre_ride_callback': function () {
+                        var cards = $('.joyride-tip-guide').find('.joyride-content-wrapper');
+                        cards.each(function (index, element) {
+                            var counter = $('<small>')
+                                .attr('style', 'position:absolute;bottom:1.5rem;right:1.25rem')
+                                .html(index + 1 + ' of ' + cards.length);
+                            $(element).append(counter);
+                        });
+                    },
+                    'modal': false
+                }
+            });
+            $(document).foundation('joyride', 'start');
+        }
+
+
         if ($('#map').length) {
             populateMap(initMap());     // Show map for coordinates
         }
@@ -24,6 +46,13 @@ require([
 
         new CheckboxSelector('#select', '.selector').add();
         new QuickSelect('.quickselect');
+
+
+        /* Add form to hstore fields in room */
+        var $textarea = $('textarea#id_data');
+        if ($textarea.length) {
+            new FormFuck($textarea);
+        }
     }
 
     /* Internet Explorer caching leads to onload event firing before script
@@ -114,11 +143,15 @@ require([
 
         if (position_string === '') {
             center = new OpenLayers.LonLat(0, 0);
-            navigator.geolocation.getCurrentPosition(
-                gotPosition,
-                errorGettingPosition,
-                {timeout: 1000}  // Default is infinity, yay. No map for you.
-            );
+            if (Modernizr.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    gotPosition,
+                    errorGettingPosition,
+                    {timeout: 1000}  // Default is infinity, yay. No map for you.
+                );
+            } else {
+                deferred.resolve(center);
+            }
         }
         else {
             center = parseLonLat(position_string.slice(1, -1));
@@ -149,7 +182,7 @@ require([
     }
 
     function parseLonLat(llStr) {
-        var re = /^([0-9]*[.]?[0-9]+), *([0-9]*[.]?[0-9]+)$/;
+        var re = /^(-?[0-9]*[.]?[0-9]+), *(-?[0-9]*[.]?[0-9]+)$/;
         var arr = re.exec(llStr);
         if (arr === null) {
             throw 'error: incorrectly formatted latitude, longitude string "' +
@@ -219,6 +252,16 @@ require([
     }
 
     function enrichTable() {
+        var $wrapper = $(tableWrapper),
+            keyPrefix = 'nav.seeddb.rowcount',
+            key = [keyPrefix, $wrapper.attr('data-forpage')].join('.'),
+            numRows = 10;
+        if (Modernizr.localstorage) {
+            var value = localStorage.getItem(key);
+            if (value !== null) { numRows = value; }
+        }
+
+
         /* Apply DataTable */
         var table = $(tableSelector).dataTable({
             "bPaginate": true,      // Pagination
@@ -244,10 +287,19 @@ require([
                 [10, 25, 50, -1],   // Choices for number of entries to display
                 [10, 25, 50, "All"] // Text for the choices
             ],
+            "iDisplayLength": numRows,  // The default number of rows to display
             "oLanguage": {"sInfo": "_START_-_END_ of _TOTAL_"}  // Format of number of entries visibile
         });
 
         table.fnSort([[1, 'asc']]);  // When loaded, sort ascending on second column
+
+        /* Store rowcount when user changes it */
+        if (Modernizr.localstorage) {
+            $wrapper.find('.dataTables_length select').change(function () {
+                var newValue = $(event.target).val();
+                localStorage.setItem(key, newValue);
+            });
+        }
     }
 
 });

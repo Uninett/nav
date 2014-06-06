@@ -19,11 +19,15 @@
             'cssPath': '{{ STATIC_URL }}css/nav',
             'imagePath': '{{ STATIC_URL }}images',
             'proxyOsmUrl': '{% url base_osm_map_redirect %}',
-            'addGraphWidgetUrl': '{% url add-user-navlet-graph %}'
+            'addGraphWidgetUrl': '{% url add-user-navlet-graph %}',
+            'graphiteRenderUrl': '{% url graphite-render %}'
         };
     </script>
     <script src="{{ STATIC_URL }}js/require_config.js"></script>
     <script src="{{ STATIC_URL }}js/libs/require.js" data-main='src/main'></script>
+    <script>
+      require.config({ urlArgs: 'bust={{ nav_version }}' });
+    </script>
     {% block base_header_additional_head %}
     {% endblock %}
 </head>
@@ -77,7 +81,7 @@
                     {% for tool in current_user_data.tools %}
                         <li>
                             <a href="{{ tool.uri }}">
-                                <img src="{{ STATIC_URL }}{{ tool.icon }}" alt="{{ tool.name }}">
+                                <img src="{{ tool.icon }}" alt="{{ tool.name }}">
                                 {{ tool.name }}
                             </a>
                         </li>
@@ -140,8 +144,7 @@
                 {% for tool in column %}
                   <li>
                     <a href="{{ tool.uri }}" title="{{ tool.description }}">
-                      <img src="{{ STATIC_URL }}{{ tool.icon }}"
-                           alt="{{ tool.name }}">
+                      <img src="{{ tool.icon }}" alt="{{ tool.name }}">
                       {{ tool.name }}
                     </a>
                   </li>

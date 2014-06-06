@@ -9,7 +9,12 @@
 
   <tr>
     <th>Configured VLAN</th>
-    <td>{{ port.vlan|default:"N/A" }}</td>
+    <td>
+      {{ port.vlan|default:"N/A" }}
+      {% if detention.status == 'quarantined' %}
+        (Quarantined by <a href="{% url arnold-details detention.id %}" title="Link to detention">Arnold</a>)
+      {% endif %}
+    </td>
   </tr>
 
   <tr class="align-top">

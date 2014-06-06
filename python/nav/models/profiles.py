@@ -16,7 +16,7 @@
 #
 """Django ORM wrapper for profiles in NAV"""
 
-# pylint: disable=R0903
+# pylint: disable=R0903, C1001
 
 import logging
 from django.core.urlresolvers import reverse
@@ -24,6 +24,7 @@ import os
 from datetime import datetime
 import re
 # To stay compatible with both python 2.4 and 2.6:
+from django.views.decorators.debug import sensitive_variables
 
 try:
     from hashlib import md5
@@ -53,12 +54,12 @@ configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 # the MatchField model.
 SUPPORTED_MODELS = [
     # event models
-        AlertQueue, AlertType, EventType,
+    AlertQueue, AlertType, EventType,
     # manage models
-        Arp, Cam, Category, Device, Location, Memory, Netbox, NetboxInfo,
-        NetboxType, Organization, Prefix, Room, NetboxGroup, Interface,
-        Vendor, Vlan,
-        Usage,
+    Arp, Cam, Category, Device, Location, Memory, Netbox, NetboxInfo,
+    NetboxType, Organization, Prefix, Room, NetboxGroup, Interface,
+    Vendor, Vlan,
+    Usage,
 ]
 
 _ = lambda a: a
@@ -66,8 +67,9 @@ _ = lambda a: a
 #######################################################################
 ### Account models
 
+
 class Account(models.Model):
-    ''' NAV's basic account model'''
+    """ NAV's basic account model"""
 
     DEFAULT_ACCOUNT = 0
     ADMIN_ACCOUNT = 1
@@ -90,13 +92,13 @@ class Account(models.Model):
         return self.login
 
     def get_active_profile(self):
-        '''Returns the accounts active alert profile'''
+        """Returns the accounts active alert profile"""
         return self.alertpreference.active_profile
 
     def get_groups(self):
-        '''Fetches and returns this users groups.
+        """Fetches and returns this users groups.
         Also stores groups in this object for later use.
-        '''
+        """
         try:
             return self._cached_groups
         except AttributeError:
@@ -105,9 +107,9 @@ class Account(models.Model):
             return self._cached_groups
 
     def get_privileges(self):
-        '''Fetches privileges for this users groups.
+        """Fetches privileges for this users groups.
         Also stores privileges in this object for later use.
-        '''
+        """
         try:
             return self._cached_privileges
         except AttributeError:
@@ -122,7 +124,7 @@ class Account(models.Model):
                 if self.has_perm('web_access', tool.tool.uri)]
 
     def has_perm(self, action, target):
-        '''Checks if user has permission to do action on target.'''
+        """Checks if user has permission to do action on target."""
         groups = self.get_groups()
         privileges = self.get_privileges()
 
@@ -155,14 +157,16 @@ class Account(models.Model):
         """Has this user administrator rights?"""
         return self.has_perm(None, None)
 
+    @sensitive_variables('password')
     def set_password(self, password):
-        '''Sets user password. Copied from nav.db.navprofiles'''
+        """Sets user password. Copied from nav.db.navprofiles"""
         if len(password.strip()):
             pw_hash = nav.pwhash.Hash(password=password)
             self.password = str(pw_hash)
         else:
             self.password = ''
 
+    @sensitive_variables('password')
     def check_password(self, password):
         """
         Return True if the submitted authentication tokens are valid
@@ -196,14 +200,15 @@ class Account(models.Model):
             # for comparison.
             if self.password[:3] == 'md5':
                 pw_hash = md5(password)
-                return (pw_hash.hexdigest() == self.password[3:])
+                return pw_hash.hexdigest() == self.password[3:]
             else:
-                return (password == self.password)
+                return password == self.password
         else:
             return False
 
+
 class AccountGroup(models.Model):
-    '''NAV account groups'''
+    """NAV account groups"""
 
     # FIXME other places in code that use similiar definitions should switch to
     # using this one.
@@ -239,8 +244,9 @@ class AccountGroup(models.Model):
         """Is this the administrators group?"""
         return self.id == self.ADMIN_GROUP
 
+
 class AccountProperty(models.Model):
-    '''Key-value for account settings'''
+    """Key-value for account settings"""
 
     account = models.ForeignKey('Account', db_column='accountid', null=True)
     property = VarcharField()
@@ -261,9 +267,11 @@ class NavbarLink(models.Model):
 
     class Meta:
         db_table = u'navbarlink'
+        ordering = ('id', )
 
     def __unicode__(self):
         return '%s=%s' % (self.name, self.uri)
+
 
 class Privilege(models.Model):
     """A privilege granted to an AccountGroup."""
@@ -289,6 +297,7 @@ class PrivilegeType(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class AlertAddress(models.Model):
     """Accounts alert addresses, valid types are retrived from
     alertengine.conf
@@ -308,9 +317,9 @@ class AlertAddress(models.Model):
 
     @transaction.commit_manually
     def send(self, alert, subscription, dispatcher={}):
-        '''Handles sending of alerts to with defined alert notification types
+        """Handles sending of alerts to with defined alert notification types
 
-           Return value should indicate if message was sent'''
+           Return value should indicate if message was sent"""
 
         logger = logging.getLogger('nav.alertengine.alertaddress.send')
 
@@ -337,7 +346,8 @@ class AlertAddress(models.Model):
 
             logger.warning(
                 'Not sending alert %s to %s as handler %s is blacklisted: %s',
-                alert.id, self.address, self.type, self.type.blacklist_reason())
+                alert.id, self.address, self.type,
+                self.type.blacklist_reason())
 
             return False
 
@@ -377,6 +387,7 @@ class AlertAddress(models.Model):
             return False
 
         return True
+
 
 class AlertSender(models.Model):
     """A registered alert sender/medium."""
@@ -429,6 +440,7 @@ class AlertSender(models.Model):
         return self.handler in self.__class__._blacklist
 
     def blacklist_reason(self):
+        """Gets the reason for a blacklist for this sender/medium"""
         return self.__class__._blacklist.get(self.handler, 'Unknown reason')
 
     def scheme(self):
@@ -437,8 +449,9 @@ class AlertSender(models.Model):
     class Meta:
         db_table = 'alertsender'
 
+
 class AlertPreference(models.Model):
-    '''AlertProfile account preferences'''
+    """AlertProfile account preferences"""
 
     account = models.OneToOneField('Account', primary_key=True,
                                    db_column='accountid')
@@ -458,7 +471,7 @@ class AlertPreference(models.Model):
 ### Profile models
 
 class AlertProfile(models.Model):
-    '''Account AlertProfiles'''
+    """Account AlertProfiles"""
 
     # Weekday numbers follows date.weekday(), not day.isoweekday().
     MONDAY = 0
@@ -493,7 +506,7 @@ class AlertProfile(models.Model):
         return self.name
 
     def get_active_timeperiod(self):
-        '''Gets the currently active timeperiod for this profile'''
+        """Gets the currently active timeperiod for this profile"""
         # Could have been done with a ModelManager, but the logic
         # is somewhat tricky to do with the django ORM.
 
@@ -511,7 +524,7 @@ class AlertProfile(models.Model):
         # The following code should get the currently active timeperiod.
         active_timeperiod = None
         timeperiods = list(self.timeperiod_set.filter(
-                valid_during__in=valid_during).order_by('start'))
+            valid_during__in=valid_during).order_by('start'))
         # If the current time is before the start of the first time
         # period, the active time period is the last one (i.e. from
         # the day before)
@@ -591,8 +604,9 @@ class AlertSubscription(models.Model):
 #######################################################################
 ### Equipment models
 
+
 class FilterGroupContent(models.Model):
-    '''Defines how a given filter should be used in a filtergroup'''
+    """Defines how a given filter should be used in a filtergroup"""
 
     #            inc   pos
     # Add      |  1  |  1  | union in set theory
@@ -628,12 +642,13 @@ class FilterGroupContent(models.Model):
             type_ = 'exclusive'
 
         if not self.positive:
-            type_ = 'inverted %s'  % type_
+            type_ = 'inverted %s' % type_
 
         return '%s filter on %s' % (type_, self.filter)
 
+
 class Operator(models.Model):
-    '''Defines valid operators for a given matchfield.'''
+    """Defines valid operators for a given matchfield."""
 
     EQUALS = 0
     GREATER = 1
@@ -741,11 +756,12 @@ class Expression(models.Model):
         """Returns the Django query operator represented by this expression."""
         return Operator(type=self.operator).get_operator_mapping()
 
+
 class Filter(models.Model):
-    '''One or more expressions that are combined with an and operation.
+    """One or more expressions that are combined with an and operation.
 
     Handles the actual construction of queries to be run taking into account
-    special cases like the IP datatype and WILDCARD lookups.'''
+    special cases like the IP datatype and WILDCARD lookups."""
 
     owner = models.ForeignKey('Account', null=True)
     name = VarcharField()
@@ -839,12 +855,13 @@ class Filter(models.Model):
         # Check the alert maches whith a SELECT COUNT(*) FROM .... so that the
         # db doesn't have to work as much.
         if AlertQueue.objects.filter(**filtr).exclude(**exclude).extra(
-            **extra).count():
-            logger.debug('alert %d: matches filter %d' % (alert.id, self.id))
+                **extra).count():
+            logger.debug('alert %d: matches filter %d', alert.id, self.id)
             return True
 
-        logger.debug('alert %d: did not match filter %d' % (alert.id, self.id))
+        logger.debug('alert %d: did not match filter %d', alert.id, self.id)
         return False
+
 
 class FilterGroup(models.Model):
     """A set of filters group contents that an account can subscribe to or be
@@ -864,8 +881,9 @@ class FilterGroup(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class MatchField(models.Model):
-    '''Defines which fields can be matched upon and how'''
+    """Defines which fields can be matched upon and how"""
 
     STRING = 0
     INTEGER = 1
@@ -959,7 +977,7 @@ class MatchField(models.Model):
         USAGE:        'netbox__organization__vlan__usage',
         VENDOR:       'netbox__device__product__vendor',
         VLAN:         'netbox__organization__vlan',
-        ALERT:        '', # Checks alert object itself
+        ALERT:        '',  # Checks alert object itself
         ALERTTYPE:    'alert_type',
     }
 
@@ -1058,7 +1076,7 @@ class MatchField(models.Model):
 ### AlertEngine models
 
 class SMSQueue(models.Model):
-    '''Queue of messages that should be sent or have been sent by SMSd'''
+    """Queue of messages that should be sent or have been sent by SMSd"""
 
     SENT = 'Y'
     NOT_SENT = 'N'
@@ -1093,8 +1111,9 @@ class SMSQueue(models.Model):
 
         return super(SMSQueue, self).save(*args, **kwargs)
 
+
 class AccountAlertQueue(models.Model):
-    '''Defines which alerts should be keept around and sent at a later time'''
+    """Defines which alerts should be keept around and sent at a later time"""
 
     account = models.ForeignKey('Account', null=True)
     subscription = models.ForeignKey('AlertSubscription', null=True)
@@ -1121,13 +1140,13 @@ class AccountAlertQueue(models.Model):
             self.alert.delete()
 
     def send(self):
-        '''Sends the alert in question to the address in the subscription'''
+        """Sends the alert in question to the address in the subscription"""
         try:
             sent = self.subscription.alert_address.send(self.alert,
                                                         self.subscription)
         except AlertSender.DoesNotExist:
             address = self.subscription.alert_address
-            sender  = address.type_id
+            sender = address.type_id
 
             if sender is not None:
                 raise Exception(
@@ -1137,14 +1156,15 @@ class AccountAlertQueue(models.Model):
             else:
                 raise Exception(
                     "No sender set for address %s, this might be due to a "
-                    "failed db upgrade from 3.4 to 3.5" % (address))
+                    "failed db upgrade from 3.4 to 3.5" % address)
 
         except AlertQueue.DoesNotExist:
-            logger = logging.getLogger('nav.alertengine.accountalertqueue.send')
+            logger = logging.getLogger(
+                'nav.alertengine.accountalertqueue.send')
             logger.error(('Inconsistent database state, alertqueue entry %d ' +
                           'missing for account-alert. If you know how the ' +
                           'database got into this state please update ' +
-                          'LP#494036') % self.alert_id)
+                          'LP#494036'), self.alert_id)
 
             super(AccountAlertQueue, self).delete()
             return False
@@ -1157,8 +1177,9 @@ class AccountAlertQueue(models.Model):
 
         return sent
 
+
 class StatusPreference(models.Model):
-    '''Preferences for the Status tool'''
+    """Preferences for the Status tool"""
 
     SECTION_NETBOX = 'netbox'
     SECTION_NETBOX_MAINTENANCE = 'netbox_maintenance'
@@ -1209,6 +1230,7 @@ class StatusPreference(models.Model):
             if type == identity:
                 return readable_type
 
+
 class StatusPreferenceOrganization(models.Model):
     """Organizational filter for a status preference."""
     statuspreference = models.ForeignKey(StatusPreference)
@@ -1216,6 +1238,7 @@ class StatusPreferenceOrganization(models.Model):
 
     class Meta:
         db_table = u'statuspreference_organization'
+
 
 class StatusPreferenceCategory(models.Model):
     """Category filter for a status preference."""
@@ -1227,8 +1250,8 @@ class StatusPreferenceCategory(models.Model):
 
 
 # Make sure you update netmap-extras.js too if you change this! ;-)
-LINK_TYPES = (2, 'Layer 2'), \
-(3, 'Layer 3')
+LINK_TYPES = (2, 'Layer 2'), (3, 'Layer 3')
+
 
 class NetmapView(models.Model):
     """Properties for a specific view in Netmap"""
@@ -1251,18 +1274,16 @@ class NetmapView(models.Model):
         return dict(LINK_TYPES).get(self.topology)
 
     def get_absolute_url(self):
-        return "%s#/netmap/%s" % (
-            reverse('netmap-index'),
-            self.viewid
-            )
+        return "%s#/netmap/%s" % (reverse('netmap-index'), self.viewid)
+
     def get_set_defaultview_url(self):
         """URL for admin django view to set a default view"""
         return reverse('netmap-api-netmap-defaultview-global')
 
-
     def to_json_dict(self):
         """Presents a NetmapView as JSON"""
-        categories = [{'name': unicode(x.category.id), 'is_selected': True} for x in self.categories_set.all()]
+        categories = [{'name': unicode(x.category.id), 'is_selected': True}
+                      for x in self.categories_set.all()]
         if self.display_elinks:
             categories.append({'name': 'ELINK', 'is_selected': True})
 
@@ -1279,9 +1300,9 @@ class NetmapView(models.Model):
             'display_orphans': self.display_orphans
         }
 
-
     class Meta:
         db_table = u'netmap_view'
+
 
 class NetmapViewDefaultView(models.Model):
     """Default view for each user"""
@@ -1305,29 +1326,27 @@ class NetmapViewDefaultView(models.Model):
 
 class NetmapViewCategories(models.Model):
     """Saved categories for a selected view in Netmap"""
-    id = models.AutoField(primary_key=True) # Serial for faking a primary key
-    view = models.ForeignKey(NetmapView, db_column='viewid',
-        related_name='categories_set')
-    category = models.ForeignKey(Category, db_column='catid',
-        related_name='netmapview_set')
+    id = models.AutoField(primary_key=True)  # Serial for faking a primary key
+    view = models.ForeignKey(
+        NetmapView, db_column='viewid', related_name='categories_set')
+    category = models.ForeignKey(
+        Category, db_column='catid', related_name='netmapview_set')
 
     def __unicode__(self):
         return u'%s in category %s' % (self.view, self.category)
 
     class Meta:
         db_table = u'netmap_view_categories'
-        unique_together = (('view', 'category'),) # Primary key
-
-
+        unique_together = (('view', 'category'),)  # Primary key
 
 
 class NetmapViewNodePosition(models.Model):
     """Saved positions for nodes for a selected view in Netmap"""
-    id = models.AutoField(primary_key=True) # Serial for faking a primary key
-    viewid = models.ForeignKey(NetmapView, db_column='viewid',
-        related_name='node_position_set')
-    netbox = models.ForeignKey(Netbox, db_column='netboxid',
-        related_name='node_position_set')
+    id = models.AutoField(primary_key=True)  # Serial for faking a primary key
+    viewid = models.ForeignKey(
+        NetmapView, db_column='viewid', related_name='node_position_set')
+    netbox = models.ForeignKey(
+        Netbox, db_column='netboxid', related_name='node_position_set')
     x = models.IntegerField()
     y = models.IntegerField()
 

@@ -16,7 +16,7 @@
 """Machinetracker navlet"""
 
 from django.shortcuts import redirect
-from IPy import IP
+from nav.util import IPRange
 from nav.web.navlets import Navlet
 from nav.macaddress import MacAddress
 
@@ -24,15 +24,9 @@ from nav.macaddress import MacAddress
 def is_ip_address(thing):
     """Checks if this is an ip-address valid for machinetracker"""
     try:
-        IP(thing)
+        IPRange.from_string(thing)
     except ValueError:
-        try:
-            # In machinetracker ip-addresses can be ranges
-            IP(thing.split('-')[0])
-        except ValueError:
-            return False
-        else:
-            return True
+        return False
     else:
         return True
 
@@ -73,5 +67,8 @@ class MachineTrackerNavlet(Navlet):
         elif is_mac_address(forminput):
             return redirect('machinetracker-mac_search',
                             **{'mac': forminput, 'days': days, 'dns': dns})
+        elif forminput:
+            return redirect('machinetracker-netbios-search',
+                            **{'search': forminput, 'days': days})
         else:
             return redirect('machinetracker')

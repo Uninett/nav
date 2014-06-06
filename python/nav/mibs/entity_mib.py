@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009-2011 UNINETT AS
+# Copyright (C) 2009-2011, 2014 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,6 +14,9 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Implements a MibRetriever for the ENTITY-MIB, as well as helper classes."""
+from collections import defaultdict
+from itertools import chain
+from operator import itemgetter
 
 from twisted.internet import defer
 
@@ -81,19 +84,20 @@ class EntityMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_useful_physical_table_columns(self):
-        "Retrieves the most useful columns of the entPhysicalTable"
+        """Retrieves the most useful columns of the entPhysicalTable"""
         columns = yield self.retrieve_columns([
-                'entPhysicalDescr',
-                'entPhysicalContainedIn',
-                'entPhysicalClass',
-                'entPhysicalName',
-                'entPhysicalHardwareRev',
-                'entPhysicalFirmwareRev',
-                'entPhysicalSoftwareRev',
-                'entPhysicalSerialNum',
-                'entPhysicalModelName',
-                'entPhysicalIsFRU',
-                ])
+            'entPhysicalDescr',
+            'entPhysicalContainedIn',
+            'entPhysicalClass',
+            'entPhysicalParentRelPos',
+            'entPhysicalName',
+            'entPhysicalHardwareRev',
+            'entPhysicalFirmwareRev',
+            'entPhysicalSoftwareRev',
+            'entPhysicalSerialNum',
+            'entPhysicalModelName',
+            'entPhysicalIsFRU',
+        ])
         defer.returnValue(self.translate_result(columns))
 
 
@@ -106,6 +110,8 @@ class EntityTable(dict):
             index = row[0][0]
             row[0] = index
             self[index] = row
+
+        self.clean()
 
     def is_module(self, e):
         return e['entPhysicalClass'] == 'module' and \
@@ -171,3 +177,75 @@ class EntityTable(dict):
             else:
                 return self.get_nearest_module_parent(parent)
 
+    def get_chassis_of(self, entity):
+        """Returns the nearest parent chassis of an entity.
+
+        Normally, all entities will resolve to the same chassis. In a stack,
+        however, there may be multiple chassis.
+        """
+        while entity and not self.is_chassis(entity):
+            parent_idx = entity['entPhysicalContainedIn']
+            entity = self.get(parent_idx, None)
+        return entity if entity and self.is_chassis(entity) else None
+
+    def clean(self):
+        """Cleans the table data"""
+        self._strip_whitespace()
+        self._fix_broken_chassis_relative_positions()
+        self._rename_stack_duplicates()
+
+    def _strip_whitespace(self):
+        """Strips leading/trailing whitespace from all string data within"""
+        for entity in self.values():
+            for key, value in entity.items():
+                if hasattr(value, 'strip'):
+                    entity[key] = value.strip()
+
+    def _fix_broken_chassis_relative_positions(self):
+        """
+        Some devices claim all chassis in a stack occupy the same relative
+        position. If this is so, renumber their relative positions according to
+        their position in the entPhysicalTable.
+        """
+        chassis = self.get_chassis()
+        distinct_pos = set(c['entPhysicalParentRelPos'] for c in chassis)
+        if len(distinct_pos) == len(chassis):
+            return
+
+        chassis.sort(key=itemgetter(0))
+        for relpos, ent in enumerate(chassis, start=1):
+            ent['_entPhysicalParentRelPos'] = ent['entPhysicalParentRelPos']
+            ent['entPhysicalParentRelPos'] = relpos
+
+    def _rename_stack_duplicates(self):
+        """
+        Renames entities with duplicate names by inserting the stack-relative
+        positions of their owning chassis into their entPhysicalNames
+        """
+        if len(self.get_chassis()) < 2:
+            return
+
+        dupes = self._get_non_chassis_duplicates()
+        for ent in chain(*dupes.values()):
+            chassis = self.get_chassis_of(ent)
+            name = ent.get('_entPhysicalName', ent.get('entPhysicalName'))
+            ent['_entPhysicalName'] = name
+            if chassis:
+                relpos = chassis['entPhysicalParentRelPos']
+                ent['entPhysicalName'] = "{0} [chassis {1}]".format(name,
+                                                                    relpos)
+
+    def _get_non_chassis_duplicates(self):
+        """
+        Returns a dict of all entities that have non-unique names.
+
+        :returns: dict(name=[list of at least 2 entities with this name], ...)
+
+        """
+        dupes = defaultdict(list)
+        for ent in self.values():
+            if not self.is_chassis(ent):
+                dupes[ent['entPhysicalName']].append(ent)
+        dupes = dict((key, value) for key, value in dupes.iteritems()
+                     if len(value) > 1)
+        return dupes

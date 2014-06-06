@@ -2,5 +2,5 @@
 about your NAV installation for registered users.</p>
 
 <p>
-    <a href="https://nav.uninett.no/user_guide?s[]=welcome#the_index_page">See how to do that</a>
+    <a href="https://nav.uninett.no/wiki/user_guide">See how to do that</a>
 </p>

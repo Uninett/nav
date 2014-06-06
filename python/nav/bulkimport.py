@@ -197,10 +197,9 @@ class RoomImporter(BulkImporter):
             location = get_object_or_fail(Location, id=row['locationid'])
         else:
             location = None
+        attributes = dict([attr.split('=', 1) for attr in row.get('attr', [])])
         room = Room(id=row['roomid'], location=location,
-                    description=row['descr'], optional_1=row['opt1'],
-                    optional_2=row['opt2'], optional_3=row['opt3'],
-                    optional_4=row['opt4'])
+                    description=row['descr'], data=attributes)
         try:
             room.position = row['position']
         except (ValidationError, ValueError):
@@ -216,10 +215,10 @@ class OrgImporter(BulkImporter):
             parent = get_object_or_fail(Organization, id=row['parent'])
         else:
             parent = None
+        attributes = dict([attr.split('=', 1) for attr in row.get('attr', [])])
         org = Organization(id=row['orgid'], parent=parent,
                            description=row['description'],
-                           optional_1=row['opt1'], optional_2=row['opt2'],
-                           optional_3=row['opt3'])
+                           data=attributes)
         return [org]
 
 
@@ -269,8 +268,7 @@ class NetboxTypeImporter(BulkImporter):
 
         netbox_type = NetboxType(vendor=vendor, name=row['typename'],
                                  sysobjectid=row['sysobjectid'],
-                                 description=row['description'],
-                                 cdp=row['cdp'], tftp=row['tftp'])
+                                 description=row['description'])
         return [netbox_type]
 
 

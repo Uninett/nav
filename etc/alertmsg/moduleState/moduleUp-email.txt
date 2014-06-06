@@ -1,4 +1,4 @@
-Subject: Module {{name}}, box {{netbox.sysname}} is up
+Subject: Module {{module.name}}, box {{netbox.sysname}} is up
 
-Module {{name}}, box {{netbox.sysname}} ({{netbox.ip}}) is up again,
+Module {{module.name}}, box {{netbox.sysname}} ({{netbox.ip}}) is up again,
 since {{time}}.

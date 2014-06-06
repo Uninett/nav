@@ -56,8 +56,7 @@ def room_list(request):
     """Controller for listing rooms. Used in room()"""
     info = RoomInfo()
     value_list = (
-        'id', 'location', 'description', 'position', 'optional_1',
-        'optional_2', 'optional_3', 'optional_4')
+        'id', 'location', 'description', 'position', 'data')
     query = Room.objects.all()
     filter_form = RoomFilterForm(request.GET)
     return render_list(request, query, value_list, 'seeddb-room-edit',

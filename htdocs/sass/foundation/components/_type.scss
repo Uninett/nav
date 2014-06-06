@@ -1,3 +1,7 @@
+// Foundation by ZURB
+// foundation.zurb.com
+// Licensed under MIT Open Source
+
 @import "global";
 
 $include-html-type-classes: $include-html-classes !default;
@@ -50,7 +54,7 @@ $code-font-weight: bold !default;
 // We use these to style anchors
 $anchor-text-decoration: none !default;
 $anchor-font-color: $primary-color !default;
-$anchor-font-color-hover: scale-color($primary-color, $lightness: -14%) !default;
+$anchor-font-color-hover: scale-color($anchor-font-color, $lightness: -14%) !default;
 
 // We use these to style the <hr> element
 $hr-border-width: 1px !default;
@@ -102,6 +106,60 @@ $microformat-abbr-padding: rem-calc(0 1) !default;
 $microformat-abbr-font-weight: bold !default;
 $microformat-abbr-font-decoration: none !default;
 
+//
+// Responsive Text alignment
+//
+
+// Text Breakpoints
+$text-breakpoint-sizes:
+  small,
+  medium,
+  large,
+  xlarge,
+  xxlarge
+;
+$text-breakpoint-only-queries:
+  unquote($small-only),
+  unquote($medium-only),
+  unquote($large-only),
+  unquote($xlarge-only),
+  unquote($xxlarge-only)
+;
+$text-breakpoint-up-queries:
+  unquote($small-up),
+  unquote($medium-up),
+  unquote($large-up),
+  unquote($xlarge-up),
+  unquote($xxlarge-up)
+;
+
+@mixin text-alignment-loop {
+  $text-alignments: left, right, center, justify;
+  
+  // Global Text Styles
+  @each $alignment in $text-alignments {
+    .text-#{$alignment} {
+      text-align: #{$alignment} !important;
+    }
+  }
+  @each $current-text-breakpoint in $text-breakpoint-sizes {
+    @media #{nth($text-breakpoint-only-queries, index($text-breakpoint-sizes, $current-text-breakpoint))} {
+      @each $alignment in $text-alignments {
+        .#{$current-text-breakpoint}-only-text-#{$alignment} {
+          text-align: #{$alignment} !important;
+        }
+      }
+    }
+    @media #{nth($text-breakpoint-up-queries, index($text-breakpoint-sizes, $current-text-breakpoint))} {
+      @each $alignment in $text-alignments {
+        .#{$current-text-breakpoint}-text-#{$alignment} {
+          text-align: #{$alignment} !important;
+        }
+      }
+    }
+  }
+}
+
 
 //
 // Typography Placeholders
@@ -122,6 +180,8 @@ $microformat-abbr-font-decoration: none !default;
 }
 @include exports("type") {
   @if $include-html-type-classes {
+
+    @include text-alignment-loop;
 
     /* Typography resets */
     div,
@@ -208,7 +268,7 @@ $microformat-abbr-font-decoration: none !default;
       border: $hr-border-style $hr-border-color;
       border-width: $hr-border-width 0 0;
       clear: both;
-      margin: $hr-margin 0 ($hr-margin - rem-calc(1));
+      margin: $hr-margin 0 ($hr-margin - rem-calc($hr-border-width));
       height: 0;
     }
 
@@ -269,7 +329,6 @@ $microformat-abbr-font-decoration: none !default;
         ol {
           margin-#{$default-float}: $list-nested-margin;
           margin-bottom: 0;
-          font-size: 1rem; /* Override nested font-size change */
         }
       }
       &.square,

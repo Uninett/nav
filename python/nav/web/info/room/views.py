@@ -16,9 +16,11 @@
 """Viev functions for the roominfo subsystem"""
 
 import logging
+import re
 import os
 import csv
 import json
+from collections import defaultdict
 from os.path import join
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -95,18 +97,26 @@ def filter_netboxes(room):
 def roominfo(request, roomid):
     """Controller for displaying roominfo"""
     room = Room.objects.get(id=roomid)
-    all_netboxes = room.netbox_set.order_by("sysname")
     images = room.image_set.all()
-
     navpath = get_path() + [(room.id,)]
+    room.sorted_data = sorted(room.data.items())
 
     return render_to_response("info/room/roominfo.html",
                               {"room": room,
-                               "all_netboxes": all_netboxes,
                                "navpath": navpath,
                                "title": create_title(navpath),
                                "images": images},
                               context_instance=RequestContext(request))
+
+
+def render_deviceinfo(request, roomid):
+    """Controller for rendering device info"""
+    room = Room.objects.get(id=roomid)
+    all_netboxes = room.netbox_set.select_related(
+        'type', 'category', 'organization', 'interface').order_by('sysname')
+    return render(request, 'info/room/roominfo_devices.html', {
+        'netboxes': all_netboxes
+    })
 
 
 def upload_image(request, roomid):

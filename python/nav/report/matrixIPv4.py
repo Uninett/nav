@@ -38,9 +38,11 @@ class MatrixIPv4(Matrix):
         Matrix.__init__(self, start_net, end_net=end_net,
                         bits_in_matrix=bits_in_matrix)
         self.column_headings = self._get_column_headers()
+        self.visible_column_headings = self.column_headings[::4]
         self.num_columns = len(self.column_headings)
         self.show_unused_addresses = show_unused_addresses
         self.color_configuration = ColorConfig(configfile)
+        self.heading_colspan = 4
 
     def build(self):
 
@@ -215,13 +217,10 @@ class MatrixIPv4(Matrix):
                     return limit[1]
 
     def _get_column_headers(self):
-        msb = 8 - (self.end_net.prefixlen()-self.bits_in_matrix) % 8
-        lsb = msb - self.bits_in_matrix
-        if lsb <= 0:
-            lsb = 1
-        if msb <= 0:
-            msb = 1
-        return [str((2**lsb)*i) for i in range(0, msb)]
+        netsize = self.end_net.len()
+        factor = 32 - self.end_net.prefixlen()
+        return [str((2**factor)*i) for i in range(0, 256/netsize)]
+        # return [str((2**lsb)*i) for i in range(0, msb)]
 
     def generate_matrix_nets(self, supernet):
         """Generates all the matrix nets which belongs under ``supernet''."""

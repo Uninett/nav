@@ -286,8 +286,11 @@ def process_manual_detention_form(form, account):
     camtuple = form.cleaned_data['camtuple']
 
     cam = Cam.objects.get(pk=camtuple)
-    interface = Interface.objects.get(netbox__sysname=cam.sysname,
-                                      ifindex=cam.ifindex)
+    try:
+        interface = Interface.objects.get(
+            netbox=cam.netbox, ifindex=cam.ifindex)
+    except Interface.DoesNotExist, error:
+        return error
 
     identity = Identity()
     identity.interface = interface

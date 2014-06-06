@@ -77,14 +77,6 @@ img.textbottom {
 }
 
 
-/* Image Clearing adjustments on Room Info tab. block-grid and clearing-thumbs classes clash */
-.clearing-thumbs {
-    &[class*="block-grid-"] {
-        margin-left: -10px;
-        li { margin-right: auto; }
-    }
-}
-
 /* Prevent OpenStreetmap to show through the image clearing */
 .clearing-blackout {
     z-index: 1010;
@@ -131,6 +123,7 @@ img.textbottom {
         }
     }
     .current {
+        text-align: center;
         width: 300px;
         &.counter {
             width: 150px;
@@ -138,7 +131,6 @@ img.textbottom {
             margin-left: auto;
             margin-right: auto;
         }
-        height: 200px;
         .counter-node {
             background-color: steelblue;
             color: white;
@@ -193,4 +185,3 @@ img.textbottom {
         left: -19px;
     }
 }
-

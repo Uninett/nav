@@ -66,7 +66,13 @@ class StatusNavlet(Navlet):
             context['date_now'] = datetime.today()
         elif self.mode == NAVLET_MODE_EDIT:
             navlet = AccountNavlet.objects.get(pk=self.navlet_id)
-            context['interval'] = navlet.preferences[REFRESH_INTERVAL] / 1000
+            if not navlet.preferences:
+                # This happens when navlet is added directly in sql and no
+                # preference is set
+                navlet.preferences = {REFRESH_INTERVAL: self.refresh_interval}
+                navlet.save()
+            context['interval'] = navlet.preferences.get(
+                REFRESH_INTERVAL, self.refresh_interval) / 1000
 
         return context
 

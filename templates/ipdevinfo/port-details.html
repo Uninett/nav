@@ -23,6 +23,12 @@
     </div>
   {% endif %}
 
+  {% if detention %}
+    <div class="alert-box alert">
+      This interface is detained in <a href="{% url arnold-details detention.id %}" title="Link to detention">Arnold</a>
+    </div>
+  {% endif %}
+
   <div class="row">
 
     <div class="column medium-4">

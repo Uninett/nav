@@ -1,9 +1,11 @@
 {% extends "info/base.html" %}
 {% load crispy_forms_tags %}
+{% load silent_include %}
 
 {% block base_header_additional_head %}
     <link href="{{ STATIC_URL }}css/nav/info_room.css"  rel="stylesheet">
     <script>require(["src/info_room"]);</script>
+    {% try_to_include 'info/room/header_extras.html' %}
 {% endblock %}
 
 {% block content %}

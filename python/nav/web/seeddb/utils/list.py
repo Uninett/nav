@@ -16,6 +16,7 @@
 #
 
 """Functions for rendering seeddb list views"""
+from collections import defaultdict
 
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
@@ -59,12 +60,12 @@ def render_list(request, queryset, value_list, edit_url=None,
         value_queryset = queryset.values('pk', edit_url_attr, *value_list)
 
     if not edit_url:
-        objects = _process_objects(value_queryset, value_list)
+        objects, datakeys = _process_objects(value_queryset, value_list)
     else:
-        objects = _process_objects(value_queryset, value_list, edit_url,
-                                   edit_url_attr)
+        objects, datakeys = _process_objects(value_queryset, value_list,
+                                             edit_url, edit_url_attr)
 
-    labels = _label(queryset.model, value_list)
+    labels = _label(queryset.model, value_list, datakeys)
 
     context = {
         'object_list': objects,
@@ -92,7 +93,8 @@ def _filter_query(filter_form, queryset):
     return queryset
 
 
-def _process_objects(query_set_values, value_list, edit_url=None, edit_url_attr=None):
+def _process_objects(query_set_values, value_list, edit_url=None,
+                     edit_url_attr=None):
     """Packs values into a format the template understands.
 
     A list contains each row.
@@ -102,32 +104,51 @@ def _process_objects(query_set_values, value_list, edit_url=None, edit_url_attr=
      - values_list: A list with the values that should be displayed in the
                     table.
     """
+    # pick up which values are dictionaries and make note of their existing keys
+    datakeys = defaultdict(set)
+    for obj in query_set_values:
+        for attr in value_list:
+            value = obj[attr]
+            if isinstance(value, dict):
+                datakeys[attr].update(value)
+    datakeys = dict([(k, list(sorted(v))) for k, v in datakeys.iteritems()])
+
+    def _getvalues(obj):
+        for attr in value_list:
+            value = obj[attr]
+            if attr in datakeys:
+                for key in datakeys[attr]:
+                    yield value.get(key, None)
+            else:
+                yield value
+
     objects = []
     for obj in query_set_values:
-        if not edit_url:
-            row = {
-                'pk': obj['pk'],
-                'values_list': [obj[attr] for attr in value_list],
-            }
-        else:
-            row = {
-                'pk': obj['pk'],
-                'url': reverse(edit_url, args=(obj[edit_url_attr],)),
-                'values_list': [obj[attr] for attr in value_list],
-            }
+        row = {
+            'pk': obj['pk'],
+            'values_list': list(_getvalues(obj))
+        }
+        if edit_url:
+            row['url'] = reverse(edit_url, args=(obj[edit_url_attr],))
         objects.append(row)
-    return objects
+    return objects, datakeys
 
 
-def _label(model, value_list):
+def _label(model, value_list, datakeys=None):
     """Make labels for the table head.
     Returns a list of tuples. Each tuple contains the verbose label and a key
     that can be used for sort parameters in the URL.
     """
+    attrs = []
     labels = []
     for value in value_list:
-        try:
-            labels.append(get_verbose_name(model, value))
-        except FieldDoesNotExist:
-            labels.append(value)
-    return zip(labels, value_list)
+        if value in datakeys:
+            labels.extend(datakeys[value])
+            attrs.extend(datakeys[value])
+        else:
+            attrs.append(value)
+            try:
+                labels.append(get_verbose_name(model, value))
+            except FieldDoesNotExist:
+                labels.append(value)
+    return zip(labels, attrs)

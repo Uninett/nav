@@ -18,15 +18,17 @@
 """ Module containing different searchproviders used for searching in NAV """
 
 from collections import namedtuple
+
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from operator import attrgetter
 
 from nav.models.manage import Room, Netbox, Interface, Vlan
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.views import is_valid_hostname
 
+
 SearchResult = namedtuple("SearchResult", ['href', 'inst'])
+
 
 class SearchProvider(object):
     """Searchprovider interface
@@ -71,7 +73,7 @@ class RoomSearchProvider(SearchProvider):
 
 class NetboxSearchProvider(SearchProvider):
     """Searchprovider for netboxes"""
-    name = "Netboxes"
+    name = "IP devices"
     headers = [('Sysname', 'sysname'),
                ('IP', 'ip')]
     link = 'Sysname'
@@ -86,7 +88,7 @@ class NetboxSearchProvider(SearchProvider):
         for result in results:
             self.results.append(SearchResult(
                 reverse('ipdevinfo-details-by-name',
-                    kwargs={'name': result.sysname}),
+                        kwargs={'name': result.sysname}),
                 result)
             )
 
@@ -95,7 +97,7 @@ class InterfaceSearchProvider(SearchProvider):
     """Searchprovider for interfaces"""
     name = "Interfaces"
     headers = [
-        ('Netbox', 'netbox.sysname'),
+        ('IP Device', 'netbox.sysname'),
         ('Interface', 'ifname'),
         ('Alias', 'ifalias'),
     ]
@@ -130,13 +132,13 @@ class FallbackSearchProvider(SearchProvider):
         if is_valid_ip(self.query):
             self.results.append(SearchResult(
                 reverse('ipdevinfo-details-by-addr',
-                    kwargs={'addr': self.query}),
+                        kwargs={'addr': self.query}),
                 None)
             )
         elif is_valid_hostname(self.query):
             self.results.append(SearchResult(
                 reverse('ipdevinfo-details-by-name',
-                    kwargs={'name': self.query}),
+                        kwargs={'name': self.query}),
                 None)
             )
 
@@ -156,7 +158,7 @@ class VlanSearchProvider(SearchProvider):
     def fetch_results(self):
         results = Vlan.objects.exclude(net_type='loopback').filter(
             Q(vlan__contains=self.query) | Q(net_ident__icontains=self.query) |
-            Q(net_type__description__icontains=self.query))
+            Q(net_type__description__icontains=self.query)).order_by('vlan')
         for result in results:
             self.results.append(SearchResult(
                 reverse('vlan-details', kwargs={'vlanid': result.id}),

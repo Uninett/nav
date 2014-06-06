@@ -31,6 +31,10 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
         $(moduleTabsSelector).tabs(tabconfig);
         TabNavigation.add(moduleTabsSelector, mainTabsSelector);
 
+        /* Toggle port legend */
+        $('#ports').on('click', '.portlegendToggler', function () {
+            $(this).next().toggle();
+        });
     }
 
     function addMainTabs() {
@@ -90,7 +94,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             return;
         }
         var activityTab = findActivityTab();
-        var button = activityTab.find('form button');
+        var button = activityTab.find('form input[type=submit]');
 
         button.click(function (event) {
             event.preventDefault();

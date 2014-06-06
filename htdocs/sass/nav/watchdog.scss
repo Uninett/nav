@@ -1,0 +1,25 @@
+#watchdog-overview {
+    min-height: 100px;  // For spinner to display properly
+    li div {
+        background-color: white;
+        border: 1px solid #CCCCCC;
+        font-weight: 300;
+        padding: 0.5em;
+    }
+}
+
+.watchdog-tests {
+    li {
+        padding: 0.2em;
+        .label.alert {
+            cursor: pointer;
+        }
+        &:nth-child(odd) {
+            background-color: #F9F9F9;
+        }
+    }
+    .label {
+        line-height: 1.4em;
+        width: 60px;
+    }
+}

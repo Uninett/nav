@@ -38,7 +38,7 @@ urlpatterns = patterns('',
         name='machinetracker-ip_search'),
     # Short hand search url.
     # Accepts from_ip, days and dns. Active is set to true
-    url(r'^ip/\?ip_range=(?P<from_ip>[a-f\d\.:-]+)&days=(?P<days>-?\d+)'
+    url(r'^ip/\?ip_range=(?P<from_ip>[/a-f\d\.:-]+)&days=(?P<days>-?\d+)'
         r'&dns=(?P<dns>\w*)&period_filter=active',
         ip_do_search,
         name='machinetracker-ip_short_search'),
@@ -48,7 +48,8 @@ urlpatterns = patterns('',
 
     url(r'^mac/$', mac_search,
         name='machinetracker-mac'),
-    url(r'^mac/\?mac=(?P<mac>[a-f\d:]+)&days=(?P<days>-?\d+)&dns=(?P<dns>\w*)$',
+    url(r'^mac/\?mac=(?P<mac>[a-fA-F\d:]+)'
+        r'&days=(?P<days>-?\d+)&dns=(?P<dns>\w*)$',
         mac_do_search,
         name='machinetracker-mac_search'),
 
@@ -64,8 +65,9 @@ urlpatterns = patterns('',
         name='machinetracker-swp_search'),
 
     # NetBIOS
-    url(r'^netbios/$', netbios_search,
-        name='machinetracker-netbios'),
+    url(r'^netbios/$', netbios_search, name='machinetracker-netbios'),
+    url(r'^netbios/\?search=(?P<search>\w+)&days=(?P<days>\d+)$',
+        netbios_search, name='machinetracker-netbios-search'),
 
     # Old machinetrakcer links.
      url(r'^swp\?switch=(?P<netbox_sysname>[\w\d._-]+)'

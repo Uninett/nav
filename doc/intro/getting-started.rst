@@ -131,6 +131,8 @@ page until its value changes from `N/A` into a meaningful timestamp.
           after adding your switch to NAV, you may need to start
           troubleshooting NAV's log files.
 
+.. _selecting-a-device-category:
+
 Selecting a device category
 ---------------------------
 
@@ -156,11 +158,19 @@ categories:
 `WLAN`
   A wireless access point or controller of some sort.
 
+`ENV`
+  An environmental probe, possibly measuring temperatures, humiditiy, etc. If
+  NAV has support for the probe, its measurements will be displayed in the
+  room view for the room the device was registered in.
+
+`POWER`
+  Power distribution and measurement equipment, UPS units and so forth.
+
 `OTHER`
   Any other type of device not fitting neatly into the other categories.
 
-The `GW`, `GSW`, `SW` and `EDGE` categories will all require an SNMP community
-to be configured; this is optional with the remaining categories.
+All categories will *require* an SNMP community to be configured, except for
+`SRV` and `OTHER`, where it is optional.
 
 .. _seeddb-bulk-import-intro:
 
@@ -169,7 +179,7 @@ Importing multiple devices in bulk
 
 While you can go ahead and add one device at a time like this, it will quickly
 get tedious if you have more than a handful of devices to monitor. This is
-where the :guilabel:`Bulk import` tab comes into the picture:
+where the :guilabel:`Bulk import` function comes into the picture:
 
 .. image:: seeddb-bulkimport-ipdevice.png
 
@@ -193,3 +203,10 @@ an error with the line; such a line will be ignored when you submit the
 preview form, unless you go back and fix it before trying again.
 
 .. |URL| replace:: http://example.org/
+
+
+Further reading
+===============
+
+Now you know how to monitor things. It's time to 
+:doc:`get organized <getting-organized>`!

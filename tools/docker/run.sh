@@ -9,7 +9,7 @@ mkdir -p /var/run/sshd
 
 # Start postgresql, update the schema
 pg_ctlcluster 9.1 main start
-"$mydir/syncdb.sh"
+"$mydir/syncdb.sh" || exit
 
 # Start supervisor to control the rest of the runtime
 [[ -f /source/tools/docker/supervisord.conf ]] && \

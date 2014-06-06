@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.0"
+   width="48.000000pt"
+   height="48.000000pt"
+   viewBox="0 0 48.000000 48.000000"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg3053"
+   inkscape:version="0.48.3.1 r9886"
+   sodipodi:docname="watchdog_black.svg">
+  <title
+     id="title3067">WatchDog</title>
+  <defs
+     id="defs3065" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1012"
+     inkscape:window-height="685"
+     id="namedview3063"
+     showgrid="true"
+     inkscape:zoom="7.8666666"
+     inkscape:cx="30"
+     inkscape:cy="30"
+     inkscape:window-x="379"
+     inkscape:window-y="273"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg3053"
+     inkscape:snap-bbox="false">
+    <inkscape:grid
+       type="xygrid"
+       id="grid3071"
+       empspacing="5"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata3055">
+Created by potrace 1.10, written by Peter Selinger 2001-2011
+<rdf:RDF>
+  <cc:Work
+     rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type
+       rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+    <dc:title>WatchDog</dc:title>
+    <dc:rights>
+      <cc:Agent>
+        <dc:title>BSD</dc:title>
+      </cc:Agent>
+    </dc:rights>
+    <dc:creator>
+      <cc:Agent>
+        <dc:title>MapBox</dc:title>
+      </cc:Agent>
+    </dc:creator>
+    <dc:source>http://findicons.com/icon/577747/dog_park_24_2x</dc:source>
+    <dc:language>Doge</dc:language>
+    <dc:date />
+    <cc:license
+       rdf:resource="http://en.wikipedia.org/wiki/BSD_licenses" />
+  </cc:Work>
+</rdf:RDF>
+</metadata>
+  <g
+     transform="matrix(0.12563038,0,0,-0.12563038,-7.5332254,55.095818)"
+     id="g3057"
+     style="fill:#000000;stroke:none">
+    <path
+       d="m 110,361 c -7,-14 -7,-28 0,-47 11,-28 6,-49 -31,-146 -18,-47 -18,-48 2,-48 12,0 19,7 19,19 0,10 8,25 17,32 15,13 16,11 10,-18 -6,-28 -4,-33 13,-33 12,0 17,5 14,14 -3,7 2,30 10,51 12,27 20,36 32,31 9,-3 27,-9 40,-12 27,-7 27,-7 15,-52 -9,-28 -7,-32 10,-32 11,0 18,4 15,9 -7,11 3,41 13,41 4,0 13,-11 19,-25 6,-14 18,-25 26,-25 12,0 12,4 -1,31 -9,18 -13,44 -10,63 4,23 -1,42 -13,61 -18,27 -22,28 -92,26 -64,-2 -75,0 -86,19 -9,15 -10,26 -2,40 7,13 7,20 1,20 -6,0 -15,-9 -21,-19 z"
+       id="path3059"
+       inkscape:connector-curvature="0" />
+    <path
+       d="m 324,355 c -25,-25 -25,-25 -7,-56 13,-22 23,-29 38,-25 11,3 32,6 46,6 45,0 43,27 -2,51 -27,13 -39,25 -35,35 8,22 -12,17 -40,-11 z"
+       id="path3061"
+       inkscape:connector-curvature="0" />
+  </g>
+</svg>

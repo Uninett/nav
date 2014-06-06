@@ -40,7 +40,12 @@
 
   <tr>
     <th>Link</th>
-    <td>{{ port.get_link_display|capfirst }}</td>
+    <td>
+      {{ port.get_link_display|capfirst }}
+      {% if detention.status == 'disabled' %}
+        (Disabled by <a href="{% url arnold-details detention.id %}" title="Link to detention">Arnold</a>)
+      {% endif %}
+    </td>
   </tr>
 
   <tr>

@@ -14,6 +14,9 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""
+Forms and controllers for the prefix functionality in SeedDB
+"""
 
 from django import forms
 from django.core.urlresolvers import reverse
@@ -39,6 +42,7 @@ from nav.web.seeddb.utils.delete import render_delete
 
 
 class PrefixInfo(SeeddbInfo):
+    """Info-container for prefix"""
     active = {'prefix': True}
     caption = 'Prefix'
     tab_template = 'seeddb/tabs_generic.html'
@@ -52,22 +56,27 @@ class PrefixInfo(SeeddbInfo):
 
 
 class PrefixForm(forms.ModelForm):
+    """Modelform for editing a prefix"""
     net_address = CIDRField(label="Prefix/mask (CIDR)")
-    class Meta:
+
+    class Meta(object):
         model = Prefix
         fields = ('net_address',)
 
 
 class PrefixVlanForm(forms.ModelForm):
+    """Modelform for Vlan with additional fields for editing prefixes"""
     net_type = forms.ModelChoiceField(
         queryset=NetType.objects.filter(edit=True))
-    class Meta:
+
+    class Meta(object):
         model = Vlan
         fields = ('description', 'net_ident', 'vlan', 'organization', 'usage',
                   'net_type')
 
 
-def prefix(request):
+def get_prefix_view(request):
+    """Select appropriate view based on request POST data"""
     return view_switcher(request,
                          list_view=prefix_list,
                          delete_view=prefix_delete,
@@ -75,6 +84,7 @@ def prefix(request):
 
 
 def prefix_list(request):
+    """Controller for listing prefixes"""
     info = PrefixInfo()
     query = Prefix.objects.filter(vlan__net_type__edit=True)
     value_list = (
@@ -85,6 +95,7 @@ def prefix_list(request):
 
 
 def prefix_delete(request):
+    """Controller for deleting prefixes"""
     info = PrefixInfo()
     return render_delete(request, Prefix, 'seeddb-prefix',
                          whitelist=SEEDDB_EDITABLE_MODELS,
@@ -92,14 +103,17 @@ def prefix_delete(request):
 
 
 def prefix_bulk(request):
+    """Controller for bulk importing prefixes"""
     info = PrefixInfo()
     return render_bulkimport(
         request, PrefixBulkParser, PrefixImporter,
         'seeddb-prefix',
         extra_context=info.template_context)
 
+
 @transaction.commit_on_success
 def prefix_edit(request, prefix_id=None):
+    """Controller for editing a prefix"""
     info = PrefixInfo()
     prefix, vlan = get_prefix_and_vlan(prefix_id)
     if request.method == 'POST':
@@ -112,7 +126,8 @@ def prefix_edit(request, prefix_id=None):
             prefix.save()
             msg = "Saved prefix %s" % prefix.net_address
             new_message(request, msg, Messages.SUCCESS)
-            return HttpResponseRedirect(reverse('seeddb-prefix-edit', args=(prefix.id,)))
+            return HttpResponseRedirect(
+                reverse('seeddb-prefix-edit', args=(prefix.id,)))
     else:
         prefix_form = PrefixForm(instance=prefix)
         vlan_form = PrefixVlanForm(instance=vlan)
@@ -124,10 +139,11 @@ def prefix_edit(request, prefix_id=None):
         'sub_active': prefix and {'edit': True} or {'add': True},
     })
     return render_to_response('seeddb/edit_prefix.html',
-        context, RequestContext(request))
+                              context, RequestContext(request))
 
 
 def get_prefix_and_vlan(prefix_id):
+    """Gets the prefix object and vlan object for this prefix id"""
     prefix = _get_object(Prefix, prefix_id, 'pk')
     vlan = prefix and prefix.vlan or None
-    return (prefix, vlan)
+    return prefix, vlan
