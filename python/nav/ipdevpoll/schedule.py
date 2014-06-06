@@ -165,9 +165,9 @@ class NetboxJobScheduler(object):
         self.reschedule(delay)
         if result:
             self._log_finished_job(True)
+            log_job_externally(self.job_handler, True, self.job.interval)
         else:
             self._logger.debug("job did nothing")
-        log_job_externally(self.job_handler, True, self.job.interval)
         return result
 
     def _reschedule_on_failure(self, failure):
