@@ -127,3 +127,16 @@ def add_interval(value, seconds):
 @register.filter
 def get_graph_url(obj, time_frame):
     return obj.get_graph_url(time_frame=time_frame)
+
+
+@register.filter
+def get_netbox_availability(netbox, time_frame):
+    """Get availability for a given netbox and time frame
+    :type netbox: nav.models.manage.Netbox
+    :type time_frame: basestring
+    """
+    availability = netbox.get_availability()
+    try:
+        return "%.2f%%" % availability["availability"][time_frame]
+    except (KeyError, TypeError):
+        return "N/A"
