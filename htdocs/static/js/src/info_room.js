@@ -15,16 +15,15 @@ require(
     ],
     function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, SensorsController) {
         /* Run javascript at document ready */
-        $(window).load(function () {
-
-            if ($('#infotabs').length != 0) {
+        $(function () {
+            if ($('#infotabs').length) {
                 add_tabs();
                 add_navigation();
                 add_streetmap();
             }
 
             var $mapContainer = $('#mapcontainer');
-            if ($mapContainer.length > 0) {
+            if ($mapContainer.length) {
                 fetchRoomPositions($mapContainer);
             }
         });
