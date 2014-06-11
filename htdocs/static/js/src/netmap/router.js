@@ -59,7 +59,7 @@ define([
         loadUi: function (viewId, vlanId) {
             var self = this;
             this.viewInfo = Backbone.View.prototype.attachSubView(this.viewInfo, InfoView, '#netmap_infopanel');
-            this.viewNavigation = Backbone.View.prototype.attachSubView(this.viewNavigation, NavigationView, '#netmap-navigation-view');
+            this.viewNavigation = Backbone.View.prototype.attachSubView(this.viewNavigation, NavigationView, '#netmap_left_sidebar');
 
             self.view_map = new DrawNetmapView({
                 viewid: viewId,

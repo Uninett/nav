@@ -69,19 +69,18 @@ define([
 
             if (!this.isContentVisible) {
                 margin = 30;
-                //$helper.animate({'width': "{0}px".format(12) }, 400);
-                //$helper_content.fadeOut('fast');
-                this.$el('#search_view').fade
+                $helper.animate({'width': "{0}px".format(12) }, 400);
+                $helper_content.fadeOut('fast');
 
-                $("a#toggle_view", this.$el).html("Show navigation");
+                $("a#toggle_view", this.$el).html("&gt;&gt;");
 
             } else {
                 margin = 170;
 
-                //$helper_content.fadeIn('fast');
-                //$helper.animate({'width': "{0}px".format(margin-15) }, 400);
+                $helper_content.fadeIn('fast');
+                $helper.animate({'width': "{0}px".format(margin-15) }, 400);
 
-                $("a#toggle_view", this.$el).html("Hide navigation");
+                $("a#toggle_view", this.$el).html("&lt;&lt;");
 
             }
 
