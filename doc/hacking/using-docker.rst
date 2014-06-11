@@ -23,7 +23,7 @@ Building the Docker image
 First you will need to obtain the NAV source code. The image can then be
 built with the following command::
 
-    sudo docker build -t <IMAGE_NAME> <PATH>
+    docker build -t <IMAGE_NAME> <PATH>
 
 Where `IMAGE_NAME` is the name you wish to give the built image and `PATH` is
 the path to the NAV root directory containing the dockerfile.
@@ -38,7 +38,7 @@ Creating and running the container
 The first time you wish to run the container it must be created with the
 following command::
 
-    sudo docker run -v <PATH>:/source -d --name <CONTAINER_NAME> -p <HOST_PORT1>:80 -p <HOST_PORT2>:22 <IMAGE_NAME>
+    docker run -v <PATH>:/source -d --name <CONTAINER_NAME> -p <HOST_PORT1>:80 -p <HOST_PORT2>:22 <IMAGE_NAME>
 
 Where:
     * `PATH` is the path to the NAV root directory.
@@ -49,11 +49,11 @@ Where:
 
 To see if the container is running execute::
 
-    sudo docker ps
+    docker ps
 
 Once the container has been created successfully you can stop|start the container with::
 
-    sudo docker stop|start <CONTAINER_NAME>
+    docker stop|start <CONTAINER_NAME>
 
 Happy hacking!
 
