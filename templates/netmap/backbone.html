@@ -12,14 +12,72 @@
 
 
 {% block base_content %}
-  {% with tool=current_user_data.tools|get_tool:'Netmap' %}
-    {% include 'nav_header.html' %}
-  {% endwith %}
+
+  <div class="row">
+    <div class="small-12 columns">
+      {% with tool=current_user_data.tools|get_tool:'Netmap' %}
+        {% include 'nav_header.html' %}
+      {% endwith %}
+    </div>
+  </div>
+
+  <div class="row">
+    <div id="top-bar" class="small-12 columns">
+      <div id="netmap-navigation-view"></div>
+    </div>
+  </div>
 
 
+  <div class="row">
 
-  <div class="clear" style="padding-top: 10px"></div>
-    <div id="netmap_wrapper">
+    <div class="small-2 columns" style="background: lightgreen">
+      Navigation
+    </div>
+
+    <div class="large-10 columns" style="background: pink;">
+      <h6>Pink background for debug purposes ^@^</h6>
+
+      <div id="netmap_main_view">
+
+        <div id="wrapper_chart"></div>
+
+          <div id="netmap_bootstrap_mapPropertiesCollection" class="hidden">
+              {{ bootstrap_mapproperties_collection }}
+          </div>
+          <div id="netmap_bootstrap_favoriteView" class="hidden">
+              {{ bootstrap_isFavorite }}
+          </div>
+          <div id="netmap_bootstrap_availableCategories" class="hidden">
+              {{ bootstrap_availableCategories }}
+          </div>
+
+          <div id="netmap_bootstrap_availableCategories_datauris" class="hidden">
+              {{ bootstrap_availableCategories_datauris }}
+          </div>
+          <div id="netmapview_id" class="hidden">
+              {{ current_view.viewid }}
+          </div>
+          <div id="chart_header"></div>
+          <div id="netmap_userid">{{ auth_id }}</div>
+          {% if link_to_admin %}
+              <div id="netmap_link_to_admin" class="hide">{{link_to_admin}}</div>
+          {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="small-12 columns" style="background: lightskyblue">
+      Legend
+    </div>
+  </div>
+
+{% comment %}    <div id="netmap_wrapper">
+
+        <div id="netmap-top-bar">
+            <h6>Hey</h6>
+        </div>
 
         <div id="netmap_main_view">
             <!-- <h2>{{ current_view.title }}</h2> -->
@@ -48,9 +106,9 @@
             {% if link_to_admin %}
                 <div id="netmap_link_to_admin" class="hide">{{link_to_admin}}</div>
             {% endif %}
-        </div>
-        <div id="netmap_left_sidebar">
-            <div id="searchbox"></div>
+        </div>{% endcomment %}
+        {% comment %}<div id="netmap_left_sidebar">
+{#            <div id="searchbox"></div>#}
 
             <div id="map_filters"></div>
 
@@ -63,8 +121,9 @@
             <div id="list_views"></div>
             <div id="mapinfo"></div>
         </div>
-    </div>
-    <div class="clear"></div>
+    </div>{% endcomment %}
+
+
     <script type="text/javascript">
         var target = document.getElementById('loading_chart');
         var opts = {
