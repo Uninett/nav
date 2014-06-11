@@ -38,13 +38,14 @@ Creating and running the container
 The first time you wish to run the container it must be created with the
 following command::
 
-    docker run -v <PATH>:/source -d --name <CONTAINER_NAME> -p <HOST_PORT1>:80 -p <HOST_PORT2>:22 <IMAGE_NAME>
+    docker run -v <PATH>:/source -d --name <CONTAINER_NAME> -p <HOST_PORT1>:80 -p <HOST_PORT2>:22 -p <HOST_PORT3>:8000 <IMAGE_NAME>
 
 Where:
     * `PATH` is the path to the NAV root directory.
     * `CONTAINER_NAME` is the name you wish to give the container (optional but recommended).
     * `HOST_PORT1` is the port number on the host that should map to container port 80.
     * `HOST_PORT2` is the port number on the host that should map to container port 22.
+    * `HOST_PORT3` is the port number on the host that should map to container port 8000 (Graphite web interface).
     * `IMAGE_NAME` is the name you gave the image at the previous step.
 
 To see if the container is running execute::
