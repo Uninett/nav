@@ -5,15 +5,16 @@ define([
     'netmap/models/graph',
     'netmap/models/default_map',
     'netmap/views/draw_map',
-    'netmap/views/navigation',
-    'netmap/views/info',
+    //'netmap/views/navigation',
+    //'netmap/views/info',
+    'netmap/views/search_graph',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/spin.min',
     'libs/d3.v2'
     /*'views/users/list'*/
-], function (Resources, MapCollection, MapModel, GraphModel, DefaultMapModel, DrawNetmapView, NavigationView, InfoView) {
+], function (Resources, MapCollection, MapModel, GraphModel, DefaultMapModel, DrawNetmapView, NavigationView) {
 
     var AppRouter = Backbone.Router.extend({
         initialize: function () {
@@ -58,16 +59,19 @@ define([
 
         loadUi: function (viewId, vlanId) {
             var self = this;
-            this.viewInfo = Backbone.View.prototype.attachSubView(this.viewInfo, InfoView, '#netmap_infopanel');
-            this.viewNavigation = Backbone.View.prototype.attachSubView(this.viewNavigation, NavigationView, '#netmap_left_sidebar');
+            //this.viewInfo = Backbone.View.prototype.attachSubView(this.viewInfo, InfoView, '#netmap_infopanel');
+            //this.viewNavigation = Backbone.View.prototype.attachSubView(this.viewNavigation, NavigationView, '#netmap_left_sidebar');
 
+            this.navigationView = new NavigationView();
+
+            var graphView = $('#graph-view');
             self.view_map = new DrawNetmapView({
                 viewid: viewId,
                 nav_vlanid: {'navVlanId': vlanId },
                 view_map_info: self.view_map_info,
-                cssWidth: $('#netmap_main_view').width()
+                cssWidth: graphView.width()
             });
-            $('#wrapper_chart').html(self.view_map.render().el);
+            graphView.html(self.view_map.render().el);
         }
 
     });

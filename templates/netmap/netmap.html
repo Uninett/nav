@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% load tools %}
+
+{% block base_header_additional_head %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/netmap.css"  />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/message.css" media="screen"  />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"  />
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/spin.min.js"></script>
+    <script>require(["src/netmap/main"]);</script>
+    <!-- check out https://github.com/jrburke/jqueryui-amd -->
+{% endblock %}
+
+{% block base_content %}
+
+<div class="row">
+  <div class="small-12 columns">
+    {% with tool=current_user_data.tools|get_tool:'Netmap' %}
+      {% include 'nav_header.html' %}
+    {% endwith %}
+  </div>
+</div>
+
+
+<div id="graph-navigation" class="row">
+
+  <div class="medium-4 columns">
+    <form id="graph-search-form">
+      <div class="row collapse">
+
+        <div class="medium-9 columns">
+         <input id="graph-search-query" type="text" placeholder="Search graph"/>
+        </div>
+        <div class="medium-3 columns">
+         <input id="graph-search-submit" class="postfix button" type="submit" />
+        </div>
+
+      </div>
+    </form>
+  </div>
+
+  <div class="medium-1 columns">
+    <div class="row collapse">
+      <div class="medium-7 columns">
+        <span class="prefix">Layer</span>
+      </div>
+      <div class="medium-5 columns">
+        <select id="graph-layer-select">
+          <option>2</option>
+          <option>3</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="medium-3 columns">
+    <div class="row collapse">
+      <div class="medium-2 columns">
+        <span class="prefix">View</span>
+      </div>
+      <div class="medium-7 columns">
+        <select id="graph-view-select">
+          {% for view in views %}
+            <option data-view_id="{{ view.pk }}">{{ view.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="medium-3 columns">
+        <a class="button small">
+          Save
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="medium-2 columns">
+    <a id="view-options-toggle" class="button secondary small">
+      View options
+      <i class="fa fa-caret-down"></i>
+    </a>
+  </div>
+
+  <div class="medium-1 columns">
+    <a id="advanced-options-toggle" class="button secondary small">
+      Advanced controls
+      <i class="fa fa-caret-down"></i>
+    </a>
+  </div>
+
+  <div class="medium-1 columns">
+    {% if link_to_admin %}
+      <a href="{{ link_to_admin }}" class="button small right">Netmap admin</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row">
+  <div id="graph-view-panel" class="medium-12 columns hide">
+    <div class="panel">
+      <div class="row">
+        <div class="medium-2 columns">
+          <div class="medium-6 columns">
+            <a class="button secondary small">Set as favorite</a>
+          </div>
+          <div class="medium-6 columns">
+            <a class="button alert small">Delete view</a>
+          </div>
+        </div>
+        <div class="medium-4 columns end right">
+          <form>
+            <input type="text" placeholder="View name"/>
+            <textarea placeholder="View description"></textarea>
+            <input class="button small" type="submit" value="Create view" />
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+
+  <div id="graph" class="large-12 columns">
+
+    <div id="spinner-dummy"></div>
+    <div id="graph-view"></div>
+
+      <div id="netmap-bootstrap-mapPropertiesCollection" class="hidden">
+          {{ bootstrap_mapproperties_collection }}
+      </div>
+      <div id="netmap-bootstrap-favoriteView" class="hidden">
+          {{ bootstrap_isFavorite }}
+      </div>
+      <div id="netmap-bootstrap-availableCategories" class="hidden">
+          {{ bootstrap_availableCategories }}
+      </div>
+
+      <div id="netmap-bootstrap-availableCategories-datauris" class="hidden">
+          {{ bootstrap_availableCategories_datauris }}
+      </div>
+      <div id="netmapview-id" class="hidden">
+          {{ current_view.viewid }}
+      </div>
+      <div id="chart-header"></div>
+      <div id="netmap-userid">{{ auth_id }}</div>
+      {% if link_to_admin %}
+          <div id="netmap-link-to-admin" class="hide">{{link_to_admin}}</div>
+      {% endif %}
+  </div>
+
+</div>
+
+<div class="row">
+  <div class="small-12 columns" style="background: #808080">
+    <h3>Legend goes here</h3>
+  </div>
+</div>
+
+<script type="text/javascript">
+    var target = document.getElementById('spinner-dummy');
+    var opts = {
+        lines: 13, // The number of lines to draw
+        length: 7, // The length of each line
+        width: 6, // The line thickness
+        radius: 20, // The radius of the inner circle
+        corners: 1, // Corner roundness (0..1)
+        rotate: 0, // The rotation offset
+        color: '#000', // #rgb or #rrggbb
+        speed: 1, // Rounds per second
+        trail: 60, // Afterglow percentage
+        shadow: true, // Whether to render a shadow
+        hwaccel: true, // Whether to use hardware acceleration
+        className: 'spinner', // The CSS class to assign to the spinner
+        zIndex: 2e9, // The z-index (defaults to 2000000000)
+        top: 'auto', // Top position relative to parent in px
+        left: 'auto' // Left position relative to parent in px
+    };
+    document.navNetmapAppSpinner = new Spinner(opts).spin(target);
+</script>
+{% endblock %}

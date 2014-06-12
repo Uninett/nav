@@ -72,7 +72,7 @@ define([
             'netmap:request:graph': 'broadcastGraphCopy',
             'headerFooterMinimize:trigger': 'resize'
         },
-        initialize: function () {
+        initialize: function () { console.log('graph initialize');
             // Settings
             this.imagesPrefix = NAV.imagePath + "/netmap/";
             this.availableCategoriesDatauris = Resources.getAvailableCategoriesDatauris();
@@ -1291,7 +1291,7 @@ define([
                 self.tick.apply(self);
             });
 
-
+            console.log('graph render');
             return this;
         },
         resizeAnimate: function (margin) {
@@ -1309,7 +1309,7 @@ define([
 
             // parent is $("#netmap_main_view"), required due to 3col collapse
             // layout. This breaks container principle, but it's django
-            // who renders backbone.html template.
+            // who renders netmap.html template.
             this.$el.parent().parent().animate(animates,
                 {   duration: 400,
                     step:     function () {

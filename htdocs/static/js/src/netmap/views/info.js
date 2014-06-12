@@ -32,8 +32,8 @@ define([
                 isVisible: this.isContentVisible
             };
 
-            if ($("#netmap_link_to_admin").length !== 0) {
-                context.link_to_admin = $("#netmap_link_to_admin").html().trim();
+            if ($("#netmap-link-to-admin").length !== 0) {
+                context.link_to_admin = $("#netmap-link-to-admin").html().trim();
             } else {
                 context.link_to_admin = false;
             }

@@ -61,10 +61,10 @@ define([
             };
             var self = this;
 
-            var bootstrapMapPropertiesCollectionEl = $('#netmap_bootstrap_mapPropertiesCollection');
-            var bootstrapIsFavoriteEl = $('#netmap_bootstrap_favoriteView');
-            var bootstrapAvailableCategories = $('#netmap_bootstrap_availableCategories');
-            var bootstrapAvailableCategoriesDatauris = $('#netmap_bootstrap_availableCategories_datauris');
+            var bootstrapMapPropertiesCollectionEl = $('#netmap-bootstrap-mapPropertiesCollection');
+            var bootstrapIsFavoriteEl = $('#netmap-bootstrap-favoriteView');
+            var bootstrapAvailableCategories = $('#netmap-bootstrap-availableCategories');
+            var bootstrapAvailableCategoriesDatauris = $('#netmap-bootstrap-availableCategories-datauris');
 
             try {
                 if (bootstrapMapPropertiesCollectionEl) {

@@ -17,6 +17,7 @@
 import datetime
 import logging
 import os
+
 from django.conf import settings
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
@@ -24,25 +25,39 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, render_to_response
-
-from django.template import RequestContext
-from django.http import (HttpResponse, HttpResponseForbidden,
-                         HttpResponseBadRequest, HttpResponseRedirect)
 from django.utils import simplejson
+from django.template import RequestContext
+from django.http import (
+    HttpResponse,
+    HttpResponseForbidden,
+    HttpResponseBadRequest,
+    HttpResponseRedirect
+)
 
 import nav.buildconf
 from nav.django.utils import get_account, get_request_body
 from nav.models.manage import Netbox, Category
-from nav.models.profiles import (NetmapView, NetmapViewNodePosition,
-                                 NetmapViewCategories, NetmapViewDefaultView,
-                                 Account)
-from nav.netmap.metadata import (node_to_json_layer2, edge_to_json_layer2,
-                                 node_to_json_layer3, edge_to_json_layer3,
-                                 vlan_to_json, get_vlan_lookup_json)
-
-from nav.netmap.topology import (build_netmap_layer3_graph,
-                                 build_netmap_layer2_graph,
-                                 _get_vlans_map_layer2, _get_vlans_map_layer3)
+from nav.models.profiles import (
+    NetmapView,
+    NetmapViewNodePosition,
+    NetmapViewCategories,
+    NetmapViewDefaultView,
+    Account
+)
+from nav.netmap.metadata import (
+    node_to_json_layer2,
+    edge_to_json_layer2,
+    node_to_json_layer3,
+    edge_to_json_layer3,
+    vlan_to_json,
+    get_vlan_lookup_json
+)
+from nav.netmap.topology import (
+    build_netmap_layer3_graph,
+    build_netmap_layer2_graph,
+    _get_vlans_map_layer2,
+    _get_vlans_map_layer3
+)
 from nav.topology import vlan
 from nav.web.netmap.common import layer2_graph, get_traffic_rgb
 from nav.web.netmap.forms import NetmapDefaultViewForm
@@ -58,6 +73,7 @@ def _get_available_categories():
     available_categories.append(Category(id='ELINK', description='ELINK'))
     return available_categories
 
+
 def backbone_app(request):
     """Single page backbone application for Netmap"""
     session_user = get_account(request)
@@ -68,15 +84,20 @@ def backbone_app(request):
 
     available_categories = _get_available_categories()
 
+    views = NetmapView.objects.filter(
+        Q(is_public=True) | Q(owner=session_user.id)
+    )
+
     response = render_to_response(
-        'netmap/backbone.html',
+        'netmap/netmap.html',
         {
+            'views': views,
             'bootstrap_mapproperties_collection': _get_maps(request),
             'bootstrap_isFavorite': _get_global_defaultview_as_json(request),
             'bootstrap_availableCategories': serializers.serialize(
                 'json',
                 available_categories,
-                fields=('description')
+                fields=('description',)
             ),
             'bootstrap_availableCategories_datauris': simplejson.dumps(
                 _get_datauris_for_categories()
