@@ -1,3 +1,4 @@
+{% load info %}
 <thead>
 <tr>
     <th>Name</th>
@@ -9,12 +10,13 @@
     <th>#gwp</th>
     <th>Up</th>
     <th>Availability (week)</th>
+    <th>Availability (month)</th>
 </tr>
 </thead>
 {% if netboxes %}
     <tbody>
     {% for netbox in netboxes %}
-        <tr class="{% cycle "oddrow" "evenrow" %}">
+        <tr>
             <td>
                 <a href="{% url ipdevinfo-details-by-name netbox.sysname %}">{{ netbox.sysname }}</a>
             </td>
@@ -34,10 +36,11 @@
             <td>
                 <a href="/report/gwport?netboxid={{ netbox.id }}">{{ netbox.get_gwport_count }}</a>
             </td>
-            <td><img
-                    src="{{ STATIC_URL }}images/lys/{% if netbox.up == 'y' %}green.png{% else %}red.png{% endif %}">
+            <td>
+              <img src="{{ STATIC_URL }}images/lys/{% if netbox.up == 'y' %}green.png{% else %}red.png{% endif %}">
             </td>
-            <td class="numeric">{{ netbox.get_week_availability }}</td>
+            <td class="numeric">{{ netbox|get_netbox_availability:'week' }}</td>
+            <td class="numeric">{{ netbox|get_netbox_availability:'month' }}</td>
         </tr>
     {% endfor %}
     </tbody>
