@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/message.css" media="screen"  />
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"  />
     <script type="text/javascript" src="{{ STATIC_URL }}js/libs/spin.min.js"></script>
-    <script>require(["src/netmap/main"]);</script>
+{#    <script>require(["src/netmap/main"]);</script>#}
     <!-- check out https://github.com/jrburke/jqueryui-amd -->
 {% endblock %}
 
@@ -149,6 +149,24 @@
 
 </div>
 
+{# Debug rendered data #}
+<div class="row">
+  <div class="small-12 columns" style="background: pink">
+    <h6>Debug data</h6>
+    <ul>
+      <li>Account id: {{ account.id }}, username: {{ account.login }}</li>
+      <li>Views
+        <ul>
+          {% for view in netmap_views %}
+            <li>{{ view }}</li>
+          {% endfor %}
+        </ul>
+      </li>
+      <li>{{ default_view }}</li>
+    </ul>
+  </div>
+</div>
+
 <div class="row">
   <div class="small-12 columns" style="background: #808080">
     <h3>Legend goes here</h3>
@@ -174,6 +192,6 @@
         top: 'auto', // Top position relative to parent in px
         left: 'auto' // Left position relative to parent in px
     };
-    document.navNetmapAppSpinner = new Spinner(opts).spin(target);
+    //document.navNetmapAppSpinner = new Spinner(opts).spin(target);
 </script>
 {% endblock %}
