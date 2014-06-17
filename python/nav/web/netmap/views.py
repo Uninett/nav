@@ -14,15 +14,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Netmap views"""
-from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.http import HttpResponse, Http404
+from django.http import Http404
 from django.views.generic import TemplateView, ListView
-from django.views.generic.edit import BaseUpdateView
-from django.utils import simplejson
+from django.shortcuts import get_object_or_404
 
-from rest_framework import viewsets, filters, status
-from rest_framework import generics
+from rest_framework import status, generics, views
 from rest_framework.response import Response
 
 from nav.django.utils import get_account
@@ -37,6 +34,7 @@ from nav.models.manage import Category
 
 from .mixins import DefaultNetmapViewMixin, AdminRequiredMixin
 from .serializers import NetmapViewSerializer, NetmapViewDefaultViewSerializer
+from .graph import get_topology_graph
 
 
 class IndexView(DefaultNetmapViewMixin, TemplateView):
@@ -188,6 +186,21 @@ class NetmapViewDefaultViewUpdate(generics.RetrieveUpdateAPIView):
         ownerid = self.kwargs.get(self.lookup_field, Account.DEFAULT_ACCOUNT)
 
         return user.id == ownerid or user.is_admin()
+
+
+class NetmapGraph(views.APIView):
+    """View for building and providing topology data in graph form"""
+    def get(self, request, **kwargs):
+
+        load_traffic = 'traffic' in request.GET
+        layer = int(kwargs.get('layer', 2))
+        viewid = kwargs.get('viewid')
+        view = None
+
+        if viewid is not None:
+            view = get_object_or_404(NetmapView, pk=viewid)
+
+        return Response(get_topology_graph(layer, load_traffic, view))
 
 
 ### Test view
