@@ -29,7 +29,7 @@
 {% for view in views %}
 
     <tr class="netmap_is_public_{{view.is_public}}">
-        <td class="netmapview_title{% if current_global_favorite.view.viewid == view.viewid %} current_favorite{% endif %}"><a href="{{view.get_absolute_url}}">{{view.title}}</a></td>
+        <td class="netmapview_title{% if global_default_view.view.viewid == view.viewid %} current_favorite{% endif %}"><a href="{{view.get_absolute_url}}">{{view.title}}</a></td>
         <td class="netmapview_description">{% if view.description %}{{view.description}}{% else %}N/A{% endif %}</td>
         <td class="netmapview_topology">{{view.topology_unicode}}</td>
         <td class="netmapview_is_public">{{view.is_public}}</td>
