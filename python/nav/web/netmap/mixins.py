@@ -5,19 +5,18 @@ from nav.models.profiles import NetmapViewDefaultView, Account
 
 
 class DefaultNetmapViewMixin(object):
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, user, **kwargs):
+        netmap_views = NetmapViewDefaultView.objects.select_related(
+            'view',
+        )
         try:
-            view = NetmapViewDefaultView.objects.get(
-                owner=self.account
-            ).view
+            view = netmap_views.get(owner=user).view
         except NetmapViewDefaultView.DoesNotExist:
             try:
-                view = NetmapViewDefaultView.objects.get(
-                    owner=Account.DEFAULT_ACCOUNT
-                ).view
+                view = netmap_views.get(owner=Account.DEFAULT_ACCOUNT).view
             except NetmapViewDefaultView.DoesNotExist:
                 view = None
-        return {'default_view': view.to_json_dict() if view else None}
+        return {'default_view': view.viewid if view else None}
 
 
 class AdminRequiredMixin(object):

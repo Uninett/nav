@@ -21,6 +21,7 @@ from django.shortcuts import get_object_or_404
 
 from rest_framework import status, generics, views
 from rest_framework.response import Response
+from rest_framework.renderers import UnicodeJSONRenderer as JSONRenderer
 
 from nav.django.utils import get_account
 from nav.models.profiles import (
@@ -42,20 +43,27 @@ class IndexView(DefaultNetmapViewMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
 
-        self.account = get_account(self.request)
+        user = get_account(self.request)
 
-        context = super(IndexView, self).get_context_data(**kwargs)
+        context = super(IndexView, self).get_context_data(user=user, **kwargs)
 
         netmap_views = NetmapView.objects.filter(
-            Q(is_public=True) | Q(owner=self.account)
+            Q(is_public=True) | Q(owner=user)
+        ).select_related(
+            'owner',
+        )
+
+        netmap_views_json = JSONRenderer().render(
+            NetmapViewSerializer(netmap_views).data
         )
 
         categories = list(Category.objects.all())
         categories.append(Category(id='ELINK', description='ELINK'))
 
         context.update({
-            'account': self.account,
+            'account': user,
             'netmap_views': netmap_views,
+            'netmap_views_json': netmap_views_json,
             'categories': categories,
             'navpath': [('Home', '/'), ('Netmap', '/netmap')]
         })
