@@ -66,7 +66,10 @@ class NetmapViewSerializer(serializers.Serializer):
     def to_native(self, obj):
         if obj is not None:
             categories = [
-                category.category.id for category in obj.categories_set.all()
+                view_category.category.id
+                for view_category in obj.categories_set.all().select_related(
+                    'category'
+                )
             ]
             setattr(obj, 'categories', categories)
         return super(NetmapViewSerializer, self).to_native(obj)
