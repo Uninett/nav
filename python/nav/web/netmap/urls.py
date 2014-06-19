@@ -1,0 +1,68 @@
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
+"""Netmap backend URL config."""
+
+from django.conf.urls import url, patterns
+
+from .views import (
+    IndexView,
+    NetmapAdminView,
+    NetmapViewList,
+    NetmapViewEdit,
+    NetmapViewCreate,
+    NetmapViewDefaultViewUpdate,
+    NetmapGraph,
+    NetmapTestView,
+)
+
+from nav.models.profiles import Account
+
+
+urlpatterns = patterns('nav.web.netmap.views',
+    url(r'^$', IndexView.as_view(), name='netmap-index'),
+    url(r'^admin/$', NetmapAdminView.as_view(), name='netmap-admin-views'),
+
+    url(r'^views/$', NetmapViewList.as_view(), name='netmap-view-list'),
+    url(
+        r'^views/(?P<viewid>[\d]+)/$',
+        NetmapViewEdit.as_view(),
+        name='netmap-view-edit',
+    ),
+    url(
+        r'^views/create/$',
+        NetmapViewCreate.as_view(),
+        name='netmap-view-create',
+    ),
+    url(
+        r'^views/default/$',
+        NetmapViewDefaultViewUpdate.as_view(),
+        {'owner': Account.DEFAULT_ACCOUNT},  # Find a more elegant solution?
+        name='netmap-defaultview-global',
+    ),
+    url(
+        r'^views/default/(?P<owner>[\d]+)/$',
+        NetmapViewDefaultViewUpdate.as_view(),
+        name='netmap-defaultview-user',
+    ),
+    url(
+        r'^graph/layer(?P<layer>[2|3])/$',
+        NetmapGraph.as_view(),
+        name='netmap-graph',
+    ),
+    url(
+        r'^graph/layer(?P<layer>[2|3])/(?P<viewid>[\d]+)/$',
+        NetmapGraph.as_view(),
+        name='netmap-graph-view',
+    ),
+)
