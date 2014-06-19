@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/message.css" media="screen"  />
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"  />
     <script type="text/javascript" src="{{ STATIC_URL }}js/libs/spin.min.js"></script>
-{#    <script>require(["src/netmap/main"]);</script>#}
+    <script>require(["src/netmapv2/netmap"]);</script>
     <!-- check out https://github.com/jrburke/jqueryui-amd -->
 {% endblock %}
 
@@ -124,7 +124,7 @@
     <div id="spinner-dummy"></div>
     <div id="graph-view"></div>
 
-      <div id="netmap-bootstrap-mapPropertiesCollection" class="hidden">
+      {% comment %}<div id="netmap-bootstrap-mapPropertiesCollection" class="hidden">
           {{ bootstrap_mapproperties_collection }}
       </div>
       <div id="netmap-bootstrap-favoriteView" class="hidden">
@@ -144,12 +144,12 @@
       <div id="netmap-userid">{{ auth_id }}</div>
       {% if link_to_admin %}
           <div id="netmap-link-to-admin" class="hide">{{link_to_admin}}</div>
-      {% endif %}
+      {% endif %}{% endcomment %}
   </div>
 
 </div>
 
-{# Debug rendered data #}
+{% comment %}{# Debug rendered data #}
 <div class="row">
   <div class="small-12 columns" style="background: pink">
     <h6>Debug data</h6>
@@ -165,7 +165,7 @@
       <li>{{ default_view }}</li>
     </ul>
   </div>
-</div>
+</div>{% endcomment %}
 
 <div class="row">
   <div class="small-12 columns" style="background: #808080">
@@ -174,6 +174,10 @@
 </div>
 
 <script type="text/javascript">
+
+    window.staticURL = '{{ STATIC_URL }}images/netmap/';
+
+    console.log(window.staticURL);
     var target = document.getElementById('spinner-dummy');
     var opts = {
         lines: 13, // The number of lines to draw

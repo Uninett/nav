@@ -35,8 +35,8 @@
         <td class="netmapview_is_public">{{view.is_public}}</td>
         <td class="netmapview_owner">{{view.owner}}</td>
         <td class="netmapview_action">
-            <form action="{{view.get_set_defaultview_url}}" method="post">
-                <input name="map_id" type="hidden" value="{{view.viewid}}" />
+            <form action="{% url netmap-defaultview-global %}" method="put">
+                <input name="view" type="hidden" value="{{view.viewid}}" />
                 <input type="submit" value="Set default" />
             </form>
         </td>
