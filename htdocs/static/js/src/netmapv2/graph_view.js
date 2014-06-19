@@ -11,6 +11,8 @@ define([
         el: '#graph-view',
 
         interests: {
+            'netmap:topologyLayerChanged': 'updateTopologyLayer',
+            'netmap:netmapViewChanged': 'updateNetmapView',
             'netmap:graphUpdated': 'update',
             'netmap:renderGraph': 'render'
             // TODO
@@ -30,7 +32,7 @@ define([
             this.force = d3.layout.force()
                 .gravity(0.1)
                 .charge(-2500)
-                .linkDistance(250)
+                .linkDistance(150)
                 .size([this.w, this.h])
                 ;
 
@@ -38,7 +40,7 @@ define([
                 .append('svg')
                 .attr('width', this.w)
                 .attr('height', this.h)
-                //.attr('viewBox', '0 0 ' + this.w + ' ' + this.h)
+                .attr('viewBox', '0 0 ' + this.w + ' ' + this.h)
                 .attr('overflow', 'hidden')
                 ;
 
@@ -64,7 +66,7 @@ define([
                     var scale = 'scale(' + d3.event.scale + ')';
                     self.svg.attr('transform', translate + scale);
                 });
-            this.svg.call(zoomListener);
+            //this.svg.call(zoomListener);
 
             // Set up resize on window resize
             $(window).resize(function () {
@@ -80,16 +82,11 @@ define([
             // while updating
             this.force.stop();
 
-            var nodes = this.model.get('nodeCollection').map(
-                function (o) {
-                    return o.attributes;
-                });
-            var links = this.model.get('linkCollection').map(
-                function (o) {
-                    return o.attributes;
-                });
+            var nodes = this.model.get('nodeCollection').getGraphObjects();
+            var links = this.model.get('linkCollection').getGraphObjects();
 
-            this.force.nodes(nodes)
+            this.force
+                .nodes(nodes)
                 .links(links)
                 ;
 
@@ -160,6 +157,16 @@ define([
             });
         },
 
+        updateTopologyLayer: function () { console.log('graph view update topology');
+
+            // TODO
+        },
+
+        updateNetmapView: function (view) { console.log('graph view update view');
+
+            // TODO
+        },
+
        /* dragstart: function (node) { console.log('graph view dragstart');
             this.force.stop();
             d3.select(this).classed('fixed', node.fixed = true);
@@ -175,7 +182,5 @@ define([
 
     });
 
-    return {
-        GraphView: GraphView
-    };
+    return GraphView;
 });

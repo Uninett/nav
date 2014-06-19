@@ -20,97 +20,100 @@
   </div>
 </div>
 
+<div id="navigation-view">
+  <div id="graph-navigation" class="row">
 
-<div id="graph-navigation" class="row">
+    <div class="medium-4 columns">
+      <form id="graph-search-form">
+        <div class="row collapse">
 
-  <div class="medium-4 columns">
-    <form id="graph-search-form">
+          <div class="medium-9 columns">
+           <input id="graph-search-input" type="text" placeholder="Search graph"/>
+          </div>
+          <div class="medium-3 columns">
+           <input id="graph-search-submit" class="postfix button" type="submit" />
+          </div>
+
+        </div>
+      </form>
+    </div>
+
+    <div class="medium-1 columns">
       <div class="row collapse">
+        <div class="medium-7 columns">
+          <span class="prefix">Layer</span>
+        </div>
+        <div class="medium-5 columns">
+          <select id="graph-layer-select">
+            <option value="2">2</option>
+            <option value="3">3</option>
+          </select>
+        </div>
+      </div>
+    </div>
 
-        <div class="medium-9 columns">
-         <input id="graph-search-query" type="text" placeholder="Search graph"/>
+    <div class="medium-3 columns">
+      <div class="row collapse">
+        <div class="medium-2 columns">
+          <span class="prefix">View</span>
+        </div>
+        <div class="medium-7 columns">
+          <select id="graph-view-select">
+            {% for view in netmap_views %}
+              <option id="{{ view.pk }}" value="{{ view.pk }}">
+                {{ view.title }}
+              </option>
+            {% endfor %}
+          </select>
         </div>
         <div class="medium-3 columns">
-         <input id="graph-search-submit" class="postfix button" type="submit" />
+          <a class="button small">
+            Save
+          </a>
         </div>
+      </div>
+    </div>
 
-      </div>
-    </form>
-  </div>
+    <div class="medium-2 columns">
+      <a id="sub-view-toggle" class="button secondary small">
+        View options
+        <i class="fa fa-caret-down"></i>
+      </a>
+    </div>
 
-  <div class="medium-1 columns">
-    <div class="row collapse">
-      <div class="medium-7 columns">
-        <span class="prefix">Layer</span>
-      </div>
-      <div class="medium-5 columns">
-        <select id="graph-layer-select">
-          <option>2</option>
-          <option>3</option>
-        </select>
-      </div>
+    <div class="medium-1 columns">
+      <a id="advanced-options-toggle" class="button secondary small">
+        Advanced controls
+        <i class="fa fa-caret-down"></i>
+      </a>
+    </div>
+
+    <div class="medium-1 columns">
+      {% if link_to_admin %}
+        <a href="{{ link_to_admin }}" class="button small right">Netmap admin</a>
+      {% endif %}
     </div>
   </div>
 
-  <div class="medium-3 columns">
-    <div class="row collapse">
-      <div class="medium-2 columns">
-        <span class="prefix">View</span>
-      </div>
-      <div class="medium-7 columns">
-        <select id="graph-view-select">
-          {% for view in views %}
-            <option data-view_id="{{ view.pk }}">{{ view.title }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="medium-3 columns">
-        <a class="button small">
-          Save
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <div class="medium-2 columns">
-    <a id="view-options-toggle" class="button secondary small">
-      View options
-      <i class="fa fa-caret-down"></i>
-    </a>
-  </div>
-
-  <div class="medium-1 columns">
-    <a id="advanced-options-toggle" class="button secondary small">
-      Advanced controls
-      <i class="fa fa-caret-down"></i>
-    </a>
-  </div>
-
-  <div class="medium-1 columns">
-    {% if link_to_admin %}
-      <a href="{{ link_to_admin }}" class="button small right">Netmap admin</a>
-    {% endif %}
-  </div>
-</div>
-
-<div class="row">
-  <div id="graph-view-panel" class="medium-12 columns hide">
-    <div class="panel">
-      <div class="row">
-        <div class="medium-2 columns">
-          <div class="medium-6 columns">
-            <a class="button secondary small">Set as favorite</a>
+  <div class="row">
+    <div id="navigation-sub-view" class="medium-12 columns hide">
+      <div class="panel">
+        <div class="row">
+          <div class="medium-2 columns">
+            <div class="medium-6 columns">
+              <a class="button secondary small">Set as favorite</a>
+            </div>
+            <div class="medium-6 columns">
+              <a class="button alert small">Delete view</a>
+            </div>
           </div>
-          <div class="medium-6 columns">
-            <a class="button alert small">Delete view</a>
+          <div class="medium-4 columns end right">
+            <form>
+              <input type="text" placeholder="View name"/>
+              <textarea placeholder="View description"></textarea>
+              <input class="button small" type="submit" value="Create view" />
+            </form>
           </div>
-        </div>
-        <div class="medium-4 columns end right">
-          <form>
-            <input type="text" placeholder="View name"/>
-            <textarea placeholder="View description"></textarea>
-            <input class="button small" type="submit" value="Create view" />
-          </form>
         </div>
       </div>
     </div>
@@ -124,48 +127,10 @@
     <div id="spinner-dummy"></div>
     <div id="graph-view"></div>
 
-      {% comment %}<div id="netmap-bootstrap-mapPropertiesCollection" class="hidden">
-          {{ bootstrap_mapproperties_collection }}
-      </div>
-      <div id="netmap-bootstrap-favoriteView" class="hidden">
-          {{ bootstrap_isFavorite }}
-      </div>
-      <div id="netmap-bootstrap-availableCategories" class="hidden">
-          {{ bootstrap_availableCategories }}
-      </div>
 
-      <div id="netmap-bootstrap-availableCategories-datauris" class="hidden">
-          {{ bootstrap_availableCategories_datauris }}
-      </div>
-      <div id="netmapview-id" class="hidden">
-          {{ current_view.viewid }}
-      </div>
-      <div id="chart-header"></div>
-      <div id="netmap-userid">{{ auth_id }}</div>
-      {% if link_to_admin %}
-          <div id="netmap-link-to-admin" class="hide">{{link_to_admin}}</div>
-      {% endif %}{% endcomment %}
   </div>
 
 </div>
-
-{% comment %}{# Debug rendered data #}
-<div class="row">
-  <div class="small-12 columns" style="background: pink">
-    <h6>Debug data</h6>
-    <ul>
-      <li>Account id: {{ account.id }}, username: {{ account.login }}</li>
-      <li>Views
-        <ul>
-          {% for view in netmap_views %}
-            <li>{{ view }}</li>
-          {% endfor %}
-        </ul>
-      </li>
-      <li>{{ default_view }}</li>
-    </ul>
-  </div>
-</div>{% endcomment %}
 
 <div class="row">
   <div class="small-12 columns" style="background: #808080">
@@ -175,9 +140,13 @@
 
 <script type="text/javascript">
 
-    window.staticURL = '{{ STATIC_URL }}images/netmap/';
+    window.netmapData = {
+        staticURL: '{{ STATIC_URL }}images/netmap/',
+        userID: {{ account.pk }},
+        views: {{ netmap_views_json|safe }},
+        defaultView: {{ default_view }}
+    };
 
-    console.log(window.staticURL);
     var target = document.getElementById('spinner-dummy');
     var opts = {
         lines: 13, // The number of lines to draw

@@ -17,6 +17,12 @@ define([
 
             this.add(models);
             return this;
+        },
+
+        getGraphObjects: function () {
+            return this.map(function (node) {
+                return node.attributes;
+            });
         }
     });
 
@@ -34,6 +40,12 @@ define([
 
             this.add(models);
             return this;
+        },
+
+        getGraphObjects: function () {
+            return this.map(function (link) {
+                return link.attributes;
+            });
         }
     });
 
@@ -51,15 +63,32 @@ define([
 
             this.add(models);
             return this;
+        },
+
+        getGraphObjects: function () {
+            return this.map(function (vlan) {
+                return vlan.attributes;
+            });
         }
     });
 
-    var ViewCollection;
+    var NetmapViewCollection = Backbone.Collection.extend({
+
+        model: Models.NetmapView,
+        url: 'views/',
+
+        parse: function (data) { console.log('NetmapView collection parse');
+
+            console.log(data);
+
+            return data;
+        }
+    });
 
     return {
         NodeCollection: NodeCollection,
         LinkCollection: LinkCollection,
         VlanCollection: VlanCollection,
-        ViewCollection: ViewCollection
+        NetmapViewCollection: NetmapViewCollection
     };
 });

@@ -1,9 +1,12 @@
 require([
-    'netmap/views'
+    'netmap/graph_view',
+    'netmap/control_view'
 
-], function (Views) {
+], function (GraphView, ControlView) {
 
-    $(document).ready(function () {
-        var view = new Views.GraphView();
+    $(function () {
+
+        var controlView = new ControlView();
+        var graphView = new GraphView();
     });
 });
