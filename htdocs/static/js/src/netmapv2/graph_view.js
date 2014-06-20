@@ -1,12 +1,13 @@
 define([
     'netmap/graph',
+    'plugins/d3force',
     'libs/jquery',
     'libs/backbone',
     'libs/backbone-eventbroker',
     'libs/d3.v2'
-], function (Graph) {
+], function (Graph, D3ForceHelper) {
 
-    var GraphView = Backbone.Model.extend({
+    var GraphView = Backbone.View.extend({
 
         el: '#graph-view',
 
@@ -35,6 +36,10 @@ define([
                 .linkDistance(150)
                 .size([this.w, this.h])
                 ;
+
+            this.nodes = this.force.nodes();
+            this.links = this.force.links();
+            this.forceHelper = new D3ForceHelper(this.nodes, this.links);
 
             this.svg = d3.select(this.el)
                 .append('svg')
