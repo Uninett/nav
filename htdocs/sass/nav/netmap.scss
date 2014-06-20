@@ -47,6 +47,11 @@ quote http://www.bluerobot.com/web/layouts/
 @import '../navsettings';
 $image-path: '../../images';
 
+#graph-view {
+  background: #ffffff;
+  border: 1px solid #000000;
+}
+
 #netmap_wrapper {
     position: relative;
     top: 0;
