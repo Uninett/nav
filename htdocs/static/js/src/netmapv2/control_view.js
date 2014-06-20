@@ -22,7 +22,6 @@ define([
             this.netmapViews = new Collections.NetmapViewCollection();
             this.netmapViews.reset(window.netmapData.views);
             this.currentView = this.netmapViews.get(window.netmapData.defaultView);
-            console.log(this.currentView);
 
             this.grabControlsFromDOM();
 

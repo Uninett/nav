@@ -1,11 +1,12 @@
 define([
     'netmap/graph',
     'plugins/d3force',
+    'plugins/set_equality',
     'libs/jquery',
     'libs/backbone',
     'libs/backbone-eventbroker',
     'libs/d3.v2'
-], function (Graph, D3ForceHelper) {
+], function (Graph, D3ForceHelper, Set) {
 
     var GraphView = Backbone.View.extend({
 
@@ -39,7 +40,7 @@ define([
 
             this.nodes = this.force.nodes();
             this.links = this.force.links();
-            this.forceHelper = new D3ForceHelper(this.nodes, this.links);
+            this.isLoadingForTheFirstTime = true;
 
             this.svg = d3.select(this.el)
                 .append('svg')
@@ -48,6 +49,13 @@ define([
                 .attr('viewBox', '0 0 ' + this.w + ' ' + this.h)
                 .attr('overflow', 'hidden')
                 ;
+
+            // Needed to control the layering of elements
+            this.linkGroup = this.svg.append('g').attr('id', 'link-group');
+            this.nodeGroup = this.svg.append('g').attr('id', 'node-group');
+
+            this.link = d3.selectAll('.link').data([]);
+            this.node = d3.selectAll('.node').data([]);
 
             this.model = new Graph();
 
@@ -79,81 +87,8 @@ define([
                 self.w = self.$el.width();
                 self.svg.attr('width', self.w);
             });
-        },
-
-        reset: function () { console.log('graph view reset');
-
-            //this.
-        },
-
-        update: function () { console.log('graph view update');
-
-            // You wouldn't want this running
-            // while updating
-            this.force.stop();
-
-            var nodes = this.model.get('nodeCollection').getGraphObjects();
-            var vlans = this.model.get('vlanCollection').getGraphObjects();
-            var links = this.model.get('linkCollection').getGraphObjects();
-
-            nodes = nodes.concat(vlans);
-
-            this.force
-                .nodes(nodes)
-                .links(links)
-                ;
-
-            console.log(nodes.length);
-
-            this.render(nodes, links);
-
-            this.force.start();
-        },
-
-        render: function (nodes, links) { console.log('graph view render');
-
-            this.link = this.svg.selectAll('.link')
-                .data(links)
-                .enter()
-                .append('line')
-                //.append('path') For curved lines
-                .attr('class', 'link')
-                .attr('stroke', function (o) {
-                    // TODO: Load based
-                    return '#000000';
-                })
-                ;
-
-            this.node = this.svg.selectAll('.node')
-                .data(nodes)
-                .enter()
-                .append('g')
-                .attr('class', 'node')
-                .on('dblclick', this.dblclick)
-                .call(this.force.drag)
-                ;
-
-            this.node.append('image')
-                .attr('xlink:href', function (o) {
-                    return '/static/images/netmap/' + o.category.toLowerCase() + '.png';
-                })
-                .attr('x', -16)
-                .attr('y', -16)
-                .attr('width', 32)
-                .attr('height', 32)
-                ;
-
-            this.node.append('text')
-                .attr('class', 'sysname')
-                .attr('dy', '1.5em')
-                .attr('text-anchor', 'middle')
-                .text(function (o) {
-                    return o.sysname;
-                })
-                ;
 
             // Set up tick event
-            var self = this;
             this.force.on('tick', function () {
 
                 self.link.attr('x1', function (o) {
@@ -170,6 +105,92 @@ define([
                     return 'translate(' + o.px + "," + o.py + ')';
                 });
             });
+        },
+
+        /**
+         * TODO: More efficient
+         * @param nodes
+         * @param links
+         */
+        updateNodesAndLinks: function (nodes, links) {
+
+            this.force
+                .links(links)
+                .nodes(nodes);
+
+            this.nodes = this.force.nodes();
+            this.links = this.force.links();
+        },
+
+        update: function () { console.log('graph view update');
+
+            // You wouldn't want this running while updating
+            this.force.stop();
+
+            var nodes = this.model.get('nodeCollection').getGraphObjects();
+            var vlans = this.model.get('vlanCollection').getGraphObjects();
+            var links = this.model.get('linkCollection').getGraphObjects();
+
+            if (this.isLoadingForTheFirstTime) {
+                this.isLoadingForTheFirstTime = false;
+            }
+
+            this.updateNodesAndLinks(nodes, links);
+            this.render();
+
+            this.force.start();
+        },
+
+        render: function () { console.log('graph view render');
+
+            this.link = this.linkGroup.selectAll('.link')
+                .data(this.links, function (link) {
+                    return link.source.id + '-' + link.target.id;
+                });
+
+            this.link.enter()
+                .append('line')
+                .attr('class', 'link')
+                .attr('stroke', function (o) {
+                    // TODO: Load based
+                    return '#000000';
+                })
+                ;
+
+            this.link.exit().remove();
+
+            this.node = this.nodeGroup.selectAll('.node')
+                .data(this.nodes, function (node) {
+                    return node.id;
+                });
+
+            var nodeElement = this.node.enter()
+                .append('g')
+                .attr('class', 'node')
+                .on('dblclick', this.dblclick)
+                .call(this.force.drag)
+                ;
+
+            nodeElement.append('image')
+                .attr('xlink:href', function (o) {
+                    return '/static/images/netmap/' + o.category.toLowerCase() + '.png';
+                })
+                .attr('x', -16)
+                .attr('y', -16)
+                .attr('width', 32)
+                .attr('height', 32)
+                ;
+
+            nodeElement.append('text')
+                .attr('class', 'sysname')
+                .attr('dy', '1.5em')
+                .attr('text-anchor', 'middle')
+                .text(function (o) {
+                    return o.sysname;
+                })
+                ;
+
+            this.node.exit().remove();
         },
 
         updateTopologyLayer: function (layer) { console.log('graph view update topology');

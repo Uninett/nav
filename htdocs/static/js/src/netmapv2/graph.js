@@ -61,7 +61,6 @@ define([
                 link.set('target', target);
             });
 
-            console.log(response);
             // TODO: Nodes can haz vlans??
             // TODO: Way more stuff apparently
 
