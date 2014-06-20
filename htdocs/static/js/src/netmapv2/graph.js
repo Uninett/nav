@@ -49,12 +49,19 @@ define([
                 var targetId = link.get('target');
 
                 var source = nodes.get(sourceId).attributes;
+                if (!source) {
+                    source = vlans.get(sourceId).attributes;
+                }
                 var target = nodes.get(targetId).attributes;
+                if (!target) {
+                    target = vlans.get(targetId).attributes;
+                }
 
                 link.set('source', source);
                 link.set('target', target);
             });
 
+            console.log(response);
             // TODO: Nodes can haz vlans??
             // TODO: Way more stuff apparently
 

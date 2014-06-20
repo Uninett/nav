@@ -80,7 +80,7 @@ define([
 
                 self.currentView.set('topology', newValue);
 
-                Backbone.EventBroker.trigger('netmap:topologyLayerChanged');
+                Backbone.EventBroker.trigger('netmap:topologyLayerChanged', newValue);
             }
         },
 

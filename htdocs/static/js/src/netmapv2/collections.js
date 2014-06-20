@@ -9,13 +9,11 @@ define([
 
         populate: function (nodes) {
 
-            var models = [];
-            _.each(nodes, function (node) {
-
-                models.push(new Models.Node (node));
+            var models = _.map(nodes, function (node) {
+                return new Models.Node (node);
             });
 
-            this.add(models);
+            this.reset(models);
             return this;
         },
 
@@ -32,13 +30,11 @@ define([
 
         populate: function (links) {
 
-            var models = [];
-            _.each(links, function (link) {
-
-                models.push(new Models.Link (link));
+            var models = _.map(links, function (link) {
+                return new Models.Link (link);
             });
 
-            this.add(models);
+            this.reset(models);
             return this;
         },
 
@@ -55,13 +51,11 @@ define([
 
         populate: function (vlans) {
 
-            var models = [];
-            _.each(vlans, function (vlan) {
-
-                models.push(new Models.Vlan (vlan));
+            var models = _.map(vlans, function (vlan) {
+                return new Models.Vlan (vlan);
             });
 
-            this.add(models);
+            this.reset(models);
             return this;
         },
 

@@ -76,6 +76,11 @@ define([
             });
         },
 
+        reset: function () { console.log('graph view reset');
+
+            //this.
+        },
+
         update: function () { console.log('graph view update');
 
             // You wouldn't want this running
@@ -83,12 +88,17 @@ define([
             this.force.stop();
 
             var nodes = this.model.get('nodeCollection').getGraphObjects();
+            var vlans = this.model.get('vlanCollection').getGraphObjects();
             var links = this.model.get('linkCollection').getGraphObjects();
+
+            nodes = nodes.concat(vlans);
 
             this.force
                 .nodes(nodes)
                 .links(links)
                 ;
+
+            console.log(nodes.length);
 
             this.render(nodes, links);
 
@@ -157,9 +167,10 @@ define([
             });
         },
 
-        updateTopologyLayer: function () { console.log('graph view update topology');
+        updateTopologyLayer: function (layer) { console.log('graph view update topology');
 
-            // TODO
+            this.model.set('layer', layer);
+            this.model.fetch();
         },
 
         updateNetmapView: function (view) { console.log('graph view update view');
