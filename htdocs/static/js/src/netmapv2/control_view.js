@@ -10,16 +10,13 @@ define([
 
         el: '#navigation-view',
         interests: {
+            'netmap:graphDoneLoading': 'initNetmapView'
         },
         events: {
             'click .filter-category': 'updateCategoryFilter'
         },
 
         initialize: function () {
-
-            // This does not seem to be bound automatically
-            // For some reason...
-            this.$el = $(this.el);
 
             // Initialize the available views from the
             // window-object.
@@ -97,6 +94,13 @@ define([
 
                 Backbone.EventBroker.trigger('netmap:topologyLayerChanged', newValue);
             }
+        },
+
+        /**
+         *
+         */
+        initNetmapView: function () {
+           Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
         },
 
         /**

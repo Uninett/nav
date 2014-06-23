@@ -7,8 +7,7 @@ require([
 
     $(function () {
 
-        var controlView = new ControlView();
-
         var graphView = new GraphView();
+        var controlView = new ControlView();
     });
 });

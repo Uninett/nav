@@ -77,7 +77,7 @@ define([
             // TODO: Way more stuff apparently
 
             // Trigger event
-            Backbone.EventBroker.trigger('netmap:graphUpdated');
+            //Backbone.EventBroker.trigger('netmap:graphUpdated');
 
             return {}; // We set the attributes excplicitly
         }

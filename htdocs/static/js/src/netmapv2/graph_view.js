@@ -63,7 +63,11 @@ define([
             this.bindEvents();
 
             this.model = new Graph();
-            this.model.fetch();
+            this.model.fetch({success: function () {
+                Backbone.EventBroker.trigger('netmap:graphDoneLoading');
+            }, error: function () {
+                alert('Error loading graph, please try to reload the page');
+            }});
         },
 
         bindEvents: function() {
@@ -114,9 +118,16 @@ define([
          */
         updateNodesAndLinks: function (nodes, links) {
 
+            // Get selected categories
+            var categories = _.pluck(_.filter(
+                this.model.get('filter_categories'),
+                function (category) {
+                    return category.checked;
+            }), 'name');
+
             this.force
-                .links(links)
-                .nodes(nodes);
+                .links(filterLinksByCategories(links, categories))
+                .nodes(filterNodesByCategories(nodes, categories));
 
             this.nodes = this.force.nodes();
             this.links = this.force.links();
@@ -214,6 +225,8 @@ define([
                     category.checked = false;
                 }
             });
+
+            this.update()
         },
 
         updateFilterCategories: function (categoryId, checked) { console.log('graph view update filter');
@@ -235,6 +248,34 @@ define([
         }
 
     });
+
+
+    /**
+     * Helper function for filtering a list of nodes by a list of categories.
+     * @param nodes
+     * @param categories
+     */
+    function filterNodesByCategories(nodes, categories) {
+
+        return _.filter(nodes, function (node) {
+           return _.contains(categories, node.category);
+        });
+    }
+
+    /**
+     * Helper function for filtering a list of links by a list of categories.
+     * @param links
+     * @param categories
+     */
+    function filterLinksByCategories(links, categories) {
+
+        console.log(links);
+        return _.filter(links, function (link) {
+            return _.contains(categories, link.source.category)
+                && _.contains(categories, link.target.category);
+        })
+    }
+
 
     /**
      * Helper function to find the max speed of a link objects
