@@ -13,7 +13,19 @@ define([
             baseUrl: 'graph/layer',
             nodeCollection: new Collections.NodeCollection(),
             linkCollection: new Collections.LinkCollection(),
-            vlanCollection: new Collections.VlanCollection()
+            vlanCollection: new Collections.VlanCollection(),
+            filter_categories: [
+                {name: 'GSW', checked: true},
+                {name: 'GW', checked: true},
+                {name: 'SW', checked: true},
+                {name: 'OTHER', checked: true},
+                {name: 'WLAN', checked: true},
+                {name: 'SRV', checked: true},
+                {name: 'EDGE', checked: true},
+                {name: 'ELINK', checked: true},
+                {name: 'ENV', checked: true},
+                {name: 'POWER', checked: true}
+            ]
         },
         interests: {},
 

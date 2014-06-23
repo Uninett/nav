@@ -9,7 +9,11 @@ define([
     var ControlView = Backbone.View.extend({
 
         el: '#navigation-view',
-        interests: {},
+        interests: {
+        },
+        events: {
+            'click .filter-category': 'updateCategoryFilter'
+        },
 
         initialize: function () {
 
@@ -59,8 +63,18 @@ define([
             this.subViewToggle = this.$('#sub-view-toggle');
             this.navigationSubView = this.$('#navigation-sub-view');
             this.subViewToggle.click(function () {
+                $('i', self.subViewToggle).toggleClass('fa-caret-down fa-caret-up');
                 self.navigationSubView.toggle();
             });
+
+            _.each(this.currentView.get('categories'), function (category) {
+                self.$('#filter-' + category).prop('checked', true);
+            });
+        },
+
+
+        initializeView: function () {
+            Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
         },
 
         /**
@@ -100,6 +114,26 @@ define([
 
                 Backbone.EventBroker.trigger('netmap:netmapViewChanged', self.currentView);
             }
+        },
+
+        /**
+         * Triggers when a new category is selected. Updates the
+         * current view and notifies the graph.
+         * @param e
+         */
+        updateCategoryFilter: function (e) {
+
+            var categoryId = e.currentTarget.value;
+            var checked = e.currentTarget.checked;
+            var categories = this.currentView.get('categories');
+
+            if (checked) {
+                categories.push(categoryId);
+            } else {
+                categories.splice(categories.indexOf(categoryId), 1)
+            }
+
+            Backbone.EventBroker.trigger('netmap:filterCategoriesChanged', categoryId, checked);
         },
 
         /**

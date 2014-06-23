@@ -15,6 +15,7 @@ define([
         interests: {
             'netmap:topologyLayerChanged': 'updateTopologyLayer',
             'netmap:netmapViewChanged': 'updateNetmapView',
+            'netmap:filterCategoriesChanged': 'updateFilterCategories',
             'netmap:graphUpdated': 'update',
             'netmap:renderGraph': 'render'
             // TODO
@@ -57,12 +58,11 @@ define([
             this.link = d3.selectAll('.link').data([]);
             this.node = d3.selectAll('.node').data([]);
 
-            this.model = new Graph();
-
             Backbone.EventBroker.register(this);
 
             this.bindEvents();
 
+            this.model = new Graph();
             this.model.fetch();
         },
 
@@ -203,7 +203,22 @@ define([
 
         updateNetmapView: function (view) { console.log('graph view update view');
 
-            // TODO
+            this.model.set('viewId', view.id);
+            this.model.set('layer', view.get('topology'));
+
+            var selectedCategories = view.get('categories');
+            _.each(this.model.get('filter_categories'), function (category) {
+                if (_.indexOf(selectedCategories, category.name) >= 0) {
+                    category.checked = true;
+                } else {
+                    category.checked = false;
+                }
+            });
+        },
+
+        updateFilterCategories: function (categoryId, checked) { console.log('graph view update filter');
+
+
         },
 
        /* dragstart: function (node) { console.log('graph view dragstart');
@@ -241,27 +256,33 @@ define([
         return speed;
     }
 
+    /**
+     * Helper function for converting the given speed into
+     * the appropriate range class.
+     * @param speed
+     * @returns {*}
+     */
     function linkSpeedAsString(speed) {
-        var classes;
+        var speedClass;
         if (speed <= 100) {
-            classes = 'speed0-100';
+            speedClass = 'speed0-100';
         }
         else if (speed > 100 && speed <= 512) {
-            classes = 'speed100-512';
+            speedClass = 'speed100-512';
         }
         else if (speed > 512 && speed <= 2048) {
-            classes = 'speed512-2048';
+            speedClass = 'speed512-2048';
         }
         else if (speed > 2048 && speed <= 4096) {
-            classes = 'speed2048-4096';
+            speedClass = 'speed2048-4096';
         }
         else if (speed > 4096) {
-            classes = 'speed4096';
+            speedClass = 'speed4096';
         }
         else {
-            classes = 'speedunknown';
+            speedClass = 'speedunknown';
         }
-        return classes;
+        return speedClass;
     }
 
     return GraphView;

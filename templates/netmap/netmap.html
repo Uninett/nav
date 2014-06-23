@@ -107,6 +107,17 @@
               <a class="button alert small">Delete view</a>
             </div>
           </div>
+          <div class="medium-3 columns nopadding">
+            <h6>Filter categories</h6>
+            <ul id="filter-category-list">
+              {% for category in categories %}
+                <li>
+                  <label for="filter-{{ category.id }}">{{ category.id }}
+                  <input type="checkbox" id="filter-{{ category.id }}" class="filter-category" value="{{ category.id }}"></label>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
           <div class="medium-4 columns end right">
             <form>
               <input type="text" placeholder="View name"/>
@@ -144,7 +155,7 @@
         staticURL: '{{ STATIC_URL }}images/netmap/',
         userID: {{ account.pk }},
         views: {{ netmap_views_json|safe }},
-        defaultView: {{ default_view }}
+        defaultView: {{ default_view }},
     };
 
     var target = document.getElementById('spinner-dummy');

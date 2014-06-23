@@ -57,8 +57,8 @@ class IndexView(DefaultNetmapViewMixin, TemplateView):
             NetmapViewSerializer(netmap_views).data
         )
 
-        categories = list(Category.objects.all())
-        categories.append(Category(id='ELINK', description='ELINK'))
+        categories = list(Category.objects.values_list('id', flat=True))
+        categories.append('ELINK')
 
         context.update({
             'account': user,

@@ -52,6 +52,18 @@ $image-path: '../../images';
   border: 1px solid #000000;
 }
 
+#filter-category-list {
+  list-style: none;
+  -webkit-column-count: 5;
+  -moz-column-count: 5;
+  column-count: 5;
+  text-align: right;
+}
+
+.nopadding {
+  padding: 0;
+}
+
 #netmap_wrapper {
     position: relative;
     top: 0;
