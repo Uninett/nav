@@ -134,7 +134,7 @@ class pinger:
         debug.debug("Starts reporting %i hosts as down" % len(reportDown),7)
         for netboxid in reportDown:
             netbox = self.netboxmap[netboxid]
-            newEvent = Event(0,
+            newEvent = Event(None,
                              netbox.netboxid,
                              netbox.deviceid,
                              Event.boxState,
@@ -151,7 +151,7 @@ class pinger:
             except:
                 debug.debug("Netbox %s is no longer with us..." % netboxid)
                 continue
-            newEvent = Event(0,
+            newEvent = Event(None,
                              netbox.netboxid,
                              netbox.deviceid,
                              Event.boxState,

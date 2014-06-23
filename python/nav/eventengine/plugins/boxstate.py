@@ -25,6 +25,10 @@ class BoxStateHandler(delayedstate.DelayedStateHandler):
     ALERT_WAIT_TIME = 'boxDown.alert'
     __waiting_for_resolve = {}
 
+    def _is_internally_down(self):
+        netbox = self.get_target()
+        return netbox.up != netbox.UP_UP
+
     def _set_internal_state_down(self):
         shadow = self._verify_shadow()
         state = Netbox.UP_SHADOW if shadow else Netbox.UP_DOWN
