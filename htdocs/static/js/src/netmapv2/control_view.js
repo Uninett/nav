@@ -79,11 +79,6 @@ define([
             });
         },
 
-
-        initializeView: function () {
-            Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
-        },
-
         /**
          * Triggers when the topology layer is changed. Updates the
          * view and fires an event to the graph model
