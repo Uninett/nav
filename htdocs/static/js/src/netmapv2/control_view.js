@@ -60,11 +60,18 @@ define([
             });
             this.graphViewSelect.change(this, this.changeNetmapView);
 
-            this.subViewToggle = this.$('#sub-view-toggle');
+            this.navigationSubViewToggle = this.$('#sub-view-toggle');
             this.navigationSubView = this.$('#navigation-sub-view');
-            this.subViewToggle.click(function () {
-                $('i', self.subViewToggle).toggleClass('fa-caret-down fa-caret-up');
+            this.navigationSubViewToggle.click(function () {
+                $('i', self.navigationSubViewToggle).toggleClass('fa-caret-down fa-caret-up');
                 self.navigationSubView.toggle();
+            });
+
+            this.advancedOptionsToggle = this.$('#advanced-options-toggle');
+            this.advancedOptions = this.$('#advanced-options');
+            this.advancedOptionsToggle.click(function () {
+                $('i', self.advancedOptionsToggle).toggleClass('fa-caret-down fa-caret-up');
+                self.advancedOptions.toggle();
             });
 
             _.each(this.currentView.get('categories'), function (category) {

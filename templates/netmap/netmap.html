@@ -74,25 +74,31 @@
       </div>
     </div>
 
-    <div class="medium-2 columns">
-      <a id="sub-view-toggle" class="button secondary small">
-        View options
-        <i class="fa fa-caret-down"></i>
-      </a>
+    <div class="medium-4 columns">
+      <div class="row">
+        <div class="medium-4 columns">
+          <a id="sub-view-toggle" class="button secondary small">
+            View options
+            <i class="fa fa-caret-down"></i>
+          </a>
+        </div>
+
+        <div class="medium-4 columns">
+          <a id="advanced-options-toggle" class="button secondary small">
+            Advanced options
+            <i class="fa fa-caret-down"></i>
+          </a>
+        </div>
+
+        <div class="medium-4 columns"></div>
+      </div>
     </div>
 
-    <div class="medium-1 columns">
-      <a id="advanced-options-toggle" class="button secondary small">
-        Advanced controls
-        <i class="fa fa-caret-down"></i>
-      </a>
-    </div>
-
-    <div class="medium-1 columns">
+    {% comment %}<div class="medium-1 columns">
       {% if link_to_admin %}
         <a href="{{ link_to_admin }}" class="button small right">Netmap admin</a>
       {% endif %}
-    </div>
+    </div>{% endcomment %}
   </div>
 
   <div class="row">
@@ -126,6 +132,14 @@
             </form>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div id="advanced-options" class="medium-12 columns hide">
+      <div class="panel">
+        Advanced controls
       </div>
     </div>
   </div>
