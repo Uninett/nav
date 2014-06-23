@@ -118,8 +118,8 @@
             <ul id="filter-category-list">
               {% for category in categories %}
                 <li>
-                  <label for="filter-{{ category.id }}">{{ category.id }}
-                  <input type="checkbox" id="filter-{{ category.id }}" class="filter-category" value="{{ category.id }}"></label>
+                  <label for="filter-{{ category }}">{{ category }}
+                  <input type="checkbox" id="filter-{{ category }}" class="filter-category" value="{{ category }}"></label>
                 </li>
               {% endfor %}
             </ul>

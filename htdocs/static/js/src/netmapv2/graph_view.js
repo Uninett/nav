@@ -269,7 +269,6 @@ define([
      */
     function filterLinksByCategories(links, categories) {
 
-        console.log(links);
         return _.filter(links, function (link) {
             return _.contains(categories, link.source.category)
                 && _.contains(categories, link.target.category);

@@ -118,6 +118,16 @@ define([
 
                 self.currentView = self.netmapViews.get(newValue);
 
+                // Update category checkboxes
+                var newCategories = self.currentView.get('categories');
+                _.each(self.$('.filter-category'), function (elem) {
+                    if (_.contains(newCategories, elem.value)) {
+                        elem.checked = true;
+                    } else {
+                         elem.checked = false;
+                    }
+                });
+
                 Backbone.EventBroker.trigger('netmap:netmapViewChanged', self.currentView);
             }
         },
