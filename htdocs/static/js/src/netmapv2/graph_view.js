@@ -150,10 +150,12 @@ define([
 
             this.link.enter()
                 .append('line')
-                .attr('class', 'link')
+                .attr('class', function (o) {
+                    return 'link ' + linkSpeedAsString(findLinkMaxSpeed(o));
+                })
                 .attr('stroke', function (o) {
                     // TODO: Load based
-                    return '#000000';
+                    return '#666666';
                 })
                 ;
 
@@ -218,6 +220,49 @@ define([
         }
 
     });
+
+    /**
+     * Helper function to find the max speed of a link objects
+     * multiple edges, regardless of the layer
+     * @param link
+     */
+    function findLinkMaxSpeed(link) {
+
+        /*
+        This is a kind of 'hacky' approach to find out which layer
+        the link belongs to. This is needed because the JSON format
+        of the object will be different depending on the layer.
+         */
+        if (Object.prototype.toString.call(link.edges) === "[object Array]") {
+            var speed = _.max(_.pluck(link.edges, 'link_speed'));
+        } else {
+            var speed = _.max(_.pluck(_.flatten(_.values(link.edges)), 'link_speed'));
+        }
+        return speed;
+    }
+
+    function linkSpeedAsString(speed) {
+        var classes;
+        if (speed <= 100) {
+            classes = 'speed0-100';
+        }
+        else if (speed > 100 && speed <= 512) {
+            classes = 'speed100-512';
+        }
+        else if (speed > 512 && speed <= 2048) {
+            classes = 'speed512-2048';
+        }
+        else if (speed > 2048 && speed <= 4096) {
+            classes = 'speed2048-4096';
+        }
+        else if (speed > 4096) {
+            classes = 'speed4096';
+        }
+        else {
+            classes = 'speedunknown';
+        }
+        return classes;
+    }
 
     return GraphView;
 });
