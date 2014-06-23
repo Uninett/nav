@@ -155,7 +155,7 @@ define([
                 })
                 .attr('stroke', function (o) {
                     // TODO: Load based
-                    return '#666666';
+                    return '#CCCCCC';
                 })
                 ;
 
