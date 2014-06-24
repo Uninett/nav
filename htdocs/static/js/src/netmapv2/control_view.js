@@ -51,7 +51,7 @@ define([
 
             this.graphViewSelect = this.$('#graph-view-select');
             $('option', this.graphViewSelect).each(function (i, option) {
-                if (self.currentView.id == parseInt(option.value)) {
+                if (self.currentView.id === parseInt(option.value)) {
                     option.selected = true;
                 }
             });
@@ -146,7 +146,7 @@ define([
             if (checked) {
                 categories.push(categoryId);
             } else {
-                categories.splice(categories.indexOf(categoryId), 1)
+                categories.splice(categories.indexOf(categoryId), 1);
             }
 
             Backbone.EventBroker.trigger('netmap:filterCategoriesChanged', categoryId, checked);

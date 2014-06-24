@@ -7,7 +7,7 @@ require([
 
     $(function () {
 
-        var graphView = new GraphView();
         var controlView = new ControlView();
+        var graphView = new GraphView({netmapView: controlView.currentView});
     });
 });

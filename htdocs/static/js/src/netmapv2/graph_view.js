@@ -1,5 +1,6 @@
 define([
     'netmap/graph',
+    'netmap/models',
     'plugins/d3force',
     'plugins/set_equality',
     'libs/jquery',
@@ -7,7 +8,7 @@ define([
     'libs/backbone',
     'libs/backbone-eventbroker',
     'libs/d3.v2'
-], function (Graph, D3ForceHelper, Set) {
+], function (Graph, Models) {
 
     var GraphView = Backbone.View.extend({
 
@@ -19,20 +20,15 @@ define([
             'netmap:filterCategoriesChanged': 'updateFilterCategories',
             'netmap:graphUpdated': 'update',
             'netmap:renderGraph': 'render'
-            // TODO
         },
 
         initialize: function () {
 
-            // This does not seem to be bound automatically
-            // For some reason...
-            this.$el = $(this.el);
-
             // TODO: How to define a good starting height
             this.w = this.$el.width();
-            this.h = 800;
+            this.h = 1200;
 
-            // Init state
+            // Initial d3 graph state
             this.force = d3.layout.force()
                 .gravity(0.1)
                 .charge(-2500)
@@ -46,17 +42,45 @@ define([
 
             Backbone.EventBroker.register(this);
 
+            this.model = new Graph();
+            this.netmapView = this.options.netmapView;
+
+            this.initializeNetmapView();
             this.initializeDOM();
             this.bindEvents();
-
-            this.model = new Graph();
-            this.model.fetch({success: function () {
-                Backbone.EventBroker.trigger('netmap:graphDoneLoading');
-            }, error: function () {
-                alert('Error loading graph, please try to reload the page');
-            }});
+            this.fetchGraphModel();
         },
 
+        /**
+         * Initializes the graph model from the initially selected
+         * or default netmapview.
+         */
+        initializeNetmapView: function () {
+
+            if (this.netmapView === null) { console.log('netmapView === null');
+                this.netmapView = new Models.NetmapView();
+            }
+
+            this.model.set('viewId', this.netmapView.id);
+            this.model.set('layer', this.netmapView.get('topology'));
+
+            var zoomStr = this.netmapView.get('zoom').split(';');
+            this.trans = zoomStr[0].split(',');
+            this.scale = zoomStr[1];
+
+            var selectedCategories = this.netmapView.get('categories');
+            _.each(this.model.get('filter_categories'), function (category) {
+                if (_.indexOf(selectedCategories, category.name) >= 0) {
+                    category.checked = true;
+                } else {
+                    category.checked = false;
+                }
+            });
+        },
+
+        /**
+         * Initialize the SVG DOM elements
+         */
         initializeDOM: function () {
 
             this.svg = d3.select(this.el)
@@ -120,13 +144,14 @@ define([
 
         },
 
+        /**
+         * Bind d3 events
+         */
         bindEvents: function() {
 
             var self = this;
 
             // Set up zoom listener
-            this.trans = [0, 0];
-            this.scale = 1;
             this.zoom = d3.behavior.zoom();
             this.svg.call(this.zoom.on('zoom', function () {
                self.zoomCallback.call(self);
@@ -265,11 +290,10 @@ define([
             this.node.exit().remove();
         },
 
-        updateTopologyLayer: function (layer) { console.log('graph view update topology');
+        fetchGraphModel: function () {
 
             var self = this;
 
-            this.model.set('layer', layer);
             this.model.fetch({
                 success: function () {
                     self.update();
@@ -280,16 +304,24 @@ define([
             });
         },
 
+        updateTopologyLayer: function (layer) { console.log('graph view update topology');
+
+            this.model.set('layer', layer);
+            this.fetchGraphModel();
+        },
+
         updateNetmapView: function (view) { console.log('graph view update view');
 
-            this.model.set('viewId', view.id);
-            this.model.set('layer', view.get('topology'));
+            this.netmapView = view;
 
-            var zoomStr = view.get('zoom').split(';');
+            this.model.set('viewId', this.netmapView.id);
+            this.model.set('layer', this.netmapView.get('topology'));
+
+            var zoomStr = this.netmapView.get('zoom').split(';');
             this.trans = zoomStr[0].split(',');
             this.scale = zoomStr[1];
 
-            var selectedCategories = view.get('categories');
+            var selectedCategories = this.netmapView.get('categories');
             _.each(this.model.get('filter_categories'), function (category) {
                 if (_.indexOf(selectedCategories, category.name) >= 0) {
                     category.checked = true;

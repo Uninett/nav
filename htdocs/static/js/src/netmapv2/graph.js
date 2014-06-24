@@ -76,9 +76,6 @@ define([
             // TODO: Nodes can haz vlans??
             // TODO: Way more stuff apparently
 
-            // Trigger event
-            //Backbone.EventBroker.trigger('netmap:graphUpdated');
-
             return {}; // We set the attributes excplicitly
         }
     });
