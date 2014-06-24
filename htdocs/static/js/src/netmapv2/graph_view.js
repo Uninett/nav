@@ -208,6 +208,15 @@ define([
 
             this.nodes = this.force.nodes();
             this.links = this.force.links();
+
+            // Set fixed positions
+            _.each(this.nodes, function (node) {
+                if (node.position) {
+                    node.px = node.position.x;
+                    node.py = node.position.y;
+                    node.fixed = true;
+                }
+            });
         },
 
         update: function () { console.log('graph view update');
