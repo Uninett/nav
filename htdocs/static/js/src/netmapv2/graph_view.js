@@ -44,8 +44,6 @@ define([
             this.links = this.force.links();
             this.isLoadingForTheFirstTime = true;
 
-
-
             Backbone.EventBroker.register(this);
 
             this.initializeDOM();
@@ -65,6 +63,7 @@ define([
                 .append('svg')
                 .attr('width', this.w)
                 .attr('height', this.h)
+                .attr('pointer-events', 'all')
                 .attr('viewBox', '0 0 ' + this.w + ' ' + this.h)
                 .attr('overflow', 'hidden')
                 ;
@@ -125,16 +124,14 @@ define([
 
             var self = this;
 
-            // Set up zoom
-            var zoomListener = d3.behavior.zoom()
-                .scaleExtent([0.2, 3])
-                .on('zoom', function () {
-                    console.log('graph view zoom');
-                    var translate = 'translate(' + d3.event.translate + ')';
-                    var scale = 'scale(' + d3.event.scale + ')';
-                    self.boundingBox.attr('transform', translate + scale);
-                });
-            this.svg.call(zoomListener);
+            // Set up zoom listener
+            this.trans = [0, 0];
+            this.scale = 1;
+            this.zoom = d3.behavior.zoom();
+            this.svg.call(this.zoom.on('zoom', function () {
+               self.zoomCallback.call(self);
+            }));
+
 
             // Set up resize on window resize
             $(window).resize(function () {
@@ -303,6 +300,23 @@ define([
         dragend: function (node) { console.log('graph view dragend');
 
         },*/
+
+        /**
+         * Callback function for zoom events. Zoom events are
+         * triggered on both drag and scroll.
+         */
+        zoomCallback: function () {
+
+            this.trans = d3.event.translate;
+            this.scale = d3.event.scale;
+            this.boundingBox.attr(
+                'transform',
+                'translate(' + this.trans +
+                ') scale(' + this.scale + ')'
+            );
+
+            // TODO: update view
+        },
 
         dblclick: function (node) { console.log('graph view dblclick');
             d3.select(this).classed('fixed', node.fixed = false);
