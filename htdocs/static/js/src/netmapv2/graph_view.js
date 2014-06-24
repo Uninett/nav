@@ -195,6 +195,7 @@ define([
             }
 
             this.updateNodesAndLinks(nodes, links);
+            this.transformGraph();
             this.render();
 
             this.force.start();
@@ -275,6 +276,10 @@ define([
             this.model.set('viewId', view.id);
             this.model.set('layer', view.get('topology'));
 
+            var zoomStr = view.get('zoom').split(';');
+            this.trans = zoomStr[0].split(',');
+            this.scale = zoomStr[1];
+
             var selectedCategories = view.get('categories');
             _.each(this.model.get('filter_categories'), function (category) {
                 if (_.indexOf(selectedCategories, category.name) >= 0) {
@@ -290,6 +295,18 @@ define([
         updateFilterCategories: function (categoryId, checked) { console.log('graph view update filter');
 
 
+        },
+
+        /**
+         * Applies the current translation and scale transformations
+         * to the graph
+         */
+        transformGraph: function () {
+            this.boundingBox.attr(
+                'transform',
+                'translate(' + this.trans +
+                ') scale(' + this.scale + ')'
+            );
         },
 
        /* dragstart: function (node) { console.log('graph view dragstart');
@@ -309,12 +326,7 @@ define([
 
             this.trans = d3.event.translate;
             this.scale = d3.event.scale;
-            this.boundingBox.attr(
-                'transform',
-                'translate(' + this.trans +
-                ') scale(' + this.scale + ')'
-            );
-
+            this.transformGraph();
             // TODO: update view
         },
 
