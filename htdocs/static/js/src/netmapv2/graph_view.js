@@ -3,6 +3,7 @@ define([
     'plugins/d3force',
     'plugins/set_equality',
     'libs/jquery',
+    'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker',
     'libs/d3.v2'
@@ -35,13 +36,30 @@ define([
             this.force = d3.layout.force()
                 .gravity(0.1)
                 .charge(-2500)
-                .linkDistance(150)
+                .linkDistance(250)
                 .size([this.w, this.h])
                 ;
 
             this.nodes = this.force.nodes();
             this.links = this.force.links();
             this.isLoadingForTheFirstTime = true;
+
+
+
+            Backbone.EventBroker.register(this);
+
+            this.initializeDOM();
+            this.bindEvents();
+
+            this.model = new Graph();
+            this.model.fetch({success: function () {
+                Backbone.EventBroker.trigger('netmap:graphDoneLoading');
+            }, error: function () {
+                alert('Error loading graph, please try to reload the page');
+            }});
+        },
+
+        initializeDOM: function () {
 
             this.svg = d3.select(this.el)
                 .append('svg')
@@ -51,6 +69,46 @@ define([
                 .attr('overflow', 'hidden')
                 ;
 
+            // Markers for link cardinality
+            var bundleLinkMarkerStart = this.svg.append('marker')
+                .attr('id', 'bundlelinkstart')
+                .attr('markerWidth', 8)
+                .attr('markerHeight', 12)
+                .attr('refX', -80)
+                .attr('refY', 0)
+                .attr('viewBox', '-4 -6 8 12')
+                .attr('markerUnits', 'userSpaceOnUse')
+                .attr('orient', 'auto');
+            bundleLinkMarkerStart.append('rect')
+                .attr('x', -3)
+                .attr('y', -5)
+                .attr('width', 2)
+                .attr('height', 10);
+            bundleLinkMarkerStart.append('rect')
+                .attr('x', 1)
+                .attr('y', -5)
+                .attr('width', 2)
+                .attr('height', 10);
+            var bundleLinkMarkerEnd = this.svg.append('marker')
+                .attr('id', 'bundlelinkend')
+                .attr('markerWidth', 8)
+                .attr('markerHeight', 12)
+                .attr('refX', 80)
+                .attr('refY', 0)
+                .attr('viewBox', '-4 -6 8 12')
+                .attr('markerUnits', 'userSpaceOnUse')
+                .attr('orient', 'auto');
+            bundleLinkMarkerEnd.append('rect')
+                .attr('x', -3)
+                .attr('y', -5)
+                .attr('width', 2)
+                .attr('height', 10);
+            bundleLinkMarkerEnd.append('rect')
+                .attr('x', 1)
+                .attr('y', -5)
+                .attr('width', 2)
+                .attr('height', 10);
+
             // Needed to control the layering of elements
             this.linkGroup = this.svg.append('g').attr('id', 'link-group');
             this.nodeGroup = this.svg.append('g').attr('id', 'node-group');
@@ -58,16 +116,6 @@ define([
             this.link = d3.selectAll('.link').data([]);
             this.node = d3.selectAll('.node').data([]);
 
-            Backbone.EventBroker.register(this);
-
-            this.bindEvents();
-
-            this.model = new Graph();
-            this.model.fetch({success: function () {
-                Backbone.EventBroker.trigger('netmap:graphDoneLoading');
-            }, error: function () {
-                alert('Error loading graph, please try to reload the page');
-            }});
         },
 
         bindEvents: function() {
@@ -168,6 +216,16 @@ define([
                     // TODO: Load based
                     return '#CCCCCC';
                 })
+                .attr('marker-start', function (o) {
+                    if (o.edges.length > 1) {
+                        return 'url(#bundlelinkstart)';
+                    }
+                })
+                .attr('marker-end', function (o) {
+                    if (o.edges.length > 1) {
+                        return 'url(#bundlelinkend)';
+                    }
+                })
                 ;
 
             this.link.exit().remove();
@@ -226,7 +284,7 @@ define([
                 }
             });
 
-            this.update()
+            this.update();
         },
 
         updateFilterCategories: function (categoryId, checked) { console.log('graph view update filter');
@@ -249,6 +307,7 @@ define([
 
     });
 
+    /* Helper functions */
 
     /**
      * Helper function for filtering a list of nodes by a list of categories.
@@ -270,9 +329,9 @@ define([
     function filterLinksByCategories(links, categories) {
 
         return _.filter(links, function (link) {
-            return _.contains(categories, link.source.category)
-                && _.contains(categories, link.target.category);
-        })
+            return _.contains(categories, link.source.category) &&
+                _.contains(categories, link.target.category);
+        });
     }
 
 
@@ -288,10 +347,11 @@ define([
         the link belongs to. This is needed because the JSON format
         of the object will be different depending on the layer.
          */
+        var speed;
         if (Object.prototype.toString.call(link.edges) === "[object Array]") {
-            var speed = _.max(_.pluck(link.edges, 'link_speed'));
+            speed = _.max(_.pluck(link.edges, 'link_speed'));
         } else {
-            var speed = _.max(_.pluck(_.flatten(_.values(link.edges)), 'link_speed'));
+            speed = _.max(_.pluck(_.flatten(_.values(link.edges)), 'link_speed'));
         }
         return speed;
     }
