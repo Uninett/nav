@@ -69,8 +69,11 @@ define([
                 .attr('overflow', 'hidden')
                 ;
 
+            this.boundingBox = this.svg.append('g')
+                .attr('id', 'boundingbox');
+
             // Markers for link cardinality
-            var bundleLinkMarkerStart = this.svg.append('marker')
+            var bundleLinkMarkerStart = this.boundingBox.append('marker')
                 .attr('id', 'bundlelinkstart')
                 .attr('markerWidth', 8)
                 .attr('markerHeight', 12)
@@ -89,7 +92,7 @@ define([
                 .attr('y', -5)
                 .attr('width', 2)
                 .attr('height', 10);
-            var bundleLinkMarkerEnd = this.svg.append('marker')
+            var bundleLinkMarkerEnd = this.boundingBox.append('marker')
                 .attr('id', 'bundlelinkend')
                 .attr('markerWidth', 8)
                 .attr('markerHeight', 12)
@@ -110,8 +113,8 @@ define([
                 .attr('height', 10);
 
             // Needed to control the layering of elements
-            this.linkGroup = this.svg.append('g').attr('id', 'link-group');
-            this.nodeGroup = this.svg.append('g').attr('id', 'node-group');
+            this.linkGroup = this.boundingBox.append('g').attr('id', 'link-group');
+            this.nodeGroup = this.boundingBox.append('g').attr('id', 'node-group');
 
             this.link = d3.selectAll('.link').data([]);
             this.node = d3.selectAll('.node').data([]);
@@ -129,9 +132,9 @@ define([
                     console.log('graph view zoom');
                     var translate = 'translate(' + d3.event.translate + ')';
                     var scale = 'scale(' + d3.event.scale + ')';
-                    self.svg.attr('transform', translate + scale);
+                    self.boundingBox.attr('transform', translate + scale);
                 });
-            //this.svg.call(zoomListener);
+            this.svg.call(zoomListener);
 
             // Set up resize on window resize
             $(window).resize(function () {
