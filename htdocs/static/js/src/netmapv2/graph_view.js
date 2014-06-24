@@ -160,11 +160,10 @@ define([
         },
 
         /**
-         * TODO: More efficient
-         * @param nodes
-         * @param links
+         * Gets the nodes and links from the model and filters out
+         * those that should not be displayed
          */
-        updateNodesAndLinks: function (nodes, links) {
+        updateNodesAndLinks: function () {
 
             // Get selected categories
             var categories = _.pluck(_.filter(
@@ -173,9 +172,14 @@ define([
                     return category.checked;
             }), 'name');
 
+            var nodes = this.model.get('nodeCollection').getGraphObjects();
+            var vlans = this.model.get('vlanCollection').getGraphObjects();
+            var links = this.model.get('linkCollection').getGraphObjects();
+
             this.force
                 .links(filterLinksByCategories(links, categories))
                 .nodes(filterNodesByCategories(nodes, categories));
+            // TODO filter out orphans if display_orphans === false
 
             this.nodes = this.force.nodes();
             this.links = this.force.links();
@@ -186,15 +190,11 @@ define([
             // You wouldn't want this running while updating
             this.force.stop();
 
-            var nodes = this.model.get('nodeCollection').getGraphObjects();
-            var vlans = this.model.get('vlanCollection').getGraphObjects();
-            var links = this.model.get('linkCollection').getGraphObjects();
-
             if (this.isLoadingForTheFirstTime) {
                 this.isLoadingForTheFirstTime = false;
             }
 
-            this.updateNodesAndLinks(nodes, links);
+            this.updateNodesAndLinks();
             this.transformGraph();
             this.render();
 
@@ -267,8 +267,17 @@ define([
 
         updateTopologyLayer: function (layer) { console.log('graph view update topology');
 
+            var self = this;
+
             this.model.set('layer', layer);
-            this.model.fetch();
+            this.model.fetch({
+                success: function () {
+                    self.update();
+                },
+                error: function () {
+                    alert('Error loading graph, please try to reload the page');
+                }
+            });
         },
 
         updateNetmapView: function (view) { console.log('graph view update view');
@@ -294,7 +303,12 @@ define([
 
         updateFilterCategories: function (categoryId, checked) { console.log('graph view update filter');
 
+            var categories = this.model.get('filter_categories');
+            _.find(categories, function (category) {
+                return category.name === categoryId;
+            }).checked = checked;
 
+            this.update();
         },
 
         /**
@@ -346,7 +360,7 @@ define([
     function filterNodesByCategories(nodes, categories) {
 
         return _.filter(nodes, function (node) {
-           return _.contains(categories, node.category);
+            return _.contains(categories, node.category.toUpperCase());
         });
     }
 
@@ -358,8 +372,8 @@ define([
     function filterLinksByCategories(links, categories) {
 
         return _.filter(links, function (link) {
-            return _.contains(categories, link.source.category) &&
-                _.contains(categories, link.target.category);
+            return _.contains(categories, link.source.category.toUpperCase()) &&
+                _.contains(categories, link.target.category.toUpperCase());
         });
     }
 

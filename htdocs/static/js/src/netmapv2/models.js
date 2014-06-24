@@ -31,6 +31,7 @@ define([
             topology: 2,
             zoom: '0,0;0.5',
             display_orphans: false,
+            display_elinks: false,
             displayTopologyErrors: false,
 
             categories: [],
@@ -39,18 +40,18 @@ define([
             refreshInterval: -1
         },
 
+        initialize: function () {
+
+            if (this.get('display_elinks')) {
+                this.get('categories').push('ELINK');
+            }
+        },
+
         url: function () {
             if (this.isNew()) {
                 return 'views/create/';
             }
             return 'views/' + this.id + '/';
-        },
-
-        parse: function(data) {
-            if (data.viewid === window.netmapData.defaultView) {
-                data.is_user_default = true;
-            }
-            return data;
         }
     });
 

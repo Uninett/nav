@@ -49,6 +49,7 @@ class NetmapViewSerializer(serializers.Serializer):
         ],
     )
     display_orphans = serializers.BooleanField()
+    display_elinks = serializers.BooleanField()
 
     def restore_object(self, attrs, instance=None):
 
