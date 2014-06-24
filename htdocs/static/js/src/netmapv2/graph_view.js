@@ -157,6 +157,21 @@ define([
                self.zoomCallback.call(self);
             }));
 
+            // Drag event TODO: Move callbacks to named functions
+            this.drag = d3.behavior.drag()
+                .on('dragstart', function (node) {
+                    d3.select(this).insert('circle', 'image').attr('r', 20);
+                    self.force.start(); // Crashes without this
+                })
+                .on('drag', function (node) {
+                    node.px += d3.event.dx;
+                    node.py += d3.event.dy;
+                    node.fixed = true;
+                })
+                .on('dragend', function (node) {
+                    d3.select(this).select('circle').remove();
+                });
+
 
             // Set up resize on window resize
             $(window).resize(function () {
@@ -236,6 +251,7 @@ define([
         },
 
         render: function () { console.log('graph view render');
+            var self = this;
 
             this.link = this.linkGroup.selectAll('.link')
                 .data(this.links, function (link) {
@@ -274,7 +290,7 @@ define([
                 .append('g')
                 .attr('class', 'node')
                 .on('dblclick', this.dblclick)
-                .call(this.force.drag)
+                .call(this.drag)
                 ;
 
             nodeElement.append('image')
