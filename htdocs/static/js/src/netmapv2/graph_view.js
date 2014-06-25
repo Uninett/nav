@@ -18,8 +18,7 @@ define([
             'netmap:topologyLayerChanged': 'updateTopologyLayer',
             'netmap:netmapViewChanged': 'updateNetmapView',
             'netmap:filterCategoriesChanged': 'updateFilterCategories',
-            'netmap:graphUpdated': 'update',
-            'netmap:renderGraph': 'render'
+            'netmap:updateGraph': 'update'
         },
 
         initialize: function () {
@@ -209,10 +208,14 @@ define([
             var vlans = this.model.get('vlanCollection').getGraphObjects();
             var links = this.model.get('linkCollection').getGraphObjects();
 
-            this.force
-                .links(filterLinksByCategories(links, categories))
-                .nodes(filterNodesByCategories(nodes, categories));
-            // TODO filter out orphans if display_orphans === false
+            nodes = filterNodesByCategories(nodes, categories);
+            links = filterLinksByCategories(links, categories);
+
+            if (!this.netmapView.get('display_orphans')) {
+                nodes = removeOrphanNodes(nodes, links);
+            }
+
+            this.force.links(links).nodes(nodes);
 
             this.nodes = this.force.nodes();
             this.links = this.force.links();
@@ -452,6 +455,21 @@ define([
         return _.filter(links, function (link) {
             return _.contains(categories, link.source.category.toUpperCase()) &&
                 _.contains(categories, link.target.category.toUpperCase());
+        });
+    }
+
+    /**
+     * Helper function for removing any orphaned nodes from the nodes list
+     * @param nodes
+     * @param links
+     * @returns {*}
+     */
+    function removeOrphanNodes(nodes, links) {
+
+        return _.filter(nodes, function (node) {
+            return _.some(links, function (link) {
+                return node.id === link.source.id || node.id === link.target.id;
+            });
         });
     }
 

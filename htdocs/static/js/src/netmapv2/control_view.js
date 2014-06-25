@@ -11,7 +11,8 @@ define([
         el: '#navigation-view',
         interests: {},
         events: {
-            'click .filter-category': 'updateCategoryFilter'
+            'click .filter-category': 'updateCategoryFilter',
+            'click #filter-orphan-nodes': 'updateOrphanNodesFilter'
         },
 
         initialize: function () {
@@ -62,6 +63,15 @@ define([
                 self.navigationSubView.toggle();
             });
 
+            _.each(this.currentView.get('categories'), function (category) {
+                self.$('#filter-' + category).prop('checked', true);
+            });
+
+            $('#filter-orphan-nodes', this.navigationSubView).prop(
+                'checked',
+                this.currentView.get('display_orphans')
+            );
+
             this.saveViewButton = this.$('#netmap-save-view', this.navigationSubView);
             this.saveViewButton.click(function () {
                 self.saveCurrentView.call(self);
@@ -74,10 +84,6 @@ define([
             this.advancedOptionsToggle.click(function () {
                 $('i', self.advancedOptionsToggle).toggleClass('fa-caret-down fa-caret-up');
                 self.advancedOptions.toggle();
-            });
-
-            _.each(this.currentView.get('categories'), function (category) {
-                self.$('#filter-' + category).prop('checked', true);
             });
         },
 
@@ -149,6 +155,14 @@ define([
             }
 
             Backbone.EventBroker.trigger('netmap:filterCategoriesChanged', categoryId, checked);
+        },
+
+
+        updateOrphanNodesFilter: function (e) { console.log('Orphans');
+
+            this.currentView.set('display_orphans', e.currentTarget.checked);
+
+            Backbone.EventBroker.trigger('netmap:updateGraph');
         },
 
 

@@ -124,15 +124,27 @@
             </div>
           </div>
           <div class="medium-3 columns nopadding">
-            <h6>Filter categories</h6>
-            <ul id="filter-category-list">
-              {% for category in categories %}
-                <li>
-                  <label for="filter-{{ category }}">{{ category }}
-                  <input type="checkbox" id="filter-{{ category }}" class="filter-category" value="{{ category }}"></label>
-                </li>
-              {% endfor %}
-            </ul>
+            <div class="row">
+              <div class="medium-12 columns">
+              <h6>Filter categories</h6>
+              <ul id="filter-category-list">
+                {% for category in categories %}
+                  <li>
+                    <label for="filter-{{ category }}">{{ category }}
+                    <input type="checkbox" id="filter-{{ category }}" class="filter-category" value="{{ category }}"></label>
+                  </li>
+                {% endfor %}
+              </ul>
+              </div>
+            </div>
+            <div class="row">
+              <div class="medium-12 columns">
+                <label for="filter-orphan-nodes" class="right">
+                  Display isolated nodes
+                  <input type="checkbox" id="filter-orphan-nodes">
+                </label>
+              </div>
+            </div>
           </div>
           <div class="medium-4 columns end right">
             <form>
