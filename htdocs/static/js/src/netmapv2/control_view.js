@@ -9,9 +9,7 @@ define([
     var ControlView = Backbone.View.extend({
 
         el: '#navigation-view',
-        interests: {
-            'netmap:graphDoneLoading': 'initNetmapView'
-        },
+        interests: {},
         events: {
             'click .filter-category': 'updateCategoryFilter'
         },
@@ -33,7 +31,7 @@ define([
          * Grabs and caches the elements belonging to this view
          * from the DOM, and binds the necessary events.
          */
-        grabControlsFromDOM: function () {
+        grabControlsFromDOM: function () { // TODO: Consistent naming
             var self = this;
             
             this.graphSearchInput = this.$('#graph-search-input');
@@ -63,6 +61,13 @@ define([
                 $('i', self.navigationSubViewToggle).toggleClass('fa-caret-down fa-caret-up');
                 self.navigationSubView.toggle();
             });
+
+            this.saveViewButton = this.$('#netmap-save-view', this.navigationSubView);
+            this.saveViewButton.click(function () {
+                self.saveCurrentView.call(self);
+            });
+
+            this.alertContainer = this.$('#netmap-alert-container', this.navigationSubView);
 
             this.advancedOptionsToggle = this.$('#advanced-options-toggle');
             this.advancedOptions = this.$('#advanced-options');
@@ -96,12 +101,6 @@ define([
             }
         },
 
-        /**
-         *
-         */
-        initNetmapView: function () {
-           Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
-        },
 
         /**
          * Triggers when the current netmap view is changed
@@ -152,6 +151,31 @@ define([
             Backbone.EventBroker.trigger('netmap:filterCategoriesChanged', categoryId, checked);
         },
 
+
+        saveCurrentView: function () {
+
+            // TODO: Need to save node positions. Graph can handle seperately?
+
+
+            // Update `display_elinks` and remove 'ELINKS' from categories if present
+            var categories = this.currentView.get('categories');
+            this.currentView.set('display_elinks', _.indexOf(categories, 'ELINK') >= 0);
+            this.currentView.set('categories', _.without(categories, 'ELINK'));
+            this.currentView.set('last_modified', new Date());
+
+            var self = this;
+            this.currentView.save(this.currentView.attributes,
+                {
+                    success: function () {
+                        self.saveSuccessful.call(self);
+                    },
+                    error: function () {
+                        self.saveError.call(self);
+                    }
+                }
+            );
+        },
+
         /**
          * Triggers a graph search for the given query
          * @param e
@@ -163,6 +187,31 @@ define([
             var query = self.graphSearchInput.val();
 
             Backbone.EventBroker.trigger('netmap:netmapGraphSearch', query);
+        },
+
+        /* Save callbacks */
+
+        saveSuccessful: function () {
+
+            var alert = this.alertContainer.html('<span class="alert-box success">View saved successfully</span>');
+            setTimeout(function () {
+                $('span', alert).fadeOut(function () {
+                    this.remove();
+                });
+            }, 3000);
+        },
+
+        saveError: function () {
+
+            var alert = this.alertContainer.html(
+                '<span class="alert-box alert">Save unsuccessful!' +
+                    '<a href="#" class="close">&times;</a></span>'
+            );
+            $('span a', alert).click(function () {
+                $('span', alert).fadeOut(function () {
+                    this.remove();
+                }) ;
+            });
         }
     });
 

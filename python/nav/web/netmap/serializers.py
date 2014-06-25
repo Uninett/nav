@@ -15,7 +15,14 @@ class MultipleChoiceField(serializers.ChoiceField):
     widget = SelectMultiple
 
     def field_from_native(self, data, files, field_name, into):
-        into[field_name] = dict(data.iterlists()).get(field_name, [])
+        if type(data) is dict:
+            into[field_name] = data.get(field_name, [])
+        else:
+            # If using django rest frameworks api browser
+            # `data` will be a django QueryDict object
+            # If the api browser is not to be used, this
+            # clause is unnecessary an can be removed
+            into[field_name] = dict(data.iterlists()).get(field_name, [])
 
 
 class InstanceRelatedField(serializers.RelatedField):
@@ -40,7 +47,7 @@ class NetmapViewSerializer(serializers.Serializer):
     description = serializers.CharField(widget=Textarea)
     topology = serializers.ChoiceField(choices=profiles.LINK_TYPES)
     zoom = serializers.CharField(required=False)
-    last_modified = serializers.DateTimeField(read_only=True)
+    last_modified = serializers.DateTimeField()
     is_public = serializers.BooleanField()
     categories = MultipleChoiceField(
         choices=[

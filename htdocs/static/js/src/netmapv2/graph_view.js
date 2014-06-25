@@ -405,16 +405,13 @@ define([
             node.px += d3.event.dx;
             node.py += d3.event.dy;
             node.fixed = true;
+            node.dirty = true;
         },
 
         dragEnd: function (node) {
             d3.select(this).select('circle').remove();
         },
 
-        /**
-         * Callback function for zoom events. Zoom events are
-         * triggered on both drag and scroll.
-         */
         zoomCallback: function () {
 
             this.trans = d3.event.translate;
@@ -423,7 +420,9 @@ define([
             // TODO: update view
         },
 
+        // TODO do we need this?
         dblclick: function (node) { console.log('graph view dblclick');
+            d3.event.stopPropagation();
             d3.select(this).classed('fixed', node.fixed = false);
         }
 

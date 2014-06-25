@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"  />
     <script type="text/javascript" src="{{ STATIC_URL }}js/libs/spin.min.js"></script>
     <script>require(["src/netmapv2/netmap"]);</script>
-    <!-- check out https://github.com/jrburke/jqueryui-amd -->
 {% endblock %}
 
 {% block base_content %}
@@ -106,11 +105,22 @@
       <div class="panel">
         <div class="row">
           <div class="medium-2 columns">
-            <div class="medium-6 columns">
-              <a class="button secondary small">Set as favorite</a>
+            <div class="row">
+              <div class="medium-6 columns">
+                <a class="button secondary small left">Set favorite</a>
+              </div>
+              <div class="medium-6 columns">
+                <a class="button alert small left">Delete view</a>
+              </div>
             </div>
-            <div class="medium-6 columns">
-              <a class="button alert small">Delete view</a>
+            <div class="row">
+              <div class="medium-12 columns">
+                <a id="netmap-save-view" class="button small">Save view</a>
+              </div>
+            </div>
+            <div class="row">
+              <div id="netmap-alert-container" class="medium-12 columns">
+              </div>
             </div>
           </div>
           <div class="medium-3 columns nopadding">
@@ -169,7 +179,7 @@
         staticURL: '{{ STATIC_URL }}images/netmap/',
         userID: {{ account.pk }},
         views: {{ netmap_views_json|safe }},
-        defaultView: {{ default_view }},
+        defaultView: {{ default_view }}
     };
 
     var target = document.getElementById('spinner-dummy');
