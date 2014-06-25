@@ -157,21 +157,14 @@ define([
                self.zoomCallback.call(self);
             }));
 
-            // Drag event TODO: Move callbacks to named functions
+            // Set up node dragging listener
             this.drag = d3.behavior.drag()
                 .on('dragstart', function (node) {
-                    d3.select(this).insert('circle', 'image').attr('r', 20);
-                    self.force.start(); // Crashes without this
+                    self.dragStart.call(this, node, self);
                 })
-                .on('drag', function (node) {
-                    node.px += d3.event.dx;
-                    node.py += d3.event.dy;
-                    node.fixed = true;
-                })
-                .on('dragend', function (node) {
-                    d3.select(this).select('circle').remove();
-                });
-
+                .on('drag', this.dragMove)
+                .on('dragend', this.dragEnd)
+                ;
 
             // Set up resize on window resize
             $(window).resize(function () {
@@ -279,7 +272,17 @@ define([
                 })
                 ;
 
-            this.link.exit().remove();
+            this.link.attr('opacity', 0)
+                .transition()
+                .duration(750)
+                .attr('opacity', 1)
+                ;
+
+            this.link.exit().transition()
+                .duration(750)
+                .style('opacity', 0)
+                .remove()
+                ;
 
             this.node = this.nodeGroup.selectAll('.node')
                 .data(this.nodes, function (node) {
@@ -312,7 +315,18 @@ define([
                 })
                 ;
 
-            this.node.exit().remove();
+            nodeElement.attr('opacity', 0)
+                .transition()
+                .duration(750)
+                .style('opacity', 1)
+                ;
+
+            this.node.exit()
+                .transition()
+                .duration(750)
+                .style('opacity', 0)
+                .remove()
+                ;
         },
 
         fetchGraphModel: function () {
@@ -380,14 +394,22 @@ define([
             );
         },
 
-       /* dragstart: function (node) { console.log('graph view dragstart');
-            this.force.stop();
-            d3.select(this).classed('fixed', node.fixed = true);
+        /* d3 callback functions  */
+
+        dragStart: function (node, self) {
+            d3.select(this).insert('circle', 'image').attr('r', 20);
+            self.force.start(); // d3 crashes without this
         },
 
-        dragend: function (node) { console.log('graph view dragend');
+        dragMove: function(node) {
+            node.px += d3.event.dx;
+            node.py += d3.event.dy;
+            node.fixed = true;
+        },
 
-        },*/
+        dragEnd: function (node) {
+            d3.select(this).select('circle').remove();
+        },
 
         /**
          * Callback function for zoom events. Zoom events are
