@@ -142,7 +142,21 @@ class NetmapViewEdit(generics.RetrieveUpdateDestroyAPIView):
             Q(is_public=True) | Q(owner=user)
         )
 
-    # TODO: Override post_(save/delete)
+    def post_save(self, obj, created=False):
+        old_categories = set(
+            obj.categories_set.values_list('category', flat=True))
+        new_categories = set(obj.categories)
+        to_delete = old_categories - new_categories
+        to_save = new_categories - old_categories
+
+        # Delete removed categories
+        obj.categories_set.filter(category__in=to_delete).delete()
+
+        # Create added categories
+        NetmapViewCategories.objects.bulk_create([
+            NetmapViewCategories(view=obj, category=Category(id=category))
+            for category in to_save
+        ])
 
     def get_object_or_none(self):
         try:
