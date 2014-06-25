@@ -154,8 +154,8 @@ class TestDuplicateHostnameForIP(Test):
     """
 
     name = 'Hostname sanity'
-    description = ('Tests if there are IP-addresses that resolve to the same '
-                   'hostname')
+    description = ('Tests whether there are multiple IP addresses that resolve '
+                   'to the same hostname')
 
     def _get_errors(self):
         """Fetches duplicate hostnames"""
@@ -172,7 +172,7 @@ class TestDuplicateHostnameForIP(Test):
 
         errors = []
         for hostname, iplist in results.items():
-            error = 'The hostname {} is used by these IP-addresses: {}'.format(
+            error = 'The hostname {} is used by these IP addresses: {}'.format(
                 hostname, ', '.join(iplist))
             errors.append(TestResult(error))
 
