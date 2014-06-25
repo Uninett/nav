@@ -32,6 +32,7 @@ Dependency changes
 New dependencies:
 
 - The Python module :mod:`django-filter` >= 0.5.3
+- The Python module :mod:`django-hstore` >= 0.2.4
 - The PostgreSQL extension ``hstore`` - may or may not be part of your default
   PostgreSQL server installation.
 
