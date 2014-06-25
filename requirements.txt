@@ -17,6 +17,7 @@ crispy-forms-foundation==0.2.3
 # REST framework
 django-oauth2-provider>=0.2.6
 djangorestframework>=2.3.7
+django-filter>=0.5.3
 iso8601
 feedparser>=5.1.2,<5.2
 # SNMP libraries, pick only one of them. pynetsnmp is recommended; it provides

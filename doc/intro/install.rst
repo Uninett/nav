@@ -55,6 +55,7 @@ The following Python modules are required:
  * :mod:`PIL` >= 1.1.7 (python-imaging)
  * :mod:`django-oauth2-provider` >= 0.2.6
  * :mod:`djangorestframework` >= 2.3.7
+ * :mod:`django-filter` >= 0.5.3
  * :mod:`iso8601`
  * :mod:`django-crispy-forms` == 1.3.2
  * :mod:`crispy-forms-foundation` == 0.2.3

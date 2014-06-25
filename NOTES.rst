@@ -20,6 +20,20 @@ devices to be bombarded with requests from NAV.  The `contrib/patches`
 directory contains a patch for TwistedSNMP that solves this problem.  The
 patch has been submitted upstream, but not yet accepted into a new release.
 
+NAV 4.1
+========
+
+To see the overview of scheduled features and reported bugs on the 4.1 series
+of NAV, please go to https://launchpad.net/nav/4.1 .
+
+Dependency changes
+------------------
+
+New dependencies:
+
+- The Python module :mod:`django-filter` >= 0.5.3
+
+
 NAV 4.0
 ========
 
