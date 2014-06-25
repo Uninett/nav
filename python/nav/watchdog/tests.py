@@ -100,7 +100,7 @@ class TestOverdueJobs(Test):
         for job in IpdevpollJobLog.objects.raw(query):
             should_have_run = job.end_time + timedelta(seconds=job.interval)
             overdue_by = datetime.now() - should_have_run
-            if overdue_by.seconds > slack:
+            if overdue_by.seconds > slack and job.netbox.is_up():
                 time_since = timesince(datetime.now() - overdue_by)
                 descr = "Job {} on {} is overdue by {}".format(
                     job.job_name, job.netbox.sysname, time_since)
@@ -134,6 +134,8 @@ class TestFailedJobs(Test):
         results = []
         fail_count = 3  # Number of successive failed jobs that equals problem
         for failed in IpdevpollJobLog.objects.raw(query):
+            if not failed.netbox.is_up() or failed.netbox.is_snmp_down():
+                continue
             last_jobs = IpdevpollJobLog.objects.filter(
                 netbox=failed.netbox, job_name=failed.job_name)\
                 .order_by('end_time')[0:fail_count]
