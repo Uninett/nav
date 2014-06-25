@@ -32,6 +32,11 @@ Dependency changes
 New dependencies:
 
 - The Python module :mod:`django-filter` >= 0.5.3
+- The PostgreSQL extension ``hstore`` - may or may not be part of your default
+  PostgreSQL server installation.
+
+On Debian, the ``hstore`` extension to PostgreSQL is distributed in the
+``postgresql-contrib`` package.
 
 
 NAV 4.0
