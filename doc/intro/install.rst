@@ -29,9 +29,8 @@ Runtime requirements
 
 To run NAV, these software packages are required:
 
- * Apache2
- * mod_wsgi
- * PostgreSQL >= 9.1 (With the hstore extension available)
+ * Apache2 + mod_wsgi
+ * PostgreSQL >= 9.1 (With the ``hstore`` extension available)
  * Graphite_
  * Python >= 2.7.0
  * nbtscan = 1.5.1
@@ -67,7 +66,7 @@ The following python modules are optional:
  * :mod:`xmpp` (optional)
 
 .. tip:: NAV comes with a :file:`requirements.txt` file that can be used in
-         conjunction with `pip` to install all the Python dependencies 
+         conjunction with :program:`pip` to install all the Python dependencies
          using :kbd:`pip install -r requirements.txt`. This file is also likely to
          be more up-to-date for development versions than this install
          document.
