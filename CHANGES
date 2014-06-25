@@ -1,3 +1,19 @@
+Version 4.1.0
+(released xx Jun 2014)
+
+ User-visible features and improvements:
+
+   * LP#744951  (show % usage for smaller subnets in subnet matrix)
+   * LP#1062298 (Watchdog feature to monitor internal status of NAV processes)
+   * LP#1169557 (Room and Organization opt fields should be replaced with an
+                 arbitrary variable=value scheme)
+   * LP#1319657 (ipdevinfo alert tab does not display alerttype)
+   * LP#1312648 (Remember user's preference for number of rows per page in
+                 SeedDB list views)
+   * LP#1311205 (Change administrative status of interface from PortAdmin)
+   * LP#1334243 (REST API)
+
+
 Version 4.0.2
 (released 15 May 2014)
 
