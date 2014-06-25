@@ -113,7 +113,7 @@ class TestFailedJobs(Test):
     """Tests if there are any ipdevpolljobs that have failed"""
 
     name = 'Job status'
-    description = 'Tests if there are any ipdevpoll jobs that repeatedly fails'
+    description = 'Tests if there are any ipdevpoll jobs that repeatedly fail'
 
     def _get_errors(self):
         """Fetches failed ipdevpoll jobs"""
