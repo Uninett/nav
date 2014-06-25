@@ -273,13 +273,12 @@ define([
                         return 'url(#bundlelinkend)';
                     }
                 })
+                .attr('opacity', 0)
+                    .transition()
+                    .duration(750)
+                    .attr('opacity', 1)
                 ;
 
-            this.link.attr('opacity', 0)
-                .transition()
-                .duration(750)
-                .attr('opacity', 1)
-                ;
 
             this.link.exit().transition()
                 .duration(750)
