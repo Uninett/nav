@@ -4,15 +4,21 @@ define([
     'netmap/graph',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (Collections, Models, Graph) {
+], function (Collections) {
 
     var ControlView = Backbone.View.extend({
 
         el: '#navigation-view',
         interests: {},
         events: {
+            'submit #graph-search-form': 'searchGraph',
+            'change #graph-layer-select': 'changeTopologyLayer',
+            'change #graph-view-select': 'changeNetmapView',
             'click .filter-category': 'updateCategoryFilter',
-            'click #filter-orphan-nodes': 'updateOrphanNodesFilter'
+            'click #filter-orphan-nodes': 'updateOrphanNodesFilter',
+            'click #netmap-save-view': 'saveCurrentView',
+            'click #netmap-view-panel-toggle': 'toggleNetmapViewPanel',
+            'click #advanced-options-panel-toggle': 'toggleAdvancedOptionsPanel'
         },
 
         initialize: function () {
@@ -23,45 +29,35 @@ define([
             this.netmapViews.reset(window.netmapData.views);
             this.currentView = this.netmapViews.get(window.netmapData.defaultView);
 
-            this.grabControlsFromDOM();
+            this.initializeDOM();
 
             Backbone.EventBroker.register(this);
         },
 
         /**
-         * Grabs and caches the elements belonging to this view
-         * from the DOM, and binds the necessary events.
+         * Initializes and/or caches any necessary DOM elements.
          */
-        grabControlsFromDOM: function () { // TODO: Consistent naming
+        initializeDOM: function () { // TODO: Consistent naming
             var self = this;
-            
-            this.graphSearchInput = this.$('#graph-search-input');
-            this.graphSearchSubmit = this.$('#graph-search-submit');
-            this.graphSearchSubmit.click(this, this.searchGraph);
 
-            // TODO: Find a cleaner way to set the selected option
-            this.graphLayerSelect = this.$('#graph-layer-select');
-            $('option', this.graphLayerSelect).each(function (i, option) {
+            this.$('#graph-layer-select option').each(function (i, option) {
                 if (self.currentView.get('topology') === parseInt(option.value)) {
                     option.selected = true;
                 }
             });
-            this.graphLayerSelect.change(this, this.changeTopologyLayer);
-
-            this.graphViewSelect = this.$('#graph-view-select');
-            $('option', this.graphViewSelect).each(function (i, option) {
+            this.$('#graph-view-select option').each(function (i, option) {
                 if (self.currentView.id === parseInt(option.value)) {
                     option.selected = true;
                 }
             });
-            this.graphViewSelect.change(this, this.changeNetmapView);
+           $('#filter-orphan-nodes', this.navigationSubView).prop(
+                'checked',
+                this.currentView.get('display_orphans')
+            );
 
-            this.navigationSubViewToggle = this.$('#sub-view-toggle');
-            this.navigationSubView = this.$('#navigation-sub-view');
-            this.navigationSubViewToggle.click(function () {
-                $('i', self.navigationSubViewToggle).toggleClass('fa-caret-down fa-caret-up');
-                self.navigationSubView.toggle();
-            });
+            this.netmapViewPanel = this.$('#netmap-view-panel');
+            this.advancedOptionsPanel = this.$('#advanced-options-panel');
+            this.alertContainer = this.$('#netmap-alert-container', this.netmapViewPanel);
 
             _.each(this.currentView.get('categories'), function (category) {
                 self.$('#filter-' + category).prop('checked', true);
@@ -71,25 +67,18 @@ define([
                     self.$('#filter-' + category).prop('checked', false);
                 });
             };
+        },
 
-            $('#filter-orphan-nodes', this.navigationSubView).prop(
-                'checked',
-                this.currentView.get('display_orphans')
-            );
+        toggleNetmapViewPanel: function (e) {
 
-            this.saveViewButton = this.$('#netmap-save-view', this.navigationSubView);
-            this.saveViewButton.click(function () {
-                self.saveCurrentView.call(self);
-            });
+            this.$(e.currentTarget.children).toggleClass('fa-caret-down fa-caret-up');
+            this.netmapViewPanel.toggle();
+        },
 
-            this.alertContainer = this.$('#netmap-alert-container', this.navigationSubView);
+        toggleAdvancedOptionsPanel: function (e) {
 
-            this.advancedOptionsToggle = this.$('#advanced-options-toggle');
-            this.advancedOptions = this.$('#advanced-options');
-            this.advancedOptionsToggle.click(function () {
-                $('i', self.advancedOptionsToggle).toggleClass('fa-caret-down fa-caret-up');
-                self.advancedOptions.toggle();
-            });
+            this.$(e.currentTarget.children).toggleClass('fa-caret-down fa-caret-up');
+            this.advancedOptionsPanel.toggle();
         },
 
         /**
@@ -97,19 +86,11 @@ define([
          * view and fires an event to the graph model
          * @param e
          */
-        changeTopologyLayer: function (e) {
+        changeTopologyLayer: function (e) { console.log(e);
 
-            var self = e.data;
-
-            var newValue = parseInt(self.graphLayerSelect.val());
-            var oldValue = self.currentView.get('topology');
-
-            if (newValue !== oldValue) {
-
-                self.currentView.set('topology', newValue);
-
-                Backbone.EventBroker.trigger('netmap:topologyLayerChanged', newValue);
-            }
+            var layer = e.currentTarget.value;
+            this.currentView.set('topology', layer);
+            Backbone.EventBroker.trigger('netmap:topologyLayerChanged', layer);
         },
 
 
@@ -117,29 +98,17 @@ define([
          * Triggers when the current netmap view is changed
          * @param e
          */
-        changeNetmapView: function (e) {
+        changeNetmapView: function (e) { console.log(e);
 
-            var self = e.data;
+            var viewId = e.currentTarget.value;
+            this.currentView = this.netmapViews.get(viewId);
 
-            var newValue = parseInt(self.graphViewSelect.val());
-            var oldValue = self.currentView.id;
+            var newCategories = this.currentView.get('categories');
+            _.each(this.$('.filter-category'), function (elem) {
+                elem.checked = _.contains(newCategories, elem.value);
+            });
 
-            if (newValue !== oldValue) {
-
-                self.currentView = self.netmapViews.get(newValue);
-
-                // Update category checkboxes
-                var newCategories = self.currentView.get('categories');
-                _.each(self.$('.filter-category'), function (elem) {
-                    if (_.contains(newCategories, elem.value)) {
-                        elem.checked = true;
-                    } else {
-                         elem.checked = false;
-                    }
-                });
-
-                Backbone.EventBroker.trigger('netmap:netmapViewChanged', self.currentView);
-            }
+            Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
         },
 
         /**
@@ -199,10 +168,7 @@ define([
          */
         searchGraph: function (e) {
             e.preventDefault();
-
-            var self = e.data;
-            var query = self.graphSearchInput.val();
-
+            var query = $('#graph-search-input', e.currentTarget).val();
             Backbone.EventBroker.trigger('netmap:netmapGraphSearch', query);
         },
 
