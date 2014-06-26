@@ -36,8 +36,41 @@ New dependencies:
 - The PostgreSQL extension ``hstore`` - may or may not be part of your default
   PostgreSQL server installation.
 
-On Debian, the ``hstore`` extension to PostgreSQL is distributed in the
-``postgresql-contrib`` package.
+
+Schema changes and hstore
+-------------------------
+
+PostgreSQL's hstore extension has been utilized to implement the new
+flexible attribute feature for organization and room records. 
+
+The hstore extension has been distributed with PostgreSQL since version 9, but
+will on some Linux distros be shipped in a separate package from the
+PostgreSQL server package. In Debian, for example, the ``postgresql-contrib``
+package must be installed to enable the extension.
+
+The :command:`navsyncdb` command will automatically install the hstore
+extension into the NAV database if missing, but the installation requires
+superuser access to the database. Normally, this is only required when
+initializing the database from scratch, using the :option:`-c` option.
+Typically, if NAV and PostgreSQL are on the same server, :command:`navsyncdb`
+is invoked as the ``postgres`` user to achieve this (otherwise, use the
+:envvar:`PGHOST`, :envvar:`PGUSER`, :envvar:`PGPASSWORD` environment variables
+to connect remotely as the ``postgres`` user)::
+
+  sudo -u postgres navsyncdb
+
+New REST API
+------------
+
+NAV 4.0 shipped with some experimental, undocumented API calls. These have
+been deprecated, and new API endpoints have been written for NAV 4.1.
+
+Although the API is still in flux, it can be used to retrieve various data
+from a NAV installation. See further documentation at
+https://nav.uninett.no/doc/dev/howto/using_the_api.html . We know a lot of
+people are eager to integrate with NAV to utilize its data in their own
+solutions, so any feedback you may have regarding the API is much appreciated
+by the developers.
 
 
 NAV 4.0
