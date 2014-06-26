@@ -86,7 +86,7 @@ define([
          * view and fires an event to the graph model
          * @param e
          */
-        changeTopologyLayer: function (e) { console.log(e);
+        changeTopologyLayer: function (e) {
 
             var layer = e.currentTarget.value;
             this.currentView.set('topology', layer);
@@ -98,7 +98,7 @@ define([
          * Triggers when the current netmap view is changed
          * @param e
          */
-        changeNetmapView: function (e) { console.log(e);
+        changeNetmapView: function (e) {
 
             var viewId = e.currentTarget.value;
             this.currentView = this.netmapViews.get(viewId);

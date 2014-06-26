@@ -7,7 +7,7 @@ define([
     'libs/backbone',
     'libs/backbone-eventbroker',
     'libs/d3.v2'
-], function (Graph, Models, Collections) {
+], function (Graph, Models) {
 
     var GraphView = Backbone.View.extend({
 
@@ -69,11 +69,7 @@ define([
 
             var selectedCategories = this.netmapView.get('categories');
             _.each(this.model.get('filter_categories'), function (category) {
-                if (_.indexOf(selectedCategories, category.name) >= 0) {
-                    category.checked = true;
-                } else {
-                    category.checked = false;
-                }
+                category.checked = _.indexOf(selectedCategories, category.name) >= 0;
             });
         },
 
@@ -366,14 +362,8 @@ define([
 
             var selectedCategories = this.netmapView.get('categories');
             _.each(this.model.get('filter_categories'), function (category) {
-                if (_.indexOf(selectedCategories, category.name) >= 0) {
-                    category.checked = true;
-                } else {
-                    category.checked = false;
-                }
+                category.checked = _.indexOf(selectedCategories, category.name) >= 0;
             });
-
-
 
             this.update();
         },
@@ -458,7 +448,7 @@ define([
             this.trans = d3.event.translate;
             this.scale = d3.event.scale;
             this.transformGraph();
-            // TODO: update view
+            this.netmapView.set('zoom', this.trans.join(',') + ';' + this.scale);
         },
 
         // TODO do we need this?
