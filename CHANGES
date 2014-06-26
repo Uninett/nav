@@ -1,3 +1,23 @@
+Version 4.0.3
+(released 26 Jun 2014)
+
+ Bugfixes:
+
+  * LP#1255978 (Add Arnold-information in ipdevinfo Port Details)
+  * LP#1301191 (Portadmin vlan change for many interfaces takes a long time)
+  * LP#1318534 (Publish timestamps is set to Default when editing a Message)
+  * LP#1321246 (vlan search result should be sorted by vlan)
+  * LP#1321251 (search for Netbios in Machine Tracker widget)
+  * LP#1321634 (Some alerts are never resolved when devices have moved around)
+  * LP#1323206 (device history-link in ipdevinfo not working as intended)
+  * LP#1324108 (arnold fails to manually detain when sysname is uppercase)
+  * LP#1327098 (ipdevpoll jobs are marked as successful when nothing was done)
+  * LP#1333167 (Netbox.up sometimes out of sync with actual alert-based box
+                state)
+  * LP#1334258 (Geomap fails to load any data if a single Graphite metric causes
+                an error)
+
+
 Version 4.0.2
 (released 15 May 2014)
 
