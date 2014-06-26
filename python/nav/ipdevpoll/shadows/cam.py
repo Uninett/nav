@@ -45,21 +45,31 @@ reclaimed by resetting end_time to infinity.
 """
 import datetime
 import logging
+from collections import namedtuple
 
 from nav.models import manage
+from nav.models.fields import INFINITY
 from django.db.models import Q
-from nav.ipdevpoll.storage import Shadow, DefaultManager
+from nav.ipdevpoll.storage import DefaultManager
+from nav.ipdevpoll.db import commit_on_success
 from .netbox import Netbox
 from .interface import Interface
 
-INFINITY = datetime.datetime.max
 MAX_MISS_COUNT = 3
 
+
+Cam = namedtuple('Cam', 'ifindex mac')
+Cam.sentinel = Cam(None, None)
+
+CamDetails = namedtuple('CamDetails', 'id end_time miss_count')
+
+
 class CamManager(DefaultManager):
-    "Manages Cam records"
+    """Manages Cam records"""
 
     _previously_open = None
     _now_open = None
+    _keepers = None
     _missing = None
     _new = None
     _ifnames = None
@@ -73,66 +83,60 @@ class CamManager(DefaultManager):
         self._load_open_records()
         self._map_found_to_open()
         self._log_stats()
-        self._fix_missing_vars()
 
     def _remove_sentinel(self):
-        if self.sentinel in self.containers[self.cls]:
-            del self.containers[self.cls][self.sentinel]
-            self._logger.debug("removed cam cleanup sentinel")
+        if Cam.sentinel in self.containers[Cam]:
+            del self.containers[Cam][Cam.sentinel]
 
     def _load_open_records(self):
         match_open = Q(end_time__gte=INFINITY) | Q(miss_count__gte=0)
-        camlist = manage.Cam.objects.filter(
-            netbox__id=self.netbox.id).filter(match_open)
-        self._previously_open = dict( ((cam.ifindex, cam.mac.lower()), cam)
-                                      for cam in camlist )
+        camlist = manage.Cam.objects.filter(netbox__id=self.netbox.id)
+        camlist = camlist.filter(match_open).values_list(
+            'ifindex', 'mac', 'id', 'end_time', 'miss_count')
+        self._previously_open = dict((Cam(*cam[0:2]), CamDetails(*cam[2:]))
+                                     for cam in camlist)
 
     def _map_found_to_open(self):
-        self._now_open = dict( ((cam.ifindex, cam.mac.lower()), cam)
-                               for cam in self.get_managed() )
-        self._new = set()
-        for key, cam in self._now_open.items():
-            if key in self._previously_open:
-                cam.set_existing_model(self._previously_open[key])
-            else:
-                self._new.add(cam)
+        self._now_open = set(self.get_managed())
+        self._new = self._now_open.difference(self._previously_open)
 
         missing = set(self._previously_open).difference(self._now_open)
-        self._missing = dict((key, self._previously_open[key])
-                             for key in missing)
+        self._missing = set(self._previously_open[key] for key in missing)
+
+        self._keepers = self._now_open.intersection(self._previously_open)
 
     def _log_stats(self):
         if not self._logger.isEnabledFor(logging.DEBUG):
             return
-        reclaimable_count = len([cam for cam in self._previously_open.values()
-                                 if cam.end_time < INFINITY])
-        known_count = len([cam for cam in self.get_managed()
-                           if cam.get_existing_model()])
-        new_count = len([cam for cam in self.get_managed()
-                         if not cam.get_existing_model()])
-        missing_count = len(self._missing)
+        reclaimable_count = sum(1 for cam in self._previously_open.values()
+                                if cam.end_time < INFINITY)
         self._logger.debug(
             "existing=%d (reclaimable=%d) / "
             "found=%d (known=%d new=%d missing=%d)",
             len(self._previously_open), reclaimable_count, len(self._now_open),
-            known_count, new_count, missing_count)
+            len(self._keepers), len(self._new), len(self._missing))
 
-    def _fix_missing_vars(self):
-        for cam in self.get_managed():
-            self._fix_missing_vars_for(cam, now=datetime.datetime.now())
+    @commit_on_success
+    def save(self):
+        # Reuse the same object over and over in an attempt to avoid the
+        # overhead of Python object creation
+        record = manage.Cam(
+            netbox_id=self.netbox.id, sysname=self.netbox.sysname,
+            start_time=datetime.datetime.now(), end_time=INFINITY)
+        for cam in self._new:
+            record.id = None
+            record.port = self._get_port_for(cam.ifindex)
+            record.ifindex = cam.ifindex
+            record.mac = cam.mac
+            record.save()
 
-    def _fix_missing_vars_for(self, cam, now):
-        if not cam.netbox:
-            cam.netbox = self.netbox
-        if not cam.end_time:
-            cam.end_time = INFINITY
-        cam.miss_count = 0
-
-        if cam in self._new:
-            if not cam.start_time:
-                cam.start_time = now
-            cam.sysname = self.netbox.sysname
-            cam.port = self._get_port_for(cam.ifindex)
+        # reclaim recently closed records
+        keepers = (self._previously_open[cam] for cam in self._keepers)
+        reclaim = [cam.id for cam in keepers if cam.end_time < INFINITY]
+        if reclaim:
+            self._logger.debug("reclaiming %r", reclaim)
+            manage.Cam.objects.filter(id__in=reclaim).update(
+                end_time=INFINITY, miss_count=0)
 
     def _get_port_for(self, ifindex):
         """Gets a port name from an ifindex, either from newly collected or
@@ -157,36 +161,23 @@ class CamManager(DefaultManager):
         return self._ifnames.get(ifindex, '')
 
     def cleanup(self):
-        for cam in self._missing.values():
-            self._close_missing(cam)
+        for cam_detail in self._missing:
+            self._close_missing(cam_detail)
 
-    @staticmethod
-    def _close_missing(cam):
+    @classmethod
+    def _close_missing(cls, cam_detail):
         upd = {}
-        if cam.end_time >= INFINITY:
-            cam.end_time = datetime.datetime.now()
-            upd['end_time'] = cam.end_time
+        cls._logger.debug("closing %r", cam_detail)
+        if cam_detail.end_time >= INFINITY:
+            upd['end_time'] = datetime.datetime.now()
 
-        if cam.miss_count >= 0:
-            cam.miss_count += 1
-            upd['miss_count'] = cam.miss_count
-
-        if cam.miss_count >= MAX_MISS_COUNT:
-            cam.miss_count = None
-            upd['miss_count'] = cam.miss_count
+        if cam_detail.miss_count >= 0:
+            miss_count = cam_detail.miss_count + 1
+            upd['miss_count'] = (miss_count if miss_count < MAX_MISS_COUNT
+                                 else None)
 
         if upd:
-            manage.Cam.objects.filter(id=cam.id).update(**upd)
-
-
-# pylint: disable=C0111
-class Cam(Shadow):
-    __shadowclass__ = manage.Cam
-    manager = CamManager
-
-    def get_existing_model(self, containers=None):
-        "Returns only a cached object, if available"
-        return getattr(self, '_cached_existing_model', None)
+            manage.Cam.objects.filter(id=cam_detail.id).update(**upd)
 
     @classmethod
     def add_sentinel(cls, containers):
@@ -195,6 +186,7 @@ class Cam(Shadow):
         can be safely expired.
 
         """
-        containers.setdefault(cls, {})[cls.sentinel] = cls.sentinel
+        containers.setdefault(Cam, {})[Cam.sentinel] = Cam.sentinel
 
-CamManager.sentinel = Cam.sentinel = Cam()
+Cam.manager = CamManager
+CamManager.sentinel = Cam.sentinel

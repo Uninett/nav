@@ -562,10 +562,6 @@ class ContainerRepository(dict):
         args and kwargs arguments are ignored.
 
         """
-        if not issubclass(container_class, Shadow):
-            raise ValueError("%s is not a shadow container class" %
-                             container_class)
-
         obj = self.get(key, container_class)
         if obj is None:
             obj = container_class(*args, **kwargs)
@@ -610,7 +606,9 @@ class ContainerRepository(dict):
 
         """
         order = get_shadow_sort_order()
-        return [cls for cls in order if cls in self]
+        return ([cls for cls in order if cls in self] +
+                [cls for cls in self if cls not in order])
+
 
 def get_shadow_sort_order():
     """Return a topologically sorted list of shadow classes."""
