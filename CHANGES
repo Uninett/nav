@@ -1,5 +1,5 @@
 Version 4.1.0
-(released xx Jun 2014)
+(released 26 Jun 2014)
 
  User-visible features and improvements:
 
@@ -7,6 +7,7 @@ Version 4.1.0
    * LP#1062298 (Watchdog feature to monitor internal status of NAV processes)
    * LP#1169557 (Room and Organization opt fields should be replaced with an
                  arbitrary variable=value scheme)
+   * LP#1248092 (ipdevpoll CAM collection optimizations)
    * LP#1319657 (ipdevinfo alert tab does not display alerttype)
    * LP#1312648 (Remember user's preference for number of rows per page in
                  SeedDB list views)
