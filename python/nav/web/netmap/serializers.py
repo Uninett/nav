@@ -40,7 +40,7 @@ class InstanceRelatedField(serializers.RelatedField):
 
 
 class NetmapViewSerializer(serializers.Serializer):
-
+    """Serializer for NetmapView"""
     viewid = serializers.Field()
     owner = serializers.RelatedField()
     title = serializers.CharField(widget=Textarea)

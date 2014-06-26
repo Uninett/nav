@@ -22,8 +22,8 @@ from .views import (
     NetmapViewEdit,
     NetmapViewCreate,
     NetmapViewDefaultViewUpdate,
+    NodePositionUpdate,
     NetmapGraph,
-    NetmapTestView,
 )
 
 from nav.models.profiles import Account
@@ -54,6 +54,11 @@ urlpatterns = patterns('nav.web.netmap.views',
         r'^views/default/(?P<owner>[\d]+)/$',
         NetmapViewDefaultViewUpdate.as_view(),
         name='netmap-defaultview-user',
+    ),
+    url(
+        r'^views/(?P<viewid>[\d]+)/nodepositions/update/$',
+        NodePositionUpdate.as_view(),
+        name='netmap-nodepositions-update',
     ),
     url(
         r'^graph/layer(?P<layer>[2|3])/$',

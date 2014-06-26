@@ -1,14 +1,13 @@
 define([
     'netmap/graph',
     'netmap/models',
-    'plugins/d3force',
-    'plugins/set_equality',
+    'netmap/collections',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker',
     'libs/d3.v2'
-], function (Graph, Models) {
+], function (Graph, Models, Collections) {
 
     var GraphView = Backbone.View.extend({
 
@@ -18,7 +17,8 @@ define([
             'netmap:topologyLayerChanged': 'updateTopologyLayer',
             'netmap:netmapViewChanged': 'updateNetmapView',
             'netmap:filterCategoriesChanged': 'updateFilterCategories',
-            'netmap:updateGraph': 'update'
+            'netmap:updateGraph': 'update',
+            'netmap:saveNodePositions': 'saveNodePositions'
         },
 
         initialize: function () {
@@ -226,6 +226,8 @@ define([
                     node.px = node.position.x;
                     node.py = node.position.y;
                     node.fixed = true;
+                } else {
+                    node.fixed = false;
                 }
             });
         },
@@ -339,7 +341,7 @@ define([
                 success: function () {
                     self.update();
                 },
-                error: function () {
+                error: function () { // TODO: Use alert message instead
                     alert('Error loading graph, please try to reload the page');
                 }
             });
@@ -371,6 +373,8 @@ define([
                 }
             });
 
+
+
             this.update();
         },
 
@@ -382,6 +386,42 @@ define([
             }).checked = checked;
 
             this.update();
+        },
+
+        saveNodePositions: function () {
+
+            var self = this;
+
+            var dirtyNodes = _.map(
+                _.filter(this.force.nodes(), function (node) {
+                    return node.fixed;
+                }),
+                function (dirtyNode) {
+                    return {
+                        viewid: self.netmapView.id,
+                        netbox: dirtyNode.id,
+                        x: dirtyNode.x,
+                        y: dirtyNode.y
+                    };
+                }
+            );
+
+            if (dirtyNodes.length) {
+
+                var nodePositions = new Models.NodePositions().set({
+                    'data': dirtyNodes,
+                    'viewid': this.netmapView.id
+                });
+
+                nodePositions.save(nodePositions.get('data'),
+                    {
+                    success: function () { console.log('nodepositions saved'); },
+                    error: function (model, resp, opt) {
+                        console.log(resp.responseText);
+                    }
+                });
+
+            }
         },
 
         /**
@@ -407,7 +447,6 @@ define([
             node.px += d3.event.dx;
             node.py += d3.event.dy;
             node.fixed = true;
-            node.dirty = true;
         },
 
         dragEnd: function (node) {
@@ -423,9 +462,7 @@ define([
         },
 
         // TODO do we need this?
-        dblclick: function (node) { console.log('graph view dblclick');
-            d3.event.stopPropagation();
-            d3.select(this).classed('fixed', node.fixed = false);
+        dblclick: function (node) {
         }
 
     });

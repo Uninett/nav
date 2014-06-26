@@ -31,10 +31,13 @@ from nav.models.profiles import (
     NetmapViewNodePosition,
     Account,
 )
-from nav.models.manage import Category
+from nav.models.manage import Category, Netbox
 
 from .mixins import DefaultNetmapViewMixin, AdminRequiredMixin
-from .serializers import NetmapViewSerializer, NetmapViewDefaultViewSerializer
+from .serializers import (
+    NetmapViewSerializer,
+    NetmapViewDefaultViewSerializer,
+)
 from .graph import get_topology_graph
 
 
@@ -210,6 +213,30 @@ class NetmapViewDefaultViewUpdate(generics.RetrieveUpdateAPIView):
         return user.id == ownerid or user.is_admin()
 
 
+class NodePositionUpdate(generics.UpdateAPIView):
+    """View for updating node positions"""
+    def update(self, request, *args, **kwargs):
+
+        viewid = kwargs.pop('viewid')
+        data = request.DATA.get('data', [])
+
+        for d in data:
+            defaults = {
+                'x': int(d['x']),
+                'y': int(d['y']),
+            }
+            obj, created = NetmapViewNodePosition.objects.get_or_create(
+                viewid=NetmapView(pk=viewid),
+                netbox=Netbox(pk=int(d['netbox'])),
+                defaults=defaults
+            )
+            if not created:
+                obj.x = defaults['x']
+                obj.y = defaults['y']
+                obj.save()
+        return Response()
+
+
 class NetmapGraph(views.APIView):
     """View for building and providing topology data in graph form"""
     def get(self, request, **kwargs):
@@ -223,9 +250,3 @@ class NetmapGraph(views.APIView):
             view = get_object_or_404(NetmapView, pk=viewid)
 
         return Response(get_topology_graph(layer, load_traffic, view))
-
-
-### Test view
-
-class NetmapTestView(TemplateView):
-    template_name = 'netmap/test_graph.html'

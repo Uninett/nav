@@ -55,8 +55,22 @@ define([
         }
     });
 
+    var NodePositions = Backbone.Model.extend({
+
+        idAttribute: 'viewid',
+
+        defaults: {
+            data: []
+        },
+
+        url: function () {
+            return 'views/' + this.get('viewid') + '/nodepositions/update/';
+        }
+    });
+
     return {
         Node: Node,
+        NodePositions: NodePositions,
         Link: Link,
         Vlan: Vlan,
         NetmapView: NetmapView

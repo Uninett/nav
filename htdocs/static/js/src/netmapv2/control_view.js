@@ -66,6 +66,11 @@ define([
             _.each(this.currentView.get('categories'), function (category) {
                 self.$('#filter-' + category).prop('checked', true);
             });
+            window.onunload = function () {
+                _.each(self.currentView.get('categories'), function (category) {
+                    self.$('#filter-' + category).prop('checked', false);
+                });
+            };
 
             $('#filter-orphan-nodes', this.navigationSubView).prop(
                 'checked',
@@ -168,9 +173,6 @@ define([
 
         saveCurrentView: function () {
 
-            // TODO: Need to save node positions. Graph can handle seperately?
-
-
             // Update `display_elinks` and remove 'ELINKS' from categories if present
             var categories = this.currentView.get('categories');
             this.currentView.set('display_elinks', _.indexOf(categories, 'ELINK') >= 0);
@@ -182,6 +184,7 @@ define([
                 {
                     success: function () {
                         self.saveSuccessful.call(self);
+                        Backbone.EventBroker.trigger('netmap:saveNodePositions');
                     },
                     error: function () {
                         self.saveError.call(self);

@@ -170,11 +170,8 @@
 <div class="row">
 
   <div id="graph" class="large-12 columns">
-
-    <div id="spinner-dummy"></div>
     <div id="graph-view"></div>
-
-
+    <div id="spinner-dummy"></div>
   </div>
 
 </div>
@@ -212,6 +209,6 @@
         top: 'auto', // Top position relative to parent in px
         left: 'auto' // Left position relative to parent in px
     };
-    //document.navNetmapAppSpinner = new Spinner(opts).spin(target);
+    document.navNetmapAppSpinner = new Spinner(opts).spin(target);
 </script>
 {% endblock %}
