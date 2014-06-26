@@ -59,6 +59,19 @@ to connect remotely as the ``postgres`` user)::
 
   sudo -u postgres navsyncdb
 
+Watchdog
+--------
+
+NAV 4.1 implements the first version of the Watchdog system, which is
+responsible for monitoring NAV's internal affairs. This new tool can be used
+to detect problems with NAV's data collection, among other things. Its primary
+status matrix is also available as a widget that can be added to your front
+page.
+
+A future planned feature is generating NAV alerts based on problems detected
+by the watchdog system.
+
+
 New REST API
 ------------
 
