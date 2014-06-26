@@ -1,3 +1,14 @@
+Version 3.15.10
+(released 26 Jun 2014)
+
+ Bugfixes:
+
+  * LP#1321634 (Some alerts are never resolved when devices have moved around)
+  * LP#1327098 (ipdevpoll jobs are marked as successful when nothing was done)
+  * LP#1333167 (Netbox.up sometimes out of sync with actual alert-based box
+                state)
+
+
 Version 3.15.9
 (released 15 May 2014)
 
