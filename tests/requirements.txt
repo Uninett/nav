@@ -1,10 +1,10 @@
-pytest>=2.3.4
+pytest==2.5.2
 mock>=0.8.0
 pylint==0.26
 sphinx>=1.0
 whisper>=0.9.9
 selenium>=2.34.0
-coverage>=3.4
-pytest-cov==1.6
+coverage>=3.6
+pytest-cov==1.7.0
 django>=1.4,<1.5
 lxml==2.3.2
