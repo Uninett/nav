@@ -351,6 +351,8 @@ define([
 
         updateNetmapView: function (view) { console.log('graph view update view');
 
+            var refetchNeeded = this.netmapView.get('topology') !== view.get('topology');
+
             this.netmapView = view;
 
             this.model.set('viewId', this.netmapView.id);
@@ -365,7 +367,11 @@ define([
                 category.checked = _.indexOf(selectedCategories, category.name) >= 0;
             });
 
-            this.update();
+            if (refetchNeeded) {
+                this.fetchGraphModel();
+            } else {
+                this.update();
+            }
         },
 
         updateFilterCategories: function (categoryId, checked) { console.log('graph view update filter');
@@ -384,7 +390,7 @@ define([
 
             var dirtyNodes = _.map(
                 _.filter(this.force.nodes(), function (node) {
-                    return node.fixed;
+                    return node.fixed && node.category && !node.is_elink_node;
                 }),
                 function (dirtyNode) {
                     return {

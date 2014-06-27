@@ -40,6 +40,10 @@ define([
         initializeDOM: function () { // TODO: Consistent naming
             var self = this;
 
+            this.netmapViewPanel = this.$('#netmap-view-panel');
+            this.advancedOptionsPanel = this.$('#advanced-options-panel');
+            this.alertContainer = this.$('#netmap-alert-container', this.netmapViewPanel);
+
             this.$('#graph-layer-select option').each(function (i, option) {
                 if (self.currentView.get('topology') === parseInt(option.value)) {
                     option.selected = true;
@@ -50,14 +54,10 @@ define([
                     option.selected = true;
                 }
             });
-           $('#filter-orphan-nodes', this.navigationSubView).prop(
+            this.$('#filter-orphan-nodes').prop(
                 'checked',
                 this.currentView.get('display_orphans')
             );
-
-            this.netmapViewPanel = this.$('#netmap-view-panel');
-            this.advancedOptionsPanel = this.$('#advanced-options-panel');
-            this.alertContainer = this.$('#netmap-alert-container', this.netmapViewPanel);
 
             _.each(this.currentView.get('categories'), function (category) {
                 self.$('#filter-' + category).prop('checked', true);
@@ -66,6 +66,10 @@ define([
                 _.each(self.currentView.get('categories'), function (category) {
                     self.$('#filter-' + category).prop('checked', false);
                 });
+                self.$('#filter-orphan-nodes').prop(
+                    'checked',
+                    self.currentView.get('display_orphans')
+                );
             };
         },
 
@@ -107,6 +111,10 @@ define([
             _.each(this.$('.filter-category'), function (elem) {
                 elem.checked = _.contains(newCategories, elem.value);
             });
+            this.$('#filter-orphan-nodes').prop(
+                'checked',
+                this.currentView.get('display_orphans')
+            );
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
         },
