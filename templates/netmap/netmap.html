@@ -110,12 +110,12 @@
                 <a class="button secondary small left">Set favorite</a>
               </div>
               <div class="medium-6 columns">
-                <a class="button alert small left">Delete view</a>
+                <a id="netmap-view-delete" class="button alert small left">Delete view</a>
               </div>
             </div>
             <div class="row">
               <div class="medium-12 columns">
-                <a id="netmap-save-view" class="button small">Save view</a>
+                <a id="netmap-view-save" class="button small">Save view</a>
               </div>
             </div>
             <div class="row">
@@ -147,9 +147,10 @@
             </div>
           </div>
           <div class="medium-4 columns end right">
-            <form>
+            <form id="netmap-view-create-form">
               <input type="text" placeholder="View name"/>
               <textarea placeholder="View description"></textarea>
+              <label><input type="checkbox" name="public" checked>Public</label>
               <input class="button small" type="submit" value="Create view" />
             </form>
           </div>

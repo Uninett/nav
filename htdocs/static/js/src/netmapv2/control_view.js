@@ -4,7 +4,7 @@ define([
     'netmap/graph',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (Collections) {
+], function (Collections, Models) {
 
     var ControlView = Backbone.View.extend({
 
@@ -12,11 +12,13 @@ define([
         interests: {},
         events: {
             'submit #graph-search-form': 'searchGraph',
+            'submit #netmap-view-create-form': 'createView',
             'change #graph-layer-select': 'changeTopologyLayer',
             'change #graph-view-select': 'changeNetmapView',
             'click .filter-category': 'updateCategoryFilter',
             'click #filter-orphan-nodes': 'updateOrphanNodesFilter',
-            'click #netmap-save-view': 'saveCurrentView',
+            'click #netmap-view-save': 'saveCurrentView',
+            'click #netmap-view-delete': 'deleteCurrentView',
             'click #netmap-view-panel-toggle': 'toggleNetmapViewPanel',
             'click #advanced-options-panel-toggle': 'toggleAdvancedOptionsPanel'
         },
@@ -140,7 +142,7 @@ define([
         },
 
 
-        updateOrphanNodesFilter: function (e) { console.log('Orphans');
+        updateOrphanNodesFilter: function (e) {
 
             this.currentView.set('display_orphans', e.currentTarget.checked);
 
@@ -155,19 +157,57 @@ define([
             this.currentView.set('display_elinks', _.indexOf(categories, 'ELINK') >= 0);
             this.currentView.set('categories', _.without(categories, 'ELINK'));
             this.currentView.set('last_modified', new Date());
+            var isNew = this.currentView.isNew();
 
             var self = this;
             this.currentView.save(this.currentView.attributes,
                 {
-                    success: function () {
-                        self.saveSuccessful.call(self);
-                        Backbone.EventBroker.trigger('netmap:saveNodePositions');
+                    success: function (model) {
+                        self.saveSuccessful.call(self, model, isNew);
                     },
-                    error: function () {
-                        self.saveError.call(self);
+                    error: function (model, resp) {
+                        self.saveError.call(self, resp.responseText);
                     }
                 }
             );
+        },
+
+        deleteCurrentView: function () {
+
+        },
+
+        createView: function (e) {
+            e.preventDefault();
+
+            var title = $('input:text', e.currentTarget).val();
+            var desc = $('textarea', e.currentTarget).val();
+            var publ = $('input:checkbox', e.currentTarget).is(':checked');
+            e.currentTarget.reset();
+
+            var newView = new Models.NetmapView();
+            newView.set({
+                title: title,
+                description: desc,
+                is_public: publ
+            });
+            this.netmapViews.add(newView);
+            this.currentView = newView;
+
+            var viewSelect = this.$('#graph-view-select');
+            viewSelect.append(new Option(title, newView.cid, true, true));
+
+            var newCategories = this.currentView.get('categories');
+            _.each(this.$('.filter-category'), function (elem) {
+                elem.checked = _.contains(newCategories, elem.value);
+            });
+            this.$('#filter-orphan-nodes').prop(
+                'checked',
+                this.currentView.get('display_orphans')
+            );
+
+            this.alertContainer.html('<span class="alert-box">Current view is unsaved</span>');
+
+            Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
         },
 
         /**
@@ -182,7 +222,18 @@ define([
 
         /* Save callbacks */
 
-        saveSuccessful: function () {
+        saveSuccessful: function (model, isNew) {
+
+            Backbone.EventBroker.trigger('netmap:saveNodePositions');
+
+            if (isNew) {
+                /* If the model was new we need to set its value as
+                 * the id given by the database.
+                 */
+                this.$('#graph-view-select option[value="' + model.cid + '"]')
+                    .attr('id', model.id)
+                    .attr('value', model.id);
+            }
 
             var alert = this.alertContainer.html('<span class="alert-box success">View saved successfully</span>');
             setTimeout(function () {
@@ -192,7 +243,7 @@ define([
             }, 3000);
         },
 
-        saveError: function () {
+        saveError: function (resp) { console.log(resp);
 
             var alert = this.alertContainer.html(
                 '<span class="alert-box alert">Save unsuccessful!' +

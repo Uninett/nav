@@ -43,8 +43,8 @@ class NetmapViewSerializer(serializers.Serializer):
     """Serializer for NetmapView"""
     viewid = serializers.Field()
     owner = serializers.RelatedField()
-    title = serializers.CharField(widget=Textarea)
-    description = serializers.CharField(widget=Textarea)
+    title = serializers.CharField()
+    description = serializers.CharField(widget=Textarea, required=False)
     topology = serializers.ChoiceField(choices=profiles.LINK_TYPES)
     zoom = serializers.CharField(required=False)
     last_modified = serializers.DateTimeField()
