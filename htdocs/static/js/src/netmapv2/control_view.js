@@ -174,6 +174,21 @@ define([
 
         deleteCurrentView: function () {
 
+            if (!this.currentView.isNew()) {
+
+                var self = this;
+                this.currentView.destroy({
+                    success: function () {
+                        self.deleteSuccessful.call(self, false);
+                    },
+                    error: function (model, resp) {
+                        self.deleteError.call(self, resp.responseText);
+                    },
+                    wait: true
+                });
+            } else {
+                this.deleteSuccessful(true);
+            }
         },
 
         createView: function (e) {
@@ -243,6 +258,30 @@ define([
             }, 3000);
         },
 
+        deleteSuccessful: function (isNew) {
+
+            var value;
+            if (isNew) {
+                value = this.currentView.cid;
+            } else {
+                value = this.currentView.id;
+            }
+
+            this.$('#graph-view-select option[value="' + value + '"]').remove();
+            var selected = this.$('#graph-view-select option:selected').val();
+            this.currentView = this.netmapViews.get(selected);
+            this.updateFilterCategories();
+
+            Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
+
+            var alert = this.alertContainer.html('<span class="alert-box success">Successfully deleted view</span>');
+            setTimeout(function () {
+                $('span', alert).fadeOut(function () {
+                    this.remove();
+                });
+            }, 3000);
+        },
+
         saveError: function (resp) { console.log(resp);
 
             var alert = this.alertContainer.html(
@@ -254,6 +293,31 @@ define([
                     this.remove();
                 }) ;
             });
+        },
+
+        deleteError: function (resp) { console.log(resp);
+
+            var alert = this.alertContainer.html(
+                '<span class="alert-box alert">Delete unsuccessful!' +
+                    '<a href="#" class="close">&times;</a></span>'
+            );
+            $('span a', alert).click(function () {
+                $('span', alert).fadeOut(function () {
+                    this.remove();
+                }) ;
+            });
+        },
+
+        updateFilterCategories: function () {
+
+            var newCategories = this.currentView.get('categories');
+            _.each(this.$('.filter-category'), function (elem) {
+                elem.checked = _.contains(newCategories, elem.value);
+            });
+            this.$('#filter-orphan-nodes').prop(
+                'checked',
+                this.currentView.get('display_orphans')
+            );
         }
     });
 
