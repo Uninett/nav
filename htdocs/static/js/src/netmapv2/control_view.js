@@ -56,23 +56,8 @@ define([
                     option.selected = true;
                 }
             });
-            this.$('#filter-orphan-nodes').prop(
-                'checked',
-                this.currentView.get('display_orphans')
-            );
 
-            _.each(this.currentView.get('categories'), function (category) {
-                self.$('#filter-' + category).prop('checked', true);
-            });
-            window.onunload = function () {
-                _.each(self.currentView.get('categories'), function (category) {
-                    self.$('#filter-' + category).prop('checked', false);
-                });
-                self.$('#filter-orphan-nodes').prop(
-                    'checked',
-                    self.currentView.get('display_orphans')
-                );
-            };
+            this.setCategoriesForCurrentView();
         },
 
         toggleNetmapViewPanel: function (e) {
@@ -108,15 +93,7 @@ define([
 
             var viewId = e.currentTarget.value;
             this.currentView = this.netmapViews.get(viewId);
-
-            var newCategories = this.currentView.get('categories');
-            _.each(this.$('.filter-category'), function (elem) {
-                elem.checked = _.contains(newCategories, elem.value);
-            });
-            this.$('#filter-orphan-nodes').prop(
-                'checked',
-                this.currentView.get('display_orphans')
-            );
+            this.setCategoriesForCurrentView();
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
         },
@@ -211,14 +188,7 @@ define([
             var viewSelect = this.$('#graph-view-select');
             viewSelect.append(new Option(title, newView.cid, true, true));
 
-            var newCategories = this.currentView.get('categories');
-            _.each(this.$('.filter-category'), function (elem) {
-                elem.checked = _.contains(newCategories, elem.value);
-            });
-            this.$('#filter-orphan-nodes').prop(
-                'checked',
-                this.currentView.get('display_orphans')
-            );
+            this.setCategoriesForCurrentView();
 
             this.alertContainer.html('<span class="alert-box">Current view is unsaved</span>');
 
@@ -270,7 +240,7 @@ define([
             this.$('#graph-view-select option[value="' + value + '"]').remove();
             var selected = this.$('#graph-view-select option:selected').val();
             this.currentView = this.netmapViews.get(selected);
-            this.updateFilterCategories();
+            this.setCategoriesForCurrentView();
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
 
@@ -308,7 +278,7 @@ define([
             });
         },
 
-        updateFilterCategories: function () {
+        setCategoriesForCurrentView: function () {
 
             var newCategories = this.currentView.get('categories');
             _.each(this.$('.filter-category'), function (elem) {

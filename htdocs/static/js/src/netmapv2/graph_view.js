@@ -16,7 +16,7 @@ define([
         interests: {
             'netmap:topologyLayerChanged': 'updateTopologyLayer',
             'netmap:netmapViewChanged': 'updateNetmapView',
-            'netmap:filterCategoriesChanged': 'updateFilterCategories',
+            'netmap:filterCategoriesChanged': 'updateCategories',
             'netmap:updateGraph': 'update',
             'netmap:saveNodePositions': 'saveNodePositions'
         },
@@ -374,7 +374,7 @@ define([
             }
         },
 
-        updateFilterCategories: function (categoryId, checked) { console.log('graph view update filter');
+        updateCategories: function (categoryId, checked) { console.log('graph view update filter');
 
             var categories = this.model.get('filter_categories');
             _.find(categories, function (category) {
