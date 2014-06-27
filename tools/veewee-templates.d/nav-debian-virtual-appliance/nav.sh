@@ -8,7 +8,7 @@ echo 'Welcome to Network Administration Visualized virtual appliance.' > /etc/mo
 apt-get install -y apt-transport-https
 apt-key adv --keyserver keys.gnupg.net --recv-key 0xC9F583C2CE8E05E8 # UNINETT NAV APT repository
 
-echo "deb https://nav.uninett.no/debian/ wheezy nav navbeta" > /etc/apt/sources.list.d/nav.list
+echo "deb https://nav.uninett.no/debian/ wheezy nav" > /etc/apt/sources.list.d/nav.list
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -20,7 +20,6 @@ nav	nav/db_purge	boolean	false
 nav	nav/db_generation	boolean	true
 nav	nav/apache2_restart	boolean	true
 nav	nav/db_auto_update	boolean	true
-nav	nav/cricket_movegiga	boolean	false
 EOF
 
 apt-get -y update
