@@ -44,9 +44,9 @@ define([
             this.model = new Graph();
             this.netmapView = this.options.netmapView;
 
-            this.initializeNetmapView();
             this.initializeDOM();
             this.bindEvents();
+            this.initializeNetmapView();
             this.fetchGraphModel();
         },
 
@@ -66,6 +66,8 @@ define([
             var zoomStr = this.netmapView.get('zoom').split(';');
             this.trans = zoomStr[0].split(',');
             this.scale = zoomStr[1];
+            this.zoom.translate(this.trans);
+            this.zoom.scale(this.scale);
 
             var selectedCategories = this.netmapView.get('categories');
             _.each(this.model.get('filter_categories'), function (category) {
@@ -82,8 +84,8 @@ define([
                 .append('svg')
                 .attr('width', this.w)
                 .attr('height', this.h)
-                .attr('pointer-events', 'all')
                 .attr('viewBox', '0 0 ' + this.w + ' ' + this.h)
+                .attr('pointer-events', 'all')
                 .attr('overflow', 'hidden')
                 ;
 
@@ -361,6 +363,8 @@ define([
             var zoomStr = this.netmapView.get('zoom').split(';');
             this.trans = zoomStr[0].split(',');
             this.scale = zoomStr[1];
+            this.zoom.translate(this.trans);
+            this.zoom.scale(this.scale);
 
             var selectedCategories = this.netmapView.get('categories');
             _.each(this.model.get('filter_categories'), function (category) {
