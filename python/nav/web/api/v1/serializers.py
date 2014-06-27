@@ -46,6 +46,12 @@ class ArpSerializer(serializers.ModelSerializer):
 
 class RoomSerializer(serializers.ModelSerializer):
     """Serializer for the room model"""
+    @staticmethod
+    def transform_position(obj, _value):
+        if obj.position:
+            lat, lon = obj.position
+            return str(lat), str(lon)
+
     class Meta:
         model = manage.Room
         fields = ('id', 'location', 'description', 'position')

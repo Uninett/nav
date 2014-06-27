@@ -30,6 +30,7 @@ import logging
 import nav
 from nav.config import read_flat_config
 from nav.metrics.data import get_metric_average
+from nav.metrics.errors import GraphiteUnreachableError
 from nav.metrics.graphs import get_metric_meta
 from nav.metrics.templates import (metric_path_for_interface,
                                    metric_path_for_cpu_load, metric_path_for_cpu_utilization)
@@ -374,9 +375,14 @@ def get_link_load(sysname, ifname, time_interval):
         targets = [metric_path_for_interface(sysname, ifname, counter)
                    for counter in ('ifInOctets', 'ifOutOctets')]
         targets = [get_metric_meta(t)['target'] for t in targets]
-        data = get_metric_average(targets,
-                                  start=time_interval['start'],
-                                  end=time_interval['end'])
+        try:
+            data = get_metric_average(targets,
+                                      start=time_interval['start'],
+                                      end=time_interval['end'])
+        except GraphiteUnreachableError:
+            _logger.error("graphite unreachable on load query for %s:%s (%r)",
+                          sysname, ifname, time_interval)
+            return in_bps, out_bps
 
         for key, value in data.iteritems():
             if 'ifInOctets' in key:

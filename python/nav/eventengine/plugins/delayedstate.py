@@ -95,6 +95,16 @@ class DelayedStateHandler(EventHandler):
         """
         return
 
+    def _is_internally_down(self):
+        """
+        Called to verify whether the internal state of the target is
+        currently "down".
+
+        :return: True if down, False if upn, None if internal state cannot be
+                 determined or is inapplicable for this target/event combo.
+        """
+        return
+
     def get_target(self):
         """Returns the target of the associated event"""
         raise NotImplementedError
@@ -118,6 +128,11 @@ class DelayedStateHandler(EventHandler):
                 self._logger.info("ignoring transient down state for %s",
                                   self.get_target())
                 waiting_plugin.deschedule()
+        elif self._is_internally_down():
+            self._logger.info("no unresolved %s for %s, but its internal state "
+                              "was down; correcting internal state",
+                              self.event.event_type, self.get_target())
+            self._set_internal_state_up()
         else:
             self._logger.info("no unresolved %s for %s, ignoring end event",
                               self.event.event_type, self.get_target())

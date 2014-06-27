@@ -23,8 +23,9 @@ from collections import defaultdict
 import datetime as dt
 
 from django.db import models
+from django.db.models import Q
 
-from nav.models.fields import VarcharField, DateTimeInfinityField
+from nav.models.fields import VarcharField, DateTimeInfinityField, UNRESOLVED
 
 # Choices used in multiple models, "imported" into the models which use them
 STATE_STATELESS = 'x'
@@ -382,10 +383,29 @@ class AlertQueueVariable(models.Model):
     def __unicode__(self):
         return u'%s=%s' % (self.variable, self.value)
 
+
+class AlertHistoryManager(models.Manager):
+    """Custom manager for the AlertHistory model"""
+
+    def unresolved(self, event_type_id=None):
+        """
+        Gets only unresolved entries.
+
+        :param event_type_id: An optional event type id string to filter on
+        :rtype: django.db.models.query.QuerySet
+        """
+        if event_type_id:
+            filtr = UNRESOLVED & Q(event_type__id=event_type_id)
+        else:
+            filtr = UNRESOLVED
+        return self.filter(filtr)
+
+
 class AlertHistory(models.Model, EventMixIn):
     """From NAV Wiki: The alert history. Simular to the alert queue with one
     important distinction; alert history stores stateful events as one row,
     with the start and end time of the event."""
+    objects = AlertHistoryManager()
 
     id = models.AutoField(db_column='alerthistid', primary_key=True)
     source = models.ForeignKey('Subsystem', db_column='source')

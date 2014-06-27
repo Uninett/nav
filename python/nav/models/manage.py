@@ -100,6 +100,12 @@ class Netbox(models.Model):
         """Returns True if the Netbox isn't known to be down or in shadow"""
         return self.up == self.UP_UP
 
+    def is_snmp_down(self):
+        """
+        Returns True if this netbox has any unresolved snmp agent state alerts
+        """
+        return self.get_unresolved_alerts('snmpAgentState').count() > 0
+
     def get_absolute_url(self):
         kwargs = {
             'name': self.sysname,
@@ -292,13 +298,8 @@ class Netbox(models.Model):
             ).order_by('description')
 
     def get_unresolved_alerts(self, kind=None):
-        "Returns a queryset of unresolved alert states"
-        unresolved = self.alerthistory_set.filter(
-            end_time__gte=dt.datetime.max)
-        if kind:
-            return unresolved.filter(event_type__id=kind)
-        else:
-            return unresolved
+        """Returns a queryset of unresolved alert states"""
+        return self.alerthistory_set.unresolved(kind)
 
     def get_powersupplies(self):
         return self.powersupplyorfan_set.filter(
