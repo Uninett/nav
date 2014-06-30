@@ -7,7 +7,7 @@
             "iso_checksum": "8fdb6715228ea90faba58cb84644d296",
             "iso_checksum_type": "md5",
 
-	    "http_directory": ".",
+            "http_directory": ".",
             "boot_command": [
                 "<esc><wait>",
                 "install <wait>",
@@ -44,15 +44,15 @@
         }
     ],
     "provisioners": [
-	{
-	    "type": "shell",
-	    "scripts": [
-		"scripts/base.sh",
-		"scripts/nav.sh",
-		"scripts/cleanup-virtualbox.sh",
-		"scripts/cleanup.sh",
-		"scripts/zerodisk.sh"
-	    ]
-	}
+        {
+            "type": "shell",
+            "scripts": [
+                "scripts/base.sh",
+                "scripts/nav.sh",
+                "scripts/cleanup-virtualbox.sh",
+                "scripts/cleanup.sh",
+                "scripts/zerodisk.sh"
+            ]
+        }
     ]
 }
