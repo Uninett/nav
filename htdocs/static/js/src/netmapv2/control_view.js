@@ -198,7 +198,7 @@ define([
         searchGraph: function (e) {
             e.preventDefault();
             var query = $('#graph-search-input', e.currentTarget).val();
-            Backbone.EventBroker.trigger('netmap:netmapGraphSearch', query);
+            Backbone.EventBroker.trigger('netmap:searchGraph', query);
         },
 
         /* Save callbacks */

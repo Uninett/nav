@@ -18,6 +18,7 @@ define([
             'netmap:netmapViewChanged': 'updateNetmapView',
             'netmap:filterCategoriesChanged': 'updateCategories',
             'netmap:updateGraph': 'update',
+            'netmap:searchGraph': 'search',
             'netmap:saveNodePositions': 'saveNodePositions'
         },
 
@@ -436,6 +437,59 @@ define([
             );
         },
 
+        transformGraphTransition: function () {
+               this.boundingBox.transition()
+                   .duration(750)
+                   .attr(
+                        'transform',
+                        'translate(' + this.trans +
+                        ') scale(' + this.scale + ')');
+        },
+
+        transformGraphFromBounds: function (bounds) {
+
+            var widthRatio = this.scale * (this.w / ((bounds.width + 200) * this.scale));
+            var heightRatio = this.scale * (this.h / ((bounds.height + 200) * this.scale));
+            if (widthRatio < heightRatio) {
+                this.scale = widthRatio * 0.6;
+            } else {
+                this.scale = heightRatio * 0.6;
+            }
+            this.trans = [(-(bounds.xCenter * this.scale) + (this.w / 2)), (-(bounds.yCenter * this.scale) + (this.h / 2))];
+            this.zoom.translate(this.trans);
+            this.zoom.scale(this.scale);
+            this.transformGraphTransition();
+        },
+
+        search: function (query) {
+
+            var matchingNodes = _.filter(this.nodes, function (node) {
+                    return node.sysname.search(query) !== -1;
+                }
+            );
+
+            if (!matchingNodes.length) {
+                // TODO: Inform of no matches
+                return;
+            } else { console.log('yee');
+                var bounds = findBoundingBox(matchingNodes);
+                this.transformGraphFromBounds(bounds);
+
+                this.nodeGroup.selectAll('.node')
+                    .filter(function (node) {
+                        return !_.contains(matchingNodes, node);
+                    })
+                    .transition()
+                    .duration(750)
+                    .style('opacity', 0.5);
+
+                this.linkGroup.selectAll('.link')
+                    .transition()
+                    .duration(750)
+                    .style('opacity', 0.5);
+            }
+        },
+
         /* d3 callback functions  */
 
         dragStart: function (node, self) {
@@ -509,6 +563,20 @@ define([
         });
     }
 
+    /**
+     * Helper function for filtering out any links whose source or target
+     * is not in the node list.
+     * @param nodes
+     * @param links
+     * @returns {*}
+     */
+    function filterLinksByNodes(nodes, links) {
+
+        return _.filter(links, function (link) {
+           return _.contains(nodes, link.source) && _.contains(nodes, link.target);
+        });
+    }
+
 
     /**
      * Helper function to find the max speed of a link objects
@@ -559,6 +627,61 @@ define([
         }
         return speedClass;
     }
+
+    /**
+     * Helper function for finding the smallest bounding box
+     * of a list of nodes.
+     * @param nodes
+     */
+    function findBoundingBox(nodes) {
+
+       /* if (nodes.length === 1) {
+            this.scale = 1; // zoom into netbox
+            this.trans = [(-(nodes[0].x * this.scale) + (this.w / 2)), (-(nodes[0].y * this.scale) + (this.h / 2))];
+            this.zoom.translate(this.trans);
+            this.zoom.scale(this.scale);
+        }*/
+
+        var topLeft = {x: Number.MAX_VALUE, y: Number.MAX_VALUE};
+        var topRight = {x: -Number.MAX_VALUE, y: Number.MAX_VALUE};
+        var botLeft = {x: Number.MAX_VALUE, y: -Number.MAX_VALUE};
+        var botRight = {x: -Number.MAX_VALUE, y: -Number.MAX_VALUE};
+
+        _.each(nodes, function (node) {
+
+            if (node.y < (topLeft.y && topRight.y)) {
+                topLeft.y = topRight.y = node.y;
+            }
+            if (node.y > (botLeft.y && botRight.y)) {
+                botLeft.y = botRight.y = node.y;
+            }
+            if (node.x < (topLeft.x && botLeft.x)) {
+                topLeft.x = botLeft.x = node.x;
+            }
+            if (node.x > (topRight.x && botRight.x)) {
+                topRight.x = botRight.x = node.x;
+            }
+        });
+
+
+        var dimensions = {
+            width: Math.abs(botLeft.x - topRight.x),
+            height: Math.abs(botRight.y - topLeft.y)
+        };
+
+        var center = {
+            xCenter: (topLeft.x + botRight.x) / 2,
+            yCenter: (topRight.y + botLeft.y) / 2
+        };
+
+        return _.extend({
+            topLeft: topLeft,
+            topRight: topRight,
+            botLeft: botLeft,
+            botRight: botRight
+        }, dimensions, center);
+    }
+
 
     return GraphView;
 });
