@@ -40,24 +40,18 @@ define([
          * Initializes and/or caches any necessary DOM elements.
          */
         initializeDOM: function () { // TODO: Consistent naming
-            var self = this;
 
             this.netmapViewPanel = this.$('#netmap-view-panel');
             this.advancedOptionsPanel = this.$('#advanced-options-panel');
             this.alertContainer = this.$('#netmap-alert-container', this.netmapViewPanel);
 
-            this.$('#graph-layer-select option').each(function (i, option) {
-                if (self.currentView.get('topology') === parseInt(option.value)) {
-                    option.selected = true;
-                }
-            });
-            this.$('#graph-view-select option').each(function (i, option) {
-                if (self.currentView.id === parseInt(option.value)) {
-                    option.selected = true;
-                }
-            });
+            this.$('#graph-view-select option[value="' + this.currentView.id + '"]').prop(
+                'selected',
+                true
+            );
 
             this.setCategoriesForCurrentView();
+            this.setTopologySelectForCurrentView();
         },
 
         toggleNetmapViewPanel: function (e) {
@@ -94,6 +88,7 @@ define([
             var viewId = e.currentTarget.value;
             this.currentView = this.netmapViews.get(viewId);
             this.setCategoriesForCurrentView();
+            this.setTopologySelectForCurrentView();
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
         },
@@ -189,6 +184,7 @@ define([
             viewSelect.append(new Option(title, newView.cid, true, true));
 
             this.setCategoriesForCurrentView();
+            this.setTopologySelectForCurrentView();
 
             this.alertContainer.html('<span class="alert-box">Current view is unsaved</span>');
 
@@ -241,6 +237,7 @@ define([
             var selected = this.$('#graph-view-select option:selected').val();
             this.currentView = this.netmapViews.get(selected);
             this.setCategoriesForCurrentView();
+            this.setTopologySelectForCurrentView();
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
 
@@ -287,6 +284,16 @@ define([
             this.$('#filter-orphan-nodes').prop(
                 'checked',
                 this.currentView.get('display_orphans')
+            );
+        },
+
+        setTopologySelectForCurrentView: function () {
+
+            var layer = this.currentView.get('topology');
+
+            this.$('#graph-layer-select option[value="' + layer + '"]').prop(
+                'selected',
+                layer
             );
         }
     });
