@@ -450,13 +450,15 @@ define([
 
         transformGraphFromBounds: function (bounds) {
 
-            var widthRatio = this.scale * (this.w / ((bounds.width + 200) * this.scale));
-            var heightRatio = this.scale * (this.h / ((bounds.height + 200) * this.scale));
+            var widthRatio = this.scale * (this.w / ((bounds.width + 300) * this.scale));
+            var heightRatio = this.scale * (this.h / ((bounds.height + 300) * this.scale));
+
             if (widthRatio < heightRatio) {
-                this.scale = widthRatio * 0.6;
+                this.scale = widthRatio;
             } else {
-                this.scale = heightRatio * 0.6;
+                this.scale = heightRatio;
             }
+
             this.trans = [(-(bounds.xCenter * this.scale) + (this.w / 2)), (-(bounds.yCenter * this.scale) + (this.h / 2))];
             this.zoom.translate(this.trans);
             this.zoom.scale(this.scale);
@@ -475,7 +477,7 @@ define([
             if (!matchingNodes.length) {
                 // TODO: Inform of no matches
                 return;
-            } else { console.log('yee');
+            } else {
                 var bounds = findBoundingBox(matchingNodes);
                 this.transformGraphFromBounds(bounds);
 
@@ -639,13 +641,6 @@ define([
      */
     function findBoundingBox(nodes) {
 
-       /* if (nodes.length === 1) {
-            this.scale = 1; // zoom into netbox
-            this.trans = [(-(nodes[0].x * this.scale) + (this.w / 2)), (-(nodes[0].y * this.scale) + (this.h / 2))];
-            this.zoom.translate(this.trans);
-            this.zoom.scale(this.scale);
-        }*/
-
         var topLeft = {x: Number.MAX_VALUE, y: Number.MAX_VALUE};
         var topRight = {x: -Number.MAX_VALUE, y: Number.MAX_VALUE};
         var botLeft = {x: Number.MAX_VALUE, y: -Number.MAX_VALUE};
@@ -666,7 +661,6 @@ define([
                 topRight.x = botRight.x = node.x;
             }
         });
-
 
         var dimensions = {
             width: Math.abs(botLeft.x - topRight.x),
