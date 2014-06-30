@@ -253,7 +253,8 @@ define([
             this.link = this.linkGroup.selectAll('.link')
                 .data(this.links, function (link) {
                     return link.source.id + '-' + link.target.id;
-                });
+                })
+                .style('opacity', 1);
 
             this.link.enter()
                 .append('line')
@@ -290,7 +291,8 @@ define([
             this.node = this.nodeGroup.selectAll('.node')
                 .data(this.nodes, function (node) {
                     return node.id;
-                });
+                })
+                .style('opacity', 1);
 
             var nodeElement = this.node.enter()
                 .append('g')
@@ -463,6 +465,8 @@ define([
 
         search: function (query) {
 
+            this.nodeGroup.selectAll('.node').style('opacity', 1);
+
             var matchingNodes = _.filter(this.nodes, function (node) {
                     return node.sysname.search(query) !== -1;
                 }
@@ -481,12 +485,12 @@ define([
                     })
                     .transition()
                     .duration(750)
-                    .style('opacity', 0.5);
+                    .style('opacity', 0.3);
 
                 this.linkGroup.selectAll('.link')
                     .transition()
                     .duration(750)
-                    .style('opacity', 0.5);
+                    .style('opacity', 0.3);
             }
         },
 
