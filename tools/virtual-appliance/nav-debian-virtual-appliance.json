@@ -2,6 +2,9 @@
     "builders": [
         {
             "type": "virtualbox-iso",
+            "vm_name": "nav-virtual-appliance",
+            "output_directory": "nav-virtual-appliance",
+
             "guest_os_type": "Debian_64",
             "iso_url": "http://cdimage.debian.org/cdimage/release/7.5.0/amd64/iso-cd/debian-7.5.0-amd64-netinst.iso",
             "iso_checksum": "8fdb6715228ea90faba58cb84644d296",
