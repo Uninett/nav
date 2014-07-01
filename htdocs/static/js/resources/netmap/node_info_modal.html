@@ -1,0 +1,15 @@
+<div class="graph-info">
+<img src="{{ img }}" width="32px" height="32px">
+<img src="/static/images/lys/{{ up_image }}" alt="{{ up }}" class="right">
+<ul class="no-bullet">
+  {{#unless is_elink_node }}
+    <li><a href="{{ ipdevinfo_link }}">{{ ipdevinfo_link }}</a></li>
+    <li>{{ ip }}</li>
+  {{/unless }}
+    <li>Category: {{ category }}</li>
+  {{#unless is_elink_node  }}
+    <li>Room: {{#if room }}{{ room }}{{else}}N/A{{/if }}</li>
+    <li>Location: {{#if location }}{{ location }}{{else}}N/A{{/if }}</li>
+  {{/unless }}
+</ul>
+</div>

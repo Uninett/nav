@@ -1,13 +1,13 @@
 define([
     'netmap/graph',
     'netmap/models',
-    'netmap/collections',
+    'netmap/graph_info_view',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker',
     'libs/d3.v2'
-], function (Graph, Models) {
+], function (Graph, Models, GraphInfoView) {
 
     var GraphView = Backbone.View.extend({
 
@@ -297,7 +297,9 @@ define([
             var nodeElement = this.node.enter()
                 .append('g')
                 .attr('class', 'node')
-                .on('dblclick', this.dblclick)
+                .on('click', function (node) {
+                    self.clickNode.call(this, node, self);
+                })
                 .call(this.drag)
                 ;
 
@@ -499,6 +501,7 @@ define([
         /* d3 callback functions  */
 
         dragStart: function (node, self) {
+            d3.event.sourceEvent.stopPropagation();
             d3.select(this).insert('circle', 'image').attr('r', 20);
             self.force.start(); // d3 crashes without this
         },
@@ -521,8 +524,15 @@ define([
             this.netmapView.set('zoom', this.trans.join(',') + ';' + this.scale);
         },
 
-        // TODO do we need this?
-        dblclick: function (node) {
+        clickNode: function (node, self) {
+            if (d3.event.defaultPrevented) {
+                return;
+            }
+            new GraphInfoView({model: node}).render();
+        },
+
+        clickLink: function (link) { console.log('link clicked');
+
         }
 
     });
