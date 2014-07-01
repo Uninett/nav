@@ -1,0 +1,57 @@
+<div class="link-info">
+
+  <div class="row">
+    <div class="small-12 columns nopadding">
+      <table>
+
+        <thead>
+
+        <tr>
+          <th><img src="{{ sourceImg }}" alt="{{ source.category }}" width="24px" height="24px"></th>
+          <th colspan="2"><a href="{{ source.ipdevinfo_link }}">{{ source.sysname }}</a></th>
+        </tr>
+        <tr>
+          <th><img class="left" src="{{ targetImg }}" alt="{{ target.category }}" width="24px" height="24px"></th>
+          <th colspan="2"><a href="{{ target.ipdevinfo_link }}">{{ target.sysname }}</a></th>
+        </tr>
+
+        </thead>
+
+
+        <tbody>
+        {{#each edges }}
+          <tr>
+            <td>
+              {{#if this.source.interface.ifname }}
+                {{#if this.source.interface.ipdevinfo_link }}
+                  <a href="{{ this.source.interface.ipdevinfo_link }}">
+                    {{ this.source.interface.ifname }}
+                  </a>
+                {{else}}
+                  {{ this.source.interface.ifname }}
+                {{/if }}
+              {{else}}
+                N/A
+              {{/if }}
+            </td>
+            <td>&#8592; {{ this.link_speed }} mbps &#8594;</td>
+            <td>
+              {{#if this.target.interface.ifname }}
+                {{#if this.target.interface.ipdevinfo_link}}
+                  <a href="{{this.target.interface.ipdevinfo_link}}">
+                    {{this.target.interface.ifname}}
+                  </a>
+                {{else}}
+                  {{this.target.interface.ifname}}
+                {{/if }}
+              {{else}}
+                N/A
+              {{/if }}
+            </td>
+          </tr>
+        {{/each }}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

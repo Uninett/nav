@@ -258,6 +258,9 @@ define([
 
             this.link.enter()
                 .append('line')
+                .on('click', function (link) {
+                    self.clickLink.call(this, link, self);
+                })
                 .attr('class', function (o) {
                     return 'link ' + linkSpeedAsString(findLinkMaxSpeed(o));
                 })
@@ -528,11 +531,11 @@ define([
             if (d3.event.defaultPrevented) {
                 return;
             }
-            new GraphInfoView({model: node}).render();
+            return new GraphInfoView({model: node, parent: self.el});
         },
 
-        clickLink: function (link) { console.log('link clicked');
-
+        clickLink: function (link, self) {
+            return new GraphInfoView({model: link, parent: self.el});
         }
 
     });

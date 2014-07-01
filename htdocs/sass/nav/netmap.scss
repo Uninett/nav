@@ -64,6 +64,12 @@ $image-path: '../../images';
   padding: 0;
 }
 
+.link-info table {
+  width: 100%;
+  text-align: center;
+}
+
+
 #netmap_wrapper {
     position: relative;
     top: 0;
@@ -407,7 +413,7 @@ div.uplink > * {
     padding: 0 3%;
 }
 
-div.uplink_header {
+div.uplink-header {
     font-weight:bold;
 	font-size:.8em;
 	color:#fff;
@@ -418,20 +424,20 @@ div.uplink_header {
 	background:#567899;
 }
 
-div.uplink_header span a {
+div.uplink-header span a {
     color:#fff;
 }
 
-div.uplink_header .source_node_name {
+div.uplink-header .source-node-name {
     text-align: right;
     float:left;
 }
 
-div.uplink_header .node_separator {
+div.uplink-header .node-separator {
     margin:0 3px;
 }
 
-div.uplink_header .target_node_name {
+div.uplink-header .target-node-name {
     text-align: left;
     float:right;
 }
@@ -443,17 +449,17 @@ div.uplink a {
 div.uplink a:hover {
 	color:#f90;
 }
-div.uplink > .uplink_linkspeed {
+div.uplink > .uplink-linkspeed {
     font-size:0.8em;
     margin:3px 0;
 }
-div.uplink > .uplink_linkspeed > span {
+div.uplink > .uplink-linkspeed > span {
 	text-transform:capitalize;
 	font-weight:bold;
 }
 
 
-div.uplink_left, div.uplink_right {
+div.uplink-left, div.uplink-right {
 	display:block;
 	position:relative;
 	width:67px;
@@ -464,19 +470,19 @@ div.uplink_left, div.uplink_right {
 	overflow:hidden;
 }
 
-div.uplink_left {
+div.uplink-left {
 	/* border-radius:5px 0 0 5px; */
 	text-align:left;
 	float:left;
 }
 
-div.uplink_right {
+div.uplink-right {
 	/* border-radius:0 5px 5px 0;	*/
 	float:right;
 	text-align:right;
 }
 
-div.uplink .load_arrow {
+div.uplink .load-arrow {
 	display:block;
 	height:20px;
 	width:20px;
@@ -488,11 +494,11 @@ div.uplink .load_arrow {
 	margin-top:-10px;
 }
 
-div.uplink_left > .load_arrow {
+div.uplink-left > .load-arrow {
 	right:-12px;
 }
 
-div.uplink_right > .load_arrow {
+div.uplink-right > .load-arrow {
 	left:-12px;
 }
 
