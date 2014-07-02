@@ -1,4 +1,4 @@
-<div class="vlan-info">
+<div id="graph-info-modal" class="vlan-info">
 
   <div class="row">
     <div class="small-12 columns nopadding">
@@ -8,14 +8,15 @@
         <thead>
 
         <tr>
-          <th><img src="{{ sourceImg }}" alt="{{ source.category }}" width="16px" height="16px"></th>
-          <th><a href="{{ source.ipdevinfo_link }}">{{ source.sysname }}</a></th>
-          <th></th>
-        </tr>
-        <tr>
-          <th></th>
-          <th><a href="{{ target.ipdevinfo_link }}">{{ target.sysname }}</a></th>
-          <th><img src="{{ targetImg }}" alt="{{ target.category }}" width="16px" height="16px"></th>
+          <th>
+            <img src="{{ sourceImg }}" alt="{{ source.category }}" width="16px" height="16px">
+            <a href="{{ source.ipdevinfo_link }}">{{ source.sysname }}</a>
+          </th>
+
+          <th>
+            <img src="{{ targetImg }}" alt="{{ target.category }}" width="16px" height="16px">
+            <a href="{{ target.ipdevinfo_link }}">{{ target.sysname }}</a>
+          </th>
         </tr>
 
         </thead>
@@ -26,7 +27,7 @@
 
           <thead>
             <tr>
-              <th colspan="3">
+              <th colspan="2">
                 <h6>{{ this.vlan.net_ident }}</h6>
                 <h6 class="subheader">{{ this.vlan.description }}</h6>
               </th>
@@ -36,7 +37,7 @@
           <tbody>
             {{#each this }}
               <tr>
-                <td colspan="3">
+                <td colspan="2">
                   <a href="{{ this.prefix.report_link }}">{{ this.prefix.net_address }}</a>
                 </td>
               </tr>
@@ -52,7 +53,6 @@
                     N/A
                   {{/if }}
                 </td>
-                <td></td>
                 <td>
                   {{#if this.target.interface.ifname }}
                     {{#if this.target.interface.ipdevinfo_link }}
@@ -67,7 +67,6 @@
               </tr>
               <tr>
                 <td>{{ this.source.gw_ip }}</td>
-                <td></td>
                 <td>{{ this.target.gw_ip }}</td>
               </tr>
             {{/each }}

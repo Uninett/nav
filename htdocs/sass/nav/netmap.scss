@@ -1,49 +1,3 @@
-/* General styles */
-//body {
-//    margin: 0;
-//    padding: 1em 0 1em 0;
-//    border: 0; /* This removes the border around the viewport in old versions of IE */
-//    width: 100%;
-//    background: #fff;
-//    min-width: 600px; /* Minimum width of layout - remove line if not required */
-//    /* The min-width property does not work in old versions of Internet Explorer */
-//}
-//html {overflow-y: scroll} /* always render a vertical scrollbar so width doesn't keep changing */
-
-///* Header styles */
-//#header {
-//    margin: 0 1em 0 1em;
-//}
-//
-///* Footer styles */
-//#footer hr {
-//    display: none;
-//
-//}
-//#debug {
-//    display: none;
-//}
-//
-//#save_new_view {
-//    float:right;
-//}
-//
-//#delete_view {
-//    float: right;
-//    clear: right;
-//    margin-top: 20px;
-//}
-
-/*
-2012-07-31
-view-source:http://bluerobot.com/web/layouts/layout3.css
-quote http://www.bluerobot.com/web/layouts/
-"Please feel free to borrow, steal, abduct, and/or torture the documents
- contained in the Layout Reservoir.
- Though you need not give credit to BlueRobot.com, a comment in your source
-  code would help other developers to find this resource. Enjoy."
-*/
-
 @import '../navsettings';
 $image-path: '../../images';
 
@@ -64,11 +18,14 @@ $image-path: '../../images';
   padding: 0;
 }
 
-.link-info table {
-  width: 100%;
-  text-align: center;
+#graph-info-modal {
+  max-height: 600px;
+  overflow-y: scroll;
 }
 
+#graph-info-modal table {
+  text-align: center;
+}
 
 #netmap_wrapper {
     position: relative;

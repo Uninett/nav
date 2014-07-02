@@ -22,7 +22,7 @@ define([
 
     return Backbone.View.extend({
 
-        el: '#graph-info-modal',
+        el: '#graph-info-view',
 
         initialize: function () {
 
