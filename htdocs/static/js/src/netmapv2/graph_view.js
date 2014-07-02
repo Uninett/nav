@@ -206,11 +206,12 @@ define([
             }), 'name');
 
             var nodes = this.model.get('nodeCollection').getGraphObjects();
-            var vlans = this.model.get('vlanCollection').getGraphObjects();
             var links = this.model.get('linkCollection').getGraphObjects();
 
             nodes = filterNodesByCategories(nodes, categories);
             links = filterLinksByCategories(links, categories);
+
+            this.graphInfoView.setVlans(this.model.get('vlanCollection'));
 
             if (!this.netmapView.get('display_orphans')) {
                 nodes = removeOrphanNodes(nodes, links);

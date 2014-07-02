@@ -50,6 +50,7 @@ define([
         setModel: function (model) {
 
             var title;
+            model = _.extend({}, model); // Make a copy :)
 
             if (model.sysname) { // E.g. model is a node
 
@@ -58,7 +59,7 @@ define([
                     model.category.toLowerCase() + '.png';
                 title = model.sysname;
 
-            } else if (_.isArray(model.edges)) { // Model is a layer2 link
+            } else if (_.isArray(model.edges)) { console.log('layer2 link');
 
                 this.template = linkTemplate;
                 model.sourceImg = window.netmapData.staticURL +
@@ -67,7 +68,7 @@ define([
                     model.target.category.toLowerCase() + '.png';
                 title = 'Link';
 
-            } else { // Model is a layer3 link
+            } else { console.log('layer3 link');
 
                 this.template = vlanTemplate;
                 model.sourceImg = window.netmapData.staticURL +
@@ -76,11 +77,26 @@ define([
                     model.target.category.toLowerCase() + '.png';
 
                 title = 'Vlan';
+
+                // Attach vlan objects to each edge
+                model.edges = _.map(model.edges, function (edges, vlanId) {
+
+                    var vlan = this.vlans.get(vlanId);
+
+                    edges.vlan = vlan.attributes;
+
+                    return edges;
+                }, this);
             }
 
+            console.log(model);
             this.model = model;
 
             this.$el.dialog('option', 'title', title);
+        },
+
+        setVlans: function (vlans) {
+            this.vlans = vlans;
         }
 
     });

@@ -1,0 +1,84 @@
+<div class="vlan-info">
+
+  <div class="row">
+    <div class="small-12 columns nopadding">
+
+      <table>
+
+        <thead>
+
+        <tr>
+          <th><img src="{{ sourceImg }}" alt="{{ source.category }}" width="16px" height="16px"></th>
+          <th><a href="{{ source.ipdevinfo_link }}">{{ source.sysname }}</a></th>
+          <th></th>
+        </tr>
+        <tr>
+          <th></th>
+          <th><a href="{{ target.ipdevinfo_link }}">{{ target.sysname }}</a></th>
+          <th><img src="{{ targetImg }}" alt="{{ target.category }}" width="16px" height="16px"></th>
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        {{#each edges }}
+
+          <thead>
+            <tr>
+              <th colspan="3">
+                <h6>{{ this.vlan.net_ident }}</h6>
+                <h6 class="subheader">{{ this.vlan.description }}</h6>
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {{#each this }}
+              <tr>
+                <td colspan="3">
+                  <a href="{{ this.prefix.report_link }}">{{ this.prefix.net_address }}</a>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  {{#if this.source.interface.ifname }}
+                    {{#if this.source.interface.ipdevinfo_link }}
+                      <a href="{{ this.source.interface.ipdevinfo_link }}">{{ this.source.interface.ifname }}</a>
+                    {{else }}
+                      {{ this.source.interface.ifname }}
+                    {{/if }}
+                  {{else }}
+                    N/A
+                  {{/if }}
+                </td>
+                <td></td>
+                <td>
+                  {{#if this.target.interface.ifname }}
+                    {{#if this.target.interface.ipdevinfo_link }}
+                      <a href="{{ this.target.interface.ipdevinfo_link }}">{{ this.target.interface.ifname }}</a>
+                    {{else }}
+                      {{ this.target.interface.ifname }}
+                    {{/if }}
+                  {{else }}
+                    N/A
+                  {{/if }}
+                </td>
+              </tr>
+              <tr>
+                <td>{{ this.source.gw_ip }}</td>
+                <td></td>
+                <td>{{ this.target.gw_ip }}</td>
+              </tr>
+            {{/each }}
+          </tbody>
+
+        {{/each }}
+        </tbody>
+
+      </table>
+
+    </div>
+  </div>
+
+</div>
