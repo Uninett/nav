@@ -8,11 +8,13 @@
 
         <tr>
           <th><img src="{{ sourceImg }}" alt="{{ source.category }}" width="24px" height="24px"></th>
-          <th colspan="2"><a href="{{ source.ipdevinfo_link }}">{{ source.sysname }}</a></th>
+          <th><a href="{{ source.ipdevinfo_link }}">{{ source.sysname }}</a></th>
+          <th></th>
         </tr>
         <tr>
-          <th><img class="left" src="{{ targetImg }}" alt="{{ target.category }}" width="24px" height="24px"></th>
-          <th colspan="2"><a href="{{ target.ipdevinfo_link }}">{{ target.sysname }}</a></th>
+          <th></th>
+          <th><a href="{{ target.ipdevinfo_link }}">{{ target.sysname }}</a></th>
+          <th><img src="{{ targetImg }}" alt="{{ target.category }}" width="24px" height="24px"></th>
         </tr>
 
         </thead>
