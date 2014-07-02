@@ -45,6 +45,8 @@ define([
             this.model = new Graph();
             this.netmapView = this.options.netmapView;
 
+            this.graphInfoView = new GraphInfoView({parent: this.el});
+
             this.initializeDOM();
             this.bindEvents();
             this.initializeNetmapView();
@@ -531,11 +533,13 @@ define([
             if (d3.event.defaultPrevented) {
                 return;
             }
-            return new GraphInfoView({model: node, parent: self.el});
+            self.graphInfoView.setModel(node);
+            self.graphInfoView.render();
         },
 
         clickLink: function (link, self) {
-            return new GraphInfoView({model: link, parent: self.el});
+            self.graphInfoView.setModel(link);
+            self.graphInfoView.render();
         }
 
     });
