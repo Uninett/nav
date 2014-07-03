@@ -38,7 +38,7 @@ from .serializers import (
     NetmapViewSerializer,
     NetmapViewDefaultViewSerializer,
 )
-from .graph import get_topology_graph
+from .graph import get_topology_graph, get_traffic_gradient
 
 
 class IndexView(DefaultNetmapViewMixin, TemplateView):
@@ -68,6 +68,7 @@ class IndexView(DefaultNetmapViewMixin, TemplateView):
             'netmap_views': netmap_views,
             'netmap_views_json': netmap_views_json,
             'categories': categories,
+            'traffic_gradient': get_traffic_gradient(),
             'navpath': [('Home', '/'), ('Netmap', '/netmap')]
         })
 

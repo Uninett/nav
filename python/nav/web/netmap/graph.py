@@ -14,6 +14,8 @@ from nav.netmap.topology import (
 )
 from nav.topology import vlan
 
+from .common import get_traffic_rgb
+
 
 def get_topology_graph(layer=2, load_traffic=False, view=None):
 
@@ -68,3 +70,12 @@ def _get_nodes(node_to_json_function, graph):
     for node, nx_metadata in graph.nodes_iter(data=True):
         nodes.update(node_to_json_function(node, nx_metadata))
     return nodes
+
+
+def get_traffic_gradient():
+
+    keys = ('r', 'g', 'b')
+
+    return [
+        dict(zip(keys, get_traffic_rgb(percent))) for percent in range(0, 101)
+    ]

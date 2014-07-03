@@ -27,6 +27,19 @@ $image-path: '../../images';
   text-align: center;
 }
 
+#traffic-gradient {
+  width: 100%
+}
+
+#traffic-gradient tr th, #traffic-gradient tr td {
+  padding: 0.2rem;
+  text-align: center;
+}
+
+.traffic-rgb {
+  height: 30px;
+}
+
 #netmap_wrapper {
     position: relative;
     top: 0;
@@ -302,17 +315,18 @@ div.isFavorite span.description {
 }
 
 .traffic_gradient_row {
+
     width: 30px;
     height: 6px;
 }
 
-div.traffic_gradient_meta {
+div.traffic-gradient-meta {
     position: absolute;
     top: 13px;
-    height: 606px;
+    width: 606px;
 }
 
-div.measure_line {
+div.measure-line {
     width: 70px;
     height: 60.4px;
     padding-left: 20px;
@@ -320,8 +334,9 @@ div.measure_line {
     top: 0px;
     left: 0px;
     display: block;
+    float: left;
 }
-div.measure_line span.measure_line {
+div.measure-line span.measure-line {
     position: relative;
     left: -10px;
     height: 0px;
@@ -329,7 +344,7 @@ div.measure_line span.measure_line {
     border-bottom: 2px solid black;
     width: 28px;
 }
-div.measure_line span.measure_line_description {
+div.measure-line span.measure-line-description {
     display: block;
     margin-left: 20px; /* dont hit measure_line */
     margin-top: -9.5px; /* bump text up */

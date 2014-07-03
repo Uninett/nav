@@ -179,8 +179,30 @@
 </div>
 
 <div class="row">
-  <div class="small-12 columns" style="background: #808080">
-    <h3>Legend goes here</h3>
+  <div class="large-12 columns">
+
+    <table id="traffic-gradient">
+      <thead>
+        <tr>
+          {% for _ in traffic_gradient %}
+            <th>
+              {% if forloop.first %}
+                0%
+              {% elif forloop.counter|divisibleby:'10' %}
+                {{ forloop.counter }}%
+              {% endif %}
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          {% for rgb in traffic_gradient %}
+            <td class="traffic-rgb" style="background: rgb({{ rgb.r }}, {{ rgb.g }}, {{ rgb.b }})"></td>
+          {% endfor %}
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
