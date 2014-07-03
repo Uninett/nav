@@ -8,7 +8,5 @@
    release-procedure
    hacking-with-pycharm
    virtual-machines
-   using-vagrant
-   vagrant
    javascript
    netmap

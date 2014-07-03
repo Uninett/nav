@@ -38,8 +38,8 @@ Run configuration options should be the following:
 :Python interpreter: Select the correct interpreter for your project.
 :Working directory: Set this to the root of your checked out source code.
 
-If you are developing using Vagrant, make sure to select a *remote Python
-interpreter* on your virtual Vagrant box, otherwise make sure you have all NAV
+If you are developing using Vagrant or Docker, make sure to select a *remote Python
+interpreter* on your virtual box, otherwise make sure you have all NAV
 dependencies available to your selected interpreter.
 
 Click :guilabel:`Ok` to save your changes.
