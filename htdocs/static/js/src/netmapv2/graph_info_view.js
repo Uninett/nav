@@ -60,7 +60,7 @@ define([
             var title;
             model = _.extend({}, model); // Make a copy :)
 
-            if (model.sysname) { // E.g. model is a node
+            if (model.sysname) { // Model is a node
 
                 this.template = nodeTemplate;
                 model.img = window.netmapData.staticURL +
@@ -72,16 +72,31 @@ define([
 
                 title = model.sysname;
 
-            } else if (_.isArray(model.edges)) { console.log('layer2 link');
+            } else if (_.isArray(model.edges)) { // Model is a layer2 link
 
                 this.template = linkTemplate;
                 model.sourceImg = window.netmapData.staticURL +
                     model.source.category.toLowerCase() + '.png';
                 model.targetImg = window.netmapData.staticURL +
                     model.target.category.toLowerCase() + '.png';
-                title = 'Link';
 
-            } else { console.log('layer3 link');
+                var sourceVlans = model.source.vlans;
+                var targetVlans = model.target.vlans;
+                if (!sourceVlans) {
+                    sourceVlans = [];
+                }
+                if (!targetVlans) {
+                    targetVlans = [];
+                }
+                model.vlans = _.map(
+                    _.intersection(sourceVlans, targetVlans),
+                    function (vlanId) {
+                        return this.vlans.get(vlanId).attributes;
+                }, this);
+
+                title = 'Layer 2 link';
+
+            } else { // Model is a layer2 link
 
                 this.template = vlanTemplate;
                 model.sourceImg = window.netmapData.staticURL +
@@ -89,7 +104,7 @@ define([
                 model.targetImg = window.netmapData.staticURL +
                     model.target.category.toLowerCase() + '.png';
 
-                title = 'Vlan';
+                title = 'Layer 3 link';
 
                 // Attach vlan objects to each edge
                 model.edges = _.map(model.edges, function (edges, vlanId) {
@@ -107,7 +122,7 @@ define([
             this.$el.dialog('option', 'title', title);
         },
 
-        selectVlan: function (e) {
+        selectVlan: function (e) { // TODO: Selected vlan across clicks!
 
             var target = $(e.currentTarget);
             var vlanId = target.data('nav-vlan');

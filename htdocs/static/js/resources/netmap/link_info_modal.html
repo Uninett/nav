@@ -56,4 +56,26 @@
       </table>
     </div>
   </div>
+
+  {{#if vlans }}
+    <div class="row">
+      <div id="graph-info-vlan-list" class="small-12 columns nopadding">
+        <ul>
+          {{#each vlans }}
+            <li>
+              <a class="vlan {{#if this.isSelected }}selected-vlan{{/if }}" data-nav-vlan="{{this.nav_vlan}}" title="{{this.vlan}} - {{this.net_ident}}">
+                <span>{{this.vlan}}</span>
+                {{#if this.net_ident }}
+                  {{this.net_ident}}
+                {{else}}
+                  N/A
+                {{/if }}
+              </a>
+            </li>
+          {{/each }}
+        </ul>
+      </div>
+    </div>
+  {{/if }}
+
 </div>

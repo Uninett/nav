@@ -439,7 +439,7 @@ define([
             }
         },
 
-        updateSelectedVlan: function (vlanId) { console.log('vlan select');
+        updateSelectedVlan: function (vlanId) {
 
             var nodesInVlan = _.filter(this.nodes, function (node) {
                 return _.contains(node.vlans, vlanId);
