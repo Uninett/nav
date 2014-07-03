@@ -217,11 +217,7 @@ div.isFavorite span.description {
     height: 100%;
 }
 
-#node_info_vlan .selected_vlan a {
-    color: orange;
-}
-
-#node_info_vlan .selected_vlan a > span {
+#graph-info-vlan-list .selected-vlan span {
     background: orange;
 }
 

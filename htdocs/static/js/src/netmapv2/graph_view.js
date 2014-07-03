@@ -9,6 +9,9 @@ define([
     'libs/d3.v2'
 ], function (Graph, Models, GraphInfoView) {
 
+    var Transparent = 0.2;
+    var TransitionDuration = 500;
+
     var GraphView = Backbone.View.extend({
 
         el: '#graph-view',
@@ -17,6 +20,7 @@ define([
             'netmap:topologyLayerChanged': 'updateTopologyLayer',
             'netmap:netmapViewChanged': 'updateNetmapView',
             'netmap:filterCategoriesChanged': 'updateCategories',
+            'netmap:selectedVlanChanged': 'updateSelectedVlan',
             'netmap:updateGraph': 'update',
             'netmap:searchGraph': 'search',
             'netmap:saveNodePositions': 'saveNodePositions'
@@ -283,13 +287,13 @@ define([
                 })
                 .attr('opacity', 0)
                     .transition()
-                    .duration(750)
+                    .duration(TransitionDuration)
                     .attr('opacity', 1)
                 ;
 
 
             this.link.exit().transition()
-                .duration(750)
+                .duration(TransitionDuration)
                 .style('opacity', 0)
                 .remove()
                 ;
@@ -330,13 +334,13 @@ define([
 
             nodeElement.attr('opacity', 0)
                 .transition()
-                .duration(750)
+                .duration(TransitionDuration)
                 .style('opacity', 1)
                 ;
 
             this.node.exit()
                 .transition()
-                .duration(750)
+                .duration(TransitionDuration)
                 .style('opacity', 0)
                 .remove()
                 ;
@@ -435,6 +439,46 @@ define([
             }
         },
 
+        updateSelectedVlan: function (vlanId) { console.log('vlan select');
+
+            var nodesInVlan = _.filter(this.nodes, function (node) {
+                return _.contains(node.vlans, vlanId);
+            });
+
+            var linksInVlan = _.filter(this.links, function (link) {
+                return _.contains(link.vlans, vlanId);
+            });
+
+            this.nodeGroup.selectAll('.node').style('opacity', 1)
+                .filter(function (node) {
+                    return !_.contains(nodesInVlan, node);
+                })
+                .transition()
+                .duration(TransitionDuration)
+                .style('opacity', Transparent);
+
+            this.linkGroup.selectAll('.link').style('opacity', 1)
+                .filter(function (link) {
+                    return !_.contains(linksInVlan, link);
+                })
+                .transition()
+                .duration(TransitionDuration)
+                .style('opacity', Transparent);
+        },
+
+        resetTransparency: function () {
+
+            this.nodeGroup.selectAll('.node')
+                .transition()
+                .duration(TransitionDuration)
+                .style('opacity', 1);
+
+            this.nodeGroup.selectAll('.link')
+                .transition()
+                .duration(TransitionDuration)
+                .style('opacity', 1);
+        },
+
         /**
          * Applies the current translation and scale transformations
          * to the graph
@@ -449,7 +493,7 @@ define([
 
         transformGraphTransition: function () {
                this.boundingBox.transition()
-                   .duration(750)
+                   .duration(TransitionDuration)
                    .attr(
                         'transform',
                         'translate(' + this.trans +
@@ -494,13 +538,13 @@ define([
                         return !_.contains(matchingNodes, node);
                     })
                     .transition()
-                    .duration(750)
-                    .style('opacity', 0.3);
+                    .duration(TransitionDuration)
+                    .style('opacity', Transparent);
 
                 this.linkGroup.selectAll('.link')
                     .transition()
-                    .duration(750)
-                    .style('opacity', 0.3);
+                    .duration(TransitionDuration)
+                    .style('opacity', Transparent);
             }
         },
 

@@ -24,6 +24,12 @@ define([
 
         el: '#graph-info-view',
 
+        events: {
+            'click #graph-info-vlan-list .vlan': 'selectVlan'
+        },
+
+        interests: {},
+
         initialize: function () {
 
             this.$el.dialog({
@@ -36,6 +42,8 @@ define([
                 resizable: false,
                 width: 'auto'
             });
+
+            Backbone.EventBroker.register(this);
         },
 
         render: function () {
@@ -94,10 +102,20 @@ define([
                 }, this);
             }
 
-            console.log(model);
             this.model = model;
 
             this.$el.dialog('option', 'title', title);
+        },
+
+        selectVlan: function (e) {
+
+            var target = $(e.currentTarget);
+            var vlanId = target.data('nav-vlan');
+
+            this.$('#graph-info-vlan-list .selected-vlan').removeClass('selected-vlan');
+            target.addClass('selected-vlan');
+
+            Backbone.EventBroker.trigger('netmap:selectedVlanChanged', vlanId);
         },
 
         setVlans: function (vlans) {

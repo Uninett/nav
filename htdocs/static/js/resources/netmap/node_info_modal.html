@@ -17,7 +17,7 @@
       <ul>
         {{#each vlans }}
           <li>
-            <a class="vlan" data-nav-vlan="{{this.nav_vlan}}" title="{{this.vlan}} - {{this.net_ident}}">
+            <a class="vlan {{#if this.isSelected }}selected-vlan{{/if }}" data-nav-vlan="{{this.nav_vlan}}" title="{{this.vlan}} - {{this.net_ident}}">
               <span>{{this.vlan}}</span>
               {{#if this.net_ident }}
                 {{this.net_ident}}
