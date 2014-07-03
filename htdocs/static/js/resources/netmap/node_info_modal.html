@@ -12,4 +12,22 @@
       <li><b>Location:</b> {{#if location }}{{ location }}{{else}}N/A{{/if }}</li>
     {{/unless }}
   </ul>
+  {{#if vlans }}
+    <div id="graph-info-vlan-list">
+      <ul>
+        {{#each vlans }}
+          <li>
+            <a class="vlan" data-nav-vlan="{{this.nav_vlan}}" title="{{this.vlan}} - {{this.net_ident}}">
+              <span>{{this.vlan}}</span>
+              {{#if this.net_ident }}
+                {{this.net_ident}}
+              {{else}}
+                N/A
+              {{/if }}
+            </a>
+          </li>
+        {{/each }}
+      </ul>
+    </div>
+  {{/if }}
 </div>

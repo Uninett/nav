@@ -47,7 +47,7 @@ define([
             }
         },
 
-        setModel: function (model) {
+        setModel: function (model) { // TODO: Refactor
 
             var title;
             model = _.extend({}, model); // Make a copy :)
@@ -57,6 +57,11 @@ define([
                 this.template = nodeTemplate;
                 model.img = window.netmapData.staticURL +
                     model.category.toLowerCase() + '.png';
+
+                model.vlans = _.map(model.vlans, function (vlanId) {
+                    return this.vlans.get(vlanId).attributes;
+                }, this);
+
                 title = model.sysname;
 
             } else if (_.isArray(model.edges)) { console.log('layer2 link');

@@ -18,10 +18,10 @@ $image-path: '../../images';
   padding: 0;
 }
 
-#graph-info-modal {
+/*#graph-info-modal {
   max-height: 600px;
   overflow-y: scroll;
-}
+}*/
 
 #graph-info-modal table {
   text-align: center;
@@ -175,57 +175,46 @@ div.isFavorite span.description {
 
 }
 
-/* templates/info/vlan.html */
-#infoVlanContainer {
-    min-height: 350px;
-    height: 350px;
+#graph-info-vlan-list {
+    max-height: 350px;
     overflow-y: scroll;
     overflow-x: hidden;
 }
 
-#node_info_vlan {
-    list-style-type: none;
+#graph-info-vlan-list ul {
+    list-style: none;
 }
 
-#node_info_vlan > li {
+#graph-info-vlan-list li {
     margin:0 0 2px 0;
     border-bottom: 1px dotted #ccc;
 }
 
-#infoVlanContainer .vlan {
+#graph-info-vlan-list .vlan {
     display: block;
     width:auto;
     font-size:11px;
     padding-left: 2.5em;
     position: relative;
     height:auto !important;
-    min-height: 3.8em;
-    height:3.8em;
+    min-height: 1em;
     cursor: pointer;
 }
 
-#infoVlanContainer .vlan:hover {
+#graph-info-vlan-list .vlan:hover {
     color:orange;
 }
 
-#infoVlanContainer .vlan > span {
+#graph-info-vlan-list .vlan > span {
     display: block;
     position:absolute;
-    font-size:11px;
-    top:50%;
-    left:0;
-    margin:-1em 0 0 -.5em;
-    width:2em;
+    width:1.5rem;
+    left: 0;
     background:#577899;
     color:#fff;
     font-weight: normal;
-    padding:.2em .5em;
-    text-align: right;
-
-    transform:rotate(-90deg);
-    -ms-transform:rotate(-90deg); /* IE 9 */
-    -webkit-transform:rotate(-90deg); /* Safari and Chrome */
-
+    text-align: center;
+    height: 100%;
 }
 
 #node_info_vlan .selected_vlan a {
@@ -234,121 +223,6 @@ div.isFavorite span.description {
 
 #node_info_vlan .selected_vlan a > span {
     background: orange;
-}
-
-/*
- * WIDGET STYLES
- */
-
-.netmapWidget {
-    margin: 0.5em 0;
-    border: 1px solid #567899;
-    overflow: hidden;
-    position: relative;
-    .netmapWidget {
-        border: 0 !important;
-        border-radius: 0 !important;
-        padding-bottom: 5px;
-        .body {
-            margin: 0;
-            input[type='radio'], input[type='checkbox'] {
-                margin: 0;
-            }
-        }
-    }
-    .header {
-        background: #01547F;
-        color: #fff;
-        overflow: hidden;
-        .title {
-            font-weight:bold;
-            //background: url('#{$image-path}/icons/expand_invert.png') top right no-repeat;
-            margin:3px;
-        }
-        > .no-icon {
-            background: none;
-        }
-    }
-    .body {
-        margin: 0.5em;
-    }
-    .no_collapse > .title {
-        background: none;
-    }
-}
-
-.hideSubWidgets {
-    .netmapWidget {
-        .header {
-            background: none;
-        }
-        .title {
-            color: #000;
-            font-weight: bold;
-        }
-        .body {
-            margin-top: 0.1em;
-        }
-    }
-}
-
-/*
- * OTHER CRAZY STUFF
- */
-
-#mapinfo {
-    margin-top: 2em;
-}
-
-#netmap_wrapper .float-right {
-    float: right;
-    padding: 0;;
-}
-
-/* Traffic gradient */
-
-#modal_traffic_gradient {
-    overflow: hidden;
-}
-#modal_traffic_gradient div.modal-body {
-    margin: 6px 0 6px 32px;
-}
-
-.traffic_gradient_row {
-
-    width: 30px;
-    height: 6px;
-}
-
-div.traffic-gradient-meta {
-    position: absolute;
-    top: 13px;
-    width: 606px;
-}
-
-div.measure-line {
-    width: 70px;
-    height: 60.4px;
-    padding-left: 20px;
-    position: relative;
-    top: 0px;
-    left: 0px;
-    display: block;
-    float: left;
-}
-div.measure-line span.measure-line {
-    position: relative;
-    left: -10px;
-    height: 0px;
-    display: block;
-    border-bottom: 2px solid black;
-    width: 28px;
-}
-div.measure-line span.measure-line-description {
-    display: block;
-    margin-left: 20px; /* dont hit measure_line */
-    margin-top: -9.5px; /* bump text up */
-    font-weight: bold;
 }
 
 /* LINK INFO RENE */

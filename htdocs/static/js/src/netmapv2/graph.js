@@ -73,9 +73,6 @@ define([
                 link.set('target', target);
             });
 
-            // TODO: Nodes can haz vlans??
-            // TODO: Way more stuff apparently
-
             return {}; // We set the attributes excplicitly
         }
     });
