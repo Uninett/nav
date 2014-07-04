@@ -80,18 +80,8 @@ define([
                 model.targetImg = window.netmapData.staticURL +
                     model.target.category.toLowerCase() + '.png';
 
-                var sourceVlans = model.source.vlans;
-                var targetVlans = model.target.vlans;
-                if (!sourceVlans) {
-                    sourceVlans = [];
-                }
-                if (!targetVlans) {
-                    targetVlans = [];
-                }
-                model.vlans = _.map(
-                    _.intersection(sourceVlans, targetVlans),
-                    function (vlanId) {
-                        return this.vlans.get(vlanId).attributes;
+                model.vlans = _.map(_.uniq(model.vlans), function (vlanId) {
+                    return this.vlans.get(vlanId).attributes;
                 }, this);
 
                 title = 'Layer 2 link';
