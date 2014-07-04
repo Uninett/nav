@@ -1,5 +1,13 @@
 <div id="graph-info-modal" class="vlan-info">
 
+  {{#if warning }}
+    <div class="row">
+      <div class="medium-12 columns">
+        <span class="alert-box alert">{{ warning }}</span>
+      </div>
+    </div>
+  {{/if }}
+
   <div class="row">
     <div class="small-12 columns nopadding">
 
@@ -35,7 +43,7 @@
           </thead>
 
           <tbody>
-            {{#each this }}
+            {{#each this.edges }}
               <tr>
                 <td colspan="2">
                   <a href="{{ this.prefix.report_link }}">{{ this.prefix.net_address }}</a>

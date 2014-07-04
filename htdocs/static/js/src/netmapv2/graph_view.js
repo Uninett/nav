@@ -11,6 +11,7 @@ define([
 
     var Transparent = 0.2;
     var TransitionDuration = 500;
+    var UndefinedLoad = '#CCCCCC';
 
     var GraphView = Backbone.View.extend({
 
@@ -273,7 +274,8 @@ define([
                 })
                 .attr('stroke', function (o) {
                     // TODO: Load based
-                    return '#CCCCCC';
+                    return UndefinedLoad;
+                    //return 'url(#linkload' + o.source.id + '-' + o.target.id + ')';
                 })
                 .attr('marker-start', function (o) {
                     if (o.edges.length > 1) {

@@ -1,8 +1,8 @@
 define([
     'netmap/collections',
-    'libs-amd/text!resources/netmap/node_info_modal.html',
-    'libs-amd/text!resources/netmap/link_info_modal.html',
-    'libs-amd/text!resources/netmap/vlan_info_modal.html',
+    'libs-amd/text!resources/netmap/node_info.html',
+    'libs-amd/text!resources/netmap/layer2_link_info.html',
+    'libs-amd/text!resources/netmap/layer3_link_info.html',
     'libs/handlebars',
     'libs/backbone',
     'libs/jquery-ui-1.8.21.custom.min'
@@ -94,17 +94,26 @@ define([
                 model.targetImg = window.netmapData.staticURL +
                     model.target.category.toLowerCase() + '.png';
 
-                title = 'Layer 3 link';
-
-                // Attach vlan objects to each edge
                 model.edges = _.map(model.edges, function (edges, vlanId) {
-
-                    var vlan = this.vlans.get(vlanId);
-
-                    edges.vlan = vlan.attributes;
-
-                    return edges;
+                    return  {
+                        vlan: this.vlans.get(vlanId).attributes,
+                        edges: edges
+                    };
                 }, this);
+
+                /*
+                 * Sometimes the backend will supply multiple linknets.
+                 * The cause is usally wrongful categorization, perhaps due
+                 * to improper configuration. There is no way to know which is
+                 * the correct linknet from this end, so we display them all
+                 * along with a warning message.
+                 */
+                if (model.edges.length > 1) { // TODO: Better warning message
+                    model.warning = 'Found multiple linknets! This can mean ' +
+                    'improper categorization by NAV or improper configuration';
+                }
+
+                title = 'Layer 3 link';
             }
 
             this.model = model;
