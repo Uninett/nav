@@ -73,7 +73,34 @@ define([
                 link.set('target', target);
             });
 
+            // Get traffic
+            var self = this;
+            $.getJSON('traffic/layer' + this.get('layer') + '/')
+                .done(function (data) {
+                    self.trafficSuccess.call(self, data);
+                })
+                .fail(this.trafficError);
+
             return {}; // We set the attributes excplicitly
+        },
+
+        trafficSuccess: function (data) { console.log('traffic success!');
+
+            var links = this.get('linkCollection');
+            links.each(function (link) {
+                var source = parseInt(link.get('source').id);
+                var target = parseInt(link.get('target').id);
+                var traffic = _.find(data, function (o) {
+                    return source === o.source && target === o.target;
+                });
+                link.set('traffic', traffic);
+            });
+
+            Backbone.EventBroker.trigger('netmap:updateGraph');
+        },
+
+        trafficError: function () { console.log('traffic fail!');
+
         }
     });
 

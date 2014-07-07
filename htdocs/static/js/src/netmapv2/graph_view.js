@@ -275,8 +275,6 @@ define([
                     return 'link ' + linkSpeedAsString(findLinkMaxSpeed(o));
                 })
                 .attr('stroke', function (o) {
-                    // TODO: Load based
-                    //return UndefinedLoad;
                     return 'url(#linkload' + o.source.id + '-' + o.target.id + ')';
                 })
                 .attr('marker-start', function (o) {
@@ -351,7 +349,7 @@ define([
 
             var gradient = this.linkGroup.selectAll('.linkload')
                 .data(this.links, function (link) {
-                    return link.source.id + '-' + link.target.id;
+                    return link.traffic;
                 });
             gradient.enter().append('linearGradient')
                 .attr('class', 'linkload')
@@ -367,13 +365,7 @@ define([
 
             var stops = gradient.selectAll('stop')
                 .data(function (link) {
-                    var traffic;
-                    if (_.isArray(link.edges)) { // Layer2
-                        traffic = link.edges[0].traffic;
-                    } else { // Layer3
-                        traffic = _.values(link.edges)[0][0].traffic;
-                    }
-
+                    var traffic = link.traffic !== undefined ? link.traffic.traffic : {};
                     var inCss = !!traffic.source ? traffic.source.css : UndefinedLoad;
                     var outCss = !!traffic.source ? traffic.target.css : UndefinedLoad;
                     return [
@@ -399,7 +391,7 @@ define([
                     }
                 });
 
-            stops.exit();
+            stops.exit().remove();
         },
 
         fetchGraphModel: function () {

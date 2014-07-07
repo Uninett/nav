@@ -17,6 +17,7 @@ from django.conf.urls import url, patterns
 
 from .views import (
     IndexView,
+    TrafficView,
     NetmapAdminView,
     NetmapViewList,
     NetmapViewEdit,
@@ -31,6 +32,7 @@ from nav.models.profiles import Account
 
 urlpatterns = patterns('nav.web.netmap.views',
     url(r'^$', IndexView.as_view(), name='netmap-index'),
+    url(r'^traffic/layer(?P<layer>[2|3])/$', TrafficView.as_view()),
     url(r'^admin/$', NetmapAdminView.as_view(), name='netmap-admin-views'),
 
     url(r'^views/$', NetmapViewList.as_view(), name='netmap-view-list'),

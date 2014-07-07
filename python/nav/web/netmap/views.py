@@ -16,7 +16,7 @@
 """Netmap views"""
 from django.db.models import Q
 from django.http import Http404
-from django.views.generic import TemplateView, ListView
+from django.views.generic import TemplateView, ListView, View
 from django.shortcuts import get_object_or_404
 
 from rest_framework import status, generics, views
@@ -31,7 +31,8 @@ from nav.models.profiles import (
     NetmapViewNodePosition,
     Account,
 )
-from nav.models.manage import Category, Netbox
+from nav.models.manage import Category, Netbox, Interface
+from nav.netmap.traffic import get_traffic_data
 
 from .mixins import DefaultNetmapViewMixin, AdminRequiredMixin
 from .serializers import (
@@ -73,6 +74,52 @@ class IndexView(DefaultNetmapViewMixin, TemplateView):
         })
 
         return context
+
+
+class TrafficView(views.APIView):
+
+    renderer_classes = (JSONRenderer,)
+
+    def get(self, request, *args, **kwargs):
+
+        layer = int(kwargs.pop('layer', 2))
+
+        if layer is 3:
+            traffic = self.get_layer3_traffic()
+        else:
+            traffic = self.get_layer2_traffic()
+
+        return Response(traffic)
+
+    @staticmethod
+    def get_layer2_traffic():
+
+        interfaces = Interface.objects.filter(to_netbox__isnull=False)
+        edges = set([
+            (
+                interface.netbox_id,
+                interface.to_netbox_id
+            )
+            for interface in interfaces
+        ])
+
+        traffic = []
+        for source, target in edges:
+            interface = interfaces.filter(
+                netbox_id=source,
+                to_netbox_id=target)[0]
+            traffic.append({
+                'source': source,
+                'target': target,
+                'traffic': get_traffic_data(
+                    (interface, interface.to_interface)).to_json()
+            })
+
+        return traffic
+
+    @staticmethod
+    def get_layer3_traffic():
+        return {}
 
 
 class NetmapAdminView(AdminRequiredMixin, ListView):
