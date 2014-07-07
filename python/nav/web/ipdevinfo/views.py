@@ -311,7 +311,7 @@ def get_port_view(request, netbox_sysname, perspective):
     perspective -- decides what kind of ports are included.
     """
 
-    netbox = Netbox.objects.get(sysname=netbox_sysname)
+    netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
 
     # Get port activity search interval from form
     activity_interval = 30
@@ -589,7 +589,7 @@ def service_matrix(request):
 
 def render_affected(request, netboxid):
     """Controller for the affected tab in ipdevinfo"""
-    netbox = Netbox.objects.get(pk=netboxid)
+    netbox = get_object_or_404(Netbox, pk=netboxid)
     netboxes = utils.find_children(netbox)
 
     affected = utils.sort_by_netbox(
