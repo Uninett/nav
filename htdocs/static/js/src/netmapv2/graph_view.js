@@ -11,7 +11,7 @@ define([
 
     var Transparent = 0.2;
     var TransitionDuration = 500;
-    var UndefinedLoad = '#CCCCCC';
+    var UndefinedLoad = '211,211,211';
 
     var GraphView = Backbone.View.extend({
 
@@ -96,6 +96,8 @@ define([
                 .attr('pointer-events', 'all')
                 .attr('overflow', 'hidden')
                 ;
+
+            this.gradients = this.svg.append('defs');
 
             this.boundingBox = this.svg.append('g')
                 .attr('id', 'boundingbox');
@@ -274,8 +276,8 @@ define([
                 })
                 .attr('stroke', function (o) {
                     // TODO: Load based
-                    return UndefinedLoad;
-                    //return 'url(#linkload' + o.source.id + '-' + o.target.id + ')';
+                    //return UndefinedLoad;
+                    return 'url(#linkload' + o.source.id + '-' + o.target.id + ')';
                 })
                 .attr('marker-start', function (o) {
                     if (o.edges.length > 1) {
@@ -346,6 +348,58 @@ define([
                 .style('opacity', 0)
                 .remove()
                 ;
+
+            var gradient = this.linkGroup.selectAll('.linkload')
+                .data(this.links, function (link) {
+                    return link.source.id + '-' + link.target.id;
+                });
+            gradient.enter().append('linearGradient')
+                .attr('class', 'linkload')
+                .attr('id', function (link) {
+                    return 'linkload' + link.source.id + '-' + link.target.id;
+                })
+                .attr('x1', '0%')
+                .attr('x2', '0%')
+                .attr('y1', '0%')
+                .attr('y2', '100%')
+                ;
+            gradient.exit().remove();
+
+            var stops = gradient.selectAll('stop')
+                .data(function (link) {
+                    var traffic;
+                    if (_.isArray(link.edges)) { // Layer2
+                        traffic = link.edges[0].traffic;
+                    } else { // Layer3
+                        traffic = _.values(link.edges)[0][0].traffic;
+                    }
+
+                    var inCss = !!traffic.source ? traffic.source.css : UndefinedLoad;
+                    var outCss = !!traffic.source ? traffic.target.css : UndefinedLoad;
+                    return [
+                        {percent: 0, css: inCss},
+                        {percent: 50, css: inCss},
+                        {percent: 51, css: outCss},
+                        {percent: 100, css: outCss}
+                    ];
+                })
+                ;
+            stops.enter()
+                .append('stop')
+                .attr('class', 'foo')
+                .attr('offset', function (gradient) {
+                    return gradient.percent + '%';
+                })
+                .attr('style', function (gradient) {
+                    if (gradient.css) {
+                        return 'stop-color:rgb(' + gradient.css + '); stop-opacity:1';
+                    }
+                    else {
+                        return 'stop-color:rgb(0,0,0);stop-opacity:1';
+                    }
+                });
+
+            stops.exit();
         },
 
         fetchGraphModel: function () {
