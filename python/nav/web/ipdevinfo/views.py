@@ -94,7 +94,7 @@ def search(request):
             netboxes = find_netboxes(errors, query)
 
             # If only one hit, redirect to details view
-            if len(netboxes) == 1:
+            if netboxes and len(netboxes) == 1:
                 return ipdev_details(request, name=netboxes[0].sysname)
     else:
         search_form = SearchForm()
