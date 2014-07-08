@@ -22,6 +22,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, generics, views
 from rest_framework.response import Response
 from rest_framework.renderers import UnicodeJSONRenderer as JSONRenderer
+from rest_framework.renderers import BrowsableAPIRenderer  # TODO: remove
 
 from nav.django.utils import get_account
 from nav.models.profiles import (
@@ -91,10 +92,12 @@ class TrafficView(views.APIView):
 
         return Response(traffic)
 
-    @staticmethod
-    def get_layer2_traffic():
+    def get_layer2_traffic(self):
 
-        interfaces = Interface.objects.filter(to_netbox__isnull=False)
+        # TODO: Select related
+        interfaces = Interface.objects.filter(
+            to_netbox__isnull=False
+        ).select_related('netbox', 'to_netbox', 'to_interface__netbox')
         edges = set([
             (
                 interface.netbox_id,
@@ -105,20 +108,23 @@ class TrafficView(views.APIView):
 
         traffic = []
         for source, target in edges:
-            interface = interfaces.filter(
+            edge_interfaces = interfaces.filter(
                 netbox_id=source,
-                to_netbox_id=target)[0]
+                to_netbox_id=target
+            )
+            edge_traffic = []
+            for interface in edge_interfaces:
+                edge_traffic.append(get_traffic_data(
+                    (interface, interface.to_interface)).to_json())
             traffic.append({
                 'source': source,
                 'target': target,
-                'traffic': get_traffic_data(
-                    (interface, interface.to_interface)).to_json()
+                'edges': edge_traffic,
             })
 
         return traffic
 
-    @staticmethod
-    def get_layer3_traffic():
+    def get_layer3_traffic(self):
         return {}
 
 

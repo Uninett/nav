@@ -7,6 +7,9 @@ require([
 
     $(function () {
 
+        // Disable caching for netmap
+        $.ajaxSetup({ cache: false });
+
         document.navNetmapAppSpinner.stop();
 
         var controlView = new ControlView();

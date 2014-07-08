@@ -13,6 +13,9 @@ define([
     });
 
     var Link = Backbone.Model.extend({
+        defaults: {
+            traffic: {}
+        }
     });
 
     var Vlan = Backbone.Model.extend({

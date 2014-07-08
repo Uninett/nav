@@ -347,6 +347,7 @@ define([
                 .remove()
                 ;
 
+            this.linkGroup.selectAll('.linkload').remove(); // TODO: Do we need this?
             var gradient = this.linkGroup.selectAll('.linkload')
                 .data(this.links, function (link) {
                     return link.traffic;
@@ -365,9 +366,25 @@ define([
 
             var stops = gradient.selectAll('stop')
                 .data(function (link) {
-                    var traffic = link.traffic !== undefined ? link.traffic.traffic : {};
-                    var inCss = !!traffic.source ? traffic.source.css : UndefinedLoad;
-                    var outCss = !!traffic.source ? traffic.target.css : UndefinedLoad;
+
+                    var inCss;
+                    var outCss;
+
+                    if (link.traffic !== undefined && !_.isEmpty(link.traffic)) {
+                        inCss = _.max(link.traffic.edges, function (edge) {
+                            return edge.source.load_in_percent;
+                        }).source.css;
+                        outCss = _.max(link.traffic.edges, function (edge) {
+                            return edge.target.load_in_percent;
+                        }).target.css;
+
+                        if (!inCss)  inCss = UndefinedLoad;
+                        if (!outCss) outCss = UndefinedLoad;
+                    } else {
+                        inCss = UndefinedLoad;
+                        outCss = UndefinedLoad;
+                    }
+
                     return [
                         {percent: 0, css: inCss},
                         {percent: 50, css: inCss},

@@ -14,6 +14,7 @@
 """Netmap backend URL config."""
 
 from django.conf.urls import url, patterns
+from django.views.decorators.cache import never_cache
 
 from .views import (
     IndexView,
@@ -32,7 +33,6 @@ from nav.models.profiles import Account
 
 urlpatterns = patterns('nav.web.netmap.views',
     url(r'^$', IndexView.as_view(), name='netmap-index'),
-    url(r'^traffic/layer(?P<layer>[2|3])/$', TrafficView.as_view()),
     url(r'^admin/$', NetmapAdminView.as_view(), name='netmap-admin-views'),
 
     url(r'^views/$', NetmapViewList.as_view(), name='netmap-view-list'),
@@ -72,4 +72,9 @@ urlpatterns = patterns('nav.web.netmap.views',
         NetmapGraph.as_view(),
         name='netmap-graph-view',
     ),
+    url(r'^traffic/layer(?P<layer>[2|3])/$',
+        never_cache(TrafficView.as_view()),
+        name='netmap-traffic-data-view',
+    ),
+
 )

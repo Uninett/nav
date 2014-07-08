@@ -7,7 +7,6 @@ define([
     var Graph = Backbone.Model.extend({
 
         defaults: {
-            traffic: false,
             layer: 2,
             viewId: null,
             baseUrl: 'graph/layer',
@@ -40,10 +39,6 @@ define([
 
             if (viewId !== null) {
                 url += this.get('viewId') + '/';
-            }
-
-            if (this.get('traffic')) {
-                url += '?traffic=1';
             }
 
             return url;
@@ -87,6 +82,8 @@ define([
         trafficSuccess: function (data) { console.log('traffic success!');
 
             var links = this.get('linkCollection');
+            console.log('Data length: ' + data.length + ' Numlinks: ' + links.length);
+
             links.each(function (link) {
                 var source = parseInt(link.get('source').id);
                 var target = parseInt(link.get('target').id);
