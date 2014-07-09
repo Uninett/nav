@@ -36,7 +36,19 @@
                 N/A
               {{/if }}
             </td>
-            <td>&#8592; {{ this.link_speed }} mbps &#8594;</td>
+            <td>
+              <span class="load-arrow"
+                {{# if this.traffic.source.css }}
+                  style="color: rgb({{ this.traffic.source.css }});"
+                {{/if }}
+                >&#10096;</span>
+              {{ this.link_speed }} mbps
+              <span class="load-arrow"
+                {{#if this.traffic.target.css }}
+                  style="color: rgb({{ this.traffic.target.css }});"
+                {{/if }}
+                >&#10097;</span>
+            </td>
             <td>
               {{#if this.target.interface.ifname }}
                 {{#if this.target.interface.ipdevinfo_link}}

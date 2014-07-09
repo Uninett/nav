@@ -68,15 +68,16 @@ define([
                 link.set('target', target);
             });
 
-            // Get traffic
+            return {}; // We set the attributes excplicitly
+        },
+
+        loadTraffic: function () {
             var self = this;
             $.getJSON('traffic/layer' + this.get('layer') + '/')
                 .done(function (data) {
                     self.trafficSuccess.call(self, data);
                 })
                 .fail(this.trafficError);
-
-            return {}; // We set the attributes excplicitly
         },
 
         trafficSuccess: function (data) { console.log('traffic success!');

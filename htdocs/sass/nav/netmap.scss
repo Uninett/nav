@@ -18,11 +18,6 @@ $image-path: '../../images';
   padding: 0;
 }
 
-/*#graph-info-modal {
-  max-height: 600px;
-  overflow-y: scroll;
-}*/
-
 #graph-info-modal table {
   text-align: center;
 }
@@ -38,6 +33,10 @@ $image-path: '../../images';
 
 .traffic-rgb {
   height: 30px;
+}
+
+.load-arrow {
+  color: rgb(211,211,211);
 }
 
 #netmap_wrapper {

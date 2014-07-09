@@ -63,56 +63,19 @@ define([
             if (model.sysname) { // Model is a node
 
                 this.template = nodeTemplate;
-                model.img = window.netmapData.staticURL +
-                    model.category.toLowerCase() + '.png';
-
-                model.vlans = _.map(model.vlans, function (vlanId) {
-                    return this.vlans.get(vlanId).attributes;
-                }, this);
-
+                this.attachNodeMeta(model);
                 title = model.sysname;
 
             } else if (_.isArray(model.edges)) { // Model is a layer2 link
 
                 this.template = linkTemplate;
-                model.sourceImg = window.netmapData.staticURL +
-                    model.source.category.toLowerCase() + '.png';
-                model.targetImg = window.netmapData.staticURL +
-                    model.target.category.toLowerCase() + '.png';
-
-                model.vlans = _.map(_.uniq(model.vlans), function (vlanId) {
-                    return this.vlans.get(vlanId).attributes;
-                }, this);
-
+                this.attachLayer2LinkMeta(model);
                 title = 'Layer 2 link';
 
             } else { // Model is a layer2 link
 
                 this.template = vlanTemplate;
-                model.sourceImg = window.netmapData.staticURL +
-                    model.source.category.toLowerCase() + '.png';
-                model.targetImg = window.netmapData.staticURL +
-                    model.target.category.toLowerCase() + '.png';
-
-                model.edges = _.map(model.edges, function (edges, vlanId) {
-                    return  {
-                        vlan: this.vlans.get(vlanId).attributes,
-                        edges: edges
-                    };
-                }, this);
-
-                /*
-                 * Sometimes the backend will supply multiple linknets.
-                 * The cause is usally wrongful categorization, perhaps due
-                 * to improper configuration. There is no way to know which is
-                 * the correct linknet from this end, so we display them all
-                 * along with a warning message.
-                 */
-                if (model.edges.length > 1) { // TODO: Better warning message
-                    model.warning = 'Found multiple linknets! This can mean ' +
-                    'improper categorization by NAV or improper configuration';
-                }
-
+                this.attachLayer3LinkMeta(model);
                 title = 'Layer 3 link';
             }
 
@@ -120,6 +83,78 @@ define([
 
             this.$el.dialog('option', 'title', title);
         },
+
+
+        attachNodeMeta: function (model) {
+
+            model.img = window.netmapData.staticURL +
+                model.category.toLowerCase() + '.png';
+
+            model.vlans = _.map(model.vlans, function (vlanId) {
+                return this.vlans.get(vlanId).attributes;
+            }, this);
+
+            return model;
+        },
+
+
+        attachLayer2LinkMeta: function (model) {
+
+            model.sourceImg = window.netmapData.staticURL +
+                    model.source.category.toLowerCase() + '.png';
+            model.targetImg = window.netmapData.staticURL +
+                model.target.category.toLowerCase() + '.png';
+
+            model.vlans = _.map(_.uniq(model.vlans), function (vlanId) {
+                return this.vlans.get(vlanId).attributes;
+            }, this);
+
+            _.each(model.edges, function (edge) {
+                if (model.traffic === undefined) return;
+                var edgeTraffic = _.find(model.traffic.edges, function (traffic) {
+                    if (edge.source.interface && edge.target.interface) {
+                        return edge.source.interface.ifname === traffic.source_ifname
+                            && edge.target.interface.ifname === traffic.target_ifname;
+                    } else {
+                        return false;
+                    }
+                });
+                edge.traffic = edgeTraffic;
+            });
+
+            return model;
+        },
+
+
+        attachLayer3LinkMeta: function (model) {
+
+            model.sourceImg = window.netmapData.staticURL +
+                    model.source.category.toLowerCase() + '.png';
+            model.targetImg = window.netmapData.staticURL +
+                model.target.category.toLowerCase() + '.png';
+
+            model.edges = _.map(model.edges, function (edges, vlanId) {
+                return  {
+                    vlan: this.vlans.get(vlanId).attributes,
+                    edges: edges
+                };
+            }, this);
+
+            /*
+             * Sometimes the backend will supply multiple linknets.
+             * The cause is usally wrongful categorization, perhaps due
+             * to improper configuration. There is no way to know which is
+             * the correct linknet from this end, so we display them all
+             * along with a warning message.
+             */
+            if (model.edges.length > 1) { // TODO: Better warning message
+                model.warning = 'Found multiple linknets! This can mean ' +
+                'improper categorization by NAV or improper configuration';
+            }
+
+            return model;
+        },
+
 
         selectVlan: function (e) { // TODO: Selected vlan across clicks!
 

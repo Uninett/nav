@@ -418,6 +418,7 @@ define([
             this.model.fetch({
                 success: function () {
                     self.update();
+                    self.model.loadTraffic();
                 },
                 error: function () { // TODO: Use alert message instead
                     alert('Error loading graph, please try to reload the page');

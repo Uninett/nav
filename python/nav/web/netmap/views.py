@@ -22,7 +22,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, generics, views
 from rest_framework.response import Response
 from rest_framework.renderers import UnicodeJSONRenderer as JSONRenderer
-from rest_framework.renderers import BrowsableAPIRenderer  # TODO: remove
 
 from nav.django.utils import get_account
 from nav.models.profiles import (
@@ -114,8 +113,13 @@ class TrafficView(views.APIView):
             )
             edge_traffic = []
             for interface in edge_interfaces:
-                edge_traffic.append(get_traffic_data(
-                    (interface, interface.to_interface)).to_json())
+                to_interface = interface.to_interface
+                d = get_traffic_data((interface, to_interface)).to_json()
+                d.update({
+                    'source_ifname': interface.ifname if interface else '',
+                    'target_ifname': to_interface.ifname if to_interface else ''
+                })
+                edge_traffic.append(d)
             traffic.append({
                 'source': source,
                 'target': target,
