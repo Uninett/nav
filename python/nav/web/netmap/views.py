@@ -93,10 +93,10 @@ class TrafficView(views.APIView):
 
     def get_layer2_traffic(self):
 
-        # TODO: Select related
         interfaces = Interface.objects.filter(
             to_netbox__isnull=False
         ).select_related('netbox', 'to_netbox', 'to_interface__netbox')
+
         edges = set([
             (
                 interface.netbox_id,
@@ -121,6 +121,8 @@ class TrafficView(views.APIView):
                 })
                 edge_traffic.append(d)
             traffic.append({
+                'netbox': interface.netbox.sysname if interface else 'N/A',
+                'target_netbox': interface.to_netbox.sysname if interface.to_netbox else 'N/A',
                 'source': source,
                 'target': target,
                 'edges': edge_traffic,

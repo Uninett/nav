@@ -97,8 +97,6 @@ define([
                 .attr('overflow', 'hidden')
                 ;
 
-            this.gradients = this.svg.append('defs');
-
             this.boundingBox = this.svg.append('g')
                 .attr('id', 'boundingbox');
 

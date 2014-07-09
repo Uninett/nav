@@ -83,7 +83,6 @@ define([
         trafficSuccess: function (data) { console.log('traffic success!');
 
             var links = this.get('linkCollection');
-            console.log('Data length: ' + data.length + ' Numlinks: ' + links.length);
 
             links.each(function (link) {
                 var source = parseInt(link.get('source').id);
@@ -91,6 +90,13 @@ define([
                 var traffic = _.find(data, function (o) {
                     return source === o.source && target === o.target;
                 });
+                if (traffic === undefined) {
+                    // The source/target relationship might be
+                    // reversed between links and edges in some cases.
+                    traffic = _.find(data, function (o) {
+                        return source === o.target && target === o.source;
+                    });
+                }
                 link.set('traffic', traffic);
             });
 
@@ -99,6 +105,7 @@ define([
 
         trafficError: function () { console.log('traffic fail!');
 
+            // TODO: Meaningful report
         }
     });
 
