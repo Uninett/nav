@@ -16,7 +16,7 @@
 """Netmap views"""
 from django.db.models import Q
 from django.http import Http404
-from django.views.generic import TemplateView, ListView, View
+from django.views.generic import TemplateView, ListView
 from django.shortcuts import get_object_or_404
 
 from rest_framework import status, generics, views
@@ -31,15 +31,19 @@ from nav.models.profiles import (
     NetmapViewNodePosition,
     Account,
 )
-from nav.models.manage import Category, Netbox, Interface
-from nav.netmap.traffic import get_traffic_data
+from nav.models.manage import Category, Netbox
 
 from .mixins import DefaultNetmapViewMixin, AdminRequiredMixin
 from .serializers import (
     NetmapViewSerializer,
     NetmapViewDefaultViewSerializer,
 )
-from .graph import get_topology_graph, get_traffic_gradient
+from .graph import (
+    get_topology_graph,
+    get_traffic_gradient,
+    get_layer2_traffic,
+    get_layer3_traffic,
+)
 
 
 class IndexView(DefaultNetmapViewMixin, TemplateView):
@@ -85,53 +89,11 @@ class TrafficView(views.APIView):
         layer = int(kwargs.pop('layer', 2))
 
         if layer is 3:
-            traffic = self.get_layer3_traffic()
+            traffic = get_layer3_traffic()
         else:
-            traffic = self.get_layer2_traffic()
+            traffic = get_layer2_traffic()
 
         return Response(traffic)
-
-    def get_layer2_traffic(self):
-
-        interfaces = Interface.objects.filter(
-            to_netbox__isnull=False
-        ).select_related('netbox', 'to_netbox', 'to_interface__netbox')
-
-        edges = set([
-            (
-                interface.netbox_id,
-                interface.to_netbox_id
-            )
-            for interface in interfaces
-        ])
-
-        traffic = []
-        for source, target in edges:
-            edge_interfaces = interfaces.filter(
-                netbox_id=source,
-                to_netbox_id=target
-            )
-            edge_traffic = []
-            for interface in edge_interfaces:
-                to_interface = interface.to_interface
-                d = get_traffic_data((interface, to_interface)).to_json()
-                d.update({
-                    'source_ifname': interface.ifname if interface else '',
-                    'target_ifname': to_interface.ifname if to_interface else ''
-                })
-                edge_traffic.append(d)
-            traffic.append({
-                'netbox': interface.netbox.sysname if interface else 'N/A',
-                'target_netbox': interface.to_netbox.sysname if interface.to_netbox else 'N/A',
-                'source': source,
-                'target': target,
-                'edges': edge_traffic,
-            })
-
-        return traffic
-
-    def get_layer3_traffic(self):
-        return {}
 
 
 class NetmapAdminView(AdminRequiredMixin, ListView):
