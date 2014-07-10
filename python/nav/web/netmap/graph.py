@@ -1,3 +1,5 @@
+"""Graph utility functions for Netmap"""
+
 from collections import defaultdict
 
 from nav.netmap.metadata import (

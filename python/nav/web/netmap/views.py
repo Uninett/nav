@@ -47,6 +47,7 @@ from .graph import (
 
 
 class IndexView(DefaultNetmapViewMixin, TemplateView):
+    """Main view for Netmap"""
     template_name = 'netmap/netmap.html'
 
     def get_context_data(self, **kwargs):
@@ -81,6 +82,7 @@ class IndexView(DefaultNetmapViewMixin, TemplateView):
 
 
 class TrafficView(views.APIView):
+    """Fetches traffic data for the links and returns it in JSON format"""
 
     renderer_classes = (JSONRenderer,)
 
@@ -97,6 +99,7 @@ class TrafficView(views.APIView):
 
 
 class NetmapAdminView(AdminRequiredMixin, ListView):
+    """View for Netmap admin functions"""
     context_object_name = 'views'
     model = NetmapView
     template_name = 'netmap/admin.html'
@@ -126,7 +129,10 @@ class NetmapAdminView(AdminRequiredMixin, ListView):
 
 
 class NetmapViewList(generics.ListAPIView):
-
+    """
+    View for returning a list of NetmapViews which are public or
+    belonging to the current account
+    """
     serializer_class = NetmapViewSerializer
 
     def get_queryset(self):
@@ -137,7 +143,7 @@ class NetmapViewList(generics.ListAPIView):
 
 
 class NetmapViewCreate(generics.CreateAPIView):
-
+    """View for creating a NetmapView"""
     serializer_class = NetmapViewSerializer
 
     def pre_save(self, obj):
@@ -157,7 +163,7 @@ class NetmapViewCreate(generics.CreateAPIView):
 
 
 class NetmapViewEdit(generics.RetrieveUpdateDestroyAPIView):
-
+    """View for saving a NetmapView"""
     lookup_field = 'viewid'
     serializer_class = NetmapViewSerializer
 
@@ -194,7 +200,7 @@ class NetmapViewEdit(generics.RetrieveUpdateDestroyAPIView):
 
 
 class NetmapViewDefaultViewUpdate(generics.RetrieveUpdateAPIView):
-
+    """View for setting the default NetmapView of an account"""
     lookup_field = 'owner'
     queryset = NetmapViewDefaultView.objects.all()
     serializer_class = NetmapViewDefaultViewSerializer
