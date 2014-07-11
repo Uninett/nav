@@ -345,7 +345,9 @@ define([
                 .remove()
                 ;
 
-            this.linkGroup.selectAll('.linkload').remove(); // TODO: Do we need this?
+            // Blaasal elink link disappears without this, possibly others
+            this.linkGroup.selectAll('.linkload').remove();
+
             var gradient = this.linkGroup.selectAll('.linkload')
                 .data(this.links, function (link) {
                     return link.traffic;
@@ -360,7 +362,7 @@ define([
                 .attr('y1', '0%')
                 .attr('y2', '100%')
                 ;
-            gradient.exit().remove();
+            //gradient.exit().remove();
 
             var stops = gradient.selectAll('stop')
                 .data(function (link) {
@@ -369,15 +371,22 @@ define([
                     var outCss;
 
                     if (link.traffic !== undefined && !_.isEmpty(link.traffic)) {
-                        inCss = _.max(link.traffic.edges, function (edge) {
-                            return edge.source.load_in_percent;
-                        }).source.css;
-                        outCss = _.max(link.traffic.edges, function (edge) {
-                            return edge.target.load_in_percent;
-                        }).target.css;
+
+                        if (_.isArray(link.edges)) {
+                            inCss = _.max(link.traffic.edges, function (edge) {
+                                return edge.source.load_in_percent;
+                            }).source.css;
+                            outCss = _.max(link.traffic.edges, function (edge) {
+                                return edge.target.load_in_percent;
+                            }).target.css;
+                        } else {
+                            inCss = link.traffic.traffic_data.source.css;
+                            outCss = link.traffic.traffic_data.target.css;
+                        }
 
                         if (!inCss)  inCss = UndefinedLoad;
                         if (!outCss) outCss = UndefinedLoad;
+
                     } else {
                         inCss = UndefinedLoad;
                         outCss = UndefinedLoad;
