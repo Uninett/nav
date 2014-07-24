@@ -138,7 +138,7 @@ class Group(object):
         }
         if self.interface is not None:
             ipdevinfo_link = None
-            if self.interface.ifname != '?':
+            if self.interface.ifname and self.interface.ifname != '?':
                 ipdevinfo_link = reverse(
                     'ipdevinfo-interface-details-by-name',
                     kwargs={'netbox_sysname': unicode(

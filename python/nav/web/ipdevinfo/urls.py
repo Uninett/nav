@@ -49,13 +49,13 @@ urlpatterns = patterns('',
         name='ipdevinfo-details-by-name'),
 
     # Module details
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/module=(?P<module_name>.+)/$',
+    url(r'^(?P<netbox_sysname>[^/]+)/module=(?P<module_name>.+)/$',
         module_details, name='ipdevinfo-module-details'),
 
     # Interface details
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/interface=(?P<port_id>\d+)/$',
+    url(r'^(?P<netbox_sysname>[^/]+)/interface=(?P<port_id>\d+)/$',
         port_details, name='ipdevinfo-interface-details'),
-    url(r'^(?P<netbox_sysname>[\w\d\.-]+)/ifname=(?P<port_name>[^&]+)/$',
+    url(r'^(?P<netbox_sysname>[^/]+)/ifname=(?P<port_name>[^&]+)/$',
         port_details, name='ipdevinfo-interface-details-by-name'),
     url(r'^g/port/(?P<interfaceid>\d+)/$', port_counter_graph,
         name='interface-counter-graph'),

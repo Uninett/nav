@@ -50,9 +50,16 @@ class VirtualRouter(Plugin):
     def handle(self):
         """Handles address collection"""
         if self.gwportprefixes_found():
+            mibs = []
+            virtual_addrs = set()
+
             for mib in self.mibs:
-                addresses = yield mib.get_virtual_addresses()
-                self.update_containers_with(addresses, mib.mib['moduleName'])
+                addrs_from_mib = yield mib.get_virtual_addresses()
+                virtual_addrs.update(addrs_from_mib)
+                if addrs_from_mib:
+                    mibs.append(mib.mib['moduleName'])
+
+            self.update_containers_with(virtual_addrs, mibs)
 
 
     def gwportprefixes_found(self):

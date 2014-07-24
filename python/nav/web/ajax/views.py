@@ -20,6 +20,7 @@ The view definitions does not necessarily need to be placed here.
 """
 
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django.utils import simplejson
 
 from nav.models.manage import Room, Netbox
@@ -71,7 +72,7 @@ def get_neighbors(request, netboxid):
     links = []
     link_candidates = {}
 
-    netbox = Netbox.objects.get(pk=netboxid)
+    netbox = get_object_or_404(Netbox, pk=netboxid)
     netboxes = [netbox]
     interfaces = netbox.interface_set.filter(to_netbox__isnull=False)
     for interface in interfaces:

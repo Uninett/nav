@@ -400,9 +400,9 @@ class Vlan(Shadow):
 
         vlan = self._get_vlan_from_my_prefixes(containers)
         if vlan:
-            # Only claim to be the same Vlan object if the vlan number is the
-            # same, or the pre-existing object has no Vlan number.
-            if vlan.vlan is None or vlan.vlan == self.vlan:
+            # Only reuse the existing Vlan object if lacks essential identifiers
+            if vlan.vlan is None or (vlan.vlan == self.vlan and
+                                     not self.net_ident):
                 return vlan
 
     def _log_if_multiple_prefixes(self, prefix_containers):
