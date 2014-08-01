@@ -19,6 +19,7 @@ define([
             'click #filter-orphan-nodes': 'updateOrphanNodesFilter',
             'click #netmap-view-save': 'saveCurrentView',
             'click #netmap-view-delete': 'deleteCurrentView',
+            'click #netmap-view-default': 'setCurrentViewDefault',
             'click #netmap-view-panel-toggle': 'toggleNetmapViewPanel',
             'click #advanced-options-panel-toggle': 'toggleAdvancedOptionsPanel'
         },
@@ -161,6 +162,41 @@ define([
             } else {
                 this.deleteSuccessful(true);
             }
+        },
+
+        /**
+         * Saves the current view as default for the current user
+         */
+        setCurrentViewDefault: function () {
+
+            var self = this;
+
+            $.ajax({
+                type: 'PUT',
+                url: 'views/default/' + window.netmapData.userID + '/',
+                data: {view: this.currentView.id, owner: window.netmapData.userID}
+            })
+            .done(function () {
+                var alert = self.alertContainer.html(
+                    '<span class="alert-box success">View set as default</span>'
+                );
+                setTimeout(function () {
+                    $('span', alert).fadeOut(function () {
+                        this.remove();
+                    });
+                }, 3000);
+            })
+            .fail(function () {
+                var alert = self.alertContainer.html(
+                    '<span class="alert-box alert">Save unsuccessful!' +
+                    '<a href="#" class="close">&times;</a></span>'
+                );
+                $('span a', alert).click(function () {
+                    $('span', alert).fadeOut(function () {
+                        this.remove();
+                    }) ;
+                });
+            });
         },
 
         createView: function (e) {
