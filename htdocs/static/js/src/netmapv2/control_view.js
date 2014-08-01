@@ -21,7 +21,8 @@ define([
             'click #netmap-view-delete': 'deleteCurrentView',
             'click #netmap-view-default': 'setCurrentViewDefault',
             'click #netmap-view-panel-toggle': 'toggleNetmapViewPanel',
-            'click #advanced-options-panel-toggle': 'toggleAdvancedOptionsPanel'
+            'click #advanced-options-panel-toggle': 'toggleAdvancedOptionsPanel',
+            'click #refresh-interval input': 'setRefreshInterval'
         },
 
         initialize: function () {
@@ -31,6 +32,7 @@ define([
             this.netmapViews = new Collections.NetmapViewCollection();
             this.netmapViews.reset(window.netmapData.views);
             this.currentView = this.netmapViews.get(window.netmapData.defaultView);
+            this.refreshInterval = null;
 
             this.initializeDOM();
 
@@ -331,6 +333,34 @@ define([
                 'selected',
                 layer
             );
+        },
+
+        setRefreshInterval: function (e) {
+
+            var self = this;
+            var val = parseInt(e.currentTarget.value);
+
+            if (val === -1) {
+                console.log('refresh off');
+                if (this.refreshInterval !== null) {
+                    clearInterval(this.refreshInterval);
+                }
+                $('#refresh-counter', this.advancedOptionsPanel).html('');
+            } else {
+                clearInterval(this.refreshInterval);
+                var counter = val * 60;
+                this.refreshInterval = setInterval(function () {
+                    counter--;
+                    if (counter === 0) {
+                        console.log('refreshing graph');
+                        Backbone.EventBroker.trigger('netmap:refreshGraph');
+                        counter = val * 60;
+                    }
+                    $('#refresh-counter', self.advancedOptionsPanel).html(
+                        '<small>Refreshing in ' + counter + ' sec</small>'
+                    );
+                }, 1000);
+            }
         }
     });
 

@@ -162,7 +162,13 @@
   <div class="row">
     <div id="advanced-options-panel" class="medium-12 columns hide">
       <div class="panel">
-        Advanced controls
+        <form id="refresh-interval">
+          <h6>Refresh interval</h6>
+          <label><input name="refresh-interval-value" type="radio" value="-1" checked>Off</label>
+          <label><input name="refresh-interval-value" type="radio" value="2">2 min</label>
+          <label><input name="refresh-interval-value" type="radio" value="10">10 min</label>
+          <div id="refresh-counter"></div>
+        </form>
       </div>
     </div>
   </div>

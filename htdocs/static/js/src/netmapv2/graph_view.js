@@ -23,6 +23,7 @@ define([
             'netmap:filterCategoriesChanged': 'updateCategories',
             'netmap:selectedVlanChanged': 'updateSelectedVlan',
             'netmap:updateGraph': 'update',
+            'netmap:refreshGraph': 'fetchGraphModel',
             'netmap:searchGraph': 'search',
             'netmap:saveNodePositions': 'saveNodePositions'
         },
