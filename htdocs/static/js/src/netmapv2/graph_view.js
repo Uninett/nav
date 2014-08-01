@@ -167,8 +167,14 @@ define([
                 .on('dragstart', function (node) {
                     self.dragStart.call(this, node, self);
                 })
-                .on('drag', this.dragMove)
-                .on('dragend', this.dragEnd)
+                //.on('drag', this.dragMove)
+                .on('drag', function (node) {
+                    self.dragMove.call(this, node, self);
+                })
+                //.on('dragend', this.dragEnd)
+                .on('dragend', function (node) {
+                    self.dragEnd.call(this, node, self);
+                })
                 ;
 
             // Set up resize on window resize
@@ -626,16 +632,18 @@ define([
         dragStart: function (node, self) {
             d3.event.sourceEvent.stopPropagation();
             d3.select(this).insert('circle', 'image').attr('r', 20);
-            self.force.start(); // d3 crashes without this
+            self.force.stop();
         },
 
-        dragMove: function(node) {
+        dragMove: function(node, self) {
             node.px += d3.event.dx;
             node.py += d3.event.dy;
             node.fixed = true;
+
+            self.force.resume();
         },
 
-        dragEnd: function (node) {
+        dragEnd: function (node, self) {
             d3.select(this).select('circle').remove();
         },
 
