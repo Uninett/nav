@@ -80,16 +80,6 @@ define([
                     self.trafficSuccess.call(self, data);
                 })
                 .fail(this.trafficError);
-
-            // Set traffic reload interval
-            /*setInterval(function () {
-
-                $.getJSON('traffic/layer' + self.get('layer') + '/')
-                    .done(function (data) {
-                        self.trafficSuccess.call(self, data);
-                    })
-                    .fail(self.trafficError);
-            }, TrafficRefetchInterval);*/
         },
 
         trafficSuccess: function (data) { console.log('traffic success!');

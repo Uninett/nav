@@ -183,7 +183,6 @@ define([
 
             // Set up resize on window resize
             $(window).resize(function () {
-                console.log('graph view resize');
                 self.w = self.$el.width();
                 self.svg.attr('width', self.w);
             });
@@ -249,7 +248,7 @@ define([
             });
         },
 
-        update: function () { console.log('graph view update');
+        update: function () {
 
             // You wouldn't want this running while updating
             this.force.stop();
@@ -265,7 +264,7 @@ define([
             this.force.start();
         },
 
-        render: function () { console.log('graph view render');
+        render: function () {
             var self = this;
 
             this.link = this.linkGroup.selectAll('.link')
@@ -412,13 +411,13 @@ define([
             });
         },
 
-        updateTopologyLayer: function (layer) { console.log('graph view update topology');
+        updateTopologyLayer: function (layer) {
 
             this.model.set('layer', layer);
             this.fetchGraphModel();
         },
 
-        updateNetmapView: function (view) { console.log('graph view update view');
+        updateNetmapView: function (view) {
 
             this.netmapView = view;
 
@@ -440,7 +439,7 @@ define([
             this.fetchGraphModel();
         },
 
-        updateCategories: function (categoryId, checked) { console.log('graph view update filter');
+        updateCategories: function (categoryId, checked) {
 
             var categories = this.model.get('filter_categories');
             _.find(categories, function (category) {
@@ -475,8 +474,7 @@ define([
                     'viewid': this.netmapView.id
                 });
 
-                nodePositions.save(nodePositions.get('data'),
-                    {
+                nodePositions.save(nodePositions.get('data'), {
                     success: function () { console.log('nodepositions saved'); },
                     error: function (model, resp, opt) {
                         console.log(resp.responseText);

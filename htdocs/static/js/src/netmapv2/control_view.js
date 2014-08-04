@@ -362,7 +362,6 @@ define([
                 this.refreshInterval = setInterval(function () {
                     counter--;
                     if (counter === 0) {
-                        console.log('refreshing graph');
                         Backbone.EventBroker.trigger('netmap:refreshGraph');
                         counter = val * 60;
                     }
