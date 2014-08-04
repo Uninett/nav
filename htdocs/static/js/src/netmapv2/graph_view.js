@@ -75,6 +75,7 @@ define([
             this.model.set('layer', this.netmapView.get('topology'));
 
             var zoomStr = this.netmapView.get('zoom').split(';');
+            this.baseZoom = zoomStr;
             this.trans = zoomStr[0].split(',');
             this.scale = zoomStr[1];
             this.zoom.translate(this.trans);
@@ -549,7 +550,7 @@ define([
 
         resetZoom: function () {
 
-            var zoomStr = this.netmapView.get('zoom').split(';');
+            var zoomStr = this.baseZoom;
             this.trans = zoomStr[0].split(',');
             this.scale = zoomStr[1];
             this.zoom.translate(this.trans);
