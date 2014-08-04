@@ -92,7 +92,9 @@ define([
                 model.category.toLowerCase() + '.png';
 
             model.vlans = _.map(model.vlans, function (vlanId) {
-                return this.vlans.get(vlanId).attributes;
+                var vlan = this.vlans.get(vlanId).attributes;
+                vlan.isSelected = vlanId === this.selectedVlan;
+                return vlan;
             }, this);
 
             return model;
