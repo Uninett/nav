@@ -376,38 +376,7 @@ define([
 
             var stops = gradient.selectAll('stop')
                 .data(function (link) {
-
-                    var inCss;
-                    var outCss;
-
-                    if (link.traffic !== undefined && !_.isEmpty(link.traffic)) {
-
-                        if (_.isArray(link.edges)) {
-                            inCss = _.max(link.traffic.edges, function (edge) {
-                                return edge.source.load_in_percent;
-                            }).source.css;
-                            outCss = _.max(link.traffic.edges, function (edge) {
-                                return edge.target.load_in_percent;
-                            }).target.css;
-                        } else {
-                            inCss = link.traffic.traffic_data.source.css;
-                            outCss = link.traffic.traffic_data.target.css;
-                        }
-
-                        if (!inCss)  inCss = UndefinedLoad;
-                        if (!outCss) outCss = UndefinedLoad;
-
-                    } else {
-                        inCss = UndefinedLoad;
-                        outCss = UndefinedLoad;
-                    }
-
-                    return [
-                        {percent: 0, css: inCss},
-                        {percent: 50, css: inCss},
-                        {percent: 51, css: outCss},
-                        {percent: 100, css: outCss}
-                    ];
+                    return getTrafficCSSforLink(link);
                 })
                 ;
             stops.enter()
@@ -823,6 +792,44 @@ define([
         }, dimensions, center);
     }
 
+
+    function getTrafficCSSforLink(link) {
+        var inCss;
+        var outCss;
+
+        if (link.traffic !== undefined && !_.isEmpty(link.traffic)) {
+
+            if (_.isArray(link.edges)) {
+                inCss = _.max(link.traffic.edges, function (edge) {
+                    return edge.source.load_in_percent;
+                }).source.css;
+                outCss = _.max(link.traffic.edges, function (edge) {
+                    return edge.target.load_in_percent;
+                }).target.css;
+            } else {
+                inCss = link.traffic.traffic_data.source.css;
+                outCss = link.traffic.traffic_data.target.css;
+            }
+
+            if (!inCss) {
+                inCss = UndefinedLoad;
+            }
+            if (!outCss) {
+                outCss = UndefinedLoad;
+            }
+
+        } else {
+            inCss = UndefinedLoad;
+            outCss = UndefinedLoad;
+        }
+
+        return [
+            {percent: 0, css: inCss},
+            {percent: 50, css: inCss},
+            {percent: 51, css: outCss},
+            {percent: 100, css: outCss}
+        ];
+    }
 
     return GraphView;
 });
