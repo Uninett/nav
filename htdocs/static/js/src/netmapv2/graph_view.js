@@ -25,7 +25,9 @@ define([
             'netmap:updateGraph': 'update',
             'netmap:refreshGraph': 'fetchGraphModel',
             'netmap:searchGraph': 'search',
-            'netmap:saveNodePositions': 'saveNodePositions'
+            'netmap:saveNodePositions': 'saveNodePositions',
+            'netmap:resetTransparency': 'resetTransparency',
+            'netmap:resetZoom': 'resetZoom'
         },
 
         initialize: function () {
@@ -542,16 +544,17 @@ define([
         },
 
         resetTransparency: function () {
+            this.render();
+        },
 
-            this.nodeGroup.selectAll('.node')
-                .transition()
-                .duration(TransitionDuration)
-                .style('opacity', 1);
+        resetZoom: function () {
 
-            this.nodeGroup.selectAll('.link')
-                .transition()
-                .duration(TransitionDuration)
-                .style('opacity', 1);
+            var zoomStr = this.netmapView.get('zoom').split(';');
+            this.trans = zoomStr[0].split(',');
+            this.scale = zoomStr[1];
+            this.zoom.translate(this.trans);
+            this.zoom.scale(this.scale);
+            this.transformGraphTransition();
         },
 
         /**

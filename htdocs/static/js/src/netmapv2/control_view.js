@@ -21,6 +21,8 @@ define([
             'click #netmap-view-delete': 'deleteCurrentView',
             'click #netmap-view-default': 'setCurrentViewDefault',
             'click #netmap-view-panel-toggle': 'toggleNetmapViewPanel',
+            'click #netmap-view-reset-zoom': 'fireResetZoom',
+            'click #netmap-view-reset-transparency': 'fireResetTransparency',
             'click #advanced-options-panel-toggle': 'toggleAdvancedOptionsPanel',
             'click #refresh-interval input': 'setRefreshInterval'
         },
@@ -67,6 +69,14 @@ define([
 
             this.$(e.currentTarget.children).toggleClass('fa-caret-down fa-caret-up');
             this.advancedOptionsPanel.toggle();
+        },
+
+        fireResetZoom: function () {
+            Backbone.EventBroker.trigger('netmap:resetZoom');
+        },
+
+        fireResetTransparency: function () {
+            Backbone.EventBroker.trigger('netmap:resetTransparency');
         },
 
         /**

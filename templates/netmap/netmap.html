@@ -161,14 +161,23 @@
 
   <div class="row">
     <div id="advanced-options-panel" class="medium-12 columns hide">
-      <div class="panel">
-        <form id="refresh-interval">
-          <h6>Refresh interval</h6>
-          <label><input name="refresh-interval-value" type="radio" value="-1" checked>Off</label>
-          <label><input name="refresh-interval-value" type="radio" value="2">2 min</label>
-          <label><input name="refresh-interval-value" type="radio" value="10">10 min</label>
-          <div id="refresh-counter"></div>
-        </form>
+      <div class="row">
+        <div class="panel">
+          <div class="small-3 columns">
+            <form id="refresh-interval">
+              <h6>Refresh interval</h6>
+              <label><input name="refresh-interval-value" type="radio" value="-1" checked>Off</label>
+              <label><input name="refresh-interval-value" type="radio" value="2">2 min</label>
+              <label><input name="refresh-interval-value" type="radio" value="10">10 min</label>
+              <div id="refresh-counter"></div>
+            </form>
+          </div>
+          <div class="small-3 columns">
+            <h6>Reset zoom and transparency</h6>
+            <a id="netmap-view-reset-zoom" class="button small">Reset zoom</a>
+            <a id="netmap-view-reset-transparency" class="button small">Reset transparency</a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
