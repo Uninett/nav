@@ -43,6 +43,7 @@ define([
                 width: 'auto'
             });
 
+            this.selectedVlan = -1;
             Backbone.EventBroker.register(this);
         },
 
@@ -55,7 +56,7 @@ define([
             }
         },
 
-        setModel: function (model) { // TODO: Refactor
+        setModel: function (model) {
 
             var title;
             model = _.extend({}, model); // Make a copy :)
@@ -106,7 +107,9 @@ define([
                 model.target.category.toLowerCase() + '.png';
 
             model.vlans = _.map(_.uniq(model.vlans), function (vlanId) {
-                return this.vlans.get(vlanId).attributes;
+                var vlan = this.vlans.get(vlanId).attributes;
+                vlan.isSelected = vlanId === this.selectedVlan;
+                return vlan;
             }, this);
 
             _.each(model.edges, function (edge) {
@@ -160,6 +163,15 @@ define([
 
             var target = $(e.currentTarget);
             var vlanId = target.data('nav-vlan');
+
+            if (vlanId === this.selectedVlan) {
+                this.selectedVlan = -1;
+                target.removeClass('selected-vlan');
+                Backbone.EventBroker.trigger('netmap:resetTransparency');
+                return;
+            }
+
+            this.selectedVlan = vlanId;
 
             this.$('#graph-info-vlan-list .selected-vlan').removeClass('selected-vlan');
             target.addClass('selected-vlan');
