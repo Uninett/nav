@@ -46,7 +46,7 @@ define([
             return url;
         },
 
-        parse: function (response, options) { console.log('graph model parse');
+        parse: function (response, options) {
 
             var nodes = this.get('nodeCollection').populate(response.nodes);
             var links = this.get('linkCollection').populate(response.links);

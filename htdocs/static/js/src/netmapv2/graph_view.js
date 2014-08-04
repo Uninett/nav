@@ -23,7 +23,7 @@ define([
             'netmap:filterCategoriesChanged': 'updateCategories',
             'netmap:selectedVlanChanged': 'updateSelectedVlan',
             'netmap:updateGraph': 'update',
-            'netmap:refreshGraph': 'fetchGraphModel',
+            'netmap:refreshGraph': 'refresh',
             'netmap:searchGraph': 'search',
             'netmap:saveNodePositions': 'saveNodePositions',
             'netmap:resetTransparency': 'resetTransparency',
@@ -392,6 +392,15 @@ define([
                 });
 
             stops.exit().remove();
+        },
+
+        refresh: function () {
+
+            if (this.netmapView.refreshTrafficOnly) { console.log('refreshing traffic');
+                this.model.loadTraffic();
+            } else {
+                this.fetchGraphModel();
+            }
         },
 
         fetchGraphModel: function () {

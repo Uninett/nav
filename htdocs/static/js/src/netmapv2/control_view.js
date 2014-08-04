@@ -24,7 +24,8 @@ define([
             'click #netmap-view-reset-zoom': 'fireResetZoom',
             'click #netmap-view-reset-transparency': 'fireResetTransparency',
             'click #advanced-options-panel-toggle': 'toggleAdvancedOptionsPanel',
-            'click #refresh-interval input': 'setRefreshInterval'
+            'click #refresh-interval input[type=radio]': 'setRefreshInterval',
+            'click #refresh-interval input[type=checkbox]': 'setRefreshTrafficOnly'
         },
 
         initialize: function () {
@@ -370,6 +371,10 @@ define([
                     );
                 }, 1000);
             }
+        },
+
+        setRefreshTrafficOnly: function (e) {
+            this.currentView.refreshTrafficOnly = e.currentTarget.checked;
         }
     });
 
