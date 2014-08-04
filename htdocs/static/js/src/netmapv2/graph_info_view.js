@@ -181,6 +181,11 @@ define([
             Backbone.EventBroker.trigger('netmap:selectedVlanChanged', vlanId);
         },
 
+        reset: function () {
+            this.selectedVlan = -1;
+            this.$el.dialog('close');
+        },
+
         setVlans: function (vlans) {
             this.vlans = vlans;
         }

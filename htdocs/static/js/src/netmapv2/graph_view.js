@@ -399,6 +399,8 @@ define([
 
             var self = this;
 
+            this.graphInfoView.reset();
+
             this.model.fetch({
                 success: function () {
                     self.update();
