@@ -448,8 +448,6 @@ define([
 
         updateNetmapView: function (view) { console.log('graph view update view');
 
-            var refetchNeeded = this.netmapView.get('topology') !== view.get('topology');
-
             this.netmapView = view;
 
             this.model.set('viewId', this.netmapView.id);
@@ -466,11 +464,8 @@ define([
                 category.checked = _.indexOf(selectedCategories, category.name) >= 0;
             });
 
-            if (refetchNeeded) {
-                this.fetchGraphModel();
-            } else {
-                this.update();
-            }
+
+            this.fetchGraphModel();
         },
 
         updateCategories: function (categoryId, checked) { console.log('graph view update filter');
