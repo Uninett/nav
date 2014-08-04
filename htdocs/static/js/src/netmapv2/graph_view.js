@@ -375,9 +375,7 @@ define([
             //gradient.exit().remove();
 
             var stops = gradient.selectAll('stop')
-                .data(function (link) {
-                    return getTrafficCSSforLink(link);
-                })
+                .data(getTrafficCSSforLink)
                 ;
             stops.enter()
                 .append('stop')
