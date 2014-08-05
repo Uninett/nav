@@ -13,6 +13,7 @@ define([
         events: {
             'submit #graph-search-form': 'searchGraph',
             'submit #netmap-view-create-form': 'createView',
+            'submit #filter-room-location-form': 'filterByRoomOrLocation',
             'change #graph-layer-select': 'changeTopologyLayer',
             'change #graph-view-select': 'changeNetmapView',
             'click .filter-category': 'updateCategoryFilter',
@@ -278,7 +279,11 @@ define([
             Backbone.EventBroker.trigger('netmap:searchGraph', query);
         },
 
-        /* Save callbacks */
+        filterByRoomOrLocation: function (e) {
+            e.preventDefault();
+            var query = $('input[type="text"]', e.currentTarget).val();
+            Backbone.EventBroker.trigger('netmap:filterByRoomOrLocation', query);
+        },
 
         saveSuccessful: function (model, isNew) {
 

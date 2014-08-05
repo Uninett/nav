@@ -106,27 +106,29 @@
         <div class="row">
           <div class="medium-2 columns">
             <div class="row">
-              <div class="medium-6 columns">
-                <a id="netmap-view-default" class="button secondary small left">Set favorite</a>
-              </div>
-              <div class="medium-6 columns">
-                <a id="netmap-view-delete" class="button alert small left">Delete view</a>
+              <div class="medium-12 columns">
+                <a id="netmap-view-default" class="maxwidth button secondary small left">Set favorite</a>
               </div>
             </div>
             <div class="row">
               <div class="medium-12 columns">
-                <a id="netmap-view-save" class="button small">Save view</a>
+                <a id="netmap-view-save" class="maxwidth button small">Save view</a>
+              </div>
+            </div>
+            <div class="row">
+              <div class="medium-12 columns">
+                <a id="netmap-view-delete" class="maxwidth button alert small left">Delete view</a>
               </div>
             </div>
             <div class="row">
               <div id="netmap-alert-container" class="medium-12 columns">
-              </div>
+            </div>
             </div>
           </div>
           <div class="small-3 columns nopadding">
             <div class="row">
-              <div class="medium-12 columns">
-              <h6>Filter categories</h6>
+              <div class="small-12 columns">
+              <h6>Filters</h6>
               <ul id="filter-category-list">
                 {% for category in categories %}
                   <li>
@@ -143,6 +145,20 @@
                   Display isolated nodes
                   <input type="checkbox" id="filter-orphan-nodes">
                 </label>
+              </div>
+            </div>
+            <div class="row">
+              <div class="medium-12 columns">
+                <form id="filter-room-location-form">
+                  <div class="row collapse">
+                    <div class="medium-9 columns">
+                      <input type="text" placeholder="Filter by room or location">
+                    </div>
+                    <div class="medium-3 columns">
+                      <input class="postfix button" type="submit" value="Filter">
+                    </div>
+                  </div>
+                </form>
               </div>
             </div>
           </div>

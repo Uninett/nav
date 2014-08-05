@@ -8,14 +8,23 @@ $image-path: '../../images';
 
 #filter-category-list {
   list-style: none;
-  -webkit-column-count: 5;
-  -moz-column-count: 5;
-  column-count: 5;
+/*  -webkit-column-count: 4;
+  -moz-column-count: 4;
+  column-count: 4;*/
   text-align: right;
+}
+
+#filter-category-list li {
+  float: left;
+  margin-right: 1.5rem;
 }
 
 .nopadding {
   padding: 0;
+}
+
+.maxwidth {
+  width: 100%;
 }
 
 #graph-info-modal table {

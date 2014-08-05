@@ -21,6 +21,7 @@ define([
             'netmap:topologyLayerChanged': 'updateTopologyLayer',
             'netmap:netmapViewChanged': 'updateNetmapView',
             'netmap:filterCategoriesChanged': 'updateCategories',
+            'netmap:filterByRoomOrLocation': 'filterByRoomOrLocation',
             'netmap:selectedVlanChanged': 'updateSelectedVlan',
             'netmap:updateGraph': 'update',
             'netmap:refreshGraph': 'refresh',
@@ -457,6 +458,24 @@ define([
             }).checked = checked;
 
             this.update();
+        },
+
+        filterByRoomOrLocation: function (query) {
+
+            var nodes = _.filter(this.nodes, function (node) {
+                return node.roomid.search(query) !== -1 ||
+                    node.locationid.search(query) !== -1;
+            });
+            var links = _.filter(this.links, function (link) {
+                return (link.source.roomid.search(query) !== -1 ||
+                        link.source.locationid.search(query) !== -1) &&
+                       (link.target.roomid.search(query) !== -1 ||
+                        link.target.locationid.search(query) !== -1);
+            });
+            this.force.nodes(nodes).links(links);
+            this.nodes = this.force.nodes();
+            this.links = this.force.links();
+            this.render();
         },
 
         saveNodePositions: function () {
