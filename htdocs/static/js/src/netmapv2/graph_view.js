@@ -28,7 +28,8 @@ define([
             'netmap:saveNodePositions': 'saveNodePositions',
             'netmap:resetTransparency': 'resetTransparency',
             'netmap:resetZoom': 'resetZoom',
-            'netmap:unfixNodes': 'unfixNodes'
+            'netmap:unfixNodes': 'unfixNodes',
+            'netmap:toggleForce': 'toggleForce'
         },
 
         initialize: function () {
@@ -540,6 +541,14 @@ define([
                 node.fixed = false;
             });
             this.update();
+        },
+
+        toggleForce: function (statusOn) {
+            if (statusOn) {
+                this.force.stop();
+            } else {
+                this.force.resume();
+            }
         },
 
         /**

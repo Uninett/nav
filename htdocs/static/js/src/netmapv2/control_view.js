@@ -87,15 +87,17 @@ define([
         },
 
         fireToggleForce: function (e) {
+
             var targetElem = this.$(e.currentTarget);
-            var status = targetElem.data('status');
-            if (status === 'on') {
+            var statusOn = targetElem.data('status') === 'on';
+            if (statusOn) {
                 targetElem.data('status', 'off');
                 targetElem.html('Start force<img src="/static/images/lys/red.png">');
             } else { // off
                 targetElem.data('status', 'on');
                 targetElem.html('Stop force<img src="/static/images/lys/green.png">');
             }
+            Backbone.EventBroker.trigger('netmap:toggleForce', statusOn);
         },
 
         /**
