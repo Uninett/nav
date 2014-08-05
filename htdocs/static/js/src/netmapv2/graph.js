@@ -39,7 +39,7 @@ define([
             var url = this.get('baseUrl') + this.get('layer') + '/';
             var viewId = this.get('viewId');
 
-            if (viewId !== null) {
+            if (viewId) {
                 url += this.get('viewId') + '/';
             }
 
@@ -82,7 +82,7 @@ define([
                 .fail(this.trafficError);
         },
 
-        trafficSuccess: function (data) { console.log('traffic success!');
+        trafficSuccess: function (data) {
 
             var links = this.get('linkCollection');
 
