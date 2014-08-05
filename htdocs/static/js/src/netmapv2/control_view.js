@@ -95,7 +95,7 @@ define([
                 targetElem.html('Start force<img src="/static/images/lys/red.png">');
             } else { // off
                 targetElem.data('status', 'on');
-                targetElem.html('Stop force<img src="/static/images/lys/green.png">');
+                targetElem.html('Pause force<img src="/static/images/lys/green.png">');
             }
             Backbone.EventBroker.trigger('netmap:toggleForce', statusOn);
         },
