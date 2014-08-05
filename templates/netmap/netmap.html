@@ -163,7 +163,7 @@
     <div id="advanced-options-panel" class="medium-12 columns hide">
       <div class="panel">
         <div class="row">
-          <div class="small-3 columns">
+          <div class="small-1 column">
             <form id="refresh-interval">
               <h6>Refresh interval</h6>
               <label><input name="refresh-interval-value" type="radio" value="-1" checked>Off</label>
@@ -173,11 +173,15 @@
               <div id="refresh-counter"></div>
             </form>
           </div>
-          <div class="small-3 columns">
-            <h6>Reset zoom and transparency</h6>
+          <div class="small-1 column">
             <a id="netmap-view-reset-zoom" class="button small">Reset zoom</a>
             <a id="netmap-view-reset-transparency" class="button small">Reset transparency</a>
           </div>
+          <div class="small-1 column">
+            <a id="netmap-view-unfix-nodes" class="button small">Unfix all nodes</a>
+            <a id="netmap-view-toggle-force" class="button small" data-status="on">Pause force<img src="/static/images/lys/green.png"></a>
+          </div>
+          <div class="small-1 column end"></div>
         </div>
       </div>
     </div>

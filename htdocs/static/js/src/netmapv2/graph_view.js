@@ -27,7 +27,8 @@ define([
             'netmap:searchGraph': 'search',
             'netmap:saveNodePositions': 'saveNodePositions',
             'netmap:resetTransparency': 'resetTransparency',
-            'netmap:resetZoom': 'resetZoom'
+            'netmap:resetZoom': 'resetZoom',
+            'netmap:unfixNodes': 'unfixNodes'
         },
 
         initialize: function () {
@@ -444,7 +445,6 @@ define([
                 category.checked = _.indexOf(selectedCategories, category.name) >= 0;
             });
 
-
             this.fetchGraphModel();
         },
 
@@ -532,6 +532,14 @@ define([
             this.zoom.translate(this.trans);
             this.zoom.scale(this.scale);
             this.transformGraphTransition();
+        },
+
+        unfixNodes: function () {
+
+            _.each(this.nodes, function (node) {
+                node.fixed = false;
+            });
+            this.update();
         },
 
         /**

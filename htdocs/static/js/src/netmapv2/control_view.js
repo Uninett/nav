@@ -25,7 +25,9 @@ define([
             'click #netmap-view-reset-transparency': 'fireResetTransparency',
             'click #advanced-options-panel-toggle': 'toggleAdvancedOptionsPanel',
             'click #refresh-interval input[type=radio]': 'setRefreshInterval',
-            'click #refresh-interval input[type=checkbox]': 'setRefreshTrafficOnly'
+            'click #refresh-interval input[type=checkbox]': 'setRefreshTrafficOnly',
+            'click #netmap-view-unfix-nodes': 'fireUnfixNodes',
+            'click #netmap-view-toggle-force': 'fireToggleForce'
         },
 
         initialize: function () {
@@ -80,6 +82,22 @@ define([
             Backbone.EventBroker.trigger('netmap:resetTransparency');
         },
 
+        fireUnfixNodes: function () {
+            Backbone.EventBroker.trigger('netmap:unfixNodes');
+        },
+
+        fireToggleForce: function (e) {
+            var targetElem = this.$(e.currentTarget);
+            var status = targetElem.data('status');
+            if (status === 'on') {
+                targetElem.data('status', 'off');
+                targetElem.html('Start force<img src="/static/images/lys/red.png">');
+            } else { // off
+                targetElem.data('status', 'on');
+                targetElem.html('Stop force<img src="/static/images/lys/green.png">');
+            }
+        },
+
         /**
          * Triggers when the topology layer is changed. Updates the
          * view and fires an event to the graph model
@@ -101,6 +119,14 @@ define([
 
             var viewId = e.currentTarget.value;
             this.currentView = this.netmapViews.get(viewId);
+            if (!this.currentView) {
+                // This clause is not needed for Backbone>=0.9.9, but should
+                // cause no harm after upgrade.
+                this.currentView = this.netmapViews.getByCid(viewId);
+            }
+            var unsaved = this.currentView.isNew() ?
+                '<span class="alert-box">Current view is unsaved</span>' : '';
+            this.alertContainer.html(unsaved);
             this.setCategoriesForCurrentView();
             this.setTopologySelectForCurrentView();
 
