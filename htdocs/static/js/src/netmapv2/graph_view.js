@@ -6,7 +6,8 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker',
-    'libs/d3.v2'
+    //'libs/d3.v2'
+    'libs/d3.min'
 ], function (Graph, Models, GraphInfoView) {
 
     var Transparent = 0.2;
@@ -21,7 +22,7 @@ define([
             'netmap:topologyLayerChanged': 'updateTopologyLayer',
             'netmap:netmapViewChanged': 'updateNetmapView',
             'netmap:filterCategoriesChanged': 'updateCategories',
-            'netmap:filterByRoomOrLocation': 'filterByRoomOrLocation',
+            'netmap:filterByRoomOrLocation': 'addFilterString',
             'netmap:selectedVlanChanged': 'updateSelectedVlan',
             'netmap:updateGraph': 'update',
             'netmap:refreshGraph': 'refresh',
@@ -57,6 +58,7 @@ define([
             this.netmapView = this.options.netmapView;
 
             this.graphInfoView = new GraphInfoView({parent: this.el});
+            this.filterStrings = [];
 
             this.initializeDOM();
             this.bindEvents();
@@ -227,6 +229,10 @@ define([
 
             nodes = filterNodesByCategories(nodes, categories);
             links = filterLinksByCategories(links, categories);
+            if (this.filterStrings.length) {
+                nodes = filterNodesByRoomsOrLocations(nodes, this.filterStrings);
+                links = filterLinksByRoomsOrLocations(links, this.filterStrings);
+            }
 
             this.graphInfoView.setVlans(this.model.get('vlanCollection'));
 
@@ -361,9 +367,7 @@ define([
             this.linkGroup.selectAll('.linkload').remove();
 
             var gradient = this.linkGroup.selectAll('.linkload')
-                .data(this.links, function (link) {
-                    return link.traffic;
-                });
+                .data(this.links);
             gradient.enter().append('linearGradient')
                 .attr('class', 'linkload')
                 .attr('id', function (link) {
@@ -381,7 +385,6 @@ define([
                 ;
             stops.enter()
                 .append('stop')
-                .attr('class', 'foo')
                 .attr('offset', function (gradient) {
                     return gradient.percent + '%';
                 })
@@ -460,22 +463,15 @@ define([
             this.update();
         },
 
-        filterByRoomOrLocation: function (query) {
+        addFilterString: function (filter) {
 
-            var nodes = _.filter(this.nodes, function (node) {
-                return node.roomid.search(query) !== -1 ||
-                    node.locationid.search(query) !== -1;
-            });
-            var links = _.filter(this.links, function (link) {
-                return (link.source.roomid.search(query) !== -1 ||
-                        link.source.locationid.search(query) !== -1) &&
-                       (link.target.roomid.search(query) !== -1 ||
-                        link.target.locationid.search(query) !== -1);
-            });
-            this.force.nodes(nodes).links(links);
-            this.nodes = this.force.nodes();
-            this.links = this.force.links();
-            this.render();
+            this.filterStrings.push(filter);
+            this.update();
+        },
+
+        removeFilterString: function (filter) {
+
+            this.filterStrings.remove(filter);
         },
 
         saveNodePositions: function () {
@@ -559,7 +555,7 @@ define([
             _.each(this.nodes, function (node) {
                 node.fixed = false;
             });
-            this.update();
+            this.render();
         },
 
         toggleForce: function (statusOn) {
@@ -697,6 +693,20 @@ define([
     }
 
     /**
+     * Helper function for filtering a list of nodes by a list of
+     * room or locations id's.
+     * @param nodes
+     * @param filters
+     */
+    function filterNodesByRoomsOrLocations(nodes, filters) {
+
+        var s = filters.join();
+        return _.filter(nodes, function (node) {
+            return s.search(node.roomid + '|' + node.locationid) !== -1;
+        });
+    }
+
+    /**
      * Helper function for filtering a list of links by a list of categories.
      * @param links
      * @param categories
@@ -706,6 +716,21 @@ define([
         return _.filter(links, function (link) {
             return _.contains(categories, link.source.category.toUpperCase()) &&
                 _.contains(categories, link.target.category.toUpperCase());
+        });
+    }
+
+    /**
+     * Helper function for filtering a list of links by a list of
+     * room or location id's.
+     * @param links
+     * @param filters
+     */
+    function filterLinksByRoomsOrLocations(links, filters) {
+
+        var s = filters.join();
+        return _.filter(links, function (link) {
+            return s.search(link.source.roomid + '|' + link.source.locationid) !== -1 &&
+                s.search(link.target.roomid + '|' + link.target.locationid) !== -1;
         });
     }
 
