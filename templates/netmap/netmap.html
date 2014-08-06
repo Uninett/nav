@@ -93,11 +93,6 @@
       </div>
     </div>
 
-    {% comment %}<div class="medium-1 columns">
-      {% if link_to_admin %}
-        <a href="{{ link_to_admin }}" class="button small right">Netmap admin</a>
-      {% endif %}
-    </div>{% endcomment %}
   </div>
 
   <div class="row">
@@ -164,10 +159,10 @@
           </div>
           <div class="medium-4 columns end right">
             <form id="netmap-view-create-form">
-              <input type="text" placeholder="View name"/>
+              <input type="text" placeholder="View name" required>
               <textarea placeholder="View description"></textarea>
               <label><input type="checkbox" name="public" checked>Public</label>
-              <input class="button small" type="submit" value="Create view" />
+              <input class="button small" type="submit" value="Create view">
             </form>
           </div>
         </div>
