@@ -17,6 +17,7 @@ define([
             'change #graph-layer-select': 'changeTopologyLayer',
             'change #graph-view-select': 'changeNetmapView',
             'click .filter-category': 'updateCategoryFilter',
+            'click .filter-string-remove': 'removeFilterString',
             'click #filter-orphan-nodes': 'updateOrphanNodesFilter',
             'click #netmap-view-save': 'saveCurrentView',
             'click #netmap-view-delete': 'deleteCurrentView',
@@ -282,7 +283,20 @@ define([
         filterByRoomOrLocation: function (e) {
             e.preventDefault();
             var query = $('input[type="text"]', e.currentTarget).val();
+            e.currentTarget.reset();
+            $('#filter-labels', this.netmapViewPanel).append(
+                '<span class="label secondary" data-string="' + query + '">' + query +
+                    '<a href="#" class="filter-string-remove">&times;</a></span>'
+            );
             Backbone.EventBroker.trigger('netmap:filterByRoomOrLocation', query);
+        },
+
+        removeFilterString: function (e) {
+            e.preventDefault();
+            var elem = $(e.currentTarget).parent();
+            var filterString = elem.data('string');
+            elem.remove();
+            Backbone.EventBroker.trigger('netmap:removeFilter', filterString);
         },
 
         saveSuccessful: function (model, isNew) {
