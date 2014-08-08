@@ -29,6 +29,7 @@ define([
             'netmap:refreshGraph': 'refresh',
             'netmap:searchGraph': 'search',
             'netmap:saveNodePositions': 'saveNodePositions',
+            'netmap:zoomToExtent': 'zoomToExtent',
             'netmap:resetTransparency': 'resetTransparency',
             'netmap:resetZoom': 'resetZoom',
             'netmap:unfixNodes': 'unfixNodes',
@@ -536,6 +537,11 @@ define([
                 .transition()
                 .duration(TransitionDuration)
                 .style('opacity', Transparent);
+        },
+
+        zoomToExtent: function () {
+            var bounds = findBoundingBox(this.nodes);
+            this.transformGraphFromBounds(bounds);
         },
 
         resetTransparency: function () {
