@@ -557,7 +557,7 @@ define([
             _.each(this.nodes, function (node) {
                 node.fixed = false;
             });
-            this.render();
+            this.force.resume();
         },
 
         toggleForce: function (statusOn) {
@@ -779,7 +779,7 @@ define([
         of the object will be different depending on the layer.
          */
         var speed;
-        if (Object.prototype.toString.call(link.edges) === "[object Array]") {
+        if (_.isArray(link.edges)) {
             speed = _.max(_.pluck(link.edges, 'link_speed'));
         } else {
             speed = _.max(_.pluck(_.flatten(_.values(link.edges)), 'link_speed'));
