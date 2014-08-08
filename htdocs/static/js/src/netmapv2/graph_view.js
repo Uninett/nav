@@ -167,7 +167,7 @@ define([
             var self = this;
 
             // Set up zoom listener
-            this.zoom = d3.behavior.zoom();
+            this.zoom = d3.behavior.zoom().center([this.w / 2, this.h / 2]);
             this.svg.call(this.zoom.on('zoom', function () {
                self.zoomCallback.call(self);
             }));
