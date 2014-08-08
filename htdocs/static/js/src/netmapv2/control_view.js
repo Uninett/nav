@@ -62,6 +62,7 @@ define([
 
             this.setCategoriesForCurrentView();
             this.setTopologySelectForCurrentView();
+            this.resetRefreshControls();
         },
 
         toggleNetmapViewPanel: function (e) {
@@ -133,6 +134,7 @@ define([
             this.alertContainer.html(unsaved);
             this.setCategoriesForCurrentView();
             this.setTopologySelectForCurrentView();
+            this.resetRefreshControls();
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
         },
@@ -264,6 +266,7 @@ define([
 
             this.setCategoriesForCurrentView();
             this.setTopologySelectForCurrentView();
+            this.resetRefreshControls();
 
             this.alertContainer.html('<span class="alert-box">Current view is unsaved</span>');
 
@@ -334,6 +337,7 @@ define([
             this.currentView = this.netmapViews.get(selected);
             this.setCategoriesForCurrentView();
             this.setTopologySelectForCurrentView();
+            this.resetRefreshControls();
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
 
@@ -418,6 +422,18 @@ define([
                     );
                 }, 1000);
             }
+        },
+
+        resetRefreshControls: function () {
+
+            this.currentView.refreshTrafficOnly = false;
+            this.$('#refresh-interval input[type=checkbox]',
+                this.advancedOptionsPanel).attr('checked', false);
+
+            this.$('#refresh-interval input[type=radio]')[0].checked = true;
+
+            clearInterval(this.refreshInterval);
+            this.$('#refresh-counter', this.advancedOptionsPanel).html('');
         },
 
         setRefreshTrafficOnly: function (e) {
