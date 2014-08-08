@@ -48,6 +48,7 @@ define([
     var VlanCollection = Backbone.Collection.extend({
 
         model: Models.Vlan,
+        comparator: function (a, b) { return a.vlan - b.vlan; },
 
         populate: function (vlans) {
 
