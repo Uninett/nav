@@ -112,7 +112,7 @@ define([
                 var vlan = this.vlans.get(vlanId).attributes;
                 vlan.isSelected = vlanId === this.selectedVlan;
                 return vlan;
-            }, this);
+            }, this).sort(function (a, b) { return a.vlan - b.vlan; });
 
             _.each(model.edges, function (edge) {
                 if (model.traffic === undefined) return;
