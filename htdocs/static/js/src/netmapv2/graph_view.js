@@ -50,6 +50,7 @@ define([
                 .size([this.w, this.h])
                 ;
 
+            this.forceEnabled = true;
             this.nodes = this.force.nodes();
             this.links = this.force.links();
             this.isLoadingForTheFirstTime = true;
@@ -196,20 +197,24 @@ define([
 
             // Set up tick event
             this.force.on('tick', function () {
+                self.tick.call(self);
+            });
+        },
 
-                self.link.attr('x1', function (o) {
-                    return o.source.x;
-                }).attr('y1', function (o) {
-                    return o.source.y;
-                }).attr('x2', function (o) {
-                    return o.target.x;
-                }).attr('y2', function (o) {
-                    return o.target.y;
-                });
+        tick: function () {
 
-                self.node.attr('transform', function(o) {
-                    return 'translate(' + o.px + "," + o.py + ')';
-                });
+            this.link.attr('x1', function (o) {
+                return o.source.x;
+            }).attr('y1', function (o) {
+                return o.source.y;
+            }).attr('x2', function (o) {
+                return o.target.x;
+            }).attr('y2', function (o) {
+                return o.target.y;
+            });
+
+            this.node.attr('transform', function(o) {
+                return 'translate(' + o.x + "," + o.y + ')';
             });
         },
 
@@ -250,8 +255,8 @@ define([
             // Set fixed positions
             _.each(this.nodes, function (node) {
                 if (node.position) {
-                    node.px = node.position.x;
-                    node.py = node.position.y;
+                    node.x = node.position.x;
+                    node.y = node.position.y;
                     node.fixed = true;
                 } else {
                     node.fixed = false;
@@ -572,6 +577,7 @@ define([
             } else {
                 this.force.resume();
             }
+            this.forceEnabled = !this.forceEnabled();
         },
 
         /**
@@ -654,13 +660,17 @@ define([
         dragMove: function(node, self) {
             node.px += d3.event.dx;
             node.py += d3.event.dy;
+            node.x += d3.event.dx;
+            node.y += d3.event.dy;
             node.fixed = true;
-
-            self.force.resume();
+            self.tick();
         },
 
         dragEnd: function (node, self) {
             d3.select(this).select('circle').remove();
+            if (self.forceEnabled) {
+                self.force.resume();
+            }
         },
 
         zoomCallback: function () {
