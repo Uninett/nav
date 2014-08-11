@@ -277,6 +277,7 @@ define([
             this.render();
 
             this.force.start();
+            this.forceEnabled = true;
         },
 
         render: function () {
@@ -667,6 +668,9 @@ define([
 
         dragEnd: function (node, self) {
             d3.select(this).select('circle').remove();
+            if (self.forceEnabled) {
+                self.force.resume();
+            }
         },
 
         zoomCallback: function () {
