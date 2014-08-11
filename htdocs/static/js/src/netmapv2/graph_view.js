@@ -6,7 +6,6 @@ define([
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker',
-    //'libs/d3.v2'
     'libs/d3.min'
 ], function (Graph, Models, GraphInfoView) {
 
@@ -547,6 +546,7 @@ define([
         zoomToExtent: function () {
             var bounds = findBoundingBox(this.nodes);
             this.transformGraphFromBounds(bounds);
+            this.netmapView.set('zoom', this.trans.join(',') + ';' + this.scale);
         },
 
         resetTransparency: function () {
