@@ -577,7 +577,7 @@ define([
             } else {
                 this.force.resume();
             }
-            this.forceEnabled = !this.forceEnabled();
+            this.forceEnabled = !this.forceEnabled;
         },
 
         /**
