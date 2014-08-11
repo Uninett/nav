@@ -409,7 +409,6 @@ define([
             var val = parseInt(e.currentTarget.value);
 
             if (val === -1) {
-                console.log('refresh off');
                 if (this.refreshInterval !== null) {
                     clearInterval(this.refreshInterval);
                 }

@@ -409,7 +409,7 @@ define([
 
         refresh: function () {
 
-            if (this.netmapView.refreshTrafficOnly) { console.log('refreshing traffic');
+            if (this.netmapView.refreshTrafficOnly) {
                 this.model.loadTraffic();
             } else {
                 this.fetchGraphModel();
@@ -514,7 +514,6 @@ define([
                         console.log(resp.responseText);
                     }
                 });
-
             }
         },
 
@@ -556,7 +555,6 @@ define([
         },
 
         resetZoom: function () {
-            console.log(this.netmapView);
             var zoomStr = this.netmapView.baseZoom;
             this.trans = zoomStr[0].split(',');
             this.scale = zoomStr[1];
