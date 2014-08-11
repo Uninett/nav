@@ -180,6 +180,7 @@ define([
             this.currentView.set('display_elinks', _.indexOf(categories, 'ELINK') >= 0);
             this.currentView.set('categories', _.without(categories, 'ELINK'));
             this.currentView.set('last_modified', new Date());
+            this.currentView.baseZoom = this.currentView.get('zoom');
             var isNew = this.currentView.isNew();
 
             var self = this;
