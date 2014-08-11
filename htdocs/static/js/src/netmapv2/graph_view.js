@@ -568,7 +568,6 @@ define([
             _.each(this.nodes, function (node) {
                 node.fixed = false;
             });
-            this.force.resume();
         },
 
         toggleForce: function (statusOn) {
@@ -654,7 +653,6 @@ define([
         dragStart: function (node, self) {
             d3.event.sourceEvent.stopPropagation();
             d3.select(this).insert('circle', 'image').attr('r', 20);
-            self.force.stop();
         },
 
         dragMove: function(node, self) {
@@ -668,9 +666,6 @@ define([
 
         dragEnd: function (node, self) {
             d3.select(this).select('circle').remove();
-            if (self.forceEnabled) {
-                self.force.resume();
-            }
         },
 
         zoomCallback: function () {
