@@ -1,4 +1,4 @@
-Subject: Link up on {{ netbox.sysname }}: {{ ifname }}
+Subject: Link up on {{ netbox.sysname }}: {{ interface }}
 This is an automatically generated message from NAV:
 
-Box {{ netbox.sysname }} ({{ netbox.ip }}) has regained link on interface {{ ifname }} ({{ ifalias }})
+Box {{ netbox.sysname }} ({{ netbox.ip }}) has regained link on interface {{ interface }} ({{ ifalias }})
