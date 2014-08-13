@@ -89,7 +89,11 @@
           </a>
         </div>
 
-        <div class="medium-4 columns"></div>
+        <div class="medium-4 columns">
+          {% if account.is_admin %}
+            <a class="button small" href="{% url netmap-admin-views %}">Netmap admin</a>
+          {% endif %}
+        </div>
       </div>
     </div>
 
