@@ -29,8 +29,7 @@
       {% for view in views %}
 
         <tr id="netmap-view-{{ view.pk }}" {% if global_default_view.view.pk == view.pk %}class="current-global-default"{% endif %}>
-          <td><a href="{{view.get_absolute_url}}">{{view.title}}</a>
-          </td>
+          <td>{{view.title}}</td>
           <td>{% if view.description %}{{view.description}}{% else %}N/A{% endif %}</td>
           <td>{{view.topology_unicode}}</td>
           <td>{{view.is_public}}</td>
