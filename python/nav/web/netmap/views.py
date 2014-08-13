@@ -175,9 +175,10 @@ class NetmapViewEdit(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         user = get_account(self.request)
-        return NetmapView.objects.filter(
-            Q(is_public=True) | Q(owner=user)
-        )
+        if user.is_admin():
+            return NetmapView.objects.all()
+        else:
+            return NetmapView.objects.filter(owner=user)
 
     def post_save(self, obj, created=False):
         old_categories = set(
