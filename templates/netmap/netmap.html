@@ -205,7 +205,7 @@
             <a id="netmap-view-unfix-nodes" class="button small">Unfix all nodes</a>
           </div>
           <div class="small-1 column end">
-            <a id="netmap-view-toggle-force" class="button small" data-status="on">Pause force<img src="/static/images/lys/green.png"></a>
+            <a id="netmap-view-toggle-force" class="button small" data-status="on">Pause force<img src="{{ STATIC_URL }}images/lys/green.png"></a>
           </div>
         </div>
       </div>
@@ -256,6 +256,7 @@
     window.netmapData = {
         staticURL: '{{ STATIC_URL }}images/netmap/',
         userID: {{ account.pk }},
+        userLogin: '{{ account.login }}',
         views: {{ netmap_views_json|safe }},
         defaultView: {{ default_view }},
         roomsAndLocations: {{ rooms_locations|safe }}
