@@ -58,7 +58,8 @@ define([
             this.alertContainer = this.$('#netmap-alert-container', this.netmapViewPanel);
 
             this.$('#filter-room-location-form input[type=text]', this.netmapViewPanel).autocomplete({
-                source: window.netmapData.roomsAndLocations
+                source: window.netmapData.roomsAndLocations,
+                autoFocus: true
             });
 
             this.$('#graph-view-select option[value="' + this.currentView.id + '"]').prop(
