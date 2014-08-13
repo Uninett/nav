@@ -51,7 +51,7 @@ define([
         /**
          * Initializes and/or caches any necessary DOM elements.
          */
-        initializeDOM: function () { // TODO: Consistent naming
+        initializeDOM: function () {
 
             this.netmapViewPanel = this.$('#netmap-view-panel');
             this.advancedOptionsPanel = this.$('#advanced-options-panel');

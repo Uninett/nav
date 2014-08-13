@@ -116,7 +116,7 @@ define([
 
             _.each(model.edges, function (edge) {
                 if (model.traffic === undefined) return;
-                var edgeTraffic = _.find(model.traffic.edges, function (traffic) {
+                edge.traffic = _.find(model.traffic.edges, function (traffic) {
                     if (edge.source.interface && edge.target.interface) {
                         return edge.source.interface.ifname === traffic.source_ifname
                             && edge.target.interface.ifname === traffic.target_ifname;
@@ -124,7 +124,6 @@ define([
                         return false;
                     }
                 });
-                edge.traffic = edgeTraffic;
             });
 
             return model;
