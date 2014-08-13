@@ -146,7 +146,7 @@ define([
 
             /*
              * Sometimes the backend will supply multiple linknets.
-             * The cause is usally wrongful categorization, perhaps due
+             * The cause is usually wrongful categorization, perhaps due
              * to improper configuration. There is no way to know which is
              * the correct linknet from this end, so we display them all
              * along with a warning message.
