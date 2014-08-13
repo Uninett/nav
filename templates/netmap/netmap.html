@@ -253,7 +253,8 @@
         staticURL: '{{ STATIC_URL }}images/netmap/',
         userID: {{ account.pk }},
         views: {{ netmap_views_json|safe }},
-        defaultView: {{ default_view }}
+        defaultView: {{ default_view }},
+        roomsAndLocations: {{ rooms_locations|safe }}
     };
 
     var target = document.getElementById('spinner-dummy');

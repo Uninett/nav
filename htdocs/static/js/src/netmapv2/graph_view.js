@@ -568,6 +568,9 @@ define([
             _.each(this.nodes, function (node) {
                 node.fixed = false;
             });
+            if (this.forceEnabled) {
+                this.force.resume();
+            }
         },
 
         toggleForce: function (statusOn) {
@@ -716,9 +719,10 @@ define([
      */
     function filterNodesByRoomsOrLocations(nodes, filters) {
 
-        var s = filters.join();
         return _.filter(nodes, function (node) {
-            return s.search(node.roomid + '|' + node.locationid) !== -1;
+            return _.every(filters, function (filter) {
+                return filter === node.roomid || filter === node.locationid;
+            });
         });
     }
 
@@ -743,10 +747,11 @@ define([
      */
     function filterLinksByRoomsOrLocations(links, filters) {
 
-        var s = filters.join();
         return _.filter(links, function (link) {
-            return s.search(link.source.roomid + '|' + link.source.locationid) !== -1 &&
-                s.search(link.target.roomid + '|' + link.target.locationid) !== -1;
+            return _.every(filters, function (filter) {
+                return (filter === link.source.roomid || filter === link.source.locationid) &&
+                    (filter === link.target.roomid || filter === link.target.locationid);
+            });
         });
     }
 

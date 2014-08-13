@@ -31,7 +31,7 @@ from nav.models.profiles import (
     NetmapViewNodePosition,
     Account,
 )
-from nav.models.manage import Category, Netbox
+from nav.models.manage import Category, Netbox, Room, Location
 
 from .mixins import DefaultNetmapViewMixin, AdminRequiredMixin
 from .serializers import (
@@ -69,11 +69,17 @@ class IndexView(DefaultNetmapViewMixin, TemplateView):
         categories = list(Category.objects.values_list('id', flat=True))
         categories.append('ELINK')
 
+        rooms_locations = JSONRenderer().render(
+            list(Room.objects.values_list('id', flat=True)) +
+            list(Location.objects.values_list('id', flat=True))
+        )
+
         context.update({
             'account': user,
             'netmap_views': netmap_views,
             'netmap_views_json': netmap_views_json,
             'categories': categories,
+            'rooms_locations': rooms_locations,
             'traffic_gradient': get_traffic_gradient(),
             'navpath': [('Home', '/'), ('Netmap', '/netmap')]
         })

@@ -3,7 +3,8 @@ define([
     'netmap/models',
     'netmap/graph',
     'libs/backbone',
-    'libs/backbone-eventbroker'
+    'libs/backbone-eventbroker',
+    'libs/jquery-ui-1.8.21.custom.min'
 ], function (Collections, Models) {
 
     var ControlView = Backbone.View.extend({
@@ -55,6 +56,10 @@ define([
             this.netmapViewPanel = this.$('#netmap-view-panel');
             this.advancedOptionsPanel = this.$('#advanced-options-panel');
             this.alertContainer = this.$('#netmap-alert-container', this.netmapViewPanel);
+
+            this.$('#filter-room-location-form input[type=text]', this.netmapViewPanel).autocomplete({
+                source: window.netmapData.roomsAndLocations
+            });
 
             this.$('#graph-view-select option[value="' + this.currentView.id + '"]').prop(
                 'selected',
