@@ -1,62 +1,78 @@
 {% extends "base.html" %}
 {% block base_header_additional_head %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/netmap.css" media="screen" />
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/netmap.css" media="screen" />
 {% endblock %}
 {% block base_content %}
 
-<div id="netmap_admin">
+  <div id="netmap-admin">
 
-
-<table id="netmap_admin_list" class="listtable full-width">
-    <caption>Available Netmap views</caption>
-    <thead>
-    <tr>
+    <table id="netmap-admin-list" class="listtable full-width">
+      <caption>Available Netmap views</caption>
+      <thead>
+      <tr>
         <td colspan="6">Choosing a private view to be a default view,
-            will convert the current view to public! Heart shows current global view.
+          will convert the view to public!
         </td>
-    </tr>
-        <tr>
-            <th>Title</th>
-            <th>Description</th>
-            <th>Topology</th>
-            <th>Is public?</th>
-            <th>Owner</th>
-            <th>Action</th>
+      </tr>
+      <tr>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Topology</th>
+        <th>Is public?</th>
+        <th>Owner</th>
+        <th>Action</th>
+      </tr>
+
+      </thead>
+      <tbody>
+
+      {% for view in views %}
+
+        <tr id="netmap-view-{{ view.pk }}" {% if global_default_view.view.pk == view.pk %}class="current-global-default"{% endif %}>
+          <td><a href="{{view.get_absolute_url}}">{{view.title}}</a>
+          </td>
+          <td>{% if view.description %}{{view.description}}{% else %}N/A{% endif %}</td>
+          <td>{{view.topology_unicode}}</td>
+          <td>{{view.is_public}}</td>
+          <td>{{view.owner}}</td>
+          <td>
+            <a class="button tiny set-global-default" data-viewid="{{ view.viewid }}">Set global default</a>
+          </td>
         </tr>
-
-    </thead>
-    <tbody>
-{% for view in views %}
-
-    <tr class="netmap_is_public_{{view.is_public}}">
-        <td class="netmapview_title{% if global_default_view.view.viewid == view.viewid %} current_favorite{% endif %}"><a href="{{view.get_absolute_url}}">{{view.title}}</a></td>
-        <td class="netmapview_description">{% if view.description %}{{view.description}}{% else %}N/A{% endif %}</td>
-        <td class="netmapview_topology">{{view.topology_unicode}}</td>
-        <td class="netmapview_is_public">{{view.is_public}}</td>
-        <td class="netmapview_owner">{{view.owner}}</td>
-        <td class="netmapview_action">
-            <form action="{% url netmap-defaultview-global %}" method="put">
-                <input name="view" type="hidden" value="{{view.viewid}}" />
-                <input type="submit" value="Set default" />
-            </form>
-        </td>
-    </tr>
-{% endfor %}
-    </tbody>
-</table>
-</div>
-<script type="text/javascript" src="{{ STATIC_URL }}js/libs/jquery.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}js/libs/jquery.dataTables.min.js"></script>
-<script type="text/javascript">
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <script type="text/javascript" src="{{ STATIC_URL }}js/libs/jquery.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}js/libs/jquery.dataTables.min.js"></script>
+  <script type="text/javascript">
     var dt_config = {
-        bAutoWidth: false,
-        bFilter: false,
-        bInfo: false,
-        bLengthChange: false,
-        bPaginate: false,
-        bSort: true
+      bAutoWidth: false,
+      bFilter: false,
+      bInfo: false,
+      bLengthChange: false,
+      bPaginate: false,
+      bSort: true
     };
 
     $('table#netmap_admin_list').dataTable(dt_config);
-</script>
+
+    $('.set-global-default').click(function (e) {
+      e.preventDefault();
+      var viewid = $(e.currentTarget).data('viewid');
+
+      $.ajax({
+        type: 'PUT',
+        url: '{% url netmap-defaultview-global %}',
+        data: {view: viewid, owner: 0}
+      })
+      .done(function () {
+        $('.current-global-default', '#netmap-admin-list').removeClass('current-global-default');
+        $('#netmap-view-' + viewid, '#netmap-admin-list').addClass('current-global-default');
+      })
+      .fail(function (e) {
+        console.log(e.responseText);
+      });
+    });
+  </script>
 {% endblock %}

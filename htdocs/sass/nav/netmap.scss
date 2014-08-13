@@ -48,6 +48,11 @@ $image-path: '../../images';
   color: rgb(211,211,211);
 }
 
+#netmap-admin tr.current-global-default td:first-child {
+  font-weight: bold;
+  background: url('#{$image-path}/netmap/emblem-favorite.png') no-repeat center right;
+}
+
 #netmap_wrapper {
     position: relative;
     top: 0;
