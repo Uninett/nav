@@ -161,7 +161,6 @@ class NetmapViewCreate(generics.CreateAPIView):
             for category in obj.categories:
                 # Since a new NetmapView object is always created
                 # there is no need for further checks.
-                # FIXME: User bulk_create?
                 NetmapViewCategories.objects.create(
                     view=obj,
                     category=Category.objects.get(id=category)

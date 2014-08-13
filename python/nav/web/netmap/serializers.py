@@ -1,3 +1,4 @@
+"""Serializer classes for netmap"""
 from django.forms.widgets import SelectMultiple, Textarea
 from django.shortcuts import get_object_or_404
 
@@ -84,6 +85,7 @@ class NetmapViewSerializer(serializers.Serializer):
 
 
 class NetmapViewDefaultViewSerializer(serializers.ModelSerializer):
+    """Serializer for NetmapViewDefault"""
     partial = True
 
     class Meta:

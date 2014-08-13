@@ -121,15 +121,15 @@ def _traffic_gradient(intensity):
     4 = black
     """
     gamma = float(1.0 / 1.90)
-    if (intensity > 3.0):
+    if intensity > 3.0:
         return (
             255 * ((4.0 - intensity) ** gamma),
             255 * ((4.0 - intensity) ** gamma),
             255 * ((4.0 - intensity) ** gamma))
-    elif (intensity > 2.0):
+    elif intensity > 2.0:
         return (255, 255 * ((intensity - 2.0) ** gamma),
                 255 * ((intensity - 2.0) ** gamma))
-    elif (intensity > 1.0):
+    elif intensity > 1.0:
         return (255, 255 * ((2.0 - intensity) ** gamma), 0)
     else:
         return (255 * (intensity ** gamma), 255, 0)
@@ -161,4 +161,4 @@ def layer2_graph():
                 # [from_netbox, to_netbox, to_interface]
                 connections.append([node, neighbour, key])
 
-    return (netboxes, connections)
+    return netboxes, connections

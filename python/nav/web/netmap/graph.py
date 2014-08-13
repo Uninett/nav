@@ -24,7 +24,7 @@ from .common import get_traffic_rgb
 
 
 def get_topology_graph(layer=2, load_traffic=False, view=None):
-
+    """Builds and returns topology graph for the given layer"""
     if layer == 2:
         return _json_layer2(load_traffic, view)
     else:
@@ -85,7 +85,7 @@ def _get_nodes(node_to_json_function, graph):
 
 
 def get_traffic_gradient():
-
+    """Builds a dictionary of rgb values from green to red"""
     keys = ('r', 'g', 'b')
 
     return [
@@ -94,7 +94,7 @@ def get_traffic_gradient():
 
 
 def get_layer2_traffic():
-
+    """Fetches traffic data for layer 2"""
     interfaces = Interface.objects.filter(
         to_netbox__isnull=False
     ).select_related('netbox', 'to_netbox', 'to_interface__netbox')
@@ -132,7 +132,7 @@ def get_layer2_traffic():
 
 
 def get_layer3_traffic():
-
+    """Fetches traffic data for layer 3"""
     prefixes = Prefix.objects.filter(
         vlan__net_type__in=('link', 'elink', 'core')
     ).select_related('vlan__net_type')
