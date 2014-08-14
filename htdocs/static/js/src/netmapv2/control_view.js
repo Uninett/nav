@@ -406,7 +406,7 @@ define([
 
         setLocationRoomFilterForCurrentView: function () {
 
-            var elem = $('#filter-labels', this.netmapViewPanel);
+            var elem = $('#filter-labels', this.netmapViewPanel).empty();
             var filters = this.currentView.get('location_room_filter');
 
             if (filters) {
