@@ -111,7 +111,6 @@ def search_by_ip(request, ip):
                       ip, do_not_exist_ex)
         messages.error(request,
                        'Could not find netbox with ip-address %s' % str(ip))
-        info_dict.update(DEFAULT_VALUES)
         return render_to_response('portadmin/base.html',
                                   info_dict,
                                   RequestContext(request))
@@ -135,7 +134,6 @@ def search_by_sysname(request, sysname):
                       sysname, do_not_exist_ex)
         messages.error(request,
                        'Could not find netbox with sysname %s' % sysname)
-        info_dict.update(DEFAULT_VALUES)
         return render_to_response('portadmin/base.html',
                                   info_dict,
                                   RequestContext(request))
@@ -159,7 +157,6 @@ def search_by_interfaceid(request, interfaceid):
         messages.error(request,
                        'Could not find interface with id %s' %
                        str(interfaceid))
-        info_dict.update(DEFAULT_VALUES)
         return render_to_response('portadmin/base.html',
                                   info_dict,
                                   RequestContext(request))
