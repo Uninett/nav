@@ -25,7 +25,7 @@ var require = {
         'libs/underscore': {
             exports: '_'
         },
-        'libs/d3.v2': { exports: 'd3' },
+        'libs/d3.min': { exports: 'd3' },
         'libs/backbone': {
             deps: ["libs/underscore", "libs/jquery"],
             exports: 'Backbone'
