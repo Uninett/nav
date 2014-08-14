@@ -38,9 +38,7 @@ define([
             displayTopologyErrors: false,
 
             categories: [],
-
-            // Properties that don't get saved
-            refreshInterval: -1
+            location_room_filter: ''
         },
 
         initialize: function () {

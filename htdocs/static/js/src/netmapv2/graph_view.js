@@ -60,7 +60,6 @@ define([
             this.netmapView = this.options.netmapView;
 
             this.graphInfoView = new GraphInfoView({parent: this.el});
-            this.filterStrings = [];
 
             this.initializeDOM();
             this.bindEvents();
@@ -235,9 +234,9 @@ define([
 
             nodes = filterNodesByCategories(nodes, categories);
             links = filterLinksByCategories(links, categories);
-            if (this.filterStrings.length) {
-                nodes = filterNodesByRoomsOrLocations(nodes, this.filterStrings);
-                links = filterLinksByRoomsOrLocations(links, this.filterStrings);
+            if (this.netmapView.filterStrings.length) {
+                nodes = filterNodesByRoomsOrLocations(nodes, this.netmapView.filterStrings);
+                links = filterLinksByRoomsOrLocations(links, this.netmapView.filterStrings);
             }
 
             this.graphInfoView.setVlans(this.model.get('vlanCollection'));
@@ -473,13 +472,14 @@ define([
 
         addFilterString: function (filter) {
 
-            this.filterStrings.push(filter);
+            this.netmapView.filterStrings.push(filter);
             this.update();
         },
 
         removeFilterString: function (filter) {
 
-            this.filterStrings = _.without(this.filterStrings, filter);
+            this.netmapView.filterStrings = _.without(
+                this.netmapView.filterStrings, filter);
             this.update();
         },
 

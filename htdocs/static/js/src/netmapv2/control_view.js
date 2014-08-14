@@ -68,6 +68,7 @@ define([
             );
 
             this.setCategoriesForCurrentView();
+            this.setLocationRoomFilterForCurrentView();
             this.setTopologySelectForCurrentView();
             this.resetRefreshControls();
         },
@@ -144,6 +145,7 @@ define([
                 '<span class="alert-box">Current view is unsaved</span>' : '';
             this.alertContainer.html(unsaved);
             this.setCategoriesForCurrentView();
+            this.setLocationRoomFilterForCurrentView();
             this.setTopologySelectForCurrentView();
             this.resetRefreshControls();
 
@@ -186,6 +188,7 @@ define([
             this.currentView.set('display_elinks', _.indexOf(categories, 'ELINK') >= 0);
             this.currentView.set('categories', _.without(categories, 'ELINK'));
             this.currentView.set('last_modified', new Date());
+            this.currentView.set('location_room_filter', this.currentView.filterStrings.join('|'));
             this.currentView.baseZoom = this.currentView.get('zoom');
             var isNew = this.currentView.isNew();
 
@@ -277,6 +280,7 @@ define([
             viewSelect.append(new Option(title, newView.cid, true, true));
 
             this.setCategoriesForCurrentView();
+            this.setLocationRoomFilterForCurrentView();
             this.setTopologySelectForCurrentView();
             this.resetRefreshControls();
 
@@ -348,6 +352,7 @@ define([
             var selected = this.$('#graph-view-select option:selected').val();
             this.currentView = this.netmapViews.get(selected);
             this.setCategoriesForCurrentView();
+            this.setLocationRoomFilterForCurrentView();
             this.setTopologySelectForCurrentView();
             this.resetRefreshControls();
 
@@ -397,6 +402,26 @@ define([
                 'checked',
                 this.currentView.get('display_orphans')
             );
+        },
+
+        setLocationRoomFilterForCurrentView: function () {
+
+            var elem = $('#filter-labels', this.netmapViewPanel);
+            var filters = this.currentView.get('location_room_filter');
+
+            if (filters) {
+                filters = filters.split('|');
+                _.each(filters, function (filter) {
+                    elem.append(
+                        '<span class="label secondary" data-string="' + filter +
+                        '">' + filter +
+                        '<a href="#" class="filter-string-remove">&times;</a></span>'
+                    );
+                });
+                this.currentView.filterStrings = filters;
+            } else {
+                this.currentView.filterStrings = [];
+            }
         },
 
         setTopologySelectForCurrentView: function () {
