@@ -1266,6 +1266,7 @@ class NetmapView(models.Model):
     is_public = models.BooleanField(default=False)
     display_elinks = models.BooleanField(default=False)
     display_orphans = models.BooleanField(default=False)
+    location_room_filter = models.CharField(max_length=255, blank=True)
 
     def __unicode__(self):
         return u'%s (%s)' % (self.viewid, self.title)
@@ -1297,7 +1298,8 @@ class NetmapView(models.Model):
             'last_modified': unicode(self.last_modified),
             'is_public': self.is_public,
             'categories': categories,
-            'display_orphans': self.display_orphans
+            'display_orphans': self.display_orphans,
+            'location_room_filter': self.location_room_filter,
         }
 
     class Meta:

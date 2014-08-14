@@ -56,6 +56,7 @@ class NetmapViewSerializer(serializers.Serializer):
             for category in Category.objects.values_list('id', flat=True)
         ],
     )
+    location_room_filter = serializers.CharField(max_length=255)
     display_orphans = serializers.BooleanField()
     display_elinks = serializers.BooleanField()
 
