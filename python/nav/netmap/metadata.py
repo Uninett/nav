@@ -137,15 +137,14 @@ class Group(object):
             'netbox': unicode(self.netbox.id),
         }
         if self.interface is not None:
-            if self.interface.ifname != '?' and self.interface.ifname != '':
+            ipdevinfo_link = None
+            if self.interface.ifname != '?':
                 ipdevinfo_link = reverse(
                     'ipdevinfo-interface-details-by-name',
                     kwargs={'netbox_sysname': unicode(
                         self.netbox.sysname),
                             'port_name': unicode(
                                 self.interface.ifname)})
-            else:
-                ipdevinfo_link = ''
             json.update({'interface': {
                 'ifname': unicode(self.interface.ifname),
                 'ipdevinfo_link': ipdevinfo_link
