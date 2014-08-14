@@ -21,6 +21,8 @@ import sys
 sys._stdout = sys.stdout
 from nav.models import manage
 import nav.models.service
+# required to register the hstore extension outside webapp environment
+import django_hstore.apps
 
 SEPARATOR = ":"
 

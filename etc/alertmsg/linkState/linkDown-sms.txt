@@ -1,1 +1,1 @@
-Link down on {{ netbox.sysname }}, {{ ifname }} ({{ ifalias }})
+Link down on {{ netbox.sysname }}, {{ interface }} ({{ ifalias }})

@@ -32,6 +32,7 @@ from nav import buildconf
 
 ALERT_TEMPLATE_DIR = os.path.join(buildconf.sysconfdir, 'alertmsg')
 _logger = logging.getLogger(__name__)
+_template_logger = logging.getLogger(__name__ + '.template')
 
 class AlertGenerator(dict):
     def __init__(self, event):
@@ -217,6 +218,7 @@ def render_templates(alert):
 
     return [_render_template(template, alert) for template in templates]
 
+
 def _render_template(details, alert):
     template = loader.get_template(details.name)
     context = dict(alert)
@@ -224,7 +226,12 @@ def _render_template(details, alert):
     context.update(dict(msgtype=details.msgtype,
                         language=details.language))
     context.update(dict(context_dump=pformat(context)))
-    return details, template.render(Context(context)).strip()
+
+    _template_logger.debug("rendering alert template with context:\n%s",
+                           context['context_dump'])
+    output = template.render(Context(context)).strip()
+    _template_logger.debug("rendered as:\n%s", output)
+    return details, output
 
 
 def get_list_of_templates_for(event_type, alert_type="default"):
