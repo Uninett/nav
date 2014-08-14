@@ -1,3 +1,24 @@
+Version 4.1.1
+(released 14 Aug 2014)
+
+ Bugfixes:
+
+  * LP#1052804 (NoReverseMatch error on multiple pages when adding IPv6 host
+                with no DNS name)
+  * LP#1316599 (NoReverseMatch exception when trying to load netmap)
+  * LP#1333170 (Disused prefixes aren't properly deleted from the database)
+  * LP#1338548 (Searching for an apparently "invalid" hostname crashes
+                ipdevinfo)
+  * LP#1339575 (Room and organization data keys cannot be added using SQL
+                without first checking for NULL values)
+  * LP#1340193 (NAV gets confused when re-using VLAN tags for multiple broadcast
+                domains)
+  * LP#1340576 (Virtual status of router addresses cycles back and forth,
+                causing net type to swing back and forth between lan and link)
+  * LP#1355693 (Interface names not present in linkState alert messages)
+  * LP#1355923 (dump.py -t room crash)
+
+
 Version 4.1.0
 (released 26 Jun 2014)
 
