@@ -56,19 +56,14 @@
         <div class="medium-2 columns">
           <span class="prefix">View</span>
         </div>
-        <div class="medium-7 columns">
+        <div class="medium-10 columns">
           <select id="graph-view-select">
             {% for view in netmap_views %}
               <option id="{{ view.pk }}" value="{{ view.pk }}">
-                {{ view.title }}
+                {{ view.title }} ({{ view.owner }})
               </option>
             {% endfor %}
           </select>
-        </div>
-        <div class="medium-3 columns">
-          <a class="button small">
-            Save
-          </a>
         </div>
       </div>
     </div>
