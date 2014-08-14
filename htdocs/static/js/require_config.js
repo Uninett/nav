@@ -9,7 +9,7 @@ var require = {
         "plugins": "src/plugins",
         "dt_plugins": "src/dt_plugins",
         "info": "src/info",
-        "netmap": "src/netmapv2" // FIXME: Change back
+        "netmap": "src/netmap"
     },
     shim: {
         'libs/foundation.min': ['libs/jquery', 'libs/modernizr', 'libs/fastclick'],
