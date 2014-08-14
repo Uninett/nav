@@ -158,13 +158,13 @@ class NetmapViewCreate(generics.CreateAPIView):
 
     def post_save(self, obj, created=False):
         if created:
-            for category in obj.categories:
-                # Since a new NetmapView object is always created
-                # there is no need for further checks.
-                NetmapViewCategories.objects.create(
+            NetmapViewCategories.objects.bulk_create([
+                NetmapViewCategories(
                     view=obj,
                     category=Category.objects.get(id=category)
                 )
+                for category in obj.categories
+            ])
 
 
 class NetmapViewEdit(generics.RetrieveUpdateDestroyAPIView):
