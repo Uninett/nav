@@ -19,7 +19,7 @@ var require = {
         'libs/jquery.dataTables.min': ['libs/jquery'],
         'libs/jquery.tablesorter.min': ['libs/jquery'],
         'libs/jquery.tinysort': ['libs/jquery'],
-        'libs/jquery-ui-timepicker-addon': ['libs/jquery-ui-1.8.21.custom.min'],
+        'libs/jquery-ui-timepicker-addon': ['libs/jquery-ui.min'],
         'libs/jquery.nivo.slider.pack': ['libs/jquery'],
         'libs/spin.min': ['libs/jquery'],
         'libs/select2.min': ['libs/jquery'],

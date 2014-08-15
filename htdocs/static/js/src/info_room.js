@@ -10,7 +10,7 @@ require(
         "dt_plugins/date_title_sort",
         "dt_plugins/modulesort",
         "libs/jquery",
-        "libs/jquery-ui-1.8.21.custom.min",
+        "libs/jquery-ui.min",
         "libs/jquery.dataTables.min",
     ],
     function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, SensorsController) {

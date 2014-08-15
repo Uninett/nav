@@ -1,4 +1,4 @@
-require(['plugins/room_mapper', 'plugins/navlets_controller', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'],
+require(['plugins/room_mapper', 'plugins/navlets_controller', 'libs/jquery', 'libs/jquery-ui.min'],
     function (RoomMapper, NavletsController) {
         'use strict';
 
