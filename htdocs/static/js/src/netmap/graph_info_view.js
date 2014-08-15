@@ -117,12 +117,16 @@ define([
             _.each(model.edges, function (edge) {
                 if (model.traffic === undefined) return;
                 edge.traffic = _.find(model.traffic.edges, function (traffic) {
-                    if (edge.source.interface && edge.target.interface) {
-                        return edge.source.interface.ifname === traffic.source_ifname
-                            && edge.target.interface.ifname === traffic.target_ifname;
-                    } else {
-                        return false;
+                    var sourceTraffic, targetTraffic;
+                    if (edge.source.interface) {
+                        sourceTraffic = edge.source.interface.ifname === traffic.source_ifname ||
+                            edge.source.interface.ifname === traffic.target_ifname;
                     }
+                    if (edge.target.interface) {
+                        targetTraffic = edge.target.interface.ifname === traffic.target_ifname ||
+                            edge.target.interface.ifname === traffic.source_ifname;
+                    }
+                    return sourceTraffic || targetTraffic;
                 });
             });
 
