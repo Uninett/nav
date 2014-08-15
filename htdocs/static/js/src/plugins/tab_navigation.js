@@ -1,4 +1,4 @@
-define(['libs/jquery-ui-1.8.21.custom.min'], function () {
+define(['libs/jquery-ui.min'], function () {
     /* Add navigation to jQuery ui tabs */
     function add_navigation(wrapper, parent) {
         var $wrapper = typeof(wrapper) === 'string' ? $(wrapper) : wrapper;
@@ -11,11 +11,11 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
         init();
 
         /* Set hash mark with index when a tab is selected */
-        $wrapper.bind('tabsselect', function (event, ui) {
+        $wrapper.bind('tabsactivate', function (event, ui) {
             /* Check if this is the tabs we're hooked to */
             if (event.target.id === $wrapper.attr('id')) {
-                var hashValue = ui.tab.hash;
-                if (ui.index != 0 || window.location.hash) {
+                var hashValue = ui.newTab.context.hash;
+                if (ui.newTab.index() != 0 || window.location.hash) {
                     if (parent) {
                         var hashes = window.location.hash.split('!');
                         hashes[2] = hashValue.substring(1);
@@ -52,7 +52,7 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
             var hashes = window.location.hash.split('!');
 
             if (hashes.length === 1) {
-                $wrapper.tabs().tabs('select', 0);
+                $wrapper.tabs().tabs('option', 'active', 0);
             } else if (hashes.length === 2) {  // Main tab selected
                 var $element;
                 if (parent) {
@@ -60,12 +60,12 @@ define(['libs/jquery-ui-1.8.21.custom.min'], function () {
                 } else {
                     $element = $wrapper;
                 }
-                $element.tabs().tabs('select', hashes[1]);
+                $element.tabs().tabs('option', 'active', hashes[1]);
             } else if (hashes.length === 3) {  // Subtab selected
                 if (parent) {
-                    $parent.tabs().tabs('select', hashes[1]);
+                    $parent.tabs().tabs('option', 'active', hashes[1]);
                 }
-                $wrapper.tabs().tabs('select', hashes[2]);
+                $wrapper.tabs().tabs('option', 'active', hashes[2]);
             }
         }
 
