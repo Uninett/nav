@@ -46,8 +46,7 @@ define([
                 .gravity(0.1)
                 .charge(-2500)
                 .linkDistance(250)
-                .size([this.w, this.h])
-                ;
+                .size([this.w, this.h]);
 
             this.forceEnabled = true;
             this.nodes = this.force.nodes();
@@ -104,8 +103,7 @@ define([
                 .attr('height', this.h)
                 .attr('viewBox', '0 0 ' + this.w + ' ' + this.h)
                 .attr('pointer-events', 'all')
-                .attr('overflow', 'hidden')
-                ;
+                .attr('overflow', 'hidden');
 
             this.boundingBox = this.svg.append('g')
                 .attr('id', 'boundingbox');
@@ -310,17 +308,15 @@ define([
                     }
                 })
                 .attr('opacity', 0)
-                    .transition()
-                    .duration(TransitionDuration)
-                    .attr('opacity', 1)
-                ;
+                .transition()
+                .duration(TransitionDuration)
+                .attr('opacity', 1);
 
 
             this.link.exit().transition()
                 .duration(TransitionDuration)
                 .style('opacity', 0)
-                .remove()
-                ;
+                .remove();
 
             this.node = this.nodeGroup.selectAll('.node')
                 .data(this.nodes, function (node) {
@@ -334,8 +330,7 @@ define([
                 .on('click', function (node) {
                     self.clickNode.call(this, node, self);
                 })
-                .call(this.drag)
-                ;
+                .call(this.drag);
 
             nodeElement.append('image')
                 .attr('xlink:href', function (o) {
@@ -344,8 +339,7 @@ define([
                 .attr('x', -16)
                 .attr('y', -16)
                 .attr('width', 32)
-                .attr('height', 32)
-                ;
+                .attr('height', 32);
 
             nodeElement.append('text')
                 .attr('class', 'sysname')
@@ -353,23 +347,19 @@ define([
                 .attr('text-anchor', 'middle')
                 .text(function (o) {
                     return o.sysname;
-                })
-                ;
+                });
 
             nodeElement.attr('opacity', 0)
                 .transition()
                 .duration(TransitionDuration)
-                .style('opacity', 1)
-                ;
+                .style('opacity', 1);
 
             this.node.exit()
                 .transition()
                 .duration(TransitionDuration)
                 .style('opacity', 0)
-                .remove()
-                ;
+                .remove();
 
-            // Blaasal elink link disappears without this, possibly others
             this.linkGroup.selectAll('.linkload').remove();
 
             var gradient = this.linkGroup.selectAll('.linkload')
@@ -382,13 +372,10 @@ define([
                 .attr('x1', '0%')
                 .attr('x2', '0%')
                 .attr('y1', '0%')
-                .attr('y2', '100%')
-                ;
-            //gradient.exit().remove();
+                .attr('y2', '100%');
 
             var stops = gradient.selectAll('stop')
-                .data(getTrafficCSSforLink)
-                ;
+                .data(getTrafficCSSforLink);
             stops.enter()
                 .append('stop')
                 .attr('offset', function (gradient) {
@@ -597,8 +584,7 @@ define([
         transformGraphTransition: function () {
                this.boundingBox.transition()
                    .duration(TransitionDuration)
-                   .attr(
-                        'transform',
+                   .attr('transform',
                         'translate(' + this.trans +
                         ') scale(' + this.scale + ')');
         },
