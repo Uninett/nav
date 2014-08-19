@@ -93,7 +93,7 @@ require([
     }
 
     function eventLoadingComplete(event, ui) {
-        if (ui.tab.text.trim() === 'Search') {
+        if ($(ui.tab).text().trim() === 'Search') {
             var suffixes = JSON.parse($('#domain_strip').text());
             stripDomainSuffixOrigin($('#id_origin option'), suffixes);
             updateFormFromRequestArguments();
