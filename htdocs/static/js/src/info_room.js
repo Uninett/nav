@@ -11,7 +11,7 @@ require(
         "dt_plugins/modulesort",
         "libs/jquery",
         "libs/jquery-ui.min",
-        "libs/jquery.dataTables.min",
+        "libs/jquery.dataTables.min"
     ],
     function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, SensorsController) {
         /* Run javascript at document ready */
@@ -32,7 +32,6 @@ require(
         function add_tabs() {
             var tabconfig = {
                 cache: true, // cache loaded pages
-                spinner: '<img src="' + NAV.imagePath + '/main/process-working.gif">',
                 load: function (event, ui) {
                     if (ui.panel.id === 'sensors') {
                         applyEnvironmentHandlers();
@@ -42,7 +41,7 @@ require(
                 }
             };
             var tabs = $('#infotabs').tabs(tabconfig);
-            $('#infotabs').show();
+            tabs.show();
         }
 
         function request_error(xhr, status, error) {
