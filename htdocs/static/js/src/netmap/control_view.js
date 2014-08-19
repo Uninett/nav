@@ -7,6 +7,10 @@ define([
     'libs/jquery-ui-1.8.21.custom.min'
 ], function (Collections, Models) {
 
+    /**
+     * This view is responsible for responding to DOM events
+     * and dispatching the necessary event on to th GraphView.
+     */
     var ControlView = Backbone.View.extend({
 
         el: '#navigation-view',
@@ -18,7 +22,7 @@ define([
             'change #graph-layer-select': 'changeTopologyLayer',
             'change #graph-view-select': 'changeNetmapView',
             'click .filter-category': 'updateCategoryFilter',
-            'click .filter-string-remove': 'removeFilterString',
+            'click .filter-string-remove': 'removeRoomOrLocationFilter',
             'click #filter-orphan-nodes': 'updateOrphanNodesFilter',
             'click #netmap-view-save': 'saveCurrentView',
             'click #netmap-view-delete': 'deleteCurrentView',
@@ -48,9 +52,7 @@ define([
             Backbone.EventBroker.register(this);
         },
 
-        /**
-         * Initializes and/or caches any necessary DOM elements.
-         */
+        /** Initializes and/or caches any necessary DOM elements. */
         initializeDOM: function () {
 
             this.netmapViewPanel = this.$('#netmap-view-panel');
@@ -74,13 +76,11 @@ define([
         },
 
         toggleNetmapViewPanel: function (e) {
-
             this.$(e.currentTarget.children).toggleClass('fa-caret-down fa-caret-up');
             this.netmapViewPanel.toggle();
         },
 
         toggleAdvancedOptionsPanel: function (e) {
-
             this.$(e.currentTarget.children).toggleClass('fa-caret-down fa-caret-up');
             this.advancedOptionsPanel.toggle();
         },
@@ -118,7 +118,6 @@ define([
         /**
          * Triggers when the topology layer is changed. Updates the
          * view and fires an event to the graph model
-         * @param e
          */
         changeTopologyLayer: function (e) {
 
@@ -127,10 +126,8 @@ define([
             Backbone.EventBroker.trigger('netmap:topologyLayerChanged', layer);
         },
 
-
         /**
-         * Triggers when the current netmap view is changed
-         * @param e
+         * Change the controls to reflect view change and notify the GraphView
          */
         changeNetmapView: function (e) {
 
@@ -153,9 +150,8 @@ define([
         },
 
         /**
-         * Triggers when a new category is selected. Updates the
-         * current view and notifies the graph.
-         * @param e
+         * Triggers on category select/unselect. Updates the current netmapView
+         * and notifies the GraphView.
          */
         updateCategoryFilter: function (e) {
 
@@ -172,14 +168,10 @@ define([
             Backbone.EventBroker.trigger('netmap:filterCategoriesChanged', categoryId, checked);
         },
 
-
         updateOrphanNodesFilter: function (e) {
-
             this.currentView.set('display_orphans', e.currentTarget.checked);
-
             Backbone.EventBroker.trigger('netmap:updateGraph');
         },
-
 
         saveCurrentView: function () {
 
@@ -224,9 +216,7 @@ define([
             }
         },
 
-        /**
-         * Saves the current view as default for the current user
-         */
+        /** Saves the current view as default for the current user */
         setCurrentViewDefault: function () {
 
             var self = this;
@@ -289,16 +279,14 @@ define([
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
         },
 
-        /**
-         * Triggers a graph search for the given query
-         * @param e
-         */
+        /**  Triggers a graph search for the given query */
         searchGraph: function (e) {
             e.preventDefault();
             var query = $('#graph-search-input', e.currentTarget).val();
             Backbone.EventBroker.trigger('netmap:searchGraph', query);
         },
 
+        /** Fires when a new location-/room-filter is added */
         filterByRoomOrLocation: function (e) {
             e.preventDefault();
             var query = $('input[type="text"]', e.currentTarget).val();
@@ -310,7 +298,8 @@ define([
             Backbone.EventBroker.trigger('netmap:filterByRoomOrLocation', query);
         },
 
-        removeFilterString: function (e) {
+
+        removeRoomOrLocationFilter: function (e) {
             e.preventDefault();
             var elem = $(e.currentTarget).parent();
             var filterString = elem.data('string');
@@ -441,12 +430,17 @@ define([
 
             if (val === -1) {
                 if (this.refreshInterval !== null) {
+                    // Clear old interval function
                     clearInterval(this.refreshInterval);
                 }
                 $('#refresh-counter', this.advancedOptionsPanel).html('');
             } else {
+                // Clear old interval function
                 clearInterval(this.refreshInterval);
                 var counter = val * 60;
+
+                // Create a refresh interval function which dispatches a
+                // refresh event to the GraphView when the counter reaches 0
                 this.refreshInterval = setInterval(function () {
                     counter--;
                     if (counter === 0) {

@@ -4,11 +4,26 @@ define([
     'libs/backbone'
 ], function () {
 
+    /**
+     * Models for Netmap
+     */
+
     var Node = Backbone.Model.extend({
         idAttribute: 'id',
 
         initialize: function () {
             this.set('node', this.get('id'));
+        }
+    });
+
+    var NodePositions = Backbone.Model.extend({
+        idAttribute: 'viewid',
+        defaults: {
+            data: []
+        },
+
+        url: function () {
+            return 'views/' + this.get('viewid') + '/nodepositions/update/';
         }
     });
 
@@ -22,6 +37,11 @@ define([
         idAttribute: 'nav_vlan'
     });
 
+    /**
+     * Not to be confused with the 'view'-concept in backbone itself.
+     * This is a data model which encapsulates a number of options and filters
+     * over how the netmap topology graph is displayed.
+     */
     var NetmapView = Backbone.Model.extend({
         idAttribute: 'viewid',
 
@@ -53,19 +73,6 @@ define([
                 return 'views/create/';
             }
             return 'views/' + this.id + '/';
-        }
-    });
-
-    var NodePositions = Backbone.Model.extend({
-
-        idAttribute: 'viewid',
-
-        defaults: {
-            data: []
-        },
-
-        url: function () {
-            return 'views/' + this.get('viewid') + '/nodepositions/update/';
         }
     });
 

@@ -8,6 +8,10 @@ define([
     'libs/jquery-ui-1.8.21.custom.min'
 ], function (Collections, NodeTemplate, LinkTemplate, VlanTemplate) {
 
+    /**
+     * View for rendering a modal with detailed node-/link-info
+     */
+
     Handlebars.registerHelper('lowercase', function (type) {
         if (typeof type === 'string' || type instanceof String) {
             return type.toLowerCase();
@@ -56,10 +60,13 @@ define([
             }
         },
 
-        setModel: function (model) {
+        /**
+         * Changes the model to be represented in this view.
+         */
+        setModel: function (_model) {
 
             var title;
-            model = _.extend({}, model); // Make a copy :)
+            var model = _.extend({}, _model); // Make a copy
 
             if (model.sysname) { // Model is a node
 
@@ -85,7 +92,9 @@ define([
             this.$el.dialog('option', 'title', title);
         },
 
-
+        /**
+         * Extend the model with metadata for a node detail view
+         */
         attachNodeMeta: function (model) {
 
             model.img = window.netmapData.staticURL +
@@ -100,7 +109,9 @@ define([
             return model;
         },
 
-
+        /**
+         * Extend the model with metadata for a layer2 link detail view
+         */
         attachLayer2LinkMeta: function (model) {
 
             model.sourceImg = window.netmapData.staticURL +
@@ -133,7 +144,9 @@ define([
             return model;
         },
 
-
+        /**
+         * Extend the model with metadata for a layer3 link detail view
+         */
         attachLayer3LinkMeta: function (model) {
 
             model.sourceImg = window.netmapData.staticURL +
@@ -163,8 +176,8 @@ define([
             return model;
         },
 
-
-        selectVlan: function (e) { // TODO: Selected vlan across clicks!
+        /** Triggers when a specific vlan is selected. Notifies the GraphView */
+        selectVlan: function (e) {
 
             var target = $(e.currentTarget);
             var vlanId = target.data('nav-vlan');
@@ -184,11 +197,13 @@ define([
             Backbone.EventBroker.trigger('netmap:selectedVlanChanged', vlanId);
         },
 
+        /** Resets the view */
         reset: function () {
             this.selectedVlan = -1;
             this.$el.dialog('close');
         },
 
+        /** Set the list of vlans in this network */
         setVlans: function (vlans) {
             this.vlans = vlans;
         }

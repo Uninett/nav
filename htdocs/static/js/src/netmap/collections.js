@@ -3,6 +3,10 @@ define([
     'libs/backbone'
 ], function (Models) {
 
+    /**
+     * Collections for Netmap
+     */
+
     var NodeCollection = Backbone.Collection.extend({
 
         model: Models.Node,

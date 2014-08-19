@@ -4,8 +4,11 @@ define([
     'libs/backbone-eventbroker'
 ], function (Collections) {
 
-    var TrafficRefetchInterval = 600000;
-
+    /**
+     * This is the backbone model representing the topology graph itself,
+     * without any filters or options from the netmap-view.
+     * It is placed in its own file to avoid a circular dependency.
+     */
     var Graph = Backbone.Model.extend({
 
         defaults: {
@@ -52,7 +55,8 @@ define([
             var links = this.get('linkCollection').populate(response.links);
             var vlans = this.get('vlanCollection').populate(response.vlans);
 
-            // Set the actual node object of each link
+            // Replace the source/target attribute of each link, which is
+            // the node-id with the actual node object
             links.each(function (link) {
                 var sourceId = link.get('source');
                 var targetId = link.get('target');
@@ -70,9 +74,15 @@ define([
                 link.set('target', target);
             });
 
-            return {}; // We set the attributes excplicitly
+            // Since we set the models data explicitly through the collections'
+            // populate-methods, we don't return any parsed data here.
+            return {};
         },
 
+        /**
+         * Load traffic data from the server. This is a HUGE bottleneck
+         * and is therefore done asynchronously after page load.
+         */
         loadTraffic: function () {
             var self = this;
             $.getJSON('traffic/layer' + this.get('layer') + '/')
@@ -86,6 +96,7 @@ define([
 
             var links = this.get('linkCollection');
 
+            // Extend the link-objects with traffic data
             links.each(function (link) {
                 var source = parseInt(link.get('source').id);
                 var target = parseInt(link.get('target').id);
@@ -105,7 +116,7 @@ define([
             Backbone.EventBroker.trigger('netmap:updateGraph');
         },
 
-        trafficError: function () { console.log('traffic fail!');
+        trafficError: function () { console.log('Failed to fetch traffic');
 
             // TODO: Meaningful report
         }

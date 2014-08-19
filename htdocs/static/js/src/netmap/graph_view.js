@@ -22,7 +22,7 @@ define([
             'netmap:netmapViewChanged': 'updateNetmapView',
             'netmap:filterCategoriesChanged': 'updateCategories',
             'netmap:filterByRoomOrLocation': 'addFilterString',
-            'netmap:removeFilter': 'removeFilterString',
+            'netmap:removeFilter': 'removeRoomOrLocationFilter',
             'netmap:selectedVlanChanged': 'updateSelectedVlan',
             'netmap:updateGraph': 'update',
             'netmap:refreshGraph': 'refresh',
@@ -463,7 +463,7 @@ define([
             this.update();
         },
 
-        removeFilterString: function (filter) {
+        removeRoomOrLocationFilter: function (filter) {
 
             this.netmapView.filterStrings = _.without(
                 this.netmapView.filterStrings, filter);
