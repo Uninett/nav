@@ -45,6 +45,10 @@ define([
             this.netmapViews = new Collections.NetmapViewCollection();
             this.netmapViews.reset(window.netmapData.views);
             this.currentView = this.netmapViews.get(window.netmapData.defaultView);
+            if (!this.currentView) {
+                this.currentView = new Models.NetmapView();
+            }
+
             this.refreshInterval = null;
 
             this.initializeDOM();

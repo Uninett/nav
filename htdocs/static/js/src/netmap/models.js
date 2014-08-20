@@ -57,7 +57,9 @@ define([
             display_elinks: false,
             displayTopologyErrors: false,
 
-            categories: [],
+            categories: [
+                'GW', 'GSW', 'SW', 'EDGE', 'WLAN', 'SRV', 'OTHER', 'ENV', 'POWER'
+            ],
             location_room_filter: ''
         },
 
