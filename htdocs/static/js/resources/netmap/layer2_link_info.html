@@ -37,6 +37,7 @@
               {{/if }}
             </td>
             <td>
+              <small>{{traffic_data this.traffic.source }}</small>
               <span class="load-arrow"
                 {{# if this.traffic.source.css }}
                   style="color: rgb({{ this.traffic.source.css }});"
@@ -48,6 +49,7 @@
                   style="color: rgb({{ this.traffic.target.css }});"
                 {{/if }}
                 >&#10097;</span>
+              <small>{{traffic_data this.traffic.target }}</small>
             </td>
             <td>
               {{#if this.target.interface.ifname }}

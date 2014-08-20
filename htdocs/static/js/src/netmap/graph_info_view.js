@@ -1,22 +1,26 @@
 define([
     'netmap/collections',
+    'plugins/netmap-extras',
     'libs-amd/text!resources/netmap/node_info.html',
     'libs-amd/text!resources/netmap/layer2_link_info.html',
     'libs-amd/text!resources/netmap/layer3_link_info.html',
     'libs/handlebars',
     'libs/backbone',
     'libs/jquery-ui-1.8.21.custom.min'
-], function (Collections, NodeTemplate, LinkTemplate, VlanTemplate) {
+], function (Collections, NetmapExtras ,NodeTemplate, LinkTemplate, VlanTemplate) {
 
     /**
      * View for rendering a modal with detailed node-/link-info
      */
 
-    Handlebars.registerHelper('lowercase', function (type) {
-        if (typeof type === 'string' || type instanceof String) {
-            return type.toLowerCase();
+    // Template helper for formatting traffic data
+    Handlebars.registerHelper('traffic_data', function (node) {
+        if (node) {
+            var traffic = NetmapExtras.convert_bits_to_si(node.in_bps);
+            var percent = node.percent_by_speed ? '(' + node.percent_by_speed + '%' + ')' : '';
+            return traffic + ' ' + percent;
         } else {
-            return type;
+            return node;
         }
     });
 
