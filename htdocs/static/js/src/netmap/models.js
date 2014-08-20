@@ -46,8 +46,8 @@ define([
         idAttribute: 'viewid',
 
         defaults: {
-            timestamp: new Date(), // Used for ??
-            title: 'Unsaved view',
+            timestamp: new Date(),
+            title: '',
             description: '',
             is_public: true,
             is_user_default: false,
