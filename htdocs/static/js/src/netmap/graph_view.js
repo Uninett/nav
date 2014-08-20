@@ -174,15 +174,12 @@ define([
                 .on('dragstart', function (node) {
                     self.dragStart.call(this, node, self);
                 })
-                //.on('drag', this.dragMove)
                 .on('drag', function (node) {
                     self.dragMove.call(this, node, self);
                 })
-                //.on('dragend', this.dragEnd)
                 .on('dragend', function (node) {
                     self.dragEnd.call(this, node, self);
-                })
-                ;
+                });
 
             // Set up resize on window resize
             $(window).resize(function () {
