@@ -30,6 +30,22 @@
         </thead>
 
         <tbody>
+          <tr>
+            <td colspan="2">
+              {{traffic_data traffic.traffic_data.source }}
+              <span class="load-arrow"
+                {{# if traffic.traffic_data.source.css }}
+                  style="color: rgb({{ traffic.traffic_data.source.css }});"
+                {{/if }}
+                >&#10096;</span>
+              <span class="load-arrow"
+                {{#if traffic.traffic_data.target.css }}
+                  style="color: rgb({{ traffic.traffic_data.target.css }});"
+                {{/if }}
+                >&#10097;</span>
+              {{traffic_data traffic.traffic_data.target }}
+            </td>
+          </tr>
 
         {{#each edges }}
 
