@@ -33,7 +33,7 @@ from nav.models.profiles import Account
 
 urlpatterns = patterns('nav.web.netmap.views',
     url(r'^$', IndexView.as_view(), name='netmap-index'),
-    url(r'^admin/$', NetmapAdminView.as_view(), name='netmap-admin-views'),
+    url(r'^admin/$', NetmapAdminView.as_view(), name='netmap-admin'),
 
     url(r'^views/$', NetmapViewList.as_view(), name='netmap-view-list'),
     url(
