@@ -17,6 +17,7 @@ define([
         interests: {},
         events: {
             'submit #graph-search-form': 'searchGraph',
+            'reset #graph-search-form': 'resetSearch',
             'submit #netmap-view-create-form': 'createView',
             'submit #filter-room-location-form': 'filterByRoomOrLocation',
             'change #graph-layer-select': 'changeTopologyLayer',
@@ -287,7 +288,17 @@ define([
         searchGraph: function (e) {
             e.preventDefault();
             var query = $('#graph-search-input', e.currentTarget).val();
-            Backbone.EventBroker.trigger('netmap:searchGraph', query);
+            if (query) {
+                Backbone.EventBroker.trigger('netmap:searchGraph', query);
+            } else {
+                this.resetSearch(e);
+            }
+        },
+
+        /** Triggers resets for zoom and transparency */
+        resetSearch: function (e) {
+            Backbone.EventBroker.trigger('netmap:resetTransparency');
+            Backbone.EventBroker.trigger('netmap:resetZoom');
         },
 
         /** Fires when a new location-/room-filter is added */
