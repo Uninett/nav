@@ -4,6 +4,8 @@ $image-path: '../../images';
 #graph-view {
   background: #ffffff;
   border: 1px solid #000000;
+  min-height: 600px;
+  min-width: 600px;
 }
 
 #filter-category-list {

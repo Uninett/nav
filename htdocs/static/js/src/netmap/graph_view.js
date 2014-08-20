@@ -37,9 +37,8 @@ define([
 
         initialize: function () {
 
-            // TODO: How to define a good starting height
             this.w = this.$el.width();
-            this.h = 1200;
+            this.h = $(window).height();
 
             // Initial d3 graph state
             this.force = d3.layout.force()
@@ -188,7 +187,9 @@ define([
             // Set up resize on window resize
             $(window).resize(function () {
                 self.w = self.$el.width();
-                self.svg.attr('width', self.w);
+                self.h = $(window).height();
+                self.svg.attr('width', self.w)
+                    .attr('height', self.h);
             });
 
             // Set up tick event
