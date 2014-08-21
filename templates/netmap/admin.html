@@ -32,7 +32,7 @@
           <td>{{view.title}}</td>
           <td>{% if view.description %}{{view.description}}{% else %}N/A{% endif %}</td>
           <td>{{view.topology_unicode}}</td>
-          <td>{{view.is_public}}</td>
+          <td class="visibility">{{view.is_public}}</td>
           <td>{{view.owner}}</td>
           <td>
             <a class="button tiny set-global-default" data-viewid="{{ view.viewid }}">Set global default</a>
@@ -68,6 +68,7 @@
       .done(function () {
         $('.current-global-default', '#netmap-admin-list').removeClass('current-global-default');
         $('#netmap-view-' + viewid, '#netmap-admin-list').addClass('current-global-default');
+        $('.visibility', '#netmap-view-' + viewid).html('True');
       })
       .fail(function (e) {
         console.log(e.responseText);
