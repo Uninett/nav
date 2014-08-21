@@ -284,7 +284,8 @@ define([
             var desc = $('textarea', e.currentTarget).val();
             var publ = $('input:checkbox', e.currentTarget).is(':checked');
 
-            var newView = new Models.NetmapView();
+            var newView = new Models.NetmapView(_.omit(
+                this.currentView.attributes, 'viewid'));
             newView.set({
                 title: title,
                 description: desc,
@@ -292,11 +293,11 @@ define([
                 owner: window.netmapData.userLogin
             });
             this.netmapViews.add(newView);
-            this.currentView = newView;
+            this.currentView = newView; console.log(this.currentView);
 
             var viewSelect = this.$('#graph-view-select');
             viewSelect.append(new Option(title + ' (' + window.netmapData.userLogin + ')',
-                newView.cid, true, true));
+                this.currentView.cid, true, true));
 
             this.setFormForCurrentView();
             this.setCategoriesForCurrentView();
