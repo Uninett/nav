@@ -78,6 +78,7 @@ define([
                 true
             );
 
+            this.setFormForCurrentView();
             this.setCategoriesForCurrentView();
             this.setLocationRoomFilterForCurrentView();
             this.setTopologySelectForCurrentView();
@@ -151,6 +152,7 @@ define([
             var unsaved = this.currentView.isNew() ?
                 '<span class="alert-box">Current view is unsaved</span>' : '';
             this.alertContainer.html(unsaved);
+            this.setFormForCurrentView();
             this.setCategoriesForCurrentView();
             this.setLocationRoomFilterForCurrentView();
             this.setTopologySelectForCurrentView();
@@ -281,7 +283,6 @@ define([
             var title = $('input:text', e.currentTarget).val();
             var desc = $('textarea', e.currentTarget).val();
             var publ = $('input:checkbox', e.currentTarget).is(':checked');
-            e.currentTarget.reset();
 
             var newView = new Models.NetmapView();
             newView.set({
@@ -297,6 +298,7 @@ define([
             viewSelect.append(new Option(title + ' (' + window.netmapData.userLogin + ')',
                 newView.cid, true, true));
 
+            this.setFormForCurrentView();
             this.setCategoriesForCurrentView();
             this.setLocationRoomFilterForCurrentView();
             this.setTopologySelectForCurrentView();
@@ -381,6 +383,7 @@ define([
             this.$('#graph-view-select option[value="' + value + '"]').remove();
             var selected = this.$('#graph-view-select option:selected').val();
             this.currentView = this.netmapViews.get(selected) || new Models.NetmapView();
+            this.setFormForCurrentView();
             this.setCategoriesForCurrentView();
             this.setLocationRoomFilterForCurrentView();
             this.setTopologySelectForCurrentView();
@@ -421,6 +424,13 @@ define([
                     this.remove();
                 }) ;
             });
+        },
+
+        setFormForCurrentView: function () {
+            var form = $('#netmap-view-create-form', this.netmapViewPanel);
+            $('input:text', form).val(this.currentView.get('title'));
+            $('textarea', form).val(this.currentView.get('description'));
+            $('input:checkbox', form).prop('checked', this.currentView.get('is_public'));
         },
 
         setCategoriesForCurrentView: function () {
