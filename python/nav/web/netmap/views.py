@@ -45,8 +45,7 @@ from .graph import (
     get_layer3_traffic,
 )
 # Ignore linting errors from DRF class hierarchy
-# pylint: disable=R0901
-# Pylint: disable=R0904
+# pylint: disable=R0901,R0904
 
 
 class IndexView(DefaultNetmapViewMixin, TemplateView):
