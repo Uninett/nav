@@ -1,7 +1,6 @@
 pytest==2.5.2
 mock>=0.8.0
 pylint==0.26
-sphinx>=1.0
 whisper>=0.9.9
 selenium>=2.34.0
 coverage>=3.6

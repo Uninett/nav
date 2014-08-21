@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BUILDDIR="$(pwd)/build"
+BUILDDIR="/build"
 export PYTHONPATH="$BUILDDIR/lib/python"
 
 check_for_postgres() {

@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/bash -xe
+umask 0022
 
 install_nav() {
 
@@ -7,7 +8,7 @@ install_nav() {
     ./configure --prefix "$BUILDDIR"
     make
     make install
-
+    chown -R navcron "$BUILDDIR/etc"
     cat > "$BUILDDIR/etc/logging.conf" <<EOF
 [levels]
 root=DEBUG
@@ -38,24 +39,20 @@ start_xvfb() {
     echo -n "Starting Xvfb..."
     start-stop-daemon --start --quiet --pidfile $PIDFILE --make-pidfile --background --exec $XVFB -- $XVFBARGS
     echo " done"
+    x11vnc -passwd 1234 &
 }
 
-cd source
-chmod 777 -R .
-BUILDDIR="$(pwd)/build"
+cd /source
+BUILDDIR="/build"
 export PYTHONPATH="$BUILDDIR/lib/python"
 
 install_nav
 start_xvfb
-(su postgres -c './tests/create-db.sh')
+su navcron -c './tests/docker/create-db.sh'
 start_apache
 
 # Sync
 wait
-
-# Pylint
-echo "Running pylint"
-pylint nav --rcfile=python/pylint.rc --disable=I,similarities --output=parseable > pylint.txt || true
 
 # Tests
 echo "Running tests"
@@ -63,9 +60,14 @@ export TARGETHOST="localhost"
 export APACHE_PORT=80
 export TARGETURL=http://$TARGETHOST:$APACHE_PORT/
 
-cd tests; py.test --junitxml=test-results.xml --verbose .
+cd tests
+py.test --junitxml=unit-results.xml --verbose unittests
+py.test --junitxml=integration-results.xml --verbose integration functional
 
 # JS tests
 cd ..
-curl --insecure https://www.npmjs.org/install.sh | clean=no bash
-CHROME_BIN=$(which chromium) ./tests/javascript-test.sh "$(pwd)"
+CHROME_BIN=$(which google-chrome) ./tests/javascript-test.sh "$(pwd)"
+
+# Pylint
+echo "Running pylint"
+pylint nav --rcfile=python/pylint.rc --disable=I,similarities --output=parseable > pylint.txt || true
