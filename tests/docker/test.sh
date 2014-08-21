@@ -51,9 +51,6 @@ start_xvfb
 su navcron -c './tests/docker/create-db.sh'
 start_apache
 
-# Sync
-wait
-
 # Tests
 echo "Running tests"
 export TARGETHOST="localhost"
