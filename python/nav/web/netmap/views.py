@@ -58,11 +58,13 @@ class IndexView(DefaultNetmapViewMixin, TemplateView):
 
         context = super(IndexView, self).get_context_data(user=user, **kwargs)
 
-        netmap_views = NetmapView.objects.filter(
-            Q(is_public=True) | Q(owner=user)
-        ).select_related(
-            'owner',
-        )
+        netmap_views = NetmapView.objects.all()
+        if not user.is_admin():
+            netmap_views = netmap_views.filter(
+                Q(is_public=True) | Q(owner=user)
+            ).select_related(
+                'owner',
+            )
 
         netmap_views_json = JSONRenderer().render(
             NetmapViewSerializer(netmap_views).data
