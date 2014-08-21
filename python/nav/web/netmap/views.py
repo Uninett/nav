@@ -217,6 +217,13 @@ class NetmapViewDefaultViewUpdate(generics.RetrieveUpdateAPIView):
         # of this method to raise an exception.
         pass
 
+    def post_save(self, obj, created=False):
+        # If a non-public view was set to be the global default, change
+        # that view's visibility to public.
+        if obj.owner.id is Account.DEFAULT_ACCOUNT and not obj.view.is_public:
+            obj.view.is_public = True
+            obj.view.save()
+
     def update(self, request, *args, **kwargs):
 
         if not self._is_owner_or_admin():
