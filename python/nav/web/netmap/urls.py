@@ -1,4 +1,6 @@
 #
+# Copyright (C) 2014 UNINETT AS
+#
 # This file is part of Network Administration Visualized (NAV).
 #
 # NAV is free software: you can redistribute it and/or modify it under the

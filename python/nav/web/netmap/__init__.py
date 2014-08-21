@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: UTF-8 -*-
 #
 # Copyright 2007 UNINETT AS
 #
@@ -19,15 +17,6 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-#
-# Author: Kristian Klette <klette@samfundet.no> 
-#
-
 """
 Package placeholder. If you remove it, the package won't work.
 """
-
-__copyright__ = "Copyright 2007 UNINETT AS"
-__license__ = "GPL"
-__author__ = "Kristian Klette <klette@samfundet.no>)"
-__id__ = "$Id: __init__.py 4012 2007-06-13 12:46:38Z klette $"

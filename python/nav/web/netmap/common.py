@@ -1,4 +1,4 @@
-"""common helper methods for netmap"""
+#
 # Copyright (C) 2012 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
@@ -13,6 +13,8 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""common helper methods for netmap"""
+
 from nav.models.manage import Netbox
 from nav.topology import vlan
 import logging
