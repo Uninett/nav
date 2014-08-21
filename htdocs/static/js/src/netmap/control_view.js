@@ -45,12 +45,16 @@ define([
             // window-object.
             this.netmapViews = new Collections.NetmapViewCollection();
             this.netmapViews.reset(window.netmapData.views);
-            this.currentView = this.netmapViews.get(window.netmapData.defaultView);
-            if (!this.currentView) {
-                this.currentView = new Models.NetmapView();
-            }
+
+            // Set current view to the users default view. If no default view is
+            // set, set the current view to be the first in the list of available
+            // views. If none are available use the default object
+            this.currentView = this.netmapViews.get(window.netmapData.defaultView) ||
+                this.netmapViews.at(0) || new Models.NetmapView();
 
             this.refreshInterval = null;
+            this.updateFavoriteViewEnabled = true;
+            this.saveDeleteViewEnabled = true;
 
             this.initializeDOM();
 
@@ -77,6 +81,7 @@ define([
             this.setCategoriesForCurrentView();
             this.setLocationRoomFilterForCurrentView();
             this.setTopologySelectForCurrentView();
+            this.setViewButtonsForCurrentView();
             this.resetRefreshControls();
         },
 
@@ -149,6 +154,7 @@ define([
             this.setCategoriesForCurrentView();
             this.setLocationRoomFilterForCurrentView();
             this.setTopologySelectForCurrentView();
+            this.setViewButtonsForCurrentView();
             this.resetRefreshControls();
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
@@ -180,6 +186,11 @@ define([
 
         saveCurrentView: function () {
 
+            if (!this.saveDeleteViewEnabled) {
+                // This control is disabled
+                return;
+            }
+
             // Update `display_elinks` and remove 'ELINKS' from categories if present
             var categories = this.currentView.get('categories');
             this.currentView.set('display_elinks', _.indexOf(categories, 'ELINK') >= 0);
@@ -204,6 +215,11 @@ define([
 
         deleteCurrentView: function () {
 
+            if (!this.saveDeleteViewEnabled) {
+                // This control is disabled
+                return;
+            }
+
             if (!this.currentView.isNew()) {
 
                 var self = this;
@@ -223,6 +239,11 @@ define([
 
         /** Saves the current view as default for the current user */
         setCurrentViewDefault: function () {
+
+            if (!this.updateFavoriteViewEnabled) {
+                // This control is disabled
+                return;
+            }
 
             var self = this;
 
@@ -266,17 +287,20 @@ define([
             newView.set({
                 title: title,
                 description: desc,
-                is_public: publ
+                is_public: publ,
+                owner: window.netmapData.userLogin
             });
             this.netmapViews.add(newView);
             this.currentView = newView;
 
             var viewSelect = this.$('#graph-view-select');
-            viewSelect.append(new Option(title, newView.cid, true, true));
+            viewSelect.append(new Option(title + ' (' + window.netmapData.userLogin + ')',
+                newView.cid, true, true));
 
             this.setCategoriesForCurrentView();
             this.setLocationRoomFilterForCurrentView();
             this.setTopologySelectForCurrentView();
+            this.setViewButtonsForCurrentView();
             this.resetRefreshControls();
 
             this.alertContainer.html('<span class="alert-box">Current view is unsaved</span>');
@@ -335,6 +359,8 @@ define([
                     .attr('value', model.id);
             }
 
+            this.setUpdateFavoriteViewEnables(true);
+
             var alert = this.alertContainer.html('<span class="alert-box success">View saved successfully</span>');
             setTimeout(function () {
                 $('span', alert).fadeOut(function () {
@@ -354,10 +380,11 @@ define([
 
             this.$('#graph-view-select option[value="' + value + '"]').remove();
             var selected = this.$('#graph-view-select option:selected').val();
-            this.currentView = this.netmapViews.get(selected);
+            this.currentView = this.netmapViews.get(selected) || new Models.NetmapView();
             this.setCategoriesForCurrentView();
             this.setLocationRoomFilterForCurrentView();
             this.setTopologySelectForCurrentView();
+            this.setViewButtonsForCurrentView();
             this.resetRefreshControls();
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
@@ -438,6 +465,34 @@ define([
             );
         },
 
+        /**
+         * Enables/disables the appropriate buttons for the current view
+         */
+        setViewButtonsForCurrentView: function () {
+
+            // No view exists
+            if (!this.netmapViews.length) {
+                this.setUpdateFavoriteViewEnables(false);
+                this.setSaveDeleteViewEnabled(false);
+
+            // User does not own selected view
+            } else if (!window.netmapData.admin &&
+                    this.currentView.get('owner') !== window.netmapData.userLogin) {
+                this.setUpdateFavoriteViewEnables(true);
+                this.setSaveDeleteViewEnabled(false);
+
+            // View is unsaved
+            } else if (this.currentView.isNew()) {
+                this.setUpdateFavoriteViewEnables(false);
+                this.setSaveDeleteViewEnabled(true);
+
+            // User owns the selected view
+            } else {
+                this.setUpdateFavoriteViewEnables(true);
+                this.setSaveDeleteViewEnabled(true);
+            }
+        },
+
         setRefreshInterval: function (e) {
 
             var self = this;
@@ -483,6 +538,23 @@ define([
 
         setRefreshTrafficOnly: function (e) {
             this.currentView.refreshTrafficOnly = e.currentTarget.checked;
+        },
+
+
+        setUpdateFavoriteViewEnables: function (enabled) {
+
+            this.updateFavoriteViewEnabled = enabled;
+            var setFavoriteViewButton = $('#netmap-view-default', this.netmapViewPanel);
+            setFavoriteViewButton.toggleClass('disabled', !enabled);
+        },
+
+        setSaveDeleteViewEnabled: function (enabled) {
+
+            this.saveDeleteViewEnabled = enabled;
+            var saveViewButton = $('#netmap-view-save', this.netmapViewPanel);
+            var deleteViewButton = $('#netmap-view-delete', this.netmapViewPanel);
+            saveViewButton.toggleClass('disabled', !enabled);
+            deleteViewButton.toggleClass('disabled', !enabled);
         }
     });
 

@@ -248,6 +248,7 @@
         staticURL: '{{ STATIC_URL }}images/netmap/',
         userID: {{ account.pk }},
         userLogin: '{{ account.login }}',
+        admin: {% if account.is_admin %}true{% else %}false{% endif %},
         views: {{ netmap_views_json|safe }},
         defaultView: {{ default_view|default_if_none:'null' }},
         roomsAndLocations: {{ rooms_locations|safe }}
