@@ -51,6 +51,7 @@ define([
             // views. If none are available use the default object
             this.currentView = this.netmapViews.get(window.netmapData.defaultView) ||
                 this.netmapViews.at(0) || new Models.NetmapView();
+            this.currentView.on('attributeChange', this.hasUnsavedChanges, this);
 
             // Backup attributes
             this.backupAttributes = _.omit(this.currentView.attributes, 'categories');
@@ -130,9 +131,9 @@ define([
          * view and fires an event to the graph model
          */
         changeTopologyLayer: function (e) {
-
             var layer = e.currentTarget.value;
             this.currentView.set('topology', layer);
+            this.currentView.trigger('attributeChange');
             Backbone.EventBroker.trigger('netmap:topologyLayerChanged', layer);
         },
 
@@ -178,11 +179,13 @@ define([
                 categories.splice(categories.indexOf(categoryId), 1);
             }
 
+            this.currentView.trigger('attributeChange');
             Backbone.EventBroker.trigger('netmap:filterCategoriesChanged', categoryId, checked);
         },
 
         updateOrphanNodesFilter: function (e) {
             this.currentView.set('display_orphans', e.currentTarget.checked);
+            this.currentView.trigger('attributeChange');
             Backbone.EventBroker.trigger('netmap:updateGraph');
         },
 
@@ -570,6 +573,20 @@ define([
             var deleteViewButton = $('#netmap-view-delete', this.netmapViewPanel);
             saveViewButton.toggleClass('disabled', !enabled);
             deleteViewButton.toggleClass('disabled', !enabled);
+        },
+
+        hasUnsavedChanges: function () {
+
+            // Categories must be in the same order to be considered equal
+            this.currentView.attributes.categories.sort();
+            this.backupAttributes.categories.sort();
+            var changed = !_.isEqual(this.currentView.attributes, this.backupAttributes);
+            if (changed && !this.currentView.isNew()) {
+                this.alertContainer.html(
+                    '<span class="alert-box">Current view has unsaved changes</span>');
+            } else if (!this.currentView.isNew()) {
+                this.alertContainer.empty();
+            }
         }
     });
 
