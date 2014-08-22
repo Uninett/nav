@@ -67,4 +67,4 @@ CHROME_BIN=$(which google-chrome) ./tests/javascript-test.sh "$(pwd)"
 
 # Pylint
 echo "Running pylint"
-pylint nav --rcfile=python/pylint.rc --disable=I,similarities --output=parseable > pylint.txt || true
+pylint python/nav --rcfile=python/pylint.rc --disable=I,similarities --output=parseable > pylint.txt || true
