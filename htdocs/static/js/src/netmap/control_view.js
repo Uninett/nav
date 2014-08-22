@@ -52,6 +52,10 @@ define([
             this.currentView = this.netmapViews.get(window.netmapData.defaultView) ||
                 this.netmapViews.at(0) || new Models.NetmapView();
 
+            // Backup attributes
+            this.backupAttributes = _.omit(this.currentView.attributes, 'categories');
+            this.backupAttributes.categories = this.currentView.get('categories').slice();
+
             this.refreshInterval = null;
             this.updateFavoriteViewEnabled = true;
             this.saveDeleteViewEnabled = true;
@@ -142,6 +146,9 @@ define([
          */
         changeNetmapView: function (e) {
 
+            // Reset attributes from backup
+            this.currentView.set(this.backupAttributes);
+
             var viewId = e.currentTarget.value;
             this.currentView = this.netmapViews.get(viewId);
             if (!this.currentView) {
@@ -149,6 +156,9 @@ define([
                 // cause no harm after upgrade.
                 this.currentView = this.netmapViews.getByCid(viewId);
             }
+            this.backupAttributes = _.omit(this.currentView.attributes, 'categories');
+            this.backupAttributes.categories = this.currentView.get('categories').slice();
+
             var unsaved = this.currentView.isNew() ?
                 '<span class="alert-box">Current view is unsaved</span>' : '';
             this.alertContainer.html(unsaved);
@@ -293,7 +303,11 @@ define([
                 owner: window.netmapData.userLogin
             });
             this.netmapViews.add(newView);
-            this.currentView = newView; console.log(this.currentView);
+
+            this.currentView.set(this.backupAttributes);
+            this.currentView = newView;
+            this.backupAttributes = _.omit(this.currentView.attributes, 'categories');
+            this.backupAttributes.categories = this.currentView.get('categories').slice();
 
             var viewSelect = this.$('#graph-view-select');
             viewSelect.append(new Option(title + ' (' + window.netmapData.userLogin + ')',
@@ -362,6 +376,7 @@ define([
                     .attr('value', model.id);
             }
 
+            this.backupAttributes = this.currentView.attributes;
             this.setUpdateFavoriteViewEnables(true);
 
             var alert = this.alertContainer.html('<span class="alert-box success">View saved successfully</span>');
