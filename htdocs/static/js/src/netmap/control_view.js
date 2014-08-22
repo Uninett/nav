@@ -82,12 +82,7 @@ define([
                 true
             );
 
-            this.setFormForCurrentView();
-            this.setCategoriesForCurrentView();
-            this.setLocationRoomFilterForCurrentView();
-            this.setTopologySelectForCurrentView();
-            this.setViewButtonsForCurrentView();
-            this.resetRefreshControls();
+            this.updateControlsForCurrentView();
         },
 
         toggleNetmapViewPanel: function (e) {
@@ -162,12 +157,7 @@ define([
             var unsaved = this.currentView.isNew() ?
                 '<span class="alert-box">Current view is unsaved</span>' : '';
             this.alertContainer.html(unsaved);
-            this.setFormForCurrentView();
-            this.setCategoriesForCurrentView();
-            this.setLocationRoomFilterForCurrentView();
-            this.setTopologySelectForCurrentView();
-            this.setViewButtonsForCurrentView();
-            this.resetRefreshControls();
+            this.updateControlsForCurrentView();
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
         },
@@ -313,12 +303,7 @@ define([
             viewSelect.append(new Option(title + ' (' + window.netmapData.userLogin + ')',
                 this.currentView.cid, true, true));
 
-            this.setFormForCurrentView();
-            this.setCategoriesForCurrentView();
-            this.setLocationRoomFilterForCurrentView();
-            this.setTopologySelectForCurrentView();
-            this.setViewButtonsForCurrentView();
-            this.resetRefreshControls();
+            this.updateControlsForCurrentView();
 
             this.alertContainer.html('<span class="alert-box">Current view is unsaved</span>');
 
@@ -399,12 +384,7 @@ define([
             this.$('#graph-view-select option[value="' + value + '"]').remove();
             var selected = this.$('#graph-view-select option:selected').val();
             this.currentView = this.netmapViews.get(selected) || new Models.NetmapView();
-            this.setFormForCurrentView();
-            this.setCategoriesForCurrentView();
-            this.setLocationRoomFilterForCurrentView();
-            this.setTopologySelectForCurrentView();
-            this.setViewButtonsForCurrentView();
-            this.resetRefreshControls();
+            this.updateControlsForCurrentView();
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
 
@@ -440,6 +420,15 @@ define([
                     this.remove();
                 }) ;
             });
+        },
+
+        updateControlsForCurrentView: function () {
+            this.setFormForCurrentView();
+            this.setCategoriesForCurrentView();
+            this.setLocationRoomFilterForCurrentView();
+            this.setTopologySelectForCurrentView();
+            this.setViewButtonsForCurrentView();
+            this.resetRefreshControls();
         },
 
         setFormForCurrentView: function () {
