@@ -6,8 +6,9 @@ top_srcdir := $(mkfile_dir)../..
 build: runtime-requirements.txt test-requirements.txt
 	docker build -t testus $(mkfile_dir)
 
-check:
-	docker run --privileged -v $(top_srcdir):/source testus
+check: build
+# Running in privileged mode because Google Chrome apparently requires it
+	docker run --privileged -v $(top_srcdir):/source testus  
 
 runtime-requirements.txt: $(top_srcdir)/requirements.txt
 	cp $< $@
