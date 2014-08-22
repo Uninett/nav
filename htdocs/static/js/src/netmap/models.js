@@ -47,7 +47,7 @@ define([
 
         defaults: {
             timestamp: new Date(),
-            title: '',
+            title: 'New view',
             description: '',
             is_public: true,
             is_user_default: false,

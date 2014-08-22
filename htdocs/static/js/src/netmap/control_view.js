@@ -287,18 +287,9 @@ define([
         createView: function (e) {
             e.preventDefault();
 
-            var title = $('input:text', e.currentTarget).val();
-            var desc = $('textarea', e.currentTarget).val();
-            var publ = $('input:checkbox', e.currentTarget).is(':checked');
-
             var newView = new Models.NetmapView(_.omit(
-                this.currentView.attributes, 'viewid'));
-            newView.set({
-                title: title,
-                description: desc,
-                is_public: publ,
-                owner: window.netmapData.userLogin
-            });
+                this.currentView.attributes, 'viewid', 'title', 'description', 'is_public'));
+            newView.set({owner: window.netmapData.userLogin});
             this.netmapViews.add(newView);
 
             this.currentView.set(this.backupAttributes);
@@ -307,7 +298,8 @@ define([
             this.backupAttributes.categories = this.currentView.get('categories').slice();
 
             var viewSelect = this.$('#graph-view-select');
-            viewSelect.append(new Option(title + ' (' + window.netmapData.userLogin + ')',
+            viewSelect.append(new Option(newView.get('title') + ' (' +
+                window.netmapData.userLogin + ')',
                 this.currentView.cid, true, true));
 
             this.updateControlsForCurrentView();
@@ -365,7 +357,8 @@ define([
                  */
                 this.$('#graph-view-select option[value="' + model.cid + '"]')
                     .attr('id', model.id)
-                    .attr('value', model.id);
+                    .attr('value', model.id)
+                    .html(model.get('title') + ' (' + model.get('owner') + ')');
             }
 
             this.backupAttributes = this.currentView.attributes;
