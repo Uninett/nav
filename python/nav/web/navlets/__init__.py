@@ -335,7 +335,7 @@ def render_base_template(request):
     """
     try:
         navlet_id = int(request.REQUEST.get('id'))
-    except ValueError:
+    except ValueError, TypeError:
         # We're fucked
         return HttpResponse(status=400)
     else:
