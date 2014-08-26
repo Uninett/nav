@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -xe
 
 BUILDDIR="/build"
 export PYTHONPATH="$BUILDDIR/lib/python"

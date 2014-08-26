@@ -1,6 +1,7 @@
 #!/bin/bash -xe
 umask 0022
 
+
 install_nav() {
 
     echo "Building an installing NAV..."
@@ -8,7 +9,6 @@ install_nav() {
     ./configure --prefix "$BUILDDIR"
     make
     make install
-    chown -R navcron "$BUILDDIR/etc"
     cat > "$BUILDDIR/etc/logging.conf" <<EOF
 [levels]
 root=DEBUG
@@ -33,11 +33,11 @@ start_apache() {
 start_xvfb() {
 
     XVFB=/usr/bin/Xvfb
-    XVFBARGS=":99 -screen 0 1024x768x24 -fbdir /var/run -ac"
-    PIDFILE=/var/run/xvfb.pid
+    XVFBARGS=":99 -screen 0 1024x768x24 -fbdir /tmp -ac"
+    PIDFILE=/tmp/xvfb.pid
 
     echo -n "Starting Xvfb..."
-    start-stop-daemon --start --quiet --pidfile $PIDFILE --make-pidfile --background --exec $XVFB -- $XVFBARGS
+    /sbin/start-stop-daemon --start --quiet --pidfile $PIDFILE --make-pidfile --background --exec $XVFB -- $XVFBARGS
     echo " done"
     x11vnc -passwd 1234 &
 }
@@ -48,7 +48,7 @@ export PYTHONPATH="$BUILDDIR/lib/python"
 
 install_nav
 start_xvfb
-su navcron -c './tests/docker/create-db.sh'
+./tests/docker/create-db.sh
 start_apache
 
 # Tests

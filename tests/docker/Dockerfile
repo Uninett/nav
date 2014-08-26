@@ -33,8 +33,6 @@ RUN pip install whisper carbon graphite-web django-tagging
 RUN gem install sass ; \
     gem install --version '~> 0.9' rb-inotify
 
-RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash navcron
-
 # Build and install Python requirements
 ADD runtime-requirements.txt /runtime-requirements.txt
 ADD test-requirements.txt /test-requirements.txt
@@ -43,7 +41,10 @@ RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
 # NPM for Javascript testing needs
 RUN curl --insecure https://www.npmjs.org/install.sh | clean=no bash
 
+RUN adduser --system --group --no-create-home --home=/build --shell=/bin/bash build
+RUN echo "build    ALL=NOPASSWD: ALL" >> /etc/sudoers
+
 # This does not make files in source accessible for RUN-commands
 VOLUME ["/source"]
 
-CMD ["/source/tests/docker/test.sh"]
+CMD ["/source/tests/docker/bootstrap.sh"]
