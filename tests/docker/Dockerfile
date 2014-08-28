@@ -30,7 +30,7 @@ RUN apt-get clean
 
 RUN pip install whisper carbon graphite-web django-tagging
 
-RUN gem install sass ; \
+RUN gem install --version '3.3.9' sass ; \
     gem install --version '~> 0.9' rb-inotify
 
 # Build and install Python requirements
