@@ -9,7 +9,11 @@ build: runtime-requirements.txt test-requirements.txt
 
 check: build
 # Running in privileged mode because Google Chrome apparently requires it
+	/usr/bin/env
 	docker run --privileged -v $(top_srcdir):/source $(name) /source/tests/docker/test.sh
+
+shell:
+	docker run -t -i --privileged -v $(top_srcdir):/source $(name) /bin/bash
 
 runtime-requirements.txt: $(top_srcdir)/requirements.txt
 	cp $< $@
