@@ -6,7 +6,7 @@ install_nav() {
 
     echo "Building an installing NAV..."
     ./autogen.sh
-    ./configure --prefix "$BUILDDIR"
+    ./configure --prefix "$BUILDDIR" NAV_USER=build
     make
     make install
     cat > "$BUILDDIR/etc/logging.conf" <<EOF
@@ -17,29 +17,22 @@ EOF
 }
 
 start_apache() {
-
-    APACHE_CONFIG="$(pwd)/tests/apache.conf"
-    export APACHE_CONFIG
-    export WORKSPACE="$(pwd)"
-    export TARGETHOST="localhost"
-    export APACHE_PORT=80
-    export TARGETURL=http://$TARGETHOST:$APACHE_PORT/
+    APACHE_CONFIG="/source/tests/apache.conf"
 
     echo -n "Starting apache..."
+    sudo a2dismod cgid
     /usr/sbin/apache2ctl -f $APACHE_CONFIG -k start
     echo " done"
 }
 
 start_xvfb() {
-
     XVFB=/usr/bin/Xvfb
-    XVFBARGS=":99 -screen 0 1024x768x24 -fbdir /tmp -ac"
-    PIDFILE=/tmp/xvfb.pid
+    XVFBARGS=":99 -screen 0 1024x768x24 -fbdir /build -ac"
+    PIDFILE=/build/xvfb.pid
 
     echo -n "Starting Xvfb..."
     /sbin/start-stop-daemon --start --quiet --pidfile $PIDFILE --make-pidfile --background --exec $XVFB -- $XVFBARGS
     echo " done"
-    x11vnc -passwd 1234 &
 }
 
 cd /source
@@ -47,19 +40,29 @@ BUILDDIR="/build"
 export PYTHONPATH="$BUILDDIR/lib/python"
 
 install_nav
-start_xvfb
-./tests/docker/create-db.sh
-start_apache
 
 # Tests
 echo "Running tests"
 export TARGETHOST="localhost"
-export APACHE_PORT=80
+export APACHE_PORT=8000
 export TARGETURL=http://$TARGETHOST:$APACHE_PORT/
+
+/source/tests/docker/create-db.sh
 
 cd tests
 py.test --junitxml=unit-results.xml --verbose unittests
-py.test --junitxml=integration-results.xml --verbose integration functional
+
+cd ..
+
+start_apache
+
+cd tests
+py.test --junitxml=integration-results.xml --verbose integration
+
+start_xvfb
+py.test --junitxml=functional-results.xml --verbose functional
+
+echo Python tests are done
 
 # JS tests
 cd ..

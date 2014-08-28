@@ -11,6 +11,9 @@ check: build
 # Running in privileged mode because Google Chrome apparently requires it
 	docker run --privileged -v $(top_srcdir):/source $(name)
 
+ucheck: build
+	docker run -v $(top_srcdir):/source $(name)
+
 runtime-requirements.txt: $(top_srcdir)/requirements.txt
 	cp $< $@
 

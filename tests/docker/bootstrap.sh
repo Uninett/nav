@@ -10,4 +10,4 @@ groupmod --gid "$gid" build
 mkdir -p /build
 chown build:build /build
 
-exec su -c /source/tests/docker/test.sh build
+exec su -c '/bin/bash -xe /source/tests/docker/test.sh' build
