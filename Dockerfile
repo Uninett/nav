@@ -40,7 +40,7 @@ RUN apt-get -y --no-install-recommends build-dep \
 
 RUN pip install whisper carbon graphite-web django-tagging
 
-RUN gem install sass ;\
+RUN gem install --version '3.3.9' sass ;\
     gem install --version '~> 0.9' rb-inotify
 
 RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav ;\
