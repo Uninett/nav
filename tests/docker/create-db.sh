@@ -1,8 +1,5 @@
 #!/bin/bash -xe
 
-BUILDDIR="/build"
-export PYTHONPATH="$BUILDDIR/lib/python"
-
 check_for_postgres() {
     local ver
     if ! which initdb; then
@@ -21,7 +18,7 @@ bootstrap_postgres_in_ram() {
     local datadir="pg-${EXECUTOR_NUMBER:-$$}"
 
     PGDATA="$ram_mount/$datadir"
-    PGPORT=$(./tests/free-port.sh)
+    PGPORT=5432
     if [ -z "$PGPORT" ]; then
 	    echo "No PGPORT set"
 	    exit 1
