@@ -33,11 +33,16 @@ def index(request, uri):
         return response
 
     base = CONFIG.get('graphiteweb', 'base')
-    query = _inject_default_arguments(request.GET)
-    url = urljoin(base, uri + ('?' + query) if query else '')
 
+    if request.method == 'GET':
+        query = _inject_default_arguments(request.GET)
+        url = urljoin(base, uri + ('?' + query) if query else '')
+        req = urllib2.Request(url)
+    else:
+        data = _inject_default_arguments(request.POST)
+        url = urljoin(base, 'render')
+        req = urllib2.Request(url, data)
     LOGGER.debug("proxying request to %r", url)
-    req = urllib2.Request(url)
     response = urllib2.urlopen(req)
     headers = response.info()
     content_type = headers.getheader('Content-Type', 'text/html')
