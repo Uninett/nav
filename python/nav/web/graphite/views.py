@@ -16,7 +16,7 @@
 import urllib2
 from urlparse import urljoin
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotAllowed
 from nav.metrics import CONFIG
 
 import logging
@@ -33,11 +33,19 @@ def index(request, uri):
         return response
 
     base = CONFIG.get('graphiteweb', 'base')
-    query = _inject_default_arguments(request.GET)
-    url = urljoin(base, uri + ('?' + query) if query else '')
+
+    if request.method == 'GET':
+        query = _inject_default_arguments(request.GET)
+        url = urljoin(base, uri + ('?' + query) if query else '')
+        req = urllib2.Request(url)
+    elif request.method == 'POST':
+        data = _inject_default_arguments(request.POST)
+        url = urljoin(base, uri)
+        req = urllib2.Request(url, data)
+    else:
+        return HttpResponseNotAllowed(['GET', 'POST', 'HEAD'])
 
     LOGGER.debug("proxying request to %r", url)
-    req = urllib2.Request(url)
     response = urllib2.urlopen(req)
     headers = response.info()
     content_type = headers.getheader('Content-Type', 'text/html')
