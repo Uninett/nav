@@ -23,3 +23,6 @@ test-requirements.txt: $(top_srcdir)/tests/requirements.txt
 
 name:
 	echo Image name: $(name)
+
+clean:
+	rm -f runtime-requirements.txt test-requirements.txt
