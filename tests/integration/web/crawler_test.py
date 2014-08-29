@@ -32,6 +32,9 @@ TIDY_IGNORE = [
     'trimming empty <option>',
     'trimming empty <i>',
     '<table> lacks "summary" attribute',
+    '<nav> is not recognized!',
+    '<section> is not recognized!',
+    '<footer> is not recognized!',
 ]
 
 TIDY_BLACKLIST = [
