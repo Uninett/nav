@@ -2,4 +2,57 @@
 
 {% block content %}
 <p>This will eventually become the new status page</p>
+
+{% if alerts %}
+    <table class="listtable">
+        <thead>
+            <caption>Problems</caption>
+
+            <th>Type</th>
+            <th>Subject</th>
+            <th>Start time</th>
+            <th>Duration</th>
+
+        </thead>
+
+        <tfoot></tfoot>
+
+        <tbody>
+        {% for alert in alerts %}
+
+            <tr>
+                <td>
+                    <span data-tooltip aria-haspopup="true" class="has-tip"
+                          title="{{ alert.event_type.description }}">{{ alert.event_type_id }}</span>
+                </td>
+
+                <td>
+                    {% comment %}
+                    This may or may not fail spectacularly if subject has
+                    not implemented the get_absolute_url() method
+                    {% endcomment %}
+                    <a href="{{ alert.get_subject.get_absolute_url }}"
+                            >{{ alert.get_subject }}</a>
+                </td>
+
+                <td>
+                    <a href="{% url devicehistory-view %}?netbox={{ alert.netbox.id }}&amp;eventtype=a_{{ alert.alert_type.name }}&amp;group_by=datetime"
+                            >{{ alert.start_time }}</a>
+                </td>
+
+                <td>
+                    {% comment %}
+                    May need to be defined differently if/when we need to
+                    display stateless alerts
+                    {% endcomment %}
+                    {{ alert.start_time|timesince }}
+                </td>
+
+            </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+{% endif %}
+
 {% endblock %}
