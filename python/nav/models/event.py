@@ -191,6 +191,32 @@ class EventMixIn(object):
         values = (getattr(self, key) for key in id_keys)
         return tuple(values)
 
+    # This dict encodes knowledge of what the subid attribute represents in
+    # various event types, in lieu of a more generic mechanism
+    SUBID_MAP = {
+        'linkState': 'Interface',
+        'moduleState': 'Module',
+        'serviceState': 'Service',
+        'psuState': 'PowerSupplyOrFan',
+        'fanState': 'PowerSupplyOrFan',
+    }
+
+    def get_subject(self):
+        """
+        Returns the subject of a given event/alert.
+
+        Sometimes, the subject is just a Netbox objects. Other times, it may
+        be some physical or logical subcomponents of a Netbox.
+
+        """
+        if self.subid and self.event_type_id in self.SUBID_MAP:
+            model = models.get_model('models',
+                                     self.SUBID_MAP[self.event_type_id])
+            model.objects.get(pk=self.subid)
+
+        # catch-all
+        return self.netbox
+
 
 class EventQueue(models.Model, EventMixIn):
     """From NAV Wiki: The event queue. Additional data in eventqvar. Different
