@@ -15,9 +15,9 @@
 #
 from django.conf.urls import url, patterns
 
-from nav.web.status2.views import index
+from nav.web.status2.views import StatusView
 
 urlpatterns = patterns('',
-    url(r'^$', index,
+    url(r'^$', StatusView.as_view(),
         name='status2-index'),
 )

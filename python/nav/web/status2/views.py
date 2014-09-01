@@ -15,14 +15,21 @@
 #
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.views.generic import View
+from nav.models.event import AlertHistory
 
 
-def index(request):
-    return render_to_response(
-        'status2/status.html',
-        {
-            'title': 'NAV - Status',
-            'navpath': [('Home', '/'), ('Status', '')],
-        },
-        RequestContext(request)
-    )
+class StatusView(View):
+    def get(self, request):
+        alerts = AlertHistory.objects.unresolved().order_by('-start_time')
+        return render_to_response(
+            'status2/status.html',
+            {
+                'title': 'NAV - Status',
+                'navpath': [('Home', '/'), ('Status', '')],
+
+                'alerts': alerts,
+            },
+            RequestContext(request)
+        )
+
