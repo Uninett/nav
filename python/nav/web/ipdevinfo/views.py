@@ -26,7 +26,7 @@ from django.db.models import Q
 from django.shortcuts import (render_to_response, get_object_or_404, redirect,
                               render)
 from django.template import RequestContext
-from django.views.generic.list_detail import object_list
+from django.views.generic.list import ListView
 from nav.metrics.errors import GraphiteUnreachableError
 
 from nav.models.manage import Netbox, Module, Interface, Prefix, Arp, Cam
@@ -533,7 +533,7 @@ def service_list(request, handler=None):
     navpath = NAVPATH + [('Service List',)]
 
     # Pass on to generic view
-    return object_list(
+    return ListView(
         request,
         services,
         paginate_by=100,

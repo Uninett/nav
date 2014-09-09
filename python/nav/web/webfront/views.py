@@ -23,7 +23,7 @@ from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
 from django.forms.models import modelformset_factory
 from django.http import HttpResponseRedirect, HttpResponse
-from django.views.generic.simple import direct_to_template
+from django.views.generic.base import TemplateView
 from django.views.decorators.debug import (sensitive_variables,
                                            sensitive_post_parameters)
 from django.shortcuts import get_object_or_404
@@ -54,7 +54,7 @@ def index(request):
     else:
         welcome = quick_read(WELCOME_REGISTERED_PATH)
 
-    return direct_to_template(
+    return Templateview(
         request,
         'webfront/index.html',
         {
@@ -81,7 +81,7 @@ def login(request):
     else:
         errors = []
 
-    return direct_to_template(
+    return TemplateView(
         request,
         'webfront/login.html',
         {
@@ -124,7 +124,7 @@ def do_login(request):
                 errors.append('Username or password is incorrect.')
 
     # Something went wrong. Display login page with errors.
-    return direct_to_template(
+    return TemplateView(
         request,
         'webfront/login.html',
         {
@@ -148,7 +148,7 @@ def logout(request):
 
 
 def about(request):
-    return direct_to_template(
+    return TemplateView(
         request,
         'webfront/about.html',
         {
@@ -170,7 +170,7 @@ def toolbox(request):
 
     tools = sorted(get_account_tools(account, tool_list(account)))
 
-    return direct_to_template(
+    return TemplateView(
         request,
         'webfront/toolbox.html',
         {
@@ -270,7 +270,7 @@ def preferences(request):
     """ My preferences """
     context = _create_preference_context(request)
 
-    return direct_to_template(
+    return TemplateView(
         request,
         'webfront/preferences.html',
         context
@@ -284,7 +284,7 @@ def change_password(request):
     account = get_account(request)
 
     if account.is_default_account():
-        return direct_to_template(request, 'useradmin/not-logged-in.html', {})
+        return TemplateView(request, 'useradmin/not-logged-in.html', {})
 
     if request.method == 'POST':
         password_form = ChangePasswordForm(request.POST, my_account=account)
@@ -296,7 +296,7 @@ def change_password(request):
                         type=Messages.SUCCESS)
         else:
             context['password_form'] = password_form
-            return direct_to_template(
+            return TemplateView(
                 request,
                 'webfront/preferences.html',
                 context
@@ -328,7 +328,7 @@ def save_links(request):
         else:
             context['navbar_formset'] = formset
 
-            return direct_to_template(
+            return TemplateView(
                 request,
                 'webfront/preferences.html',
                 context

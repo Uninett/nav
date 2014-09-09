@@ -27,7 +27,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.shortcuts import render_to_response
-from django.views.generic.list_detail import object_list
+from django.views.generic.list import ListView
 
 from nav.models.profiles import (
     Account,
@@ -163,7 +163,7 @@ def show_profile(request):
             'navpath': BASE_PATH+[('Profiles', None)],
             'title': 'NAV - Alert profiles',
         }
-    return object_list(
+    return ListView(
             request,
             queryset=profiles,
             paginate_by=PAGINATE_BY,
@@ -920,7 +920,7 @@ def address_list(request):
             'navpath': BASE_PATH+[('Address', None)],
             'title': 'NAV - Alert profiles',
         }
-    return object_list(
+    return ListView(
             request,
             queryset=address,
             paginate_by=PAGINATE_BY,
@@ -1174,7 +1174,7 @@ def sms_list(request):
         'navpath': BASE_PATH+[('My SMS', None)],
         'title': 'NAV - Alert profiles',
     }
-    return object_list(
+    return ListView(
         request,
         queryset=sms,
         paginate_by=PAGINATE_BY,
@@ -1213,7 +1213,7 @@ def filter_list(request):
             'navpath': BASE_PATH+[('Filters', None)],
             'title': 'NAV - Alert profiles',
         }
-    return object_list(
+    return ListView(
             request,
             queryset=filters,
             paginate_by=PAGINATE_BY,
@@ -1651,7 +1651,7 @@ def filter_group_list(request):
             ],
             'title': 'NAV - Alert profiles',
         }
-    return object_list(
+    return ListView(
             request,
             queryset=filter_groups,
             paginate_by=PAGINATE_BY,
@@ -2182,7 +2182,7 @@ def matchfield_list(request):
             ],
             'title': 'NAV - Alert profiles',
         }
-    return object_list(
+    return ListView(
             request,
             queryset=matchfields,
             paginate_by=PAGINATE_BY,

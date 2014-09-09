@@ -20,7 +20,7 @@ from django.shortcuts import get_object_or_404, get_list_or_404
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.decorators.debug import sensitive_post_parameters
-from django.views.generic.list_detail import object_list
+from django.views.generic.list import ListView
 
 from nav.models.profiles import Account, AccountGroup, Privilege
 from nav.django.utils import get_account
@@ -294,7 +294,7 @@ def group_list(request):
                               {'active': {'group_list': True},
                                'groups': groups},
                               UserAdminContext(request))
-    # return object_list(request, AccountGroup.objects.all(),
+    # return ListView(request, AccountGroup.objects.all(),
     #                     template_object_name='group',
     #                     template_name='useradmin/group_list.html',
     #                     extra_context={'active': {'group_list': True}})
