@@ -66,7 +66,7 @@ class GetRoutersMixin(object):
                 'expandable': router.get_gwports().count() > 0,
                 'fields': model_to_dict(router, fields=('sysname',))
             }
-            for router in kwargs.pop('object_list')
+            for router in kwargs.pop('object_list', self.object_list)
         ]
         return context
 
