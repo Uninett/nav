@@ -15,7 +15,7 @@
 #
 """URL configuration for Status tool"""
 
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 
 from nav.web.status.views import status, preferences, add_section
 from nav.web.status.views import edit_preferences, resolve_alert

@@ -1,5 +1,5 @@
 """Radius backend URL config."""
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 from nav.web.radius.views import (index, log_search, account_charts,
                                   account_search, log_detail_page,
                                   log_detail_modal, account_detail_page,

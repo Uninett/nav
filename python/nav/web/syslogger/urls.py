@@ -16,7 +16,7 @@
 #
 """syslogger Django URL config"""
 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 from nav.web.syslogger.views import index
 from nav.web.syslogger.views import exceptions_response
 from nav.web.syslogger.views import errors_response

@@ -15,7 +15,7 @@
 #
 """Django URL configuration for webfront"""
 
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 
 from nav.web.webfront.views import (index, login, logout, about, toolbox,
                                     save_tools, set_tool_layout)

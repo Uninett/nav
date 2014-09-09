@@ -15,7 +15,7 @@
 #
 """SeedDB Django URL config"""
 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 
 from nav.web.seeddb.page import index
 from nav.web.seeddb.page.room import room, room_edit, room_bulk

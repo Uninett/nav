@@ -16,7 +16,7 @@
 #
 """Django URL config for ipdevinfo"""
 
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 
 from nav.web.ipdevinfo.views import (search, service_list, service_matrix,
                                      port_counter_graph)

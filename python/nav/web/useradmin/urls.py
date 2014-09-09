@@ -21,7 +21,7 @@
 #
 """Django URL config for useradmin"""
 
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('nav.web.useradmin.views',

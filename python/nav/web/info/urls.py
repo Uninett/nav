@@ -15,7 +15,7 @@
 #
 """Django URL configuration"""
 
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import patterns, include, url
 from nav.web.info.views import index, osm_map_redirecter
 
 urlpatterns = patterns('',

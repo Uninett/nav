@@ -15,7 +15,7 @@
 #
 """URL configuration for l2trace"""
 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 
 from nav.web.l2trace.views import index
 

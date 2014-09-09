@@ -15,7 +15,7 @@
 #
 """Netmap backend URL config."""
 
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 
 
 # The patterns are relative to the base URL of the subsystem

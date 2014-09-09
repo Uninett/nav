@@ -15,7 +15,7 @@
 #
 """Django URL config for graphite bridging"""
 
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 
 _dummy = lambda x: None
 

@@ -16,7 +16,7 @@
 #
 """URL configuration for Machinetracker tool"""
 
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 
 from nav.web.machinetracker.views import ip_search, ip_do_search
 from nav.web.machinetracker.views import mac_search, mac_do_search

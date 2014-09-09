@@ -15,7 +15,7 @@
 #
 """PortAdmin Django URL config"""
 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 from nav.web.portadmin.views import (index, search_by_ip, search_by_sysname,
                                      search_by_interfaceid,
                                      save_interfaceinfo, render_trunk_edit,

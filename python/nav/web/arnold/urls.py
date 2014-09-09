@@ -15,7 +15,7 @@
 #
 """Urlconfig for arnold"""
 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 from nav.web.arnold.views import (render_history, render_detained_ports,
                                   render_search, render_justifications,
                                   render_quarantine_vlans, render_details,
