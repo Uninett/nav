@@ -14,6 +14,11 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             addModuleTabs();
             addMetricTabs();
             addMainTabs();
+
+            /* Add tab navigating here to avoid race conditions */
+            TabNavigation.add(mainTabsSelector);
+            TabNavigation.add(moduleTabsSelector, mainTabsSelector);
+            TabNavigation.add(metricTabsSelector, mainTabsSelector);
         }
 
         var $neighbornode = $('.neighbormap');
@@ -28,7 +33,6 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             load: addActivityButtonListener
         };
         $(moduleTabsSelector).tabs(tabconfig);
-        TabNavigation.add(moduleTabsSelector, mainTabsSelector);
 
         /* Toggle port legend */
         $('#ports').on('click', '.portlegendToggler', function () {
@@ -42,7 +46,6 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
         });
         markErrorTabs(tabs);
         tabs.show();
-        TabNavigation.add(mainTabsSelector);
         addFloatingGlobalControls();
     }
 
@@ -51,7 +54,6 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             beforeLoad: JUIHelpers.cacheRequest
         });
         tabs.show();
-        TabNavigation.add(metricTabsSelector, mainTabsSelector);
     }
 
     function addFloatingGlobalControls() {
