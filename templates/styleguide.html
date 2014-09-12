@@ -9,7 +9,7 @@
   }
   </style>
   <script>
-    require(['libs/jquery-ui-1.8.21.custom.min'], function () {
+    require(['libs/jquery-ui.min'], function () {
       $(function () {
 
         /* Code for activating jquery ui tabs. We usually hide the tabs until
@@ -279,9 +279,9 @@
         <div id="jqueryuitab1">
           <p>
             These tabs need javascript to work. You can link to url to access
-            content with AJAX. If you do that you can use the title attribute
-            to say what element the content should go in. Otherwise it just
-            follows order.
+            content with AJAX. If you do that you can use the aria-controls
+            attribute on the list element to say what element the content
+            should go in. Otherwise it just follows order.
           </p>
         </div>
 
