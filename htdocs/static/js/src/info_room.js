@@ -5,6 +5,7 @@ require(
         "info/table_info_converter",
         "plugins/room_mapper",
         "plugins/sensors_controller",
+        "plugins/jquery_ui_helpers",
         "dt_plugins/natsort",
         "dt_plugins/altsort",
         "dt_plugins/date_title_sort",
@@ -13,7 +14,7 @@ require(
         "libs/jquery-ui.min",
         "libs/jquery.dataTables.min"
     ],
-    function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, SensorsController) {
+    function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, SensorsController, JUIHelpers) {
         /* Run javascript at document ready */
         $(function () {
             if ($('#infotabs').length) {
@@ -31,7 +32,7 @@ require(
         /* Add tabs to roomview content */
         function add_tabs() {
             var tabconfig = {
-                cache: true, // cache loaded pages
+                beforeLoad: JUIHelpers.cacheRequest,
                 load: function (event, ui) {
                     if (ui.panel.id === 'sensors') {
                         applyEnvironmentHandlers();

@@ -1,11 +1,12 @@
 require([
     "plugins/table_utils",
     "plugins/tab_navigation",
+    "plugins/jquery_ui_helpers",
     "libs/spin.min",
     "libs/jquery",
     "libs/jquery-ui.min",
     "libs/jquery.dataTables.min"
-], function (TableUtil, TabNavigation) {
+], function (TableUtil, TabNavigation, JUIHelpers) {
 
     var mainTabsSelector = '#loggerinfotabs';
 
@@ -51,7 +52,7 @@ require([
 
     function addMainTabs() {
         var tabconfig = {
-            cache: true, // cache loaded pages
+            beforeLoad: JUIHelpers.cacheRequest,
             load: eventLoadingComplete
         };
         var tabs = $(mainTabsSelector).tabs(tabconfig);
