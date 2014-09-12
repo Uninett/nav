@@ -34,9 +34,9 @@ require(
             var tabconfig = {
                 beforeLoad: JUIHelpers.cacheRequest,
                 load: function (event, ui) {
-                    if (ui.panel.id === 'sensors') {
+                    if (ui.tab.attr('aria-controls') === 'sensors') {
                         applyEnvironmentHandlers();
-                    } else if (ui.panel.id === 'netboxinterfaces') {
+                    } else if (ui.tab.attr('aria-controls') === 'netboxinterfaces') {
                         applyNetboxInterfacesHandlers();
                     }
                 }
