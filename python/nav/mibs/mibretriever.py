@@ -443,6 +443,12 @@ class MibRetriever(object):
                     oid_suffix = OID(oid).strip_prefix(table.row.oid)
                     column_no = oid_suffix[0]
                     row_index = oid_suffix[1:]
+                    if column_no not in table.reverse_column_index:
+                        self._logger.warning(
+                            "device response has bad table index %s in %s::%s, "
+                            "ignoring",
+                            oid_suffix, self.mib['moduleName'], table_name)
+                        continue
                     column_name = table.reverse_column_index[column_no]
 
                     if row_index not in formatted_result:
