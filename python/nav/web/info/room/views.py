@@ -96,7 +96,7 @@ def filter_netboxes(room):
 
 def roominfo(request, roomid):
     """Controller for displaying roominfo"""
-    room = Room.objects.get(id=roomid)
+    room = get_object_or_404(Room, id=roomid)
     images = room.image_set.all()
     navpath = get_path() + [(room.id,)]
     room.sorted_data = sorted(room.data.items())
@@ -111,7 +111,7 @@ def roominfo(request, roomid):
 
 def render_deviceinfo(request, roomid):
     """Controller for rendering device info"""
-    room = Room.objects.get(id=roomid)
+    room = get_object_or_404(Room, id=roomid)
     all_netboxes = room.netbox_set.select_related(
         'type', 'category', 'organization', 'interface').order_by('sysname')
     return render(request, 'info/room/roominfo_devices.html', {
@@ -122,7 +122,7 @@ def render_deviceinfo(request, roomid):
 def upload_image(request, roomid):
     """Controller for uploading an image"""
 
-    room = Room.objects.get(pk=roomid)
+    room = get_object_or_404(Room, pk=roomid)
     navpath = get_path() + [
         (room.id, reverse('room-info', kwargs={'roomid': room.id})),
         ('Edit images',)
@@ -230,7 +230,7 @@ def update_priority(request, roomid):
 
 def render_netboxes(request, roomid):
     """Controller for displaying the netboxes in the tabbed view"""
-    room = Room.objects.get(id=roomid)
+    room = get_object_or_404(Room, id=roomid)
     netboxes = filter_netboxes(room).order_by("category", "sysname")
 
     cam_query = {'last_cam': """SELECT end_time
