@@ -23,6 +23,7 @@ from functools import wraps
 from time import time
 from subprocess import Popen, PIPE
 from nav.models.manage import Arp, Netbios
+from nav.macaddress import MacAddress
 from django.db.transaction import commit_on_success
 
 SPLITCHAR = '!'
@@ -94,6 +95,9 @@ def parse(output, encoding=None):
             try:
                 args = [wash(x, encoding) for x in result.split(SPLITCHAR)]
                 netbiosresult = NetbiosResult(*args)
+                # Handle mac address with "-" separator (FreeBSD nbtscan).
+                netbiosresult = netbiosresult._replace(
+                    mac=str(MacAddress(netbiosresult.mac)))
             except TypeError:
                 _logger.error('Error parsing %s', result)
             else:
