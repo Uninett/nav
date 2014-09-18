@@ -76,7 +76,8 @@ class SwPortBlocked(Shadow):
         "sets the vlan attribute from the interface if missing"
         if self.interface and not self.vlan:
             ifc = self.interface.get_existing_model(containers)
-            self.vlan = ifc.vlan
+            if ifc:
+                self.vlan = ifc.vlan
 
     def save(self, containers):
         "refuses to save if vlan is not set; logs an error instead"
