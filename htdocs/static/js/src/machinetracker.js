@@ -25,7 +25,7 @@ require(["libs/jquery.tablesorter.min", "libs/jquery"], function (tablesorter) {
         $trackerTable.tablesorter({
             headers: headerData,
             textExtraction: textExtractionData,
-            widgets: ['zebra']});
+            widgets: ['zebra']
         });
 
         // If the form is reloaded, display correct data
@@ -36,3 +36,6 @@ require(["libs/jquery.tablesorter.min", "libs/jquery"], function (tablesorter) {
             $days.val("7");
         }
     });
+
+});
+
