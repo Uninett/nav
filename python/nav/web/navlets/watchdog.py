@@ -17,6 +17,7 @@
 
 from . import Navlet
 from nav.watchdog.util import get_statuses
+from nav.watchdog.tests import STATUS_OK
 
 
 class WatchDogWidget(Navlet):
@@ -28,7 +29,7 @@ class WatchDogWidget(Navlet):
 
     def get_context_data(self, **kwargs):
         context = super(WatchDogWidget, self).get_context_data(**kwargs)
-        context['tests'] = get_statuses()
+        context['tests'] = [t for t in get_statuses() if t.status != STATUS_OK]
         return context
 
     def get_template_basename(self):
