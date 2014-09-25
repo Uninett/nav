@@ -9,6 +9,10 @@
 }
 
 .watchdog-tests {
+    ul {
+        max-height: 300px;
+        overflow: auto;
+    }
     li {
         padding: 0.2em;
         .label.alert {
