@@ -144,8 +144,6 @@ def metrics_to_packets(metric_tuples):
              Carbon backend.
 
     """
-    assert len(metric_tuples) > 0
-
     output = []
     size = 0
     for metric in metric_tuples:
