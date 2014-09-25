@@ -200,9 +200,9 @@ class ProcessInput:
         if self.input.get('prefixid', False):
             self.__prefix()
         self.__common()
-        if not (self.input.get('active', False)
-                or self.input.get('inactive', False)):
-            self.input['active'] = "on"
+        if not self.input.get('period_filter'):
+            self.input['period_filter'] = 'active'
+
         return self.input
 
     def mac(self):
