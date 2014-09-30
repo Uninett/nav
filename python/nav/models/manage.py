@@ -297,6 +297,12 @@ class Netbox(models.Model):
                     rrd_file__key__in=('swport', 'gwport', 'interface'))
             ).order_by('description')
 
+    def is_on_maintenance(self):
+        """Returns True if this netbox is currently on maintenance"""
+        states = self.get_unresolved_alerts('maintenanceState').filter(
+            variables__variable='netbox')
+        return states.count() > 0
+
     def get_unresolved_alerts(self, kind=None):
         """Returns a queryset of unresolved alert states"""
         return self.alerthistory_set.unresolved(kind)

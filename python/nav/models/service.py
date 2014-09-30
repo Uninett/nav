@@ -83,6 +83,12 @@ class Service(models.Model):
 
         return result
 
+    def is_on_maintenance(self):
+        """Returns True if this service is currently on maintenance"""
+        states = self.netbox.get_unresolved_alerts('maintenanceState').filter(
+            variables__variable='service', subid=self.id)
+        return states.count() > 0
+
 
 class ServiceProperty(models.Model):
     """From NAV Wiki: Each service may have an additional set of attributes.
