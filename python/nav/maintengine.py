@@ -23,11 +23,14 @@ import nav.db
 import nav.logs
 import nav.event
 
+from django.db.transaction import commit_on_success
+from django.db.models import Q
+
 INFINITY = datetime.datetime.max
 
 # The devices must have been up for at least this time before
 # ending a maintenance task without a specified end.
-MINIMUM_UPTIME_MINS = 60
+MINIMUM_UPTIME = datetime.timedelta(minutes=60)
 
 db_conn = None
 _logger = logging.getLogger('nav.maintengine')
@@ -71,14 +74,13 @@ def init_logging(log_file=None, log_format=None):
     return _logger
 
 
+@commit_on_success
 def schedule():
-    """Check if there are maintenance tasks to be schedule"""
-    db = _get_db()
-    sql = """UPDATE maint_task SET state = 'scheduled'
-        WHERE state IS NULL
-        OR state NOT IN ('scheduled', 'active', 'passed', 'canceled')"""
-    db.execute(sql)
-    _get_dbconn().commit()
+    """Changes invalid task states to 'scheduled'"""
+    tasks = MaintenanceTask.objects.filter(
+        Q(state__isnull=True) |
+        ~Q(state__in=[s[0] for s in MaintenanceTask.STATES]))
+    tasks.update(state=MaintenanceTask.STATE_SCHEDULED)
 
 
 def get_boxids_by_key(key, value):
@@ -134,54 +136,36 @@ def get_tasks_and_boxes_without_end():
     return tasks_and_boxes
 
 
+@commit_on_success
 def check_tasks_without_end():
-    """Loop thru all maintenance tasks without a defined end time, and
-    end the task if all boxes included in the task have been up for
-    longer than a minimum time."""
+    """
+    Ends all endless maintenance tasks whose event subjects have all been up
+    for longer than the set minimum time.
+    """
     db = _get_db()
-    tasks_and_boxes = get_tasks_and_boxes_without_end()
-    # Loop thru all maintenance tasks and check if the affected boxes
-    # have been up for minimum time.
-    for (maint_id, netbox_ids) in tasks_and_boxes.iteritems():
-        boxes_still_on_maint = []
-        for box_id in netbox_ids:
-            sql = """SELECT end_time FROM alerthist
-                        WHERE netboxid = %s AND
-                            eventtypeid = 'boxState' AND
-                            end_time IS NOT NULL
-                        ORDER BY end_time DESC LIMIT 1"""
-            db.execute(sql, (box_id,))
-            result = db.fetchone()
-            if result:
-                (end_time,) = result
-                # Box is up
-                end_time_to_check = INFINITY
-                if end_time < (INFINITY -
-                               datetime.timedelta(minutes=MINIMUM_UPTIME_MINS)):
-                    end_time_to_check = (end_time +
-                            datetime.timedelta(minutes=MINIMUM_UPTIME_MINS))
-                if end_time_to_check > datetime.datetime.now():
-                    # Box have not been up for minimum time yet.
-                    boxes_still_on_maint.append(str(box_id))
-            else:
-                # Box is not up
-                boxes_still_on_maint.append(str(box_id))
-        if len(boxes_still_on_maint) > 0:
-            # Some boxes are still down...
+    for task in MaintenanceTask.objects.endless().filter(
+            state=MaintenanceTask.STATE_ACTIVE
+    ):
+        currently_or_too_recently_down = []
+        threshold = datetime.datetime.now() - MINIMUM_UPTIME
+        for subject in task.get_event_subjects():
+            end_time = subject.last_downtime_ended()
+            if end_time > threshold:
+                currently_or_too_recently_down.append(subject)
+
+        if currently_or_too_recently_down:
             _logger.debug(
-                "Maintenance task %d: Boxes still on maintenance: %r",
-                maint_id, boxes_still_on_maint)
+                "Endless maintenance task %d: Things that haven't been up "
+                "longer than the threshold: %r",
+                task.id, currently_or_too_recently_down)
         else:
-            # All affected boxes for this maintenance task have been up
-            # again for the minimum time.
-            time_now = datetime.datetime.now()
-            _logger.warn("Maintenance task %d: Set end at %s",
-                         maint_id, time_now)
-            sql = """UPDATE maint_task
-                            SET maint_end = %s
-                        WHERE maint_taskid = %s"""
-            db.execute(sql, (time_now, maint_id,))
-            _get_dbconn().commit()
+            now = datetime.datetime.now()
+            _logger.debug(
+                "Endless maintenance task %d: All components have been up "
+                "longer than the threshold, setting end time to %s",
+                task.id, now)
+            task.end_time = now
+            task.save()
 
 
 def check_state(events, maxdate_boxes):
