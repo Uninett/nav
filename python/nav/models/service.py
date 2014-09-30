@@ -89,6 +89,22 @@ class Service(models.Model):
             variables__variable='service', subid=self.id)
         return states.count() > 0
 
+    def last_downtime_ended(self):
+        """
+        Returns the end_time of the last known serviceState alert.
+
+        :returns: A datetime object if a serviceState alert was found,
+                  otherwise None
+        """
+        try:
+            lastdown = self.netbox.alerthistory_set.filter(
+                event_type__id='serviceState', end_time__isnull=False
+            ).order_by("-end_time")[0]
+        except IndexError:
+            return
+        else:
+            return lastdown.end_time
+
 
 class ServiceProperty(models.Model):
     """From NAV Wiki: Each service may have an additional set of attributes.
