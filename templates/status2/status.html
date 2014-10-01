@@ -31,8 +31,12 @@
                     This may or may not fail spectacularly if subject has
                     not implemented the get_absolute_url() method
                     {% endcomment %}
-                    <a href="{{ alert.get_subject.get_absolute_url }}"
-                            >{{ alert.get_subject }}</a>
+                    {% if alert.get_subject.get_absolute_url %}
+                        <a href="{{ alert.get_subject.get_absolute_url }}"
+                                >{{ alert.get_subject }}</a>
+                    {% else %}
+                        {{ alert.get_subject }}
+                    {% endif %}
                 </td>
 
                 <td>
