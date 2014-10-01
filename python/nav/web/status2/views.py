@@ -16,7 +16,13 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.generic import View
+
+from rest_framework import viewsets, filters
+from rest_framework.renderers import JSONRenderer
+from rest_framework.views import APIView
+
 from nav.models.event import AlertHistory
+from . import serializers
 
 
 class StatusView(View):
@@ -33,3 +39,14 @@ class StatusView(View):
             RequestContext(request)
         )
 
+
+class StatusAPIMixin(APIView):
+    """Mixin for providing permissions and renderers"""
+    renderer_classes = (JSONRenderer,)
+    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
+
+
+class AlertHistoryViewSet(StatusAPIMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = AlertHistory.objects.unresolved().select_related(depth=1)
+    serializer_class = serializers.AlertHistorySerializer
+    filter_fields = ('event_type', 'netbox__organization', 'netbox__category')
