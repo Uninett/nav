@@ -63,6 +63,7 @@ class GraphWidget(Navlet):
         account_navlet = AccountNavlet.objects.get(pk=nid, account=account)
         account_navlet.preferences['url'] = url
         account_navlet.preferences['refresh_interval'] = interval
+        account_navlet.preferences['target'] = request.POST.get('target')
         account_navlet.save()
 
         return HttpResponse()
