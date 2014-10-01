@@ -297,6 +297,28 @@ class Netbox(models.Model):
                     rrd_file__key__in=('swport', 'gwport', 'interface'))
             ).order_by('description')
 
+    def is_on_maintenance(self):
+        """Returns True if this netbox is currently on maintenance"""
+        states = self.get_unresolved_alerts('maintenanceState').filter(
+            variables__variable='netbox')
+        return states.count() > 0
+
+    def last_downtime_ended(self):
+        """
+        Returns the end_time of the last known boxState alert.
+
+        :returns: A datetime object if a serviceState alert was found,
+                  otherwise None
+        """
+        try:
+            lastdown = self.alerthistory_set.filter(
+                event_type__id='boxState', end_time__isnull=False
+            ).order_by("-end_time")[0]
+        except IndexError:
+            return
+        else:
+            return lastdown.end_time
+
     def get_unresolved_alerts(self, kind=None):
         """Returns a queryset of unresolved alert states"""
         return self.alerthistory_set.unresolved(kind)

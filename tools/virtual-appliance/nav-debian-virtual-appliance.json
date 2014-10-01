@@ -6,9 +6,9 @@
             "output_directory": "nav-virtual-appliance",
 
             "guest_os_type": "Debian_64",
-            "iso_url": "http://cdimage.debian.org/cdimage/release/7.5.0/amd64/iso-cd/debian-7.5.0-amd64-netinst.iso",
-            "iso_checksum": "8fdb6715228ea90faba58cb84644d296",
-            "iso_checksum_type": "md5",
+            "iso_url": "http://cdimage.debian.org/cdimage/release/7.6.0/amd64/iso-cd/debian-7.6.0-amd64-netinst.iso",
+            "iso_checksum": "ab1008f5460c66e4ab601958ffd6df15bc274ffb3d83072830e8b577c699a429",
+            "iso_checksum_type": "sha256",
 
             "http_directory": ".",
             "boot_command": [

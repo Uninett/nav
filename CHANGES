@@ -1,3 +1,11 @@
+Version 4.1.2
+(released dd mmm 2014)
+
+ Bugfixes:
+
+  * LP#1371026 (ipdevpoll topo job fails with AttributeError)
+
+
 Version 4.1.1
 (released 14 Aug 2014)
 

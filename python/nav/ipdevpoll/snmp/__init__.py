@@ -19,7 +19,6 @@ from __future__ import absolute_import
 import warnings
 
 try:
-    warnings.filterwarnings("ignore", category=DeprecationWarning)
     import pynetsnmp.twistedsnmp
 except ImportError:
     from nav.ipdevpoll.snmp.twistedsnmp import AgentProxy, snmpprotocol
@@ -27,7 +26,5 @@ except ImportError:
                   "performance")
 else:
     from nav.ipdevpoll.snmp.pynetsnmp import AgentProxy, snmpprotocol
-finally:
-    warnings.resetwarnings()
 
 from .common import SnmpError
