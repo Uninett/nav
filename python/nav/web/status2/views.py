@@ -14,18 +14,22 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """NAV status app views"""
+import datetime
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.generic import View
+from django.db.models import Q
 
 from rest_framework import viewsets, filters
 from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 
 from nav.models.event import AlertHistory
+from nav.models.fields import UNRESOLVED
 from . import serializers
 
+STATELESS_THRESHOLD = 24
 
 class StatusView(View):
     """Generic Status view"""
@@ -59,9 +63,23 @@ class AlertHistoryViewSet(StatusAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         """Produces a queryset customized from the query parameters"""
-        qset = AlertHistory.objects.unresolved().select_related(depth=1)
+        if not self.request.QUERY_PARAMS.get('stateless', False):
+            qset = AlertHistory.objects.unresolved().select_related(depth=1)
+        else:
+            qset = self._get_stateless_queryset()
+
         qset = self._multivalue_filter(qset)
         return qset
+
+    def _get_stateless_queryset(self):
+        hours = int(self.request.QUERY_PARAMS.get('stateless_threshold',
+                                                  STATELESS_THRESHOLD))
+        if hours < 1:
+            raise ValueError("hours must be at least 1")
+        threshold = datetime.datetime.now() - datetime.timedelta(hours=hours)
+        stateless = Q(start_time__gte=threshold) & Q(end_time__isnull=True)
+        return AlertHistory.objects.filter(
+            stateless | UNRESOLVED).select_related(depth=1)
 
     MULTIVALUE_FILTERS = {
         'event_type': 'event_type',
