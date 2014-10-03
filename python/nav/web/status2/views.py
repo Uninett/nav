@@ -43,10 +43,30 @@ class StatusView(View):
 class StatusAPIMixin(APIView):
     """Mixin for providing permissions and renderers"""
     renderer_classes = (JSONRenderer,)
-    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
+    filter_backends = (filters.DjangoFilterBackend,)
 
 
 class AlertHistoryViewSet(StatusAPIMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = AlertHistory.objects.unresolved().select_related(depth=1)
+    queryset = AlertHistory.objects.none()
     serializer_class = serializers.AlertHistorySerializer
-    filter_fields = ('event_type', 'netbox__organization', 'netbox__category')
+
+    def get_queryset(self):
+        qset = AlertHistory.objects.unresolved().select_related(depth=1)
+        qset = self._multivalue_filter(qset)
+        return qset
+
+    MULTIVALUE_FILTERS = {
+        'event_type': 'event_type',
+        'organization': 'netbox__organization',
+        'category': 'netbox__category',
+        'alert_type': 'alert_type__name',
+    }
+
+    def _multivalue_filter(self, qset):
+        for arg, field in self.MULTIVALUE_FILTERS.items():
+            values = self.request.QUERY_PARAMS.getlist(arg, None)
+            if values:
+                filtr = field + '__in'
+                qset = qset.filter(**{filtr: values})
+        return qset
+
