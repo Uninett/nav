@@ -13,6 +13,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""NAV status app views"""
+
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.generic import View
@@ -26,7 +28,10 @@ from . import serializers
 
 
 class StatusView(View):
+    """Generic Status view"""
+
     def get(self, request):
+        """Produces a list view of AlertHistory entries"""
         alerts = AlertHistory.objects.unresolved().order_by('-start_time')
         return render_to_response(
             'status2/status.html',
@@ -47,10 +52,13 @@ class StatusAPIMixin(APIView):
 
 
 class AlertHistoryViewSet(StatusAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """API view for listing AlertHistory entries"""
+
     queryset = AlertHistory.objects.none()
     serializer_class = serializers.AlertHistorySerializer
 
     def get_queryset(self):
+        """Produces a queryset customized from the query parameters"""
         qset = AlertHistory.objects.unresolved().select_related(depth=1)
         qset = self._multivalue_filter(qset)
         return qset
