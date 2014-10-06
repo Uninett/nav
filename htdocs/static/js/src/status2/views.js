@@ -27,19 +27,20 @@ define([
 
         initialize: function () {
             console.log('Initializing panel view');
+            this.fetchData();
         },
 
         events: {
-            'change': 'onEventDropDownChange',
+            'change': 'fetchData',
             'submit': 'preventSubmit'
         },
 
         /* Event driven methods */
-        onEventDropDownChange: function () {
-            console.log('User selected something from event dropdown');
+        fetchData: function () {
+            console.log('Fetching data...');
             var request = this.collection.fetch();
             request.done(function () {
-                console.log('events fetched');
+                console.log('data fetched');
             });
         },
         preventSubmit: function (event) {
