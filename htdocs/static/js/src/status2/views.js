@@ -13,7 +13,10 @@ define([
         initialize: function () {
             var eventCollection = new Collections.EventCollection();
 
-            new PanelView({ collection: eventCollection});
+            new PanelView({
+                collection: eventCollection,
+                attributes: { data_api_url: this.$el.attr('data-api-url') }
+            });
             new EventsView({ collection: eventCollection});
 
         }
@@ -38,7 +41,7 @@ define([
         /* Event driven methods */
         fetchData: function () {
             console.log('Fetching data...');
-            this.collection.url = '_api/alert/?' + this.$el.serialize();
+            this.collection.url = this.attributes.data_api_url + '?' + this.$el.serialize();
             console.log(this.collection.url);
             var request = this.collection.fetch();
             request.done(function () {

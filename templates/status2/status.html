@@ -16,7 +16,7 @@
 {% block content %}
 <p>This will eventually become the new status page</p>
 
-  <div id="status-page">
+  <div id="status-page" data-api-url="{% url alerthistory-list %}">
 
     {# Form for filtering events #}
     {% crispy form %}
