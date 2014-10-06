@@ -79,7 +79,6 @@ define([
         tagName: 'tr',
         template: compiledEventTemplate,
         initialize: function () {
-            console.log(this.model);
             this.render();
         },
         render: function () {
