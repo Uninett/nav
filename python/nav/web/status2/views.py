@@ -25,7 +25,7 @@ from rest_framework import viewsets, filters
 from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 
-from nav.models.event import AlertHistory
+from nav.models.event import AlertHistory, EventType, AlertType
 from nav.models.fields import UNRESOLVED
 from . import serializers
 
@@ -36,14 +36,13 @@ class StatusView(View):
 
     def get(self, request):
         """Produces a list view of AlertHistory entries"""
-        alerts = AlertHistory.objects.unresolved().order_by('-start_time')
         return render_to_response(
             'status2/status.html',
             {
                 'title': 'NAV - Status',
                 'navpath': [('Home', '/'), ('Status', '')],
-
-                'alerts': alerts,
+                'alerttypes': AlertType.objects.all().order_by(
+                    'event_type', 'name'),
             },
             RequestContext(request)
         )

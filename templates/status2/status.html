@@ -16,21 +16,31 @@
 
   <div id="status-page">
 
-    <div class="row">
-      <div class="small-12 columns">
+    {# Form for filtering events #}
+    <form id="status-panel" method="get" action="">
 
-        {# Form for filtering events #}
-        <form id="status-panel" method="get" action="">
-
+      <div class="row">
+        {# alert-types #}
+        <div class="small-4 columns">
           <label>
-            Select event types
-            <select class="event-dropdown">
-              <option>---</option>
-              <option>Events</option>
+            Alert types
+            <select class="alert-dropdown" multiple="multiple">
+              {% regroup alerttypes by event_type as event_types %}
+              {% for event_type in event_types %}
+                <optgroup label="{{ event_type.grouper }}">
+                  {% for alert_type in event_type.list %}
+                    <option value="{{ alert_type.id }}">{{ alert_type.name }}</option>
+                  {% endfor %}
+                </optgroup>
+              {% endfor %}
+
             </select>
           </label>
+        </div>  {# column #}
 
-        </form>
+      </div>  {# row #}
+
+    </form>
 
         {# Table displaying filtered events #}
         <table id="events-list" class="listtable">
