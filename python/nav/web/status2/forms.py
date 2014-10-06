@@ -18,7 +18,7 @@ from operator import itemgetter
 
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column
+from crispy_forms_foundation.layout import Layout, Row, Column, Field
 
 from nav.models.event import EventType
 from nav.models.manage import Organization, Category
@@ -48,9 +48,12 @@ class StatusPanelForm(forms.Form):
         self.helper.form_method = 'POST'
         self.helper.layout = Layout(
             Row(
-                Column('alert_type', css_class='medium-4'),
-                Column('category', css_class='medium-4'),
-                Column('organization', css_class='medium-4'),
+                Column(Field('alert_type', css_class='select2'),
+                       css_class='medium-4'),
+                Column(Field('category', css_class='select2'),
+                       css_class='medium-4'),
+                Column(Field('organization', css_class='select2'),
+                       css_class='medium-4'),
             )
         )
 
