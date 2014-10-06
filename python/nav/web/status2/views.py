@@ -37,12 +37,19 @@ class StatusView(View):
 
     def get(self, request):
         """Produces a list view of AlertHistory entries"""
+        form = forms.StatusPanelForm(
+            {
+                'alert_type': ['boxDown', 'coldStart'],
+                'category': ['GW', 'GSW', 'SW'],
+            }
+        )
+
         return render_to_response(
             'status2/status.html',
             {
                 'title': 'NAV - Status',
                 'navpath': [('Home', '/'), ('Status', '')],
-                'form': forms.StatusPanelForm,
+                'form': form,
             },
             RequestContext(request)
         )
