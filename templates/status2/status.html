@@ -18,7 +18,10 @@
 
     <div class="row">
       <div class="small-12 columns">
-        <div id="status-panel">
+
+        {# Form for filtering events #}
+        <form id="status-panel" method="get" action="">
+
           <label>
             Select event types
             <select class="event-dropdown">
@@ -27,8 +30,9 @@
             </select>
           </label>
 
-        </div>
+        </form>
 
+        {# Table displaying filtered events #}
         <table id="events-list" class="listtable">
           <caption>Events</caption>
           <thead>

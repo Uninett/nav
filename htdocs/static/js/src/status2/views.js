@@ -30,7 +30,8 @@ define([
         },
 
         events: {
-            'change .event-dropdown': 'onEventDropDownChange'
+            'change': 'onEventDropDownChange',
+            'submit': 'preventSubmit'
         },
 
         /* Event driven methods */
@@ -40,6 +41,9 @@ define([
             request.done(function () {
                 console.log('events fetched');
             });
+        },
+        preventSubmit: function (event) {
+            event.preventDefault();
         }
     });
 
