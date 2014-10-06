@@ -24,7 +24,7 @@
         <div class="small-4 columns">
           <label>
             Alert types
-            <select name="alert_type" class="alert-dropdown select2" multiple="multiple">
+            <select name="alert_type" class="select2" multiple="multiple">
               {% regroup alerttypes by event_type as event_types %}
               {% for event_type in event_types %}
                 <optgroup label="{{ event_type.grouper }}">
@@ -39,11 +39,20 @@
         </div>  {# column #}
 
         <div class="small-4 columns">
+            <label>
+              Categories
+              <select name="category" class="select2" multiple="multiple">
+              {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.id }}</option>
+              {% endfor %}
+              </select>
+            </label>
 
         </div>  {# column #}
 
 
         <div class="small-4 columns">
+
         </div>  {# column #}
       </div>  {# row #}
 
