@@ -5,6 +5,8 @@ define([
     'libs/handlebars',
 ], function (Collections, EventTemplate) {
 
+
+    /** The main view containing the panel and the results list */
     var StatusView = Backbone.View.extend({
         el: '#status-page',
 
@@ -18,7 +20,8 @@ define([
 
     });
 
-    /* The main panel for filtering events */
+
+    /** The main panel for filtering events */
     var PanelView = Backbone.View.extend({
         el: '#status-panel',
 
@@ -40,6 +43,8 @@ define([
         }
     });
 
+
+    /** The list of status events */
     var EventsView = Backbone.View.extend({
         el: '#events-list',
 
@@ -60,11 +65,12 @@ define([
         }
     });
 
-    var CompiledEventTemplate = Handlebars.compile(EventTemplate);
 
+    /** The view displaying a single status event */
+    var compiledEventTemplate = Handlebars.compile(EventTemplate);
     var EventView = Backbone.View.extend({
         tagName: 'tr',
-        template: CompiledEventTemplate,
+        template: compiledEventTemplate,
         initialize: function () {
             console.log(this.model);
             this.render();

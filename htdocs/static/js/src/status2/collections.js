@@ -6,12 +6,14 @@ define([
     /**
      * Collections for Status
      */
-
     var EventCollection = Backbone.Collection.extend({
         model: Models.EventModel,
-        url: 'blapp',
+        url: '_api/alert',
         initialize: function () {
             console.log('A new eventcollection was made');
+        },
+        parse: function (response) {
+            return response.results;
         }
     });
 
