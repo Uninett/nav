@@ -1,9 +1,53 @@
 {% extends "status2/base.html" %}
 
+{% block base_header_additional_head %}
+  <script type="text/javascript">require(['status/status']);</script>
+  <script type="text/template" id="event_template">
+    <li>
+      <!-- Access template variables with <%= %> -->
+      <%= event_type %>
+    </li>
+  </script>
+{% endblock %}
+
+
 {% block content %}
 <p>This will eventually become the new status page</p>
 
-{% if alerts %}
+  <div id="status-page">
+
+    <div class="row">
+      <div class="small-12 columns">
+        <div id="status-panel">
+          <label>
+            Select event types
+            <select class="event-dropdown">
+              <option>---</option>
+              <option>Events</option>
+            </select>
+          </label>
+
+        </div>
+
+        <table id="events-list" class="listtable">
+          <caption>Events</caption>
+          <thead>
+            <tr>
+              <td>Type</td>
+              <td>Subject</td>
+              <td>Start time</td>
+              <td>&nbsp;</td>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+      </div>
+    </div>
+
+  </div>
+
+{% if none %}
     <table class="listtable">
         <thead>
             <caption>Problems</caption>
