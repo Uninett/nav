@@ -57,8 +57,8 @@ define([
 
         initialize: function () {
             console.log('Initializing events view');
-            this.collection.on('change add reset remove', this.render, this);
             this.body = this.$el.find('tbody');
+            this.collection.on('change add reset remove', this.render, this);
         },
 
         render: function () {

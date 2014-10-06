@@ -28,7 +28,7 @@ from rest_framework.views import APIView
 from nav.models.event import AlertHistory, AlertType
 from nav.models.manage import Category, Organization
 from nav.models.fields import UNRESOLVED
-from . import serializers
+from . import serializers, forms
 
 STATELESS_THRESHOLD = 24
 
@@ -42,10 +42,7 @@ class StatusView(View):
             {
                 'title': 'NAV - Status',
                 'navpath': [('Home', '/'), ('Status', '')],
-                'alerttypes': AlertType.objects.all().order_by(
-                    'event_type', 'name'),
-                'categories': Category.objects.all(),
-                'organizations': Organization.objects.all()
+                'form': forms.StatusPanelForm,
             },
             RequestContext(request)
         )
