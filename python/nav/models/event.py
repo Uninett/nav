@@ -209,10 +209,15 @@ class EventMixIn(object):
         be some physical or logical subcomponents of a Netbox.
 
         """
-        if self.subid and self.event_type_id in self.SUBID_MAP:
-            model = models.get_model('models',
-                                     self.SUBID_MAP[self.event_type_id])
-            return model.objects.get(pk=self.subid)
+        if self.subid:
+            if self.event_type_id in self.SUBID_MAP:
+                model = models.get_model('models',
+                                         self.SUBID_MAP[self.event_type_id])
+                return model.objects.get(pk=self.subid)
+            elif (self.event_type_id == 'maintenanceState'
+                  and 'service' in self.varmap.get(EventQueue.STATE_START, {})):
+                model = models.get_model('models', 'Service')
+                return model.objects.get(pk=self.subid)
 
         # catch-all
         return self.netbox

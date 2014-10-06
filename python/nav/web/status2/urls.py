@@ -13,11 +13,16 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-from django.conf.urls import url, patterns
+from django.conf.urls import url, patterns, include
+from nav.web.status2 import views
 
-from nav.web.status2.views import StatusView
+from rest_framework import routers
+
+router = routers.SimpleRouter()
+router.register('alert', views.AlertHistoryViewSet)
 
 urlpatterns = patterns('',
-    url(r'^$', StatusView.as_view(),
+    url(r'^$', views.StatusView.as_view(),
         name='status2-index'),
+    url(r'^_api/', include(router.urls))
 )
