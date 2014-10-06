@@ -26,7 +26,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 
 from nav.models.event import AlertHistory, AlertType
-from nav.models.manage import Category
+from nav.models.manage import Category, Organization
 from nav.models.fields import UNRESOLVED
 from . import serializers
 
@@ -44,7 +44,8 @@ class StatusView(View):
                 'navpath': [('Home', '/'), ('Status', '')],
                 'alerttypes': AlertType.objects.all().order_by(
                     'event_type', 'name'),
-                'categories': Category.objects.all()
+                'categories': Category.objects.all(),
+                'organizations': Organization.objects.all()
             },
             RequestContext(request)
         )

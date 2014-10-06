@@ -52,8 +52,16 @@
 
 
         <div class="small-4 columns">
-
+          <label>
+            Organizations
+            <select name="organization" class="select2" multiple="multiple">
+            {% for organization in organizations %}
+              <option value="{{ organization.id }}">{{ organization.id }}</option>
+            {% endfor %}
+            </select>
+          </label>
         </div>  {# column #}
+
       </div>  {# row #}
 
     </form>
