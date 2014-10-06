@@ -8,7 +8,6 @@ define([
      */
     var EventCollection = Backbone.Collection.extend({
         model: Models.EventModel,
-        url: '_api/alert',
         initialize: function () {
             console.log('A new eventcollection was made');
         },

@@ -38,6 +38,8 @@ define([
         /* Event driven methods */
         fetchData: function () {
             console.log('Fetching data...');
+            this.collection.url = '_api/alert/?' + this.$el.serialize();
+            console.log(this.collection.url);
             var request = this.collection.fetch();
             request.done(function () {
                 console.log('data fetched');
