@@ -25,8 +25,7 @@ from rest_framework import viewsets, filters
 from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 
-from nav.models.event import AlertHistory, AlertType
-from nav.models.manage import Category, Organization
+from nav.models.event import AlertHistory
 from nav.models.fields import UNRESOLVED
 from . import serializers, forms
 
