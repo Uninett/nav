@@ -29,6 +29,11 @@ class StatusPanelForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(StatusPanelForm, self).__init__(*args, **kwargs)
+        self.fields['event_type'] = forms.MultipleChoiceField(
+            choices=[(e.id, e.id)
+                     for e in EventType.objects.all().order_by('id')],
+            required=False
+        )
         self.fields['alert_type'] = forms.MultipleChoiceField(
             choices=get_alert_types(),
             required=False
@@ -48,12 +53,14 @@ class StatusPanelForm(forms.Form):
         self.helper.form_method = 'POST'
         self.helper.layout = Layout(
             Row(
+                Column(Field('event_type', css_class='select2'),
+                       css_class='medium-3'),
                 Column(Field('alert_type', css_class='select2'),
-                       css_class='medium-4'),
+                       css_class='medium-3'),
                 Column(Field('category', css_class='select2'),
-                       css_class='medium-4'),
+                       css_class='medium-3'),
                 Column(Field('organization', css_class='select2'),
-                       css_class='medium-4'),
+                       css_class='medium-3'),
             )
         )
 
