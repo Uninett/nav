@@ -66,12 +66,22 @@ class StatusPanelForm(forms.Form):
 
 
 def get_alert_types():
+    """
+    Creates a tuple structure of the alert types grouped by event types
+    suitable for the choices of a MultipleChoiceField with optgroups
+    [
+      (event_type, [(alert_type, alert_type), (alert_type, alert_type)]),
+      (event_type, [(alert_type, alert_type), (alert_type, alert_type)])
+    ]
+
+    """
     alert_types = {}
-    for e in EventType.objects.all():
-        if len(e.alerttype_set.all()):
-            if e.id not in alert_types:
-                alert_types[e.id] = []
-            for a in e.alerttype_set.all().order_by('name'):
-                alert_types[e.id].append((a.name, a.name))
+    for event_type in EventType.objects.all():
+        if len(event_type.alerttype_set.all()):
+            if event_type.id not in alert_types:
+                alert_types[event_type.id] = []
+            for alert_type in event_type.alerttype_set.all().order_by('name'):
+                alert_types[event_type.id].append(
+                    (alert_type.name, alert_type.name))
 
     return sorted(alert_types.items(), key=itemgetter(0))
