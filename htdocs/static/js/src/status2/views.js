@@ -6,6 +6,9 @@ define([
 ], function (Collections, EventTemplate) {
 
 
+    var alertsToClear = new Collections.EventCollection();
+
+
     /** The main view containing the panel and the results list */
     var StatusView = Backbone.View.extend({
         el: '#status-page',
@@ -74,10 +77,18 @@ define([
     var EventsView = Backbone.View.extend({
         el: '#events-list',
 
+        events: {
+            'click thead .clear-alert': 'clearAlerts'
+        },
+
         initialize: function () {
             console.log('Initializing events view');
+
             this.body = this.$el.find('tbody');
+            this.clearButton = this.$el.find('thead .clear-alert');
+
             this.collection.on('change add reset remove', this.render, this);
+            alertsToClear.on('change add remove reset', this.updateClearButton, this);
         },
 
         render: function () {
@@ -86,8 +97,25 @@ define([
         },
 
         renderEvent: function (nav_event) {
-            var nav_event_view = new EventView({model: nav_event });
+            var nav_event_view = new EventView({model: nav_event});
             this.body.append(nav_event_view.el);
+        },
+
+        updateClearButton: function () {
+            if (alertsToClear.length > 0) {
+                this.clearButton.show();
+            } else {
+                this.clearButton.hide();
+            }
+        },
+
+        clearAlerts: function () {
+            console.log('Clearing alerts');
+            var self = this;
+            alertsToClear.each(function (model) {
+                self.collection.remove(model);
+            });
+            alertsToClear.reset();
         }
     });
 
@@ -96,10 +124,28 @@ define([
     var compiledEventTemplate = Handlebars.compile(EventTemplate);
     var EventView = Backbone.View.extend({
         tagName: 'tr',
+
+        events: {
+            'click .action-cell .clear-alert': 'toggleClearAlert'
+        },
+
         template: compiledEventTemplate,
+
         initialize: function () {
             this.render();
+            this.clearButton = this.$el.find('.clear-alert');
         },
+
+        toggleClearAlert: function () {
+            if (alertsToClear.contains(this.model)) {
+                alertsToClear.remove(this.model);
+                this.clearButton.removeClass('alert').addClass('secondary');
+            } else {
+                alertsToClear.add(this.model);
+                this.clearButton.removeClass('secondary').addClass('alert');
+            }
+        },
+
         render: function () {
             this.$el.html(this.template(this.model.attributes));
         }
