@@ -10,6 +10,10 @@ define([
     var StatusView = Backbone.View.extend({
         el: '#status-page',
 
+        events: {
+            'click .set-default': 'setDefaultStatusOptions'
+        },
+
         initialize: function () {
             var eventCollection = new Collections.EventCollection();
 
@@ -19,6 +23,10 @@ define([
             });
             new EventsView({ collection: eventCollection});
 
+        },
+
+        setDefaultStatusOptions: function () {
+            console.log('Default status set');
         }
 
     });

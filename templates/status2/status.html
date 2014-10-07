@@ -18,6 +18,12 @@
 
   <div id="status-page" data-api-url="{% url alerthistory-list %}">
 
+    <div class="row">
+        <div class="small-12 column">
+            <a href="javascript:void(0);" class="button small secondary set-default">Set as default status</a>
+        </div>
+    </div>
+
     {# Form for filtering events #}
     {% crispy form %}
 
