@@ -20,6 +20,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.generic import View
 from django.db.models import Q
+from django.http import HttpResponse
 
 from rest_framework import viewsets, filters
 from rest_framework.renderers import JSONRenderer
@@ -31,17 +32,16 @@ from . import serializers, forms
 
 STATELESS_THRESHOLD = 24
 
+
 class StatusView(View):
     """Generic Status view"""
 
+    def get_status_preferences(self, request):
+        return request.session.get('form-data')
+
     def get(self, request):
         """Produces a list view of AlertHistory entries"""
-        form = forms.StatusPanelForm(
-            {
-                'alert_type': ['boxDown', 'coldStart'],
-                'category': ['GW', 'GSW', 'SW'],
-            }
-        )
+        form = forms.StatusPanelForm(self.get_status_preferences(request))
 
         return render_to_response(
             'status2/status.html',
@@ -101,3 +101,13 @@ class AlertHistoryViewSet(StatusAPIMixin, viewsets.ReadOnlyModelViewSet):
                 qset = qset.filter(**{filtr: values})
         return qset
 
+
+def save_status_preferences(request):
+    """Saves the status preferences for the logged in user."""
+
+    form = forms.StatusPanelForm(request.POST)
+    if form.is_valid():
+        request.session['form-data'] = form.cleaned_data
+        return HttpResponse()
+    else:
+        return HttpResponse('Form was not valid', status=400)

@@ -24,5 +24,7 @@ router.register('alert', views.AlertHistoryViewSet)
 urlpatterns = patterns('',
     url(r'^$', views.StatusView.as_view(),
         name='status2-index'),
+    url(r'^save_preferences/', views.save_status_preferences,
+        name='status2_save_preferences'),
     url(r'^_api/', include(router.urls))
 )

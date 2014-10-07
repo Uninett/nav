@@ -17,16 +17,22 @@ define([
         initialize: function () {
             var eventCollection = new Collections.EventCollection();
 
-            new PanelView({
-                collection: eventCollection,
-                attributes: { data_api_url: this.$el.attr('data-api-url') }
-            });
-            new EventsView({ collection: eventCollection});
+            new PanelView({ collection: eventCollection });
+            new EventsView({ collection: eventCollection });
 
         },
 
         setDefaultStatusOptions: function () {
-            console.log('Default status set');
+            var request = $.post(
+                NAV.urls.status2_save_preferences,
+                this.$el.find('form').serialize()
+            );
+            request.done(function(){
+                console.log('Default status set');
+            });
+            request.fail(function(){
+                console.log('Setting status failed');
+            });
         }
 
     });
@@ -40,7 +46,6 @@ define([
             console.log('Initializing panel view');
             this.fetchData();
         },
-
         events: {
             'change': 'fetchData',
             'submit': 'preventSubmit'
@@ -49,7 +54,7 @@ define([
         /* Event driven methods */
         fetchData: function () {
             console.log('Fetching data...');
-            this.collection.url = this.attributes.data_api_url + '?' + this.$el.serialize();
+            this.collection.url = NAV.urls.status2_api_alerthistory + '?' + this.$el.serialize();
             console.log(this.collection.url);
             var request = this.collection.fetch();
             request.done(function () {
