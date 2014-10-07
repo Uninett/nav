@@ -1,4 +1,10 @@
 <td>{{ alert_type }}</td>
+<td>
+    <a data-dropdown="drop-{{ id }}" aria-controls="drop-{{ id }}" aria-expanded="false"><i class="fa fa-info-circle fa-lg"></i></a>
+    <div id="drop-{{ id }}" data-dropdown-content class="f-dropdown content small" aria-hidden="true" tabindex="-1">
+        <p>Her kommer det mer informasjon om {{ subject }}</p>
+    </div>
+</td>
 <td><a href="{{ subject_url }}">{{ subject }}</a></td>
 <td>{{ start_time }}</td>
 <td>

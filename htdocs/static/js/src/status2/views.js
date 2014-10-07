@@ -59,6 +59,7 @@ define([
             var request = this.collection.fetch();
             request.done(function () {
                 console.log('data fetched');
+                $(document).foundation({dropdown: {}});
             });
         },
         preventSubmit: function (event) {
