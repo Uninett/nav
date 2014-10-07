@@ -23,6 +23,7 @@ define([
         },
 
         setDefaultStatusOptions: function () {
+            /* TODO: Inform user about success and error */
             var request = $.post(
                 NAV.urls.status2_save_preferences,
                 this.$el.find('form').serialize()
@@ -53,6 +54,7 @@ define([
 
         /* Event driven methods */
         fetchData: function () {
+            /* TODO: Inform user that we are trying to fetch data */
             console.log('Fetching data...');
             this.collection.url = NAV.urls.status2_api_alerthistory + '?' + this.$el.serialize();
             console.log(this.collection.url);
