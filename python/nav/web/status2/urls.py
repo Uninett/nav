@@ -26,5 +26,7 @@ urlpatterns = patterns('',
         name='status2-index'),
     url(r'^save_preferences/', views.save_status_preferences,
         name='status2_save_preferences'),
+    url(r'^clear_alert/', views.clear_alert,
+        name='status2_clear_alert'),
     url(r'^_api/', include(router.urls))
 )

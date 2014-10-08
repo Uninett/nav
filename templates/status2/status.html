@@ -7,7 +7,8 @@
     <script type="text/javascript">
     var NAV = NAV || {};
     NAV.urls = NAV.urls || {};
-    NAV.urls.status2_api_alerthistory = '{% url alerthistory-list %}'
+    NAV.urls.status2_api_alerthistory = '{% url alerthistory-list %}';
+    NAV.urls.status2_clear_alert = '{% url status2_clear_alert %}';
     NAV.urls.status2_save_preferences = '{% url status2_save_preferences %}'
     </script>
 {% endblock %}
@@ -28,7 +29,7 @@
     {% crispy form %}
 
     {# Table displaying filtered events #}
-    <table id="events-list" class="listtable">
+    <table id="events-list" class="listtable hover">
       <caption>Events</caption>
       <thead>
         <tr>
@@ -37,7 +38,31 @@
           <td>Subject</td>
           <td>Start time</td>
           <td class="action-cell">
-              <a href="javascript:void(0)" class="button tiny hidden clear-alert expand">Clear selected alerts</a>
+              <a id="clear-alerts-button"
+                 data-dropdown="clear-alerts-content"
+                 aria-controls="clear-alerts-content"
+                 aria-expanded="false"
+                 class="button tiny expand hidden">
+                Clear selected alerts
+              </a>
+
+              <div id="clear-alerts-content"
+                   data-dropdown-content
+                   class="f-dropdown content small"
+                   aria-hidden="true"
+                   tabindex="-1">
+                <p>The selected alerts will be cleared.</p>
+                <div class="row">
+                  <div class="medium-6 column">
+                    <a id="clear-alerts-ok" href="javascript:void(0);" class="button tiny expand">Clear alerts</a>
+                  </div>
+                  <div class="medium-6 column">
+                    <a id="clear-alerts-cancel" href="javascript:void(0);" class="button tiny secondary expand">Don't clear</a>
+                  </div>
+                </div>
+                </ul>
+                </div>
+              </div>
           </td>
         </tr>
       </thead>

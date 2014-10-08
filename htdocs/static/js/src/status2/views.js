@@ -78,17 +78,19 @@ define([
         el: '#events-list',
 
         events: {
-            'click thead .clear-alert': 'clearAlerts'
+            'click #clear-alerts-ok': 'clearAlerts',
+            'click #clear-alerts-cancel': 'cancelClearAlerts'
         },
 
         initialize: function () {
             console.log('Initializing events view');
 
             this.body = this.$el.find('tbody');
-            this.clearButton = this.$el.find('thead .clear-alert');
+            this.clearButton = this.$el.find('#clear-alerts-button');
+            this.clearAlertContent = this.$el.find('#clear-alerts-content');
 
             this.collection.on('change reset', this.render, this);
-            alertsToClear.on('change add remove reset', this.updateClearButton, this);
+            alertsToClear.on('change add remove reset destroy', this.updateClearButton, this);
         },
 
         render: function () {
@@ -111,12 +113,27 @@ define([
 
         clearAlerts: function () {
             console.log('Clearing alerts');
-            var self = this;
+            this.hideClearAlertContent();
             alertsToClear.each(function (model) {
-                /* TODO: Do the clearing request here */
-                self.collection.remove(model);
+                model.destroy({
+                    wait: true,
+                    success: function () {
+                        console.log('model removed');
+                    },
+                    error: function () {
+                        console.log('model not removed');
+                    }
+                });
             });
-            alertsToClear.reset();
+        },
+
+        hideClearAlertContent: function () {
+            $(document).foundation('dropdown', 'close', this.clearAlertContent);
+        },
+
+        cancelClearAlerts: function () {
+            this.hideClearAlertContent();
+            /* TODO: Should we also reset the activated buttons on each row? */
         }
     });
 
@@ -135,7 +152,7 @@ define([
         initialize: function () {
             this.render();
             this.clearButton = this.$el.find('.clear-alert');
-            this.model.on('remove', this.unRender, this);
+            this.model.on('destroy', this.unRender, this);
         },
 
         toggleClearAlert: function () {
@@ -153,6 +170,7 @@ define([
         },
 
         unRender: function () {
+            console.log('Unrender called');
             this.model.off();
             this.$el.fadeOut(function () {
                 this.remove();

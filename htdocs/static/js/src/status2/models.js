@@ -1,9 +1,9 @@
 define([
     'libs/backbone',
-    'status/views',
 ], function (Backbone) {
 
     var EventModel = Backbone.Model.extend({
+        urlRoot: NAV.urls.status2_clear_alert
     });
 
     return {

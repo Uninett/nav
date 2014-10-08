@@ -111,3 +111,10 @@ def save_status_preferences(request):
         return HttpResponse()
     else:
         return HttpResponse('Form was not valid', status=400)
+
+
+def clear_alert(request):
+    if request.method == 'DELETE':
+        return HttpResponse(status=200)
+    else:
+        return HttpResponse(status=400)
