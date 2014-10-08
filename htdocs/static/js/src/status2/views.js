@@ -61,7 +61,7 @@ define([
             console.log('Fetching data...');
             this.collection.url = NAV.urls.status2_api_alerthistory + '?' + this.$el.serialize();
             console.log(this.collection.url);
-            var request = this.collection.fetch();
+            var request = this.collection.fetch({ reset: true });
             request.done(function () {
                 console.log('data fetched');
                 $(document).foundation({dropdown: {}});
@@ -89,11 +89,12 @@ define([
             this.clearButton = this.$el.find('#clear-alerts-button');
             this.clearAlertContent = this.$el.find('#clear-alerts-content');
 
-            this.collection.on('change reset', this.render, this);
-            alertsToClear.on('change add remove reset destroy', this.updateClearButton, this);
+            this.listenTo(this.collection, 'change reset', this.render);
+            this.listenTo(alertsToClear, 'change add remove reset destroy', this.updateClearButton);
         },
 
         render: function () {
+            console.log('Rendering table');
             this.body.html('');
             this.collection.each(this.renderEvent, this);
         },
@@ -153,8 +154,8 @@ define([
         initialize: function () {
             this.render();
             this.clearButton = this.$el.find('.clear-alert');
-            alertsToClear.on('reset add remove', this.toggleClearButtonState, this);
-            this.model.on('destroy', this.unRender, this);
+            this.listenTo(alertsToClear, 'reset add remove', this.toggleClearButtonState);
+            this.listenTo(this.model, 'destroy', this.unRender);
         },
 
         toggleClearAlert: function () {
@@ -179,8 +180,6 @@ define([
 
         unRender: function () {
             console.log('Unrender called');
-            this.model.off();
-            alertsToClear.off('change', this.toggleClearButtonState, this);
             this.$el.fadeOut(function () {
                 this.remove();
             });
