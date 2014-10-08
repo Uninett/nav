@@ -106,9 +106,9 @@ define([
 
         updateClearButton: function () {
             if (alertsToClear.length > 0) {
-                this.clearButton.removeClass('hidden');
+                this.clearButton.removeClass('notvisible');
             } else {
-                this.clearButton.addClass('hidden');
+                this.clearButton.addClass('notvisible');
             }
         },
 
