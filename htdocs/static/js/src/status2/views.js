@@ -134,6 +134,7 @@ define([
         cancelClearAlerts: function () {
             this.hideClearAlertContent();
             /* TODO: Should we also reset the activated buttons on each row? */
+            alertsToClear.reset();
         }
     });
 
@@ -152,16 +153,23 @@ define([
         initialize: function () {
             this.render();
             this.clearButton = this.$el.find('.clear-alert');
+            alertsToClear.on('reset add remove', this.toggleClearButtonState, this);
             this.model.on('destroy', this.unRender, this);
         },
 
         toggleClearAlert: function () {
             if (alertsToClear.contains(this.model)) {
                 alertsToClear.remove(this.model);
-                this.clearButton.removeClass('alert').addClass('secondary');
             } else {
                 alertsToClear.add(this.model);
+            }
+        },
+
+        toggleClearButtonState: function () {
+            if (alertsToClear.contains(this.model)) {
                 this.clearButton.removeClass('secondary').addClass('alert');
+            } else {
+                this.clearButton.removeClass('alert').addClass('secondary');
             }
         },
 
@@ -172,6 +180,7 @@ define([
         unRender: function () {
             console.log('Unrender called');
             this.model.off();
+            alertsToClear.off('change', this.toggleClearButtonState, this);
             this.$el.fadeOut(function () {
                 this.remove();
             });
