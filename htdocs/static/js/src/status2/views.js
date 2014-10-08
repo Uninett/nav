@@ -87,7 +87,7 @@ define([
             this.body = this.$el.find('tbody');
             this.clearButton = this.$el.find('thead .clear-alert');
 
-            this.collection.on('change add reset remove', this.render, this);
+            this.collection.on('change reset', this.render, this);
             alertsToClear.on('change add remove reset', this.updateClearButton, this);
         },
 
@@ -134,6 +134,7 @@ define([
         initialize: function () {
             this.render();
             this.clearButton = this.$el.find('.clear-alert');
+            this.model.on('remove', this.unRender, this);
         },
 
         toggleClearAlert: function () {
@@ -148,6 +149,13 @@ define([
 
         render: function () {
             this.$el.html(this.template(this.model.attributes));
+        },
+
+        unRender: function () {
+            this.model.off();
+            this.$el.fadeOut(function () {
+                this.remove();
+            });
         }
     });
 
