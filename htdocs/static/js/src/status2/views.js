@@ -103,9 +103,9 @@ define([
 
         updateClearButton: function () {
             if (alertsToClear.length > 0) {
-                this.clearButton.show();
+                this.clearButton.removeClass('hidden');
             } else {
-                this.clearButton.hide();
+                this.clearButton.addClass('hidden');
             }
         },
 
@@ -113,6 +113,7 @@ define([
             console.log('Clearing alerts');
             var self = this;
             alertsToClear.each(function (model) {
+                /* TODO: Do the clearing request here */
                 self.collection.remove(model);
             });
             alertsToClear.reset();
