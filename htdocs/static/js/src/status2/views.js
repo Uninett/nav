@@ -1,6 +1,6 @@
 define([
     'status/collections',
-    'libs-amd/text!status/templates/event_template.html',
+    'libs-amd/text!status/templates/event_template.hbs',
     'libs/backbone',
     'libs/handlebars',
 ], function (Collections, EventTemplate) {
