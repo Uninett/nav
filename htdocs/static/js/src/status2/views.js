@@ -6,7 +6,7 @@ define([
 ], function (Collections, EventTemplate) {
 
 
-    var alertsToClear = new Collections.EventCollection();
+    var alertsToChange = new Collections.EventCollection();
 
 
     /** The main view containing the panel and the results list */
@@ -21,6 +21,7 @@ define([
             var eventCollection = new Collections.EventCollection();
 
             new PanelView({ collection: eventCollection });
+            new ActionView();
             new EventsView({ collection: eventCollection });
 
             this.setDefaultButton = this.$el.find('.set-default');
@@ -83,24 +84,67 @@ define([
     });
 
 
+    /** The action panel for manipulation alerts */
+    var ActionView = Backbone.View.extend({
+        el: '#action-panel',
+
+        events: {
+            'click .acknowledge-alerts': 'acknowledgeAlerts',
+            'click .clear-alerts': 'clearAlerts',
+            'click .cancel-alerts-action': 'cancelAlertsAction'
+        },
+
+        initialize: function () {
+            this.listenTo(alertsToChange, 'add remove reset', this.checkState);
+        },
+
+        checkState: function () {
+            if (alertsToChange.length > 0) {
+                this.$el.slideDown();
+            } else {
+                this.$el.slideUp();
+            }
+        },
+
+        acknowledgeAlerts: function () {
+
+        },
+
+        clearAlerts: function () {
+            alertsToChange.each(function (model) {
+                model.destroy({
+                    wait: true,
+                    success: function () {
+                        console.log('model removed');
+                    },
+                    error: function () {
+                        console.log('model not removed');
+                    }
+                });
+            });
+        },
+
+        cancelAlertsAction: function () {
+            alertsToChange.reset();
+        }
+
+    });
+
+
     /** The list of status events */
     var EventsView = Backbone.View.extend({
         el: '#events-list',
 
         events: {
-            'click #clear-alerts-ok': 'clearAlerts',
-            'click #clear-alerts-cancel': 'cancelClearAlerts'
+            'click thead .alert-action': 'toggleCheckboxes'
         },
 
         initialize: function () {
             console.log('Initializing events view');
 
             this.body = this.$el.find('tbody');
-            this.clearButton = this.$el.find('#clear-alerts-button');
-            this.clearAlertContent = this.$el.find('#clear-alerts-content');
-
             this.listenTo(this.collection, 'change reset', this.render);
-            this.listenTo(alertsToClear, 'change add remove reset destroy', this.updateClearButton);
+            this.checkBox = this.$el.find('.alert-action');
         },
 
         render: function () {
@@ -114,39 +158,14 @@ define([
             this.body.append(nav_event_view.el);
         },
 
-        updateClearButton: function () {
-            if (alertsToClear.length > 0) {
-                this.clearButton.removeClass('notvisible');
+        toggleCheckboxes: function () {
+            if (this.checkBox.prop('checked')) {
+                alertsToChange.reset(this.collection.models);
             } else {
-                this.clearButton.addClass('notvisible');
+                alertsToChange.reset();
             }
-        },
-
-        clearAlerts: function () {
-            console.log('Clearing alerts');
-            this.hideClearAlertContent();
-            alertsToClear.each(function (model) {
-                model.destroy({
-                    wait: true,
-                    success: function () {
-                        console.log('model removed');
-                    },
-                    error: function () {
-                        console.log('model not removed');
-                    }
-                });
-            });
-        },
-
-        hideClearAlertContent: function () {
-            $(document).foundation('dropdown', 'close', this.clearAlertContent);
-        },
-
-        cancelClearAlerts: function () {
-            this.hideClearAlertContent();
-            /* TODO: Should we also reset the activated buttons on each row? */
-            alertsToClear.reset();
         }
+
     });
 
 
@@ -156,31 +175,35 @@ define([
         tagName: 'tr',
 
         events: {
-            'click .action-cell .clear-alert': 'toggleClearAlert'
+            'click .alert-action': 'toggleChangeAlert'
         },
 
         template: compiledEventTemplate,
 
         initialize: function () {
             this.render();
-            this.clearButton = this.$el.find('.clear-alert');
-            this.listenTo(alertsToClear, 'reset add remove', this.toggleClearButtonState);
+            this.checkBox = this.$el.find('.alert-action');
             this.listenTo(this.model, 'destroy', this.unRender);
+            this.listenTo(alertsToChange, 'reset', this.toggleSelect);
         },
 
-        toggleClearAlert: function () {
-            if (alertsToClear.contains(this.model)) {
-                alertsToClear.remove(this.model);
+        toggleChangeAlert: function () {
+            if (alertsToChange.contains(this.model)) {
+                alertsToChange.remove(this.model);
+                this.highlight(false);
             } else {
-                alertsToClear.add(this.model);
+                alertsToChange.add(this.model);
+                this.highlight(true);
             }
         },
 
-        toggleClearButtonState: function () {
-            if (alertsToClear.contains(this.model)) {
-                this.clearButton.removeClass('secondary').addClass('alert');
+        toggleSelect: function () {
+            if (alertsToChange.contains(this.model)) {
+                this.checkBox.prop('checked', true);
+                this.highlight(true);
             } else {
-                this.clearButton.removeClass('alert').addClass('secondary');
+                this.checkBox.prop('checked', false);
+                this.highlight(false);
             }
         },
 
@@ -193,7 +216,13 @@ define([
             this.$el.fadeOut(function () {
                 this.remove();
             });
+        },
+
+        highlight: function (flag) {
+            this.$el.toggleClass('highlight', flag);
+            console.log(this.$el);
         }
+
     });
 
     return StatusView;

@@ -25,49 +25,54 @@
         </div>
     </div>
 
+
     {# Form for filtering events #}
     {% crispy form %}
 
-    {# Table displaying filtered events #}
-    <table id="events-list" class="listtable hover">
-      <caption>Events</caption>
-      <thead>
-        <tr>
-          <td>Type</td>
-          <td>&nbsp;</td>
-          <td>Subject</td>
-          <td>Start time</td>
-          <td class="action-cell">
-              <a id="clear-alerts-button"
-                 data-dropdown="clear-alerts-content"
-                 aria-controls="clear-alerts-content"
-                 aria-expanded="false"
-                 class="button tiny expand notvisible">
-                Clear selected alerts
-              </a>
 
-              <div id="clear-alerts-content"
-                   data-dropdown-content
-                   class="f-dropdown content small"
-                   aria-hidden="true"
-                   tabindex="-1">
-                <p>The selected alerts will be cleared.</p>
-                <div class="row">
-                  <div class="medium-6 column">
-                    <a id="clear-alerts-ok" href="javascript:void(0);" class="button tiny expand">Clear alerts</a>
-                  </div>
-                  <div class="medium-6 column">
-                    <a id="clear-alerts-cancel" href="javascript:void(0);" class="button tiny secondary expand">Don't clear</a>
-                  </div>
-                </div>
-                </ul>
-                </div>
-              </div>
-          </td>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <div class="row">
+      <div class="medium-8 column">
+
+        {# Table displaying filtered events #}
+        <table id="events-list" class="listtable hover">
+          <caption>Events</caption>
+          <thead>
+          <tr>
+            <td><label><input class="alert-action" type="checkbox"></label>
+            </td>
+            <td>Type</td>
+            <td>&nbsp;</td>
+            <td>Subject</td>
+            <td>Start time</td>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+      </div>
+
+
+      <div class="medium-4 column">
+        {# Panel for alert actions #}
+        <div id="action-panel" class="panel highlight hidden">
+          <h5>Do something with the selected alerts</h5>
+
+          <div>
+            <a href="javascript:void(0);" class="button small acknowledge-alerts">
+              Acknowledge alerts
+            </a>
+            <a href="javascript:void(0);" class="button small clear-alerts">
+              Clear alerts
+            </a>
+          </div>
+
+          <a href="javascript:void(0);" class="button small secondary cancel-alerts-action">
+            Never mind
+          </a>
+        </div>
+      </div>
+
+    </div>
 
   </div>
 

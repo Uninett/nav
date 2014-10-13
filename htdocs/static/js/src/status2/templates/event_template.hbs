@@ -1,3 +1,8 @@
+<td class="action-cell">
+  <label>
+    <input class='alert-action' type="checkbox">
+  </label>
+</td>
 <td>{{ alert_type }}</td>
 <td>
     <a data-dropdown="drop-{{ id }}" aria-controls="drop-{{ id }}" aria-expanded="false"><i class="fa fa-info-circle fa-lg"></i></a>
@@ -7,8 +12,3 @@
 </td>
 <td><a href="{{ subject_url }}">{{ subject }}</a></td>
 <td>{{ start_time }}</td>
-<td class="action-cell">
-  <a href="javascript:void(0);" class="button tiny secondary">Ready</a>
-  <a href="javascript:void(0);" class="button tiny secondary">Blapp</a>
-  <a href="javascript:void(0);" class="button tiny secondary clear-alert">Clear</a>
-</td>
