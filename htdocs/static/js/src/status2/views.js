@@ -95,10 +95,11 @@ define([
         },
 
         initialize: function () {
-            this.listenTo(alertsToChange, 'add remove reset', this.checkState);
+            this.listenTo(alertsToChange, 'add remove reset', this.toggleState);
         },
 
-        checkState: function () {
+        toggleState: function () {
+            console.log('alertsToChange: ' + alertsToChange.length);
             if (alertsToChange.length > 0) {
                 this.$el.slideDown();
             } else {
@@ -175,7 +176,7 @@ define([
         tagName: 'tr',
 
         events: {
-            'click .alert-action': 'toggleChangeAlert'
+            'click .alert-action': 'toggleChangeState'
         },
 
         template: compiledEventTemplate,
@@ -187,17 +188,21 @@ define([
             this.listenTo(alertsToChange, 'reset', this.toggleSelect);
         },
 
-        toggleChangeAlert: function () {
+        toggleChangeState: function (event) {
+            /** React to click on checkbox and add/remove from change-collection. */
+            event.stopImmediatePropagation();
             if (alertsToChange.contains(this.model)) {
                 alertsToChange.remove(this.model);
-                this.highlight(false);
             } else {
                 alertsToChange.add(this.model);
-                this.highlight(true);
             }
+            this.toggleSelect();
         },
 
         toggleSelect: function () {
+            /** Highlight row and tick/untick checkbox. We separate this from
+             *  the click event so that this can be run on change-collection
+             *  changes */
             if (alertsToChange.contains(this.model)) {
                 this.checkBox.prop('checked', true);
                 this.highlight(true);
@@ -220,7 +225,6 @@ define([
 
         highlight: function (flag) {
             this.$el.toggleClass('highlight', flag);
-            console.log(this.$el);
         }
 
     });
