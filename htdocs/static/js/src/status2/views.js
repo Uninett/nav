@@ -23,18 +23,28 @@ define([
             new PanelView({ collection: eventCollection });
             new EventsView({ collection: eventCollection });
 
+            this.setDefaultButton = this.$el.find('.set-default');
+
         },
 
         setDefaultStatusOptions: function () {
-            /* TODO: Inform user about success and error */
+            var self = this;
             var request = $.post(
                 NAV.urls.status2_save_preferences,
                 this.$el.find('form').serialize()
             );
+
+            self.setDefaultButton.removeClass('alert');  // Remove errorclass if an error occured on last try
+
             request.done(function(){
+                self.setDefaultButton.addClass('success').removeClass('secondary');
+                setTimeout(function () {
+                    self.setDefaultButton.addClass('secondary').removeClass('success');
+                }, 1000);
                 console.log('Default status set');
             });
             request.fail(function(){
+                self.setDefaultButton.addClass('alert').removeClass('secondary');
                 console.log('Setting status failed');
             });
         }
