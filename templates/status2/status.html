@@ -19,6 +19,10 @@
 
   <div id="status-page">
 
+    {# Form for filtering events #}
+    {% crispy form %}
+
+
     <div class="row">
         <div class="small-12 column">
             <a href="javascript:void(0);" class="button small secondary set-default">Set as default status</a>
@@ -26,24 +30,20 @@
     </div>
 
 
-    {# Form for filtering events #}
-    {% crispy form %}
-
-
     <div class="row">
       <div class="medium-8 column">
 
         {# Table displaying filtered events #}
-        <table id="events-list" class="listtable hover">
+        <table id="events-list" class="listtable hover expand">
           <caption>Events</caption>
           <thead>
           <tr>
             <td><label><input class="alert-action" type="checkbox"></label>
             </td>
-            <td>Type</td>
-            <td>&nbsp;</td>
             <td>Subject</td>
+            <td>Type</td>
             <td>Start time</td>
+            <td>&nbsp;</td>
           </tr>
           </thead>
           <tbody></tbody>
