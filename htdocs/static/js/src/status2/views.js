@@ -1,9 +1,10 @@
 define([
     'status/collections',
     'libs-amd/text!resources/status2/event_template.hbs',
+    'moment',
     'libs/backbone',
     'libs/handlebars',
-], function (Collections, EventTemplate) {
+], function (Collections, EventTemplate, moment) {
 
 
     var alertsToChange = new Collections.EventCollection();
@@ -213,6 +214,8 @@ define([
         },
 
         render: function () {
+            this.model.set('formatted_start_time',
+                moment(this.model.get('start_time')).format('YYYY-MM-DD HH:mm:ss'));
             this.$el.html(this.template(this.model.attributes));
         },
 
