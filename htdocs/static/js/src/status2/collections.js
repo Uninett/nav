@@ -8,9 +8,7 @@ define([
      */
     var EventCollection = Backbone.Collection.extend({
         model: Models.EventModel,
-        comparator: function (obj) {
-            return [obj.get('event_type'), obj.get('subject')];
-        },
+        comparator: 'start_time',
         initialize: function () {
             console.log('A new eventcollection was made');
         },

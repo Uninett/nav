@@ -145,7 +145,7 @@ define([
             console.log('Initializing events view');
 
             this.body = this.$el.find('tbody');
-            this.listenTo(this.collection, 'change reset', this.render);
+            this.listenTo(this.collection, 'reset', this.render);
             this.checkBox = this.$el.find('.alert-action');
         },
 
