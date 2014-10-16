@@ -138,15 +138,51 @@ define([
         el: '#events-list',
 
         events: {
-            'click thead .alert-action': 'toggleCheckboxes'
+            'click thead .alert-action': 'toggleCheckboxes',
+            'click thead .header': 'headerSort'
+        },
+
+        sortMap: {
+            1: 'subject',
+            2: 'alert_type',
+            3: 'start_time'
         },
 
         initialize: function () {
             console.log('Initializing events view');
 
             this.body = this.$el.find('tbody');
+            this.applySort();
+
             this.listenTo(this.collection, 'reset', this.render);
             this.checkBox = this.$el.find('.alert-action');
+        },
+
+        applySort: function () {
+            var self = this;
+            this.$('thead th').each(function (index, element) {
+                if (self.sortMap[index]) {
+                    $(element).addClass('header');
+                }
+            });
+        },
+
+        headerSort: function (event) {
+            var $element = this.$(event.currentTarget),
+                $headers = $element.closest('thead').find('th');
+
+            var direction = -1;
+            if ($element.hasClass('headerSortDown')) {
+                $headers.removeClass('headerSortDown headerSortUp');
+                $element.addClass('headerSortUp');
+            } else {
+                direction = 1;
+                $headers.removeClass('headerSortDown headerSortUp');
+                $element.addClass('headerSortDown');
+            }
+            this.collection.sortEvents(
+                this.sortMap[event.currentTarget.cellIndex], direction);
+            this.render();
         },
 
         render: function () {
