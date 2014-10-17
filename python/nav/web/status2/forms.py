@@ -65,7 +65,7 @@ class StatusPanelForm(forms.Form):
         )
 
         self.helper = FormHelper()
-        self.helper.form_id = 'status-panel'
+        self.helper.form_id = 'status-form'
         self.helper.form_action = ''
         self.helper.form_method = 'POST'
         self.helper.layout = Layout(

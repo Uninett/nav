@@ -15,19 +15,29 @@ define([
     var StatusView = Backbone.View.extend({
         el: '#status-page',
 
+        localStorageShowPanelKey: 'nav.web.status.showPanel',
+
         events: {
-            'click .set-default': 'setDefaultStatusOptions'
+            'click .set-default': 'setDefaultStatusOptions',
+            'click .toggle-panel': 'togglePanel'
         },
 
         initialize: function () {
             var eventCollection = new Collections.EventCollection();
 
             new EventsView({ collection: eventCollection });
-            new PanelView({ collection: eventCollection });
+            this.panelView = new PanelView({ collection: eventCollection });
             new ActionView();
 
             this.setDefaultButton = this.$el.find('.set-default');
+            this.checkStorage();
 
+        },
+
+        checkStorage: function () {
+            if (localStorage.getItem(this.localStorageShowPanelKey) === 'yes') {
+                this.panelView.$el.show().removeClass('hidden');
+            }
         },
 
         setDefaultStatusOptions: function () {
@@ -49,6 +59,17 @@ define([
             request.fail(function(){
                 self.setDefaultButton.addClass('alert').removeClass('secondary');
                 console.log('Setting status failed');
+            });
+        },
+
+        togglePanel: function () {
+            var self = this;
+            this.panelView.$el.slideToggle(function () {
+                if (self.panelView.$el.is(':visible')) {
+                    localStorage.setItem(self.localStorageShowPanelKey, 'yes');
+                } else {
+                    localStorage.setItem(self.localStorageShowPanelKey, 'no');
+                }
             });
         }
 
