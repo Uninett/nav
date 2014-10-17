@@ -1,10 +1,11 @@
 define([
     'status/collections',
     'libs-amd/text!resources/status2/event_template.hbs',
+    'libs-amd/text!resources/status2/event_info_template.hbs',
     'moment',
     'libs/backbone',
     'libs/handlebars',
-], function (Collections, EventTemplate, moment) {
+], function (Collections, EventTemplate, EventInfoTemplate, moment) {
 
 
     // This collection contains all the event-models that are to be cleared/acknowledged etc.
@@ -108,7 +109,6 @@ define([
             var request = this.collection.fetch({ reset: true });
             request.done(function () {
                 console.log('data fetched');
-                $(document).foundation({dropdown: {}});
             });
         },
         preventSubmit: function (event) {
@@ -268,22 +268,66 @@ define([
     });
 
 
+    var compiledEventInfoTemplate = Handlebars.compile(EventInfoTemplate);
+    var EventInfoView = Backbone.View.extend({
+        tagName: 'tr',
+
+        attributes: {
+            class: 'expanded'
+        },
+
+        template: compiledEventInfoTemplate,
+
+        initialize: function () {
+            this.listenTo(this.model, 'destroy', this.unRender);
+        },
+
+        render: function () {
+            this.$el.html(this.template(this.model.attributes));
+        },
+
+        unRender: function () {
+            console.log('Unrender for subview called');
+            this.remove();
+        },
+
+    });
+
+
     /** The view displaying a single status event */
     var compiledEventTemplate = Handlebars.compile(EventTemplate);
     var EventView = Backbone.View.extend({
         tagName: 'tr',
 
         events: {
-            'click .alert-action': 'toggleChangeState'
+            'click .alert-action': 'toggleChangeState',
+            'click .fa': 'renderExpandedInfo'
+        },
+
+        attributes: {
+            class: 'master'
         },
 
         template: compiledEventTemplate,
 
         initialize: function () {
             this.render();
+
+            this.infoView = new EventInfoView({ model: this.model });
+
             this.checkBox = this.$el.find('.alert-action');
             this.listenTo(this.model, 'destroy', this.unRender);
             this.listenTo(alertsToChange, 'reset', this.toggleSelect);
+        },
+
+        renderExpandedInfo: function () {
+            if (!this.$el.next().hasClass('expanded')) {
+                console.log('Adding new row after this one');
+                this.infoView.render();
+                this.$el.after(this.infoView.el);
+            } else {
+                this.infoView.$el.toggle();
+            }
         },
 
         toggleChangeState: function (event) {

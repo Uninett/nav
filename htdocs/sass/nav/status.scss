@@ -1,0 +1,10 @@
+
+table.expandable {
+    tr.even, tr.alt, tr:nth-of-type(even) {
+        background: inherit;
+    }
+    tr.expanded td {
+        box-shadow: inset 0px 0px 3px 2px steelblue;
+        background-color: lightsteelblue;
+    }
+}
