@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
-# Copyright (C) 2007, 2010, 2011 UNINETT AS
+# Copyright (C) 2007, 2010, 2011, 2014 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -152,9 +152,13 @@ def are_hosts_on_same_vlan(host1, host2):
 
 
 def get_netbox_from_host(host):
+    if host.is_ip():
+        query = Q(sysname=host.ip) | Q(ip=host.ip)
+    else:
+        query = Q(sysname__startswith=host.hostname) | Q(ip=host.ip)
+
     try:
-        return Netbox.objects.get(
-            Q(sysname__startswith=host.hostname) | Q(ip=host.ip))
+        return Netbox.objects.get(query)
     except Netbox.DoesNotExist:
         pass
 
