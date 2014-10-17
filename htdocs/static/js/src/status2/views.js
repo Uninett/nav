@@ -273,7 +273,7 @@ define([
         tagName: 'tr',
 
         attributes: {
-            class: 'expanded'
+            class: 'expanded hidden'
         },
 
         template: compiledEventInfoTemplate,
@@ -325,8 +325,9 @@ define([
                 console.log('Adding new row after this one');
                 this.infoView.render();
                 this.$el.after(this.infoView.el);
+                this.infoView.$el.fadeIn();
             } else {
-                this.infoView.$el.toggle();
+                this.infoView.$el.fadeToggle();
             }
         },
 
