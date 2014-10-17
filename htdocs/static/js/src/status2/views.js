@@ -7,6 +7,7 @@ define([
 ], function (Collections, EventTemplate, moment) {
 
 
+    // This collection contains all the event-models that are to be cleared/acknowledged etc.
     var alertsToChange = new Collections.ChangeCollection();
 
 
@@ -154,15 +155,17 @@ define([
 
             this.body = this.$('tbody');
             this.headers = this.$('thead th');
+            this.checkBox = this.$('thead .alert-action');
+
             this.applySort();
 
             this.listenTo(this.collection, 'sort', this.updateSortIndicators);
             this.listenTo(this.collection, 'reset', this.updateSortIndicators);
             this.listenTo(this.collection, 'reset', this.render);
-            this.checkBox = this.$el.find('.alert-action');
         },
 
         applySort: function () {
+            /** Add the header class to all cells that should be sortable */
             var self = this;
             this.$('thead th').each(function (index, element) {
                 if (self.sortMap[index]) {
@@ -198,6 +201,7 @@ define([
         },
 
         headerSort: function (event) {
+            /** Sort collection when sort-cell is clicked */
             console.log('headerSort');
             var direction = 1;
 
@@ -222,6 +226,7 @@ define([
         },
 
         toggleCheckboxes: function () {
+            /** Toggle all checkboxes when 'main' checkbox in thead is toggled */
             if (this.checkBox.prop('checked')) {
                 alertsToChange.reset(this.collection.models);
             } else {
