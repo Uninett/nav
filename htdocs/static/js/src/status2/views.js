@@ -157,6 +157,7 @@ define([
             this.applySort();
 
             this.listenTo(this.collection, 'sort', this.updateSortIndicators);
+            this.listenTo(this.collection, 'reset', this.updateSortIndicators);
             this.listenTo(this.collection, 'reset', this.render);
             this.checkBox = this.$el.find('.alert-action');
         },
