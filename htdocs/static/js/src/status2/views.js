@@ -21,9 +21,9 @@ define([
         initialize: function () {
             var eventCollection = new Collections.EventCollection();
 
+            new EventsView({ collection: eventCollection });
             new PanelView({ collection: eventCollection });
             new ActionView();
-            new EventsView({ collection: eventCollection });
 
             this.setDefaultButton = this.$el.find('.set-default');
 
@@ -152,9 +152,11 @@ define([
         initialize: function () {
             console.log('Initializing events view');
 
-            this.body = this.$el.find('tbody');
+            this.body = this.$('tbody');
+            this.headers = this.$('thead th');
             this.applySort();
 
+            this.listenTo(this.collection, 'sort', this.updateSortIndicators);
             this.listenTo(this.collection, 'reset', this.render);
             this.checkBox = this.$el.find('.alert-action');
         },
@@ -168,18 +170,39 @@ define([
             });
         },
 
-        headerSort: function (event) {
-            var $element = this.$(event.currentTarget),
-                $headers = $element.closest('thead').find('th.header');
+        updateSortIndicators: function () {
+            /** Update sort indicators on sort */
+            console.log('updateSortIndicators');
 
-            var direction = -1;
-            if ($element.hasClass('headerSortDown')) {
-                $headers.removeClass('headerSortDown headerSortUp');
-                $element.addClass('headerSortUp');
-            } else {
-                direction = 1;
-                $headers.removeClass('headerSortDown headerSortUp');
-                $element.addClass('headerSortDown');
+            var cellIndex = -1;
+
+            // It's worth noting that this requires unique values in sortMap
+            for (var index in this.sortMap) {
+                if (this.sortMap.hasOwnProperty(index)) {
+                    if (this.sortMap[index] === this.collection.sortAttribute) {
+                        cellIndex = index;
+                    }
+                }
+            }
+
+            if (cellIndex >= 0) {
+                var $element = $(this.headers[cellIndex]);
+                this.headers.removeClass('headerSortUp headerSortDown');
+                if (this.collection.sortDirection === -1) {
+                    $element.addClass('headerSortUp');
+                } else {
+                    $element.addClass('headerSortDown');
+                }
+            }
+        },
+
+        headerSort: function (event) {
+            console.log('headerSort');
+            var direction = 1;
+
+            // If we sort on the same cell twice, reverse direction
+            if (this.sortMap[event.currentTarget.cellIndex] === this.collection.sortAttribute) {
+                direction = this.collection.sortDirection * -1;  // Reverse direction
             }
             this.collection.sortEvents(
                 this.sortMap[event.currentTarget.cellIndex], direction);

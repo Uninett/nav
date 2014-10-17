@@ -23,6 +23,7 @@ define([
         },
 
         comparator: function (a, b) {
+            console.log('comparator');
             var value1 = a.get(this.sortAttribute).toLowerCase(),
                 value2 = b.get(this.sortAttribute).toLowerCase();
 
