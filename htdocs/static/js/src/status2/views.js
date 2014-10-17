@@ -16,6 +16,10 @@ define([
         el: '#status-page',
 
         localStorageShowPanelKey: 'nav.web.status.showPanel',
+        toggleButtonText: {
+            show: 'Show filter panel',
+            hide: 'Hide filter panel'
+        },
 
         events: {
             'click .set-default': 'setDefaultStatusOptions',
@@ -30,6 +34,7 @@ define([
             new ActionView();
 
             this.setDefaultButton = this.$el.find('.set-default');
+            this.toggleButton = this.$('.toggle-panel');
             this.checkStorage();
 
         },
@@ -37,6 +42,9 @@ define([
         checkStorage: function () {
             if (localStorage.getItem(this.localStorageShowPanelKey) === 'yes') {
                 this.panelView.$el.show().removeClass('hidden');
+                this.toggleButton.html(this.toggleButtonText.hide);
+            } else {
+                this.toggleButton.html(this.toggleButtonText.show);
             }
         },
 
@@ -67,8 +75,10 @@ define([
             this.panelView.$el.slideToggle(function () {
                 if (self.panelView.$el.is(':visible')) {
                     localStorage.setItem(self.localStorageShowPanelKey, 'yes');
+                    self.toggleButton.html(self.toggleButtonText.hide);
                 } else {
                     localStorage.setItem(self.localStorageShowPanelKey, 'no');
+                    self.toggleButton.html(self.toggleButtonText.show);
                 }
             });
         }
