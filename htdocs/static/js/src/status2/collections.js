@@ -10,7 +10,7 @@ define([
         model: Models.EventModel,
 
         sortAttribute: 'start_time',
-        sortDirection: 1,
+        sortDirection: -1,
 
         initialize: function () {
             console.log('A new eventcollection was made');
@@ -23,8 +23,8 @@ define([
         },
 
         comparator: function (a, b) {
-            var value1 = a.get(this.sortAttribute),
-                value2 = b.get(this.sortAttribute);
+            var value1 = a.get(this.sortAttribute).toLowerCase(),
+                value2 = b.get(this.sortAttribute).toLowerCase();
 
             if (value1 === value2) { return 0; }
             if (this.sortDirection === 1) {

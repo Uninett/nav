@@ -142,6 +142,7 @@ define([
             'click thead .header': 'headerSort'
         },
 
+        // Map columnindex to model attribute for sorting
         sortMap: {
             1: 'subject',
             2: 'alert_type',
@@ -169,7 +170,7 @@ define([
 
         headerSort: function (event) {
             var $element = this.$(event.currentTarget),
-                $headers = $element.closest('thead').find('th');
+                $headers = $element.closest('thead').find('th.header');
 
             var direction = -1;
             if ($element.hasClass('headerSortDown')) {
