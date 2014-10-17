@@ -85,15 +85,15 @@ define([
             this.fetchData();
         },
         events: {
-            'change': 'fetchData',
-            'submit': 'preventSubmit'
+            'change form': 'fetchData',
+            'submit form': 'preventSubmit'
         },
 
         /* Event driven methods */
         fetchData: function () {
             /* TODO: Inform user that we are trying to fetch data */
             console.log('Fetching data...');
-            this.collection.url = NAV.urls.status2_api_alerthistory + '?' + this.$el.serialize();
+            this.collection.url = NAV.urls.status2_api_alerthistory + '?' + this.$('form').serialize();
             console.log(this.collection.url);
             var request = this.collection.fetch({ reset: true });
             request.done(function () {
