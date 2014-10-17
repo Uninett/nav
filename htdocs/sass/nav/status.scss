@@ -4,7 +4,16 @@ table.expandable {
         background: inherit;
     }
     tr.expanded td {
-        box-shadow: inset 0px 0px 6px #999;
-        background-color: #dcdcdc;
+        box-shadow: inset 0px 0px 6px #aaaaaa;
+        background-color: #EEEEEE;
+    }
+
+    th {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }
 }
