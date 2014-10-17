@@ -30,20 +30,37 @@ class StatusPanelForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(StatusPanelForm, self).__init__(*args, **kwargs)
         self.fields['event_type'] = forms.MultipleChoiceField(
-            choices=[(e.id, e.id)
-                     for e in EventType.objects.all().order_by('id')],
+            choices=get_event_types(),
             required=False
         )
+
         self.fields['alert_type'] = forms.MultipleChoiceField(
             choices=get_alert_types(),
             required=False
         )
         self.fields['category'] = forms.MultipleChoiceField(
-            choices=[(c.id, c.id) for c in Category.objects.all()],
+            choices=get_categories(),
             required=False
         )
         self.fields['organization'] = forms.MultipleChoiceField(
-            choices=[(o.id, o.id) for o in Organization.objects.all()],
+            choices=get_organizations(),
+            required=False
+        )
+
+        self.fields['not_event_type'] = forms.MultipleChoiceField(
+            choices=get_event_types(),
+            required=False
+        )
+        self.fields['not_alert_type'] = forms.MultipleChoiceField(
+            choices=get_alert_types(),
+            required=False
+        )
+        self.fields['not_category'] = forms.MultipleChoiceField(
+            choices=get_categories(),
+            required=False
+        )
+        self.fields['not_organization'] = forms.MultipleChoiceField(
+            choices=get_organizations(),
             required=False
         )
 
@@ -61,8 +78,23 @@ class StatusPanelForm(forms.Form):
                        css_class='medium-3'),
                 Column(Field('organization', css_class='select2'),
                        css_class='medium-3'),
+            ),
+            Row(
+                Column(Field('not_event_type', css_class='select2'),
+                       css_class='medium-3'),
+                Column(Field('not_alert_type', css_class='select2'),
+                       css_class='medium-3'),
+                Column(Field('not_category', css_class='select2'),
+                       css_class='medium-3'),
+                Column(Field('not_organization', css_class='select2'),
+                       css_class='medium-3'),
             )
         )
+
+
+def get_event_types():
+    """Get all event types formatted as choices"""
+    return [(e.id, e.id) for e in EventType.objects.all().order_by('id')]
 
 
 def get_alert_types():
@@ -77,7 +109,7 @@ def get_alert_types():
     """
     alert_types = {}
     for event_type in EventType.objects.all():
-        if len(event_type.alerttype_set.all()):
+        if event_type.alerttype_set.all().count():
             if event_type.id not in alert_types:
                 alert_types[event_type.id] = []
             for alert_type in event_type.alerttype_set.all().order_by('name'):
@@ -85,3 +117,13 @@ def get_alert_types():
                     (alert_type.name, alert_type.name))
 
     return sorted(alert_types.items(), key=itemgetter(0))
+
+
+def get_categories():
+    """Get all categories formatted as choices"""
+    return [(c.id, c.id) for c in Category.objects.all()]
+
+
+def get_organizations():
+    """Get all organizations formatted as choices"""
+    return [(o.id, o.id) for o in Organization.objects.all()]

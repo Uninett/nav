@@ -93,12 +93,25 @@ class AlertHistoryViewSet(StatusAPIMixin, viewsets.ReadOnlyModelViewSet):
         'alert_type': 'alert_type__name',
     }
 
+    MULTIVALUE_EXCLUDES = {
+        'not_event_type': 'event_type',
+        'not_organization': 'netbox__organization',
+        'not_category': 'netbox__category',
+        'not_alert_type': 'alert_type__name',
+    }
+
     def _multivalue_filter(self, qset):
         for arg, field in self.MULTIVALUE_FILTERS.items():
             values = self.request.QUERY_PARAMS.getlist(arg, None)
             if values:
                 filtr = field + '__in'
                 qset = qset.filter(**{filtr: values})
+
+        for arg, field in self.MULTIVALUE_EXCLUDES.items():
+            values = self.request.QUERY_PARAMS.getlist(arg, None)
+            if values:
+                filtr = field + '__in'
+                qset = qset.exclude(**{filtr: values})
         return qset
 
 
