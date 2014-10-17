@@ -23,6 +23,7 @@ define([
         },
 
         comparator: function (a, b) {
+            console.log('comparator');
             var value1 = a.get(this.sortAttribute).toLowerCase(),
                 value2 = b.get(this.sortAttribute).toLowerCase();
 
@@ -39,8 +40,13 @@ define([
         }
     });
 
+    var ChangeCollection = Backbone.Collection.extend({
+        model: Models.EventModel
+    });
+
     return {
-        EventCollection: EventCollection
+        EventCollection: EventCollection,
+        ChangeCollection: ChangeCollection
     };
 
 });

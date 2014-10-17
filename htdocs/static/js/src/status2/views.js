@@ -7,7 +7,7 @@ define([
 ], function (Collections, EventTemplate, moment) {
 
 
-    var alertsToChange = new Collections.EventCollection();
+    var alertsToChange = new Collections.ChangeCollection();
 
 
     /** The main view containing the panel and the results list */
