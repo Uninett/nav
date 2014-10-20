@@ -20,6 +20,7 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Field
 
+from . import STATELESS_THRESHOLD
 from nav.models.event import EventType
 from nav.models.manage import Organization, Category
 from nav.web.crispyforms import NumberField
@@ -32,6 +33,7 @@ class StatusPanelForm(forms.Form):
                                    help_text='Show stateless events')
     stateless_threshold = NumberField(
         required=False,
+        initial=STATELESS_THRESHOLD,
         help_text='Hours back in time to look for stateless events')
     on_maintenance = forms.BooleanField(required=False)
     acknowledged = forms.BooleanField(required=False)
@@ -107,6 +109,12 @@ class StatusPanelForm(forms.Form):
             )
 
         )
+
+    def clean_stateless_threshold(self):
+        field = 'stateless_threshold'
+        if not self[field].html_name in self.data:
+            return self.fields[field].initial
+        return self.cleaned_data[field]
 
 
 def get_event_types():

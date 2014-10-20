@@ -28,9 +28,7 @@ from rest_framework.views import APIView
 
 from nav.models.event import AlertHistory
 from nav.models.fields import UNRESOLVED
-from . import serializers, forms
-
-STATELESS_THRESHOLD = 24
+from . import serializers, forms, STATELESS_THRESHOLD
 
 
 class StatusView(View):
