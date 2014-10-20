@@ -1,13 +1,17 @@
 
 table.expandable {
+    /* Prevent the default alteration of row color */
     tr.even, tr.alt, tr:nth-of-type(even) {
         background: inherit;
     }
+
+    /* Set background and inset effect on the event info panel */
     tr.expanded td {
         box-shadow: inset 0px 0px 6px #aaaaaa;
         background-color: #EEEEEE;
     }
 
+    /* Prevent cells from being selected when sorting */
     th {
         -webkit-touch-callout: none;
         -webkit-user-select: none;
@@ -17,6 +21,7 @@ table.expandable {
         user-select: none;
     }
 
+    /* Override default font size so that text in the event info panel is not that big */
     li, p {
         font-size: 0.9rem;
     }
