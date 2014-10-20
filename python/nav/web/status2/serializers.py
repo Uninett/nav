@@ -13,6 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+from django.core.urlresolvers import reverse
 from rest_framework import serializers
 from nav.models import event
 from nav.models.fields import INFINITY
@@ -26,6 +27,11 @@ class AlertHistorySerializer(serializers.ModelSerializer):
 
     on_maintenance = serializers.SerializerMethodField('is_on_maintenance')
     acknowledged = serializers.SerializerMethodField('is_acknowledged')
+
+    event_history_url = serializers.SerializerMethodField(
+        'get_event_history_url')
+    netbox_history_url = serializers.SerializerMethodField(
+        'get_netbox_history_url')
 
     alert_type = serializers.Field(source='alert_type.name')
     start_time = serializers.DateTimeField()
@@ -49,6 +55,17 @@ class AlertHistorySerializer(serializers.ModelSerializer):
     @staticmethod
     def is_acknowledged(obj):
         return True
+
+    @staticmethod
+    def get_event_history_url(obj):
+        return "".join([reverse('devicehistory-view'), '?eventtype=', 'e_',
+                        obj.event_type.id])
+
+    @staticmethod
+    def get_netbox_history_url(obj):
+        if AlertHistorySerializer.get_subject_type(obj) == 'Netbox':
+            return reverse('devicehistory-view-netbox',
+                           kwargs={'netbox_id': obj.get_subject().id})
 
     @staticmethod
     def get_subject_type(obj):

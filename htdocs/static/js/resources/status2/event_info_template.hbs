@@ -1,6 +1,28 @@
 <td colspan="6">
-  <div class="">
-    <p>More information</p>
-    <a href="{{ subject_url }}">{{ subject }}</a>
+
+  <div class="row">
+    <div class="medium-6 column">
+      <div class="alert-box success">This alert is acknowledged</div>
+      <div class="alert-box">{{ subject }} is on maintenance</div>
+    </div>
+    <div class="medium-6 column">
+      <ul>
+        <li>
+          <a href="{{ event_history_url }}"
+             title="See device history for {{ event_type }}">
+            Device history for {{ event_type }}
+          </a>
+        </li>
+
+        <li>
+          <a href="{{ netbox_history_url }}"
+             title="See history for {{ subject }}">
+            History for {{ subject }}
+          </a>
+        </li>
+      </ul>
+    </div>
+
   </div>
+
 </td>
