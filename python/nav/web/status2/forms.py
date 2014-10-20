@@ -22,13 +22,23 @@ from crispy_forms_foundation.layout import Layout, Row, Column, Field
 
 from nav.models.event import EventType
 from nav.models.manage import Organization, Category
+from nav.web.crispyforms import NumberField
 
 
 class StatusPanelForm(forms.Form):
     """Form representing the status panel options for the user"""
 
+    stateless = forms.BooleanField(required=False,
+                                   help_text='Show stateless events')
+    stateless_threshold = NumberField(
+        required=False,
+        help_text='Hours back in time to look for stateless events')
+    on_maintenance = forms.BooleanField(required=False)
+    acknowledged = forms.BooleanField(required=False)
+
     def __init__(self, *args, **kwargs):
         super(StatusPanelForm, self).__init__(*args, **kwargs)
+
         self.fields['event_type'] = forms.MultipleChoiceField(
             choices=get_event_types(),
             required=False
@@ -88,7 +98,14 @@ class StatusPanelForm(forms.Form):
                        css_class='medium-3'),
                 Column(Field('not_organization', css_class='select2'),
                        css_class='medium-3'),
+            ),
+            Row(
+                Column('stateless', 'stateless_threshold',
+                       css_class='medium-3'),
+                Column('acknowledged', 'on_maintenance',
+                       css_class='medium-3 end')
             )
+
         )
 
 
