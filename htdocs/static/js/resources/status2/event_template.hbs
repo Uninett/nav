@@ -7,5 +7,9 @@
 <td>{{ alert_type }}</td>
 <td>{{ formatted_start_time }}</td>
 <td>
-  <a href="javascript:void(0);" title="More information"><i class="fa fa-info-circle fa-lg"></i></a>
+  {{#if on_maintenance}}<i class="fa fa-wrench fa-lg" title="On maintenance"></i>{{/if}}
+  {{#if acknowledged}}<i class="fa fa-check-circle-o fa-lg" title="Acknowledged"></i>{{/if}}
+</td>
+<td class="toggle-info-cell">
+ <a href="javascript:void(0);" title="More information"><i class="fa fa-caret-down fa-lg"></i></a>  
 </td>

@@ -24,6 +24,9 @@ class AlertHistorySerializer(serializers.ModelSerializer):
     subject_url = serializers.SerializerMethodField('get_subject_url')
     subject_type = serializers.SerializerMethodField('get_subject_type')
 
+    on_maintenance = serializers.SerializerMethodField('is_on_maintenance')
+    acknowledged = serializers.SerializerMethodField('is_acknowledged')
+
     alert_type = serializers.Field(source='alert_type.name')
     start_time = serializers.DateTimeField()
     end_time = serializers.SerializerMethodField('get_end_time')
@@ -35,6 +38,17 @@ class AlertHistorySerializer(serializers.ModelSerializer):
             return obj.get_subject().get_absolute_url()
         except AttributeError:
             return None
+
+    @staticmethod
+    def is_on_maintenance(obj):
+        try:
+            return obj.get_subject().is_on_maintenance()
+        except AttributeError:
+            pass
+
+    @staticmethod
+    def is_acknowledged(obj):
+        return True
 
     @staticmethod
     def get_subject_type(obj):

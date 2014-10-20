@@ -29,31 +29,7 @@
 
 
     <div class="row">
-      <div class="medium-8 column">
-
-        {# Table displaying filtered events #}
-        <table id="events-list" class="listtable hover expand tablesorter expandable">
-          <caption>Events</caption>
-          <thead>
-          <tr>
-            <th>
-              <label>
-                <input class="alert-action" type="checkbox">
-              </label>
-            </th>
-            <th>Subject</th>
-            <th>Type</th>
-            <th>Start time</th>
-            <th>&nbsp;</th>
-          </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-
-      </div>
-
-
-      <div class="medium-4 column">
+      <div class="large-4 large-push-8 column">
         {# Panel for alert actions #}
         <div id="action-panel" class="panel highlight hidden">
           <h5>Do something with the selected alerts</h5>
@@ -72,6 +48,31 @@
           </a>
         </div>
       </div>
+
+      <div class="large-8 large-pull-4 column">
+
+        {# Table displaying filtered events #}
+        <table id="events-list" class="listtable hover expand tablesorter expandable">
+          <caption>Events</caption>
+          <thead>
+          <tr>
+            <th>
+              <label>
+                <input class="alert-action" type="checkbox">
+              </label>
+            </th>
+            <th>Subject</th>
+            <th>Type</th>
+            <th>Start time</th>
+            <th>&nbsp;</th>
+            <th>&nbsp;</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+      </div>
+
 
     </div>
 

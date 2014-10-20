@@ -301,7 +301,7 @@ define([
 
         events: {
             'click .alert-action': 'toggleChangeState',
-            'click .fa': 'renderExpandedInfo'
+            'click .toggle-info-cell': 'renderExpandedInfo'
         },
 
         attributes: {
