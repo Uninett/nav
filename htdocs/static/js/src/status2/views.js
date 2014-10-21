@@ -176,9 +176,9 @@ define([
 
         // Map columnindex to model attribute for sorting
         sortMap: {
-            1: 'subject',
-            2: 'alert_type',
-            3: 'start_time'
+            2: 'subject',
+            3: 'alert_type',
+            4: 'start_time'
         },
 
         initialize: function () {
@@ -312,12 +312,23 @@ define([
 
         initialize: function () {
             this.render();
+            this.markStatus();
 
             this.infoView = new EventInfoView({ model: this.model });
 
             this.checkBox = this.$el.find('.alert-action');
             this.listenTo(this.model, 'destroy', this.unRender);
             this.listenTo(alertsToChange, 'reset', this.toggleSelect);
+        },
+
+        markStatus: function () {
+            var statuses = ['on_maintenance', 'acknowledged'];
+            for (var i = 0, l = statuses.length; i < l; i++) {
+                if (this.model.has(statuses[i])) {
+                    this.$el.addClass('hasStatus');
+                    return;
+                }
+            }
         },
 
         renderExpandedInfo: function () {

@@ -5,10 +5,17 @@ table.expandable {
         background: inherit;
     }
 
-    /* Set background and inset effect on the event info panel */
-    tr.expanded td {
-        box-shadow: inset 0px 0px 6px #aaaaaa;
-        background-color: #EEEEEE;
+
+    tr {
+        /* Mark rows that has some kind of status */
+        &.hasStatus {
+            font-style: italic;
+        }
+        /* Set background and inset effect on the event info panel */
+        &.expanded td {
+                box-shadow: inset 0px 0px 6px #aaaaaa;
+                background-color: #EEEEEE;
+        }
     }
 
     /* Prevent cells from being selected when sorting */
