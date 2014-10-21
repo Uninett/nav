@@ -335,7 +335,6 @@ define([
 
             this.infoView = new EventInfoView({ model: this.model });
 
-            this.checkBox = this.$el.find('.alert-action');
             this.listenTo(this.model, 'destroy', this.unRender);
             this.listenTo(this.model, 'change', this.render);
             this.listenTo(alertsToChange, 'reset', this.toggleSelect);
@@ -377,11 +376,13 @@ define([
             /** Highlight row and tick/untick checkbox. We separate this from
              *  the click event so that this can be run on change-collection
              *  changes */
+            var checkBox = this.$('.alert-action');
+
             if (alertsToChange.contains(this.model)) {
-                this.checkBox.prop('checked', true);
+                checkBox.prop('checked', true);
                 this.highlight(true);
             } else {
-                this.checkBox.prop('checked', false);
+                checkBox.prop('checked', false);
                 this.highlight(false);
             }
         },
