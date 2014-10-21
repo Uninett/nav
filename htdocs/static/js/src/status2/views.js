@@ -32,7 +32,7 @@ define([
 
             new EventsView({ collection: eventCollection });
             this.panelView = new PanelView({ collection: eventCollection });
-            new ActionView();
+            new ActionView({ collection: eventCollection });
 
             this.setDefaultButton = this.$el.find('.set-default');
             this.toggleButton = this.$('.toggle-panel');
@@ -141,7 +141,25 @@ define([
         },
 
         acknowledgeAlerts: function () {
+            var ids = [],
+                comment = this.$('.usercomment').val(),
+                self = this;
 
+            alertsToChange.each(function (model) {
+                ids.push(model.get('id'));
+            });
+            var request = $.post(NAV.urls.status2_acknowledge_alert, {
+                id: ids,
+                comment: comment
+            });
+            request.done(function () {
+                console.log('Acknowledge seemed to work');
+                self.collection.fetch();
+                self.cancelAlertsAction();
+            });
+            request.fail(function () {
+                console.log('Error acknowledging');
+            });
         },
 
         clearAlerts: function () {
@@ -280,6 +298,7 @@ define([
 
         initialize: function () {
             this.listenTo(this.model, 'destroy', this.unRender);
+            this.listenTo(this.model, 'change', this.render);
         },
 
         render: function () {
@@ -318,6 +337,7 @@ define([
 
             this.checkBox = this.$el.find('.alert-action');
             this.listenTo(this.model, 'destroy', this.unRender);
+            this.listenTo(this.model, 'change', this.render);
             this.listenTo(alertsToChange, 'reset', this.toggleSelect);
         },
 

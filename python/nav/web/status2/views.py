@@ -160,3 +160,20 @@ def clear_alert(request):
         return HttpResponse(status=200)
     else:
         return HttpResponse(status=400)
+
+
+def acknowledge_alert(request):
+    if request.method == 'POST':
+        alerts = AlertHistory.objects.filter(
+            pk__in=request.POST.getlist('id[]'))
+        if not alerts:
+            return HttpResponse("No alerts found", status=404)
+
+        comment = request.POST.get('comment')
+        for alert in alerts:
+            alert.acknowledge(request.account, comment)
+        return HttpResponse()
+    else:
+        return HttpResponse('Wrong request type', status=400)
+
+

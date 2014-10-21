@@ -3,7 +3,10 @@
   <div class="row">
 
     <div class="medium-6 column">
-        <p>Some information</p>
+        {{#if acknowledgement}}
+            <p>Acknowledged by {{ acknowledgement.account.name }} ({{ acknowledgement.date }})
+            {{#if acknowledgement.comment}}&quot;{{acknowledgement.comment}}&quot;{{/if}}</p>
+        {{/if}}
     </div>
 
 

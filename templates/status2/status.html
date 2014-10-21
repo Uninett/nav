@@ -10,6 +10,7 @@
     NAV.urls = NAV.urls || {};
     NAV.urls.status2_api_alerthistory = '{% url alerthistory-list %}';
     NAV.urls.status2_clear_alert = '{% url status2_clear_alert %}';
+    NAV.urls.status2_acknowledge_alert = '{% url status2_acknowledge_alert %}';
     NAV.urls.status2_save_preferences = '{% url status2_save_preferences %}';
     </script>
 {% endblock %}
@@ -33,6 +34,10 @@
         {# Panel for alert actions #}
         <div id="action-panel" class="panel highlight hidden">
           <h5>Do something with the selected alerts</h5>
+
+          <div>
+            <input type="text" class="usercomment" placeholder="Comment your action">
+          </div>
 
           <div>
             <a href="javascript:void(0);" class="button small acknowledge-alerts">
