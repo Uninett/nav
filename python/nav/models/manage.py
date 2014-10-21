@@ -489,6 +489,10 @@ class Module(models.Model):
         ports = self.get_physical_ports()
         return Interface.sort_ports_by_ifname(ports)
 
+    def is_on_maintenace(self):
+        """Returns True if the owning Netbox is on maintenance"""
+        return self.netbox.is_on_maintenance()
+
 
 class Memory(models.Model):
     """From NAV Wiki: The mem table describes the memory
@@ -1241,6 +1245,10 @@ class Interface(models.Model):
         return self.swportvlan_set.select_related('vlan').order_by(
             'vlan__vlan')
 
+    def is_on_maintenace(self):
+        """Returns True if the owning Netbox is on maintenance"""
+        return self.netbox.is_on_maintenance()
+
 
 class InterfaceStack(models.Model):
     """Interface layered stacking relationships"""
@@ -1406,6 +1414,11 @@ class PowerSupplyOrFan(models.Model):
         return self.netbox.get_unresolved_alerts().filter(
             event_type__id__in=['psuState', 'fanState'],
             subid=self.id)
+
+    def is_on_maintenace(self):
+        """Returns True if the owning Netbox is on maintenance"""
+        return self.netbox.is_on_maintenance()
+
 
 class UnrecognizedNeighbor(models.Model):
     id = models.AutoField(primary_key=True)
