@@ -30,21 +30,31 @@
 
 
     <div class="row">
+
       <div class="large-4 large-push-8 column">
         {# Panel for alert actions #}
-        <div id="action-panel" class="panel highlight hidden">
-          <h5>Do something with the selected alerts</h5>
+        <div id="action-panel" class="panel white hidden">
 
-          <div>
-            <input type="text" class="usercomment" placeholder="Comment your action">
-          </div>
-
-          <div>
-            <a href="javascript:void(0);" class="button small acknowledge-alerts">
+          <div class="panel acknowledge">
+            <h5>Acknowledge the alerts</h5>
+            <input type="text" class="usercomment" placeholder="Write a description">
+            <a href="javascript:void(0);" class="button small acknowledge-alerts expand">
               Acknowledge alerts
             </a>
-            <a href="javascript:void(0);" class="button small clear-alerts">
+          </div>
+
+          <div class="panel">
+            <h5>Clear the alerts</h5>
+            <a href="javascript:void(0);" class="button small clear-alerts expand">
               Clear alerts
+            </a>
+          </div>
+
+          <div class="panel maintenance">
+            <h5>Put on maintenance</h5>
+            <input type="text" class="usercomment" placeholder="Write a description">
+            <a href="javascript:void(0);" class="button small maintenance-alerts expand">
+              Maintenance
             </a>
           </div>
 
@@ -52,6 +62,7 @@
             Never mind
           </a>
         </div>
+
       </div>
 
       <div class="large-8 large-pull-4 column">
