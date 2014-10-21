@@ -13,10 +13,29 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Serializers for status API data"""
+
 from django.core.urlresolvers import reverse
 from rest_framework import serializers
-from nav.models import event
+from nav.models import event, profiles
 from nav.models.fields import INFINITY
+
+
+class AccountSerializer(serializers.ModelSerializer):
+    """Serializer for Accounts that have acknowledged alerts"""
+
+    class Meta:
+        model = profiles.Account
+        fields = ('id', 'login', 'name')
+
+
+class AcknowledgementSerializer(serializers.ModelSerializer):
+    """Serializer for alert acknowledgements"""
+    account = AccountSerializer()
+
+    class Meta:
+        model = event.Acknowledgement
+        fields = ('account', 'comment', 'date')
 
 
 class AlertHistorySerializer(serializers.ModelSerializer):
@@ -26,7 +45,7 @@ class AlertHistorySerializer(serializers.ModelSerializer):
     subject_type = serializers.SerializerMethodField('get_subject_type')
 
     on_maintenance = serializers.SerializerMethodField('is_on_maintenance')
-    acknowledged = serializers.SerializerMethodField('is_acknowledged')
+    acknowledgement = AcknowledgementSerializer()
 
     event_history_url = serializers.SerializerMethodField(
         'get_event_history_url')
@@ -47,22 +66,21 @@ class AlertHistorySerializer(serializers.ModelSerializer):
 
     @staticmethod
     def is_on_maintenance(obj):
+        """Returns True if alert subject is on maintenance"""
         try:
             return obj.get_subject().is_on_maintenance()
         except AttributeError:
             pass
 
     @staticmethod
-    def is_acknowledged(obj):
-        return True
-
-    @staticmethod
     def get_event_history_url(obj):
+        """Returns a device history URL for this type of event"""
         return "".join([reverse('devicehistory-view'), '?eventtype=', 'e_',
                         obj.event_type.id])
 
     @staticmethod
     def get_netbox_history_url(obj):
+        """Returns a device history URL for this subject, if it is a Netbox"""
         if AlertHistorySerializer.get_subject_type(obj) == 'Netbox':
             return reverse('devicehistory-view-netbox',
                            kwargs={'netbox_id': obj.get_subject().id})
