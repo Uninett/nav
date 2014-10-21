@@ -30,5 +30,7 @@ urlpatterns = patterns('',
         name='status2_clear_alert'),
     url(r'^alert/acknowledge/', views.acknowledge_alert,
         name='status2_acknowledge_alert'),
+    url(r'^alert/put_on_maintenance/', views.put_on_maintenance,
+        name='status2_put_on_maintenance'),
     url(r'^_api/', include(router.urls))
 )

@@ -14,7 +14,7 @@ define([
     //  usage: {{dateFormat creation_date format="MMMM YYYY"}}
     // Credits: https://gist.github.com/stephentcannon/3409103
     Handlebars.registerHelper('dateFormat', function(context, block) {
-        var f = block.hash.format || "YYYY-MM-DD hh:mm:ss";
+        var f = block.hash.format || "YYYY-MM-DD HH:mm:ss";
         return moment(context).format(f);
     });
 
@@ -134,6 +134,7 @@ define([
         events: {
             'click .acknowledge-alerts': 'acknowledgeAlerts',
             'click .clear-alerts': 'clearAlerts',
+            'click .maintenance .button': 'putOnMaintenance',
             'click .cancel-alerts-action': 'cancelAlertsAction'
         },
 
@@ -152,12 +153,13 @@ define([
 
         acknowledgeAlerts: function () {
             var ids = [],
-                comment = this.$('.usercomment').val(),
+                comment = this.$('.acknowledge .usercomment').val(),
                 self = this;
 
             alertsToChange.each(function (model) {
                 ids.push(model.get('id'));
             });
+
             var request = $.post(NAV.urls.status2_acknowledge_alert, {
                 id: ids,
                 comment: comment
@@ -184,6 +186,35 @@ define([
                     }
                 });
             });
+        },
+
+        putOnMaintenance: function () {
+            var ids = [],
+                self = this,
+                description = this.$('.maintenance .usercomment').val();
+            alertsToChange.each(function (model) {
+                if (model.get('subject_type') === 'Netbox') {
+                    ids.push(model.get('id'));
+                }
+            });
+
+            if (ids.length > 0) {
+                var request = $.post(NAV.urls.status2_put_on_maintenance, {
+                    id: ids,
+                    description: description
+                });
+
+                request.done(function () {
+                    console.log('All netboxes put on maintenance');
+                    self.collection.fetch();
+                    self.cancelAlertsAction();
+                });
+
+                request.fail(function () {
+                    console.log('Error putting on maintenance');
+                });
+            }
+
         },
 
         cancelAlertsAction: function () {

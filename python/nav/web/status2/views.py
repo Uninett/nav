@@ -26,8 +26,11 @@ from rest_framework import viewsets, filters
 from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 
+from nav.maintengine import check_devices_on_maintenance
 from nav.models.event import AlertHistory
-from nav.models.fields import UNRESOLVED
+from nav.models.manage import Netbox
+from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
+from nav.models.fields import UNRESOLVED, INFINITY
 from . import serializers, forms, STATELESS_THRESHOLD
 
 
@@ -176,4 +179,50 @@ def acknowledge_alert(request):
     else:
         return HttpResponse('Wrong request type', status=400)
 
+
+def put_on_maintenance(request):
+    """Puts the subject of the alerts on maintenance"""
+    if request.method == 'POST':
+        alerts = AlertHistory.objects.filter(
+            pk__in=request.POST.getlist('id[]'))
+        netboxes = Netbox.objects.filter(pk__in=[x.netbox_id for x in alerts])
+        if not netboxes:
+            return HttpResponse("No netboxes found", status=404)
+
+        description = request.POST.get('description')
+        candidates = [n for n in netboxes if not is_maintenance_task_posted(n)]
+        add_maintenance_task(request.account, candidates, description)
+        check_devices_on_maintenance()
+        return HttpResponse(status=200)
+    else:
+        return HttpResponse('Wrong request type', status=400)
+
+
+def is_maintenance_task_posted(netbox):
+    """Verify that a maintenance task for this netbox is not already posted"""
+    MaintenanceComponent.objects.filter(
+        key='netbox',
+        value=str(netbox.id),
+        maintenance_task__state=MaintenanceTask.STATE_ACTIVE,
+        maintenance_task__end_time=datetime.datetime.max).count()
+
+
+def add_maintenance_task(owner, netboxes, description=""):
+    """Add a maintenance task with a component for each netbox"""
+    task = MaintenanceTask(
+        start_time=datetime.datetime.now(),
+        end_time=INFINITY,
+        description=description,
+        author=owner.login,
+        state=MaintenanceTask.STATE_SCHEDULED
+    )
+    task.save()
+
+    for netbox in netboxes:
+        component = MaintenanceComponent(
+            maintenance_task=task,
+            key='netbox',
+            value='%d' % netbox.id
+        )
+        component.save()
 

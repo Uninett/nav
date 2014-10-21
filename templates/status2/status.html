@@ -11,6 +11,7 @@
     NAV.urls.status2_api_alerthistory = '{% url alerthistory-list %}';
     NAV.urls.status2_clear_alert = '{% url status2_clear_alert %}';
     NAV.urls.status2_acknowledge_alert = '{% url status2_acknowledge_alert %}';
+    NAV.urls.status2_put_on_maintenance = '{% url status2_put_on_maintenance %}';
     NAV.urls.status2_save_preferences = '{% url status2_save_preferences %}';
     </script>
 {% endblock %}
@@ -53,8 +54,8 @@
           <div class="panel maintenance">
             <h5>Put on maintenance</h5>
             <input type="text" class="usercomment" placeholder="Write a description">
-            <a href="javascript:void(0);" class="button small maintenance-alerts expand">
-              Maintenance
+            <a href="javascript:void(0);" class="button small expand">
+              Put on maintenance
             </a>
           </div>
 
