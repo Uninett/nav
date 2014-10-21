@@ -7,6 +7,16 @@ define([
     'libs/handlebars',
 ], function (Collections, EventTemplate, EventInfoTemplate, moment) {
 
+    // So, where to put HandleBar helpers? Not here for sure
+    //  format an ISO date using Moment.js
+    //  http://momentjs.com/
+    //  moment syntax example: moment(Date("2011-07-18T15:50:52")).format("MMMM YYYY")
+    //  usage: {{dateFormat creation_date format="MMMM YYYY"}}
+    // Credits: https://gist.github.com/stephentcannon/3409103
+    Handlebars.registerHelper('dateFormat', function(context, block) {
+        var f = block.hash.format || "YYYY-MM-DD hh:mm:ss";
+        return moment(context).format(f);
+    });
 
     // This collection contains all the event-models that are to be cleared/acknowledged etc.
     var alertsToChange = new Collections.ChangeCollection();
@@ -388,8 +398,6 @@ define([
         },
 
         render: function () {
-            this.model.set('formatted_start_time',
-                moment(this.model.get('start_time')).format('YYYY-MM-DD HH:mm:ss'));
             this.$el.html(this.template(this.model.attributes));
         },
 

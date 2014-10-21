@@ -4,7 +4,7 @@
 
     <div class="medium-6 column">
         {{#if acknowledgement}}
-            <p>Acknowledged by {{ acknowledgement.account.name }} ({{ acknowledgement.date }})
+            <p>Acknowledged by {{ acknowledgement.account.name }} ({{ dateFormat acknowledgement.date }})
             {{#if acknowledgement.comment}}&quot;{{acknowledgement.comment}}&quot;{{/if}}</p>
         {{/if}}
     </div>
