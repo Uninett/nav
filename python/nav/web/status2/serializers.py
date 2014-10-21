@@ -15,8 +15,25 @@
 #
 from django.core.urlresolvers import reverse
 from rest_framework import serializers
-from nav.models import event
+from nav.models import event, profiles
 from nav.models.fields import INFINITY
+
+
+class AccountSerializer(serializers.ModelSerializer):
+    """Serializer for Accounts that have acknowledged alerts"""
+
+    class Meta:
+        model = profiles.Account
+        fields = ('id', 'login', 'name')
+
+
+class AcknowledgementSerializer(serializers.ModelSerializer):
+    """Serializer for alert acknowledgements"""
+    account = AccountSerializer()
+
+    class Meta:
+        model = event.Acknowledgement
+        fields = ('account', 'comment', 'date')
 
 
 class AlertHistorySerializer(serializers.ModelSerializer):
@@ -26,7 +43,7 @@ class AlertHistorySerializer(serializers.ModelSerializer):
     subject_type = serializers.SerializerMethodField('get_subject_type')
 
     on_maintenance = serializers.SerializerMethodField('is_on_maintenance')
-    acknowledged = serializers.SerializerMethodField('is_acknowledged')
+    acknowledgement = AcknowledgementSerializer()
 
     event_history_url = serializers.SerializerMethodField(
         'get_event_history_url')
