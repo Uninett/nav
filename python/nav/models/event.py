@@ -485,6 +485,33 @@ class AlertHistory(models.Model, EventMixIn):
             # Stateless alert
             return None
 
+    def is_acknowledged(self):
+        """
+        Returns an Acknowledgement instance if this alert has been
+        acknowledged, otherwise None.
+        """
+        try:
+            return self.acknowledgement
+        except Acknowledgement.DoesNotExist:
+            return
+
+    def acknowledge(self, account, comment):
+        """
+        Acknowledges this alert using a given account and comment.
+
+        Any pre-existing acknowledgement will be overwritten.
+        """
+        try:
+            ack = self.acknowledgement
+        except Acknowledgement.DoesNotExist:
+            ack = Acknowledgement(alert=self, account=account, comment=comment)
+        else:
+            ack.account = account
+            ack.comment = comment
+            ack.date = dt.datetime.now()
+
+        ack.save()
+
     def save(self, *args, **kwargs):
         new_object = self.pk is None
         super(AlertHistory, self).save(*args, **kwargs)
