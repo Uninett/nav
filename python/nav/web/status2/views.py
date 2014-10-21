@@ -54,38 +54,14 @@ class StatusView(View):
         )
 
 
-class StatusAPIMixin(APIView):
-    """Mixin for providing permissions and renderers"""
-    renderer_classes = (JSONRenderer,)
-    filter_backends = (filters.DjangoFilterBackend,)
+class AlertHistoryFilterBackend(filters.BaseFilterBackend):
+    """
+    Custom filtering of AlertHistory results.
 
-
-class AlertHistoryViewSet(StatusAPIMixin, viewsets.ReadOnlyModelViewSet):
-    """API view for listing AlertHistory entries"""
-
-    queryset = AlertHistory.objects.none()
-    serializer_class = serializers.AlertHistorySerializer
-
-    def get_queryset(self):
-        """Produces a queryset customized from the query parameters"""
-        if not self.request.QUERY_PARAMS.get('stateless', False):
-            qset = AlertHistory.objects.unresolved().select_related(depth=1)
-        else:
-            qset = self._get_stateless_queryset()
-
-        qset = self._multivalue_filter(qset)
-        return qset
-
-    def _get_stateless_queryset(self):
-        hours = int(self.request.QUERY_PARAMS.get('stateless_threshold',
-                                                  STATELESS_THRESHOLD))
-        if hours < 1:
-            raise ValueError("hours must be at least 1")
-        threshold = datetime.datetime.now() - datetime.timedelta(hours=hours)
-        stateless = Q(start_time__gte=threshold) & Q(end_time__isnull=True)
-        return AlertHistory.objects.filter(
-            stateless | UNRESOLVED).select_related(depth=1)
-
+    Turns out we can't get the DjangoFilterBackend to support OR/IN filters,
+    which is what we want for several of the fields in the AlertHistory
+    model; therefore we customize everythin. Egads, Brain!
+    """
     MULTIVALUE_FILTERS = {
         'event_type': 'event_type',
         'organization': 'netbox__organization',
@@ -100,19 +76,49 @@ class AlertHistoryViewSet(StatusAPIMixin, viewsets.ReadOnlyModelViewSet):
         'not_alert_type': 'alert_type__name',
     }
 
-    def _multivalue_filter(self, qset):
+    def filter_queryset(self, request, queryset, view):
         for arg, field in self.MULTIVALUE_FILTERS.items():
-            values = self.request.QUERY_PARAMS.getlist(arg, None)
+            values = request.QUERY_PARAMS.getlist(arg, None)
             if values:
                 filtr = field + '__in'
-                qset = qset.filter(**{filtr: values})
+                queryset = queryset.filter(**{filtr: values})
 
         for arg, field in self.MULTIVALUE_EXCLUDES.items():
-            values = self.request.QUERY_PARAMS.getlist(arg, None)
+            values = request.QUERY_PARAMS.getlist(arg, None)
             if values:
                 filtr = field + '__in'
-                qset = qset.exclude(**{filtr: values})
-        return qset
+                queryset = queryset.exclude(**{filtr: values})
+        return queryset
+
+
+class StatusAPIMixin(APIView):
+    """Mixin for providing permissions and renderers"""
+    renderer_classes = (JSONRenderer,)
+    filter_backends = (AlertHistoryFilterBackend,)
+
+
+class AlertHistoryViewSet(StatusAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """API view for listing AlertHistory entries"""
+
+    queryset = AlertHistory.objects.none()
+    serializer_class = serializers.AlertHistorySerializer
+
+    def get_queryset(self):
+        """Gets an AlertHistory QuerySet"""
+        if not self.request.QUERY_PARAMS.get('stateless', False):
+            return AlertHistory.objects.unresolved().select_related(depth=1)
+        else:
+            return self._get_stateless_queryset()
+
+    def _get_stateless_queryset(self):
+        hours = int(self.request.QUERY_PARAMS.get('stateless_threshold',
+                                                  STATELESS_THRESHOLD))
+        if hours < 1:
+            raise ValueError("hours must be at least 1")
+        threshold = datetime.datetime.now() - datetime.timedelta(hours=hours)
+        stateless = Q(start_time__gte=threshold) & Q(end_time__isnull=True)
+        return AlertHistory.objects.filter(
+            stateless | UNRESOLVED).select_related(depth=1)
 
 
 def save_status_preferences(request):
