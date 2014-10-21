@@ -88,6 +88,20 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
             if values:
                 filtr = field + '__in'
                 queryset = queryset.exclude(**{filtr: values})
+
+        acked = request.QUERY_PARAMS.get("acknowledged", False)
+        if not acked:
+            queryset = queryset.filter(acknowledgement__isnull=True)
+
+        on_maintenance = request.QUERY_PARAMS.get("on_maintenance", False)
+        if not on_maintenance:
+            is_on_maintenance = (
+                serializers.AlertHistorySerializer.is_on_maintenance)
+
+            # It's time we stop being a queryset, since we now need to filter
+            # on computed values
+            queryset = [i for i in queryset if not is_on_maintenance(i)]
+
         return queryset
 
 
