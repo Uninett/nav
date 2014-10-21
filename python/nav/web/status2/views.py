@@ -34,12 +34,23 @@ from . import serializers, forms, STATELESS_THRESHOLD
 class StatusView(View):
     """Generic Status view"""
 
-    def get_status_preferences(self, request):
+    @staticmethod
+    def get_status_preferences(request):
         return request.session.get('form-data')
+
+    @staticmethod
+    def set_default_parameters(parameters):
+        if 'stateless_threshold' not in parameters:
+            parameters.update({'stateless_threshold': STATELESS_THRESHOLD})
 
     def get(self, request):
         """Produces a list view of AlertHistory entries"""
-        form = forms.StatusPanelForm(self.get_status_preferences(request))
+        if request.GET.values():
+            parameters = request.GET.copy()
+            self.set_default_parameters(parameters)
+            form = forms.StatusPanelForm(parameters)
+        else:
+            form = forms.StatusPanelForm(self.get_status_preferences(request))
 
         return render_to_response(
             'status2/status.html',
