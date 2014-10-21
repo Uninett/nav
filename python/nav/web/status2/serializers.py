@@ -13,6 +13,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Serializers for status API data"""
+
 from django.core.urlresolvers import reverse
 from rest_framework import serializers
 from nav.models import event, profiles
@@ -64,22 +66,21 @@ class AlertHistorySerializer(serializers.ModelSerializer):
 
     @staticmethod
     def is_on_maintenance(obj):
+        """Returns True if alert subject is on maintenance"""
         try:
             return obj.get_subject().is_on_maintenance()
         except AttributeError:
             pass
 
     @staticmethod
-    def is_acknowledged(obj):
-        return True
-
-    @staticmethod
     def get_event_history_url(obj):
+        """Returns a device history URL for this type of event"""
         return "".join([reverse('devicehistory-view'), '?eventtype=', 'e_',
                         obj.event_type.id])
 
     @staticmethod
     def get_netbox_history_url(obj):
+        """Returns a device history URL for this subject, if it is a Netbox"""
         if AlertHistorySerializer.get_subject_type(obj) == 'Netbox':
             return reverse('devicehistory-view-netbox',
                            kwargs={'netbox_id': obj.get_subject().id})
