@@ -7,6 +7,9 @@
             <p>Acknowledged by {{ acknowledgement.account.name }} ({{ dateFormat acknowledgement.date }})
             {{#if acknowledgement.comment}}&quot;{{acknowledgement.comment}}&quot;{{/if}}</p>
         {{/if}}
+        {{#if on_maintenance}}
+            <p>{{ subject }} is on maintenance</p>
+        {{/if}}
     </div>
 
 
