@@ -18,9 +18,10 @@
 from datetime import datetime
 from socket import gethostbyaddr, herror
 from IPy import IP
+from collections import namedtuple
 
 from nav import asyncdns
-from nav.models.manage import Prefix
+from nav.models.manage import Prefix, Netbox
 from nav.ipdevpoll.db import commit_on_success
 
 from django.utils.datastructures import SortedDict
@@ -219,3 +220,25 @@ class ProcessInput:
         """Populates the GET dict with formatted values for a netbios search"""
         self.__common()
         return self.input
+
+
+UplinkTuple = namedtuple('UplinkTuple', 'mac sysname uplink')
+
+
+class UplinkTracker(list):
+    def __init__(self, mac_min, mac_max):
+        boxes = Netbox.objects.extra(
+            select={'mac': 'netboxmac.mac'},
+            tables=['netboxmac'],
+            where=['netboxmac.netboxid=netbox.netboxid',
+                   'netboxmac.mac BETWEEN %s AND %s'],
+            params=[mac_min, mac_max],
+        ).order_by('mac', 'sysname')
+
+        for box in boxes:
+            uplinks = box.get_uplinks()
+            if uplinks:
+                for link in uplinks:
+                    self.append(UplinkTuple(box.mac, box.sysname, link))
+            else:
+                self.append(UplinkTuple(box.mac, box.sysname, None))

@@ -28,7 +28,7 @@ from nav.models.manage import Arp, Cam, Netbios
 from nav import asyncdns
 
 from nav.web.machinetracker import forms
-from nav.web.machinetracker.utils import ip_dict
+from nav.web.machinetracker.utils import ip_dict, UplinkTracker
 from nav.web.machinetracker.utils import process_ip_row, track_mac
 from nav.web.machinetracker.utils import (min_max_mac, ProcessInput,
                                           normalize_ip_to_string,
@@ -292,11 +292,13 @@ def mac_do_search(request):
         ip_count = len(arp_result)
         mac_tracker = track_mac(('mac', 'sysname', 'module', 'port'),
                                 cam_result, dns=False)
+        uplink_tracker = UplinkTracker(mac_min, mac_max)
         ip_tracker = track_mac(('ip', 'mac'), arp_result, dns)
 
         info_dict.update({
             'form_data': form.cleaned_data,
             'mac_tracker': mac_tracker,
+            'uplink_tracker': uplink_tracker,
             'ip_tracker': ip_tracker,
             'mac_tracker_count': mac_count,
             'ip_tracker_count': ip_count,

@@ -80,10 +80,18 @@
         </div>
     </form>
 
-    {% if mac_tracker or ip_tracker %}
-        <div class="results">
-            {% include "machinetracker/mac_tracker.html" %}
-        </div>
+    {% if mac_tracker or uplink_tracker or ip_tracker %}
+        {% if uplink_tracker %}
+            <div class="results">
+                {% include "machinetracker/uplink_tracker.html" %}
+            </div>
+        {% endif %}
+
+        {% if mac_tracker or not uplink_tracker %}
+            <div class="results">
+                {% include "machinetracker/mac_tracker.html" %}
+            </div>
+        {% endif %}
 
         <div class="results">
             {% include "machinetracker/ip_tracker.html" %}
