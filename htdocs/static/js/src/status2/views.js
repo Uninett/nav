@@ -322,9 +322,9 @@ define([
         },
 
         markStatus: function () {
-            var statuses = ['on_maintenance', 'acknowledged'];
+            var statuses = ['on_maintenance', 'acknowledgement'];
             for (var i = 0, l = statuses.length; i < l; i++) {
-                if (this.model.has(statuses[i])) {
+                if (this.model.get(statuses[i])) {
                     this.$el.addClass('hasStatus');
                     return;
                 }
