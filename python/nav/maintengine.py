@@ -16,6 +16,7 @@
 """
 A library for checking maintenance tasks.
 """
+from __future__ import absolute_import
 import datetime
 import logging
 
