@@ -540,3 +540,19 @@ class AlertHistoryVariable(models.Model):
 
     def __unicode__(self):
         return u'%s=%s' % (self.variable, self.value)
+
+
+class Acknowledgement(models.Model):
+    """Alert acknowledgements"""
+    alert = models.OneToOneField('AlertHistory', null=False, blank=False,
+                                 primary_key=True)
+    account = models.ForeignKey('Account', null=False, blank=False)
+    comment = VarcharField(blank=True)
+    date = models.DateTimeField(null=False, default=dt.datetime.now)
+
+    class Meta:
+        db_table = 'alerthist_ack'
+
+    def __unicode__(self):
+        return u"%r acknowledged by %s at %s" % (self.alert, self.account,
+                                                 self.date)
