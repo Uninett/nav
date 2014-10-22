@@ -28,8 +28,8 @@ define([
 
         localStorageShowPanelKey: 'nav.web.status.showPanel',
         toggleButtonText: {
-            show: 'Show filter panel',
-            hide: 'Hide filter panel'
+            show: 'Show status filter',
+            hide: 'Hide status filter'
         },
 
         events: {
