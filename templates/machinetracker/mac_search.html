@@ -10,7 +10,7 @@
                         <div class="medium-9 column {% if form.mac.errors %}error{% endif %}">
                             {{ form.mac }}
                             {% if form.mac.errors %}
-                                <small>{{ form.mac.errors }}</small>
+                                <small class="error">{{ form.mac.errors }}</small>
                             {% endif %}
                         </div>
                         <div class="medium-3 column">
@@ -81,15 +81,15 @@
     </form>
 
     {% if mac_tracker or uplink_tracker or ip_tracker or interface_tracker %}
-        {% if interface_tracker %}
-            <div class="results">
-                {% include "machinetracker/interface_tracker.html" %}
-            </div>
-        {% endif %}
-
         {% if uplink_tracker %}
             <div class="results">
                 {% include "machinetracker/uplink_tracker.html" %}
+            </div>
+        {% endif %}
+
+        {% if interface_tracker %}
+            <div class="results">
+                {% include "machinetracker/interface_tracker.html" %}
             </div>
         {% endif %}
 
