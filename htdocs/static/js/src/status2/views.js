@@ -133,13 +133,20 @@ define([
 
         events: {
             'click .acknowledge-alerts': 'acknowledgeAlerts',
-            'click .clear-alerts': 'clearAlerts',
+            'click .resolve-alerts .button': 'resolveAlerts',
             'click .maintenance .button': 'putOnMaintenance',
             'click .cancel-alerts-action': 'cancelAlertsAction'
         },
 
+        htmlSnippets: {
+            errorbox: '<div class="alert-box alert"></div>'
+        },
+
         initialize: function () {
             this.listenTo(alertsToChange, 'add remove reset', this.toggleState);
+            this.resolvePanel = this.$('.panel.resolve-alerts');
+            this.ackPanel = this.$('.panel.acknowledge');
+            this.maintenancePanel = this.$('.panel.maintenance');
         },
 
         toggleState: function () {
@@ -155,28 +162,42 @@ define([
             var comment = this.$('.acknowledge .usercomment').val(),
                 self = this;
 
+            this.ackPanel.find('.alert-box.alert').remove();
+
             var request = $.post(NAV.urls.status2_acknowledge_alert, {
                 id: alertsToChange.pluck('id'),
                 comment: comment
             });
+
             request.done(function () {
-                console.log('Acknowledge seemed to work');
                 self.collection.fetch();
                 self.cancelAlertsAction();
             });
+
             request.fail(function () {
-                console.log('Error acknowledging');
+                self.ackPanel.append(
+                    $(self.htmlSnippets.errorbox).html('Error acknowledging alerts'));
             });
         },
 
-        clearAlerts: function () {
+        resolveAlerts: function () {
             var self = this;
+
+            // Clear existing alert-box
+            this.resolvePanel.find('.alert-box.alert').remove();
+
             var request = $.post(NAV.urls.status2_clear_alert, {
                 id: alertsToChange.pluck('id')
             });
+
             request.done(function () {
                 self.collection.remove(alertsToChange.models);
                 self.cancelAlertsAction();
+            });
+
+            request.fail(function () {
+                self.resolvePanel.append(
+                    $(self.htmlSnippets.errorbox).html('Error resolving alerts'));
             });
         },
 
@@ -190,6 +211,8 @@ define([
                 }
             });
 
+            this.maintenancePanel.find('.alert-box.alert').remove();
+
             if (ids.length > 0) {
                 var request = $.post(NAV.urls.status2_put_on_maintenance, {
                     id: ids,
@@ -197,13 +220,13 @@ define([
                 });
 
                 request.done(function () {
-                    console.log('All netboxes put on maintenance');
                     self.collection.fetch();
                     self.cancelAlertsAction();
                 });
 
                 request.fail(function () {
-                    console.log('Error putting on maintenance');
+                    self.maintenancePanel.append(
+                        $(self.htmlSnippets.errorbox).html('Error putting on maintenance'));
                 });
             }
 
