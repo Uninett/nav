@@ -40,6 +40,7 @@
         {# Panel for alert actions #}
         <div id="action-panel" class="panel white hidden">
 
+          {% if permits.can_acknowledge_alerts %}
           <div class="panel acknowledge">
             <h5>Acknowledge the alerts</h5>
             <input type="text" class="usercomment" placeholder="Write a description">
@@ -47,14 +48,18 @@
               Acknowledge alerts
             </a>
           </div>
+          {% endif %}
 
+          {% if permits.can_clear_alerts %}
           <div class="panel resolve-alerts">
             <h5>Clear the alerts</h5>
             <a href="javascript:void(0);" class="button small expand">
               Clear alerts
             </a>
           </div>
+          {% endif %}
 
+          {% if permits.can_put_on_maintenance %}
           <div class="panel maintenance">
             <h5>Put on maintenance</h5>
             <input type="text" class="usercomment" placeholder="Write a description">
@@ -62,6 +67,13 @@
               Put on maintenance
             </a>
           </div>
+          {% endif %}
+
+          {% if not permits.any %}
+            <div class="alert-box">
+              It doesn't seem like you are permitted to do anything here.
+            </div>
+          {% endif %}
 
           <a href="javascript:void(0);" class="button small secondary cancel-alerts-action">
             Never mind

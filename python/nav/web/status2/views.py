@@ -18,6 +18,7 @@ import datetime
 import pickle
 
 from django.shortcuts import render_to_response
+from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.views.generic import View
 from django.db.models import Q
@@ -55,6 +56,21 @@ class StatusView(View):
         if 'stateless_threshold' not in parameters:
             parameters.update({'stateless_threshold': STATELESS_THRESHOLD})
 
+    def get_permits(self):
+        """Get the permits relevant for the page for the account"""
+        account = self.request.account
+        can_acknowledge_alerts = account.has_perm('can_acknowledge_alert', '')
+        can_clear_alerts = account.has_perm('can_clear_alert', '')
+        can_put_on_maintenance = account.has_perm(
+            'web_access', reverse('maintenance-new'))
+        return {
+            'any': any([can_acknowledge_alerts, can_clear_alerts,
+                        can_put_on_maintenance]),
+            'can_acknowledge_alerts': can_acknowledge_alerts,
+            'can_clear_alerts': can_clear_alerts,
+            'can_put_on_maintenance': can_put_on_maintenance
+        }
+
     def get(self, request):
         """Produces a list view of AlertHistory entries"""
         if request.GET.values():
@@ -70,6 +86,7 @@ class StatusView(View):
                 'title': 'NAV - Status',
                 'navpath': [('Home', '/'), ('Status', '')],
                 'form': form,
+                'permits': self.get_permits()
             },
             RequestContext(request)
         )
