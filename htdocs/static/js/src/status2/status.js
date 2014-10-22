@@ -6,6 +6,6 @@ require([
     console.log('Initializing app');
     new StatusView();
 
-    $('.nav-header h2').append('&#178;');
+    $('<span>&#178;</span>').hide().appendTo('.nav-header h2').fadeIn(3000);
 
 });
