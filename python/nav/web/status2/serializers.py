@@ -38,6 +38,20 @@ class AcknowledgementSerializer(serializers.ModelSerializer):
         fields = ('account', 'comment', 'date')
 
 
+class AlertTypeSerializer(serializers.ModelSerializer):
+    """Serializer for alert types"""
+    class Meta:
+        model = event.AlertType
+        fields = ('name', 'description')
+
+
+class EventTypeSerializer(serializers.ModelSerializer):
+    """Serializer for event types"""
+    class Meta:
+        model = event.EventType
+        fields = ('id', 'description')
+
+
 class AlertHistorySerializer(serializers.ModelSerializer):
     """Serializer for the AlertHistory model"""
     subject = serializers.Field(source='get_subject')
@@ -52,7 +66,8 @@ class AlertHistorySerializer(serializers.ModelSerializer):
     netbox_history_url = serializers.SerializerMethodField(
         'get_netbox_history_url')
 
-    alert_type = serializers.Field(source='alert_type.name')
+    alert_type = AlertTypeSerializer()
+    event_type = EventTypeSerializer()
     start_time = serializers.DateTimeField()
     end_time = serializers.SerializerMethodField('get_end_time')
 
