@@ -101,10 +101,15 @@ define([
     var PanelView = Backbone.View.extend({
         el: '#status-panel',
 
+        refreshInterval: 1000 * 60 * 5,  // 5 minutes
+
         initialize: function () {
             console.log('Initializing panel view');
             this.fetchData();
+            this.updateRefreshInterval();
+            this.listenTo(this.collection, 'reset', this.updateRefreshInterval);
         },
+
         events: {
             'change form': 'fetchData',
             'submit form': 'preventSubmit'
@@ -121,6 +126,16 @@ define([
                 console.log('data fetched');
             });
         },
+
+        updateRefreshInterval: function () {
+            console.log('Updating refresh interval');
+            var self = this;
+            clearTimeout(this.refreshCounterId);
+            this.refreshCounterId = setTimeout(function () {
+                self.fetchData();
+            }, this.refreshInterval);
+        },
+
         preventSubmit: function (event) {
             event.preventDefault();
         }
@@ -321,6 +336,7 @@ define([
 
         render: function () {
             console.log('Rendering table');
+            this.$('.last-changed').html(moment().format('YYYY-MM-DD HH:mm:ss'));
             this.body.html('');
             this.collection.each(this.renderEvent, this);
         },
