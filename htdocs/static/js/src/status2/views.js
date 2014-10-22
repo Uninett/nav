@@ -133,13 +133,20 @@ define([
 
         events: {
             'click .acknowledge-alerts': 'acknowledgeAlerts',
-            'click .clear-alerts': 'clearAlerts',
+            'click .resolve-alerts .button': 'resolveAlerts',
             'click .maintenance .button': 'putOnMaintenance',
             'click .cancel-alerts-action': 'cancelAlertsAction'
         },
 
+        htmlSnippets: {
+            errorbox: '<div class="alert-box alert"></div>'
+        },
+
         initialize: function () {
             this.listenTo(alertsToChange, 'add remove reset', this.toggleState);
+            this.resolvePanel = this.$('.panel.resolve-alerts');
+            this.ackPanel = this.$('.panel.acknowledge');
+            this.maintenancePanel = this.$('.panel.maintenance');
         },
 
         toggleState: function () {
@@ -152,39 +159,45 @@ define([
         },
 
         acknowledgeAlerts: function () {
-            var ids = [],
-                comment = this.$('.acknowledge .usercomment').val(),
+            var comment = this.$('.acknowledge .usercomment').val(),
                 self = this;
 
-            alertsToChange.each(function (model) {
-                ids.push(model.get('id'));
-            });
+            this.ackPanel.find('.alert-box.alert').remove();
 
             var request = $.post(NAV.urls.status2_acknowledge_alert, {
-                id: ids,
+                id: alertsToChange.pluck('id'),
                 comment: comment
             });
+
             request.done(function () {
-                console.log('Acknowledge seemed to work');
                 self.collection.fetch();
                 self.cancelAlertsAction();
             });
+
             request.fail(function () {
-                console.log('Error acknowledging');
+                self.ackPanel.append(
+                    $(self.htmlSnippets.errorbox).html('Error acknowledging alerts'));
             });
         },
 
-        clearAlerts: function () {
-            alertsToChange.each(function (model) {
-                model.destroy({
-                    wait: true,
-                    success: function () {
-                        console.log('model removed');
-                    },
-                    error: function () {
-                        console.log('model not removed');
-                    }
-                });
+        resolveAlerts: function () {
+            var self = this;
+
+            // Clear existing alert-box
+            this.resolvePanel.find('.alert-box.alert').remove();
+
+            var request = $.post(NAV.urls.status2_clear_alert, {
+                id: alertsToChange.pluck('id')
+            });
+
+            request.done(function () {
+                self.collection.remove(alertsToChange.models);
+                self.cancelAlertsAction();
+            });
+
+            request.fail(function () {
+                self.resolvePanel.append(
+                    $(self.htmlSnippets.errorbox).html('Error resolving alerts'));
             });
         },
 
@@ -198,6 +211,8 @@ define([
                 }
             });
 
+            this.maintenancePanel.find('.alert-box.alert').remove();
+
             if (ids.length > 0) {
                 var request = $.post(NAV.urls.status2_put_on_maintenance, {
                     id: ids,
@@ -205,13 +220,13 @@ define([
                 });
 
                 request.done(function () {
-                    console.log('All netboxes put on maintenance');
                     self.collection.fetch();
                     self.cancelAlertsAction();
                 });
 
                 request.fail(function () {
-                    console.log('Error putting on maintenance');
+                    self.maintenancePanel.append(
+                        $(self.htmlSnippets.errorbox).html('Error putting on maintenance'));
                 });
             }
 
@@ -338,7 +353,7 @@ define([
         template: compiledEventInfoTemplate,
 
         initialize: function () {
-            this.listenTo(this.model, 'destroy', this.unRender);
+            this.listenTo(this.model, 'remove', this.unRender);
             this.listenTo(this.model, 'change', this.render);
         },
 
@@ -346,9 +361,13 @@ define([
             this.$el.html(this.template(this.model.attributes));
         },
 
-        unRender: function () {
-            console.log('Unrender for subview called');
-            this.remove();
+        unRender: function (model, collection) {
+            /* Remove the html element associated with the view. We need to
+               check that the correct collection sends the event */
+            if (collection.constructor === Collections.EventCollection) {
+                console.log('Unrender for subview called');
+                this.remove();
+            }
         },
 
     });
@@ -376,7 +395,7 @@ define([
 
             this.infoView = new EventInfoView({ model: this.model });
 
-            this.listenTo(this.model, 'destroy', this.unRender);
+            this.listenTo(this.model, 'remove', this.unRender);
             this.listenTo(this.model, 'change', this.render);
             this.listenTo(alertsToChange, 'reset', this.toggleSelect);
         },
@@ -432,11 +451,15 @@ define([
             this.$el.html(this.template(this.model.attributes));
         },
 
-        unRender: function () {
-            console.log('Unrender called');
-            this.$el.fadeOut(function () {
-                this.remove();
-            });
+        unRender: function (model, collection) {
+            /* Remove the html element associated with the view. We need to
+               check that the correct collection sends the event */
+            var self = this;
+            if (collection.constructor === Collections.EventCollection) {
+                this.$el.fadeOut(function () {
+                    self.remove();
+                });
+            }
         },
 
         highlight: function (flag) {
