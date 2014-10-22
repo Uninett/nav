@@ -162,13 +162,16 @@ def get_alerts_from_request(request):
     return AlertHistory.objects.filter(pk__in=request.POST.getlist('id[]'))
 
 
-def clear_alert(request):
-    """Clears alerts by setting end_time of the alerts to now"""
+def resolve_alerts(request):
+    """Resolves alerts by setting end_time of the alerts to now"""
     if request.method == 'POST':
         alerts = get_alerts_from_request(request)
         if not alerts:
             return HttpResponse(status=404)
-        return HttpResponse(status=500)
+        for alert in alerts:
+            alert.end_time = datetime.datetime.now()
+            alert.save()
+        return HttpResponse(status=200)
     else:
         return HttpResponse(status=400)
 
