@@ -41,10 +41,9 @@ from . import (serializers, forms, STATELESS_THRESHOLD,
 class StatusView(View):
     """Generic Status view"""
 
-    @staticmethod
-    def get_status_preferences(request):
+    def get_status_preferences(self):
         try:
-            status_property = request.account.properties.get(
+            status_property = self.request.account.properties.get(
                 property=STATUS_PREFERENCE_PROPERTY)
         except AccountProperty.DoesNotExist:
             pass
@@ -78,7 +77,7 @@ class StatusView(View):
             self.set_default_parameters(parameters)
             form = forms.StatusPanelForm(parameters)
         else:
-            form = forms.StatusPanelForm(self.get_status_preferences(request))
+            form = forms.StatusPanelForm(self.get_status_preferences())
 
         return render_to_response(
             'status2/status.html',
