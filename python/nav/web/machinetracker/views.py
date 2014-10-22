@@ -149,7 +149,7 @@ def flag_as_fishy(records):
     for row in records:
         if row.netbox in netboxes:
             job_log = netboxes[row.netbox]
-            row.fishy = job_log if job_log.is_overdue() else None
+            row.fishy = job_log if job_log and job_log.is_overdue() else None
 
 
 def create_ip_range(inactive, from_ip, to_ip, ip_result):
