@@ -6,4 +6,6 @@ require([
     console.log('Initializing app');
     new StatusView();
 
+    $('.nav-header h2').append('&#178;');
+
 });
