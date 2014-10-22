@@ -248,7 +248,8 @@ class AccountGroup(models.Model):
 class AccountProperty(models.Model):
     """Key-value for account settings"""
 
-    account = models.ForeignKey('Account', db_column='accountid', null=True)
+    account = models.ForeignKey('Account', db_column='accountid', null=True,
+                                related_name='properties')
     property = VarcharField()
     value = VarcharField()
 
@@ -325,7 +326,7 @@ class AlertAddress(models.Model):
 
         # Determine the right language for the user.
         try:
-            lang = self.account.accountproperty_set.get(
+            lang = self.account.properties.get(
                 property='language').value or 'en'
         except AccountProperty.DoesNotExist:
             lang = 'en'
