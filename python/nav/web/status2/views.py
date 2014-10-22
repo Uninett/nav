@@ -191,8 +191,9 @@ def put_on_maintenance(request):
 
         description = request.POST.get('description')
         candidates = [n for n in netboxes if not is_maintenance_task_posted(n)]
-        add_maintenance_task(request.account, candidates, description)
-        check_devices_on_maintenance()
+        if len(candidates):
+            add_maintenance_task(request.account, candidates, description)
+            check_devices_on_maintenance()
         return HttpResponse(status=200)
     else:
         return HttpResponse('Wrong request type', status=400)
@@ -200,7 +201,7 @@ def put_on_maintenance(request):
 
 def is_maintenance_task_posted(netbox):
     """Verify that a maintenance task for this netbox is not already posted"""
-    MaintenanceComponent.objects.filter(
+    return MaintenanceComponent.objects.filter(
         key='netbox',
         value=str(netbox.id),
         maintenance_task__state=MaintenanceTask.STATE_ACTIVE,
@@ -209,6 +210,9 @@ def is_maintenance_task_posted(netbox):
 
 def add_maintenance_task(owner, netboxes, description=""):
     """Add a maintenance task with a component for each netbox"""
+    if not len(netboxes):
+        return
+
     task = MaintenanceTask(
         start_time=datetime.datetime.now(),
         end_time=INFINITY,
