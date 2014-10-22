@@ -361,9 +361,13 @@ define([
             this.$el.html(this.template(this.model.attributes));
         },
 
-        unRender: function () {
-            console.log('Unrender for subview called');
-            this.remove();
+        unRender: function (model, collection) {
+            /* Remove the html element associated with the view. We need to
+               check that the correct collection sends the event */
+            if (collection.constructor === Collections.EventCollection) {
+                console.log('Unrender for subview called');
+                this.remove();
+            }
         },
 
     });
@@ -447,11 +451,14 @@ define([
             this.$el.html(this.template(this.model.attributes));
         },
 
-        unRender: function () {
-            console.log('Unrender called');
-            this.$el.fadeOut(function () {
-                this.remove();
-            });
+        unRender: function (model, collection) {
+            /* Remove the html element associated with the view. We need to
+               check that the correct collection sends the event */
+            if (collection.constructor === Collections.EventCollection) {
+                this.$el.fadeOut(function () {
+                    this.remove();
+                });
+            }
         },
 
         highlight: function (flag) {
