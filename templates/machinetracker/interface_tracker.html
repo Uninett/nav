@@ -1,0 +1,44 @@
+<table id="tracker-table" class="listtable tablesorter">
+    <caption>
+        Interface search results
+        <span class="subtitle right">
+            {{ interface_tracker|length }} hit{{ interface_tracker|length|pluralize }}
+        </span>
+    </caption>
+
+    <thead>
+        <tr>
+            <th>Interface</th>
+            <th>Alias</th>
+            <th>Mac</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for ifc in interface_tracker %}
+        <tr>
+
+            <td>
+                <a href="{{ ifc.get_absolute_url }}">{{ ifc }}</a>
+            </td>
+
+            <td>
+                {{ ifc.ifalias }}
+            </td>
+
+            <td>
+                <a href="{% url machinetracker-mac_search ifc.ifphysaddress form_data.days dns %}" title="Search again for this MAC address">
+                {{ ifc.ifphysaddress }}</a>
+            </td>
+
+        </tr>
+    {% endfor %}
+    </tbody>
+
+    <tfoot>
+        <tr>
+            <th colspan="8">{{ interface_tracker|length }}
+            hit{{ interface_tracker|length|pluralize }}</th>
+        </tr>
+    </tfoot>
+</table>

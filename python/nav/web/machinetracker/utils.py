@@ -21,7 +21,7 @@ from IPy import IP
 from collections import namedtuple
 
 from nav import asyncdns
-from nav.models.manage import Prefix, Netbox
+from nav.models.manage import Prefix, Netbox, Interface
 from nav.ipdevpoll.db import commit_on_success
 
 from django.utils.datastructures import SortedDict
@@ -242,3 +242,12 @@ class UplinkTracker(list):
                     self.append(UplinkTuple(box.mac, box.sysname, link))
             else:
                 self.append(UplinkTuple(box.mac, box.sysname, None))
+
+
+class InterfaceTracker(list):
+    def __init__(self, mac_min, mac_max):
+        ifcs = Interface.objects.select_related('netbox').extra(
+            where=['ifphysaddress BETWEEN %s AND %s'],
+            params=[mac_min, mac_max]
+        ).order_by('ifphysaddress', 'netbox__sysname')
+        self.extend(ifcs)
