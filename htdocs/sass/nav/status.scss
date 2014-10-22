@@ -9,7 +9,7 @@ table.expandable {
     tr {
         /* Mark rows that has some kind of status */
         &.hasStatus {
-            font-style: italic;
+
         }
         /* Set background and inset effect on the event info panel */
         &.expanded td {
