@@ -454,9 +454,10 @@ define([
         unRender: function (model, collection) {
             /* Remove the html element associated with the view. We need to
                check that the correct collection sends the event */
+            var self = this;
             if (collection.constructor === Collections.EventCollection) {
                 this.$el.fadeOut(function () {
-                    this.remove();
+                    self.remove();
                 });
             }
         },
