@@ -1,5 +1,5 @@
 {% extends "status2/base.html" %}
-
+{% load tools %}
 {% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
@@ -18,7 +18,11 @@
 
 
 {% block content %}
-<p>This will eventually become the new status page</p>
+
+  {% with tool=current_user_data.tools|get_tool:'Status' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
 
   <div id="status-page">
 
