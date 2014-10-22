@@ -15,6 +15,7 @@
 #
 """NAV status app views"""
 import datetime
+import pickle
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -30,8 +31,10 @@ from nav.maintengine import check_devices_on_maintenance
 from nav.models.event import AlertHistory
 from nav.models.manage import Netbox
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
+from nav.models.profiles import AccountProperty
 from nav.models.fields import UNRESOLVED, INFINITY
-from . import serializers, forms, STATELESS_THRESHOLD
+from . import (serializers, forms, STATELESS_THRESHOLD,
+               STATUS_PREFERENCE_PROPERTY)
 
 
 class StatusView(View):
@@ -39,7 +42,13 @@ class StatusView(View):
 
     @staticmethod
     def get_status_preferences(request):
-        return request.session.get('form-data')
+        try:
+            status_property = request.account.properties.get(
+                property=STATUS_PREFERENCE_PROPERTY)
+        except AccountProperty.DoesNotExist:
+            pass
+        else:
+            return pickle.loads(status_property.value)
 
     @staticmethod
     def set_default_parameters(parameters):
@@ -152,7 +161,15 @@ def save_status_preferences(request):
 
     form = forms.StatusPanelForm(request.POST)
     if form.is_valid():
-        request.session['form-data'] = form.cleaned_data
+        try:
+            status_property = request.account.properties.get(
+                property=STATUS_PREFERENCE_PROPERTY)
+        except AccountProperty.DoesNotExist:
+            status_property = AccountProperty(
+                account=request.account, property=STATUS_PREFERENCE_PROPERTY)
+
+        status_property.value = pickle.dumps(form.cleaned_data)
+        status_property.save()
         return HttpResponse()
     else:
         return HttpResponse('Form was not valid', status=400)
