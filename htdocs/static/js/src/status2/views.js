@@ -152,16 +152,11 @@ define([
         },
 
         acknowledgeAlerts: function () {
-            var ids = [],
-                comment = this.$('.acknowledge .usercomment').val(),
+            var comment = this.$('.acknowledge .usercomment').val(),
                 self = this;
 
-            alertsToChange.each(function (model) {
-                ids.push(model.get('id'));
-            });
-
             var request = $.post(NAV.urls.status2_acknowledge_alert, {
-                id: ids,
+                id: alertsToChange.pluck('id'),
                 comment: comment
             });
             request.done(function () {
@@ -175,16 +170,13 @@ define([
         },
 
         clearAlerts: function () {
-            alertsToChange.each(function (model) {
-                model.destroy({
-                    wait: true,
-                    success: function () {
-                        console.log('model removed');
-                    },
-                    error: function () {
-                        console.log('model not removed');
-                    }
-                });
+            var self = this;
+            var request = $.post(NAV.urls.status2_clear_alert, {
+                id: alertsToChange.pluck('id')
+            });
+            request.done(function () {
+                self.collection.remove(alertsToChange.models);
+                self.cancelAlertsAction();
             });
         },
 
@@ -338,7 +330,7 @@ define([
         template: compiledEventInfoTemplate,
 
         initialize: function () {
-            this.listenTo(this.model, 'destroy', this.unRender);
+            this.listenTo(this.model, 'remove', this.unRender);
             this.listenTo(this.model, 'change', this.render);
         },
 
@@ -376,7 +368,7 @@ define([
 
             this.infoView = new EventInfoView({ model: this.model });
 
-            this.listenTo(this.model, 'destroy', this.unRender);
+            this.listenTo(this.model, 'remove', this.unRender);
             this.listenTo(this.model, 'change', this.render);
             this.listenTo(alertsToChange, 'reset', this.toggleSelect);
         },

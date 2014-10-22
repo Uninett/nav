@@ -158,17 +158,25 @@ def save_status_preferences(request):
         return HttpResponse('Form was not valid', status=400)
 
 
+def get_alerts_from_request(request):
+    return AlertHistory.objects.filter(pk__in=request.POST.getlist('id[]'))
+
+
 def clear_alert(request):
-    if request.method == 'DELETE':
-        return HttpResponse(status=200)
+    """Clears alerts by setting end_time of the alerts to now"""
+    if request.method == 'POST':
+        alerts = get_alerts_from_request(request)
+        if not alerts:
+            return HttpResponse(status=404)
+        return HttpResponse(status=500)
     else:
         return HttpResponse(status=400)
 
 
 def acknowledge_alert(request):
+    """Acknowledges all alerts and gives them the same comment"""
     if request.method == 'POST':
-        alerts = AlertHistory.objects.filter(
-            pk__in=request.POST.getlist('id[]'))
+        alerts = get_alerts_from_request(request)
         if not alerts:
             return HttpResponse("No alerts found", status=404)
 
@@ -183,8 +191,7 @@ def acknowledge_alert(request):
 def put_on_maintenance(request):
     """Puts the subject of the alerts on maintenance"""
     if request.method == 'POST':
-        alerts = AlertHistory.objects.filter(
-            pk__in=request.POST.getlist('id[]'))
+        alerts = get_alerts_from_request(request)
         netboxes = Netbox.objects.filter(pk__in=[x.netbox_id for x in alerts])
         if not netboxes:
             return HttpResponse("No netboxes found", status=404)
