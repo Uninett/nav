@@ -59,6 +59,11 @@
     </td>
   </tr>
 
+  <tr>
+      <th>Hardware address</th>
+      <td>{{ port.ifphysaddress|default:"N/A"|upper }}</td>
+  </tr>
+
   {% if debug %}
   <tr>
     <th>ifIndex</th>
