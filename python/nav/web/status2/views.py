@@ -232,7 +232,9 @@ def put_on_maintenance(request):
         if not netboxes:
             return HttpResponse("No netboxes found", status=404)
 
-        description = request.POST.get('description')
+        default_descr = "On maintenance till up again; set from status page " \
+                        "by " + request.account.login
+        description = request.POST.get('description') or default_descr
         candidates = [n for n in netboxes if not is_maintenance_task_posted(n)]
         if len(candidates):
             add_maintenance_task(request.account, candidates, description)
