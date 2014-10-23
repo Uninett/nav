@@ -6,13 +6,6 @@
 
   {% include 'maintenance/heading.html' %}
 
-  {% if not current_user_data.account.is_default_account %}
-    <a href="{% url maintenance-edit task.id %}" class="button small">Edit</a>
-    {% ifnotequal task.state "cancelled" %}
-      <a href="{% url maintenance-cancel task.id %}" class="button small">Cancel now</a>
-    {% endifnotequal %}
-  {% endif %}
-
 <table class="vertitable vertitablefull">
     <caption>
         {{ task.description }}
@@ -69,4 +62,12 @@
         {% endif %}
     </tbody>
 </table>
+
+  {% if not current_user_data.account.is_default_account %}
+    <a href="{% url maintenance-edit task.id %}" class="button small secondary">Edit</a>
+    {% ifnotequal task.state "canceled" %}
+      <a href="{% url maintenance-cancel task.id %}" class="button small secondary">Cancel now</a>
+    {% endifnotequal %}
+  {% endif %}
+
 {% endblock %}

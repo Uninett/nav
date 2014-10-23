@@ -141,7 +141,7 @@ def active(request):
 
 
 def planned(request):
-    heading = "Planned tasks"
+    heading = "Scheduled tasks"
     tasks = MaintenanceTask.objects.filter(
         start_time__gt=datetime.now(),
         end_time__gt=datetime.now(),
@@ -163,7 +163,7 @@ def planned(request):
 
 
 def historic(request):
-    heading = "Historic tasks"
+    heading = "Archived tasks"
     tasks = MaintenanceTask.objects.filter(
         Q(end_time__lt=datetime.now()) |
         Q(state__in=(MaintenanceTask.STATE_CANCELED,
