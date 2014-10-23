@@ -16,6 +16,8 @@
 """Serializers for status API data"""
 
 from django.core.urlresolvers import reverse
+from django.template.defaultfilters import urlize
+from django.utils.html import strip_tags
 from rest_framework import serializers
 from nav.models import event, profiles
 from nav.models.fields import INFINITY
@@ -33,9 +35,17 @@ class AcknowledgementSerializer(serializers.ModelSerializer):
     """Serializer for alert acknowledgements"""
     account = AccountSerializer()
 
+    comment_html = serializers.CharField(source='comment', read_only=True)
+
+    @staticmethod
+    def transform_comment_html(obj, value):
+        """Urlize content, but make sure other tags are stripped as we need
+        to output this raw"""
+        return urlize(strip_tags(value))
+
     class Meta:
         model = event.Acknowledgement
-        fields = ('account', 'comment', 'date')
+        fields = ('account', 'comment', 'date', 'comment_html')
 
 
 class AlertTypeSerializer(serializers.ModelSerializer):
