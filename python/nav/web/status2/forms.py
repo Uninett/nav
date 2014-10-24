@@ -18,7 +18,7 @@ from operator import itemgetter
 
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column, Field
+from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit
 
 from . import STATELESS_THRESHOLD
 from nav.models.event import EventType
@@ -76,6 +76,7 @@ class StatusPanelForm(forms.Form):
             required=False
         )
 
+        column_class = 'medium-3'
         self.helper = FormHelper()
         self.helper.form_id = 'status-form'
         self.helper.form_action = ''
@@ -83,27 +84,27 @@ class StatusPanelForm(forms.Form):
         self.helper.layout = Layout(
             Row(
                 Column(Field('event_type', css_class='select2'),
-                       css_class='medium-3'),
+                       css_class=column_class),
                 Column(Field('alert_type', css_class='select2'),
-                       css_class='medium-3'),
+                       css_class=column_class),
                 Column(Field('category', css_class='select2'),
-                       css_class='medium-3'),
+                       css_class=column_class),
                 Column(Field('organization', css_class='select2'),
-                       css_class='medium-3'),
+                       css_class=column_class),
             ),
             Row(
                 Column(Field('not_event_type', css_class='select2'),
-                       css_class='medium-3'),
+                       css_class=column_class),
                 Column(Field('not_alert_type', css_class='select2'),
-                       css_class='medium-3'),
+                       css_class=column_class),
                 Column(Field('not_category', css_class='select2'),
-                       css_class='medium-3'),
+                       css_class=column_class),
                 Column(Field('not_organization', css_class='select2'),
-                       css_class='medium-3'),
+                       css_class=column_class),
             ),
             Row(
                 Column('stateless', 'stateless_threshold',
-                       css_class='medium-3'),
+                       css_class=column_class),
                 Column('acknowledged', 'on_maintenance',
                        css_class='medium-3 end')
             )
@@ -115,6 +116,49 @@ class StatusPanelForm(forms.Form):
         if not self[field].html_name in self.data:
             return self.fields[field].initial
         return self.cleaned_data[field]
+
+
+class StatusWidgetForm(StatusPanelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(StatusWidgetForm, self).__init__(*args, **kwargs)
+
+        column_class = 'medium-6'
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('event_type', css_class='select2'),
+                       css_class=column_class),
+                Column(Field('alert_type', css_class='select2'),
+                       css_class=column_class)
+            ),
+            Row(
+                Column(Field('category', css_class='select2'),
+                       css_class=column_class),
+                Column(Field('organization', css_class='select2'),
+                       css_class=column_class)
+            ),
+            Row(
+                Column(Field('not_event_type', css_class='select2'),
+                       css_class=column_class),
+                Column(Field('not_alert_type', css_class='select2'),
+                       css_class=column_class)
+            ),
+            Row(
+                Column(Field('not_category', css_class='select2'),
+                       css_class=column_class),
+                Column(Field('not_organization', css_class='select2'),
+                       css_class=column_class)
+            ),
+            Row(
+                Column('stateless', 'stateless_threshold',
+                       css_class=column_class),
+                Column('acknowledged', 'on_maintenance',
+                       css_class=column_class)
+            ),
+            Submit('submit', 'Save')
+        )
 
 
 def get_event_types():

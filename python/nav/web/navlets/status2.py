@@ -15,11 +15,15 @@
 #
 """Status2 widget"""
 import json
+import urlparse
+
+from urllib import urlencode
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, QueryDict
 
 from nav.models.profiles import AccountNavlet
-from . import Navlet
+from nav.web.status2.forms import StatusWidgetForm
+from . import Navlet, NAVLET_MODE_EDIT
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -39,7 +43,10 @@ class Status2Widget(Navlet):
     def get_context_data(self, **kwargs):
         context = super(Status2Widget, self).get_context_data(**kwargs)
         navlet = AccountNavlet.objects.get(pk=self.navlet_id)
-        context['path'] = navlet.preferences.get('status_filter')
+        status_filter = navlet.preferences.get('status_filter')
+        context['path'] = status_filter
+        if self.mode == NAVLET_MODE_EDIT:
+            context['form'] = StatusWidgetForm(QueryDict(status_filter))
 
         return context
 
@@ -50,6 +57,10 @@ class Status2Widget(Navlet):
         except AccountNavlet.DoesNotExist:
             return HttpResponse(status=404)
         else:
-            navlet.preferences['status_filter'] = request.POST.get('path')
-            navlet.save()
-            return HttpResponse(json.dumps(navlet.preferences))
+            form = StatusWidgetForm(request.POST)
+            if form.is_valid():
+                navlet.preferences['status_filter'] = request.POST.urlencode()
+                navlet.save()
+                return HttpResponse()
+            else:
+                return HttpResponse('Form is not valid', 400)

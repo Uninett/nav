@@ -23,9 +23,10 @@ function (RowTemplate, Moment) {
                 $lastUpdated = $table.find('.last-updated');
 
             sendRequest($tbody, $lastUpdated, url);
-            setInterval(function () {
-                sendRequest($tbody, $lastUpdated, url);
-            }, 10000);
+//            Fix issue with this running for each change of view and edit mode
+//            setInterval(function () {
+//                sendRequest($tbody, $lastUpdated, url);
+//            }, 10000);
         }
     });
 
