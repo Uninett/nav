@@ -1,5 +1,5 @@
 require([
-    'libs-amd/text!resources/status2/navlet-row.hbs',
+    'libs-amd/text!resources/status2/navlet-event-row.hbs',
     'moment',
     'libs/handlebars',
     'libs/jquery'
