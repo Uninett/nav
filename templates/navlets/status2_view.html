@@ -1,0 +1,22 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  <table class="listtable status2table" data-api-url="{{ url }}">
+    <caption>Status now <span class="last-updated pull-right"></span></caption>
+    <thead>
+    <tr>
+      <th>Subject</th>
+      <th>Type</th>
+      <th>Start time</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    </tbody>
+
+  </table>
+
+  <a href="{% url status2-index %}" title="Go to the status page">Go to the status page</a>
+
+{% endblock %}
