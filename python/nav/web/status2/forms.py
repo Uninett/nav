@@ -130,26 +130,26 @@ class StatusWidgetForm(StatusPanelForm):
             Row(
                 Column(Field('event_type', css_class='select2'),
                        css_class=column_class),
-                Column(Field('alert_type', css_class='select2'),
-                       css_class=column_class)
+                Column(Field('not_event_type', css_class='select2'),
+                       css_class=column_class),
             ),
             Row(
                 Column(Field('category', css_class='select2'),
                        css_class=column_class),
-                Column(Field('organization', css_class='select2'),
-                       css_class=column_class)
-            ),
-            Row(
-                Column(Field('not_event_type', css_class='select2'),
-                       css_class=column_class),
-                Column(Field('not_alert_type', css_class='select2'),
-                       css_class=column_class)
-            ),
-            Row(
                 Column(Field('not_category', css_class='select2'),
                        css_class=column_class),
+            ),
+            Row(
+                Column(Field('alert_type', css_class='select2'),
+                       css_class=column_class),
+                Column(Field('not_alert_type', css_class='select2'),
+                       css_class=column_class),
+            ),
+            Row(
+                Column(Field('organization', css_class='select2'),
+                       css_class=column_class),
                 Column(Field('not_organization', css_class='select2'),
-                       css_class=column_class)
+                       css_class=column_class),
             ),
             Row(
                 Column('stateless', 'stateless_threshold',
