@@ -7,11 +7,8 @@
     {% crispy form %}
   </form>
 
-  <form action="{% url get-user-navlet navlet.navlet_id %}">
-    <input type="submit" value="Reset">
-  </form>
+  <script>
+  $('.Status2Widget select').select2();
+  </script>
 
-{#    <input type="text" name="path" value="{{ path }}">#}
-{#    <input type="submit" value="Submit">#}
-{##}
 {% endblock %}
