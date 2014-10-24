@@ -6,7 +6,8 @@ require([
     ],
 function (RowTemplate, Moment) {
 
-    var dateFormat = "YYYY-MM-DD HH:mm:ss";
+    var dateFormat = "YYYY-MM-DD HH:mm:ss",
+        sortField = 'start_time';
 
     Handlebars.registerHelper('dateFormat', function(context, block) {
         var f = block.hash.format || dateFormat;
@@ -21,17 +22,25 @@ function (RowTemplate, Moment) {
                 $tbody = $table.find('tbody'),
                 $lastUpdated = $table.find('.last-updated');
 
-            var request = $.get(url);
-            request.done(function (data) {
-                renderEvents($tbody, data);
-                updateLastUpdated($lastUpdated);
-            });
+            sendRequest($tbody, $lastUpdated, url);
+            setInterval(function () {
+                sendRequest($tbody, $lastUpdated, url);
+            }, 10000);
         }
     });
+
+    function sendRequest($container, $updateField, url) {
+        var request = $.get(NAV.urls.status2_api_alerthistory + '?' + url);
+        request.done(function (data) {
+            renderEvents($container, data);
+            updateLastUpdated($updateField);
+        });
+    }
 
     function renderEvents($container, data) {
         var result, results = data.results;
         $container.empty();
+        results.sort(sortBySortField);
         for (var i = 0, l = results.length; i < l; i++) {
             result = results[i];
             $container.append(compiledTemplate(result));
@@ -40,6 +49,16 @@ function (RowTemplate, Moment) {
 
     function updateLastUpdated($field) {
         $field.html(Moment().format(dateFormat));
+    }
+
+    function sortBySortField(a, b) {
+        var asc = false;
+        if (a[sortField] < b[sortField]) {
+            return asc ? -1 : 1;
+        } else if (a[sortField] > b[sortField]) {
+            return asc ? 1 : -1;
+        }
+        return 0;
     }
 
 });

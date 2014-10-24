@@ -1,0 +1,10 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  <form action="{% url get-user-navlet navlet.navlet_id %}">
+    <input type="text" name="path" value="{{ path }}">
+    <input type="submit" value="Submit">
+  </form>
+
+{% endblock %}

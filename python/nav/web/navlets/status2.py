@@ -14,9 +14,9 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Status2 widget"""
-import requests
 import json
 from django.core.urlresolvers import reverse
+from django.http import HttpResponse
 
 from nav.models.profiles import AccountNavlet
 from . import Navlet
@@ -39,7 +39,17 @@ class Status2Widget(Navlet):
     def get_context_data(self, **kwargs):
         context = super(Status2Widget, self).get_context_data(**kwargs)
         navlet = AccountNavlet.objects.get(pk=self.navlet_id)
-        url = navlet.preferences.get('status_filter')
-        context['url'] = reverse('alerthistory-list')
+        context['path'] = navlet.preferences.get('status_filter')
 
         return context
+
+    def post(self, request):
+        try:
+            navlet = AccountNavlet.objects.get(pk=self.navlet_id,
+                                               account=request.account)
+        except AccountNavlet.DoesNotExist:
+            return HttpResponse(status=404)
+        else:
+            navlet.preferences['status_filter'] = request.POST.get('path')
+            navlet.save()
+            return HttpResponse(json.dumps(navlet.preferences))
