@@ -15,18 +15,13 @@
 #
 """Status2 widget"""
 import json
-import urlparse
+import logging
 
-from urllib import urlencode
-from django.core.urlresolvers import reverse
 from django.http import HttpResponse, QueryDict
 
 from nav.models.profiles import AccountNavlet
 from nav.web.status2.forms import StatusWidgetForm
 from . import Navlet, NAVLET_MODE_EDIT
-
-import logging
-_logger = logging.getLogger(__name__)
 
 
 class Status2Widget(Navlet):
@@ -47,6 +42,7 @@ class Status2Widget(Navlet):
         context['path'] = status_filter
         if self.mode == NAVLET_MODE_EDIT:
             context['form'] = StatusWidgetForm(QueryDict(status_filter))
+            context['interval'] = self.preferences['refresh_interval'] / 1000
 
         return context
 
@@ -60,7 +56,12 @@ class Status2Widget(Navlet):
             form = StatusWidgetForm(request.POST)
             if form.is_valid():
                 navlet.preferences['status_filter'] = request.POST.urlencode()
+                try:
+                    navlet.preferences['refresh_interval'] = int(
+                        request.POST['interval']) * 1000
+                except Exception:
+                    pass
                 navlet.save()
-                return HttpResponse()
+                return HttpResponse(json.dumps(navlet.preferences))
             else:
                 return HttpResponse('Form is not valid', 400)

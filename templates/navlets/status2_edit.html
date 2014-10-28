@@ -4,6 +4,10 @@
 {% block navlet-content %}
 
   <form action="{% url get-user-navlet navlet.navlet_id %}">
+    <label>
+      Refresh interval (seconds)
+      <input type="text" name="interval" value="{{ interval }}">
+    </label>
     {% crispy form %}
   </form>
 
