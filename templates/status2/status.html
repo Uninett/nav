@@ -1,0 +1,98 @@
+{% extends "status2/base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block base_header_additional_head %}
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/nav/status.css"/>
+  <script type="text/javascript">require(['status/status']);</script>
+    <script type="text/javascript">
+    var NAV = NAV || {};
+    NAV.urls = NAV.urls || {};
+    NAV.urls.status2_api_alerthistory = '{% url alerthistory-list %}';
+    NAV.urls.status2_clear_alert = '{% url status2_clear_alert %}';
+    NAV.urls.status2_acknowledge_alert = '{% url status2_acknowledge_alert %}';
+    NAV.urls.status2_put_on_maintenance = '{% url status2_put_on_maintenance %}';
+    NAV.urls.status2_save_preferences = '{% url status2_save_preferences %}';
+    </script>
+{% endblock %}
+
+
+{% block content %}
+<p>This will eventually become the new status page</p>
+
+  <div id="status-page">
+
+    {# Form for filtering events #}
+    <a href="javascript:void(0);" class="button small secondary toggle-panel"></a>
+    <div id="status-panel" class="hidden panel">
+      {% crispy form %}
+      <a href="javascript:void(0);" class="button small secondary set-default">Set as default status</a>
+    </div>
+
+
+    <div class="row">
+
+      <div class="large-4 large-push-8 column">
+        {# Panel for alert actions #}
+        <div id="action-panel" class="panel white hidden">
+
+          <div class="panel acknowledge">
+            <h5>Acknowledge the alerts</h5>
+            <input type="text" class="usercomment" placeholder="Write a description">
+            <a href="javascript:void(0);" class="button small acknowledge-alerts expand">
+              Acknowledge alerts
+            </a>
+          </div>
+
+          <div class="panel resolve-alerts">
+            <h5>Clear the alerts</h5>
+            <a href="javascript:void(0);" class="button small expand">
+              Clear alerts
+            </a>
+          </div>
+
+          <div class="panel maintenance">
+            <h5>Put on maintenance</h5>
+            <input type="text" class="usercomment" placeholder="Write a description">
+            <a href="javascript:void(0);" class="button small expand">
+              Put on maintenance
+            </a>
+          </div>
+
+          <a href="javascript:void(0);" class="button small secondary cancel-alerts-action">
+            Never mind
+          </a>
+        </div>
+
+      </div>
+
+      <div class="large-8 large-pull-4 column">
+
+        {# Table displaying filtered events #}
+        <table id="events-list" class="listtable hover expand tablesorter expandable">
+          <caption>Events</caption>
+          <thead>
+          <tr>
+            <th>
+              <label>
+                <input class="alert-action" type="checkbox">
+              </label>
+            </th>
+            <th>&nbsp;</th>
+            <th>Subject</th>
+            <th>Type</th>
+            <th>Start time</th>
+            <th>&nbsp;</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+{% endblock %}

@@ -352,9 +352,10 @@ def add_user_navlet_graph(request):
     """Add a Graph Widget with url set to user dashboard"""
     if request.method == 'POST':
         url = request.POST.get('url')
+        target = request.POST.get('target')
         if url:
             add_navlet(request.account, 'nav.web.navlets.graph.GraphWidget',
-                       {'url': url})
+                       {'url': url, 'target': target})
             return HttpResponse(status=200)
 
     return HttpResponse(status=400)

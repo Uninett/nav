@@ -42,10 +42,7 @@
 
         <thead>
             <tr>
-                <th>Location</th>
-                <th>Room</th>
                 <th>Netbox</th>
-                {# <th>Module</th> #}
                 <th>Serial</th>
                 <th>Start time</th>
                 <th>End time</th>
@@ -66,10 +63,12 @@
         <tbody>
         {% for h in group %}
             <tr>
-                <td>{{ h.netbox.room.location.id }}</td>
-                <td>{{ h.netbox.room.id }}</td>
-                <td>{{ h.netbox.sysname }}</td>
-                {# <td>{{ h.module_name }}</td> #}
+                <td><a href="{{ h.netbox.get_absolute_url }}"><span
+                        data-tooltip title="
+                        &lt;strong&gt;Location: &lt;/strong&gt;{{ h.netbox.room.location }}&lt;br /&gt;
+                        &lt;strong&gt;Room: &lt;/strong&gt;{{ h.netbox.room }}
+                        ">{{ h.netbox.sysname }}</span></a></td>
+
                 <td>{{ h.device.serial|default_if_none:"" }}</td>
                 <td>{{ h.start_time }}</td>
                 <td>

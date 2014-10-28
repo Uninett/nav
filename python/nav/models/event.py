@@ -191,6 +191,37 @@ class EventMixIn(object):
         values = (getattr(self, key) for key in id_keys)
         return tuple(values)
 
+    # This dict encodes knowledge of what the subid attribute represents in
+    # various event types, in lieu of a more generic mechanism
+    SUBID_MAP = {
+        'linkState': 'Interface',
+        'moduleState': 'Module',
+        'serviceState': 'Service',
+        'psuState': 'PowerSupplyOrFan',
+        'fanState': 'PowerSupplyOrFan',
+    }
+
+    def get_subject(self):
+        """
+        Returns the subject of a given event/alert.
+
+        Sometimes, the subject is just a Netbox objects. Other times, it may
+        be some physical or logical subcomponents of a Netbox.
+
+        """
+        if self.subid:
+            if self.event_type_id in self.SUBID_MAP:
+                model = models.get_model('models',
+                                         self.SUBID_MAP[self.event_type_id])
+                return model.objects.get(pk=self.subid)
+            elif (self.event_type_id == 'maintenanceState'
+                  and 'service' in self.varmap.get(EventQueue.STATE_START, {})):
+                model = models.get_model('models', 'Service')
+                return model.objects.get(pk=self.subid)
+
+        # catch-all
+        return self.netbox
+
 
 class EventQueue(models.Model, EventMixIn):
     """From NAV Wiki: The event queue. Additional data in eventqvar. Different
@@ -454,6 +485,33 @@ class AlertHistory(models.Model, EventMixIn):
             # Stateless alert
             return None
 
+    def is_acknowledged(self):
+        """
+        Returns an Acknowledgement instance if this alert has been
+        acknowledged, otherwise None.
+        """
+        try:
+            return self.acknowledgement
+        except Acknowledgement.DoesNotExist:
+            return
+
+    def acknowledge(self, account, comment):
+        """
+        Acknowledges this alert using a given account and comment.
+
+        Any pre-existing acknowledgement will be overwritten.
+        """
+        try:
+            ack = self.acknowledgement
+        except Acknowledgement.DoesNotExist:
+            ack = Acknowledgement(alert=self, account=account, comment=comment)
+        else:
+            ack.account = account
+            ack.comment = comment
+            ack.date = dt.datetime.now()
+
+        ack.save()
+
     def save(self, *args, **kwargs):
         new_object = self.pk is None
         super(AlertHistory, self).save(*args, **kwargs)
@@ -509,3 +567,19 @@ class AlertHistoryVariable(models.Model):
 
     def __unicode__(self):
         return u'%s=%s' % (self.variable, self.value)
+
+
+class Acknowledgement(models.Model):
+    """Alert acknowledgements"""
+    alert = models.OneToOneField('AlertHistory', null=False, blank=False,
+                                 primary_key=True)
+    account = models.ForeignKey('Account', null=False, blank=False)
+    comment = VarcharField(blank=True)
+    date = models.DateTimeField(null=False, default=dt.datetime.now)
+
+    class Meta:
+        db_table = 'alerthist_ack'
+
+    def __unicode__(self):
+        return u"%r acknowledged by %s at %s" % (self.alert, self.account,
+                                                 self.date)

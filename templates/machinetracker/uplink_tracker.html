@@ -1,0 +1,57 @@
+<table id="tracker-table" class="listtable tablesorter">
+    <caption>
+        Uplink search results
+        <span class="subtitle right">
+            {{ uplink_tracker|length }} hit{{ uplink_tracker|length|pluralize }}
+        </span>
+    </caption>
+
+    <thead>
+        <tr>
+            <th>Sysname</th>
+            <th>Uplink from</th>
+            <th>Uplink to</th>
+            <th>Mac</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for row in uplink_tracker %}
+        <tr>
+
+            <td>
+                <a href="{% url ipdevinfo-details-by-name row.sysname %}">{{ row.sysname }}</a>
+            </td>
+
+            <td>
+                {% if row.uplink %}
+                    <a href="{{ row.uplink.this.get_absolute_url }}">{{ row.uplink.this.ifname }}</a>
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+
+            <td>
+                {% if row.uplink %}
+                    <a href="{{ row.uplink.other.get_absolute_url }}">{{ row.uplink.other }}</a>
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+
+            <td>
+                <a href="{% url machinetracker-mac_search row.mac form_data.days dns %}" title="Search again for this MAC address">
+                {{ row.mac }}</a>
+            </td>
+
+        </tr>
+    {% endfor %}
+    </tbody>
+
+    <tfoot>
+        <tr>
+            <th colspan="8">{{ uplink_tracker|length }}
+            hit{{ uplink_tracker|length|pluralize }}</th>
+        </tr>
+    </tfoot>
+</table>

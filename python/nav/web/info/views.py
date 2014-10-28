@@ -25,7 +25,8 @@ from nav.web.info.searchproviders import (RoomSearchProvider,
                                           NetboxSearchProvider,
                                           FallbackSearchProvider,
                                           InterfaceSearchProvider,
-                                          VlanSearchProvider)
+                                          VlanSearchProvider,
+                                          UnrecognizedNeighborSearchProvider)
 from nav.web.utils import create_title
 
 from random import choice
@@ -72,7 +73,8 @@ def process_form(form):
     searchproviders = [RoomSearchProvider(query),
                        NetboxSearchProvider(query),
                        InterfaceSearchProvider(query),
-                       VlanSearchProvider(query)]
+                       VlanSearchProvider(query),
+                       UnrecognizedNeighborSearchProvider(query)]
     providers_with_result = has_results(searchproviders)
     if not providers_with_result:
         fallback = FallbackSearchProvider(query)

@@ -1,27 +1,29 @@
 # for debian build-deps, see the apt-get commands in
 # tools/vagrant-provision.sh
 
-psycopg2==2.4.5
+psycopg2==2.4.5  # requires libpq to build
 django>=1.4,<1.5
 IPy==0.75
 twisted>=12,<13
-simplejson==2.0.6 # freebsd doesn't have newer.
+simplejson==2.0.6  # freebsd doesn't have newer.
 networkx>=1.7,<1.8
-xmpppy
+xmpppy  # optional, for alerting via Jabber
 PIL==1.1.7
 pyrad==1.2
-python-ldap==2.4.10
+python-ldap==2.4.10  # optional for LDAP authentication, requires libldap (OpenLDAP) to build
 sphinx>=1.0
 django-crispy-forms==1.3.2
 crispy-forms-foundation==0.2.3
+django-hstore>=1.2.4,<1.3
+feedparser>=5.1.2,<5.2
+
 # REST framework
 django-oauth2-provider>=0.2.6
 djangorestframework>=2.3.7
 django-filter>=0.5.3
 iso8601
-feedparser>=5.1.2,<5.2
+
 # SNMP libraries, pick only one of them. pynetsnmp is recommended; it provides
 # better performance and IPv6 support.
 svn+http://dev.zenoss.org/svn/tags/pynetsnmp-0.28.14
 #http://downloads.sourceforge.net/project/twistedsnmp/pysnmp-se/3.5.2/pysnmp-se-3.5.2.tar.gz
-django-hstore>=1.2.4,<1.3

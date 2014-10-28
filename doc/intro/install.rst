@@ -39,37 +39,15 @@ To run NAV, these software packages are required:
 PostgreSQL and Graphite are services that do not necessarily need to run on
 the same server as NAV.
 
-The following Python modules are required:
+Required Python modules can be installed from source using :kbd:`pip
+install -r requirements.txt` (some of these modules are extensions that will
+require some C libraries to be correctly built. These include the ``psycopg2``
+driver and the ``python-ldap`` module), or you may opt to use your OS' package
+manager to install these dependencies. The current requirements are as
+follows:
 
- * :mod:`django` >= 1.2
- * :mod:`IPy` >= 0.70
- * :mod:`ldap` >= 2.3
- * :mod:`networkx` >= 1.1
- * :mod:`psycopg2` >= 2.2
- * :mod:`pyrad`
- * :mod:`rrd` (from the rrdtool distribution)
- * :mod:`simplejson` >= 2.0.6
- * :mod:`twisted` >= 10.1
- * :mod:`pynetsnmp` (or less preferably, :mod:`pysnmp-se` combined with :mod:`twistedsnmp` >= 0.3)
- * :mod:`PIL` >= 1.1.7 (python-imaging)
- * :mod:`django-oauth2-provider` >= 0.2.6
- * :mod:`djangorestframework` >= 2.3.7
- * :mod:`django-filter` >= 0.5.3
- * :mod:`iso8601`
- * :mod:`django-crispy-forms` == 1.3.2
- * :mod:`crispy-forms-foundation` == 0.2.3
- * :mod:`feedparser` >= 5.1.2,<5.2
- * :mod:`django-hstore` >= 1.2.4
-
-The following python modules are optional:
-
- * :mod:`xmpp` (optional)
-
-.. tip:: NAV comes with a :file:`requirements.txt` file that can be used in
-         conjunction with :program:`pip` to install all the Python dependencies
-         using :kbd:`pip install -r requirements.txt`. This file is also likely to
-         be more up-to-date for development versions than this install
-         document.
+.. literalinclude:: ../../requirements.txt
+   :language: text
 
 .. note:: The :mod:`pynetsnmp` module is preferred over :mod:`twistedsnmp` for
           SNMP communication. The former is a Python binding to the well-known
@@ -79,7 +57,6 @@ The following python modules are optional:
           table retrievals on slow SNMP agents. If, for some reason, you are
           forced to resort to using :mod:`twistedsnmp`, the :file:`contrib/patches`
           directory contains a recommended patch for this problem.
-
 
 .. _Graphite: http://graphite.wikidot.com/
 
