@@ -23,6 +23,7 @@ import logging
 import nav.db
 import nav.logs
 import nav.event
+from nav.models import manage, service
 
 from django.db.transaction import commit_on_success
 from django.db.models import Q
@@ -167,6 +168,84 @@ def check_tasks_without_end():
                 task.id, now)
             task.end_time = now
             task.save()
+
+
+@commit_on_success
+def do_state_transitions():
+    for task in MaintenanceTask.objects.past(state=MaintenanceTask.STATE_ACTIVE):
+        task.state = MaintenanceTask.STATE_PASSED
+        task.save()
+
+    for task in MaintenanceTask.objects.current(state=MaintenanceTask.STATE_SCHEDULED):
+        task.state = MaintenanceTask.STATE_ACTIVE
+        task.save()
+
+
+def check_state_differences():
+
+    # Find out what should have been on maintenance
+    subjects_from_maintenance_tasks = set()
+    task_subject_mapper = {}
+
+    for task in MaintenanceTask.objects.current(state=MaintenanceTask.STATE_ACTIVE):
+        for subject in task.get_event_subjects():
+            task_subject_mapper[subject] = task.id
+            subjects_from_maintenance_tasks.add(subject)
+
+    # Find out what is on maintenance
+    subjects_from_alert_history = set()
+    alert_task_subject_mapper = {}
+
+    for alert in AlertHistory.objects.unresolved('maintenanceState'):
+        for subject in alert.subjects():
+            alert_task_subject_mapper[subject] = alert.maint_taskid
+            subjects_from_alert_history.add(subject)
+
+    # Set on maintenance that which is not and should be
+    to_be_put_on_maintenance = subjects_from_maintenance_tasks - subjects_from_alert_history
+
+    for subject in to_be_put_on_maintenance:
+        create_event(subject, state='s', value=100, taskid=task_subject_mapper[subject])
+
+
+    # Set off maintenance that which is and should not be
+    to_be_put_off_maintenance = subjects_from_alert_history - subjects_from_maintenance_tasks
+
+    for subject in to_be_put_off_maintenance:
+        create_event(subject, state='e', value=0, taskid=alert_task_subject_mapper[subject])
+
+
+@commit_on_success
+def create_event(subject, state, value, taskid):
+    target = 'eventEngine'
+    subsystem = 'maintenance'
+    source = subsystem
+    severity = 50
+    eventtype = 'maintenanceState'
+
+    event = nav.event.Event(
+            source=source, target=target,
+            #deviceid=deviceid, netboxid=netboxid, subid=subid,
+            eventtypeid=eventtype, state=state, value=value, severity=severity)
+
+    if isinstance(subject, manage.Netbox):
+        event['netbox'] = subject.sysname
+        event['deviceid'] = subject.device.id
+        event['netboxid'] = subject.id
+    elif isinstance(subject, service.Service):
+        event.subid = subject.id
+        event['service'] = subject.handler
+        event['servicename'] = subject.handler
+        event['deviceid'] = subject.netbox.device.id
+        event['netboxid'] = subject.netbox.id
+
+    event['maint_taskid'] = taskid
+
+    result = event.post()
+    _logger.debug("Event: %s, Result: %s", event, result)
+
+
+
 
 
 def check_state(events, maxdate_boxes):
