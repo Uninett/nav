@@ -11,7 +11,11 @@
 <td>{{ alert_type.name }}</td>
 <td>
     {{ dateFormat start_time }}
-    {{#unless end_time}}<i class="fa fa-exclamation-circle" title="Stateless"></i>{{/unless}}
+</td>
+<td>
+    {{#if end_time}}
+        {{ timeSince start_time }}
+    {{/if}}
 </td>
 <td class="toggle-info-cell">
  <a href="javascript:void(0);" title="More information"><i class="fa fa-caret-down fa-lg"></i></a>  

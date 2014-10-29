@@ -18,4 +18,9 @@ require(['moment', 'libs/handlebars'], function (moment) {
         var f = block.hash.format || defaultFormat;
         return date.format(f);
     });
+
+    Handlebars.registerHelper('timeSince', function(context) {
+        var date = moment(context);
+        return date.fromNow(true);
+    });
 });
