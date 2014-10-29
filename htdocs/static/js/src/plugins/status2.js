@@ -15,21 +15,33 @@ function (RowTemplate, Moment) {
     });
 
     var compiledTemplate = Handlebars.compile(RowTemplate);
-    $('body').on('navlet-rendered', function (event, navlet) {
-        if (navlet.hasClass('Status2Widget')) {
-            var $table = navlet.find('table.status2table'),
-                url = $table.attr('data-api-url'),
-                $tbody = $table.find('tbody'),
-                $lastUpdated = $table.find('.last-updated');
-
-            sendRequest($tbody, $lastUpdated, url);
+    $('body').on('navlet-rendered', function (event, $navlet) {
+        /** When a Status2Widget is rendered, make it send a request for data,
+         * and listen to refresh events */
+        if ($navlet.hasClass('Status2Widget')) {
+            sendRequest($navlet);
+            if (!isListening($navlet)) {
+                $navlet.on('refresh', function () {
+                    sendRequest($navlet);
+                });
+            }
         }
     });
 
-    function sendRequest($container, $updateField, url) {
+    function isListening($element) {
+        /* Returns if we are already listening to the refresh event */
+        return $element.data('events') && $element.data('events')['refresh'];
+    }
+
+    function sendRequest($navlet) {
+        var $table = $navlet.find('table.status2table'),
+            url = $table.data('api-url'),
+            $tbody = $table.find('tbody'),
+            $updateField = $table.find('.last-updated');
+
         var request = $.get(NAV.urls.status2_api_alerthistory + '?' + url);
         request.done(function (data) {
-            renderEvents($container, data);
+            renderEvents($tbody, data);
             updateLastUpdated($updateField);
         });
     }

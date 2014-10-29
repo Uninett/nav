@@ -90,6 +90,11 @@ class Navlet(TemplateView):
     # widget 'jump'. The image in question needs the attribute
     # 'data-image-reload'
     image_reload = False
+
+    # If ajax_reload is True, the whole widget will not be reloaded on refresh.
+    # Instead it will receive a 'refresh' event, which you can listen to
+    # to and do your own reload.
+    ajax_reload = False
     preferences = {}  # See DEFAULT PREFERENCES for adding default values here
     navlet_id = None
     highlight = None
@@ -174,6 +179,7 @@ def create_navlet_object(usernavlet):
     highlight = navlet_class.highlight
     is_title_editable = navlet_class.is_title_editable
     image_reload = navlet_class.image_reload
+    ajax_reload = navlet_class.ajax_reload
 
     return {'id': usernavlet.id, 'url': url,
             'column': usernavlet.column,
@@ -181,6 +187,7 @@ def create_navlet_object(usernavlet):
             'highlight': highlight,
             'navlet_class': navlet_module.split('.')[-1],
             'image_reload': image_reload,
+            'ajax_reload': ajax_reload,
             'is_title_editable': is_title_editable}
 
 
