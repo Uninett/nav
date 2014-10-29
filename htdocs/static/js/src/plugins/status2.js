@@ -2,17 +2,13 @@ require([
     'libs-amd/text!resources/status2/navlet-event-row.hbs',
     'moment',
     'libs/handlebars',
-    'libs/jquery'
+    'libs/jquery',
+    'status/handlebars-helpers'
     ],
 function (RowTemplate, Moment) {
 
-    var dateFormat = "DD.MMM HH:mm:ss",
+    var dateFormat = "YYYY-MM-DD HH:mm:ss",
         sortField = 'start_time';
-
-    Handlebars.registerHelper('dateFormat', function(context, block) {
-        var f = block.hash.format || dateFormat;
-        return Moment(context).format(f);
-    });
 
     var compiledTemplate = Handlebars.compile(RowTemplate);
     $('body').on('navlet-rendered', function (event, $navlet) {

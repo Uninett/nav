@@ -3,24 +3,13 @@ define([
     'libs-amd/text!resources/status2/event_template.hbs',
     'libs-amd/text!resources/status2/event_info_template.hbs',
     'moment',
+    'status/handlebars-helpers',
     'libs/backbone',
     'libs/handlebars',
 ], function (Collections, EventTemplate, EventInfoTemplate, moment) {
 
-    // So, where to put HandleBar helpers? Not here for sure
-    //  format an ISO date using Moment.js
-    //  http://momentjs.com/
-    //  moment syntax example: moment(Date("2011-07-18T15:50:52")).format("MMMM YYYY")
-    //  usage: {{dateFormat creation_date format="MMMM YYYY"}}
-    // Credits: https://gist.github.com/stephentcannon/3409103
-    Handlebars.registerHelper('dateFormat', function(context, block) {
-        var f = block.hash.format || "DD.MMM HH:mm:ss";
-        return moment(context).format(f);
-    });
-
     // This collection contains all the event-models that are to be cleared/acknowledged etc.
     var alertsToChange = new Collections.ChangeCollection();
-
 
     /** The main view containing the panel and the results list */
     var StatusView = Backbone.View.extend({
