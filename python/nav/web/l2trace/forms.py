@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013 UNINETT AS
+# Copyright (C) 2013, 2014 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,12 +17,15 @@
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Submit, Field
+from . import L2TraceQuery
+from django.core.exceptions import MultipleObjectsReturned
 
 
 class L2TraceForm(forms.Form):
     """Form for l2traceroute search"""
     host_from = forms.CharField(label='From')
     host_to = forms.CharField(label='To', required=False)
+    l2tracer = None
 
     def __init__(self, *args, **kwargs):
         super(L2TraceForm, self).__init__(*args, **kwargs)
@@ -42,3 +45,17 @@ class L2TraceForm(forms.Form):
             ),
             Submit('submit', 'Trace')
         )
+
+    def clean(self):
+        cleaned_data = super(L2TraceForm, self).clean()
+
+        host_from = cleaned_data.get('host_from')
+        host_to = cleaned_data.get('host_to')
+        self.l2tracer = L2TraceQuery(host_from, host_to)
+        try:
+            self.l2tracer.trace()
+        except MultipleObjectsReturned:
+            msg = u"Input was ambiguous, matching multiple hosts"
+            raise forms.ValidationError(msg)
+
+        return cleaned_data

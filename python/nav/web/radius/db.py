@@ -291,7 +291,7 @@ class AcctSearchQuery(SQLQuery):
             except (AttributeError, gaierror):
                 # AttributeError triggered when regexp found no match, and
                 # thus is None
-                pass
+                addresses = ["255.255.255.255"]
 
             self.query += " ("
             for address in addresses:
