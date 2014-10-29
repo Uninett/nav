@@ -176,6 +176,10 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                         that.displayError('Could not remove widget, maybe it has become self aware...!');
                     });
                     request.done(function () {
+                        if (that.refresh) {
+                            clearTimeout(that.refresh);
+                            clearInterval(that.refresh);
+                        }
                         that.node.remove();
                     });
                 }
