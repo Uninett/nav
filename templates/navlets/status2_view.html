@@ -3,7 +3,9 @@
 {% block navlet-content %}
 
   <table class="listtable status2table expand" data-api-url="{{ path }}">
-    <caption>Status now <span class="last-updated pull-right"></span></caption>
+    <caption>
+      <a href="{% url status2-index %}" title="Go to the status page">Status now</a>
+      <span class="last-updated pull-right"></span></caption>
     <thead>
     <tr>
       <th>Subject</th>
@@ -16,7 +18,5 @@
     </tbody>
 
   </table>
-
-  <a href="{% url status2-index %}" title="Go to the status page">Go to the status page</a>
 
 {% endblock %}
