@@ -31,6 +31,7 @@ class Status2Widget(Navlet):
     description = "Shows status for your ip-devices and services"
     refresh_interval = 1000 * 60 * 10  # Refresh every 10 minutes
     is_editable = True
+    is_title_editable = True
     ajax_reload = True
 
     def get_template_basename(self):
@@ -41,6 +42,7 @@ class Status2Widget(Navlet):
         navlet = AccountNavlet.objects.get(pk=self.navlet_id)
         status_filter = navlet.preferences.get('status_filter')
         context['path'] = status_filter
+        self.title = navlet.preferences.get('title', 'Status2')
         if self.mode == NAVLET_MODE_EDIT:
             if status_filter:
                 context['form'] = StatusWidgetForm(QueryDict(status_filter))
