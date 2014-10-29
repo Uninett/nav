@@ -42,7 +42,10 @@ class Status2Widget(Navlet):
         status_filter = navlet.preferences.get('status_filter')
         context['path'] = status_filter
         if self.mode == NAVLET_MODE_EDIT:
-            context['form'] = StatusWidgetForm(QueryDict(status_filter))
+            if status_filter:
+                context['form'] = StatusWidgetForm(QueryDict(status_filter))
+            else:
+                context['form'] = StatusWidgetForm()
             context['interval'] = self.preferences['refresh_interval'] / 1000
 
         return context
@@ -65,4 +68,4 @@ class Status2Widget(Navlet):
                 navlet.save()
                 return HttpResponse(json.dumps(navlet.preferences))
             else:
-                return HttpResponse('Form is not valid', 400)
+                return HttpResponse(400)

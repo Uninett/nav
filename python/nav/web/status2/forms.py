@@ -31,8 +31,8 @@ class StatusPanelForm(forms.Form):
 
     stateless = forms.BooleanField(required=False,
                                    help_text='Show stateless events')
-    stateless_threshold = NumberField(
-        required=False,
+    stateless_threshold = forms.IntegerField(
+        required=True,
         initial=STATELESS_THRESHOLD,
         help_text='Hours back in time to look for stateless events')
     on_maintenance = forms.BooleanField(required=False)
@@ -113,9 +113,10 @@ class StatusPanelForm(forms.Form):
 
     def clean_stateless_threshold(self):
         field = 'stateless_threshold'
-        if not self[field].html_name in self.data:
-            return self.fields[field].initial
-        return self.cleaned_data[field]
+        data = self.cleaned_data[field]
+        if not data:
+            data = STATELESS_THRESHOLD
+        return data
 
 
 class StatusWidgetForm(StatusPanelForm):
