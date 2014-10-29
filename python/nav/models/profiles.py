@@ -45,7 +45,7 @@ from nav.models.manage import Arp, Cam, Category, Device, Location
 from nav.models.manage import Memory, Netbox, NetboxInfo, NetboxType
 from nav.models.manage import Organization, Prefix, Room, NetboxGroup
 from nav.models.manage import Interface, Usage, Vlan, Vendor
-from nav.models.fields import VarcharField, PickleField
+from nav.models.fields import VarcharField, PickleField, DictAsJsonField
 
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 
@@ -1375,7 +1375,7 @@ class AccountNavlet(models.Model):
     navlet = VarcharField()
     order = models.IntegerField(default=0, db_column='displayorder')
     account = models.ForeignKey(Account, db_column='account')
-    preferences = PickleField(null=True)
+    preferences = DictAsJsonField(null=True)
     column = models.IntegerField(db_column='col')
 
     def __unicode__(self):

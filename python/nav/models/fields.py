@@ -77,7 +77,7 @@ class PickleField(models.TextField):
             return pickle.dumps(value)
 
 
-class JsonField(models.TextField):
+class DictAsJsonField(models.TextField):
     """Serializes value to and from json. Has a fallback to pickle for
     historical reasons"""
 
@@ -89,16 +89,19 @@ class JsonField(models.TextField):
 
     def to_python(self, value):
         if value:
+            if isinstance(value, dict):
+                return value
             try:
-                json.loads(value)
+                return json.loads(value)
             except ValueError:
                 try:
                     return pickle.loads(value)
                 except ValueError:
                     return value
+        return {}
 
     def get_prep_value(self, value):
-        if value is not None:
+        if value:
             return json.dumps(value)
 
 
