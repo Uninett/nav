@@ -14,7 +14,7 @@ define([
     //  usage: {{dateFormat creation_date format="MMMM YYYY"}}
     // Credits: https://gist.github.com/stephentcannon/3409103
     Handlebars.registerHelper('dateFormat', function(context, block) {
-        var f = block.hash.format || "YYYY-MM-DD HH:mm:ss";
+        var f = block.hash.format || "DD.MMM HH:mm:ss";
         return moment(context).format(f);
     });
 

@@ -6,11 +6,13 @@
 <td>
   {{#if on_maintenance}}<i class="fa fa-wrench fa-lg" title="On maintenance"></i>{{/if}}
   {{#if acknowledgement}}<i class="fa fa-check-circle-o fa-lg" title="Acknowledged"></i>{{/if}}
-  {{#unless end_time}}<i class="fa fa-bolt fa-fw" title="Stateless"></i>{{/unless}}
 </td>
 <td><a href="{{ subject_url }}">{{ subject }}</a></td>
 <td>{{ alert_type.name }}</td>
-<td>{{ dateFormat start_time }}</td>
+<td>
+    {{ dateFormat start_time }}
+    {{#unless end_time}}<i class="fa fa-exclamation-circle" title="Stateless"></i>{{/unless}}
+</td>
 <td class="toggle-info-cell">
  <a href="javascript:void(0);" title="More information"><i class="fa fa-caret-down fa-lg"></i></a>  
 </td>

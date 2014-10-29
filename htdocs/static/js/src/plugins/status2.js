@@ -6,7 +6,7 @@ require([
     ],
 function (RowTemplate, Moment) {
 
-    var dateFormat = "YYYY-MM-DD HH:mm:ss",
+    var dateFormat = "DD.MMM HH:mm:ss",
         sortField = 'start_time';
 
     Handlebars.registerHelper('dateFormat', function(context, block) {
