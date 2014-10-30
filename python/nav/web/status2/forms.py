@@ -31,7 +31,7 @@ class StatusPanelForm(forms.Form):
 
     stateless = forms.BooleanField(required=False,
                                    help_text='Show stateless events')
-    stateless_threshold = forms.IntegerField(
+    stateless_threshold = NumberField(
         required=True,
         initial=STATELESS_THRESHOLD,
         help_text='Hours back in time to look for stateless events')
