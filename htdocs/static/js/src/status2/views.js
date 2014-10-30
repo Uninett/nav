@@ -255,7 +255,7 @@ define([
         // Map columnindex to model attribute for sorting
         sortMap: {
             2: 'subject',
-            3: 'alert_type',
+            3: 'alert_type.name',
             4: 'start_time'
         },
 

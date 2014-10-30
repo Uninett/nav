@@ -23,8 +23,16 @@ define([
         },
 
         comparator: function (a, b) {
-            var value1 = a.get(this.sortAttribute).toLowerCase(),
+            var value1, value2, sortAttributes = this.sortAttribute.split('.');
+            if (sortAttributes.length > 1) {
+                /** Support one level nesting */
+                value1 = a.get(sortAttributes[0])[sortAttributes[1]].toLowerCase();
+                value2 = b.get(sortAttributes[0])[sortAttributes[1]].toLowerCase();
+            } else {
+                /** No nesting */
+                value1 = a.get(this.sortAttribute).toLowerCase();
                 value2 = b.get(this.sortAttribute).toLowerCase();
+            }
 
             if (value1 === value2) { return 0; }
             if (this.sortDirection === 1) {
