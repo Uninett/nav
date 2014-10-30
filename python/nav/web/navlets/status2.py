@@ -16,12 +16,16 @@
 """Status2 widget"""
 import json
 import logging
+from datetime import datetime
+from operator import itemgetter
 
 from django.http import HttpResponse, QueryDict
+from django.test.client import RequestFactory
 
 from nav.models.profiles import AccountNavlet
 from nav.web.status2.forms import StatusWidgetForm
-from . import Navlet, NAVLET_MODE_EDIT
+from nav.web.status2.views import AlertHistoryViewSet
+from . import Navlet, NAVLET_MODE_EDIT, NAVLET_MODE_VIEW
 
 
 class Status2Widget(Navlet):
@@ -32,7 +36,6 @@ class Status2Widget(Navlet):
     refresh_interval = 1000 * 60 * 10  # Refresh every 10 minutes
     is_editable = True
     is_title_editable = True
-    ajax_reload = True
 
     def get_template_basename(self):
         return "status2"
@@ -41,16 +44,30 @@ class Status2Widget(Navlet):
         context = super(Status2Widget, self).get_context_data(**kwargs)
         navlet = AccountNavlet.objects.get(pk=self.navlet_id)
         status_filter = navlet.preferences.get('status_filter')
-        context['path'] = status_filter
         self.title = navlet.preferences.get('title', 'Status2')
+
         if self.mode == NAVLET_MODE_EDIT:
             if status_filter:
                 context['form'] = StatusWidgetForm(QueryDict(status_filter))
             else:
                 context['form'] = StatusWidgetForm()
             context['interval'] = self.preferences['refresh_interval'] / 1000
+        elif self.mode == NAVLET_MODE_VIEW:
+            context['results'] = sorted(self.do_query(status_filter),
+                                        key=itemgetter('start_time'),
+                                        reverse=True)
+        context['last_updated'] = datetime.now()
 
         return context
+
+    @staticmethod
+    def do_query(query_string):
+        """Queries for alerts given a query string"""
+        factory = RequestFactory()
+        view = AlertHistoryViewSet.as_view({'get': 'list'})
+        request = factory.get("?%s" % query_string)
+        response = view(request)
+        return response.data.get('results')
 
     def post(self, request):
         try:
