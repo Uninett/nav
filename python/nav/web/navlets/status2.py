@@ -15,7 +15,6 @@
 #
 """Status2 widget"""
 import json
-import logging
 from datetime import datetime
 from operator import itemgetter
 
@@ -72,6 +71,7 @@ class Status2Widget(Navlet):
         return response.data.get('results')
 
     def add_formatted_time(self, results):
+        """Adds formatted time to all results"""
         for result in results:
             result['formatted_time'] = self.format_time(result['start_time'])
 
@@ -87,6 +87,7 @@ class Status2Widget(Navlet):
         return timestamp.strftime(date_format)
 
     def post(self, request):
+        """Save navlet options on post"""
         try:
             navlet = AccountNavlet.objects.get(pk=self.navlet_id,
                                                account=request.account)
