@@ -2,6 +2,8 @@
 
 {% block navlet-content %}
 
+  {% if results %}
+
   <table class="listtable status2table expand">
     <caption>
       <a href="{% url status2-index %}" title="Go to the status page">Status now</a>
@@ -33,5 +35,11 @@
     </tbody>
 
   </table>
+
+  {% else %}
+    <p class="alert-box success">According to your criteria, everything seems ok</p>
+    <a href="{% url status2-index %}" title="Go to the status page">Go to the status page</a>
+
+  {% endif %}
 
 {% endblock %}
