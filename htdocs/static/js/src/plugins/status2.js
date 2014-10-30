@@ -31,14 +31,23 @@ function (RowTemplate, Moment) {
 
     function sendRequest($navlet) {
         var $table = $navlet.find('table.status2table'),
-            url = $table.data('api-url'),
+            queryString = $table.data('api-url'),
             $tbody = $table.find('tbody'),
             $updateField = $table.find('.last-updated');
 
-        var request = $.get(NAV.urls.status2_api_alerthistory + '?' + url);
+        $navlet.find('.alert-box.alert').remove();
+
+        var request = $.get(NAV.urls.status2_api_alerthistory + '?' + queryString);
         request.done(function (data) {
+            $table.show();
             renderEvents($tbody, data);
             updateLastUpdated($updateField);
+        });
+        request.fail(function () {
+            $table.before(
+                $('<div class="alert-box alert">' + Moment().format(dateFormat) + ' - failed to fetch status</div>')
+            );
+            $table.hide();
         });
     }
 
