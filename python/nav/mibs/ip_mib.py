@@ -266,9 +266,14 @@ class IpMib(mibretriever.MibRetriever):
         address_rows = waiter.getResult()
 
         addresses = set()
+        unparseable_addrs = set()
 
         for row_index, row in address_rows.items():
             ip = self.inetaddress_to_ip(row_index)
+            if not ip:
+                unparseable_addrs.add(row_index)
+                continue
+
             ifindex = row[ifindex_column]
             prefix_pointer = row[prefix_column]
 
@@ -276,6 +281,11 @@ class IpMib(mibretriever.MibRetriever):
 
             new_row = (ifindex, ip, prefix)
             addresses.add(new_row)
+
+        if unparseable_addrs:
+            self._logger.warning(
+                "ignored %d invalid or unsupported addresses from %s: %r",
+                len(unparseable_addrs), ifindex_column, unparseable_addrs)
         self._logger.debug("interface addresses: Got %d rows from %s",
                            len(address_rows), ifindex_column)
         yield addresses
