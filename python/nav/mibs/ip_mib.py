@@ -159,16 +159,25 @@ class IpMib(mibretriever.MibRetriever):
         ipv4_phys_addrs = waiter.getResult()
 
         mappings = set()
+        ignore_count = 0
 
         for row_index, phys_address in ipv4_phys_addrs.items():
             ifindex = row_index[0]
             ip_address = row_index[1:]
+            if len(ip_address) != 4:
+                ignore_count += 1
+                continue
+
             ip_address_string = ".".join([str(i) for i in ip_address])
             ip = IP(ip_address_string)
             mac = self._binary_mac_to_hex(phys_address)
 
             row = (ifindex, ip, mac)
             mappings.add(row)
+
+        if ignore_count:
+            self._logger.warning("ignored %d/%d invalid IPv4 addresses from %s",
+                                 ignore_count, len(ipv4_phys_addrs), column)
         self._logger.debug("ip/mac pairs: Got %d rows from %s",
                            len(ipv4_phys_addrs), column)
         yield mappings
@@ -213,8 +222,13 @@ class IpMib(mibretriever.MibRetriever):
         address_rows = waiter.getResult()
 
         addresses = set()
+        ignore_count = 0
 
         for row_index, row in address_rows.items():
+            if len(row_index) != 4:
+                ignore_count += 1
+                continue
+
             ip_address_string = ".".join([str(i) for i in row_index])
             ip = IP(ip_address_string)
             ifindex = row[ifindex_column]
@@ -228,6 +242,11 @@ class IpMib(mibretriever.MibRetriever):
             else:
                 new_row = (ifindex, ip, prefix)
                 addresses.add(new_row)
+
+        if ignore_count:
+            self._logger.warning("ignored %d/%d invalid IPv4 addresses from %s",
+                                 ignore_count, len(address_rows),
+                                 ifindex_column)
         self._logger.debug("interface addresses: Got %d rows from %s",
                            len(address_rows), ifindex_column)
         yield addresses
@@ -247,9 +266,14 @@ class IpMib(mibretriever.MibRetriever):
         address_rows = waiter.getResult()
 
         addresses = set()
+        unparseable_addrs = set()
 
         for row_index, row in address_rows.items():
             ip = self.inetaddress_to_ip(row_index)
+            if not ip:
+                unparseable_addrs.add(row_index)
+                continue
+
             ifindex = row[ifindex_column]
             prefix_pointer = row[prefix_column]
 
@@ -257,6 +281,11 @@ class IpMib(mibretriever.MibRetriever):
 
             new_row = (ifindex, ip, prefix)
             addresses.add(new_row)
+
+        if unparseable_addrs:
+            self._logger.warning(
+                "ignored %d invalid or unsupported addresses from %s: %r",
+                len(unparseable_addrs), ifindex_column, unparseable_addrs)
         self._logger.debug("interface addresses: Got %d rows from %s",
                            len(address_rows), ifindex_column)
         yield addresses
