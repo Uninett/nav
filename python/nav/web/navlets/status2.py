@@ -22,6 +22,7 @@ from operator import itemgetter
 from django.http import HttpResponse, QueryDict
 from django.test.client import RequestFactory
 
+from nav.django.settings import DATETIME_FORMAT
 from nav.models.profiles import AccountNavlet
 from nav.web.status2.forms import StatusWidgetForm
 from nav.web.status2.views import AlertHistoryViewSet
@@ -53,9 +54,10 @@ class Status2Widget(Navlet):
                 context['form'] = StatusWidgetForm()
             context['interval'] = self.preferences['refresh_interval'] / 1000
         elif self.mode == NAVLET_MODE_VIEW:
-            context['results'] = sorted(self.do_query(status_filter),
-                                        key=itemgetter('start_time'),
-                                        reverse=True)
+            results = self.do_query(status_filter)
+            self.add_formatted_time(results)
+            context['results'] = sorted(
+                results, key=itemgetter('start_time'), reverse=True)
         context['last_updated'] = datetime.now()
 
         return context
@@ -68,6 +70,21 @@ class Status2Widget(Navlet):
         request = factory.get("?%s" % query_string)
         response = view(request)
         return response.data.get('results')
+
+    def add_formatted_time(self, results):
+        for result in results:
+            result['formatted_time'] = self.format_time(result['start_time'])
+
+    @staticmethod
+    def format_time(timestamp):
+        """Format the time based on time back in time"""
+        now = datetime.now()
+        date_format = '%d.%b %H:%M:%S'
+        if now.year != timestamp.year:
+            date_format = DATETIME_FORMAT
+        elif now.date() == timestamp.date():
+            date_format = '%H:%M:%S'
+        return timestamp.strftime(date_format)
 
     def post(self, request):
         try:

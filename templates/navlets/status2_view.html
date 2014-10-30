@@ -24,7 +24,7 @@
           </td>
           <td>{{ result.alert_type.name }}</td>
           <td class="alerttime">
-              {{ result.start_time }}
+              {{ result.formatted_time }}
               {% if not result.end_time %}<i class="fa fa-exclamation-circle" title="Stateless"></i>{% endif %}
           </td>
       </tr>
