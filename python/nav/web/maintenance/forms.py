@@ -48,6 +48,7 @@ class MaintenanceTaskForm(forms.Form):
         try:
             task = kwargs.pop('initial')
             if task and (task['end_time'] == datetime.datetime.max):
+                task['end_time'] = ''
                 self.fields['no_end_time'].widget.attrs['checked'] = 'checked'
                 self.fields['end_time'].widget.attrs['disabled'] = 'disabled'
         except KeyError:
