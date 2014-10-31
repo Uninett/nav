@@ -156,3 +156,14 @@ def reset_connection_on_interface_error(func):
             django.db.connection.connection = None
             raise
     return wraps(func)(_reset)
+
+
+def synchronous_db_access(func):
+    """
+    Decorates a function to run in a separate thread for synchronous database
+    access
+    """
+    def _thread_it(*args, **kwargs):
+        return run_in_thread(func, *args, **kwargs)
+
+    return wraps(func)(_thread_it)
