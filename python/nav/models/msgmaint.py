@@ -19,7 +19,7 @@
 from django.db import models
 from datetime import datetime, timedelta
 from nav.models.fields import (VarcharField, LegacyGenericForeignKey,
-                               DateTimeInfinityField)
+                               DateTimeInfinityField, INFINITY)
 
 
 class Message(models.Model):
@@ -77,6 +77,12 @@ class MaintenanceTask(models.Model):
 
     def __unicode__(self):
         return u'"%s" by %s' % (self.description, self.author)
+
+    def is_endless(self):
+        """Returns true if the task is endless"""
+        if self.end_time >= INFINITY:
+            return True
+        return False
 
 
 class MaintenanceComponent(models.Model):
