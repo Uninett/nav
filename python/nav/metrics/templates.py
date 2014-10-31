@@ -143,3 +143,16 @@ def metric_prefix_for_service(sysname, handler, service_id):
 def metric_prefix_for_system(sysname):
     tmpl = "{device}.system"
     return tmpl.format(device=metric_prefix_for_device(sysname))
+
+
+def metric_prefix_for_multicast_group(group):
+    tmpl = "nav.multicast.groups.{group}"
+    return tmpl.format(group=escape_metric_name(unicode(group)))
+
+
+def metric_path_for_multicast_usage(group, sysname):
+    tmpl = "{group}.igmp_usage.{sysname}"
+    if hasattr(sysname, 'sysname'):
+        sysname = sysname.sysname
+    return tmpl.format(group=metric_prefix_for_multicast_group(group),
+                       sysname=escape_metric_name(sysname))
