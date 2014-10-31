@@ -13,6 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+import datetime
 
 from django import forms
 from crispy_forms.helper import FormHelper
@@ -41,6 +42,15 @@ class MaintenanceTaskForm(forms.Form):
                 Column('no_end_time', css_class="medium-6")
             ),
             'description')
+
+        # If end_time infinity, check no_end time and disable input
+        try:
+            task = kwargs.pop('initial')
+            if task and (task['end_time'] == datetime.datetime.max):
+                self.fields['no_end_time'].widget.attrs['checked'] = 'checked'
+                self.fields['end_time'].widget.attrs['disabled'] = 'disabled'
+        except KeyError:
+            pass
 
     def clean(self):
         if any(self.errors):
