@@ -14,11 +14,11 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import datetime
-
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Field
+
+from nav.models.fields import INFINITY
 
 
 class MaintenanceTaskForm(forms.Form):
@@ -47,7 +47,7 @@ class MaintenanceTaskForm(forms.Form):
         # If end_time infinity, check no_end time and disable input
         try:
             task = kwargs.pop('initial')
-            if task and (task['end_time'] == datetime.datetime.max):
+            if task and (task['end_time'] == INFINITY):
                 task['end_time'] = ''
                 self.fields['no_end_time'].widget.attrs['checked'] = 'checked'
                 self.fields['end_time'].widget.attrs['disabled'] = 'disabled'
