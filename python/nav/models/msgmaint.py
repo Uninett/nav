@@ -80,9 +80,7 @@ class MaintenanceTask(models.Model):
 
     def is_endless(self):
         """Returns true if the task is endless"""
-        if self.end_time >= INFINITY:
-            return True
-        return False
+        return self.end_time >= INFINITY
 
 
 class MaintenanceComponent(models.Model):
