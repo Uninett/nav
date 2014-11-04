@@ -98,7 +98,7 @@ def parse(output, encoding=None):
                 # Handle mac address with "-" separator (FreeBSD nbtscan).
                 netbiosresult = netbiosresult._replace(
                     mac=str(MacAddress(netbiosresult.mac)))
-            except TypeError:
+            except (TypeError, ValueError):
                 _logger.error('Error parsing %s', result)
             else:
                 parsed_results.append(netbiosresult)
