@@ -48,7 +48,6 @@ from django_hstore import hstore
 import nav.models.event
 
 
-
 #######################################################################
 ### Netbox-related models
 
@@ -86,6 +85,9 @@ class Netbox(models.Model):
     up_since = models.DateTimeField(db_column='upsince', auto_now_add=True)
     up_to_date = models.BooleanField(db_column='uptodate', default=False)
     discovered = models.DateTimeField(auto_now_add=True)
+
+    data = hstore.DictionaryField()
+    objects = hstore.HStoreManager()
 
     class Meta:
         db_table = 'netbox'
@@ -542,8 +544,10 @@ class Location(models.Model):
     campus."""
 
     id = models.CharField(db_column='locationid',
-        max_length=30, primary_key=True)
+                          max_length=30, primary_key=True)
     description = VarcharField(db_column='descr')
+    data = hstore.DictionaryField()
+    objects = hstore.HStoreManager()
 
     class Meta:
         db_table = 'location'
