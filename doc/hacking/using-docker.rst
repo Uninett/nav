@@ -3,14 +3,15 @@ Using NAV with Docker for development
 =====================================
 
 Docker is a lightweight virtualization framework for creating isolated
-environments, useful both in development and production [*]_.
+environments, useful both in development and production.
 For more information on Docker visit their homepage_ or read the documentation_.
 
 .. Note:: This guide is written for NAV 4.0 or later.
 
 Installing Docker
 -----------------
-Docker has updated documentation on how to install it for most linux
+
+Docker has updated documentation on how to install it for most Linux
 distributions [*]_. Due to its dependency on a relatively new kernel (3.8+),
 some distributions such as Debian stable will need to use a backports kernel.
 
@@ -20,46 +21,56 @@ some distributions such as Debian stable will need to use a backports kernel.
 
 Building the Docker image
 -------------------------
+
 First you will need to obtain the NAV source code. The image can then be
 built with the following command::
 
     docker build -t <IMAGE_NAME> <PATH>
 
 Where `IMAGE_NAME` is the name you wish to give the built image and `PATH` is
-the path to the NAV root directory containing the dockerfile.
-    * If you are currently in the NAV root directory you need only use a **\.** for PATH.
+the path to the NAV root directory containing the Dockerfile.
 
-.. Tip:: This would be the perfect time to grab some coffee (and maybe redecorate your
-         living room), as this may take a while.
+.. Tip:: This would be the perfect time to grab some coffee (and maybe
+         redecorate your living room), as this may take a while. This image
+         will assemble a Debian server with all the required dependencies for
+         building and running of NAV in it.
 
 
 Creating and running the container
 ----------------------------------
-The first time you wish to run the container it must be created with the
+
+The first time you wish to run the container, it must be created with the
 following command::
 
-    docker run -v <PATH>:/source -d --name <CONTAINER_NAME> -p <HOST_PORT1>:80 -p <HOST_PORT2>:22 -p <HOST_PORT3>:8000 <IMAGE_NAME>
+    docker run -v <PATH>:/source -d --name <CONTAINER_NAME> -p <HOST_WEB>:80 -p <HOST_SSH>:22 -p <HOST_GRAPHITEWEB>:8000 <IMAGE_NAME>
 
 Where:
     * `PATH` is the path to the NAV root directory.
     * `CONTAINER_NAME` is the name you wish to give the container (optional but recommended).
-    * `HOST_PORT1` is the port number on the host that should map to container port 80.
-    * `HOST_PORT2` is the port number on the host that should map to container port 22.
-    * `HOST_PORT3` is the port number on the host that should map to container port 8000 (Graphite web interface).
+    * `HOST_WEB` is the port number on the host that should map to container port 80.
+    * `HOST_SSH` is the port number on the host that should map to container port 22.
+    * `HOST_GRAPHITEWEB` is the port number on the host that should map to container port 8000 (Graphite web interface).
     * `IMAGE_NAME` is the name you gave the image at the previous step.
 
-To see if the container is running execute::
+To see if the container is running, execute::
 
     docker ps
 
-Once the container has been created successfully you can stop|start the container with::
+Once the container has been created successfully, you can stop/start the
+container with::
 
     docker stop|start <CONTAINER_NAME>
+
+For the sake of simplicity, the container is built as an entire server running
+all components of NAV, and will therefore include an SSH server. If you wish
+to control individual processes or configuration files within the container,
+you can simply SSH into it as ``root``, using the password :kbd:`password`::
+
+    ssh -p <HOST_SSH> root@localhost
 
 Happy hacking!
 
 
-.. [*] Docker is currently not considered production ready.
 .. [*] See http://docs.docker.io/installation/#installation.
 .. _homepage: http://docker.io
 .. _documentation: http://docs.docker.io

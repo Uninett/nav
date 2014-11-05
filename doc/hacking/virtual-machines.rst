@@ -7,18 +7,15 @@ also enables user's to try out NAV quickly, using virtual appliances.
 
 NAV's source code includes tools for using Docker_ containers during
 development, and for producing an :abbr:`OVF (Open Virtualization
-Format)`-based virtual appliance running NAV.
+Format)`-based virtual appliance running NAV (for testing or production
+purposes).
 
 Building a Docker image
 -----------------------
 
-The :file:`Dockerfile` describes a Debian-based Docker image including all
-dependencies needed to to build and run NAV on a single system.
-
-The generated image will expect your NAV source code directory to be mounted
-in the container at :file:`/source` . For your own convenience, you should
-also port forward the container ports 22, 80 and 8000 to have access to the
-SSH server, the NAV web interface and the Graphite web interface respectively.
+NAV includes a :file:`Dockerfile` that describes a Debian-based Docker image,
+which will run all of NAV directly from the source code tree, within a
+container. You can read more about this in :doc:`using-docker`.
 
 
 Build a virtual appliance
