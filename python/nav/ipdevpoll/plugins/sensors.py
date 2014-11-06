@@ -15,8 +15,10 @@
 #
 """ipdevpoll plugin to collect sensor data.
 
-This plugin use CISCO-ENVMON-MIB, ENTITY-SENSOR-MIB and IT-WATCHDOGS-MIB-V3
-to retrieve all possible sensors in network-equipment.
+This plugin uses MibRetriever implementations for various IETF and proprietary
+MIBs to discover and store information about physical environmental sensors
+available for readout on a device.
+
 """
 
 from twisted.internet import defer
@@ -55,13 +57,14 @@ VENDOR_AKCP = 3854
 
 
 class MIBFactory(object):
-    """A class that produces mibs depending and netbox-vendors
-    and -models."""
-
+    """Factory class for producing MibRetriever instances depending on Netbox
+    vendors and models.
+    """
     @classmethod
     def get_instance(cls, netbox, agent):
-        """ Factory for allocating mibs based on
-        netbox-vendors and -models"""
+        """Returns a list of MibRetriever instances based on Netbox vendors and
+        models.
+        """
         vendor_id = None
         mibs = None
         if netbox.type:
@@ -98,11 +101,11 @@ class MIBFactory(object):
 
 
 class Sensors(Plugin):
-    """ Plugin that detect sensors in netboxes."""
+    """Plugin to detect environmental sensors in netboxes"""
 
     @defer.inlineCallbacks
     def handle(self):
-        """Collect sensors and feed them in to persistent store."""
+        """Collects sensors and feed them in to persistent store."""
         self._logger.debug('Collection sensors data')
         mibs = MIBFactory.get_instance(self.netbox, self.agent)
         for mib in mibs:
@@ -114,8 +117,10 @@ class Sensors(Plugin):
                 break
 
     def _store_sensors(self, result):
-        """ Store sensor-records to database (this is actually
-            done automagically when we use shadow-objects."""
+        """Stores sensor records in the current job's container dictionary, so
+        that they may be persisted to the database.
+
+        """
         self._logger.debug('Found %d sensors', len(result))
         sensors = []
         for row in result:
