@@ -32,47 +32,6 @@
 
   {% crispy form %}
 
-{% comment %}
-  <form id="add-netbox-form" action="" method="post">
-    <fieldset>
-      <legend>{{ title }}</legend>
-
-      <table class="listtable edit">
-        {% if object %}
-          <caption>{{ object.sysname }}</caption>
-        {% endif %}
-
-        {{ form.as_table }}
-
-        {% if serial_form %}
-          {{ serial_form.as_table }}
-        {% endif %}
-        {% if netboxgroup_form %}
-          {{ netboxgroup_form.as_table }}
-        {% endif %}
-        {% if data.type %}
-          <tr>
-            <th>Netbox type</th>
-            <td>{{ netbox_type }}</td>
-          </tr>
-        {% endif %}
-        <tr>
-          <th></th>
-          <td>
-            <input type="hidden" name="step" value="{{ step }}"/>
-            {% ifequal step 2 %}
-              <input type="submit" value="Save" class="button small"/>
-            {% else %}
-              <input type="submit" value="Continue" class="button small"/>
-            {% endifequal %}
-          </td>
-        </tr>
-      </table>
-
-    </fieldset>
-  </form>
-{% endcomment %}
-
 
   <ol class="joyride-list" data-joyride>
     <li>
