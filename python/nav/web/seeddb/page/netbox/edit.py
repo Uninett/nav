@@ -31,7 +31,7 @@ from nav.models.manage import Netbox, Device, NetboxCategory, NetboxType
 from nav.models.manage import NetboxInfo
 from nav.models.oid import SnmpOid
 from nav.Snmp import Snmp
-from nav.Snmp.errors import SnmpError
+from nav.Snmp.errors import SnmpError, TimeOutException
 from nav.web.seeddb import reverse_lazy
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname
 from nav.web.seeddb.page.netbox import NetboxInfo as NI
@@ -76,22 +76,53 @@ def get_read_only_variables(request):
     """Fetches read only attributes for an IP-address"""
     ip_address = request.GET.get('ip_address')
     read_community = request.GET.get('read_community')
+    write_community = request.GET.get('read_write_community')
 
-    snmp_version = get_snmp_version(ip_address, read_community)
+    community = read_community if read_community else write_community
+    snmp_version = get_snmp_version(ip_address, community)
     sysname = get_sysname(ip_address)
 
-    serial = netbox_type = None
+    serial = netbox_type = write_successful = write_feedback = None
     if snmp_version:
-        netbox_type = get_type_id(ip_address, read_community, snmp_version)
-        serial = get_serial(ip_address, read_community, snmp_version)
+        netbox_type = get_type_id(ip_address, community, snmp_version)
+        serial = get_serial(ip_address, community, snmp_version)
+        if write_community:
+            try:
+                write_successful, write_feedback = test_snmp_write(
+                    ip_address, write_community)
+            except UnicodeDecodeError:
+                write_successful = False
+                write_feedback = 'decode_error'
 
     data = {
         'snmp_version': '2' if snmp_version == '2c' else snmp_version,
         'sysname': sysname,
         'netbox_type': netbox_type,
-        'serial': serial
+        'serial': serial,
+        'snmp_write_successful': write_successful,
+        'snmp_write_feedback': write_feedback
     }
     return HttpResponse(json.dumps(data))
+
+
+def test_snmp_write(ip, community):
+    """Test that snmp write works"""
+
+    syslocation = '1.3.6.1.2.1.1.6.0'
+    try:
+        try:
+            snmp = Snmp(ip, community, '2c')
+            value = snmp.get(syslocation)
+            value.decode('ascii')
+            snmp.set(syslocation, 's', value)
+        except TimeOutException:
+            snmp = Snmp(ip, community, '1')
+            value = snmp.get(syslocation)
+            snmp.set(syslocation, 's', value)
+    except SnmpError, error:
+        return False, error.message
+    else:
+        return True, ''
 
 
 def get_snmp_version(ip, community):

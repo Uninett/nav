@@ -17,7 +17,9 @@ define(['libs/jquery'], function () {
         console.log('ConnectivityCheckerForNetboxes called');
 
         var button = $('#seeddb-netbox-form').find('.check_connectivity');
-        var alertBox = createAlertBox();
+        var writeAlertBox = createAlertBox(),
+            readAlertBox = createAlertBox();
+
         var spinContainer = $('<span>&nbsp;</span>').css({ position: 'relative', left: '20px'}).insertAfter(button);
         var spinner = new Spinner();
 
@@ -38,19 +40,21 @@ define(['libs/jquery'], function () {
 
         button.on('click', function () {
             var ip_address = $('#id_ip').val().trim(),
-                read_community = $('#id_read_only').val();
+                read_community = $('#id_read_only').val(),
+                read_write_community = $('#id_read_write').val();
 
-            if (!(ip_address && read_community)) {
+            if (!(ip_address && (read_community || read_write_community))) {
                 reportError('We need an IP-address and a community to talk to the device.');
                 return;
             }
 
-            hideAlertBox();
+            hideAlertBoxes();
             spinner.spin(spinContainer.get(0));
 
             var request = $.getJSON(NAV.urls.get_readonly, {
                 'ip_address': ip_address,
-                'read_community': read_community
+                'read_community': read_community,
+                'read_write_community': read_write_community
             });
             request.done(onSuccess);
             request.error(onError);
@@ -60,7 +64,7 @@ define(['libs/jquery'], function () {
         function createAlertBox() {
             var alertBox = $('<div class="alert-box"></div>').hide().insertAfter(button);
             alertBox.on('click', function () {
-                hideAlertBox();
+                $(this).hide();
             });
             return alertBox;
         }
@@ -71,18 +75,34 @@ define(['libs/jquery'], function () {
             fakeTypeNode.find('input').val(realTypeNode.find('option:selected').html());
         }
 
+        function setNewValues(data) {
+            realSysnameNode.val(data.sysname);
+            fakeSysnameNode.find('input').val(data.sysname);
+            realSnmpVersionNode.val(data.snmp_version);
+            fakeSnmpVersionNode.find('input').val(data.snmp_version);
+            realTypeNode.val(data.netbox_type);
+            fakeTypeNode.find('input').val(realTypeNode.find('option:selected').html());
+            $('#id_serial').val(data.serial);
+        }
+
         function onSuccess(data) {
             if (data.snmp_version) {
-                reportSuccess('IP Device answered');
-                realSysnameNode.val(data.sysname);
-                fakeSysnameNode.find('input').val(data.sysname);
-                realSnmpVersionNode.val(data.snmp_version);
-                fakeSnmpVersionNode.find('input').val(data.snmp_version);
-                realTypeNode.val(data.netbox_type);
-                fakeTypeNode.find('input').val(realTypeNode.find('option:selected').html());
-                $('#id_serial').val(data.serial);
+                reportSuccess(readAlertBox, 'Read test was successful');
+                if (data.snmp_write_successful === true) {
+                    reportSuccess(writeAlertBox, 'Write test was successful');
+                } else if (data.snmp_write_successful === false) {
+                    var failText = 'Write test failed';
+                    if (data.snmp_write_feedback === 'decode_error') {
+                        failText += ' probably due to strange characters in the system location field';
+                    } else {
+                        failText += ': ' + data.snmp_write_feedback;
+                    }
+                    failText += '.';
+                    reportError(writeAlertBox, failText);
+                }
+                setNewValues(data);
             } else {
-                reportError('IP Device did not answer. Is community correct?');
+                reportError(readAlertBox, 'Read test failed. Is the community string correct?');
             }
 
         }
@@ -95,22 +115,19 @@ define(['libs/jquery'], function () {
             spinner.stop();
         }
 
-        function reportError(text) {
+        function reportError(alertBox, text) {
             alertBox.addClass('alert').removeClass('success').html(text);
-            showAlertBox();
+            alertBox.show();
         }
 
-        function reportSuccess(text) {
+        function reportSuccess(alertBox, text) {
             alertBox.addClass('success').removeClass('alert').html(text);
-            showAlertBox();
+            alertBox.show();
         }
 
-        function showAlertBox() {
-            alertBox.fadeIn();
-        }
-
-        function hideAlertBox() {
-            alertBox.fadeOut();
+        function hideAlertBoxes() {
+            readAlertBox.hide();
+            writeAlertBox.hide();
         }
 
     }
