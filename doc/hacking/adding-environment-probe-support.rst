@@ -87,6 +87,9 @@ As an example, let's get some data about the available temperature sensors:
 
 .. code-block:: console
 
+   $ ls
+   akcp.mib
+   $ export MIBDIRS=/var/lib/mibs/ietf:.
    $ snmpwalk -v1 -c public 10.1.1.42 SPAGENT-MIB::sensorProbeTempTable
    SPAGENT-MIB::sensorProbeTempDescription.0 = STRING: "Ambient temperature"
    SPAGENT-MIB::sensorProbeTempDescription.1 = STRING: "Temperature2 Description"
@@ -147,7 +150,7 @@ this output, we can surmise the following:
 
 * If we want decimal precision in our temperature readouts, we should use the
   ``sensorProbeTempDegreeRaw`` value. Unfortunately, the MIB definition says
-  nothing about the exact resolution of this number, only that it is "higher"
+  nothing about the exact resolution of this number, only that it is «higher»
   resolution than the ``sensorProbeTempDegree`` value. The *snmpwalk* output
   seems to suggest it provides a precision of a single decimal digit (i.e.
   divide the readout value by 10).
