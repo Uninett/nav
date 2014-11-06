@@ -2,6 +2,7 @@ require([
     'plugins/checkbox_selector',
     'plugins/quickselect',
     'plugins/seeddb_hstore',
+    'libs/spin.min',
     'libs/jquery',
     'libs/jquery.dataTables.min',
     'libs/OpenLayers',
@@ -53,6 +54,13 @@ require([
         if ($textarea.length) {
             new FormFuck($textarea);
         }
+
+        addConnectivityCheckerForNetboxes();
+        var seeddbNetboxForm = $('#seeddb-netbox-form');
+        seeddbNetboxForm.submit(function () {
+            $(this).find(':disabled').attr('disabled', false);
+        });
+
     }
 
     /* Internet Explorer caching leads to onload event firing before script
@@ -62,6 +70,71 @@ require([
         executeOnLoad();
     } else {
         $(window).load(executeOnLoad);
+    }
+
+    function addConnectivityCheckerForNetboxes() {
+        console.log('addConnectivityCheckerForNetboxes called');
+
+        var button = $('#seeddb-netbox-form').find('.check_connectivity');
+        var alertBox = $('<div class="alert-box"></div>').hide().insertAfter(button);
+        var spinContainer = $('<span>&nbsp;</span>').css({ position: 'relative', left: '20px'}).insertAfter(button);
+        var spinner = new Spinner();
+
+        button.on('click', function () {
+            var ip_address = $('#id_ip').val().trim(),
+                read_community = $('#id_read_only').val();
+
+            console.log(ip_address);
+            console.log(read_community);
+
+            if (!(ip_address && read_community)) {
+                reportError('We need an IP-address and a community to talk to the device.');
+                return;
+            }
+
+            alertBox.hide();
+            spinner.spin(spinContainer.get(0));
+
+            var request = $.getJSON(NAV.urls.get_readonly, {
+                'ip_address': ip_address,
+                'read_community': read_community
+            });
+            request.done(onSuccess);
+            request.error(onError);
+            request.always(onStop);
+        });
+
+        function onSuccess(data) {
+            console.log('request done');
+            console.log(data.snmp_version);
+            if (data.snmp_version) {
+                reportSuccess('IP Device answered');
+                $('#id_sysname').val(data.sysname);
+                $('#id_serial').val(data.serial);
+                $('#id_snmp_version').val(data.snmp_version);
+                $('#id_type').val(data.netbox_type);
+            } else {
+                reportError('IP Device did not answer. Is community correct?');
+            }
+
+        }
+
+        function onError() {
+            reportError('Error during SNMP-request');
+        }
+
+        function onStop() {
+            spinner.stop();
+        }
+
+        function reportError(text) {
+            alertBox.addClass('alert').removeClass('success').html(text).show();
+        }
+
+        function reportSuccess(text) {
+            alertBox.addClass('success').removeClass('alert').html(text).show();
+        }
+
     }
 
     function initMap() {

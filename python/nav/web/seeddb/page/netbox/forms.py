@@ -17,14 +17,15 @@
 from socket import error as SocketError
 from django import forms
 from django.db.models import Q
+from django_hstore.forms import DictionaryField
 
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Submit,
-                                            Fieldset)
-from nav.web.crispyforms import LabelSubmit
+                                            Fieldset, Field)
+from nav.web.crispyforms import LabelSubmit, NavButton
 
 from nav.models.manage import Room, Category, Organization, Netbox
-from nav.models.manage import NetboxGroup, NetboxCategory
+from nav.models.manage import NetboxGroup, NetboxCategory, NetboxInfo
 from nav.Snmp import Snmp
 from nav.Snmp.errors import TimeOutException, SnmpError
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname, does_ip_exist
@@ -34,6 +35,123 @@ READONLY_WIDGET_ATTRS = {
     'readonly': 'readonly',
     'class': 'readonly',
 }
+
+import logging
+_logger = logging.getLogger(__name__)
+
+
+class NetboxModelForm(forms.ModelForm):
+    serial = forms.CharField(required=False)
+    function = forms.CharField(required=False)
+    data = DictionaryField(widget=forms.Textarea(), label='Attributes',
+                           required=False)
+
+    class Meta:
+        model = Netbox
+        fields = ['ip', 'room', 'category', 'organization',
+                  'read_only', 'read_write', 'snmp_version',
+                  'netboxgroups', 'sysname', 'type', 'data', 'serial']
+        widgets = {
+            'sysname': forms.TextInput(attrs={'disabled': True}),
+            'type': forms.Select(attrs={'disabled': True}),
+            'snmp_version': forms.TextInput(attrs={'disabled': True}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(NetboxModelForm, self).__init__(*args, **kwargs)
+
+        if self.instance.pk:
+            self.fields['serial'].initial = self.instance.device.serial
+            try:
+                netboxinfo = self.instance.info_set.get(variable='function')
+            except NetboxInfo.DoesNotExist:
+                pass
+            else:
+                self.fields['function'].initial = netboxinfo.value
+
+        css_class = 'large-4'
+        self.helper = FormHelper()
+        self.helper.form_action = ''
+        self.helper.form_method = 'POST'
+        self.helper.form_id = 'seeddb-netbox-form'
+        self.helper.layout = Layout(
+            Row(
+                Column(
+                    Fieldset('Required fields',
+                             'ip', 'room', 'category', 'organization'),
+                    css_class=css_class),
+                Column(
+                    Fieldset('SNMP communities',
+                             Row(
+                                 Column('read_only', css_class='medium-6'),
+                                 Column('read_write', css_class='medium-6')
+                             ),
+                             NavButton('check_connectivity',
+                                       'Check connectivity',
+                                       css_class='check_connectivity')),
+                    Fieldset('Collected info',
+                             'sysname', 'snmp_version', 'type', 'serial'),
+                    css_class=css_class),
+                Column(
+                    Fieldset('Meta information',
+                             'function',
+                             Field('netboxgroups', css_class='select2'),
+                             'data'),
+                    css_class=css_class),
+            ),
+            Submit('submit', 'Save IP device')
+        )
+
+    def clean_ip(self):
+        name = self.cleaned_data['ip'].strip()
+        try:
+            ip, sysname = resolve_ip_and_sysname(name)
+        except SocketError:
+            raise forms.ValidationError("Could not resolve name %s" % name)
+        return unicode(ip)
+
+    def clean_serial(self):
+        serial = self.cleaned_data['serial'].strip()
+        try:
+            netbox_with_serial = Netbox.objects.get(device__serial=serial)
+        except Netbox.DoesNotExist:
+            return serial
+        else:
+            if netbox_with_serial != self.instance:
+                raise forms.ValidationError(
+                    "Serial (%s) is already taken by %s" % (
+                        serial, netbox_with_serial))
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        ip = cleaned_data.get('ip')
+        cat = cleaned_data.get('category')
+        ro_community = cleaned_data.get('read_only')
+
+        if ip:
+            try:
+                self._check_existing_ip(ip)
+            except IPExistsException, ex:
+                self._errors['ip'] = self.error_class(ex.message)
+                del cleaned_data['ip']
+
+        if cat and cat.req_snmp and not ro_community:
+            self._errors['read_only'] = self.error_class(
+                ["Category %s requires SNMP access." % cat.id])
+            del cleaned_data['category']
+            del cleaned_data['read_only']
+
+        return cleaned_data
+
+    def _check_existing_ip(self, ip):
+        msg = []
+        _, sysname = resolve_ip_and_sysname(ip)
+        if does_ip_exist(ip, self.instance.pk):
+            msg.append("IP (%s) is already in database" % ip)
+        if does_sysname_exist(sysname, self.instance.pk):
+            msg.append("Sysname (%s) is already in database" % self.sysname)
+        if len(msg) > 0:
+            raise IPExistsException(msg)
 
 
 class NetboxForm(forms.Form):

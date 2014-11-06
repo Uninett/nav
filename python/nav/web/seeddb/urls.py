@@ -34,7 +34,8 @@ from nav.web.seeddb.page.prefix import (get_prefix_view, prefix_edit,
 from nav.web.seeddb.page.cabling import cabling, cabling_edit, cabling_bulk
 from nav.web.seeddb.page.patch import patch, patch_edit, patch_bulk
 from nav.web.seeddb.page.netbox import netbox, netbox_bulk
-from nav.web.seeddb.page.netbox.edit import netbox_edit
+from nav.web.seeddb.page.netbox.edit import (netbox_edit, netbox_edit2,
+                                             get_read_only_variables)
 from nav.web.seeddb.page.service import service, service_bulk
 from nav.web.seeddb.page.service.edit import service_edit
 
@@ -45,12 +46,14 @@ urlpatterns = patterns('',
     # Netbox
     url(r'^netbox/$', netbox,
         name='seeddb-netbox'),
-    url(r'^netbox/edit/(?P<netbox_id>(\d+))/', netbox_edit,
+    url(r'^netbox/edit/(?P<netbox_id>(\d+))/', netbox_edit2,
         name='seeddb-netbox-edit'),
-    url(r'^netbox/add/$', netbox_edit,
+    url(r'^netbox/add/$', netbox_edit2,
         name='seeddb-netbox-edit'),
     url(r'^netbox/bulk/$', netbox_bulk,
         name='seeddb-netbox-bulk'),
+    url(r'^netbox/get-read-only-variables/$', get_read_only_variables,
+        name='seeddb-netbox-get-readonly'),
 
     # Service
     url(r'^service/$', service,
