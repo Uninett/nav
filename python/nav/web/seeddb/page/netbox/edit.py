@@ -20,9 +20,10 @@
 
 import json
 from socket import error as SocketError
+from django.core.urlresolvers import reverse
 
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.db import transaction
 
@@ -46,7 +47,8 @@ def netbox_edit(request, netbox_id=None):
     if request.method == 'POST':
         form = NetboxModelForm(request.POST, instance=netbox)
         if form.is_valid():
-            netbox_do_save(form)
+            netbox = netbox_do_save(form)
+            return redirect(reverse('seeddb-netbox-edit', args=[netbox.pk]))
 
     else:
         form = NetboxModelForm(instance=netbox)
