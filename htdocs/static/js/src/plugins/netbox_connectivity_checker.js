@@ -1,15 +1,30 @@
 define(['libs/jquery'], function () {
 
-    /** This plugin is only useful on the SeedDB add/edit netbox form */
+    /**
+     * This plugin is only useful on the SeedDB add/edit netbox form.
+     *
+     * Should fill "Collected info" with values from hidden form elements
+     * at page load.
+     *
+     * When button is clicked, sends a request for the read only data. If
+     * the request is successful, "Collected info" is repopulated in addition
+     * to the hidden elements. If not successful, an error message is
+     * displayed.
+     *
+     */
 
     function Checker() {
         console.log('ConnectivityCheckerForNetboxes called');
 
         var button = $('#seeddb-netbox-form').find('.check_connectivity');
-        var alertBox = $('<div class="alert-box"></div>').hide().insertAfter(button);
+        var alertBox = createAlertBox();
         var spinContainer = $('<span>&nbsp;</span>').css({ position: 'relative', left: '20px'}).insertAfter(button);
         var spinner = new Spinner();
 
+        /**
+         * Fake nodes are the ones displayed to the user. Real nodes are the
+         * ones the form posts.
+         */
         var fakeSysnameNode = $('<label>Sysname<input type="text" disabled></label>'),
             fakeSnmpVersionNode = $('<label>Snmp version<input type="text" disabled></label>'),
             fakeTypeNode = $('<label>Type<input type="text" disabled></label>'),
@@ -30,7 +45,7 @@ define(['libs/jquery'], function () {
                 return;
             }
 
-            alertBox.hide();
+            hideAlertBox();
             spinner.spin(spinContainer.get(0));
 
             var request = $.getJSON(NAV.urls.get_readonly, {
@@ -41,6 +56,14 @@ define(['libs/jquery'], function () {
             request.error(onError);
             request.always(onStop);
         });
+
+        function createAlertBox() {
+            var alertBox = $('<div class="alert-box"></div>').hide().insertAfter(button);
+            alertBox.on('click', function () {
+                hideAlertBox();
+            });
+            return alertBox;
+        }
 
         function setDefaultValues() {
             fakeSysnameNode.find('input').val(realSysnameNode.val());
@@ -73,11 +96,21 @@ define(['libs/jquery'], function () {
         }
 
         function reportError(text) {
-            alertBox.addClass('alert').removeClass('success').html(text).show();
+            alertBox.addClass('alert').removeClass('success').html(text);
+            showAlertBox();
         }
 
         function reportSuccess(text) {
-            alertBox.addClass('success').removeClass('alert').html(text).show();
+            alertBox.addClass('success').removeClass('alert').html(text);
+            showAlertBox();
+        }
+
+        function showAlertBox() {
+            alertBox.fadeIn();
+        }
+
+        function hideAlertBox() {
+            alertBox.fadeOut();
         }
 
     }
