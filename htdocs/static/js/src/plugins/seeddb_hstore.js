@@ -63,7 +63,7 @@ function (hstore_container_source, hstore_row_source) {
             return button;
         },
         'addDeleteListener': function () {
-            this.hstore_container.on('click', '.button.alert', function (event) {
+            this.hstore_container.on('click', '.button.remove-hstore-row', function (event) {
                 $($(event.target).parents('.row')[0]).remove();
             });
         },
