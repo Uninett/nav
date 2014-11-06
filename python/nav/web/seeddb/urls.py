@@ -34,7 +34,7 @@ from nav.web.seeddb.page.prefix import (get_prefix_view, prefix_edit,
 from nav.web.seeddb.page.cabling import cabling, cabling_edit, cabling_bulk
 from nav.web.seeddb.page.patch import patch, patch_edit, patch_bulk
 from nav.web.seeddb.page.netbox import netbox, netbox_bulk
-from nav.web.seeddb.page.netbox.edit import (netbox_edit, netbox_edit2,
+from nav.web.seeddb.page.netbox.edit import (netbox_edit,
                                              get_read_only_variables)
 from nav.web.seeddb.page.service import service, service_bulk
 from nav.web.seeddb.page.service.edit import service_edit
