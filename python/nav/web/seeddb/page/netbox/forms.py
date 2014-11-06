@@ -34,6 +34,7 @@ _logger = logging.getLogger(__name__)
 
 class NetboxModelForm(forms.ModelForm):
     """Modelform for netbox for use in SeedDB"""
+    ip = forms.CharField()
     serial = forms.CharField(required=False)
     function = forms.CharField(required=False)
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
