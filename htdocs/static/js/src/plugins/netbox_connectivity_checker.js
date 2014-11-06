@@ -44,7 +44,7 @@ define(['libs/jquery'], function () {
                 read_write_community = $('#id_read_write').val();
 
             if (!(ip_address && (read_community || read_write_community))) {
-                reportError('We need an IP-address and a community to talk to the device.');
+                reportError(readAlertBox, 'We need an IP-address and a community to talk to the device.');
                 return;
             }
 
