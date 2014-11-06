@@ -85,7 +85,7 @@ What NAV needs in a Sensor record is:
 Hopefully, the MIB provides us with enough information to record all of this.
 As an example, let's get some data about the available temperature sensors:
 
-.. code-block:: sh-session
+.. code-block:: console
 
    $ snmpwalk -v1 -c public 10.1.1.42 SPAGENT-MIB::sensorProbeTempTable
    SPAGENT-MIB::sensorProbeTempDescription.0 = STRING: "Ambient temperature"
