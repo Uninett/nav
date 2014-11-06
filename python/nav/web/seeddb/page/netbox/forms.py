@@ -66,7 +66,7 @@ class NetboxModelForm(forms.ModelForm):
         self.helper.layout = Layout(
             Row(
                 Column(
-                    Fieldset('Required fields',
+                    Fieldset('Inventory',
                              'ip', 'room', 'category', 'organization'),
                     css_class=css_class),
                 Column(
