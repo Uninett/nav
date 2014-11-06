@@ -21,7 +21,7 @@ from django import forms
 from django_hstore.forms import DictionaryField
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Submit,
-                                            Fieldset, Field)
+                                            Fieldset, Field, Div)
 
 from nav.web.crispyforms import LabelSubmit, NavButton
 from nav.models.manage import Room, Category, Organization, Netbox
@@ -45,11 +45,6 @@ class NetboxModelForm(forms.ModelForm):
         fields = ['ip', 'room', 'category', 'organization',
                   'read_only', 'read_write', 'snmp_version',
                   'netboxgroups', 'sysname', 'type', 'data', 'serial']
-        widgets = {
-            'sysname': forms.TextInput(attrs={'disabled': True}),
-            'type': forms.Select(attrs={'disabled': True}),
-            'snmp_version': forms.TextInput(attrs={'disabled': True}),
-        }
 
     def __init__(self, *args, **kwargs):
         super(NetboxModelForm, self).__init__(*args, **kwargs)
@@ -84,7 +79,9 @@ class NetboxModelForm(forms.ModelForm):
                                        'Check connectivity',
                                        css_class='check_connectivity')),
                     Fieldset('Collected info',
-                             'sysname', 'snmp_version', 'type', 'serial'),
+                             Div('sysname', 'snmp_version', 'type',
+                                 css_class='hide'),
+                             'serial'),
                     css_class=css_class),
                 Column(
                     Fieldset('Meta information',
