@@ -30,6 +30,7 @@ from nav.mibs.cisco_entity_sensor_mib import CiscoEntitySensorMib
 from nav.mibs.mg_snmp_ups_mib import MgSnmpUpsMib
 from nav.mibs.p8541_mib import P8541Mib
 from nav.mibs.powernet_mib import PowerNetMib
+from nav.mibs.spagent_mib import SPAgentMib
 from nav.mibs.ups_mib import UpsMib
 from nav.mibs.xups_mib import XupsMib
 
@@ -50,6 +51,7 @@ VENDOR_MGE = 705
 VENDOR_ITWATCHDOGS = 17373
 # Comet
 VENDOR_COMET = 22626
+VENDOR_AKCP = 3854
 
 
 class MIBFactory(object):
@@ -86,6 +88,8 @@ class MIBFactory(object):
                 mibs = [ItWatchDogsMibV3(agent), ItWatchDogsMib(agent)]
             elif vendor_id == VENDOR_COMET:
                 mibs = [P8541Mib(agent)]
+            elif vendor_id == VENDOR_AKCP:
+                mibs = [SPAgentMib(agent)]
         if not mibs:
             # And then we just sweep up the remains if we could not
             # find a matching vendor.
