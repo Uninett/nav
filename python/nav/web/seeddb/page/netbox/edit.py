@@ -81,47 +81,56 @@ def get_read_only_variables(request):
     snmp_version = get_snmp_version(ip_address, read_community)
     sysname = get_sysname(ip_address)
 
-    serial = netbox_type = write_successful = write_feedback = None
+    serial = netbox_type = snmp_write_test = None
     if snmp_version:
         netbox_type = get_type_id(ip_address, read_community, snmp_version)
         serial = get_serial(ip_address, read_community, snmp_version)
         if write_community:
-            try:
-                write_successful, write_feedback = test_snmp_write(
-                    ip_address, write_community)
-            except UnicodeDecodeError:
-                write_successful = False
-                write_feedback = 'decode_error'
+            snmp_write_test = test_snmp_write(ip_address, write_community)
 
     data = {
         'snmp_version': '2' if snmp_version == '2c' else snmp_version,
         'sysname': sysname,
         'netbox_type': netbox_type,
         'serial': serial,
-        'snmp_write_successful': write_successful,
-        'snmp_write_feedback': write_feedback
+        'snmp_write_test': snmp_write_test
     }
     return HttpResponse(json.dumps(data))
 
 
 def test_snmp_write(ip, community):
     """Test that snmp write works"""
+    testresult = {
+        'error_message': '',
+        'custom_error': '',
+        'status': False,
+        'syslocation': ''
+    }
 
     syslocation = '1.3.6.1.2.1.1.6.0'
+    value = ''
     try:
         try:
             snmp = Snmp(ip, community, '2c')
             value = snmp.get(syslocation)
-            value.decode('ascii')
             snmp.set(syslocation, 's', value)
         except TimeOutException:
             snmp = Snmp(ip, community, '1')
             value = snmp.get(syslocation)
             snmp.set(syslocation, 's', value)
     except SnmpError, error:
-        return False, error.message
+        try:
+            value.decode('ascii')
+        except UnicodeDecodeError:
+            testresult['custom_error'] = 'UnicodeDecodeError'
+
+        testresult['error_message'] = error.message
+        testresult['status'] = False
     else:
-        return True, ''
+        testresult['status'] = True
+
+    testresult['syslocation'] = value
+    return testresult
 
 
 def get_snmp_version(ip, community):

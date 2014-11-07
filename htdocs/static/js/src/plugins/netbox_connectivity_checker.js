@@ -100,20 +100,26 @@ define(['libs/spin', 'libs/jquery'], function (Spinner) {
             $('#id_serial').val(data.serial);
         }
 
+        function reportWriteTest(write_test) {
+            if (write_test.status === true) {
+                reportSuccess(writeAlertBox, 'Write test was successful');
+            } else {
+                var failText = '<div>Write test failed';
+                if (write_test.custom_error === 'UnicodeDecodeError') {
+                    failText += ', perhaps because of non-ASCII characters in the system location field.';
+                    failText += '<br><br>sysLocation: ' + write_test.syslocation;
+                }
+                failText += '.</div>';
+                failText += '<div><br>Error message: ' + write_test.error_message + '</div>';
+                reportError(writeAlertBox, failText);
+            }
+        }
+
         function onSuccess(data) {
             if (data.snmp_version) {
                 reportSuccess(readAlertBox, 'Read test was successful');
-                if (data.snmp_write_successful === true) {
-                    reportSuccess(writeAlertBox, 'Write test was successful');
-                } else if (data.snmp_write_successful === false) {
-                    var failText = 'Write test failed';
-                    if (data.snmp_write_feedback === 'decode_error') {
-                        failText += ' probably due to non-ASCII characters in the system location field';
-                    } else {
-                        failText += ': ' + data.snmp_write_feedback;
-                    }
-                    failText += '.';
-                    reportError(writeAlertBox, failText);
+                if (data.snmp_write_test) {
+                    reportWriteTest(data.snmp_write_test);
                 }
                 setNewValues(data);
             } else {
@@ -123,7 +129,7 @@ define(['libs/spin', 'libs/jquery'], function (Spinner) {
         }
 
         function onError() {
-            reportError('Error during SNMP-request');
+            reportError(readAlertBox, 'Error during SNMP-request');
         }
 
         function onStop() {
