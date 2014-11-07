@@ -1,4 +1,4 @@
-define(['libs/jquery'], function () {
+define(['libs/spin', 'libs/jquery'], function (Spinner) {
 
     /**
      * This plugin is only useful on the SeedDB add/edit netbox form.
@@ -16,12 +16,14 @@ define(['libs/jquery'], function () {
     function Checker() {
         console.log('ConnectivityCheckerForNetboxes called');
 
-        var button = $('#seeddb-netbox-form').find('.check_connectivity');
+        var form = $('#seeddb-netbox-form'),
+            button = form.find('.check_connectivity');
+
         var writeAlertBox = createAlertBox(),
             readAlertBox = createAlertBox();
 
-        var spinContainer = $('<span>&nbsp;</span>').css({ position: 'relative', left: '20px'}).insertAfter(button);
-        var spinner = new Spinner();
+        var spinContainer = $('<span>&nbsp;</span>').css({ position: 'relative', left: '20px'}).insertAfter(button),
+            spinner = new Spinner({ 'width': 3, length: 8, radius: 5, lines: 11 });
 
         /**
          * Fake nodes are the ones displayed to the user. Real nodes are the
@@ -50,6 +52,7 @@ define(['libs/jquery'], function () {
 
             hideAlertBoxes();
             spinner.spin(spinContainer.get(0));
+            disableForm();
 
             var request = $.getJSON(NAV.urls.get_readonly, {
                 'ip_address': ip_address,
@@ -60,6 +63,14 @@ define(['libs/jquery'], function () {
             request.error(onError);
             request.always(onStop);
         });
+
+        function disableForm() {
+            form.css({'opacity': '0.5', 'pointer-events': 'none'});
+        }
+
+        function enableForm() {
+            form.css({'opacity': 'initial', 'pointer-events': 'initial'});
+        }
 
         function createAlertBox() {
             var alertBox = $('<div class="alert-box"></div>').hide().insertAfter(button);
@@ -113,6 +124,7 @@ define(['libs/jquery'], function () {
 
         function onStop() {
             spinner.stop();
+            enableForm();
         }
 
         function reportError(alertBox, text) {

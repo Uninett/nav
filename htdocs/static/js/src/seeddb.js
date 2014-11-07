@@ -3,7 +3,7 @@ require([
     'plugins/quickselect',
     'plugins/seeddb_hstore',
     'plugins/netbox_connectivity_checker',
-    'libs/spin.min',
+    'libs/spin',
     'libs/jquery',
     'libs/jquery.dataTables.min',
     'libs/OpenLayers',
