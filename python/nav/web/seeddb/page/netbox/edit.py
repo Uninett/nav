@@ -78,14 +78,13 @@ def get_read_only_variables(request):
     read_community = request.GET.get('read_community')
     write_community = request.GET.get('read_write_community')
 
-    community = read_community if read_community else write_community
-    snmp_version = get_snmp_version(ip_address, community)
+    snmp_version = get_snmp_version(ip_address, read_community)
     sysname = get_sysname(ip_address)
 
     serial = netbox_type = write_successful = write_feedback = None
     if snmp_version:
-        netbox_type = get_type_id(ip_address, community, snmp_version)
-        serial = get_serial(ip_address, community, snmp_version)
+        netbox_type = get_type_id(ip_address, read_community, snmp_version)
+        serial = get_serial(ip_address, read_community, snmp_version)
         if write_community:
             try:
                 write_successful, write_feedback = test_snmp_write(

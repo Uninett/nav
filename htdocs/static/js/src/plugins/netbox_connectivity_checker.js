@@ -41,16 +41,20 @@ define(['libs/spin', 'libs/jquery'], function (Spinner) {
         setDefaultValues();
 
         button.on('click', function () {
+            hideAlertBoxes();
             var ip_address = $('#id_ip').val().trim(),
                 read_community = $('#id_read_only').val(),
                 read_write_community = $('#id_read_write').val();
 
-            if (!(ip_address && (read_community || read_write_community))) {
-                reportError(readAlertBox, 'We need an IP-address and a community to talk to the device.');
+            if (!(ip_address && read_community)) {
+                var message = "We need an IP-address and a read community to talk to the device.";
+                if (read_write_community) {
+                    message += " The read write community is not used for reading in NAV.";
+                }
+                reportError(readAlertBox, message);
                 return;
             }
 
-            hideAlertBoxes();
             spinner.spin(spinContainer.get(0));
             disableForm();
 
@@ -104,7 +108,7 @@ define(['libs/spin', 'libs/jquery'], function (Spinner) {
                 } else if (data.snmp_write_successful === false) {
                     var failText = 'Write test failed';
                     if (data.snmp_write_feedback === 'decode_error') {
-                        failText += ' probably due to strange characters in the system location field';
+                        failText += ' probably due to non-ASCII characters in the system location field';
                     } else {
                         failText += ': ' + data.snmp_write_feedback;
                     }
