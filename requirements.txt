@@ -19,7 +19,7 @@ feedparser>=5.1.2,<5.2
 
 # REST framework
 django-oauth2-provider>=0.2.6
-djangorestframework>=2.3.7
+djangorestframework>=2.3.7,<2.4
 django-filter>=0.5.3
 iso8601
 

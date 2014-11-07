@@ -133,12 +133,41 @@ class Sensors(Plugin):
                 sensor.netbox = self.netbox
                 sensor.oid = oid
                 sensor.unit_of_measurement = row.get('unit_of_measurement',
-                                                                        None)
+                                                     None)
                 sensor.precision = row.get('precision', 0)
                 sensor.data_scale = row.get('scale', None)
-                sensor.human_readable = row.get('description', None)
-                sensor.name = row.get('name', None)
-                sensor.internal_name = internal_name
+                sensor.human_readable = safestring(row.get('description', None))
+                sensor.name = safestring(row.get('name', None))
+                sensor.internal_name = safestring(internal_name)
                 sensor.mib = mib
                 sensors.append(sensors)
         return sensors
+
+
+ENCODINGS_TO_TRY = ('utf-8', 'latin-1')  # more should be added
+
+
+def safestring(string):
+    """Tries to safely decode strings retrieved using SNMP.
+
+    SNMP does not really define encodings, and will not normally allow
+    non-ASCII strings to be written  (though binary data is fine). Sometimes,
+    administrators have been able to enter descriptions containing non-ASCII
+    characters using CLI's or web interfaces. The encoding of these are
+    undefined and unknown. To ensure they can be safely stored in the
+    database (which only accepts UTF-8), we make various attempts at decoding
+    strings to unicode objects before the database becomes involved.
+    """
+    if string is None:
+        return
+
+    if isinstance(string, unicode):
+        return string
+
+    for encoding in ENCODINGS_TO_TRY:
+        try:
+            return string.decode(encoding)
+        except UnicodeDecodeError:
+            pass
+
+    return repr(string)  # fallback

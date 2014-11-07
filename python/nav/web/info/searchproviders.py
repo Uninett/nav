@@ -130,10 +130,11 @@ class FallbackSearchProvider(SearchProvider):
     name = "Fallback"
 
     def fetch_results(self):
-        if is_valid_ip(self.query):
+        ip_address = is_valid_ip(self.query)
+        if ip_address:
             self.results.append(SearchResult(
                 reverse('ipdevinfo-details-by-addr',
-                        kwargs={'addr': self.query}),
+                        kwargs={'addr': ip_address}),
                 None)
             )
         elif is_valid_hostname(self.query):
