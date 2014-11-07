@@ -45,7 +45,7 @@ class SPAgentMib(MibRetriever):
         descr = row.get('sensorProbeTempDescription', internal_name)
 
         mibobject = self.nodes.get('sensorProbeTempDegreeRaw')
-        readout_oid = str(mibobject.oid) + str(index)
+        readout_oid = str(mibobject.oid + str(index))
 
         unit = row.get("sensorProbeTempDegreeType", None)
         if unit == 'fahr':
