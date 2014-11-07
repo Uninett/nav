@@ -13,10 +13,65 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""AKCP SPAGENT-MIB MibRetriever"""
+"""
+AKCP SPAGENT-MIB MibRetriever.
+
+Not all sensor types of the sensorProbe product range are supported by this
+implementation. sensorProbes support a multitude of switch sensors and virtual
+sensors, whose readouts aren't suitable for graphing over time.
+
+This implementation sticks with the easily graphable sensors,
+like temperature, humidity, voltages and currents.
+
+"""
 from twisted.internet import defer
 from nav.mibs import reduce_index
 from nav.mibs.mibretriever import MibRetriever
+
+
+SENSOR_TABLES = {
+    'sensorProbeTempTable': {
+        'descr': 'sensorProbeTempDescription',
+        'online': 'sensorProbeTempOnline',
+        'unit': 'sensorProbeTempDegreeType',
+        'readout': 'sensorProbeTempDegreeRaw',
+        'precision': 1,
+        'internal_prefix': 'temperature',
+    },
+    'sensorProbeHumidityTable': {
+        'descr': 'sensorProbeHumidityDescription',
+        'online': 'sensorProbeHumidityOnline',
+        '_unit': 'percent',
+        'readout': 'sensorProbeHumidityPercent',
+        'precision': 0,
+        'internal_prefix': 'humidity',
+    },
+    # 'sensorProbeSwitchTable': {},  # wouldn't know how to graph this
+    'sensorProbeIRMSSensorTable': {
+        'descr': 'sensorProbeIRMSDescription',
+        'online': 'sensorProbeIRMSOnline',
+        '_unit': 'percent',
+        'readout': 'sensorProbeIRMSPercent',
+        'precision': 0,
+        'internal_prefix': 'IRMSsensor',
+    },
+    'sensorProbeVRMSSensorTable': {
+        'descr': 'sensorProbeVRMSDescription',
+        'online': 'sensorProbeVRMSOnline',
+        '_unit': 'percent',
+        'readout': 'sensorProbeVRMSPercent',
+        'precision': 0,
+        'internal_prefix': 'VRMSsensor',
+    },
+    'sensorProbeEnergySensorTable': {
+        'descr': 'sensorProbeEnergyDescription',
+        'online': 'sensorProbeEnergyOnline',
+        '_unit': 'percent',
+        'readout': 'sensorProbeEnergyPercent',
+        'precision': 0,
+        'internal_prefix': 'energysensor',
+    },
+}
 
 
 class SPAgentMib(MibRetriever):
@@ -25,36 +80,59 @@ class SPAgentMib(MibRetriever):
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
-        result = yield self.retrieve_columns([
-            'sensorProbeTempDescription',
-            'sensorProbeTempOnline',
-            'sensorProbeTempDegreeType',
-        ]).addCallback(self.translate_result).addCallback(reduce_index)
+        """Returns a Deferred whose result is a list of sensor dictionaries"""
+        result = []
+        for table, config in SENSOR_TABLES.iteritems():
+            sensors = yield self._get_sensors(config)
+            result.extend(sensors)
+        defer.returnValue(result)
 
-        sensors = (self._temp_row_to_sensor(index, row)
+    @defer.inlineCallbacks
+    def _get_sensors(self, config):
+        """
+        Collects sensor columns according to the config dict, and translates
+        the results into sensor dicts.
+
+        """
+        columns = [config['descr'], config['online']]
+        if 'unit' in config:
+            columns.append(config['unit'])
+
+        result = yield self.retrieve_columns(columns).addCallback(
+            self.translate_result).addCallback(reduce_index)
+
+        sensors = (self._row_to_sensor(config, index, row)
                    for index, row in result.iteritems())
 
         defer.returnValue([s for s in sensors if s])
 
-    def _temp_row_to_sensor(self, index, row):
-        online = row.get('sensorProbeTempOnline', 'offline')
+    def _row_to_sensor(self, config, index, row):
+        """
+        Converts a collect SNMP table row into a sensor dict, using the
+        options defined in the config dict.
+
+        """
+        online = row.get(config['online'], 'offline')
         if online == 'offline':
             return
 
-        internal_name = 'temperature%s' % index
-        descr = row.get('sensorProbeTempDescription', internal_name)
+        internal_name = config['internal_prefix'] + str(index)
+        descr = row.get(config['descr'], internal_name)
 
-        mibobject = self.nodes.get('sensorProbeTempDegreeRaw')
+        mibobject = self.nodes.get(config['readout'])
         readout_oid = str(mibobject.oid + str(index))
 
-        unit = row.get("sensorProbeTempDegreeType", None)
-        if unit == 'fahr':
-            unit = 'fahrenheit'
+        if 'unit' in config:
+            unit = row.get(config['unit'], None)
+            if unit == 'fahr':
+                unit = 'fahrenheit'
+        else:
+            unit = config['_unit']
 
         return {
             'oid': readout_oid,
             'unit_of_measurement': unit,
-            'precision': 1,
+            'precision': config['precision'],
             'scale': None,
             'description': descr,
             'name': descr,
