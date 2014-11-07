@@ -535,6 +535,7 @@ class Room(models.Model):
     class Meta:
         db_table = 'room'
         verbose_name = 'room'
+        ordering = ('id',)
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
