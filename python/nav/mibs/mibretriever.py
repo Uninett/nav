@@ -42,23 +42,28 @@ from nav.oids import OID
 
 logger = logging.getLogger(__name__)
 
+
 class MibRetrieverError(GeneralException):
     """MIB retriever error"""
     pass
+
 
 class MIBObject(object):
     """Representation of a MIB object.
 
     Member attributes:
 
-    module -- The name of the MIB module where the object originated.
-    name -- The object's textual name.
-    oid -- The full object identifier
-    enum -- If the object's syntax indicates it is an enumerated
-            value, this dictionary will hold mappings between the
-            enumerations textual names and integer values.  As a
-            simplifying case, SNMPv2-TC::TruthValues will be
-            deciphered as enums of boolean values.
+    module
+      The name of the MIB module where the object originated.
+    name
+      The object's textual name.
+    oid
+      The full object identifier
+    enum
+      If the object's syntax indicates it is an enumerated value,
+      this dictionary will hold mappings between the enumerations textual
+      names and integer values.  As a simplifying case,
+      SNMPv2-TC::TruthValues will be deciphered as enums of boolean values.
 
     """
     def __init__(self, mib, name):
@@ -187,6 +192,7 @@ class MibTableDescriptor(object):
                     MibTableDescriptor.build(mib, node.name))
         return table_descriptors
 
+
 class MibTableResultRow(dict):
     """A result row from a MIB table.
 
@@ -207,6 +213,7 @@ class MibTableResultRow(dict):
         dict.__init__(self, [(c, None) for c in columns])
         self.index = index
         self[0] = index
+
 
 class MibRetrieverMaker(type):
     """Metaclass to create new functional MIB retriever classes.
@@ -314,6 +321,7 @@ class MibRetrieverMaker(type):
     def __make_node_objects(cls):
         cls.nodes = dict((node_name, MIBObject(cls.mib, node_name))
                          for node_name in cls.mib['nodes'].keys())
+
 
 class MibRetriever(object):
     """Base class for functioning MIB retriever classes."""
@@ -480,6 +488,7 @@ class MibRetriever(object):
                     row[column] = cls.nodes[column].to_python(row[column])
         return result
 
+
 class MultiMibMixIn(MibRetriever):
     """Queries and chains the results of multiple MIB instances using
     community indexing.
@@ -635,6 +644,7 @@ class MultiMibMixIn(MibRetriever):
             alt_agent.protocol = agent.protocol
 
         return alt_agent
+
 
 def convert_oids(mib):
     """Convert a mib data structure's oid strings to OID objects.

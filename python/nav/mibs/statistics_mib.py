@@ -14,8 +14,13 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """HP STATISTICS-MIB"""
+from collections import namedtuple
+from IPy import IP
 from twisted.internet import defer
-from nav.mibs import mibretriever
+
+from nav.mibs import mibretriever, reduce_index
+
+MulticastStat = namedtuple("MulticastStat", "group ifindex vlan access")
 
 
 class StatisticsMib(mibretriever.MibRetriever):
@@ -31,3 +36,26 @@ class StatisticsMib(mibretriever.MibRetriever):
 
     def get_cpu_loadavg(self):
         return defer.succeed(None)
+
+    @defer.inlineCallbacks
+    def get_ipv4_multicast_groups_per_port(self):
+        """
+        Returns IGMP snooping information from ports.
+
+        :returns: A Deferred whose result is a list of MulticastStat tuples
+        """
+        column = "hpIgmpStatsPortAccess2"
+        ports = yield self.retrieve_columns(
+            [column]
+        ).addCallback(self.translate_result).addCallback(reduce_index)
+
+        def _split(item):
+            index, columns = item
+            vlan = index[0]
+            group = index[1:5]
+            ifindex = index[5]
+            access = columns[column]
+            return MulticastStat(IP('.'.join(str(i) for i in group)), ifindex,
+                                 vlan, access)
+
+        defer.returnValue([_split(i) for i in ports.iteritems()])
