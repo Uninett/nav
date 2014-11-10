@@ -128,6 +128,10 @@ class MaintenanceTask(models.Model):
 
         return subjects
 
+    def is_endless(self):
+        """Returns true if the task is endless"""
+        return self.end_time >= INFINITY
+
 
 class MaintenanceComponent(models.Model):
     """From NAV Wiki: The components that are put on maintenance in the
