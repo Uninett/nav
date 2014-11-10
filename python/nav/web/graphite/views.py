@@ -27,14 +27,9 @@ def index(request, uri):
     """
     Proxies render requests to graphite-web, as configured in graphite.conf
     """
-    if request.method == 'HEAD':
-        response = HttpResponse(content_type='application/octet-stream')
-        response['X-Where-Am-I'] = request.get_full_path()
-        return response
-
     base = CONFIG.get('graphiteweb', 'base')
 
-    if request.method == 'GET':
+    if request.method in ('GET', 'HEAD'):
         query = _inject_default_arguments(request.GET)
         url = urljoin(base, uri + ('?' + query) if query else '')
         req = urllib2.Request(url)
@@ -46,10 +41,18 @@ def index(request, uri):
         return HttpResponseNotAllowed(['GET', 'POST', 'HEAD'])
 
     LOGGER.debug("proxying request to %r", url)
-    response = urllib2.urlopen(req)
-    headers = response.info()
+    proxy = urllib2.urlopen(req)
+    headers = proxy.info()
     content_type = headers.getheader('Content-Type', 'text/html')
-    return HttpResponse(response.read(), content_type=content_type)
+
+    if request.method == 'HEAD':
+        response = HttpResponse(content_type=content_type)
+        response['Content-Length'] = headers.getheader('Content-Length', '0')
+    else:
+        response = HttpResponse(proxy.read(), content_type=content_type)
+
+    response['X-Where-Am-I'] = request.get_full_path()
+    return response
 
 
 def _inject_default_arguments(query):
