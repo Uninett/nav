@@ -67,7 +67,9 @@ class NetboxModelForm(forms.ModelForm):
             Row(
                 Column(
                     Fieldset('Inventory',
-                             'ip', 'room', 'category', 'organization'),
+                             'ip',
+                             Div(id='verify-address-feedback'),
+                             'room', 'category', 'organization'),
                     css_class=css_class),
                 Column(
                     Fieldset('SNMP communities',
@@ -90,7 +92,7 @@ class NetboxModelForm(forms.ModelForm):
                              'data'),
                     css_class=css_class),
             ),
-            Submit('submit', 'Save IP device')
+            Submit('save_ip_device', 'Save IP device')
         )
 
     def clean_ip(self):
