@@ -22,7 +22,8 @@ from collections import namedtuple
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 
-from nav.models.manage import Room, Netbox, Interface, Vlan
+from nav.models.manage import (Room, Netbox, Interface, Vlan,
+                               UnrecognizedNeighbor)
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.views import is_valid_hostname
 
@@ -129,10 +130,11 @@ class FallbackSearchProvider(SearchProvider):
     name = "Fallback"
 
     def fetch_results(self):
-        if is_valid_ip(self.query):
+        ip_address = is_valid_ip(self.query)
+        if ip_address:
             self.results.append(SearchResult(
                 reverse('ipdevinfo-details-by-addr',
-                        kwargs={'addr': self.query}),
+                        kwargs={'addr': ip_address}),
                 None)
             )
         elif is_valid_hostname(self.query):
@@ -164,3 +166,26 @@ class VlanSearchProvider(SearchProvider):
                 reverse('vlan-details', kwargs={'vlanid': result.id}),
                 result)
             )
+
+
+class UnrecognizedNeighborSearchProvider(SearchProvider):
+    """Search provider for Unrecognized neighbor entries"""
+    name = u"Unrecognized neighbors"
+    headers = [
+        ('Remote id', 'remote_id'),
+        ('Remote name', 'remote_name'),
+        ('Seen on', 'interface'),
+        ('Source', 'source'),
+    ]
+    link = 'Seen on'
+
+    def fetch_results(self):
+        results = UnrecognizedNeighbor.objects.filter(
+            Q(remote_id__contains=self.query) |
+            Q(remote_name__contains=self.query)
+        ).order_by('remote_id', 'remote_name')
+
+        self.results = [
+            SearchResult(result.interface.get_absolute_url(), result)
+            for result in results
+        ]

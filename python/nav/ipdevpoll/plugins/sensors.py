@@ -15,8 +15,10 @@
 #
 """ipdevpoll plugin to collect sensor data.
 
-This plugin use CISCO-ENVMON-MIB, ENTITY-SENSOR-MIB and IT-WATCHDOGS-MIB-V3
-to retrieve all possible sensors in network-equipment.
+This plugin uses MibRetriever implementations for various IETF and proprietary
+MIBs to discover and store information about physical environmental sensors
+available for readout on a device.
+
 """
 
 from twisted.internet import defer
@@ -30,6 +32,7 @@ from nav.mibs.cisco_entity_sensor_mib import CiscoEntitySensorMib
 from nav.mibs.mg_snmp_ups_mib import MgSnmpUpsMib
 from nav.mibs.p8541_mib import P8541Mib
 from nav.mibs.powernet_mib import PowerNetMib
+from nav.mibs.spagent_mib import SPAgentMib
 from nav.mibs.ups_mib import UpsMib
 from nav.mibs.xups_mib import XupsMib
 
@@ -50,16 +53,18 @@ VENDOR_MGE = 705
 VENDOR_ITWATCHDOGS = 17373
 # Comet
 VENDOR_COMET = 22626
+VENDOR_AKCP = 3854
 
 
 class MIBFactory(object):
-    """A class that produces mibs depending and netbox-vendors
-    and -models."""
-
+    """Factory class for producing MibRetriever instances depending on Netbox
+    vendors and models.
+    """
     @classmethod
     def get_instance(cls, netbox, agent):
-        """ Factory for allocating mibs based on
-        netbox-vendors and -models"""
+        """Returns a list of MibRetriever instances based on Netbox vendors and
+        models.
+        """
         vendor_id = None
         mibs = None
         if netbox.type:
@@ -86,6 +91,8 @@ class MIBFactory(object):
                 mibs = [ItWatchDogsMibV3(agent), ItWatchDogsMib(agent)]
             elif vendor_id == VENDOR_COMET:
                 mibs = [P8541Mib(agent)]
+            elif vendor_id == VENDOR_AKCP:
+                mibs = [SPAgentMib(agent)]
         if not mibs:
             # And then we just sweep up the remains if we could not
             # find a matching vendor.
@@ -94,11 +101,11 @@ class MIBFactory(object):
 
 
 class Sensors(Plugin):
-    """ Plugin that detect sensors in netboxes."""
+    """Plugin to detect environmental sensors in netboxes"""
 
     @defer.inlineCallbacks
     def handle(self):
-        """Collect sensors and feed them in to persistent store."""
+        """Collects sensors and feed them in to persistent store."""
         self._logger.debug('Collection sensors data')
         mibs = MIBFactory.get_instance(self.netbox, self.agent)
         for mib in mibs:
@@ -110,8 +117,10 @@ class Sensors(Plugin):
                 break
 
     def _store_sensors(self, result):
-        """ Store sensor-records to database (this is actually
-            done automagically when we use shadow-objects."""
+        """Stores sensor records in the current job's container dictionary, so
+        that they may be persisted to the database.
+
+        """
         self._logger.debug('Found %d sensors', len(result))
         sensors = []
         for row in result:
@@ -124,12 +133,41 @@ class Sensors(Plugin):
                 sensor.netbox = self.netbox
                 sensor.oid = oid
                 sensor.unit_of_measurement = row.get('unit_of_measurement',
-                                                                        None)
+                                                     None)
                 sensor.precision = row.get('precision', 0)
                 sensor.data_scale = row.get('scale', None)
-                sensor.human_readable = row.get('description', None)
-                sensor.name = row.get('name', None)
-                sensor.internal_name = internal_name
+                sensor.human_readable = safestring(row.get('description', None))
+                sensor.name = safestring(row.get('name', None))
+                sensor.internal_name = safestring(internal_name)
                 sensor.mib = mib
                 sensors.append(sensors)
         return sensors
+
+
+ENCODINGS_TO_TRY = ('utf-8', 'latin-1')  # more should be added
+
+
+def safestring(string):
+    """Tries to safely decode strings retrieved using SNMP.
+
+    SNMP does not really define encodings, and will not normally allow
+    non-ASCII strings to be written  (though binary data is fine). Sometimes,
+    administrators have been able to enter descriptions containing non-ASCII
+    characters using CLI's or web interfaces. The encoding of these are
+    undefined and unknown. To ensure they can be safely stored in the
+    database (which only accepts UTF-8), we make various attempts at decoding
+    strings to unicode objects before the database becomes involved.
+    """
+    if string is None:
+        return
+
+    if isinstance(string, unicode):
+        return string
+
+    for encoding in ENCODINGS_TO_TRY:
+        try:
+            return string.decode(encoding)
+        except UnicodeDecodeError:
+            pass
+
+    return repr(string)  # fallback

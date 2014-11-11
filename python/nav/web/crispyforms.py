@@ -15,13 +15,19 @@
 #
 """A collection of forms using the django crispy forms framework"""
 
+from django import forms
 from crispy_forms.layout import BaseInput
-from crispy_forms_foundation.layout import Field, Submit
+from crispy_forms_foundation.layout import Field, Submit, Button
 
 
 class NavSubmit(BaseInput):
     """Displays proper Foundation submit button"""
     input_type = 'submit'
+    field_classes = 'button small'
+
+
+class NavButton(Button):
+    """A normal nav size button"""
     field_classes = 'button small'
 
 
@@ -38,3 +44,14 @@ class CheckBox(Field):
 class HelpField(Field):
     """Field that displays an icon with tooltip as helptext"""
     template = 'custom_crispy_templates/field_helptext_as_icon.html'
+
+
+class NumberInput(forms.TextInput):
+    """Input widget with type set to number"""
+    input_type = 'number'
+
+
+class NumberField(forms.IntegerField):
+    """Input field with type set to number"""
+    widget = NumberInput
+

@@ -2,7 +2,7 @@ require([
     'plugins/accordion_maker',
     'libs/foundation.min',
     'libs/select2.min',
-    'plugins/megadrop'
+    'plugins/megadrop',
 ], function (accordionMaker) {
     $(function () {
         /* Add redirect to login on AJAX-requests if session has timed out */

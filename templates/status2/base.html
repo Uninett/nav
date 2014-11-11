@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load tools %}
+
+{% block base_content %}
+
+  {% with tool=current_user_data.tools|get_tool:'Status2' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
+
+  {% if current_user_data.messages %}
+    {% for m in current_user_data.messages %}
+      <div class="alert-box {{ m.type }}">{{ m.message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {% block content %}
+  {% endblock %}
+
+{% endblock %}

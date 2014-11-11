@@ -1,0 +1,115 @@
+{% extends "status2/base.html" %}
+{% load tools %}
+{% load crispy_forms_tags %}
+
+{% block base_header_additional_head %}
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/nav/status.css"/>
+  <script type="text/javascript">require(['status/status']);</script>
+    <script type="text/javascript">
+    var NAV = NAV || {};
+    NAV.urls = NAV.urls || {};
+    NAV.urls.status2_api_alerthistory = '{% url alerthistory-list %}';
+    NAV.urls.status2_clear_alert = '{% url status2_clear_alert %}';
+    NAV.urls.status2_acknowledge_alert = '{% url status2_acknowledge_alert %}';
+    NAV.urls.status2_put_on_maintenance = '{% url status2_put_on_maintenance %}';
+    NAV.urls.status2_save_preferences = '{% url status2_save_preferences %}';
+    </script>
+{% endblock %}
+
+
+{% block content %}
+
+  {% with tool=current_user_data.tools|get_tool:'Status' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
+
+  <div id="status-page">
+
+    {# Form for filtering events #}
+    <a href="javascript:void(0);" class="button small secondary toggle-panel"></a>
+    <div id="status-panel" class="hidden panel">
+      {% crispy form %}
+      <a href="javascript:void(0);" class="button small secondary set-default">Save as my default status filter</a>
+    </div>
+
+
+    <div class="row">
+
+      <div class="large-3 large-push-9 column">
+        {# Panel for alert actions #}
+        <div id="action-panel" class="panel white hidden">
+
+          {% if permits.can_acknowledge_alerts %}
+          <div class="panel acknowledge">
+            <h5>Acknowledge the alerts</h5>
+            <input type="text" class="usercomment" placeholder="Write a description">
+            <a href="javascript:void(0);" class="button small acknowledge-alerts expand">
+              Acknowledge alerts
+            </a>
+          </div>
+          {% endif %}
+
+          {% if permits.can_clear_alerts %}
+          <div class="panel resolve-alerts">
+            <h5>Clear the alerts</h5>
+            <a href="javascript:void(0);" class="button small expand">
+              Clear alerts
+            </a>
+          </div>
+          {% endif %}
+
+          {% if permits.can_put_on_maintenance %}
+          <div class="panel maintenance">
+            <h5>Put on maintenance</h5>
+            <input type="text" class="usercomment" placeholder="Write a description">
+            <a href="javascript:void(0);" class="button small expand">
+              Put on maintenance
+            </a>
+          </div>
+          {% endif %}
+
+          {% if not permits.any %}
+            <div class="alert-box">
+              It doesn't seem like you are permitted to do anything here.
+            </div>
+          {% endif %}
+
+          <a href="javascript:void(0);" class="button small secondary cancel-alerts-action">
+            Never mind
+          </a>
+        </div>
+
+      </div>
+
+      <div class="large-9 large-pull-3 column">
+
+        {# Table displaying filtered events #}
+        <table id="events-list" class="listtable hover expand tablesorter expandable">
+          <caption>Events<span class="last-changed pull-right"></span></caption>
+          <thead>
+          <tr>
+            <th>
+              <label>
+                <input class="alert-action" type="checkbox">
+              </label>
+            </th>
+            <th>&nbsp;</th>
+            <th>Subject</th>
+            <th>Type</th>
+            <th>Time</th>
+            <th>Duration</th>
+            <th>&nbsp;</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+{% endblock %}

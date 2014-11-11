@@ -16,6 +16,7 @@
 #
 
 import pickle
+import json
 
 from datetime import datetime
 from decimal import Decimal
@@ -74,6 +75,34 @@ class PickleField(models.TextField):
     def get_prep_value(self, value):
         if value is not None:
             return pickle.dumps(value)
+
+
+class DictAsJsonField(models.TextField):
+    """Serializes value to and from json. Has a fallback to pickle for
+    historical reasons"""
+
+    __metaclass__ = models.SubfieldBase  # Ensure to_python is called on init
+    description = "Field for storing json structure"
+
+    def db_type(self, connection=None):
+        return 'varchar'
+
+    def to_python(self, value):
+        if value:
+            if isinstance(value, dict):
+                return value
+            try:
+                return json.loads(value)
+            except ValueError:
+                try:
+                    return pickle.loads(value)
+                except ValueError:
+                    return value
+        return {}
+
+    def get_prep_value(self, value):
+        if value:
+            return json.dumps(value)
 
 
 class CIDRField(VarcharField):

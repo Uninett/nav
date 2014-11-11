@@ -14,64 +14,117 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms for seeddb netbox view"""
+import logging
 from socket import error as SocketError
-from django import forms
-from django.db.models import Q
 
+from django import forms
+from django_hstore.forms import DictionaryField
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Submit,
-                                            Fieldset)
-from nav.web.crispyforms import LabelSubmit
+                                            Fieldset, Field, Div)
 
+from nav.web.crispyforms import LabelSubmit, NavButton
 from nav.models.manage import Room, Category, Organization, Netbox
-from nav.models.manage import NetboxGroup, NetboxCategory
-from nav.Snmp import Snmp
-from nav.Snmp.errors import TimeOutException, SnmpError
-from nav.web.seeddb.utils.edit import resolve_ip_and_sysname, does_ip_exist
-from nav.web.seeddb.utils.edit import does_sysname_exist
+from nav.models.manage import NetboxInfo
+from nav.web.seeddb.utils.edit import (resolve_ip_and_sysname, does_ip_exist,
+                                       does_sysname_exist)
 
-READONLY_WIDGET_ATTRS = {
-    'readonly': 'readonly',
-    'class': 'readonly',
-}
+_logger = logging.getLogger(__name__)
 
 
-class NetboxForm(forms.Form):
-    id = forms.IntegerField(required=False, widget=forms.HiddenInput)
+class NetboxModelForm(forms.ModelForm):
+    """Modelform for netbox for use in SeedDB"""
     ip = forms.CharField()
-    room = forms.ModelChoiceField(queryset=Room.objects.order_by('id'))
-    category = forms.ModelChoiceField(queryset=Category.objects.all())
-    organization = forms.ModelChoiceField(
-        queryset=Organization.objects.order_by('id'))
-    read_only = forms.CharField(required=False)
-    read_write = forms.CharField(required=False)
+    serial = forms.CharField(required=False)
+    function = forms.CharField(required=False)
+    data = DictionaryField(widget=forms.Textarea(), label='Attributes',
+                           required=False)
+
+    class Meta(object):
+        model = Netbox
+        fields = ['ip', 'room', 'category', 'organization',
+                  'read_only', 'read_write', 'snmp_version',
+                  'netboxgroups', 'sysname', 'type', 'data', 'serial']
 
     def __init__(self, *args, **kwargs):
-        self.sysname = None
-        self.snmp_version = '1'
-        super(NetboxForm, self).__init__(*args, **kwargs)
+        super(NetboxModelForm, self).__init__(*args, **kwargs)
+
+        if self.instance.pk:
+            self.fields['serial'].initial = self.instance.device.serial
+            try:
+                netboxinfo = self.instance.info_set.get(variable='function')
+            except NetboxInfo.DoesNotExist:
+                pass
+            else:
+                self.fields['function'].initial = netboxinfo.value
+
+        css_class = 'large-4'
+        self.helper = FormHelper()
+        self.helper.form_action = ''
+        self.helper.form_method = 'POST'
+        self.helper.form_id = 'seeddb-netbox-form'
+        self.helper.layout = Layout(
+            Row(
+                Column(
+                    Fieldset('Inventory',
+                             'ip', 'room', 'category', 'organization'),
+                    css_class=css_class),
+                Column(
+                    Fieldset('SNMP communities',
+                             Row(
+                                 Column('read_only', css_class='medium-6'),
+                                 Column('read_write', css_class='medium-6')
+                             ),
+                             NavButton('check_connectivity',
+                                       'Check connectivity',
+                                       css_class='check_connectivity')),
+                    Fieldset('Collected info',
+                             Div('sysname', 'snmp_version', 'type',
+                                 css_class='hide'),
+                             'serial'),
+                    css_class=css_class),
+                Column(
+                    Fieldset('Meta information',
+                             'function',
+                             Field('netboxgroups', css_class='select2'),
+                             'data'),
+                    css_class=css_class),
+            ),
+            Submit('submit', 'Save IP device')
+        )
 
     def clean_ip(self):
+        """Make sure IP-address is valid"""
         name = self.cleaned_data['ip'].strip()
         try:
-            ip, sysname = resolve_ip_and_sysname(name)
+            ip, _ = resolve_ip_and_sysname(name)
         except SocketError:
             raise forms.ValidationError("Could not resolve name %s" % name)
-        self.sysname = sysname
         return unicode(ip)
 
+    def clean_serial(self):
+        """Make sure the serial number is not in use"""
+        serial = self.cleaned_data['serial'].strip()
+        try:
+            netbox_with_serial = Netbox.objects.get(device__serial=serial)
+        except Netbox.DoesNotExist:
+            return serial
+        else:
+            if netbox_with_serial != self.instance:
+                raise forms.ValidationError(
+                    "Serial (%s) is already taken by %s" % (
+                        serial, netbox_with_serial))
+
     def clean(self):
+        """Make sure that categories that require communities has that"""
         cleaned_data = self.cleaned_data
-        netboxid = cleaned_data.get('id')
         ip = cleaned_data.get('ip')
         cat = cleaned_data.get('category')
         ro_community = cleaned_data.get('read_only')
-        rw_community = cleaned_data.get('read_write')
-        self.snmp_version = '1'
 
         if ip:
             try:
-                self._check_existing_ip(ip, netboxid)
+                self._check_existing_ip(ip)
             except IPExistsException, ex:
                 self._errors['ip'] = self.error_class(ex.message)
                 del cleaned_data['ip']
@@ -82,152 +135,17 @@ class NetboxForm(forms.Form):
             del cleaned_data['category']
             del cleaned_data['read_only']
 
-        if ro_community and ip:
-            try:
-                self._check_ro_community(ip, ro_community, cat)
-            except SNMPException, ex:
-                self._errors['read_only'] = self.error_class(ex.message)
-                del cleaned_data['read_only']
-
-        if rw_community and ip:
-            try:
-                self._check_rw_community(ip, rw_community)
-            except SNMPException, ex:
-                self._errors['read_write'] = self.error_class(ex.message)
-                del cleaned_data['read_write']
-
         return cleaned_data
 
-    def _check_existing_ip(self, ip, netboxid):
+    def _check_existing_ip(self, ip):
         msg = []
-        if does_ip_exist(ip, netboxid):
+        _, sysname = resolve_ip_and_sysname(ip)
+        if does_ip_exist(ip, self.instance.pk):
             msg.append("IP (%s) is already in database" % ip)
-        if does_sysname_exist(self.sysname, netboxid):
-            msg.append("Sysname (%s) is already in database" % self.sysname)
+        if does_sysname_exist(sysname, self.instance.pk):
+            msg.append("Sysname (%s) is already in database" % sysname)
         if len(msg) > 0:
             raise IPExistsException(msg)
-
-    def _check_ro_community(self, ip, ro_community, cat):
-        non_req_message = (
-            "SNMP is not required for this category, if you don't "
-            "need SNMP please leave the 'Read only' field empty.")
-
-        try:
-            version = self.get_snmp_version(ip, ro_community)
-        except Exception, error:
-            msg = ("Unhandled exception occurred during SNMP "
-                   "communication: %s." % error)
-            if cat and not cat.req_snmp:
-                msg = (msg, non_req_message)
-            else:
-                msg = (msg,)
-            raise SNMPException(msg)
-
-        if not version:
-            if cat and cat.req_snmp:
-                msg = (
-                    "No SNMP response on read only community.",
-                    "Is read only community correct?")
-            else:
-                msg = (
-                    "No SNMP response on read only community.",
-                    non_req_message)
-            raise ROCommunityException(msg)
-        else:
-            self.snmp_version = version
-
-    def _check_rw_community(self, ip, rw_community):
-        location = self.get_and_set_syslocation(ip, rw_community)
-        if not location:
-            msg = (
-                "No SNMP response on read/write community.",
-                "Is read/write community correct?")
-            raise RWCommunityException(msg)
-
-    @staticmethod
-    def get_snmp_version(ip, community):
-        sysobjectid = '1.3.6.1.2.1.1.2.0'
-        try:
-            try:
-                snmp = Snmp(ip, community, '2c')
-                snmp.get(sysobjectid)
-                snmp_version = '2c'
-            except Exception:
-                snmp = Snmp(ip, community, '1')
-                snmp.get(sysobjectid)
-                snmp_version = '1'
-        except SnmpError:
-            return None
-        else:
-            return snmp_version
-
-    @staticmethod
-    def get_and_set_syslocation(ip, community):
-        syslocation = '1.3.6.1.2.1.1.6.0'
-        try:
-            try:
-                snmp = Snmp(ip, community, '2c')
-                value = snmp.get(syslocation)
-                snmp.set(syslocation, 's', value)
-            except TimeOutException:
-                snmp = Snmp(ip, community, '1')
-                value = snmp.get(syslocation)
-                snmp.set(syslocation, 's', value)
-        except SnmpError:
-            return None
-        else:
-            return True
-
-
-class NetboxReadonlyForm(NetboxForm):
-    sysname = forms.CharField()
-    netbox_type = forms.CharField(required=False)
-    type = forms.IntegerField(required=False, widget=forms.HiddenInput)
-    snmp_version = forms.IntegerField(widget=forms.HiddenInput)
-
-    def __init__(self, *args, **kwargs):
-        super(NetboxReadonlyForm, self).__init__(*args, **kwargs)
-        for field in self.fields:
-            if field in ('id', 'type'):
-                continue
-            self.fields[field].widget = forms.TextInput(
-                attrs=READONLY_WIDGET_ATTRS)
-
-
-class NetboxSerialForm(forms.Form):
-    serial = forms.CharField(required=False)
-    function = forms.CharField(required=False)
-
-    def __init__(self, *args, **kwargs):
-        self.netbox_id = kwargs.pop('netbox_id', None)
-        super(NetboxSerialForm, self).__init__(*args, **kwargs)
-        initial = kwargs.get('initial')
-        if initial and initial.get('serial'):
-            self.fields['serial'].widget = forms.TextInput(
-                attrs=READONLY_WIDGET_ATTRS)
-
-    def clean_serial(self):
-        serial = self.cleaned_data['serial'].strip()
-        try:
-            if self.netbox_id:
-                netbox = Netbox.objects.get(
-                    Q(device__serial=serial),
-                    ~Q(id=self.netbox_id))
-            else:
-                netbox = Netbox.objects.get(device__serial=serial)
-        except Netbox.DoesNotExist:
-            return serial
-        else:
-            raise forms.ValidationError(
-                "Serial (%s) is already taken by %s" % (serial, netbox))
-
-
-class NetboxGroupForm(forms.Form):
-    def __init__(self, *args, **kwargs):
-        queryset = kwargs.pop('queryset')
-        super(NetboxGroupForm, self).__init__(*args, **kwargs)
-        self.fields['netboxgroups'] = forms.ModelMultipleChoiceField(
-            queryset=queryset, required=False, label='Device Groups')
 
 
 class NetboxFilterForm(forms.Form):
@@ -269,37 +187,6 @@ class NetboxMoveForm(forms.Form):
         Organization.objects.order_by('id').all(), required=False)
 
 
-def get_netbox_group_form(netbox_id=None, post_data=None):
-    netboxgroups = NetboxGroup.objects.all().order_by('id')
-    if netboxgroups.count() > 0:
-        if netbox_id and not post_data:
-            current_groups = NetboxCategory.objects.filter(
-                netbox=netbox_id).values_list('category', flat=True)
-            initial = {'netboxgroups': current_groups}
-            return NetboxGroupForm(queryset=netboxgroups, initial=initial)
-        elif post_data:
-            return NetboxGroupForm(post_data, queryset=netboxgroups)
-        else:
-            return NetboxGroupForm(queryset=netboxgroups)
-    else:
-        return None
-
-
-class SNMPException(Exception):
-    pass
-
-
-class SNMPCommunityException(SNMPException):
-    pass
-
-
-class ROCommunityException(SNMPCommunityException):
-    pass
-
-
-class RWCommunityException(SNMPCommunityException):
-    pass
-
-
 class IPExistsException(Exception):
+    """Exception raised when a device with the same IP-address exists"""
     pass

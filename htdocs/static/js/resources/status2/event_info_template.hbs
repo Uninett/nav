@@ -1,0 +1,41 @@
+<td colspan="7">
+
+  <div class="row">
+
+    <div class="medium-6 column">
+        <p>{{ alert_type.description }}</p>
+
+        {{#if acknowledgement}}
+            <p>Acknowledged by {{ acknowledgement.account.name }} ({{ dateFormat acknowledgement.date }})
+            {{#if acknowledgement.comment}}&quot;{{{acknowledgement.comment_html}}}&quot;{{/if}}</p>
+        {{/if}}
+
+        {{#if on_maintenance}}
+            <p>{{ subject }} is on maintenance</p>
+        {{/if}}
+    </div>
+
+
+    <div class="medium-6 column">
+      <ul>
+        <li>
+          <a href="{{ event_history_url }}"
+             title="See history for {{ event_type.id }}">
+            History for {{ event_type.id }}
+          </a>
+        </li>
+
+        {{#if netbox_history_url}}
+        <li>
+          <a href="{{ netbox_history_url }}"
+             title="See history for {{ subject }}">
+            History for {{ subject }}
+          </a>
+        </li>
+        {{/if}}
+      </ul>
+    </div>
+
+  </div>
+
+</td>

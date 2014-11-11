@@ -5,9 +5,12 @@
   <form method="POST" action="{% url get-user-navlet navlet.navlet_id %}">
     <input type="hidden" name="id" value="{{ navlet.navlet_id }}">
 
-    <label for="graphWidgetUrl">URL</label>
+    <label for="graphWidgetUrl">URL to image</label>
     <input id="graphWidgetUrl" type="text" name="url"
            value="{{ graph_url|default_if_none:'' }}" placeholder="URL">
+
+    <label for="targetUrl">Target URL when clicked</label>
+    <input id="targetUrl" type="text" name="target" value="{{ navlet.preferences.target }}">
 
     <label for="chart_refresh_interval">Refresh interval in seconds (requires reload of page)</label>
     <input id="chart_refresh_interval" type="text" name="interval" value="{{ interval }}">

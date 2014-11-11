@@ -1,3 +1,36 @@
+Version 4.1.2
+(released 30 Oct 2014)
+
+ Bugfixes:
+
+  * LP#1236387 (Netbiostracker doesn't handle MAC addresses with hyphens)
+  * LP#1248084 (The heading "devices going down" in ipdevinfo affected tab
+                should be changed to "devices unreachable")
+  * LP#1359111 (Problem getting inventory for HP 5412R)
+  * LP#1370051 (Whitespace in machinetracker widget causes stacktrace)
+  * LP#1370517 (Several search views throw 500 exceptions where a 404 Not Found
+                would be appropriate)
+  * LP#1371026 (ipdevpoll topo job fails with AttributeError)
+  * LP#1373841 (link from subnet matrix to machinetracker gives no results)
+  * LP#1374391 (graph widget should have a target url attribute)
+  * LP#1375749 (Maintenance calendar does not display task starting previous
+                month)
+  * LP#1380583 (Python requirements in install doc are out of sync with
+                requirements.txt)
+  * LP#1382460 (Ambiguous search input crashes l2trace)
+  * LP#1382492 (Machine tracker searches crash when results include devices that
+                haven't had any ipdevpoll jobs run against them)
+  * LP#1382522 (Radius accounting search crashes when searching for hostname
+                that cannot be found in DNS)
+  * LP#1383624 (Machine Tracker should search uplink data as well)
+  * LP#1383625 (Machine Tracker MAC search should also search physical port
+                addresses)
+  * LP#1384262 (Add unrecognized neighbor search to navbar)
+  * LP#1387215 (Rubbish CDP neighboring port data crashes topo job)
+  * LP#1387598 (ip2mac and inventory jobs crash with "IPv4 Address with more
+                than 4 bytes" on some Cisco devices)
+
+
 Version 4.1.1
 (released 14 Aug 2014)
 

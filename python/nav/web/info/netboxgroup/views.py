@@ -15,7 +15,7 @@
 #
 """Views for the netbox groups"""
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 
@@ -75,7 +75,7 @@ def group_detail(request, groupid):
     :type request: django.http.HttpRequest
 
     """
-    group = NetboxGroup.objects.get(pk=groupid)
+    group = get_object_or_404(NetboxGroup, pk=groupid)
     navpath = get_netboxgroup_path([(group.pk,)])
 
     return render(request, 'info/netboxgroup/group_detail.html',
@@ -91,7 +91,7 @@ def group_edit(request, groupid):
 
     """
 
-    group = NetboxGroup.objects.get(pk=groupid)
+    group = get_object_or_404(NetboxGroup, pk=groupid)
     navpath = get_netboxgroup_path([(group.pk,), ('edit',)])
 
     if request.method == 'POST':

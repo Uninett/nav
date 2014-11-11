@@ -19,7 +19,8 @@
 from django.db import models
 from datetime import datetime, timedelta
 from nav.models.fields import (VarcharField, LegacyGenericForeignKey,
-                               DateTimeInfinityField)
+                               DateTimeInfinityField, INFINITY)
+from nav.models import manage, service
 
 
 class Message(models.Model):
@@ -50,9 +51,35 @@ class Message(models.Model):
         return u'"%s" by %s' % (self.title, self.author)
 
 
+class MaintenanceTaskManager(models.Manager):
+    """Custom manager for MaintenanceTask objects"""
+    def current(self, relative_to=None):
+        """
+        Retrieves tasks whose time window matches the current time.
+        """
+        now = relative_to or datetime.now()
+        return self.get_query_set().filter(start_time__lte=now,
+                                           end_time__gte=now)
+
+    def past(self, relative_to=None):
+        """Retrieves past maintenance tasks"""
+        now = relative_to or datetime.now()
+        return self.get_query_set().filter(end_time__lt=now)
+
+    def future(self, relative_to=None):
+        """Retrieves future maintenance tasks"""
+        now = relative_to or datetime.now()
+        return self.get_query_set().filter(start_time__gt=now)
+
+    def endless(self):
+        """Retrieves tasks with an unspecified end time"""
+        return self.get_query_set().filter(end_time__gte=INFINITY)
+
+
 class MaintenanceTask(models.Model):
     """From NAV Wiki: The maintenance task created in the maintenance task
     tool."""
+    objects = MaintenanceTaskManager()
 
     STATE_SCHEDULED = 'scheduled'
     STATE_ACTIVE = 'active'
@@ -77,6 +104,33 @@ class MaintenanceTask(models.Model):
 
     def __unicode__(self):
         return u'"%s" by %s' % (self.description, self.author)
+
+    def get_components(self):
+        """
+        Returns the list of model objects involved in this task
+        """
+        return [c.component for c in self.maintenancecomponent_set.all()]
+
+    def get_event_subjects(self):
+        """
+        Returns a list of the model objects, represented by this task,
+        that can be the subjects of actual maintenanceState events.
+        """
+        subjects = []
+        for component in self.get_components():
+            if isinstance(component, manage.Room):
+                subjects.extend(component.netbox_set.all())
+            elif isinstance(component, manage.Location):
+                subjects.extend(manage.Netbox.objects.filter(
+                    room__location=component))
+            else:
+                subjects.append(component)
+
+        return subjects
+
+    def is_endless(self):
+        """Returns true if the task is endless"""
+        return self.end_time >= INFINITY
 
 
 class MaintenanceComponent(models.Model):

@@ -2,11 +2,13 @@ require([
     'plugins/checkbox_selector',
     'plugins/quickselect',
     'plugins/seeddb_hstore',
+    'plugins/netbox_connectivity_checker',
+    'libs/spin',
     'libs/jquery',
     'libs/jquery.dataTables.min',
     'libs/OpenLayers',
     'libs/modernizr',
-    'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect, FormFuck) {
+    'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect, FormFuck, ConnectivityChecker) {
 
     var tableWrapper = '#tablewrapper',
         tableSelector = '#seeddb-content';
@@ -53,6 +55,10 @@ require([
         if ($textarea.length) {
             new FormFuck($textarea);
         }
+
+        // The connectivity checker
+        ConnectivityChecker();
+
     }
 
     /* Internet Explorer caching leads to onload event firing before script
@@ -63,6 +69,7 @@ require([
     } else {
         $(window).load(executeOnLoad);
     }
+
 
     function initMap() {
         OpenLayers.ImgPath = NAV.imagePath + '/openlayers/';

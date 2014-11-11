@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
-# Copyright (C) 2007, 2010, 2011, 2013 UNINETT AS
+# Copyright (C) 2007, 2010, 2011, 2013, 2014 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,11 +15,9 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Layer 2 trace views"""
-
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-from . import L2TraceQuery
 from .forms import L2TraceForm
 
 
@@ -38,11 +36,7 @@ def index(request):
     }
 
     if form.is_valid():
-        host_from = form.cleaned_data.get('host_from')
-        host_to = form.cleaned_data.get('host_to')
-        l2tracer = L2TraceQuery(host_from, host_to)
-        l2tracer.trace()
-        context.update({'l2tracer': l2tracer})
+        context.update({'l2tracer': form.l2tracer})
 
     return render_to_response('l2trace/l2trace.html', context,
                               RequestContext(request))

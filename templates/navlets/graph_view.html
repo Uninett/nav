@@ -3,7 +3,9 @@
 {% block navlet-content %}
 
   {% if graph_url %}
-    <a href="{{ graph_url }}"><img src="{{ graph_url }}" alt="Graph" data-image-reload></a>
+    <a href="{% if navlet.preferences.target %}{{ navlet.preferences.target }}{% else %}{{ graph_url }}{% endif %}">
+        <img src="{{ graph_url }}" alt="Graph" data-image-reload>
+    </a>
   {% else %}
     <span class="alert-box">Edit the widget to add a graph.</span>
   {% endif %}

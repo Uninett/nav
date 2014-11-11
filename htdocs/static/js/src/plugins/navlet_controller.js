@@ -113,6 +113,10 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                         /* The random part is courtesy IE */
                         image.attr('src', imageUrl + '&bust=' + Math.random());
                     }, preferences.refresh_interval);
+                } else if (this.navlet.ajax_reload) {
+                    this.refresh = setInterval(function () {
+                        that.node.trigger('refresh', [that.node]);
+                    }, preferences.refresh_interval);
                 } else {
                     this.refresh = setTimeout(function () {
                         that.renderNavlet.call(that);
@@ -120,6 +124,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 }
             } else if (mode === 'EDIT' && this.refresh) {
                 clearTimeout(this.refresh);
+                clearInterval(this.refresh);
             }
         },
         getModeSwitch: function () {
@@ -171,6 +176,10 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                         that.displayError('Could not remove widget, maybe it has become self aware...!');
                     });
                     request.done(function () {
+                        if (that.refresh) {
+                            clearTimeout(that.refresh);
+                            clearInterval(that.refresh);
+                        }
                         that.node.remove();
                     });
                 }

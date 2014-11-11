@@ -1,54 +1,36 @@
 {% extends "seeddb/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block base_header_additional_head %}
+  {{ block.super }}
+  <script>
+    NAV.urls.get_readonly = '{% url seeddb-netbox-get-readonly %}';
+  </script>
+{% endblock %}
 
 {% block content %}
 
   <p><a href="{{ back_url }}">Back to list</a></p>
 
-  <form id="add-netbox-form" action="" method="post">
-    <fieldset>
-      <legend>{{ title }}</legend>
+  <div class="row">
+    <div class="small-6 column">
+      {% if object %}
+        <h4>Edit {{ object.sysname }}</h4>
+      {% else %}
+        <h5>Add new IP device</h5>
+      {% endif %}
+    </div>
+    <div class="small-6 column">
+      {% if object %}
+        <form action="{% url seeddb-netbox %}" method="post" class="pull-right">
+          <input type="hidden" name="object" value="{{ object.pk }}"/>
+          <input type="submit" name="delete" value="Delete this IP device" class="button small secondary"/>
+        </form>
+      {% endif %}
+    </div>
+  </div>
 
-      <table class="listtable edit">
-        {% if object %}
-          <caption>{{ object.sysname }}</caption>
-        {% endif %}
-
-        {{ form.as_table }}
-
-        {% if serial_form %}
-          {{ serial_form.as_table }}
-        {% endif %}
-        {% if netboxgroup_form %}
-          {{ netboxgroup_form.as_table }}
-        {% endif %}
-        {% if data.type %}
-          <tr>
-            <th>Netbox type</th>
-            <td>{{ netbox_type }}</td>
-          </tr>
-        {% endif %}
-        <tr>
-          <th></th>
-          <td>
-            <input type="hidden" name="step" value="{{ step }}"/>
-            {% ifequal step 2 %}
-              <input type="submit" value="Save" class="button small"/>
-            {% else %}
-              <input type="submit" value="Continue" class="button small"/>
-            {% endifequal %}
-          </td>
-        </tr>
-      </table>
-
-    </fieldset>
-  </form>
-
-  {% if object %}
-    <form action="{% url seeddb-netbox %}" method="post">
-      <input type="hidden" name="object" value="{{ object.pk }}"/>
-      <input type="submit" name="delete" value="Delete this IP device" class="button small"/>
-    </form>
-  {% endif %}
+  {% crispy form %}
 
 
   <ol class="joyride-list" data-joyride>

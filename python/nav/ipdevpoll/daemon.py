@@ -29,7 +29,7 @@ import time
 from optparse import OptionParser
 
 from twisted.internet import reactor
-from twisted.internet.defer import maybeDeferred
+from twisted.internet.defer import maybeDeferred, setDebugging
 
 from nav import buildconf
 import nav.daemon
@@ -170,6 +170,8 @@ class CommandProcessor(object):
             parser.error('specifying a netbox requires the -J option')
         if options.multiprocess:
             options.pidlog = True
+        if options.capture_vars:
+            setDebugging(True)
 
         return options, args
 
@@ -198,6 +200,9 @@ class CommandProcessor(object):
             help="Run ipdevpoll in a multiprocess setup")
         opt("-P", "--pidlog", action="store_true", dest="pidlog",
             help="Include process ID in every log line")
+        opt("--capture-vars", action="store_true", dest="capture_vars",
+            help="Capture and print locals and globals in tracebacks when "
+                 "debug logging")
         return parser
 
     def run(self):
