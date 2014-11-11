@@ -7,16 +7,16 @@
 
   <p>
   {% if message %}
-    <a href="{% url messages-view message.id %}">Back to message</a>
+    <a href="{% url 'messages-view' message.id %}">Back to message</a>
   {% else %}
-    <a href="{% url messages-home %}">See active messages</a>
+    <a href="{% url 'messages-home' %}">See active messages</a>
   {% endif %}
   </p>
 
   {% if replaces %}
     <p class="alert-box secondary">
       This message will replace
-      <a href="{% url messages-view replaces.id %}">{{ replaces.title }}</a>
+      <a href="{% url 'messages-view' replaces.id %}">{{ replaces.title }}</a>
       from {{ replaces.publish_start|date:"DATETIME_FORMAT_SHORT" }}
       by {{ replaces.author }}
     </p>

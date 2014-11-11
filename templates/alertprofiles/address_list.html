@@ -1,7 +1,7 @@
 {% extends "alertprofiles/base_list.html" %}
 
 {% block top_links %}
-  <a href="{% url alertprofiles-address-new %}" class="button small">Add address</a>
+  <a href="{% url 'alertprofiles-address-new' %}" class="button small">Add address</a>
 {% endblock %}
 
 {% block captioncontent %}
@@ -15,12 +15,12 @@
 
     <th>
     {% ifequal order_by "address" %}
-      <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=-address">
+      <a href="{% url 'alertprofiles-address' %}?page={{ page_obj.number }}&amp;order_by=-address">
         Address
         <i class="fa fa-caret-down"></i>
       </a>
     {% else %}
-      <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=address">
+      <a href="{% url 'alertprofiles-address' %}?page={{ page_obj.number }}&amp;order_by=address">
         Address
         {% ifequal order_by "-address" %}
         <i class="fa fa-caret-up"></i>
@@ -31,12 +31,12 @@
 
     <th>
     {% ifequal order_by "type" %}
-      <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=-type">
+      <a href="{% url 'alertprofiles-address' %}?page={{ page_obj.number }}&amp;order_by=-type">
         Type
         <i class="fa fa-caret-down"></i>
       </a>
     {% else %}
-        <a href="{% url alertprofiles-address %}?page={{ page_obj.number }}&amp;order_by=type">
+        <a href="{% url 'alertprofiles-address' %}?page={{ page_obj.number }}&amp;order_by=type">
           Type
           {% ifequal order_by "-type" %}
             <i class="fa fa-caret-up"></i>
@@ -51,7 +51,7 @@
         <tr>
             <td><input type="checkbox" name="address" value="{{ a.id }}" /></td>
             <td>
-                <a href="{% url alertprofiles-address-detail a.id %}">{{ a.address }}</a>
+                <a href="{% url 'alertprofiles-address-detail' a.id %}">{{ a.address }}</a>
             </td>
             <td>
                 {{ a.type.name }}

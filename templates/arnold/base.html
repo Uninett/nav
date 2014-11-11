@@ -15,13 +15,13 @@
 
   <ul class="button-group">
     <li>
-      <a href="{% url arnold-search %}" class="button small secondary {% if active.search  %}active{% endif %}">
+      <a href="{% url 'arnold-search' %}" class="button small secondary {% if active.search  %}active{% endif %}">
         Search
         <i class="fa fa-search"></i>
       </a>
     </li>
     <li>
-      <a href="{% url arnold-manual-detention %}" class="button small secondary {% if active.manualdetention %}active{% endif %}">
+      <a href="{% url 'arnold-manual-detention' %}" class="button small secondary {% if active.manualdetention %}active{% endif %}">
         Manual detention
         <i class="fa fa-lock"></i>
       </a>

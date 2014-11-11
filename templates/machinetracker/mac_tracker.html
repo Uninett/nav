@@ -32,7 +32,7 @@
         {% if row.fishy %}<tr class="fishy-item">{% else %}<tr>{% endif %}
             <td>
                 {% if row.netbox.sysname %}
-                <a href="{% url machinetracker-swp_search row.netbox.sysname '' '' form_data.days %}" title="Search for other machines on this switch">
+                <a href="{% url 'machinetracker-swp_search' row.netbox.sysname '' '' form_data.days %}" title="Search for other machines on this switch">
                 {{ row.netbox.sysname }}</a>
                 {% else %}
                 {{ row.sysname }}
@@ -40,7 +40,7 @@
             </td>
             <td>
                 {% if row.netbox.sysname %}
-                <a href="{% url ipdevinfo-details-by-name row.netbox.sysname %}" title="Browse this switch (IP Device Info)">
+                <a href="{% url 'ipdevinfo-details-by-name' row.netbox.sysname %}" title="Browse this switch (IP Device Info)">
                 <img src="{{ STATIC_URL }}images/arpcam/ipinfolink.png" alt="IP Device info search" /></a>
                 {% endif %}
             </td>
@@ -49,13 +49,13 @@
             </td>
             <td>
                 {% with form_data.dns|yesno:"True," as dns %}
-                <a href="{% url machinetracker-swp_search row.sysname row.module|default_if_none:'' row.port form_data.days %}" title="Search for other machines on this port">
+                <a href="{% url 'machinetracker-swp_search' row.sysname row.module|default_if_none:'' row.port form_data.days %}" title="Search for other machines on this port">
                 {{ row.port }}</a>
                 {% endwith %}
             </td>
             <td>
                 {% if row.netbox.sysname and row.port %}
-                <a href="{% url ipdevinfo-interface-details-by-name row.netbox.sysname row.port %}" title="Browse this interface (IP Device Info)">
+                <a href="{% url 'ipdevinfo-interface-details-by-name' row.netbox.sysname row.port %}" title="Browse this interface (IP Device Info)">
                 <img src="{{ STATIC_URL }}images/arpcam/ipinfolink.png" alt="IP Info search" /></a>
                 {% endif %}
             </td>
@@ -71,7 +71,7 @@
             <td>
                 {% with form_data.dns|yesno:"True," as dns %}
                 {% if forloop.first %}
-                <a href="{% url machinetracker-mac_search row.mac form_data.days dns %}" title="Search for this MAC address">
+                <a href="{% url 'machinetracker-mac_search' row.mac form_data.days dns %}" title="Search for this MAC address">
                 {{ row.mac }}</a>
                 {% endif %}
                 {% endwith %}

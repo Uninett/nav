@@ -41,12 +41,12 @@
 
                   {# Add link to port details #}
                   Port
-                  <a target="_blank" href="{% url ipdevinfo-interface-details candidate.interface.netbox.sysname candidate.interface.id %}">
+                  <a target="_blank" href="{% url 'ipdevinfo-interface-details' candidate.interface.netbox.sysname candidate.interface.id %}">
                     {{ candidate.interface.ifname }}
                   </a>
                   at
                   {# Add link to ipdevinfo #}
-                  <a target="_blank" href="{% url ipdevinfo-details-by-name candidate.interface.netbox.sysname %}">
+                  <a target="_blank" href="{% url 'ipdevinfo-details-by-name' candidate.interface.netbox.sysname %}">
                     {{ candidate.interface.netbox.sysname }}
                   </a>
 

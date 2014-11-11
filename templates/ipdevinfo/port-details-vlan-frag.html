@@ -12,7 +12,7 @@
     <td>
       {{ port.vlan|default:"N/A" }}
       {% if detention.status == 'quarantined' %}
-        (Quarantined by <a href="{% url arnold-details detention.id %}" title="Link to detention">Arnold</a>)
+        (Quarantined by <a href="{% url 'arnold-details' detention.id %}" title="Link to detention">Arnold</a>)
       {% endif %}
     </td>
   </tr>
@@ -27,7 +27,7 @@
               <li>
                 <i class="fa {{ swportvlan.get_direction_display|get_direction_class }}"
                    title="Direction {{ swportvlan.get_direction_display }}"></i>&nbsp;
-                <a href="{% url report-swporttrunk-vlanid swportvlan.vlan.id %}">
+                <a href="{% url 'report-swporttrunk-vlanid' swportvlan.vlan.id %}">
                   {{ swportvlan.vlan }}
                 </a>
 
@@ -73,7 +73,7 @@
           <ul>
             {% for patch in port.patch_set.all %}
               <li>Jack {{ patch.cabling.jack }}, in room
-                <a href="{% url report-netbox-room patch.cabling.room.id %}">
+                <a href="{% url 'report-netbox-room' patch.cabling.room.id %}">
                   {{ patch.cabling.room.id }}</a></li>
             {% endfor %}
           </ul>
@@ -113,7 +113,7 @@
             <tr>
               <td>{{ gwprefix.gw_ip }}</td>
               <td>
-                <a href="{% url report-prefix-prefix gwprefix.prefix.id %}">{{ gwprefix.prefix.net_address }}</a>
+                <a href="{% url 'report-prefix-prefix' gwprefix.prefix.id %}">{{ gwprefix.prefix.net_address }}</a>
               </td>
             </tr>
           {% endfor %}

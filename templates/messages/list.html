@@ -15,7 +15,7 @@
                 {% for message in messages %}
                     <tr>
                         <td>{{ message.publish_start|date:"DATETIME_FORMAT_SHORT" }}</td>
-                        <td><a href="{% url messages-view message.id %}">{{ message.title }}</a></td>
+                        <td><a href="{% url 'messages-view' message.id %}">{{ message.title }}</a></td>
                         <td>{{ message.description }}</td>
                     </tr>
                 {% endfor %}
@@ -26,6 +26,6 @@
     {% endif %}
 
     {% if not current_user_data.account.is_default_account %}
-      <a href="{% url messages-create %}" class="button small">Create new message</a>
+      <a href="{% url 'messages-create' %}" class="button small">Create new message</a>
     {% endif %}
 {% endblock tabcontent %}

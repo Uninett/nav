@@ -4,10 +4,10 @@
 <div class="tabs">
     <ul>
         <li class="{{ active.device.search|yesno:"tabactive," }}">
-            <a href="{% url devicehistory-search %}">New search</a>
+            <a href="{% url 'devicehistory-search' %}">New search</a>
         </li>
         <li class="{{ active.device.history|yesno:"tabactive," }}">
-            <a href="{% url devicehistory-view %}">Results</a>
+            <a href="{% url 'devicehistory-view' %}">Results</a>
         </li>
     </ul>
     <div class="tabcontent">

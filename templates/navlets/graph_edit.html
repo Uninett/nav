@@ -2,7 +2,7 @@
 
 {% block navlet-content %}
 
-  <form method="POST" action="{% url get-user-navlet navlet.navlet_id %}">
+  <form method="POST" action="{% url 'get-user-navlet' navlet.navlet_id %}">
     <input type="hidden" name="id" value="{{ navlet.navlet_id }}">
 
     <label for="graphWidgetUrl">URL to image</label>

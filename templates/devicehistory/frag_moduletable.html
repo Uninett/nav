@@ -27,10 +27,10 @@
           <input type="checkbox" name="module" value="{{ m.moduleid }}" {% if confirm_delete %}checked="checked"{% endif %}/>
         </td>
         <td>
-          <a href="{% url ipdevinfo-details-by-name m.sysname %}">{{ m.sysname|default_if_none:"" }}</a>
+          <a href="{% url 'ipdevinfo-details-by-name' m.sysname %}">{{ m.sysname|default_if_none:"" }}</a>
         </td>
         <td>
-          <a href="{% url ipdevinfo-module-details m.sysname m.name %}">{{ m.name }}</a>
+          <a href="{% url 'ipdevinfo-module-details' m.sysname m.name %}">{{ m.name }}</a>
         </td>
         <td>{{ m.descr|default_if_none:"" }}</td>
         <td>{{ m.start_time|date:'DATETIME_FORMAT' }}</td>

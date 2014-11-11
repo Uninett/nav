@@ -32,7 +32,7 @@
             <ul>
               {% for netbox in netboxes %}
                 <li>
-                  <a href="{% url portadmin-sysname netbox.sysname %}">
+                  <a href="{% url 'portadmin-sysname' netbox.sysname %}">
                     {{ netbox.sysname }}
                   </a>
                 </li>
@@ -47,7 +47,7 @@
             <ul>
               {% for interface in interfaces %}
                 <li>
-                  <a href="{% url portadmin-interface interface.id %}">
+                  <a href="{% url 'portadmin-interface' interface.id %}">
                     {{ interface.netbox }} - {{ interface.ifname }}
                     - {{ interface.ifalias }}
                   </a>

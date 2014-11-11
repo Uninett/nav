@@ -40,7 +40,7 @@
     {% for group in groups %}
       <tr>
         <td>
-            <a href="{% url alertprofiles-permissions-detail group.id %}">{{ group.name }}</a>
+            <a href="{% url 'alertprofiles-permissions-detail' group.id %}">{{ group.name }}</a>
         </td>
         {# if not selected_group #}
         <td>{{ group.description }}</td>
@@ -52,7 +52,7 @@
 
 
   {% if selected_group %}
-    <form action="{% url alertprofiles-permissions-save %}" method="post">
+    <form action="{% url 'alertprofiles-permissions-save' %}" method="post">
       <table class="listtable full-width">
         <caption>Set permissions for {{ selected_group.name }}</caption>
 

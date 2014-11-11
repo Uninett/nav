@@ -74,7 +74,7 @@
                  To open this in Microsoft Excel, you need to change the file to a .txt file, start Excel and import the file.
                "></i>
             </div>
-            <form id="csv-download-form"  action="{% url room-csv %}" method="POST">
+            <form id="csv-download-form"  action="{% url 'room-csv' %}" method="POST">
               <input type="hidden" name="rows" value="">
               <input type="hidden" name="roomid" value="{{ room.id }}">
               <input type="submit" class="button small secondary" value="Download as CSV">
@@ -89,7 +89,7 @@
         <table class="listtable netbox compact cluttered">
 
             <caption>
-              <a href="{% url ipdevinfo-details-by-name netbox.sysname %}">
+              <a href="{% url 'ipdevinfo-details-by-name' netbox.sysname %}">
                 {{ netbox.sysname }}
               </a> {% if netbox.type.name %} - {{ netbox.type.name }} {% endif %}
             </caption>
@@ -108,7 +108,7 @@
             {% for interface in netbox.interfaces %}
                 <tr>
                     <td title="Interface speed: {{ interface.speed }}">
-                        <a href="{% url ipdevinfo-interface-details netbox.sysname interface.id %}">
+                        <a href="{% url 'ipdevinfo-interface-details' netbox.sysname interface.id %}">
                             {{ interface.ifname }}
                         </a>
                     </td>

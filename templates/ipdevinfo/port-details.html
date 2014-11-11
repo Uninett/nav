@@ -2,19 +2,19 @@
 
 {% block content %}
 
-  <p><a href="{% url ipdevinfo-details-by-name port.netbox.sysname %}">Back to {{ port.netbox.sysname }}</a></p>
+  <p><a href="{% url 'ipdevinfo-details-by-name' port.netbox.sysname %}">Back to {{ port.netbox.sysname }}</a></p>
 
   {% if port.baseport %}
     <div class="row">
       <div class="small-12 column">
         <ul class="button-group">
           <li>
-            <a href="{% url machinetracker-swport port.netbox.sysname, port.ifname %}" class="button small">
+            <a href="{% url 'machinetracker-swport' port.netbox.sysname, port.ifname %}" class="button small">
               Track MAC behind port
             </a>
           </li>
           <li>
-            <a href="{% url portadmin-interface port.id %}" class="button small">
+            <a href="{% url 'portadmin-interface' port.id %}" class="button small">
               Configure port
             </a>
           </li>
@@ -25,7 +25,7 @@
 
   {% if detention %}
     <div class="alert-box alert">
-      This interface is detained in <a href="{% url arnold-details detention.id %}" title="Link to detention">Arnold</a>
+      This interface is detained in <a href="{% url 'arnold-details' detention.id %}" title="Link to detention">Arnold</a>
     </div>
   {% endif %}
 
@@ -47,10 +47,10 @@
 
   <h3>Activity graphs</h3>
   <div class="nav-metrics-container">
-    <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Octets' %}"></div>
-    <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'UcastPkts' %}"></div>
-    <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Errors' %}"></div>
-    <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Discards' %}"></div>
+    <div class="graphitegraph left" data-url="{% url 'interface-counter-graph' port.id 'Octets' %}"></div>
+    <div class="graphitegraph left" data-url="{% url 'interface-counter-graph' port.id 'UcastPkts' %}"></div>
+    <div class="graphitegraph left" data-url="{% url 'interface-counter-graph' port.id 'Errors' %}"></div>
+    <div class="graphitegraph left" data-url="{% url 'interface-counter-graph' port.id 'Discards' %}"></div>
     <div class="float-clear"></div>
   </div>
 

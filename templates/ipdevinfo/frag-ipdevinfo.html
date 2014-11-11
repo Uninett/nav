@@ -22,7 +22,7 @@
         <th>Type</th>
         <td>
           {% if netbox.type %}
-            <a href="{% url report-type-type netbox.type.id %}">
+            <a href="{% url 'report-type-type' netbox.type.id %}">
               {{ netbox.type }}</a></td>
           {% else %}
             N/A
@@ -33,7 +33,7 @@
       <tr>
         <th>Category</th>
         <td>
-          <a href="{% url report-netbox-category netbox.category.id %}">
+          <a href="{% url 'report-netbox-category' netbox.category.id %}">
             {{ netbox.category }}
           </a>
         </td>
@@ -45,7 +45,7 @@
           <td>
             {% for netboxgroup in netboxgroups %}
               <span class="label secondary">
-              <a href="{% url netbox-group-detail netboxgroup.category_id %}">
+              <a href="{% url 'netbox-group-detail' netboxgroup.category_id %}">
                 {{ netboxgroup.category_id }}
               </a>
               </span>
@@ -62,14 +62,14 @@
       <tr>
         <th>Organization</th>
         <td>
-          <a href="{% url report-organization-organization netbox.organization.id|urlencode %}">
+          <a href="{% url 'report-organization-organization' netbox.organization.id|urlencode %}">
             {{ netbox.organization }}</a></td>
       </tr>
 
       <tr>
         <th>Room</th>
         <td>
-          <a href="{% url room-info netbox.room.id %}">
+          <a href="{% url 'room-info' netbox.room.id %}">
             {{ netbox.room }}</a></td>
       </tr>
 
@@ -85,7 +85,7 @@
 
       <tr>
         <th>IP address</th>
-        <td><a href="{% url ipdevinfo-details-by-addr netbox.ip %}">
+        <td><a href="{% url 'ipdevinfo-details-by-addr' netbox.ip %}">
           {{ netbox.ip }}</a></td>
       </tr>
 
@@ -94,7 +94,7 @@
         <td>
           {% with netbox.get_filtered_prefix as prefix %}
             {% if prefix %}
-              <a href="{% url report-prefix-prefix prefix.id %}">
+              <a href="{% url 'report-prefix-prefix' prefix.id %}">
                 {{ prefix }}</a>
             {% else %}
               N/A
@@ -140,25 +140,25 @@
 
       <tr>
         <th>Modules</th>
-        <td><a href="{% url report-modules-netbox netbox.id %}">
+        <td><a href="{% url 'report-modules-netbox' netbox.id %}">
           {{ netbox.module_set.count }}</a></td>
       </tr>
 
       <tr>
         <th>Interfaces</th>
-        <td><a href="{% url report-interfaces-netbox netbox.id %}">
+        <td><a href="{% url 'report-interfaces-netbox' netbox.id %}">
           {{ netbox.interface_set.count }}</a></td>
       </tr>
 
       <tr>
         <th>Switch ports</th>
-        <td><a href="{% url report-swport-netbox netbox.id %}">
+        <td><a href="{% url 'report-swport-netbox' netbox.id %}">
           {{ netbox.get_swports.count }}</a></td>
       </tr>
 
       <tr>
         <th>Router ports</th>
-        <td><a href="{% url report-gwport-netbox netbox.id %}">
+        <td><a href="{% url 'report-gwport-netbox' netbox.id %}">
           {{ netbox.get_gwports.count }}</a></td>
       </tr>
 
@@ -350,12 +350,12 @@
           <ul class="no-bullet" style="font-size: 1em;">
             {% for address in host_info.addresses %}
               <li>
-                <a href="{% url ipdevinfo-details-by-addr address.addr %}">
+                <a href="{% url 'ipdevinfo-details-by-addr' address.addr %}">
                   {{ address.addr }}
                 </a>
 
                 {% if address.name %}
-                  &ndash; <a href="{% url ipdevinfo-details-by-name address.name %}">{{ address.name }}</a>
+                  &ndash; <a href="{% url 'ipdevinfo-details-by-name' address.name %}">{{ address.name }}</a>
                 {% endif %}
 
                 {% if address.error %}
@@ -375,7 +375,7 @@
         <td>
           {% with no_netbox.prefix as prefix %}
             {% if prefix %}
-              <a href="{% url report-prefix-prefix prefix.id %}">
+              <a href="{% url 'report-prefix-prefix' prefix.id %}">
                 {{ prefix.net_address }}
               </a>
             {% else %}
@@ -390,7 +390,7 @@
           <th>VLAN</th>
           <td>
             {% if vlan %}
-              <a href="{% url report-swporttrunk-vlanid vlan.id %}">
+              <a href="{% url 'report-swporttrunk-vlanid' vlan.id %}">
                 {{ vlan }}
               </a>
             {% else %}
@@ -413,7 +413,7 @@
           <th class="indent">Organization</th>
           <td>
             {% if vlan.organization %}
-              <a href="{% url report-organization-organization vlan.organization.id|urlencode %}">
+              <a href="{% url 'report-organization-organization' vlan.organization.id|urlencode %}">
                 {{ vlan.organization|default:"N/A" }}
               </a>
             {% else %}
@@ -443,12 +443,12 @@
           <th>Last active</th>
           <td>
             {% ifequal no_netbox.dt_max arp.end_time %}
-              <a href="{% url machinetracker-mac_search arp.mac 1 "" %}">
+              <a href="{% url 'machinetracker-mac_search' arp.mac 1 "" %}">
                 Right now
               </a>
             {% else %}
               {% if arp.end_time %}
-                <a href="{% url machinetracker-mac_search arp.mac no_netbox.days_since_active "" %}">
+                <a href="{% url 'machinetracker-mac_search' arp.mac no_netbox.days_since_active "" %}">
                   {{ arp.end_time|date }}
                   {{ arp.end_time|time }}
                 </a>
@@ -463,7 +463,7 @@
           <th>Last seen with MAC</th>
           <td>
             {% if arp.mac %}
-              <a href="{% url machinetracker-mac_search arp.mac 30 "" %}">
+              <a href="{% url 'machinetracker-mac_search' arp.mac 30 "" %}">
                 {{ arp.mac }}
               </a>
             {% else %}

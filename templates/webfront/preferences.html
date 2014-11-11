@@ -17,7 +17,7 @@
     {% for m in current_user_data.messages %}
         <div class="alert-box {{ m.type }}">{{ m.message }}</div>
     {% endfor %}
-    <a href="{% url status-preferences %}" class="button primary small">Status preferences</a>
+    <a href="{% url 'status-preferences' %}" class="button primary small">Status preferences</a>
 
     <div class="row">
         <div class="column medium-6 large-5">
@@ -73,14 +73,14 @@
             account is managed through an external system, known as "{{ account.ext_sync }}".
         </p>
     {% else %}
-        <form method="post" id="change-password-form" action="{% url webfront-preferences-changepassword %}">
+        <form method="post" id="change-password-form" action="{% url 'webfront-preferences-changepassword' %}">
             {% crispy password_form %}
         </form>
     {% endif %}
 
         </div>
         <div class="column medium-6 large-7" style="float:left;">
-            <form method="post" id="navigation-preferences" action="{% url webfront-preferences-savelinks %}">
+            <form method="post" id="navigation-preferences" action="{% url 'webfront-preferences-savelinks' %}">
                 <fieldset>
                     <legend>'My stuff' quick links</legend>
                     <p>A quick link requires both link text and URL.</p>
@@ -101,7 +101,7 @@
 <div>
     <dl>
         <dt>
-            <a href="{% url webfront-preferences-navigation %}">Navigation
+            <a href="{% url 'webfront-preferences-navigation' %}">Navigation
             preferences</a>
         </dt>
         <dd>
@@ -109,7 +109,7 @@
             You can add your own links or remove the ones you never use.
         </dd>
         <dt>
-            <a href="{% url status-preferences %}">Status preferences</a>
+            <a href="{% url 'status-preferences' %}">Status preferences</a>
         </dt>
         <dd>
             Personalise the appearance of your status page.

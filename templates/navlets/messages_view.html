@@ -10,7 +10,7 @@
         {% for m in current_messages %}
           <div class="panel">
             <h6>
-              <a href="{% url messages-view m.id %}">{{ m.title }}</a>
+              <a href="{% url 'messages-view' m.id %}">{{ m.title }}</a>
             </h6>
             <div class="message-card-content">
               <p>{{ m.description }}</p>

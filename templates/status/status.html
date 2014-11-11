@@ -14,7 +14,7 @@
 
   <p>
     Remember to edit your preferences to display all relevant statuses
-    <a href="{% url status-preferences %}"
+    <a href="{% url 'status-preferences' %}"
        class="small button secondary">
       Preferences
     </a>
@@ -67,7 +67,7 @@
             {% endfor %}
             {% ifequal section.devicehistory_type "a_boxDown" %}
               <td class="text-right">
-                <form action="{% url maintenance-add-netbox %}" method="POST">
+                <form action="{% url 'maintenance-add-netbox' %}" method="POST">
                   <input type="hidden" name="netboxid"
                          value="{{ row.netboxid }}"/>
                   <input type="submit" value="Put on maintenance"
@@ -87,7 +87,7 @@
                 <div id="resolve-alert-{{ row.alerthistid }}" class="f-dropdown content">
                   <h5>Clear this alert?</h5>
                   <p>If this is a real alert it might come back later.</p>
-                  <form action="{% url resolve-alert %}" method="POST">
+                  <form action="{% url 'resolve-alert' %}" method="POST">
                     <input type="hidden" name="alertid" value="{{ row.alerthistid }}"/>
                     <input type="submit" value="Clear"
                            title="Clear this alert"

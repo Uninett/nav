@@ -8,7 +8,7 @@
     <div class="tabcontent">
       {% include 'useradmin/feedback.html' %}
 
-      <a href="{% url useradmin-group_new %}" class="button small">
+      <a href="{% url 'useradmin-group_new' %}" class="button small">
         Create new group
       </a>
 
@@ -30,7 +30,7 @@
         {% for group in groups %}
           <tr>
             <td>
-              <a href="{% url useradmin-group_detail group.id %}">{{ group.name }}</a>
+              <a href="{% url 'useradmin-group_detail' group.id %}">{{ group.name }}</a>
             </td>
             <td>{{ group.description }}</td>
             <td>{{ group.accounts.all|length }}</td>

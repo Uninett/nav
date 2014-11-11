@@ -18,13 +18,13 @@
   <div class="tabs">
     <ul>
       <li class="{{ acctsearch|yesno:"tabactive," }}">
-        <a href="{% url radius-account_search %}">Account Log</a>
+        <a href="{% url 'radius-account_search' %}">Account Log</a>
       </li>
       <li class="{{ logsearch|yesno:"tabactive," }}">
-        <a href="{% url radius-log_search %}">Error Log</a>
+        <a href="{% url 'radius-log_search' %}">Error Log</a>
       </li>
       <li class="{{ acctcharts|yesno:"tabactive," }}">
-        <a href="{% url radius-account_charts %}">Top talkers</a>
+        <a href="{% url 'radius-account_charts' %}">Top talkers</a>
       </li>
     </ul>
 

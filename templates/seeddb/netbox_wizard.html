@@ -4,7 +4,7 @@
 {% block base_header_additional_head %}
   {{ block.super }}
   <script>
-    NAV.urls.get_readonly = '{% url seeddb-netbox-get-readonly %}';
+    NAV.urls.get_readonly = '{% url 'seeddb-netbox-get-readonly' %}';
   </script>
 {% endblock %}
 
@@ -22,7 +22,7 @@
     </div>
     <div class="small-6 column">
       {% if object %}
-        <form action="{% url seeddb-netbox %}" method="post" class="pull-right">
+        <form action="{% url 'seeddb-netbox' %}" method="post" class="pull-right">
           <input type="hidden" name="object" value="{{ object.pk }}"/>
           <input type="submit" name="delete" value="Delete this IP device" class="button small secondary"/>
         </form>

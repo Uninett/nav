@@ -1,10 +1,10 @@
 {% extends "alertprofiles/base_detail.html" %}
 
-{% block url_edit %}{% url alertprofiles-profile-save %}{% endblock %}
-{% block url_add_expression %}{% url alertprofiles-profile-timeperiod-add %}{% endblock %}
+{% block url_edit %}{% url 'alertprofiles-profile-save' %}{% endblock %}
+{% block url_add_expression %}{% url 'alertprofiles-profile-timeperiod-add' %}{% endblock %}
 
 {% block backnavigation %}
-  <p><a href="{% url alertprofiles-profile %}">Back to profiles</a></p>
+  <p><a href="{% url 'alertprofiles-profile' %}">Back to profiles</a></p>
 {% endblock %}
 
 
@@ -37,7 +37,7 @@
 {% block expressions %}
     <h4>Time periods</h4>
 
-<form action="{% url alertprofiles-profile-timeperiod-remove %}" method="post">
+<form action="{% url 'alertprofiles-profile-timeperiod-remove' %}" method="post">
     {% include "alertprofiles/timeperiods.html" %}
     <p>
         <input type="hidden" name="profile" value="{{ detail_id }}" />

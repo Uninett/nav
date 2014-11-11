@@ -6,7 +6,7 @@
 
   <table class="listtable status2table expand">
     <caption>
-      <a href="{% url status2-index %}" title="Go to the status page">Status now</a>
+      <a href="{% url 'status2-index' %}" title="Go to the status page">Status now</a>
       <span class="last-updated pull-right">{{ last_updated }}</span></caption>
     <thead>
     <tr>
@@ -38,7 +38,7 @@
 
   {% else %}
     <p class="alert-box success">According to your criteria, everything seems ok</p>
-    <a href="{% url status2-index %}" title="Go to the status page">Go to the status page</a>
+    <a href="{% url 'status2-index' %}" title="Go to the status page">Go to the status page</a>
 
   {% endif %}
 

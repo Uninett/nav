@@ -30,20 +30,20 @@
         <tbody>
         <tr>
             <td>
-                <a href="{% url machinetracker-ip_short_search identity.ip 100 'on' %}" title="Link to Machine Tracker">
+                <a href="{% url 'machinetracker-ip_short_search' identity.ip 100 'on' %}" title="Link to Machine Tracker">
                     {{ identity.ip }}
                 </a>
             </td>
             <td>{{ identity.dns }}</td>
             <td>{{ identity.netbios }}</td>
             <td>
-                <a href="{% url machinetracker-mac_search identity.mac 100 'on' %}" title="Link to Machine Tracker">
+                <a href="{% url 'machinetracker-mac_search' identity.mac 100 'on' %}" title="Link to Machine Tracker">
                     {{ identity.mac }}
                 </a>
             </td>
             <td>
                 {% if identity.interface %}
-                <a href="{% url ipdevinfo-details-by-name identity.interface.netbox.sysname %}"
+                <a href="{% url 'ipdevinfo-details-by-name' identity.interface.netbox.sysname %}"
                    title="Link to Ip Device Info">
                     {{ identity.interface.netbox.sysname }}
                 </a>
@@ -53,7 +53,7 @@
             </td>
             <td>
                 {% if identity.interface %}
-                    <a href="{% url ipdevinfo-interface-details identity.interface.netbox.sysname identity.interface.id %}"
+                    <a href="{% url 'ipdevinfo-interface-details' identity.interface.netbox.sysname identity.interface.id %}"
                        title="Link to interface details">
                 {% endif %}
                     {{ identity.interface.ifname|default_if_none:'' }}

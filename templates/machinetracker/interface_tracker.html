@@ -27,7 +27,7 @@
             </td>
 
             <td>
-                <a href="{% url machinetracker-mac_search ifc.ifphysaddress form_data.days dns %}" title="Search again for this MAC address">
+                <a href="{% url 'machinetracker-mac_search' ifc.ifphysaddress form_data.days dns %}" title="Search again for this MAC address">
                 {{ ifc.ifphysaddress }}</a>
             </td>
 

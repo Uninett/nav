@@ -20,12 +20,12 @@
 
     {% with matrix.start_net.strNormal|urlencode|escapeslash as link %}
       {% if show_unused %}
-        <a href="{% url report-matrix-scope link %}" class="button small">
+        <a href="{% url 'report-matrix-scope' link %}" class="button small">
           Hide unused address rows
         </a>
       {% else %}
         {% if ipv4 %}
-          <a href="{% url report-matrix-scope-show_unused link 'True' %}" class="button small">
+          <a href="{% url 'report-matrix-scope-show_unused' link 'True' %}" class="button small">
             Show unused address rows
           </a>
         {% endif %}
@@ -87,14 +87,14 @@
       <ul id="scopes" class="no-bullet">
         {% for scope in scopes %}
           <li>
-            <a href="{% url report-matrix-scope scope.0|urlencode|escapeslash %}">{{ scope.0 }}</a>  {{ scope.1|default:"" }}
+            <a href="{% url 'report-matrix-scope' scope.0|urlencode|escapeslash %}">{{ scope.0 }}</a>  {{ scope.1|default:"" }}
           </li>
         {% endfor %}
       </ul>
     {% else %}
       <p class="alert-box secondary">
         The NAV-database does not contain any network scopes.
-        <a href="{% url seeddb-index %}">Seed the database</a> and return here to see the subnet matrix.
+        <a href="{% url 'seeddb-index' %}">Seed the database</a> and return here to see the subnet matrix.
       </p>
     {% endif %}
   {% endif %}

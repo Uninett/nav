@@ -14,7 +14,7 @@
       <ul>
         {% for netbox in affected %}
           <li>
-            <a href="{% url ipdevinfo-details-by-id netbox.id %}">{{ netbox }}</a>
+            <a href="{% url 'ipdevinfo-details-by-id' netbox.id %}">{{ netbox }}</a>
             ({{ netbox.category.id }})
           </li>
         {% endfor %}
@@ -31,7 +31,7 @@
       <ul>
         {% for netbox in unreachable %}
           <li>
-            <a href="{% url ipdevinfo-details-by-id netbox.id %}">{{ netbox }}</a>
+            <a href="{% url 'ipdevinfo-details-by-id' netbox.id %}">{{ netbox }}</a>
             ({{ netbox.category.id }})
           </li>
         {% endfor %}

@@ -36,7 +36,7 @@
 
     <div class="title-container">
       <span class="subheader" title="{{ navlet.description }}"
-            {% if navlet.is_title_editable %}data-set-title="{% url set-navlet-preferences %}"{% endif %}>
+            {% if navlet.is_title_editable %}data-set-title="{% url 'set-navlet-preferences' %}"{% endif %}>
         <span class="navlet-title">{{ navlet.title }}</span>
           {% if navlet.is_title_editable %}
             <i class="fa fa-edit"></i>

@@ -27,9 +27,9 @@
     </ul>
   </div>
 
-  <p><a href="{% url room-info room.id %}">Back to room</a></p>
+  <p><a href="{% url 'room-info' room.id %}">Back to room</a></p>
 
-  <form action="{% url room-info-upload room.id %}" method="POST" enctype="multipart/form-data">
+  <form action="{% url 'room-info-upload' room.id %}" method="POST" enctype="multipart/form-data">
     {% crispy uploadform %}
   </form>
 
