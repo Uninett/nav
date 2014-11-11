@@ -18,7 +18,7 @@ define([
         events: {
             'submit #graph-search-form': 'searchGraph',
             'reset #graph-search-form': 'resetSearch',
-            'submit #netmap-view-create-form': 'createView',
+            'click #netmap-view-create': 'displayCreateView',
             'submit #filter-room-location-form': 'filterByRoomOrLocation',
             'change #graph-layer-select': 'changeTopologyLayer',
             'change #graph-view-select': 'changeNetmapView',
@@ -45,6 +45,17 @@ define([
             // window-object.
             this.netmapViews = new Collections.NetmapViewCollection();
             this.netmapViews.reset(window.netmapData.views);
+            this.createNewViewForm = this.$('#netmap-view-create-form');
+            this.createNewViewForm.dialog({
+                autoOpen: false,
+                modal: true,
+                title: 'Create new view'
+            });
+            var self = this;
+            this.createNewViewForm.submit(function(e){
+                e.preventDefault();
+                self.createView.call(self);
+            });
 
             // Set current view to the users default view. If no default view is
             // set, set the current view to be the first in the list of available
@@ -189,17 +200,13 @@ define([
         },
 
         saveCurrentView: function () {
+            console.log('saveCurrentView');
 
             if (!this.saveDeleteViewEnabled) {
                 // This control is disabled
                 return;
             }
 
-            // Set all necessary attributes
-            var form = $('#netmap-view-create-form', this.netmapViewPanel);
-            this.currentView.set('title', $('input:text', form).val());
-            this.currentView.set('description', $('textarea', form).val());
-            this.currentView.set('is_public', $('input:checkbox', form).is(':checked'));
             // Update `display_elinks` and remove 'ELINKS' from categories if present
             var categories = this.currentView.get('categories');
             this.currentView.set('display_elinks', _.indexOf(categories, 'ELINK') >= 0);
@@ -284,8 +291,13 @@ define([
             });
         },
 
-        createView: function (e) {
-            e.preventDefault();
+        displayCreateView: function () {
+            console.log('displayCreateView');
+            this.createNewViewForm.dialog('open');
+        },
+
+        createView: function () {
+            console.log('createView');
 
             var newView = new Models.NetmapView(_.omit(
                 this.currentView.attributes, 'viewid', 'title', 'description', 'is_public'));
@@ -297,14 +309,20 @@ define([
             this.backupAttributes = _.omit(this.currentView.attributes, 'categories');
             this.backupAttributes.categories = this.currentView.get('categories').slice();
 
+            // Set all necessary attributes
+            var form = $('#netmap-view-create-form');
+            this.currentView.set('title', $('input:text', form).val());
+            this.currentView.set('description', $('textarea', form).val());
+            this.currentView.set('is_public', $('input:checkbox', form).is(':checked'));
+
             var viewSelect = this.$('#graph-view-select');
-            viewSelect.append(new Option(newView.get('title') + ' (' +
+            viewSelect.append(new Option(this.currentView.get('title') + ' (' +
                 window.netmapData.userLogin + ')',
                 this.currentView.cid, true, true));
 
             this.updateControlsForCurrentView();
-
-            this.alertContainer.html('<span class="alert-box">Current view is unsaved</span>');
+            this.saveCurrentView();
+            this.createNewViewForm.dialog('close');
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
         },
