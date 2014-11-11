@@ -61,7 +61,7 @@
               <tr>
                 <td>{{ org }}</td>
                 <td class="text-right">
-                  <a href="{% url 'useradmin-account_organization_remove' account.id,org.id %}"
+                  <a href="{% url 'useradmin-account_organization_remove' account.id org.id %}"
                      class="button secondary tiny">Remove</a>
                 </td>
               </tr>
@@ -91,7 +91,7 @@
                 </td>
                 <td class="text-right">
                   {% if not group.is_protected_group %}
-                    <a href="{% url 'useradmin-account_group_remove' account.id,group.id %}"
+                    <a href="{% url 'useradmin-account_group_remove' account.id group.id %}"
                        class="button secondary tiny">Remove</a>
                   {% else %}
                     &nbsp;

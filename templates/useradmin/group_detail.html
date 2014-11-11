@@ -46,7 +46,7 @@
               <td>{{ privilege.type }}</td>
               <td class="break-word">{{ privilege.target }}</td>
               <td class="text-right">
-                <a href="{% url 'useradmin-group_privilege_remove' group.id,privilege.id %}"
+                <a href="{% url 'useradmin-group_privilege_remove' group.id privilege.id %}"
                    class="button secondary small">
                   Revoke
                 </a>
@@ -83,7 +83,7 @@
                 </td>
                 <td class="text-right">
                   {% if not group.is_protected_group %}
-                    <a href="{% url 'useradmin-group_account_remove' group.id,account.id %}"
+                    <a href="{% url 'useradmin-group_account_remove' group.id account.id %}"
                        class="button small secondary">Remove</a>
                   {% endif %}
                 </td>

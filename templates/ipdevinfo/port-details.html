@@ -9,7 +9,7 @@
       <div class="small-12 column">
         <ul class="button-group">
           <li>
-            <a href="{% url 'machinetracker-swport' port.netbox.sysname, port.ifname %}" class="button small">
+            <a href="{% url 'machinetracker-swport' port.netbox.sysname port.ifname %}" class="button small">
               Track MAC behind port
             </a>
           </li>
