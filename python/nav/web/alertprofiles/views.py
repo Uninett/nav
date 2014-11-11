@@ -27,7 +27,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.shortcuts import render_to_response
-from django.views.generic.list import ListView
 
 from nav.models.profiles import (
     Account,
@@ -49,7 +48,7 @@ from nav.models.profiles import (
 )
 from nav.django.utils import get_account, is_admin
 from nav.web.message import Messages, new_message
-
+from nav.web.utils import SubListView
 from nav.web.alertprofiles.forms import AccountPropertyForm, TimePeriodForm
 from nav.web.alertprofiles.forms import AlertProfileForm, AlertSubscriptionForm
 from nav.web.alertprofiles.forms import AlertAddressForm, FilterForm
@@ -70,7 +69,6 @@ from .decorators import requires_post
 _ = lambda a: a
 
 PAGINATE_BY = 25
-
 
 def overview(request):
     account = get_account(request)
@@ -162,15 +160,14 @@ def show_profile(request):
             'order_by': order_by,
             'navpath': BASE_PATH+[('Profiles', None)],
             'title': 'NAV - Alert profiles',
+            'page' : page,
         }
-    return ListView(
-            request,
+    return SubListView.as_view(
             queryset=profiles,
             paginate_by=PAGINATE_BY,
-            page=page,
             template_name='alertprofiles/profile.html',
             extra_context=info_dict,
-        )
+        )(request)
 
 def profile_show_form(request, profile_id=None, profile_form=None,
                       time_period_form=None):
@@ -919,15 +916,14 @@ def address_list(request):
             'order_by': order_by,
             'navpath': BASE_PATH+[('Address', None)],
             'title': 'NAV - Alert profiles',
+            'page' : page,
         }
-    return ListView(
-            request,
+    return SubListView.as_view(
             queryset=address,
             paginate_by=PAGINATE_BY,
-            page=page,
             template_name='alertprofiles/address_list.html',
             extra_context=info_dict,
-        )
+        )(request)
 
 def address_show_form(request, address_id=None, address_form=None):
     account = get_account(request)
@@ -1173,15 +1169,14 @@ def sms_list(request):
         'order_by': order_by,
         'navpath': BASE_PATH+[('My SMS', None)],
         'title': 'NAV - Alert profiles',
+        'page': page,
     }
-    return ListView(
-        request,
+    return SubListView.as_view(
         queryset=sms,
         paginate_by=PAGINATE_BY,
-        page=page,
         template_name='alertprofiles/sms_list.html',
         extra_context=info_dict,
-    )
+    )(request)
 
 def filter_list(request):
     account = get_account(request)
@@ -1212,15 +1207,14 @@ def filter_list(request):
             'order_by': order_by,
             'navpath': BASE_PATH+[('Filters', None)],
             'title': 'NAV - Alert profiles',
+            'page': page,
         }
-    return ListView(
-            request,
+    return SubListView.as_view(
             queryset=filters,
             paginate_by=PAGINATE_BY,
-            page=page,
             template_name='alertprofiles/filter_list.html',
             extra_context=info_dict,
-        )
+        )(request)
 
 def filter_show_form(request, filter_id=None, filter_form=None):
     '''Convenience method for showing the filter form'''
@@ -1650,15 +1644,14 @@ def filter_group_list(request):
                 ('Filter groups', None)
             ],
             'title': 'NAV - Alert profiles',
+            'page': page,
         }
-    return ListView(
-            request,
+    return SubListView.as_view(
             queryset=filter_groups,
             paginate_by=PAGINATE_BY,
-            page=page,
             template_name='alertprofiles/filter_group_list.html',
             extra_context=info_dict,
-        )
+        )(request)
 
 def filter_group_show_form(request, filter_group_id=None,
                            filter_group_form=None):
@@ -2181,15 +2174,14 @@ def matchfield_list(request):
                 ('Matchfields', None),
             ],
             'title': 'NAV - Alert profiles',
+            'page': page,
         }
-    return ListView(
-            request,
+    return SubListView.as_view(
             queryset=matchfields,
             paginate_by=PAGINATE_BY,
-            page=page,
             template_name='alertprofiles/matchfield_list.html',
             extra_context=info_dict,
-        )
+        )(request)
 
 
 def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):

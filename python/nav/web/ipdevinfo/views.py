@@ -26,17 +26,16 @@ from django.db.models import Q
 from django.shortcuts import (render_to_response, get_object_or_404, redirect,
                               render)
 from django.template import RequestContext
-from django.views.generic.list import ListView
+
 from nav.metrics.errors import GraphiteUnreachableError
 
 from nav.models.manage import Netbox, Module, Interface, Prefix, Arp, Cam
 from nav.models.arnold import Identity
 from nav.models.service import Service
-
 from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import get_interface_counter_graph_url
-from nav.web.utils import create_title
+from nav.web.utils import create_title, SubListView
 from nav.metrics.graphs import get_simple_graph_url
 
 from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
@@ -47,7 +46,6 @@ from .host_information import get_host_info
 NAVPATH = [('Home', '/'), ('IP Device Info', '/ipdevinfo')]
 
 _logger = logging.getLogger('nav.web.ipdevinfo')
-
 
 def find_netboxes(errors, query):
     """Find netboxes based on query parameter
@@ -533,24 +531,23 @@ def service_list(request, handler=None):
     navpath = NAVPATH + [('Service List',)]
 
     # Pass on to generic view
-    return ListView(
-        request,
-        services,
+    return SubListView.as_view(
+        queryset=services,
         paginate_by=100,
-        page=page,
         template_name='ipdevinfo/service-list.html',
+        allow_empty=True,
         extra_context={
             'show_ipdev_info': True,
             'handler_list': handler_list,
             'handler': handler,
             'title': create_title(navpath),
             'navpath': navpath,
-            'heading': navpath[-1][0]
-
-        },
-        allow_empty=True,
-        context_processors=[search_form_processor],
-        template_object_name='service')
+            'heading': navpath[-1][0],
+            'services': services,
+            'page': page,
+            'context_processors': [search_form_processor],
+            'template_object_name': 'service'
+        },)(request)
 
 
 def service_matrix(request):
