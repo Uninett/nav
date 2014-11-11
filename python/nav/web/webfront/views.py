@@ -23,7 +23,6 @@ from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
 from django.forms.models import modelformset_factory
 from django.http import HttpResponseRedirect, HttpResponse
-from django.views.generic import TemplateView
 from django.views.decorators.debug import (sensitive_variables,
                                            sensitive_post_parameters)
 from django.shortcuts import get_object_or_404, render
