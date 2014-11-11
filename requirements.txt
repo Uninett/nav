@@ -2,7 +2,7 @@
 # tools/vagrant-provision.sh
 
 psycopg2==2.4.5  # requires libpq to build
-django>=1.4,<1.5
+django==1.5
 IPy==0.75
 twisted>=12,<13
 simplejson==2.0.6  # freebsd doesn't have newer.
