@@ -53,10 +53,6 @@ define([
             this.currentView = this.netmapViews.get(window.netmapData.defaultView) ||
                 this.netmapViews.at(0) || new Models.NetmapView();
 
-            // Backup attributes
-            this.backupAttributes = _.omit(this.currentView.attributes, 'categories');
-            this.backupAttributes.categories = this.currentView.get('categories').slice();
-
             this.refreshInterval = null;
             this.updateFavoriteViewEnabled = true;
             this.saveDeleteViewEnabled = true;
@@ -174,14 +170,6 @@ define([
          * Change the controls to reflect view change and notify the GraphView
          */
         changeNetmapView: function (e) {
-
-            // Reset attributes from backup
-            // JM: Removing this as it overwrites the ID of the view if
-            // a view has been deleted. I have no idea why it is needed,
-            // as all the stuff is stored on the model anyway. Why then have
-            // backups?
-            // this.currentView.set(this.backupAttributes);
-
             var viewId = $(e.currentTarget).find(':selected').val();
             this.currentView = this.netmapViews.get(viewId);
 
@@ -190,8 +178,6 @@ define([
                 // cause no harm after upgrade.
                 this.currentView = this.netmapViews.getByCid(viewId);
             }
-            this.backupAttributes = _.omit(this.currentView.attributes, 'categories');
-            this.backupAttributes.categories = this.currentView.get('categories').slice();
 
             var unsaved = this.currentView.isNew() ?
                 '<span class="alert-box">Current view is unsaved</span>' : '';
@@ -373,11 +359,7 @@ define([
                 this.currentView.attributes, 'viewid', 'title', 'description', 'is_public'));
             newView.set({owner: window.netmapData.userLogin});
             this.netmapViews.add(newView);
-
-            this.currentView.set(this.backupAttributes);
             this.currentView = newView;
-            this.backupAttributes = _.omit(this.currentView.attributes, 'categories');
-            this.backupAttributes.categories = this.currentView.get('categories').slice();
 
             // Set all necessary attributes
             var form = $('#netmap-view-create-form');
@@ -452,7 +434,6 @@ define([
                     .html(model.get('title') + ' (' + model.get('owner') + ')');
             }
 
-            this.backupAttributes = this.currentView.attributes;
             this.setUpdateFavoriteViewEnables(true);
 
             var alert = this.alertContainer.html('<span class="alert-box success">View saved successfully</span>');
