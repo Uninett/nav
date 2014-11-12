@@ -232,21 +232,23 @@ define([
                 return;
             }
 
-            if (!this.currentView.isNew()) {
-
-                var self = this;
-                this.currentView.destroy({
-                    success: function () {
-                        self.deleteSuccessful.call(self, false);
-                    },
-                    error: function (model, resp) {
-                        self.deleteError.call(self, resp.responseText);
-                    },
-                    wait: true
-                });
-            } else {
-                this.deleteSuccessful(true);
+            if(confirm('Delete this view?')) {
+                if (!this.currentView.isNew()) {
+                    var self = this;
+                    this.currentView.destroy({
+                        success: function () {
+                            self.deleteSuccessful.call(self, false);
+                        },
+                        error: function (model, resp) {
+                            self.deleteError.call(self, resp.responseText);
+                        },
+                        wait: true
+                    });
+                } else {
+                    this.deleteSuccessful(true);
+                }
             }
+
         },
 
         /** Saves the current view as default for the current user */
