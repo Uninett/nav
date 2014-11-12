@@ -95,11 +95,8 @@ define([
         },
 
         toggleNetmapViewPanel: function (e) {
-            if ($('#netmap-view-panel').hasClass('hide-by-move')) {
-                $('#netmap-view-panel').removeClass('hide-by-move').hide();
-            }
+            $('#netmap-view-panel').toggleClass('hide-by-move');
             this.$(e.currentTarget.children).toggleClass('fa-caret-down fa-caret-up');
-            this.netmapViewPanel.toggle();
         },
 
         fireZoomToExtent: function () {
