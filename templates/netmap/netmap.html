@@ -179,13 +179,17 @@
           {# Right panel #}
           <div class="large-3 columns">
             <div class="panel white" data-equalizer-watch>
-              <h5>Random actions</h5>
+              <h5>Misc</h5>
               <ul class="button-group">
-                <li><a id="netmap-view-fix-nodes" class="button tiny">Fix all nodes</a></li>
-                <li><a id="netmap-view-unfix-nodes" class="button tiny">Unfix all nodes</a></li>
-                <li><a id="netmap-view-zoom-to-extent" class="button tiny">Zoom to extent</a></li>
+                <li><a id="netmap-view-fix-nodes" class="button tiny"
+                       title="Freeze the node position of all nodes">Fix all nodes</a></li>
+                <li><a id="netmap-view-unfix-nodes" class="button tiny"
+                        title="Makes all nodes move freely">Unfix all nodes</a></li>
+                <li><a id="netmap-view-zoom-to-extent" class="button tiny"
+                       title="Zoom so that all nodes are in the viewport">Zoom to extent</a></li>
                 <li><a id="netmap-view-reset-transparency" class="button tiny">Reset transparency</a></li>
-                <li><a id="netmap-view-toggle-force" class="button tiny" data-status="on">Pause force <i class="fa fa-pause"></i></a></li>
+                <li><a id="netmap-view-toggle-force" class="button tiny" data-status="on"
+                       title="The force algorithm tries to place the nodes automatically based on distance to other nodes.">Pause force <i class="fa fa-pause"></i></a></li>
               </ul>
 
               <form id="refresh-interval">
