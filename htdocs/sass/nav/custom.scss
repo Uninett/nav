@@ -117,6 +117,10 @@ fieldset legend {
 .float-clear { clear: both; }
 .hidden {display: none; }
 .notvisible {visibility: hidden; }
+.hide-by-move {
+    position: absolute;
+    left: -10000px;
+}
 
 
 /* Sudoer bar is the bar that appears when you switch users from the

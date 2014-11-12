@@ -95,6 +95,9 @@ define([
         },
 
         toggleNetmapViewPanel: function (e) {
+            if ($('#netmap-view-panel').hasClass('hide-by-move')) {
+                $('#netmap-view-panel').removeClass('hide-by-move').hide();
+            }
             this.$(e.currentTarget.children).toggleClass('fa-caret-down fa-caret-up');
             this.netmapViewPanel.toggle();
         },
