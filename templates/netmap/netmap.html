@@ -30,7 +30,8 @@
 
   <div id="graph-navigation" class="row">
 
-    <div class="medium-4 columns">
+    {# The top action row with search, view menu and options toggler #}
+    <div class="medium-6 columns">
       <form id="graph-search-form">
         <div class="row collapse">
 
@@ -64,18 +65,16 @@
       </div>
     </div>
 
-    <div class="medium-4 columns">
-          <a id="netmap-view-panel-toggle" class="button secondary small">
-            View options
-            <i class="fa fa-caret-down"></i>
-          </a>
-          {% if account.is_admin %}
-            <a class="button small" href="{% url netmap-admin %}">Netmap admin</a>
-          {% endif %}
+    <div class="medium-2 columns">
+      <a id="netmap-view-panel-toggle" class="expand button secondary small">
+        View options
+        <i class="fa fa-caret-down"></i>
+      </a>
     </div>
 
   </div>
 
+  {# The netmap view panel that contains settings and view configurability #}
   <div class="row">
     <div id="netmap-view-panel" class="medium-12 columns hide">
       <div class="panel">
@@ -99,18 +98,18 @@
             </div>
             <div class="row">
               <div class="medium-12 columns">
-                <a id="netmap-view-save"
-                   class="expand button small">Save view
-                </a>
-              </div>
-            </div>
-            <div class="row">
-              <div class="medium-12 columns">
                 <a id="netmap-view-delete"
                    class="expand button alert small">Delete view
                 </a>
               </div>
             </div>
+
+            <div>
+              {% if account.is_admin %}
+                <a href="{% url netmap-admin %}" title="Go to Netmap admin page">Administrate the views</a>
+              {% endif %}
+            </div>
+
             <div class="row">
               <div id="netmap-alert-container" class="medium-12 columns">
             </div>
@@ -120,53 +119,60 @@
 
           <div class="medium-6 columns">
             <div class="panel white">
-              <h5>Filters</h5>
+              <h5>View settings</h5>
 
-            <div class="row">
-              <div class="medium-6 columns">
-                <ul id="filter-category-list">
-                  {% for category in categories %}
-                    <li>
-                      <label for="filter-{{ category }}">{{ category }}
-                      <input type="checkbox" id="filter-{{ category }}" class="filter-category" value="{{ category }}"></label>
-                    </li>
-                  {% endfor %}
-                </ul>
+              <div class="row">
+                <div class="medium-6 columns">
+                  <ul id="filter-category-list">
+                    {% for category in categories %}
+                      <li>
+                        <label for="filter-{{ category }}">{{ category }}
+                        <input type="checkbox" id="filter-{{ category }}" class="filter-category" value="{{ category }}"></label>
+                      </li>
+                    {% endfor %}
+                  </ul>
 
-                <label for="filter-orphan-nodes" class="right">
-                  Display isolated nodes
-                  <input type="checkbox" id="filter-orphan-nodes">
-                </label>
-              </div>
+                  <label for="filter-orphan-nodes" class="right">
+                    Display isolated nodes
+                    <input type="checkbox" id="filter-orphan-nodes">
+                  </label>
+                </div>
 
-              <div class="medium-6 columns">
-                <label>
-                  Layer
-                  <select id="graph-layer-select">
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                  </select>
-                </label>
+                <div class="medium-6 columns">
+                  <label>
+                    Layer
+                    <select id="graph-layer-select">
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                    </select>
+                  </label>
 
-                <form id="filter-room-location-form">
-                  <div class="row collapse">
-                    <div class="medium-9 columns">
-                      <input type="text" placeholder="Filter by room or location">
+                  <form id="filter-room-location-form">
+                    <div class="row collapse">
+                      <div class="medium-9 columns">
+                        <input type="text" placeholder="Filter by room or location">
+                      </div>
+                      <div class="medium-3 columns">
+                        <input class="postfix button" type="submit" value="Filter">
+                      </div>
                     </div>
-                    <div class="medium-3 columns">
-                      <input class="postfix button" type="submit" value="Filter">
-                    </div>
-                  </div>
-                </form>
+                  </form>
 
-                <div class="row">
-                  <div id="filter-labels" class="medium-12 columns">
+                  <div class="row">
+                    <div id="filter-labels" class="medium-12 columns">
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-            </div>
-          </div>
+              </div> {# .row inside white panel #}
+
+              <hr>
+
+              <a id="netmap-view-save"
+                 class="button small">Save view settings
+              </a>
+
+            </div> {# .panel.white #}
+          </div> {# .column #}
 
           <div class="medium-3 columns">
             <div class="panel white">
