@@ -24,7 +24,7 @@
     <input type="text" name="viewname" placeholder="View name" required>
     <textarea name="viewdescription" placeholder="View description"></textarea>
     <label><input type="checkbox" name="public" checked>Public</label>
-    <input type="submit" class="button small" value="Create new view">
+    <input type="submit" class="button small" value="Save new view">
   </form>
 
 
@@ -85,7 +85,7 @@
             <div class="panel white" data-equalizer-watch>
               <h5>Create and edit views</h5>
               <a id="netmap-view-create"
-                 class="expand button secondary small">Create new view
+                 class="expand button secondary small">Save as new view
               </a>
 
               <a id="netmap-view-default"
@@ -98,7 +98,7 @@
 
               {% if account.is_admin %}
                 <p>
-                  <a href="{% url netmap-admin %}" title="Go to Netmap admin page">Administrate the views</a>
+                  <a href="{% url netmap-admin %}" title="Go to Netmap admin page">Manage saved views</a>
                 </p>
               {% endif %}
 
