@@ -32,6 +32,7 @@ define([
             'netmap:resetTransparency': 'resetTransparency',
             'netmap:resetZoom': 'resetZoom',
             'netmap:unfixNodes': 'unfixNodes',
+            'netmap:fixNodes': 'fixNodes',
             'netmap:toggleForce': 'toggleForce'
         },
 
@@ -556,6 +557,12 @@ define([
             if (this.forceEnabled) {
                 this.force.resume();
             }
+        },
+
+        fixNodes: function () {
+            _.each(this.nodes, function (node) {
+                node.fixed = true;
+            });
         },
 
         toggleForce: function (statusOn) {

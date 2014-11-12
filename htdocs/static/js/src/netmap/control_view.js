@@ -35,6 +35,7 @@ define([
             'click #refresh-interval input[type=radio]': 'setRefreshInterval',
             'click #refresh-interval input[type=checkbox]': 'setRefreshTrafficOnly',
             'click #netmap-view-unfix-nodes': 'fireUnfixNodes',
+            'click #netmap-view-fix-nodes': 'fireFixNodes',
             'click #netmap-view-toggle-force': 'fireToggleForce'
         },
 
@@ -95,7 +96,9 @@ define([
         },
 
         toggleNetmapViewPanel: function (e) {
-            $('#netmap-view-panel').toggleClass('hide-by-move');
+            $('#netmap-view-panel').toggle(function () {
+                $(document).foundation('equalizer', 'reflow');
+            });
             this.$(e.currentTarget.children).toggleClass('fa-caret-down fa-caret-up');
         },
 
@@ -113,6 +116,10 @@ define([
 
         fireUnfixNodes: function () {
             Backbone.EventBroker.trigger('netmap:unfixNodes');
+        },
+
+        fireFixNodes: function () {
+            Backbone.EventBroker.trigger('netmap:fixNodes');
         },
 
         fireToggleForce: function (e) {
