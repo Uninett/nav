@@ -114,11 +114,13 @@
 
                 {# Column for filter categories #}
                 <div class="medium-6 columns">
-                  <ul id="filter-category-list">
+                  <ul id="filter-category-list" class="no-bullet">
                     {% for category in categories %}
                       <li>
-                        <label for="filter-{{ category }}">{{ category }}
-                        <input type="checkbox" id="filter-{{ category }}" class="filter-category" value="{{ category }}"></label>
+                        <label for="filter-{{ category }}">
+                          <input type="checkbox" id="filter-{{ category }}" class="filter-category" value="{{ category }}">
+                          {{ category }}
+                        </label>
                       </li>
                     {% endfor %}
                   </ul>

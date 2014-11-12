@@ -9,13 +9,10 @@ $image-path: '../../images';
 }
 
 #filter-category-list {
-  list-style: none;
-  text-align: right;
-}
-
-#filter-category-list li {
-  float: left;
-  margin-right: 1.5rem;
+    li {
+        float: left;
+        width: 5rem;
+    }
 }
 
 .nopadding {
