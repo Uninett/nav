@@ -111,6 +111,8 @@
       <div class="panel">
         <div class="row">
           <div class="medium-3 columns">
+            <div class="panel white">
+              <h5>Create and edit views</h5>
             <div class="row">
               <div class="medium-12 columns">
                 <a id="netmap-view-create"
@@ -143,56 +145,79 @@
               <div id="netmap-alert-container" class="medium-12 columns">
             </div>
             </div>
+            </div>
           </div>
 
           <div class="medium-6 columns">
+            <div class="panel white">
+              <h5>Filters</h5>
+
             <div class="row">
-              <div class="small-12 columns">
-              <h6>Filters</h6>
-              <ul id="filter-category-list">
-                {% for category in categories %}
-                  <li>
-                    <label for="filter-{{ category }}">{{ category }}
-                    <input type="checkbox" id="filter-{{ category }}" class="filter-category" value="{{ category }}"></label>
-                  </li>
-                {% endfor %}
-              </ul>
-              </div>
-            </div>
-            <div class="row">
-              <div class="small-12 columns">
+              <div class="medium-6 columns">
+                <ul id="filter-category-list">
+                  {% for category in categories %}
+                    <li>
+                      <label for="filter-{{ category }}">{{ category }}
+                      <input type="checkbox" id="filter-{{ category }}" class="filter-category" value="{{ category }}"></label>
+                    </li>
+                  {% endfor %}
+                </ul>
+
                 <label for="filter-orphan-nodes" class="right">
                   Display isolated nodes
                   <input type="checkbox" id="filter-orphan-nodes">
                 </label>
               </div>
+
+              <div class="medium-6 columns">
+                <label>
+                  Layer
+                  <select id="graph-layer-select">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                  </select>
+                </label>
+
+                <form id="filter-room-location-form">
+                  <div class="row collapse">
+                    <div class="medium-9 columns">
+                      <input type="text" placeholder="Filter by room or location">
+                    </div>
+                    <div class="medium-3 columns">
+                      <input class="postfix button" type="submit" value="Filter">
+                    </div>
+                  </div>
+                </form>
+
+                <div class="row">
+                  <div id="filter-labels" class="medium-12 columns">
+                  </div>
+                </div>
+              </div>
+            </div>
             </div>
           </div>
 
           <div class="medium-3 columns">
-            <label>
-              Layer
-              <select id="graph-layer-select">
-                <option value="2">2</option>
-                <option value="3">3</option>
-              </select>
-            </label>
+            <div class="panel white">
+              <h5>Random actions</h5>
+              <ul class="button-group">
+                <li><a id="netmap-view-reset-zoom" class="button tiny">Reset zoom</a></li>
+                <li><a id="netmap-view-zoom-to-extent" class="button tiny">Zoom to extent</a></li>
+                <li><a id="netmap-view-reset-transparency" class="button tiny">Reset transparency</a></li>
+                <li><a id="netmap-view-unfix-nodes" class="button tiny">Unfix all nodes</a></li>
+                <li><a id="netmap-view-toggle-force" class="button tiny" data-status="on">Pause force<img src="{{ STATIC_URL }}images/lys/green.png"></a></li>
+              </ul>
 
-            <form id="filter-room-location-form">
-              <div class="row collapse">
-                <div class="medium-9 columns">
-                  <input type="text" placeholder="Filter by room or location">
-                </div>
-                <div class="medium-3 columns">
-                  <input class="postfix button" type="submit" value="Filter">
-                </div>
-              </div>
-            </form>
-            <div class="row">
-              <div id="filter-labels" class="medium-12 columns">
-              </div>
+              <form id="refresh-interval">
+                <h6>Refresh interval</h6>
+                <label><input name="refresh-interval-value" type="radio" value="-1" checked>Off</label>
+                <label><input name="refresh-interval-value" type="radio" value="2">2 min</label>
+                <label><input name="refresh-interval-value" type="radio" value="10">10 min</label>
+                <label><input type="checkbox" value="traffic">Traffic only</label>
+                <div id="refresh-counter"></div>
+              </form>
             </div>
-
           </div>
 
 
