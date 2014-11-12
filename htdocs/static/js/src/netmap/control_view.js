@@ -79,7 +79,6 @@ define([
         initializeDOM: function () {
 
             this.netmapViewPanel = this.$('#netmap-view-panel');
-            this.advancedOptionsPanel = this.$('#advanced-options-panel');
             this.alertContainer = this.$('#netmap-alert-container', this.netmapViewPanel);
 
             this.$('#filter-room-location-form input[type=text]', this.netmapViewPanel).autocomplete({
@@ -530,7 +529,7 @@ define([
                     // Clear old interval function
                     clearInterval(this.refreshInterval);
                 }
-                $('#refresh-counter', this.advancedOptionsPanel).html('');
+                $('#refresh-counter').html('');
             } else {
                 // Clear old interval function
                 clearInterval(this.refreshInterval);
@@ -544,7 +543,7 @@ define([
                         Backbone.EventBroker.trigger('netmap:refreshGraph');
                         counter = val * 60;
                     }
-                    $('#refresh-counter', self.advancedOptionsPanel).html(
+                    $('#refresh-counter').html(
                         '<small>Refreshing in ' + counter + ' sec</small>'
                     );
                 }, 1000);
@@ -554,13 +553,12 @@ define([
         resetRefreshControls: function () {
 
             this.currentView.refreshTrafficOnly = false;
-            this.$('#refresh-interval input[type=checkbox]',
-                this.advancedOptionsPanel).attr('checked', false);
+            this.$('#refresh-interval input[type=checkbox]').attr('checked', false);
 
             this.$('#refresh-interval input[type=radio]')[0].checked = true;
 
             clearInterval(this.refreshInterval);
-            this.$('#refresh-counter', this.advancedOptionsPanel).html('');
+            this.$('#refresh-counter').html('');
         },
 
         setRefreshTrafficOnly: function (e) {
