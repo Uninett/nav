@@ -26,6 +26,7 @@ define([
             'click .filter-string-remove': 'removeRoomOrLocationFilter',
             'click #filter-orphan-nodes': 'updateOrphanNodesFilter',
             'click #netmap-view-save': 'saveCurrentView',
+            'click #netmap-view-edit': 'displayEditView',
             'click #netmap-view-delete': 'deleteCurrentView',
             'click #netmap-view-default': 'setCurrentViewDefault',
             'click #netmap-view-panel-toggle': 'toggleNetmapViewPanel',
@@ -45,17 +46,6 @@ define([
             // window-object.
             this.netmapViews = new Collections.NetmapViewCollection();
             this.netmapViews.reset(window.netmapData.views);
-            this.createNewViewForm = this.$('#netmap-view-create-form');
-            this.createNewViewForm.dialog({
-                autoOpen: false,
-                modal: true,
-                title: 'Create new view'
-            });
-            var self = this;
-            this.createNewViewForm.submit(function(e){
-                e.preventDefault();
-                self.createView.call(self);
-            });
 
             // Set current view to the users default view. If no default view is
             // set, set the current view to be the first in the list of available
@@ -72,6 +62,7 @@ define([
             this.saveDeleteViewEnabled = true;
 
             this.initializeDOM();
+            this.initializeDialogs();
 
             Backbone.EventBroker.register(this);
         },
@@ -93,6 +84,38 @@ define([
             );
 
             this.updateControlsForCurrentView();
+        },
+
+        initializeDialogs: function () {
+            var self = this;
+
+            /** Create dialog */
+            this.createNewViewForm = $('#netmap-view-create-form');
+            this.createNewViewForm.dialog({
+                autoOpen: false,
+                modal: true,
+                title: 'Create new view'
+            });
+
+            this.createNewViewForm.submit(function(e){
+                e.preventDefault();
+                self.createView.call(self);
+            });
+
+            /** Edit dialog */
+            this.editViewForm = $('#netmap-view-edit-form');
+            this.editViewForm.dialog({
+                autoOpen: false,
+                modal: true,
+                title: 'Edit ' + this.currentView.get('title')
+            });
+
+            this.editViewForm.submit(function(e){
+                e.preventDefault();
+                self.editCurrentView.call(self);
+            });
+
+
         },
 
         toggleNetmapViewPanel: function (e) {
@@ -156,12 +179,20 @@ define([
             this.currentView.set(this.backupAttributes);
 
             var viewId = e.currentTarget.value;
+            console.log(viewId);
+            console.log(this.netmapViews);
             this.currentView = this.netmapViews.get(viewId);
+            console.log('before');
+            console.log(this.currentView);
+
             if (!this.currentView) {
                 // This clause is not needed for Backbone>=0.9.9, but should
                 // cause no harm after upgrade.
                 this.currentView = this.netmapViews.getByCid(viewId);
             }
+            console.log('after');
+            console.log(this.currentView);
+
             this.backupAttributes = _.omit(this.currentView.attributes, 'categories');
             this.backupAttributes.categories = this.currentView.get('categories').slice();
 
@@ -220,13 +251,54 @@ define([
             this.currentView.save(this.currentView.attributes,
                 {
                     success: function (model) {
-                        self.saveSuccessful.call(self, model, isNew);
+                        self.saveSuccessful.call(self, model, {'isNew': isNew});
                     },
                     error: function (model, resp) {
                         self.saveError.call(self, resp.responseText);
                     }
                 }
             );
+        },
+
+        displayEditView: function () {
+            console.log('displayEditView');
+
+            $('input:text', this.editViewForm).val(this.currentView.get('title'));
+            $('textarea', this.editViewForm).val(this.currentView.get('description'));
+            $('input:checkbox', this.editViewForm).attr('checked', this.currentView.get('is_public'));
+            this.editViewForm.dialog('open');
+
+        },
+
+        editCurrentView: function () {
+            console.log('editCurrentView');
+            if (!this.saveDeleteViewEnabled) {
+                // This control is disabled
+                return;
+            }
+
+            // Set all necessary attributes
+            var self = this,
+                form = $('#netmap-view-edit-form');
+
+            var data = {
+                title: $('input:text', form).val(),
+                description: $('textarea', form).val(),
+                is_public: $('input:checkbox', form).is(':checked')
+            };
+
+            this.currentView.save(data, {
+                success: function (model) {
+                    console.log(model);
+                    self.saveSuccessful.call(self, model, {'isUpdated': true});
+                },
+                error: function (model, resp) {
+                    self.saveError.call(self, resp.responseText);
+                }
+            });
+
+            this.editViewForm.dialog('close');
+
         },
 
         deleteCurrentView: function () {
@@ -367,17 +439,20 @@ define([
             Backbone.EventBroker.trigger('netmap:removeFilter', filterString);
         },
 
-        saveSuccessful: function (model, isNew) {
+        saveSuccessful: function (model, state) {
 
             Backbone.EventBroker.trigger('netmap:saveNodePositions');
 
-            if (isNew) {
+            if (state.isNew) {
                 /* If the model was new we need to set its value as
                  * the id given by the database.
                  */
                 this.$('#graph-view-select option[value="' + model.cid + '"]')
                     .attr('id', model.id)
                     .attr('value', model.id)
+                    .html(model.get('title') + ' (' + model.get('owner') + ')');
+            } else if (state.isUpdated) {
+                this.$('#graph-view-select option[value="' + model.id + '"]')
                     .html(model.get('title') + ' (' + model.get('owner') + ')');
             }
 
@@ -404,6 +479,8 @@ define([
             this.$('#graph-view-select option[value="' + value + '"]').remove();
             var selected = this.$('#graph-view-select option:selected').val();
             this.currentView = this.netmapViews.get(selected) || new Models.NetmapView();
+            console.log(selected);
+            console.log(this.currentView);
             this.updateControlsForCurrentView();
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);

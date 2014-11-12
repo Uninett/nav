@@ -24,7 +24,15 @@
     <input type="text" name="viewname" placeholder="View name" required>
     <textarea name="viewdescription" placeholder="View description"></textarea>
     <label><input type="checkbox" name="public" checked>Public</label>
-    <input type="submit" class="button small" value="Save new view">
+    <input type="submit" class="button small" value="Save">
+  </form>
+
+  {% comment %} jQuery UI is kinda stupid (or maybe we are), so we need two forms {% endcomment %}
+  <form id="netmap-view-edit-form" style="display: none">
+    <input type="text" name="viewname" placeholder="View name" required>
+    <textarea name="viewdescription" placeholder="View description"></textarea>
+    <label><input type="checkbox" name="public" checked>Public</label>
+    <input type="submit" class="button small" value="Save">
   </form>
 
 
@@ -90,6 +98,10 @@
 
               <a id="netmap-view-default"
                  class="expand button secondary small">Set as default view
+              </a>
+
+              <a id="netmap-view-edit"
+                 class="expand button secondary small">Edit view
               </a>
 
               <a id="netmap-view-delete"
