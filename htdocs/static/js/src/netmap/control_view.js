@@ -176,23 +176,20 @@ define([
         changeNetmapView: function (e) {
 
             // Reset attributes from backup
-            this.currentView.set(this.backupAttributes);
+            // JM: Removing this as it overwrites the ID of the view if
+            // a view has been deleted. I have no idea why it is needed,
+            // as all the stuff is stored on the model anyway. Why then have
+            // backups?
+            // this.currentView.set(this.backupAttributes);
 
-            var viewId = e.currentTarget.value;
-            console.log(viewId);
-            console.log(this.netmapViews);
+            var viewId = $(e.currentTarget).find(':selected').val();
             this.currentView = this.netmapViews.get(viewId);
-            console.log('before');
-            console.log(this.currentView);
 
             if (!this.currentView) {
                 // This clause is not needed for Backbone>=0.9.9, but should
                 // cause no harm after upgrade.
                 this.currentView = this.netmapViews.getByCid(viewId);
             }
-            console.log('after');
-            console.log(this.currentView);
-
             this.backupAttributes = _.omit(this.currentView.attributes, 'categories');
             this.backupAttributes.categories = this.currentView.get('categories').slice();
 
@@ -311,6 +308,7 @@ define([
             if(confirm('Delete this view?')) {
                 if (!this.currentView.isNew()) {
                     var self = this;
+                    console.log('We want to delete view with id ' + this.currentView.id);
                     this.currentView.destroy({
                         success: function () {
                             self.deleteSuccessful.call(self, false);
@@ -371,8 +369,6 @@ define([
         },
 
         createView: function () {
-            console.log('createView');
-
             var newView = new Models.NetmapView(_.omit(
                 this.currentView.attributes, 'viewid', 'title', 'description', 'is_public'));
             newView.set({owner: window.netmapData.userLogin});
@@ -479,8 +475,6 @@ define([
             this.$('#graph-view-select option[value="' + value + '"]').remove();
             var selected = this.$('#graph-view-select option:selected').val();
             this.currentView = this.netmapViews.get(selected) || new Models.NetmapView();
-            console.log(selected);
-            console.log(this.currentView);
             this.updateControlsForCurrentView();
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
