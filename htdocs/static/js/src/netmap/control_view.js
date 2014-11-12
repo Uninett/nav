@@ -32,7 +32,6 @@ define([
             'click #netmap-view-zoom-to-extent': 'fireZoomToExtent',
             'click #netmap-view-reset-zoom': 'fireResetZoom',
             'click #netmap-view-reset-transparency': 'fireResetTransparency',
-            'click #advanced-options-panel-toggle': 'toggleAdvancedOptionsPanel',
             'click #refresh-interval input[type=radio]': 'setRefreshInterval',
             'click #refresh-interval input[type=checkbox]': 'setRefreshTrafficOnly',
             'click #netmap-view-unfix-nodes': 'fireUnfixNodes',
@@ -99,11 +98,6 @@ define([
         toggleNetmapViewPanel: function (e) {
             this.$(e.currentTarget.children).toggleClass('fa-caret-down fa-caret-up');
             this.netmapViewPanel.toggle();
-        },
-
-        toggleAdvancedOptionsPanel: function (e) {
-            this.$(e.currentTarget.children).toggleClass('fa-caret-down fa-caret-up');
-            this.advancedOptionsPanel.toggle();
         },
 
         fireZoomToExtent: function () {

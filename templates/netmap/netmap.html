@@ -47,22 +47,6 @@
       </form>
     </div>
 
-{% comment %}
-    <div class="medium-1 columns">
-      <div class="row collapse">
-        <div class="medium-7 columns">
-          <span class="prefix">Layer</span>
-        </div>
-        <div class="medium-5 columns">
-          <select id="graph-layer-select">
-            <option value="2">2</option>
-            <option value="3">3</option>
-          </select>
-        </div>
-      </div>
-    </div>
-{% endcomment %}
-
     <div class="medium-4 columns">
       <div class="row collapse">
         <div class="medium-2 columns">
@@ -81,27 +65,13 @@
     </div>
 
     <div class="medium-4 columns">
-      <div class="row">
-        <div class="medium-4 columns">
           <a id="netmap-view-panel-toggle" class="button secondary small">
             View options
             <i class="fa fa-caret-down"></i>
           </a>
-        </div>
-
-        <div class="medium-4 columns">
-          <a id="advanced-options-panel-toggle" class="button secondary small">
-            Advanced options
-            <i class="fa fa-caret-down"></i>
-          </a>
-        </div>
-
-        <div class="medium-4 columns">
           {% if account.is_admin %}
             <a class="button small" href="{% url netmap-admin %}">Netmap admin</a>
           {% endif %}
-        </div>
-      </div>
     </div>
 
   </div>
@@ -226,33 +196,6 @@
     </div>
   </div>
 
-  <div class="row">
-    <div id="advanced-options-panel" class="medium-12 columns hide">
-      <div class="panel">
-        <div class="row">
-          <div class="small-2 columns">
-            <form id="refresh-interval">
-              <h6>Refresh interval</h6>
-              <label><input name="refresh-interval-value" type="radio" value="-1" checked>Off</label>
-              <label><input name="refresh-interval-value" type="radio" value="2">2 min</label>
-              <label><input name="refresh-interval-value" type="radio" value="10">10 min</label>
-              <label><input type="checkbox" value="traffic">Traffic only</label>
-              <div id="refresh-counter"></div>
-            </form>
-          </div>
-          <div class="medium-10 columns">
-            <ul class="button-group">
-              <li><a id="netmap-view-reset-zoom" class="button">Reset zoom</a></li>
-              <li><a id="netmap-view-zoom-to-extent" class="button">Zoom to extent</a></li>
-              <li><a id="netmap-view-reset-transparency" class="button">Reset transparency</a></li>
-              <li><a id="netmap-view-unfix-nodes" class="button">Unfix all nodes</a></li>
-              <li><a id="netmap-view-toggle-force" class="button" data-status="on">Pause force<img src="{{ STATIC_URL }}images/lys/green.png"></a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <div class="row">
