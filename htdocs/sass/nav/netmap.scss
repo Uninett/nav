@@ -15,6 +15,12 @@ $image-path: '../../images';
     }
 }
 
+#filter-labels {
+    .label {
+        margin-right: 0.3em;
+    }
+}
+
 .nopadding {
   padding: 0;
 }

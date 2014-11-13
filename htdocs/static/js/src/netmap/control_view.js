@@ -40,6 +40,11 @@ define([
             'click #netmap-view-toggle-force': 'fireToggleForce'
         },
 
+        filterLabelTemplate: _.template('' +
+            '<span class="label secondary" data-string="<%= filter %>">' +
+            '<%= filter %> <i class="fa fa-times filter-string-remove"></i>' +
+            '</span>'),
+
         initialize: function () {
 
             // Initialize the available views from the
@@ -401,10 +406,7 @@ define([
             e.preventDefault();
             var query = $('input[type="text"]', e.currentTarget).val();
             e.currentTarget.reset();
-            $('#filter-labels', this.netmapViewPanel).append(
-                '<span class="label secondary" data-string="' + query + '">' + query +
-                    '<a href="#" class="filter-string-remove">&times;</a></span>'
-            );
+            $('#filter-labels', this.netmapViewPanel).append(this.filterLabelTemplate({filter: query}));
             Backbone.EventBroker.trigger('netmap:filterByRoomOrLocation', query);
         },
 
@@ -516,17 +518,14 @@ define([
 
         setLocationRoomFilterForCurrentView: function () {
 
+            var self = this;
             var elem = $('#filter-labels', this.netmapViewPanel).empty();
             var filters = this.currentView.get('location_room_filter');
 
             if (filters) {
                 filters = filters.split('|');
                 _.each(filters, function (filter) {
-                    elem.append(
-                        '<span class="label secondary" data-string="' + filter +
-                        '">' + filter +
-                        '<a href="#" class="filter-string-remove">&times;</a></span>'
-                    );
+                    elem.append(self.filterLabelTemplate({filter: filter}));
                 });
                 this.currentView.filterStrings = filters;
             } else {
