@@ -495,19 +495,11 @@ define([
         },
 
         updateControlsForCurrentView: function () {
-            this.setFormForCurrentView();
             this.setCategoriesForCurrentView();
             this.setLocationRoomFilterForCurrentView();
             this.setTopologySelectForCurrentView();
             this.setViewButtonsForCurrentView();
             this.resetRefreshControls();
-        },
-
-        setFormForCurrentView: function () {
-            var form = $('#netmap-view-create-form', this.netmapViewPanel);
-            $('input:text', form).val(this.currentView.get('title'));
-            $('textarea', form).val(this.currentView.get('description'));
-            $('input:checkbox', form).prop('checked', this.currentView.get('is_public'));
         },
 
         setCategoriesForCurrentView: function () {
