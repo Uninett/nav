@@ -72,7 +72,8 @@ define([
         initializeDOM: function () {
 
             this.netmapViewPanel = this.$('#netmap-view-panel');
-            this.alertContainer = this.$('#netmap-alert-container', this.netmapViewPanel);
+            this.middleAlertContainer = this.$('#netmap-middle-alert-container');
+            this.leftAlertContainer = this.$('#netmap-left-alert-container');
 
             this.$('#filter-room-location-form input[type=text]', this.netmapViewPanel).autocomplete({
                 source: window.netmapData.roomsAndLocations,
@@ -184,9 +185,6 @@ define([
                 this.currentView = this.netmapViews.getByCid(viewId);
             }
 
-            var unsaved = this.currentView.isNew() ?
-                '<span class="alert-box">Current view is unsaved</span>' : '';
-            this.alertContainer.html(unsaved);
             this.updateControlsForCurrentView();
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
@@ -239,7 +237,7 @@ define([
             this.currentView.save(this.currentView.attributes,
                 {
                     success: function (model) {
-                        self.saveSuccessful.call(self, model, {'isNew': isNew});
+                        self.saveSuccessful.call(self, model, {'isNew': isNew}, self.middleAlertContainer);
                     },
                     error: function (model, resp) {
                         self.saveError.call(self, resp.responseText);
@@ -278,7 +276,7 @@ define([
             this.currentView.save(data, {
                 success: function (model) {
                     console.log(model);
-                    self.saveSuccessful.call(self, model, {'isUpdated': true});
+                    self.saveSuccessful.call(self, model, {'isUpdated': true}, self.leftAlertContainer);
                 },
                 error: function (model, resp) {
                     self.saveError.call(self, resp.responseText);
@@ -332,7 +330,7 @@ define([
                 data: {view: this.currentView.id, owner: window.netmapData.userID}
             })
             .done(function () {
-                var alert = self.alertContainer.html(
+                var alert = self.leftAlertContainer.html(
                     '<span class="alert-box success">View set as default</span>'
                 );
                 setTimeout(function () {
@@ -342,12 +340,12 @@ define([
                 }, 3000);
             })
             .fail(function () {
-                var alert = self.alertContainer.html(
-                    '<span class="alert-box alert">Save unsuccessful!' +
+                var alert = self.leftAlertContainer.html(
+                    '<span class="alert-box alert">Error setting default view' +
                     '<a href="#" class="close">&times;</a></span>'
                 );
-                $('span a', alert).click(function () {
-                    $('span', alert).fadeOut(function () {
+                $(alert).click(function () {
+                    $(alert).fadeOut(function () {
                         this.remove();
                     }) ;
                 });
@@ -419,7 +417,7 @@ define([
             Backbone.EventBroker.trigger('netmap:removeFilter', filterString);
         },
 
-        saveSuccessful: function (model, state) {
+        saveSuccessful: function (model, state, alertContainer) {
 
             Backbone.EventBroker.trigger('netmap:saveNodePositions');
 
@@ -438,7 +436,7 @@ define([
 
             this.setUpdateFavoriteViewEnables(true);
 
-            var alert = this.alertContainer.html('<span class="alert-box success">View saved successfully</span>');
+            var alert = alertContainer.html('<span class="alert-box success">View saved successfully</span>');
             setTimeout(function () {
                 $('span', alert).fadeOut(function () {
                     this.remove();
@@ -462,7 +460,7 @@ define([
 
             Backbone.EventBroker.trigger('netmap:netmapViewChanged', this.currentView);
 
-            var alert = this.alertContainer.html('<span class="alert-box success">Successfully deleted view</span>');
+            var alert = this.leftAlertContainer.html('<span class="alert-box success">Successfully deleted view</span>');
             setTimeout(function () {
                 $('span', alert).fadeOut(function () {
                     this.remove();
@@ -472,7 +470,7 @@ define([
 
         saveError: function (resp) { console.log(resp);
 
-            var alert = this.alertContainer.html(
+            var alert = this.leftAlertContainer.html(
                 '<span class="alert-box alert">Save unsuccessful!' +
                     '<a href="#" class="close">&times;</a></span>'
             );
@@ -485,7 +483,7 @@ define([
 
         deleteError: function (resp) { console.log(resp);
 
-            var alert = this.alertContainer.html(
+            var alert = this.leftAlertContainer.html(
                 '<span class="alert-box alert">Delete unsuccessful!' +
                     '<a href="#" class="close">&times;</a></span>'
             );
