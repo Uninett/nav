@@ -23,6 +23,8 @@ import nav.path
 import sys
 import os
 
+ALLOWED_HOSTS = ['*']
+
 try:
     nav_config = read_flat_config('nav.conf')
 except IOError:
