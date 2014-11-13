@@ -711,7 +711,7 @@ define([
     function filterNodesByRoomsOrLocations(nodes, filters) {
 
         return _.filter(nodes, function (node) {
-            return _.every(filters, function (filter) {
+            return _.some(filters, function (filter) {
                 return filter === node.roomid || filter === node.locationid;
             });
         });
@@ -739,7 +739,7 @@ define([
     function filterLinksByRoomsOrLocations(links, filters) {
 
         return _.filter(links, function (link) {
-            return _.every(filters, function (filter) {
+            return _.some(filters, function (filter) {
                 return (filter === link.source.roomid || filter === link.source.locationid) &&
                     (filter === link.target.roomid || filter === link.target.locationid);
             });
