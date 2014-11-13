@@ -874,8 +874,8 @@ define([
 
 
     function getTrafficCSSforLink(link) {
-        var inCss;
-        var outCss;
+        var inCss = UndefinedLoad;
+        var outCss = UndefinedLoad;
 
         if (link.traffic !== undefined && !_.isEmpty(link.traffic)) {
 
@@ -886,21 +886,11 @@ define([
                 outCss = _.max(link.traffic.edges, function (edge) {
                     return edge.target.load_in_percent;
                 }).target.css;
-            } else {
+            } else if (link.traffic.traffic_data !== undefined) {
                 inCss = link.traffic.traffic_data.source.css;
                 outCss = link.traffic.traffic_data.target.css;
             }
 
-            if (!inCss) {
-                inCss = UndefinedLoad;
-            }
-            if (!outCss) {
-                outCss = UndefinedLoad;
-            }
-
-        } else {
-            inCss = UndefinedLoad;
-            outCss = UndefinedLoad;
         }
 
         return [
