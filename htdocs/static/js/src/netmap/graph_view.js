@@ -739,11 +739,10 @@ define([
     function filterLinksByRoomsOrLocations(links, filters) {
 
         return _.filter(links, function (link) {
-            return _.some(filters, function (filter) {
-                return (filter === link.source.roomid || filter === link.source.locationid) &&
-                    (filter === link.target.roomid || filter === link.target.locationid);
-            });
+            return (_.contains(filters, link.source.roomid) && _.contains(filters, link.target.roomid) ||
+                _.contains(filters, link.source.location) && _.contains(filters, link.target.location));
         });
+
     }
 
     /**
