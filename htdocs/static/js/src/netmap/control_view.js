@@ -147,10 +147,10 @@ define([
             var statusOn = targetElem.data('status') === 'on';
             if (statusOn) {
                 targetElem.data('status', 'off');
-                targetElem.html('Start force <i class="fa fa-play"></i>');
+                targetElem.html('Start animation <i class="fa fa-play"></i>');
             } else { // off
                 targetElem.data('status', 'on');
-                targetElem.html('Pause force <i class="fa fa-pause"></i>');
+                targetElem.html('Stop animation <i class="fa fa-stop"></i>');
             }
             Backbone.EventBroker.trigger('netmap:toggleForce', statusOn);
         },
