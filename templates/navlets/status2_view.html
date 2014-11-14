@@ -1,0 +1,45 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  {% if results %}
+
+  <table class="listtable status2table expand">
+    <caption>
+      <a href="{% url status2-index %}" title="Go to the status page">Status now</a>
+      <span class="last-updated pull-right">{{ last_updated }}</span></caption>
+    <thead>
+    <tr>
+      <th>Subject</th>
+      <th>Type</th>
+      <th>Start time</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for result in results %}
+      <tr>
+          <td>
+              <a href="{{ result.subject_url }}">{{ result.subject }}</a>
+              {% if result.on_maintenance %}<i class="fa fa-wrench" title="On maintenance"></i>{% endif %}
+              {% if result.acknowledgement %}<i class="fa fa-check-circle-o" title="Acknowledged"></i>{% endif %}
+          </td>
+          <td>{{ result.alert_type.name }}</td>
+          <td class="alerttime">
+              {{ result.formatted_time }}
+              {% if not result.end_time %}<i class="fa fa-exclamation-circle" title="Stateless"></i>{% endif %}
+          </td>
+      </tr>
+    {% endfor %}
+
+    </tbody>
+
+  </table>
+
+  {% else %}
+    <p class="alert-box success">According to your criteria, everything seems ok</p>
+    <a href="{% url status2-index %}" title="Go to the status page">Go to the status page</a>
+
+  {% endif %}
+
+{% endblock %}

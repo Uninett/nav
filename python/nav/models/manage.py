@@ -48,7 +48,6 @@ from django_hstore import hstore
 import nav.models.event
 
 
-
 #######################################################################
 ### Netbox-related models
 
@@ -76,8 +75,9 @@ class Netbox(models.Model):
     device = models.ForeignKey('Device', db_column='deviceid')
     sysname = VarcharField(unique=True)
     category = models.ForeignKey('Category', db_column='catid')
-    netboxgroups = models.ManyToManyField('NetboxGroup',
-                                          through='NetboxCategory')
+    netboxgroups = models.ManyToManyField(
+        'NetboxGroup', through='NetboxCategory', blank=True, null=True)
+    netboxgroups.help_text = ''
     organization = models.ForeignKey('Organization', db_column='orgid')
     read_only = VarcharField(db_column='ro', blank=True, null=True)
     read_write = VarcharField(db_column='rw', blank=True, null=True)
@@ -86,6 +86,9 @@ class Netbox(models.Model):
     up_since = models.DateTimeField(db_column='upsince', auto_now_add=True)
     up_to_date = models.BooleanField(db_column='uptodate', default=False)
     discovered = models.DateTimeField(auto_now_add=True)
+
+    data = hstore.DictionaryField()
+    objects = hstore.HStoreManager()
 
     class Meta:
         db_table = 'netbox'
@@ -297,6 +300,28 @@ class Netbox(models.Model):
                     rrd_file__key__in=('swport', 'gwport', 'interface'))
             ).order_by('description')
 
+    def is_on_maintenance(self):
+        """Returns True if this netbox is currently on maintenance"""
+        states = self.get_unresolved_alerts('maintenanceState').filter(
+            variables__variable='netbox')
+        return states.count() > 0
+
+    def last_downtime_ended(self):
+        """
+        Returns the end_time of the last known boxState alert.
+
+        :returns: A datetime object if a serviceState alert was found,
+                  otherwise None
+        """
+        try:
+            lastdown = self.alerthistory_set.filter(
+                event_type__id='boxState', end_time__isnull=False
+            ).order_by("-end_time")[0]
+        except IndexError:
+            return
+        else:
+            return lastdown.end_time
+
     def get_unresolved_alerts(self, kind=None):
         """Returns a queryset of unresolved alert states"""
         return self.alerthistory_set.unresolved(kind)
@@ -467,6 +492,10 @@ class Module(models.Model):
         ports = self.get_physical_ports()
         return Interface.sort_ports_by_ifname(ports)
 
+    def is_on_maintenace(self):
+        """Returns True if the owning Netbox is on maintenance"""
+        return self.netbox.is_on_maintenance()
+
 
 class Memory(models.Model):
     """From NAV Wiki: The mem table describes the memory
@@ -506,6 +535,7 @@ class Room(models.Model):
     class Meta:
         db_table = 'room'
         verbose_name = 'room'
+        ordering = ('id',)
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
@@ -516,8 +546,10 @@ class Location(models.Model):
     campus."""
 
     id = models.CharField(db_column='locationid',
-        max_length=30, primary_key=True)
+                          max_length=30, primary_key=True)
     description = VarcharField(db_column='descr')
+    data = hstore.DictionaryField()
+    objects = hstore.HStoreManager()
 
     class Meta:
         db_table = 'location'
@@ -1219,6 +1251,10 @@ class Interface(models.Model):
         return self.swportvlan_set.select_related('vlan').order_by(
             'vlan__vlan')
 
+    def is_on_maintenace(self):
+        """Returns True if the owning Netbox is on maintenance"""
+        return self.netbox.is_on_maintenance()
+
 
 class InterfaceStack(models.Model):
     """Interface layered stacking relationships"""
@@ -1384,6 +1420,11 @@ class PowerSupplyOrFan(models.Model):
         return self.netbox.get_unresolved_alerts().filter(
             event_type__id__in=['psuState', 'fanState'],
             subid=self.id)
+
+    def is_on_maintenace(self):
+        """Returns True if the owning Netbox is on maintenance"""
+        return self.netbox.is_on_maintenance()
+
 
 class UnrecognizedNeighbor(models.Model):
     id = models.AutoField(primary_key=True)

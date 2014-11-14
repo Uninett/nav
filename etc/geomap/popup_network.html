@@ -23,9 +23,13 @@
             <a href="{% url ipdevinfo-details-by-name sub.local_sysname %}"
                target="_blank"
                title="View device details">{{ sub.local_sysname }}</a>
+            {% if sub.local_interface %}
             <a href="{% url ipdevinfo-interface-details-by-name sub.local_sysname sub.local_interface %}"
                target="_blank"
                title="View interface details">{{ sub.local_interface }}</a>
+            {% else %}
+              N/A
+            {% endif %}
         </td>
     </tr>
     <tr>
@@ -34,9 +38,13 @@
             <a href="{% url ipdevinfo-details-by-name sub.remote_sysname %}"
                target="_blank"
                title="View device details">{{ sub.remote_sysname }}</a>
+            {% if sub.remote_interface %}
             <a href="{% url ipdevinfo-interface-details-by-name sub.remote_sysname sub.remote_interface %}"
                target="_blank"
                title="View interface details">{{ sub.remote_interface }}</a>
+            {% else %}
+              N/A
+            {% endif %}
         </td>
     </tr>
     <tr><th>Capacity</th>     <td>{{ sub.capacity|floatformat:0 }} Mbps</td></tr>

@@ -18,9 +18,10 @@
 from datetime import datetime
 from socket import gethostbyaddr, herror
 from IPy import IP
+from collections import namedtuple
 
 from nav import asyncdns
-from nav.models.manage import Prefix
+from nav.models.manage import Prefix, Netbox, Interface
 from nav.ipdevpoll.db import commit_on_success
 
 from django.utils.datastructures import SortedDict
@@ -80,8 +81,11 @@ def get_last_job_log_from_netboxes(rows, job_type):
     """
     netboxes_job = dict((row.netbox, None) for row in rows if row.netbox)
     for netbox in netboxes_job:
-        netboxes_job[netbox] = netbox.job_log.filter(
-            job_name=job_type).order_by('-end_time')[0]
+        try:
+            netboxes_job[netbox] = netbox.job_log.filter(
+                job_name=job_type).order_by('-end_time')[0]
+        except IndexError:
+            pass
     return netboxes_job
 
 
@@ -200,9 +204,9 @@ class ProcessInput:
         if self.input.get('prefixid', False):
             self.__prefix()
         self.__common()
-        if not (self.input.get('active', False)
-                or self.input.get('inactive', False)):
-            self.input['active'] = "on"
+        if not self.input.get('period_filter'):
+            self.input['period_filter'] = 'active'
+
         return self.input
 
     def mac(self):
@@ -219,3 +223,34 @@ class ProcessInput:
         """Populates the GET dict with formatted values for a netbios search"""
         self.__common()
         return self.input
+
+
+UplinkTuple = namedtuple('UplinkTuple', 'mac sysname uplink')
+
+
+class UplinkTracker(list):
+    def __init__(self, mac_min, mac_max):
+        boxes = Netbox.objects.extra(
+            select={'mac': 'netboxmac.mac'},
+            tables=['netboxmac'],
+            where=['netboxmac.netboxid=netbox.netboxid',
+                   'netboxmac.mac BETWEEN %s AND %s'],
+            params=[mac_min, mac_max],
+        ).order_by('mac', 'sysname')
+
+        for box in boxes:
+            uplinks = box.get_uplinks()
+            if uplinks:
+                for link in uplinks:
+                    self.append(UplinkTuple(box.mac, box.sysname, link))
+            else:
+                self.append(UplinkTuple(box.mac, box.sysname, None))
+
+
+class InterfaceTracker(list):
+    def __init__(self, mac_min, mac_max):
+        ifcs = Interface.objects.select_related('netbox').extra(
+            where=['ifphysaddress BETWEEN %s AND %s'],
+            params=[mac_min, mac_max]
+        ).order_by('ifphysaddress', 'netbox__sysname')
+        self.extend(ifcs)

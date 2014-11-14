@@ -79,9 +79,10 @@ def calendar(request, year=None, month=None):
 
     prev_month_start = date(prev_year, prev_month, 1)
     next_month_start = date(next_year, next_month, 1)
-    tasks = MaintenanceTask.objects.filter(start_time__gt=this_month_start
-        ).filter(start_time__lt=next_month_start
-        ).exclude(state=MaintenanceTask.STATE_CANCELED).order_by('start_time')
+    tasks = MaintenanceTask.objects.filter(
+        start_time__lt=next_month_start,
+        end_time__gt=this_month_start
+    ).exclude(state=MaintenanceTask.STATE_CANCELED).order_by('start_time')
     cal = MaintenanceCalendar(tasks).formatmonth(year, month)
     return render_to_response(
         'maintenance/calendar.html',
@@ -140,7 +141,7 @@ def active(request):
 
 
 def planned(request):
-    heading = "Planned tasks"
+    heading = "Scheduled tasks"
     tasks = MaintenanceTask.objects.filter(
         start_time__gt=datetime.now(),
         end_time__gt=datetime.now(),
@@ -162,7 +163,7 @@ def planned(request):
 
 
 def historic(request):
-    heading = "Historic tasks"
+    heading = "Archived tasks"
     tasks = MaintenanceTask.objects.filter(
         Q(end_time__lt=datetime.now()) |
         Q(state__in=(MaintenanceTask.STATE_CANCELED,

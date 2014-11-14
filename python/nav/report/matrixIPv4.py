@@ -264,7 +264,7 @@ class MatrixIPv4(Matrix):
 def _supernet_matrixlink(ip):
     meta = metaIP.MetaIP(ip)
     url = reverse(
-        'machinetracker-prefixid_search',
+        'machinetracker-prefixid_search_active',
         kwargs={'prefix_id': meta.prefixid})
     return '<a href="{0}" title="{1}/{2}">({3}%)</a>'.format(
         url,
@@ -279,7 +279,7 @@ def _matrixlink(nybble, ip):
         'report-prefix-prefix',
         kwargs={'prefix_id': meta.prefixid})
     machinetracker_url = reverse(
-        'machinetracker-prefixid_search',
+        'machinetracker-prefixid_search_active',
         kwargs={'prefix_id': meta.prefixid})
 
     return """

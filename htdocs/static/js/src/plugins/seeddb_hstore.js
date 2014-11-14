@@ -54,14 +54,16 @@ function (hstore_container_source, hstore_row_source) {
             return objs;
         },
         'createAddButton': function () {
-            var that = this;
-            return $('<button>').text('Add row').addClass('small secondary').on('click', function (event) {
-                event.preventDefault();
+            var that = this,
+                button = $('<a class="button small secondary" href="javascript:void(0);">Add row</a>');
+
+            button.on('click', function () {
                 that.addRow();
             });
+            return button;
         },
         'addDeleteListener': function () {
-            this.hstore_container.on('click', '.button.alert', function (event) {
+            this.hstore_container.on('click', '.button.remove-hstore-row', function (event) {
                 $($(event.target).parents('.row')[0]).remove();
             });
         },

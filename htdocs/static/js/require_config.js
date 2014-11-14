@@ -9,7 +9,8 @@ var require = {
         "plugins": "src/plugins",
         "dt_plugins": "src/dt_plugins",
         "info": "src/info",
-        "netmap": "src/netmap"
+        "netmap": "src/netmap",
+        "status": "src/status2"
     },
     shim: {
         'libs/foundation.min': ['libs/jquery', 'libs/modernizr', 'libs/fastclick'],

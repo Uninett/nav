@@ -126,8 +126,16 @@ define(['libs/jquery', 'libs/spin.min'], function () {
                 headRequest.done(function (data, status, xhr) {
                     var proxyUrl = xhr.getResponseHeader('X-Where-Am-I');
                     if (proxyUrl) {
-                        $.post(NAV.addGraphWidgetUrl, {'url': proxyUrl}, function () {
+                        var request = $.post(NAV.addGraphWidgetUrl,
+                            {
+                                'url': proxyUrl,
+                                'target': window.location.pathname + window.location.hash
+                            });
+                        request.done(function () {
                             button.removeClass('secondary').addClass('success');
+                        });
+                        request.fail(function () {
+                            button.removeClass('secondary').addClass('alert');
                         });
                     }
                 });

@@ -52,7 +52,7 @@ class Service(models.Model):
         ordering = ('handler',)
 
     def __unicode__(self):
-        return u'%s, at %s' % (self.handler, self.netbox)
+        return u'service %s at %s' % (self.handler, self.netbox)
 
     def get_statistics(self):
         args = (self.netbox.sysname, self.handler, self.id)
@@ -82,6 +82,28 @@ class Service(models.Model):
             result['response_time'][time_frame] = avg.get(rtime_id, None)
 
         return result
+
+    def is_on_maintenance(self):
+        """Returns True if this service is currently on maintenance"""
+        states = self.netbox.get_unresolved_alerts('maintenanceState').filter(
+            variables__variable='service', subid=self.id)
+        return states.count() > 0
+
+    def last_downtime_ended(self):
+        """
+        Returns the end_time of the last known serviceState alert.
+
+        :returns: A datetime object if a serviceState alert was found,
+                  otherwise None
+        """
+        try:
+            lastdown = self.netbox.alerthistory_set.filter(
+                event_type__id='serviceState', end_time__isnull=False
+            ).order_by("-end_time")[0]
+        except IndexError:
+            return
+        else:
+            return lastdown.end_time
 
 
 class ServiceProperty(models.Model):

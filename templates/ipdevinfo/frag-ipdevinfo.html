@@ -166,7 +166,6 @@
     </table>
   </div>
 
-
   {% comment %} STATUS {% endcomment %}
   <div class="medium-6 column">
     <table class="vertitable full-width">
@@ -262,6 +261,25 @@
 
       </tbody>
     </table>
+
+
+    {# Custom key value fields #}
+    {% if netbox.data %}
+      <table class="listtable full-width">
+        <caption>Custom data</caption>
+
+        <tbody>
+          {% for key, value in netbox.data.items %}
+            <tr>
+              <td>{{ key }}</td>
+              <td>{{ value }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+    {% endif %}
+
 
     {% with netbox.get_last_jobs as jobs %}
     {% if jobs %}

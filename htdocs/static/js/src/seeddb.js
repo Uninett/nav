@@ -2,11 +2,14 @@ require([
     'plugins/checkbox_selector',
     'plugins/quickselect',
     'plugins/seeddb_hstore',
+    'plugins/netbox_connectivity_checker',
+    'libs/spin',
     'libs/jquery',
     'libs/jquery.dataTables.min',
     'libs/OpenLayers',
     'libs/modernizr',
-    'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect, FormFuck) {
+    'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect, FormFuck,
+                                        ConnectivityChecker) {
 
     var tableWrapper = '#tablewrapper',
         tableSelector = '#seeddb-content';
@@ -53,6 +56,11 @@ require([
         if ($textarea.length) {
             new FormFuck($textarea);
         }
+
+        // The connectivity checker
+        ConnectivityChecker();
+        verifyAddress();
+
     }
 
     /* Internet Explorer caching leads to onload event firing before script
@@ -63,6 +71,7 @@ require([
     } else {
         $(window).load(executeOnLoad);
     }
+
 
     function initMap() {
         OpenLayers.ImgPath = NAV.imagePath + '/openlayers/';
@@ -300,6 +309,60 @@ require([
                 localStorage.setItem(key, newValue);
             });
         }
+    }
+
+    function verifyAddress() {
+        var $form = $('#seeddb-netbox-form'),
+            $addressField = $('#id_ip'),
+            $feedbackElement = $('#verify-address-feedback');
+
+        var $alertBox = $('<div class="alert-box alert"></div>'),
+            $feedback = $('<span>'),
+            $label = $('<label>').text('Please choose an IP address'),
+            $list = $('<select>');
+
+        $feedbackElement.hide();
+        $feedbackElement.append($alertBox);
+        $alertBox.append($feedback).append($label);
+        $label.append($list);
+
+
+        $list.on('change', function () {
+            $addressField.val($list.val());
+        });
+
+        $form.on('submit', function (event, validated) {
+            console.log(event, validated);
+            var address = $addressField.val();
+
+            if (!validated && address) {
+                event.preventDefault();
+                $feedbackElement.hide();
+                $list.empty();
+                $list.append($('<option value="">---------</option>'));
+
+                var request = $.getJSON(NAV.urls.seeddb.verifyAddress, {'address': address});
+                request.done(function (data) {
+                    console.log(data);
+                    var addresses = data.addresses;
+                    if (addresses && addresses.length > 1) {
+                        displayIPChooser(address, addresses);
+                    } else {
+                        $form.trigger('submit', true);
+                    }
+                });
+            }
+        });
+
+        function displayIPChooser(address, addresses) {
+            $feedback.html('The hostname &quot;' + address + '&quot; resolves to multiple IP addresses.');
+            for (var i = 0; i < addresses.length; i++) {
+                var obj = addresses[i];
+                $list.append($('<option value="'+obj+'">'+obj+'</option>'));
+            }
+            $feedbackElement.show();
+        }
+
     }
 
 });

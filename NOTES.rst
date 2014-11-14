@@ -20,6 +20,23 @@ devices to be bombarded with requests from NAV.  The `contrib/patches`
 directory contains a patch for TwistedSNMP that solves this problem.  The
 patch has been submitted upstream, but not yet accepted into a new release.
 
+NAV 4.2
+========
+
+To see the overview of scheduled features and reported bugs on the 4.2 series
+of NAV, please go to https://launchpad.net/nav/4.2 .
+
+
+Graphite storage schema changes
+-------------------------------
+
+Be aware that the example Graphite storage schema
+:file:`etc/nav/graphite/storage-schema.conf` has added a section for multicast
+statistics, as support for producing IGMP membership statistics from HP
+switches has been added. Be sure to update your running Carbon configuration.
+
+
+
 NAV 4.1
 ========
 

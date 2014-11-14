@@ -44,10 +44,10 @@ disable=W0142,W0232,R0924,R0903
 
 # Set the output format. Available formats are text, parseable, colorized, msvs
 # (visual studio) and html
-output-format=parseable
+output-format=colorized
 
 # Include message's id in output
-include-ids=yes
+#include-ids=no
 
 # Put messages in a separate file for each module / package specified on the
 # command line instead of printing them on stdout. Reports (if any) will be

@@ -140,22 +140,19 @@ def delete_unused_vlans():
 
 @with_exception_logging
 def delete_unused_prefixes():
-    """Deletes prefixes unassociated with any active vlan or router port.
-
-    The prefix records are deleted using raw SQL because Django's emulated
-    cascading deletes are freaking suboptimal.
-
     """
-    holy_vlans = Q(net_type__in=('scope', 'reserved'))
-    vlans_in_swports = Q(swportvlan__isnull=False)
-    vlans_in_use = Vlan.objects.filter(holy_vlans | vlans_in_swports)
-
+    Deletes prefixes that are unassociated with any router port and were not
+    manually entered into NAV.
+    """
+    holy_vlans = Q(vlan__net_type__in=('scope', 'reserved'))
     unused_prefixes = Prefix.objects.filter(
-        gwportprefix__isnull=True).exclude(vlan__in=vlans_in_use)
+        gwportprefix__isnull=True).exclude(holy_vlans)
+
     if unused_prefixes:
         _logger.info("deleting unused prefixes: %s",
                      ", ".join(p.net_address for p in unused_prefixes))
         cursor = django.db.connection.cursor()
+        # Use raw SQL to avoid Django's emulated cascading deletes
         cursor.execute('DELETE FROM prefix WHERE prefixid IN %s',
                        (tuple([p.id for p in unused_prefixes]), ))
 

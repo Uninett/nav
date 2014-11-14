@@ -5,7 +5,7 @@ if [ ! -n "$1" ]; then
 fi
 
 WORKSPACE=$1
-JSDIR="${WORKSPACE}/htdocs/static/js"
+JSDIR="htdocs/static/js"
 
 
 NPM=`which npm`
@@ -15,7 +15,9 @@ npm cache clean
 npm install --optional
 
 echo "Running jshint"
+cd "${WORKSPACE}"
 JAVASCRIPT_FILES=( $(find ${JSDIR}/src -iname "*.js" -print) )
+
 jshint() {
     local JSHINTDIR=${JSDIR}/node_modules/jshint/bin
     for cmd in hint jshint; do
@@ -33,7 +35,7 @@ jshint --config ${JSDIR}/.jshintrc ${JAVASCRIPT_FILES[@]} --jslint-reporter > ${
 
 echo "Running tests"
 cd ${JSDIR}
-${JSDIR}/node_modules/.bin/karma start test/karma.conf.buildserver.js
+./node_modules/.bin/karma start test/karma.conf.buildserver.js
 
 if [ "$?" -eq 1 ]; then
     echo "Error when testing, taking screenshot"

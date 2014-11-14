@@ -16,6 +16,7 @@
 """Template tags specifically tailored for sensor manipulation"""
 
 from django import template
+from nav.models.manage import Sensor
 
 register = template.Library()
 
@@ -35,7 +36,10 @@ def get_sensor(netbox, internal_name):
     :param internal_name: filter based on internal name
     :type internal_name: basestring
     """
-    return netbox.sensor_set.get(internal_name__icontains=internal_name)
+    try:
+        return netbox.sensor_set.get(internal_name__icontains=internal_name)
+    except Sensor.DoesNotExist:
+        return Sensor.objects.none()
 
 
 @register.filter

@@ -37,6 +37,7 @@ from nav.mibs.lldp_mib import IdSubtypes
 from nav.ipdevpoll.log import ContextLogger
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll.db import autocommit
+from nav.ipdevpoll.utils import is_invalid_utf8
 
 HSRP_MAC_PREFIXES = ('00:00:0c:07:ac',)
 VRRP_MAC_PREFIXES = ('00:00:5e:00:01', '00:00:5e:00:02') # RFC5798
@@ -201,6 +202,11 @@ class Neighbor(object):
 
         """
         if not (self.netbox and name):
+            return
+
+        if is_invalid_utf8(name):
+            self._logger.warn("cannot search database for malformed "
+                              "neighboring port name %r", name)
             return
 
         queries = [Q(ifdescr=name), Q(ifname=name), Q(ifalias=name)]
