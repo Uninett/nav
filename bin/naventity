@@ -1,0 +1,179 @@
+#!/usr/bin/env python
+#
+# Copyright (C) 2014 UNINETT
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
+"""
+A command line program to output an entity hierarchy graph from a device's
+ENTITY-MIB::entPhysicalTable.
+"""
+import sys
+import argparse
+
+import networkx
+
+from nav.asciitree import draw_tree
+from nav.util import is_valid_ip
+from nav.ipdevpoll.snmp.common import snmp_parameter_factory, SnmpError
+from nav.ipdevpoll.snmp import AgentProxy, snmpprotocol
+from nav.mibs.entity_mib import EntityMib
+from nav.models.manage import Netbox
+
+from twisted.internet import reactor, defer
+
+_exit_code = 0
+
+
+def main():
+    """Main program"""
+    options = parse_args()
+
+    if options.device:
+        reactor.callWhenRunning(reactor_main, options.device)
+        reactor.run()
+        sys.exit(_exit_code)
+
+
+def reactor_main(box):
+    """The main function to start in the event reactor"""
+    header = "{sysname} ({ip})".format(**vars(box))
+    print header
+    print "-" * len(header)
+    df = collect_entities(box).addErrback(failure_handler)
+    df.addCallback(make_graph, box)
+    df.addCallback(print_graph)
+    df.addBoth(endit)
+    return df
+
+@defer.inlineCallbacks
+def collect_entities(netbox):
+    """Collects the entPhysicalTable"""
+    agent = _create_agentproxy(netbox)
+    if not agent:
+        defer.returnValue(None)
+
+    mib = EntityMib(agent)
+    result = yield mib.get_entity_physical_table()
+    defer.returnValue(result)
+
+
+def make_graph(entities, netbox):
+    """Makes a NetworkX DiGraph from the entPhysicalTable result"""
+    graph = networkx.DiGraph(name="%s entPhysicalTable" % netbox)
+    for index, entity in entities.iteritems():
+        container = entity.get('entPhysicalContainedIn', None)
+        if container and container in entities:
+            graph.add_edge(index, container)
+        graph.add_node(index, entity)
+    return graph
+
+
+def print_graph(graph):
+    """Prints an ASCII representation of a NetworkX DiGraph tree to stdout"""
+    def _label(node):
+        ent = graph.node[node]
+        labels = [ent.get('entPhysicalName'),
+                  "[%s]" % ent.get('entPhysicalClass')]
+        serial = ent.get('entPhysicalSerialNum', None)
+        if serial:
+            labels.append('(%s)' % serial)
+        return " ".join(labels)
+
+    roots = [n for n, d in graph.out_degree_iter() if d == 0]
+    for root in roots:
+        print draw_tree(root,
+                        lambda n: [u for u, v in graph.in_edges_iter(n)],
+                        _label)
+    return graph
+
+
+def failure_handler(failure):
+    """Sets a non-zero exit code on failures"""
+    global _exit_code
+    _exit_code = 1
+    return failure
+
+
+def endit(result):
+    """Stops the reactor"""
+    reactor.stop()
+    return result
+
+
+def parse_args():
+    """Builds an OptionParser and returns parsed program arguments"""
+    parser = argparse.ArgumentParser(
+        description=
+        "Outputs entity hierarchy graph from a device's "
+        "ENTITY-MIB::entPhysicalTable response",
+        usage="%(prog)s device",
+    )
+    parser.add_argument('device', type=device, help=
+                        "The NAV-monitored IP device to query. Must be either "
+                        "a sysname prefix or an IP address.")
+    return parser.parse_args()
+
+
+def device(devicestring):
+    """Converts a device specification string into a Netbox object"""
+    netbox = None
+    ip = is_valid_ip(devicestring)
+    if ip:
+        try:
+            netbox = Netbox.objects.get(ip=ip)
+        except Netbox.DoesNotExist:
+            pass
+
+    if not netbox:
+        netbox = Netbox.objects.filter(sysname__startswith=devicestring)
+        if len(netbox) > 1:
+            msg = "%s matches multiple IP devices: %s" % (
+                devicestring, ", ".join(box for box in netbox))
+            raise argparse.ArgumentTypeError(msg)
+        elif len(netbox) == 0:
+            msg = "No match found for %s" % devicestring
+            raise argparse.ArgumentTypeError(msg)
+        else:
+            netbox = netbox[0]
+
+    if not netbox.read_only:
+        msg = "No SNMP community set for %s" % netbox
+        raise argparse.ArgumentTypeError(msg)
+
+    return netbox
+
+
+def _create_agentproxy(netbox):
+    if not netbox.read_only:
+        return
+
+    port = snmpprotocol.port()
+    agent = AgentProxy(
+        netbox.ip, 161,
+        community=netbox.read_only,
+        snmpVersion='v%s' % netbox.snmp_version,
+        protocol=port.protocol,
+        snmp_parameters=snmp_parameter_factory(netbox)
+    )
+    try:
+        agent.open()
+    except SnmpError:
+        agent.close()
+        raise
+    else:
+        return agent
+
+
+if __name__ == '__main__':
+    main()
