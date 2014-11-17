@@ -26,15 +26,84 @@ NAV 4.2
 To see the overview of scheduled features and reported bugs on the 4.2 series
 of NAV, please go to https://launchpad.net/nav/4.2 .
 
+Dependency changes
+------------------
+
+There are none :-)
+
+Multicast listener stats from IGMP snooping
+-------------------------------------------
+
+NAV 4.2 will use HP's STATISTICS-MIB to sum up the number of known multicast
+group subscribers per HP switch (i.e. from each switch's IGMP snooping data).
+Each multicast group address seen is logged to Graphite under the
+`nav.multicast` hierarchy.
+
+We wanted to support similar functionality for Cisco devices, but it seems
+support for Cisco's own proprietary CISCO-IGMP-SNOOPING-MIB is very poor among
+Cisco switches.
+
 
 Graphite storage schema changes
 -------------------------------
 
 Be aware that the example Graphite storage schema
 :file:`etc/nav/graphite/storage-schema.conf` has added a section for multicast
-statistics, as support for producing IGMP membership statistics from HP
-switches has been added. Be sure to update your running Carbon configuration.
+statistics. Be sure to update your running Carbon configuration.
 
+Rewritten Status tool
+---------------------
+
+The Status tool has been rewritten from scratch.
+
+The old Status tool hardcoded table listings for specific alert types, and not
+all alert types were supported - meaning some alerts were never actually
+displayed in the Status tool. This also made it very difficult to dynamically
+add new alert types from plugins or third party software, without modifying
+the Status tool code.
+
+The new tool offers an in-page status filtering form, which can also be saved
+as your personal status page filter preference.
+
+Any filter configuration can also be saved as a new front-page status filter,
+meaning you can have multiple status widgets, each with a different
+configuration. When modifying the default/anonymous user's front page widgets,
+this means you can also decide which types of alerts, if any, will be
+displayed to unauthenticated users.
+
+Alert acknowledgement
+~~~~~~~~~~~~~~~~~~~~~
+
+With the new Status tool comes the ability to acknowledge open alerts, with
+comments. An acknowledged alert is not displayed under the default Status tool
+filter configuration (but can be added by checking the "Acknowledged"
+checkbox).
+
+Stateless alerts
+~~~~~~~~~~~~~~~~
+
+The Status tool normally displays stateful alerts, i.e. states that have a
+starting time and, eventually, an ending time. The can be actual problems, or
+more information states, such as a device being on scheduled maintenance.
+
+However, NAV will at times also issue stateless alerts (warnings). Before,
+these were normally only accessible in the Device History tool, and through
+alert subscriptions in Alert Profiles.
+
+The Status page tool can now be configured to include recent stateless alerts,
+within a set threshold (the default is 24 hours). The default is still to
+leave them out.
+
+
+Netmap redesign
+---------------
+
+There was never time to clean up the Netmap tool's complicated user interface
+during the design changes released in NAV 4.0. This has now been rectified.
+
+The map portion of the page has been given more space, and the view options
+are now contained in a hideable panel above the map. Your saved views should
+still work.
 
 
 NAV 4.1

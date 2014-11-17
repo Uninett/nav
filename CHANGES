@@ -1,3 +1,24 @@
+Version 4.2.0
+(released 20 Nov 2014)
+
+ User-visible features and improvements:
+
+  * LP#1063703 (The status page is becoming cluttered and should be redesigned)
+  * LP#1374384 (Adding new devices to a room on maintenance does not put those
+                devices on maintenance)
+  * LP#1383624 (Machine Tracker should search uplink data as well)
+  * LP#1383625 (Machine Tracker MAC search should also search physical port
+                addresses)
+  * LP#1384262 (Add unrecognized neighbor search to navbar)
+  * LP#1388078 (Add IGMP Multicast group usage statistics to NAV)
+  * LP#1389226 (Arbitrary attributes on netbox and location)
+  * LP#1390073 (Add support for AKCP sensorProbe8)
+
+ Other, less visible, improvements:
+
+  * LP#1388835 (Maintenance Engine needs a rewrite)
+
+
 Version 4.1.2
 (released 30 Oct 2014)
 
