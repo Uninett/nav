@@ -153,7 +153,7 @@ def get_navlet_from_name(navletmodule):
         module = __import__(navletmodule[:navletmodule.rfind('.')],
                             fromlist=[lastmod])
         cls = getattr(module, clsname)
-    except AttributeError:
+    except (AttributeError, ImportError):
         _logger.error('Could not import %s', navletmodule)
     else:
         return cls
@@ -176,6 +176,10 @@ def create_navlet_object(usernavlet):
     url = reverse('get-user-navlet', kwargs={'navlet_id': usernavlet.id})
     navlet_module = usernavlet.navlet
     navlet_class = get_navlet_from_name(navlet_module)
+    if not navlet_class:
+        # Happens if widget is removed from NAV code
+        navlet_module = 'nav.web.navlets.error.ErrorWidget'
+        navlet_class = get_navlet_from_name(navlet_module)
     highlight = navlet_class.highlight
     is_title_editable = navlet_class.is_title_editable
     image_reload = navlet_class.image_reload
@@ -207,6 +211,8 @@ def dispatcher(request, navlet_id):
         return HttpResponse(status=404)
     else:
         cls = get_navlet_from_name(account_navlet.navlet)
+        if not cls:
+            cls = get_navlet_from_name('nav.web.navlets.error.ErrorWidget')
         view = cls.as_view(preferences=account_navlet.preferences,
                            navlet_id=navlet_id)
         return view(request)
