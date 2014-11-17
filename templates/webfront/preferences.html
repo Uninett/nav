@@ -17,7 +17,6 @@
     {% for m in current_user_data.messages %}
         <div class="alert-box {{ m.type }}">{{ m.message }}</div>
     {% endfor %}
-    <a href="{% url status-preferences %}" class="button primary small">Status preferences</a>
 
     <div class="row">
         <div class="column medium-6 large-5">

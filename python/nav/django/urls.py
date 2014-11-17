@@ -25,8 +25,8 @@ from nav.web.webfront.urls import urlpatterns
 from nav.web.styleguide import styleguide_index
 
 urlpatterns += patterns('',
-    (r'^status/', include('nav.web.status.urls')),
-    (r'^status2/', include('nav.web.status2.urls')),
+    (r'^status-old/', include('nav.web.status.urls')),
+    (r'^status/', include('nav.web.status2.urls')),
     (r'^ajax/', include('nav.web.ajax.urls')),
     (r'^alertprofiles/', include('nav.web.alertprofiles.urls')),
     (r'^api/', include('nav.web.api.urls', namespace='api')),
