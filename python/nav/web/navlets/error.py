@@ -22,6 +22,7 @@ class ErrorWidget(Navlet):
 
     title = "Error"
     description = "Jau"
+    can_be_added = False
 
     def get_template_basename(self):
         return "error"

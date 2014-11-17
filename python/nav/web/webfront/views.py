@@ -36,7 +36,7 @@ from nav.models.profiles import (Account, NavbarLink,
 from nav.web import ldapauth, auth
 from nav.web.webfront.utils import quick_read, tool_list
 from nav.web.webfront.forms import LoginForm, NavbarlinkForm, NavbarLinkFormSet, ChangePasswordForm
-from nav.web.navlets import get_navlets
+from nav.web.navlets import list_navlets
 from nav.web.message import new_message, Messages
 
 _logger = logging.getLogger('nav.web.tools')
@@ -61,7 +61,7 @@ def index(request):
             'navpath': [('Home', '/')],
             'date_now': datetime.today(),
             'welcome': welcome,
-            'navlets': get_navlets(),
+            'navlets': list_navlets(),
             'title': 'Welcome to NAV',
         }
     )
