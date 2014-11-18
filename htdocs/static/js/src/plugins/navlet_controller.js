@@ -146,7 +146,7 @@ define(['libs/jquery', 'libs/spin.min'], function () {
             this.applyRemoveListener();
 //            this.applyReloadListener();
             this.applySubmitListener();
-            if (this.navlet.is_title_editable) {
+            if (this.navlet.is_title_editable && this.node.find('.subheader[data-set-title]').get(0)) {
                 this.applyTitleListener();
             }
             this.applyOnRenderedListener();

@@ -36,10 +36,16 @@
 
     <div class="title-container">
       <span class="subheader" title="{{ navlet.description }}"
-            {% if navlet.is_title_editable %}data-set-title="{% url set-navlet-preferences %}"{% endif %}>
+        {% if navlet.is_title_editable %}
+          {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
+              data-set-title="{% url set-navlet-preferences %}"
+          {% endif %}
+        {% endif %}>
         <span class="navlet-title">{{ navlet.title }}</span>
           {% if navlet.is_title_editable %}
-            <i class="fa fa-edit"></i>
+            {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
+              <i class="fa fa-edit"></i>
+            {% endif %}
           {% endif %}
       </span>
     </div>
