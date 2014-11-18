@@ -94,6 +94,24 @@ The Status page tool can now be configured to include recent stateless alerts,
 within a set threshold (the default is 24 hours). The default is still to
 leave them out.
 
+New status widget
+~~~~~~~~~~~~~~~~~
+
+A widget version of the new Status tool is also introduced. Users who have the
+old Status widget on their NAV front pages will see a warning that the old
+widget has been deprecated.
+
+By default, the Status widget is included on the front page of anonymous
+users. If you are upgrading from an older NAV version, anonymous users will
+see the deprecation warning when visiting NAV. Don't forget to reconfigure the
+front page contents of the `default` user.
+
+.. TIP:: This is achieved by opening the User Admininstration tool, selecting
+         the *default* user and clicking the button :guilabel:`Operate as this
+         user`. Configure the widgets on the front page to your liking and
+         click :guilabel:`Log back in as ...`.
+
+
 
 Netmap redesign
 ---------------
