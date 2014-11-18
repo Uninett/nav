@@ -29,6 +29,7 @@
     &.alert { @include alert-style($alert-box-bg, $alert-box-color, $alert-box-border); }
     &.error { @include alert-style($alert-box-bg, $alert-box-color, $alert-box-border); }
     &.secondary { @include alert-style($info-box-bg, $info-box-color, $info-box-border); }
+    &.warning { @include alert-style($warning-box-bg, $warning-box-color, $warning-box-border); }
   }
 
 // Adds class for marking a button as active.
