@@ -37,7 +37,10 @@
   </table>
 
   {% else %}
-    <p class="alert-box success">According to your criteria, everything seems ok</p>
+    <div class="alert-box success">
+      <i class="fa fa-check-circle fa-lg"></i>&nbsp;
+      According to your criteria, everything seems ok
+    </div>
     <a href="{% url status2-index %}" title="Go to the status page">Go to the status page</a>
 
   {% endif %}
