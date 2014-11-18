@@ -7,7 +7,8 @@
   <table class="listtable status2table expand">
     <caption>
       <a href="{% url status2-index %}" title="Go to the status page">Status now</a>
-      <span class="last-updated pull-right">{{ last_updated }}</span></caption>
+      <span class="last-updated right">{{ last_updated }}</span>
+    </caption>
     <thead>
     <tr>
       <th>Subject</th>
@@ -38,10 +39,11 @@
 
   {% else %}
     <div class="alert-box success">
-      <i class="fa fa-check-circle fa-lg"></i>&nbsp;
       According to your criteria, everything seems ok
     </div>
+
     <a href="{% url status2-index %}" title="Go to the status page">Go to the status page</a>
+    <small class="last-updated right">Last updated: {{ last_updated }}</small>
 
   {% endif %}
 
