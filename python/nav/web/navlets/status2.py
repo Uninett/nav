@@ -44,7 +44,7 @@ class Status2Widget(Navlet):
         context = super(Status2Widget, self).get_context_data(**kwargs)
         navlet = AccountNavlet.objects.get(pk=self.navlet_id)
         status_filter = navlet.preferences.get('status_filter')
-        self.title = navlet.preferences.get('title', 'Status2')
+        self.title = navlet.preferences.get('title', 'Status')
 
         if self.mode == NAVLET_MODE_EDIT:
             if status_filter:
