@@ -44,6 +44,14 @@
       </span>
     </div>
 
+    {% if navlet.is_deprecated %}
+      <div class="alert-box warning deprecated-warning">
+        <i class="fa fa-warning fa-lg"></i>&nbsp;
+        This widget is deprecated. You may still use it, but it might not
+        function properly.
+      </div>
+    {% endif %}
+
   </div>
 </div>
 

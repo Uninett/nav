@@ -3,10 +3,12 @@
 
 // Override mixin to handle new parameters for font color and border
 @mixin alert-style($bg:$info-box-bg, $color:$info-box-color, $border:$info-box-border) {
+    position: relative;
 	background-color: $bg;
 	color: $color;
 	border-color: $border;
 	font-weight:400;
+    line-height: 1.5em;
 }
 
 // Override this mixin to default to secondary colors on alert-box
@@ -14,6 +16,16 @@
   @include alert-base;
   @include alert-style();
   @include radius($radius);
+}
+
+@mixin alert-icon($icon) {
+    &.with-icon:before {
+        content: $icon;
+        font-family: FontAwesome;
+        font-size: 1.5em;
+        margin-right: 0.5em;
+        vertical-align: middle;
+    }
 }
 
 // Main configuration for alert-box class
@@ -25,10 +37,27 @@
     &.radius { @include radius($alert-radius); }
     &.round { @include radius($global-rounded); }
 
-    &.success { @include alert-style($success-box-bg, $success-box-color, $success-box-border); }
-    &.alert { @include alert-style($alert-box-bg, $alert-box-color, $alert-box-border); }
-    &.error { @include alert-style($alert-box-bg, $alert-box-color, $alert-box-border); }
+    &.success {
+        @include alert-style($success-box-bg, $success-box-color, $success-box-border);
+        @include alert-icon("\f058");
+    }
+    &.alert {
+        @include alert-style($alert-box-bg, $alert-box-color, $alert-box-border);
+        @include alert-icon("\f057");
+    }
+    &.error {
+        @include alert-style($alert-box-bg, $alert-box-color, $alert-box-border);
+        @include alert-icon("\f057");
+    }
     &.secondary { @include alert-style($info-box-bg, $info-box-color, $info-box-border); }
+    &.info {
+        @include alert-style($info-box-bg, $info-box-color, $info-box-border);
+        @include alert-icon("\f05a");
+    }
+    &.warning {
+        @include alert-style($warning-box-bg, $warning-box-color, $warning-box-border);
+        @include alert-icon("\f071");
+    }
   }
 
 // Adds class for marking a button as active.

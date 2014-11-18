@@ -31,7 +31,7 @@ from . import Navlet, NAVLET_MODE_EDIT, NAVLET_MODE_VIEW
 class Status2Widget(Navlet):
     """Widget for displaying status"""
 
-    title = "Status2"
+    title = "Status"
     description = "Shows status for your ip-devices and services"
     refresh_interval = 1000 * 60 * 10  # Refresh every 10 minutes
     is_editable = True
@@ -44,7 +44,7 @@ class Status2Widget(Navlet):
         context = super(Status2Widget, self).get_context_data(**kwargs)
         navlet = AccountNavlet.objects.get(pk=self.navlet_id)
         status_filter = navlet.preferences.get('status_filter')
-        self.title = navlet.preferences.get('title', 'Status2')
+        self.title = navlet.preferences.get('title', 'Status')
 
         if self.mode == NAVLET_MODE_EDIT:
             if status_filter:

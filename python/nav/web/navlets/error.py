@@ -13,19 +13,16 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Controllers for the getting started widget"""
+"""Replacement widget for when we can not find the widget class"""
 
 from . import Navlet
 
 
-class GettingStartedWidget(Navlet):
-    """Getting Started widget"""
+class ErrorWidget(Navlet):
 
-    title = 'Getting started with NAV'
-    description = 'Displays a tour and information for new users'
+    title = "Error"
+    description = "Jau"
     can_be_added = False
 
     def get_template_basename(self):
-        return 'getting_started'
-
-
+        return "error"

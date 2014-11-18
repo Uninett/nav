@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms for the status page"""
+from collections import defaultdict
 from operator import itemgetter
 
 from django import forms
@@ -21,7 +22,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit
 
 from . import STATELESS_THRESHOLD
-from nav.models.event import EventType
+from nav.models.event import EventType, AlertType
 from nav.models.manage import Organization, Category
 from nav.web.crispyforms import NumberField
 
@@ -41,13 +42,15 @@ class StatusPanelForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(StatusPanelForm, self).__init__(*args, **kwargs)
 
+        alert_types = get_alert_types()
+
         self.fields['event_type'] = forms.MultipleChoiceField(
             choices=get_event_types(),
             required=False
         )
 
         self.fields['alert_type'] = forms.MultipleChoiceField(
-            choices=get_alert_types(),
+            choices=alert_types,
             required=False
         )
         self.fields['category'] = forms.MultipleChoiceField(
@@ -64,7 +67,7 @@ class StatusPanelForm(forms.Form):
             required=False
         )
         self.fields['not_alert_type'] = forms.MultipleChoiceField(
-            choices=get_alert_types(),
+            choices=alert_types,
             required=False
         )
         self.fields['not_category'] = forms.MultipleChoiceField(
@@ -112,6 +115,7 @@ class StatusPanelForm(forms.Form):
         )
 
     def clean_stateless_threshold(self):
+        """Set default stateless threshold"""
         field = 'stateless_threshold'
         data = self.cleaned_data[field]
         if not data:
@@ -120,6 +124,10 @@ class StatusPanelForm(forms.Form):
 
 
 class StatusWidgetForm(StatusPanelForm):
+    """
+    This form is used in the status widget and is more suitable for a smaller
+    screen size.
+    """
 
     def __init__(self, *args, **kwargs):
         super(StatusWidgetForm, self).__init__(*args, **kwargs)
@@ -177,14 +185,10 @@ def get_alert_types():
     ]
 
     """
-    alert_types = {}
-    for event_type in EventType.objects.all():
-        if event_type.alerttype_set.all().count():
-            if event_type.id not in alert_types:
-                alert_types[event_type.id] = []
-            for alert_type in event_type.alerttype_set.all().order_by('name'):
-                alert_types[event_type.id].append(
-                    (alert_type.name, alert_type.name))
+    alert_types = defaultdict(list)
+    for alert_type in AlertType.objects.all():
+        alert_types[alert_type.event_type_id].append(
+            (alert_type.name, alert_type.name))
 
     return sorted(alert_types.items(), key=itemgetter(0))
 
