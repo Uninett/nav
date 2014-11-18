@@ -31,7 +31,7 @@ from . import Navlet, NAVLET_MODE_EDIT, NAVLET_MODE_VIEW
 class Status2Widget(Navlet):
     """Widget for displaying status"""
 
-    title = "Status2"
+    title = "Status"
     description = "Shows status for your ip-devices and services"
     refresh_interval = 1000 * 60 * 10  # Refresh every 10 minutes
     is_editable = True

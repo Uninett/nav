@@ -32,7 +32,7 @@ from nav.web.status.sections import get_user_sections
 class StatusNavlet(Navlet):
     """Navlet for displaying status"""
 
-    title = "Status"
+    title = "Old Status"
     description = "Shows status for your ip-devices and services"
     refresh_interval = 1000 * 60 * 10  # Refresh every 10 minutes
     is_editable = True
