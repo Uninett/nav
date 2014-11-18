@@ -106,6 +106,41 @@ are now contained in a hideable panel above the map. Your saved views should
 still work.
 
 
+Files to remove
+---------------
+
+Many files have been removed or moved around since NAV 4.0 and 4.1. Unless you
+upgraded NAV using a package manager (such as APT), you may need/want to
+remove some obsolete files and directories (here prefixed by /usr/local/nav)::
+
+    /usr/local/nav/doc/hacking/netmap.rst
+    /usr/local/nav/doc/hacking/using-vagrant.rst
+    /usr/local/nav/doc/hacking/vagrant.rst
+    /usr/local/nav/doc/html/hacking/netmap.html
+    /usr/local/nav/doc/html/hacking/using-vagrant.html
+    /usr/local/nav/doc/html/hacking/vagrant.html
+    /usr/local/nav/doc/html/_sources/hacking/netmap.txt
+    /usr/local/nav/doc/html/_sources/hacking/using-vagrant.txt
+    /usr/local/nav/doc/html/_sources/hacking/vagrant.txt
+    /usr/local/nav/lib/python/nav/web/api/auth.py
+    /usr/local/nav/lib/python/nav/web/api/helpers/
+    /usr/local/nav/lib/python/nav/web/api/serializers.py
+    /usr/local/nav/lib/python/nav/web/api/views.py
+    /usr/local/nav/lib/python/nav/web/netmap/forms.py
+    /usr/local/nav/share/htdocs/static/js/src/netmap/app.js
+    /usr/local/nav/share/htdocs/static/js/src/netmap/collections/
+    /usr/local/nav/share/htdocs/static/js/src/netmap/main.js
+    /usr/local/nav/share/htdocs/static/js/src/netmap/models/
+    /usr/local/nav/share/htdocs/static/js/src/netmap/order.js
+    /usr/local/nav/share/htdocs/static/js/src/netmap/resource.js
+    /usr/local/nav/share/htdocs/static/js/src/netmap/router.js
+    /usr/local/nav/share/htdocs/static/js/src/netmap/templates/
+    /usr/local/nav/share/htdocs/static/js/src/netmap/views/
+    /usr/local/nav/share/templates/netmap/admin_list_mapviews.html
+    /usr/local/nav/share/templates/netmap/backbone.html
+    /usr/local/nav/share/templates/netmap/graphml.html
+
+
 NAV 4.1
 ========
 
