@@ -34,6 +34,10 @@
     }
     .navlet-header {
         margin-bottom: 1em;
+        .deprecated-warning {
+            margin-bottom: auto;
+            margin-top: 1.25rem;
+        }
     }
     .navlet-action-group {
         float: right;
