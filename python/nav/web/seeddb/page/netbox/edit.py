@@ -269,7 +269,7 @@ def get_address_info(request):
                                    socket.inet_pton(item[0], item[4][0]))
             addresses = [x[4][0] for x in sorted_tuples]
         except Exception, error:
-            context = {'error': error}
+            context = {'error': str(error)}
         else:
             context = {
                 'addresses': addresses,
