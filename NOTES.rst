@@ -98,19 +98,20 @@ New status widget
 ~~~~~~~~~~~~~~~~~
 
 A widget version of the new Status tool is also introduced. Users who have the
-old Status widget on their NAV front pages will see a warning that the old
-widget has been deprecated.
+old Status widget on their NAV front pages will see their widgets replaced
+with a Status tool widget filtering for *boxState* events.
 
-By default, the Status widget is included on the front page of anonymous
-users. If you are upgrading from an older NAV version, anonymous users will
-see the deprecation warning when visiting NAV. Don't forget to reconfigure the
-front page contents of the `default` user.
+By default, NAV places a status widget on the front page of anonymous users.
+With the new widget, you can also control what kind of alerts anonymous users
+can see on the front page.
 
-.. TIP:: This is achieved by opening the User Admininstration tool, selecting
-         the *default* user and clicking the button :guilabel:`Operate as this
-         user`. Configure the widgets on the front page to your liking and
-         click :guilabel:`Log back in as ...`.
+.. TIP:: To configure, remove or add more Status widgets to the front page of
+         anonymous users, go to the User Admininstration tool, select the
+         *default* user and click the button :guilabel:`Operate as this user`.
 
+         While operating as the *default* user, configure the widgets on the
+         front page to your liking. Click :guilabel:`Log back in as ...` to
+         return to normal operation.
 
 
 Netmap redesign
