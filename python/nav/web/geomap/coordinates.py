@@ -1,4 +1,5 @@
 #
+# Copyright (C) 2009 Russ Nelson
 # Copyright (C) 2009, 2010 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
@@ -23,6 +24,8 @@ Derived from code available under GPL from http://pygps.org/
 (http://pygps.org/LatLongUTMconversion-1.2.tar.gz)
 
 """
+# since this is mostly derived from outside NAV, we don't lint it
+# pylint: disable-all
 
 from math import pi, sin, cos, tan, sqrt
 import re
@@ -35,35 +38,35 @@ _equatorial_radius = 2
 _eccentricity_squared = 3
 
 _ellipsoid = [
-#  id, Ellipsoid name, Equatorial Radius, square of eccentricity	
+#  id, Ellipsoid name, Equatorial Radius, square of eccentricity
 # first once is a placeholder only, To allow array indices to match id numbers
-	[ -1, "Placeholder", 0, 0],
-	[ 1, "Airy", 6377563, 0.00667054],
-	[ 2, "Australian National", 6378160, 0.006694542],
-	[ 3, "Bessel 1841", 6377397, 0.006674372],
-	[ 4, "Bessel 1841 (Nambia] ", 6377484, 0.006674372],
-	[ 5, "Clarke 1866", 6378206, 0.006768658],
-	[ 6, "Clarke 1880", 6378249, 0.006803511],
-	[ 7, "Everest", 6377276, 0.006637847],
-	[ 8, "Fischer 1960 (Mercury] ", 6378166, 0.006693422],
-	[ 9, "Fischer 1968", 6378150, 0.006693422],
-	[ 10, "GRS 1967", 6378160, 0.006694605],
-	[ 11, "GRS 1980", 6378137, 0.00669438],
-	[ 12, "Helmert 1906", 6378200, 0.006693422],
-	[ 13, "Hough", 6378270, 0.00672267],
-	[ 14, "International", 6378388, 0.00672267],
-	[ 15, "Krassovsky", 6378245, 0.006693422],
-	[ 16, "Modified Airy", 6377340, 0.00667054],
-	[ 17, "Modified Everest", 6377304, 0.006637847],
-	[ 18, "Modified Fischer 1960", 6378155, 0.006693422],
-	[ 19, "South American 1969", 6378160, 0.006694542],
-	[ 20, "WGS 60", 6378165, 0.006693422],
-	[ 21, "WGS 66", 6378145, 0.006694542],
-	[ 22, "WGS-72", 6378135, 0.006694318],
-	[ 23, "WGS-84", 6378137, 0.00669438]
+    [ -1, "Placeholder", 0, 0],
+    [ 1, "Airy", 6377563, 0.00667054],
+    [ 2, "Australian National", 6378160, 0.006694542],
+    [ 3, "Bessel 1841", 6377397, 0.006674372],
+    [ 4, "Bessel 1841 (Nambia] ", 6377484, 0.006674372],
+    [ 5, "Clarke 1866", 6378206, 0.006768658],
+    [ 6, "Clarke 1880", 6378249, 0.006803511],
+    [ 7, "Everest", 6377276, 0.006637847],
+    [ 8, "Fischer 1960 (Mercury] ", 6378166, 0.006693422],
+    [ 9, "Fischer 1968", 6378150, 0.006693422],
+    [ 10, "GRS 1967", 6378160, 0.006694605],
+    [ 11, "GRS 1980", 6378137, 0.00669438],
+    [ 12, "Helmert 1906", 6378200, 0.006693422],
+    [ 13, "Hough", 6378270, 0.00672267],
+    [ 14, "International", 6378388, 0.00672267],
+    [ 15, "Krassovsky", 6378245, 0.006693422],
+    [ 16, "Modified Airy", 6377340, 0.00667054],
+    [ 17, "Modified Everest", 6377304, 0.006637847],
+    [ 18, "Modified Fischer 1960", 6378155, 0.006693422],
+    [ 19, "South American 1969", 6378160, 0.006694542],
+    [ 20, "WGS 60", 6378165, 0.006693422],
+    [ 21, "WGS 66", 6378145, 0.006694542],
+    [ 22, "WGS-72", 6378135, 0.006694318],
+    [ 23, "WGS-84", 6378137, 0.00669438]
 ]
 
-#Reference ellipsoids derived from Peter H. Dana's website- 
+#Reference ellipsoids derived from Peter H. Dana's website-
 #http://www.utexas.edu/depts/grg/gcraft/notes/datum/elist.html
 #Department of Geography, University of Texas at Austin
 #Internet: pdana@mail.utexas.edu
@@ -74,8 +77,8 @@ _ellipsoid = [
 #1984 Technical Report. Part I and II. Washington, DC: Defense Mapping Agency
 
 def ll_to_utm(reference_ellipsoid, lat, lon, zone = None):
-    """converts lat/long to UTM coords.  Equations from USGS Bulletin 1532 
-    East Longitudes are positive, West longitudes are negative. 
+    """converts lat/long to UTM coords.  Equations from USGS Bulletin 1532
+    East Longitudes are positive, West longitudes are negative.
     North latitudes are positive, South latitudes are negative
     lat and Long are in decimal degrees
     Written by Chuck Gantz- chuck.gantz@globalstar.com"""
@@ -94,7 +97,7 @@ def ll_to_utm(reference_ellipsoid, lat, lon, zone = None):
         zone_number = int((lon_tmp + 180)/6) + 1
     else:
         zone_number = zone
-  
+
     if lat >= 56.0 and lat < 64.0 and lon_tmp >= 3.0 and lon_tmp < 12.0:
         zone_number = 32
 
@@ -124,13 +127,13 @@ def ll_to_utm(reference_ellipsoid, lat, lon, zone = None):
     M = a*((1
             - ecc_squared/4
             - 3*ecc_squared*ecc_squared/64
-            - 5*ecc_squared*ecc_squared*ecc_squared/256)*lat_rad 
+            - 5*ecc_squared*ecc_squared*ecc_squared/256)*lat_rad
            - (3*ecc_squared/8
               + 3*ecc_squared*ecc_squared/32
               + 45*ecc_squared*ecc_squared*ecc_squared/1024)*sin(2*lat_rad)
-           + (15*ecc_squared*ecc_squared/256 + 45*ecc_squared*ecc_squared*ecc_squared/1024)*sin(4*lat_rad) 
+           + (15*ecc_squared*ecc_squared/256 + 45*ecc_squared*ecc_squared*ecc_squared/1024)*sin(4*lat_rad)
            - (35*ecc_squared*ecc_squared*ecc_squared/3072)*sin(6*lat_rad))
-    
+
     utm_easting = (k0*N*(A+(1-T+C)*A*A*A/6
                         + (5-18*T+T*T+72*C-58*ecc_prime_squared)*A*A*A*A*A/120)
                   + 500000.0)
@@ -172,13 +175,13 @@ def _utm_letter_designator(lat):
     elif -56 > lat >= -64: return 'E'
     elif -64 > lat >= -72: return 'D'
     elif -72 > lat >= -80: return 'C'
-    else: return 'Z'	# if the Latitude is outside the UTM limits
+    else: return 'Z'    # if the Latitude is outside the UTM limits
 
 def utm_to_ll(reference_ellipsoid, northing, easting, zone):
-    """converts UTM coords to lat/long.  Equations from USGS Bulletin 1532 
-    East Longitudes are positive, West longitudes are negative. 
+    """converts UTM coords to lat/long.  Equations from USGS Bulletin 1532
+    East Longitudes are positive, West longitudes are negative.
     North latitudes are positive, South latitudes are negative
-    lat and lon are in decimal degrees. 
+    lat and lon are in decimal degrees.
     Written by Chuck Gantz- chuck.gantz@globalstar.com
     Converted to Python by Russ Nelson <nelson@crynwr.com>"""
 
@@ -206,7 +209,7 @@ def utm_to_ll(reference_ellipsoid, northing, easting, zone):
     M = y / k0
     mu = M/(a*(1-ecc_squared/4-3*ecc_squared*ecc_squared/64-5*ecc_squared*ecc_squared*ecc_squared/256))
 
-    phi1_rad = (mu + (3*e1/2-27*e1*e1*e1/32)*sin(2*mu) 
+    phi1_rad = (mu + (3*e1/2-27*e1*e1*e1/32)*sin(2*mu)
                + (21*e1*e1/16-55*e1*e1*e1*e1/32)*sin(4*mu)
                +(151*e1*e1*e1/96)*sin(6*mu))
     phi1 = phi1_rad*_rad2deg;
@@ -263,6 +266,3 @@ def utm_str_to_lonlat(utm_str):
     (lat, lon) = utm_to_ll(23, utm['n'], utm['e'],
                            '%d%s'%(utm['zone'], utm['hemisphere']))
     return (lon, lat)
-
-
-
