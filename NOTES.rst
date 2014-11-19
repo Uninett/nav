@@ -125,6 +125,27 @@ are now contained in a hideable panel above the map. Your saved views should
 still work.
 
 
+SeedDB IP device form redesign
+------------------------------
+
+The form for adding and editing an IP device has been redesigned. It no longer
+requires connectivity to add or edit an IP device, but you have the option to
+verify the connectivity if you want. As a result of this, only one step is
+required to complete the form.
+
+
+Custom attributes on IP devices and locations
+---------------------------------------------
+
+You now have to option to add custom attributes to your IP devices and
+locations. In earlier versions of NAV this was only available for rooms and
+organizations. The custom attributes are added in the respective SeedDB forms.
+
+The attributes added for IP devices are displayed on the Ip Device Info page.
+The attributes for locations are currently not visible other than in SeedDB,
+but will in a future version of NAV be visible in the location report.
+
+
 Files to remove
 ---------------
 
