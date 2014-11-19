@@ -133,6 +133,12 @@ requires connectivity to add or edit an IP device, but you have the option to
 verify the connectivity if you want. As a result of this, only one step is
 required to complete the form.
 
+In addition to this a new verification has been added to the form. Prior to
+this, when adding an IP device based on hostname and the hostname resolved to
+several IP addresses, the first address returned was chosen for querying the
+device. The form now lists all the IP addresses it found and asks you to choose
+the one to use.
+
 
 Custom attributes on IP devices and locations
 ---------------------------------------------
