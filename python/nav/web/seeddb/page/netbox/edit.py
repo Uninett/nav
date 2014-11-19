@@ -228,6 +228,8 @@ def netbox_do_save(form):
         device = Device.objects.create(serial=None)
         netbox.device = device
 
+    netbox.save()
+
     # Save the function field
     function = form.cleaned_data['function']
     if function:
@@ -246,8 +248,6 @@ def netbox_do_save(form):
     NetboxCategory.objects.filter(netbox=netbox).delete()
     for netboxgroup in netboxgroups:
         NetboxCategory.objects.create(netbox=netbox, category=netboxgroup)
-
-    netbox.save()
 
     return netbox
 
