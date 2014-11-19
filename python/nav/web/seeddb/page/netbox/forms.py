@@ -39,6 +39,8 @@ class NetboxModelForm(forms.ModelForm):
     function = forms.CharField(required=False)
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
+    sysname = forms.CharField(required=False)
+    snmp_version = forms.IntegerField(required=False)
 
     class Meta(object):
         model = Netbox
@@ -103,6 +105,20 @@ class NetboxModelForm(forms.ModelForm):
         except SocketError:
             raise forms.ValidationError("Could not resolve name %s" % name)
         return unicode(ip)
+
+    def clean_sysname(self):
+        """Resolve sysname if not set"""
+        sysname = self.cleaned_data.get('sysname')
+        if not sysname:
+            _, sysname = resolve_ip_and_sysname(self.cleaned_data.get('ip'))
+        return sysname
+
+    def clean_snmp_version(self):
+        """Set default snmp_version 1"""
+        snmp_version = self.cleaned_data.get('snmp_version', 1)
+        if not snmp_version:
+            snmp_version = 1
+        return snmp_version
 
     def clean_serial(self):
         """Make sure the serial number is not in use"""
