@@ -150,7 +150,6 @@ class NetboxModelForm(forms.ModelForm):
         if cat and cat.req_snmp and not ro_community:
             self._errors['read_only'] = self.error_class(
                 ["Category %s requires SNMP access." % cat.id])
-            del cleaned_data['category']
             del cleaned_data['read_only']
 
         return cleaned_data
