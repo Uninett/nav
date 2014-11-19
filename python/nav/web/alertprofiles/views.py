@@ -14,6 +14,9 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Alert Profiles view functions"""
+
+# TODO This module has crazy-many lines and should use class-based views
 
 # TODO Check that functions that should require permission do require
 # permission
@@ -74,6 +77,7 @@ PAGINATE_BY = 25
 
 
 def overview(request):
+    """The Alert Profiles overview / index page"""
     account = get_account(request)
 
     # Get information about user
@@ -133,6 +137,7 @@ def overview(request):
 
 
 def show_profile(request):
+    """Shows a single profile"""
     account = get_account(request)
 
     page = request.GET.get('page', 1)
@@ -177,6 +182,7 @@ def show_profile(request):
 
 def profile_show_form(request, profile_id=None, profile_form=None,
                       time_period_form=None):
+    """Shows the profile edit form"""
     account = get_account(request)
     profile = None
     periods = []
@@ -234,15 +240,18 @@ def profile_show_form(request, profile_id=None, profile_form=None,
 
 
 def profile_detail(request, profile_id=None):
+    """Shows the profile form a specific profile"""
     return profile_show_form(request, profile_id)
 
 
 def profile_new(request):
+    """Shows an empty profile form"""
     return profile_show_form(request)
 
 
 @requires_post('alertprofiles-profile')
 def profile_save(request):
+    """Saves profile data"""
     account = get_account(request)
 
     if request.POST.get('id'):
@@ -321,6 +330,7 @@ def profile_save(request):
 
 @requires_post('alertprofiles-profile')
 def profile_remove(request):
+    """Removes a profile"""
     post = request.POST.copy()
     for data in post:
         if data.find("=") != -1:
@@ -412,6 +422,7 @@ def profile_remove(request):
 
 @requires_post('alertprofiles-profile', ('activate',))
 def profile_activate(request):
+    """Activates a profile"""
     account = get_account(request)
 
     try:
@@ -443,6 +454,7 @@ def profile_activate(request):
 
 @requires_post('alertprofiles-profile')
 def profile_deactivate(request):
+    """Deactivates a profile"""
     account = get_account(request)
 
     try:
@@ -464,6 +476,7 @@ def profile_deactivate(request):
 
 
 def profile_time_period(request, time_period_id, time_period_form=None):
+    """Shows a form to edit a timeperiod of a profile"""
     time_period = TimePeriod.objects.get(pk=time_period_id)
     profile = time_period.profile
 
@@ -493,6 +506,7 @@ def profile_time_period(request, time_period_id, time_period_form=None):
 
 @requires_post('alertprofiles-profile', ('profile',))
 def profile_time_period_add(request):
+    """Adds a new time period to a profile"""
     account = get_account(request)
 
     try:
@@ -538,6 +552,7 @@ def profile_time_period_add(request):
 
 @requires_post('alertprofiles-profile')
 def profile_time_period_remove(request):
+    """Removes a time period from a profile"""
     if request.POST.get('confirm'):
         account = get_account(request)
         elements = request.POST.getlist('element')
@@ -646,6 +661,7 @@ def profile_time_period_remove(request):
 
 
 def profile_time_period_setup(request, time_period_id=None):
+    """Shows form to edit time periods of a profile"""
     if not time_period_id:
         new_message(request, _('No time period were specified'),
                     Messages.ERROR)
@@ -704,6 +720,7 @@ def profile_time_period_setup(request, time_period_id=None):
 
 @requires_post('alertprofiles-profile')
 def profile_time_period_subscription_add(request):
+    """Adds a subscription to a timeperiod of a profile"""
     account = get_account(request)
 
     if request.POST.get('id'):
@@ -742,6 +759,7 @@ def profile_time_period_subscription_add(request):
 
 
 def profile_time_period_subscription_edit(request, subscription_id=None):
+    """Shows the form to edit subscriptions of a time period of a profile"""
     if not subscription_id:
         new_message(request, _('No alert subscription specified'),
                     Messages.ERROR)
@@ -797,6 +815,7 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
 
 @requires_post('alertprofiles-profile')
 def profile_time_period_subscription_remove(request):
+    """Removes a subscription from a time period"""
     if request.POST.get('confirm'):
         account = get_account(request)
         subscriptions = request.POST.getlist('element')
@@ -902,6 +921,7 @@ def profile_time_period_subscription_remove(request):
 
 
 def address_list(request):
+    """Lists out the user's registered alert addresses"""
     account = get_account(request)
 
     page = request.GET.get('page', 1)
@@ -936,6 +956,7 @@ def address_list(request):
 
 
 def address_show_form(request, address_id=None, address_form=None):
+    """Shows the form to edit an alert address"""
     account = get_account(request)
     page_name = 'New address'
     detail_id = None
@@ -988,11 +1009,13 @@ def address_show_form(request, address_id=None, address_form=None):
 
 
 def address_detail(request, address_id=None):
+    """Shows the form to edit an existing alert address"""
     return address_show_form(request, address_id)
 
 
 @requires_post('alertprofiles-address')
 def address_save(request):
+    """Saves an alert address for a user"""
     account = get_account(request)
     address = None
     address_id = None
@@ -1030,6 +1053,7 @@ def address_save(request):
 
 @requires_post('alertprofiles-address')
 def address_remove(request):
+    """Removes an alert address from a user"""
     account = get_account(request)
     if request.POST.get('confirm'):
         addresses = AlertAddress.objects.filter(
@@ -1139,6 +1163,7 @@ def address_remove(request):
 
 @requires_post('alertprofiles-profile', ('value',))
 def language_save(request):
+    """Saves the user's preferred language"""
     account = get_account(request)
 
     # Try to fetch language property. If it doesn't exist we must make it.
@@ -1160,6 +1185,7 @@ def language_save(request):
 
 
 def sms_list(request):
+    """Lists SMS messages addressed to the current user"""
     account = get_account(request)
     page = request.GET.get('page', 1)
 
@@ -1193,6 +1219,7 @@ def sms_list(request):
 
 
 def filter_list(request):
+    """Lists all the filters"""
     account = get_account(request)
     admin = is_admin(account)
 
@@ -1336,11 +1363,13 @@ def filter_show_form(request, filter_id=None, filter_form=None):
 
 
 def filter_detail(request, filter_id=None):
+    """Shows the form to edit filters"""
     return filter_show_form(request, filter_id)
 
 
 @requires_post('alertprofiles-filters')
 def filter_save(request):
+    """Saves a filter"""
     (account, admin, owner) = resolve_account_admin_and_owner(request)
     filtr = None
 
@@ -1383,6 +1412,7 @@ def filter_save(request):
 
 @requires_post('alertprofiles-filters')
 def filter_remove(request):
+    """Deletes a filter"""
     if request.POST.get('confirm'):
         filters = Filter.objects.filter(pk__in=request.POST.getlist('element'))
 
@@ -1458,6 +1488,7 @@ def filter_remove(request):
 
 @requires_post('alertprofiles-filters', ('id', 'matchfield'))
 def filter_addexpression(request):
+    """Shows the form to add en expression to a filter"""
     try:
         filtr = Filter.objects.get(pk=request.POST.get('id'))
     except Filter.DoesNotExist:
@@ -1507,6 +1538,7 @@ def filter_addexpression(request):
 
 @requires_post('alertprofiles-filters')
 def filter_saveexpression(request):
+    """Saves an expression to a filter"""
     # Get the MatchField, Filter and Operator objects associated with the
     # input POST-data
     filtr = Filter.objects.get(pk=request.POST.get('filter'))
@@ -1551,6 +1583,7 @@ def filter_saveexpression(request):
 
 @requires_post('alertprofiles-filters')
 def filter_removeexpression(request):
+    """Deletes an expression from a filter"""
     if request.POST.get('confirm'):
         expressions = request.POST.getlist('element')
         try:
@@ -1626,6 +1659,7 @@ def filter_removeexpression(request):
 
 
 def filter_group_list(request):
+    """Lists the available filter groups"""
     account = get_account(request)
     admin = is_admin(account)
 
@@ -1776,11 +1810,13 @@ def filter_group_show_form(request, filter_group_id=None,
 
 
 def filter_group_detail(request, filter_group_id=None):
+    """Shows the form to edit a filter group"""
     return filter_group_show_form(request, filter_group_id)
 
 
 @requires_post('alertprofiles-filter_groups')
 def filter_group_save(request):
+    """Saves a filter group"""
     (account, admin, owner) = resolve_account_admin_and_owner(request)
     filter_group = None
 
@@ -1823,6 +1859,7 @@ def filter_group_save(request):
 
 @requires_post('alertprofiles-filters')
 def filter_group_remove(request):
+    """Deletes a filter group"""
     if request.POST.get('confirm'):
         filter_groups = FilterGroup.objects.filter(
             pk__in=request.POST.getlist('element'))
@@ -1907,6 +1944,7 @@ def filter_group_remove(request):
 
 @requires_post('alertprofiles-filter_groups', ('id', 'filter'))
 def filter_group_addfilter(request):
+    """Adds a filter to a filter group"""
     account = get_account(request)
     try:
         filter_group = FilterGroup.objects.get(pk=request.POST.get('id'))
@@ -1967,6 +2005,7 @@ def filter_group_addfilter(request):
 
 @requires_post('alertprofiles-filter_groups')
 def filter_group_remove_or_move_filter(request):
+    """Deletes or moves around a filter within a filter group"""
     post = request.POST.copy()
     for name in post:
         if name.find("=") != -1:
@@ -1983,6 +2022,7 @@ def filter_group_remove_or_move_filter(request):
 
 @requires_post('alertprofiles-filter_groups')
 def filter_group_removefilter(request):
+    """Removes a filter from a filter group"""
     # We are deleting filters. Show confirmation page or remove?
     if request.POST.get('confirm'):
         filter_group = FilterGroup.objects.get(
@@ -2084,6 +2124,7 @@ def filter_group_removefilter(request):
 
 @requires_post('alertprofiles-filter_groups')
 def filter_group_movefilter(request):
+    """Moves a filter within a filter group"""
     account = get_account(request)
 
     filter_group_id = request.POST.get('id')
@@ -2156,6 +2197,7 @@ def filter_group_movefilter(request):
 
 
 def matchfield_list(request):
+    """Lists the available match fields"""
     account = get_account(request)
     if not is_admin(account):
         return alertprofiles_response_forbidden(
@@ -2198,6 +2240,7 @@ def matchfield_list(request):
 
 
 def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
+    """Shows the form to edit a match field"""
     active = {'matchfields': True}
     page_name = 'New matchfield'
     account = get_account(request)
@@ -2270,11 +2313,13 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
 
 
 def matchfield_detail(request, matchfield_id=None):
+    """Shows the form to edit a specific match field"""
     return matchfield_show_form(request, matchfield_id)
 
 
 @requires_post('alertprofiles-matchfields')
 def matchfield_save(request):
+    """Saves a match field"""
     account = get_account(request)
     if not is_admin(account):
         return alertprofiles_response_forbidden(
@@ -2313,6 +2358,7 @@ def matchfield_save(request):
 
 @requires_post('alertprofiles-filters')
 def matchfield_remove(request):
+    """Deletes a match field"""
     account = get_account(request)
     if not is_admin(account):
         return alertprofiles_response_forbidden(
@@ -2384,6 +2430,7 @@ def matchfield_remove(request):
 
 
 def permission_list(request, group_id=None):
+    """Lists the saved alert profiles permissions"""
     account = get_account(request)
     if not is_admin(account):
         return alertprofiles_response_forbidden(
@@ -2428,6 +2475,7 @@ def permission_list(request, group_id=None):
 
 @requires_post('alertprofiles-permissions')
 def permissions_save(request):
+    """Saves an Alert Profiles permission"""
     account = get_account(request)
     if not is_admin(account):
         return alertprofiles_response_forbidden(
