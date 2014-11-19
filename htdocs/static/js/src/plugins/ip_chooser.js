@@ -1,8 +1,14 @@
 define(['libs/jquery'], function () {
 
+    /**
+     * Blargh blurph blump - ie. this is a result of not enough time to do it properly
+     */
+
     function IpChooser(feedbackElement, addressField) {
         this.feedbackElement = feedbackElement;
         this.addressField = addressField;
+
+        this.isSingleAddress = false;
 
         this.createDom();
 
@@ -44,11 +50,13 @@ define(['libs/jquery'], function () {
                 var addresses = data.addresses;
                 if (addresses && addresses.length > 1) {
                     self.display(address, addresses);
+                    self.isSingleAddress = false;
                 } else {
-                    self.feedbackElement.trigger(
-                        'nav-hostname-resolves-single');
+                    self.isSingleAddress = true;
                 }
             });
+
+            return request;
 
         },
 

@@ -58,10 +58,7 @@ require([
             new FormFuck($textarea);
         }
 
-        // The connectivity checker
-        ConnectivityChecker();
-        verifyAddress();
-
+        activateIpDeviceFormPlugins();
     }
 
     /* Internet Explorer caching leads to onload event firing before script
@@ -312,22 +309,26 @@ require([
         }
     }
 
-    function verifyAddress() {
+    function activateIpDeviceFormPlugins() {
+        // The connectivity checker
         var $form = $('#seeddb-netbox-form'),
             $addressField = $('#id_ip'),
             $feedbackElement = $('#verify-address-feedback');
 
         var chooser = new IpChooser($feedbackElement, $addressField);
 
-        $feedbackElement.on('nav-hostname-resolves-single', function () {
-            console.log('Event triggered');
-            $form.trigger('submit', true);
-        });
+        // Initialize connectivitychecker with a chooser as we only wants one.
+        ConnectivityChecker(chooser);
 
         $form.on('submit', function (event, validated) {
             if (!validated) {
                 event.preventDefault();
-                chooser.getAddresses();
+                var deferred = chooser.getAddresses();
+                deferred.done(function () {
+                    if (chooser.isSingleAddress) {
+                        $form.trigger('submit', true);
+                    }
+                });
             }
         });
     }
