@@ -146,12 +146,14 @@ Custom attributes on IP devices and locations
 ---------------------------------------------
 
 You now have to option to add custom attributes to your IP devices and
-locations. In earlier versions of NAV this was only available for rooms and
-organizations. The custom attributes are added in the respective SeedDB forms.
+locations. In NAV 4.1 this was only available for rooms and organizations. The
+custom attributes are added in the respective SeedDB forms.
 
-The attributes added for IP devices are displayed on the Ip Device Info page.
-The attributes for locations are currently not visible other than in SeedDB,
-but will in a future version of NAV be visible in the location report.
+The attributes added for IP devices are displayed on the IP Device Info page.
+The attributes for locations are currently not visible outside of SeedDB, as
+there are no canonical Location-pages in NAV (yet). The *location* report can
+be amended locally to include those attributes you want displayed, in the same
+way as commented on the *organization* and *room* reports.
 
 
 Files to remove
