@@ -109,8 +109,9 @@ class NetboxModelForm(forms.ModelForm):
     def clean_sysname(self):
         """Resolve sysname if not set"""
         sysname = self.cleaned_data.get('sysname')
-        if not sysname:
-            _, sysname = resolve_ip_and_sysname(self.cleaned_data.get('ip'))
+        ip = self.cleaned_data.get('ip')
+        if ip and not sysname:
+            _, sysname = resolve_ip_and_sysname(ip)
         return sysname
 
     def clean_snmp_version(self):
