@@ -416,7 +416,7 @@ fixtures for your particular test case.
 
 See https://docs.djangoproject.com/en/1.4/topics/serialization/
 
-.. FIXME:: Be able to use `django-admin's management command: dumpdata
+.. TODO:: Be able to use `django-admin's management command: dumpdata
    <https://docs.djangoproject.com/en/dev/ref/django-admin/#dumpdata-appname-appname-appname-model>`_
    to create fixtures.
 
