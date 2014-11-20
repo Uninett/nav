@@ -131,13 +131,15 @@ SeedDB IP device form redesign
 The form for adding and editing an IP device has been redesigned. It no longer
 requires connectivity to add or edit an IP device, but you have the option to
 verify the connectivity if you want. As a result of this, only one step is
-required to complete the form.
+required to complete the form. Should you go ahead and save a router with the
+wrong SNMP community, NAV will shortly raise an *snmpAgentAlert* for this
+device.
 
-In addition to this a new verification has been added to the form. Prior to
-this, when adding an IP device based on hostname and the hostname resolved to
-several IP addresses, the first address returned was chosen for querying the
-device. The form now lists all the IP addresses it found and asks you to choose
-the one to use.
+In addition to this, IP address verification has been added to the form. When
+adding an IP device by its hostname in NAV versions prior to 4.2, if this
+hostname resolved to multiple IP addresses, NAV would select an arbitrary IP
+address from these as its management address for the device. The new form will
+ask the user to choose one of the resolved IP addresses from a list.
 
 
 Custom attributes on IP devices and locations
