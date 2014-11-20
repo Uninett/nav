@@ -53,7 +53,7 @@ def location(request):
 
 def location_list(request):
     info = LocationInfo()
-    value_list = ('id', 'description')
+    value_list = ('id', 'description', 'data')
     query = Location.objects.all()
     return render_list(request, query, value_list, 'seeddb-location-edit',
                        extra_context=info.template_context)
