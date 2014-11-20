@@ -87,6 +87,19 @@ class RoomMoveForm(forms.Form):
         Location.objects.order_by('id').all(), required=False)
 
 
+class LocationForm(forms.ModelForm):
+    data = DictionaryField(widget=forms.Textarea(), label='Attributes',
+                           required=False)
+
+    class Meta:
+        model = Location
+
+    def __init__(self, *args, **kwargs):
+        super(LocationForm, self).__init__(*args, **kwargs)
+        if kwargs.get('instance'):
+            del self.fields['id']
+
+
 class OrganizationFilterForm(forms.Form):
     """Form for filtering organizations by parent"""
     parent = forms.ModelChoiceField(
