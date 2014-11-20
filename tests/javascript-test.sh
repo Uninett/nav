@@ -35,7 +35,7 @@ jshint --config ${JSDIR}/.jshintrc ${JAVASCRIPT_FILES[@]} --jslint-reporter > ${
 
 echo "Running tests"
 cd ${JSDIR}
-./node_modules/.bin/karma start test/karma.conf.buildserver.js
+./node_modules/karma/bin/karma start test/karma.conf.buildserver.js
 
 if [ "$?" -eq 1 ]; then
     echo "Error when testing, taking screenshot"
