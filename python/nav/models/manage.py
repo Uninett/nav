@@ -679,6 +679,7 @@ class Vendor(models.Model):
 
     class Meta:
         db_table = 'vendor'
+        ordering = ('id', )
 
     def __unicode__(self):
         return self.id
