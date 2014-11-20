@@ -14,6 +14,12 @@
 
   <p><a href="{{ back_url }}">Back to list</a></p>
 
+  {% for message in messages %}
+    <div class="alert-box with-icon {{ message.tags }}">
+      {{ message }}
+    </div>
+  {% endfor %}
+
   <div class="row">
     <div class="small-6 column">
       {% if object %}

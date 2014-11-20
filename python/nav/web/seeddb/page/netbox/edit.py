@@ -27,6 +27,7 @@ from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect, render
 from django.template import RequestContext
 from django.db import transaction
+from django.contrib import messages
 
 from nav.models.manage import Netbox, Device, NetboxCategory, NetboxType
 from nav.models.manage import NetboxInfo
@@ -50,8 +51,10 @@ def netbox_edit(request, netbox_id=None):
         form = NetboxModelForm(request.POST, instance=netbox)
         if form.is_valid():
             netbox = netbox_do_save(form)
+            messages.add_message(request, messages.SUCCESS, 'IP Device saved')
             return redirect(reverse('seeddb-netbox-edit', args=[netbox.pk]))
-
+        else:
+            messages.add_message(request, messages.ERROR, 'Form was not valid')
     else:
         form = NetboxModelForm(instance=netbox)
 
