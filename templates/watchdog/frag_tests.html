@@ -8,7 +8,7 @@
       <i class="fa fa-lg {{ test.status|map_to_faclass }}"></i>
     </span>
 
-    <ul class="hide">
+    <ul class="hidden">
       {% for error in test.errors %}
       <li style="list-style-type: circle">
         <small>{{ error }}</small>
