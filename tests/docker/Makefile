@@ -1,6 +1,6 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 top_srcdir := $(mkfile_dir)../..
-name := nav-$(shell hg parent --template '{node}')
+name := navtest:$(shell hg parent --template '{node|short}')
 
 .PHONY: build check
 
