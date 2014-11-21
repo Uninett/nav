@@ -10,7 +10,7 @@
     "mocha": "~1.12.0",
     "karma": "~0.10.1",
     "karma-requirejs": "*",
-    "karma-mocha": "~0.1.8",
+    "karma-mocha": "0.1.3",
     "karma-chai": "git+https://github.com/norrs/karma-chai.git",
     "karma-coverage": "*",
     "karma-chrome-launcher": "~0.1.0",
