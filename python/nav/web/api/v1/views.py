@@ -208,13 +208,14 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
 
 
 def get_or_create_token(request):
-    """Gets an existing token or creates a new one
+    """Gets an existing token or creates a new one. If the old token has
+    expired, create a new one.
 
     :type request: django.http.HttpRequest
     """
     if request.account.is_admin():
         token, _ = APIToken.objects.get_or_create(
-            client=request.account,
+            client=request.account, expires__gte=datetime.now(),
             defaults={'token': long_token(),
                       'expires': datetime.now() + EXPIRE_DELTA})
         return HttpResponse(str(token))
