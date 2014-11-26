@@ -278,7 +278,7 @@ def get_types(cursor):
     cursor.execute(
         "select type, facility, mnemonic, priority from log_message_type")
     for type_, facility, mnemonic, _priority in cursor.fetchall():
-        if facility in types:
+        if facility not in types:
             types[facility] = {}
         if mnemonic not in types[facility]:
             types[facility][mnemonic] = int(type_)
