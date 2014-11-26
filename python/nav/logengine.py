@@ -60,7 +60,7 @@ from nav import db
 from nav import daemon
 from nav.buildconf import localstatedir
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger("logengine")
 
 
 def get_exception_dicts(config):
