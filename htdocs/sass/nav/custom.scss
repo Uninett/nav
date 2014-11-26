@@ -236,8 +236,13 @@ li.list-header {
 
 /* Add margin to font awesome in buttons */
 button, .button, a {
-    > i.pad-right {
-        margin-right: 0.5625rem;
+    > i {
+        &.pad-left {
+            margin-left: 0.375em;
+        }
+        &.pad-right {
+            margin-right: 0.375em;
+        }
     }
 }
 
