@@ -2,12 +2,13 @@ define([
     'netmap/graph',
     'netmap/models',
     'netmap/graph_info_view',
+    'plugins/fullscreen',
     'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker',
     'libs/d3.min'
-], function (Graph, Models, GraphInfoView) {
+], function (Graph, Models, GraphInfoView, Fullscreen) {
 
     var Transparent = 0.2;
     var TransitionDuration = 500;
@@ -92,10 +93,28 @@ define([
             });
         },
 
+        addFullscreenToggler: function () {
+            var self = this;
+
+            if (Fullscreen.isFullscreenSupported()) {
+                var fullscreenToggler = $('<button class="tiny"><i class="fa fa-arrows-alt fa-lg"></i></button>');
+                fullscreenToggler.css({
+                    'position': 'absolute',
+                    'right': '10px',
+                    'top': '10px'
+                });
+                this.$el.append(fullscreenToggler);
+                fullscreenToggler.on('click', function () {
+                    Fullscreen.toggleFullscreen(self.el);
+                });
+            }
+        },
+
         /**
          * Initialize the SVG DOM elements
          */
         initializeDOM: function () {
+            this.addFullscreenToggler();
 
             this.svg = d3.select(this.el)
                 .append('svg')
