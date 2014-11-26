@@ -19,13 +19,15 @@
 # Don't warn about Meta classes, we can't help the Django API
 # pylint: disable=R0903
 from collections import defaultdict
-
+import logging
 import datetime as dt
 
 from django.db import models
 from django.db.models import Q
 
 from nav.models.fields import VarcharField, DateTimeInfinityField, UNRESOLVED
+
+_logger = logging.getLogger(__name__)
 
 # Choices used in multiple models, "imported" into the models which use them
 STATE_STATELESS = 'x'
@@ -210,14 +212,24 @@ class EventMixIn(object):
 
         """
         if self.subid:
+            subid = self.subid
+            model = None
             if self.event_type_id in self.SUBID_MAP:
                 model = models.get_model('models',
                                          self.SUBID_MAP[self.event_type_id])
-                return model.objects.get(pk=self.subid)
             elif (self.event_type_id == 'maintenanceState'
                   and 'service' in self.varmap.get(EventQueue.STATE_START, {})):
                 model = models.get_model('models', 'Service')
-                return model.objects.get(pk=self.subid)
+            else:
+                return subid
+
+            if model:
+                try:
+                    return model.objects.get(pk=subid)
+                except model.DoesNotExist:
+                    _logger.warning("alert subid %s points to non-existant %s",
+                                    subid, model)
+                    return subid
 
         # catch-all
         return self.netbox
