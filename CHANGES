@@ -34,6 +34,15 @@ Version 4.2.0
 
   * LP#1388835 (Maintenance Engine needs a rewrite)
 
+ Bugfixes:
+
+  * LP#1385121 ("Add graph to dashboard" does nothing under certain Apache
+                configurations)
+  * LP#1386716 (Maintenance task with no end time displays incorrectly in edit
+                form)
+  * LP#1389121 (when searching for an ip-address with space in it, NAV crashes)
+  * LP#1389145 (Netbiostracker crash on unparseable MAC Address)
+
 
 Version 4.1.2
 (released 30 Oct 2014)
