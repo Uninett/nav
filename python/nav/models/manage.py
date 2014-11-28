@@ -1426,6 +1426,17 @@ class PowerSupplyOrFan(models.Model):
         """Returns True if the owning Netbox is on maintenance"""
         return self.netbox.is_on_maintenance()
 
+    def __unicode__(self):
+        return "{name} at {netbox}".format(
+            name=self.name or self.descr,
+            netbox=self.netbox
+        )
+
+    def get_absolute_url(self):
+        """Returns a canonical URL to view fan/psu status"""
+        base = self.netbox.get_absolute_url()
+        return base + "#!powerfans"
+
 
 class UnrecognizedNeighbor(models.Model):
     id = models.AutoField(primary_key=True)
