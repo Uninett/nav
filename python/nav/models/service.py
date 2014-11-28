@@ -52,7 +52,8 @@ class Service(models.Model):
         ordering = ('handler',)
 
     def __unicode__(self):
-        return u'service %s at %s' % (self.handler, self.netbox)
+        return u"{handler} at {netbox}".format(
+            handler=self.handler, netbox=self.netbox)
 
     def get_statistics(self):
         args = (self.netbox.sysname, self.handler, self.id)

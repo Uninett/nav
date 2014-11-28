@@ -450,7 +450,7 @@ class Module(models.Model):
         unique_together = (('netbox', 'name'),)
 
     def __unicode__(self):
-        return u'Module {name}, at {netbox}'.format(
+        return u'{name} at {netbox}'.format(
             name=self.name or self.module_number, netbox=self.netbox)
 
     def get_absolute_url(self):
@@ -1112,7 +1112,8 @@ class Interface(models.Model):
         self.time_since_activity_cache = {}
 
     def __unicode__(self):
-        return u'%s at %s' % (self.ifname, self.netbox)
+        return u'{ifname} at {netbox}'.format(
+            ifname=self.ifname, netbox=self.netbox)
 
     @classmethod
     def sort_ports_by_ifname(cls, ports):
