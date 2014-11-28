@@ -1422,7 +1422,7 @@ class PowerSupplyOrFan(models.Model):
             event_type__id__in=['psuState', 'fanState'],
             subid=self.id)
 
-    def is_on_maintenace(self):
+    def is_on_maintenance(self):
         """Returns True if the owning Netbox is on maintenance"""
         return self.netbox.is_on_maintenance()
 
