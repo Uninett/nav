@@ -5,6 +5,7 @@ mydir=$(dirname $0)
 "$mydir/build.sh"
 
 mkdir -p /var/run/apache2
+rm -f /var/run/apache2/*.pid
 mkdir -p /var/run/sshd
 
 # Start postgresql, update the schema
