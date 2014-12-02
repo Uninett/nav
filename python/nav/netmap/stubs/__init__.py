@@ -26,6 +26,9 @@ class Netbox(object):
     def __unicode__(self):
         return u'%s' % self.sysname
 
+    def __repr__(self):
+        return "<stubs.Netbox: %r>" % vars(self)
+
     def __key(self):
         return (self.sysname)
 
@@ -62,6 +65,10 @@ class GwPortPrefix(object):
 
     def __hash__(self):
         return hash(self.__key())
+
+    def __repr__(self):
+        return "<stubs.GwPortPrefix: %r>" % vars(self)
+
 
 class Interface(object):
     """Interface stub"""

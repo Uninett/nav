@@ -170,6 +170,8 @@ class Group(object):
 # pylint: disable=R0903
 class Edge(object):
     """Represent either a edge pair in Layer2 or Layer3"""
+    link_speed = None
+    vlans = None
 
     def _valid_layer2(self, edge):
         return isinstance(edge, Interface) or isinstance(edge, stubs.Interface)
