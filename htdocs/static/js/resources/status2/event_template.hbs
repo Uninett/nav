@@ -7,7 +7,10 @@
   {{#if on_maintenance}}<i class="fa fa-wrench fa-lg" title="On maintenance"></i>{{/if}}
   {{#if acknowledgement}}<i class="fa fa-check-circle-o fa-lg" title="Acknowledged"></i>{{/if}}
 </td>
-<td><a href="{{ subject_url }}">{{ subject }}</a></td>
+<td>
+  {{#if subject_url }}<a href="{{ subject_url }}">{{ subject }}</a>
+  {{else}}{{ subject }}{{/if}}
+</td>
 <td>{{ alert_type.name }}</td>
 <td>
     {{ dateFormat start_time }}

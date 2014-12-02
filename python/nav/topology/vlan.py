@@ -394,7 +394,12 @@ def build_layer3_graph(related_extra=None):
     if related_extra:
         select_related = select_related+related_extra
 
-    prefixes = Prefix.objects.filter(vlan__net_type__in=('link', 'elink', 'core')).select_related("vlan__net_type")
+    prefixes = Prefix.objects.filter(
+        vlan__net_type__in=('link', 'elink', 'core')
+    ).extra(
+        where=['NOT (family(netaddr) = 4 AND masklen(netaddr) = 32)',
+               'NOT (family(netaddr) = 6 AND masklen(netaddr) = 128)']
+    ).select_related("vlan__net_type")
 
     router_ports = GwPortPrefix.objects.filter(prefix__in=prefixes, interface__netbox__category__in=('GW','GSW')).select_related(*select_related)
 

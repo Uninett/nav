@@ -534,8 +534,14 @@ def restart_interface(request):
                           interface.netbox, error)
             return HttpResponse(status=500)
 
-        # Restart interface so that client fetches new address
-        fac.restart_if(interface.ifindex)
+        try:
+            # Restart interface so that client fetches new address
+            fac.restart_if(interface.ifindex)
+        except TimeOutException:
+            # Swallow this exception as it is not important. Others should
+            # create an error
+            pass
+
         return HttpResponse()
 
     return HttpResponse(status=400)

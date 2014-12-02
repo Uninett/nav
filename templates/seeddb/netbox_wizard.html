@@ -23,7 +23,12 @@
   <div class="row">
     <div class="small-6 column">
       {% if object %}
-        <h4>Edit {{ object.sysname }}</h4>
+        <h4>Edit
+          <a href="{% url ipdevinfo-details-by-id object.pk %}"
+             title="See device info for {{ object.sysname }}">
+            {{ object.sysname }}
+          </a>
+        </h4>
       {% else %}
         <h5>Add new IP device</h5>
       {% endif %}

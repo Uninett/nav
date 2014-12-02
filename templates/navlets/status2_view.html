@@ -21,7 +21,11 @@
     {% for result in results %}
       <tr>
           <td>
-              <a href="{{ result.subject_url }}">{{ result.subject }}</a>
+              {% if result.subject_url %}
+                <a href="{{ result.subject_url }}">{{ result.subject }}</a>
+              {% else %}
+                {{ result.subject }}
+              {% endif %}
               {% if result.on_maintenance %}<i class="fa fa-wrench" title="On maintenance"></i>{% endif %}
               {% if result.acknowledgement %}<i class="fa fa-check-circle-o" title="Acknowledged"></i>{% endif %}
           </td>

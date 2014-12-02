@@ -1,3 +1,19 @@
+Version 4.2.1
+(released 27 Nov 2014)
+
+ Bugfixes:
+
+  * LP#1395710 (api token can not be refreshed from the api)
+  * LP#1396514 (Status tool in NAV 4.2 shows no events if API call returns a 500
+                error)
+  * LP#1396516 (Status API in NAV 4.2 crashes when there are old deviant alerts
+                present)
+  * LP#1396517 (Status tool makes hyperlinks out of alert subjects that have no
+                defined URL)
+  * LP#1396531 (logengine spams the error message "KeyError: 'LINK'")
+  * LP#1396914 (netmap filter on location excludes links)
+
+
 Version 4.2.0
 (released 20 Nov 2014)
 
@@ -17,6 +33,15 @@ Version 4.2.0
  Other, less visible, improvements:
 
   * LP#1388835 (Maintenance Engine needs a rewrite)
+
+ Bugfixes:
+
+  * LP#1385121 ("Add graph to dashboard" does nothing under certain Apache
+                configurations)
+  * LP#1386716 (Maintenance task with no end time displays incorrectly in edit
+                form)
+  * LP#1389121 (when searching for an ip-address with space in it, NAV crashes)
+  * LP#1389145 (Netbiostracker crash on unparseable MAC Address)
 
 
 Version 4.1.2
