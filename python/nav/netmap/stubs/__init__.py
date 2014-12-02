@@ -18,6 +18,7 @@
 #Ignore too few public methods, these are stubs.
 # pylint: disable=R0903
 
+
 class Netbox(object):
     """Netbox stub"""
     def __str__(self):
@@ -30,7 +31,7 @@ class Netbox(object):
         return "<stubs.Netbox: %r>" % vars(self)
 
     def __key(self):
-        return (self.sysname)
+        return self.sysname
 
     # Yes we know we access private variable
     # pylint: disable=W0212
@@ -44,6 +45,7 @@ class Netbox(object):
     def get_absolute_url(cls):
         return None
 
+
 class GwPortPrefix(object):
     """Gwport stub"""
     def __init__(self):
@@ -56,7 +58,7 @@ class GwPortPrefix(object):
         return u'%s' % self.gw_ip
 
     def __key(self):
-        return (self.gw_ip)
+        return self.gw_ip, self.interface
 
     # Yes we know we access private variable
     # pylint: disable=W0212
@@ -82,7 +84,7 @@ class Interface(object):
         return u'%s' % self.ifname, self.netbox
 
     def __key(self):
-        return (self.ifname)
+        return self.netbox, self.ifname
 
     # Yes we know we access private variable
     # pylint: disable=W0212
