@@ -171,6 +171,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'crispy_forms_foundation',
     'django_hstore',
+    'rest_framework',
 )
 
 REST_FRAMEWORK = {
