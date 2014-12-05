@@ -545,7 +545,7 @@ def write_mem(request):
             fac = SNMPFactory.get_instance(interface.netbox)
         except SnmpError, error:
             _logger.error('Error getting snmpfactory instance when '
-                          'restarting interface %s: %s',
+                          'writing to memory %s: %s',
                           interface.netbox, error)
             return HttpResponse(status=500)
 
