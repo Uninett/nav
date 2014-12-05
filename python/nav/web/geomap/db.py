@@ -32,9 +32,11 @@ from nav.config import read_flat_config
 from nav.metrics.data import get_metric_average
 from nav.metrics.errors import GraphiteUnreachableError
 from nav.metrics.graphs import get_metric_meta
+from nav.metrics.names import escape_metric_name
 from nav.metrics.templates import (metric_path_for_interface,
-                                   metric_path_for_cpu_load, metric_path_for_cpu_utilization)
-from nav.web.geomap.utils import lazy_dict, subdict, fix
+                                   metric_path_for_cpu_load,
+                                   metric_path_for_cpu_utilization)
+from nav.web.geomap.utils import lazy_dict, subdict, fix, is_nan
 
 _logger = logging.getLogger(__name__)
 
@@ -299,16 +301,10 @@ ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
             map(lambda p: 'local_'+p, reversable_properties),
             map(lambda p: 'remote_'+p, reversable_properties))
 
-        # Add load data to both res and reverse.  We use the laziness
-        # of lazy_dict here (see documentation of class lazy_dict in
-        # utils.py) to avoid reading the RRD files until we know that
-        # they are needed.
         def add_load_properties(d):
-            d[['load']] = fix(get_link_load,
-                              [d['local_sysname'], d['local_interface'],
-                               time_interval])
-            d[['load_in']] = lambda: d['load'][0]
-            d[['load_out']] = lambda: d['load'][1]
+            d['load'] = (float('nan'), float('nan'))
+            d['load_in'] = float('nan')
+            d['load_out'] = float('nan')
         map(add_load_properties, [res, reverse])
 
         connection_id = "%s-%s" % (res['local_sysname'], res['remote_sysname'])
@@ -346,8 +342,7 @@ ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
     db_cursor.execute(query_netboxes)
     netboxes = [lazy_dict(row) for row in db_cursor.fetchall()]
     for netbox in netboxes:
-        netbox[['load']] = fix(get_cpu_load,
-                               [netbox['sysname'], time_interval])
+        netbox['load'] = float('nan')
         if netbox['sysname'].endswith(_domain_suffix):
             hostname_length = len(netbox['sysname']) - len(_domain_suffix)
             netbox['sysname'] = netbox['sysname'][0:hostname_length]
@@ -360,68 +355,92 @@ ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
 MEGABIT = 1e6
 
 
-def get_link_load(sysname, ifname, time_interval):
-    """Gets the link load of the interface, averaged over a time interval.
+def get_multiple_link_load(items, time_interval):
+    """
+    Gets the link load of the interfaces, averaged over a time interval,
+    and adds to the load properties of the items.
 
-    :param sysname: The sysname of the device we're measuring from.
-    :param ifname: An interface name.
+
+    :param items: A dictionary of {(sysname, ifname): properties lazy_dict, ...}
     :param time_interval: A dict(start=..., end=...) describing the desired
                           time interval in terms valid to Graphite web.
-    :returns: An (avg_in_Mbps, avg_out_Mbps) tuple.
-
     """
-    in_bps = out_bps = float('nan')
-    if sysname and ifname:
+    _logger.debug("get_multiple_link_load%r", (items.keys(), time_interval))
+
+    target_map = {}
+    for (sysname, ifname), properties in items.iteritems():
+        if not (sysname and ifname):
+            continue
+
         targets = [metric_path_for_interface(sysname, ifname, counter)
                    for counter in ('ifInOctets', 'ifOutOctets')]
         targets = [get_metric_meta(t)['target'] for t in targets]
-        try:
-            data = get_metric_average(targets,
-                                      start=time_interval['start'],
-                                      end=time_interval['end'])
-        except GraphiteUnreachableError:
-            _logger.error("graphite unreachable on load query for %s:%s (%r)",
-                          sysname, ifname, time_interval)
-            return in_bps, out_bps
+        target_map.update({t: properties for t in targets})
 
-        for key, value in data.iteritems():
+    try:
+        data = get_metric_average(target_map.keys(),
+                                  start=time_interval['start'],
+                                  end=time_interval['end'])
+    except GraphiteUnreachableError:
+        _logger.error("graphite unreachable on load query for %s (%r)",
+                      items.keys(), time_interval)
+        return
+
+    for key, value in data.iteritems():
+        properties = target_map.get(key, None)
+        if properties:
+            bps = value / MEGABIT
             if 'ifInOctets' in key:
-                in_bps = value / MEGABIT
+                properties['load_in'] = bps
             elif 'ifOutOctets' in key:
-                out_bps = value / MEGABIT
+                properties['load_out'] = bps
+        else:
+            _logger.error(
+                "no match for key %r (%r) in data returned from graphite",
+                key, value)
 
-    return in_bps, out_bps
+    missing = set(target_map).difference(data)
+    if missing:
+        _logger.debug("missed %d targets in graphite response", len(missing))
 
 
-def get_cpu_load(sysname, time_interval):
-    """Returns the average 5 minute CPU load of sysname.
+def get_multiple_cpu_load(items, time_interval):
+    """
+    Gets the CPU load of netboxes, averaged over a time interval, and adds to
+    the load properties of the items.
 
-    Question is, of _which_ CPU? Let's just get the one that has the highest
-    maximum value.
-
-    :param sysname: The sysname of the device whose CPU load we're to get.
+    :param items: A dictionary of {sysname: properties lazy_dict, ...}
     :param time_interval: A dict(start=..., end=...) describing the desired
                           time interval in terms valid to Graphite web.
-    :returns: A floating number representation of the load between 0 and
-              100.0 (possibly higher in some multi-CPU settings).
-
     """
-    data = None
-    for path in (
-        metric_path_for_cpu_load(sysname, '*', interval=5),
-        metric_path_for_cpu_utilization(sysname, '*')
-    ):
-        target = 'highestMax(%s,1)' % path
-        try:
-            data = get_metric_average(target,
-                                      start=time_interval['start'],
-                                      end=time_interval['end'],
-                                      ignore_unknown=True)
-            if data:
-                break
-        except Exception:
-            data = None
+    _logger.debug("get_multiple_cpu_load%r", (items.keys(), time_interval))
 
-    result = data.values()[0] if data else float('nan')
-    _logger.debug("get_cpu_load(%r, %r) == %r", sysname, time_interval, result)
-    return result
+    target_map = {escape_metric_name(sysname): netbox
+                  for sysname, netbox in items.iteritems()}
+    targets = []
+    for sysname, netbox in items.iteritems():
+        if not sysname:
+            continue
+
+        targets.extend([
+            'highestMax(%s,1)' % path
+            for path in (metric_path_for_cpu_load(sysname, '*', interval=5),
+                         metric_path_for_cpu_utilization(sysname, '*'))
+        ])
+
+    try:
+        data = get_metric_average(targets,
+                                  start=time_interval['start'],
+                                  end=time_interval['end'],
+                                  ignore_unknown=True)
+    except GraphiteUnreachableError:
+        _logger.error("graphite unreachable on load query for %s (%r)",
+                      items.keys(), time_interval)
+        return
+
+    for key, value in data.iteritems():
+        for sysname, netbox in target_map.iteritems():
+            if sysname in key:
+                if not is_nan(value):
+                    netbox['load'] = value
+                    break
