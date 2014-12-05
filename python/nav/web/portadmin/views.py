@@ -511,11 +511,8 @@ def handle_trunk_edit(request, agent, interface):
 def restart_interface(request):
     """Restart the interface by setting admin status to down and up"""
     if request.method == 'POST':
-        try:
-            interface = Interface.objects.get(
-                pk=request.POST.get('interfaceid'))
-        except Interface.DoesNotExist:
-            return HttpResponse(status=404)
+        interface = get_object_or_404(
+            Interface, pk=request.POST.get('interfaceid'))
 
         try:
             fac = SNMPFactory.get_instance(interface.netbox)
@@ -541,11 +538,8 @@ def restart_interface(request):
 def write_mem(request):
     """Do a write mem on the netbox"""
     if request.method == 'POST':
-        try:
-            interface = Interface.objects.get(
-                pk=request.POST.get('interfaceid'))
-        except Interface.DoesNotExist:
-            return HttpResponse(status=404)
+        interface = get_object_or_404(
+            Interface, pk=request.POST.get('interfaceid'))
 
         try:
             fac = SNMPFactory.get_instance(interface.netbox)
