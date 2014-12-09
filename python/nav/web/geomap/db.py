@@ -26,6 +26,7 @@ Based on datacollector.py from the old Java-applet based Netmap.
 """
 
 import logging
+import urllib2
 
 import nav
 from nav.config import read_flat_config
@@ -36,7 +37,7 @@ from nav.metrics.names import escape_metric_name
 from nav.metrics.templates import (metric_path_for_interface,
                                    metric_path_for_cpu_load,
                                    metric_path_for_cpu_utilization)
-from nav.web.geomap.utils import lazy_dict, subdict, fix, is_nan
+from nav.web.geomap.utils import lazy_dict, subdict, fix, is_nan, chunks
 
 _logger = logging.getLogger(__name__)
 
@@ -353,6 +354,7 @@ ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
 # TRAFFIC DATA
 
 MEGABIT = 1e6
+METRIC_CHUNK_SIZE = 500  # number of metrics to ask for in a single request
 
 
 def get_multiple_link_load(items, time_interval):
@@ -365,8 +367,6 @@ def get_multiple_link_load(items, time_interval):
     :param time_interval: A dict(start=..., end=...) describing the desired
                           time interval in terms valid to Graphite web.
     """
-    _logger.debug("get_multiple_link_load%r", (items.keys(), time_interval))
-
     target_map = {}
     for (sysname, ifname), properties in items.iteritems():
         if not (sysname and ifname):
@@ -377,23 +377,21 @@ def get_multiple_link_load(items, time_interval):
         targets = [get_metric_meta(t)['target'] for t in targets]
         target_map.update({t: properties for t in targets})
 
-    try:
-        data = get_metric_average(target_map.keys(),
-                                  start=time_interval['start'],
-                                  end=time_interval['end'])
-    except GraphiteUnreachableError:
-        _logger.error("graphite unreachable on load query for %s (%r)",
-                      items.keys(), time_interval)
-        return
+    _logger.debug("getting %s graphite targets in chunks",
+                  len(target_map.keys()))
+    data = {}
+    for chunk in chunks(target_map.keys(), METRIC_CHUNK_SIZE):
+        data.update(_get_metric_average(chunk, time_interval))
 
     for key, value in data.iteritems():
         properties = target_map.get(key, None)
         if properties:
-            bps = value / MEGABIT
-            if 'ifInOctets' in key:
-                properties['load_in'] = bps
-            elif 'ifOutOctets' in key:
-                properties['load_out'] = bps
+            if value:
+                bps = value / MEGABIT
+                if 'ifInOctets' in key:
+                    properties['load_in'] = bps
+                elif 'ifOutOctets' in key:
+                    properties['load_out'] = bps
         else:
             _logger.error(
                 "no match for key %r (%r) in data returned from graphite",
@@ -413,8 +411,6 @@ def get_multiple_cpu_load(items, time_interval):
     :param time_interval: A dict(start=..., end=...) describing the desired
                           time interval in terms valid to Graphite web.
     """
-    _logger.debug("get_multiple_cpu_load%r", (items.keys(), time_interval))
-
     target_map = {escape_metric_name(sysname): netbox
                   for sysname, netbox in items.iteritems()}
     targets = []
@@ -428,15 +424,10 @@ def get_multiple_cpu_load(items, time_interval):
                          metric_path_for_cpu_utilization(sysname, '*'))
         ])
 
-    try:
-        data = get_metric_average(targets,
-                                  start=time_interval['start'],
-                                  end=time_interval['end'],
-                                  ignore_unknown=True)
-    except GraphiteUnreachableError:
-        _logger.error("graphite unreachable on load query for %s (%r)",
-                      items.keys(), time_interval)
-        return
+    data = {}
+    for chunk in chunks(target_map.keys(), METRIC_CHUNK_SIZE):
+        data.update(_get_metric_average(chunk, time_interval,
+                                        ignore_unknown=True))
 
     for key, value in data.iteritems():
         for sysname, netbox in target_map.iteritems():
@@ -444,3 +435,21 @@ def get_multiple_cpu_load(items, time_interval):
                 if not is_nan(value):
                     netbox['load'] = value
                     break
+
+
+def _get_metric_average(targets, time_interval, ignore_unknown=False):
+    try:
+        data = get_metric_average(targets,
+                                  start=time_interval['start'],
+                                  end=time_interval['end'],
+                                  ignore_unknown=ignore_unknown)
+        _logger.debug("graphite returned %s metrics from %s targets",
+                      len(data), len(targets))
+        return data
+    except GraphiteUnreachableError as err:
+        _logger.error("graphite unreachable on load query for %s targets "
+                      "(%r): %s",
+                      len(targets), time_interval, err)
+        if isinstance(err.cause, urllib2.HTTPError):
+            _logger.debug("error cause: %s", err.cause.read())
+        return {}
