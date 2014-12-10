@@ -33,8 +33,8 @@ import nav.db
 from nav.django.utils import get_account
 
 from nav.web.geomap.conf import get_configuration
-from nav.web.geomap.db import (get_data, get_multiple_link_load,
-                               get_multiple_cpu_load)
+from nav.web.geomap.db import (get_data, get_cached_multiple_link_load,
+                               get_cached_multiple_cpu_load)
 from nav.web.geomap.graph import build_graph
 from nav.web.geomap.graph import simplify
 from nav.web.geomap.features import create_features
@@ -220,7 +220,7 @@ def _attach_traffic_load(graph, time_interval={'start': '-10min', 'end': 'now'})
     needs_traffic_data = {(d['local_sysname'], d['local_interface']): d
                           for edges in subedges for d in edges}
 
-    get_multiple_link_load(needs_traffic_data, time_interval)
+    get_cached_multiple_link_load(needs_traffic_data, time_interval)
 
 
 def _attach_cpu_load(graph, time_interval={'start': '-10min', 'end': 'now'}):
@@ -237,5 +237,5 @@ def _attach_cpu_load(graph, time_interval={'start': '-10min', 'end': 'now'}):
                 for netbox in room['netboxes'])
     needs_cpu_data = {netbox['real_sysname']: netbox for netbox in netboxes}
 
-    get_multiple_cpu_load(needs_cpu_data, time_interval)
+    get_cached_multiple_cpu_load(needs_cpu_data, time_interval)
 

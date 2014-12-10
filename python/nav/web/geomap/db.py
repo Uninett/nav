@@ -38,6 +38,7 @@ from nav.metrics.templates import (metric_path_for_interface,
                                    metric_path_for_cpu_load,
                                    metric_path_for_cpu_utilization)
 from nav.web.geomap.utils import lazy_dict, subdict, fix, is_nan, chunks
+from django.core.cache import cache
 
 _logger = logging.getLogger(__name__)
 
@@ -356,6 +357,43 @@ ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
 
 MEGABIT = 1e6
 METRIC_CHUNK_SIZE = 500  # number of metrics to ask for in a single request
+CACHE_TIMEOUT = 5*60  # 5 minutes
+
+
+def get_cached_multiple_link_load(items, time_interval):
+    """Cached version of get_multiple_link_load()"""
+    item_map = {k: _cache_key(k, time_interval) for k in items.iterkeys()}
+    # cache lookup
+    cached = cache.get_many(item_map.values())
+    _logger.debug(
+        "get_cached_multiple_link_load: got %d/%d values from cache (%r)",
+        len(cached), len(items), time_interval)
+
+    # retrieve data for cache misses
+    misses = {k: v
+              for k, v in items.iteritems() if item_map[k] not in cached}
+    if misses:
+        get_multiple_link_load(misses, time_interval)
+
+    # set data from cache
+    reverse_item_map = {v: k for k, v in item_map.iteritems()}
+    for cache_key, value in cached.iteritems():
+        key = reverse_item_map[cache_key]
+        properties = items[key]
+        properties['load_in'], properties['load_out'] = value
+
+    # add new data to cache
+    missed_data = {item_map[key]: (properties['load_in'],
+                                   properties['load_out'])
+                   for key, properties in misses.iteritems()}
+    _logger.debug("get_cached_multiple_link_load: caching %d values",
+                  len(missed_data))
+    cache.set_many(missed_data, CACHE_TIMEOUT)
+
+
+def _cache_key(*args):
+    args = (str(a).replace(' ', '') for a in args)
+    return 'geomap:load:' + ':'.join(args)
 
 
 def get_multiple_link_load(items, time_interval):
@@ -401,6 +439,36 @@ def get_multiple_link_load(items, time_interval):
     missing = set(target_map).difference(data)
     if missing:
         _logger.debug("missed %d targets in graphite response", len(missing))
+
+
+def get_cached_multiple_cpu_load(items, time_interval):
+    """Cached version of get_multiple_link_load()"""
+    item_map = {k: _cache_key(k, time_interval) for k in items.iterkeys()}
+    # cache lookup
+    cached = cache.get_many(item_map.values())
+    _logger.debug(
+        "get_cached_multiple_cpu_load: got %d/%d values from cache (%r)",
+        len(cached), len(items), time_interval)
+
+    # retrieve data for cache misses
+    misses = {k: v
+              for k, v in items.iteritems() if item_map[k] not in cached}
+    if misses:
+        get_multiple_cpu_load(misses, time_interval)
+
+    # set data from cache
+    reverse_item_map = {v: k for k, v in item_map.iteritems()}
+    for cache_key, value in cached.iteritems():
+        key = reverse_item_map[cache_key]
+        properties = items[key]
+        properties['load'] = value
+
+    # add new data to cache
+    missed_data = {item_map[key]: properties['load']
+                   for key, properties in misses.iteritems()}
+    _logger.debug("get_cached_multiple_cpu_load: caching %d values",
+                  len(missed_data))
+    cache.set_many(missed_data, CACHE_TIMEOUT)
 
 
 def get_multiple_cpu_load(items, time_interval):
