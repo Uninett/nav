@@ -344,6 +344,7 @@ ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
     netboxes = [lazy_dict(row) for row in db_cursor.fetchall()]
     for netbox in netboxes:
         netbox['load'] = float('nan')
+        netbox['real_sysname'] = netbox['sysname']
         if netbox['sysname'].endswith(_domain_suffix):
             hostname_length = len(netbox['sysname']) - len(_domain_suffix)
             netbox['sysname'] = netbox['sysname'][0:hostname_length]
@@ -377,7 +378,7 @@ def get_multiple_link_load(items, time_interval):
         targets = [get_metric_meta(t)['target'] for t in targets]
         target_map.update({t: properties for t in targets})
 
-    _logger.debug("getting %s graphite targets in chunks",
+    _logger.debug("getting %s graphite traffic targets in chunks",
                   len(target_map.keys()))
     data = {}
     for chunk in chunks(target_map.keys(), METRIC_CHUNK_SIZE):
@@ -424,10 +425,11 @@ def get_multiple_cpu_load(items, time_interval):
                          metric_path_for_cpu_utilization(sysname, '*'))
         ])
 
+    _logger.debug("getting %s graphite cpu targets in chunks",
+                  len(targets))
     data = {}
-    for chunk in chunks(target_map.keys(), METRIC_CHUNK_SIZE):
-        data.update(_get_metric_average(chunk, time_interval,
-                                        ignore_unknown=True))
+    for chunk in chunks(targets, METRIC_CHUNK_SIZE):
+        data.update(_get_metric_average(chunk, time_interval))
 
     for key, value in data.iteritems():
         for sysname, netbox in target_map.iteritems():
@@ -437,12 +439,11 @@ def get_multiple_cpu_load(items, time_interval):
                     break
 
 
-def _get_metric_average(targets, time_interval, ignore_unknown=False):
+def _get_metric_average(targets, time_interval):
     try:
         data = get_metric_average(targets,
                                   start=time_interval['start'],
-                                  end=time_interval['end'],
-                                  ignore_unknown=ignore_unknown)
+                                  end=time_interval['end'])
         _logger.debug("graphite returned %s metrics from %s targets",
                       len(data), len(targets))
         return data

@@ -235,7 +235,7 @@ def _attach_cpu_load(graph, time_interval={'start': '-10min', 'end': 'now'}):
     netboxes = (netbox for node in graph.nodes.itervalues()
                 for room in node.properties['rooms']
                 for netbox in room['netboxes'])
-    needs_cpu_data = {netbox['sysname']: netbox for netbox in netboxes}
+    needs_cpu_data = {netbox['real_sysname']: netbox for netbox in netboxes}
 
     get_multiple_cpu_load(needs_cpu_data, time_interval)
 
