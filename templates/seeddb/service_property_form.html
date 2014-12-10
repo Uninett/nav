@@ -18,4 +18,12 @@
       </tr>
     </table>
   </form>
+
+  {% if delete_url and object %}
+    <form action="{{ delete_url }}" method="post">
+      <input type="hidden" name="object" value="{{ object.pk }}"/>
+      <input type="submit" name="delete" value="Delete this service" class="button small"/>
+    </form>
+  {% endif %}
+
 {% endblock %}
