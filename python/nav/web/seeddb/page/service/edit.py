@@ -29,6 +29,7 @@ from nav.web.quickselect import QuickSelect
 
 from nav.web.seeddb.page.service import ServiceInfo
 
+
 class ServiceChoiceForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ServiceChoiceForm, self).__init__(*args, **kwargs)
@@ -60,6 +61,7 @@ class ServiceForm(forms.Form):
     netbox = forms.IntegerField(
         widget=forms.HiddenInput)
 
+
 class ServicePropertyForm(forms.Form):
     def __init__(self, *args, **kwargs):
         service_description = kwargs.pop('service_args')
@@ -74,6 +76,7 @@ class ServicePropertyForm(forms.Form):
             for arg in opt_args:
                 self.fields[arg] = forms.CharField(required=False)
 
+
 def service_edit(request, service_id=None):
     service = None
     netbox = None
@@ -86,8 +89,8 @@ def service_edit(request, service_id=None):
         service_form = ServiceForm(request.POST)
         if service_form.is_valid():
             handler = service_form.cleaned_data['handler']
-            property_form = ServicePropertyForm(request.POST,
-                service_args=get_description(handler))
+            property_form = ServicePropertyForm(
+                request.POST, service_args=get_description(handler))
             if property_form.is_valid():
                 return service_save(request, service_form, property_form)
     else:
@@ -119,7 +122,8 @@ def service_edit(request, service_id=None):
         'property_form': property_form,
     })
     return render_to_response('seeddb/service_property_form.html',
-        context, RequestContext(request))
+                              context, RequestContext(request))
+
 
 def service_add(request):
     info = ServiceInfo()
@@ -155,7 +159,7 @@ def service_add(request):
                     'netbox': netbox,
                 })
                 return render_to_response('seeddb/service_property_form.html',
-                    context, RequestContext(request))
+                                          context, RequestContext(request))
     else:
         choice_form = ServiceChoiceForm()
 
@@ -166,7 +170,8 @@ def service_add(request):
         'sub_active': {'add': True},
     })
     return render_to_response('seeddb/service_netbox_form.html',
-        context, RequestContext(request))
+                              context, RequestContext(request))
+
 
 @transaction.commit_on_success
 def service_save(request, service_form, property_form):
