@@ -19,11 +19,12 @@ from operator import itemgetter
 
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit
+from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
+                                            HTML, Div)
 
 from . import STATELESS_THRESHOLD
 from nav.models.event import EventType, AlertType
-from nav.models.manage import Organization, Category
+from nav.models.manage import Organization, Category, NetboxGroup
 from nav.web.crispyforms import NumberField
 
 
@@ -61,6 +62,10 @@ class StatusPanelForm(forms.Form):
             choices=get_organizations(),
             required=False
         )
+        self.fields['device_group'] = forms.MultipleChoiceField(
+            choices=get_device_groups(),
+            required=False
+        )
 
         self.fields['not_event_type'] = forms.MultipleChoiceField(
             choices=get_event_types(),
@@ -78,6 +83,10 @@ class StatusPanelForm(forms.Form):
             choices=get_organizations(),
             required=False
         )
+        self.fields['not_device_group'] = forms.MultipleChoiceField(
+            choices=get_device_groups(),
+            required=False
+        )
 
         column_class = 'medium-3'
         self.helper = FormHelper()
@@ -87,30 +96,28 @@ class StatusPanelForm(forms.Form):
         self.helper.layout = Layout(
             Row(
                 Column(Field('event_type', css_class='select2'),
+                       Field('not_event_type', css_class='select2'),
                        css_class=column_class),
                 Column(Field('alert_type', css_class='select2'),
+                       Field('not_alert_type', css_class='select2'),
                        css_class=column_class),
                 Column(Field('category', css_class='select2'),
+                       Field('not_category', css_class='select2'),
                        css_class=column_class),
                 Column(Field('organization', css_class='select2'),
+                       Field('not_organization', css_class='select2'),
                        css_class=column_class),
             ),
             Row(
-                Column(Field('not_event_type', css_class='select2'),
+                Column(Field('device_group', css_class='select2'),
+                       Field('not_device_group', css_class='select2'),
                        css_class=column_class),
-                Column(Field('not_alert_type', css_class='select2'),
-                       css_class=column_class),
-                Column(Field('not_category', css_class='select2'),
-                       css_class=column_class),
-                Column(Field('not_organization', css_class='select2'),
-                       css_class=column_class),
-            ),
-            Row(
                 Column('stateless', 'stateless_threshold',
                        css_class=column_class),
                 Column('acknowledged', 'on_maintenance',
                        css_class='medium-3 end')
-            )
+            ),
+            HTML('<hr>'),
 
         )
 
@@ -161,6 +168,12 @@ class StatusWidgetForm(StatusPanelForm):
                        css_class=column_class),
             ),
             Row(
+                Column(Field('device_group', css_class='select2'),
+                       css_class=column_class),
+                Column(Field('not_device_group', css_class='select2'),
+                       css_class=column_class),
+            ),
+            Row(
                 Column('stateless', 'stateless_threshold',
                        css_class=column_class),
                 Column('acknowledged', 'on_maintenance',
@@ -201,3 +214,8 @@ def get_categories():
 def get_organizations():
     """Get all organizations formatted as choices"""
     return [(o.id, o.id) for o in Organization.objects.all()]
+
+
+def get_device_groups():
+    """Get all device groups formatted as choices"""
+    return [(n.id, n.id) for n in NetboxGroup.objects.all()]

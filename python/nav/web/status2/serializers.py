@@ -75,6 +75,7 @@ class AlertHistorySerializer(serializers.ModelSerializer):
         'get_event_history_url')
     netbox_history_url = serializers.SerializerMethodField(
         'get_netbox_history_url')
+    device_groups = serializers.SerializerMethodField('get_device_groups')
 
     alert_type = AlertTypeSerializer()
     event_type = EventTypeSerializer()
@@ -122,6 +123,15 @@ class AlertHistorySerializer(serializers.ModelSerializer):
         values to the string 'infinity'
         """
         return obj.end_time if obj.end_time != INFINITY else "infinity"
+
+    @staticmethod
+    def get_device_groups(obj):
+        """Returns all the device groups for the netbox if any"""
+        try:
+            netbox = obj.netbox
+            return netbox.netboxgroups.all()
+        except:
+            pass
 
     class Meta:
         model = event.AlertHistory

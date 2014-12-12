@@ -21,7 +21,7 @@ from operator import or_ as OR
 
 from django.http import HttpResponse
 from django.template import RequestContext, Context
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -311,7 +311,6 @@ def set_interface_values(account, interface, request):
         set_ifalias(account, fac, interface, request)
         set_vlan(account, fac, interface, request)
         set_admin_status(fac, interface, request)
-        write_to_memory(fac)
         save_to_database([interface])
 
 
@@ -423,14 +422,6 @@ def set_admin_status(fac, interface, request):
             messages.error(request, "Error setting ifadminstatus: %s" % error)
 
 
-def write_to_memory(fac):
-    """Write changes on netbox to memory using snmp"""
-    try:
-        fac.write_mem()
-    except SnmpError, error:
-        _logger.error('Error doing write mem on %s: %s' % (fac.netbox, error))
-
-
 def response_based_on_result(result):
     """Return response based on content of result
 
@@ -520,11 +511,8 @@ def handle_trunk_edit(request, agent, interface):
 def restart_interface(request):
     """Restart the interface by setting admin status to down and up"""
     if request.method == 'POST':
-        try:
-            interface = Interface.objects.get(
-                pk=request.POST.get('interfaceid'))
-        except Interface.DoesNotExist:
-            return HttpResponse(status=404)
+        interface = get_object_or_404(
+            Interface, pk=request.POST.get('interfaceid'))
 
         try:
             fac = SNMPFactory.get_instance(interface.netbox)
@@ -541,6 +529,31 @@ def restart_interface(request):
             # Swallow this exception as it is not important. Others should
             # create an error
             pass
+
+        return HttpResponse()
+
+    return HttpResponse(status=400)
+
+
+def write_mem(request):
+    """Do a write mem on the netbox"""
+    if request.method == 'POST':
+        interface = get_object_or_404(
+            Interface, pk=request.POST.get('interfaceid'))
+
+        try:
+            fac = SNMPFactory.get_instance(interface.netbox)
+        except SnmpError, error:
+            _logger.error('Error getting snmpfactory instance when '
+                          'writing to memory %s: %s',
+                          interface.netbox, error)
+            return HttpResponse(status=500)
+
+        try:
+            fac.write_mem()
+        except SnmpError, error:
+            _logger.error(
+                'Error doing write mem on %s: %s' % (fac.netbox, error))
 
         return HttpResponse()
 

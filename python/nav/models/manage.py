@@ -643,6 +643,7 @@ class NetboxGroup(models.Model):
 
     class Meta:
         db_table = 'netboxgroup'
+        ordering = ('id',)
 
     def __unicode__(self):
         return self.id
