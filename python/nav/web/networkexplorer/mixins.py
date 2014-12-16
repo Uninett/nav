@@ -96,7 +96,8 @@ class ExpandRouterContextMixin(object):
             if gwport.to_netbox:
                 c.update({
                     'netbox_sysname': gwport.to_netbox.sysname,
-                    'trunk_port': gwport.to_interface.trunk,
+                    'trunk_port': (gwport.to_interface.trunk
+                                   if gwport.to_interface else None)
                 })
             c.update(self._get_expandable(gwport))
             context.append(c)
