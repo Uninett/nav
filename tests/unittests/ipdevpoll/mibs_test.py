@@ -114,6 +114,13 @@ class Snmpv2MibTests(unittest.TestCase):
         self.assertTrue(abs(dev) < 0.5,
                         msg="deviation is higher than 0.5: %r" % dev)
 
+    def test_none_uptime_should_not_crash(self):
+        uptime1 = (0, None)
+        uptime2 = (10, 10)
+        dev = Snmpv2Mib.get_uptime_deviation(uptime1, uptime2)
+        self.assertIsNone(dev)
+
+
 class CiscoHSRPMibTests(unittest.TestCase):
     def test_virtual_address_map(self):
         class MockedMib(CiscoHSRPMib):
