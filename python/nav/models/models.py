@@ -6,3 +6,17 @@
 # INSTALLED_APPS to make sure 'models.ModelName' is valid lookup on django
 # form app_label.model_name
 #
+
+from .manage import *
+from .api import *
+from .arnold import *
+from .cabling import *
+from .event import *
+from .logger import *
+from .msgmaint import *
+from .oid import *
+from .profiles import *
+from .roommeta import *
+from .rrd import *
+from .service import *
+from .thresholds import *
