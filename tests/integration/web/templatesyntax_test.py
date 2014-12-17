@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """Generates syntax tests for all NAV Django templates"""
 
+import django
+django.setup()
+
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 from os.path import sep, commonprefix, abspath, pardir, curdir, join, relpath

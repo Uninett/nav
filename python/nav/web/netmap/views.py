@@ -28,7 +28,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.http import (HttpResponse, HttpResponseForbidden,
                          HttpResponseBadRequest, HttpResponseRedirect)
-from django.utils import simplejson
+import json as simplejson
 
 import nav.buildconf
 from nav.django.utils import get_account, get_request_body

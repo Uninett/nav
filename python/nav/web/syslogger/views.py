@@ -18,7 +18,7 @@
 import logging
 from django.core.urlresolvers import reverse
 from django.db.models.aggregates import Count
-from django.utils import simplejson
+import json as simplejson
 import os
 import datetime
 from ConfigParser import ConfigParser

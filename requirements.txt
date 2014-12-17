@@ -2,7 +2,7 @@
 # tools/vagrant-provision.sh
 
 psycopg2==2.4.5  # requires libpq to build
-django==1.5
+Django==1.7.1
 IPy==0.75
 twisted>=12,<13
 simplejson==2.0.6  # freebsd doesn't have newer.
@@ -19,7 +19,7 @@ feedparser>=5.1.2,<5.2
 
 # REST framework
 django-oauth2-provider>=0.2.6
-djangorestframework>=2.3.7,<2.4
+djangorestframework==2.4.4
 django-filter>=0.5.3
 iso8601
 

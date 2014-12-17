@@ -21,7 +21,7 @@ The view definitions does not necessarily need to be placed here.
 
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.utils import simplejson
+import json as simplejson
 
 from nav.models.manage import Room, Netbox
 

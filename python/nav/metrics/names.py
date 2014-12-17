@@ -17,7 +17,7 @@
 
 from collections import OrderedDict
 import itertools
-import simplejson
+import json as simplejson
 from urllib import urlencode, quote
 import urllib2
 from urlparse import urljoin

@@ -15,7 +15,7 @@
 #
 """Retrieval and calculations on raw numbers from Graphite metrics"""
 
-import simplejson
+import json as simplejson
 from urllib import urlencode
 import urllib2
 from urlparse import urljoin

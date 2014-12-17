@@ -16,7 +16,7 @@
 
 import os
 from datetime import datetime
-import simplejson
+import json as simplejson
 import logging
 
 from django.core.urlresolvers import reverse

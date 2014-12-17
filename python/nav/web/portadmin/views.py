@@ -14,7 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """View controller for PortAdmin"""
-import simplejson
+import json as simplejson
 import logging
 
 from operator import or_ as OR
