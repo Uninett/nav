@@ -147,6 +147,11 @@ class TimestampChecker(object):
                                self.var_name, new_times)
             self._logger.warning("%r: retrieved empty timestamp", self.var_name)
             return True
+        if uptime_deviation is None:
+            self._logger.debug("%r: unable to calculate uptime deviation for "
+                               "old/new: %r/%r",
+                               self.var_name, old_times, new_times)
+            return True
         if old_times != new_times:
             self._logger.debug("%r: timestamps have changed: %r / %r",
                                self.var_name, old_times, new_times)
