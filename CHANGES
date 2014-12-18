@@ -1,3 +1,36 @@
+Version 4.2.2
+(released xx Dec 2014)
+
+ Important note:
+
+  This release adds commas to the list of characters escaped in Graphite
+  metric names, which may change the name used for some of your existing
+  metrics after an upgrade. If you want to keep your data, the underlying
+  files need to be renamed manually in your Graphite installation. See the
+  updated release notes for more.
+
+ Bugfixes:
+
+  * LP#1396913 (Status page, filter on Device Group)
+  * LP#1396920 (NAV 4, Internet Explorer Compatibility mode)
+  * LP#1396924 (NAV 4.2 does not work with SASS 3.4 or newer, but the install
+                docs do not specify this)
+  * LP#1397255 (Subject text of psuDown alerts in status tool is non-
+                descriptive)
+  * LP#1397886 (device history script timeout on many results)
+  * LP#1398382 (AssertionError prevents Netmap from loading any graph/map)
+  * LP#1398791 (Maintenance system stops working when an IP device on
+                maintenance is deleted)
+  * LP#1399558 (portadmin tries to write to memory for each change)
+  * LP#1400307 (Need easier way to remove services)
+  * LP#1401114 (dropdown for ipdevice when adding a service is fubar)
+  * LP#1401470 (ipdevpoll TypeError: unsupported operand type(s) for +:
+                'NoneType' and 'float')
+  * LP#1403066 (Some routers fail to expand in Network Explorer)
+  * LP#1403432 (report.conf, wrong url for netboxinfo)
+  * LP#1403797 (Geomap is insanely slow after migration to Graphite in NAV 4.0)
+
+
 Version 4.2.1
 (released 27 Nov 2014)
 
