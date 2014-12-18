@@ -175,3 +175,13 @@ text.shadow {
     stroke: #fff;
     stroke-width: 4px;
 }
+
+@media print {
+    nav, #nav-breadcrumbs, footer, #navigation-view, .navbody > div:first-child, .navbody > div:last-of-type {
+        display: none;
+    }
+    #graph-view {
+        border: none;
+    }
+}
+
