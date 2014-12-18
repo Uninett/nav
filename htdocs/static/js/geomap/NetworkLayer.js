@@ -26,6 +26,29 @@
  * show in popup boxes when clicking on them.
  */
 
+
+DelayedBBOX = OpenLayers.Class(OpenLayers.Strategy.BBOX, {
+    /**
+     * A BBOX strategy that delays the update until a certain time has passed.
+     * This is done to avoid fetching data for each zoom and pan.
+     */
+
+    update: function (options) {
+        var self = this,
+            timeout = 500;  // Time in milliseconds to wait before requesting update
+
+        if (this.timer) {
+            clearTimeout(this.timer);
+        }
+
+        this.timer = setTimeout(function () {
+            OpenLayers.Strategy.BBOX.prototype.update.call(self, options);
+        }, timeout);
+
+    }
+});
+
+
 NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
 
     /*
@@ -85,7 +108,7 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
 
         // A "strategy" takes care of automatically downloading data.
         // The BBOX strategy reacts to moving and zooming.
-        this.bboxStrategy = new OpenLayers.Strategy.BBOX({resFactor: 1.1});
+        this.bboxStrategy = new DelayedBBOX({resFactor: 1.1});
 
         // Reference to this for use in functions below which are not
         // called on this object:
