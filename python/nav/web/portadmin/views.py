@@ -522,6 +522,7 @@ def restart_interface(request):
                           interface.netbox, error)
             return HttpResponse(status=500)
 
+        _logger.debug('Restarting interface %s', interface)
         try:
             # Restart interface so that client fetches new address
             fac.restart_if(interface.ifindex)
