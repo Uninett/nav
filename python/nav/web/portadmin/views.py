@@ -38,7 +38,9 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      find_allowed_vlans_for_user,
                                      filter_vlans, fetch_voice_vlans,
                                      should_check_access_rights,
-                                     mark_detained_interfaces)
+                                     mark_detained_interfaces,
+                                     is_restart_interface_enabled,
+                                     is_write_mem_enabled)
 from nav.Snmp.errors import SnmpError, TimeOutException
 from nav.portadmin.snmputils import SNMPFactory
 from .forms import SearchForm
@@ -510,6 +512,10 @@ def handle_trunk_edit(request, agent, interface):
 
 def restart_interface(request):
     """Restart the interface by setting admin status to down and up"""
+    if not is_restart_interface_enabled():
+        _logger.debug('Not doing a restart of interface, it is configured off')
+        return HttpResponse()
+
     if request.method == 'POST':
         interface = get_object_or_404(
             Interface, pk=request.POST.get('interfaceid'))
@@ -538,6 +544,10 @@ def restart_interface(request):
 
 def write_mem(request):
     """Do a write mem on the netbox"""
+    if not is_write_mem_enabled():
+        _logger.debug('Not doing a write mem, it is configured off')
+        return HttpResponse()
+
     if request.method == 'POST':
         interface = get_object_or_404(
             Interface, pk=request.POST.get('interfaceid'))

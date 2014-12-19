@@ -113,11 +113,32 @@ def find_allowed_vlans_for_user_on_netbox(account, netbox, factory=None):
 
 def is_vlan_authorization_enabled():
     """Check config to see if authorization is to be done"""
+    # TODO: It is very inefficient to reread config for every option
     config = read_config()
     if config.has_option("authorization", "vlan_auth"):
         return config.getboolean("authorization", "vlan_auth")
 
     return False
+
+
+def is_write_mem_enabled():
+    """Checks if write mem is turned on or off. Default is on"""
+    # TODO: It is very inefficient to reread config for every option
+    config = read_config()
+    if config.has_option("general", "write_mem"):
+        return config.getboolean("general", "write_mem")
+
+    return True
+
+
+def is_restart_interface_enabled():
+    """Checks if restart interface is turned on or off. Default is on"""
+    # TODO: It is very inefficient to reread config for every option
+    config = read_config()
+    if config.has_option("general", "restart_interface"):
+        return config.getboolean("general", "restart_interface")
+
+    return True
 
 
 def find_vlans_on_netbox(netbox, factory=None):
@@ -150,6 +171,7 @@ def find_default_vlan(include_netident=False):
     defaultvlan = ""
     netident = ""
 
+    # TODO: It is very inefficient to reread config for every option
     config = read_config()
     if config.has_section("defaultvlan"):
         if config.has_option("defaultvlan", "vlan"):
