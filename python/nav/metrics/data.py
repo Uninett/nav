@@ -19,7 +19,10 @@ import simplejson
 from urllib import urlencode
 import urllib2
 from urlparse import urljoin
+import logging
 from nav.metrics import CONFIG, errors
+
+_logger = logging.getLogger(__name__)
 
 
 def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
@@ -89,13 +92,16 @@ def get_metric_data(target, start="-5min", end="now"):
     }
     query = urlencode(query, True)
 
+    _logger.debug("get_metric_data%r", (target, start, end))
     req = urllib2.Request(url, data=query)
     try:
         response = urllib2.urlopen(req)
-        return simplejson.load(response)
+        json = simplejson.load(response)
+        _logger.debug("get_metric_data: returning %d results", len(json))
+        return json
     except urllib2.URLError as err:
         raise errors.GraphiteUnreachableError(
-            "{0} is unreachable".format(base),err)
+            "{0} is unreachable".format(base), err)
     finally:
         try:
             response.close()

@@ -33,7 +33,8 @@ import nav.db
 from nav.django.utils import get_account
 
 from nav.web.geomap.conf import get_configuration
-from nav.web.geomap.db import get_data
+from nav.web.geomap.db import (get_data, get_cached_multiple_link_load,
+                               get_cached_multiple_cpu_load)
 from nav.web.geomap.graph import build_graph
 from nav.web.geomap.graph import simplify
 from nav.web.geomap.features import create_features
@@ -188,14 +189,53 @@ def get_formatted_data(variant, db, format_, bounds, viewport_size, limit,
     Return value: formatted data as a string.
 
     """
-    logger.debug('get_data')
     data = get_data(db, bounds, time_interval)
     logger.debug('build_graph')
     graph = build_graph(data)
     logger.debug('simplify')
     simplify(graph, bounds, viewport_size, limit)
+    logger.debug('_attach_traffic_load')
+    _attach_traffic_load(graph, time_interval)
+    logger.debug('_attach_cpu_load')
+    _attach_cpu_load(graph, time_interval)
     logger.debug('create_features')
     features = create_features(variant, graph)
     logger.debug('format')
     output = format_data(format_, features)
     return output
+
+
+def _attach_traffic_load(graph, time_interval={'start': '-10min', 'end': 'now'}):
+    """
+    Inspects a topology graph and adds the required traffic-load
+    data to it.
+
+    Should be run _after_ the topology graph has been simplified.
+
+    :type graph: nav.web.geomap.graph.Graph
+    """
+    subedges = (edge for combo_edge in graph.edges.itervalues()
+                for edge in (combo_edge.source_data['subedges'],
+                             combo_edge.target_data['subedges']))
+    needs_traffic_data = {(d['local_sysname'], d['local_interface']): d
+                          for edges in subedges for d in edges}
+
+    get_cached_multiple_link_load(needs_traffic_data, time_interval)
+
+
+def _attach_cpu_load(graph, time_interval={'start': '-10min', 'end': 'now'}):
+    """
+    Inspects a topology graph and adds the required CPU load
+    data to it.
+
+    Should be run _after_ the topology graph has been simplified.
+
+    :type graph: nav.web.geomap.graph.Graph
+    """
+    netboxes = (netbox for node in graph.nodes.itervalues()
+                for room in node.properties['rooms']
+                for netbox in room['netboxes'])
+    needs_cpu_data = {netbox['real_sysname']: netbox for netbox in netboxes}
+
+    get_cached_multiple_cpu_load(needs_cpu_data, time_interval)
+

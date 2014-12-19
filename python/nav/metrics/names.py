@@ -29,7 +29,7 @@ def escape_metric_name(string):
     Escapes any character of string that may not be used in graphite metric
     names.
     """
-    for char in "./ ()":
+    for char in "./ (),":
         string = string.replace(char, "_")
     return string.replace('\x00', '')  # some devices have crazy responses!
 

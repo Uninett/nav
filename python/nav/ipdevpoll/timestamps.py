@@ -145,7 +145,6 @@ class TimestampChecker(object):
         if None in new_times:
             self._logger.debug("%r: None in timestamp list: %r",
                                self.var_name, new_times)
-            self._logger.warning("%r: retrieved empty timestamp", self.var_name)
             return True
         if uptime_deviation is None:
             self._logger.debug("%r: unable to calculate uptime deviation for "

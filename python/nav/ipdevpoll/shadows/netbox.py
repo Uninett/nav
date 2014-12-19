@@ -15,6 +15,7 @@
 #
 """netbox related shadow classes"""
 from nav.models import manage
+from django.db.models import Q
 
 from nav.ipdevpoll.storage import Shadow
 from nav.ipdevpoll import db
@@ -41,6 +42,10 @@ class Netbox(Shadow):
                 setattr(self, attr, getattr(other, attr))
 
     def prepare(self, containers):
+        self._handle_serial_number_conflicts(containers)
+        self._handle_sysname_conflicts(containers)
+
+    def _handle_serial_number_conflicts(self, containers):
         """Attempts to solve serial number conflicts before savetime.
 
         Specifically, if another Netbox in the database is registered with the
@@ -64,6 +69,22 @@ class Netbox(Shadow):
                         self.sysname, self.ip, self.id,
                         other.sysname, other.ip, other.id)
                     self.device.serial = None
+
+    def _handle_sysname_conflicts(self, containers):
+        if self.id and self.sysname:
+            other = manage.Netbox.objects.filter(~Q(id=self.id),
+                                                 Q(sysname=self.sysname))
+            if not other:
+                return
+            else:
+                other = other[0]
+
+            liveself = self.get_existing_model(containers)
+            self._logger.error(
+                "%s and %s both appear to resolve to the same DNS name (%s)."
+                "Are they the same device? Setting sysname = IP Address to "
+                "avoid conflicts", liveself.ip, other.ip, self.sysname)
+            self.sysname = liveself.ip
 
     @classmethod
     @db.commit_on_success
