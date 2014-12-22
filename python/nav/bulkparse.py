@@ -152,10 +152,11 @@ class NetboxBulkParser(BulkParser):
             return True
 
     @staticmethod
-    def _validate_data(self, datastring):
+    def _validate_data(datastring):
         try:
-            items = (item.split('=', 1) for item in datastring.split('|'))
-            dict(items)
+            if datastring:
+                items = (item.split('=', 1) for item in datastring.split('|'))
+                dict(items)
         except ValueError:
             return False
         else:
