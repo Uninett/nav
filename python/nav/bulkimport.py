@@ -135,8 +135,11 @@ class NetboxImporter(BulkImporter):
 
     @staticmethod
     def _parse_data(datastring):
-        items = (item.split('=', 1) for item in datastring.split('|'))
-        return dict(items)
+        if datastring:
+            items = (item.split('=', 1) for item in datastring.split('|'))
+        else:
+            items = []
+        return dict(items) if items else dict()
 
 
 class ServiceImporter(BulkImporter):

@@ -156,7 +156,8 @@ class NetboxBulkParser(BulkParser):
         try:
             if datastring:
                 items = (item.split('=', 1) for item in datastring.split('|'))
-                dict(items)
+                if items:
+                    dict(items)
         except ValueError:
             return False
         else:
