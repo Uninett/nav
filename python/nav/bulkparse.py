@@ -138,7 +138,7 @@ class CommentStripper(object):
 class NetboxBulkParser(BulkParser):
     """Parses the netbox bulk format"""
     format = ('roomid', 'ip', 'orgid', 'catid',
-              'ro', 'serial', 'rw', 'function')
+              'ro', 'serial', 'rw', 'function', 'data')
     required = 4
     restkey = 'netboxgroup'
 
@@ -146,6 +146,16 @@ class NetboxBulkParser(BulkParser):
     def _validate_ip(value):
         try:
             IP(value)
+        except ValueError:
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def _validate_data(self, datastring):
+        try:
+            items = (item.split('=', 1) for item in datastring.split('|'))
+            dict(items)
         except ValueError:
             return False
         else:

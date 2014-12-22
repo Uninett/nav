@@ -43,13 +43,15 @@ def header(header):
 
 def lineout(line):
     # Remove any : in strings
-    newline = [x.replace(SEPARATOR, "") for x in line]
+    newline = (u'"%s"' % column if SEPARATOR in column else column
+               for column in line)
     print SEPARATOR.join(newline).encode('utf-8')
 
 
 class Handlers:
     def netbox(self):
         header("#roomid:ip:orgid:catid:[ro:serial:rw:function:"
+               "key1=value1|key2=value2:"
                "netboxgroup1:netboxgroup2..]")
         allFunctions = manage.NetboxInfo.objects.filter(key='function')
         for box in manage.Netbox.objects.all():
@@ -59,6 +61,8 @@ class Handlers:
             functions = allFunctions.filter(netbox=box)
             functions = str.join(", ", functions)
             line.append(functions)
+            data = u'|'.join(u"%s=%s" % (k, v) for k, v in box.data.items())
+            line.append(data)
             categories = box.netboxgroups.all()
             categories = [cat.id for cat in categories]
             categories.sort()
