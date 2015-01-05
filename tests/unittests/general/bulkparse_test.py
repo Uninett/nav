@@ -40,7 +40,7 @@ class TestNetboxBulkParser(TestCase):
 
     def test_parse_single_line_yields_columns(self):
         data = ("room1:10.0.0.186:myorg:SW:public:parrot:secret:doesthings:"
-                "blah1:blah2")
+                "key=value:blah1:blah2")
         b = NetboxBulkParser(data)
         out_data = b.next()
         self.assertTrue(isinstance(out_data, dict), out_data)
@@ -49,12 +49,14 @@ class TestNetboxBulkParser(TestCase):
         self.assertEquals(out_data['orgid'], 'myorg')
         self.assertEquals(out_data['catid'], 'SW')
         self.assertEquals(out_data['serial'], 'parrot')
+        self.assertEquals(out_data['data'], 'key=value')
         self.assertEquals(out_data['netboxgroup'], ['blah1', 'blah2'])
 
     def test_get_header(self):
         self.assertEquals(
             NetboxBulkParser.get_header(),
-            "#roomid:ip:orgid:catid[:ro:serial:rw:function:netboxgroup:...]")
+            "#roomid:ip:orgid:catid"
+            "[:ro:serial:rw:function:data:netboxgroup:...]")
 
     def test_two_rows_returned_with_empty_lines_in_input(self):
         data = ("room1:10.0.0.186:myorg:SW:public:parrot::\n"
