@@ -195,32 +195,8 @@ class Netbox(models.Model):
 
     def get_availability(self):
         """Calculates and returns an availability data structure."""
-        pktloss_id = metric_path_for_packet_loss(self.sysname)
-        rtt_id = metric_path_for_roundtrip_time(self.sysname)
-
-        result = {
-            'availability': {
-                'data_source': pktloss_id,
-            },
-            'response_time': {
-                'data_source': rtt_id,
-            },
-        }
-
-        for time_frame in self.TIME_FRAMES:
-            avg = get_metric_average([pktloss_id, rtt_id],
-                                              start="-1%s" % time_frame)
-
-            # Availability
-            pktloss = avg.get(pktloss_id, None)
-            if pktloss is not None:
-                pktloss = 100 - (pktloss * 100)
-            result['availability'][time_frame] = pktloss
-
-            # Response time
-            result['response_time'][time_frame] = avg.get(rtt_id, None)
-
-        return result
+        result = get_netboxes_availability([self])
+        return result.get(self.pk)
 
     def get_week_availability(self):
         """Gets the availability for this netbox for the last week"""
@@ -1521,3 +1497,45 @@ class Netbios(models.Model):
 
     class Meta:
         db_table = 'netbios'
+
+
+def get_netboxes_availability(netboxes):
+    """Calculates and returns an availability data structure for a list of
+    netboxes.
+
+    :param netboxes: list<Netbox>
+    """
+
+    result = {}
+    targets = []
+
+    for netbox in netboxes:
+        pktloss_id = metric_path_for_packet_loss(netbox.sysname)
+        rtt_id = metric_path_for_roundtrip_time(netbox.sysname)
+
+        targets.extend([pktloss_id, rtt_id])
+
+        result[netbox.id] = {
+            'availability': {
+                'data_source': pktloss_id,
+            },
+            'response_time': {
+                'data_source': rtt_id,
+            },
+        }
+
+    for time_frame in Netbox.TIME_FRAMES:
+        avg = get_metric_average(targets, start="-1%s" % time_frame)
+
+        # Availability
+        for netbox in netboxes:
+            pktloss = avg.get(result[netbox.id]['availability']['data_source'])
+            if pktloss is not None:
+                pktloss = 100 - (pktloss * 100)
+            result[netbox.id]['availability'][time_frame] = pktloss
+
+            # Response time
+            result[netbox.id]['response_time'][time_frame] = \
+                avg.get(result[netbox.id]['response_time']['data_source'])
+
+    return result

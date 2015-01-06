@@ -31,7 +31,7 @@ from django.template import RequestContext
 from django.contrib import messages
 
 from nav.django.utils import get_account
-from nav.models.manage import Room, Netbox
+from nav.models.manage import Room, Netbox, get_netboxes_availability
 from nav.models.roommeta import Image, ROOMIMAGEPATH
 from nav.web.info.room.forms import SearchForm, UploadForm
 from nav.web.info.room.utils import (get_extension, create_hash,
@@ -115,7 +115,8 @@ def render_deviceinfo(request, roomid):
     all_netboxes = room.netbox_set.select_related(
         'type', 'category', 'organization', 'interface').order_by('sysname')
     return render(request, 'info/room/roominfo_devices.html', {
-        'netboxes': all_netboxes
+        'netboxes': all_netboxes,
+        'availabilities': get_netboxes_availability(all_netboxes)
     })
 
 
