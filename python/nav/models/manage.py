@@ -29,15 +29,13 @@ from django.db.models import Q
 from itertools import count, groupby
 
 from nav.bitvector import BitVector
-from nav.metrics.data import get_metric_average, get_netboxes_availability
+from nav.metrics.data import get_netboxes_availability
 from nav.metrics.graphs import get_simple_graph_url
 from nav.metrics.names import get_all_leaves_below
 from nav.metrics.templates import (
     metric_prefix_for_interface,
     metric_prefix_for_ports,
     metric_prefix_for_device,
-    metric_path_for_packet_loss,
-    metric_path_for_roundtrip_time,
     metric_path_for_sensor
 )
 import nav.natsort
