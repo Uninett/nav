@@ -118,7 +118,7 @@ def get_netboxes_availability(netboxes):
     """Calculates and returns an availability data structure for a list of
     netboxes.
 
-    :param netboxes: list<Netbox>
+    :type netboxes: list[Netbox]
     """
 
     result = {}
