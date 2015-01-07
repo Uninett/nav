@@ -31,7 +31,7 @@ from django.template import RequestContext
 from django.contrib import messages
 
 from nav.django.utils import get_account
-from nav.models.manage import Room, Netbox, get_netboxes_availability
+from nav.models.manage import Room, Netbox
 from nav.models.roommeta import Image, ROOMIMAGEPATH
 from nav.web.info.room.forms import SearchForm, UploadForm
 from nav.web.info.room.utils import (get_extension, create_hash,
@@ -40,6 +40,7 @@ from nav.web.info.room.utils import (get_extension, create_hash,
                                      save_thumbnail)
 from nav.web.utils import create_title
 from nav.path import localstatedir
+from nav.metrics.data import get_netboxes_availability
 
 
 CATEGORIES = ("GW", "GSW", "SW", "EDGE")

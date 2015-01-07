@@ -22,8 +22,8 @@ from django.db.models import Q
 from nav.web.info.netboxgroup.forms import NetboxGroupForm
 from nav.web.info.views import get_path
 from nav.web.utils import create_title
-from nav.models.manage import (NetboxGroup, Netbox, NetboxCategory,
-                               get_netboxes_availability)
+from nav.models.manage import NetboxGroup, Netbox, NetboxCategory
+from nav.metrics.data import get_netboxes_availability
 
 
 def get_netboxgroup_path(other=None):
