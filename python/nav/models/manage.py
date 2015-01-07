@@ -29,7 +29,7 @@ from django.db.models import Q
 from itertools import count, groupby
 
 from nav.bitvector import BitVector
-from nav.metrics.data import get_metric_average
+from nav.metrics.data import get_metric_average, get_netboxes_availability
 from nav.metrics.graphs import get_simple_graph_url
 from nav.metrics.names import get_all_leaves_below
 from nav.metrics.templates import (
