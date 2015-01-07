@@ -139,18 +139,20 @@ def get_netboxes_availability(netboxes):
             },
         }
 
-    for time_frame in TIME_FRAMES:
-        avg = get_metric_average(targets, start="-1%s" % time_frame)
+    if netboxes:
+        for time_frame in TIME_FRAMES:
+            avg = get_metric_average(targets, start="-1%s" % time_frame)
 
-        # Availability
-        for netbox in netboxes:
-            pktloss = avg.get(result[netbox.id]['availability']['data_source'])
-            if pktloss is not None:
-                pktloss = 100 - (pktloss * 100)
-            result[netbox.id]['availability'][time_frame] = pktloss
+            for netbox in netboxes:
+                # Availability
+                pktloss = avg.get(
+                    result[netbox.id]['availability']['data_source'])
+                if pktloss is not None:
+                    pktloss = 100 - (pktloss * 100)
+                result[netbox.id]['availability'][time_frame] = pktloss
 
-            # Response time
-            result[netbox.id]['response_time'][time_frame] = \
-                avg.get(result[netbox.id]['response_time']['data_source'])
+                # Response time
+                result[netbox.id]['response_time'][time_frame] = avg.get(
+                    result[netbox.id]['response_time']['data_source'])
 
     return result
