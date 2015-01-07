@@ -15,6 +15,7 @@
 #
 """Retrieval and calculations on raw numbers from Graphite metrics"""
 
+from datetime import datetime
 import simplejson
 from urllib import urlencode
 import urllib2
@@ -40,6 +41,8 @@ def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
               found in Graphite will not be present in the dict.
 
     """
+    start_time = datetime.now()
+
     data = get_metric_data(target, start, end)
     result = {}
     for target in data:
@@ -51,6 +54,9 @@ def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
             else:
                 avg = sum(dpoints) / len(dpoints)
             result[target['target']] = avg
+
+    _logger.debug('Got metric average for %s targets in %s seconds',
+                  len(data), datetime.now() - start_time)
     return result
 
 
