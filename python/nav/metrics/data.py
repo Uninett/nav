@@ -15,12 +15,15 @@
 #
 """Retrieval and calculations on raw numbers from Graphite metrics"""
 
+from datetime import datetime
 import simplejson
 from urllib import urlencode
 import urllib2
 from urlparse import urljoin
 import logging
 from nav.metrics import CONFIG, errors
+from nav.metrics.templates import (metric_path_for_packet_loss,
+                                   metric_path_for_roundtrip_time)
 
 _logger = logging.getLogger(__name__)
 
@@ -38,6 +41,8 @@ def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
               found in Graphite will not be present in the dict.
 
     """
+    start_time = datetime.now()
+
     data = get_metric_data(target, start, end)
     result = {}
     for target in data:
@@ -49,6 +54,9 @@ def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
             else:
                 avg = sum(dpoints) / len(dpoints)
             result[target['target']] = avg
+
+    _logger.debug('Got metric average for %s targets in %s seconds',
+                  len(data), datetime.now() - start_time)
     return result
 
 
@@ -107,3 +115,50 @@ def get_metric_data(target, start="-5min", end="now"):
             response.close()
         except NameError:
             pass
+
+
+TIME_FRAMES = ('day', 'week', 'month')
+
+
+def get_netboxes_availability(netboxes):
+    """Calculates and returns an availability data structure for a list of
+    netboxes.
+
+    :type netboxes: list[Netbox]
+    """
+
+    result = {}
+    targets = []
+
+    for netbox in netboxes:
+        pktloss_id = metric_path_for_packet_loss(netbox.sysname)
+        rtt_id = metric_path_for_roundtrip_time(netbox.sysname)
+
+        targets.extend([pktloss_id, rtt_id])
+
+        result[netbox.id] = {
+            'availability': {
+                'data_source': pktloss_id,
+            },
+            'response_time': {
+                'data_source': rtt_id,
+            },
+        }
+
+    if netboxes:
+        for time_frame in TIME_FRAMES:
+            avg = get_metric_average(targets, start="-1%s" % time_frame)
+
+            for netbox in netboxes:
+                # Availability
+                pktloss = avg.get(
+                    result[netbox.id]['availability']['data_source'])
+                if pktloss is not None:
+                    pktloss = 100 - (pktloss * 100)
+                result[netbox.id]['availability'][time_frame] = pktloss
+
+                # Response time
+                result[netbox.id]['response_time'][time_frame] = avg.get(
+                    result[netbox.id]['response_time']['data_source'])
+
+    return result

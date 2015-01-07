@@ -40,6 +40,7 @@ from nav.web.info.room.utils import (get_extension, create_hash,
                                      save_thumbnail)
 from nav.web.utils import create_title
 from nav.path import localstatedir
+from nav.metrics.data import get_netboxes_availability
 
 
 CATEGORIES = ("GW", "GSW", "SW", "EDGE")
@@ -115,7 +116,8 @@ def render_deviceinfo(request, roomid):
     all_netboxes = room.netbox_set.select_related(
         'type', 'category', 'organization', 'interface').order_by('sysname')
     return render(request, 'info/room/roominfo_devices.html', {
-        'netboxes': all_netboxes
+        'netboxes': all_netboxes,
+        'availabilities': get_netboxes_availability(all_netboxes)
     })
 
 
