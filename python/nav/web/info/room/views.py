@@ -117,7 +117,9 @@ def render_deviceinfo(request, roomid):
         'type', 'category', 'organization', 'interface').order_by('sysname')
     return render(request, 'info/room/roominfo_devices.html', {
         'netboxes': all_netboxes,
-        'availabilities': get_netboxes_availability(all_netboxes)
+        'availabilities': get_netboxes_availability(
+            all_netboxes, data_sources=['availability'],
+            time_frames=['week', 'month'])
     })
 
 

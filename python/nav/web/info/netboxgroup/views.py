@@ -79,7 +79,8 @@ def group_detail(request, groupid):
     group = get_object_or_404(NetboxGroup, pk=groupid)
     netboxes = group.netbox_set.select_related('organization', 'category',
                                                'type')
-    availabilities = get_netboxes_availability(netboxes)
+    availabilities = get_netboxes_availability(
+        netboxes, data_sources=['availability'], time_frames=['week', 'month'])
     navpath = get_netboxgroup_path([(group.pk,)])
 
     return render(request, 'info/netboxgroup/group_detail.html',
