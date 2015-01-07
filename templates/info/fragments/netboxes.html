@@ -42,8 +42,8 @@
 
             {% with data=availabilities|get_value:netbox.id %}
               {% with availability=data|get_value:'availability' %}
-                <td class="numeric">{{ availability|get_value:'week' }}</td>
-                <td class="numeric">{{ availability|get_value:'month' }}</td>
+                <td class="numeric">{{ availability|get_value:'week'|floatformat:'2' }}%</td>
+                <td class="numeric">{{ availability|get_value:'month'|floatformat:'2' }}%</td>
               {% endwith %}
             {% endwith %}
         </tr>
