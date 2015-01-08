@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013 UNINETT
+# Copyright (C) 2013-2015 UNINETT
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,12 +15,15 @@
 #
 """Retrieval and calculations on raw numbers from Graphite metrics"""
 
+from datetime import datetime
 import simplejson
 from urllib import urlencode
 import urllib2
 from urlparse import urljoin
 import logging
 from nav.metrics import CONFIG, errors
+from nav.metrics.templates import (metric_path_for_packet_loss,
+                                   metric_path_for_roundtrip_time)
 
 _logger = logging.getLogger(__name__)
 
@@ -38,6 +41,8 @@ def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
               found in Graphite will not be present in the dict.
 
     """
+    start_time = datetime.now()
+
     data = get_metric_data(target, start, end)
     result = {}
     for target in data:
@@ -49,6 +54,9 @@ def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
             else:
                 avg = sum(dpoints) / len(dpoints)
             result[target['target']] = avg
+
+    _logger.debug('Got metric average for %s targets in %s seconds',
+                  len(data), datetime.now() - start_time)
     return result
 
 
@@ -107,3 +115,61 @@ def get_metric_data(target, start="-5min", end="now"):
             response.close()
         except NameError:
             pass
+
+
+DEFAULT_TIME_FRAMES = ('day', 'week', 'month')
+DEFAULT_DATA_SOURCES = ('availability', 'response_time')
+METRIC_PATH_LOOKUP = {
+    'availability': metric_path_for_packet_loss,
+    'response_time': metric_path_for_roundtrip_time
+}
+
+
+def get_netboxes_availability(netboxes, data_sources=DEFAULT_DATA_SOURCES,
+                              time_frames=DEFAULT_TIME_FRAMES):
+    """Calculates and returns an availability data structure for a list of
+    netboxes.
+
+    :type netboxes: list[Netbox] | QuerySet[Netbox]
+    :type data_sources: list[str]
+    :type time_frames: list[str]
+    """
+    if not netboxes:
+        return {}
+
+    assert all(x in DEFAULT_TIME_FRAMES for x in time_frames)
+    assert all(x in DEFAULT_DATA_SOURCES for x in data_sources)
+
+    result = {}
+    targets = []
+
+    for netbox in netboxes:
+        result[netbox.id] = {}
+        for data_source in data_sources:
+            metric_resolver = METRIC_PATH_LOOKUP[data_source]
+            data_source_id = metric_resolver(netbox.sysname)
+            targets.append(data_source_id)
+
+            result[netbox.id][data_source] = {
+                'data_source': data_source_id,
+            }
+
+    for time_frame in time_frames:
+        avg = get_metric_average(targets, start="-1%s" % time_frame)
+
+        for netbox in netboxes:
+            root = result[netbox.id]
+
+            # Availability
+            if 'availability' in root:
+                pktloss = avg.get(root['availability']['data_source'])
+                if pktloss is not None:
+                    pktloss = 100 - (pktloss * 100)
+                root['availability'][time_frame] = pktloss
+
+            # Response time
+            if 'response_time' in root:
+                root['response_time'][time_frame] = avg.get(
+                    root['response_time']['data_source'])
+
+    return result

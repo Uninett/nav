@@ -1,5 +1,5 @@
-# -*- coding: UTF-8 -*-
-# Copyright (C) 2012, 2014 UNINETT AS
+# -*- coding: utf-8 -*-
+# Copyright (C) 2012-2015 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #

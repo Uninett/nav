@@ -173,6 +173,62 @@ be amended locally to include those attributes you want displayed, in the same
 way as commented on the *organization* and *room* reports.
 
 
+New command line utilities
+--------------------------
+
+NAV 4.2 introduces three new command line utilities for advanced users:
+
+navdf
+~~~~~
+::
+
+    Usage: navdf [filter]
+
+    Lists and filters IP devices monitored by NAV
+
+    Options:
+      -h, --help  show this help message and exit
+
+    The filter expression must be a method call applicable to the Django-based
+    Netbox model's manager class. Example: "filter(category__id='GSW')"
+
+
+navoidverify
+~~~~~~~~~~~~
+::
+
+    usage: navoidverify baseoid < sysnames.txt
+
+    Verifies SNMP sub-tree support on a set of NAV-monitored devices
+
+    positional arguments:
+      baseoid     The base OID for which a GETNEXT operation will be performed
+
+    optional arguments:
+      -h, --help  show this help message and exit
+
+    Given the root of an SNMP MIB module, a bunch of devices can be queried in
+    parallel whether they have any objects below the given BASEOID - effectively
+    verifying MIB support in these devices.
+
+
+naventity
+~~~~~~~~~
+::
+
+    usage: naventity device
+
+    Outputs entity hierarchy graph from a device's ENTITY-MIB::entPhysicalTable
+    response
+
+    positional arguments:
+      device      The NAV-monitored IP device to query. Must be either a sysname
+		  prefix or an IP address.
+
+    optional arguments:
+      -h, --help  show this help message and exit
+
+
 Files to remove
 ---------------
 
