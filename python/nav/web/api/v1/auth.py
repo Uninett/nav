@@ -15,12 +15,17 @@
 #
 """Contains authentication and authorization code for API"""
 
+import logging
 from datetime import datetime
 from rest_framework.permissions import BasePermission
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import (TokenAuthentication,
+                                           BaseAuthentication)
 
 from nav.models.api import APIToken
+
+_logger = logging.getLogger(__name__)
+
 
 ALLOWED_METHODS = ['GET']
 
@@ -30,12 +35,22 @@ class APIAuthentication(TokenAuthentication):
 
     def authenticate_credentials(self, key):
         """Checks for valid token"""
+        _logger.debug('Authenticating credentials with %s', key)
         try:
             token = APIToken.objects.get(token=key, expires__gt=datetime.now())
         except APIToken.DoesNotExist:
             raise AuthenticationFailed
         else:
             return None, token
+
+
+class NavBaseAuthentication(BaseAuthentication):
+    """Returns logged in user"""
+
+    def authenticate(self, request):
+        _logger.debug("Baseauthentication account is %s", request.account)
+        if request.account and not request.account.is_default_account():
+            return request.account, None
 
 
 class APIPermission(BasePermission):
@@ -46,10 +61,17 @@ class APIPermission(BasePermission):
         if request.method not in ALLOWED_METHODS:
             return False
 
-        token = request.auth
-        if not token:
-            return False
+        _logger.debug("request.user: %r", request.user)
+        _logger.debug("request.auth: %r", request.auth)
 
+        # If user is logged in, it is authorized
+        if not request.account.is_default_account():
+            return True
+
+        token = request.auth
         # If the token exists we have already done a verification for it
         # in the authentication
-        return True
+        if token:
+            return True
+
+        return False

@@ -33,7 +33,7 @@ from nav.models import manage
 from nav.models.fields import INFINITY
 
 from nav.web.api.v1 import serializers
-from .auth import APIPermission, APIAuthentication
+from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
 from .helpers import prefix_collector
 
 EXPIRE_DELTA = timedelta(days=365)
@@ -58,7 +58,7 @@ def api_root(request):
 
 class NAVAPIMixin(APIView):
     """Mixin for providing permissions and renderers"""
-    authentication_classes = (APIAuthentication,)
+    authentication_classes = (NavBaseAuthentication, APIAuthentication)
     permission_classes = (APIPermission,)
     renderer_classes = (JSONRenderer,)
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
