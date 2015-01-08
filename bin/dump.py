@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2004,2009 Norwegian University of Science and Technology
+# Copyright (C) 2010-2011, 2013-2015 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #

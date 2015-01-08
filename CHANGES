@@ -1,5 +1,5 @@
 Version 4.2.2
-(released xx Dec 2014)
+(released 08 Jan 2015)
 
  Important note:
 
@@ -11,6 +11,9 @@ Version 4.2.2
 
  Bugfixes:
 
+  * LP#1169559 (Print button for Netmap)
+  * LP#1394522 (Netbox and Location bulk import formats must be changed to
+                include data attributes)
   * LP#1396913 (Status page, filter on Device Group)
   * LP#1396920 (NAV 4, Internet Explorer Compatibility mode)
   * LP#1396924 (NAV 4.2 does not work with SASS 3.4 or newer, but the install
@@ -21,6 +24,7 @@ Version 4.2.2
   * LP#1398382 (AssertionError prevents Netmap from loading any graph/map)
   * LP#1398791 (Maintenance system stops working when an IP device on
                 maintenance is deleted)
+  * LP#1398815 (Rooms, hyperlink inconsistensies between report and seeddb)
   * LP#1399558 (portadmin tries to write to memory for each change)
   * LP#1400307 (Need easier way to remove services)
   * LP#1401114 (dropdown for ipdevice when adding a service is fubar)
@@ -29,6 +33,14 @@ Version 4.2.2
   * LP#1403066 (Some routers fail to expand in Network Explorer)
   * LP#1403432 (report.conf, wrong url for netboxinfo)
   * LP#1403797 (Geomap is insanely slow after migration to Graphite in NAV 4.0)
+  * LP#1403803 (Geomap "loading data" indicator is missing)
+  * LP#1403884 (geomap sends data request on every tiny movement)
+  * LP#1404207 (Intermittent ValueErrors thrown from pynetsnmp causes ipdevpoll
+                jobs to fail)
+  * LP#1404222 (Conflicting sysnames cause ipdevpoll jobs to crash)
+  * LP#1404225 (Multiple DNS PTR records for the same IP address causes sysname
+                to swing back and forth in NAV)
+  * LP#1407625 (/search/devicegroup takes too long)
 
 
 Version 4.2.1

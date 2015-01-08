@@ -140,3 +140,12 @@ def get_netbox_availability(netbox, time_frame):
         return "%.2f%%" % availability["availability"][time_frame]
     except (KeyError, TypeError):
         return "N/A"
+
+
+@register.filter
+def get_value(something, key):
+    """Gets value from something using key"""
+    try:
+        return something.get(key)
+    except AttributeError:
+        pass
