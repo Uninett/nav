@@ -31,6 +31,23 @@ Dependency changes
 
 There are none :-)
 
+Rename some of your Whisper files to keep your statistics
+---------------------------------------------------------
+
+The 4.2.2 release adds commas to the list of characters escaped in Graphite
+metric names; commas cause problems when constructing target names for
+graphite-web, when rendering graphs and retrieving metrics. An out-of-place
+comma will cause Graphite render requests to fail.
+
+If your Graphite storage directory contains Whisper files with commas in
+their filenames (under the `nav` hierarchy), and you want to keep your data
+history, you will need to rename these files by replacing the commas with
+underscores. Something like this should do the trick::
+
+    cd /opt/graphite/storage/whisper/nav
+    find -name '*,*' | xargs rename --verbose 's/,/_/g'
+
+
 Multicast listener stats from IGMP snooping
 -------------------------------------------
 

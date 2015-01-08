@@ -81,7 +81,7 @@ class Status2Widget(Navlet):
         now = datetime.now()
         date_format = '%d.%b %H:%M:%S'
         if now.year != timestamp.year:
-            date_format = DATETIME_FORMAT
+            date_format = '%Y-%m-%d %H:%M:%S'
         elif now.date() == timestamp.date():
             date_format = '%H:%M:%S'
         return timestamp.strftime(date_format)

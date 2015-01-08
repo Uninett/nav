@@ -450,7 +450,7 @@ class Module(models.Model):
         unique_together = (('netbox', 'name'),)
 
     def __unicode__(self):
-        return u'Module {name}, at {netbox}'.format(
+        return u'{name} at {netbox}'.format(
             name=self.name or self.module_number, netbox=self.netbox)
 
     def get_absolute_url(self):
@@ -643,6 +643,7 @@ class NetboxGroup(models.Model):
 
     class Meta:
         db_table = 'netboxgroup'
+        ordering = ('id',)
 
     def __unicode__(self):
         return self.id
@@ -1112,7 +1113,8 @@ class Interface(models.Model):
         self.time_since_activity_cache = {}
 
     def __unicode__(self):
-        return u'%s at %s' % (self.ifname, self.netbox)
+        return u'{ifname} at {netbox}'.format(
+            ifname=self.ifname, netbox=self.netbox)
 
     @classmethod
     def sort_ports_by_ifname(cls, ports):
@@ -1422,9 +1424,20 @@ class PowerSupplyOrFan(models.Model):
             event_type__id__in=['psuState', 'fanState'],
             subid=self.id)
 
-    def is_on_maintenace(self):
+    def is_on_maintenance(self):
         """Returns True if the owning Netbox is on maintenance"""
         return self.netbox.is_on_maintenance()
+
+    def __unicode__(self):
+        return "{name} at {netbox}".format(
+            name=self.name or self.descr,
+            netbox=self.netbox
+        )
+
+    def get_absolute_url(self):
+        """Returns a canonical URL to view fan/psu status"""
+        base = self.netbox.get_absolute_url()
+        return base + "#!powerfans"
 
 
 class UnrecognizedNeighbor(models.Model):

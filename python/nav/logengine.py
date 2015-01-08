@@ -60,7 +60,7 @@ from nav import db
 from nav import daemon
 from nav.buildconf import localstatedir
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger("logengine")
 
 
 def get_exception_dicts(config):
@@ -278,7 +278,7 @@ def get_types(cursor):
     cursor.execute(
         "select type, facility, mnemonic, priority from log_message_type")
     for type_, facility, mnemonic, _priority in cursor.fetchall():
-        if facility in types:
+        if facility not in types:
             types[facility] = {}
         if mnemonic not in types[facility]:
             types[facility][mnemonic] = int(type_)

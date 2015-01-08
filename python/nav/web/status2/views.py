@@ -104,6 +104,7 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
         'organization': 'netbox__organization',
         'category': 'netbox__category',
         'alert_type': 'alert_type__name',
+        'device_group': 'netbox__netboxgroups__id',
     }
 
     MULTIVALUE_EXCLUDES = {
@@ -111,6 +112,7 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
         'not_organization': 'netbox__organization',
         'not_category': 'netbox__category',
         'not_alert_type': 'alert_type__name',
+        'not_device_group': 'netbox__netboxgroups__id',
     }
 
     def filter_queryset(self, request, queryset, view):

@@ -61,13 +61,26 @@ class DnsName(Plugin):
                                  ip, failure.type.__name__)
 
     def _find_ptr_response(self, dns_response):
-        """Finds and returns the first PTR record in a DNS response"""
+        """
+        Finds and returns a PTR record from a DNS response.
+
+        If multiple records are found, prefer to keep the existing name,
+        if still applicable.
+
+        """
         self._logger.debug("DNS response: %s", dns_response)
-        for record_set in dns_response:
-            for record in record_set:
-                if record.type == dns.PTR:
-                    self._logger.debug("PTR record payload: %s", record.payload)
-                    return str(record.payload.name)
+        ptrs = (record for record_set in dns_response for record in record_set
+                if record.type == dns.PTR)
+        names = [str(record.payload.name) for record in ptrs]
+
+        if len(names) > 1:
+            self._logger.debug("found multiple PTR records: %s", names)
+            if self.netbox.sysname in names:
+                self._logger.debug("keeping old name for stability")
+                return self.netbox.sysname
+
+        if names:
+            return names[0]
 
     def _log_name(self, dns_name):
         if not dns_name:

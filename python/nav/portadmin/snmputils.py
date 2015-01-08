@@ -230,8 +230,12 @@ class SNMPHandler(object):
             wait = number of seconds to wait between down and up."""
         wait = int(wait)
         self.set_if_down(if_index)
+        _logger.debug('Interface set administratively down - '
+                      'waiting %s seconds', wait)
         time.sleep(wait)
         self.set_if_up(if_index)
+        _logger.debug('Interface set administratively up')
+
 
     def write_mem(self):
         """ Do a write memory on netbox if available"""

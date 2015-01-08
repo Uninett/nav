@@ -377,8 +377,16 @@ class MibRetriever(object):
 
             return formatted_result
 
+        def _valueerror_handler(failure):
+            failure.trap(ValueError)
+            self._logger.warning("got a possibly strange response from device "
+                                 "when asking for %s::%s, ignoring: %s",
+                                 self.mib.get('moduleName', ''),  column_name,
+                                 failure.getErrorMessage())
+            return {}  # alternative is to retry or raise a Timeout exception
+
         deferred = self.agent_proxy.getTable([ str(node.oid) ])
-        deferred.addCallback(resultFormatter)
+        deferred.addCallbacks(resultFormatter, _valueerror_handler)
         return deferred
 
     def retrieve_columns(self, column_names):

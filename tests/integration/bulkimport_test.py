@@ -66,7 +66,8 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertEquals(netboxinfo.value, 'hella')
 
     def test_netbox_groups_are_set(self):
-        data = 'myroom:10.0.90.10:myorg:SRV::MOOSE123::fileserver:WEB:UNIX:MAIL'
+        data = ('myroom:10.0.90.10:myorg:SRV::MOOSE123::fileserver::'
+                'WEB:UNIX:MAIL')
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
         line_num, objects = importer.next()
@@ -99,7 +100,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
             snmp_version=1)
         netbox.save()
 
-        data = 'myroom:10.1.0.1:myorg:SRV::MOOSE42::fileserver:WEB:UNIX:MAIL'
+        data = 'myroom:10.1.0.1:myorg:SRV::MOOSE42::fileserver::WEB:UNIX:MAIL'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
         line_num, objects = importer.next()
@@ -107,7 +108,8 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertTrue(isinstance(objects, AlreadyExists))
 
     def test_created_objects_can_be_saved(self):
-        data = 'myroom:10.0.90.10:myorg:SRV::MOOSE123::fileserver:WEB:UNIX:MAIL'
+        data = ('myroom:10.0.90.10:myorg:SRV::MOOSE123::fileserver::'
+                'WEB:UNIX:MAIL')
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
         line_num, objects = importer.next()
@@ -116,6 +118,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
             reset_object_foreignkeys(obj)
             print repr(obj)
             obj.save()
+
 
 class TestLocationImporter(DjangoTransactionTestCase):
     def test_import(self):
@@ -149,6 +152,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
         line_num, objects = importer.next()
 
         self.assertTrue(isinstance(objects, AlreadyExists))
+
 
 class TestPrefixImporter(DjangoTransactionTestCase):
     def setUp(self):

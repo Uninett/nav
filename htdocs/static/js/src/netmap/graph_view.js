@@ -759,7 +759,7 @@ define([
 
         return _.filter(links, function (link) {
             return (_.contains(filters, link.source.roomid) && _.contains(filters, link.target.roomid) ||
-                _.contains(filters, link.source.location) && _.contains(filters, link.target.location));
+                _.contains(filters, link.source.locationid) && _.contains(filters, link.target.locationid));
         });
 
     }

@@ -14,8 +14,16 @@
       {{ property_form }}
       <tr>
         <th></th>
-        <td><input type="submit" value="Save" name="save"/></td>
+        <td><input class="button small" type="submit" value="Save" name="save"/></td>
       </tr>
     </table>
   </form>
+
+  {% if delete_url and object %}
+    <form action="{{ delete_url }}" method="post">
+      <input type="hidden" name="object" value="{{ object.pk }}"/>
+      <input type="submit" name="delete" value="Delete this service" class="button small"/>
+    </form>
+  {% endif %}
+
 {% endblock %}
