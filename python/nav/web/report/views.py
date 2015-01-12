@@ -68,8 +68,9 @@ def get_report_for_widget(request, report_name):
     """Fetches a report for display in a widget"""
     query = _strip_empty_arguments(request)
     export_delimiter = _get_export_delimiter(query)
+    username = request.account.login
 
-    context = make_report(request, report_name, export_delimiter, query)
+    context = make_report(username, report_name, export_delimiter, query)
     return render(request, 'report/frag_report_table.html', context)
 
 
@@ -77,13 +78,14 @@ def get_report(request, report_name):
     """Loads and displays a specific reports with optional search arguments"""
     query = _strip_empty_arguments(request)
     export_delimiter = _get_export_delimiter(query)
+    username = request.account.login
 
     if query != request.GET:
         # some arguments were stripped, let's clean up the URL
         return HttpResponseRedirect(
             "{0}?{1}".format(request.META['PATH_INFO'], query.urlencode()))
 
-    context = make_report(request, report_name, export_delimiter, query)
+    context = make_report(username, report_name, export_delimiter, query)
     return render_to_response('report/report.html', context,
                               RequestContext(request))
 
@@ -233,10 +235,13 @@ def report_list(request):
                               RequestContext(request))
 
 
-def make_report(request, report_name, export_delimiter, query_dict):
+def make_report(username, report_name, export_delimiter, query_dict):
     """Makes a report"""
     # Initiating variables used when caching
     report = contents = neg = operator = adv = result_time = None
+
+    if not report_name:
+        return None
 
     query_dict_no_meta = query_dict.copy()
     # Deleting meta variables from uri to help identifying if the report
@@ -258,7 +263,6 @@ def make_report(request, report_name, export_delimiter, query_dict):
 
     uri_strip = dict((key, query_dict_no_meta[key])
                      for key in query_dict_no_meta)
-    username = get_account(request).login
     mtime_config = (os.stat(CONFIG_FILE_PACKAGE).st_mtime +
                     os.stat(CONFIG_FILE_LOCAL).st_mtime)
     cache_name = 'report_%s__%s%s' % (username, report_name, mtime_config)
@@ -301,7 +305,7 @@ def make_report(request, report_name, export_delimiter, query_dict):
         raise RuntimeWarning("Found cache entry, but no report. Ooops, panic!")
 
     if export_delimiter:
-        return generate_export(request, report, report_name, export_delimiter)
+        return generate_export(report, report_name, export_delimiter)
     else:
 
         context = {
@@ -354,21 +358,18 @@ def make_report(request, report_name, export_delimiter, query_dict):
         navpath = [('Home', '/'),
                    ('Report', '/report/'),
                    (page_name, page_link)]
-        old_uri = '{0}?{1}&'.format(request.META['PATH_INFO'],
-                                    request.GET.urlencode())
         adv_block = bool(adv)
 
         context.update({
             'title': 'Report - {0}'.format(page_name),
             'navpath': navpath,
-            'old_uri': old_uri,
             'adv_block': adv_block,
         })
 
         return context
 
 
-def generate_export(_request, report, report_name, export_delimiter):
+def generate_export(report, report_name, export_delimiter):
     """Generates a CSV export version of a report"""
     def _cellformatter(cell):
         if isinstance(cell.text, unicode):
