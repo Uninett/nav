@@ -29,7 +29,7 @@ from nav.django.utils import get_account
 # this is just here to make sure Django finds NAV's settings file
 # pylint: disable=W0611
 from django.core.cache import cache
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.db import connection
@@ -64,6 +64,15 @@ def index(request):
                               RequestContext(request))
 
 
+def get_report_for_widget(request, report_name):
+    """Fetches a report for display in a widget"""
+    query = _strip_empty_arguments(request)
+    export_delimiter = _get_export_delimiter(query)
+
+    context = make_report(request, report_name, export_delimiter, query)
+    return render(request, 'report/frag_report_table.html', context)
+
+
 def get_report(request, report_name):
     """Loads and displays a specific reports with optional search arguments"""
     query = _strip_empty_arguments(request)
@@ -74,7 +83,9 @@ def get_report(request, report_name):
         return HttpResponseRedirect(
             "{0}?{1}".format(request.META['PATH_INFO'], query.urlencode()))
 
-    return make_report(request, report_name, export_delimiter, query)
+    context = make_report(request, report_name, export_delimiter, query)
+    return render_to_response('report/report.html', context,
+                              RequestContext(request))
 
 
 def _strip_empty_arguments(request):
@@ -354,8 +365,7 @@ def make_report(request, report_name, export_delimiter, query_dict):
             'adv_block': adv_block,
         })
 
-        return render_to_response('report/report.html', context,
-                                  RequestContext(request))
+        return context
 
 
 def generate_export(_request, report, report_name, export_delimiter):
