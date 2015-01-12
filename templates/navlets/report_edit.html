@@ -15,6 +15,10 @@
         {% endfor %}
       </select>
     </label>
+    <label>
+      Query string
+      <input type="text" name="query_string" value="{{ query_string|default:'' }}">
+    </label>
     <input type="submit" class="button small" value="Show this report">
   </form>
 

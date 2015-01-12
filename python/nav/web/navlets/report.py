@@ -38,15 +38,17 @@ class ReportWidget(Navlet):
         context = super(ReportWidget, self).get_context_data(**kwargs)
         navlet = AccountNavlet.objects.get(pk=self.navlet_id)
         report_id = navlet.preferences.get('report_id')
+        query_string = navlet.preferences.get('query_string')
 
         if self.mode == NAVLET_MODE_EDIT:
             report_list = ReportList(CONFIG_FILE_PACKAGE).get_report_list()
             context['report_list'] = report_list
             context['current_report_id'] = report_id
+            context['query_string'] = query_string
         elif self.mode == NAVLET_MODE_VIEW:
             full_context = make_report(
                 self.request.account.login, report_id, None,
-                QueryDict("").copy())
+                QueryDict(query_string).copy())
             if full_context:
                 context['report'] = full_context.get('report')
 
@@ -61,6 +63,7 @@ class ReportWidget(Navlet):
             return HttpResponse(status=404)
         else:
             navlet.preferences['report_id'] = request.POST.get('report_id')
+            navlet.preferences['query_string'] = request.POST.get('query_string')
             navlet.save()
             return HttpResponse(json.dumps(navlet.preferences))
 
