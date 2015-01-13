@@ -27,11 +27,11 @@
       <tr>
         {% for cell in report.table.header.cells %}
           <th>
-            {% if cell.uri %}
+            {% if cell.uri and add_sort_links %}
               <a class="navbar" href="{{ cell.uri }}"
                  title="{{ cell.explanation }}">{{ cell.text }}</a>
             {% else %}
-              <a class="navbar" title="{{ cell.explanation }}">{{ cell.text }}</a>
+              <span class="navbar" title="{{ cell.explanation }}">{{ cell.text }}</span>
             {% endif %}
           </th>
         {% endfor %}

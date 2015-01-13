@@ -86,6 +86,8 @@ def get_report(request, report_name):
             "{0}?{1}".format(request.META['PATH_INFO'], query.urlencode()))
 
     context = make_report(username, report_name, export_delimiter, query)
+    # Magic flag for adding sorting links to table
+    context['add_sort_links'] = True
     return render_to_response('report/report.html', context,
                               RequestContext(request))
 
