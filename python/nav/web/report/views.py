@@ -41,6 +41,8 @@ from nav.report.matrixIPv6 import MatrixIPv6
 from nav.report.metaIP import MetaIP
 import nav.path
 
+from nav.web.navlets import add_navlet
+
 
 CONFIG_FILE_PACKAGE = os.path.join(nav.path.sysconfdir, "report/report.conf")
 CONFIG_FILE_LOCAL = os.path.join(nav.path.sysconfdir,
@@ -399,6 +401,26 @@ def generate_export(report, report_name, export_delimiter):
     writer.writerows(rows)
 
     return response
+
+
+def add_report_widget(request):
+    """
+    :type request: HttpRequest
+    """
+
+    report_id = request.POST.get('report_id')
+    if not report_id:
+        return HttpResponse('No report name supplied', status=400)
+
+    navlet = 'nav.web.navlets.report.ReportWidget'
+    preferences = {
+        'report_id': report_id,
+        'query_string': request.POST.get('query_string')
+    }
+
+    add_navlet(request.account, navlet, preferences)
+
+    return HttpResponse()
 
 
 class UnknownNetworkTypeException(Exception):

@@ -159,6 +159,7 @@ class ConfigParser(object):
             self.parse_configuration(local_match.group(1))
 
         if match or local_match:
+            self.configuration.report_id = report_name
             return True
         
         else:
@@ -399,6 +400,7 @@ class ReportConfig(object):
         self.title = ""
         self.uri = {}
         self.where = []
+        self.report_id = ''
 
     def __repr__(self):
         template = ("ReportConfig(sql({0}) sql_select({1}) where({2}) "

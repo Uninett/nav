@@ -45,6 +45,7 @@ class Report(object):
 
         self.rowcount = database.rowcount
         self.sums = database.sums
+        self.report_id = configuration.report_id
 
         self.limit = int(str((self.set_limit(configuration.limit))))
         self.offset = int(str(self.set_offset(configuration.offset)))

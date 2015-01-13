@@ -17,7 +17,8 @@
 
 from django.conf.urls.defaults import url, patterns
 from nav.web.report.views import (get_report, matrix_report, index,
-                                  report_list, get_report_for_widget)
+                                  report_list, get_report_for_widget,
+                                  add_report_widget)
 
 # Subsystem: Report
 # Naming convention: report-<result>-<query>
@@ -33,8 +34,9 @@ urlpatterns = patterns('nav.web.report.views',
     url(r'^reportlist$',
         report_list, name='report-reportlist'),
     url(r'^(?P<report_name>[^/]+)$', get_report, name='report-by-name'),
+    url(r'^widget/add/', add_report_widget, name='report-add-widget'),
     url(r'^widget/(?P<report_name>[^/]+)$', get_report_for_widget,
-        name='widget-report-by-name')
+        name='widget-report-by-name'),
 )
 
 dummy = lambda *args, **kwargs: None
