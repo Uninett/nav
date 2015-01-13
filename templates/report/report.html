@@ -138,6 +138,8 @@
 
   {% if report %}
     {% include "report/frag_report_table.html" %}
+    <p>Result generated {{ result_time }}</p>
+
   {% else %}
     <p class="error">No results found!</p>
   {% endif %}
