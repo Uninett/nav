@@ -63,7 +63,8 @@ class ReportWidget(Navlet):
             return HttpResponse(status=404)
         else:
             navlet.preferences['report_id'] = request.POST.get('report_id')
-            navlet.preferences['query_string'] = request.POST.get('query_string')
+            navlet.preferences['query_string'] = request.POST.get(
+                'query_string')
             navlet.save()
             return HttpResponse(json.dumps(navlet.preferences))
 
