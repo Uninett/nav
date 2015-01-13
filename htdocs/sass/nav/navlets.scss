@@ -39,6 +39,10 @@
             margin-top: 1.25rem;
         }
     }
+    .navlet-body {
+        max-height: 50vh;
+        overflow: auto;
+    }
     .navlet-action-group {
         float: right;
         i {
@@ -104,9 +108,3 @@
     }
 }
 
-.ReportWidget {
-    .report-table-wrapper {
-        max-height: 50vh;
-        overflow: auto;
-    }
-}
