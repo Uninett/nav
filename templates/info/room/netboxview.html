@@ -143,17 +143,32 @@
             {% endif %}
           </td>
 
-          <td
-            {% if not interface.last_cam|is_max_timestamp %}
-              title="{{ interface.last_cam|date:"Y-m-d H:i" }}"
-            {% endif %}
-            class="numeric {% if interface.last_cam|is_max_timestamp %}brighten{% endif %}">
+          {% if interface.to_netbox and not interface.trunk %}
+            {# If the interface is connected to other equipment, it should be considered active #}
+            <td title="To netbox: {{ interface.to_netbox }}"
+                class="numeric brighten">
+              <a href="{{ interface.to_netbox.get_absolute_url }}">
+                {{ interface.to_netbox }}
+              </a>
 
-            {% if not interface.trunk %}
-              {{ interface.last_cam|days_since }}
-              <span class="ui-helper-hidden" title="{% firstof interface.last_cam 'Never' %}"></span>
-            {% endif %}
-          </td>
+              <span class="hidden" title="{{ maxtime }}"></span>
+            </td>
+          {% else %}
+            {# If not connected to other equipment, use information from the cam table to indicate last used #}
+            <td
+              {% if not interface.last_cam|is_max_timestamp %}
+                title="{{ interface.last_cam|date:"Y-m-d H:i" }}"
+              {% else %}
+                title="Active now"
+              {% endif %}
+              class="numeric {% if interface.last_cam|is_max_timestamp %}brighten{% endif %}">
+
+              {% if not interface.trunk %}
+                {{ interface.last_cam|days_since }}
+                <span class="hidden" title="{% firstof interface.last_cam 'Never' %}"></span>
+              {% endif %}
+            </td>
+          {% endif %}
 
         </tr>
       {% endfor %}
