@@ -621,6 +621,9 @@ class NetboxGroup(models.Model):
     def __unicode__(self):
         return self.id
 
+    def get_absolute_url(self):
+        return reverse('netbox-group-detail', kwargs={'groupid': self.pk})
+
 
 class NetboxCategory(models.Model):
     """Store the relation between a netbox and its groups"""
