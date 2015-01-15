@@ -35,7 +35,7 @@ max_concurrent_jobs = 500
 
 [snmp]
 timeout = 1.5
-max-repetitions = 50
+max-repetitions = 10
 
 [plugins]
 
