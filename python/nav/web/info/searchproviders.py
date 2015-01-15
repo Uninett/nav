@@ -23,7 +23,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 
 from nav.models.manage import (Room, Netbox, Interface, Vlan,
-                               UnrecognizedNeighbor)
+                               UnrecognizedNeighbor, NetboxGroup)
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.views import is_valid_hostname
 
@@ -166,6 +166,24 @@ class VlanSearchProvider(SearchProvider):
                 reverse('vlan-details', kwargs={'vlanid': result.id}),
                 result)
             )
+
+
+class DeviceGroupSearchProvider(SearchProvider):
+    """Searchprovider for device groups"""
+    name = u'Device groups'
+    headers = [
+        ('Name', 'id'),
+        ('Description', 'description')
+    ]
+    link = 'Name'
+
+    def fetch_results(self):
+        results = NetboxGroup.objects.filter(pk__icontains=self.query)
+
+        self.results = [
+            SearchResult(result.get_absolute_url(), result)
+            for result in results
+        ]
 
 
 class UnrecognizedNeighborSearchProvider(SearchProvider):
