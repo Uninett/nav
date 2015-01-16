@@ -31,9 +31,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from django import forms
-
-from nav.models.manage import NetboxGroup, Category
+from nav.models.manage import NetboxGroup
 from nav.bulkparse import NetboxGroupBulkParser
 from nav.bulkimport import NetboxGroupImporter
 
@@ -44,6 +42,7 @@ from nav.web.seeddb.utils.list import render_list
 from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.utils.delete import render_delete
+from nav.web.seeddb.forms import DeviceGroupForm
 
 
 class NetboxGroupInfo(SeeddbInfo):
@@ -57,11 +56,6 @@ class NetboxGroupInfo(SeeddbInfo):
     back_url = reverse_lazy('seeddb-netboxgroup')
     add_url = reverse_lazy('seeddb-netboxgroup-edit')
     bulk_url = reverse_lazy('seeddb-netboxgroup-bulk')
-
-
-class NetboxGroupForm(forms.ModelForm):
-    class Meta:
-        model = NetboxGroup
 
 
 def netboxgroup(request):
@@ -88,7 +82,7 @@ def netboxgroup_delete(request):
 
 def netboxgroup_edit(request, netboxgroup_id=None):
     info = NetboxGroupInfo()
-    return render_edit(request, NetboxGroup, NetboxGroupForm, netboxgroup_id,
+    return render_edit(request, NetboxGroup, DeviceGroupForm, netboxgroup_id,
                        'seeddb-netboxgroup-edit',
                        extra_context=info.template_context)
 
