@@ -4,37 +4,37 @@ require([
     'plugins/seeddb_hstore',
     'plugins/netbox_connectivity_checker',
     'plugins/ip_chooser',
+    'plugins/multiple_select',
     'libs/spin',
     'libs/jquery',
     'libs/jquery.dataTables.min',
     'libs/OpenLayers',
     'libs/modernizr',
     'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect, FormFuck,
-                                        ConnectivityChecker, IpChooser) {
+                                        ConnectivityChecker, IpChooser, MultipleSelect) {
 
     var tableWrapper = '#tablewrapper',
         tableSelector = '#seeddb-content';
 
-    function executeOnLoad() {
-        /* Start joyride if url endswith #joyride */
-        if (location.hash === '#joyride') {
-            $(document).foundation({
-                'joyride': {
-                    'pre_ride_callback': function () {
-                        var cards = $('.joyride-tip-guide').find('.joyride-content-wrapper');
-                        cards.each(function (index, element) {
-                            var counter = $('<small>')
-                                .attr('style', 'position:absolute;bottom:1.5rem;right:1.25rem')
-                                .html(index + 1 + ' of ' + cards.length);
-                            $(element).append(counter);
-                        });
-                    },
-                    'modal': false
-                }
-            });
-            $(document).foundation('joyride', 'start');
+    function initDeviceGroupSwitcher() {
+        var $inGroup = $('#id_devices_in_group'),
+            $notInGroup = $('#id_devices_not_in_group');
+
+        if (!($inGroup.length && $notInGroup.length)) {
+            return;
         }
 
+        new MultipleSelect({
+            choiceNodeSelector: '#id_devices_not_in_group',
+            initialNodeSelector: '#id_devices_in_group',
+            containerNodeSelector: '.seeddb-edit .listtable'
+        });
+
+    }
+
+    function executeOnLoad() {
+
+        initJoyride();  /* Start joyride if url endswith #joyride */
 
         if ($('#map').length) {
             populateMap(initMap());     // Show map for coordinates
@@ -59,6 +59,8 @@ require([
         }
 
         activateIpDeviceFormPlugins();
+
+        initDeviceGroupSwitcher();  // Initialize switching of device groups
     }
 
     /* Internet Explorer caching leads to onload event firing before script
@@ -68,6 +70,28 @@ require([
         executeOnLoad();
     } else {
         $(window).load(executeOnLoad);
+    }
+
+
+    function initJoyride() {
+        /* Start joyride if url endswith #joyride */
+        if (location.hash === '#joyride') {
+            $(document).foundation({
+                'joyride': {
+                    'pre_ride_callback': function () {
+                        var cards = $('.joyride-tip-guide').find('.joyride-content-wrapper');
+                        cards.each(function (index, element) {
+                            var counter = $('<small>')
+                                .attr('style', 'position:absolute;bottom:1.5rem;right:1.25rem')
+                                .html(index + 1 + ' of ' + cards.length);
+                            $(element).append(counter);
+                        });
+                    },
+                    'modal': false
+                }
+            });
+            $(document).foundation('joyride', 'start');
+        }
     }
 
 
