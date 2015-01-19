@@ -180,15 +180,9 @@ class CablingForm(forms.ModelForm):
 
 class DeviceGroupForm(forms.ModelForm):
     """Form for editing a device group"""
-    devices_in_group = forms.MultipleChoiceField()
-    devices_not_in_group = forms.MultipleChoiceField()
-
     def __init__(self, *args, **kwargs):
         super(DeviceGroupForm, self).__init__(*args, **kwargs)
-        self.fields['devices_in_group'].choices = to_choice_format(
-            get_netboxes_in_group(self.instance), 'id', 'sysname')
-        self.fields['devices_not_in_group'].choices = to_choice_format(
-            get_netboxes_not_in_group(self.instance), 'id', 'sysname')
+        self.fields['netboxes'].widget.attrs['class'] = 'select2'
 
     class Meta:
         model = NetboxGroup
