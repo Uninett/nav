@@ -4,14 +4,13 @@ require([
     'plugins/seeddb_hstore',
     'plugins/netbox_connectivity_checker',
     'plugins/ip_chooser',
-    'plugins/multiple_select',
     'libs/spin',
     'libs/jquery',
     'libs/jquery.dataTables.min',
     'libs/OpenLayers',
     'libs/modernizr',
     'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect, FormFuck,
-                                        ConnectivityChecker, IpChooser, MultipleSelect) {
+                                        ConnectivityChecker, IpChooser) {
 
     var tableWrapper = '#tablewrapper',
         tableSelector = '#seeddb-content';
