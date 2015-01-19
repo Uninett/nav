@@ -19,23 +19,28 @@ define(['libs/jquery', 'libs/jquery.tinysort'], function () {
      *
      */
 
-    function MultipleSelect() {
-        this.container = $('.multiple-select-container');
+    function MultipleSelect(config) {
+        if (typeof config === 'undefined') {
+            config = {};
+        }
+
+        this.containerSelector = config.containerSelector || '.multiple-select-container';
+        this.container = $(this.containerSelector);
 
         this.form = this.container.parents('form:first');
         this.addSubmitHandler();
 
-        this.choiceNodeSelector = '.multiple-select-choices';
-        this.initialNodeSelector = '.multiple-select-initial';
-        this.choiceNode = $(this.choiceNodeSelector).find('select');
-        this.initialNode = $(this.initialNodeSelector).find('select');
+        this.choiceNodeSelector = config.choiceNode || '.multiple-select-choices';
+        this.initialNodeSelector = config.initNode || '.multiple-select-initial';
+        this.choiceNode = $(this.choiceNodeSelector);
+        this.initialNode = $(this.initialNodeSelector);
 
         // Create the data structures
         this.findOptions();
         this.orig_choices = this.choiceNode.clone();
 
         this.addClickListeners();
-        this.searchfield = this.container.find($("[type='search']"));
+        this.searchfield = config.searchField || this.container.find($("[type='search']"));
         if (this.searchfield.length) {
             this.addSearchListener();
         }
@@ -61,27 +66,19 @@ define(['libs/jquery', 'libs/jquery.tinysort'], function () {
         },
         move: function ($node) {
             /* Switches the node from choice to inital list and vice versa */
-            if (this.isChoiceNode($node)) {
+            if ($node.parent().is(this.choiceNode)) {
                 $node.appendTo(this.initialNode);
                 $node.prop('selected', false);
                 this.orig_choices.find('[value="' + $node.val() + '"]').remove();
                 this.sortInitial();
-            } else {
+            } else if ($node.parent().is(this.initialNode)) {
                 $node.appendTo(this.choiceNode);
                 $node.prop('selected', false);
                 this.orig_choices.append($node.clone());
                 this.sortChoices();
+            } else {
+                console.error("Could not find parent of " + $node);
             }
-        },
-        isChoiceNode: function ($node) {
-            var $parent = $node.parents('div:first'),
-                classList = $parent.attr('class').split(/\s+/);
-            for (var i=0; i<classList.length; i++) {
-                if ('.' + classList[i] === this.choiceNodeSelector) {
-                    return true;
-                }
-            }
-            return false;
         },
         sortInitial: function () {
             this.findInitialOptions();
