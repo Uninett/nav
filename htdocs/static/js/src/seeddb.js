@@ -16,22 +16,6 @@ require([
     var tableWrapper = '#tablewrapper',
         tableSelector = '#seeddb-content';
 
-    function initDeviceGroupSwitcher() {
-        var $inGroup = $('#id_devices_in_group'),
-            $notInGroup = $('#id_devices_not_in_group');
-
-        if (!($inGroup.length && $notInGroup.length)) {
-            return;
-        }
-
-        new MultipleSelect({
-            choiceNodeSelector: '#id_devices_not_in_group',
-            initialNodeSelector: '#id_devices_in_group',
-            containerNodeSelector: '.seeddb-edit .listtable'
-        });
-
-    }
-
     function executeOnLoad() {
 
         initJoyride();  /* Start joyride if url endswith #joyride */
@@ -59,8 +43,6 @@ require([
         }
 
         activateIpDeviceFormPlugins();
-
-        initDeviceGroupSwitcher();  // Initialize switching of device groups
     }
 
     /* Internet Explorer caching leads to onload event firing before script
