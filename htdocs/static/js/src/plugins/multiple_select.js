@@ -1,6 +1,6 @@
 define(['libs/jquery', 'libs/jquery.tinysort'], function () {
 
-    /*
+    /**
      * MultipleSelect - an alternative to QuickSelect
      * ----------------------------------------------
      *
@@ -12,7 +12,7 @@ define(['libs/jquery', 'libs/jquery.tinysort'], function () {
      * It expects:
      * - A container with the class 'multiple-select-container' where
      *   the two multi selects reside.
-     * - Two multi selects inside two containers with the classes
+     * - Two multi selects with the classes
      *   '.multiple-select-choices' and '.multiple-select-initial'.
      *   Choices are what the user can add and initial is the initial state.
      * - Everything must be wrapped in a form.
@@ -24,16 +24,20 @@ define(['libs/jquery', 'libs/jquery.tinysort'], function () {
             config = {};
         }
 
-        this.containerSelector = config.containerSelector || '.multiple-select-container';
+        this.containerSelector = config.containerNodeSelector || '.multiple-select-container';
         this.container = $(this.containerSelector);
+        this.choiceNodeSelector = config.choiceNodeSelector || '.multiple-select-choices';
+        this.initialNodeSelector = config.initialNodeSelector || '.multiple-select-initial';
+        this.choiceNode = $(this.choiceNodeSelector);
+        this.initialNode = $(this.initialNodeSelector);
+
+        if (!(this.container.length && this.choiceNode.length && this.initialNode.length)) {
+            console.error('Could not find needed elements');
+            return;
+        }
 
         this.form = this.container.parents('form:first');
         this.addSubmitHandler();
-
-        this.choiceNodeSelector = config.choiceNode || '.multiple-select-choices';
-        this.initialNodeSelector = config.initNode || '.multiple-select-initial';
-        this.choiceNode = $(this.choiceNodeSelector);
-        this.initialNode = $(this.initialNodeSelector);
 
         // Create the data structures
         this.findOptions();
@@ -77,6 +81,7 @@ define(['libs/jquery', 'libs/jquery.tinysort'], function () {
                 this.orig_choices.append($node.clone());
                 this.sortChoices();
             } else {
+                console.log($node);
                 console.error("Could not find parent of " + $node);
             }
         },
