@@ -63,7 +63,7 @@ def render_edit(request, model, form_model, object_id, redirect,
             # have no idea if we are doing or not)
             netboxes = request.POST.getlist('netboxes')
             _logger.debug('netboxes in group: %s', netboxes)
-            if netboxes and form_model == DeviceGroupForm:
+            if netboxes and model == NetboxGroup:
                 _logger.debug('Connecting group to netboxes')
                 # Save model but make sure m2m is not saved. See
                 # https://docs.djangoproject.com/en/1.4/topics/db/models
@@ -203,6 +203,14 @@ def does_sysname_exist(sysname, netbox_id=None):
 
 
 def _connect_group_to_devices(group, netbox_ids):
+    """
+    Connect a NetboxGroup and Netboxes by creating instances of
+    NetboxCategories
+
+    :param nav.models.manage.NetboxGroup group: A netboxgroup
+    :param list[str] netbox_ids: a result from a request.POST.getlist that
+                                 should contain netbox id's as strings
+    """
     netboxids = [int(x) for x in netbox_ids]
 
     # Delete existing netboxcategories that are not in request
