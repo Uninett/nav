@@ -181,22 +181,24 @@ def find_duration(candidate, profile):
     profile has defined exponential detainment, increase the detainment for
     this candidate.
 
+    :param nav.arnold.Candidate candidate: The candidate to find duration for
+    :param DetentionProfile profile: The profile used for detention
     """
     autoenablestep = profile.duration
-    try:
-        identity = Identity.objects.get(mac=candidate.mac,
-                                        interface=candidate.interface)
-    except Identity.DoesNotExist:
-        pass
-    else:
-        event = identity.event_set.filter(
-            justification=profile.justification,
-            autoenablestep__isnull=False).order_by('-event_time')
 
-        if event:
-            autoenablestep = event[0].autoenablestep
-            if profile.incremental == 'y':
-                autoenablestep *= 2
+    if profile.incremental == 'y':
+        try:
+            identity = Identity.objects.get(
+                mac=candidate.mac, interface=candidate.interface)
+        except Identity.DoesNotExist:
+            pass
+        else:
+            event = identity.event_set.filter(
+                justification=profile.justification,
+                autoenablestep__isnull=False).order_by('-event_time')
+
+            if event:
+                autoenablestep = event[0].autoenablestep * 2
 
     LOGGER.debug("Setting duration to %s days" % autoenablestep)
     return autoenablestep
