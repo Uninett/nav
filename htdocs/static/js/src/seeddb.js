@@ -15,7 +15,65 @@ require([
     var tableWrapper = '#tablewrapper',
         tableSelector = '#seeddb-content';
 
+    /**
+     * Uses select2 to search for and display netboxes. Executes the search in
+     * AJAX-requests.
+     */
+    function initDeviceGroupSelectMultiple($formElement, $searchField) {
+        $searchField.select2({
+            multiple: true,
+            ajax: {
+                url: NAV.urls.seeddb_netboxgroup_devicelist,
+                dataType: 'json',
+                quietMillis: 250,
+                data: function (params) {
+                    return {
+                        query: params
+                    };
+                },
+                results: function (data) {
+                    return {
+                        results: data
+                    };
+                }
+            },
+            /**
+             * Populates the selection with options from the form element.
+             * NB: The search field needs a value for this function to be run
+             * (this is set directly in the html).
+             */
+            initSelection: function (element, callback) {
+                var data = [];
+                $formElement.find(':selected').each(function (index, option) {
+                    data.push({
+                        id: option.value,
+                        text: option.innerHTML
+                    });
+                });
+                return callback(data);
+            },
+            minimumInputLength: 3
+        });
+
+        /**
+         * Sets the selected values in the form element to be the same as in
+         * the select2 element when the form is submitted.
+         */
+        $('form.seeddb-edit').submit(function () {
+            $formElement.val($searchField.select2('val'));
+        });
+    }
+
     function executeOnLoad() {
+        /**
+         * Checks if we are on the DeviceGroup page. If so, initialize the
+         * select multiple.
+         */
+        var $formElement = $('#id_netboxes'),
+            $searchField = $('#device-group-select2');
+        if ($formElement.length && $searchField.length) {
+            initDeviceGroupSelectMultiple($formElement, $searchField);
+        }
 
         initJoyride();  /* Start joyride if url endswith #joyride */
 

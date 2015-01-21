@@ -613,7 +613,8 @@ class NetboxGroup(models.Model):
 
     id = VarcharField(db_column='netboxgroupid', primary_key=True)
     description = VarcharField(db_column='descr')
-    netboxes = models.ManyToManyField(Netbox, through='NetboxCategory')
+    netboxes = models.ManyToManyField(
+        Netbox, through='NetboxCategory', blank=True)
 
     class Meta:
         db_table = 'netboxgroup'

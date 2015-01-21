@@ -31,8 +31,7 @@ from django.http import HttpResponseRedirect, Http404
 from django.db.models import Q
 
 from nav.web.message import new_message, Messages
-from nav.models.manage import Netbox, NetboxCategory
-from nav.web.seeddb.forms import DeviceGroupForm
+from nav.models.manage import Netbox, NetboxCategory, NetboxGroup
 
 _logger = logging.getLogger(__name__)
 

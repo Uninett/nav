@@ -182,7 +182,7 @@ class DeviceGroupForm(forms.ModelForm):
     """Form for editing a device group"""
     def __init__(self, *args, **kwargs):
         super(DeviceGroupForm, self).__init__(*args, **kwargs)
-        self.fields['netboxes'].widget.attrs['class'] = 'select2'
+        self.fields['netboxes'].widget.attrs['class'] = 'hidden'
 
     class Meta:
         model = NetboxGroup

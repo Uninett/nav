@@ -31,7 +31,10 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from nav.models.manage import NetboxGroup
+import json
+import logging
+from django.http import HttpResponse
+from nav.models.manage import NetboxGroup, Netbox
 from nav.bulkparse import NetboxGroupBulkParser
 from nav.bulkimport import NetboxGroupImporter
 
@@ -43,6 +46,8 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.forms import DeviceGroupForm
+
+_logger = logging.getLogger(__name__)
 
 
 class NetboxGroupInfo(SeeddbInfo):
@@ -84,6 +89,7 @@ def netboxgroup_edit(request, netboxgroup_id=None):
     info = NetboxGroupInfo()
     return render_edit(request, NetboxGroup, DeviceGroupForm, netboxgroup_id,
                        'seeddb-netboxgroup-edit',
+                       template='seeddb/edit_device_group.html',
                        extra_context=info.template_context)
 
 
@@ -93,3 +99,27 @@ def netboxgroup_bulk(request):
         request, NetboxGroupBulkParser, NetboxGroupImporter,
         'seeddb-netboxgroup',
         extra_context=info.template_context)
+
+
+def netbox_list(request):
+    """
+    List all netboxes as tuples ready for searching in select2
+    :param django.http.HttpRequest request: The request
+    """
+
+    _logger.debug(request.GET)
+    query = request.GET.get('query')
+
+    if query:
+        netboxes = Netbox.objects.filter(sysname__icontains=query)
+    else:
+        netboxes = Netbox.objects.none()
+
+    result = []
+    for netbox in netboxes:
+        result.append({
+            'id': netbox.pk,
+            'text': netbox.sysname
+        })
+
+    return HttpResponse(json.dumps(result), content_type='application/json')
