@@ -20,6 +20,7 @@
 (Not netboxes and services).
 """
 
+import logging
 from IPy import IP
 from socket import gethostbyaddr, gethostbyname, error as SocketError
 
@@ -30,7 +31,9 @@ from django.http import HttpResponseRedirect, Http404
 from django.db.models import Q
 
 from nav.web.message import new_message, Messages
-from nav.models.manage import Netbox
+from nav.models.manage import Netbox, NetboxCategory, NetboxGroup
+
+_logger = logging.getLogger(__name__)
 
 
 def render_edit(request, model, form_model, object_id, redirect,
@@ -53,7 +56,23 @@ def render_edit(request, model, form_model, object_id, redirect,
     if request.method == 'POST':
         form = form_model(request.POST, instance=obj)
         if form.is_valid():
-            obj = form.save()
+
+            # TODO: It's kinda hackish to put this here. Discuss during review
+            # Store devices in group when editing a device group (which we
+            # have no idea if we are doing or not)
+            netboxes = request.POST.getlist('netboxes')
+            _logger.debug('netboxes in group: %s', netboxes)
+            if netboxes and model == NetboxGroup:
+                _logger.debug('Connecting group to netboxes')
+                # Save model but make sure m2m is not saved. See
+                # https://docs.djangoproject.com/en/1.4/topics/db/models
+                # /#extra-fields-on-many-to-many-relationships
+                obj = form.save(commit=False)
+                obj.save()
+                _connect_group_to_devices(obj, netboxes)
+            else:
+                obj = form.save()
+
             (identifier, title) = _get_identifier_title(
                 obj, identifier_attr, title_attr)
             new_message(request,
@@ -180,3 +199,27 @@ def does_sysname_exist(sysname, netbox_id=None):
     else:
         sysname_qs = Netbox.objects.filter(sysname=sysname)
     return sysname_qs.count() > 0
+
+
+def _connect_group_to_devices(group, netbox_ids):
+    """
+    Connect a NetboxGroup and Netboxes by creating instances of
+    NetboxCategories
+
+    :param nav.models.manage.NetboxGroup group: A netboxgroup
+    :param list[str] netbox_ids: a result from a request.POST.getlist that
+                                 should contain netbox id's as strings
+    """
+    netboxids = [int(x) for x in netbox_ids]
+
+    # Delete existing netboxcategories that are not in request
+    NetboxCategory.objects.filter(category=group).exclude(
+        netbox__pk__in=netboxids).delete()
+
+    # Add new netboxcategories that are in request
+    for netboxid in netboxids:
+        try:
+            NetboxCategory.objects.get(category=group, netbox__pk=netboxid)
+        except NetboxCategory.DoesNotExist:
+            netbox = Netbox.objects.get(pk=netboxid)
+            NetboxCategory.objects.create(category=group, netbox=netbox)

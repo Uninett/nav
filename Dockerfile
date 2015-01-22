@@ -50,8 +50,6 @@ RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash n
 
 RUN echo "import sys\nsys.path.append('/source/python')" > /etc/python2.7/sitecustomize.py
 
-RUN echo "export APACHE_ARGUMENTS='-DFOREGROUND'" >> /etc/apache2/envvars
-
 
 #################################################################################
 ### ADDing the requirements file to pip-install Python requirements will bust ###
