@@ -332,6 +332,7 @@ class Netbox(models.Model):
 
         return result
 
+
 class NetboxInfo(models.Model):
     """From NAV Wiki: The netboxinfo table is the place
     to store additional info on a netbox."""
@@ -349,6 +350,46 @@ class NetboxInfo(models.Model):
 
     def __unicode__(self):
         return u'%s="%s"' % (self.variable, self.value)
+
+# TODO finish the model definition
+class NetboxEntity(models.Model):
+    """
+    Represents a physical Entity within a Netbox. Largely modeled after
+    ENTITY-MIB::entPhysicalTable. See RFC 4133 (and RFC 6933), but may be
+    filled from other sources where applicable.
+
+    Sequence consists of:
+
+      entPhysicalIndex          PhysicalIndex,
+      entPhysicalDescr          SnmpAdminString,
+      entPhysicalVendorType     AutonomousType,
+      entPhysicalContainedIn    PhysicalIndexOrZero,
+      entPhysicalClass          PhysicalClass,
+      entPhysicalParentRelPos   Integer32,
+      entPhysicalName           SnmpAdminString,
+      entPhysicalHardwareRev    SnmpAdminString,
+      entPhysicalFirmwareRev    SnmpAdminString,
+      entPhysicalSoftwareRev    SnmpAdminString,
+      entPhysicalSerialNum      SnmpAdminString,
+      entPhysicalMfgName        SnmpAdminString,
+      entPhysicalModelName      SnmpAdminString,
+      entPhysicalAlias          SnmpAdminString,
+      entPhysicalAssetID        SnmpAdminString,
+      entPhysicalIsFRU          TruthValue,
+      entPhysicalMfgDate        DateAndTime,
+      entPhysicalUris           OCTET STRING
+
+    """
+    id = models.AutoField(db_column='netboxentityid', primary_key=True)
+    netbox = models.ForeignKey('Netbox', db_column='netboxid',
+                               related_name='entity_set')
+
+    index = VarcharField()
+    descr = VarcharField()
+    vendor_type = VarcharField()
+    contained_in = models.ForeignKey('NetboxEntity')
+
+
 
 
 class NetboxPrefix(models.Model):
