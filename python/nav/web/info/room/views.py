@@ -15,6 +15,7 @@
 #
 """Viev functions for the roominfo subsystem"""
 
+import datetime
 import logging
 import re
 import os
@@ -241,6 +242,7 @@ def render_netboxes(request, roomid):
                             FROM cam
                             WHERE cam.netboxid=interface.netboxid
                               AND cam.ifindex = interface.ifindex
+                              AND interface.to_netboxid IS NULL
                             ORDER BY end_time DESC
                             LIMIT 1"""}
 
@@ -251,6 +253,7 @@ def render_netboxes(request, roomid):
 
     return render_to_response("info/room/netboxview.html",
                               {"netboxes": netboxes,
+                               "maxtime": datetime.datetime.max,
                                "room": room},
                               context_instance=RequestContext(request))
 

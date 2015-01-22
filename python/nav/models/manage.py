@@ -613,6 +613,8 @@ class NetboxGroup(models.Model):
 
     id = VarcharField(db_column='netboxgroupid', primary_key=True)
     description = VarcharField(db_column='descr')
+    netboxes = models.ManyToManyField(
+        Netbox, through='NetboxCategory', blank=True)
 
     class Meta:
         db_table = 'netboxgroup'
@@ -620,6 +622,9 @@ class NetboxGroup(models.Model):
 
     def __unicode__(self):
         return self.id
+
+    def get_absolute_url(self):
+        return reverse('netbox-group-detail', kwargs={'groupid': self.pk})
 
 
 class NetboxCategory(models.Model):

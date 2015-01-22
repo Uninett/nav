@@ -16,9 +16,9 @@
                         <input type="search" placeholder="Filter devices not in group">
 
                         <div class="row">
-                            <div class="multiple-select-choices column medium-6">
+                            <div class="column medium-6">
                                 <label for="not_in_group">Devices not in group</label>
-                                <select id="not_in_group" multiple="multiple" class="multiple-select" name="choices">
+                                <select id="not_in_group" multiple="multiple" class="multiple-select multiple-select-choices" name="choices">
                                     {% for netbox in netboxes %}
                                         <option value="{{ netbox.pk }}">{{ netbox.sysname }}</option>
                                     {% endfor %}
@@ -26,9 +26,9 @@
                                 </select>
                             </div>
 
-                            <div class="multiple-select-initial column medium-6">
+                            <div class="column medium-6">
                                 <label for="in_group">Devices in group</label>
-                                <select id="in_group" multiple="multiple" name="netboxes" class="multiple-select">
+                                <select id="in_group" multiple="multiple" name="netboxes" class="multiple-select multiple-select-initial">
                                     {% for netbox in netboxgroup.netbox_set.all %}
                                         <option value="{{ netbox.pk }}">{{ netbox.sysname }}</option>
                                     {% endfor %}

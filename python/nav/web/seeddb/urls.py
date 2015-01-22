@@ -27,7 +27,7 @@ from nav.web.seeddb.page.netboxtype import netboxtype, netboxtype_edit
 from nav.web.seeddb.page.netboxtype import netboxtype_bulk
 from nav.web.seeddb.page.vendor import vendor, vendor_edit, vendor_bulk
 from nav.web.seeddb.page.netboxgroup import (netboxgroup, netboxgroup_edit,
-                                             netboxgroup_bulk)
+                                             netboxgroup_bulk, netbox_list)
 from nav.web.seeddb.page.vlan import vlan_list, vlan_edit
 from nav.web.seeddb.page.prefix import (get_prefix_view, prefix_edit,
                                         prefix_bulk)
@@ -136,6 +136,8 @@ urlpatterns = patterns('',
         name='seeddb-netboxgroup-edit'),
     url(r'^netboxgroup/bulk/$', netboxgroup_bulk,
         name='seeddb-netboxgroup-bulk'),
+    url(r'^netboxgroup/devicelist/$', netbox_list,
+        name='seeddb-netboxgroup-devicelist'),
 
     # Vlan
     url(r'^vlan/$', vlan_list,

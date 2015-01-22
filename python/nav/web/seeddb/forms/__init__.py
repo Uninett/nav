@@ -25,7 +25,7 @@ from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column,
 
 from nav.web.crispyforms import LabelSubmit
 from nav.models.manage import (Location, Room, Organization, NetboxType,
-                               Vendor)
+                               Vendor, NetboxGroup, Category, Netbox)
 from nav.models.cabling import Cabling
 
 
@@ -176,3 +176,33 @@ class CablingForm(forms.ModelForm):
     """Form for editing a cabling instance"""
     class Meta:
         model = Cabling
+
+
+class DeviceGroupForm(forms.ModelForm):
+    """Form for editing a device group"""
+    def __init__(self, *args, **kwargs):
+        super(DeviceGroupForm, self).__init__(*args, **kwargs)
+        self.fields['netboxes'].widget.attrs['class'] = 'hidden'
+
+    class Meta:
+        model = NetboxGroup
+
+
+def to_choice_format(objects, key, value):
+    """Return a list of tuples from model given key and value"""
+    return [(getattr(obj, key), getattr(obj, value)) for obj in objects]
+
+
+def get_netboxes_in_group(group):
+    if group:
+        return group.netbox_set.all()
+    else:
+        return Netbox.objects.none()
+
+
+def get_netboxes_not_in_group(group):
+    if group:
+        return Netbox.objects.exclude(
+            pk__in=group.netbox_set.all().values_list('id', flat=True))
+    else:
+        return Netbox.objects.all()
