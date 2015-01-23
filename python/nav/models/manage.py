@@ -72,9 +72,9 @@ class Netbox(models.Model):
     device = models.ForeignKey('Device', db_column='deviceid')
     sysname = VarcharField(unique=True)
     category = models.ForeignKey('Category', db_column='catid')
-    netboxgroups = models.ManyToManyField(
+    groups = models.ManyToManyField(
         'NetboxGroup', through='NetboxCategory', blank=True, null=True)
-    netboxgroups.help_text = ''
+    groups.help_text = ''
     organization = models.ForeignKey('Organization', db_column='orgid')
     read_only = VarcharField(db_column='ro', blank=True, null=True)
     read_write = VarcharField(db_column='rw', blank=True, null=True)
@@ -613,8 +613,6 @@ class NetboxGroup(models.Model):
 
     id = VarcharField(db_column='netboxgroupid', primary_key=True)
     description = VarcharField(db_column='descr')
-    netboxes = models.ManyToManyField(
-        Netbox, through='NetboxCategory', blank=True)
 
     class Meta:
         db_table = 'netboxgroup'

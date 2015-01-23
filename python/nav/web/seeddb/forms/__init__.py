@@ -179,10 +179,22 @@ class CablingForm(forms.ModelForm):
 
 
 class DeviceGroupForm(forms.ModelForm):
-    """Form for editing a device group"""
+    """Form for editing a device group
+
+    We need to create the netboxes field for the many to many relationship, as
+    this is only created by Django on modelforms based on the model where the
+    field is defined (in this case nav.models.manage.Netbox).
+    """
+    netboxes = forms.ModelMultipleChoiceField(queryset=Netbox.objects.all())
+
     def __init__(self, *args, **kwargs):
-        super(DeviceGroupForm, self).__init__(*args, **kwargs)
-        self.fields['netboxes'].widget.attrs['class'] = 'hidden'
+        # If the form is based on an existing model instance, populate the
+        # netboxes field with netboxes from the many to many relationship
+        if 'instance' in kwargs:
+            initial = kwargs.setdefault('initial', {})
+            initial['netboxes'] = [n.pk for n in
+                                   kwargs['instance'].netbox_set.all()]
+        forms.ModelForm.__init__(self, *args, **kwargs)
 
     class Meta:
         model = NetboxGroup
