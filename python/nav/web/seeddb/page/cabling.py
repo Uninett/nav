@@ -35,6 +35,7 @@ class CablingInfo(SeeddbInfo):
     caption = 'Cabling'
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'Cabling'
+    verbose_name = Cabling._meta.verbose_name
     _navpath = [('Cabling', reverse_lazy('seeddb-cabling'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-cabling')

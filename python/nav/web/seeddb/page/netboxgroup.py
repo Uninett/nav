@@ -52,7 +52,8 @@ _logger = logging.getLogger(__name__)
 
 class NetboxGroupInfo(SeeddbInfo):
     active = {'netboxgroup': True}
-    caption = 'Device Group'
+    caption = 'Device Groups'
+    verbose_name = NetboxGroup._meta.verbose_name
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'Device Groups'
     _navpath = [('Device Groups', reverse_lazy('seeddb-netboxgroup'))]

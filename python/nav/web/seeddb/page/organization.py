@@ -37,6 +37,7 @@ class OrganizationInfo(SeeddbInfo):
     caption = 'Organizations'
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'Organizations'
+    verbose_name = Organization._meta.verbose_name
     _navpath = [('Organizations', reverse_lazy('seeddb-organization'))]
     delete_url = reverse_lazy('seeddb-organization')
     back_url = reverse_lazy('seeddb-organization')

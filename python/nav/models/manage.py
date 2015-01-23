@@ -89,8 +89,8 @@ class Netbox(models.Model):
 
     class Meta:
         db_table = 'netbox'
-        verbose_name = 'netbox'
-        verbose_name_plural = 'netboxes'
+        verbose_name = 'ip device'
+        verbose_name_plural = 'ip devices'
         ordering = ('sysname',)
 
     def __unicode__(self):
@@ -617,6 +617,7 @@ class NetboxGroup(models.Model):
     class Meta:
         db_table = 'netboxgroup'
         ordering = ('id',)
+        verbose_name = 'device group'
 
     def __unicode__(self):
         return self.id
@@ -814,12 +815,12 @@ class Usage(models.Model):
     """From NAV Wiki: The usage table defines the user group (student, staff
     etc). Usage categories are maintained in the edit database tool."""
 
-    id = models.CharField(db_column='usageid',
-        max_length=30, primary_key=True)
+    id = models.CharField(db_column='usageid', max_length=30, primary_key=True)
     description = VarcharField(db_column='descr')
 
     class Meta:
         db_table = 'usage'
+        verbose_name = 'usage'
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
