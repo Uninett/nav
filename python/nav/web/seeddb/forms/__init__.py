@@ -185,7 +185,8 @@ class DeviceGroupForm(forms.ModelForm):
     this is only created by Django on modelforms based on the model where the
     field is defined (in this case nav.models.manage.Netbox).
     """
-    netboxes = forms.ModelMultipleChoiceField(queryset=Netbox.objects.all())
+    netboxes = forms.ModelMultipleChoiceField(
+        queryset=Netbox.objects.all(), required=False)
 
     def __init__(self, *args, **kwargs):
         # If the form is based on an existing model instance, populate the
