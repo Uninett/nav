@@ -191,7 +191,7 @@ class DeviceGroupForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         # If the form is based on an existing model instance, populate the
         # netboxes field with netboxes from the many to many relationship
-        if 'instance' in kwargs:
+        if 'instance' in kwargs and kwargs['instance'] is not None:
             initial = kwargs.setdefault('initial', {})
             initial['netboxes'] = [n.pk for n in
                                    kwargs['instance'].netbox_set.all()]
