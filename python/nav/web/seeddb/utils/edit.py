@@ -60,10 +60,9 @@ def render_edit(request, model, form_model, object_id, redirect,
             # TODO: It's kinda hackish to put this here. Discuss during review
             # Store devices in group when editing a device group (which we
             # have no idea if we are doing or not)
-            netboxes = request.POST.getlist('netboxes')
-            _logger.debug('netboxes in group: %s', netboxes)
-            if netboxes and model == NetboxGroup:
-                _logger.debug('Connecting group to netboxes')
+            if model == NetboxGroup:
+                netboxes = request.POST.getlist('netboxes')
+                _logger.debug('netboxes in group: %s', netboxes)
                 # Save model but make sure m2m is not saved. See
                 # https://docs.djangoproject.com/en/1.4/topics/db/models
                 # /#extra-fields-on-many-to-many-relationships

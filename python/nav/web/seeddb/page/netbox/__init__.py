@@ -36,6 +36,7 @@ class NetboxInfo(SeeddbInfo):
     caption = 'IP Devices'
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'IP Devices'
+    verbose_name = Netbox._meta.verbose_name
     _navpath = [('IP Devices', reverse_lazy('seeddb-netbox'))]
     delete_url = reverse_lazy('seeddb-netbox')
     back_url = reverse_lazy('seeddb-netbox')

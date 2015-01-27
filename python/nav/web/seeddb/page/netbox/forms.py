@@ -46,7 +46,7 @@ class NetboxModelForm(forms.ModelForm):
         model = Netbox
         fields = ['ip', 'room', 'category', 'organization',
                   'read_only', 'read_write', 'snmp_version',
-                  'netboxgroups', 'sysname', 'type', 'data', 'serial']
+                  'groups', 'sysname', 'type', 'data', 'serial']
 
     def __init__(self, *args, **kwargs):
         super(NetboxModelForm, self).__init__(*args, **kwargs)
@@ -90,7 +90,7 @@ class NetboxModelForm(forms.ModelForm):
                 Column(
                     Fieldset('Meta information',
                              'function',
-                             Field('netboxgroups', css_class='select2'),
+                             Field('groups', css_class='select2'),
                              'data'),
                     css_class=css_class),
             ),

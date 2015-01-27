@@ -112,7 +112,6 @@ define([
                 children.fetch({
                     success: function () {
                         node.set('state', 'expanded');
-                        node.set('children', children);
                         Backbone.EventBroker.trigger('tree:render', node);
                         if (d && d.hasOwnProperty('resolve')) d.resolve();
                     },
@@ -121,9 +120,8 @@ define([
                             // If no longer authorized, reload the page
                             location.reload();
                         }
-                        console.log('could not fetch nodes');
+                        console.log('Error fetching children nodes');
                         node.set('state', 'collapsed');
-                        node.hideSpinner();
                         if (d && d.hasOwnProperty('reject')) d.reject();
                     }
                 });
@@ -152,15 +150,12 @@ define([
         },
 
         getChildren: function () {
-            var c;
             if (!this.get('children')) {
-                c = new NodeCollection();
-            } else {
-                c = this.get('children');
+                this.set('children', new NodeCollection());
             }
-            console.log('url: ' + this.url);
-            c.url = this.url;
-            return c;
+            var collection = this.get('children');
+            collection.url = this.url;
+            return collection;
         },
 
         match: function (d) {
@@ -336,7 +331,28 @@ define([
             this.template = Handlebars.compile(template);
             Backbone.EventBroker.register(this);
 
+            this.listenTo(this.model.getChildren(), 'error', this.handleError);
             this.$el.attr('id', this.model.elementId());
+        },
+
+        handleError: function (collection, response) {
+            this.hideSpinner();
+            this.showError('The request for more data failed (' + response.status + ' - ' + response.statusText + ').');
+        },
+
+        showError: function (text) {
+            if (!this.errorElement) {
+                this.errorElement = this.createErrorElement();
+                this.errorElement.appendTo(this.$el);
+            }
+            this.errorElement.text(text).show();
+            return this.errorElement;
+        },
+
+        createErrorElement: function () {
+            return $('<span class="alert-box alert"></span>').on('click', function () {
+                $(this).hide();
+            });
         },
 
         render: function () {
@@ -382,7 +398,7 @@ define([
         hideSpinner: function () {
             // This should only be called on a node that fails to expand
             // and therefore we know it's expandable.
-            this.$('img').attr('src', NAV.imagePath + '/images/networkexplorer/expand.gif');
+            this.$('img').attr('src', NAV.imagePath + '/networkexplorer/expand.gif');
         },
 
         registerExpandTrigger: function () {

@@ -86,18 +86,40 @@ class IpMib(mibretriever.MibRetriever):
 
         return IP(addr_str)
 
+    @classmethod
+    def _chop_index(cls, index, entry):
+        """
+        Chops a prefix OID off an index OID, based on a table entry object.
+
+        If the index is prefixed by the entry object itself, or by any of its
+        descendants (columnar objects) in the MIB, that prefix is chopped off
+        and the suffix is returned. Non-matches will return the index unchanged.
+
+        :param index: An OID object or equivalent tuple
+        :param entry: The name of an object in this MIB, preferable a table
+                      entry object.
+        :returns: An OID hobject.
+
+        """
+        index = OID(index)
+        root = cls.nodes.get(entry, None)
+        if not root or not root.oid.is_a_prefix_of(index):
+            return index
+
+        children = (c.oid for c in cls.nodes.itervalues()
+                    if root.oid.is_a_prefix_of(c.oid))
+        matched_prefixes = [
+            c for c in children if c.is_a_prefix_of(index)] + [root.oid]
+        if matched_prefixes:
+            index = index.strip_prefix(matched_prefixes[0])
+
+        return index
 
     @classmethod
     def address_index_to_ip(cls, index):
         """Convert a row index from ipAddressTable to an IP object."""
 
-        index = OID(index)
-        if 'ipAddressEntry' in cls.nodes:
-            entry = cls.nodes['ipAddressEntry']
-            if entry.oid.is_a_prefix_of(index):
-                # Chop off the entry OID+column prefix
-                index = OID(index.strip_prefix(entry.oid)[1:])
-
+        index = cls._chop_index(index, 'ipAddressEntry')
         ip = cls.inetaddress_to_ip(index)
         return ip
 
@@ -107,18 +129,13 @@ class IpMib(mibretriever.MibRetriever):
                            prefix_entry='ipAddressPrefixEntry'):
         """Convert a row index from ipAddressPrefixTable to an IP object."""
 
-        index = OID(index)
-        if prefix_entry in cls.nodes:
-            entry = cls.nodes[prefix_entry]
-            if entry.oid.is_a_prefix_of(index):
-                # Chop off the entry OID+column prefix
-                index = OID(index.strip_prefix(entry.oid)[1:])
+        index = cls._chop_index(index, prefix_entry)
 
         if len(index) < 4:
             cls._logger.debug("prefix_index_to_ip: index too short: %r", index)
             return None
 
-        ifindex = index[0]
+        _ifindex = index[0]
         addr_oid = index[1:-1]
         prefix_length = index[-1]
 

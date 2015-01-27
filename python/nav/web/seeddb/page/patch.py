@@ -35,6 +35,7 @@ class PatchInfo(SeeddbInfo):
     caption = 'Patch'
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'Patch'
+    verbose_name = Patch._meta.verbose_name
     _navpath = [('Patch', reverse_lazy('seeddb-patch'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-patch')
