@@ -129,7 +129,7 @@ class AlertHistorySerializer(serializers.ModelSerializer):
         """Returns all the device groups for the netbox if any"""
         try:
             netbox = obj.netbox
-            return netbox.netboxgroups.all()
+            return netbox.groups.all()
         except:
             pass
 
