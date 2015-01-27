@@ -23,52 +23,47 @@
   {% endif %}
 
   {% block content %}
-    <div class="row">
-      <div class="small-12 column">
+    <form action="" method="get" class="foundation-form" id="search-form">
+      <fieldset>
+        {% csrf_token %}
 
-        <form action="" method="get" class="foundation-form" id="search-form">
-          <fieldset>
-            {% csrf_token %}
+        <div class="medium-5 columns">
+          <div class="row collapse">
+            {{ form.query }}
+          </div>
+        </div>
 
-            <div class="medium-5 columns">
-              <div class="row collapse">
-                {{ form.query }}
-              </div>
+        <div class="medium-5 columns">
+          <div class="row">
+            <div class="small-2 columns text-right">
+              {{ form.exact_results }}
             </div>
-
-            <div class="medium-5 columns">
-              <div class="row">
-                <div class="small-2 columns text-right">
-                  {{ form.exact_results }}
-                </div>
-                <div class="small-10 columns">
-                  <label for="id_exact_results">
-                    {{ form.exact_results.label }}
-                  </label>
-                </div>
-              </div>
-              <div class="row">
-                <div class="small-2 columns text-right">
-                  {{ form.hide_ports }}
-                </div>
-                <div class="small-10 columns">
-                  <label for="id_hide_ports">
-                    {{ form.hide_ports.label }}
-                  </label>
-                </div>
-              </div>
+            <div class="small-10 columns">
+              <label for="id_exact_results">
+                {{ form.exact_results.label }}
+              </label>
             </div>
-
-            <div class="medium-2 columns">
-              <input class="small button" type="submit" value="Search">
+          </div>
+          <div class="row">
+            <div class="small-2 columns text-right">
+              {{ form.hide_ports }}
             </div>
-          </fieldset>
-        </form>
-      </div>
+            <div class="small-10 columns">
+              <label for="id_hide_ports">
+                {{ form.hide_ports.label }}
+              </label>
+            </div>
+          </div>
+        </div>
 
-    </div>
+        <div class="medium-2 columns">
+          <input class="small button" type="submit" value="Search">
+        </div>
+      </fieldset>
+    </form>
 
-    <div id="networktree"></div>
+    {# The network tree is a bootstrap app that goes here #}
+    <div id="networktree" class="panel white"></div>
 
   {% endblock %}
 
