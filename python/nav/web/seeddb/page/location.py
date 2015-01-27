@@ -36,6 +36,7 @@ class LocationInfo(SeeddbInfo):
     caption = 'Locations'
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'Locations'
+    verbose_name = Location._meta.verbose_name
     _navpath = [('Locations', reverse_lazy('seeddb-location'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-location')

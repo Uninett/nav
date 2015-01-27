@@ -64,7 +64,7 @@ class Handlers:
             line.append(functions)
             data = u'|'.join(u"%s=%s" % (k, v) for k, v in box.data.items())
             line.append(data)
-            categories = box.netboxgroups.all()
+            categories = box.groups.all()
             categories = [cat.id for cat in categories]
             categories.sort()
             line.extend(categories)

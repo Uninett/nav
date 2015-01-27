@@ -35,6 +35,7 @@ class UsageInfo(SeeddbInfo):
     caption = 'Usage categories'
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'Usage categories'
+    verbose_name = Usage._meta.verbose_name
     _navpath = [('Usage', reverse_lazy('seeddb-usage'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-usage')

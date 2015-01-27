@@ -35,6 +35,7 @@ class NetboxTypeInfo(SeeddbInfo):
     caption = 'Types'
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'Types'
+    verbose_name = NetboxType._meta.verbose_name
     _navpath = [('Types', reverse_lazy('seeddb-type'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-type')

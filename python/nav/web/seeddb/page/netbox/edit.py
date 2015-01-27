@@ -246,8 +246,8 @@ def netbox_do_save(form):
             func.value = function
         func.save()
 
-    # Save the netboxgroups
-    netboxgroups = form.cleaned_data['netboxgroups']
+    # Save the groups
+    netboxgroups = form.cleaned_data['groups']
     NetboxCategory.objects.filter(netbox=netbox).delete()
     for netboxgroup in netboxgroups:
         NetboxCategory.objects.create(netbox=netbox, category=netboxgroup)

@@ -37,6 +37,7 @@ class RoomInfo(SeeddbInfo):
     caption = 'Rooms'
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'Rooms'
+    verbose_name = Room._meta.verbose_name
     _navpath = [('Rooms', reverse_lazy('seeddb-room'))]
     delete_url = reverse_lazy('seeddb-room')
     back_url = reverse_lazy('seeddb-room')

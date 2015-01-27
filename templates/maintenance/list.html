@@ -18,16 +18,27 @@
 
     <tbody>
     {% for task in tasks %}
-        <tr class="{% cycle 'oddrow' 'evenrow' %}">
-            <td>{{ task.start_time|date:"Y-m-d H:i" }}</td>
+        <tr class="vevent">
+            <td>
+              <time class="dtstart" datetime="{{ task.start_time }}">
+                {{ task.start_time|date:"Y-m-d H:i" }}
+              </time>
+            </td>
             {% if task.is_endless %}
                 <td>No end time</td>
             {% else %}
-                <td>{{ task.end_time|date:"Y-m-d H:i" }}</td>
+                <td>
+                  <time class="dtend" datetime="{{ task.end_time }}">
+                    {{ task.end_time|date:"Y-m-d H:i" }}
+                  </time>
+                </td>
             {% endif %}
             <td>
-                <a href="{% url maintenance-view task.id %}">
-                    {{ task.description|truncatewords:8 }}</a>
+                <a href="{% url maintenance-view task.id %}" class="url">
+                  <span class="summary">
+                    {{ task.description|truncatewords:8 }}
+                  </span>
+                </a>
             </td>
             <td>
                 {% if task.netbox %}
