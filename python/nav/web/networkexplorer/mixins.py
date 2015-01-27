@@ -254,11 +254,7 @@ class ExpandSwitchContextMixin(object):
         switch = kwargs.pop('object')
         vlan_id = self.kwargs.pop('vlan_id', None)
         swports = switch.get_swports()
-        swport_vlans = SwPortVlan.objects.select_related(
-            'interface__netbox',
-            'interface__to_interface__netbox',
-            'interface__to_netbox',
-        ).filter(
+        swport_vlans = SwPortVlan.objects.filter(
             interface__in=swports,
             vlan__id=vlan_id)
         switch_has_services = switch.service_set.all().count()
