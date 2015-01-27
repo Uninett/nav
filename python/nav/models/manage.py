@@ -351,45 +351,75 @@ class NetboxInfo(models.Model):
     def __unicode__(self):
         return u'%s="%s"' % (self.variable, self.value)
 
-# TODO finish the model definition
+
 class NetboxEntity(models.Model):
     """
     Represents a physical Entity within a Netbox. Largely modeled after
     ENTITY-MIB::entPhysicalTable. See RFC 4133 (and RFC 6933), but may be
     filled from other sources where applicable.
 
-    Sequence consists of:
-
-      entPhysicalIndex          PhysicalIndex,
-      entPhysicalDescr          SnmpAdminString,
-      entPhysicalVendorType     AutonomousType,
-      entPhysicalContainedIn    PhysicalIndexOrZero,
-      entPhysicalClass          PhysicalClass,
-      entPhysicalParentRelPos   Integer32,
-      entPhysicalName           SnmpAdminString,
-      entPhysicalHardwareRev    SnmpAdminString,
-      entPhysicalFirmwareRev    SnmpAdminString,
-      entPhysicalSoftwareRev    SnmpAdminString,
-      entPhysicalSerialNum      SnmpAdminString,
-      entPhysicalMfgName        SnmpAdminString,
-      entPhysicalModelName      SnmpAdminString,
-      entPhysicalAlias          SnmpAdminString,
-      entPhysicalAssetID        SnmpAdminString,
-      entPhysicalIsFRU          TruthValue,
-      entPhysicalMfgDate        DateAndTime,
-      entPhysicalUris           OCTET STRING
-
     """
+    # Class choices, extracted from RFC 6933
+
+    CLASS_OTHER = 1
+    CLASS_UNKNOWN = 2
+    CLASS_CHASSIS = 3
+    CLASS_BACKPLANE = 4
+    CLASS_CONTAINER = 5  # e.g., chassis slot or daughter-card holder
+    CLASS_POWERSUPPLY = 6
+    CLASS_FAN = 7
+    CLASS_SENSOR = 8
+    CLASS_MODULE = 9  # e.g., plug-in card or daughter-card
+    CLASS_PORT = 10
+    CLASS_STACK = 11  # e.g., stack of multiple chassis entities
+    CLASS_CPU = 12
+    CLASS_ENERGYOBJECT = 13
+    CLASS_BATTERY = 14
+
+    CLASS_CHOICES = (
+        (CLASS_OTHER, 'other'),
+        (CLASS_UNKNOWN, 'unknown'),
+        (CLASS_CHASSIS, 'chassis'),
+        (CLASS_BACKPLANE, 'backplane'),
+        (CLASS_CONTAINER, 'container'),
+        (CLASS_POWERSUPPLY, 'powerSupply'),
+        (CLASS_FAN, 'fan'),
+        (CLASS_SENSOR, 'sensor'),
+        (CLASS_MODULE, 'module'),
+        (CLASS_PORT, 'port'),
+        (CLASS_STACK, 'stack'),
+        (CLASS_CPU, 'cpu'),
+        (CLASS_ENERGYOBJECT, 'energyObject'),
+        (CLASS_BATTERY, 'battery'),
+    )
+
     id = models.AutoField(db_column='netboxentityid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid',
                                related_name='entity_set')
 
     index = VarcharField()
-    descr = VarcharField()
-    vendor_type = VarcharField()
-    contained_in = models.ForeignKey('NetboxEntity')
+    source = VarcharField(default='ENTITY-MIB')
+    descr = VarcharField(null=True)
+    vendor_type = VarcharField(null=True)
+    contained_in = models.ForeignKey('NetboxEntity', null=True)
+    physical_class = models.IntegerField(choices=CLASS_CHOICES, null=True)
+    parent_relpos = models.IntegerField(null=True)
+    name = VarcharField(null=True)
+    hardware_revision = VarcharField(null=True)
+    firmware_revision = VarcharField(null=True)
+    software_revision = VarcharField(null=True)
+    device = models.ForeignKey('Device', null=True, db_column='deviceid')
+    mfg_name = VarcharField(null=True)
+    model_name = VarcharField(null=True)
+    alias = VarcharField(null=True)
+    asset_id = VarcharField(null=True)
+    fru = models.NullBooleanField(verbose_name='Is a field replaceable unit')
+    mfg_date = models.DateTimeField(null=True)
+    uris = VarcharField(null=True)
 
-
+    class Meta:
+        db_table = 'netboxentity'
+        unique_together = (('netbox', 'index'),)
 
 
 class NetboxPrefix(models.Model):
@@ -990,9 +1020,11 @@ class AdjacencyCandidate(models.Model):
     id = models.AutoField(db_column='adjacency_candidateid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     interface = models.ForeignKey('Interface', db_column='interfaceid')
-    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid')
+    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
+                                  related_name='to_adjacencycandidate_set')
     to_interface = models.ForeignKey('Interface', db_column='to_interfaceid',
-                                     null=True)
+                                     null=True,
+                                     related_name='to_adjacencycandidate_set')
     source = VarcharField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
 
