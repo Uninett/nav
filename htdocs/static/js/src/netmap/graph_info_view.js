@@ -6,7 +6,7 @@ define([
     'libs-amd/text!resources/netmap/layer3_link_info.html',
     'libs/handlebars',
     'libs/backbone',
-    'libs/jquery-ui-1.8.21.custom.min'
+    'libs/jquery-ui.min'
 ], function (Collections, NetmapExtras ,NodeTemplate, LinkTemplate, VlanTemplate) {
 
     /**
