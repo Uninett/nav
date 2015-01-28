@@ -74,6 +74,15 @@
     }
 }
 
+@mixin ui_tab_active {
+    position: relative;
+    z-index: 10;
+    a, a:hover {
+        background: white;
+        color: black;
+    }
+}
+
 @mixin tab_content {
     border: 1px solid #999999;
     clear: both;
@@ -112,6 +121,9 @@
 
             &.ui-tabs-selected { 
                 @include tab_selected; 
+            }
+            &.ui-tabs-active {
+                @include ui_tab_active;
             }
             &.ui-state-error {
                 a {

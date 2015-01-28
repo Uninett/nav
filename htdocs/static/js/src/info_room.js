@@ -5,15 +5,16 @@ require(
         "info/table_info_converter",
         "plugins/room_mapper",
         "plugins/sensors_controller",
+        "plugins/jquery_ui_helpers",
         "dt_plugins/natsort",
         "dt_plugins/altsort",
         "dt_plugins/date_title_sort",
         "dt_plugins/modulesort",
         "libs/jquery",
-        "libs/jquery-ui-1.8.21.custom.min",
-        "libs/jquery.dataTables.min",
+        "libs/jquery-ui.min",
+        "libs/jquery.dataTables.min"
     ],
-    function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, SensorsController) {
+    function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, SensorsController, JUIHelpers) {
         /* Run javascript at document ready */
         $(function () {
             if ($('#infotabs').length) {
@@ -31,18 +32,17 @@ require(
         /* Add tabs to roomview content */
         function add_tabs() {
             var tabconfig = {
-                cache: true, // cache loaded pages
-                spinner: '<img src="' + NAV.imagePath + '/main/process-working.gif">',
+                beforeLoad: JUIHelpers.cacheRequest,
                 load: function (event, ui) {
-                    if (ui.panel.id === 'sensors') {
+                    if (ui.tab.attr('aria-controls') === 'sensors') {
                         applyEnvironmentHandlers();
-                    } else if (ui.panel.id === 'netboxinterfaces') {
+                    } else if (ui.tab.attr('aria-controls') === 'netboxinterfaces') {
                         applyNetboxInterfacesHandlers();
                     }
                 }
             };
             var tabs = $('#infotabs').tabs(tabconfig);
-            $('#infotabs').show();
+            tabs.show();
         }
 
         function request_error(xhr, status, error) {
