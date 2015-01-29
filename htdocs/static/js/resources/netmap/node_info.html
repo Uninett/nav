@@ -1,0 +1,33 @@
+<div id="graph-info-modal" class="node-info">
+  <img src="{{ img }}" width="32px" height="32px">
+  <img src="/static/images/lys/{{ up_image }}" alt="{{ up }}" class="right">
+  <ul class="no-bullet">
+    {{#unless is_elink_node }}
+      <li><a href="{{ ipdevinfo_link }}">{{ ipdevinfo_link }}</a></li>
+      <li>{{ ip }}</li>
+    {{/unless }}
+      <li><b>Category:</b> {{ category }}</li>
+    {{#unless is_elink_node  }}
+      <li><b>Room:</b> {{#if room }}{{ room }}{{else}}N/A{{/if }}</li>
+      <li><b>Location:</b> {{#if location }}{{ location }}{{else}}N/A{{/if }}</li>
+    {{/unless }}
+  </ul>
+  {{#if vlans }}
+    <div id="graph-info-vlan-list">
+      <ul>
+        {{#each vlans }}
+          <li>
+            <a class="vlan {{#if this.isSelected }}selected-vlan{{/if }}" data-nav-vlan="{{this.nav_vlan}}" title="{{this.vlan}} - {{this.net_ident}}">
+              <span>{{this.vlan}}</span>
+              {{#if this.net_ident }}
+                {{this.net_ident}}
+              {{else}}
+                N/A
+              {{/if }}
+            </a>
+          </li>
+        {{/each }}
+      </ul>
+    </div>
+  {{/if }}
+</div>

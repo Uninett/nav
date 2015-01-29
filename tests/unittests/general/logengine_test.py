@@ -31,7 +31,7 @@ Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN:
 
     def test_parse_without_exceptions(self):
         for line in self.loglines:
-            msg = logengine.createMessage(line)
+            msg = logengine.create_message(line)
             self.assertTrue(msg, "unparseable: %s" % line)
             self.assertFalse(msg.facility is None,
                              "Message has no facility: {0!r}\n{1!r}"
@@ -45,7 +45,7 @@ Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN:
             def execute(sql, params=()):
                 return sql % params
             database.execute = execute
-            message = logengine.createMessage(line)
+            message = logengine.create_message(line)
             self.assertTrue(message, "unparseable: %s" % line)
             logengine.insert_message(message, database,
                                      {}, {}, {},
@@ -88,26 +88,26 @@ class ParseTest(TestCase):
                             " changed state to up'")
 
     def test_should_parse_without_exception(self):
-        msg = logengine.createMessage(self.message)
+        msg = logengine.create_message(self.message)
 
     def test_should_parse_timestamp_correctly(self):
-        msg = logengine.createMessage(self.message)
+        msg = logengine.create_message(self.message)
         self.assertEquals(msg.time, self.timestamp)
 
     def test_should_parse_facility_correctly(self):
-        msg = logengine.createMessage(self.message)
+        msg = logengine.create_message(self.message)
         self.assertEquals(msg.facility, self.facility)
 
     def test_should_parse_priority_correctly(self):
-        msg = logengine.createMessage(self.message)
+        msg = logengine.create_message(self.message)
         self.assertEquals(msg.priorityid, self.priority)
 
     def test_should_parse_mnemonic_correctly(self):
-        msg = logengine.createMessage(self.message)
+        msg = logengine.create_message(self.message)
         self.assertEquals(msg.mnemonic, self.mnemonic)
 
     def test_should_parse_description_correctly(self):
-        msg = logengine.createMessage(self.message)
+        msg = logengine.create_message(self.message)
         self.assertEquals(msg.description, self.description)
 
 class ParseMessageWithStrangeGarbageTest(ParseTest):
@@ -146,7 +146,7 @@ class ParseMessageWithNoOriginTimestampTest(ParseTest):
 
 def test_non_conforming_lines():
     def _line_doesnt_parse(line):
-        msg = logengine.createMessage(line)
+        msg = logengine.create_message(line)
         assert msg is None, "line shouldn't be parseable: %s" % line
 
     badlines = [

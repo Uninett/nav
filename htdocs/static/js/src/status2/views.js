@@ -94,6 +94,8 @@ define([
 
         initialize: function () {
             console.log('Initializing panel view');
+            // This is not the "correct" way of doing this.
+            this.alertBox = $('#status-page-fetch-alert');
             this.fetchData();
             this.updateRefreshInterval();
             this.listenTo(this.collection, 'reset', this.updateRefreshInterval);
@@ -107,12 +109,18 @@ define([
         /* Event driven methods */
         fetchData: function () {
             /* TODO: Inform user that we are trying to fetch data */
+            var self = this;
             console.log('Fetching data...');
+            this.alertBox.addClass('hidden');
             this.collection.url = NAV.urls.status2_api_alerthistory + '?' + this.$('form').serialize();
             console.log(this.collection.url);
             var request = this.collection.fetch({ reset: true });
             request.done(function () {
                 console.log('data fetched');
+            });
+            request.fail(function () {
+                console.log('Failed to fetch data');
+                self.alertBox.removeClass('hidden');
             });
         },
 

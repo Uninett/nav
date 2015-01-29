@@ -16,46 +16,67 @@
 """Netmap backend URL config."""
 
 from django.conf.urls import url, patterns
+from django.views.decorators.cache import never_cache
 
+from .views import (
+    IndexView,
+    TrafficView,
+    NetmapAdminView,
+    NetmapViewList,
+    NetmapViewEdit,
+    NetmapViewCreate,
+    NetmapViewDefaultViewUpdate,
+    NodePositionUpdate,
+    NetmapGraph,
+)
 
-# The patterns are relative to the base URL of the subsystem
-from nav.web.netmap.views import (netmap, maps,
-                                  api_graph_layer_2, api_graph_layer_3,
-                                  traffic_load_gradient, graphml_layer2,
-                                  backbone_app, netmap_defaultview,
-                                  netmap_defaultview_global, admin_views,
-                                  api_datauris_categories)
+from nav.models.profiles import Account
+
 
 urlpatterns = patterns('nav.web.netmap.views',
-    url(r'^$', backbone_app, name='netmap-index'),
-    url(r'^admin$', admin_views, name='netmap-admin-views'),
-    url(r'^api/netmap$', maps,
-        name='netmap-api-netmap'),
-    url(r'^api/netmap/defaultview$', netmap_defaultview_global,
-        name='netmap-api-netmap-defaultview-global'),
-    url(r'^api/netmap/(?P<map_id>[\d]+)$', netmap,
-        name='netmap-api-netmap'),
-    url(r'^api/netmap/defaultview/user$',
-        netmap_defaultview,
-        name='netmap-api-netmap-defaultview'),
-    url(r'^api/graph/layer2$', api_graph_layer_2,
-        name='netmap-api-graph-layer2'),
-    url(r'^api/graph/layer2/(?P<map_id>[\d]+)$', api_graph_layer_2,
-        name='netmap-api-graph-layer2-map'),
-    url(r'^api/graph/layer3$', api_graph_layer_3,
-        name='netmap-api-graph-layer3'),
-    url(r'^api/graph/layer3/(?P<map_id>[\d]+)$', api_graph_layer_3,
-        name='netmap-api-graph-layer3-map'),
+    url(r'^$', IndexView.as_view(), name='netmap-index'),
+    url(r'^admin/$', NetmapAdminView.as_view(), name='netmap-admin'),
 
-    url(r'^api/traffic_load_gradient', traffic_load_gradient,
-        name='netmap-api-traffic_load_gradient'),
-    url(r'^api/data_uris_categories', api_datauris_categories,
-        name='netmap-api-data_uris_categories'),
-
-    # old netmap, grapml format, meh meh.
-    url(r'^data/graphml/layer2$', graphml_layer2,
-        name='netmap-data-graphml-layer2'),
-
-
+    url(r'^views/$', NetmapViewList.as_view(), name='netmap-view-list'),
+    url(
+        r'^views/(?P<viewid>[\d]+)/$',
+        NetmapViewEdit.as_view(),
+        name='netmap-view-edit',
+    ),
+    url(
+        r'^views/create/$',
+        NetmapViewCreate.as_view(),
+        name='netmap-view-create',
+    ),
+    url(
+        r'^views/default/$',
+        NetmapViewDefaultViewUpdate.as_view(),
+        {'owner': Account.DEFAULT_ACCOUNT},  # Find a more elegant solution?
+        name='netmap-defaultview-global',
+    ),
+    url(
+        r'^views/default/(?P<owner>[\d]+)/$',
+        NetmapViewDefaultViewUpdate.as_view(),
+        name='netmap-defaultview-user',
+    ),
+    url(
+        r'^views/(?P<viewid>[\d]+)/nodepositions/update/$',
+        NodePositionUpdate.as_view(),
+        name='netmap-nodepositions-update',
+    ),
+    url(
+        r'^graph/layer(?P<layer>[2|3])/$',
+        NetmapGraph.as_view(),
+        name='netmap-graph',
+    ),
+    url(
+        r'^graph/layer(?P<layer>[2|3])/(?P<viewid>[\d]+)/$',
+        NetmapGraph.as_view(),
+        name='netmap-graph-view',
+    ),
+    url(r'^traffic/layer(?P<layer>[2|3])/$',
+        never_cache(TrafficView.as_view()),
+        name='netmap-traffic-data-view',
+    ),
 
 )

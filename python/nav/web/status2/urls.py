@@ -16,11 +16,6 @@
 from django.conf.urls import url, patterns, include
 from nav.web.status2 import views
 
-from rest_framework import routers
-
-router = routers.SimpleRouter()
-router.register('alert', views.AlertHistoryViewSet)
-
 urlpatterns = patterns('',
     url(r'^$', views.StatusView.as_view(),
         name='status2-index'),
@@ -32,5 +27,4 @@ urlpatterns = patterns('',
         name='status2_acknowledge_alert'),
     url(r'^alert/put_on_maintenance/', views.put_on_maintenance,
         name='status2_put_on_maintenance'),
-    url(r'^_api/', include(router.urls))
 )

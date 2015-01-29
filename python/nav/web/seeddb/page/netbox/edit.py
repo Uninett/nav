@@ -19,19 +19,22 @@
 # pylint: disable=F0401
 
 import json
+import socket
 from socket import error as SocketError
 from django.core.urlresolvers import reverse
 
 from django.http import HttpResponse
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render_to_response, redirect, render
 from django.template import RequestContext
 from django.db import transaction
+from django.contrib import messages
 
 from nav.models.manage import Netbox, Device, NetboxCategory, NetboxType
 from nav.models.manage import NetboxInfo
 from nav.models.oid import SnmpOid
 from nav.Snmp import Snmp
 from nav.Snmp.errors import SnmpError, TimeOutException
+from nav.util import is_valid_ip
 from nav.web.seeddb import reverse_lazy
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname
 from nav.web.seeddb.page.netbox import NetboxInfo as NI
@@ -48,8 +51,10 @@ def netbox_edit(request, netbox_id=None):
         form = NetboxModelForm(request.POST, instance=netbox)
         if form.is_valid():
             netbox = netbox_do_save(form)
+            messages.add_message(request, messages.SUCCESS, 'IP Device saved')
             return redirect(reverse('seeddb-netbox-edit', args=[netbox.pk]))
-
+        else:
+            messages.add_message(request, messages.ERROR, 'Form was not valid')
     else:
         form = NetboxModelForm(instance=netbox)
 
@@ -226,6 +231,8 @@ def netbox_do_save(form):
         device = Device.objects.create(serial=None)
         netbox.device = device
 
+    netbox.save()
+
     # Save the function field
     function = form.cleaned_data['function']
     if function:
@@ -239,12 +246,38 @@ def netbox_do_save(form):
             func.value = function
         func.save()
 
-    # Save the netboxgroups
-    netboxgroups = form.cleaned_data['netboxgroups']
+    # Save the groups
+    netboxgroups = form.cleaned_data['groups']
     NetboxCategory.objects.filter(netbox=netbox).delete()
     for netboxgroup in netboxgroups:
         NetboxCategory.objects.create(netbox=netbox, category=netboxgroup)
 
-    netbox.save()
-
     return netbox
+
+
+def get_address_info(request):
+    """Displays a template for the user for manual verification of the
+    address"""
+
+    address = request.GET.get('address')
+    if address:
+        if is_valid_ip(address):
+            return HttpResponse(json.dumps({'is_ip': True}))
+
+        try:
+            address_tuples = socket.getaddrinfo(
+                address, None, 0, socket.SOCK_STREAM)
+            sorted_tuples = sorted(address_tuples,
+                                   key=lambda item:
+                                   socket.inet_pton(item[0], item[4][0]))
+            addresses = [x[4][0] for x in sorted_tuples]
+        except Exception, error:
+            context = {'error': str(error)}
+        else:
+            context = {
+                'addresses': addresses,
+            }
+
+        return HttpResponse(json.dumps(context))
+    else:
+        return HttpResponse('No address given', status=400)

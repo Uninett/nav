@@ -12,5 +12,4 @@
    javascript
    release-procedure
    adding-environment-probe-support
-   netmap
 

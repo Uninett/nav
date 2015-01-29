@@ -3,36 +3,79 @@ require([
     'plugins/quickselect',
     'plugins/seeddb_hstore',
     'plugins/netbox_connectivity_checker',
+    'plugins/ip_chooser',
     'libs/spin',
     'libs/jquery',
     'libs/jquery.dataTables.min',
     'libs/OpenLayers',
     'libs/modernizr',
-    'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect, FormFuck, ConnectivityChecker) {
+    'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect, FormFuck,
+                                        ConnectivityChecker, IpChooser) {
 
     var tableWrapper = '#tablewrapper',
         tableSelector = '#seeddb-content';
 
-    function executeOnLoad() {
-        /* Start joyride if url endswith #joyride */
-        if (location.hash === '#joyride') {
-            $(document).foundation({
-                'joyride': {
-                    'pre_ride_callback': function () {
-                        var cards = $('.joyride-tip-guide').find('.joyride-content-wrapper');
-                        cards.each(function (index, element) {
-                            var counter = $('<small>')
-                                .attr('style', 'position:absolute;bottom:1.5rem;right:1.25rem')
-                                .html(index + 1 + ' of ' + cards.length);
-                            $(element).append(counter);
-                        });
-                    },
-                    'modal': false
+    /**
+     * Uses select2 to search for and display netboxes. Executes the search in
+     * AJAX-requests.
+     */
+    function initDeviceGroupSelectMultiple($formElement, $searchField) {
+        $searchField.select2({
+            multiple: true,
+            ajax: {
+                url: NAV.urls.seeddb_netboxgroup_devicelist,
+                dataType: 'json',
+                quietMillis: 250,
+                data: function (params) {
+                    return {
+                        query: params
+                    };
+                },
+                results: function (data) {
+                    return {
+                        results: data
+                    };
                 }
-            });
-            $(document).foundation('joyride', 'start');
+            },
+            /**
+             * Populates the selection with options from the form element.
+             * NB: The search field needs a value for this function to be run
+             * (this is set directly in the html).
+             */
+            initSelection: function (element, callback) {
+                var data = [];
+                $formElement.find(':selected').each(function (index, option) {
+                    data.push({
+                        id: option.value,
+                        text: option.innerHTML
+                    });
+                });
+                return callback(data);
+            },
+            minimumInputLength: 3
+        });
+
+        /**
+         * Sets the selected values in the form element to be the same as in
+         * the select2 element when the form is submitted.
+         */
+        $('form.seeddb-edit').submit(function () {
+            $formElement.val($searchField.select2('val'));
+        });
+    }
+
+    function executeOnLoad() {
+        /**
+         * Checks if we are on the DeviceGroup page. If so, initialize the
+         * select multiple.
+         */
+        var $formElement = $('#id_netboxes'),
+            $searchField = $('#device-group-select2');
+        if ($formElement.length && $searchField.length) {
+            initDeviceGroupSelectMultiple($formElement, $searchField);
         }
 
+        initJoyride();  /* Start joyride if url endswith #joyride */
 
         if ($('#map').length) {
             populateMap(initMap());     // Show map for coordinates
@@ -56,9 +99,7 @@ require([
             new FormFuck($textarea);
         }
 
-        // The connectivity checker
-        ConnectivityChecker();
-
+        activateIpDeviceFormPlugins();
     }
 
     /* Internet Explorer caching leads to onload event firing before script
@@ -68,6 +109,28 @@ require([
         executeOnLoad();
     } else {
         $(window).load(executeOnLoad);
+    }
+
+
+    function initJoyride() {
+        /* Start joyride if url endswith #joyride */
+        if (location.hash === '#joyride') {
+            $(document).foundation({
+                'joyride': {
+                    'pre_ride_callback': function () {
+                        var cards = $('.joyride-tip-guide').find('.joyride-content-wrapper');
+                        cards.each(function (index, element) {
+                            var counter = $('<small>')
+                                .attr('style', 'position:absolute;bottom:1.5rem;right:1.25rem')
+                                .html(index + 1 + ' of ' + cards.length);
+                            $(element).append(counter);
+                        });
+                    },
+                    'modal': false
+                }
+            });
+            $(document).foundation('joyride', 'start');
+        }
     }
 
 
@@ -307,6 +370,30 @@ require([
                 localStorage.setItem(key, newValue);
             });
         }
+    }
+
+    function activateIpDeviceFormPlugins() {
+        // The connectivity checker
+        var $form = $('#seeddb-netbox-form'),
+            $addressField = $('#id_ip'),
+            $feedbackElement = $('#verify-address-feedback');
+
+        var chooser = new IpChooser($feedbackElement, $addressField);
+
+        // Initialize connectivitychecker with a chooser as we only wants one.
+        ConnectivityChecker(chooser);
+
+        $form.on('submit', function (event, validated) {
+            if (!validated) {
+                event.preventDefault();
+                var deferred = chooser.getAddresses();
+                deferred.done(function () {
+                    if (chooser.isSingleAddress) {
+                        $form.trigger('submit', true);
+                    }
+                });
+            }
+        });
     }
 
 });

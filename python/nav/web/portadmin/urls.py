@@ -1,5 +1,6 @@
 #
-# Copyright 2010 (C) Norwegian University of Science and Technology
+# Copyright (C) 2010 Norwegian University of Science and Technology
+# Copyright (C) 2011, 2013-2015 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -19,7 +20,7 @@ from django.conf.urls import patterns, url
 from nav.web.portadmin.views import (index, search_by_ip, search_by_sysname,
                                      search_by_interfaceid,
                                      save_interfaceinfo, render_trunk_edit,
-                                     restart_interface)
+                                     restart_interface, write_mem)
 
 urlpatterns = patterns('',
     url(r'^$', index, name='portadmin-index'),
@@ -33,6 +34,7 @@ urlpatterns = patterns('',
 
     url(r'^save_interfaceinfo', save_interfaceinfo),
     url(r'^restart_interface', restart_interface),
+    url(r'^write_mem', write_mem),
     url(r'^trunk/(?P<interfaceid>\d+)', render_trunk_edit,
         name="portadmin-render-trunk-edit"),
 

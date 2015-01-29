@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009-2012 UNINETT AS
+# Copyright (C) 2009-2012, 2015 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -97,6 +97,9 @@ class Snmpv2Mib(mibretriever.MibRetriever):
         """
         tstamp1, uptime1 = first_uptime
         tstamp2, uptime2 = second_uptime
+
+        if any(x is None for x in (tstamp1, tstamp2, uptime1, uptime2)):
+            return
 
         expected_delta = (tstamp2 - tstamp1) * 100.0
         expected_uptime2 = (uptime1 + expected_delta) % 2**32

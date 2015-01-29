@@ -47,6 +47,7 @@ class PrefixInfo(SeeddbInfo):
     caption = 'Prefix'
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'Prefix'
+    verbose_name = Prefix._meta.verbose_name
     _navpath = [('Prefix', reverse_lazy('seeddb-prefix'))]
     delete_url = reverse_lazy('seeddb-prefix')
     back_url = reverse_lazy('seeddb-prefix')

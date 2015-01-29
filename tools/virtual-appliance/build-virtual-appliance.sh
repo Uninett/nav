@@ -10,6 +10,6 @@ if [ -z "$PACKER" ]; then
     exit 1
 fi
 
-"$PACKER" build nav-debian-virtual-appliance.json
-tar cvzf "$TARBALL" nav-virtual-appliance/
-gpg --armor --detach-sign "$TARBALL"
+"$PACKER" build nav-debian-virtual-appliance.json && \
+  tar cvzf "$TARBALL" nav-virtual-appliance/ && \
+  gpg --armor --detach-sign "$TARBALL"

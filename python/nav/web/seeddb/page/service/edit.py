@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011, 2013 UNINETT AS
+# Copyright (C) 2011, 2013-2015 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -29,11 +29,15 @@ from nav.web.quickselect import QuickSelect
 
 from nav.web.seeddb.page.service import ServiceInfo
 
+
 class ServiceChoiceForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ServiceChoiceForm, self).__init__(*args, **kwargs)
-        checkers = self._build_checker_choices()
-        self.fields['service'] = forms.ChoiceField(choices=sorted(checkers))
+        self.fields['netbox'] = forms.ChoiceField(
+            label='IP Device',
+            choices=self._build_netbox_choices())
+        self.fields['service'] = forms.ChoiceField(
+            choices=sorted(self._build_checker_choices()))
 
     @staticmethod
     def _build_checker_choices():
@@ -51,6 +55,11 @@ class ServiceChoiceForm(forms.Form):
             choices.append((name, descr))
         return choices
 
+    @staticmethod
+    def _build_netbox_choices():
+        return [(n.id, n.sysname)
+                for n in Netbox.objects.all().order_by('sysname')]
+
 
 class ServiceForm(forms.Form):
     service = forms.IntegerField(
@@ -59,6 +68,7 @@ class ServiceForm(forms.Form):
         widget=forms.HiddenInput)
     netbox = forms.IntegerField(
         widget=forms.HiddenInput)
+
 
 class ServicePropertyForm(forms.Form):
     def __init__(self, *args, **kwargs):
@@ -74,6 +84,7 @@ class ServicePropertyForm(forms.Form):
             for arg in opt_args:
                 self.fields[arg] = forms.CharField(required=False)
 
+
 def service_edit(request, service_id=None):
     service = None
     netbox = None
@@ -86,8 +97,8 @@ def service_edit(request, service_id=None):
         service_form = ServiceForm(request.POST)
         if service_form.is_valid():
             handler = service_form.cleaned_data['handler']
-            property_form = ServicePropertyForm(request.POST,
-                service_args=get_description(handler))
+            property_form = ServicePropertyForm(
+                request.POST, service_args=get_description(handler))
             if property_form.is_valid():
                 return service_save(request, service_form, property_form)
     else:
@@ -119,54 +130,47 @@ def service_edit(request, service_id=None):
         'property_form': property_form,
     })
     return render_to_response('seeddb/service_property_form.html',
-        context, RequestContext(request))
+                              context, RequestContext(request))
+
 
 def service_add(request):
     info = ServiceInfo()
-    box_select = QuickSelect(
-        location=False,
-        room=False,
-        netbox=True,
-        netbox_multiple=False)
     if request.method == 'POST':
         choice_form = ServiceChoiceForm(request.POST)
-        netbox_id = request.POST.get('netbox')
-        try:
+        if choice_form.is_valid():
+            cleaned_data = choice_form.cleaned_data
+            service_id = cleaned_data['service']
+            netbox_id = cleaned_data['netbox']
             netbox = Netbox.objects.get(pk=netbox_id)
-        except Netbox.DoesNotExist:
-            new_message(request,
-                        "Netbox does not exist in database", Messages.ERROR)
-        else:
-            if choice_form.is_valid():
-                property_form = ServicePropertyForm(
-                    service_args=get_description(
-                        choice_form.cleaned_data['service']
-                    ))
-                service_form = ServiceForm(initial={
-                    'netbox': netbox.pk,
-                    'handler': choice_form.cleaned_data['service'],
-                })
-                context = info.template_context
-                context.update({
-                    'service_form': service_form,
-                    'property_form': property_form,
-                    'sub_active': {'add': True},
-                    'handler': choice_form.cleaned_data['service'],
-                    'netbox': netbox,
-                })
-                return render_to_response('seeddb/service_property_form.html',
-                    context, RequestContext(request))
+
+            property_form = ServicePropertyForm(
+                service_args=get_description(service_id))
+            service_form = ServiceForm(initial={
+                'netbox': netbox_id,
+                'handler': service_id,
+            })
+
+            context = info.template_context
+            context.update({
+                'service_form': service_form,
+                'property_form': property_form,
+                'sub_active': {'add': True},
+                'handler': service_id,
+                'netbox': netbox,
+            })
+            return render_to_response('seeddb/service_property_form.html',
+                                      context, RequestContext(request))
     else:
         choice_form = ServiceChoiceForm()
 
     context = info.template_context
     context.update({
-        'box_select': box_select,
         'choice_form': choice_form,
         'sub_active': {'add': True},
     })
     return render_to_response('seeddb/service_netbox_form.html',
-        context, RequestContext(request))
+                              context, RequestContext(request))
+
 
 @transaction.commit_on_success
 def service_save(request, service_form, property_form):

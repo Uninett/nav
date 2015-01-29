@@ -1,0 +1,26 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  <form action="{% url get-user-navlet navlet.navlet_id %}">
+
+    <label>
+      Choose report
+      <select name="report_id">
+        <option value="">---</option>
+        {% for report_id, report_name, report_desc in report_list %}
+          <option value="{{ report_id }}"
+                  {% if current_report_id == report_id %}selected{% endif %}>
+            {{ report_name }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Query string
+      <input type="text" name="query_string" value="{{ query_string|default:'' }}">
+    </label>
+    <input type="submit" class="button small" value="Show this report">
+  </form>
+
+{% endblock %}

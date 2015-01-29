@@ -23,6 +23,7 @@ from nav.bulkimport import LocationImporter
 
 from nav.web.seeddb import SeeddbInfo, reverse_lazy
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
+from nav.web.seeddb.forms import LocationForm
 from nav.web.seeddb.page import view_switcher, not_implemented
 from nav.web.seeddb.utils.list import render_list
 from nav.web.seeddb.utils.edit import render_edit
@@ -30,21 +31,12 @@ from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.bulk import render_bulkimport
 
 
-class LocationForm(forms.ModelForm):
-    class Meta:
-        model = Location
-
-    def __init__(self, *args, **kwargs):
-        super(LocationForm, self).__init__(*args, **kwargs)
-        if kwargs.get('instance'):
-            del self.fields['id']
-
-
 class LocationInfo(SeeddbInfo):
     active = {'location': True}
     caption = 'Locations'
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'Locations'
+    verbose_name = Location._meta.verbose_name
     _navpath = [('Locations', reverse_lazy('seeddb-location'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-location')
@@ -62,7 +54,7 @@ def location(request):
 
 def location_list(request):
     info = LocationInfo()
-    value_list = ('id', 'description')
+    value_list = ('id', 'description', 'data')
     query = Location.objects.all()
     return render_list(request, query, value_list, 'seeddb-location-edit',
                        extra_context=info.template_context)

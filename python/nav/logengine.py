@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
 # Copyright (C) 2007, 2009-2011 UNINETT AS
-# 
+#
 # This file is part of Network Administration Visualized (NAV).
 #
 # NAV is free software: you can redistribute it and/or modify it under
@@ -60,7 +60,8 @@ from nav import db
 from nav import daemon
 from nav.buildconf import localstatedir
 
-logger = logging.getLogger('logengine')
+_logger = logging.getLogger("logengine")
+
 
 def get_exception_dicts(config):
 
@@ -72,20 +73,20 @@ def get_exception_dicts(config):
     exceptions = {}
     for option in options:
         newpriority = config.get("priorityexceptions", option)
-        op = re.split("@", option)
-        if len(op) == 1:
-            exceptions[op[0]] = newpriority
-        if len(op) == 2:
-            any = re.compile("any", re.I)
-            if not op[0] or any.search(op[0]):
-                exceptionorigin[op[1]] = newpriority
-            if not op[1] or any.search(op[1]):
-                exceptiontype[op[0]] = newpriority
+        opt = re.split("@", option)
+        if len(opt) == 1:
+            exceptions[opt[0]] = newpriority
+        if len(opt) == 2:
+            any_re = re.compile("any", re.I)
+            if not opt[0] or any_re.search(opt[0]):
+                exceptionorigin[opt[1]] = newpriority
+            if not opt[1] or any_re.search(opt[1]):
+                exceptiontype[opt[0]] = newpriority
             #both fields
-            if op[0] and op[1]:
-                if not exceptiontypeorigin.has_key(op[0]):
-                    exceptiontypeorigin[op[0]] = {}
-                exceptiontypeorigin[op[0]][op[1]] = newpriority
+            if opt[0] and opt[1]:
+                if opt[0] not in exceptiontypeorigin:
+                    exceptiontypeorigin[opt[0]] = {}
+                exceptiontypeorigin[opt[0]][opt[1]] = newpriority
 
         #only one of the fields
         for exception, priority in exceptions.items():
@@ -95,9 +96,9 @@ def get_exception_dicts(config):
             else:
                 exceptionorigin[exception] = priority
 
-    return (exceptionorigin, exceptiontype, exceptiontypeorigin)
+    return exceptionorigin, exceptiontype, exceptiontypeorigin
 
-typicalmatchRe = re.compile(
+_typical_match_re = re.compile(
     r"""
     ^
     (?P<servmonth>\w+) \s+ (?P<servday>\d+) \s+      # server month and date
@@ -114,7 +115,7 @@ typicalmatchRe = re.compile(
     """, re.VERBOSE)
 
 # Matches log lines where there is no timestamp from the origin
-notsotypicalmatchRe = re.compile(
+_not_so_typical_match_re = re.compile(
     r"""
     ^
     (?P<month>\w+) \s+ (?P<day>\d+) \s+              # server month and date
@@ -128,11 +129,13 @@ notsotypicalmatchRe = re.compile(
     $
     """, re.VERBOSE)
 
-typematchRe = re.compile(r"\w+-\d+-?\S*:")
-def createMessage(line):
+_type_match_re = re.compile(r"\w+-\d+-?\S*:")
 
-    typicalmatch = typicalmatchRe.search(line)
-    match = typicalmatch or notsotypicalmatchRe.search(line)
+
+def create_message(line, database=None):
+
+    typicalmatch = _typical_match_re.search(line)
+    match = typicalmatch or _not_so_typical_match_re.search(line)
 
     if match:
         origin = match.group('origin')
@@ -152,46 +155,47 @@ def createMessage(line):
 
         try:
             return Message(timestamp, origin, msgtype, description)
-        except ValueError, err:
-            logger.debug("syslog line parse error: %s", line,
-                         exc_info=True)
+        except ValueError:
+            _logger.debug("syslog line parse error: %s", line,
+                          exc_info=True)
 
     # if this message shows sign of cisco format, put it in the error log
-    typematch = typematchRe.search(line)
+    typematch = _type_match_re.search(line)
     if typematch:
         database.execute("INSERT INTO errorerror (message) "
                          "VALUES (%s)", (line,))
 
 
+class Message(object):
+    prioritymatch_re = re.compile(r"^(.*)-(\d*)-(.*)$")
+    categorymatch_re = re.compile(r"\W(gw|sw|gsw|fw|ts)\W")
 
-class Message:
-    prioritymatchRe = re.compile(r"^(.*)-(\d*)-(.*)$")
-    categorymatchRe = re.compile(r"\W(gw|sw|gsw|fw|ts)\W")
-
-    def __init__(self, time, origin, type, description):
+    def __init__(self, time, origin, msgtype, description):
         self.time = time
         self.origin = origin
         self.category = self.find_category(origin)
-        self.type = type
+        self.type = msgtype
         self.description = db.escape(description)
-        self.facility, self.priorityid, self.mnemonic = self.find_priority(type)
+        (self.facility, self.priorityid,
+         self.mnemonic) = self.find_priority(msgtype)
         if not self.facility:
-            raise ValueError("cannot parse message type: %s" % type)
+            raise ValueError("cannot parse message type: %s" % msgtype)
 
-    def find_priority(self, type):
-        prioritymatch = self.prioritymatchRe.search(type)
+    def find_priority(self, msgtype):
+        prioritymatch = self.prioritymatch_re.search(msgtype)
         if prioritymatch:
             return (prioritymatch.group(1), int(prioritymatch.group(2)),
                     prioritymatch.group(3))
         else:
-            return (None, None, None)
+            return None, None, None
 
     def find_category(self, origin):
-        categorymatch = self.categorymatchRe.search(origin)
+        categorymatch = self.categorymatch_re.search(origin)
         if categorymatch:
             return categorymatch.group(1)
         else:
             return "rest"
+
 
 def find_year(mnd):
     now = datetime.datetime.now()
@@ -200,20 +204,22 @@ def find_year(mnd):
     else:
         return now.year
 
+
 def find_month(textual):
     months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep",
               "oct", "nov", "dec"]
     try:
         return months.index(textual.lower())+1
-    except ValueError, e:
+    except ValueError:
         pass
+
 
 def delete_old_messages(config):
     """Delete old messages from db, according to config settings."""
-    logger.info("Deleting old messages from db")
+    _logger.info("Deleting old messages from db")
 
-    connection = db.getConnection('logger','logger')
-    cursor = connection.cursor()
+    conn = db.getConnection('logger', 'logger')
+    cursor = conn.cursor()
 
     for priority in range(0, 8):
         if config.get("deletepriority", str(priority)):
@@ -222,7 +228,8 @@ def delete_old_messages(config):
                            "AND time < now() - interval %s",
                            (priority, '%d days' % days))
 
-    connection.commit()
+    conn.commit()
+
 
 def verify_singleton(quiet=False):
     """Verify that we are the single running logengine process.
@@ -237,11 +244,11 @@ def verify_singleton(quiet=False):
 
     try:
         daemon.justme(pidfile)
-    except daemon.AlreadyRunningError, e:
+    except daemon.AlreadyRunningError, err:
         if quiet:
             sys.exit(0)
         else:
-            print >> sys.stderr, "logengine is already running (%d)" % e.pid
+            print >> sys.stderr, "logengine is already running (%d)" % err.pid
             sys.exit(1)
 
     daemon.writepidfile(pidfile)
@@ -252,28 +259,31 @@ def get_categories(cursor):
     categories = {}
     cursor.execute("select category from category")
     for category, in cursor.fetchall():
-        if not categories.has_key(category):
+        if category not in categories:
             categories[category] = category
     return categories
+
 
 def get_origins(cursor):
     origins = {}
     cursor.execute("select origin, name from origin")
     for origin, name in cursor.fetchall():
-        if not origins.has_key(name):
+        if name not in origins:
             origins[name] = int(origin)
     return origins
+
 
 def get_types(cursor):
     types = {}
     cursor.execute(
         "select type, facility, mnemonic, priority from log_message_type")
-    for type_, facility, mnemonic, priority in cursor.fetchall():
-        if not types.has_key(facility):
+    for type_, facility, mnemonic, _priority in cursor.fetchall():
+        if facility not in types:
             types[facility] = {}
-        if not types[facility].has_key(mnemonic):
+        if mnemonic not in types[facility]:
             types[facility][mnemonic] = int(type_)
     return types
+
 
 def read_log_lines(config):
     """Read and yield message lines from the watched cisco log file.
@@ -283,38 +293,38 @@ def read_log_lines(config):
     logger.conf.
 
     """
-    logfile = config.get("paths","syslog")
+    filename = config.get("paths", "syslog")
     if config.has_option("paths", "charset"):
         charset = config.get("paths", "charset")
     else:
         charset = "ISO-8859-1"
 
-    f = None
+    logfile = None
     ## open log
     try:
-        f = open(logfile, "r+")
-    except IOError, e:
+        logfile = open(filename, "r+")
+    except IOError, err:
         # If logfile can't be found, we ignore it.  We won't needlessly
         # spam the NAV admin every minute with a file not found error!
-        if e.errno != errno.ENOENT:
-            logger.exception("Couldn't open logfile %s", logfile)
+        if err.errno != errno.ENOENT:
+            _logger.exception("Couldn't open logfile %s", filename)
 
     ## if the file exists
-    if f:
+    if logfile:
 
         ## lock logfile
-        fcntl.flock(f, fcntl.LOCK_EX)
+        fcntl.flock(logfile, fcntl.LOCK_EX)
 
         ## read log
-        fcon = f.readlines()
+        fcon = logfile.readlines()
 
         ## truncate logfile
-        f.truncate(0)
+        logfile.truncate(0)
 
         ## unlock logfile
-        fcntl.flock(f, fcntl.LOCK_UN)
+        fcntl.flock(logfile, fcntl.LOCK_UN)
         ##close log
-        f.close()
+        logfile.close()
 
         for line in fcon:
             # Make sure the data is encoded as UTF-8 before we begin work on it
@@ -323,16 +333,18 @@ def read_log_lines(config):
     else:
         raise StopIteration
 
+
+# pylint: disable=W0703
 def parse_and_insert(line, database,
                      categories, origins, types,
                      exceptionorigin, exceptiontype, exceptiontypeorigin):
     """Parse a line of cisco log text and insert into db."""
 
     try:
-        message = createMessage(line)
-    except Exception, e:
-        logger.exception("Unhandled exception during message parse: %s",
-                         line)
+        message = create_message(line, database)
+    except Exception:
+        _logger.exception("Unhandled exception during message parse: %s",
+                          line)
         return False
 
     if message:
@@ -341,23 +353,24 @@ def parse_and_insert(line, database,
                            categories, origins, types,
                            exceptionorigin, exceptiontype, exceptiontypeorigin)
         except Exception:
-            logger.exception("Unhandled exception during message insert: %s",
-                             line)
+            _logger.exception("Unhandled exception during message insert: %s",
+                              line)
             raise
+
 
 def insert_message(message, database,
                    categories, origins, types,
                    exceptionorigin, exceptiontype, exceptiontypeorigin):
     ## check origin (host)
-    if not origins.has_key(message.origin):
-        if not categories.has_key(message.category):
+    if message.origin not in origins:
+        if message.category not in categories:
             add_category(message.category, categories, database)
         add_origin(message.origin, message.category, origins, database)
     originid = origins[message.origin]
 
     ## check type
-    if (not types.has_key(message.facility) or
-        not types[message.facility].has_key(message.mnemonic)):
+    if (message.facility not in types or
+            message.mnemonic not in types[message.facility]):
         add_type(message.facility, message.mnemonic, message.priorityid, types,
                  database)
     typeid = types[message.facility][message.mnemonic]
@@ -365,23 +378,23 @@ def insert_message(message, database,
     ## overload priority if exceptions are set
     m_type = message.type.lower()
     origin = message.origin.lower()
-    if (exceptiontypeorigin.has_key(m_type) and
-        exceptiontypeorigin[m_type].has_key(origin)):
+    if (m_type in exceptiontypeorigin and
+            origin in exceptiontypeorigin[m_type]):
         try:
             message.priorityid = int(exceptiontypeorigin[m_type][origin])
-        except:
+        except ValueError:
             pass
 
-    elif exceptionorigin.has_key(origin):
+    elif origin in exceptionorigin:
         try:
             message.priorityid = int(exceptionorigin[origin])
-        except:
+        except ValueError:
             pass
 
-    elif exceptiontype.has_key(m_type):
+    elif m_type in exceptiontype:
         try:
             message.priorityid = int(exceptiontype[m_type])
-        except:
+        except ValueError:
             pass
 
     ## insert message into database
@@ -391,6 +404,7 @@ def insert_message(message, database,
                      (str(message.time), originid,
                       message.priorityid, typeid,
                       message.description))
+
 
 def add_category(category, categories, database):
     database.execute("INSERT INTO category (category) "
@@ -408,6 +422,7 @@ def add_origin(origin, category, origins, database):
     origins[origin] = originid
     return originid
 
+
 def add_type(facility, mnemonic, priorityid, types, database):
     database.execute("SELECT nextval('log_message_type_type_seq')")
     typeid = int(database.fetchone()[0])
@@ -417,16 +432,15 @@ def add_type(facility, mnemonic, priorityid, types, database):
                      "mnemonic, priority) "
                      "VALUES (%s, %s, %s, %s)",
                      (typeid, facility, mnemonic, priorityid))
-    if not types.has_key(facility):
+    if facility not in types:
         types[facility] = {}
     types[facility][mnemonic] = typeid
 
-def logengine(config, options):
-    global connection, database
 
+def logengine(config, options):
     verify_singleton(options.quiet)
 
-    connection = db.getConnection('logger','logger')
+    connection = db.getConnection('logger', 'logger')
     database = connection.cursor()
 
     ## initial setup of dictionaries
@@ -438,10 +452,10 @@ def logengine(config, options):
     ## parse priorityexceptions
     (exceptionorigin,
      exceptiontype,
-     exceptiontypeorigin) =  get_exception_dicts(config)
+     exceptiontypeorigin) = get_exception_dicts(config)
 
     ## add new records
-    logger.info("Reading new log entries")
+    _logger.info("Reading new log entries")
     my_parse_and_insert = swallow_all_but_db_exceptions(parse_and_insert)
     for line in read_log_lines(config):
         my_parse_and_insert(line, database,
@@ -456,10 +470,10 @@ def swallow_all_but_db_exceptions(func):
     def _swallow(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except db.driver.Error, err:
+        except db.driver.Error:
             raise
         except Exception:
-            logger.exception("Unhandled exception occurred, ignoring.")
+            _logger.exception("Unhandled exception occurred, ignoring.")
     return _swallow
 
 def parse_options():
@@ -473,14 +487,15 @@ def parse_options():
 
     return parser.parse_args()
 
+
 def main():
     # Figure out what to do
-    (options, args) = parse_options()
+    (options, _args) = parse_options()
 
     # Process setup
 
     config = ConfigParser()
-    config.read(os.path.join(nav.path.sysconfdir,'logger.conf'))
+    config.read(os.path.join(nav.path.sysconfdir, 'logger.conf'))
 
     logging.basicConfig()
     nav.logs.set_log_levels()

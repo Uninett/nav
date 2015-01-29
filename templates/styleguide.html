@@ -119,8 +119,26 @@
           <td>This color is the primary color, used for intended primary actions</td>
         </tr>
         <tr>
-          <td><a href="#" class="button small">.button .small</a></td>
+          <td><a href="#" class="button small">.button.small</a></td>
           <td>The most used buttonsize</td>
+        </tr>
+        <tr>
+          <td>
+            <a href="#" class="button small">
+              <i class="fa fa-arrows"></i>
+              .button.small
+            </a>
+          </td>
+          <td>Icons should be on the left, otherwise they serve no purpose in helping the user scan</td>
+        </tr>
+        <tr>
+          <td>
+            <a href="#" class="button small">
+              <i class="fa fa-arrows pad-right"></i>
+              .button.small i.pad-right
+            </a>
+          </td>
+          <td>Use .pad-right to create some margin to the icon</td>
         </tr>
         <tr>
           <td><a href="#" class="button tiny">.button .tiny</a></td>
@@ -146,9 +164,29 @@
 
     </div> {# Left column #}
 
-    {# TABLES #}
     <div class="small-6 column">
-      <h3 class="underline">Tables</h3>
+      <h3 class="underline">Alert boxes</h3>
+      <div class="panel white">
+        <div class="alert-box">.alert-box</div>
+        <div class="alert-box">.alert-box with close span anchor <span class="close">x</span></div>
+        <div class="alert-box success">.alert-box.success</div>
+        <div class="alert-box success with-icon">.alert-box.success.with-icon</div>
+        <div class="alert-box alert">.alert-box.alert</div>
+        <div class="alert-box alert with-icon">.alert-box.alert.with-icon</div>
+        <div class="alert-box warning">.alert-box.warning</div>
+        <div class="alert-box warning with-icon">.alert-box.warning.with-icon</div>
+        <div class="alert-box info">.alert-box.info</div>
+        <div class="alert-box info with-icon">.alert-box.info.with-icon</div>
+      </div>
+
+    </div> {# Right column #}
+  </div>
+
+
+  {# TABLES #}
+  <h3 class="underline">Tables</h3>
+  <div class="row">
+    <div class="small-4 column">
       <table class="listtable">
         <caption>table .listtable</caption>
         <thead>
@@ -181,7 +219,9 @@
           </tr>
         </tfoot>
       </table>
+      </div>
 
+      <div class="column small-4">
       <table class="listtable expand">
         <caption>table .listtable.expand</caption>
         <thead>
@@ -214,7 +254,9 @@
           </tr>
         </tfoot>
       </table>
+      </div>
 
+      <div class="small-4 column">
       <table class="vertitable">
         <caption>table .vertitable</caption>
         <tr>
@@ -234,9 +276,8 @@
         </tr>
       </table>
 
-    </div> {# Right column #}
+    </div>
   </div>
-
 
 
 

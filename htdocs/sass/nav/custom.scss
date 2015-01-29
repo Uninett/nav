@@ -118,7 +118,6 @@ fieldset legend {
 .hidden {display: none; }
 .notvisible {visibility: hidden; }
 
-
 /* Sudoer bar is the bar that appears when you switch users from the
    'User Administration' page */
 .sudoer-bar {
@@ -238,7 +237,12 @@ li.list-header {
 /* Add margin to font awesome in buttons */
 button, .button, a {
     > i {
-        margin-left: 0.375em;
+        &.pad-left {
+            margin-left: 0.4rem;
+        }
+        &.pad-right {
+            margin-right: 0.4rem;
+        }
     }
 }
 

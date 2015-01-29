@@ -39,7 +39,7 @@ ADD test-requirements.txt /test-requirements.txt
 RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
 
 # NPM for Javascript testing needs
-RUN curl --insecure https://www.npmjs.org/install.sh | clean=no bash
+RUN curl --insecure https://www.npmjs.com/install.sh | clean=no bash
 
 RUN adduser --system --group --home=/build --shell=/bin/bash build
 RUN echo "build    ALL=NOPASSWD: ALL" >> /etc/sudoers

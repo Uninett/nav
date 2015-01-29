@@ -27,15 +27,15 @@ from nav.web.seeddb.page.netboxtype import netboxtype, netboxtype_edit
 from nav.web.seeddb.page.netboxtype import netboxtype_bulk
 from nav.web.seeddb.page.vendor import vendor, vendor_edit, vendor_bulk
 from nav.web.seeddb.page.netboxgroup import (netboxgroup, netboxgroup_edit,
-                                             netboxgroup_bulk)
+                                             netboxgroup_bulk, netbox_list)
 from nav.web.seeddb.page.vlan import vlan_list, vlan_edit
 from nav.web.seeddb.page.prefix import (get_prefix_view, prefix_edit,
                                         prefix_bulk)
 from nav.web.seeddb.page.cabling import cabling, cabling_edit, cabling_bulk
 from nav.web.seeddb.page.patch import patch, patch_edit, patch_bulk
 from nav.web.seeddb.page.netbox import netbox, netbox_bulk
-from nav.web.seeddb.page.netbox.edit import (netbox_edit,
-                                             get_read_only_variables)
+from nav.web.seeddb.page.netbox.edit import (
+    netbox_edit, get_read_only_variables, get_address_info)
 from nav.web.seeddb.page.service import service, service_bulk
 from nav.web.seeddb.page.service.edit import service_edit
 
@@ -54,6 +54,8 @@ urlpatterns = patterns('',
         name='seeddb-netbox-bulk'),
     url(r'^netbox/get-read-only-variables/$', get_read_only_variables,
         name='seeddb-netbox-get-readonly'),
+    url(r'^netbox/get-address-info/', get_address_info,
+        name='seeddb-netbox-get-address-info'),
 
     # Service
     url(r'^service/$', service,
@@ -134,6 +136,8 @@ urlpatterns = patterns('',
         name='seeddb-netboxgroup-edit'),
     url(r'^netboxgroup/bulk/$', netboxgroup_bulk,
         name='seeddb-netboxgroup-bulk'),
+    url(r'^netboxgroup/devicelist/$', netbox_list,
+        name='seeddb-netboxgroup-devicelist'),
 
     # Vlan
     url(r'^vlan/$', vlan_list,

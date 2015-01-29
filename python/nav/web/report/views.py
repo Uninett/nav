@@ -29,7 +29,7 @@ from nav.django.utils import get_account
 # this is just here to make sure Django finds NAV's settings file
 # pylint: disable=W0611
 from django.core.cache import cache
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.db import connection
@@ -40,6 +40,8 @@ from nav.report.matrixIPv4 import MatrixIPv4
 from nav.report.matrixIPv6 import MatrixIPv6
 from nav.report.metaIP import MetaIP
 import nav.path
+
+from nav.web.navlets import add_navlet
 
 
 CONFIG_FILE_PACKAGE = os.path.join(nav.path.sysconfdir, "report/report.conf")
@@ -64,17 +66,32 @@ def index(request):
                               RequestContext(request))
 
 
+def get_report_for_widget(request, report_name):
+    """Fetches a report for display in a widget"""
+    query = _strip_empty_arguments(request)
+    export_delimiter = _get_export_delimiter(query)
+    username = request.account.login
+
+    context = make_report(username, report_name, export_delimiter, query)
+    return render(request, 'report/frag_report_table.html', context)
+
+
 def get_report(request, report_name):
     """Loads and displays a specific reports with optional search arguments"""
     query = _strip_empty_arguments(request)
     export_delimiter = _get_export_delimiter(query)
+    username = request.account.login
 
     if query != request.GET:
         # some arguments were stripped, let's clean up the URL
         return HttpResponseRedirect(
             "{0}?{1}".format(request.META['PATH_INFO'], query.urlencode()))
 
-    return make_report(request, report_name, export_delimiter, query)
+    context = make_report(username, report_name, export_delimiter, query)
+    # Magic flag for adding sorting links to table
+    context['add_sort_links'] = True
+    return render_to_response('report/report.html', context,
+                              RequestContext(request))
 
 
 def _strip_empty_arguments(request):
@@ -222,10 +239,13 @@ def report_list(request):
                               RequestContext(request))
 
 
-def make_report(request, report_name, export_delimiter, query_dict):
+def make_report(username, report_name, export_delimiter, query_dict):
     """Makes a report"""
     # Initiating variables used when caching
     report = contents = neg = operator = adv = result_time = None
+
+    if not report_name:
+        return None
 
     query_dict_no_meta = query_dict.copy()
     # Deleting meta variables from uri to help identifying if the report
@@ -247,7 +267,6 @@ def make_report(request, report_name, export_delimiter, query_dict):
 
     uri_strip = dict((key, query_dict_no_meta[key])
                      for key in query_dict_no_meta)
-    username = get_account(request).login
     mtime_config = (os.stat(CONFIG_FILE_PACKAGE).st_mtime +
                     os.stat(CONFIG_FILE_LOCAL).st_mtime)
     cache_name = 'report_%s__%s%s' % (username, report_name, mtime_config)
@@ -290,7 +309,7 @@ def make_report(request, report_name, export_delimiter, query_dict):
         raise RuntimeWarning("Found cache entry, but no report. Ooops, panic!")
 
     if export_delimiter:
-        return generate_export(request, report, report_name, export_delimiter)
+        return generate_export(report, report_name, export_delimiter)
     else:
 
         context = {
@@ -343,22 +362,18 @@ def make_report(request, report_name, export_delimiter, query_dict):
         navpath = [('Home', '/'),
                    ('Report', '/report/'),
                    (page_name, page_link)]
-        old_uri = '{0}?{1}&'.format(request.META['PATH_INFO'],
-                                    request.GET.urlencode())
         adv_block = bool(adv)
 
         context.update({
             'title': 'Report - {0}'.format(page_name),
             'navpath': navpath,
-            'old_uri': old_uri,
             'adv_block': adv_block,
         })
 
-        return render_to_response('report/report.html', context,
-                                  RequestContext(request))
+        return context
 
 
-def generate_export(_request, report, report_name, export_delimiter):
+def generate_export(report, report_name, export_delimiter):
     """Generates a CSV export version of a report"""
     def _cellformatter(cell):
         if isinstance(cell.text, unicode):
@@ -386,6 +401,26 @@ def generate_export(_request, report, report_name, export_delimiter):
     writer.writerows(rows)
 
     return response
+
+
+def add_report_widget(request):
+    """
+    :type request: HttpRequest
+    """
+
+    report_id = request.POST.get('report_id')
+    if not report_id:
+        return HttpResponse('No report name supplied', status=400)
+
+    navlet = 'nav.web.navlets.report.ReportWidget'
+    preferences = {
+        'report_id': report_id,
+        'query_string': request.POST.get('query_string')
+    }
+
+    add_navlet(request.account, navlet, preferences)
+
+    return HttpResponse()
 
 
 class UnknownNetworkTypeException(Exception):

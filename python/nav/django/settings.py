@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2007-2011 UNINETT AS
+# Copyright (C) 2007-2015 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -147,6 +147,7 @@ DJANGO_HSTORE_GLOBAL_REGISTER = False
 NAVLETS = (
     'nav.web.navlets.machinetracker.MachineTrackerNavlet',
     'nav.web.navlets.status.StatusNavlet',
+    'nav.web.navlets.error.ErrorWidget',
     'nav.web.navlets.vlangraph.VlanGraphNavlet',
     'nav.web.navlets.portadmin.PortadminNavlet',
     'nav.web.navlets.linklist.LinkListNavlet',
@@ -159,6 +160,7 @@ NAVLETS = (
     'nav.web.navlets.graph.GraphWidget',
     'nav.web.navlets.watchdog.WatchDogWidget',
     'nav.web.navlets.status2.Status2Widget',
+    'nav.web.navlets.report.ReportWidget',
 )
 
 CRISPY_TEMPLATE_PACK = 'foundation'
@@ -172,6 +174,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'crispy_forms_foundation',
     'django_hstore',
+    'rest_framework',
 )
 
 REST_FRAMEWORK = {

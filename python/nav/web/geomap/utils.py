@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009, 2010 UNINETT AS
+# Copyright (C) 2009, 2010, 2013, 2015 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -504,3 +504,11 @@ def any(iterable):
 def first(lst):
     """Extract the first element from a list or other indexable object."""
     return lst[0]
+
+
+def chunks(lst, n):
+    """
+    Yields successive n-sized chunks from lst.
+    """
+    for i in xrange(0, len(lst), n):
+        yield lst[i:i+n]

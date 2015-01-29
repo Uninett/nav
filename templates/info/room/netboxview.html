@@ -1,6 +1,5 @@
 {% load info %}
 
-
 <div id="searchhelptext" class="reveal-modal" data-reveal>
     <a class="close-reveal-modal">&#215;</a>
   <h4>About the search</h4>
@@ -39,108 +38,145 @@
 
 <div id="netboxes">
 
-    <div class="row">
-      <div class="small-12 column">
-        <a href="javascript:void(0);"
-           data-reveal-id="searchhelptext"
-           class="small button right secondary"
-           data-reveal>
-          About the search
-        </a>
-        <h4>{{ room.id }}: {{ netboxes|length }} netbox{{ netboxes|pluralize:"es" }}</h4>
-      </div>
+  <div class="row">
+    <div class="small-12 column">
+      <a href="javascript:void(0);"
+         data-reveal-id="searchhelptext"
+         class="small button right secondary"
+         data-reveal>
+        About the search
+      </a>
+      <h4>{{ room.id }}: {{ netboxes|length }}
+        netbox{{ netboxes|pluralize:"es" }}</h4>
+    </div>
+  </div>
+
+  <div class="row">
+    <div id="global-search" class="small-3 columns">
+      <label>
+        Search
+        <input id="netbox-global-search" type="text"/>
+      </label>
     </div>
 
-    <div class="row">
-        <div id="global-search" class="small-3 columns">
-            <div class="input-filter-desc">Search</div>
-            <input id="netbox-global-search" type="text" />
-        </div>
-
-        <div id="vlanfilter" class="small-3 columns">
-            <div class="input-filter-desc">Vlan</div>
-            <input type="text">
-        </div>
-
-        <div id="lastseenfilter" class="small-3 columns">
-            <div class="input-filter-desc">Last Seen (days ago)</div>
-            <input type="text">
-        </div>
-
-        <div class="small-3 columns">
-            <div class="input-filter-desc">
-              CSV
-              <i class="fa fa-question-circle has-tip" data-tooltip title="
-                 To open this in Microsoft Excel, you need to change the file to a .txt file, start Excel and import the file.
-               "></i>
-            </div>
-            <form id="csv-download-form"  action="{% url 'room-csv' %}" method="POST">
-              <input type="hidden" name="rows" value="">
-              <input type="hidden" name="roomid" value="{{ room.id }}">
-              <input type="submit" class="button small secondary" value="Download as CSV">
-            </form>
-        </div>
+    <div id="vlanfilter" class="small-3 columns">
+      <label>
+        Vlan
+        <input type="text">
+      </label>
     </div>
 
+    <div id="lastseenfilter" class="small-3 columns">
+      <label>
+        Last Seen (days ago)
+        <input type="text">
+      </label>
+
+    </div>
+
+    <div class="small-3 columns">
+      <label>
+        CSV
+        <i class="fa fa-question-circle has-tip"
+           data-tooltip
+           title="To open this in Microsoft Excel, you need to change the file to a .txt file, start Excel and import the file.">
+        </i>
+      </label>
+
+      <form id="csv-download-form" action="{% url 'room-csv' %}" method="POST">
+        <input type="hidden" name="rows" value="">
+        <input type="hidden" name="roomid" value="{{ room.id }}">
+        <input type="submit" class="button small secondary" value="Download as CSV">
+      </form>
+    </div>
+  </div>
 
 
-    {% for netbox in netboxes %}
 
-        <table class="listtable netbox compact cluttered">
+  {% for netbox in netboxes %}
 
-            <caption>
-              <a href="{% url 'ipdevinfo-details-by-name' netbox.sysname %}">
-                {{ netbox.sysname }}
-              </a> {% if netbox.type.name %} - {{ netbox.type.name }} {% endif %}
-            </caption>
+    <table class="listtable netbox compact cluttered">
 
-            <thead>
-            <tr>
-                <th>Name</th>
-                <th>Portname</th>
-                <th>Status</th>
-                <th>Vlan</th>
-                <th>Last active</th>
-            </tr>
-            </thead>
+      <caption>
+        <a href="{% url 'ipdevinfo-details-by-name' netbox.sysname %}">
+          {{ netbox.sysname }}
+        </a> {% if netbox.type.name %} - {{ netbox.type.name }} {% endif %}
+      </caption>
 
-            <tbody>
-            {% for interface in netbox.interfaces %}
-                <tr>
-                    <td title="Interface speed: {{ interface.speed }}">
-                        <a href="{% url 'ipdevinfo-interface-details' netbox.sysname interface.id %}">
-                            {{ interface.ifname }}
-                        </a>
-                    </td>
-                    <td>{{ interface.ifalias }}</td>
-                    <td class="center-content help">
-                        <img title="Link status (green=link, red=no link)"
-                             src="{{ STATIC_URL }}images/lys/{% if interface.ifoperstatus == interface.OPER_UP  %}green.png{% else %}red.png{% endif %}"
-                             alt="{% if interface.ifoperstatus == interface.OPER_UP  %}Up{% else %}Down{% endif %}"/>
-                    </td>
-                    <td class="numeric">
-                        {% if interface.trunk %}<span class="help" title="Allowed vlans: {{ interface.get_trunkvlans_as_range }}">Trunk</span>{% else %}
-                            {% if interface.vlan %}{{ interface.vlan }}{% endif %}
-                        {% endif %}
-                    </td>
-                    <td {% if not interface.last_cam|is_max_timestamp %}
-                            title="{{ interface.last_cam|date:"Y-m-d H:i" }}"
-                        {% endif %}
-                            class="numeric {% if interface.last_cam|is_max_timestamp %}brighten{% endif %}">
+      <thead>
+      <tr>
+        <th>Name</th>
+        <th>Portname</th>
+        <th>Status</th>
+        <th>Vlan</th>
+        <th>Last active</th>
+      </tr>
+      </thead>
 
-                        {% if not interface.trunk %}
-                            {{ interface.last_cam|days_since }}
-                            <span class="ui-helper-hidden" title="{% firstof interface.last_cam 'Never' %}"></span>
-                        {% endif %}
+      <tbody>
+      {% for interface in netbox.interfaces %}
+        <tr>
 
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
+          <td title="Interface speed: {{ interface.speed }}">
+            <a href="{% url 'ipdevinfo-interface-details' netbox.sysname interface.id %}">
+              {{ interface.ifname }}
+            </a>
+          </td>
 
-        </table>
+          <td>{{ interface.ifalias }}</td>
 
-    {% endfor %}
+          <td class="center-content help">
+            <img title="Link status (green=link, red=no link)"
+                 src="{{ STATIC_URL }}images/lys/{% if interface.ifoperstatus == interface.OPER_UP %}green.png{% else %}red.png{% endif %}"
+                 alt="{% if interface.ifoperstatus == interface.OPER_UP %}Up{% else %}Down{% endif %}"/>
+          </td>
+
+          <td class="numeric">
+            {% if interface.trunk %}
+              <span class="help" title="Allowed vlans: {{ interface.get_trunkvlans_as_range }}">
+                Trunk
+              </span>
+            {% else %}
+              {% if interface.vlan %}
+                {{ interface.vlan }}
+              {% endif %}
+            {% endif %}
+          </td>
+
+          {% if interface.to_netbox and not interface.trunk %}
+            {# If the interface is connected to other equipment, it should be considered active #}
+            <td title="To netbox: {{ interface.to_netbox }}"
+                class="numeric brighten">
+              <a href="{{ interface.to_netbox.get_absolute_url }}">
+                {{ interface.to_netbox }}
+              </a>
+
+              <span class="hidden" title="{{ maxtime }}"></span>
+            </td>
+          {% else %}
+            {# If not connected to other equipment, use information from the cam table to indicate last used #}
+            <td
+              {% if not interface.last_cam|is_max_timestamp %}
+                title="{{ interface.last_cam|date:"Y-m-d H:i" }}"
+              {% else %}
+                title="Active now"
+              {% endif %}
+              class="numeric {% if interface.last_cam|is_max_timestamp %}brighten{% endif %}">
+
+              {% if not interface.trunk %}
+                {{ interface.last_cam|days_since }}
+                <span class="hidden" title="{% firstof interface.last_cam 'Never' %}"></span>
+              {% endif %}
+            </td>
+          {% endif %}
+
+        </tr>
+      {% endfor %}
+      </tbody>
+
+    </table>
+
+  {% endfor %}
 
 
 </div>

@@ -265,13 +265,13 @@
 
     {# Custom key value fields #}
     {% if netbox.data %}
-      <table class="listtable full-width">
+      <table class="vertitable full-width">
         <caption>Custom data</caption>
 
         <tbody>
           {% for key, value in netbox.data.items %}
             <tr>
-              <td>{{ key }}</td>
+              <th>{{ key }}</th>
               <td>{{ value }}</td>
             </tr>
           {% endfor %}

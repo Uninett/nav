@@ -1,0 +1,107 @@
+<div id="graph-info-modal" class="vlan-info">
+
+  {{#if warning }}
+    <div class="row">
+      <div class="medium-12 columns">
+        <span class="alert-box alert">{{ warning }}</span>
+      </div>
+    </div>
+  {{/if }}
+
+  <div class="row">
+    <div class="small-12 columns nopadding">
+
+      <table>
+
+        <thead>
+
+        <tr>
+          <th>
+            <img src="{{ sourceImg }}" alt="{{ source.category }}" width="16px" height="16px">
+            <a href="{{ source.ipdevinfo_link }}">{{ source.sysname }}</a>
+          </th>
+
+          <th>
+            <img src="{{ targetImg }}" alt="{{ target.category }}" width="16px" height="16px">
+            <a href="{{ target.ipdevinfo_link }}">{{ target.sysname }}</a>
+          </th>
+        </tr>
+
+        </thead>
+
+        <tbody>
+          <tr>
+            <td colspan="2">
+              {{traffic_data traffic.traffic_data.source }}
+              <span class="load-arrow"
+                {{# if traffic.traffic_data.source.css }}
+                  style="color: rgb({{ traffic.traffic_data.source.css }});"
+                {{/if }}
+                >&#10096;</span>
+              <span class="load-arrow"
+                {{#if traffic.traffic_data.target.css }}
+                  style="color: rgb({{ traffic.traffic_data.target.css }});"
+                {{/if }}
+                >&#10097;</span>
+              {{traffic_data traffic.traffic_data.target }}
+            </td>
+          </tr>
+
+        {{#each edges }}
+
+          <thead>
+            <tr>
+              <th colspan="2">
+                <h6>{{ this.vlan.net_ident }}</h6>
+                <h6 class="subheader">{{ this.vlan.description }}</h6>
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {{#each this.edges }}
+              <tr>
+                <td colspan="2">
+                  <a href="{{ this.prefix.report_link }}">{{ this.prefix.net_address }}</a>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  {{#if this.source.interface.ifname }}
+                    {{#if this.source.interface.ipdevinfo_link }}
+                      <a href="{{ this.source.interface.ipdevinfo_link }}">{{ this.source.interface.ifname }}</a>
+                    {{else }}
+                      {{ this.source.interface.ifname }}
+                    {{/if }}
+                  {{else }}
+                    N/A
+                  {{/if }}
+                </td>
+                <td>
+                  {{#if this.target.interface.ifname }}
+                    {{#if this.target.interface.ipdevinfo_link }}
+                      <a href="{{ this.target.interface.ipdevinfo_link }}">{{ this.target.interface.ifname }}</a>
+                    {{else }}
+                      {{ this.target.interface.ifname }}
+                    {{/if }}
+                  {{else }}
+                    N/A
+                  {{/if }}
+                </td>
+              </tr>
+              <tr>
+                <td>{{ this.source.gw_ip }}</td>
+                <td>{{ this.target.gw_ip }}</td>
+              </tr>
+            {{/each }}
+          </tbody>
+
+        {{/each }}
+        </tbody>
+
+      </table>
+
+    </div>
+  </div>
+
+</div>

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2014 UNINETT AS
+# Copyright (C) 2014, 2015 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,15 +14,17 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms for the status page"""
+from collections import defaultdict
 from operator import itemgetter
 
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit
+from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
+                                            HTML, Div)
 
 from . import STATELESS_THRESHOLD
-from nav.models.event import EventType
-from nav.models.manage import Organization, Category
+from nav.models.event import EventType, AlertType
+from nav.models.manage import Organization, Category, NetboxGroup
 from nav.web.crispyforms import NumberField
 
 
@@ -41,13 +43,15 @@ class StatusPanelForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(StatusPanelForm, self).__init__(*args, **kwargs)
 
+        alert_types = get_alert_types()
+
         self.fields['event_type'] = forms.MultipleChoiceField(
             choices=get_event_types(),
             required=False
         )
 
         self.fields['alert_type'] = forms.MultipleChoiceField(
-            choices=get_alert_types(),
+            choices=alert_types,
             required=False
         )
         self.fields['category'] = forms.MultipleChoiceField(
@@ -58,13 +62,17 @@ class StatusPanelForm(forms.Form):
             choices=get_organizations(),
             required=False
         )
+        self.fields['device_group'] = forms.MultipleChoiceField(
+            choices=get_device_groups(),
+            required=False
+        )
 
         self.fields['not_event_type'] = forms.MultipleChoiceField(
             choices=get_event_types(),
             required=False
         )
         self.fields['not_alert_type'] = forms.MultipleChoiceField(
-            choices=get_alert_types(),
+            choices=alert_types,
             required=False
         )
         self.fields['not_category'] = forms.MultipleChoiceField(
@@ -73,6 +81,10 @@ class StatusPanelForm(forms.Form):
         )
         self.fields['not_organization'] = forms.MultipleChoiceField(
             choices=get_organizations(),
+            required=False
+        )
+        self.fields['not_device_group'] = forms.MultipleChoiceField(
+            choices=get_device_groups(),
             required=False
         )
 
@@ -84,34 +96,33 @@ class StatusPanelForm(forms.Form):
         self.helper.layout = Layout(
             Row(
                 Column(Field('event_type', css_class='select2'),
+                       Field('not_event_type', css_class='select2'),
                        css_class=column_class),
                 Column(Field('alert_type', css_class='select2'),
+                       Field('not_alert_type', css_class='select2'),
                        css_class=column_class),
                 Column(Field('category', css_class='select2'),
+                       Field('not_category', css_class='select2'),
                        css_class=column_class),
                 Column(Field('organization', css_class='select2'),
+                       Field('not_organization', css_class='select2'),
                        css_class=column_class),
             ),
             Row(
-                Column(Field('not_event_type', css_class='select2'),
+                Column(Field('device_group', css_class='select2'),
+                       Field('not_device_group', css_class='select2'),
                        css_class=column_class),
-                Column(Field('not_alert_type', css_class='select2'),
-                       css_class=column_class),
-                Column(Field('not_category', css_class='select2'),
-                       css_class=column_class),
-                Column(Field('not_organization', css_class='select2'),
-                       css_class=column_class),
-            ),
-            Row(
                 Column('stateless', 'stateless_threshold',
                        css_class=column_class),
                 Column('acknowledged', 'on_maintenance',
                        css_class='medium-3 end')
-            )
+            ),
+            HTML('<hr>'),
 
         )
 
     def clean_stateless_threshold(self):
+        """Set default stateless threshold"""
         field = 'stateless_threshold'
         data = self.cleaned_data[field]
         if not data:
@@ -120,6 +131,10 @@ class StatusPanelForm(forms.Form):
 
 
 class StatusWidgetForm(StatusPanelForm):
+    """
+    This form is used in the status widget and is more suitable for a smaller
+    screen size.
+    """
 
     def __init__(self, *args, **kwargs):
         super(StatusWidgetForm, self).__init__(*args, **kwargs)
@@ -153,6 +168,12 @@ class StatusWidgetForm(StatusPanelForm):
                        css_class=column_class),
             ),
             Row(
+                Column(Field('device_group', css_class='select2'),
+                       css_class=column_class),
+                Column(Field('not_device_group', css_class='select2'),
+                       css_class=column_class),
+            ),
+            Row(
                 Column('stateless', 'stateless_threshold',
                        css_class=column_class),
                 Column('acknowledged', 'on_maintenance',
@@ -177,14 +198,10 @@ def get_alert_types():
     ]
 
     """
-    alert_types = {}
-    for event_type in EventType.objects.all():
-        if event_type.alerttype_set.all().count():
-            if event_type.id not in alert_types:
-                alert_types[event_type.id] = []
-            for alert_type in event_type.alerttype_set.all().order_by('name'):
-                alert_types[event_type.id].append(
-                    (alert_type.name, alert_type.name))
+    alert_types = defaultdict(list)
+    for alert_type in AlertType.objects.all():
+        alert_types[alert_type.event_type_id].append(
+            (alert_type.name, alert_type.name))
 
     return sorted(alert_types.items(), key=itemgetter(0))
 
@@ -197,3 +214,8 @@ def get_categories():
 def get_organizations():
     """Get all organizations formatted as choices"""
     return [(o.id, o.id) for o in Organization.objects.all()]
+
+
+def get_device_groups():
+    """Get all device groups formatted as choices"""
+    return [(n.id, n.id) for n in NetboxGroup.objects.all()]

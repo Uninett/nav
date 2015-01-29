@@ -248,12 +248,18 @@ require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui-1.8.21.custom.min'], fu
                 spinner.stop();
                 if (nav_ajax_queue.length === 0) {
                     enableSaveallButtons();
+                    writeMem(interfaceData.interfaceid);
                 } else {
                     // Process next entry in queue
                     doAjaxRequest(nav_ajax_queue[0]);
                 }
             }
         });
+    }
+
+    function writeMem(interfaceid) {
+        /** Do a request to write to memory */
+        $.post('write_mem', {'interfaceid': interfaceid});
     }
 
     function restartInterface(interfaceid) {

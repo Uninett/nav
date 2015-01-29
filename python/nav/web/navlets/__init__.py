@@ -54,6 +54,7 @@ NAVLET_COLUMN_2 = 2
 REFRESH_INTERVAL = 'refresh_interval'
 # These class members will be automatically added to preferences if they exist
 DEFAULT_PREFERENCES = [REFRESH_INTERVAL]
+ERROR_WIDGET = 'nav.web.navlets.error.ErrorWidget'
 
 import logging
 import json
@@ -74,8 +75,6 @@ from nav.django.utils import get_account
 
 _logger = logging.getLogger(__name__)
 
-NavletContainer = namedtuple('NavletContainer', 'identifier title description')
-
 
 class Navlet(TemplateView):
     """Base class for navlets"""
@@ -84,6 +83,8 @@ class Navlet(TemplateView):
     description = 'No description'
     is_editable = False
     is_title_editable = False
+    can_be_added = True
+    is_deprecated = False
 
     # Set to true if we are to reload only an image. This is useful for
     # loading charts that may take some time to display, thus making the
@@ -126,23 +127,32 @@ class Navlet(TemplateView):
         context['navlet'] = self
         return context
 
+    @classmethod
+    def get_class(cls):
+        """This string is used to identify the Widget"""
+        return "%s.%s" % (cls.__module__, cls.__name__)
 
-def list_navlets(_):
-    """Gives a json-response with all navlets modulestring, title and desc"""
-    return HttpResponse(json.dumps(get_navlets()))
+
+def list_navlets():
+    """All Navlets that should be listed to the user"""
+    def should_be_listed(navlet):
+        """
+        Returns if this widget should be listed to the user as a potential
+        widget
+        """
+        return navlet.can_be_added and not navlet.is_deprecated
+
+    navlets = [cls for cls in get_navlet_classes() if should_be_listed(cls)]
+    return sorted(navlets, key=attrgetter('title'))
 
 
-def get_navlets():
+def get_navlet_classes():
     """Gets all installed navlet classes"""
     navlets = []
-
     for navletmodule in settings.NAVLETS:
         cls = get_navlet_from_name(navletmodule)
         if cls:
-            navlets.append(NavletContainer(navletmodule,
-                                           cls.title,
-                                           cls.description))
-    navlets = sorted(navlets, key=attrgetter('title'))
+            navlets.append(cls)
     return navlets
 
 
@@ -153,7 +163,7 @@ def get_navlet_from_name(navletmodule):
         module = __import__(navletmodule[:navletmodule.rfind('.')],
                             fromlist=[lastmod])
         cls = getattr(module, clsname)
-    except AttributeError:
+    except (AttributeError, ImportError):
         _logger.error('Could not import %s', navletmodule)
     else:
         return cls
@@ -176,6 +186,10 @@ def create_navlet_object(usernavlet):
     url = reverse('get-user-navlet', kwargs={'navlet_id': usernavlet.id})
     navlet_module = usernavlet.navlet
     navlet_class = get_navlet_from_name(navlet_module)
+    if not navlet_class:
+        # Happens if widget is removed from NAV code
+        navlet_module = ERROR_WIDGET
+        navlet_class = get_navlet_from_name(navlet_module)
     highlight = navlet_class.highlight
     is_title_editable = navlet_class.is_title_editable
     image_reload = navlet_class.image_reload
@@ -207,6 +221,8 @@ def dispatcher(request, navlet_id):
         return HttpResponse(status=404)
     else:
         cls = get_navlet_from_name(account_navlet.navlet)
+        if not cls:
+            cls = get_navlet_from_name(ERROR_WIDGET)
         view = cls.as_view(preferences=account_navlet.preferences,
                            navlet_id=navlet_id)
         return view(request)

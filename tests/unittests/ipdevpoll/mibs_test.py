@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2008, 2009, 2011 UNINETT AS
+# Copyright (C) 2008, 2009, 2011, 2012, 2015 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -66,17 +66,36 @@ class IpMibTests(unittest.TestCase):
         ip = IpMib.inetaddress_to_ip(ip_tuple)
         self.assertEquals(ip, expected)
 
+    _ipAddressPrefixEntry = (1, 3, 6, 1, 2, 1, 4, 32, 1)
+
     def test_ipv4_prefix_rowpointer_should_be_parsed_correctly(self):
-        rowpointer = (1, 3, 6, 1, 2, 1, 4, 32, 1, 5, 439541760, 1, 4, 192, 168, 70, 0, 24)
+        rowpointer = self._ipAddressPrefixEntry + (
+            5, 439541760, 1, 4, 192, 168, 70, 0, 24)
         expected = IP('192.168.70/24')
         prefix = IpMib.prefix_index_to_ip(rowpointer)
         self.assertEquals(prefix, expected)
 
     def test_ipv6_prefix_rowpointer_should_be_parsed_correctly(self):
-        rowpointer = (1, 3, 6, 1, 2, 1, 4, 32, 1, 5, 11, 2, 16, 32, 1, 7, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64)
+        rowpointer = self._ipAddressPrefixEntry + (
+            5, 11, 2, 16, 32, 1, 7, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64)
         expected = IP('2001:700:0:500::/64')
         prefix = IpMib.prefix_index_to_ip(rowpointer)
         self.assertEquals(prefix, expected)
+
+    def test_nxos_ipv4_prefix_rowpointer_should_be_parsed_correctly(self):
+        rowpointer = self._ipAddressPrefixEntry + (
+            439541760, 1, 4, 192, 168, 70, 0, 24)
+        expected = IP('192.168.70/24')
+        prefix = IpMib.prefix_index_to_ip(rowpointer)
+        self.assertEquals(prefix, expected)
+
+    def test_nxos_ipv6_prefix_rowpointer_should_be_parsed_correctly(self):
+        rowpointer = self._ipAddressPrefixEntry + (
+            11, 2, 16, 32, 1, 7, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64)
+        expected = IP('2001:700:0:500::/64')
+        prefix = IpMib.prefix_index_to_ip(rowpointer)
+        self.assertEquals(prefix, expected)
+
 
 class Ipv6MibTests(unittest.TestCase):
     def test_ipv6mib_index(self):
@@ -115,6 +134,13 @@ class Snmpv2MibTests(unittest.TestCase):
         dev = Snmpv2Mib.get_uptime_deviation(first_uptime, second_uptime)
         self.assertTrue(abs(dev) < 0.5,
                         msg="deviation is higher than 0.5: %r" % dev)
+
+    def test_none_uptime_should_not_crash(self):
+        uptime1 = (0, None)
+        uptime2 = (10, 10)
+        dev = Snmpv2Mib.get_uptime_deviation(uptime1, uptime2)
+        self.assertIsNone(dev)
+
 
 class CiscoHSRPMibTests(unittest.TestCase):
     def test_virtual_address_map(self):

@@ -17,6 +17,7 @@
 
 from IPy import IP
 from django.http import HttpResponse
+from django.db.models import Q
 from datetime import datetime, timedelta
 import iso8601
 
@@ -29,12 +30,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from nav.models.api import APIToken
-from nav.models import manage
-from nav.models.fields import INFINITY
+from nav.models import manage, event
+from nav.models.fields import INFINITY, UNRESOLVED
 
-from nav.web.api.v1 import serializers
-from .auth import APIPermission, APIAuthentication
+from nav.web.api.v1 import serializers, alert_serializers
+from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
 from .helpers import prefix_collector
+from .filter_backends import AlertHistoryFilterBackend
+from nav.web.status2 import STATELESS_THRESHOLD
 
 EXPIRE_DELTA = timedelta(days=365)
 MINIMUMPREFIXLENGTH = 4
@@ -50,6 +53,7 @@ def api_root(request):
         'interface': reverse('api:1:interface-list', request=request),
         'cam': reverse('api:1:cam-list', request=request),
         'arp': reverse('api:1:arp-list', request=request),
+        'alert': reverse('api:1:alerthistory-list', request=request),
         'prefix': reverse('api:1:prefix-list', request=request),
         'prefix_routed': reverse('api:1:prefix-routed-list', request=request),
         'prefix_usage': reverse('api:1:prefix-usage-list', request=request),
@@ -58,7 +62,7 @@ def api_root(request):
 
 class NAVAPIMixin(APIView):
     """Mixin for providing permissions and renderers"""
-    authentication_classes = (APIAuthentication,)
+    authentication_classes = (NavBaseAuthentication, APIAuthentication)
     permission_classes = (APIPermission,)
     renderer_classes = (JSONRenderer,)
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
@@ -207,14 +211,41 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
         return Response(serializer.data)
 
 
+class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """API view for listing AlertHistory entries"""
+
+    filter_backends = (AlertHistoryFilterBackend,)
+    queryset = event.AlertHistory.objects.none()
+    serializer_class = alert_serializers.AlertHistorySerializer
+
+    def get_queryset(self):
+        """Gets an AlertHistory QuerySet"""
+        if not self.request.QUERY_PARAMS.get('stateless', False):
+            return event.AlertHistory.objects.unresolved().select_related(
+                depth=1)
+        else:
+            return self._get_stateless_queryset()
+
+    def _get_stateless_queryset(self):
+        hours = int(self.request.QUERY_PARAMS.get('stateless_threshold',
+                                                  STATELESS_THRESHOLD))
+        if hours < 1:
+            raise ValueError("hours must be at least 1")
+        threshold = datetime.now() - timedelta(hours=hours)
+        stateless = Q(start_time__gte=threshold) & Q(end_time__isnull=True)
+        return event.AlertHistory.objects.filter(
+            stateless | UNRESOLVED).select_related(depth=1)
+
+
 def get_or_create_token(request):
-    """Gets an existing token or creates a new one
+    """Gets an existing token or creates a new one. If the old token has
+    expired, create a new one.
 
     :type request: django.http.HttpRequest
     """
     if request.account.is_admin():
         token, _ = APIToken.objects.get_or_create(
-            client=request.account,
+            client=request.account, expires__gte=datetime.now(),
             defaults={'token': long_token(),
                       'expires': datetime.now() + EXPIRE_DELTA})
         return HttpResponse(str(token))

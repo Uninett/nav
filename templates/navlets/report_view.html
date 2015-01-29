@@ -1,0 +1,11 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  {% if report %}
+    {% include 'report/frag_report_table.html' %}
+  {% else %}
+    <p class="alert-box alert-info">Edit the widget to choose a report.</p>
+  {% endif %}
+
+{% endblock %}

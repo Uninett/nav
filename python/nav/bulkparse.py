@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010, 2011 UNINETT
+# Copyright (C) 2010-2015 UNINETT
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -138,7 +138,7 @@ class CommentStripper(object):
 class NetboxBulkParser(BulkParser):
     """Parses the netbox bulk format"""
     format = ('roomid', 'ip', 'orgid', 'catid',
-              'ro', 'serial', 'rw', 'function')
+              'ro', 'serial', 'rw', 'function', 'data')
     required = 4
     restkey = 'netboxgroup'
 
@@ -146,6 +146,18 @@ class NetboxBulkParser(BulkParser):
     def _validate_ip(value):
         try:
             IP(value)
+        except ValueError:
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def _validate_data(datastring):
+        try:
+            if datastring:
+                items = (item.split('=', 1) for item in datastring.split('|'))
+                if items:
+                    dict(items)
         except ValueError:
             return False
         else:

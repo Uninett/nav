@@ -39,12 +39,14 @@ class NetboxModelForm(forms.ModelForm):
     function = forms.CharField(required=False)
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
+    sysname = forms.CharField(required=False)
+    snmp_version = forms.IntegerField(required=False)
 
     class Meta(object):
         model = Netbox
         fields = ['ip', 'room', 'category', 'organization',
                   'read_only', 'read_write', 'snmp_version',
-                  'netboxgroups', 'sysname', 'type', 'data', 'serial']
+                  'groups', 'sysname', 'type', 'data', 'serial']
 
     def __init__(self, *args, **kwargs):
         super(NetboxModelForm, self).__init__(*args, **kwargs)
@@ -67,7 +69,9 @@ class NetboxModelForm(forms.ModelForm):
             Row(
                 Column(
                     Fieldset('Inventory',
-                             'ip', 'room', 'category', 'organization'),
+                             'ip',
+                             Div(id='verify-address-feedback'),
+                             'room', 'category', 'organization'),
                     css_class=css_class),
                 Column(
                     Fieldset('SNMP communities',
@@ -86,11 +90,11 @@ class NetboxModelForm(forms.ModelForm):
                 Column(
                     Fieldset('Meta information',
                              'function',
-                             Field('netboxgroups', css_class='select2'),
+                             Field('groups', css_class='select2'),
                              'data'),
                     css_class=css_class),
             ),
-            Submit('submit', 'Save IP device')
+            Submit('save_ip_device', 'Save IP device')
         )
 
     def clean_ip(self):
@@ -101,6 +105,21 @@ class NetboxModelForm(forms.ModelForm):
         except SocketError:
             raise forms.ValidationError("Could not resolve name %s" % name)
         return unicode(ip)
+
+    def clean_sysname(self):
+        """Resolve sysname if not set"""
+        sysname = self.cleaned_data.get('sysname')
+        ip = self.cleaned_data.get('ip')
+        if ip and not sysname:
+            _, sysname = resolve_ip_and_sysname(ip)
+        return sysname
+
+    def clean_snmp_version(self):
+        """Set default snmp_version 1"""
+        snmp_version = self.cleaned_data.get('snmp_version', 1)
+        if not snmp_version:
+            snmp_version = 1
+        return snmp_version
 
     def clean_serial(self):
         """Make sure the serial number is not in use"""
@@ -132,7 +151,6 @@ class NetboxModelForm(forms.ModelForm):
         if cat and cat.req_snmp and not ro_community:
             self._errors['read_only'] = self.error_class(
                 ["Category %s requires SNMP access." % cat.id])
-            del cleaned_data['category']
             del cleaned_data['read_only']
 
         return cleaned_data

@@ -1,5 +1,6 @@
 #
-# Copyright 2010 (C) Norwegian University of Science and Technology
+# Copyright (C) 2010 Norwegian University of Science and Technology
+# Copyright (C) 2011-2015 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -21,7 +22,7 @@ from operator import or_ as OR
 
 from django.http import HttpResponse
 from django.template import RequestContext, Context
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -38,7 +39,9 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      find_allowed_vlans_for_user,
                                      filter_vlans, fetch_voice_vlans,
                                      should_check_access_rights,
-                                     mark_detained_interfaces)
+                                     mark_detained_interfaces,
+                                     is_restart_interface_enabled,
+                                     is_write_mem_enabled)
 from nav.Snmp.errors import SnmpError, TimeOutException
 from nav.portadmin.snmputils import SNMPFactory
 from .forms import SearchForm
@@ -311,7 +314,6 @@ def set_interface_values(account, interface, request):
         set_ifalias(account, fac, interface, request)
         set_vlan(account, fac, interface, request)
         set_admin_status(fac, interface, request)
-        write_to_memory(fac)
         save_to_database([interface])
 
 
@@ -423,14 +425,6 @@ def set_admin_status(fac, interface, request):
             messages.error(request, "Error setting ifadminstatus: %s" % error)
 
 
-def write_to_memory(fac):
-    """Write changes on netbox to memory using snmp"""
-    try:
-        fac.write_mem()
-    except SnmpError, error:
-        _logger.error('Error doing write mem on %s: %s' % (fac.netbox, error))
-
-
 def response_based_on_result(result):
     """Return response based on content of result
 
@@ -519,12 +513,13 @@ def handle_trunk_edit(request, agent, interface):
 
 def restart_interface(request):
     """Restart the interface by setting admin status to down and up"""
+    if not is_restart_interface_enabled():
+        _logger.debug('Not doing a restart of interface, it is configured off')
+        return HttpResponse()
+
     if request.method == 'POST':
-        try:
-            interface = Interface.objects.get(
-                pk=request.POST.get('interfaceid'))
-        except Interface.DoesNotExist:
-            return HttpResponse(status=404)
+        interface = get_object_or_404(
+            Interface, pk=request.POST.get('interfaceid'))
 
         try:
             fac = SNMPFactory.get_instance(interface.netbox)
@@ -534,8 +529,44 @@ def restart_interface(request):
                           interface.netbox, error)
             return HttpResponse(status=500)
 
-        # Restart interface so that client fetches new address
-        fac.restart_if(interface.ifindex)
+        _logger.debug('Restarting interface %s', interface)
+        try:
+            # Restart interface so that client fetches new address
+            fac.restart_if(interface.ifindex)
+        except TimeOutException:
+            # Swallow this exception as it is not important. Others should
+            # create an error
+            pass
+
+        return HttpResponse()
+
+    return HttpResponse(status=400)
+
+
+def write_mem(request):
+    """Do a write mem on the netbox"""
+    if not is_write_mem_enabled():
+        _logger.debug('Not doing a write mem, it is configured off')
+        return HttpResponse()
+
+    if request.method == 'POST':
+        interface = get_object_or_404(
+            Interface, pk=request.POST.get('interfaceid'))
+
+        try:
+            fac = SNMPFactory.get_instance(interface.netbox)
+        except SnmpError, error:
+            _logger.error('Error getting snmpfactory instance when '
+                          'writing to memory %s: %s',
+                          interface.netbox, error)
+            return HttpResponse(status=500)
+
+        try:
+            fac.write_mem()
+        except SnmpError, error:
+            _logger.error(
+                'Error doing write mem on %s: %s' % (fac.netbox, error))
+
         return HttpResponse()
 
     return HttpResponse(status=400)

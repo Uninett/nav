@@ -1,5 +1,5 @@
-# -*- coding: UTF-8 -*-
-# Copyright (C) 2012 UNINETT AS
+# -*- coding: utf-8 -*-
+# Copyright (C) 2012-2015 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,7 +14,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
-A library for checking maintenance tasks.
+NAV Maintenance Engine.
+
+This module deals with enforcing the maintenance schedule by transitioning
+the state of registered maintenance tasks and dispatching maintenance events
+to the event queue.
+
 """
 from __future__ import absolute_import
 import datetime
@@ -47,7 +52,7 @@ def init_logging(log_file=None, log_format=None):
     try:
         if log_file:
             handler = logging.FileHandler(log_file)
-    except IOError, io_err:
+    except IOError:
         # Most likely, we were denied access to the log file.
         # We silently ignore it and log nothing :-P
         pass
@@ -81,7 +86,7 @@ def check_tasks_without_end():
         currently_or_too_recently_down = []
         threshold = datetime.datetime.now() - MINIMUM_UPTIME
         for subject in task.get_event_subjects():
-            end_time = subject.last_downtime_ended()
+            end_time = subject and subject.last_downtime_ended() or None
             if end_time and end_time > threshold:
                 currently_or_too_recently_down.append(subject)
 
@@ -103,8 +108,8 @@ def check_tasks_without_end():
 @commit_on_success
 def do_state_transitions():
     """
-    Finds active or scheduled tasks that has run out and sets them as passed, 
-    and finds scheduled scheduled tasks in the current window and sets them 
+    Finds active or scheduled tasks that have run out and sets them as passed,
+    and finds scheduled scheduled tasks in the current window and sets them
     as active.
     """
     tasks = MaintenanceTask.objects.past().filter(
@@ -136,7 +141,7 @@ def check_state_differences():
     task_subject_mapper = {}
 
     for task in MaintenanceTask.objects.filter(
-        state=MaintenanceTask.STATE_ACTIVE
+            state=MaintenanceTask.STATE_ACTIVE
     ):
         for subject in task.get_event_subjects():
             task_subject_mapper[subject] = task.id
@@ -151,8 +156,8 @@ def check_state_differences():
 
     # Set on maintenance that which is not and should be
     to_be_put_on_maintenance = should_be_on_maintenance - is_on_maintenance
-    _logger.debug("Subjects that should be on maintenance but wasn't: %r",
-        to_be_put_on_maintenance)
+    _logger.debug("Subjects that should be on maintenance but weren't: %r",
+                  to_be_put_on_maintenance)
 
     for subject in to_be_put_on_maintenance:
         create_event(
@@ -163,11 +168,11 @@ def check_state_differences():
         )
 
     # Set off maintenance that which is and should not be
-    to_be_put_off_maintenance = is_on_maintenance - should_be_on_maintenance
-    _logger.debug("Subjects that should not be on maintenance but was: %r",
-        to_be_put_off_maintenance)
+    to_be_taken_off_maintenance = is_on_maintenance - should_be_on_maintenance
+    _logger.debug("Subjects that should not be on maintenance but were: %r",
+                  to_be_taken_off_maintenance)
 
-    for subject in to_be_put_off_maintenance:
+    for subject in to_be_taken_off_maintenance:
         create_event(subject, state=Event.STATE_END, value=0)
 
 
@@ -196,7 +201,7 @@ def create_event(subject, state, value, taskid=None):
         event.device = subject.device
 
         varmap['netbox'] = subject.sysname
-        
+
     elif isinstance(subject, service.Service):
         event.subid = subject.id
         event.netbox = subject.netbox
@@ -204,8 +209,8 @@ def create_event(subject, state, value, taskid=None):
 
         varmap['service'] = subject.handler
         varmap['servicename'] = subject.handler
-    
-    if taskid:    
+
+    if taskid:
         varmap['maint_taskid'] = taskid
 
     event.save()

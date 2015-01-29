@@ -7,6 +7,7 @@
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>{% block base_header_title %}{{ title }}{% endblock %}</title>
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav.css" />
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/custom.css" />
@@ -19,10 +20,10 @@
             'cssPath': '{{ STATIC_URL }}css/nav',
             'imagePath': '{{ STATIC_URL }}images',
             'proxyOsmUrl': "{% url 'base_osm_map_redirect' %}",
-            'addGraphWidgetUrl': '{% url 'add-user-navlet-graph' %}',
-            'graphiteRenderUrl': '{% url 'graphite-render' %}',
+            'addGraphWidgetUrl': "{% url 'add-user-navlet-graph' %}",
+            'graphiteRenderUrl': "{% url 'graphite-render' %}",
             urls: {
-                status2_api_alerthistory: '{% url 'alerthistory-list' %}'
+                status2_api_alerthistory: "{% url 'api:1:alerthistory-list' %}"
             }
         };
     </script>
@@ -93,7 +94,7 @@
                 </ul>
             </li>
 
-            <li class="hide-for-small text-center"><a id="megadroptoggler" href="javascript:void(0);">Tools <i class="fa fa-caret-down"></i></a></li>
+            <li class="hide-for-small text-center"><a id="megadroptoggler" href="javascript:void(0);">Tools <i class="fa fa-caret-down pad-left"></i></a></li>
 
             {% if not current_user_data.account.is_default_account %}
                 <li class="has-dropdown">
@@ -132,7 +133,7 @@
 
   {% endcomment %}
   <div class="megadropcontainer">
-    <div id="megadrop" class="row hide">
+    <div id="megadrop" class="row hidden">
       {% comment %} split_tools are split into 3 lists of tools {% endcomment %}
       <div class="small-12 column">
 

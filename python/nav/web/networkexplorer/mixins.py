@@ -96,7 +96,8 @@ class ExpandRouterContextMixin(object):
             if gwport.to_netbox:
                 c.update({
                     'netbox_sysname': gwport.to_netbox.sysname,
-                    'trunk_port': gwport.to_interface.trunk,
+                    'trunk_port': (gwport.to_interface.trunk
+                                   if gwport.to_interface else None)
                 })
             c.update(self._get_expandable(gwport))
             context.append(c)
@@ -253,11 +254,7 @@ class ExpandSwitchContextMixin(object):
         switch = kwargs.pop('object')
         vlan_id = self.kwargs.pop('vlan_id', None)
         swports = switch.get_swports()
-        swport_vlans = SwPortVlan.objects.select_related(
-            'interface__netbox',
-            'interface__to_interface__netbox',
-            'interface__to_netbox',
-        ).filter(
+        swport_vlans = SwPortVlan.objects.filter(
             interface__in=swports,
             vlan__id=vlan_id)
         switch_has_services = switch.service_set.all().count()

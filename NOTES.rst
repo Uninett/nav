@@ -26,15 +26,242 @@ NAV 4.2
 To see the overview of scheduled features and reported bugs on the 4.2 series
 of NAV, please go to https://launchpad.net/nav/4.2 .
 
+Dependency changes
+------------------
+
+There are none :-)
+
+Rename some of your Whisper files to keep your statistics
+---------------------------------------------------------
+
+The 4.2.2 release adds commas to the list of characters escaped in Graphite
+metric names; commas cause problems when constructing target names for
+graphite-web, when rendering graphs and retrieving metrics. An out-of-place
+comma will cause Graphite render requests to fail.
+
+If your Graphite storage directory contains Whisper files with commas in
+their filenames (under the `nav` hierarchy), and you want to keep your data
+history, you will need to rename these files by replacing the commas with
+underscores. Something like this should do the trick::
+
+    cd /opt/graphite/storage/whisper/nav
+    find -name '*,*' | xargs rename --verbose 's/,/_/g'
+
+
+Multicast listener stats from IGMP snooping
+-------------------------------------------
+
+NAV 4.2 will use HP's STATISTICS-MIB to sum up the number of known multicast
+group subscribers per HP switch (i.e. from each switch's IGMP snooping data).
+Each multicast group address seen is logged to Graphite under the
+`nav.multicast` hierarchy.
+
+We wanted to support similar functionality for Cisco devices, but it seems
+support for Cisco's own proprietary CISCO-IGMP-SNOOPING-MIB is very poor among
+Cisco switches.
+
 
 Graphite storage schema changes
 -------------------------------
 
 Be aware that the example Graphite storage schema
 :file:`etc/nav/graphite/storage-schema.conf` has added a section for multicast
-statistics, as support for producing IGMP membership statistics from HP
-switches has been added. Be sure to update your running Carbon configuration.
+statistics. Be sure to update your running Carbon configuration.
 
+Rewritten Status tool
+---------------------
+
+The Status tool has been rewritten from scratch.
+
+The old Status tool hardcoded table listings for specific alert types, and not
+all alert types were supported - meaning some alerts were never actually
+displayed in the Status tool. This also made it very difficult to dynamically
+add new alert types from plugins or third party software, without modifying
+the Status tool code.
+
+The new tool offers an in-page status filtering form, which can also be saved
+as your personal status page filter preference.
+
+Any filter configuration can also be saved as a new front-page status filter,
+meaning you can have multiple status widgets, each with a different
+configuration. When modifying the default/anonymous user's front page widgets,
+this means you can also decide which types of alerts, if any, will be
+displayed to unauthenticated users.
+
+Alert acknowledgement
+~~~~~~~~~~~~~~~~~~~~~
+
+With the new Status tool comes the ability to acknowledge open alerts, with
+comments. An acknowledged alert is not displayed under the default Status tool
+filter configuration (but can be added by checking the "Acknowledged"
+checkbox).
+
+Stateless alerts
+~~~~~~~~~~~~~~~~
+
+The Status tool normally displays stateful alerts, i.e. states that have a
+starting time and, eventually, an ending time. The can be actual problems, or
+more information states, such as a device being on scheduled maintenance.
+
+However, NAV will at times also issue stateless alerts (warnings). Before,
+these were normally only accessible in the Device History tool, and through
+alert subscriptions in Alert Profiles.
+
+The Status page tool can now be configured to include recent stateless alerts,
+within a set threshold (the default is 24 hours). The default is still to
+leave them out.
+
+New status widget
+~~~~~~~~~~~~~~~~~
+
+A widget version of the new Status tool is also introduced. Users who have the
+old Status widget on their NAV front pages will see their widgets replaced
+with a Status tool widget filtering for *boxState* events.
+
+By default, NAV places a status widget on the front page of anonymous users.
+With the new widget, you can also control what kind of alerts anonymous users
+can see on the front page.
+
+.. TIP:: To configure, remove or add more Status widgets to the front page of
+         anonymous users, go to the User Admininstration tool, select the
+         *default* user and click the button :guilabel:`Operate as this user`.
+
+         While operating as the *default* user, configure the widgets on the
+         front page to your liking. Click :guilabel:`Log back in as ...` to
+         return to normal operation.
+
+
+Netmap redesign
+---------------
+
+There was never time to clean up the Netmap tool's complicated user interface
+during the design changes released in NAV 4.0. This has now been rectified.
+
+The map portion of the page has been given more space, and the view options
+are now contained in a hideable panel above the map. Your saved views should
+still work.
+
+
+SeedDB IP device form redesign
+------------------------------
+
+The form for adding and editing an IP device has been redesigned. It no longer
+requires connectivity to add or edit an IP device, but you have the option to
+verify the connectivity if you want. As a result of this, only one step is
+required to complete the form. Should you go ahead and save a router with the
+wrong SNMP community, NAV will shortly raise an *snmpAgentAlert* for this
+device.
+
+In addition to this, IP address verification has been added to the form. When
+adding an IP device by its hostname in NAV versions prior to 4.2, if this
+hostname resolved to multiple IP addresses, NAV would select an arbitrary IP
+address from these as its management address for the device. The new form will
+ask the user to choose one of the resolved IP addresses from a list.
+
+
+Custom attributes on IP devices and locations
+---------------------------------------------
+
+You now have to option to add custom attributes to your IP devices and
+locations. In NAV 4.1 this was only available for rooms and organizations. The
+custom attributes are added in the respective SeedDB forms.
+
+The attributes added for IP devices are displayed on the IP Device Info page.
+The attributes for locations are currently not visible outside of SeedDB, as
+there are no canonical Location-pages in NAV (yet). The *location* report can
+be amended locally to include those attributes you want displayed, in the same
+way as commented on the *organization* and *room* reports.
+
+
+New command line utilities
+--------------------------
+
+NAV 4.2 introduces three new command line utilities for advanced users:
+
+navdf
+~~~~~
+::
+
+    Usage: navdf [filter]
+
+    Lists and filters IP devices monitored by NAV
+
+    Options:
+      -h, --help  show this help message and exit
+
+    The filter expression must be a method call applicable to the Django-based
+    Netbox model's manager class. Example: "filter(category__id='GSW')"
+
+
+navoidverify
+~~~~~~~~~~~~
+::
+
+    usage: navoidverify baseoid < sysnames.txt
+
+    Verifies SNMP sub-tree support on a set of NAV-monitored devices
+
+    positional arguments:
+      baseoid     The base OID for which a GETNEXT operation will be performed
+
+    optional arguments:
+      -h, --help  show this help message and exit
+
+    Given the root of an SNMP MIB module, a bunch of devices can be queried in
+    parallel whether they have any objects below the given BASEOID - effectively
+    verifying MIB support in these devices.
+
+
+naventity
+~~~~~~~~~
+::
+
+    usage: naventity device
+
+    Outputs entity hierarchy graph from a device's ENTITY-MIB::entPhysicalTable
+    response
+
+    positional arguments:
+      device      The NAV-monitored IP device to query. Must be either a sysname
+		  prefix or an IP address.
+
+    optional arguments:
+      -h, --help  show this help message and exit
+
+
+Files to remove
+---------------
+
+Many files have been removed or moved around since NAV 4.0 and 4.1. Unless you
+upgraded NAV using a package manager (such as APT), you may need/want to
+remove some obsolete files and directories (here prefixed by /usr/local/nav)::
+
+    /usr/local/nav/doc/hacking/netmap.rst
+    /usr/local/nav/doc/hacking/using-vagrant.rst
+    /usr/local/nav/doc/hacking/vagrant.rst
+    /usr/local/nav/doc/html/hacking/netmap.html
+    /usr/local/nav/doc/html/hacking/using-vagrant.html
+    /usr/local/nav/doc/html/hacking/vagrant.html
+    /usr/local/nav/doc/html/_sources/hacking/netmap.txt
+    /usr/local/nav/doc/html/_sources/hacking/using-vagrant.txt
+    /usr/local/nav/doc/html/_sources/hacking/vagrant.txt
+    /usr/local/nav/lib/python/nav/web/api/auth.py
+    /usr/local/nav/lib/python/nav/web/api/helpers/
+    /usr/local/nav/lib/python/nav/web/api/serializers.py
+    /usr/local/nav/lib/python/nav/web/api/views.py
+    /usr/local/nav/lib/python/nav/web/netmap/forms.py
+    /usr/local/nav/share/htdocs/static/js/src/netmap/app.js
+    /usr/local/nav/share/htdocs/static/js/src/netmap/collections/
+    /usr/local/nav/share/htdocs/static/js/src/netmap/main.js
+    /usr/local/nav/share/htdocs/static/js/src/netmap/models/
+    /usr/local/nav/share/htdocs/static/js/src/netmap/order.js
+    /usr/local/nav/share/htdocs/static/js/src/netmap/resource.js
+    /usr/local/nav/share/htdocs/static/js/src/netmap/router.js
+    /usr/local/nav/share/htdocs/static/js/src/netmap/templates/
+    /usr/local/nav/share/htdocs/static/js/src/netmap/views/
+    /usr/local/nav/share/templates/netmap/admin_list_mapviews.html
+    /usr/local/nav/share/templates/netmap/backbone.html
+    /usr/local/nav/share/templates/netmap/graphml.html
 
 
 NAV 4.1

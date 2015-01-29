@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010, 2011 UNINETT
+# Copyright (C) 2010, 2011, 2013-2015 UNINETT
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -79,6 +79,8 @@ class NetboxImporter(BulkImporter):
         netbox.device = device
         objects = [device, netbox]
 
+        netbox.data = self._parse_data(row['data'])
+
         netboxinfo = self._get_netboxinfo_from_function(
             netbox, row['function'])
         if netboxinfo:
@@ -130,6 +132,14 @@ class NetboxImporter(BulkImporter):
             netboxgroups.append(NetboxCategory(netbox=netbox,
                                                category=netboxgroup))
         return netboxgroups
+
+    @staticmethod
+    def _parse_data(datastring):
+        if datastring:
+            items = (item.split('=', 1) for item in datastring.split('|'))
+        else:
+            items = []
+        return dict(items) if items else dict()
 
 
 class ServiceImporter(BulkImporter):

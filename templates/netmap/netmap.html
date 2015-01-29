@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% load tools %}
+
+{% block base_header_additional_head %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/netmap.css"  />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"  />
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/spin.min.js"></script>
+    <script>require(["src/netmap/netmap"]);</script>
+{% endblock %}
+
+{% block base_content %}
+
+<div class="row">
+  <div class="small-12 columns">
+    {% with tool=current_user_data.tools|get_tool:'Netmap' %}
+      {% include 'nav_header.html' %}
+    {% endwith %}
+  </div>
+</div>
+
+<div id="navigation-view">
+  <form id="netmap-view-create-form" style="display: none">
+    <input type="text" name="viewname" placeholder="View name" required>
+    <textarea name="viewdescription" placeholder="View description"></textarea>
+    <label><input type="checkbox" name="public" checked>Public</label>
+    <input type="submit" class="button small" value="Save">
+  </form>
+
+  {% comment %} jQuery UI is kinda stupid (or maybe we are), so we need two forms {% endcomment %}
+  <form id="netmap-view-edit-form" style="display: none">
+    <input type="text" name="viewname" placeholder="View name" required>
+    <textarea name="viewdescription" placeholder="View description"></textarea>
+    <label><input type="checkbox" name="public" checked>Public</label>
+    <input type="submit" class="button small" value="Save">
+  </form>
+
+
+  <div id="graph-navigation" class="row">
+
+    {# The top action row with search, view menu and options toggler #}
+    <div class="medium-6 columns">
+      <form id="graph-search-form">
+        <div class="row collapse">
+
+          <div class="medium-8 columns">
+            <input id="graph-search-input" type="text" placeholder="Search graph">
+          </div>
+          <div class="medium-2 columns">
+            <input id="graph-search-submit" class="postfix button" type="submit" value="Search">
+          </div>
+          <div class="medium-2 columns">
+            <input id="graph-search-reset" class="postfix button" type="reset" value="Reset">
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="medium-4 columns">
+      <div class="row collapse">
+        <div class="medium-2 columns">
+          <span class="prefix">View</span>
+        </div>
+        <div class="medium-10 columns">
+          <select id="graph-view-select">
+            {% for view in netmap_views %}
+              <option id="{{ view.pk }}" value="{{ view.pk }}">
+                {{ view.title }} ({{ view.owner }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="medium-2 columns">
+      <a id="netmap-view-panel-toggle" class="expand button secondary small">
+        View options
+        <i class="fa fa-caret-down"></i>
+      </a>
+    </div>
+
+  </div>
+
+  {# The netmap view panel that contains settings and view configurability #}
+  <div class="row">
+    <div id="netmap-view-panel" class="medium-12 columns hidden">
+      <div class="panel">
+        <div class="row" data-equalizer>
+
+          {# Left panel #}
+          <div class="large-3 columns">
+            <div class="panel white" data-equalizer-watch>
+              <h5>Create and edit views</h5>
+              <a id="netmap-view-create"
+                 class="expand button secondary small">Create new view
+              </a>
+
+              <a id="netmap-view-default"
+                 class="expand button secondary small">Set as default view
+              </a>
+
+              <a id="netmap-view-edit"
+                 class="expand button secondary small">Edit view
+              </a>
+
+              <a id="netmap-view-delete"
+                 class="expand button alert small">Delete view
+              </a>
+
+              {% if account.is_admin %}
+                <p>
+                  <a href="{% url netmap-admin %}" title="Go to Netmap admin page">Manage saved views</a>
+                </p>
+              {% endif %}
+
+              <div id="netmap-left-alert-container"></div>
+
+
+            </div> {# .panel.white #}
+          </div> {# .columns #}
+
+          {# Middle panel #}
+          <div class="large-6 columns">
+            <div class="panel white" data-equalizer-watch>
+              <h5>View settings</h5>
+              <div class="row">
+
+                {# Column for filter categories #}
+                <div class="medium-6 columns">
+                  <ul id="filter-category-list" class="no-bullet">
+                    {% for category in categories %}
+                      <li>
+                        <label for="filter-{{ category }}">
+                          <input type="checkbox" id="filter-{{ category }}" class="filter-category" value="{{ category }}">
+                          {{ category }}
+                        </label>
+                      </li>
+                    {% endfor %}
+                  </ul>
+
+                  <label for="filter-orphan-nodes" class="right">
+                    Display isolated nodes
+                    <input type="checkbox" id="filter-orphan-nodes">
+                  </label>
+                </div> {# .column #}
+
+                {# Column for layer switcher and room/location filter #}
+                <div class="medium-6 columns">
+                  <label>
+                    Layer
+                    <select id="graph-layer-select">
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                    </select>
+                  </label>
+
+                  <form id="filter-room-location-form">
+                    <div class="row collapse">
+                      <div class="medium-9 columns">
+                        <input type="text" placeholder="Filter by room or location">
+                      </div>
+                      <div class="medium-3 columns">
+                        <input class="postfix button" type="submit" value="Filter">
+                      </div>
+                    </div>
+                  </form>
+
+                  <div id="filter-labels"></div>
+                </div> {# .column #}
+              </div> {# .row inside white panel #}
+
+              <hr>
+
+              <a id="netmap-view-save"
+                 class="button small">Save view settings
+              </a>
+              <div id="netmap-middle-alert-container" style="display: inline-block"></div>
+
+            </div> {# .panel.white #}
+          </div> {# .column #}
+
+          {# Right panel #}
+          <div class="large-3 columns">
+            <div class="panel white" data-equalizer-watch>
+              <h5>Misc</h5>
+              <ul class="button-group">
+                <li><a id="netmap-view-fix-nodes" class="button tiny"
+                       title="Freeze the position of all nodes">Fix all nodes</a></li>
+                <li><a id="netmap-view-unfix-nodes" class="button tiny"
+                        title="Makes all nodes move freely">Unfix all nodes</a></li>
+                <li><a id="netmap-view-zoom-to-extent" class="button tiny"
+                       title="Zoom so that all nodes are in the view">Zoom to fit</a></li>
+                <li><a id="netmap-view-reset-transparency" class="button tiny"
+                       title="When nodes have been faded out, this button will fade them in again.">Reset view</a></li>
+                <li><a id="netmap-view-toggle-force" class="button tiny" data-status="on"
+                       title="Stop the movement of the nodes">Stop animation <i class="fa fa-stop"></i></a></li>
+              </ul>
+
+              <form id="refresh-interval">
+                <h6>Refresh interval</h6>
+                <label><input name="refresh-interval-value" type="radio" value="-1" checked>Off</label>
+                <label><input name="refresh-interval-value" type="radio" value="2">2 min</label>
+                <label><input name="refresh-interval-value" type="radio" value="10">10 min</label>
+                <label><input type="checkbox" value="traffic">Traffic only</label>
+                <div id="refresh-counter"></div>
+              </form>
+            </div> {# .panel.white #}
+          </div> {# .column #}
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="row">
+
+  <div id="graph" class="large-12 columns">
+    <div id="graph-info-view"></div>
+    <div id="graph-view"></div>
+    <div id="spinner-dummy"></div>
+  </div>
+
+</div>
+
+<div class="row">
+  <div class="large-12 columns">
+
+    <table id="traffic-gradient">
+      <thead>
+        <tr>
+          {% for _ in traffic_gradient %}
+            <th>
+              {% if forloop.first %}
+                0%
+              {% elif forloop.counter|divisibleby:'10' %}
+                {{ forloop.counter }}%
+              {% endif %}
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          {% for rgb in traffic_gradient %}
+            <td class="traffic-rgb" style="background: rgb({{ rgb.r }}, {{ rgb.g }}, {{ rgb.b }})"></td>
+          {% endfor %}
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script type="text/javascript">
+
+    window.netmapData = {
+        staticURL: '{{ STATIC_URL }}images/netmap/',
+        userID: {{ account.pk }},
+        userLogin: '{{ account.login }}',
+        admin: {% if account.is_admin %}true{% else %}false{% endif %},
+        views: {{ netmap_views_json|safe }},
+        defaultView: {{ default_view|default_if_none:'null' }},
+        roomsAndLocations: {{ rooms_locations|safe }}
+    };
+
+    var target = document.getElementById('spinner-dummy');
+    var opts = {
+        lines: 13, // The number of lines to draw
+        length: 7, // The length of each line
+        width: 6, // The line thickness
+        radius: 20, // The radius of the inner circle
+        corners: 1, // Corner roundness (0..1)
+        rotate: 0, // The rotation offset
+        color: '#000', // #rgb or #rrggbb
+        speed: 1, // Rounds per second
+        trail: 60, // Afterglow percentage
+        shadow: true, // Whether to render a shadow
+        hwaccel: true, // Whether to use hardware acceleration
+        className: 'spinner', // The CSS class to assign to the spinner
+        zIndex: 2e9, // The z-index (defaults to 2000000000)
+        top: 'auto', // Top position relative to parent in px
+        left: 'auto' // Left position relative to parent in px
+    };
+    document.navNetmapAppSpinner = new Spinner(opts).spin(target);
+</script>
+{% endblock %}

@@ -36,16 +36,33 @@
 
     <div class="title-container">
       <span class="subheader" title="{{ navlet.description }}"
-            {% if navlet.is_title_editable %}data-set-title="{% url 'set-navlet-preferences' %}"{% endif %}>
+        {% if navlet.is_title_editable %}
+          {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
+              data-set-title="{% url 'set-navlet-preferences' %}"
+          {% endif %}
+        {% endif %}>
         <span class="navlet-title">{{ navlet.title }}</span>
           {% if navlet.is_title_editable %}
-            <i class="fa fa-edit"></i>
+            {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
+              <i class="fa fa-edit"></i>
+            {% endif %}
           {% endif %}
       </span>
     </div>
 
+    {% if navlet.is_deprecated %}
+      <div class="alert-box warning with-icon deprecated-warning">
+        This widget is deprecated. You may still use it, but it might not
+        function properly.
+      </div>
+    {% endif %}
+
   </div>
 </div>
 
-{% block navlet-content %}
-{% endblock %}
+<div class="row navlet-body">
+  <div class="small-12 columns">
+    {% block navlet-content %}
+    {% endblock %}
+  </div>
+</div>

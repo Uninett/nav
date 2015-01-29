@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010 UNINETT AS
+ * Copyright (C) 2009, 2010, 2015 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV).
  *
@@ -18,7 +18,7 @@
  * geomap.js: Shows a map with a network information overlay.
  */
 
-require(['libs/jquery'], function () {
+require(['libs/spin', 'libs/jquery'], function (Spinner) {
     $(function () {
         var $timePanelToggler = $('#time-panel-toggler'),
             $icon = $timePanelToggler.find('i');
@@ -57,6 +57,8 @@ var mapElemId;
 var mapFullscreen = false;
 var nav = nav || {};
 var getDataUrl = 'data';
+var mapSelector = "map";
+var spinner = new Spinner();
 
 
 function create_bounding_box() {
@@ -171,16 +173,13 @@ function getLong(position) {
  * Updating the displayed loading status:
  */
 function netLayerLoadStart() {
-//    document.getElementById('geomap-spinner').style.display = 'block';
-    document.getElementsByClassName('navbody')[0].className = 'navbody loading';
+    spinner.spin(document.getElementById(mapSelector));
 }
 function netLayerLoadEnd() {
-//    document.getElementById('geomap-spinner').style.display = 'none';
-    document.getElementsByClassName('navbody')[0].className = 'navbody';
+    spinner.stop();
 }
 function netLayerLoadCancel() {
-//    document.getElementById('geomap-spinner').style.display = 'none';
-    document.getElementsByClassName('navbody')[0].className = 'navbody';
+    spinner.stop();
 }
 
 /*

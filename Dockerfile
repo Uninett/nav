@@ -26,17 +26,19 @@ ENV DEBIAN_FRONTEND noninteractive
 
 #### Install various build and runtime requirements as Debian packages ####
 
-RUN apt-get update
-
-RUN apt-get -y --no-install-recommends build-dep \
-            python-psycopg2 python-lxml librrd-dev python-imaging python-ldap ;\
-    \
+RUN apt-get update \
+    && \
+    apt-get -y --no-install-recommends build-dep \
+            python-psycopg2 python-lxml librrd-dev python-imaging python-ldap \
+    && \
     apt-get -y --no-install-recommends install \
             locales mercurial subversion git-core python-virtualenv python-pip \
             build-essential librrd-dev python-dev autoconf automake libsnmp15 \
             cron sudo libapache2-mod-wsgi rubygems inotify-tools python-cairo \
             postgresql-9.1 postgresql-contrib-9.1 postgresql-client openssh-server \
-            supervisor
+            supervisor \
+    && \
+    apt-get clean
 
 RUN pip install whisper carbon graphite-web django-tagging
 
@@ -47,9 +49,6 @@ RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash n
     adduser --system --group --no-create-home --home=/opt/graphite --shell=/bin/bash graphite
 
 RUN echo "import sys\nsys.path.append('/source/python')" > /etc/python2.7/sitecustomize.py
-RUN apt-get clean
-
-RUN echo "export APACHE_ARGUMENTS='-DFOREGROUND'" >> /etc/apache2/envvars
 
 
 #################################################################################

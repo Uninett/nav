@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007-2012 UNINETT AS
+# Copyright (C) 2007-2015 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -29,15 +29,13 @@ from django.db.models import Q
 from itertools import count, groupby
 
 from nav.bitvector import BitVector
-from nav.metrics.data import get_metric_average
+from nav.metrics.data import get_netboxes_availability
 from nav.metrics.graphs import get_simple_graph_url
 from nav.metrics.names import get_all_leaves_below
 from nav.metrics.templates import (
     metric_prefix_for_interface,
     metric_prefix_for_ports,
     metric_prefix_for_device,
-    metric_path_for_packet_loss,
-    metric_path_for_roundtrip_time,
     metric_path_for_sensor
 )
 import nav.natsort
@@ -65,7 +63,6 @@ class Netbox(models.Model):
         (UP_DOWN, 'down'),
         (UP_SHADOW, 'shadow'),
     )
-    TIME_FRAMES = ('day', 'week', 'month')
 
     id = models.AutoField(db_column='netboxid', primary_key=True)
     ip = models.IPAddressField(unique=True)
@@ -75,9 +72,9 @@ class Netbox(models.Model):
     device = models.ForeignKey('Device', db_column='deviceid')
     sysname = VarcharField(unique=True)
     category = models.ForeignKey('Category', db_column='catid')
-    netboxgroups = models.ManyToManyField(
+    groups = models.ManyToManyField(
         'NetboxGroup', through='NetboxCategory', blank=True, null=True)
-    netboxgroups.help_text = ''
+    groups.help_text = ''
     organization = models.ForeignKey('Organization', db_column='orgid')
     read_only = VarcharField(db_column='ro', blank=True, null=True)
     read_write = VarcharField(db_column='rw', blank=True, null=True)
@@ -92,8 +89,8 @@ class Netbox(models.Model):
 
     class Meta:
         db_table = 'netbox'
-        verbose_name = 'netbox'
-        verbose_name_plural = 'netboxes'
+        verbose_name = 'ip device'
+        verbose_name_plural = 'ip devices'
         ordering = ('sysname',)
 
     def __unicode__(self):
@@ -195,32 +192,8 @@ class Netbox(models.Model):
 
     def get_availability(self):
         """Calculates and returns an availability data structure."""
-        pktloss_id = metric_path_for_packet_loss(self.sysname)
-        rtt_id = metric_path_for_roundtrip_time(self.sysname)
-
-        result = {
-            'availability': {
-                'data_source': pktloss_id,
-            },
-            'response_time': {
-                'data_source': rtt_id,
-            },
-        }
-
-        for time_frame in self.TIME_FRAMES:
-            avg = get_metric_average([pktloss_id, rtt_id],
-                                              start="-1%s" % time_frame)
-
-            # Availability
-            pktloss = avg.get(pktloss_id, None)
-            if pktloss is not None:
-                pktloss = 100 - (pktloss * 100)
-            result['availability'][time_frame] = pktloss
-
-            # Response time
-            result['response_time'][time_frame] = avg.get(rtt_id, None)
-
-        return result
+        result = get_netboxes_availability([self])
+        return result.get(self.pk)
 
     def get_week_availability(self):
         """Gets the availability for this netbox for the last week"""
@@ -450,7 +423,7 @@ class Module(models.Model):
         unique_together = (('netbox', 'name'),)
 
     def __unicode__(self):
-        return u'Module {name}, at {netbox}'.format(
+        return u'{name} at {netbox}'.format(
             name=self.name or self.module_number, netbox=self.netbox)
 
     def get_absolute_url(self):
@@ -643,9 +616,14 @@ class NetboxGroup(models.Model):
 
     class Meta:
         db_table = 'netboxgroup'
+        ordering = ('id',)
+        verbose_name = 'device group'
 
     def __unicode__(self):
         return self.id
+
+    def get_absolute_url(self):
+        return reverse('netbox-group-detail', kwargs={'groupid': self.pk})
 
 
 class NetboxCategory(models.Model):
@@ -711,6 +689,7 @@ class Vendor(models.Model):
 
     class Meta:
         db_table = 'vendor'
+        ordering = ('id', )
 
     def __unicode__(self):
         return self.id
@@ -836,12 +815,12 @@ class Usage(models.Model):
     """From NAV Wiki: The usage table defines the user group (student, staff
     etc). Usage categories are maintained in the edit database tool."""
 
-    id = models.CharField(db_column='usageid',
-        max_length=30, primary_key=True)
+    id = models.CharField(db_column='usageid', max_length=30, primary_key=True)
     description = VarcharField(db_column='descr')
 
     class Meta:
         db_table = 'usage'
+        verbose_name = 'usage'
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
@@ -1111,7 +1090,8 @@ class Interface(models.Model):
         self.time_since_activity_cache = {}
 
     def __unicode__(self):
-        return u'%s at %s' % (self.ifname, self.netbox)
+        return u'{ifname} at {netbox}'.format(
+            ifname=self.ifname, netbox=self.netbox)
 
     @classmethod
     def sort_ports_by_ifname(cls, ports):
@@ -1421,9 +1401,20 @@ class PowerSupplyOrFan(models.Model):
             event_type__id__in=['psuState', 'fanState'],
             subid=self.id)
 
-    def is_on_maintenace(self):
+    def is_on_maintenance(self):
         """Returns True if the owning Netbox is on maintenance"""
         return self.netbox.is_on_maintenance()
+
+    def __unicode__(self):
+        return "{name} at {netbox}".format(
+            name=self.name or self.descr,
+            netbox=self.netbox
+        )
+
+    def get_absolute_url(self):
+        """Returns a canonical URL to view fan/psu status"""
+        base = self.netbox.get_absolute_url()
+        return base + "#!powerfans"
 
 
 class UnrecognizedNeighbor(models.Model):

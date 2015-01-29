@@ -1,3 +1,2 @@
-ALTER TABLE manage.netbox ADD data hstore DEFAULT hstore('') NOT NULL;
-ALTER TABLE manage.location ADD data hstore DEFAULT hstore('') NOT NULL;
-
+-- Add field location_room_filter to netmap_view
+ALTER TABLE netmap_view ADD COLUMN location_room_filter varchar NOT NULL DEFAULT '';

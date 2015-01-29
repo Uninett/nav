@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009, 2010 UNINETT AS
+# Copyright (C) 2009, 2010, 2013, 2015 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -414,6 +414,9 @@ class Node:
         self.lat = lat
         self.properties = properties
 
+    def __repr__(self):
+        return "Node(%s)" % self.id
+
 
 class Edge:
     """Representation of an edge in a graph."""
@@ -425,6 +428,9 @@ class Edge:
         self.target = target
         self.source_data = source_data
         self.target_data = target_data
+
+    def __repr__(self):
+        return "Edge(%s)" % self.id
 
 
 class Graph:

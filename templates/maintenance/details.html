@@ -6,22 +6,30 @@
 
   {% include 'maintenance/heading.html' %}
 
-<table class="vertitable vertitablefull">
-    <caption>
+<table class="vertitable vertitablefull vevent">
+    <caption class="summary">
         {{ task.description }}
     </caption>
 
     <tbody>
         <tr>
             <th>Start</th>
-            <td>{{ task.start_time|date:"Y-m-d H:i" }}</td>
+            <td>
+              <time class="dtstart" datetime="{{ task.start_time }}">
+                {{ task.start_time|date:"Y-m-d H:i" }}
+              </time>
+            </td>
         </tr>
         <tr>
             <th>End</th>
             {% if task.is_endless %}
                 <td>No end time</td>
             {% else %}
-                <td>{{ task.end_time|date:"Y-m-d H:i" }}</td>
+                <td>
+                  <time class="dtend" datetime="{{ task.end_time }}">
+                    {{ task.end_time|date:"Y-m-d H:i" }}
+                  </time>
+                </td>
             {% endif %}
         </tr>
         <tr>

@@ -25,7 +25,7 @@ from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column,
 
 from nav.web.crispyforms import LabelSubmit
 from nav.models.manage import (Location, Room, Organization, NetboxType,
-                               Vendor)
+                               Vendor, NetboxGroup, Category, Netbox)
 from nav.models.cabling import Cabling
 
 
@@ -85,6 +85,19 @@ class RoomMoveForm(forms.Form):
     """Form for moving a room to a new location"""
     location = forms.ModelChoiceField(
         Location.objects.order_by('id').all(), required=False)
+
+
+class LocationForm(forms.ModelForm):
+    data = DictionaryField(widget=forms.Textarea(), label='Attributes',
+                           required=False)
+
+    class Meta:
+        model = Location
+
+    def __init__(self, *args, **kwargs):
+        super(LocationForm, self).__init__(*args, **kwargs)
+        if kwargs.get('instance'):
+            del self.fields['id']
 
 
 class OrganizationFilterForm(forms.Form):
@@ -163,3 +176,46 @@ class CablingForm(forms.ModelForm):
     """Form for editing a cabling instance"""
     class Meta:
         model = Cabling
+
+
+class DeviceGroupForm(forms.ModelForm):
+    """Form for editing a device group
+
+    We need to create the netboxes field for the many to many relationship, as
+    this is only created by Django on modelforms based on the model where the
+    field is defined (in this case nav.models.manage.Netbox).
+    """
+    netboxes = forms.ModelMultipleChoiceField(
+        queryset=Netbox.objects.all(), required=False)
+
+    def __init__(self, *args, **kwargs):
+        # If the form is based on an existing model instance, populate the
+        # netboxes field with netboxes from the many to many relationship
+        if 'instance' in kwargs and kwargs['instance'] is not None:
+            initial = kwargs.setdefault('initial', {})
+            initial['netboxes'] = [n.pk for n in
+                                   kwargs['instance'].netbox_set.all()]
+        forms.ModelForm.__init__(self, *args, **kwargs)
+
+    class Meta:
+        model = NetboxGroup
+
+
+def to_choice_format(objects, key, value):
+    """Return a list of tuples from model given key and value"""
+    return [(getattr(obj, key), getattr(obj, value)) for obj in objects]
+
+
+def get_netboxes_in_group(group):
+    if group:
+        return group.netbox_set.all()
+    else:
+        return Netbox.objects.none()
+
+
+def get_netboxes_not_in_group(group):
+    if group:
+        return Netbox.objects.exclude(
+            pk__in=group.netbox_set.all().values_list('id', flat=True))
+    else:
+        return Netbox.objects.all()

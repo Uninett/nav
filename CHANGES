@@ -1,3 +1,94 @@
+Version 4.2.2
+(released 08 Jan 2015)
+
+ Important note:
+
+  This release adds commas to the list of characters escaped in Graphite
+  metric names, which may change the name used for some of your existing
+  metrics after an upgrade. If you want to keep your data, the underlying
+  files need to be renamed manually in your Graphite installation. See the
+  updated release notes for more.
+
+ Bugfixes:
+
+  * LP#1169559 (Print button for Netmap)
+  * LP#1394522 (Netbox and Location bulk import formats must be changed to
+                include data attributes)
+  * LP#1396913 (Status page, filter on Device Group)
+  * LP#1396920 (NAV 4, Internet Explorer Compatibility mode)
+  * LP#1396924 (NAV 4.2 does not work with SASS 3.4 or newer, but the install
+                docs do not specify this)
+  * LP#1397255 (Subject text of psuDown alerts in status tool is non-
+                descriptive)
+  * LP#1397886 (device history script timeout on many results)
+  * LP#1398382 (AssertionError prevents Netmap from loading any graph/map)
+  * LP#1398791 (Maintenance system stops working when an IP device on
+                maintenance is deleted)
+  * LP#1398815 (Rooms, hyperlink inconsistensies between report and seeddb)
+  * LP#1399558 (portadmin tries to write to memory for each change)
+  * LP#1400307 (Need easier way to remove services)
+  * LP#1401114 (dropdown for ipdevice when adding a service is fubar)
+  * LP#1401470 (ipdevpoll TypeError: unsupported operand type(s) for +:
+                'NoneType' and 'float')
+  * LP#1403066 (Some routers fail to expand in Network Explorer)
+  * LP#1403432 (report.conf, wrong url for netboxinfo)
+  * LP#1403797 (Geomap is insanely slow after migration to Graphite in NAV 4.0)
+  * LP#1403803 (Geomap "loading data" indicator is missing)
+  * LP#1403884 (geomap sends data request on every tiny movement)
+  * LP#1404207 (Intermittent ValueErrors thrown from pynetsnmp causes ipdevpoll
+                jobs to fail)
+  * LP#1404222 (Conflicting sysnames cause ipdevpoll jobs to crash)
+  * LP#1404225 (Multiple DNS PTR records for the same IP address causes sysname
+                to swing back and forth in NAV)
+  * LP#1407625 (/search/devicegroup takes too long)
+
+
+Version 4.2.1
+(released 27 Nov 2014)
+
+ Bugfixes:
+
+  * LP#1395710 (api token can not be refreshed from the api)
+  * LP#1396514 (Status tool in NAV 4.2 shows no events if API call returns a 500
+                error)
+  * LP#1396516 (Status API in NAV 4.2 crashes when there are old deviant alerts
+                present)
+  * LP#1396517 (Status tool makes hyperlinks out of alert subjects that have no
+                defined URL)
+  * LP#1396531 (logengine spams the error message "KeyError: 'LINK'")
+  * LP#1396914 (netmap filter on location excludes links)
+
+
+Version 4.2.0
+(released 20 Nov 2014)
+
+ User-visible features and improvements:
+
+  * LP#1063703 (The status page is becoming cluttered and should be redesigned)
+  * LP#1374384 (Adding new devices to a room on maintenance does not put those
+                devices on maintenance)
+  * LP#1383624 (Machine Tracker should search uplink data as well)
+  * LP#1383625 (Machine Tracker MAC search should also search physical port
+                addresses)
+  * LP#1384262 (Add unrecognized neighbor search to navbar)
+  * LP#1388078 (Add IGMP Multicast group usage statistics to NAV)
+  * LP#1389226 (Arbitrary attributes on netbox and location)
+  * LP#1390073 (Add support for AKCP sensorProbe8)
+
+ Other, less visible, improvements:
+
+  * LP#1388835 (Maintenance Engine needs a rewrite)
+
+ Bugfixes:
+
+  * LP#1385121 ("Add graph to dashboard" does nothing under certain Apache
+                configurations)
+  * LP#1386716 (Maintenance task with no end time displays incorrectly in edit
+                form)
+  * LP#1389121 (when searching for an ip-address with space in it, NAV crashes)
+  * LP#1389145 (Netbiostracker crash on unparseable MAC Address)
+
+
 Version 4.1.2
 (released 30 Oct 2014)
 

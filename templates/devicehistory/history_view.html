@@ -33,6 +33,7 @@
 
     </div>
 
+    <div id="device-history-search-results">
     {% for group_name, group in history.items %}
     <table class="listtable full-width align-top">
         <caption>
@@ -63,11 +64,17 @@
         <tbody>
         {% for h in group %}
             <tr>
-                <td><a href="{{ h.netbox.get_absolute_url }}"><span
-                        data-tooltip title="
+                <td>
+                  <a href="{{ h.netbox.get_absolute_url }}">
+                    <span title="
                         &lt;strong&gt;Location: &lt;/strong&gt;{{ h.netbox.room.location }}&lt;br /&gt;
                         &lt;strong&gt;Room: &lt;/strong&gt;{{ h.netbox.room }}
-                        ">{{ h.netbox.sysname }}</span></a></td>
+                        "
+                          class="netbox-sysname-tooltip">
+                      {{ h.netbox.sysname }}
+                    </span>
+                  </a>
+                </td>
 
                 <td>{{ h.device.serial|default_if_none:"" }}</td>
                 <td>{{ h.start_time }}</td>
@@ -85,10 +92,8 @@
                     <ul class="no-bullet">
                     {% for state,m in h.extra_messages.items %}
                         <li class="sms_message" id="sms_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
-                            <span>{{ m.sms }}</span>
-                            <ul class="email_message no-bullet" id="email_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
-                                <li>{{ m.email|linebreaks }}</li>
-                            </ul>
+                          <i class="fa fa-envelope" title="{{ m.email|linebreaks }}"></i>
+                          <span>{{ m.sms }}</span>
                         </li>
                     {% endfor %}
                     </ul>
@@ -99,5 +104,6 @@
         </tbody>
     </table>
     {% endfor %}
+    </div>
 
 {% endblock %}

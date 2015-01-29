@@ -29,7 +29,7 @@
                         <form class="add-user-navlet" action="{% url 'add-user-navlet' %}"
                               method="post">
                             <input type="hidden" name="navlet"
-                                   value="{{ navlet.identifier }}">
+                                   value="{{ navlet.get_class }}">
                             <input type="submit"
                                    class="button tiny" value="Add">
                         </form>

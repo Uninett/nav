@@ -13,7 +13,7 @@ define(['libs/spin', 'libs/jquery'], function (Spinner) {
      *
      */
 
-    function Checker() {
+    function Checker(ipchecker) {
         console.log('ConnectivityCheckerForNetboxes called');
 
         var form = $('#seeddb-netbox-form'),
@@ -58,6 +58,19 @@ define(['libs/spin', 'libs/jquery'], function (Spinner) {
             spinner.spin(spinContainer.get(0));
             disableForm();
 
+            var checkHostname = ipchecker.getAddresses();
+            checkHostname.done(function () {
+                if (ipchecker.isSingleAddress) {
+                    checkConnectivity(ip_address, read_community, read_write_community);
+                } else {
+                    onStop();
+                }
+            });
+
+        });
+
+        function checkConnectivity(ip_address, read_community, read_write_community) {
+            console.log('Checking connectivity');
             var request = $.getJSON(NAV.urls.get_readonly, {
                 'ip_address': ip_address,
                 'read_community': read_community,
@@ -66,7 +79,7 @@ define(['libs/spin', 'libs/jquery'], function (Spinner) {
             request.done(onSuccess);
             request.error(onError);
             request.always(onStop);
-        });
+        }
 
         function disableForm() {
             form.css({'opacity': '0.5', 'pointer-events': 'none'});

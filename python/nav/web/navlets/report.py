@@ -1,0 +1,73 @@
+#
+# Copyright (C) 2015 UNINETT AS
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
+"""Report widget"""
+import json
+
+from django.http import HttpResponse, QueryDict
+from nav.models.profiles import AccountNavlet
+from . import Navlet, NAVLET_MODE_EDIT, NAVLET_MODE_VIEW
+from nav.web.report.views import CONFIG_FILE_PACKAGE, make_report
+from nav.report.generator import ReportList
+
+
+class ReportWidget(Navlet):
+    """Widget for displaying a report"""
+
+    title = "Report"
+    description = "Shows a report"
+    refresh_interval = 1000 * 60 * 10  # Refresh every 10 minutes
+    is_editable = True
+
+    def get_template_basename(self):
+        return "report"
+
+    def get_context_data(self, **kwargs):
+        context = super(ReportWidget, self).get_context_data(**kwargs)
+        navlet = AccountNavlet.objects.get(pk=self.navlet_id)
+        report_id = navlet.preferences.get('report_id')
+        query_string = navlet.preferences.get('query_string')
+
+        if self.mode == NAVLET_MODE_EDIT:
+            report_list = ReportList(CONFIG_FILE_PACKAGE).get_report_list()
+            context['report_list'] = report_list
+            context['current_report_id'] = report_id
+            context['query_string'] = query_string
+        elif self.mode == NAVLET_MODE_VIEW:
+            full_context = make_report(
+                self.request.account.login, report_id, None,
+                QueryDict(query_string).copy())
+            if full_context:
+                context['report'] = full_context.get('report')
+
+        return context
+
+    def post(self, request):
+        """Save navlet options on post"""
+        try:
+            navlet = AccountNavlet.objects.get(pk=self.navlet_id,
+                                               account=request.account)
+        except AccountNavlet.DoesNotExist:
+            return HttpResponse(status=404)
+        else:
+            navlet.preferences['report_id'] = request.POST.get('report_id')
+            navlet.preferences['query_string'] = request.POST.get(
+                'query_string')
+            navlet.save()
+            return HttpResponse(json.dumps(navlet.preferences))
+
+
+def get_report_names():
+    """Get all report names"""

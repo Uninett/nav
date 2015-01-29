@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012 UNINETT AS
+# Copyright (C) 2012-2015 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -145,7 +145,11 @@ class TimestampChecker(object):
         if None in new_times:
             self._logger.debug("%r: None in timestamp list: %r",
                                self.var_name, new_times)
-            self._logger.warning("%r: retrieved empty timestamp", self.var_name)
+            return True
+        if uptime_deviation is None:
+            self._logger.debug("%r: unable to calculate uptime deviation for "
+                               "old/new: %r/%r",
+                               self.var_name, old_times, new_times)
             return True
         if old_times != new_times:
             self._logger.debug("%r: timestamps have changed: %r / %r",

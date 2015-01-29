@@ -1,0 +1,95 @@
+<div id="graph-info-modal" class="link-info">
+
+  <div class="row">
+    <div class="small-12 columns nopadding">
+      <table>
+
+        <thead>
+
+        <tr>
+          <th><img src="{{ sourceImg }}" alt="{{ source.category }}" width="24px" height="24px"></th>
+          <th><a href="{{ source.ipdevinfo_link }}">{{ source.sysname }}</a></th>
+          <th></th>
+        </tr>
+        <tr>
+          <th></th>
+          <th><a class="right" href="{{ target.ipdevinfo_link }}">{{ target.sysname }}</a></th>
+          <th><img src="{{ targetImg }}" alt="{{ target.category }}" width="24px" height="24px"></th>
+        </tr>
+
+        </thead>
+
+
+        <tbody>
+        {{#each edges }}
+          <tr>
+            <td>
+              {{#if this.source.interface.ifname }}
+                {{#if this.source.interface.ipdevinfo_link }}
+                  <a href="{{ this.source.interface.ipdevinfo_link }}">
+                    {{ this.source.interface.ifname }}
+                  </a>
+                {{else}}
+                  {{ this.source.interface.ifname }}
+                {{/if }}
+              {{else}}
+                N/A
+              {{/if }}
+            </td>
+            <td>
+              <small>{{traffic_data this.traffic.source }}</small>
+              <span class="load-arrow"
+                {{# if this.traffic.source.css }}
+                  style="color: rgb({{ this.traffic.source.css }});"
+                {{/if }}
+                >&#10096;</span>
+              {{ this.link_speed }} mbps
+              <span class="load-arrow"
+                {{#if this.traffic.target.css }}
+                  style="color: rgb({{ this.traffic.target.css }});"
+                {{/if }}
+                >&#10097;</span>
+              <small>{{traffic_data this.traffic.target }}</small>
+            </td>
+            <td>
+              {{#if this.target.interface.ifname }}
+                {{#if this.target.interface.ipdevinfo_link}}
+                  <a href="{{this.target.interface.ipdevinfo_link}}">
+                    {{this.target.interface.ifname}}
+                  </a>
+                {{else}}
+                  {{this.target.interface.ifname}}
+                {{/if }}
+              {{else}}
+                N/A
+              {{/if }}
+            </td>
+          </tr>
+        {{/each }}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {{#if vlans }}
+    <div class="row">
+      <div id="graph-info-vlan-list" class="small-12 columns nopadding">
+        <ul>
+          {{#each vlans }}
+            <li>
+              <a class="vlan {{#if this.isSelected }}selected-vlan{{/if }}" data-nav-vlan="{{this.nav_vlan}}" title="{{this.vlan}} - {{this.net_ident}}">
+                <span>{{this.vlan}}</span>
+                {{#if this.net_ident }}
+                  {{this.net_ident}}
+                {{else}}
+                  N/A
+                {{/if }}
+              </a>
+            </li>
+          {{/each }}
+        </ul>
+      </div>
+    </div>
+  {{/if }}
+
+</div>

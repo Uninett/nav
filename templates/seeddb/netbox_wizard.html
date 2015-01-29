@@ -4,7 +4,9 @@
 {% block base_header_additional_head %}
   {{ block.super }}
   <script>
-    NAV.urls.get_readonly = '{% url 'seeddb-netbox-get-readonly' %}';
+    NAV.urls.seeddb = NAV.urls.seeddb || {};
+    NAV.urls.get_readonly = "{% url 'seeddb-netbox-get-readonly' %}";
+    NAV.urls.seeddb.verifyAddress = "{% url 'seeddb-netbox-get-address-info' %}";
   </script>
 {% endblock %}
 
@@ -12,10 +14,21 @@
 
   <p><a href="{{ back_url }}">Back to list</a></p>
 
+  {% for message in messages %}
+    <div class="alert-box with-icon {{ message.tags }}">
+      {{ message }}
+    </div>
+  {% endfor %}
+
   <div class="row">
     <div class="small-6 column">
       {% if object %}
-        <h4>Edit {{ object.sysname }}</h4>
+        <h4>Edit
+          <a href="{% url 'ipdevinfo-details-by-id' object.pk %}"
+             title="See device info for {{ object.sysname }}">
+            {{ object.sysname }}
+          </a>
+        </h4>
       {% else %}
         <h5>Add new IP device</h5>
       {% endif %}

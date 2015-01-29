@@ -22,16 +22,16 @@ from django.http import HttpResponse, QueryDict
 from django.test.client import RequestFactory
 
 from nav.django.settings import DATETIME_FORMAT
-from nav.models.profiles import AccountNavlet
+from nav.models.profiles import AccountNavlet, Account
 from nav.web.status2.forms import StatusWidgetForm
-from nav.web.status2.views import AlertHistoryViewSet
+from nav.web.api.v1.views import AlertHistoryViewSet
 from . import Navlet, NAVLET_MODE_EDIT, NAVLET_MODE_VIEW
 
 
 class Status2Widget(Navlet):
     """Widget for displaying status"""
 
-    title = "Status2"
+    title = "Status"
     description = "Shows status for your ip-devices and services"
     refresh_interval = 1000 * 60 * 10  # Refresh every 10 minutes
     is_editable = True
@@ -44,7 +44,7 @@ class Status2Widget(Navlet):
         context = super(Status2Widget, self).get_context_data(**kwargs)
         navlet = AccountNavlet.objects.get(pk=self.navlet_id)
         status_filter = navlet.preferences.get('status_filter')
-        self.title = navlet.preferences.get('title', 'Status2')
+        self.title = navlet.preferences.get('title', 'Status')
 
         if self.mode == NAVLET_MODE_EDIT:
             if status_filter:
@@ -61,12 +61,12 @@ class Status2Widget(Navlet):
 
         return context
 
-    @staticmethod
-    def do_query(query_string):
+    def do_query(self, query_string):
         """Queries for alerts given a query string"""
         factory = RequestFactory()
         view = AlertHistoryViewSet.as_view({'get': 'list'})
         request = factory.get("?%s" % query_string)
+        request.account = Account.objects.get(pk=1)
         response = view(request)
         return response.data.get('results')
 
@@ -81,7 +81,7 @@ class Status2Widget(Navlet):
         now = datetime.now()
         date_format = '%d.%b %H:%M:%S'
         if now.year != timestamp.year:
-            date_format = DATETIME_FORMAT
+            date_format = '%Y-%m-%d %H:%M:%S'
         elif now.date() == timestamp.date():
             date_format = '%H:%M:%S'
         return timestamp.strftime(date_format)

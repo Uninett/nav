@@ -1,5 +1,5 @@
 require([
-    'plugins/multiple-select',
+    'plugins/multiple_select',
     'libs/jquery',
     'libs/jquery.dataTables.min',
     'src/dt_plugins/numeric_html',

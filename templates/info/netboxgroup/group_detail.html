@@ -8,9 +8,7 @@
 
     <table class="listtable netbox_availability_list">
         <caption>Netboxes in {{ netboxgroup.pk }}</caption>
-        {% with netboxgroup.netbox_set.all as netboxes %}
-            {% include 'info/fragments/netboxes.html' %}
-        {% endwith %}
+        {% include 'info/fragments/netboxes.html' %}
     </table>
 
 {% endblock %}
