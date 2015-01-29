@@ -122,7 +122,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         """Lookup IP device in NAV by either hostname or IP address"""
 
         # Prefetch related objects as to reduce number of database queries
-        netboxes = Netbox.objects.select_related(depth=2)
+        netboxes = Netbox.objects.select_related()
         netbox = None
 
         if name:
@@ -418,7 +418,7 @@ def module_details(request, netbox_sysname, module_name):
         activity_interval_form = ActivityIntervalForm(
             initial={'interval': activity_interval})
 
-    module = get_object_or_404(Module.objects.select_related(depth=1),
+    module = get_object_or_404(Module.objects.select_related(),
         netbox__sysname=netbox_sysname, name=module_name)
     swportstatus_view = get_module_view(module, 'swportstatus')
     swportactive_view = get_module_view(
@@ -451,7 +451,7 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
     if not (port_id or port_name):
         return Http404
 
-    ports = Interface.objects.select_related(depth=2)
+    ports = Interface.objects.select_related()
 
     if port_id is not None:
         port = get_object_or_404(ports, id=port_id)
@@ -522,7 +522,7 @@ def service_list(request, handler=None):
 
     page = request.GET.get('page', '1')
 
-    services = Service.objects.select_related(depth=1).order_by(
+    services = Service.objects.select_related('netbox').order_by(
         'netbox__sysname', 'handler')
     if handler:
         services = services.filter(handler=handler)
@@ -558,7 +558,7 @@ def service_matrix(request):
         for h in Service.objects.values('handler').distinct()]
 
     matrix_dict = {}
-    for service in Service.objects.select_related(depth=1):
+    for service in Service.objects.select_related('netbox'):
         if service.netbox.id not in matrix_dict:
             matrix_dict[service.netbox.id] = {
                 'sysname': service.netbox.sysname,
