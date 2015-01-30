@@ -114,6 +114,20 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
         // called on this object:
         var thisObj = this;
 
+	// Checkboxes that toggles map state
+	// edgeToggler: toggles whether we add edges between nodes
+	// dataToggler: toggles whether we fetch cpu and interface load
+	var edgeToggler = document.getElementById('edge-toggler');
+	var dataToggler = document.getElementById('data-toggler');
+
+	// Trigger update of map when we toggle the checkboxes
+	edgeToggler.onclick = function() {
+	    thisObj.update();
+	}
+	dataToggler.onclick = function() {
+	    thisObj.update();
+	}
+
         // Add the strategy from above and a "protocol" (which
         // determines how to download data), as well as the style map
         // we created, to the options we pass to the superclass
@@ -133,6 +147,12 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
                     viewportHeight: function () {
                         return thisObj.map.getSize().h;
                     },
+		    create_edges: function() {
+			return edgeToggler.checked;
+		    },
+		    fetch_data: function() {
+			return dataToggler.checked;
+		    },
                     timeStart: formattedTime(timeInterval.start),
                     timeEnd: formattedTime(timeInterval.end)
                 },
