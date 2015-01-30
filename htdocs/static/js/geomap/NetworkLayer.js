@@ -71,7 +71,7 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
         var style = new OpenLayers.StyleMap({
             pointRadius: 15,
             strokeWidth: 10,
-            strokeOpacity: 0.4,
+            strokeOpacity: 0.9,
             strokeLinecap: 'butt',
             fillOpacity: 0.7,
             fillColor: 'black',
@@ -85,7 +85,7 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
             node: {
                 fillColor: '${color}',
                 strokeColor: 'black',
-                strokeWidth: 1,
+                strokeWidth: 3,
                 pointRadius: '${size}',
                 graphicZIndex: 2
             },
