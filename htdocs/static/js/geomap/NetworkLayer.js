@@ -71,7 +71,7 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
         var style = new OpenLayers.StyleMap({
             pointRadius: 15,
             strokeWidth: 10,
-            strokeOpacity: 0.4,
+            strokeOpacity: 0.9,
             strokeLinecap: 'butt',
             fillOpacity: 0.7,
             fillColor: 'black',
@@ -85,7 +85,7 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
             node: {
                 fillColor: '${color}',
                 strokeColor: 'black',
-                strokeWidth: 1,
+                strokeWidth: 3,
                 pointRadius: '${size}',
                 graphicZIndex: 2
             },
@@ -114,6 +114,26 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
         // called on this object:
         var thisObj = this;
 
+	// Checkboxes that toggles map state
+	// edgeToggler: toggles whether we add edges between nodes
+	// dataToggler: toggles whether we fetch cpu and interface load
+	var edgeToggler = document.getElementById('edge-toggler');
+	var dataToggler = document.getElementById('data-toggler');
+
+	// Update default values from localStorage
+	edgeToggler.checked = localStorage.getItem('nav:geomap:edge-toggler') === 'true';
+	dataToggler.checked = localStorage.getItem('nav:geomap:data-toggler') === 'true';
+
+	// Trigger update of map when we toggle the checkboxes
+	edgeToggler.onclick = function() {
+	    localStorage.setItem('nav:geomap:edge-toggler', edgeToggler.checked);
+	    thisObj.update();
+	}
+	dataToggler.onclick = function() {
+	    localStorage.setItem('nav:geomap:data-toggler', dataToggler.checked);
+	    thisObj.update();
+	}
+
         // Add the strategy from above and a "protocol" (which
         // determines how to download data), as well as the style map
         // we created, to the options we pass to the superclass
@@ -133,6 +153,12 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
                     viewportHeight: function () {
                         return thisObj.map.getSize().h;
                     },
+		    create_edges: function() {
+			return edgeToggler.checked;
+		    },
+		    fetch_data: function() {
+			return dataToggler.checked;
+		    },
                     timeStart: formattedTime(timeInterval.start),
                     timeEnd: formattedTime(timeInterval.end)
                 },

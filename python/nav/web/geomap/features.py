@@ -48,26 +48,26 @@ _node_feature_properties = []
 _edge_feature_properties = []
 
 
-def create_features(variant, graph):
+def create_features(variant, graph, do_create_edges=True):
     """Create features (points/lines) and popups from a graph."""
     variant_config = get_configuration()['variants'][variant]
     indicators = variant_config['indicators']
     styles = variant_config['styles']
     template_files = variant_config['template_files']
     node_popup_template = load_popup_template(template_files['node_popup'])
-    edge_popup_template = load_popup_template(template_files['edge_popup'])
-
     node_feature_creator = fix(create_node_feature,
                                [node_popup_template, styles['node'],
-                                indicators['node']],
-                               1)
-    edge_feature_creator = fix(create_edge_features,
-                               [edge_popup_template, styles['edge'],
-                                indicators['edge']],
-                               1)
-
+                                indicators['node']], 1)
     nodes = map(node_feature_creator, graph.nodes.values())
-    edges = concat_list(map(edge_feature_creator, graph.edges.values()))
+    edges = []
+    if do_create_edges:
+        edge_popup_template = load_popup_template(template_files['edge_popup'])
+        edge_feature_creator = fix(create_edge_features,
+                                   [edge_popup_template,
+                                    styles['edge'],
+                                    indicators['edge']], 1)
+        edges = concat_list(map(edge_feature_creator, graph.edges.values()))
+
     return nodes+edges
 
 
