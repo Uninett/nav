@@ -97,6 +97,9 @@ define(['libs/d3.v2'], function () {
         update: function (data) {
             var self = this;
 
+            // Set a data attribute to indicate current value
+            this.container.attr('data-currentvalue', data);
+
             // Update and transition bar
             this.bar.data([data])
                 .transition()
