@@ -97,6 +97,10 @@ define(['libs/d3.v2'], function () {
         update: function (data) {
             var self = this;
 
+            if (this.precision != null && data > 0) {
+                data = data.toFixed(this.precision);
+            }
+
             // Set a data attribute to indicate current value
             this.container.attr('data-currentvalue', data);
 

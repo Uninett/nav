@@ -64,13 +64,10 @@ ROOT_URLCONF = 'nav.django.urls'
 
 #Static files
 STATIC_URL = '/static/'
-
-STATICFILES_DIRS = (
-    os.path.join(nav.path.webrootdir, 'static'),
-)
-
+STATIC_ROOT = os.path.join(nav.path.webrootdir, 'static')
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
 
