@@ -4,80 +4,80 @@
 
 {% block content %}
 
-{% if filter_form %}
-  {% if filter_form.base_fields|length >= 3 %}
-    {% crispy filter_form %}
-  {% else %}
-    <div class="row">
-      <div class="medium-6 column">
-        {% crispy filter_form %}
+  {% if filter_form %}
+    {% if filter_form.base_fields|length >= 3 %}
+      {% crispy filter_form %}
+    {% else %}
+      <div class="row">
+        <div class="medium-6 column">
+          {% crispy filter_form %}
+        </div>
       </div>
-    </div>
+    {% endif %}
   {% endif %}
-{% endif %}
 
-<form action="{{ request.path }}" method="post">
+  <form action="{{ request.path }}" method="post">
     {% if not hide_move or not hide_delete %}
-    <div>
-    {% if not hide_move %}
-        <input type="submit" name="move" value="Move selected" class="button small secondary" />
-    {% endif %}
-    {% if not hide_delete %}
-        <input type="submit" name="delete" value="Delete selected" class="button small secondary"/>
-    {% endif %}
-    </div>
+      <div>
+        {% if not hide_move %}
+          <input type="submit" name="move" value="Move selected" class="button small secondary" />
+        {% endif %}
+        {% if not hide_delete %}
+          <input type="submit" name="delete" value="Delete selected" class="button small secondary"/>
+        {% endif %}
+      </div>
     {% endif %}
 
     <div id="tablewrapper" class="notvisible" data-forpage="{{ request.path }}">
-        <table id="seeddb-content" class="listtable">
-            <caption>
-                {{ caption }}
-            </caption>
+      <table id="seeddb-content" class="listtable">
+        <caption>
+          {{ caption }}
+        </caption>
 
-            <thead>
-                <tr>
-                    <th id="select"></th>
-                    {% for label in labels %}
-                    <th>
-                        {{ label.0|capfirst }}
-                    </th>
-                    {% endfor %}
-                </tr>
-            </thead>
-
-    <tbody>
-      {% if object_list %}
-        {% for object in object_list %}
-        <tr>
-            <td><input type="checkbox" name="object" value="{{ object.pk }}" class="selector" /></td>
-            {% for element in object.values_list %}
-                   <td>
-                        {% if forloop.first %}
-                            {% if object.url %}
-                                <a href="{{ object.url }}">{{ element }}</a>
-                            {% else %}
-                                {{ element }}
-                            {% endif %}
-                        {% else %}
-                            {% if element and forloop.counter0 in censor_list %}
-                                ******
-                            {% else %}
-                                {{ element|default_if_none:"" }}
-                            {% endif %}
-                        {% endif %}
-                    </td>
+        <thead>
+          <tr>
+            <th id="select"></th>
+            {% for label in labels %}
+              <th>
+                {{ label.0|capfirst }}
+              </th>
             {% endfor %}
-        </tr>
-        {% endfor %}
-      {% else %}
-	<tr><td colspan=100>No entries</td></tr>
-      {% endif %}
-    </tbody>
+          </tr>
+        </thead>
 
-        </table>
+        <tbody>
+          {% if object_list %}
+            {% for object in object_list %}
+              <tr>
+                <td><input type="checkbox" name="object" value="{{ object.pk }}" class="selector" /></td>
+                {% for element in object.values_list %}
+                  <td>
+                    {% if forloop.first %}
+                      {% if object.url %}
+                        <a href="{{ object.url }}">{{ element }}</a>
+                      {% else %}
+                        {{ element }}
+                      {% endif %}
+                    {% else %}
+                      {% if element and forloop.counter0 in censor_list %}
+                        ******
+                      {% else %}
+                        {{ element|default_if_none:"" }}
+                      {% endif %}
+                    {% endif %}
+                  </td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          {% else %}
+	    <tr><td colspan=100>No entries</td></tr>
+          {% endif %}
+        </tbody>
+
+      </table>
 
     </div>
 
-</form>
+  </form>
 
 {% endblock %}
