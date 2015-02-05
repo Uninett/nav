@@ -10,10 +10,60 @@ require([
     'libs/OpenLayers',
     'libs/modernizr',
     'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect, FormFuck,
-                                        ConnectivityChecker, IpChooser) {
+                                        ConnectivityChecker, IpChooser)
+{
 
     var tableWrapper = '#tablewrapper',
         tableSelector = '#seeddb-content';
+
+    /* Internet Explorer caching leads to onload event firing before script
+       is loaded - thus we never get the load event. This code will at least
+       make it usable. */
+    if (document.readyState === 'complete') {
+        executeOnLoad();
+    } else {
+        $(window).load(executeOnLoad);
+    }
+
+
+    function executeOnLoad() {
+        /**
+         * Checks if we are on the DeviceGroup page. If so, initialize the
+         * select multiple.
+         */
+        var $formElement = $('#id_netboxes'),
+            $searchField = $('#device-group-select2');
+        if ($formElement.length && $searchField.length) {
+            initDeviceGroupSelectMultiple($formElement, $searchField);
+        }
+
+        initJoyride();  /* Start joyride if url endswith #joyride */
+
+        if ($('#map').length) {
+            populateMap(initMap());     // Show map for coordinates
+        }
+
+        /* The Datatables plugin works best when content is rendered. Thus
+         * we activate it on load */
+        if ($(tableSelector).find('tbody tr').length > 1) {
+            enrichTable();
+        } else {
+            $(tableWrapper).removeClass('notvisible');
+        }
+
+        new CheckboxSelector('#select', '.selector').add();
+        new QuickSelect('.quickselect');
+
+
+        /* Add form to hstore fields in room */
+        var $textarea = $('textarea#id_data');
+        if ($textarea.length) {
+            new FormFuck($textarea);
+        }
+
+        activateIpDeviceFormPlugins();
+    }
+
 
     /**
      * Uses select2 to search for and display netboxes. Executes the search in
@@ -64,54 +114,6 @@ require([
         });
     }
 
-    function executeOnLoad() {
-        /**
-         * Checks if we are on the DeviceGroup page. If so, initialize the
-         * select multiple.
-         */
-        var $formElement = $('#id_netboxes'),
-            $searchField = $('#device-group-select2');
-        if ($formElement.length && $searchField.length) {
-            initDeviceGroupSelectMultiple($formElement, $searchField);
-        }
-
-        initJoyride();  /* Start joyride if url endswith #joyride */
-
-        if ($('#map').length) {
-            populateMap(initMap());     // Show map for coordinates
-        }
-
-        /* The Datatables plugin works best when content is rendered. Thus
-         * we activate it on load */
-        if ($(tableSelector).find('tbody tr').length > 1) {
-            enrichTable();
-        } else {
-            $(tableWrapper).removeClass('notvisible');
-        }
-
-        new CheckboxSelector('#select', '.selector').add();
-        new QuickSelect('.quickselect');
-
-
-        /* Add form to hstore fields in room */
-        var $textarea = $('textarea#id_data');
-        if ($textarea.length) {
-            new FormFuck($textarea);
-        }
-
-        activateIpDeviceFormPlugins();
-    }
-
-    /* Internet Explorer caching leads to onload event firing before script
-       is loaded - thus we never get the load event. This code will at least
-       make it usable. */
-    if (document.readyState === 'complete') {
-        executeOnLoad();
-    } else {
-        $(window).load(executeOnLoad);
-    }
-
-
     function initJoyride() {
         /* Start joyride if url endswith #joyride */
         if (location.hash === '#joyride') {
@@ -144,8 +146,8 @@ require([
             ],
             theme: NAV.cssPath + '/openlayers.css'
         }),
-            mapLayer = new OpenLayers.Layer.OSM('OpenStreetMap',
-                '/search/osm_map_redirect/${z}/${x}/${y}.png');
+            mapLayer = new OpenLayers.Layer.OSM(
+                'OpenStreetMap', '/search/osm_map_redirect/${z}/${x}/${y}.png');
 
         mapLayer.tileOptions = {crossOriginKeyword: null};
         map.addLayer(mapLayer);
@@ -261,14 +263,7 @@ require([
         return new OpenLayers.LonLat(arr[2], arr[1]);
     }
 
-    function moveMarker(
-        map,
-        lonlat,
-        marker,
-        position_input,
-        displayProjection,
-        inputProjection) {
-
+    function moveMarker(map, lonlat, marker, position_input, displayProjection, inputProjection) {
         marker.moveTo(map.getLayerPxFromLonLat(lonlat));
         position_input.val(lonLatToStr(lonlat.transform(
             inputProjection,
@@ -276,8 +271,9 @@ require([
         )));
     }
 
-    function initGetLonLatOnClickControl(
-        map, marker, inputProjection, displayProjection, position_input) {
+    function initGetLonLatOnClickControl(map, marker, inputProjection, displayProjection,
+                                         position_input)
+    {
         map.addControl(new OpenLayers.Control.MousePosition());
 
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
