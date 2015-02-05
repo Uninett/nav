@@ -16,9 +16,9 @@ require([
     var tableWrapper = '#tablewrapper',
         tableSelector = '#seeddb-content';
 
-    /* Internet Explorer caching leads to onload event firing before script
-       is loaded - thus we never get the load event. This code will at least
-       make it usable. */
+    /* Internet Explorer caching leads to onload event firing before
+     * script is loaded - thus we never get the load event. This code
+     * will at least make it usable. */
     if (document.readyState === 'complete') {
         executeOnLoad();
     } else {
@@ -123,8 +123,8 @@ require([
                         var cards = $('.joyride-tip-guide').find('.joyride-content-wrapper');
                         cards.each(function (index, element) {
                             var counter = $('<small>')
-                                .attr('style', 'position:absolute;bottom:1.5rem;right:1.25rem')
-                                .html(index + 1 + ' of ' + cards.length);
+                                    .attr('style', 'position:absolute;bottom:1.5rem;right:1.25rem')
+                                    .html(index + 1 + ' of ' + cards.length);
                             $(element).append(counter);
                         });
                     },
@@ -258,7 +258,7 @@ require([
         var arr = re.exec(llStr);
         if (arr === null) {
             throw 'error: incorrectly formatted latitude, longitude string "' +
-            llStr + '"';
+                llStr + '"';
         }
         return new OpenLayers.LonLat(arr[2], arr[1]);
     }
