@@ -88,13 +88,13 @@ def search_expand_swport(swportid=None, swport=None, scanned=[]):
 
     # Find gwport that has the same vlan
     for swportvlan in swport.swportvlan_set.exclude(
-            vlan__net_type='static').select_related(depth=5):
+            vlan__net_type='static').select_related():
         for prefix in swportvlan.vlan.prefix_set.all():
             for gwportprefix in prefix.gwportprefix_set.all():
                 found_gwports.append(gwportprefix.interface)
 
     for port in Interface.objects.filter(to_interface=swport).exclude(
-            to_interface__in=scanned).select_related(depth=5):
+            to_interface__in=scanned).select_related():
         scanned.append(port)
 
         found_swports.append(port)
@@ -181,13 +181,13 @@ def search_expand_mac(mac=None):
     cam_entries = Cam.objects.filter(
         mac=mac,
         end_time__gte=datetime.datetime.max,
-    ).select_related(depth=5)
+    ).select_related()
 
     for cam_entry in cam_entries:
         for swport in Interface.objects.filter(
             netbox=cam_entry.netbox,
             ifname=cam_entry.port,
-        ).select_related(depth=5):
+        ).select_related():
             found_swports.append(swport)
             swport_search = search_expand_swport(swport=swport)
             found_gwports.extend(swport_search[0])
