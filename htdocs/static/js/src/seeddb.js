@@ -327,6 +327,13 @@ require([
             if (value !== null) { numRows = value; }
         }
 
+        /* If neither a delete nor a move button is detected, no
+         * action is available and thus the checkboxes for marking
+         * action rows should not be displayed. */
+        var showCheckBoxes = true;
+        if (! ($("input[name='delete']").length || $("input[name='move']").length)) {
+            showCheckBoxes = false;
+        }
 
         /* Apply DataTable */
         var table = $(tableSelector).dataTable({
@@ -338,7 +345,12 @@ require([
             "bAutoWidth": true,     // Resize table
             "sScrollX": '100%',     // Scroll when table is bigger than viewport
             "aoColumnDefs": [
-                { 'bSortable': false, 'sWidth': '16px', 'aTargets': [ 0 ] }  // Do not sort on first column
+                {
+                    'bSortable': false,
+                    'sWidth': '16px',
+                    'aTargets': [ 0 ],  // Do not sort on first column
+                    'bVisible': showCheckBoxes
+                }
             ],
             "sPaginationType": "full_numbers", // Display page numbers in pagination
             "sDom": "<lip>t",   // display order of metainfo (lengthchange, info, pagination)
