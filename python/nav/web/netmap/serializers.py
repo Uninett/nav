@@ -89,7 +89,7 @@ class NetmapViewSerializer(serializers.Serializer):
         return instance
 
     def to_native(self, obj):
-        if obj is not None:
+        if obj:
             categories = [
                 view_category.category.id
                 for view_category in obj.categories_set.all().select_related(

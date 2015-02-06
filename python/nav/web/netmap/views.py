@@ -67,7 +67,7 @@ class IndexView(DefaultNetmapViewMixin, TemplateView):
             )
 
         netmap_views_json = JSONRenderer().render(
-            NetmapViewSerializer(netmap_views).data
+            NetmapViewSerializer(netmap_views, many=True).data
         )
 
         categories = list(Category.objects.values_list('id', flat=True))
