@@ -433,10 +433,10 @@ def response_based_on_result(result):
     """
     if result['messages']:
         return HttpResponse(simplejson.dumps(result), status=500,
-                            mimetype="application/json")
+                            content_type="application/json")
     else:
         return HttpResponse(simplejson.dumps(result),
-                            mimetype="application/json")
+                            content_type="application/json")
 
 
 def render_trunk_edit(request, interfaceid):

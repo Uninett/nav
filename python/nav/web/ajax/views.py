@@ -44,7 +44,7 @@ def get_rooms_with_position(request, roomid=None):
         data['rooms'].append(roomdata)
 
     return HttpResponse(simplejson.dumps(data),
-                        mimetype='application/json')
+                        content_type='application/json')
 
 
 def get_room_status(room):
