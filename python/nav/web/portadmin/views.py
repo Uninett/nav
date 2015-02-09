@@ -116,7 +116,6 @@ def search_by_sysname(request, sysname):
 def search_by_kwargs(request, **kwargs):
     """Search by keyword arguments"""
     info_dict = get_base_context()
-    account = get_account(request)
     try:
         netbox = Netbox.objects.get(**kwargs)
     except Netbox.DoesNotExist, do_not_exist_ex:
@@ -130,14 +129,13 @@ def search_by_kwargs(request, **kwargs):
             return render(request, 'portadmin/base.html', info_dict)
 
         interfaces = netbox.get_swports_sorted()
-        info_dict = populate_infodict(request, account, netbox, interfaces)
+        info_dict = populate_infodict(request, netbox, interfaces)
         return render(request, 'portadmin/netbox.html', info_dict)
 
 
 def search_by_interfaceid(request, interfaceid):
     """View for showing a search done by interface id"""
     info_dict = get_base_context()
-    account = get_account(request)
     try:
         interface = Interface.objects.get(id=interfaceid)
     except Interface.DoesNotExist, do_not_exist_ex:
@@ -153,11 +151,11 @@ def search_by_interfaceid(request, interfaceid):
             messages.error(request, 'IP device found but has no type')
             return render(request, 'portadmin/base.html', info_dict)
         interfaces = [interface]
-        info_dict = populate_infodict(request, account, netbox, interfaces)
+        info_dict = populate_infodict(request, netbox, interfaces)
         return render(request, 'portadmin/netbox.html', info_dict)
 
 
-def populate_infodict(request, account, netbox, interfaces):
+def populate_infodict(request, netbox, interfaces):
     """Populate a dictionary used in every http response"""
 
     allowed_vlans = []
@@ -165,8 +163,8 @@ def populate_infodict(request, account, netbox, interfaces):
     readonly = False
     try:
         fac = get_and_populate_livedata(netbox, interfaces)
-        allowed_vlans = find_and_populate_allowed_vlans(account, netbox,
-                                                        interfaces, fac)
+        allowed_vlans = find_and_populate_allowed_vlans(
+            request.account, netbox, interfaces, fac)
         voice_vlan = fetch_voice_vlan_for_netbox(request, fac)
         mark_detained_interfaces(interfaces)
     except TimeOutException:
@@ -199,7 +197,6 @@ def populate_infodict(request, account, netbox, interfaces):
                       'netbox': netbox,
                       'voice_vlan': voice_vlan,
                       'allowed_vlans': allowed_vlans,
-                      'account': account,
                       'readonly': readonly,
                       'aliastemplate': aliastemplate})
     return info_dict
