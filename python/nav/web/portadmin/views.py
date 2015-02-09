@@ -22,7 +22,7 @@ from operator import or_ as OR
 
 from django.http import HttpResponse
 from django.template import RequestContext, Context
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, render_to_response, get_object_or_404
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -105,59 +105,33 @@ def search(query):
 
 def search_by_ip(request, ip):
     """View for showing a search done by ip-address"""
-    info_dict = get_base_context()
-    account = get_account(request)
-    try:
-        netbox = Netbox.objects.get(ip=ip)
-    except Netbox.DoesNotExist, do_not_exist_ex:
-        _logger.error("Netbox with ip %s not found; DoesNotExist = %s",
-                      ip, do_not_exist_ex)
-        messages.error(request,
-                       'Could not find netbox with ip-address %s' % str(ip))
-        return render_to_response('portadmin/base.html',
-                                  info_dict,
-                                  RequestContext(request))
-    else:
-        if not netbox.type:
-            messages.error(
-                request, 'IP Device %s found but has no type' % str(ip))
-            return render_to_response(
-                'portadmin/base.html', info_dict, RequestContext(request))
-
-        interfaces = netbox.get_swports_sorted()
-        info_dict = populate_infodict(request, account, netbox, interfaces)
-        return render_to_response(
-            'portadmin/netbox.html',
-            info_dict,
-            RequestContext(request))
+    return search_by_kwargs(request, ip=ip)
 
 
 def search_by_sysname(request, sysname):
     """View for showing a search done by sysname"""
+    return search_by_kwargs(request, sysname=sysname)
+
+
+def search_by_kwargs(request, **kwargs):
+    """Search by keyword arguments"""
     info_dict = get_base_context()
     account = get_account(request)
     try:
-        netbox = Netbox.objects.get(sysname=sysname)
+        netbox = Netbox.objects.get(**kwargs)
     except Netbox.DoesNotExist, do_not_exist_ex:
         _logger.error("Netbox %s not found; DoesNotExist = %s",
                       sysname, do_not_exist_ex)
-        messages.error(request,
-                       'Could not find netbox with sysname %s' % sysname)
-        return render_to_response('portadmin/base.html',
-                                  info_dict,
-                                  RequestContext(request))
+        messages.error(request, 'Could not find IP device')
+        return render(request, 'portadmin/base.html', info_dict)
     else:
         if not netbox.type:
-            messages.error(
-                request, 'IP Device %s found but has no type' % str(sysname))
-            return render_to_response(
-                'portadmin/base.html', info_dict, RequestContext(request))
+            messages.error(request, 'IP device found but has no type')
+            return render(request, 'portadmin/base.html', info_dict)
 
         interfaces = netbox.get_swports_sorted()
         info_dict = populate_infodict(request, account, netbox, interfaces)
-        return render_to_response('portadmin/netbox.html',
-                                  info_dict,
-                                  RequestContext(request))
+        return render(request, 'portadmin/netbox.html', info_dict)
 
 
 def search_by_interfaceid(request, interfaceid):
@@ -172,16 +146,15 @@ def search_by_interfaceid(request, interfaceid):
         messages.error(request,
                        'Could not find interface with id %s' %
                        str(interfaceid))
-        return render_to_response('portadmin/base.html',
-                                  info_dict,
-                                  RequestContext(request))
+        return render(request, 'portadmin/base.html', info_dict)
     else:
         netbox = interface.netbox
+        if not netbox.type:
+            messages.error(request, 'IP device found but has no type')
+            return render(request, 'portadmin/base.html', info_dict)
         interfaces = [interface]
         info_dict = populate_infodict(request, account, netbox, interfaces)
-        return render_to_response('portadmin/netbox.html',
-                                  info_dict,
-                                  RequestContext(request))
+        return render(request, 'portadmin/netbox.html', info_dict)
 
 
 def populate_infodict(request, account, netbox, interfaces):
