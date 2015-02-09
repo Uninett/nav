@@ -118,6 +118,12 @@ def search_by_ip(request, ip):
                                   info_dict,
                                   RequestContext(request))
     else:
+        if not netbox.type:
+            messages.error(
+                request, 'IP Device %s found but has no type' % str(ip))
+            return render_to_response(
+                'portadmin/base.html', info_dict, RequestContext(request))
+
         interfaces = netbox.get_swports_sorted()
         info_dict = populate_infodict(request, account, netbox, interfaces)
         return render_to_response(
@@ -141,6 +147,12 @@ def search_by_sysname(request, sysname):
                                   info_dict,
                                   RequestContext(request))
     else:
+        if not netbox.type:
+            messages.error(
+                request, 'IP Device %s found but has no type' % str(sysname))
+            return render_to_response(
+                'portadmin/base.html', info_dict, RequestContext(request))
+
         interfaces = netbox.get_swports_sorted()
         info_dict = populate_infodict(request, account, netbox, interfaces)
         return render_to_response('portadmin/netbox.html',

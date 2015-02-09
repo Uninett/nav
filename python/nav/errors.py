@@ -43,3 +43,7 @@ class RedirectError(GeneralException):
 
 class NoServicesFound(GeneralException):
     "No services found for netbox"
+
+
+class NoNetboxTypeError(GeneralException):
+    "This netbox has no type"
