@@ -67,27 +67,37 @@ def get_base_context(additional_paths=None, form=None):
     }
 
 
+def default_render(request):
+    """Default render for errors etc"""
+    return render(request, 'portadmin/base.html',
+                  get_base_context(form=get_form(request)))
+
+
+def get_form(request):
+    """If we are searching for something, return a bound form with the
+    search parameter"""
+    if 'query' in request.GET:
+        return SearchForm(request.GET)
+
+
 def index(request):
     """View for showing main page"""
     netboxes = []
     interfaces = []
-    if 'query' in request.GET:
-        form = SearchForm(request.GET)
-        if form.is_valid():
-            netboxes, interfaces = search(form.cleaned_data['query'])
-            if len(netboxes) == 1 and not interfaces:
-                return search_by_sysname(request, netboxes[0].sysname)
-            elif len(interfaces) == 1 and not netboxes:
-                return search_by_interfaceid(request, interfaces[0].id)
+    form = get_form(request)
+    if form and form.is_valid():
+        netboxes, interfaces = search(form.cleaned_data['query'])
+        if len(netboxes) == 1 and not interfaces:
+            return search_by_sysname(request, netboxes[0].sysname)
+        elif len(interfaces) == 1 and not netboxes:
+            return search_by_interfaceid(request, interfaces[0].id)
     else:
         form = SearchForm()
     context = get_base_context(form=form)
     context['netboxes'] = netboxes
     context['interfaces'] = interfaces
 
-    return render_to_response('portadmin/base.html',
-                              context,
-                              RequestContext(request))
+    return render(request, 'portadmin/base.html', context)
 
 
 def search(query):
@@ -115,27 +125,25 @@ def search_by_sysname(request, sysname):
 
 def search_by_kwargs(request, **kwargs):
     """Search by keyword arguments"""
-    info_dict = get_base_context()
     try:
         netbox = Netbox.objects.get(**kwargs)
     except Netbox.DoesNotExist, do_not_exist_ex:
         _logger.error("Netbox %s not found; DoesNotExist = %s",
                       sysname, do_not_exist_ex)
         messages.error(request, 'Could not find IP device')
-        return render(request, 'portadmin/base.html', info_dict)
+        return default_render(request)
     else:
         if not netbox.type:
             messages.error(request, 'IP device found but has no type')
-            return render(request, 'portadmin/base.html', info_dict)
+            return default_render(request)
 
         interfaces = netbox.get_swports_sorted()
-        info_dict = populate_infodict(request, netbox, interfaces)
-        return render(request, 'portadmin/netbox.html', info_dict)
+        return render(request, 'portadmin/netbox.html',
+                      populate_infodict(request, netbox, interfaces))
 
 
 def search_by_interfaceid(request, interfaceid):
     """View for showing a search done by interface id"""
-    info_dict = get_base_context()
     try:
         interface = Interface.objects.get(id=interfaceid)
     except Interface.DoesNotExist, do_not_exist_ex:
@@ -144,20 +152,20 @@ def search_by_interfaceid(request, interfaceid):
         messages.error(request,
                        'Could not find interface with id %s' %
                        str(interfaceid))
-        return render(request, 'portadmin/base.html', info_dict)
+        return default_render(request)
     else:
         netbox = interface.netbox
         if not netbox.type:
             messages.error(request, 'IP device found but has no type')
-            return render(request, 'portadmin/base.html', info_dict)
+            return default_render(request)
+
         interfaces = [interface]
-        info_dict = populate_infodict(request, netbox, interfaces)
-        return render(request, 'portadmin/netbox.html', info_dict)
+        return render(request, 'portadmin/netbox.html',
+                      populate_infodict(request, netbox, interfaces))
 
 
 def populate_infodict(request, netbox, interfaces):
     """Populate a dictionary used in every http response"""
-
     allowed_vlans = []
     voice_vlan = None
     readonly = False
@@ -192,7 +200,7 @@ def populate_infodict(request, netbox, interfaces):
     if voice_vlan:
         set_voice_vlan_attribute(voice_vlan, interfaces)
 
-    info_dict = get_base_context([(netbox.sysname, )])
+    info_dict = get_base_context([(netbox.sysname, )], form=get_form(request))
     info_dict.update({'interfaces': interfaces,
                       'netbox': netbox,
                       'voice_vlan': voice_vlan,
