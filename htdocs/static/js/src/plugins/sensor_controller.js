@@ -1,5 +1,8 @@
-define(["moment", "plugins/counterdisplay", "plugins/gauge", "libs/handlebars", "libs/jquery", "libs/rickshaw.min"],
-function (moment, CounterDisplay, JohnGauge) {
+define([
+    "moment", "plugins/counterdisplay", "plugins/gauge",
+    "libs/handlebars", "libs/jquery", "libs/rickshaw.min"],
+function (moment, CounterDisplay, JohnGauge)
+{
     function SensorController($node, templates) {
         this.$node = $node;
         this.url = this.$node.attr('data-url') + '&format=json';
@@ -21,6 +24,7 @@ function (moment, CounterDisplay, JohnGauge) {
         this.graphNode = $html.find('.rs-graphnode');
         this.graphYnode = $html.find('.rs-ynode');
         this.currentNode = $html.find('.current');
+        this.sliderNode = $html.find('.rs-slidernode');
 
         this.detailTemplate = templates.detailsTemplate;
         this.counterTemplate = templates.counterTemplate;
@@ -35,9 +39,9 @@ function (moment, CounterDisplay, JohnGauge) {
     SensorController.prototype = {
         render: function (template) {
             var $html = $(template({
-                    legend: this.sensorname,
-                    sensorid: this.sensorid
-                }));
+                legend: this.sensorname,
+                sensorid: this.sensorid
+            }));
             $html.appendTo(this.$node);
             if (this.displayGauge) {
                 $html.find('.current').addClass('gauge');
@@ -119,6 +123,10 @@ function (moment, CounterDisplay, JohnGauge) {
                     data: [{x: 0, y: 0}], // Data is overridden on update
                     name: this.sensorname
                 }]
+            });
+            var slider = new Rickshaw.Graph.RangeSlider({
+                graph: graph,
+                element: this.sliderNode.get(0)
             });
             // Time formatter for the x-axis
             var unit_formatter = {
