@@ -246,7 +246,11 @@ class StatUptime(Stat):
         return data
 
     def get_metric_name(self, metric):
-        return self.metric_lookups[metric]
+        try:
+            return self.metric_lookups[metric].sysname
+        except AttributeError:
+            # Assume the lookup returned the name directly from the metric
+            return self.metric_lookups[metric]
 
 
 # ------------------------
