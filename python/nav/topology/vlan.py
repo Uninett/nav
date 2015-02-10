@@ -458,14 +458,15 @@ def build_layer3_graph(related_extra=None):
 
                         fictive_netbox.sysname = unicode(gwportprefixes[0].prefix.vlan.net_ident)
                     else:
-                        fictive_netbox.sysname = "%s, ???" % unicode(gwportprefixes[0].interface.netbox)
+                        fictive_netbox.sysname = unicode(
+                            gwportprefixes[0].interface.ifalias)
                     fictive_netbox.category_id = 'elink'
                     fictive_netbox.id = fictive_netbox.sysname
 
-
                     fictive_interface = stubs.Interface()
                     fictive_interface.netbox = fictive_netbox
-                    fictive_interface.ifname = "?"
+                    fictive_interface.ifname = (
+                        u"N/A (peer of %s)" % gwportprefixes[0].gw_ip)
                     fictive_interface.speed = None
 
                     fictive_gwportprefix.interface = fictive_interface
