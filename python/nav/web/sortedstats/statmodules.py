@@ -110,8 +110,11 @@ class Stat(object):
         """Gets the human readable version of the raw data"""
         display_data = []
         for key, value in self.data:
-            display_data.append((self.get_metric_name(key),
-                                 self.humanize(value)))
+            display_data.append(
+                (self.get_metric_name(key),
+                 self.humanize(value),
+                 self.metric_lookups[key])
+            )
         return display_data
 
     def get_graph_series(self):
