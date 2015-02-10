@@ -19,7 +19,8 @@ import logging
 import networkx as nx
 from IPy import IP
 
-from nav.models.manage import GwPortPrefix, Interface, SwPortVlan, SwPortBlocked, Prefix
+from nav.models.manage import (GwPortPrefix, Interface, SwPortVlan,
+                               SwPortBlocked, Prefix)
 
 from django.db.models import Q
 from django.db import transaction
@@ -30,6 +31,7 @@ from nav.netmap import stubs
 
 _LOGGER = logging.getLogger(__name__)
 NO_TRUNK = Q(trunk=False) | Q(trunk__isnull=True)
+
 
 class VlanGraphAnalyzer(object):
     """Analyzes VLAN topologies as a subset of the layer 2 topology"""
@@ -50,7 +52,7 @@ class VlanGraphAnalyzer(object):
         """
         def _sortkey(gwp):
             ip = IP(gwp.gw_ip)
-            return (ip.version(), ip)
+            return ip.version(), ip
 
         addrs = sorted(get_active_addresses_of_routed_vlans(), key=_sortkey)
         return dict((addr.prefix.vlan, addr) for addr in reversed(addrs))
@@ -109,11 +111,12 @@ class VlanGraphAnalyzer(object):
         active_vlans = dict((vlan.vlan, vlan) for vlan in vlans)
 
         access_ifcs = netbox.interface_set.filter(
-            vlan__isnull=False).filter(NO_TRUNK).exclude(
-            id__in=(ifc.id for ifc in ifcs))
+            vlan__isnull=False
+        ).filter(NO_TRUNK).exclude(id__in=(ifc.id for ifc in ifcs))
         for ifc in access_ifcs:
             if ifc.vlan in active_vlans:
                 yield ifc, {active_vlans[ifc.vlan]: 'down'}
+
 
 class RoutedVlanTopologyAnalyzer(object):
     """Analyzer of a single routed VLAN topology"""
@@ -204,10 +207,10 @@ class RoutedVlanTopologyAnalyzer(object):
 
         if source in self.layer2[dest]:
             if dest_ifc and dest_ifc in self.layer2[dest][source]:
-                return (dest, source, dest_ifc)
+                return dest, source, dest_ifc
             else:
                 # pick first available return edge when any exist
-                return (dest, source, self.layer2[dest][source].keys()[0])
+                return dest, source, self.layer2[dest][source].keys()[0]
 
     def _interface_has_been_seen_before(self, ifc):
         return ifc in self.ifc_directions
@@ -285,7 +288,6 @@ class RoutedVlanTopologyAnalyzer(object):
             self.ifc_directions[dest_ifc] = 'blocked'
 
 
-
 class VlanTopologyUpdater(object):
     """Updater of the VLAN topology.
 
@@ -332,7 +334,6 @@ class VlanTopologyUpdater(object):
             obj.save()
         return object
 
-
     DIRECTION_MAP = {
         'up': SwPortVlan.DIRECTION_UP,
         'down': SwPortVlan.DIRECTION_DOWN,
@@ -372,12 +373,14 @@ def build_layer2_graph(related_extra=None):
     if related_extra:
         select_related = select_related+related_extra
 
-    links = Interface.objects.filter(to_netbox__isnull=False).select_related(*select_related)
+    links = Interface.objects.filter(
+        to_netbox__isnull=False).select_related(*select_related)
 
     for link in links:
         dest = link.to_interface.netbox if link.to_interface else link.to_netbox
         graph.add_edge(link.netbox, dest, key=link)
     return graph
+
 
 def build_layer3_graph(related_extra=None):
     """Build a graph representation of the layer 3 topology stored in the NAV
@@ -390,7 +393,9 @@ def build_layer3_graph(related_extra=None):
     """
     graph = nx.MultiGraph(name="Layer 3 topology")
 
-    select_related = ('interface__netbox', 'interface__to_netbox', 'interface__to_interface', 'interface__to_interface__netbox')
+    select_related = ('interface__netbox', 'interface__to_netbox',
+                      'interface__to_interface',
+                      'interface__to_interface__netbox')
     if related_extra:
         select_related = select_related+related_extra
 
@@ -401,16 +406,19 @@ def build_layer3_graph(related_extra=None):
                'NOT (family(netaddr) = 6 AND masklen(netaddr) = 128)']
     ).select_related("vlan__net_type")
 
-    router_ports = GwPortPrefix.objects.filter(prefix__in=prefixes, interface__netbox__category__in=('GW','GSW')).select_related(*select_related)
+    router_ports = GwPortPrefix.objects.filter(
+        prefix__in=prefixes, interface__netbox__category__in=('GW', 'GSW')
+    ).select_related(*select_related)
 
     router_ports_prefix_map = defaultdict(list)
     for router_port in router_ports:
         router_ports_prefix_map[router_port.prefix].append(router_port)
 
-
     def _add_edge(gwportprefixes_in_prefix):
-        """ Adds connections between netboxes in gwportprefix (fully connected network)
-            note: loop/self.loop edges should _NOT_ use this method for adding the loop to the graph.
+        """
+        Adds connections between netboxes in gwportprefix (fully connected
+        network) note: loop/self.loop edges should _NOT_ use this method for
+        adding the loop to the graph.
         """
         for this in gwportprefixes_in_prefix:
             for gwpp in gwportprefixes_in_prefix:
@@ -423,32 +431,34 @@ def build_layer3_graph(related_extra=None):
         if gwportprefixes:
             if prefix.vlan.net_type.id == 'elink':
                 if len(gwportprefixes) > 1:
-                    # Special case, (horrible) check if its a local loopback to same netbox.
+                    # Special case, (horrible) check if it's a local loopback
+                    # to same netbox.
                     #
-                    # d3js force directed doesnt show loopback edges, but
-                    # we'll include it in the graph metadata,
-                    # in case we fix the visualizing later.
+                    # d3js force directed doesn't show loopback edges,
+                    # but we'll include it in the graph metadata, in case we
+                    # fix the visualizing later.
 
-                    # take first GwPortPrefix in list of GwPortPrefixes, and use as base to
-                    # check for loop back edges linking to the same netbox.
+                    # take first GwPortPrefix in list of GwPortPrefixes,
+                    # and use as base to check for loop back edges linking to
+                    #  the same netbox.
                     gwpp_match = gwportprefixes[0]
 
-                    if [x.interface.netbox == gwpp_match.interface.netbox for x in gwportprefixes].count(True) >= 2:
-                        #graph.add_edge(netbox_match, netbox_match, key=prefix)
-                        for x in gwportprefixes:
-                            for y in gwportprefixes:
-                                if x is not y:
-                                    graph.add_edge(x, y, key=prefix)
+                    if ([u.interface.netbox == gwpp_match.interface.netbox
+                         for u in gwportprefixes].count(True) >= 2):
+                        for u in gwportprefixes:
+                            for v in gwportprefixes:
+                                if u is not v:
+                                    graph.add_edge(u, v, key=prefix)
 
                     else:
                         # If not, we'll add the edge anyway and log a warning
-                        # about topology detector should really not classify this
-                        # as an elink. (since we found >1 known gwpp's in given prefix
-                        # means it shold be a link or core.)
+                        # about topology detector should really not classify
+                        # this as an elink. (since we found >1 known gwpp's
+                        # in given prefix means it shold be a link or core.)
                         _LOGGER.warning(
                             "Topology error? %s classified as elink, "
-                            "we know %s GwPortPrefixes ..."
-                            , unicode(prefix), len(gwportprefixes))
+                            "we know %s GwPortPrefixes ...",
+                            unicode(prefix), len(gwportprefixes))
                         _add_edge(gwportprefixes)
                 else:
 
@@ -456,23 +466,26 @@ def build_layer3_graph(related_extra=None):
                     fictive_netbox = stubs.Netbox()
                     if gwportprefixes[0].prefix.vlan.net_ident:
 
-                        fictive_netbox.sysname = unicode(gwportprefixes[0].prefix.vlan.net_ident)
+                        fictive_netbox.sysname = unicode(
+                            gwportprefixes[0].prefix.vlan.net_ident)
                     else:
-                        fictive_netbox.sysname = "%s, ???" % unicode(gwportprefixes[0].interface.netbox)
+                        fictive_netbox.sysname = unicode(
+                            gwportprefixes[0].interface.ifalias)
                     fictive_netbox.category_id = 'elink'
                     fictive_netbox.id = fictive_netbox.sysname
 
-
                     fictive_interface = stubs.Interface()
                     fictive_interface.netbox = fictive_netbox
-                    fictive_interface.ifname = "?"
+                    fictive_interface.ifname = (
+                        u"N/A (peer of %s)" % gwportprefixes[0].gw_ip)
                     fictive_interface.speed = None
 
                     fictive_gwportprefix.interface = fictive_interface
-                    fictive_gwportprefix.gw_ip = fictive_netbox.sysname # keying.
+                    fictive_gwportprefix.gw_ip = fictive_netbox.sysname
                     fictive_gwportprefix.prefix = prefix
 
-                    graph.add_edge(gwportprefixes[0], fictive_gwportprefix, key=prefix)
+                    graph.add_edge(gwportprefixes[0], fictive_gwportprefix,
+                                   key=prefix)
 
             else:
                 _add_edge(gwportprefixes)
@@ -488,6 +501,7 @@ def get_active_addresses_of_routed_vlans():
     addrs = get_routed_vlan_addresses().select_related(
         'prefix__vlan', 'interface__netbox')
     return filter_active_router_addresses(addrs)
+
 
 def filter_active_router_addresses(gwportprefixes):
     """Filters a GwPortPrefix queryset, leaving only active router addresses.
@@ -506,6 +520,7 @@ def filter_active_router_addresses(gwportprefixes):
     grouper = groupby(raddrs, attrgetter('prefix_id'))
     return [group.next() for _key, group in grouper]
 
+
 def get_routed_vlan_addresses():
     """Gets router port addresses for all routed VLANs.
 
@@ -516,6 +531,7 @@ def get_routed_vlan_addresses():
     return raddrs.filter(
         prefix__vlan__vlan__isnull=False)
 
+
 def get_router_addresses():
     """Gets all router port addresses.
 
@@ -525,6 +541,7 @@ def get_router_addresses():
     return GwPortPrefix.objects.filter(
         interface__netbox__category__id__in=('GW', 'GSW')
     )
+
 
 def get_stp_blocked_ports():
     """Returns a dictionary of ports in STP blocking mode.
