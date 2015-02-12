@@ -190,14 +190,11 @@ define(['libs/jquery', 'libs/spin.min'], function () {
 });
 
 /**
- * Escape all parts of an url path
+ * Escape all parts of an url path.
  * @param {string} url An url or pathname to escape
  */
 function escapeUrl(url) {
     return url.split('/').reduce(function(prev, curr) {
-        if (prev.indexOf('http') !== 0) {
-            curr = encodeURIComponent(curr);
-        }
-        return prev + '/' + curr;
+        return prev + '/' + encodeURIComponent(curr);
     });
 }
