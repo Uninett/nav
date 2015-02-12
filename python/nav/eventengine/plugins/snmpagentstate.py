@@ -17,6 +17,7 @@
 
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.plugins.delayedstate import DelayedStateHandler
+from nav.models.manage import Netbox
 
 
 class SnmpAgentStateHandler(DelayedStateHandler):
@@ -35,9 +36,19 @@ class SnmpAgentStateHandler(DelayedStateHandler):
         return alert
 
     def _get_down_alert(self):
-        alert = AlertGenerator(self.event)
-        alert.alert_type = 'snmpAgentDown'
-        return alert
+        if self._is_netbox_currently_up():
+            alert = AlertGenerator(self.event)
+            alert.alert_type = 'snmpAgentDown'
+            return alert
+        else:
+            self._logger.info("%s has gone down in the meantime, "
+                              "not posting snmpAgentDown alert",
+                              self.get_target())
+
+    def _is_netbox_currently_up(self):
+        row = Netbox.objects.filter(
+            id=self.get_target().id).values_list('up')[0]
+        return row[0] == Netbox.UP_UP
 
     def _post_down_warning(self):
         pass
