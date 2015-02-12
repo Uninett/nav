@@ -26,8 +26,6 @@ class SnmpAgentStateHandler(DelayedStateHandler):
     ALERT_WAIT_TIME = 'snmpAgentDown.alert'
     handled_types = ('snmpAgentState', )
 
-    __waiting_for_resolve = {}
-
     def get_target(self):
         return self.event.netbox
 

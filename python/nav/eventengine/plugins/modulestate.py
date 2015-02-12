@@ -28,7 +28,6 @@ class ModuleStateHandler(delayedstate.DelayedStateHandler):
     ALERT_WAIT_TIME = 'moduleDown.alert'
     handled_types = ('moduleState',)
 
-    __waiting_for_resolve = {}
     _target = None
 
     def get_target(self):
