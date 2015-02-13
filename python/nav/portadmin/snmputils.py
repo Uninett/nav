@@ -20,6 +20,7 @@ import logging
 from operator import attrgetter
 
 from nav.Snmp import Snmp
+from nav.errors import NoNetboxTypeError
 from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
                              NoSuchObjectError)
 from nav.bitvector import BitVector
@@ -617,6 +618,8 @@ class SNMPFactory(object):
     @classmethod
     def get_instance(cls, netbox):
         """Get and SNMP-handle depending on vendor type"""
+        if not netbox.type:
+            raise NoNetboxTypeError()
         vendor_id = netbox.type.get_enterprise_id()
         if (vendor_id == VENDOR_CISCO):
             return Cisco(netbox)

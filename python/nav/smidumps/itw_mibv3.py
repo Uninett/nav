@@ -12,9 +12,9 @@ MIB = {
     "IT-WATCHDOGS-MIB-V3" : {
         "nodetype" : "module",
         "language" : "SMIv2",
-        "organization" :    
+        "organization" :
             """I.T. Watchdogs""",
-        "contact" : 
+        "contact" :
             """support@itwatchdogs.com""",
         "description" :
             """The MIB for I.T. Watchdogs Products""",

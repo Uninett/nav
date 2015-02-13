@@ -24,8 +24,7 @@ from django.core.urlresolvers import reverse
 
 from nav.metrics.data import (get_metric_average, get_metric_max,
                               get_metric_data)
-from nav.metrics.lookups import (device_reverse, prefix_reverse,
-                                 interface_reverse)
+from nav.metrics.lookup import lookup
 
 _logger = logging.getLogger(__name__)
 
@@ -82,7 +81,7 @@ class Stat(object):
 
     def get_metric_lookups(self):
         """Return a mapping of metric -> object"""
-        raise NotImplementedError
+        return {x: lookup(x) for x in self.get_graph_metrics()}
 
     def get_graph_url(self):
         """Gets the graph url to display the statistics as a graph"""
@@ -200,10 +199,10 @@ class StatMinFreeAddresses(Stat):
 
     def get_metric_name(self, metric):
         metric = metric.replace('ip_range', 'ip_count')
-        return self.metric_lookups[metric].net_address
-
-    def get_metric_lookups(self):
-        return prefix_reverse(self.get_graph_metrics())
+        try:
+            return self.metric_lookups[metric].net_address
+        except AttributeError:
+            return
 
 
 class StatCpuAverage(Stat):
@@ -220,10 +219,7 @@ class StatCpuAverage(Stat):
         self.graph_args['vtitle'] = 'Percent'
 
     def get_metric_name(self, metric):
-        return self.metric_lookups[metric].sysname
-
-    def get_metric_lookups(self):
-        return device_reverse(self.get_graph_metrics())
+        return self.metric_lookups[metric]
 
 
 class StatUptime(Stat):
@@ -247,10 +243,7 @@ class StatUptime(Stat):
         return data
 
     def get_metric_name(self, metric):
-        return self.metric_lookups[metric].sysname
-
-    def get_metric_lookups(self):
-        return device_reverse(self.get_graph_metrics())
+        return self.metric_lookups[metric]
 
 
 # ------------------------
@@ -262,10 +255,10 @@ class StatIf(Stat):
 
     def get_metric_name(self, metric):
         obj = self.metric_lookups[metric]
-        return "%s - %s" % (obj.netbox.sysname, obj.ifname)
-
-    def get_metric_lookups(self):
-        return interface_reverse(self.get_graph_metrics())
+        try:
+            return "%s - %s" % (obj.netbox.sysname, obj.ifname)
+        except AttributeError:
+            return
 
 
 class StatIfOctets(StatIf):
