@@ -7,7 +7,7 @@ form of code, documentation or packaging.
 Currently active contributors/maintainers
 -----------------------------------------
 
-* Vidar Faltinsen <vidar.faltinsen at uninett.no> 
+* Vidar Faltinsen <vidar.faltinsen at uninett.no>
   Founded the project in 1999.  He doesn't code, but he knows his way
   around a network, and has been a NAV mentor for all these years -
   producing documentation and offering keen insight into the problem
