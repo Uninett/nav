@@ -6,6 +6,9 @@
 # INSTALLED_APPS to make sure 'models.ModelName' is valid lookup on django
 # form app_label.model_name
 #
+# Pylint does not like import *. Django 1.7 requires all models be loaded from here,
+# so disabling pylint.
+#pylint: disable-all
 
 from .manage import *
 from .api import *
