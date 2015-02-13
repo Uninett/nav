@@ -1,1 +1,0 @@
-{{ goosename }}: sound threshold exceeded - {{ climatevalue }}

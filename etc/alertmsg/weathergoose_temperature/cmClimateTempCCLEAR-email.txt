@@ -1,2 +1,0 @@
-Subject: Weathergoose {{ goosename }}: temperature threshold clear
-{{ climatedescr }}: {{ climatevalue }}

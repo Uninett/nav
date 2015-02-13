@@ -1,0 +1,5 @@
+{% if event.state == event.STATE_START %}
+{{ goosename }}: airflow threshold exceeded - {{ climatevalue }}
+{% else %}
+{{ goosename }}: airflow threshold clear - {{ climatevalue }}
+{% endif %}

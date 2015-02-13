@@ -86,11 +86,21 @@ class WeatherGoose2Test(WeatherGooseMockedDb):
         self.assertTrue(
             wg.WeatherGoose2.can_handle('.1.3.6.1.4.1.17373.3.32767.0.10205'))
 
+    def test_should_handle_a_weathergoose2_remote_trap(self):
+        self.assertTrue(
+            wg.WeatherGoose2.can_handle('.1.3.6.1.4.1.17373.3.32767.0.10405'))
+
     def test_should_map_oid_to_correct_trigger(self):
         self.assertEqual(
             wg.WeatherGoose2.map_oid_to_trigger(
                 '.1.3.6.1.4.1.17373.3.32767.0.10205'),
             'cmClimateTempCNOTIFY')
+
+    def test_should_map_oid_to_correct_trigger_for_remote(self):
+        self.assertEqual(
+            wg.WeatherGoose2.map_oid_to_trigger(
+                '.1.3.6.1.4.1.17373.3.32767.0.10405'),
+            'cmTempSensorTempCNOTIFY')
 
     def test_should_find_correct_alert_type(self):
         trap = Mock('trap')
@@ -98,4 +108,42 @@ class WeatherGoose2Test(WeatherGooseMockedDb):
         TRIP_TYPE_HIGH = 2
         trap.varbinds = {'.1.3.6.1.4.1.17373.3.1.6.0': TRIP_TYPE_HIGH}
         goose = wg.WeatherGoose2(trap, None, None, None)
-        self.assertEquals(goose._get_alert_type(), 'cmClimateTempCTRAP')
+        self.assertEquals(goose._get_alert_type(), 'cmClimateTempCNOTIFY')
+
+    def test_should_find_correct_alert_type_remote(self):
+        trap = Mock('trap')
+        trap.snmpTrapOID = '.1.3.6.1.4.1.17373.3.32767.0.10405'
+        TRIP_TYPE_HIGH = 2
+        trap.varbinds = {'.1.3.6.1.4.1.17373.3.1.6.0': TRIP_TYPE_HIGH}
+        goose = wg.WeatherGoose2(trap, None, None, None)
+        self.assertEquals(goose._get_alert_type(), 'cmTempSensorTempCNOTIFY')
+
+    def test_should_add_subid_when_alarminstance_defined(self):
+        trap = Mock('trap')
+        trap.snmpTrapOID = '.1.3.6.1.4.1.17373.3.32767.0.10205'
+        TRIP_TYPE_HIGH = 2
+        trap.varbinds = {
+            '.1.3.6.1.4.1.17373.3.1.6.0': TRIP_TYPE_HIGH,
+            '.1.3.6.1.4.1.17373.3.1.12.0': 4
+        }
+        goose = wg.WeatherGoose2(trap, None, None, None)
+        self.assertEquals(goose._get_subid(), 4)
+
+    def test_should_not_add_subid_when_not_in_varbinds(self):
+        trap = Mock('trap')
+        trap.snmpTrapOID = '.1.3.6.1.4.1.17373.3.32767.0.10205'
+        TRIP_TYPE_HIGH = 2
+        trap.varbinds = {
+            '.1.3.6.1.4.1.17373.3.1.6.0': TRIP_TYPE_HIGH,
+        }
+        goose = wg.WeatherGoose2(trap, None, None, None)
+        self.assertEquals(goose._get_subid(), None)
+
+    def test_should_find_correct_value_from_remote_trap(self):
+        trap = Mock('trap')
+        trap.snmpTrapOID = '.1.3.6.1.4.1.17373.3.32767.0.10405'
+        TRIP_TYPE_HIGH = 2
+        trap.varbinds = {
+            '.1.3.6.1.4.1.17373.3.1.6.0': TRIP_TYPE_HIGH,
+        }
+        goose = wg.WeatherGoose2(trap, None, None, None)

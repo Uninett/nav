@@ -1,4 +1,0 @@
-Subject: Weathergoose {{ goosename }}: sound threshold exceeded
-
-Threshold: {{ triptype }}
-{{ climatedescr }}: {{ climatevalue }}

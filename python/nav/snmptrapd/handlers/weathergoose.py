@@ -27,17 +27,20 @@ from nav.db import getConnection
 
 logger = logging.getLogger('nav.snmptrapd.weathergoose')
 
+
 EVENTTYPES = {
     'weathergoose_temperature':
-        ['cmClimateTempCTRAP','cmClimateTempCCLEAR'],
+        ['cmClimateTempCTRAP','cmClimateTempCCLEAR', 'cmClimateTempCNOTIFY',
+         'cmTempSensorTempCNOTIFY', 'cmTempSensorTempCCLEAR'],
     'weathergoose_humidity':
-        ['cmClimateHumidityTRAP','cmClimateHumidityCLEAR'],
+        ['cmClimateHumidityTRAP','cmClimateHumidityCLEAR', 'cmClimateHumidityNOTIFY'],
     'weathergoose_airflow':
-        ['cmClimateAirflowTRAP','cmClimateAirflowCLEAR'],
+        ['cmClimateAirflowTRAP','cmClimateAirflowCLEAR',
+         'cmClimateAirflowNOTIFY'],
     'weathergoose_light':
-        ['cmClimateLightTRAP','cmClimateLightCLEAR'],
+        ['cmClimateLightTRAP','cmClimateLightCLEAR','cmClimateLightNOTIFY'],
     'weathergoose_sound':
-        ['cmClimateSoundTRAP','cmClimateSoundCLEAR'],
+        ['cmClimateSoundTRAP','cmClimateSoundCLEAR', 'cmClimateSoundNOTIFY'],
     }
 
 class WeatherGoose1(object):
@@ -48,6 +51,9 @@ class WeatherGoose1(object):
     NODES = MIB['nodes']
     TRIPTYPE = "." + NODES['alarmTripType']['oid']
     GOOSENAME = "." + NODES['climateName']['oid'] + '.1'
+    SUBID = None
+
+    # Values in TRIGGERTRAPS and CLEARTRAPS are used as event types
     TRIGGERTRAPS = {
         'cmClimateTempCTRAP': 'weathergoose_temperature',
         'cmClimateHumidityTRAP': 'weathergoose_humidity',
@@ -63,7 +69,7 @@ class WeatherGoose1(object):
         'cmClimateSoundCLEAR': 'weathergoose_sound',
         }
     CLIMATEOIDS = ['climateTempC', 'climateHumidity', 'climateAirflow',
-                   'climateLight', 'climateSound']
+                   'climateLight', 'climateSound', 'tempSensorTempC']
     TRIPTYPES = {0: 'None', 1: 'Low', 2: 'High', 3: 'Unplugged'}
 
     @classmethod
@@ -118,6 +124,7 @@ class WeatherGoose1(object):
         e = nav.event.Event(source="snmptrapd", target="eventEngine",
                             netboxid=self.netboxid,
                             eventtypeid=self._get_event_type(),
+                            subid=self._get_subid(),
                             state=self._get_event_state())
         e['alerttype'] = self._get_alert_type()
         e['triptype'] = self.triptype
@@ -152,32 +159,37 @@ class WeatherGoose1(object):
             return 'x'
 
     def _get_alert_type(self):
-        etype = self._get_event_type()
-        state = self._get_event_state()
-        if etype in EVENTTYPES:
-            start, stop = EVENTTYPES[etype]
-            if state == 's':
-                return start
-            elif state == 'e':
-                return stop
+        return self.trigger
+
+    def _get_subid(self):
+        """For external sensors we need a subid."""
+        return self.trap.varbinds.get(self.SUBID)
 
 
 class WeatherGoose2(WeatherGoose1):
-    from nav.smidumps.itw2_mib import MIB
+    from nav.smidumps.itw_mibv3 import MIB
 
     # Define supported traps and relations
     TRAPS = MIB['notifications']
     NODES = MIB['nodes']
     TRIPTYPE = "." + NODES['alarmTripType']['oid'] + '.0'
-    GOOSENAME = "." + NODES['climateName']['oid'] + '.1'
+    GOOSENAME = "." + NODES['productFriendlyName']['oid'] + '.0'
+    SUBID = "." + NODES['alarmInstance']['oid'] + '.0'
 
+    # Values in TRIGGERTRAPS and CLEARTRAPS are used as event types
     TRIGGERTRAPS = {
         'cmClimateTempCNOTIFY': 'weathergoose_temperature',
         'cmClimateHumidityNOTIFY': 'weathergoose_humidity',
         'cmClimateAirflowNOTIFY': 'weathergoose_airflow',
         'cmClimateLightNOTIFY': 'weathergoose_light',
         'cmClimateSoundNOTIFY': 'weathergoose_sound',
+        'cmTempSensorTempCNOTIFY': 'weathergoose_temperature',
         }
+
+    CLEARTRAPS = WeatherGoose1.CLEARTRAPS.copy()
+    CLEARTRAPS.update({ 'cmTempSensorTempCCLEAR':
+                        'weathergoose_temperature', })
+
 
 def handleTrap(trap, config=None):
     """ This function is called from snmptrapd """
