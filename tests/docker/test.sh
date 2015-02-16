@@ -57,12 +57,6 @@ run_jstests() {
     CHROME_BIN=$(which google-chrome) ./tests/javascript-test.sh "$(pwd)"
 }
 
-run_pylint() {
-    cd "${WORKSPACE}"
-    echo "Running pylint"
-    pylint python/nav --rcfile=python/pylint.rc --disable=I,similarities --output=parseable > pylint.txt || true
-}
-
 # MAIN EXECUTION POINT
 build_nav
 
@@ -72,6 +66,6 @@ start_xvfb
 
 run_pytests
 run_jstests
-run_pylint
+"${WORKSPACE}/tests/docker/lint.sh"
 
 echo "test.sh done"
