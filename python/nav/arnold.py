@@ -231,7 +231,7 @@ def find_input_type(ip_or_mac):
         input_type = "IP"
     elif re.match("^[A-Fa-f0-9]{12}$", mac):
         input_type = "MAC"
-    elif re.match("^\d+$", ip_or_mac):
+    elif re.match(r"^\d+$", ip_or_mac):
         input_type = "SWPORTID"
 
     return input_type
@@ -537,7 +537,7 @@ def get_netbios(ip):
     # For each line in output, try to find name of computer.
     for line in result.split("\n\t"):
         if re.search("<00>", line):
-            match_object = re.search("(\S+)\s+<00>", line)
+            match_object = re.search(r"(\S+)\s+<00>", line)
             return match_object.group(1) or ""
 
     # If it times out or for some other reason doesn't match
@@ -602,10 +602,10 @@ def parse_nonblock_file(filename):
         if line.startswith('#'):
             continue
 
-        if re.search('^\d+\.\d+\.\d+\.\d+$', line):
+        if re.search(r'^\d+\.\d+\.\d+\.\d+$', line):
             # Single ip-address
             nonblockdict['ip'][line] = 1
-        elif re.search('^\d+\.\d+\.\d+\.\d+\/\d+$', line):
+        elif re.search(r'^\d+\.\d+\.\d+\.\d+\/\d+$', line):
             # Range
             nonblockdict['range'][line] = 1
 
