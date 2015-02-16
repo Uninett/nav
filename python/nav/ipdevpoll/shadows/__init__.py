@@ -181,12 +181,11 @@ class Module(Shadow):
         myself_in_db = self.get_existing_model()
 
         same_name_modules = manage.Module.objects.filter(
-            netbox__id = self.netbox.id,
-            name = self.name)
+            netbox__id=self.netbox.id,
+            name=self.name)
 
         if myself_in_db:
-            same_name_modules = same_name_modules.exclude(
-                id = myself_in_db.id)
+            same_name_modules = same_name_modules.exclude(id=myself_in_db.id)
 
         other = same_name_modules.select_related('device', 'netbox')
 
@@ -219,7 +218,7 @@ class Module(Shadow):
     def _handle_missing_modules(cls, containers):
         """Handles modules that have gone missing from a device."""
         netbox = containers.get(None, Netbox)
-        all_modules = manage.Module.objects.filter(netbox__id = netbox.id)
+        all_modules = manage.Module.objects.filter(netbox__id=netbox.id)
         modules_up = all_modules.filter(up=manage.Module.UP_UP)
         modules_down = all_modules.filter(up=manage.Module.UP_DOWN)
 

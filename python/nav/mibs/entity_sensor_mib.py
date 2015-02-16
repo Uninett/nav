@@ -116,9 +116,9 @@ class EntitySensorMib(mibretriever.MibRetriever):
         for idx, row in entity_names.items():
             if idx in sensors:
                 sensors[idx]['entPhysicalDescr'] = row.get(
-                                                    'entPhysicalDescr',None)
+                    'entPhysicalDescr', None)
                 sensors[idx]['entPhysicalName'] = row.get(
-                                                    'entPhysicalName', None)
+                    'entPhysicalName', None)
         result = []
         for row_id, row in sensors.items():
             row_oid = row.get(0, None)

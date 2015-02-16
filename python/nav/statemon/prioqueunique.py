@@ -40,8 +40,8 @@ def newprio(x, y): return y
 # or second argument should be preferred.
 # one of them is passed to parameter "first"
 #when the queue is created
-def smallerfirst(x, y): return x<y
-def largerfirst(x, y): return y<x
+def smallerfirst(x, y): return x < y
+def largerfirst(x, y): return y < x
 
 class prioque:
     def __init__(self, before=smallerfirst, newprio=None):
@@ -91,7 +91,7 @@ class prioque:
         del self.loc[item[1]] #record item not present
         t = self.q[-1] #item from last position
         del self.q[-1] #reduce size
-        if len(self.q)==1:
+        if len(self.q) == 1:
             #last item removed
             self.loc.clear()
             return item
@@ -144,7 +144,7 @@ class prioque:
         removes and returns (p,x) where x is the first
         item in the queue and p is its priority. It
         raises an exception if the queue is empty. '''
-        if len(self.q)==1:
+        if len(self.q) == 1:
             raise IndexError("empty priority queue")
         item = self.__delete(1)
         return item
@@ -177,4 +177,4 @@ class prioque:
     def __nonzero__(self):
         '''q.__nonzero__() or if q: returns true if
         len(q)>0, false otherwise. '''
-        return len(self.q)>1
+        return len(self.q) > 1

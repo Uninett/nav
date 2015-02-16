@@ -26,7 +26,7 @@
 # Enable reloading of imported modules
 DEBUG = 1
 
-DB     = "manage"
+DB = "manage"
 DB_USER = "radius"
 
 """ Alternate configuration for separate DB-users with read and write

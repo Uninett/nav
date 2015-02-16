@@ -61,7 +61,7 @@ class MacWatch(models.Model):
         # Join the lists of strings with delimiter-character to form
         # a mac-address string.
         ret_addr = self.MAC_ADDR_DELIM_CHAR.join(odd_char + even_char
-            for odd_char,even_char in zip(mac_odds, mac_evens))
+            for odd_char, even_char in zip(mac_odds, mac_evens))
         # Sweep up the left-over if length is even,
         # since zip will only merge a pair.
         if self.prefix_length % 2:

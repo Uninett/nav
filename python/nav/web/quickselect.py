@@ -22,29 +22,30 @@ from django.template import Context
 from nav.models.manage import Location, Room, Netbox, Module
 from nav.models.service import Service
 
+
 class QuickSelect:
     def __init__(self, **kwargs):
         self.button = kwargs.pop('button', 'Add %s')
 
         self.location = kwargs.pop('location', True)
-        self.room     = kwargs.pop('room',     True)
-        self.netbox   = kwargs.pop('netbox',   True)
-        self.service  = kwargs.pop('service',  False)
-        self.module   = kwargs.pop('module',   False)
+        self.room = kwargs.pop('room', True)
+        self.netbox = kwargs.pop('netbox', True)
+        self.service = kwargs.pop('service', False)
+        self.module = kwargs.pop('module', False)
 
         self.location_label = kwargs.pop('location_label',
                                          '%(id)s (%(description)s)')
-        self.room_label     = kwargs.pop('room_label',
-                                         '%(id)s (%(description)s)')
-        self.netbox_label   = kwargs.pop('netbox_label',   '%(sysname)s')
-        self.service_label  = kwargs.pop('service_label',  '%(handler)s')
-        self.module_label   = kwargs.pop('module_label',   '%(name)s')
+        self.room_label = kwargs.pop('room_label',
+                                     '%(id)s (%(description)s)')
+        self.netbox_label = kwargs.pop('netbox_label', '%(sysname)s')
+        self.service_label = kwargs.pop('service_label', '%(handler)s')
+        self.module_label = kwargs.pop('module_label', '%(name)s')
 
         self.location_multi = kwargs.pop('location_multiple', True)
-        self.room_multi     = kwargs.pop('room_multiple',     True)
-        self.netbox_multi   = kwargs.pop('netbox_multiple',   True)
-        self.service_multi  = kwargs.pop('service_multiple',  True)
-        self.module_multi   = kwargs.pop('module_multiple',   True)
+        self.room_multi = kwargs.pop('room_multiple', True)
+        self.netbox_multi = kwargs.pop('netbox_multiple', True)
+        self.service_multi = kwargs.pop('service_multiple', True)
+        self.module_multi = kwargs.pop('module_multiple', True)
 
         for key in kwargs.keys():
             raise TypeError('__init__() got an unexpected keyword argument '
@@ -223,7 +224,7 @@ class QuickSelect:
             self.output = output
 
         template = get_template('webfront/quickselect.html')
-        context  = Context({'output': self.output})
+        context = Context({'output': self.output})
 
         result = template.render(context)
 

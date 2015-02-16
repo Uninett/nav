@@ -68,10 +68,10 @@ class OracleChecker(AbstractChecker):
 
     def execute(self):
         args = self.getArgs()
-        user = args.get("username","")
+        user = args.get("username", "")
         ip, port = self.getAddress()
-        passwd = args.get("password","")
-        sid = args.get("sid","")
+        passwd = args.get("password", "")
+        sid = args.get("sid", "")
         connect_string = ("%s/%s@(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=("
                           "COMMUNITY=TCP)(PROTOCOL=TCP)(Host=%s)(Port=%s)))("
                           "CONNECT_DATA=(SID=%s)(GLOBAL_NAME=%s)))") % (

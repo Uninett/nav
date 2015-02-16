@@ -317,7 +317,7 @@ class PatchImporter(BulkImporter):
     def _create_objects_from_row(self, row):
         netbox = get_object_or_fail(Netbox, sysname=row['sysname'])
         interface = get_object_or_fail(Interface,
-                                       netbox=netbox,ifname=row['port'])
+                                       netbox=netbox, ifname=row['port'])
         room = get_object_or_fail(Room, id=row['roomid'])
         cabling = get_object_or_fail(Cabling, room=room, jack=row['jack'])
 

@@ -61,7 +61,7 @@ def move(request, model, form_model, redirect, title_attr='id',
 
     # Confirm the changes
     elif step == STEP_CONFIRM:
-        form= form_model(request.POST)
+        form = form_model(request.POST)
         if form.is_valid():
             data = form.cleaned_data
             confirm = True

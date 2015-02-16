@@ -42,9 +42,9 @@ class ImapsChecker(AbstractChecker):
 
     def execute(self):
         args = self.getArgs()
-        user = args.get("username","")
+        user = args.get("username", "")
         ip, port = self.getAddress()
-        passwd = args.get("password","")
+        passwd = args.get("password", "")
         session = IMAPSConnection(self.getTimeout(), ip, port)
         ver = session.welcome
         if user:

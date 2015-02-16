@@ -18,7 +18,7 @@ import datetime
 
 from django.db.models import Q
 
-from nav.models.manage import Netbox,  Cam, Arp, GwPortPrefix
+from nav.models.manage import Netbox, Cam, Arp, GwPortPrefix
 from nav.models.manage import SwPortVlan, Interface, Prefix
 
 

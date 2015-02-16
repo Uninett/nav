@@ -49,7 +49,7 @@ def get_layout(heading, rows):
 
 def get_single_layout(heading, row):
     """Get default layout for a single filter"""
-    return get_layout(heading,  [
+    return get_layout(heading, [
         Column(row, css_class='medium-8'),
         Column(get_submit_button(), css_class='medium-4')
     ])

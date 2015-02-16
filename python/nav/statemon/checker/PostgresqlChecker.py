@@ -37,7 +37,7 @@ class PostgresqlChecker(AbstractChecker):
     )
 
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, service,  port=5432, **kwargs)
+        AbstractChecker.__init__(self, service, port=5432, **kwargs)
 
     def execute(self):
         kwargs = {}

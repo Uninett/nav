@@ -1,4 +1,4 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
 #
@@ -17,10 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# $Id: $
-# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
 """
 Abstraction for the various config files used
@@ -65,9 +61,9 @@ class Conf(dict):
         for (key, value) in self._regexp.findall(self._configfile.read()):
             if self.validoptions:
                 if key.strip() in self.validoptions:
-                    self[key.strip()]=value.strip()
+                    self[key.strip()] = value.strip()
             else:
-                self[key.strip()]=value.strip()
+                self[key.strip()] = value.strip()
 
 def dbconf(*args, **kwargs):
     if _dbconf._instance is None:
@@ -77,7 +73,7 @@ def dbconf(*args, **kwargs):
 class _dbconf(Conf):
     _instance = None
     def __init__(self, *args, **kwargs):
-        self._file = kwargs.get('configfile','db.conf')
+        self._file = kwargs.get('configfile', 'db.conf')
         # Valid configoptions must be specified in this list
         self.validoptions = []
         Conf.__init__(self, *args, **kwargs)
@@ -98,7 +94,7 @@ def serviceconf(*args, **kwargs):
 class _pingconf(Conf):
     _instance = None
     def __init__(self, *args, **kwargs):
-        self._file = kwargs.get('configfile','pping.conf')
+        self._file = kwargs.get('configfile', 'pping.conf')
         self.validoptions = []
         Conf.__init__(self, *args, **kwargs)
 

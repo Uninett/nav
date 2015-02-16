@@ -78,7 +78,7 @@ def planned(request):
     info_dict = {'messages': planned_messages}
     info_dict.update(PLANNED_DEFAULTS)
 
-    return render_to_response('messages/list.html',  info_dict,
+    return render_to_response('messages/list.html', info_dict,
                               context_instance=RequestContext(request))
 
 

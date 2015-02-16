@@ -79,7 +79,7 @@ def handleTrap(trap, config=None):
     # Use the trap-object to access trap-variables and do stuff.
     for vendor in ONBATTERY.keys():
         if trap.snmpTrapOID in ONBATTERY[vendor]:
-            logger.debug ("Got ups on battery trap (%s)" %vendor)
+            logger.debug("Got ups on battery trap (%s)" %vendor)
 
             # Get time to live
             try:
@@ -167,7 +167,7 @@ def format_batterytime(timeunit, format):
 
 # This function is a nice to run to make sure the event and alerttypes
 # exist in the database if you post events for alerting.
-def verifyEventtype ():
+def verifyEventtype():
     """
     Safe way of verifying that the event- and alarmtypes exist in the
     database. Should be run when module is imported.

@@ -139,10 +139,10 @@ def calcBytes(bytes):
     if bytes == None:
         bytes = 0
 
-    terraBytes, bytes   = divmod(bytes, 1024**4)
-    gigaBytes, bytes    = divmod(bytes, 1024**3)
-    megaBytes, bytes    = divmod(bytes, 1024**2)
-    kiloBytes, bytes    = divmod(bytes, 1024)
+    terraBytes, bytes = divmod(bytes, 1024**4)
+    gigaBytes, bytes = divmod(bytes, 1024**3)
+    megaBytes, bytes = divmod(bytes, 1024**2)
+    kiloBytes, bytes = divmod(bytes, 1024)
 
     return (terraBytes, gigaBytes, megaBytes, kiloBytes, bytes)
 

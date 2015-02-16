@@ -102,10 +102,10 @@ class JobHandler(object):
         port = ports.next()
         self.agent = AgentProxy(
             self.netbox.ip, 161,
-            community = self.netbox.read_only,
-            snmpVersion = 'v%s' % self.netbox.snmp_version,
-            protocol = port.protocol,
-            snmp_parameters = snmp_parameter_factory(self.netbox)
+            community=self.netbox.read_only,
+            snmpVersion='v%s' % self.netbox.snmp_version,
+            protocol=port.protocol,
+            snmp_parameters=snmp_parameter_factory(self.netbox)
         )
         try:
             self.agent.open()
@@ -160,7 +160,8 @@ class JobHandler(object):
         unwilling_plugins = []
         for cls in plugin_classes:
             try:
-                can_handle = yield defer.maybeDeferred(cls.can_handle, self.netbox)
+                can_handle = yield defer.maybeDeferred(cls.can_handle,
+                                                       self.netbox)
             except Exception, err:
                 self._logger.exception(
                     "Unhandled exception from can_handle(): %r", cls)
@@ -187,7 +188,7 @@ class JobHandler(object):
         def log_plugin_failure(failure, plugin_instance):
             if failure.check(TimeoutError, defer.TimeoutError):
                 self._logger.debug("Plugin %s reported a timeout",
-                                   plugin_instance.alias,exc_info=True)
+                                   plugin_instance.alias, exc_info=True)
                 raise AbortedJobError(
                     "Plugin %s reported a timeout" % plugin_instance.alias)
             elif failure.check(SuggestedReschedule):

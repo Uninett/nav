@@ -81,7 +81,7 @@ class MetaIP:
 
         #in case .strCompressed() compressed it too much
         while netaddr.count(":") < hexlets_in_address-1:
-            netaddr = ":".join([netaddr,"0"])
+            netaddr = ":".join([netaddr, "0"])
 
         if leadingZeros:
             last_hexlet = netaddr[netaddr.rfind(':')+1:]
@@ -103,7 +103,7 @@ class MetaIP:
                              LEFT OUTER JOIN vlan USING(vlanid)
                  WHERE family(netaddr)=6"""
 
-        cursor = db.getConnection('default','manage').cursor()
+        cursor = db.getConnection('default', 'manage').cursor()
         cursor.execute(sql)
         rows = cursor.fetchall()
         result = {}
@@ -123,7 +123,7 @@ class MetaIP:
                              LEFT OUTER JOIN vlan USING(vlanid)
                  WHERE family(netaddr)=4"""
 
-        cursor = db.getConnection('default','manage').cursor()
+        cursor = db.getConnection('default', 'manage').cursor()
         cursor.execute(sql)
         rows = cursor.fetchall()
         result = {}

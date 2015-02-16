@@ -103,7 +103,7 @@ class SnmpCheck(Plugin):
         agent = AgentProxy(
             old_agent.ip, old_agent.port,
             community=old_agent.community,
-            snmpVersion = version)
+            snmpVersion=version)
         if hasattr(old_agent, 'protocol'):
             agent.protocol = old_agent.protocol
 

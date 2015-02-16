@@ -30,17 +30,18 @@ logger = logging.getLogger('nav.snmptrapd.weathergoose')
 
 EVENTTYPES = {
     'weathergoose_temperature':
-        ['cmClimateTempCTRAP','cmClimateTempCCLEAR', 'cmClimateTempCNOTIFY',
+        ['cmClimateTempCTRAP', 'cmClimateTempCCLEAR', 'cmClimateTempCNOTIFY',
          'cmTempSensorTempCNOTIFY', 'cmTempSensorTempCCLEAR'],
     'weathergoose_humidity':
-        ['cmClimateHumidityTRAP','cmClimateHumidityCLEAR', 'cmClimateHumidityNOTIFY'],
+        ['cmClimateHumidityTRAP', 'cmClimateHumidityCLEAR',
+         'cmClimateHumidityNOTIFY'],
     'weathergoose_airflow':
-        ['cmClimateAirflowTRAP','cmClimateAirflowCLEAR',
+        ['cmClimateAirflowTRAP', 'cmClimateAirflowCLEAR',
          'cmClimateAirflowNOTIFY'],
     'weathergoose_light':
-        ['cmClimateLightTRAP','cmClimateLightCLEAR','cmClimateLightNOTIFY'],
+        ['cmClimateLightTRAP', 'cmClimateLightCLEAR', 'cmClimateLightNOTIFY'],
     'weathergoose_sound':
-        ['cmClimateSoundTRAP','cmClimateSoundCLEAR', 'cmClimateSoundNOTIFY'],
+        ['cmClimateSoundTRAP', 'cmClimateSoundCLEAR', 'cmClimateSoundNOTIFY'],
     }
 
 class WeatherGoose1(object):
@@ -196,8 +197,8 @@ class WeatherGoose2(WeatherGoose1):
         }
 
     CLEARTRAPS = WeatherGoose1.CLEARTRAPS.copy()
-    CLEARTRAPS.update({ 'cmTempSensorTempCCLEAR':
-                        'weathergoose_temperature', })
+    CLEARTRAPS.update({'cmTempSensorTempCCLEAR':
+                       'weathergoose_temperature', })
 
 
 def handleTrap(trap, config=None):

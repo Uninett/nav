@@ -200,7 +200,7 @@ class _Section(object):
         return form_model(data)
 
 class NetboxSection(_Section):
-    columns =  [
+    columns = [
         'Sysname',
         'IP',
         'Down since',
@@ -275,7 +275,7 @@ class NetboxSection(_Section):
         return states
 
 class NetboxMaintenanceSection(_Section):
-    columns =  [
+    columns = [
         'Sysname',
         'IP',
         'Down since',
@@ -757,7 +757,7 @@ class LinkStateSection(_Section):
 
 
 class SNMPAgentSection(_Section):
-    columns =  [
+    columns = [
         'Sysname',
         'IP',
         'Down since',

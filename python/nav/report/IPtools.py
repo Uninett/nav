@@ -56,7 +56,7 @@ def netDiff(net1, net2):
         ``net1'': IPy.IP
         ``net2'': IPy.IP
     """
-    assert net1.prefixlen()==net2.prefixlen()
+    assert net1.prefixlen() == net2.prefixlen()
     if net1.version() == 4:
         return _ipv4_net_diff(net1, net2)
     else:
@@ -132,7 +132,7 @@ def compress_light(ip):
 
     #in case .strCompressed() compressed it too much
     while netaddr.count(":") < hexlets_in_address-1:
-        netaddr = ":".join([netaddr,"0"])
+        netaddr = ":".join([netaddr, "0"])
 
     return netaddr
 
@@ -202,7 +202,7 @@ def _ipv6_andIpMask(ip, mask):
 def _ipv4_andIpMask(ip, mask):
     ip_split = ip.net().strNormal().split(".")
     mask_split = mask.net().strNormal().split(".")
-    assert len(ip_split)==len(mask_split)==4
+    assert len(ip_split) == len(mask_split) == 4
     supernet = ""
     for i in range(0, len(ip_split)):
         andOp = int(ip_split[i]) & int(mask_split[i])
@@ -238,16 +238,16 @@ def _ipv6_getMask(bit_count):
 
     if last_nybble:
         last_nybble_dec = sum([2**(4-i) for i in range(1, last_nybble+1)])
-        mask_string = "".join([mask_string,"%x" % last_nybble_dec])
+        mask_string = "".join([mask_string, "%x" % last_nybble_dec])
 
     result = [mask_string[4*i:4+4*i] for i in range(0, int(float(bit_count)/16+0.5))]
     if len(result[-1]) < 4:
         for i in range(0, 4-len(result[-1])):
-            result[-1] = "".join([result[-1],"0"])
+            result[-1] = "".join([result[-1], "0"])
     result = ":".join(result)
 
     if bit_count < 112:
-        result = "".join([result,"::"])
+        result = "".join([result, "::"])
     return IP("/".join([result, str(bit_count)]))
 
 def _ipv4_getMask(bit_count):
@@ -261,7 +261,7 @@ def _ipv4_getMask(bit_count):
     ip_builder = ".".join([ip_builder, str(temp)])
     ip_builder = ip_builder[1:]
     for i in range(0, 4-len(ip_builder.split("."))):
-        ip_builder = ".".join([ip_builder,"0"])
+        ip_builder = ".".join([ip_builder, "0"])
     return IP("/".join([ip_builder, str(bit_count)]))
 
 def getLastSubnet(network, last_network_prefix_len=None):

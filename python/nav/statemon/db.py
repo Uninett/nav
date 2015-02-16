@@ -179,7 +179,7 @@ class _db(threading.Thread):
         self.queue.put(event)
 
     def commitEvent(self, event):
-        if event.source not in ("serviceping","pping"):
+        if event.source not in ("serviceping", "pping"):
             debug("Invalid source for event: %s" % event.source, 1)
             return
         if event.eventtype == "version":
@@ -218,7 +218,7 @@ class _db(threading.Thread):
             return self._hostsToPing
         return self._hostsToPing
 
-    def getCheckers(self, useDbStatus, onlyactive = 1):
+    def getCheckers(self, useDbStatus, onlyactive=1):
         query = """SELECT serviceid, property, value
         FROM serviceproperty
         order BY serviceid"""
@@ -256,13 +256,13 @@ class _db(threading.Thread):
                 debug("no such checker: %s" % handler, 2)
                 continue
             service = {
-                'id':serviceid,
-                'netboxid':netboxid,
-                'ip':ip,
-                'deviceid':deviceid,
-                'sysname':sysname,
-                'args':property.get(serviceid,{}),
-                'version':version
+                'id': serviceid,
+                'netboxid': netboxid,
+                'ip': ip,
+                'deviceid': deviceid,
+                'sysname': sysname,
+                'args': property.get(serviceid, {}),
+                'version': version
                 }
 
             kwargs = {}

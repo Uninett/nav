@@ -31,7 +31,7 @@ def get_rooms_with_position(request, roomid=None):
     Get rooms for presentation in OSM map
     """
     if roomid:
-        rooms = Room.objects.filter(id=roomid,position__isnull=False)
+        rooms = Room.objects.filter(id=roomid, position__isnull=False)
     else:
         rooms = Room.objects.filter(position__isnull=False)
     data = {'rooms': []}

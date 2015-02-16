@@ -63,9 +63,10 @@ class SwPortBlockedManager(DefaultManager):
             manage.SwPortBlocked.objects.filter(
                 id__in=[b.id for b in gone]).delete()
 
+
 # pylint: disable=W0201,E0203,C0111
 class SwPortBlocked(Shadow):
-    __shadowclass__ =  manage.SwPortBlocked
+    __shadowclass__ = manage.SwPortBlocked
     manager = SwPortBlockedManager
 
     def get_existing_model(self, containers=None):

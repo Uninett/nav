@@ -222,7 +222,7 @@ class Edge(object):
         self.source = self.target = self.vlan = self.prefix = None
         nx_source, nx_target = nx_edge
 
-        if self._valid_layer2(source) :
+        if self._valid_layer2(source):
             self.source = Group(source.netbox, source)
         elif self._valid_layer3(source):
             self.source = Group(source.interface.netbox, source.interface)

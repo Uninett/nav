@@ -65,9 +65,9 @@ def decorated_sort(l):
 
     If using Python 2.4 or newer, use l.sort(key=natsort.split) instead.
     """
-    deco = [ (split(element), i, element) for i, element in enumerate(l) ]
+    deco = [(split(element), i, element) for i, element in enumerate(l)]
     deco.sort()
-    new_list = [ element for _, _, element in deco ]
+    new_list = [element for _, _, element in deco]
     return new_list
 
 

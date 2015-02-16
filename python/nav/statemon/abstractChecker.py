@@ -247,7 +247,7 @@ class AbstractChecker:
         """Returns the time of last check. """
         return self._timestamp
 
-    def setTimestamp(self, when = -1):
+    def setTimestamp(self, when=-1):
         """Updates the time of last check. If no argument is
         supplied, it defaults to time.time()"""
         if when == -1:

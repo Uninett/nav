@@ -182,7 +182,7 @@ class ConfigParser(object):
         for line in conf_match:
 
             key = line[0]
-            value = line[1].replace('\n',' ').strip()
+            value = line[1].replace('\n', ' ').strip()
 
             if key == "sql" or key == "query":
                 config.sql = value
@@ -319,7 +319,7 @@ class ArgumentParser(object):
                         value = intstr(value)
                     elif operator[key] == "like":
                         operat = "ilike"
-                        value = intstr(value.replace("*","%"))
+                        value = intstr(value.replace("*", "%"))
                     elif operator[key] == "gt":
                         if neg:
                             operat = "<="
@@ -426,7 +426,7 @@ class ReportConfig(object):
     def orderstring(self):
         def _transform(arg):
             if arg.startswith("-"):
-                arg = "%s DESC" % arg.replace("-","")
+                arg = "%s DESC" % arg.replace("-", "")
             return arg
 
         sort = [_transform(s) for s in self.order_by]

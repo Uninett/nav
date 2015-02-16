@@ -1,4 +1,4 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2003 Norwegian University of Science and Technology
 #
@@ -17,10 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# $Id: $
-# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
 """
 This module provides a threadpool and fair scheduling.
@@ -157,7 +153,7 @@ class _RunQueue:
         self.lock.acquire()
         while 1:
             # wait if we have no checkers in queue
-            while len(self.rq)==0 and len(self.pq)==0:
+            while len(self.rq) == 0 and len(self.pq) == 0:
                 if self.stop:
                     self.lock.release()
                     raise TerminateException
@@ -166,7 +162,7 @@ class _RunQueue:
                 self.lock.release()
                 raise TerminateException
 
-            if len(self.pq)>0:
+            if len(self.pq) > 0:
                 scheduledTime, obj = self.pq.headPair()
                 scheduledTime = float(scheduledTime)
                 now = time.time()

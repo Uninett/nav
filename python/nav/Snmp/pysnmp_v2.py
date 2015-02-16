@@ -58,7 +58,7 @@ class Snmp(object):
         self.handle.timeout = float(timeout)
 
 
-    def get(self, query = "1.3.6.1.2.1.1.1.0"):
+    def get(self, query="1.3.6.1.2.1.1.1.0"):
         """
         Does snmpget query on the host.
         query: OID to use in the query
@@ -176,8 +176,7 @@ class Snmp(object):
         except (role.NoResponse, role.NetworkError), why:
             raise NetworkError, why
 
-
-    def walk(self, query = "1.3.6.1.2.1.1.1.0"):
+    def walk(self, query="1.3.6.1.2.1.1.1.0"):
         """
         Does snmpwalk on the host.
         query: OID to use in the query
@@ -257,7 +256,7 @@ class Snmp(object):
             req['encoded_oids'] = rsp['encoded_oids']
             current_oid = rsp_oid
 
-    def jog(self, query = "1.3.6.1.2.1.1.1.0"):
+    def jog(self, query="1.3.6.1.2.1.1.1.0"):
         """Does a modified snmpwalk on the host. The query OID is
         chopped off the returned OID for each line in the result.
         query: OID to use in the query
@@ -276,7 +275,7 @@ class Snmp(object):
 
         return result
 
-    def bulkwalk(self, query = "1.3.6.1.2.1.1.1.0", strip_prefix=False):
+    def bulkwalk(self, query="1.3.6.1.2.1.1.1.0", strip_prefix=False):
         """
         Performs an SNMP walk on the host, using GETBULK requests.
         Will raise an UnsupportedSnmpVersionError if the current

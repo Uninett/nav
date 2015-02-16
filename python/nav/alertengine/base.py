@@ -166,7 +166,7 @@ def handle_new_alerts(new_alerts):
                     group_permissions__accounts__in=[account]):
                 permissions.append(filtergroup.filtergroupcontent_set.all())
 
-            accounts.append( (account, tmp, permissions) )
+            accounts.append((account, tmp, permissions))
             del permissions
 
         del tmp

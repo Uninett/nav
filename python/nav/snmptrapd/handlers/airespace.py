@@ -34,10 +34,8 @@ def handleTrap(trap, config=None):
     # Two interesting traps:
     # bsnAPAssociated and bsnAPDisassociated
 
-    if trap.snmpTrapOID not in [ "." + TRAPS['bsnAPAssociated']['oid'],
-                                 "." + TRAPS['bsnAPDisassociated']['oid']
-                                 ]:
-
+    if trap.snmpTrapOID not in ["." + TRAPS['bsnAPAssociated']['oid'],
+                                "." + TRAPS['bsnAPDisassociated']['oid']]:
         return False
 
 

@@ -100,7 +100,7 @@ class MIBObject(object):
         if 'basetype' in typ and typ['basetype'] == 'Enumeration':
             # Build a two-way dictionary mapping enumerated names
             enums = [(k, int(val['number']))
-                     for k,val in typ.items()
+                     for k, val in typ.items()
                      if type(val) is dict and 'nodetype' in val and
                      val['nodetype'] == 'namednumber'
                      ]
@@ -255,7 +255,7 @@ class MibRetrieverMaker(type):
         MibRetrieverMaker.__make_scalar_getters(cls)
         MibRetrieverMaker.__make_table_getters(cls)
 
-        MibRetrieverMaker.modules[ mib['moduleName'] ] = cls
+        MibRetrieverMaker.modules[mib['moduleName']] = cls
 
     # following is a collection of helper methods to modify the
     # MIB-aware retriever class that is being created.
@@ -381,11 +381,11 @@ class MibRetriever(object):
             failure.trap(ValueError)
             self._logger.warning("got a possibly strange response from device "
                                  "when asking for %s::%s, ignoring: %s",
-                                 self.mib.get('moduleName', ''),  column_name,
+                                 self.mib.get('moduleName', ''), column_name,
                                  failure.getErrorMessage())
             return {}  # alternative is to retry or raise a Timeout exception
 
-        deferred = self.agent_proxy.getTable([ str(node.oid) ])
+        deferred = self.agent_proxy.getTable([str(node.oid)])
         deferred.addCallbacks(resultFormatter, _valueerror_handler)
         return deferred
 
@@ -646,8 +646,8 @@ class MultiMibMixIn(MibRetriever):
             agent.ip,
             agent.port,
             community=community,
-            snmpVersion = agent.snmpVersion,
-            snmp_parameters = agent.snmp_parameters)
+            snmpVersion=agent.snmpVersion,
+            snmp_parameters=agent.snmp_parameters)
         if hasattr(agent, 'protocol'):
             alt_agent.protocol = agent.protocol
 

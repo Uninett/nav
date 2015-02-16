@@ -145,7 +145,7 @@ def edit_macwatch(request, macwatchid):
                     RequestContext(request))
 
 def populate_info_dict(account, macwatches=None, messages=None):
-    info_dict = {'account': account }
+    info_dict = {'account': account}
     if macwatches:
         info_dict['macwatches'] = macwatches
     if messages:

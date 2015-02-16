@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2011 UNINETT AS
 #
@@ -110,16 +110,35 @@ def _build_context(request):
 
                 results = results.filter(origin__name__in=origin_name)
 
-            priorities = results.values('newpriority__keyword').annotate(sum=Count('newpriority__keyword'))
+            priorities = results.values('newpriority__keyword').annotate(
+                sum=Count('newpriority__keyword'))
             priorities_headers = ['Priority']
-            message_types = results.values('type__facility', 'type__priority__keyword', 'type__mnemonic').annotate(sum=Count('type'))
+            message_types = results.values(
+                'type__facility', 'type__priority__keyword', 'type__mnemonic'
+            ).annotate(sum=Count('type'))
             message_types_headers = ['Facility', 'Priority', 'State']
-            origins = results.values('origin__name').annotate(sum=Count('origin__name'))
+            origins = results.values('origin__name').annotate(
+                sum=Count('origin__name'))
             origins_headers = ['Origin']
 
-            aggregates.update({'Priorities' : { 'values': priorities, 'headers': priorities_headers, 'colspan': 1} })
-            aggregates.update({'Type': { 'values': message_types, 'headers': message_types_headers, 'colspan': 3 }})
-            aggregates.update({'Origin': { 'values': origins, 'headers': origins_headers, 'colspan': 1 }})
+            aggregates.update(
+                {'Priorities': {
+                    'values': priorities,
+                    'headers': priorities_headers,
+                    'colspan': 1
+                }})
+            aggregates.update(
+                {'Type': {
+                    'values': message_types,
+                    'headers': message_types_headers,
+                    'colspan': 3
+                }})
+            aggregates.update(
+                {'Origin': {
+                    'values': origins,
+                    'headers': origins_headers,
+                    'colspan': 1
+                }})
 
             def _update_show_log_context(value, results):
                 if value:
