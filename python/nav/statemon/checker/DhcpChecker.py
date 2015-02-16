@@ -38,7 +38,7 @@ class DhcpChecker(AbstractChecker):
     def execute(self):
         ip, _port = self.getAddress()
         timeout = self.getTimeout()
-        
+
         cmd = 'dhcping'
 
         path = which(cmd)

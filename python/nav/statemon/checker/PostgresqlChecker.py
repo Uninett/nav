@@ -49,7 +49,7 @@ class PostgresqlChecker(AbstractChecker):
                 # Must convert to str here because psycopg2 complains
                 # if keywords are unicode. ("Keywords must be strings")
                 kwargs[str(name)] = value
-                
+
         (kwargs['host'], kwargs['port']) = self.getAddress()
 
         #pylint: disable=W0703

@@ -78,5 +78,5 @@ class ImapChecker(AbstractChecker):
                 else:
                     break
         self.setVersion(version)
-        
+
         return Event.UP, version

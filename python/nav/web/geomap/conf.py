@@ -294,13 +294,13 @@ def interpret_configuration(config, filename):
                  'property': property_,
                  'name': name,
                  'options': options})
-    
+
     def is_template_file(c_obj):
         if c_obj['type'] == 'block':
             return False
         match = re.match(r'^template_file\((.+),(.+)\)$', c_obj['text'])
         return match is not None
-        
+
     def read_template_file(c_obj):
         match = re.match(r'^template_file\((.+),(.+)\)$', c_obj['text'])
         template_for = match.group(1).strip()
@@ -312,7 +312,7 @@ def interpret_configuration(config, filename):
             return False
         match = re.match(r'^style\((.+),(.+),(.+)\)$', c_obj['text'])
         return match is not None
-        
+
     def read_style(c_obj):
         match = re.match(r'^style\((.+),(.+),(.+)\)$', c_obj['text'])
         type_ = match.group(1).strip()

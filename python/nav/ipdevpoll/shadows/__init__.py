@@ -622,7 +622,7 @@ class Sensor(Shadow):
     @classmethod
     def cleanup_after_save(cls, containers):
         cls._delete_missing_sensors(containers)
-        
+
     @classmethod
     @db.autocommit
     def _delete_missing_sensors(cls, containers):
@@ -645,7 +645,7 @@ class Sensor(Shadow):
         missing_sensors = manage.Sensor.objects.filter(
             netbox=netbox.id).exclude(pk__in=found_sensor_pks)
         return missing_sensors
-        
+
 class PowerSupplyOrFan(Shadow):
     __shadowclass__ = manage.PowerSupplyOrFan
     __lookups__ = [('netbox', 'name')]
@@ -677,4 +677,3 @@ class PowerSupplyOrFan(Shadow):
         missing_psus_and_fans = manage.PowerSupplyOrFan.objects.filter(
             netbox=netbox.id).exclude(pk__in=found_psus_and_fans_pks)
         return missing_psus_and_fans
-    

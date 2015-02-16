@@ -19,7 +19,7 @@
 from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 
-# Python-radius specific modules. pyrad found at 
+# Python-radius specific modules. pyrad found at
 # http://www.wiggy.net/code/pyrad/ by Wichert Akkermann
 import pyrad.packet
 from pyrad.client import Client
@@ -31,7 +31,7 @@ class RadiusChecker(AbstractChecker):
     Radius Monitor-client.
 
     Handles Radius-servers. It tries to authenticate like for example any
-    VPN-concentrator from Cisco would. 
+    VPN-concentrator from Cisco would.
 
     Future enhancements would be to check if we get a certain attribute
     back from the server, and what the value of that attribute would be.
@@ -40,7 +40,7 @@ class RadiusChecker(AbstractChecker):
     Arguments:
     ----------
     hostname  : Accessible from self.getAddress() as pure FQDN hostname
-    port      : Remote udp-port where radius authentication is living. 
+    port      : Remote udp-port where radius authentication is living.
                 Port 1812 is default for authentication.
     username  : A valid radius-username
     password  : Clear-text password associated with the username above.
@@ -98,5 +98,5 @@ class RadiusChecker(AbstractChecker):
                     "Failed connecting to %s: %s)" %
                     (self.getAddress(), str(err)))
         version = "FreeRadius 1.0"  # Fetch from radiusmonitor later.
-        self.setVersion(version) 
+        self.setVersion(version)
         return Event.UP, "Radius: " + version

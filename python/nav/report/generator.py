@@ -105,7 +105,7 @@ class ReportList(object):
         for rep in reports:
             configtext = rep[1]
             rep = rep[0]
-            
+
             parser.parse_configuration(configtext)
             report = parser.configuration
 
@@ -161,7 +161,7 @@ class ConfigParser(object):
         if match or local_match:
             self.configuration.report_id = report_name
             return True
-        
+
         else:
             return False
 

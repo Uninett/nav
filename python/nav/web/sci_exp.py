@@ -34,13 +34,13 @@ units = {
      21 : ('Z', 'zetta'),
      24 : ('Y', 'yotta'),
  }
-     
+
 def sci(number, long=False):
     number = float(number)
     try:
         exponent = int(math.log10(number) / 3)*3
         if number < 1:
-            # We want 311m - not 0.311 
+            # We want 311m - not 0.311
             exponent -= 3
         if abs(exponent) > 24:
             exponent = 24 * (exponent/abs(exponent))
@@ -52,13 +52,13 @@ def sci(number, long=False):
 
 def sciShort(number):
     return sci(number, long=False)
-    
+
 def sciLong(number):
     return sci(number, long=True)
-    
+
 def printe(number):
     import sci_exp
     a = sci_exp.sciShort(number)
     return '%0.3f%s' % a
-        
-    
+
+

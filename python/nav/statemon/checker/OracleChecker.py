@@ -25,7 +25,7 @@ class OracleChecker(AbstractChecker):
     Description:
     ------------
     This checker tries to connect to a given Oracle database.
-    
+
     The checker relies on that the neccesary Oracle software have been
     installed and that the following Oracle environment variables
     have been set:
@@ -33,14 +33,14 @@ class OracleChecker(AbstractChecker):
     - $ORACLE_HOME
     - $NLS_LANG
 
-    
+
     Arguments:
     ----------
     hostname: Accessible from self.getAddress() as pure FQDN hostname
     port    : Remote tcp-port where Oracle Listener is living. Default is 1521.
     sid     : Database SID
     username: An Oracle database account with the following permissions:
-              - CREATE SESSION 
+              - CREATE SESSION
               - ALTER SESSION
               - select on sys.v_$instance
     password: Password for the Oracle database account.

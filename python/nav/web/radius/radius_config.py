@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2008 University of Tromsø 
+# Copyright 2008 University of Tromsø
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -48,7 +48,7 @@ MODULES = {
         "logsearch": "Error Log"
           }
 
-# Maps pages/subsections to modules 
+# Maps pages/subsections to modules
 SECTIONS = {
         "acctsearch": ["acctsearch", "acctdetail"],
         "acctcharts": ["acctcharts"],
@@ -70,7 +70,7 @@ INDEX_PAGE = 'acctsearch'
 # Radius Log
 ##############################################################################
 
-# Database table containing radius log 
+# Database table containing radius log
 LOG_TABLE = "radiuslog"
 
 # Keep records for 1 month
@@ -122,7 +122,7 @@ ACCT_TABLE = "radiusacct"
 ACCT_REAUTH_TIMEOUT = 960
 
 
-# Associate database fields with proper descriptions 
+# Associate database fields with proper descriptions
 ACCT_DBFIELDSDESCRIPTIONS = {
                     "acctuniqueid": "Session ID",
                     "username": "Username",
@@ -143,10 +143,10 @@ ACCT_DBFIELDSDESCRIPTIONS = {
 
 # Fields to display when viewing session details
 ACCT_DETAILSFIELDS = (
-                    "acctuniqueid", 
-                    "username", 
-                    "nasipaddress", 
-                    "nasporttype", 
+                    "acctuniqueid",
+                    "username",
+                    "nasipaddress",
+                    "nasporttype",
                     "cisconasport",
                     "calledstationid",
                     "callingstationid",

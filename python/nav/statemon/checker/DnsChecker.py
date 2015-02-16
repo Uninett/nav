@@ -70,7 +70,7 @@ class DnsChecker(AbstractChecker):
                 if str(err) == 'Timeout':
                     pass  # Ignore timeout
                 else:
-                    raise            
+                    raise
 
             if not timeout and answer == 1:
                 return Event.UP, "Ok"

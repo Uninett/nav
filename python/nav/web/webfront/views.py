@@ -301,7 +301,7 @@ def change_password(request):
                 'webfront/preferences.html',
                 context
             )
-            
+
     return HttpResponseRedirect(reverse('webfront-preferences'))
 
 

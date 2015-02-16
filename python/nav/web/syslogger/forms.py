@@ -70,11 +70,11 @@ class LoggerGroupSearchForm(forms.Form):
                             Column('timestamp_from', css_class='medium-12'),
                             Column('timestamp_to', css_class='medium-12'),
                             Column('show_log', css_class='medium-12'),
-                           
+
                         ),
                     ),
                     css_class='medium-12'
                 ),
             ),
         )
-        
+

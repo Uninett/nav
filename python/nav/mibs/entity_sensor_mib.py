@@ -81,7 +81,7 @@ class EntitySensorMib(mibretriever.MibRetriever):
                 ])
         df.addCallback(reduce_index)
         return df
-            
+
     def _collect_entity_names(self):
         """ Collect all entity-names on netbox."""
         df = self.entity_mib.retrieve_columns([
@@ -108,7 +108,7 @@ class EntitySensorMib(mibretriever.MibRetriever):
     def get_all_sensors(self):
         """ Collect all sensors and names on a netbox, and match
             sensors with names.
-            
+
             Return a list with dictionaries, each dictionary
             represent a sensor."""
         sensors = yield self._get_sensors()

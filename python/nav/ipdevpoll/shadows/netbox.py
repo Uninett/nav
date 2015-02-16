@@ -65,7 +65,7 @@ class Netbox(Shadow):
                         "Serial number conflict, attempting peaceful "
                         "resolution (%s): "
                         "%s [%s] (id: %s) <-> %s [%s] (id: %s)",
-                        self.device.serial, 
+                        self.device.serial,
                         self.sysname, self.ip, self.id,
                         other.sysname, other.ip, other.id)
                     self.device.serial = None

@@ -422,7 +422,7 @@ class Shadow(object):
         The containers argument is the complete repository of containers
         created during the job run, and can be sneakily modified by this method
         if you are so inclined.
-        
+
         """
         if cls in containers:
             for container in containers[cls].values():

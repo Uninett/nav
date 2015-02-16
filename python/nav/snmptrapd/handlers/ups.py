@@ -93,7 +93,7 @@ def handleTrap(trap, config=None):
             else:
                 batterytime = format_batterytime(batterytime, format)
                 logger.debug("batterytime: %s" % batterytime)
-                
+
             # Get netboxid from database
             c = db.cursor()
             c.execute("SELECT netboxid, sysname FROM netbox WHERE ip = %s",
@@ -143,7 +143,7 @@ def handleTrap(trap, config=None):
                       eventtypeid=eventtypeid, state=state)
             e['sysname'] = sysname
             e['alerttype'] = "upsOnUtilityPower"
-            
+
             # Post event
             try:
                 e.post()
@@ -176,7 +176,7 @@ def verifyEventtype ():
     db = getConnection('default')
     c = db.cursor()
 
-    # NB: Remember to replace the values with the one you need. 
+    # NB: Remember to replace the values with the one you need.
 
     sql = """
     INSERT INTO eventtype (
@@ -201,7 +201,7 @@ def verifyEventtype ():
             c.execute(q)
 
     db.commit()
-        
+
 def initialize():
     """Initialize method for snmpdtrap daemon so it can initialize plugin
     after __import__

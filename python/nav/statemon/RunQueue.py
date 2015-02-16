@@ -162,7 +162,7 @@ class _RunQueue:
                     self.lock.release()
                     raise TerminateException
                 self.awaitWork.wait()
-            if self.stop: 
+            if self.stop:
                 self.lock.release()
                 raise TerminateException
 

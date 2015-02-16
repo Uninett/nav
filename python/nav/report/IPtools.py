@@ -252,11 +252,11 @@ def _ipv6_getMask(bit_count):
 
 def _ipv4_getMask(bit_count):
     ip_builder = ""
-    temp = 0 
+    temp = 0
     for i in range(0, bit_count):
         if i % 8 == 0 and i > 0:
             ip_builder = ".".join([ip_builder, str(temp)])
-            temp = 0 
+            temp = 0
         temp += 2**(7-(i%8))
     ip_builder = ".".join([ip_builder, str(temp)])
     ip_builder = ip_builder[1:]

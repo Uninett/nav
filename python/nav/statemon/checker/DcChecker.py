@@ -52,7 +52,7 @@ class DcChecker(AbstractChecker):
                                      ip],
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
-            
+
             proc.wait()
         except OSError, msg:
             return Event.DOWN, 'could not run rpcclient: %s' % msg

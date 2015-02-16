@@ -300,7 +300,7 @@ def create_edge_popup(data, popup_template):
         return None
     content = popup_template.render(Context({'network': data}))
     return Popup('popup-' + data['id'], [300, 250], content, True)
-    
+
 
 class Feature:
     def __init__(self, id, type, geometry, color, size, popup, properties={}):
@@ -317,7 +317,7 @@ class Geometry:
     def __init__(self, type, coordinates):
         self.type = type
         self.coordinates = coordinates
-        
+
 
 class Popup:
     def __init__(self, id, size, content, closable):

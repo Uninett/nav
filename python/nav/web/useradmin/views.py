@@ -315,7 +315,7 @@ def group_detail(request, group_id=None):
             group_form = AccountGroupForm(request.POST, instance=group)
 
             if group_form.is_valid():
-                # FIXME 
+                # FIXME
                 group = group_form.save()
 
                 new_message(request, '"%s" has been saved.' % (group),

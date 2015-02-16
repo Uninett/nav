@@ -56,7 +56,7 @@ def read_flat_config(config_file, delimiter='='):
                 value = value.split('#', 1)[0] # Remove end-of-line comments
                 configuration[key.strip()] = value.strip()
             except ValueError:
-                sys.stderr.write("Config file %s has errors.\n" % 
+                sys.stderr.write("Config file %s has errors.\n" %
                                  config_file.name)
 
     return configuration

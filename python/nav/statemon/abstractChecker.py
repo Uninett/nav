@@ -41,7 +41,7 @@ class AbstractChecker:
       def __init__(self, service, **kwargs):
             # gopher usually runs on port 70
         AbstractHandler.__init__(self, "gopher", service, port=70 **kwargs)
-        
+
       def execute(self):
         # In case you need user/pass you can do like this:
         args = self.getArgs()
@@ -93,7 +93,7 @@ class AbstractChecker:
               (self.getSysname(), self.getType()), 6)
         self.runcount = 0
         self.rq = RunQueue.RunQueue()
-        
+
     def run(self):
         """
         Calls executeTest(). If the status has changed it schedules a new
@@ -142,7 +142,7 @@ class AbstractChecker:
             # Post to the NAV alertq
             self.db.newEvent(newEvent)
             self.setStatus(status)
-        
+
         if version != self.getVersion() and self.getStatus() == event.Event.UP:
             newEvent = event.Event(self.getServiceid(),
                                    self.getNetboxid(),
@@ -171,7 +171,7 @@ class AbstractChecker:
         except Exception, e:
             service = "%s:%s" % (self.getSysname(), self.getType())
             debug("rrd update failed for %s [%s]" % (service, e), 3)
-        
+
 
     def executeTest(self):
         """

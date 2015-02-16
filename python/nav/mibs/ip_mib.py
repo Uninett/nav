@@ -38,7 +38,7 @@ class IpMib(mibretriever.MibRetriever):
 
         The OID is interpreted as a combination of the textual
         conventions InetAddressType and InetAddress defined in
-        INET-ADDRESS-MIB. 
+        INET-ADDRESS-MIB.
 
         Only the ipv4 and ipv6 address types are understood.  Any
         other type encountered will result in a None value returned.
@@ -145,7 +145,7 @@ class IpMib(mibretriever.MibRetriever):
             return prefix
 
     @defer.deferredGenerator
-    def _get_ifindex_ip_mac_mappings(self, 
+    def _get_ifindex_ip_mac_mappings(self,
                                      column='ipNetToPhysicalPhysAddress'):
         """Get IP/MAC mappings from a table indexed by IfIndex+InetAddressType+
         InetAddress.
@@ -226,7 +226,7 @@ class IpMib(mibretriever.MibRetriever):
 
 
     @defer.deferredGenerator
-    def _get_interface_ipv4_addresses(self, 
+    def _get_interface_ipv4_addresses(self,
                                       ifindex_column='ipAdEntIfIndex',
                                       netmask_column='ipAdEntNetMask'):
         """Get IPv4 address information for interfaces from a table
@@ -269,7 +269,7 @@ class IpMib(mibretriever.MibRetriever):
         yield addresses
 
     @defer.deferredGenerator
-    def _get_interface_addresses(self, 
+    def _get_interface_addresses(self,
                                  ifindex_column='ipAddressIfIndex',
                                  prefix_column='ipAddressPrefix',
                                  prefix_entry='ipAddressPrefixEntry'):

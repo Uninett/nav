@@ -268,7 +268,7 @@ class MacPrefix(object):
 
     def __str__(self):
         return self.__unicode__()
-    
+
     def __repr__(self):
         return "MacPrefix(%r)" % str(self)
 

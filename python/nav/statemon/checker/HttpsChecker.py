@@ -66,7 +66,7 @@ class HttpsChecker(AbstractChecker):
         if not url:
             url = "/"
         _protocol, vhost, path, query, _fragment = urlsplit(url)
-        
+
         i = HTTPSConnection(self.getTimeout(), ip, port or 443)
 
         if vhost:

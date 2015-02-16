@@ -160,9 +160,9 @@ NAVLETS = (
 
 CRISPY_TEMPLATE_PACK = 'foundation'
 
-INSTALLED_APPS = ( 
-    'nav.models', 
-    'nav.django', 
+INSTALLED_APPS = (
+    'nav.models',
+    'nav.django',
     'django.contrib.staticfiles',
     'django.contrib.sessions',
     'django.contrib.humanize',

@@ -28,8 +28,9 @@ STEP_CHANGEVALUES = 0 # Dropdown boxes with new values
 STEP_CONFIRM = 1 # What the objects will look like afterwards
 STEP_SAVE = 2 # Update the objects
 
-def move(request, model, form_model, redirect, title_attr='id',                  extra_context=None):
-    
+def move(request, model, form_model, redirect, title_attr='id',
+         extra_context=None):
+
     if not extra_context:
         extra_context = {}
 
@@ -60,7 +61,7 @@ def move(request, model, form_model, redirect, title_attr='id',                 
 
     # Confirm the changes
     elif step == STEP_CONFIRM:
-        form= form_model(request.POST)    
+        form= form_model(request.POST)
         if form.is_valid():
             data = form.cleaned_data
             confirm = True

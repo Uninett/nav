@@ -23,7 +23,7 @@ class CiscoIetfIpMib(IpMib):
     """CISCO-IETF-IP-MIB is based on a a draft version of IETF's
     revised IP-MIB (with address type agnostic extensions).  Its
     structure is basically the same, with altered object names and
-    ids. 
+    ids.
 
     We try to avoid code redundancies by inheriting from the IpMib
     MibRetriever implementation, which was written using the revised

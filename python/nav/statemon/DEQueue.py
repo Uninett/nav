@@ -20,7 +20,7 @@
 #
 #
 # Inspired by a example in Thomas W. Christopher's excellent book
-# Python Programming Patterns. 
+# Python Programming Patterns.
 #
 # $Id$
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>

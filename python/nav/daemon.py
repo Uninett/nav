@@ -390,7 +390,7 @@ def safesleep(delay):
     likely die.  Replacing calls to time.sleep(), where the argument
     could possibly become the value 1, with this function in daemon
     programs makes sure this exception is ignored if caught.
-    
+
     See http://www.tummy.com/journals/entries/jafo_20070110_154659
     and https://bugs.launchpad.net/nav/+bug/352316
 

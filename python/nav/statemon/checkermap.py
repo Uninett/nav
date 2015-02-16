@@ -58,7 +58,6 @@ def get(checker):
 def parsedir():
     """
     Parses the checkerdir for Handlers.
-    
     """
     files = os.listdir(checkerdir)
     handlerpattern = "Checker.py"
@@ -68,4 +67,4 @@ def parsedir():
             handler = file[:-3]
             register(key, handler)
 
-                
+
