@@ -66,6 +66,6 @@ start_xvfb
 
 run_pytests
 run_jstests
-"${WORKSPACE}/tests/docker/lint.sh"
+"${WORKSPACE}/tests/docker/lint.sh" > "${WORKSPACE}/pylint.txt" || true
 
 echo "test.sh done"

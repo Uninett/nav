@@ -5,4 +5,4 @@
 
 cd "${WORKSPACE}"
 echo "Running pylint"
-pylint python/nav --rcfile=python/pylint.rc --disable=I,similarities --output=parseable > pylint.txt || true
+exec pylint python/nav --rcfile=python/pylint.rc --disable=I,similarities --output=parseable
