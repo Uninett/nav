@@ -77,6 +77,10 @@ class WeatherGoose1TrapTest(WeatherGooseMockedDb):
         goose = wg.WeatherGoose1(self.trap, None, None, None)
         self.assertTrue(goose.post_event())
 
+    def test_should_find_correct_sensorname(self):
+        goose = wg.WeatherGoose1(self.trap, None, None, None)
+        self.assertEquals(goose._get_sensorname(), 'cleese')
+
 class WeatherGoose2Test(WeatherGooseMockedDb):
     def test_should_not_handle_a_weathergoose1_trap(self):
         self.assertFalse(
@@ -139,11 +143,39 @@ class WeatherGoose2Test(WeatherGooseMockedDb):
         goose = wg.WeatherGoose2(trap, None, None, None)
         self.assertEquals(goose._get_subid(), None)
 
-    def test_should_find_correct_value_from_remote_trap(self):
+    def test_should_find_correct_value_from_external_trap(self):
         trap = Mock('trap')
         trap.snmpTrapOID = '.1.3.6.1.4.1.17373.3.32767.0.10405'
         TRIP_TYPE_HIGH = 2
         trap.varbinds = {
             '.1.3.6.1.4.1.17373.3.1.6.0': TRIP_TYPE_HIGH,
+            '.1.3.6.1.4.1.17373.3.4.1.5.1': 16,
         }
         goose = wg.WeatherGoose2(trap, None, None, None)
+        self.assertEqual(goose._get_trigger_values()[0], 16)
+
+    def test_should_find_correct_internal_sensorname(self):
+        trap = Mock('trap')
+        trap.snmpTrapOID = '.1.3.6.1.4.1.17373.3.32767.0.10205'
+        TRIP_TYPE_HIGH = 2
+        trap.varbinds = {
+            '.1.3.6.1.4.1.17373.3.1.3.0': 'SuperGoose II',
+            '.1.3.6.1.4.1.17373.3.1.6.0': TRIP_TYPE_HIGH,
+            '.1.3.6.1.4.1.17373.3.2.1.3.1': 'SuperDuperGoose II'
+        }
+        goose = wg.WeatherGoose2(trap, None, None, None)
+        self.assertEqual(goose._get_sensorname(), 'SuperDuperGoose II')
+        self.assertEqual(goose.goosename, 'SuperGoose II')
+
+    def test_should_find_correct_external_sensorname(self):
+        trap = Mock('trap')
+        trap.snmpTrapOID = '.1.3.6.1.4.1.17373.3.32767.0.10405'
+        TRIP_TYPE_HIGH = 2
+        trap.varbinds = {
+            '.1.3.6.1.4.1.17373.3.1.3.0': 'SuperGoose II',
+            '.1.3.6.1.4.1.17373.3.1.6.0': TRIP_TYPE_HIGH,
+            '.1.3.6.1.4.1.17373.3.4.1.3.1': 'SuperDuperGoose II'
+        }
+        goose = wg.WeatherGoose2(trap, None, None, None)
+        self.assertEqual(goose._get_sensorname(), 'SuperDuperGoose II')
+        self.assertEqual(goose.goosename, 'SuperGoose II')

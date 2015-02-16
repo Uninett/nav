@@ -70,6 +70,7 @@ class WeatherGoose1(object):
         }
     CLIMATEOIDS = ['climateTempC', 'climateHumidity', 'climateAirflow',
                    'climateLight', 'climateSound', 'tempSensorTempC']
+    SENSORNAMES = ['climateName']
     TRIPTYPES = {0: 'None', 1: 'Low', 2: 'High', 3: 'Unplugged'}
 
     @classmethod
@@ -131,6 +132,7 @@ class WeatherGoose1(object):
         e['climatedescr'] = self.climatedescr
         e['climatevalue'] = self.climatevalue
         e['goosename'] = self.goosename
+        e['sensorname'] = self._get_sensorname()
         e['sysname'] = self.sysname
         e['room'] = self.roomid
 
@@ -165,6 +167,12 @@ class WeatherGoose1(object):
         """For external sensors we need a subid."""
         return self.trap.varbinds.get(self.SUBID)
 
+    def _get_sensorname(self):
+        for sensor_name in self.SENSORNAMES:
+            oid = "." + self.NODES[sensor_name]['oid'] + '.1'
+            value = self.trap.varbinds.get(oid)
+            if value:
+                return value
 
 class WeatherGoose2(WeatherGoose1):
     from nav.smidumps.itw_mibv3 import MIB
@@ -175,6 +183,7 @@ class WeatherGoose2(WeatherGoose1):
     TRIPTYPE = "." + NODES['alarmTripType']['oid'] + '.0'
     GOOSENAME = "." + NODES['productFriendlyName']['oid'] + '.0'
     SUBID = "." + NODES['alarmInstance']['oid'] + '.0'
+    SENSORNAMES = ['tempSensorName', 'climateName']
 
     # Values in TRIGGERTRAPS and CLEARTRAPS are used as event types
     TRIGGERTRAPS = {
