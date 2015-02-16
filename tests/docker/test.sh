@@ -57,6 +57,11 @@ run_jstests() {
     CHROME_BIN=$(which google-chrome) ./tests/javascript-test.sh "$(pwd)"
 }
 
+run_pylint() {
+    "${WORKSPACE}/tests/docker/lint.sh" > "${WORKSPACE}/pylint.txt"
+}
+
+
 # MAIN EXECUTION POINT
 build_nav
 
@@ -66,6 +71,6 @@ start_xvfb
 
 run_pytests
 run_jstests
-"${WORKSPACE}/tests/docker/lint.sh" > "${WORKSPACE}/pylint.txt" || true
+run_pylint
 
 echo "test.sh done"
