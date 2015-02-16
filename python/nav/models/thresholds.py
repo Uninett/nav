@@ -16,7 +16,8 @@
 """Metric threshold related models"""
 from datetime import timedelta
 from django.db import models
-from nav.metrics.graphs import extract_series_name, translate_serieslist_to_regex
+from nav.metrics.graphs import (extract_series_name,
+                                translate_serieslist_to_regex)
 from nav.models.profiles import Account
 from nav.models.fields import VarcharField
 from nav.metrics.thresholds import ThresholdEvaluator, DEFAULT_INTERVAL

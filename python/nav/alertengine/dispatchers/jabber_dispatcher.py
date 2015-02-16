@@ -94,12 +94,16 @@ class jabber(dispatcher):
         logger.debug('Connected with %s' % con)
 
         try:
-            auth = self.client.auth(self.jid.getNode(), self.config['password'], resource=self.jid.getResource() or 'alertengine')
+            auth = self.client.auth(
+                self.jid.getNode(), self.config['password'],
+                resource=self.jid.getResource() or 'alertengine')
         except KeyError:
-            raise ConfigurationError('Jabber config is missing "password" entry')
+            raise ConfigurationError('Jabber config is missing "password" '
+                                     'entry')
 
         if not auth:
-            raise DispatcherException('Could not authenticate with jabber server')
+            raise DispatcherException('Could not authenticate with jabber '
+                                      'server')
 
         self.client.RegisterHandler('presence', self.presence_handler)
         self.client.sendInitPresence()
@@ -108,14 +112,16 @@ class jabber(dispatcher):
 
         return self.client
 
-    def send(self, address, alert, language='en', retry=True, retry_reason=None):
+    def send(self, address, alert, language='en', retry=True,
+             retry_reason=None):
         message = self.get_message(alert, language, 'jabber')
 
         if not self.client.isConnected():
             self.connect()
 
         try:
-            id = self.client.send(xmpp.protocol.Message(address.address, message, typ='chat'))
+            id = self.client.send(xmpp.protocol.Message(address.address,
+                                                        message, typ='chat'))
             logger.debug('Sent message with jabber id %s' % id)
         except (xmpp.protocol.StreamError, IOError), e:
             if retry:
@@ -123,7 +129,9 @@ class jabber(dispatcher):
                 self.connect()
                 self.send(address, alert, language, retry=False, retry_reason=e)
             else:
-                raise DispatcherException("Couldn't send message due to: '%s', reason for retry: '%s'" % (e, retry_reason))
+                raise DispatcherException(
+                    ("Couldn't send message due to: '%s', reason for retry: "
+                     "'%s'") % (e, retry_reason))
 
     @staticmethod
     def is_valid_address(address):

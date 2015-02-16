@@ -44,10 +44,12 @@ class email(dispatcher):
 
         try:
             if not address.DEBUG_MODE:
-                email = EmailMessage(subject=subject, body=message, to=[address.address])
+                email = EmailMessage(subject=subject, body=message,
+                                     to=[address.address])
                 email.send(fail_silently=False)
             else:
-                logger.debug('alert %d: In testing mode, would have sent email to %s' % (alert.id, address.address))
+                logger.debug('alert %d: In testing mode, would have sent email '
+                             'to %s', alert.id, address.address)
 
         except SMTPException, e:
             if isinstance(e, SMTPRecipientsRefused) or \

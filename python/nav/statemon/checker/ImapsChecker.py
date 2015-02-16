@@ -71,7 +71,8 @@ class IMAPSConnection(imaplib.IMAP4):
 
             host - host's name (default: localhost);
             port - port number (default: standard IMAP4 SSL port).
-            keyfile - PEM formatted file that contains your private key (default: None);
+            keyfile - PEM formatted file that contains your private key
+                      (default: None);
             certfile - PEM formatted certificate chain file (default: None);
 
     for more documentation see the docstring of the parent class IMAP4.

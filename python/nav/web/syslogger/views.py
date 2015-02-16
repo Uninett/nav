@@ -73,28 +73,33 @@ def _build_context(request):
         form = LoggerGroupSearchForm(query_dict)
         if form.is_valid():
 
-            results = LogMessage.objects.filter(time__gte=form.cleaned_data['timestamp_from'], time__lte=form.cleaned_data['timestamp_to']).select_related()
-            if 'priority' in form.cleaned_data and form.cleaned_data['priority']:
+            results = LogMessage.objects.filter(
+                time__gte=form.cleaned_data['timestamp_from'],
+                time__lte=form.cleaned_data['timestamp_to']).select_related()
+            if form.cleaned_data.get('priority', None):
                 priority_keyword = form.cleaned_data['priority']
                 if not isinstance(form.cleaned_data['priority'], list):
                     priority_keyword = [form.cleaned_data['priority']]
 
-                results = results.filter(newpriority__keyword__in=priority_keyword)
+                results = results.filter(
+                    newpriority__keyword__in=priority_keyword)
 
-            if 'mnemonic' in form.cleaned_data and form.cleaned_data['mnemonic']:
+            if form.cleaned_data.get('mnemonic', None):
                 message_type_mnemonic = form.cleaned_data['mnemonic']
                 if not isinstance(form.cleaned_data['mnemonic'], list):
                     message_type_mnemonic = [form.cleaned_data['mnemonic']]
 
 
-                results = results.filter(type__mnemonic__in=message_type_mnemonic)
+                results = results.filter(
+                    type__mnemonic__in=message_type_mnemonic)
 
-            if 'facility' in form.cleaned_data and form.cleaned_data['facility']:
+            if form.cleaned_data.get('facility', None):
                 message_type_facility = form.cleaned_data['facility']
                 if not isinstance(form.cleaned_data['facility'], list):
                     message_type_facility = [form.cleaned_data['facility']]
 
-                results = results.filter(type__facility__in=message_type_facility)
+                results = results.filter(
+                    type__facility__in=message_type_facility)
 
             if form.cleaned_data["category"]:
                 categories = form.cleaned_data['category']
@@ -148,7 +153,7 @@ def _build_context(request):
                 form.data['show_log'] = value
 
 
-            if 'show_log' in form.cleaned_data and form.cleaned_data['show_log']:
+            if form.cleaned_data.get('show_log', None):
                 show_log = bool(form.cleaned_data['show_log'])
                 _update_show_log_context(show_log, results)
 
@@ -182,7 +187,8 @@ def _build_context(request):
 def handle_search(request, searchform, form_target):
     account = get_account(request)
     if not account:
-        return HttpResponseForbidden("You must be logged in to access this resource")
+        return HttpResponseForbidden(
+            "You must be logged in to access this resource")
 
 
     context = _build_context(request)
@@ -201,7 +207,8 @@ def index(request):
 
 def group_search(request):
     if not request.is_ajax():
-        return HttpResponseRedirect(reverse(index) + '?' + request.GET.urlencode())
+        return HttpResponseRedirect(
+            reverse(index) + '?' + request.GET.urlencode())
     return handle_search(request, LoggerGroupSearchForm, reverse(group_search))
 
 
@@ -211,7 +218,8 @@ def exceptions_response(request):
     Handler for exception-mode.
     """
     if not request.is_ajax():
-        return HttpResponseRedirect(reverse(index) + '?' + request.GET.urlencode())
+        return HttpResponseRedirect(
+            reverse(index) + '?' + request.GET.urlencode())
 
     account = get_account(request)
     if not account:
@@ -236,7 +244,8 @@ def errors_response(request):
     Handler for error-mode.
     """
     if not request.is_ajax():
-        return HttpResponseRedirect(reverse(index) + '?' + request.GET.urlencode())
+        return HttpResponseRedirect(
+            reverse(index) + '?' + request.GET.urlencode())
 
     account = get_account(request)
     if not account:

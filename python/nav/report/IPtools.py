@@ -27,7 +27,8 @@ def sort_nets_by_address(list):
     delimiter = None
 
     def tuplefy(address):
-        list = map(lambda x: int(x, 16), address.net().strFullsize().split(delimiter)) + [address]
+        list = map(lambda x: int(x, 16),
+                   address.net().strFullsize().split(delimiter)) + [address]
         return tuple(list)
 
     if len(list) < 1:
@@ -67,7 +68,8 @@ def _ipv4_net_diff(net1, net2):
         (net1, net2) = (net2, net1)
     octets_to_the_right = (32-net1.prefixlen())/8
     net_prefix_len = int(float(net1.prefixlen())/8+0.5)*8
-    return [IP("/".join([str(net), str(net1.prefixlen())])) for net in range(net1.int(), net2.int(), 256**octets_to_the_right)]
+    return [IP("/".join([str(net), str(net1.prefixlen())]))
+            for net in range(net1.int(), net2.int(), 256**octets_to_the_right)]
 
 #this may be slow!
 def _ipv6_net_diff(net1, net2):
@@ -75,7 +77,9 @@ def _ipv6_net_diff(net1, net2):
         (net1, net2) = (net2, net1)
     host_hexlets = (128-net1.prefixlen())/16
     net_prefix_len = int(float(net1.prefixlen())/16+0.5)*16
-    return [IP("/".join([str(net), str(net_prefix_len)])) for net in range(net1.int(), net2.int(), int(math.pow(2, 16))**host_hexlets)]
+    return [IP("/".join([str(net), str(net_prefix_len)]))
+            for net in
+            range(net1.int(), net2.int(), int(math.pow(2, 16))**host_hexlets)]
 
 def isIntermediateNets(net1, net2):
     if net1.version() != net2.version():
@@ -163,7 +167,8 @@ def getLastbitsIpMap(ip_list):
         raise UnknownIpVersionError, str(version)
 
 def _ipv4_getLastbitsMap(ip_list):
-    return dict(zip([i.net().strNormal()[i.net().strNormal().rfind('.')+1:] for i in ip_list], ip_list))
+    return dict(zip([i.net().strNormal()[i.net().strNormal().rfind('.')+1:]
+                     for i in ip_list], ip_list))
 
 def _ipv6_getNybblesMap(ip_list):
     start_nybble_index = None
@@ -173,7 +178,9 @@ def _ipv6_getNybblesMap(ip_list):
     else:
         start_nybble_index = -1
 
-    return dict(zip([i.net().strCompressed()[start_nybble_index:start_nybble_index+1] for i in ip_list], ip_list))
+    return dict(
+        zip([i.net().strCompressed()[start_nybble_index:start_nybble_index+1]
+             for i in ip_list], ip_list))
 
 def andIpMask(ip, mask):
     """Logical AND between ip and mask.
@@ -240,7 +247,8 @@ def _ipv6_getMask(bit_count):
         last_nybble_dec = sum([2**(4-i) for i in range(1, last_nybble+1)])
         mask_string = "".join([mask_string, "%x" % last_nybble_dec])
 
-    result = [mask_string[4*i:4+4*i] for i in range(0, int(float(bit_count)/16+0.5))]
+    result = [mask_string[4*i:4+4*i]
+              for i in range(0, int(float(bit_count)/16+0.5))]
     if len(result[-1]) < 4:
         for i in range(0, 4-len(result[-1])):
             result[-1] = "".join([result[-1], "0"])
@@ -265,14 +273,17 @@ def _ipv4_getMask(bit_count):
     return IP("/".join([ip_builder, str(bit_count)]))
 
 def getLastSubnet(network, last_network_prefix_len=None):
-    """ Retrieves the last _possible_ subnet of the argument ``network''.
-        Does not consider whether the subnet exists or not.
+    """
+    Retrieves the last _possible_ subnet of the argument ``network''.
+    Does not consider whether the subnet exists or not.
 
-        Arguments:
-            ``network'': The network in question
-            ``last_network_prefix_len'': An optional specification of the prefix length
-                                         of the last network. Defaults to 32 for IPv6
-                                         and 128 for IPv6
+    Arguments:
+        ``network'': The network in question
+
+        ``last_network_prefix_len'': An optional specification of the prefix
+                                     length of the last network. Defaults to
+                                     32 for IPv6 and 128 for IPv6
+
     """
     if last_network_prefix_len is None:
         last_network_prefix_len = network.netmask().prefixlen()

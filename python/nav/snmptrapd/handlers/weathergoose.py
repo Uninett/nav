@@ -115,7 +115,8 @@ class WeatherGoose1(object):
 
         """
         for c in self.CLIMATEOIDS:
-            possiblekey = "." + self.NODES[c]['oid'] + '.1' # table has only one row
+            # table has only one row
+            possiblekey = "." + self.NODES[c]['oid'] + '.1'
             if self.trap.varbinds.has_key(possiblekey):
                 return (self.trap.varbinds[possiblekey],
                         self.NODES[c]['description'])

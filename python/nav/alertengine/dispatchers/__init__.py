@@ -14,8 +14,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""
-The dispatchers package contains all the methods that alertengine can use to
+"""The dispatchers package contains all the methods that alertengine can use to
 send out alerts. Adding new messaging channels is a simple matter of writting
 a new subclass of ``dispatcher'' overriding send with the following:
 
@@ -27,9 +26,11 @@ address - the alertaddress object that is "sending" the alert
 The address to send to is `address.address`. To get the message we want to send
 simply call `alert.messages.get(language=language, type='your_message_type')`
 
-For your dispatchers logging please use `logging.getlogger('nav.alertengine.dispatchers.your_dispatcher')`
-and try to use sensible log messages, look at the modules that ship with NAV
-for examples.
+For your dispatchers logging please use
+`logging.getlogger('nav.alertengine.dispatchers.your_dispatcher')` and try to
+use sensible log messages, look at the modules that ship with NAV for
+examples.
+
 """
 
 import logging
@@ -51,7 +52,8 @@ class dispatcher:
 
     def get_message(self, alert, language, message_type):
         try:
-            return alert.messages.get(language=language, type=message_type).message
+            return alert.messages.get(language=language,
+                                      type=message_type).message
         except AlertQueueMessage.DoesNotExist:
             return self.get_fallback_message(alert, language, message_type)
 
@@ -70,7 +72,8 @@ class dispatcher:
             if messages:
                 return messages[-1].message
 
-        return "%s: No '%s' message for %d" % (alert.netbox, message_type, alert.id)
+        return "%s: No '%s' message for %d" % (alert.netbox, message_type,
+                                               alert.id)
 
     @staticmethod
     def is_valid_address(address):

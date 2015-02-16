@@ -82,10 +82,12 @@ def getSubnets(network, min_length=None):
     """Retrieves all the subnets of the argument ``network''.
 
     Arguments:
-        ``min_length'': minimum subnet mask length, defaults to network.prefixlen().
+        ``min_length'': minimum subnet mask length, defaults to
+                        network.prefixlen().
 
     Returns:
         List with IPy.IP objects
+
     """
     max_length = 128 if network.version() == 6 else 32
     if min_length is None:

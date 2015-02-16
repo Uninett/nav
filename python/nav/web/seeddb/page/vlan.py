@@ -80,7 +80,10 @@ def vlan_list(request):
     info = VlanInfo()
     query = Vlan.objects.extra(
         select={
-            'prefixes': "array_to_string(ARRAY(SELECT netaddr FROM prefix WHERE vlanid=vlan.vlanid), ', ')"
+            'prefixes': ("array_to_string("
+                         "ARRAY(SELECT netaddr FROM prefix "
+                         "WHERE vlanid=vlan.vlanid), ', ')"
+                         )
         }
     ).all()
     filter_form = VlanFilterForm(request.GET)

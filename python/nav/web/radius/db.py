@@ -368,8 +368,8 @@ class AcctSearchQuery(SQLQuery):
             if timemode == "days":
                 # Search for entries active from x*24 hours ago, until now.
                 searchtime = float(days)*86400
-                searchstart = time.strftime(DATEFORMAT_SEARCH,
-                                            time.localtime(time.time()-searchtime))
+                searchstart = time.strftime(
+                    DATEFORMAT_SEARCH, time.localtime(time.time()-searchtime))
                 # searchstop = time.strftime(DATEFORMAT_SEARCH,
                 # time.localtime(time.time()))
 

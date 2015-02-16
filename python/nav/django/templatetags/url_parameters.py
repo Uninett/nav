@@ -54,7 +54,8 @@ def _get_url_params(token):
 
     params = []
     for index in xrange(0, len(raw_params), 2):
-        params.append((raw_params[index], template.Variable(raw_params[index + 1])))
+        params.append((raw_params[index],
+                       template.Variable(raw_params[index + 1])))
     return params
 
 @register.tag

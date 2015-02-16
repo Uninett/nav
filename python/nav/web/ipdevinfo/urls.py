@@ -19,9 +19,9 @@
 from django.conf.urls.defaults import url, patterns
 
 from nav.web.ipdevinfo.views import (search, service_list, service_matrix,
-                                     port_counter_graph)
-from nav.web.ipdevinfo.views import (ipdev_details, module_details,
-                                     port_details, get_port_view, render_affected,
+                                     port_counter_graph, ipdev_details,
+                                     module_details, port_details,
+                                     get_port_view, render_affected,
                                      get_graphite_render_url, render_host_info)
 
 # The patterns are relative to the base URL of the subsystem
