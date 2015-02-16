@@ -191,9 +191,12 @@ def make_event(start, rule, metric, value):
 def _add_subject_details(event, metric, varmap):
     obj = lookup(metric)
     if obj:
-        varmap['subject'] = "{table}:{pk}".format(
-            table=getattr(obj, '_meta').db_table,
-            pk=obj.pk)
+        try:
+            varmap['subject'] = "{table}:{pk}".format(
+                table=getattr(obj, '_meta').db_table,
+                pk=obj.pk)
+        except AttributeError:
+            pass  # probably wasn't a Django model object, fuhgeddaboutit
 
         if isinstance(obj, Netbox):
             event.netbox = obj
