@@ -33,7 +33,7 @@ class Cabling(models.Model):
     description = VarcharField(db_column='descr')
     category = VarcharField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'cabling'
         unique_together = (('room', 'jack'),)
 
@@ -49,7 +49,7 @@ class Patch(models.Model):
     cabling = models.ForeignKey(Cabling, db_column='cablingid')
     split = VarcharField(default='no')
 
-    class Meta:
+    class Meta(object):
         db_table = 'patch'
         unique_together = (('interface', 'cabling'),)
 

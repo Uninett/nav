@@ -26,7 +26,7 @@ from nav.models.fields import INFINITY
 class AccountSerializer(serializers.ModelSerializer):
     """Serializer for Accounts that have acknowledged alerts"""
 
-    class Meta:
+    class Meta(object):
         model = profiles.Account
         fields = ('id', 'login', 'name')
 
@@ -43,21 +43,21 @@ class AcknowledgementSerializer(serializers.ModelSerializer):
         to output this raw"""
         return urlize(strip_tags(value))
 
-    class Meta:
+    class Meta(object):
         model = event.Acknowledgement
         fields = ('account', 'comment', 'date', 'comment_html')
 
 
 class AlertTypeSerializer(serializers.ModelSerializer):
     """Serializer for alert types"""
-    class Meta:
+    class Meta(object):
         model = event.AlertType
         fields = ('name', 'description')
 
 
 class EventTypeSerializer(serializers.ModelSerializer):
     """Serializer for event types"""
-    class Meta:
+    class Meta(object):
         model = event.EventType
         fields = ('id', 'description')
 
@@ -133,5 +133,5 @@ class AlertHistorySerializer(serializers.ModelSerializer):
         except:
             pass
 
-    class Meta:
+    class Meta(object):
         model = event.AlertHistory

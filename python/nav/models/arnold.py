@@ -77,7 +77,7 @@ class Identity(models.Model):
             interface = "N/A"
         return "%s/%s %s" % (self.ip, self.mac, interface)
 
-    class Meta:
+    class Meta(object):
         db_table = 'identity'
         ordering = ('last_changed', )
         verbose_name = 'identity'
@@ -100,7 +100,7 @@ class Event(models.Model):
     def __unicode__(self):
         return "%s: %s" % (self.action, self.event_time)
 
-    class Meta:
+    class Meta(object):
         db_table = 'event'
         ordering = ('event_time', )
 
@@ -114,7 +114,7 @@ class Justification(models.Model):
     def __unicode__(self):
         return self.name
 
-    class Meta:
+    class Meta(object):
         db_table = 'blocked_reason'
         ordering = ('name', )
 
@@ -128,7 +128,7 @@ class QuarantineVlan(models.Model):
     def __unicode__(self):
         return "%s - %s" % (self.vlan, self.description)
 
-    class Meta:
+    class Meta(object):
         db_table = 'quarantine_vlans'
         ordering = ('vlan',)
 
@@ -158,6 +158,6 @@ class DetentionProfile(models.Model):
     def __unicode__(self):
         return self.name
 
-    class Meta:
+    class Meta(object):
         db_table = 'block'
         ordering = ('name', )

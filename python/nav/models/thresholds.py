@@ -41,7 +41,7 @@ class ThresholdRule(models.Model):
     creator = models.ForeignKey(Account, null=True)
     created = models.DateTimeField(auto_now=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'thresholdrule'
 
     def __repr__(self):

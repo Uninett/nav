@@ -40,7 +40,7 @@ class RrdFile(models.Model):
     interface = LegacyGenericForeignKey('key', 'value')
     category = VarcharField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'rrd_file'
 
     def __unicode__(self):
@@ -89,7 +89,7 @@ class RrdDataSource(models.Model):
     threshold_state = VarcharField(db_column='thresholdstate',
                                    choices=TRESHOLD_STATE_CHOICES)
 
-    class Meta:
+    class Meta(object):
         db_table = 'rrd_datasource'
 
     def __unicode__(self):

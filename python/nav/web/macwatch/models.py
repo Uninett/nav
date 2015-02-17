@@ -38,7 +38,7 @@ class MacWatch(models.Model):
     # the number for hex-digits (or so-called nybbles).
     prefix_length = models.IntegerField(db_column='prefix_length', null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = u'macwatch'
         ordering = ('created',)
 
@@ -89,7 +89,7 @@ class MacWatchMatch(models.Model):
     cam = models.ForeignKey(Cam, db_column='cam', null=False)
     posted = models.DateTimeField(db_column='posted', auto_now_add=True)
 
-    class Meta:
+    class Meta(object):
         db_table = u'macwatch_match'
 
     def __unicode__(self):

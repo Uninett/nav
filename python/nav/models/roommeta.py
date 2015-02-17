@@ -21,7 +21,7 @@ class Image(models.Model):
     uploader = models.ForeignKey(Account, db_column='uploader')
     priority = models.IntegerField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'image'
         ordering = ['priority']
 

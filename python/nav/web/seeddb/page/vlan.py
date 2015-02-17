@@ -71,7 +71,7 @@ class VlanFilterForm(forms.Form):
 
 
 class VlanForm(forms.ModelForm):
-    class Meta:
+    class Meta(object):
         model = Vlan
         fields = ('vlan', 'organization', 'usage')
 
