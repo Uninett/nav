@@ -1,6 +1,76 @@
 <div id="neighbors">
-    <div class="map_panel">
-        <input id="unrecognized" type="checkbox" /> Show unrecognized neighbors
-    </div>
-    <div class="neighbormap" data-netboxid="{{ netbox.id }}"></div>
+  <div class="map_panel">
+    <input id="unrecognized" type="checkbox" /> Show unrecognized neighbors
+  </div>
+  <div class="neighbormap" data-netboxid="{{ netbox.id }}"></div>
+
+  {# Add a normal list of neighbors for easy reading #}
+  {% if netbox.has_unignored_unrecognized_neighbors %}
+    <table id="unrecognized-neighbors" class="listtable">
+      <caption>Unrecognized neighbors</caption>
+      <tr>
+        <th>Remote ID</th>
+        <th>Remote Name</th>
+        <th>Seen on interface</th>
+        <th>Source</th>
+        <th>Since</th>
+        <th>&nbsp;</th>
+      </tr>
+      {% for neighbor in netbox.unrecognizedneighbor_set.all %}
+        {% if not neighbor.ignored %}
+          <tr>
+            <td>
+              {{ neighbor.remote_id }}
+            </td>
+            <td>
+              {{ neighbor.remote_name }}
+            </td>
+            <td>
+              <a href="{{ neighbor.interface.get_absolute_url }}">{{ neighbor.interface }}</a>
+            </td>
+            <td>
+              {{ neighbor.source }}
+            </td>
+            <td>
+              {{ neighbor.since }}
+            </td>
+            <td>
+              <a href="{% url seeddb-netbox-add-suggestion neighbor.remote_id %}"
+                 class="button tiny">
+                Add to NAV
+              </a>
+            </td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+
+      {% for neighbor in netbox.unrecognizedneighbor_set.all %}
+        {% if neighbor.ignored %}
+          <tr class="hidden">
+            <td>
+              {{ neighbor.remote_id }}
+            </td>
+            <td>
+              {{ neighbor.remote_name }}
+            </td>
+            <td>
+              <a href="{{ neighbor.interface.get_absolute_url }}">{{ neighbor.interface }}</a>
+            </td>
+            <td>
+              {{ neighbor.source }}
+            </td>
+            <td>
+              {{ neighbor.since }}
+            </td>
+            <td>
+              <a href="{% url seeddb-netbox-add-suggestion neighbor.remote_id %}"
+                 class="button tiny">
+                Add to NAV
+              </a>
+            </td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+    </table>
+  {% endif %}
 </div>
