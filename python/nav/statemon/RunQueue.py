@@ -21,20 +21,20 @@
 """
 This module provides a threadpool and fair scheduling.
 """
-from threading import *
-import threading
-import DEQueue
+from __future__ import absolute_import
+
 import sys
 import time
-import types
-import config
-from debug import debug
-import prioqueunique
+import threading
+from . import DEQueue, config, prioqueunique
+from .debug import debug
+
 
 class TerminateException(Exception):
-    pass
+    """Raised to terminate the execution of a Worker"""
 
-class worker(threading.Thread):
+
+class Worker(threading.Thread):
     """
     The thread removes a checker from the runqueue and executes it. If the
     runque is empty, the thread sleeps until it gets woken when a checker is
@@ -46,8 +46,9 @@ class worker(threading.Thread):
         self._runqueue = rq
         self._runcount = 0
         self._running = 1
-        self._timeCreated = time.time()
-        self._timeStartExecute = 0
+        self._time_created = time.time()
+        self._time_start_execute = 0
+        self._checker = None
 
     def run(self):
         """
@@ -69,45 +70,48 @@ class worker(threading.Thread):
         thread will be recycled.
         """
         self._runcount += 1
-        self._timeStartExecute = time.time()
+        self._time_start_execute = time.time()
         self._checker.run()
-        if self._runqueue.getMaxRunCount() != 0 and \
-               self._runcount > self._runqueue.getMaxRunCount():
+        if (self._runqueue.get_max_run_count() != 0 and
+                self._runcount > self._runqueue.get_max_run_count()):
             self._running = 0
             self._runqueue.unusedThreadName.append(self.getName())
             self._runqueue.workers.remove(self)
-            debug("%s is recycling."% self.getName())
+            debug("%s is recycling." % self.getName())
         debug("%s finished checker number %i" %
               (self.getName(), self._runcount), 7)
-        self._timeStartExecute = 0
+        self._time_start_execute = 0
 
 
+# pylint: disable=invalid-name
 def RunQueue(*args, **kwargs):
-    if _RunQueue._instance is None:
-        _RunQueue._instance = _RunQueue(*args, **kwargs)
-    return _RunQueue._instance
+    """Instantiates or retrieves the RunQueue singleton"""
+    if getattr(_RunQueue, '_instance') is None:
+        setattr(_RunQueue, '_instance', _RunQueue(*args, **kwargs))
+    return getattr(_RunQueue, '_instance')
 
-class _RunQueue:
+
+class _RunQueue(object):
     _instance = None
 
     def __init__(self, **kwargs):
         self.conf = config.serviceconf()
-        self._maxThreads = int(self.conf.get('maxthreads', sys.maxint))
-        debug("Setting maxthreads=%i" % self._maxThreads)
-        self._maxRunCount = int(self.conf.get('recycle interval', 50))
-        debug("Setting maxRunCount=%i" % self._maxRunCount)
+        self._max_threads = int(self.conf.get('maxthreads', sys.maxint))
+        debug("Setting maxthreads=%i" % self._max_threads)
+        self._max_run_count = int(self.conf.get('recycle interval', 50))
+        debug("Setting maxRunCount=%i" % self._max_run_count)
         self._controller = kwargs.get('controller', self)
         self.workers = []
-        self.unusedThreadName = []
-        self.rq = DEQueue.DEQueue()
-        self.pq = prioqueunique.prioque()
-        self.lock = RLock()
-        self.awaitWork = Condition(self.lock)
+        self.unused_thread_name = []
+        self.queue = DEQueue.DEQueue()
+        self.prioq = prioqueunique.prioque()
+        self.lock = threading.RLock()
+        self.await_work = threading.Condition(self.lock)
         self.stop = 0
-        self.makeDaemon = 1
+        self.make_daemon = 1
 
-    def getMaxRunCount(self):
-        return self._maxRunCount
+    def get_max_run_count(self):
+        return self._max_run_count
 
     def enq(self, runnable):
         """
@@ -118,28 +122,29 @@ class _RunQueue:
         """
         self.lock.acquire()
         # Checkers with priority is put in a seperate queue
-        if type(runnable) == types.TupleType:
+        if isinstance(runnable, tuple):
             pri, obj = runnable
-            self.pq.put(pri, obj)
+            self.prioq.put(pri, obj)
         else:
-            self.rq.put(runnable)
+            self.queue.put(runnable)
 
         # This is quite dirty, but I really need to know how many
         # threads are waiting for checkers.
-        numWaiters = len(self.awaitWork._Condition__waiters)
-        debug("Number of workers: %i Waiting workers: %i" % \
-              (len(self.workers), numWaiters), 7)
-        if numWaiters > 0:
-            self.awaitWork.notify()
-        elif len(self.workers) < self._maxThreads:
-            newWorker = worker(self)
-            newWorker.setDaemon(self.makeDaemon)
-            if len(self.unusedThreadName) > 0:
-                newWorker.setName(self.unusedThreadName.pop())
+        # pylint: disable=protected-access, no-member
+        num_waiters = len(self.await_work._Condition__waiters)
+        debug("Number of workers: %i Waiting workers: %i" % (
+              len(self.workers), num_waiters), 7)
+        if num_waiters > 0:
+            self.await_work.notify()
+        elif len(self.workers) < self._max_threads:
+            new_worker = Worker(self)
+            new_worker.setDaemon(self.make_daemon)
+            if len(self.unused_thread_name) > 0:
+                new_worker.setName(self.unused_thread_name.pop())
             else:
-                newWorker.setName('worker'+str(len(self.workers)))
-            self.workers.append(newWorker)
-            newWorker.start()
+                new_worker.setName('worker'+str(len(self.workers)))
+            self.workers.append(new_worker)
+            new_worker.start()
         self.lock.release()
 
     def deq(self):
@@ -147,49 +152,49 @@ class _RunQueue:
         Gets a runnable from the runqueue. Checks if we have
         scheduled checkers (runnables containing timestamp. If not, we
         return a checker without timestamp.
-        self.pq = priorityqueue
-        self.rq = queue
+        self.prioq = priorityqueue
+        self.queue = queue
         """
         self.lock.acquire()
         while 1:
             # wait if we have no checkers in queue
-            while len(self.rq) == 0 and len(self.pq) == 0:
+            while len(self.queue) == 0 and len(self.prioq) == 0:
                 if self.stop:
                     self.lock.release()
                     raise TerminateException
-                self.awaitWork.wait()
+                self.await_work.wait()
             if self.stop:
                 self.lock.release()
                 raise TerminateException
 
-            if len(self.pq) > 0:
-                scheduledTime, obj = self.pq.headPair()
-                scheduledTime = float(scheduledTime)
+            if len(self.prioq) > 0:
+                scheduled_time, _obj = self.prioq.headPair()
+                scheduled_time = float(scheduled_time)
                 now = time.time()
-                wait = scheduledTime-now
+                wait = scheduled_time-now
                 # If we have priority ready we
                 # return it now.
                 if wait <= 0:
-                    r = self.pq.get()
+                    r = self.prioq.get()
                     self.lock.release()
                     return r
             # We have no priority checkers ready.
             # Check if we have unpriority checkers
             # to execute
-            if len(self.rq) > 0:
-                r = self.rq.get()
+            if len(self.queue) > 0:
+                r = self.queue.get()
                 self.lock.release()
                 return r
             # Wait to execute priority checker, break if new checkers arrive
             else:
                 debug("Thread waits for %s secs" % wait, 7)
-                self.awaitWork.wait(wait)
+                self.await_work.wait(wait)
 
     def terminate(self):
+        """Terminates all worker threads"""
         self.lock.acquire()
         self.stop = 1
-        self.awaitWork.notifyAll()
-        self.numThreadsWaiting = 0
+        self.await_work.notifyAll()
         self.lock.release()
         debug("Waiting for threads to terminate...")
         for i in self.workers:
