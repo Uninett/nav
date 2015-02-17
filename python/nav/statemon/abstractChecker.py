@@ -140,7 +140,7 @@ class AbstractChecker:
                                    )
 
             # Post to the NAV alertq
-            self.db.newEvent(newEvent)
+            self.db.new_event(newEvent)
             self.setStatus(status)
 
         if version != self.getVersion() and self.getStatus() == event.Event.UP:
@@ -153,7 +153,7 @@ class AbstractChecker:
                                    info,
                                    version=self.getVersion()
                                    )
-            self.db.newEvent(newEvent)
+            self.db.new_event(newEvent)
         self.updateRrd()
         self.setTimestamp()
         self.runcount = 0

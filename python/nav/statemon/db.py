@@ -21,47 +21,54 @@ by the service monitor.
 It implements the singleton pattern, ensuring only one instance
 is used at a time.
 """
-import os
+from __future__ import absolute_import
+
 import threading
-import checkermap
-import psycopg2
-from psycopg2.errorcodes import IN_FAILED_SQL_TRANSACTION
-from psycopg2.errorcodes import lookup as pg_err_lookup
 import Queue
 import time
 import atexit
 import traceback
-from functools import wraps
 
-from event import Event
-from service import Service
-from debug import debug
+import psycopg2
+from psycopg2.errorcodes import IN_FAILED_SQL_TRANSACTION
+from psycopg2.errorcodes import lookup as pg_err_lookup
 
 from nav.db import get_connection_string
 from nav.util import synchronized
 
+from . import checkermap
+from .event import Event
+from .debug import debug
+
+
 def db():
-    if _db._instance is None:
-        _db._instance = _db()
+    """Returns a db singleton"""
+    if getattr(_DB, '_instance') is None:
+        setattr(_DB, '_instance', _DB())
 
-    return _db._instance
+    return getattr(_DB, '_instance')
 
 
-class dbError(Exception):
-    pass
+class DbError(Exception):
+    """Generic database error"""
+
 
 _queryLock = threading.Lock()
-class _db(threading.Thread):
+
+
+class _DB(threading.Thread):
     _instance = None
+
     def __init__(self):
         threading.Thread.__init__(self)
         self.setDaemon(1)
         self.queue = Queue.Queue()
-        self._hostsToPing = []
+        self._hosts_to_ping = []
         self._checkers = []
         self.db = None
 
     def connect(self):
+        """Connects to the NAV database"""
         try:
             conn_str = get_connection_string(script_name='servicemon')
             self.db = psycopg2.connect(conn_str)
@@ -70,12 +77,13 @@ class _db(threading.Thread):
             debug("Successfully (re)connected to NAVdb")
             # Set transaction isolation level to READ COMMITTED
             self.db.set_isolation_level(1)
-        except Exception, e:
+        except Exception as err:
             debug("Couldn't connect to db.", 2)
-            debug(str(e), 2)
+            debug(str(err), 2)
             self.db = None
 
     def close(self):
+        """Closes the database connection"""
         try:
             if self.db:
                 self.db.close()
@@ -84,28 +92,34 @@ class _db(threading.Thread):
             pass
 
     def status(self):
+        """Returns 0/1 connection status indicator"""
         try:
             if self.db.status:
                 return 1
-        except:
+        except Exception:
             return 0
         return 0
 
     def cursor(self):
+        """
+        Returns a database cursor, automatically re-opening the database
+        connection if necessary.
+
+        """
         try:
             try:
                 cursor = self.db.cursor()
                 cursor.execute('SELECT 1')
-            except psycopg2.InternalError, err:
+            except psycopg2.InternalError as err:
                 if err.pgcode == IN_FAILED_SQL_TRANSACTION:
                     debug("Rolling back aborted transaction...", 2)
                     self.db.rollback()
                 else:
                     debug("PostgreSQL reported an internal error I don't know "
                           "how to handle: %s (code=%s)" % (
-                            pg_err_lookup(err.pgcode), err.pgcode), 2)
+                          pg_err_lookup(err.pgcode), err.pgcode), 2)
                     raise
-        except Exception, err:
+        except Exception as err:
             debug(str(err), 2)
             debug("Could not get cursor. Trying to reconnect...", 2)
             self.close()
@@ -114,22 +128,28 @@ class _db(threading.Thread):
         return cursor
 
     def run(self):
+        """Runs the event posting loop, popping events from the queue"""
         self.connect()
         while 1:
             event = self.queue.get()
             debug("Got event: [%s]" % event, 7)
             try:
-                self.commitEvent(event)
+                self.commit_event(event)
                 self.db.commit()
-            except Exception, e:
+            except Exception:
                 # If we fail to commit the event, place it
                 # back in our queue
                 debug("Failed to commit event, rescheduling...", 7)
-                self.newEvent(event)
+                self.new_event(event)
                 time.sleep(5)
 
     @synchronized(_queryLock)
     def query(self, statement, values=None, commit=1):
+        """
+        Runs a synchronized database query, automatically re-opening a
+        troubled connection and handling errors.
+
+        """
         cursor = None
         try:
             cursor = self.cursor()
@@ -138,19 +158,24 @@ class _db(threading.Thread):
             if commit:
                 self.db.commit()
             return cursor.fetchall()
-        except Exception, e:
+        except Exception as err:
             debug("Failed to execute query: "
                   "%s" % cursor.query if cursor else statement, 2)
-            debug(str(e))
+            debug(str(err))
             if commit:
                 try:
                     self.db.rollback()
                 except Exception:
                     debug("Failed to rollback", 2)
-            raise dbError()
+            raise DbError()
 
     @synchronized(_queryLock)
     def execute(self, statement, values=None, commit=1):
+        """
+        Runs a synchronized database query, ignoring any result rows.
+        Automatically re-opens a troubled connection, and handles errors.
+
+        """
         cursor = None
         try:
             cursor = self.cursor()
@@ -159,26 +184,28 @@ class _db(threading.Thread):
             if commit:
                 try:
                     self.db.commit()
-                except:
+                except Exception:
                     debug("Failed to commit", 2)
-        except psycopg2.IntegrityError, e:
-            debug(str(e), 2)
+        except psycopg2.IntegrityError as err:
+            debug(str(err), 2)
             debug("Tried to execute: %s" % cursor.query, 7)
             debug("Throwing away update...", 2)
             if commit:
                 self.db.rollback()
-        except Exception, e:
+        except Exception, err:
             debug("Could not execute statement: "
                   "%s" % cursor.query if cursor else statement, 2)
-            debug(str(e))
+            debug(str(err))
             if commit:
                 self.db.rollback()
-            raise dbError()
+            raise DbError()
 
-    def newEvent(self, event):
+    def new_event(self, event):
+        """Places a new event on the queue to be posted to the db"""
         self.queue.put(event)
 
-    def commitEvent(self, event):
+    def commit_event(self, event):
+        """Commits an event to the database event queue"""
         if event.source not in ("serviceping", "pping"):
             debug("Invalid source for event: %s" % event.source, 1)
             return
@@ -194,6 +221,9 @@ class _db(threading.Thread):
         elif event.status == Event.DOWN:
             value = 1
             state = 's'
+        else:
+            value = 1
+            state = 'x'
 
         nextid = self.query("SELECT nextval('eventq_eventqid_seq')")[0][0]
         statement = """INSERT INTO eventq
@@ -210,29 +240,35 @@ class _db(threading.Thread):
         values = (nextid, 'descr', event.info)
         self.execute(statement, values)
 
-    def hostsToPing(self):
+    def hosts_to_ping(self):
+        """Returns a list of netboxes to ping, from the database"""
         query = """SELECT netboxid, deviceid, sysname, ip, up FROM netbox """
         try:
-            self._hostsToPing = self.query(query)
-        except dbError:
-            return self._hostsToPing
-        return self._hostsToPing
+            self._hosts_to_ping = self.query(query)
+        except DbError:
+            return self._hosts_to_ping
+        return self._hosts_to_ping
 
-    def getCheckers(self, useDbStatus, onlyactive=1):
+    def get_checkers(self, use_db_status, onlyactive=1):
+        """
+        Returns a list of service checker instances based on the database
+        service handler registry.
+
+        """
         query = """SELECT serviceid, property, value
         FROM serviceproperty
         order BY serviceid"""
 
-        property = {}
+        prop = {}
         try:
             properties = self.query(query)
-        except dbError:
+        except DbError:
             return self._checkers
         for serviceid, prop, value in properties:
-            if serviceid not in property:
-                property[serviceid] = {}
+            if serviceid not in prop:
+                prop[serviceid] = {}
             if value:
-                property[serviceid][prop] = value
+                prop[serviceid][prop] = value
 
         query = """SELECT serviceid ,service.netboxid, netbox.deviceid,
         service.active, handler, version, ip, sysname, service.up
@@ -240,14 +276,14 @@ class _db(threading.Thread):
         (service.netboxid=netbox.netboxid) order by serviceid"""
         try:
             fromdb = self.query(query)
-        except dbError:
+        except DbError:
             return self._checkers
 
         self._checkers = []
         for each in fromdb:
             if len(each) == 9:
                 (serviceid, netboxid, deviceid, active, handler, version, ip,
-                 sysname, up) = each
+                 sysname, upstate) = each
             else:
                 debug("Invalid checker: %s" % each, 2)
                 continue
@@ -261,21 +297,21 @@ class _db(threading.Thread):
                 'ip': ip,
                 'deviceid': deviceid,
                 'sysname': sysname,
-                'args': property.get(serviceid, {}),
+                'args': prop.get(serviceid, {}),
                 'version': version
                 }
 
             kwargs = {}
-            if useDbStatus:
-                if up == 'y':
-                    up = Event.UP
+            if use_db_status:
+                if upstate == 'y':
+                    upstate = Event.UP
                 else:
-                    up = Event.DOWN
-                kwargs['status'] = up
+                    upstate = Event.DOWN
+                kwargs['status'] = upstate
 
             try:
-                newChecker = checker(service, **kwargs)
-            except Exception, why:
+                new_checker = checker(service, **kwargs)
+            except Exception:
                 debug("Checker %s (%s) failed to init. This checker will "
                       "remain DISABLED:\n%s" % (handler, checker,
                                                 traceback.format_exc()), 2)
@@ -284,8 +320,8 @@ class _db(threading.Thread):
             if onlyactive and not active:
                 continue
             else:
-                setattr(newChecker, 'active', active)
+                setattr(new_checker, 'active', active)
 
-            self._checkers += [newChecker]
+            self._checkers += [new_checker]
         debug("Returned %s checkers" % len(self._checkers))
         return self._checkers
