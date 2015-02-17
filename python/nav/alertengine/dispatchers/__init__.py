@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 #
 # Copyright (C) 2008, 2011 UNINETT AS
 #
@@ -34,23 +33,25 @@ examples.
 """
 
 import logging
-import os
 from django.forms import EmailField, ValidationError
 
 from nav.models.event import AlertQueueMessage
 
-logger = logging.getLogger('nav.alertengine.dispatchers')
+_logger = logging.getLogger('nav.alertengine.dispatchers')
 
-class dispatcher:
-    '''Base class for dispatchers'''
 
-    def __init__(self, config={}):
-        self.config = config
+class Dispatcher(object):
+    """Base class for dispatchers"""
 
-    def send(alert, address, language='en'):
+    def __init__(self, config=None):
+        self.config = config if config is not None else {}
+
+    def send(self, address, alert, language='en'):
+        """Sends an alert to a specific address for a specific language"""
         raise NotImplementedError
 
     def get_message(self, alert, language, message_type):
+        """Gets the message to be sent"""
         try:
             return alert.messages.get(language=language,
                                       type=message_type).message
@@ -58,6 +59,7 @@ class dispatcher:
             return self.get_fallback_message(alert, language, message_type)
 
     def get_fallback_message(self, alert, language, message_type):
+        """Gets a fallback message if the original alert is missing"""
         # Try using longest message in english
         messages = list(alert.messages.filter(language='en'))
         messages.sort(key=lambda m: len(m.message))
@@ -77,23 +79,28 @@ class dispatcher:
 
     @staticmethod
     def is_valid_address(address):
+        """Validates address against the address syntax for this dispatcher"""
         raise NotImplementedError
 
+
 class DispatcherException(Exception):
-    '''Raised when alert could not be sent temporarily and sending should be
-       retried'''
+    """Raised when alert could not be sent temporarily and sending should be
+    retried """
     pass
+
 
 class FatalDispatcherException(DispatcherException):
-    '''Raised when alert could not be sent and further attempts at sending
-       should be ditched'''
+    """Raised when alert could not be sent and further attempts at sending
+    should be ditched """
     pass
 
+
 def is_valid_email(address):
+    """Validates a string as an e-mail address"""
     # FIXME In Django 1.2 we can use validators
     field = EmailField()
     try:
         field.clean(address)
-    except ValidationError, e:
+    except ValidationError:
         return False
     return True

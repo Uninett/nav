@@ -32,7 +32,7 @@ from nav.models.event import AlertQueue
 
 
 def check_alerts(debug=False):
-    '''Handles all new and user queued alerts'''
+    """Handles all new and user queued alerts"""
 
     # We use transaction autocommit so that the changes we make only propogate
     # if the entire loop finishes.
@@ -65,7 +65,7 @@ def check_alerts(debug=False):
     # Get all queued alerts.
     queued_alerts = AccountAlertQueue.objects.all()
 
-    logger.debug('Checking %d queued alerts' % len(queued_alerts))
+    logger.debug('Checking %d queued alerts', len(queued_alerts))
 
     if len(queued_alerts):
         (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends,
@@ -98,7 +98,7 @@ def check_alerts(debug=False):
             to_delete.delete()
         else:
             logger.debug('In testing mode: would have deleted following alerts '
-                         'from alert queue: %s' % ([a.id for a in new_alerts]))
+                         'from alert queue: %s', [a.id for a in new_alerts])
 
     num_deleted = len(initial_alerts) - AlertQueue.objects.filter(
         id__in=initial_alerts).count()
@@ -123,6 +123,7 @@ def check_alerts(debug=False):
 
 @transaction.commit_on_success
 def handle_new_alerts(new_alerts):
+    """Handles new alerts on the queue"""
     memoized_check_alert = memoize(check_alert_against_filtergroupcontents, {},
                                    2)
     logger = logging.getLogger('nav.alertengine.handle_new_alerts')
@@ -178,7 +179,7 @@ def handle_new_alerts(new_alerts):
 
     # Check all acounts against all their active subscriptions
     for account, alertsubscriptions, permissions in accounts:
-        logger.debug("Checking new alerts for account '%s'" % account)
+        logger.debug("Checking new alerts for account '%s'", account)
 
         for alert in new_alerts:
             _check_match_and_permission(account, alert, alertsubscriptions,
@@ -243,6 +244,7 @@ def _check_permissions(account, alert, alertsubscription, dupemap, logger,
 
 
 def handle_queued_alerts(queued_alerts, now=None):
+    """Handles profile-queued alerts for later dispatch"""
     logger = logging.getLogger('nav.alertengine.handle_queued_alerts')
 
     if not now:
