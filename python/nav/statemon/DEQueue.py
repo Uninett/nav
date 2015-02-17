@@ -22,6 +22,9 @@
 # Inspired by a example in Thomas W. Christopher's excellent book
 # Python Programming Patterns.
 #
+# FIXME: This should probably be replaced by Python's collections.deque
+# pylint: disable=all
+#
 """
 A simple double ended queue
 """

@@ -22,7 +22,11 @@
 # Inspired by an example in Thomas W. Christopher's excellent book
 # Python Programming Patterns.
 #
+# FIXME: This should probably be replaced by Python's Queue.PriorityQueue
 #
+# this was basically copied off something else, ignore lint violations
+# pylint: disable=all
+
 
 import operator
 #one of these will be called to choose the
