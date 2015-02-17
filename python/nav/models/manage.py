@@ -333,7 +333,8 @@ class Netbox(models.Model):
 
     def has_unignored_unrecognized_neighbors(self):
         """Returns true if this netbox has unignored unrecognized neighbors"""
-        return self.unrecognizedneighbor_set.filter(ignored=False).count() > 0
+        return self.unrecognizedneighbor_set.filter(
+            ignored_since=None).count() > 0
 
 
 class NetboxInfo(models.Model):
@@ -1430,7 +1431,7 @@ class UnrecognizedNeighbor(models.Model):
     remote_name = VarcharField()
     source = VarcharField()
     since = models.DateTimeField(auto_now_add=True)
-    ignored = models.BooleanField(default=False)
+    ignored_since = models.DateTimeField()
 
     class Meta:
         db_table = 'unrecognized_neighbor'
