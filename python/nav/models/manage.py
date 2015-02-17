@@ -331,6 +331,11 @@ class Netbox(models.Model):
 
         return result
 
+    def has_unignored_unrecognized_neighbors(self):
+        """Returns true if this netbox has unignored unrecognized neighbors"""
+        return self.unrecognizedneighbor_set.filter(ignored=False).count() > 0
+
+
 class NetboxInfo(models.Model):
     """From NAV Wiki: The netboxinfo table is the place
     to store additional info on a netbox."""
@@ -1425,9 +1430,11 @@ class UnrecognizedNeighbor(models.Model):
     remote_name = VarcharField()
     source = VarcharField()
     since = models.DateTimeField(auto_now_add=True)
+    ignored = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'unrecognized_neighbor'
+        ordering = ('remote_id',)
 
     def __unicode__(self):
         return u'%s:%s %s neighbor %s (%s)' % (
