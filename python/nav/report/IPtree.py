@@ -24,7 +24,7 @@ from nav.report.IPtools import getMask, sort_nets_by_prefixlength, andIpMask
 tree = None
 
 def buildTree(start_net, end_net=None, bits_in_matrix=0,
-              add_missing_nets=False, forceBuild=False):
+              add_missing_nets=False):
     """Builds a tree from start_net to (and included) end_net.
 
     Arguments:

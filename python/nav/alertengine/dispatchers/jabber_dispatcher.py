@@ -29,7 +29,7 @@ is_valid_email
 logger = logging.getLogger('nav.alertengine.dispatchers.jabber')
 
 class jabber(dispatcher):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *_args, **kwargs):
         self.config = kwargs['config'];
         self.ready = False
 

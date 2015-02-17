@@ -202,6 +202,7 @@ class WeatherGoose2(WeatherGoose1):
                        'weathergoose_temperature', })
 
 
+# pylint: disable=unused-argument
 def handleTrap(trap, config=None):
     """ This function is called from snmptrapd """
 

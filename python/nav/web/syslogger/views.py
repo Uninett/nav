@@ -184,21 +184,21 @@ def _build_context(request):
     })
     return context
 
-def handle_search(request, searchform, form_target):
+
+def handle_search(request, _searchform, form_target):
     account = get_account(request)
     if not account:
         return HttpResponseForbidden(
             "You must be logged in to access this resource")
 
-
     context = _build_context(request)
 
     context.update({'form_target': form_target})
 
-
     return render_to_response('syslogger/frag-search.html',
-        context,
-        RequestContext(request))
+                              context,
+                              RequestContext(request))
+
 
 def index(request):
     return render_to_response('syslogger/index.html',

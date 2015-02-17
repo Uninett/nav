@@ -170,7 +170,7 @@ def upload_image(request, roomid):
                               context_instance=RequestContext(request))
 
 
-def update_title(request, roomid):
+def update_title(request, _roomid):
     """Update the title for a room image"""
     if request.method == 'POST':
         imageid = int(request.POST['id'])
@@ -186,7 +186,7 @@ def update_title(request, roomid):
     return HttpResponse(status=200)
 
 
-def delete_image(request, roomid):
+def delete_image(request, _roomid):
     """Delete an image from a room"""
     if request.method == 'POST':
         imageid = int(request.POST['id'])
@@ -221,7 +221,7 @@ def delete_image(request, roomid):
     return HttpResponse(status=200)
 
 
-def update_priority(request, roomid):
+def update_priority(request, _roomid):
     """Update the order of image objects"""
     if request.method == 'POST':
         for key, value in request.POST.items():

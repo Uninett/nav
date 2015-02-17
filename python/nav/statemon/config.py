@@ -39,13 +39,13 @@ except ImportError:
     CONFIGFILEPATH = ['/usr/local/nav/local/etc/conf/', '.']
 
 class Conf(dict):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *_args, **_kwargs):
         dict.__init__(self)
         self._configfile = None
         for path in CONFIGFILEPATH:
-            file = os.path.join(os.path.abspath(path), self._file)
+            afile = os.path.join(os.path.abspath(path), self._file)
             try:
-                self._configfile = open(file, "r")
+                self._configfile = open(afile, "r")
                 break
             except IOError:
                 pass

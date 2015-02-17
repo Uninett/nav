@@ -416,7 +416,7 @@ class MibRetriever(object):
             return True
 
         # schedule the next iteration (i.e. collect next column)
-        def schedule_next(result=None):
+        def schedule_next(_result=None):
             try:
                 column = columns.next()
             except StopIteration:

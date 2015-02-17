@@ -84,7 +84,8 @@ UNINETT_PATTERN = re.compile(r"""
     (?P<netident>.*)
     """, re.X | re.I)
 
-def parse_uninett_convention(sysname, ifalias):
+
+def parse_uninett_convention(_sysname, ifalias):
     """Parse router port description, using UNINETT conventions."""
     # Strip leading and trailing whitespace from each part individually
     string = ','.join([s.strip() for s in ifalias.split(',')])

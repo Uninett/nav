@@ -25,7 +25,7 @@ class DefaultNetmapViewMixin(object):
     Mixin for returning either a global or user specific
     default view
     """
-    def get_context_data(self, user, **kwargs):
+    def get_context_data(self, user, **_kwargs):
         netmap_views = NetmapViewDefaultView.objects.select_related(
             'view',
         )

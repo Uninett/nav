@@ -317,7 +317,7 @@ class AlertAddress(models.Model):
         return self.type.scheme() + self.address
 
     @transaction.commit_manually
-    def send(self, alert, subscription, dispatcher={}):
+    def send(self, alert, subscription):
         """Handles sending of alerts to with defined alert notification types
 
            Return value should indicate if message was sent"""

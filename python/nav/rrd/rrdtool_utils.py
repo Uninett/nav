@@ -72,7 +72,7 @@ class ErrorRunningRRDToolException(Exception):
         return "Error running rrdtool: %s" % self.errormessage
 
 
-def main(options, args):
+def main(options, _args):
     """
     Handle the options.
     """

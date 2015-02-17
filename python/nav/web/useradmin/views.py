@@ -38,7 +38,7 @@ class UserAdminContext(RequestContext):
         super(UserAdminContext, self).__init__(*args, **kwargs)
 
 
-def custom_processor(request):
+def custom_processor(_request):
     """Return some always available variables"""
     return {'navpath': [('Home', '/'), ('User Administration', )]}
 

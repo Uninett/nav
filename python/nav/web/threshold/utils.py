@@ -94,8 +94,6 @@ def is_legal_interfaceid(interface_id):
         return False
     return True
 
-def is_legal_netboxid(netbox_id):
-    return is_legal_interfaceid
 
 def is_legal_name(name, regexp, allow_empty=True):
     """Check if a name conforms to the give regular expression"""

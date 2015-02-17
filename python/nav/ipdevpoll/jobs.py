@@ -55,7 +55,7 @@ class SuggestedReschedule(AbortedJobError):
 
     """
     def __init__(self, delay=60):
-        self.delay = 60
+        self.delay = delay
         super(SuggestedReschedule, self).__init__(
             "Job was suggested rescheduled in %d seconds" % self.delay)
 
@@ -240,7 +240,7 @@ class JobHandler(object):
         self._logger.debug("Starting job %r for %s",
                            self.name, self.netbox.sysname)
 
-        def wrap_up_job(result):
+        def wrap_up_job(_result):
             self._logger.debug("Job %s for %s done.", self.name,
                                self.netbox.sysname)
             self._log_timings()

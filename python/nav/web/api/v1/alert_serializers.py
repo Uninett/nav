@@ -38,7 +38,7 @@ class AcknowledgementSerializer(serializers.ModelSerializer):
     comment_html = serializers.CharField(source='comment', read_only=True)
 
     @staticmethod
-    def transform_comment_html(obj, value):
+    def transform_comment_html(_obj, value):
         """Urlize content, but make sure other tags are stripped as we need
         to output this raw"""
         return urlize(strip_tags(value))

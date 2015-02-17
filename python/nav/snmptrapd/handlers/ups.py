@@ -62,6 +62,8 @@ OFFBATTERY = {'APC': ['.1.3.6.1.4.1.318.0.9'],
               'MGE': ['1.3.6.1.4.1.705.1.11.0.12'],
               }
 
+
+# pylint: disable=unused-argument
 def handleTrap(trap, config=None):
     """
     handleTrap is run by snmptrapd every time it receives a

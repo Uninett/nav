@@ -38,7 +38,7 @@ class OID(tuple):
       (1, 3, 6)
 
     """
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args, **_kwargs):
         arg = args[0]
         if isinstance(arg, basestring):
             arg = [int(p) for p in arg.split(SEPARATOR) if p]

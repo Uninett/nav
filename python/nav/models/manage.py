@@ -368,7 +368,7 @@ class NetboxPrefix(models.Model):
     def __unicode__(self):
         return u'%s at %s' % (self.netbox.sysname, self.prefix.net_address)
 
-    def save(self, *args, **kwargs):
+    def save(self, *_args, **_kwargs):
         """Does nothing, since this models a database view."""
         raise Exception("Cannot save to a view.")
 

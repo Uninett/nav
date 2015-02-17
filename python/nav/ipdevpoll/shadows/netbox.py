@@ -42,10 +42,10 @@ class Netbox(Shadow):
                 setattr(self, attr, getattr(other, attr))
 
     def prepare(self, containers):
-        self._handle_serial_number_conflicts(containers)
+        self._handle_serial_number_conflicts()
         self._handle_sysname_conflicts(containers)
 
-    def _handle_serial_number_conflicts(self, containers):
+    def _handle_serial_number_conflicts(self):
         """Attempts to solve serial number conflicts before savetime.
 
         Specifically, if another Netbox in the database is registered with the
