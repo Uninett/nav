@@ -18,7 +18,7 @@ import select
 import socket
 from nav.statemon.DNS import socktype_from_addr
 
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import  Event
 
 
@@ -35,12 +35,12 @@ class PortChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=23, **kwargs)
 
     def execute(self):
-        sock = socket.socket(socktype_from_addr(self.getIp()),
+        sock = socket.socket(socktype_from_addr(self.ip),
                              socket.SOCK_STREAM)
-        sock.settimeout(self.getTimeout())
-        sock.connect(self.getAddress())
+        sock.settimeout(self.timeout)
+        sock.connect(self.get_address())
         sockfile = sock.makefile('r')
-        _readable, __w, __x = select.select([sock], [], [], self.getTimeout())
+        _readable, __w, __x = select.select([sock], [], [], self.timeout)
         if _readable:
             sockfile.readline()
         status = Event.UP

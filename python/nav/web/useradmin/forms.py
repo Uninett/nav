@@ -39,7 +39,7 @@ class AccountGroupForm(forms.ModelForm):
             Fieldset('Group', 'name', 'description',
                      Submit('submit_group', 'Save changes')))
 
-    class Meta:
+    class Meta(object):
         model = AccountGroup
         fields = ('name', 'description')
 
@@ -112,7 +112,7 @@ class AccountForm(forms.ModelForm):
             return False
         return True
 
-    class Meta:
+    class Meta(object):
         model = Account
         exclude = ('password', 'ext_sync', 'organizations')
 

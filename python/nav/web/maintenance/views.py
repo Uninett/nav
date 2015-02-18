@@ -49,7 +49,7 @@ LOGGER_NAME = 'nav.web.maintenance'
 logger = logging.getLogger(LOGGER_NAME)
 
 
-def redirect_to_calendar(request):
+def redirect_to_calendar(_request):
     """Redirect to main page for this tool"""
     return redirect(reverse('maintenance'))
 

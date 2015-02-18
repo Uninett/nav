@@ -52,7 +52,7 @@ class Hash(object):
     for storage.
     """
     _hashmatch = re.compile(r'\{([^\}]+)\}([^\$]+)\$(.+)$')
-        
+
     def __init__(self, method='sha1', salt=None, password=None):
         """Create a hash object.
 
@@ -73,7 +73,7 @@ class Hash(object):
 
     def __cmp__(self, other):
         return cmp(str(self), str(other))
-    
+
     def __str__(self):
         digest64 = base64.encodestring(self.digest).strip()
         hash = "{%s}%s$%s" % (self.method, self.salt, digest64)

@@ -18,7 +18,7 @@ import socket
 import ftplib
 from nav.statemon.DNS import socktype_from_addr
 
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 
 
@@ -37,8 +37,8 @@ class FtpChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=0, **kwargs)
 
     def execute(self):
-        session = FTP(self.getTimeout())
-        ip, port = self.getAddress()
+        session = FTP(self.timeout)
+        ip, port = self.get_address()
         output = session.connect(ip, port or 21)
 
         # Get server version from the banner.
@@ -46,12 +46,11 @@ class FtpChecker(AbstractChecker):
         for line in session.welcome.split('\n'):
             if line.startswith('220 '):
                 version = line[4:].strip()
-        self.setVersion(version)
+        self.version = version
 
-        args = self.getArgs()
-        username = args.get('username', '')
-        password = args.get('password', '')
-        path = args.get('path', '')
+        username = self.args.get('username', '')
+        password = self.args.get('password', '')
+        path = self.args.get('path', '')
         output = session.login(username, password, path)
 
         if output[:3] == '230':

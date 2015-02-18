@@ -164,7 +164,7 @@ def start_event(rule, metric, value):
 
 def end_event(rule, metric, value):
     """Makes and posts a threshold end event"""
-    event = make_event(False, rule,  metric, value)
+    event = make_event(False, rule, metric, value)
     _logger.debug("posted end event: %r", event)
     return event
 

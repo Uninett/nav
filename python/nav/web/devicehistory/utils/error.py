@@ -61,7 +61,8 @@ def register_error_events(request, **kwargs):
     alert_type = kwargs.pop('alert_type', 'deviceError')
 
     for key in kwargs.keys():
-        raise TypeError('register_error_events() got an unexpected keyword argument %s' % key)
+        raise TypeError('register_error_events() got an unexpected keyword '
+                        'argument %s' % key)
 
     # Data that will be inserted into the eventq table.
     default_eventq_data = {

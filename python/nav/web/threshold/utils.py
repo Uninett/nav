@@ -94,8 +94,6 @@ def is_legal_interfaceid(interface_id):
         return False
     return True
 
-def is_legal_netboxid(netbox_id):
-    return is_legal_interfaceid
 
 def is_legal_name(name, regexp, allow_empty=True):
     """Check if a name conforms to the give regular expression"""
@@ -122,7 +120,7 @@ def is_legal_sysname(name, allow_empty=True):
 def is_legal_ifname(ifname, allow_empty=True):
     """Is a legal interface-name"""
     return is_legal_name(ifname, IFNAME_REGEXP, allow_empty)
-    
+
 def is_legal_vendor(vendor, allow_empty=True):
     """Is a legal vendor-name for a netbox"""
     return is_legal_name(vendor, VENDOR_REGEXP, allow_empty)
@@ -159,7 +157,7 @@ def is_legal_sw(cat_sw):
 def is_legal_updown(updown):
     """Check if the string has value 'updown'"""
     return is_match(updown, 'updown')
- 
+
 def is_legal_ids(ids, allow_empty=True):
     """Check if the ids are in the expected format"""
     if not ids:
@@ -171,7 +169,7 @@ def is_legal_ids(ids, allow_empty=True):
         if not is_legal_id(ident):
             return False
     return True
-           
+
 def is_illegal_parameters(account, descr, sysname, vendor, model,
                             cat_gw, cat_gsw, cat_sw, ifname, updown, boxes):
     """Actually convinience wrapper to check all parameters at once"""

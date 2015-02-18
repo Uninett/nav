@@ -17,7 +17,7 @@
 """PostgreSQL service checker"""
 
 import psycopg2
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 
 
@@ -37,20 +37,19 @@ class PostgresqlChecker(AbstractChecker):
     )
 
     def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, service,  port=5432, **kwargs)
+        AbstractChecker.__init__(self, service, port=5432, **kwargs)
 
     def execute(self):
         kwargs = {}
 
         # Build keywords from arguments
-        args = self.getArgs()
-        for (name, value) in args.items():
+        for (name, value) in self.args.items():
             if name in ('user', 'password', 'database'):
                 # Must convert to str here because psycopg2 complains
                 # if keywords are unicode. ("Keywords must be strings")
                 kwargs[str(name)] = value
-                
-        (kwargs['host'], kwargs['port']) = self.getAddress()
+
+        (kwargs['host'], kwargs['port']) = self.get_address()
 
         #pylint: disable=W0703
         try:

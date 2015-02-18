@@ -21,7 +21,7 @@ from urlparse import urlsplit
 from nav import buildconf
 from nav.statemon.DNS import socktype_from_addr
 from nav.statemon.event import Event
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 
 from ssl import wrap_socket
 
@@ -58,16 +58,15 @@ class HttpsChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=0, **kwargs)
 
     def execute(self):
-        ip, port = self.getAddress()
-        args = self.getArgs()
-        url = args.get('url', '')
-        username = args.get('username')
-        password = args.get('password', '')
+        ip, port = self.get_address()
+        url = self.args.get('url', '')
+        username = self.args.get('username')
+        password = self.args.get('password', '')
         if not url:
             url = "/"
         _protocol, vhost, path, query, _fragment = urlsplit(url)
-        
-        i = HTTPSConnection(self.getTimeout(), ip, port or 443)
+
+        i = HTTPSConnection(self.timeout, ip, port or 443)
 
         if vhost:
             i.host = vhost
@@ -85,7 +84,7 @@ class HttpsChecker(AbstractChecker):
         if 200 <= response.status < 400:
             status = Event.UP
             version = response.getheader('SERVER')
-            self.setVersion(version)
+            self.version = version
             info = 'OK (%s) %s' % (str(response.status), version)
         else:
             status = Event.DOWN

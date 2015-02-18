@@ -94,7 +94,7 @@ class TrapListener:
         return trap
 
 
-    def listen(self, community, callback):
+    def listen(self, _community, callback):
         """Listens for and dispatches incoming traps to callback.
 
         Any exceptions that occur, except SystemExit, are logged and
@@ -107,7 +107,7 @@ class TrapListener:
                 (request, src) = self._agent.receive()
             except SystemExit:
                 raise
-            except Exception, why:
+            except Exception:
                 logger.exception("Unknown exception while receiving snmp trap")
                 continue
 
@@ -118,7 +118,7 @@ class TrapListener:
             logger.debug("Packet content: %r", request)
             try:
                 trap = self._decode(request, src)
-            except Exception, why:
+            except Exception:
                 logger.exception("Unknown exception while decoding snmp trap "
                                  "packet from %r, ignoring trap", src)
                 continue

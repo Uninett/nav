@@ -51,7 +51,7 @@ class MessageForm(ModelForm):
         self.fields['publish_start'].widget.format = '%Y-%m-%d %H:%M'
         self.fields['publish_end'].widget.format = '%Y-%m-%d %H:%M'
 
-    class Meta:
+    class Meta(object):
         model = Message
         exclude = ['author', 'replaces_message', 'last_changed']
 

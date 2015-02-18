@@ -27,7 +27,7 @@ class BridgeMib(mibretriever.MibRetriever):
         result = []
         for row in valid:
             mac = row[0]
-            mac =  ':'.join("%02x" % o for o in mac[-6:])
+            mac = ':'.join("%02x" % o for o in mac[-6:])
             port = row['dot1dTpFdbPort']
             result.append((mac, port))
         defer.returnValue(result)

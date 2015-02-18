@@ -211,7 +211,8 @@ def get_formatted_data(variant, db, format_, bounds, viewport_size, limit,
     return output
 
 
-def _attach_traffic_load(graph, time_interval={'start': '-10min', 'end': 'now'}):
+def _attach_traffic_load(graph,
+                         time_interval={'start': '-10min', 'end': 'now'}):
     """
     Inspects a topology graph and adds the required traffic-load
     data to it.

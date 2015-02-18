@@ -31,7 +31,7 @@ def handleTrap(trap, config=None):
 
     # Linkstate-traps are generictypes. Check for linkup/down and post
     # events on eventq.
-    if not trap.genericType in ['LINKUP','LINKDOWN']:
+    if not trap.genericType in ['LINKUP', 'LINKDOWN']:
         return False
 
     _logger.debug("Module linkupdown got trap %s %s",
@@ -57,7 +57,7 @@ def handleTrap(trap, config=None):
 
 def get_ifindex_from_trap(trap, config):
     """Gets the interface index from the trap's varbinds"""
-    port_oid = config.get('linkupdown','portOID')
+    port_oid = config.get('linkupdown', 'portOID')
     for key, value in trap.varbinds.items():
         if key.find(port_oid) >= 0:
             return value

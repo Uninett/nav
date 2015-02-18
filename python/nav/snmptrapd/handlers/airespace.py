@@ -29,15 +29,15 @@ logger = logging.getLogger('nav.snmptrapd.airespace')
 NODES = MIB['nodes']
 TRAPS = MIB['notifications']
 
+
+# pylint: disable=unused-argument
 def handleTrap(trap, config=None):
 
     # Two interesting traps:
     # bsnAPAssociated and bsnAPDisassociated
 
-    if trap.snmpTrapOID not in [ "." + TRAPS['bsnAPAssociated']['oid'],
-                                 "." + TRAPS['bsnAPDisassociated']['oid']
-                                 ]:
-
+    if trap.snmpTrapOID not in ["." + TRAPS['bsnAPAssociated']['oid'],
+                                "." + TRAPS['bsnAPDisassociated']['oid']]:
         return False
 
 
@@ -62,7 +62,7 @@ def handleTrap(trap, config=None):
         elif key.find(NODES['bsnAPMacAddrTrapVariable']['oid']) >= 0:
             mac = val
             subid = mac
-            
+
     if trap.snmpTrapOID == "." + TRAPS['bsnAPAssociated']['oid']:
         state = 'e'
         alerttype = 'apUp'
@@ -78,7 +78,7 @@ def handleTrap(trap, config=None):
     e['apname'] = apname
 
     logger.debug(e)
-    
+
     try:
         e.post()
     except Exception, e:

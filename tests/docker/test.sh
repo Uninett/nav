@@ -58,10 +58,9 @@ run_jstests() {
 }
 
 run_pylint() {
-    cd "${WORKSPACE}"
-    echo "Running pylint"
-    pylint python/nav --rcfile=python/pylint.rc --disable=I,similarities --output=parseable > pylint.txt || true
+    "${WORKSPACE}/tests/docker/lint.sh" > "${WORKSPACE}/pylint.txt"
 }
+
 
 # MAIN EXECUTION POINT
 build_nav

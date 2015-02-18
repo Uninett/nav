@@ -69,7 +69,7 @@ class HttpGetDispatcher(Dispatcher):
         sms = urllib.quote_plus(sms)
 
         # Format HTTP GET request
-        get_data = { 'phone': phone, 'sms': sms }
+        get_data = {'phone': phone, 'sms': sms}
         url = self.url % get_data
 
         # Send SMS

@@ -38,7 +38,7 @@ class MacWatch(models.Model):
     # the number for hex-digits (or so-called nybbles).
     prefix_length = models.IntegerField(db_column='prefix_length', null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = u'macwatch'
         ordering = ('created',)
 
@@ -61,7 +61,7 @@ class MacWatch(models.Model):
         # Join the lists of strings with delimiter-character to form
         # a mac-address string.
         ret_addr = self.MAC_ADDR_DELIM_CHAR.join(odd_char + even_char
-            for odd_char,even_char in zip(mac_odds, mac_evens))
+            for odd_char, even_char in zip(mac_odds, mac_evens))
         # Sweep up the left-over if length is even,
         # since zip will only merge a pair.
         if self.prefix_length % 2:
@@ -89,7 +89,7 @@ class MacWatchMatch(models.Model):
     cam = models.ForeignKey(Cam, db_column='cam', null=False)
     posted = models.DateTimeField(db_column='posted', auto_now_add=True)
 
-    class Meta:
+    class Meta(object):
         db_table = u'macwatch_match'
 
     def __unicode__(self):

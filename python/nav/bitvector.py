@@ -81,7 +81,7 @@ class BitVector(object):
         hex_octets = [hexstring[i:i+2] for i in range(0, len(hexstring), 2)]
         octetstring = ''.join([chr(int(octet, 16)) for octet in hex_octets])
         return cls(octetstring)
-        
+
     def to_binary(self):
         """
         Returns a string consisting of 1s and 0s, representing the
@@ -91,7 +91,7 @@ class BitVector(object):
         for octet in self.vector:
             bits = bits + [str((octet >> y) & 1) for y in range(8-1, -1, -1)]
         return "".join(bits)
-    
+
     def to_hex(self):
         """Return a hexadecimal string representation of this vector."""
         digits = ["%02x" % octet for octet in self.vector]

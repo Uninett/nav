@@ -47,7 +47,7 @@ class Service(models.Model):
     version = VarcharField()
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
 
-    class Meta:
+    class Meta(object):
         db_table = 'service'
         ordering = ('handler',)
 
@@ -116,7 +116,7 @@ class ServiceProperty(models.Model):
     property = models.CharField(max_length=64)
     value = VarcharField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'serviceproperty'
         unique_together = (('service', 'property'),) # Primary key
 

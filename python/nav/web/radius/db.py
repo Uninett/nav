@@ -127,7 +127,7 @@ class LogSearchQuery(SQLQuery):
 
         # Make "*" wildcard character
         if searchstring:
-            searchstring = searchstring.lower().replace("*","%")
+            searchstring = searchstring.lower().replace("*", "%")
 
         self.query = """SELECT
                      %s
@@ -179,10 +179,10 @@ class LogSearchQuery(SQLQuery):
                 unixtimestamp = time.mktime(
                         time.strptime(timestamp, DATEFORMAT_SEARCH))
                 searchstart = time.strftime(
-                        DATEFORMAT_SEARCH,time.localtime(
+                        DATEFORMAT_SEARCH, time.localtime(
                             unixtimestamp-(int(timestampslack)*60)))
                 searchstop = time.strftime(
-                        DATEFORMAT_SEARCH,time.localtime(
+                        DATEFORMAT_SEARCH, time.localtime(
                             unixtimestamp+(int(timestampslack)*60)))
 
                 self.query += """ (
@@ -368,8 +368,8 @@ class AcctSearchQuery(SQLQuery):
             if timemode == "days":
                 # Search for entries active from x*24 hours ago, until now.
                 searchtime = float(days)*86400
-                searchstart = time.strftime(DATEFORMAT_SEARCH,
-                                            time.localtime(time.time()-searchtime))
+                searchstart = time.strftime(
+                    DATEFORMAT_SEARCH, time.localtime(time.time()-searchtime))
                 # searchstop = time.strftime(DATEFORMAT_SEARCH,
                 # time.localtime(time.time()))
 
@@ -412,10 +412,10 @@ class AcctSearchQuery(SQLQuery):
                 unixtimestamp = time.mktime(
                         time.strptime(timestamp, DATEFORMAT_SEARCH))
                 searchstart = time.strftime(
-                        DATEFORMAT_SEARCH,time.localtime(
+                        DATEFORMAT_SEARCH, time.localtime(
                             unixtimestamp-(int(timestampslack)*60)))
                 searchstop = time.strftime(
-                        DATEFORMAT_SEARCH,time.localtime(
+                        DATEFORMAT_SEARCH, time.localtime(
                             unixtimestamp+(int(timestampslack)*60)))
 
                 # We pull the same trick here as in the section where

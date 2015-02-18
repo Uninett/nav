@@ -7,11 +7,11 @@
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details. You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Holds meta information on one IPy.IP address."""
 
@@ -81,7 +81,7 @@ class MetaIP:
 
         #in case .strCompressed() compressed it too much
         while netaddr.count(":") < hexlets_in_address-1:
-            netaddr = ":".join([netaddr,"0"])
+            netaddr = ":".join([netaddr, "0"])
 
         if leadingZeros:
             last_hexlet = netaddr[netaddr.rfind(':')+1:]
@@ -94,16 +94,18 @@ class MetaIP:
 
     @classmethod
     def _createIpv6MetaMap(cls):
-        """At the time of writing, neither prefix_active_ip_cnt nor prefix_max_ip_cnt
-        contain/calculates the correct values for IPv6. Once this has been fixed, this
-        function needs to be changed."""
+        """At the time of writing, neither prefix_active_ip_cnt nor
+        prefix_max_ip_cnt contain/calculates the correct values for IPv6. Once
+        this has been fixed, this function needs to be changed.
+
+        """
 
         sql = """SELECT prefixid, active_ip_cnt, nettype, netaddr
                  FROM prefix LEFT OUTER JOIN prefix_active_ip_cnt USING(prefixid)
                              LEFT OUTER JOIN vlan USING(vlanid)
                  WHERE family(netaddr)=6"""
 
-        cursor = db.getConnection('default','manage').cursor()
+        cursor = db.getConnection('default', 'manage').cursor()
         cursor.execute(sql)
         rows = cursor.fetchall()
         result = {}
@@ -123,7 +125,7 @@ class MetaIP:
                              LEFT OUTER JOIN vlan USING(vlanid)
                  WHERE family(netaddr)=4"""
 
-        cursor = db.getConnection('default','manage').cursor()
+        cursor = db.getConnection('default', 'manage').cursor()
         cursor.execute(sql)
         rows = cursor.fetchall()
         result = {}
@@ -140,7 +142,10 @@ class MetaIP:
         return math.log(math.log(in_count + 1) + 1)
 
     def calc_ipv6_color(self, active_ip_cnt):
-        new_color = 256 - int(255 * self.double_log(active_ip_cnt) / self.double_log(2**64)) - 1
+        new_color = (
+            256 -
+            int(255 *
+                self.double_log(active_ip_cnt) / self.double_log(2**64)) - 1)
         return "#ff%02x%02x" % (new_color, new_color)
 
     def _setupIpv6(self):
@@ -173,7 +178,8 @@ class MetaIP:
             self.max_ip_cnt = int(max_ip_cnt)
 
             if self.active_ip_cnt > 0 and self.max_ip_cnt > 0:
-                self.usage_percent = int(math.ceil(100*float(self.active_ip_cnt)/self.max_ip_cnt))
+                self.usage_percent = int(
+                    math.ceil(100*float(self.active_ip_cnt)/self.max_ip_cnt))
             else:
                 self.usage_percent = 0
 

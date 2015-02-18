@@ -27,7 +27,7 @@ class ActiveMessagesFeed(Feed):
     Uses the Django Syndication module and its interface.
     """
 
-    title = "NAV Message feed" 
+    title = "NAV Message feed"
     description = "NAV Message feed"
 
     def link(self):
@@ -42,7 +42,7 @@ class ActiveMessagesFeed(Feed):
 
     def item_title(self, item):
         return item.title
-    
+
     def item_pubdate(self, item):
         return item.publish_start
 

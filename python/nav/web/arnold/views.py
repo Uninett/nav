@@ -194,7 +194,7 @@ def process_justification_form(form):
     justification.save()
 
 
-def delete_justification(request, jid):
+def delete_justification(_request, jid):
     """Deletes a justification"""
 
     try:

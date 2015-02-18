@@ -22,7 +22,7 @@ from.
 
 This module contains functionality to periodically load from the
 database and cache a list of Netboxes to poll.  It also loads and
-caches Type and Vendor data.  
+caches Type and Vendor data.
 
 Data is loaded synchronously from the database using Django models -
 the model objects are "shadowed" using the shadows.Netbox class, so

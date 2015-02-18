@@ -200,7 +200,7 @@ class _Section(object):
         return form_model(data)
 
 class NetboxSection(_Section):
-    columns =  [
+    columns = [
         'Sysname',
         'IP',
         'Down since',
@@ -246,10 +246,9 @@ class NetboxSection(_Section):
                     (h.downtime, None),
                     (
                         'history',
-                        reverse('devicehistory-view') +
-                        '?netbox=%(id)s&eventtype=a_boxDown&group_by=datetime' % {
-                        'id': h.netbox.id,
-                        }
+                        (reverse('devicehistory-view') +
+                         '?netbox=%(id)s&eventtype=a_boxDown&group_by=datetime'
+                         % {'id': h.netbox.id})
                     ),
                 ),
             }
@@ -275,7 +274,7 @@ class NetboxSection(_Section):
         return states
 
 class NetboxMaintenanceSection(_Section):
-    columns =  [
+    columns = [
         'Sysname',
         'IP',
         'Down since',
@@ -597,10 +596,9 @@ class ModuleSection(_Section):
                     (module.downtime, None),
                     (
                         'history',
-                        reverse('devicehistory-view') +
-                        '?module=%(id)s&eventtype=a_moduleDown&group_by=datetime' % {
-                            'id': module.module_id,
-                        }
+                        (reverse('devicehistory-view') +
+                         '?module=%(id)s&eventtype=a_moduleDown&'
+                         'group_by=datetime' % {'id': module.module_id})
                     ),
                 ),
             }
@@ -757,7 +755,7 @@ class LinkStateSection(_Section):
 
 
 class SNMPAgentSection(_Section):
-    columns =  [
+    columns = [
         'Sysname',
         'IP',
         'Down since',

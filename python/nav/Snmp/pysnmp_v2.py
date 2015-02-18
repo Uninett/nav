@@ -45,7 +45,7 @@ class Snmp(object):
         community: community (password), defaults to "public"
         port: port, defaults to "161"
         """
-        
+
         self.host = host
         self.community = community
         self.version = str(version)
@@ -58,7 +58,7 @@ class Snmp(object):
         self.handle.timeout = float(timeout)
 
 
-    def get(self, query = "1.3.6.1.2.1.1.1.0"):
+    def get(self, query="1.3.6.1.2.1.1.1.0"):
         """
         Does snmpget query on the host.
         query: OID to use in the query
@@ -124,14 +124,14 @@ class Snmp(object):
         U: COUNTER64 (version 2 and above)
         x: OCTETSTRING
         value: the value to set. Must ofcourse match type: i = 2, s = 'string'
-        
+
         Heavily influenced by:
         http://pysnmp.sourceforge.net/examples/2.x/snmpset.html
         """
 
         if not query.startswith("."):
             query = "." + query
-            
+
         # Choose protocol version specific module
         try:
             snmp = eval('v' + self.version)
@@ -152,32 +152,31 @@ class Snmp(object):
         req = snmp.SETREQUEST()
         req['community'] = self.community
         rsp = snmp.GETRESPONSE()
-            
+
         # Encode oids and values
         encoded_oids = []
         encoded_vals = []
-            
+
         encoded_oids.append(asn1.OBJECTID().encode(query))
         encoded_vals.append(eval('asn1.'+type+'()').encode(value))
-            
+
         # Try to send query and get response
         try:
             (answer, src) = self.handle.send_and_receive(
                 req.encode(encoded_oids=encoded_oids,
                            encoded_vals=encoded_vals),
                 dst=(self.host, self.port))
-                
+
             # Decode response (an octet-string) into an snmp-message
             rsp.decode(answer)
-                
+
             if rsp['error_status']:
                 raise AgentError, str(snmp.SNMPError(rsp['error_status']))
-            
+
         except (role.NoResponse, role.NetworkError), why:
             raise NetworkError, why
-            
-            
-    def walk(self, query = "1.3.6.1.2.1.1.1.0"):
+
+    def walk(self, query="1.3.6.1.2.1.1.1.0"):
         """
         Does snmpwalk on the host.
         query: OID to use in the query
@@ -187,7 +186,7 @@ class Snmp(object):
         """
         if not query.startswith("."):
             query = "." + query
-        
+
         # Choose protocol version specific module
         try:
             snmp = eval('v' + self.version)
@@ -256,8 +255,8 @@ class Snmp(object):
             # Load the next request with the OID received in the last response
             req['encoded_oids'] = rsp['encoded_oids']
             current_oid = rsp_oid
-    
-    def jog(self, query = "1.3.6.1.2.1.1.1.0"):
+
+    def jog(self, query="1.3.6.1.2.1.1.1.0"):
         """Does a modified snmpwalk on the host. The query OID is
         chopped off the returned OID for each line in the result.
         query: OID to use in the query
@@ -273,15 +272,15 @@ class Snmp(object):
                 #found = re.search(query,oid)
                 key = re.sub(r'\.?' + query + r'\.?', '', oid)
                 result.append((key, value))
-        
+
         return result
 
-    def bulkwalk(self, query = "1.3.6.1.2.1.1.1.0", strip_prefix=False):
+    def bulkwalk(self, query="1.3.6.1.2.1.1.1.0", strip_prefix=False):
         """
         Performs an SNMP walk on the host, using GETBULK requests.
         Will raise an UnsupportedSnmpVersionError if the current
         version is anything other than 2c.
-        
+
           query: OID to use in the query
 
           strip_prefix: If True, strips the query OID prefix from the
@@ -293,10 +292,10 @@ class Snmp(object):
         if str(self.version) != "2c":
             raise UnsupportedSnmpVersionError(
                 "Cannot use BULKGET in SNMP version " + self.version)
-        
+
         if not query.startswith("."):
             query = "." + query
-        
+
         # Choose protocol version specific module
         snmp = v2c
 

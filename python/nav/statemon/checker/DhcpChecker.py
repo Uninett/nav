@@ -19,7 +19,7 @@
 import os
 import subprocess
 
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 from nav.util import which, is_setuid_root
 
@@ -36,9 +36,8 @@ class DhcpChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=0, **kwargs)
 
     def execute(self):
-        ip, _port = self.getAddress()
-        timeout = self.getTimeout()
-        
+        ip, _port = self.get_address()
+
         cmd = 'dhcping'
 
         path = which(cmd)
@@ -54,7 +53,7 @@ class DhcpChecker(AbstractChecker):
                 [path,
                  '-i',  # Use inform packet so we don't have to be valid client
                  '-s', ip,
-                 '-t', str(timeout),  # Timeout in seconds
+                 '-t', str(self.timeout),  # Timeout in seconds
                  ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)

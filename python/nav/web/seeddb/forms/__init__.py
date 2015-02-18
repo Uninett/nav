@@ -49,7 +49,7 @@ def get_layout(heading, rows):
 
 def get_single_layout(heading, row):
     """Get default layout for a single filter"""
-    return get_layout(heading,  [
+    return get_layout(heading, [
         Column(row, css_class='medium-8'),
         Column(get_submit_button(), css_class='medium-4')
     ])
@@ -77,7 +77,7 @@ class RoomForm(forms.ModelForm):
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
 
-    class Meta:
+    class Meta(object):
         model = Room
 
 
@@ -91,7 +91,7 @@ class LocationForm(forms.ModelForm):
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
 
-    class Meta:
+    class Meta(object):
         model = Location
 
     def __init__(self, *args, **kwargs):
@@ -124,7 +124,7 @@ class OrganizationForm(forms.ModelForm):
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
 
-    class Meta:
+    class Meta(object):
         model = Organization
 
     def __init__(self, *args, **kwargs):
@@ -157,7 +157,7 @@ class NetboxTypeFilterForm(forms.Form):
 
 class NetboxTypeForm(forms.ModelForm):
     """Form for editing a netbox type"""
-    class Meta:
+    class Meta(object):
         model = NetboxType
 
 
@@ -174,7 +174,7 @@ class CablingFilterForm(forms.Form):
 
 class CablingForm(forms.ModelForm):
     """Form for editing a cabling instance"""
-    class Meta:
+    class Meta(object):
         model = Cabling
 
 
@@ -197,7 +197,7 @@ class DeviceGroupForm(forms.ModelForm):
                                    kwargs['instance'].netbox_set.all()]
         forms.ModelForm.__init__(self, *args, **kwargs)
 
-    class Meta:
+    class Meta(object):
         model = NetboxGroup
 
 

@@ -17,7 +17,7 @@
 """A MySQL service checker"""
 import socket
 from nav.statemon.DNS import socktype_from_addr
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 
 
@@ -34,14 +34,14 @@ class MysqlChecker(AbstractChecker):
             #
             # Connect and read handshake packet.
             #
-            conn = MysqlConnection(self.getAddress(), self.getTimeout())
+            conn = MysqlConnection(self.get_address(), self.timeout)
             data = conn.read_packet()
 
             #
             # Get server version from handshake
             #
             version = data[1:].split('\x00')[0]  # Null terminated string
-            self.setVersion(version)
+            self.version = version
 
             #
             # Send authentication packet to make server happy.

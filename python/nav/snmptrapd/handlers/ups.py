@@ -62,6 +62,8 @@ OFFBATTERY = {'APC': ['.1.3.6.1.4.1.318.0.9'],
               'MGE': ['1.3.6.1.4.1.705.1.11.0.12'],
               }
 
+
+# pylint: disable=unused-argument
 def handleTrap(trap, config=None):
     """
     handleTrap is run by snmptrapd every time it receives a
@@ -79,7 +81,7 @@ def handleTrap(trap, config=None):
     # Use the trap-object to access trap-variables and do stuff.
     for vendor in ONBATTERY.keys():
         if trap.snmpTrapOID in ONBATTERY[vendor]:
-            logger.debug ("Got ups on battery trap (%s)" %vendor)
+            logger.debug("Got ups on battery trap (%s)" %vendor)
 
             # Get time to live
             try:
@@ -93,7 +95,7 @@ def handleTrap(trap, config=None):
             else:
                 batterytime = format_batterytime(batterytime, format)
                 logger.debug("batterytime: %s" % batterytime)
-                
+
             # Get netboxid from database
             c = db.cursor()
             c.execute("SELECT netboxid, sysname FROM netbox WHERE ip = %s",
@@ -143,7 +145,7 @@ def handleTrap(trap, config=None):
                       eventtypeid=eventtypeid, state=state)
             e['sysname'] = sysname
             e['alerttype'] = "upsOnUtilityPower"
-            
+
             # Post event
             try:
                 e.post()
@@ -167,7 +169,7 @@ def format_batterytime(timeunit, format):
 
 # This function is a nice to run to make sure the event and alerttypes
 # exist in the database if you post events for alerting.
-def verifyEventtype ():
+def verifyEventtype():
     """
     Safe way of verifying that the event- and alarmtypes exist in the
     database. Should be run when module is imported.
@@ -176,7 +178,7 @@ def verifyEventtype ():
     db = getConnection('default')
     c = db.cursor()
 
-    # NB: Remember to replace the values with the one you need. 
+    # NB: Remember to replace the values with the one you need.
 
     sql = """
     INSERT INTO eventtype (
@@ -201,7 +203,7 @@ def verifyEventtype ():
             c.execute(q)
 
     db.commit()
-        
+
 def initialize():
     """Initialize method for snmpdtrap daemon so it can initialize plugin
     after __import__

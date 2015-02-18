@@ -81,7 +81,7 @@ class MIBFactory(object):
             elif vendor_id == VENDOR_APC:
                 mibs = [PowerNetMib(agent)]
             elif vendor_id == VENDOR_EMERSON_COMPUTER_POWER:
-                mibs =  [UpsMib(agent)]
+                mibs = [UpsMib(agent)]
             elif vendor_id == VENDOR_EATON:
                 mibs = [XupsMib(agent)]
             elif vendor_id == VENDOR_MGE:

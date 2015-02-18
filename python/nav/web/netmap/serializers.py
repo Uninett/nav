@@ -104,5 +104,5 @@ class NetmapViewDefaultViewSerializer(serializers.ModelSerializer):
     """Serializer for NetmapViewDefault"""
     partial = True
 
-    class Meta:
+    class Meta(object):
         model = profiles.NetmapViewDefaultView
