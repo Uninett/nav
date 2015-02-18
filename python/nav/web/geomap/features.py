@@ -32,13 +32,14 @@ ___
 """
 import os
 import logging
+from functools import partial
 
 from django.template import Context
 from django import template
 
 import nav
 from nav.web.geomap.conf import get_configuration
-from nav.web.geomap.utils import union_dict, subdict, fix, concat_list, is_nan
+from nav.web.geomap.utils import union_dict, subdict, concat_list, is_nan
 
 _logger = logging.getLogger('nav.web.geomap.features')
 
@@ -53,17 +54,20 @@ def create_features(variant, graph, do_create_edges=True):
     styles = variant_config['styles']
     template_files = variant_config['template_files']
     node_popup_template = load_popup_template(template_files['node_popup'])
-    node_feature_creator = fix(create_node_feature,
-                               [node_popup_template, styles['node'],
-                                indicators['node']], 1)
+    node_feature_creator = partial(
+        create_node_feature,
+        popup_template=node_popup_template,
+        default_style=styles['node'],
+        indicators=indicators['node'])
     nodes = [node_feature_creator(n) for n in graph.nodes.values()]
     edges = []
     if do_create_edges:
         edge_popup_template = load_popup_template(template_files['edge_popup'])
-        edge_feature_creator = fix(create_edge_features,
-                                   [edge_popup_template,
-                                    styles['edge'],
-                                    indicators['edge']], 1)
+        edge_feature_creator = partial(
+            create_edge_features,
+            popup_template=edge_popup_template,
+            default_style=styles['edge'],
+            indicators=indicators['edge'])
         edges = concat_list(
             [edge_feature_creator(e) for e in graph.edges.values()])
 
@@ -196,7 +200,7 @@ def apply_indicator(ind, properties):
 
 def apply_indicators(indicators, properties):
     """Apply a list of indicators to a list of properties."""
-    applicator = fix(apply_indicator, properties, 1)
+    applicator = partial(apply_indicator, properties=properties)
     return union_dict(*[applicator(i) for i in indicators])
 
 

@@ -117,48 +117,6 @@ def nansafe_max(lst):
     return max(values)
 
 
-# TODO How is this different from what functools.partial() does?
-def fix(fun, argvalues, argnums=0):
-    """Fix one or more arguments to a function.
-
-    Returns a new function which is like fun, but takes len(argvalues)
-    (or 1 if argvalues is not a list) fewer arguments. This function,
-    when called, combines the arguments it is given with argvalues,
-    passes the resulting list as arguments to fun, and returns the
-    result.
-
-    Arguments:
-
-    fun -- base function
-
-    argvalues -- fixed argument values. Passing a non-list value as
-    argvalues is equivalent to passing a single-element list
-    containing that value.
-
-    argnums -- positions of argvalues in the argument list. Must be
-    either a list of numbers with same length as argvalues or a
-    number. If it is a list, it specifies the position in fun's
-    argument list for each value in argvalues. If it is a single
-    number, it specifies the position for the first value in
-    argvalues; the remaining values are placed in the subsequent
-    positions.
-
-
-    """
-    if not isinstance(argvalues, list):
-        argvalues = [argvalues]
-    def derived(*args, **kwargs):
-        args = list(args)
-        if isinstance(argnums, int):
-            args[argnums:argnums] = argvalues
-        else:
-            for i in xrange(len(argnums)):
-                # TODO this may put arguments in wrong places; should be fixed
-                args.insert(argnums[i], argvalues[i])
-        return apply(fun, args, kwargs)
-    return derived
-
-
 def numeric(obj):
     """Check whether an object is a number."""
     return isinstance(obj, int) or isinstance(obj, float)
