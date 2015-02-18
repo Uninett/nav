@@ -69,12 +69,12 @@ def render_page(request, extra_context):
 def set_ignored_state(request):
     """Set ignored state on a neighbor instance"""
     if request.method == 'POST':
-        pk = request.POST.get('neighborid')
+        nid = request.POST.get('neighborid')
         ignored = json.loads(request.POST.get('ignored'))
 
-        _logger.debug('set_ignored_state: %s %s', pk, ignored)
+        _logger.debug('set_ignored_state: %s %s', nid, ignored)
 
-        neighbor = get_object_or_404(UnrecognizedNeighbor, pk=pk)
+        neighbor = get_object_or_404(UnrecognizedNeighbor, pk=nid)
         if ignored:
             neighbor.ignored_since = datetime.now()
         else:
