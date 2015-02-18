@@ -21,38 +21,33 @@ library.
 
 """
 import math
+from itertools import groupby
 
 
-def identity(x):
-    """identity(x) == x for all x"""
-    return x
+def identity(obj):
+    """identity(obj) == obj for all obj"""
+    return obj
 
 
-def group(property, lst):
-    """Group a list into sublists based on equality of some property.
+def group(keyfunc, lst):
+    """Groups a list into sublists based on equality of some keyfunc.
 
     Returns a list of sublists of lst, where every item of lst appears
     in exactly one sublist, and two items are in the same sublist iff
-    the result of applying property (a function) to either of them
+    the result of applying keyfunc (a function) to either of them
     gives the same result.
 
     """
-    hash = {}
-    for x in lst:
-        p = property(x)
-        if p in hash:
-            hash[p].append(x)
-        else:
-            hash[p] = [x]
-    return hash.values()
+    data = sorted(lst, key=keyfunc)
+    return [list(grp) for _key, grp in groupby(data, keyfunc)]
 
 
 def avg(lst):
-    """Compute the average of the values in lst.
+    """
+    Computes the average of the values in lst.
 
-    Arguments:
-
-    lst -- a list of numbers.
+    :param lst: A list of numbers.
+    :return: An average value of the list.
 
     """
     if len(lst) == 0:
@@ -61,41 +56,30 @@ def avg(lst):
 
 
 def weighted_avg(lst):
-    """Compute a weighted average.
+    """
+    Computes a weighted average.
 
-    Arguments:
-
-    lst -- a list of tuples (value, weight)
+    :param lst: a list of tuples (value, weight)
+    :return: A weighted average.
 
     """
     if len(lst) == 0:
         return 0
-    total = sum(map(lambda (value, weight): value*weight, lst))
-    num = sum(map(lambda (value, weight): weight, lst))
+    total = sum(value * weight for value, weight in lst)
+    num = sum(weight for value, weight in lst)
     return float(total)/num
 
 
 def argmax(fun, lst):
-    """Find an argument to fun from lst giving maximal value.
+    """
+    Finds the element of lst with the maximum fun(lst) value.
 
-    Return value: An element m of lst with the property that for any
-    element e in lst, fun(m) >= fun(e).
-
-    Arguments:
-
-    fun -- the single-argument function to maximize
-
-    lst -- list of possible arguments to fun
+    :param fun: The single-argument function to maximize
+    :param lst: List of values.
+    :return: The element of lst with the maximum fun(lst) value.
 
     """
-    max_item = lst[0]
-    max_val = fun(lst[0])
-    for x in lst[1:]:
-        x_val = fun(x)
-        if x_val > max_val:
-            max_item = x
-            max_val = x_val
-    return max_item
+    return sorted(lst, key=fun)[-1]
 
 
 def nansafe_max(lst):
@@ -111,10 +95,10 @@ def nansafe_max(lst):
     NaN; otherwise it returns the largest non-NaN value.
 
     """
-    values = filter(negate(is_nan), lst)
-    if len(values) == 0:
+    try:
+        return max(v for v in lst if not is_nan(v))
+    except ValueError:
         return float('nan')
-    return max(values)
 
 
 def numeric(obj):
@@ -154,60 +138,44 @@ def compose(*functions):
                   functions)
 
 
-def negate(p):
-    """Negate the predicate (i.e., boolean function) p.
-
-    Returns a function np with the property that
-
-      np(x_1, ..., x_n) == not p(x_1, ..., x_n)
-
-    for all x_1, ..., x_n.
-
-    """
-    def np(*args):
-        return not p(*args)
-    return np
-
-
-def subdict(d, keys):
+def subdict(dct, keys):
     """Restriction of dictionary to some keys.
 
-    d should be a dictionary (or lazy_dict) and keys a list whose
-    items are keys of d.  Returns a new dictionary object; d is not
-    modified.  If d is a lazy_dict, the result is also a lazy_dict.
+    dct should be a dictionary (or lazy_dict) and keys a list whose
+    items are keys of dct.  Returns a new dictionary object; dct is not
+    modified.  If dct is a lazy_dict, the result is also a lazy_dict.
 
     """
-    if isinstance(d, lazy_dict):
-        new_d = d.copy()
-        for k in d.keys():
+    if isinstance(dct, lazy_dict):
+        newdct = dct.copy()
+        for k in dct.keys():
             if k not in keys:
-                del new_d[k]
-        return new_d
+                del newdct[k]
+        return newdct
     else:
-        return dict([(k, d[k]) for k in keys])
+        return dict([(k, dct[k]) for k in keys])
 
 
-def filter_dict(fun, d):
+def filter_dict(fun, dct):
     """Filter a dictionary on values.
 
-    Like the built-in filter, except that d is a dictionary, and fun
+    Like the built-in filter, except that dct is a dictionary, and fun
     is applied to each value. The result is a new dictionary
-    containing those (key,value) pairs from d for which fun(value) is
+    containing those (key,value) pairs from dct for which fun(value) is
     true.
 
     """
-    return subdict(d, filter(lambda key: fun(d[key]), d))
+    return subdict(dct, [key for key, val in dct.iteritems() if fun(val)])
 
 
-def map_dict(fun, d):
+def map_dict(fun, dct):
     """Map over a dictionary's values.
 
-    Returns a new dictionary which is like d except that each value is
+    Returns a new dictionary which is like dct except that each value is
     replaced by the result of applying fun to it.
 
     """
-    return dict(map(lambda (key, value): (key, fun(value)),
-                    d.items()))
+    return {k: fun(v) for k, v in dct.iteritems()}
 
 
 def union_dict(*dicts):
@@ -218,13 +186,13 @@ def union_dict(*dicts):
     is used.
 
     """
-    lazy_p = any(map(lambda d: isinstance(d, lazy_dict), dicts))
+    lazy_p = any(isinstance(d, lazy_dict) for d in dicts)
     if lazy_p:
         result = lazy_dict()
     else:
         result = {}
-    for d in dicts:
-        result.update(d)
+    for dct in dicts:
+        result.update(dct)
     return result
 
 
@@ -238,7 +206,7 @@ def concat_str(strs):
     return reduce(lambda a, b: a+b, strs, '')
 
 
-class lazy_dict:
+class lazy_dict(object):
     """A dictionary with values that are computed only when needed.
 
     This class provides a very limited form of lazy evaluation. When
@@ -316,10 +284,10 @@ class lazy_dict:
         the other one.
 
         """
-        cp = lazy_dict()
+        cpy = lazy_dict()
         for key in self.keys():
-            cp[[key]] = self[[key]]
-        return cp
+            cpy[[key]] = self[[key]]
+        return cpy
 
     def get(self, key, default=None):
         """Returns self[key] if key is a key in self, default otherwise."""
@@ -337,21 +305,21 @@ class lazy_dict:
         """
         return self.force_and_call(None, 'items')
 
-    def update(self, d1, **d2):
+    def update(self, dict1, **dict2):
         """Add values from another dictionary and/or keyword arguments.
 
-        If d1 is a lazy_dict, laziness is preserved for elements added
+        If dict1 is a lazy_dict, laziness is preserved for elements added
         from it.
 
         """
-        if isinstance(d1, lazy_dict):
-            for key in d1.keys():
-                self[[key]] = d1[[key]]
+        if isinstance(dict1, lazy_dict):
+            for key in dict1.keys():
+                self[[key]] = dict1[[key]]
         else:
-            for key in d1.keys():
-                self[key] = d1[key]
-        if len(d2.keys()) > 0:
-            self.update(d2)
+            for key in dict1.keys():
+                self[key] = dict1[key]
+        if len(dict2.keys()) > 0:
+            self.update(dict2)
 
     def values(self):
         """Returns all the dictionary's values as a list.
@@ -398,16 +366,14 @@ class lazy_dict:
         del self.storage[key]
         self.unevaluated.discard(key)
 
-    def remove_if_present(self, k):
-        """Remove key k from dictionary if it is present."""
-        if k in self:
-            del self[k]
+    def remove_if_present(self, key):
+        """Remove key key from dictionary if it is present."""
+        if key in self:
+            del self[key]
 
-    def swap(self, k1, k2):
-        """Swap the values at keys k1 and k2."""
-        tmp = self[[k1]]
-        self[[k1]] = self[[k2]]
-        self[[k2]] = tmp
+    def swap(self, key1, key2):
+        """Swap the values at keys key1 and key2."""
+        self[[key1]], self[[key2]] = self[[key2]], self[[key1]]
 
     def __repr__(self):
         return '<lazy_dict %s>' % self.storage
@@ -429,7 +395,7 @@ class lazy_dict:
         elif key in self.unevaluated:
             fun = self.storage[key]['fun']
             args = self.storage[key]['args']
-            val = apply(fun, args)
+            val = fun(*args)
             self.storage[key] = val
             self.unevaluated.remove(key)
 
@@ -440,13 +406,13 @@ class lazy_dict:
         return type(dict).__getattribute__(dict, method)(self.storage, *args)
 
 
-def map_dict_lazy(fun, d):
+def map_dict_lazy(fun, dct):
     """Like map_dict, but produces a lazy_dict instead of a dict.
 
     Each value in the dictionary is set lazily."""
     res = lazy_dict()
-    for key in d:
-        res.set_lazy(key, fun, d[key])
+    for key in dct:
+        res.set_lazy(key, fun, dct[key])
     return res
 
 
@@ -455,9 +421,9 @@ def first(lst):
     return lst[0]
 
 
-def chunks(lst, n):
+def chunks(lst, size):
     """
-    Yields successive n-sized chunks from lst.
+    Yields successive `size`-sized chunks from lst.
     """
-    for i in xrange(0, len(lst), n):
-        yield lst[i:i+n]
+    for i in xrange(0, len(lst), size):
+        yield lst[i:i+size]
