@@ -15,13 +15,55 @@
 #
 """Controllers for displaying the neighbor app"""
 
-from django.shortcuts import render
+import logging
+import json
+
+from datetime import datetime
+from django.http import HttpResponse
+from django.shortcuts import render, get_object_or_404
 from nav.models.manage import UnrecognizedNeighbor
+
+_logger = logging.getLogger(__name__)
 
 
 def index(request):
     """Controller for rendering the main page of neighbors"""
+
     context = {
-        'neighbors': UnrecognizedNeighbor.objects.all(),
+        'neighbors': UnrecognizedNeighbor.objects.filter(
+            ignored_since__isnull=True),
     }
     return render(request, 'neighbors/base.html', context)
+
+
+def set_ignored_state(request):
+    """Set ignored state on a neighbor instance"""
+
+    if request.method == 'POST':
+        pk = request.POST.get('neighborid')
+        ignored = json.loads(request.POST.get('ignored'))
+
+        _logger.debug('set_ignored_state: %s %s', pk, ignored)
+
+        neighbor = get_object_or_404(UnrecognizedNeighbor, pk=pk)
+        if ignored:
+            neighbor.ignored_since = datetime.now()
+        else:
+            neighbor.ignored_since = None
+        neighbor.save()
+        return HttpResponse()
+
+    return HttpResponse("Wrong request method", status=400)
+
+
+def render_tbody(request):
+    """Renders the body of a table with unrecognized neighbors"""
+
+    ignored = json.loads(request.REQUEST.get('ignored'))
+    ignored_reversed = not ignored
+    _logger.debug('render_tbody: %s %s', ignored, ignored_reversed)
+    context = {
+        'neighbors': UnrecognizedNeighbor.objects.filter(
+            ignored_since__isnull=ignored_reversed)
+    }
+    return render(request, 'neighbors/frag-tbody.html', context)
