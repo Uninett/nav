@@ -36,7 +36,7 @@ class OracleChecker(AbstractChecker):
 
     Arguments:
     ----------
-    hostname: Accessible from self.getAddress() as pure FQDN hostname
+    hostname: Accessible from self.get_address() as pure FQDN hostname
     port    : Remote tcp-port where Oracle Listener is living. Default is 1521.
     sid     : Database SID
     username: An Oracle database account with the following permissions:
@@ -67,11 +67,10 @@ class OracleChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=1521, **kwargs)
 
     def execute(self):
-        args = self.getArgs()
-        user = args.get("username", "")
-        ip, port = self.getAddress()
-        passwd = args.get("password", "")
-        sid = args.get("sid", "")
+        user = self.args.get("username", "")
+        ip, port = self.get_address()
+        passwd = self.args.get("password", "")
+        sid = self.args.get("sid", "")
         connect_string = ("%s/%s@(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=("
                           "COMMUNITY=TCP)(PROTOCOL=TCP)(Host=%s)(Port=%s)))("
                           "CONNECT_DATA=(SID=%s)(GLOBAL_NAME=%s)))") % (

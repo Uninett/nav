@@ -44,7 +44,7 @@ class ServiceChoiceForm(forms.Form):
         checkers = load_checker_classes()
         choices = []
         for checker in checkers:
-            name = checker.getType()
+            name = checker.get_type()
             descr = []
             if checker.DESCRIPTION:
                 descr.append(checker.DESCRIPTION)

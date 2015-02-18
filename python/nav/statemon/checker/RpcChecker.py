@@ -35,7 +35,6 @@ class RpcChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=111, **kwargs)
 
     def execute(self):
-        args = self.getArgs()
         # map service to t=tcp or u=udp
         mapper = {
             'nfs':      't',
@@ -46,7 +45,7 @@ class RpcChecker(AbstractChecker):
             'ypbind':   'u',
         }
         default = ['nfs', 'nlockmgr', 'mountd', 'status']
-        required = args.get('required', '')
+        required = self.args.get('required', '')
         if not required:
             required = default
         else:
@@ -58,7 +57,7 @@ class RpcChecker(AbstractChecker):
             return (Event.DOWN,
                     'Command %s not found in %s' % (cmd, os.environ['PATH']))
 
-        ip, _port = self.getAddress()
+        ip, _port = self.get_address()
         for service in required:
             protocol = mapper.get(service, '')
             if not protocol:

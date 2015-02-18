@@ -39,8 +39,8 @@ class SmtpChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=25, **kwargs)
 
     def execute(self):
-        ip, port = self.getAddress()
-        smtp = SMTP(self.getTimeout())
+        ip, port = self.get_address()
+        smtp = SMTP(self.timeout)
         code, msg = smtp.connect(ip, port)
         try:
             smtp.quit()
@@ -55,7 +55,7 @@ class SmtpChecker(AbstractChecker):
         match = self.VERSION_PATTERN.match(version)
         if match:
             version = match.group(0)
-        self.setVersion(version)
+        self.version = version
         return Event.UP, msg
 
 

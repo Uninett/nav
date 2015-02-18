@@ -41,11 +41,10 @@ class ImapsChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=993, **kwargs)
 
     def execute(self):
-        args = self.getArgs()
-        user = args.get("username", "")
-        ip, port = self.getAddress()
-        passwd = args.get("password", "")
-        session = IMAPSConnection(self.getTimeout(), ip, port)
+        user = self.args.get("username", "")
+        ip, port = self.get_address()
+        passwd = self.args.get("password", "")
+        session = IMAPSConnection(self.timeout, ip, port)
         ver = session.welcome
         if user:
             session.login(user, passwd)
@@ -58,7 +57,7 @@ class ImapsChecker(AbstractChecker):
                     version += "%s " % i
                 else:
                     break
-        self.setVersion(version)
+        self.version = version
 
         return Event.UP, version
 

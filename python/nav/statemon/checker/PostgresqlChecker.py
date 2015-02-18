@@ -43,14 +43,13 @@ class PostgresqlChecker(AbstractChecker):
         kwargs = {}
 
         # Build keywords from arguments
-        args = self.getArgs()
-        for (name, value) in args.items():
+        for (name, value) in self.args.items():
             if name in ('user', 'password', 'database'):
                 # Must convert to str here because psycopg2 complains
                 # if keywords are unicode. ("Keywords must be strings")
                 kwargs[str(name)] = value
 
-        (kwargs['host'], kwargs['port']) = self.getAddress()
+        (kwargs['host'], kwargs['port']) = self.get_address()
 
         #pylint: disable=W0703
         try:

@@ -13,6 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Base functionality for service checkers"""
 
 import time
 from nav.statemon import config, RunQueue, db, statistics, event
@@ -21,7 +22,7 @@ from nav.statemon.debug import debug
 TIMEOUT = 5  # default, hardcoded timeout :)
 
 
-class AbstractChecker:
+class AbstractChecker(object):
     """
     This is the superclass for each handler. Note that it is
     'abstract' and should not be instanciated directly. If you want to
@@ -71,109 +72,111 @@ class AbstractChecker:
         version and extra arguments to the handler
         status defaults to up, but can be overridden.
         """
+        self.response_time = None
         self._conf = config.serviceconf()
-        self.setServiceid(service['id'])
-        self.setIp(service['ip'])
-        self.setNetboxid(service['netboxid'])
-        self.setArgs(service['args'])
-        self.setVersion(service['version'])
-        self.setSysname(service['sysname'])
-        self.setDeviceid(service['deviceid'])
+        self.serviceid = service['id']
+        self.ip = service['ip']
+        self.netboxid = service['netboxid']
+        self.args = service['args']
+        self.version = service['version']
+        self._sysname = service['sysname']
+        self.deviceid = service['deviceid']
         # This is (and should be) used by all subclasses
-        self.setPort(int(service['args'].get('port', port)))
-        self.setStatus(status)
-        self.setTimestamp(0)
-        timeout = self.getArgs().get(
+        self.port = int(service['args'].get('port', port))
+        self.status = status
+        self.timestamp = 0
+        timeout = self.args.get(
             'timeout',
-            self._conf.get("%s timeout" % self.getType(),
+            self._conf.get("%s timeout" % self.get_type(),
                            self._conf.get('timeout', TIMEOUT)))
-        self.setTimeout(int(timeout))
+        self.timeout = int(timeout)
         self.db = db.db()
         debug("New checker instance for %s:%s " %
-              (self.getSysname(), self.getType()), 6)
+              (self.sysname, self.get_type()), 6)
         self.runcount = 0
-        self.rq = RunQueue.RunQueue()
+        self.runq = RunQueue.RunQueue()
 
     def run(self):
         """
-        Calls executeTest(). If the status has changed it schedules a new
+        Calls execute_test(). If the status has changed it schedules a new
         test. If the service has been unavailable for more than self.runcount
         times, it marks the service as down.
         """
-        version = self.getVersion()
-        status, info = self.executeTest()
-        service = "%s:%s" % (self.getSysname(), self.getType())
+        orig_version = self.version
+        status, info = self.execute_test()
+        service = "%s:%s" % (self.sysname, self.get_type())
         debug("%-20s -> %s" % (service, info), 6)
 
         if status == event.Event.UP:
             # Dirty hack to check if we timed out...
             # this is needed as ssl-socket calls may hang
             # in python < 2.3
-            if self.getResponsetime() > 2 * self.getTimeout():
+            if self.response_time > 2 * self.timeout:
                 debug("Adjusting status due to high responsetime (%s, %s)" % (
-                      service, self.getResponsetime()))
+                      service, self.response_time))
                 status = event.Event.DOWN
-                self.setResponsetime(2 * self.getTimeout())
+                self.response_time = 2 * self.timeout
 
-        if status != self.getStatus() and (self.runcount <
-                                           int(self._conf.get('retry', 3))):
+        if status != self.status and (self.runcount <
+                                      int(self._conf.get('retry', 3))):
             delay = int(self._conf.get('retry delay', 5))
             self.runcount += 1
             debug("%-20s -> State changed. New check in %i sec. (%s, %s)" % (
                   service, delay, status, info))
             # Updates rrd every time to get proper 'uptime' for the service
-            self.updateRrd()
+            self.update_stats()
             priority = delay + time.time()
             # Queue ourself
-            self.rq.enq((priority, self))
+            self.runq.enq((priority, self))
             return
 
-        if status != self.getStatus():
+        if status != self.status:
             debug("%-20s -> %s, %s" % (service, status, info), 1)
-            newEvent = event.Event(self.getServiceid(),
-                                   self.getNetboxid(),
-                                   self.getDeviceid(),
-                                   event.Event.serviceState,
-                                   "serviceping",
-                                   status,
-                                   info
-                                   )
+            new_event = event.Event(self.serviceid,
+                                    self.netboxid,
+                                    self.deviceid,
+                                    event.Event.serviceState,
+                                    "serviceping",
+                                    status,
+                                    info
+                                    )
 
             # Post to the NAV alertq
-            self.db.new_event(newEvent)
-            self.setStatus(status)
+            self.db.new_event(new_event)
+            self.status = status
 
-        if version != self.getVersion() and self.getStatus() == event.Event.UP:
-            newEvent = event.Event(self.getServiceid(),
-                                   self.getNetboxid(),
-                                   self.getDeviceid(),
-                                   "version",
-                                   "serviceping",
-                                   status,
-                                   info,
-                                   version=self.getVersion()
-                                   )
-            self.db.new_event(newEvent)
-        self.updateRrd()
-        self.setTimestamp()
+        if orig_version != self.version and self.status == event.Event.UP:
+            new_event = event.Event(self.serviceid,
+                                    self.netboxid,
+                                    self.deviceid,
+                                    "version",
+                                    "serviceping",
+                                    status,
+                                    info,
+                                    version=self.version
+                                    )
+            self.db.new_event(new_event)
+        self.update_stats()
+        self.update_timestamp()
         self.runcount = 0
 
-    def updateRrd(self):
+    def update_stats(self):
+        """Send an updated metric to the Graphite backend"""
         try:
-            statistics.update(self.getNetboxid(),
-                   self.getSysname(),
-                   'N',
-                   self.getStatus(),
-                   self.getResponsetime(),
-                   self.getServiceid(),
-                   self.getType()
-                   )
-        except Exception, e:
-            service = "%s:%s" % (self.getSysname(), self.getType())
-            debug("rrd update failed for %s [%s]" % (service, e), 3)
+            statistics.update(
+                self.netboxid,
+                self.sysname,
+                'N',
+                self.status,
+                self.response_time,
+                self.serviceid,
+                self.get_type()
+            )
+        except Exception as err:  # pylint: disable=broad-except
+            service = "%s:%s" % (self.sysname, self.get_type())
+            debug("statistics update failed for %s [%s]" % (service, err), 3)
 
-
-    def executeTest(self):
+    def execute_test(self):
         """
         Executes and times the test.
         Calls self.execute() which should be overridden
@@ -182,158 +185,55 @@ class AbstractChecker:
         start = time.time()
         try:
             status, info = self.execute()
-        except Exception, info:
+        except Exception as info:  # pylint: disable=broad-except
             status = event.Event.DOWN
             info = str(info)
-        self.setResponsetime(time.time()-start)
+        self.response_time = time.time()-start
         return status, info
 
     def execute(self):
+        """Executes the actual service test implemented by a plugin"""
         raise NotImplementedError
 
-    def setServiceid(self, serviceid):
-        """Sets the serviceid according to the database"""
-        self._serviceid = serviceid
-
-    def getServiceid(self):
-        """Returns the serviceid """
-        return self._serviceid
-
-    def setNetboxid(self, netboxid):
-        """Sets the netboxid according to the database """
-        self._netboxid = netboxid
-
-    def getNetboxid(self):
-        """Returns the netboxid """
-        return self._netboxid
-
-    def setDeviceid(self, deviceid):
-        """Sets the deviceid"""
-        self._deviceid = deviceid
-
-    def getDeviceid(self):
-        return self._deviceid
-
-    def getResponsetime(self):
-        """Returns the responsetime of this service """
-        return self._usage
-
-    def setSysname(self, sysname):
-        """Sets the sysname """
-        self._sysname = sysname
-
-    def getSysname(self):
+    @property
+    def sysname(self):
         """Returns the sysname of which this service is running on.
         If no sysname is specified, the ip address is returned."""
         if self._sysname:
             return self._sysname
         else:
-            return self.getIp()
+            return self.ip
 
-    def setResponsetime(self, usage):
-        """Sets the responsetime of this service. Is updated by self.run() """
-        self._usage = usage
+    @sysname.setter
+    def sysname(self, name):
+        """Sets the sysname """
+        self._sysname = name
 
-    def getStatus(self):
-        """Returns the current status of this service. Typically
-        Event.UP or Event.DOWN"""
-        return self._status
-
-    def setStatus(self, status):
-        """Sets the current status. Is updated by self.run() """
-        self._status = status
-
-    def getTimestamp(self):
-        """Returns the time of last check. """
-        return self._timestamp
-
-    def setTimestamp(self, when=-1):
-        """Updates the time of last check. If no argument is
-        supplied, it defaults to time.time()"""
-        if when == -1:
-            when = time.time()
-        self._timestamp = when
-
-    def setTimeout(self, value):
-        """Sets the timeout value for this service. """
-        self._timeout = value
-
-    def getTimeout(self):
-        """Returns the timeout value for this service. """
-        return self._timeout
-
-    def setArgs(self, args):
-        self._args = args
-
-    def getArgs(self):
-        """Returns a dict containing all (nonstandard) arguments passed
-        in to this handler. This could be port, username, password or any
-        other argument a handler might need."""
-        return self._args
+    def update_timestamp(self):
+        """Updates the time of last check to the current time"""
+        self.timestamp = time.time()
 
     @classmethod
-    def getType(cls):
+    def get_type(cls):
         """Returns the name of the handler. """
         return cls.TYPENAME
 
-    def setIp(self, ip):
-        """Sets the ip address to connect to """
-        self._ip = ip
-
-    def getIp(self):
-        """Returns the ip address to connect to """
-        return self._ip
-
-    def setPort(self, port):
-        """Sets the port number to connect to. The constructor
-        parses the arguments (self.getArgs()) and gets the port
-        argument. If no port argument is specified, it sets the port
-        to 0."""
-        self._port = port
-
-    def getPort(self):
-        """Returns the port supplied as an argument to
-        the test. If no argument is supplied, this function
-        returns 0.
-        This allows you to do (and i encourage you to)
-        self.setPort(self.getPort() or DEFAULT_PORT_FOR_SERVICE)
-        in your subclass."""
-        return self._port
-
-    def getAddress(self):
+    def get_address(self):
         """Returns a tuple (ip, port) """
-        return (self._ip, self._port)
-
-    def setAddress(self, address):
-        """This should not be used. Set the ip address and port independently
-        instead."""
-        self._address = address
-
-    def setVersion(self, version):
-        """Sets the version of the service. Updateded by self.run() """
-        self._version = version
-
-    def getVersion(self):
-        """Returns the current version of the service."""
-        return self._version
+        return self.ip, self.port
 
     def __eq__(self, obj):
-        return (self.getServiceid() == obj.getServiceid()
-                and self.getArgs() == obj.getArgs())
+        return (self.serviceid == getattr(obj, 'serviceid', None)
+                and self.args == getattr(obj, 'args', None))
 
     def __cmp__(self, obj):
-        return self.getTimestamp().__cmp__(obj.getTimestamp())
+        return cmp(self.timestamp, getattr(obj, 'timestamp'), None)
 
     def __hash__(self):
-        value = (self.getServiceid() +
-                 self.getArgs().__str__().__hash__() +
-                 self.getAddress().__hash__())
-        value = value % 2**31
-        return int(value)
+        tup = (self.serviceid, self.args, self.get_address())
+        return hash(tup)
 
     def __repr__(self):
-        s = '%i: %s %s %s' % (self.getServiceid(), self.getType(),
-                              str(self.getAddress()), str(self.getArgs()))
-        return s.ljust(60) + self.getStatus()
-
-
+        rep = '%i: %s %s %s' % (self.serviceid, self.get_type(),
+                                self.get_address(), self.args)
+        return rep.ljust(60) + self.status

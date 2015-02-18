@@ -35,7 +35,7 @@ def get_checkers():
 
 def get_description(checker_name):
     """Returns a description of a service checker"""
-    checkers = dict((c.getType(), c) for c in load_checker_classes())
+    checkers = dict((c.get_type(), c) for c in load_checker_classes())
     if checker_name not in checkers:
         return
     checker = checkers[checker_name]

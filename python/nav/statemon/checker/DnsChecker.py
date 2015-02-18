@@ -38,11 +38,10 @@ class DnsChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=42, **kwargs)
 
     def execute(self):
-        ip, _port = self.getAddress()
-        dns = DNS.DnsRequest(server=ip, timeout=self.getTimeout())
-        args = self.getArgs()
+        ip, _port = self.get_address()
+        dns = DNS.DnsRequest(server=ip, timeout=self.timeout)
 
-        request = args.get("request", "").strip()
+        request = self.args.get("request", "").strip()
         timeout = 0
         if not request:
             return Event.UP, "Argument request must be supplied"
@@ -65,7 +64,7 @@ class DnsChecker(AbstractChecker):
                 ver = dns.req(name="version.bind", qclass="chaos",
                               qtype='txt').answers
                 if len(ver) > 0:
-                    self.setVersion(ver[0]['data'][0])
+                    self.version = ver[0]['data'][0]
             except DNS.Base.DNSError as err:
                 if str(err) == 'Timeout':
                     pass  # Ignore timeout

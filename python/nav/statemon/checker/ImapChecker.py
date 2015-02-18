@@ -60,11 +60,10 @@ class ImapChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=143, **kwargs)
 
     def execute(self):
-        args = self.getArgs()
-        user = args.get("username", "")
-        ip, port = self.getAddress()
-        passwd = args.get("password", "")
-        session = IMAPConnection(self.getTimeout(), ip, port)
+        user = self.args.get("username", "")
+        ip, port = self.get_address()
+        passwd = self.args.get("password", "")
+        session = IMAPConnection(self.timeout, ip, port)
         ver = session.welcome
         if user:
             session.login(user, passwd)
@@ -77,6 +76,6 @@ class ImapChecker(AbstractChecker):
                     version += "%s " % i
                 else:
                     break
-        self.setVersion(version)
+        self.version = version
 
         return Event.UP, version

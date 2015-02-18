@@ -40,11 +40,10 @@ class Pop3Checker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=110, **kwargs)
 
     def execute(self):
-        args = self.getArgs()
-        user = args.get("username", "")
-        passwd = args.get("password", "")
-        ip, port = self.getAddress()
-        conn = PopConnection(self.getTimeout(), ip, port)
+        user = self.args.get("username", "")
+        passwd = self.args.get("password", "")
+        ip, port = self.get_address()
+        conn = PopConnection(self.timeout, ip, port)
         ver = conn.getwelcome()
         if user:
             conn.user(user)
@@ -59,7 +58,7 @@ class Pop3Checker(AbstractChecker):
                     version += "%s " % i
                 else:
                     break
-        self.setVersion(version)
+        self.version = version
 
         return Event.UP, version
 

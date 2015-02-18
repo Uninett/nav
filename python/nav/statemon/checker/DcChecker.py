@@ -31,12 +31,11 @@ class DcChecker(AbstractChecker):
     )
 
     def execute(self):
-        args = self.getArgs()
-        username = args.get('username', '')
+        username = self.args.get('username', '')
         if not username:
             return Event.DOWN, "Missing required argument: username"
 
-        ip, _port = self.getAddress()
+        ip, _port = self.get_address()
 
         cmd = 'rpcclient'
         cmdpath = which(cmd)

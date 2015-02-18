@@ -39,7 +39,7 @@ class RadiusChecker(AbstractChecker):
 
     Arguments:
     ----------
-    hostname  : Accessible from self.getAddress() as pure FQDN hostname
+    hostname  : Accessible from self.get_address() as pure FQDN hostname
     port      : Remote udp-port where radius authentication is living.
                 Port 1812 is default for authentication.
     username  : A valid radius-username
@@ -77,7 +77,7 @@ class RadiusChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=1812, **kwargs)
 
     def execute(self):
-        args = self.getArgs()
+        args = self.args
         #pylint: disable=W0703
         try:
             username = args.get("username", "")
@@ -85,7 +85,7 @@ class RadiusChecker(AbstractChecker):
             rad_secret = args.get("secret", "")
             identifier = args.get("identifier", "")
             dictionary = args.get("dictionary", "")  # or "dictionary"
-            ip, _port = self.getAddress()
+            ip, _port = self.get_address()
             srv = Client(server=ip, secret=rad_secret,
                          dict=Dictionary(dictionary))
             req = srv.CreateAuthPacket(code=pyrad.packet.AccessRequest,
@@ -96,7 +96,7 @@ class RadiusChecker(AbstractChecker):
         except Exception as err:
             return (Event.DOWN,
                     "Failed connecting to %s: %s)" %
-                    (self.getAddress(), str(err)))
+                    (self.get_address(), str(err)))
         version = "FreeRadius 1.0"  # Fetch from radiusmonitor later.
-        self.setVersion(version)
+        self.version = version
         return Event.UP, "Radius: " + version
