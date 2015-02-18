@@ -21,24 +21,53 @@ import json
 from datetime import datetime
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+
 from nav.models.manage import UnrecognizedNeighbor
+from nav.web.utils import create_title
 
 _logger = logging.getLogger(__name__)
 
 
 def index(request):
     """Controller for rendering the main page of neighbors"""
+    return render_unrecognized(request)
 
+
+def render_unrecognized(request):
+    """Render unrecognized neighbors"""
     context = {
         'neighbors': UnrecognizedNeighbor.objects.filter(
             ignored_since__isnull=True),
+        'page': 'unrecognized'
     }
+
+    return render_page(request, context)
+
+
+def render_ignored(request):
+    """Render ignored neighbors"""
+    context = {
+        'neighbors': UnrecognizedNeighbor.objects.filter(
+            ignored_since__isnull=False),
+        'page': 'ignored'
+    }
+
+    return render_page(request, context)
+
+
+def render_page(request, extra_context):
+    """Render the page with a given context"""
+    navpath = [('Home', '/'), ('Unrecognized Neighbors', )]
+    context = {
+        'navpath': navpath,
+        'title': create_title(navpath),
+    }
+    context.update(extra_context)
     return render(request, 'neighbors/base.html', context)
 
 
 def set_ignored_state(request):
     """Set ignored state on a neighbor instance"""
-
     if request.method == 'POST':
         pk = request.POST.get('neighborid')
         ignored = json.loads(request.POST.get('ignored'))
@@ -56,14 +85,3 @@ def set_ignored_state(request):
     return HttpResponse("Wrong request method", status=400)
 
 
-def render_tbody(request):
-    """Renders the body of a table with unrecognized neighbors"""
-
-    ignored = json.loads(request.REQUEST.get('ignored'))
-    ignored_reversed = not ignored
-    _logger.debug('render_tbody: %s %s', ignored, ignored_reversed)
-    context = {
-        'neighbors': UnrecognizedNeighbor.objects.filter(
-            ignored_since__isnull=ignored_reversed)
-    }
-    return render(request, 'neighbors/frag-tbody.html', context)

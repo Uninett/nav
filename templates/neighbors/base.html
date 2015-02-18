@@ -6,8 +6,7 @@
   <script>
    require(['src/neighbors']);
    NAV.urls.neighbors = {
-       'neighbors_set_state': '{% url neighbors-set-state %}',
-       'neighbors_render_tbody': '{% url neighbors-render-tbody %}'
+       'neighbors_set_state': '{% url neighbors-set-state %}'
    }
   </script>
 {% endblock %}
@@ -28,16 +27,20 @@
   {# Button group for displaying the different types of neighbors #}
   <ul class="button-group">
     <li>
-      <button id="show-unrecognized-button" class="small active">Unrecognized neighbors</button>
+      <a href="{% url neighbors-unrecognized %}"
+         class="button small {% if page == 'unrecognized' %}active{% endif %}"
+         title="Show unrecognized neighbors">
+        Unrecognized neighbors
+      </a>
     </li>
     <li>
-      <button id="show-ignored-button" class="small">Ignored neighbors</button>
+      <a href="{% url neighbors-ignored %}"
+         class="button small {% if page == 'ignored' %}active{% endif %}"
+         title="Show hidden neighbors">
+        Ignored neighbors
+      </a>
     </li>
   </ul>
-
-
-  {# Global errors come here #}
-  <div class="alert-box alert global-neighbor-error hidden"></div>
 
 
   {# Unrecognized neighbors #}
@@ -52,6 +55,11 @@
         <th>Seen on interface</th>
         <th>Source</th>
         <th>Since</th>
+        {% if page == 'ignored' %}
+          <th>
+            Ignored since
+          </th>
+        {% endif %}
         <th>&nbsp;</th>
       </tr>
     </thead>

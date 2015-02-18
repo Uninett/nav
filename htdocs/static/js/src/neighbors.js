@@ -4,16 +4,12 @@ require(['libs/jquery'], function() {
     console.log('Neighbors script loaded');
 
     /* Some global variables */
-    var $globalError = $('.global-neighbor-error'),
-        $table = $('#unrecognized-neighbors-table'),
+    var $table = $('#unrecognized-neighbors-table'),
         $tableCaption = $table.find('caption'),
         $captionLength = $($tableCaption.find('span')[0]),
         $captionText = $($tableCaption.find('span')[1]),
         $tableBody = $table.find('tbody'),
-        setIgnoredUrl = NAV.urls.neighbors.neighbors_set_state,
-        fetchNeighborsUrl = NAV.urls.neighbors.neighbors_render_tbody,
-        showUnrecognizedButton = $('#show-unrecognized-button'),
-        showIgnoredButton = $('#show-ignored-button');
+        setIgnoredUrl = NAV.urls.neighbors.neighbors_set_state;
 
 
     /** Add event listeners to table for manipulating neighbor ignored state */
@@ -62,33 +58,6 @@ require(['libs/jquery'], function() {
     }
 
 
-    /** Add handlers for displaying ignored and unignored neighbors */
-    function addButtonGroupHandlers() {
-        showUnrecognizedButton.on('click', function() {
-            fetchNeighbors(false, setUnrecognizedMode);
-        });
-        showIgnoredButton.on('click', function() {
-            fetchNeighbors(true, setIgnoredMode);
-        });
-    }
-
-
-    /** Alter other parts of the page when going in unrecognized mode */
-    function setUnrecognizedMode() {
-        showUnrecognizedButton.addClass('active');
-        showIgnoredButton.removeClass('active');
-        updateCaption('unrecognized neighbors');
-    }
-
-
-    /** Alter other parts of the page when going in ignored mode */
-    function setIgnoredMode() {
-        showIgnoredButton.addClass('active');
-        showUnrecognizedButton.removeClass('active');
-        updateCaption('hidden neighbors');
-    }
-
-
     /** Updates the caption with the premise that number of rows is important */
     function updateCaption(text) {
         $captionLength.html(findNumberOfRows());
@@ -104,43 +73,10 @@ require(['libs/jquery'], function() {
     }
 
 
-    /** Repopulate the table body with html with neighbors */
-    function fetchNeighbors(ignored, successAction) {
-        $globalError.hide();
-
-        var request = $.get(fetchNeighborsUrl, {
-            ignored: ignored
-        });
-
-        request.done(function(data) {
-            renderResponse(data);
-            successAction();
-        });
-
-        request.fail(function() {
-            renderErrorResponse();
-        });
-    }
-
-
-    /** Render successful response when fetching neighbors */
-    function renderResponse(data) {
-        $tableBody.empty().append(data);
-    }
-
-
-    function renderErrorResponse() {
-        $globalError.show().html(
-            "Error loading unrecognized neighbors"
-        );
-    }
-
-
     /* On page ready the following happens */
     $(function() {
         console.log('Neighbors ready');
         addIgnoreNeighborsHandlers();
-        addButtonGroupHandlers();
     });
 
 
