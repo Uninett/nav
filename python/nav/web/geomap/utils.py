@@ -492,15 +492,6 @@ def map_dict_lazy(fun, d):
     return res
 
 
-# 'any' is in the standard library from version 2.5.
-# This code copied from http://docs.python.org/library/functions.html#any
-def any(iterable):
-    for element in iterable:
-        if element:
-            return True
-    return False
-
-
 def first(lst):
     """Extract the first element from a list or other indexable object."""
     return lst[0]
