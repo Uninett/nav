@@ -26,7 +26,7 @@ import getopt
 
 from nav.statemon import debug
 debug.setDebugLevel(7)
-from nav.statemon import abstractChecker
+from nav.statemon import abstractchecker
 from nav.statemon import checkermap
 
 

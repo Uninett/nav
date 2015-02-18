@@ -19,7 +19,7 @@
 from __future__ import with_statement
 import os
 import re
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 import nav.statemon.checker
 
 _CHECKER_DIR = os.path.dirname(nav.statemon.checker.__file__)

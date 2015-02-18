@@ -19,7 +19,7 @@
 import os
 import subprocess
 
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 from nav.util import which, is_setuid_root
 

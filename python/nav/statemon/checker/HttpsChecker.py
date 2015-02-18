@@ -21,7 +21,7 @@ from urlparse import urlsplit
 from nav import buildconf
 from nav.statemon.DNS import socktype_from_addr
 from nav.statemon.event import Event
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 
 from ssl import wrap_socket
 

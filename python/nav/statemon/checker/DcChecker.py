@@ -15,7 +15,7 @@
 #
 """Domain Controller service checker"""
 
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 from nav.util import which
 import os

@@ -39,7 +39,7 @@ import signal
 import nav.daemon
 from nav.daemon import safesleep as sleep
 from nav.statemon import RunQueue
-from nav.statemon import abstractChecker
+from nav.statemon import abstractchecker
 from nav.statemon import config
 from nav.statemon import db
 from nav.statemon import debug

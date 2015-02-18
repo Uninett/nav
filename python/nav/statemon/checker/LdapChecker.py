@@ -18,7 +18,7 @@
 from IPy import IP
 import ldapurl
 
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 import ldap
 

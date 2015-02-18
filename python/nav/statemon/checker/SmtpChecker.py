@@ -19,7 +19,7 @@ import socket
 import smtplib
 from nav.statemon.DNS import socktype_from_addr
 
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 
 

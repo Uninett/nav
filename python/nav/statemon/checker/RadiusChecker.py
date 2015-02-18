@@ -16,7 +16,7 @@
 """RADIUS service checker"""
 
 # NAV ServiceMonitor-modules
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 
 # Python-radius specific modules. pyrad found at
