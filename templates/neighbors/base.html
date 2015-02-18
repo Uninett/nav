@@ -3,10 +3,19 @@
 
 {% block base_header_additional_head %}
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/neighbors.css">
+  <script>
+   require(['src/neighbors']);
+   NAV.urls.neighbors = {
+       'neighbors_set_state': '{% url neighbors-set-state %}',
+       'neighbors_render_tbody': '{% url neighbors-render-tbody %}'
+   }
+  </script>
 {% endblock %}
 
 
 {% block base_content %}
+
+  {# Heading #}
   <div class="row">
     <div class="small-12 columns">
       {% with tool=current_user_data.tools|get_tool:'Unrecognized Neighbors' %}
@@ -16,8 +25,26 @@
   </div>
 
 
-  <table class="listtable unrecognized-neighbors">
-    <caption>Unrecognized neighbors</caption>
+  {# Button group for displaying the different types of neighbors #}
+  <ul class="button-group">
+    <li>
+      <button id="show-unrecognized-button" class="small active">Unrecognized neighbors</button>
+    </li>
+    <li>
+      <button id="show-ignored-button" class="small">Ignored neighbors</button>
+    </li>
+  </ul>
+
+
+  {# Global errors come here #}
+  <div class="alert-box alert global-neighbor-error hidden"></div>
+
+
+  {# Unrecognized neighbors #}
+  <table id="unrecognized-neighbors-table" class="listtable">
+    <caption>
+      <span>{{ neighbors|length }}</span>
+      <span>unrecognized neighbors</span></caption>
     <thead>
       <tr>
         <th>Remote ID</th>
@@ -29,32 +56,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for neighbor in neighbors %}
-        <tr>
-          <td>
-            <span>{{ neighbor.remote_id }}</span>
-            <a href="{% url seeddb-netbox-add-suggestion neighbor.remote_id %}"
-               title="Add unrecognized neighbor to NAV">
-              <span class="fa fa-plus-square"></span>
-            </a>
-          </td>
-          <td>
-            <span>{{ neighbor.remote_name }}</span>
-            {% if neighbor.remote_name %}
-              <a href="{% url seeddb-netbox-add-suggestion neighbor.remote_name %}"
-                 title="Add unrecognized neighbor to NAV">
-                <span class="fa fa-plus-square"></span>
-              </a>
-            {% endif %}
-          </td>
-          <td>
-            <a href="{{ neighbor.interface.get_absolute_url }}">{{ neighbor.interface }}</a>
-          </td>
-          <td>{{ neighbor.source }}</td>
-          <td>{{ neighbor.since }}</td>
-          <td></td>
-        </tr>
-      {% endfor %}
+      {% include 'neighbors/frag-tbody.html' %}
     </tbody>
   </table>
 {% endblock %}
