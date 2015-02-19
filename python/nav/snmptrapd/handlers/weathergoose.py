@@ -97,7 +97,7 @@ class WeatherGoose1(object):
         oid = self.trap.snmpTrapOID
         self.trigger = self.map_oid_to_trigger(oid)
         if self.trigger:
-            logger.info("Got %s" % self.TRAPS[self.trigger]['description'])
+            logger.info("Got %s", self.TRAPS[self.trigger]['description'])
         else:
             raise Exception("This trap cannot be handled by this plugin")
 
@@ -212,7 +212,7 @@ def handleTrap(trap, config=None):
                 (trap.agent,))
 
     if cur.rowcount < 1:
-        logger.error("Could not find trapagent %s in database." %trap.agent)
+        logger.error("Could not find trapagent %s in database.", trap.agent)
         return False
 
     netboxid, sysname, roomid = cur.fetchone()

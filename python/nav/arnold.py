@@ -269,8 +269,8 @@ def find_computer_info(ip_or_mac, trunk_ok=False):
 
 def disable(candidate, justification, username, comment="", autoenablestep=0):
     """Disable a target by blocking the port"""
-    LOGGER.info('Disabling %s - %s on interface %s' % (
-                candidate.ip, candidate.mac, candidate.interface))
+    LOGGER.info('Disabling %s - %s on interface %s',
+                candidate.ip, candidate.mac, candidate.interface)
 
     if not candidate.interface.netbox.read_write:
         raise NoReadWriteCommunityError(candidate.interface.netbox)
@@ -280,15 +280,15 @@ def disable(candidate, justification, username, comment="", autoenablestep=0):
     update_identity(identity, justification, autoenablestep)
     create_event(identity, comment, username)
 
-    LOGGER.info("Successfully %s %s (%s)" % (
-                identity.status, identity.ip, identity.mac))
+    LOGGER.info("Successfully %s %s (%s)",
+                identity.status, identity.ip, identity.mac)
 
 
 def quarantine(candidate, qvlan, justification, username, comment="",
                autoenablestep=0):
     """Quarantine a target bu changing vlan on port"""
-    LOGGER.info('Quarantining %s - %s on interface %s' % (
-        candidate.ip, candidate.mac, candidate.interface))
+    LOGGER.info('Quarantining %s - %s on interface %s',
+                candidate.ip, candidate.mac, candidate.interface)
 
     if not candidate.interface.netbox.read_write:
         raise NoReadWriteCommunityError(candidate.interface.netbox)
@@ -299,8 +299,8 @@ def quarantine(candidate, qvlan, justification, username, comment="",
     update_identity(identity, justification, autoenablestep)
     create_event(identity, comment, username)
 
-    LOGGER.info("Successfully %s %s (%s)" % (
-                identity.status, identity.ip, identity.mac))
+    LOGGER.info("Successfully %s %s (%s)",
+                identity.status, identity.ip, identity.mac)
 
 
 def check_target(target, trunk_ok=False):
@@ -362,7 +362,7 @@ def raise_if_detainment_not_allowed(interface, trunk_ok=False):
                   for x in str(config.get('arnold', 'allowtypes')).split(',')]
 
     if netbox.category.id not in allowtypes:
-        LOGGER.info("Not allowed to detain on %s" % (netbox.category.id))
+        LOGGER.info("Not allowed to detain on %s", netbox.category.id)
         raise WrongCatidError(netbox.category)
 
     if not trunk_ok and interface.trunk:
@@ -386,8 +386,8 @@ def open_port(identity, username, eventcomment=""):
     except Interface.DoesNotExist:
         LOGGER.info("Interface did not exist, enabling in database only")
     else:
-        LOGGER.info("Trying to lift detention for %s on %s" % (
-            identity.mac, identity.interface))
+        LOGGER.info("Trying to lift detention for %s on %s",
+                    identity.mac, identity.interface)
         if identity.status == 'disabled':
             change_port_status('enable', identity)
         elif identity.status == 'quarantined':
@@ -429,16 +429,14 @@ def change_port_status(action, identity):
     try:
         if action == 'disable':
             agent.set(query, 'i', 2)
-            LOGGER.info('Setting ifadminstatus down on interface %s' % (
-                identity.interface
-            ))
+            LOGGER.info('Setting ifadminstatus down on interface %s',
+                        identity.interface)
         elif action == 'enable':
             agent.set(query, 'i', 1)
-            LOGGER.info('Setting ifadminstatus up on interface %s' % (
-                identity.interface
-            ))
+            LOGGER.info('Setting ifadminstatus up on interface %s',
+                        identity.interface)
     except nav.Snmp.AgentError, why:
-        LOGGER.error("Error when executing snmpquery: %s" % why)
+        LOGGER.error("Error when executing snmpquery: %s", why)
         raise ChangePortStatusError(why)
 
 
@@ -461,7 +459,7 @@ def change_port_vlan(identity, vlan):
     except Exception as error:
         raise ChangePortVlanError(error)
     else:
-        LOGGER.info('Setting vlan %s on interface %s' % (vlan, interface))
+        LOGGER.info('Setting vlan %s on interface %s', vlan, interface)
         try:
             agent.set_vlan(interface.ifindex, vlan)
             agent.restart_if(interface.ifindex)

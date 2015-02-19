@@ -40,8 +40,7 @@ def handleTrap(trap, config=None):
                                 "." + TRAPS['bsnAPDisassociated']['oid']]:
         return False
 
-
-    logger.debug("Got trap %s" %trap.snmpTrapOID)
+    logger.debug("Got trap %s", trap.snmpTrapOID)
 
     # Eventvariables:
     source = "snmptrapd"
@@ -58,7 +57,7 @@ def handleTrap(trap, config=None):
     for key, val in trap.varbinds.items():
         if key.find(NODES['bsnAPName']['oid']) >= 0:
             apname = val
-            logger.debug("Set apname to %s" %apname)
+            logger.debug("Set apname to %s", apname)
         elif key.find(NODES['bsnAPMacAddrTrapVariable']['oid']) >= 0:
             mac = val
             subid = mac

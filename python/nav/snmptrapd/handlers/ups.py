@@ -81,20 +81,20 @@ def handleTrap(trap, config=None):
     # Use the trap-object to access trap-variables and do stuff.
     for vendor in ONBATTERY.keys():
         if trap.snmpTrapOID in ONBATTERY[vendor]:
-            logger.debug("Got ups on battery trap (%s)" %vendor)
+            logger.debug("Got ups on battery trap (%s)", vendor)
 
             # Get time to live
             try:
                 batterytimeoid, format = BATTERYTIME[vendor]
                 s = Snmp(trap.agent, trap.community)
                 batterytime = s.get(batterytimeoid)
-            except Exception, e:
-                logger.info("Could not get battery time from %s: %s" \
-                            %(trap.agent, e))
+            except Exception, err:
+                logger.info("Could not get battery time from %s: %s",
+                            trap.agent, err)
                 batterytime = False
             else:
                 batterytime = format_batterytime(batterytime, format)
-                logger.debug("batterytime: %s" % batterytime)
+                logger.debug("batterytime: %s", batterytime)
 
             # Get netboxid from database
             c = db.cursor()
@@ -126,7 +126,7 @@ def handleTrap(trap, config=None):
 
     for vendor in OFFBATTERY.keys():
         if trap.snmpTrapOID in OFFBATTERY[vendor]:
-            logger.debug("Got ups on utility power trap (%s)" %vendor)
+            logger.debug("Got ups on utility power trap (%s)", vendor)
 
             # Get netboxid from database
             c = db.cursor()

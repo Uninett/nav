@@ -91,7 +91,7 @@ def geomap(request, variant):
     if variant not in config['variants']:
         raise Http404
     room_points = geomap_all_room_pos()
-    logger.debug('geomap: room_points = %s' % room_points)
+    logger.debug('geomap: room_points = %s', room_points)
     variant_config = config['variants'][variant]
 
     context = {

@@ -96,12 +96,12 @@ class SNMPHandler(object):
         try:
             result = handle.bulkwalk(oid)
         except UnsupportedSnmpVersionError, unsup_ex:
-            _logger.info("_bulkwalk: UnsupportedSnmpVersionError = %s" %
-                         str(unsup_ex))
+            _logger.info("_bulkwalk: UnsupportedSnmpVersionError = %s",
+                         unsup_ex)
             try:
                 result = handle.walk(oid)
             except SnmpError, ex:
-                _logger.error("_bulkwalk: Exception = %s" % str(ex))
+                _logger.error("_bulkwalk: Exception = %s", ex)
         return result
 
     @staticmethod
@@ -127,8 +127,7 @@ class SNMPHandler(object):
         try:
             result = handle.get(self._get_query(oid, if_index))
         except NoSuchObjectError, no_such_ex:
-            _logger.debug("_query_netbox: NoSuchObjectError = %s" %
-                          str(no_such_ex))
+            _logger.debug("_query_netbox: NoSuchObjectError = %s", no_such_ex)
         return result
 
     def _get_read_write_handle(self):
@@ -485,7 +484,7 @@ class Cisco(SNMPHandler):
             # Ignore this exception,- some boxes want signed integer and
             # we do not know this beforehand.
             # If unsigned fail,- try with signed integer.
-            _logger.debug("set_vlan: Exception = %s" % str(ex))
+            _logger.debug("set_vlan: Exception = %s", ex)
             status = self._set_netbox_value(self.vlan_oid, if_index, "u", vlan)
         return status
 

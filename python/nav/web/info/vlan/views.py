@@ -71,7 +71,7 @@ def index(request):
 def process_searchform(form):
     """Find and return vlans based on searchform"""
     query = form.cleaned_data['query']
-    LOGGER.debug('Processing searchform for vlans with query: %s' % query)
+    LOGGER.debug('Processing searchform for vlans with query: %s', query)
     if query is None:
         return Vlan.objects.all()
     else:

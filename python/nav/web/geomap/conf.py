@@ -279,11 +279,10 @@ def interpret_configuration(config, filename):
                 eval_or_warning(result, sub['linenr'],
                                 ('', '(configuration error, see log)'))
             if len(value_and_label) != 2:
-                _logger.warning(('Error in configuration file %s on line ' +
-                                '%d: expected expression "%s" to evaluate ' +
-                                'to 2-tuple, it evaluated to %s') %
-                               (filename, sub['linenr'], result,
-                                value_and_label))
+                _logger.warning('Error in configuration file %s on line %d: '
+                                'expected expression "%s" to evaluate to '
+                                '2-tuple, it evaluated to %s', filename,
+                                sub['linenr'], result, value_and_label)
                 value_and_label = '', '(configuration error, see log)'
             value, label = value_and_label
             options.append({'test': test,
@@ -322,8 +321,8 @@ def interpret_configuration(config, filename):
                 {property_: value})
 
     def warn_unknown_object(c_obj):
-        _logger.warning(('Error in configuration file %s: Unknown object ' +
-                        '"%s" starting on line %d') %
+        _logger.warning('Error in configuration file %s: Unknown object "%s" '
+                        'starting on line %d',
                         filename, c_obj['text'], c_obj['linenr'])
 
     def eval_or_warning(expr, linenr,

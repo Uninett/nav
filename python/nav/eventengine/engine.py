@@ -195,7 +195,7 @@ class EventEngine(object):
             self._logger.debug('Posting %s event', event.event_type)
             alert.post()
         else:
-            self._logger.info('Ignoring duplicate %s event' % event.event_type)
+            self._logger.info('Ignoring duplicate %s event', event.event_type)
         event.delete()
 
     @commit_on_success
