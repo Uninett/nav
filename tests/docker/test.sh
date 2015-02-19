@@ -72,5 +72,6 @@ start_xvfb
 run_pytests
 run_jstests
 run_pylint
+"${WORKSPACE}/tests/docker/cloc.sh"
 
 echo "test.sh done"
