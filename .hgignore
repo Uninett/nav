@@ -10,7 +10,7 @@ syntax: glob
 *.rrd
 .idea/*
 npm-debug.log
-cloc.txt
+cloc.xml
 pylint.txt
 
 # Generated doc and build dirs
