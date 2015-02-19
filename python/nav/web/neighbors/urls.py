@@ -1,3 +1,4 @@
+"""Django URL configuration for unrecognized neighbors system."""
 from django.conf.urls import patterns, url
 
 urlpatterns = patterns(
