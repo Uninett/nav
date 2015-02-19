@@ -72,7 +72,7 @@ start_xvfb
 run_pytests
 run_jstests
 run_pylint
-make clean
+for D in htdocs python; do make -C "$D" clean; done
 "${WORKSPACE}/tests/docker/cloc.sh"
 
 echo "test.sh done"
