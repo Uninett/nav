@@ -6,7 +6,7 @@
   <script>
    require(['src/neighbors']);
    NAV.urls.neighbors = {
-       'neighbors_set_state': '{% url neighbors-set-state %}'
+       "neighbors_set_state": "{% url 'neighbors-set-state' %}"
    }
   </script>
 {% endblock %}
@@ -27,14 +27,14 @@
   {# Button group for displaying the different types of neighbors #}
   <ul class="button-group">
     <li>
-      <a href="{% url neighbors-unrecognized %}"
+      <a href="{% url 'neighbors-unrecognized' %}"
          class="button small {% if page == 'unrecognized' %}active{% endif %}"
          title="Show unrecognized neighbors">
         Unrecognized neighbors
       </a>
     </li>
     <li>
-      <a href="{% url neighbors-ignored %}"
+      <a href="{% url 'neighbors-ignored' %}"
          class="button small {% if page == 'ignored' %}active{% endif %}"
          title="Show hidden neighbors">
         Ignored neighbors
