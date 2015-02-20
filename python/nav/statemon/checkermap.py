@@ -1,4 +1,4 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2002, 2005 Norwegian University of Science and Technology
 #
@@ -17,11 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# $Id: checkermap.py,v 1.1 2003/06/19 12:51:14 magnun Exp $
-# Authors: Magnus Nordseth <magnun@stud.ntnu.no>
-#          Erik Gorset  <erikgors@stud.ntnu.no>
 #
 import os
 import sys
@@ -44,11 +39,11 @@ def get(checker):
         return
     if not checker in checkers.keys():
         parsedir()
-    module = checkers.get(checker.lower(),'')
+    module = checkers.get(checker.lower(), '')
     if not module:
         return
     try:
-        exec( "import "+ module)
+        exec("import " + module)
     except Exception, e:
         debug("Failed to import %s, %s" % (module, str(e)))
         dirty.append(checker)
@@ -58,7 +53,6 @@ def get(checker):
 def parsedir():
     """
     Parses the checkerdir for Handlers.
-    
     """
     files = os.listdir(checkerdir)
     handlerpattern = "Checker.py"
@@ -68,4 +62,4 @@ def parsedir():
             handler = file[:-3]
             register(key, handler)
 
-                
+

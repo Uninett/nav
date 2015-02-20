@@ -37,7 +37,7 @@ CONTACT_INFORMATION_PATH = os.path.join(WEBCONF_DIR_PATH,
 EXTERNAL_LINKS_PATH = os.path.join(WEBCONF_DIR_PATH, "external-links.txt")
 
 
-def debug(request):
+def debug(_request):
     """Returns context variables helpful for debugging.
 
     Same as django.core.context_processors.debug, just without the check
@@ -89,13 +89,13 @@ def account_processor(request):
     }
 
 
-def nav_version(request):
+def nav_version(_request):
     return {
         'nav_version': VERSION,
     }
 
 
-def footer_info(request):
+def footer_info(_request):
     return {
         'external_links': quick_read(EXTERNAL_LINKS_PATH),
         'contact_information': quick_read(CONTACT_INFORMATION_PATH)
@@ -106,7 +106,7 @@ def toolbox(request):
     return {'available_tools': tool_list(get_account(request))}
 
 
-def graphite_base(request):
+def graphite_base(_request):
     """Provide graphite dashboard url in context"""
     return {
         'graphite_base': CONFIG.get('graphiteweb', 'base')

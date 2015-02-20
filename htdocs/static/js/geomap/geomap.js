@@ -70,7 +70,8 @@ function create_bounding_box() {
     $.getJSON('/ajax/open/roommapper/rooms/', function (data) {
         var roomPosArray = [];
         for (var i=0, room; room = data.rooms[i]; i++) {
-            roomPosArray.push(new OpenLayers.Geometry.Point(getLong(room.position), getLat(room.position)));
+            roomPosArray.push(new OpenLayers.Geometry.Point(
+		getLong(room.position), getLat(room.position)));
         }
 
         var roomPositions = new OpenLayers.Geometry.MultiPoint(roomPosArray);
@@ -109,8 +110,10 @@ function getLong(position) {
 
         themap = new OpenLayers.Map(mapElementId, {
                 controls: [
-                    new OpenLayers.Control.Navigation(), new OpenLayers.Control.PanZoomBar(), //new OpenLayers.Control.NavToolbar(),
-                    new OpenLayers.Control.Attribution(), new OpenLayers.Control.LayerSwitcher()
+                    new OpenLayers.Control.Navigation(),
+		    new OpenLayers.Control.PanZoomBar(), //new OpenLayers.Control.NavToolbar(),
+                    new OpenLayers.Control.Attribution(),
+		    new OpenLayers.Control.LayerSwitcher()
                 ],
                 displayProjection: new OpenLayers.Projection("EPSG:4326"),
                 theme: NAV.cssPath + '/openlayers.css'
@@ -125,7 +128,8 @@ function getLong(position) {
                 netLayer.update();
             });
 
-        mapnikLayer = new OpenLayers.Layer.OSM("OpenStreetMap", NAV.proxyOsmUrl + '/${z}/${x}/${y}.png');
+        mapnikLayer = new OpenLayers.Layer.OSM(
+	    "OpenStreetMap", NAV.proxyOsmUrl + '/${z}/${x}/${y}.png');
         mapnikLayer.tileOptions = {crossOriginKeyword: null};
         themap.addLayer(mapnikLayer);
 
@@ -146,6 +150,7 @@ function getLong(position) {
         themap.addLayer(netLayer);
 
         if (parameters.bbox) {
+	    console.log('got bbox parameters');
             var requestedBounds = OpenLayers.Bounds.fromArray(parameters.bbox);
             requestedBounds.transform(themap.displayProjection, themap.getProjectionObject());
             themap.zoomToExtent(requestedBounds);

@@ -49,7 +49,7 @@ LOGGER_NAME = 'nav.web.maintenance'
 logger = logging.getLogger(LOGGER_NAME)
 
 
-def redirect_to_calendar(request):
+def redirect_to_calendar(_request):
     """Redirect to main page for this tool"""
     return redirect(reverse('maintenance'))
 
@@ -122,8 +122,8 @@ def active(request):
                 try:
                     netbox = Netbox.objects.get(pk=int(netbox_id))
                 except Exception, get_ex:
-                    logger.error('Get netbox %s failed; Exception = %s' %
-                                 (netbox_id, get_ex.message))
+                    logger.error('Get netbox %s failed; Exception = %s',
+                                 netbox_id, get_ex.message)
                     continue
                 task.netbox = netbox
 

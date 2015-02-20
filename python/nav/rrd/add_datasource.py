@@ -55,7 +55,7 @@ def add_datasource(rrd_file):
         rrd_header = rrdtool.info(rrd_file)
     except Exception:
         raise FileNotRRDError(rrd_file)
-    
+
     rrd_datasource_info = rrd_header['ds']['ds0']
 
     # Find last datasource in file to set correct name for the new one. A bit

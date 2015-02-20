@@ -22,25 +22,25 @@ from rest_framework import serializers
 
 class NetboxSerializer(serializers.ModelSerializer):
     """Serializer for the netbox model"""
-    class Meta:
+    class Meta(object):
         model = manage.Netbox
 
 
 class InterfaceSerializer(serializers.ModelSerializer):
     """Serializer for the interface model"""
-    class Meta:
+    class Meta(object):
         model = manage.Interface
 
 
 class CamSerializer(serializers.ModelSerializer):
     """Serializer for the cam model"""
-    class Meta:
+    class Meta(object):
         model = manage.Cam
 
 
 class ArpSerializer(serializers.ModelSerializer):
     """Serializer for the arp model"""
-    class Meta:
+    class Meta(object):
         model = manage.Arp
 
 
@@ -52,14 +52,14 @@ class RoomSerializer(serializers.ModelSerializer):
             lat, lon = obj.position
             return str(lat), str(lon)
 
-    class Meta:
+    class Meta(object):
         model = manage.Room
         fields = ('id', 'location', 'description', 'position')
 
 
 class PrefixSerializer(serializers.ModelSerializer):
     """Serializer for prefix model"""
-    class Meta:
+    class Meta(object):
         model = manage.Prefix
 
 

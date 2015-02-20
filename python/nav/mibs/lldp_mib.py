@@ -99,7 +99,7 @@ class IdType(str):
                            str(self))
 
 class MacAddress(IdType):
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *_args, **_kwargs):
         arg = args[0]
         if isinstance(arg, basestring):
             arg = binary_mac_to_hex(arg)
@@ -115,7 +115,7 @@ class NetworkAddress(IdType):
         IPV6: socket.AF_INET6
         }
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args, **_kwargs):
         arg = args[0]
         if arg and isinstance(arg, basestring):
             addr_type = ord(arg[0])

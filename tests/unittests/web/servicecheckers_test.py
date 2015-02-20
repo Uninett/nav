@@ -1,5 +1,5 @@
 from unittest import TestCase
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.web.servicecheckers import load_checker_classes, get_description
 
 

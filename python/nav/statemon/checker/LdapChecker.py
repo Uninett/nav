@@ -18,7 +18,7 @@
 from IPy import IP
 import ldapurl
 
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 import ldap
 
@@ -46,13 +46,13 @@ class LdapChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=389, **kwargs)
 
     def execute(self):
-        args = self.getArgs()
+        args = self.args
         # we can connect in 2 ways. By hostname/ip (and portnumber)
         # or by ldap-uri
         if "url" in args and ldapurl.isLDAPUrl(args["url"]):
             conn = ldap.initialize(args["url"])
         else:
-            ip, port = self.getAddress()
+            ip, port = self.get_address()
             conn = ldap.initialize("ldap://%s:%s" % (ip, port))
         username = args.get("username", "")
         password = args.get("password", "")
@@ -66,9 +66,9 @@ class LdapChecker(AbstractChecker):
         base = args.get("base", "dc=example,dc=org")
         if base == "cn=monitor":
             my_res = conn.search_st(base, ldap.SCOPE_BASE,
-                                    timeout=self.getTimeout())
+                                    timeout=self.timeout)
             versionstr = str(my_res[0][-1]['description'][0])
-            self.setVersion(versionstr)
+            self.version = versionstr
             return Event.UP, versionstr
         scope = args.get("scope", "SUBTREE").upper()
         if scope == "BASE":
@@ -80,12 +80,12 @@ class LdapChecker(AbstractChecker):
         filtr = args.get("filter", "objectClass=*")
         try:
             conn.search_ext_s(base, scope, filterstr=filtr,
-                              timeout=self.getTimeout())
+                              timeout=self.timeout)
             # pylint: disable=W0703
         except Exception as err:
             return (Event.DOWN,
                     "Failed ldapSearch on %s for %s: %s" % (
-                        self.getAddress(), filtr, str(err)))
+                        self.get_address(), filtr, str(err)))
 
         conn.unbind()
 
@@ -105,8 +105,8 @@ class LdapChecker(AbstractChecker):
             # default is protocol-version 3
             conn.protocol_version = ldap.VERSION3
 
-    def getAddress(self):
-        ip, port = AbstractChecker.getAddress(self)
+    def get_address(self):
+        ip, port = AbstractChecker.get_address(self)
         addr = IP(ip)
         if addr.version() == 6:
             ip = '[%s]' % ip

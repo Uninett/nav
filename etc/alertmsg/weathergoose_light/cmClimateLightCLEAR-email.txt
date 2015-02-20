@@ -1,3 +1,0 @@
-Subject: Weathergoose {{ goosename }}: light threshold clear
-
-{{ climatedescr }}: {{ climatevalue }}

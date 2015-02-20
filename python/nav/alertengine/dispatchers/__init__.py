@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 #
 # Copyright (C) 2008, 2011 UNINETT AS
 #
@@ -14,8 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""
-The dispatchers package contains all the methods that alertengine can use to
+"""The dispatchers package contains all the methods that alertengine can use to
 send out alerts. Adding new messaging channels is a simple matter of writting
 a new subclass of ``dispatcher'' overriding send with the following:
 
@@ -27,35 +25,41 @@ address - the alertaddress object that is "sending" the alert
 The address to send to is `address.address`. To get the message we want to send
 simply call `alert.messages.get(language=language, type='your_message_type')`
 
-For your dispatchers logging please use `logging.getlogger('nav.alertengine.dispatchers.your_dispatcher')`
-and try to use sensible log messages, look at the modules that ship with NAV
-for examples.
+For your dispatchers logging please use
+`logging.getlogger('nav.alertengine.dispatchers.your_dispatcher')` and try to
+use sensible log messages, look at the modules that ship with NAV for
+examples.
+
 """
 
 import logging
-import os
 from django.forms import EmailField, ValidationError
 
 from nav.models.event import AlertQueueMessage
 
-logger = logging.getLogger('nav.alertengine.dispatchers')
+_logger = logging.getLogger('nav.alertengine.dispatchers')
 
-class dispatcher:
-    '''Base class for dispatchers'''
 
-    def __init__(self, config={}):
-        self.config = config
+class Dispatcher(object):
+    """Base class for dispatchers"""
 
-    def send(alert, address, language='en'):
+    def __init__(self, config=None):
+        self.config = config if config is not None else {}
+
+    def send(self, address, alert, language='en'):
+        """Sends an alert to a specific address for a specific language"""
         raise NotImplementedError
 
     def get_message(self, alert, language, message_type):
+        """Gets the message to be sent"""
         try:
-            return alert.messages.get(language=language, type=message_type).message
+            return alert.messages.get(language=language,
+                                      type=message_type).message
         except AlertQueueMessage.DoesNotExist:
             return self.get_fallback_message(alert, language, message_type)
 
     def get_fallback_message(self, alert, language, message_type):
+        """Gets a fallback message if the original alert is missing"""
         # Try using longest message in english
         messages = list(alert.messages.filter(language='en'))
         messages.sort(key=lambda m: len(m.message))
@@ -70,27 +74,33 @@ class dispatcher:
             if messages:
                 return messages[-1].message
 
-        return "%s: No '%s' message for %d" % (alert.netbox, message_type, alert.id)
+        return "%s: No '%s' message for %d" % (alert.netbox, message_type,
+                                               alert.id)
 
     @staticmethod
     def is_valid_address(address):
+        """Validates address against the address syntax for this dispatcher"""
         raise NotImplementedError
 
+
 class DispatcherException(Exception):
-    '''Raised when alert could not be sent temporarily and sending should be
-       retried'''
+    """Raised when alert could not be sent temporarily and sending should be
+    retried """
     pass
+
 
 class FatalDispatcherException(DispatcherException):
-    '''Raised when alert could not be sent and further attempts at sending
-       should be ditched'''
+    """Raised when alert could not be sent and further attempts at sending
+    should be ditched """
     pass
 
+
 def is_valid_email(address):
+    """Validates a string as an e-mail address"""
     # FIXME In Django 1.2 we can use validators
     field = EmailField()
     try:
         field.clean(address)
-    except ValidationError, e:
+    except ValidationError:
         return False
     return True

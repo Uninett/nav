@@ -19,7 +19,7 @@ import socket
 import smtplib
 from nav.statemon.DNS import socktype_from_addr
 
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 
 
@@ -39,8 +39,8 @@ class SmtpChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=25, **kwargs)
 
     def execute(self):
-        ip, port = self.getAddress()
-        smtp = SMTP(self.getTimeout())
+        ip, port = self.get_address()
+        smtp = SMTP(self.timeout)
         code, msg = smtp.connect(ip, port)
         try:
             smtp.quit()
@@ -55,7 +55,7 @@ class SmtpChecker(AbstractChecker):
         match = self.VERSION_PATTERN.match(version)
         if match:
             version = match.group(0)
-        self.setVersion(version)
+        self.version = version
         return Event.UP, msg
 
 
@@ -66,7 +66,7 @@ class SMTP(smtplib.SMTP):
         self._timeout = timeout  # _ to avoid name collision with superclass
         smtplib.SMTP.__init__(self, host, port)
 
-    def connect(self, host='localhost', port = 25):
+    def connect(self, host='localhost', port=25):
         self.sock = socket.socket(socktype_from_addr(host), socket.SOCK_STREAM)
         self.sock.settimeout(self._timeout)
         self.sock.connect((host, port))

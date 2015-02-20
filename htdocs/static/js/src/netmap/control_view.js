@@ -4,7 +4,7 @@ define([
     'netmap/graph',
     'libs/backbone',
     'libs/backbone-eventbroker',
-    'libs/jquery-ui-1.8.21.custom.min'
+    'libs/jquery-ui.min'
 ], function (Collections, Models) {
 
     /**

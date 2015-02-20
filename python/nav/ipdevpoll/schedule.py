@@ -330,7 +330,7 @@ class JobScheduler(object):
         self.netbox_reload_loop.start(
             interval=self.netbox_reload_interval, now=True)
 
-    def on_netbox_type_changed(self, netbox_id, new_type, **kwargs):
+    def on_netbox_type_changed(self, netbox_id, new_type, **_kwargs):
         """Performs various cleanup and reload actions on a netbox type change
         signal.
 

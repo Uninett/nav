@@ -56,7 +56,11 @@ def netbox_edit(request, netbox_id=None):
         else:
             messages.add_message(request, messages.ERROR, 'Form was not valid')
     else:
-        form = NetboxModelForm(instance=netbox)
+        suggestion = request.GET.get('suggestion')
+        if suggestion:
+            form = NetboxModelForm(instance=netbox, initial={'ip': suggestion})
+        else:
+            form = NetboxModelForm(instance=netbox)
 
     info = NI()
     context = info.template_context

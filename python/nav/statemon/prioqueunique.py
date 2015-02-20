@@ -1,4 +1,4 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2002 Norwegian University of Science and Technology
 #
@@ -19,15 +19,17 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Inspired by a example in Thomas W. Christopher's excellent book
-# Python Programming Patterns. 
+# Inspired by an example in Thomas W. Christopher's excellent book
+# Python Programming Patterns.
 #
-# $Id: $
-# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
+# FIXME: This should probably be replaced by Python's Queue.PriorityQueue
 #
+# this was basically copied off something else, ignore lint violations
+# pylint: disable=all
+
 
 import operator
-#one of these will be called to choose the 
+#one of these will be called to choose the
 # new priority when an item is reinserted.
 #The first parameter will be the priority
 # of the previous item, the second will be the
@@ -42,8 +44,8 @@ def newprio(x, y): return y
 # or second argument should be preferred.
 # one of them is passed to parameter "first"
 #when the queue is created
-def smallerfirst(x, y): return x<y
-def largerfirst(x, y): return y<x
+def smallerfirst(x, y): return x < y
+def largerfirst(x, y): return y < x
 
 class prioque:
     def __init__(self, before=smallerfirst, newprio=None):
@@ -93,7 +95,7 @@ class prioque:
         del self.loc[item[1]] #record item not present
         t = self.q[-1] #item from last position
         del self.q[-1] #reduce size
-        if len(self.q)==1:
+        if len(self.q) == 1:
             #last item removed
             self.loc.clear()
             return item
@@ -103,11 +105,11 @@ class prioque:
         k = self.__siftRootwards(j) #move to new position
         self.__setLocs(min(i, k), max(i, k)) #adjust table
         return item #return item removed
-        
+
     def put(self, prio, item):
         '''q.put(priority,item)
-        puts the item with the given priority into 
-        the queue. The priorities must be comparable 
+        puts the item with the given priority into
+        the queue. The priorities must be comparable
         values, e.g. cmp() is defined for the priorities.'''
         if self.loc.has_key(item):
             #if inserting again
@@ -135,48 +137,48 @@ class prioque:
         #self.loc[item]=n
         i = self.__siftRootwards(n)
         self.__setLocs(i, n)
-    
+
     def remove(self, item):
         '''q.remove(item) removes the item.'''
         if self.loc.has_key(item):
             return self.__delete(self.loc[item])
         else: return None
     def getPair(self):
-        '''q.getPair() 
-        removes and returns (p,x) where x is the first 
-        item in the queue and p is its priority. It 
+        '''q.getPair()
+        removes and returns (p,x) where x is the first
+        item in the queue and p is its priority. It
         raises an exception if the queue is empty. '''
-        if len(self.q)==1:
+        if len(self.q) == 1:
             raise IndexError("empty priority queue")
         item = self.__delete(1)
         return item
     def get(self):
-        '''q.get() removes and returns the first 
-        (highest priority) item in the queue. It 
+        '''q.get() removes and returns the first
+        (highest priority) item in the queue. It
         raises an exception if the queue is empty.'''
         return self.getPair()[1]
     def headPair(self):
-        '''q.headPair() returns (p,x) where x is 
-        the first item in the queue and p is its 
-        priority. It does not remove x. It raises 
+        '''q.headPair() returns (p,x) where x is
+        the first item in the queue and p is its
+        priority. It does not remove x. It raises
         a LookupError exception if the queue is empty.'''
         return self.q[1]
     def head(self):
-        '''q.head() returns the first item in the 
-        queue without removing it. It raises a 
+        '''q.head() returns the first item in the
+        queue without removing it. It raises a
         LookupError exception if the queue is empty.'''
         return self.q[1][1]
     def __len__(self):
-        '''len(q) or q.__len__() returns the number 
+        '''len(q) or q.__len__() returns the number
         of items in the queue.'''
         return len(self.q)-1
     def __getitem__(self, i):
-        '''q[i] or q.__getitem__(i) returns (p,x) 
-        where x is the ith item in the queue and p 
-        is its priority. The items are not in an 
+        '''q[i] or q.__getitem__(i) returns (p,x)
+        where x is the ith item in the queue and p
+        is its priority. The items are not in an
         obvious order.'''
         return self.q[i+1]
     def __nonzero__(self):
-        '''q.__nonzero__() or if q: returns true if 
+        '''q.__nonzero__() or if q: returns true if
         len(q)>0, false otherwise. '''
-        return len(self.q)>1
+        return len(self.q) > 1

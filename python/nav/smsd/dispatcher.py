@@ -245,7 +245,7 @@ class Dispatcher(object):
         if len(ignored) > 0:
             sms = "%s +%d see web." % (sms, len(ignored))
 
-        return (sms, sent, ignored)
+        return sms, sent, ignored
 
     def sendsms(self, phone, msgs):
         """Sends messages as an SMS to a phone number.
@@ -266,13 +266,4 @@ class Dispatcher(object):
                     otherwise.
 
         """
-
-        # Format SMS
-        (sms, sent, ignored) = self.formatsms(msgs)
-
-        # Send SMS
-        result = False
-        smsid = 0
-
-        return (sms, sent, ignored, result, smsid)
-
+        raise NotImplementedError

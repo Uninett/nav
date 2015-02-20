@@ -70,6 +70,27 @@ button, .button {
     }
 }
 
+// Add a custom button for use inside table rows
+@mixin table-button-base($color: $primary-color) {
+    @include button(
+        $padding: rem-calc(3),
+        $bg: $color
+    );
+    font-size: rem-calc(11);
+    margin-bottom: 0;
+}
+
+// Include styles for all subclasses of the button
+.table-button {
+    @include table-button-base;
+    &.secondary {@include table-button-base($secondary-color);}
+    &.success {@include table-button-base($success-color);}
+    &.alert {@include table-button-base($alert-color);}
+    &.warning {@include table-button-base($warning-color);}
+    &.info {@include table-button-base($info-color);}
+}
+
+
 // Add a white version of the panel
 .panel.white {
     background-color: white;

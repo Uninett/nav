@@ -157,7 +157,7 @@ class Modules(Plugin):
                 module_entity = entities.get_nearest_module_parent(port)
 
                 if module_entity and module_entity[0] in module_containers:
-                    module = module_containers[ module_entity[0] ]
+                    module = module_containers[module_entity[0]]
                     indices = self.alias_mapping[entity_index]
                     for ifindex in indices:
                         interface = self.containers.factory(ifindex,

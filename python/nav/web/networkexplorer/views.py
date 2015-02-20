@@ -97,7 +97,7 @@ class SearchView(JSONResponseMixin, View):
     def form_valid(self, form):
         return search(form.cleaned_data)
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, *_args, **_kwargs):
         form = NetworkSearchForm(request.GET)
 
         if form.is_valid():

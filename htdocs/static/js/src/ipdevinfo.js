@@ -1,5 +1,5 @@
-require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "plugins/graphfetcher_controller", "libs/jquery", "libs/jquery-ui-1.8.21.custom.min"
-], function (TableUtil, TabNavigation, NeighborMap) {
+require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "plugins/jquery_ui_helpers", "plugins/graphfetcher_controller", "libs/jquery", "libs/jquery-ui.min"
+], function (TableUtil, TabNavigation, NeighborMap, JUIHelpers) {
 
     var mainTabsSelector = '#ipdevinfotabs';
     var metricTabsSelector = "#metrictabs";
@@ -14,6 +14,11 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
             addModuleTabs();
             addMetricTabs();
             addMainTabs();
+
+            /* Add tab navigating here to avoid race conditions */
+            TabNavigation.add(mainTabsSelector);
+            TabNavigation.add(moduleTabsSelector, mainTabsSelector);
+            TabNavigation.add(metricTabsSelector, mainTabsSelector);
         }
 
         var $neighbornode = $('.neighbormap');
@@ -24,12 +29,10 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
 
     function addModuleTabs() {
         var tabconfig = {
-            cache: true, // cache loaded pages
-            spinner: '<img src="' + NAV.imagePath + '/main/process-working.gif">',
+            beforeLoad: JUIHelpers.cacheRequest,
             load: addActivityButtonListener
         };
         $(moduleTabsSelector).tabs(tabconfig);
-        TabNavigation.add(moduleTabsSelector, mainTabsSelector);
 
         /* Toggle port legend */
         $('#ports').on('click', '.portlegendToggler', function () {
@@ -39,22 +42,18 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
 
     function addMainTabs() {
         var tabs = $(mainTabsSelector).tabs({
-            cache: true,
-            spinner: '<img src="' + NAV.imagePath + '/main/process-working.gif">'
+            beforeLoad: JUIHelpers.cacheRequest
         });
         markErrorTabs(tabs);
         tabs.show();
-        TabNavigation.add(mainTabsSelector);
         addFloatingGlobalControls();
     }
 
     function addMetricTabs() {
         var tabs = $(metricTabsSelector).tabs({
-            cache: true,
-            spinner: '<img src="/images/main/process-working.gif">'
+            beforeLoad: JUIHelpers.cacheRequest
         });
         tabs.show();
-        TabNavigation.add(metricTabsSelector, mainTabsSelector);
     }
 
     function addFloatingGlobalControls() {

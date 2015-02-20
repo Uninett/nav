@@ -1,0 +1,9 @@
+{% if event.state == event.STATE_START %}
+Subject: Weathergoose {{ goosename }}: humidity threshold exceeded
+
+Threshold: {{ triptype }}
+{{ climatedescr }}: {{ climatevalue }}
+{% else %}
+Subject: Weathergoose {{ goosename }}: humidity threshold clear
+{{ climatedescr }}: {{ climatevalue }}
+{% endif %}

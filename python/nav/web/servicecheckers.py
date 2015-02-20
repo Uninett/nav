@@ -19,7 +19,7 @@
 from __future__ import with_statement
 import os
 import re
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 import nav.statemon.checker
 
 _CHECKER_DIR = os.path.dirname(nav.statemon.checker.__file__)
@@ -35,7 +35,7 @@ def get_checkers():
 
 def get_description(checker_name):
     """Returns a description of a service checker"""
-    checkers = dict((c.getType(), c) for c in load_checker_classes())
+    checkers = dict((c.get_type(), c) for c in load_checker_classes())
     if checker_name not in checkers:
         return
     checker = checkers[checker_name]

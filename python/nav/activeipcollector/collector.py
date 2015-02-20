@@ -36,7 +36,7 @@ def collect(days=None):
     intervals = get_intervals(days) if days else 0
 
     if intervals:
-        LOG.debug('Collecting %s intervals' % intervals)
+        LOG.debug('Collecting %s intervals', intervals)
         query = get_interval_query(intervals)
     else:
         query = get_static_query()
@@ -46,7 +46,7 @@ def collect(days=None):
     cursor = connection.cursor()
     cursor.execute(query)
 
-    LOG.debug('Query executed in %.2f seconds' % (time.time() - starttime))
+    LOG.debug('Query executed in %.2f seconds', time.time() - starttime)
 
     return cursor.fetchall()
 

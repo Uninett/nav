@@ -15,7 +15,7 @@
 #
 """Oracle database service checker"""
 
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 import cx_Oracle
 
@@ -25,7 +25,7 @@ class OracleChecker(AbstractChecker):
     Description:
     ------------
     This checker tries to connect to a given Oracle database.
-    
+
     The checker relies on that the neccesary Oracle software have been
     installed and that the following Oracle environment variables
     have been set:
@@ -33,14 +33,14 @@ class OracleChecker(AbstractChecker):
     - $ORACLE_HOME
     - $NLS_LANG
 
-    
+
     Arguments:
     ----------
-    hostname: Accessible from self.getAddress() as pure FQDN hostname
+    hostname: Accessible from self.get_address() as pure FQDN hostname
     port    : Remote tcp-port where Oracle Listener is living. Default is 1521.
     sid     : Database SID
     username: An Oracle database account with the following permissions:
-              - CREATE SESSION 
+              - CREATE SESSION
               - ALTER SESSION
               - select on sys.v_$instance
     password: Password for the Oracle database account.
@@ -67,11 +67,10 @@ class OracleChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=1521, **kwargs)
 
     def execute(self):
-        args = self.getArgs()
-        user = args.get("username","")
-        ip, port = self.getAddress()
-        passwd = args.get("password","")
-        sid = args.get("sid","")
+        user = self.args.get("username", "")
+        ip, port = self.get_address()
+        passwd = self.args.get("password", "")
+        sid = self.args.get("sid", "")
         connect_string = ("%s/%s@(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=("
                           "COMMUNITY=TCP)(PROTOCOL=TCP)(Host=%s)(Port=%s)))("
                           "CONNECT_DATA=(SID=%s)(GLOBAL_NAME=%s)))") % (

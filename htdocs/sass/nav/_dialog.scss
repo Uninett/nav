@@ -1,0 +1,19 @@
+// Override some styling for the jquery-ui dialog.
+
+@import "../navsettings";
+
+.nav-body .ui-dialog {
+    font-family: inherit;
+    font-size: inherit;
+    border-radius: 0;
+    .ui-dialog-titlebar {
+	background-image: none;
+	background-color: #dfdfdf;
+	border-radius: 0;
+    }
+    .ui-dialog-content {
+	a {
+	    color: $primary-color;
+	}
+    }
+}

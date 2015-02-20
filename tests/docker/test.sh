@@ -58,10 +58,9 @@ run_jstests() {
 }
 
 run_pylint() {
-    cd "${WORKSPACE}"
-    echo "Running pylint"
-    pylint python/nav --rcfile=python/pylint.rc --disable=I,similarities --output=parseable > pylint.txt || true
+    "${WORKSPACE}/tests/docker/lint.sh" > "${WORKSPACE}/pylint.txt"
 }
+
 
 # MAIN EXECUTION POINT
 build_nav
@@ -73,5 +72,7 @@ start_xvfb
 run_pytests
 run_jstests
 run_pylint
+for D in htdocs python; do make -C "$D" clean; done
+"${WORKSPACE}/tests/docker/cloc.sh"
 
 echo "test.sh done"

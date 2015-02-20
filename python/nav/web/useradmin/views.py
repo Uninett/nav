@@ -38,7 +38,7 @@ class UserAdminContext(RequestContext):
         super(UserAdminContext, self).__init__(*args, **kwargs)
 
 
-def custom_processor(request):
+def custom_processor(_request):
     """Return some always available variables"""
     return {'navpath': [('Home', '/'), ('User Administration', )]}
 
@@ -315,7 +315,7 @@ def group_detail(request, group_id=None):
             group_form = AccountGroupForm(request.POST, instance=group)
 
             if group_form.is_valid():
-                # FIXME 
+                # FIXME
                 group = group_form.save()
 
                 new_message(request, '"%s" has been saved.' % (group),

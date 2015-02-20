@@ -108,7 +108,7 @@ class CiscoEntitySensorMib(mibretriever.MibRetriever):
         for idx, row in entity_names.items():
             if idx in sensors:
                 sensors[idx]['entPhysicalDescr'] = row.get(
-                    'entPhysicalDescr',None)
+                    'entPhysicalDescr', None)
                 sensors[idx]['entPhysicalName'] = row.get(
                     'entPhysicalName', None)
         result = []

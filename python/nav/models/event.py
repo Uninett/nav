@@ -45,7 +45,7 @@ class Subsystem(models.Model):
     name = VarcharField(primary_key=True)
     description = VarcharField(db_column='descr')
 
-    class Meta:
+    class Meta(object):
         db_table = 'subsystem'
 
     def __unicode__(self):
@@ -279,7 +279,7 @@ class EventQueue(models.Model, EventMixIn):
 
     varmap = VariableMap()
 
-    class Meta:
+    class Meta(object):
         db_table = 'eventq'
 
     def __repr__(self):
@@ -317,7 +317,7 @@ class EventType(models.Model):
     description = VarcharField(db_column='eventtypedesc')
     stateful = models.CharField(max_length=1, choices=STATEFUL_CHOICES)
 
-    class Meta:
+    class Meta(object):
         db_table = 'eventtype'
 
     def __unicode__(self):
@@ -332,7 +332,7 @@ class EventQueueVar(models.Model):
     variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 
-    class Meta:
+    class Meta(object):
         db_table = 'eventqvar'
         unique_together = (('event_queue', 'variable'),)
 
@@ -374,7 +374,7 @@ class AlertQueue(models.Model, EventMixIn):
 
     varmap = VariableMap()
 
-    class Meta:
+    class Meta(object):
         db_table = 'alertq'
 
     def __unicode__(self):
@@ -397,7 +397,7 @@ class AlertType(models.Model):
     name = VarcharField(db_column='alerttype')
     description = VarcharField(db_column='alerttypedesc')
 
-    class Meta:
+    class Meta(object):
         db_table = 'alerttype'
         unique_together = (('event_type', 'name'),)
 
@@ -417,7 +417,7 @@ class AlertQueueMessage(models.Model):
     language = VarcharField()
     message = models.TextField(db_column='msg')
 
-    class Meta:
+    class Meta(object):
         db_table = 'alertqmsg'
         unique_together = (('alert_queue', 'type', 'language'),)
 
@@ -435,7 +435,7 @@ class AlertQueueVariable(models.Model):
     variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 
-    class Meta:
+    class Meta(object):
         db_table = 'alertqvar'
         unique_together = (('alert_queue', 'variable'),)
 
@@ -481,7 +481,7 @@ class AlertHistory(models.Model, EventMixIn):
 
     varmap = StateVariableMap()
 
-    class Meta:
+    class Meta(object):
         db_table = 'alerthist'
 
     def __unicode__(self):
@@ -565,7 +565,7 @@ class AlertHistoryMessage(models.Model):
     language = VarcharField()
     message = models.TextField(db_column='msg')
 
-    class Meta:
+    class Meta(object):
         db_table = 'alerthistmsg'
         unique_together = (('alert_history', 'state', 'type', 'language'),)
 
@@ -589,7 +589,7 @@ class AlertHistoryVariable(models.Model):
     variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 
-    class Meta:
+    class Meta(object):
         db_table = 'alerthistvar'
         unique_together = (('alert_history', 'state', 'variable'),)
 
@@ -605,7 +605,7 @@ class Acknowledgement(models.Model):
     comment = VarcharField(blank=True)
     date = models.DateTimeField(null=False, default=dt.datetime.now)
 
-    class Meta:
+    class Meta(object):
         db_table = 'alerthist_ack'
 
     def __unicode__(self):

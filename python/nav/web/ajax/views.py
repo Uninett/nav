@@ -26,12 +26,12 @@ import json as simplejson
 from nav.models.manage import Room, Netbox
 
 
-def get_rooms_with_position(request, roomid=None):
+def get_rooms_with_position(_request, roomid=None):
     """
     Get rooms for presentation in OSM map
     """
     if roomid:
-        rooms = Room.objects.filter(id=roomid,position__isnull=False)
+        rooms = Room.objects.filter(id=roomid, position__isnull=False)
     else:
         rooms = Room.objects.filter(position__isnull=False)
     data = {'rooms': []}
@@ -61,7 +61,7 @@ def netbox_down_in(room):
     return len(room.netbox_set.filter(up='n'))
 
 
-def get_neighbors(request, netboxid):
+def get_neighbors(_request, netboxid):
     """Get neighbours for this netboxid
 
     Used in neighbour-map

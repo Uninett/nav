@@ -367,7 +367,7 @@ class Graph(object):
         self.args.append(":".join(draw))
 
     def _escape(self, string):
-        return string.replace(':', '\:')
+        return string.replace(':', r'\:')
 
     def _get_color(self):
         color = self.color[self.colorindex]

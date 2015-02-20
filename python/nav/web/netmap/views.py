@@ -96,7 +96,7 @@ class TrafficView(views.APIView):
 
     renderer_classes = (JSONRenderer,)
 
-    def get(self, request, *args, **kwargs):
+    def get(self, _request, *_args, **kwargs):
 
         layer = int(kwargs.pop('layer', 2))
 

@@ -18,7 +18,7 @@
 import os
 import re
 import subprocess
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 from nav.util import which
 
@@ -45,8 +45,8 @@ class SmbChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=139, **kwargs)
 
     def execute(self):
-        ip, port = self.getAddress()
-        args = self.getArgs()
+        ip, port = self.get_address()
+        args = self.args
         host = args.get('hostname', ip)
         username = args.get('username', '')
         password = args.get('password', '')
@@ -84,7 +84,7 @@ class SmbChecker(AbstractChecker):
                  or SMBCLIENT_PATTERN.search(errput))
         if match:
             version = ' '.join(match.groups())
-            self.setVersion(version)
+            self.version = version
             return Event.UP, 'OK'
         else:
             return Event.DOWN, 'error %s' % output.strip().split('\n')[-1]

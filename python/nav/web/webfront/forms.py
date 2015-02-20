@@ -16,14 +16,13 @@
 #
 
 from django import forms
-from django.forms.models import BaseModelFormSet, BaseFormSet
-from django.forms.models import modelformset_factory
+from django.forms.models import (BaseModelFormSet, BaseFormSet,
+                                 modelformset_factory)
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column, Field, HTML
-from crispy_forms_foundation.layout import Submit
-from nav.models.profiles import NavbarLink
+from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column,
+                                            Field, HTML, Submit)
+from nav.models.profiles import NavbarLink, Account
 from nav.web.crispyforms import LabelSubmit, CheckBox
-from nav.models.profiles import Account
 
 
 class LoginForm(forms.Form):
@@ -55,11 +54,14 @@ class NavbarlinkForm(forms.ModelForm):
             Row(
                 Column('name', css_class='medium-5'),
                 Column('uri', css_class='medium-5'),
-                Column(HTML('<label>&nbsp;</label>'), CheckBox('DELETE'), css_class='link-delete medium-2'),
+                Column(HTML('<label>&nbsp;</label>'),
+                       CheckBox('DELETE'), css_class='link-delete medium-2'),
             ),
         )
 
-NavbarLinkFormSet = modelformset_factory(NavbarLink, exclude=('account',), form=NavbarlinkForm, extra=2, can_delete=1)
+NavbarLinkFormSet = modelformset_factory(
+    NavbarLink, exclude=('account',),
+    form=NavbarlinkForm, extra=2, can_delete=1)
 
 class ChangePasswordForm(forms.Form):
     """Form for changing password for an account"""

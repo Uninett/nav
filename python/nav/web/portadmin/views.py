@@ -22,7 +22,7 @@ from operator import or_ as OR
 
 from django.http import HttpResponse
 from django.template import RequestContext, Context
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, render_to_response, get_object_or_404
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -67,27 +67,37 @@ def get_base_context(additional_paths=None, form=None):
     }
 
 
+def default_render(request):
+    """Default render for errors etc"""
+    return render(request, 'portadmin/base.html',
+                  get_base_context(form=get_form(request)))
+
+
+def get_form(request):
+    """If we are searching for something, return a bound form with the
+    search parameter"""
+    if 'query' in request.GET:
+        return SearchForm(request.GET)
+
+
 def index(request):
     """View for showing main page"""
     netboxes = []
     interfaces = []
-    if 'query' in request.GET:
-        form = SearchForm(request.GET)
-        if form.is_valid():
-            netboxes, interfaces = search(form.cleaned_data['query'])
-            if len(netboxes) == 1 and not interfaces:
-                return search_by_sysname(request, netboxes[0].sysname)
-            elif len(interfaces) == 1 and not netboxes:
-                return search_by_interfaceid(request, interfaces[0].id)
+    form = get_form(request)
+    if form and form.is_valid():
+        netboxes, interfaces = search(form.cleaned_data['query'])
+        if len(netboxes) == 1 and not interfaces:
+            return search_by_sysname(request, netboxes[0].sysname)
+        elif len(interfaces) == 1 and not netboxes:
+            return search_by_interfaceid(request, interfaces[0].id)
     else:
         form = SearchForm()
     context = get_base_context(form=form)
     context['netboxes'] = netboxes
     context['interfaces'] = interfaces
 
-    return render_to_response('portadmin/base.html',
-                              context,
-                              RequestContext(request))
+    return render(request, 'portadmin/base.html', context)
 
 
 def search(query):
@@ -105,53 +115,35 @@ def search(query):
 
 def search_by_ip(request, ip):
     """View for showing a search done by ip-address"""
-    info_dict = get_base_context()
-    account = get_account(request)
-    try:
-        netbox = Netbox.objects.get(ip=ip)
-    except Netbox.DoesNotExist, do_not_exist_ex:
-        _logger.error("Netbox with ip %s not found; DoesNotExist = %s",
-                      ip, do_not_exist_ex)
-        messages.error(request,
-                       'Could not find netbox with ip-address %s' % str(ip))
-        return render_to_response('portadmin/base.html',
-                                  info_dict,
-                                  RequestContext(request))
-    else:
-        interfaces = netbox.get_swports_sorted()
-        info_dict = populate_infodict(request, account, netbox, interfaces)
-        return render_to_response(
-            'portadmin/netbox.html',
-            info_dict,
-            RequestContext(request))
+    return search_by_kwargs(request, ip=ip)
 
 
 def search_by_sysname(request, sysname):
     """View for showing a search done by sysname"""
-    info_dict = get_base_context()
-    account = get_account(request)
+    return search_by_kwargs(request, sysname=sysname)
+
+
+def search_by_kwargs(request, **kwargs):
+    """Search by keyword arguments"""
     try:
-        netbox = Netbox.objects.get(sysname=sysname)
+        netbox = Netbox.objects.get(**kwargs)
     except Netbox.DoesNotExist, do_not_exist_ex:
         _logger.error("Netbox %s not found; DoesNotExist = %s",
                       sysname, do_not_exist_ex)
-        messages.error(request,
-                       'Could not find netbox with sysname %s' % sysname)
-        return render_to_response('portadmin/base.html',
-                                  info_dict,
-                                  RequestContext(request))
+        messages.error(request, 'Could not find IP device')
+        return default_render(request)
     else:
+        if not netbox.type:
+            messages.error(request, 'IP device found but has no type')
+            return default_render(request)
+
         interfaces = netbox.get_swports_sorted()
-        info_dict = populate_infodict(request, account, netbox, interfaces)
-        return render_to_response('portadmin/netbox.html',
-                                  info_dict,
-                                  RequestContext(request))
+        return render(request, 'portadmin/netbox.html',
+                      populate_infodict(request, netbox, interfaces))
 
 
 def search_by_interfaceid(request, interfaceid):
     """View for showing a search done by interface id"""
-    info_dict = get_base_context()
-    account = get_account(request)
     try:
         interface = Interface.objects.get(id=interfaceid)
     except Interface.DoesNotExist, do_not_exist_ex:
@@ -160,28 +152,27 @@ def search_by_interfaceid(request, interfaceid):
         messages.error(request,
                        'Could not find interface with id %s' %
                        str(interfaceid))
-        return render_to_response('portadmin/base.html',
-                                  info_dict,
-                                  RequestContext(request))
+        return default_render(request)
     else:
         netbox = interface.netbox
+        if not netbox.type:
+            messages.error(request, 'IP device found but has no type')
+            return default_render(request)
+
         interfaces = [interface]
-        info_dict = populate_infodict(request, account, netbox, interfaces)
-        return render_to_response('portadmin/netbox.html',
-                                  info_dict,
-                                  RequestContext(request))
+        return render(request, 'portadmin/netbox.html',
+                      populate_infodict(request, netbox, interfaces))
 
 
-def populate_infodict(request, account, netbox, interfaces):
+def populate_infodict(request, netbox, interfaces):
     """Populate a dictionary used in every http response"""
-
     allowed_vlans = []
     voice_vlan = None
     readonly = False
     try:
         fac = get_and_populate_livedata(netbox, interfaces)
-        allowed_vlans = find_and_populate_allowed_vlans(account, netbox,
-                                                        interfaces, fac)
+        allowed_vlans = find_and_populate_allowed_vlans(
+            request.account, netbox, interfaces, fac)
         voice_vlan = fetch_voice_vlan_for_netbox(request, fac)
         mark_detained_interfaces(interfaces)
     except TimeOutException:
@@ -209,12 +200,11 @@ def populate_infodict(request, account, netbox, interfaces):
     if voice_vlan:
         set_voice_vlan_attribute(voice_vlan, interfaces)
 
-    info_dict = get_base_context([(netbox.sysname, )])
+    info_dict = get_base_context([(netbox.sysname, )], form=get_form(request))
     info_dict.update({'interfaces': interfaces,
                       'netbox': netbox,
                       'voice_vlan': voice_vlan,
                       'allowed_vlans': allowed_vlans,
-                      'account': account,
                       'readonly': readonly,
                       'aliastemplate': aliastemplate})
     return info_dict
@@ -337,9 +327,9 @@ def set_ifalias(account, fac, interface, request):
             try:
                 fac.set_if_alias(interface.ifindex, ifalias)
                 interface.ifalias = ifalias
-                _logger.info('%s: %s:%s - ifalias set to "%s"' % (
-                    account.login, interface.netbox.get_short_sysname(),
-                    interface.ifname, ifalias))
+                _logger.info('%s: %s:%s - ifalias set to "%s"', account.login,
+                             interface.netbox.get_short_sysname(),
+                             interface.ifname, ifalias)
             except SnmpError, error:
                 _logger.error('Error setting ifalias: %s', error)
                 messages.error(request, "Error setting ifalias: %s" % error)
@@ -363,9 +353,9 @@ def set_vlan(account, fac, interface, request):
                 fac.set_vlan(interface.ifindex, vlan)
 
             interface.vlan = vlan
-            _logger.info('%s: %s:%s - vlan set to %s' % (
-                account.login, interface.netbox.get_short_sysname(),
-                interface.ifname, vlan))
+            _logger.info('%s: %s:%s - vlan set to %s', account.login,
+                         interface.netbox.get_short_sysname(),
+                         interface.ifname, vlan)
         except (SnmpError, TypeError), error:
             _logger.error('Error setting vlan: %s', error)
             messages.error(request, "Error setting vlan: %s" % error)
@@ -564,8 +554,8 @@ def write_mem(request):
         try:
             fac.write_mem()
         except SnmpError, error:
-            _logger.error(
-                'Error doing write mem on %s: %s' % (fac.netbox, error))
+            _logger.error('Error doing write mem on %s: %s',
+                          fac.netbox, error)
 
         return HttpResponse()
 

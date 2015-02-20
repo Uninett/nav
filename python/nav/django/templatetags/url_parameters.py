@@ -54,11 +54,12 @@ def _get_url_params(token):
 
     params = []
     for index in xrange(0, len(raw_params), 2):
-        params.append((raw_params[index], template.Variable(raw_params[index + 1])))
+        params.append((raw_params[index],
+                       template.Variable(raw_params[index + 1])))
     return params
 
 @register.tag
-def url_parameters(parser, token):
+def url_parameters(_parser, token):
     """Update and print URL GET parameters.
 
     Takes two and two parameters, the parameter to set/update and the value the
@@ -85,6 +86,6 @@ def url_parameters(parser, token):
     return UrlNode(params)
 
 @register.tag
-def form_parameters(parser, token):
+def form_parameters(_parser, token):
     params = _get_url_params(token)
     return InputNode(params)

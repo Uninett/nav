@@ -10,10 +10,60 @@ require([
     'libs/OpenLayers',
     'libs/modernizr',
     'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect, FormFuck,
-                                        ConnectivityChecker, IpChooser) {
+                                        ConnectivityChecker, IpChooser)
+{
 
     var tableWrapper = '#tablewrapper',
         tableSelector = '#seeddb-content';
+
+    /* Internet Explorer caching leads to onload event firing before
+     * script is loaded - thus we never get the load event. This code
+     * will at least make it usable. */
+    if (document.readyState === 'complete') {
+        executeOnLoad();
+    } else {
+        $(window).load(executeOnLoad);
+    }
+
+
+    function executeOnLoad() {
+        /**
+         * Checks if we are on the DeviceGroup page. If so, initialize the
+         * select multiple.
+         */
+        var $formElement = $('#id_netboxes'),
+            $searchField = $('#device-group-select2');
+        if ($formElement.length && $searchField.length) {
+            initDeviceGroupSelectMultiple($formElement, $searchField);
+        }
+
+        initJoyride();  /* Start joyride if url endswith #joyride */
+
+        if ($('#map').length) {
+            populateMap(initMap());     // Show map for coordinates
+        }
+
+        /* The Datatables plugin works best when content is rendered. Thus
+         * we activate it on load */
+        if ($(tableSelector).find('tbody tr').length > 1) {
+            enrichTable();
+        } else {
+            $(tableWrapper).removeClass('notvisible');
+        }
+
+        new CheckboxSelector('#select', '.selector').add();
+        new QuickSelect('.quickselect');
+
+
+        /* Add form to hstore fields in room */
+        var $textarea = $('textarea#id_data');
+        if ($textarea.length) {
+            new FormFuck($textarea);
+        }
+
+        activateIpDeviceFormPlugins();
+    }
+
 
     /**
      * Uses select2 to search for and display netboxes. Executes the search in
@@ -64,54 +114,6 @@ require([
         });
     }
 
-    function executeOnLoad() {
-        /**
-         * Checks if we are on the DeviceGroup page. If so, initialize the
-         * select multiple.
-         */
-        var $formElement = $('#id_netboxes'),
-            $searchField = $('#device-group-select2');
-        if ($formElement.length && $searchField.length) {
-            initDeviceGroupSelectMultiple($formElement, $searchField);
-        }
-
-        initJoyride();  /* Start joyride if url endswith #joyride */
-
-        if ($('#map').length) {
-            populateMap(initMap());     // Show map for coordinates
-        }
-
-        /* The Datatables plugin works best when content is rendered. Thus
-         * we activate it on load */
-        if ($(tableSelector).find('tbody tr').length > 1) {
-            enrichTable();
-        } else {
-            $(tableWrapper).removeClass('notvisible');
-        }
-
-        new CheckboxSelector('#select', '.selector').add();
-        new QuickSelect('.quickselect');
-
-
-        /* Add form to hstore fields in room */
-        var $textarea = $('textarea#id_data');
-        if ($textarea.length) {
-            new FormFuck($textarea);
-        }
-
-        activateIpDeviceFormPlugins();
-    }
-
-    /* Internet Explorer caching leads to onload event firing before script
-       is loaded - thus we never get the load event. This code will at least
-       make it usable. */
-    if (document.readyState === 'complete') {
-        executeOnLoad();
-    } else {
-        $(window).load(executeOnLoad);
-    }
-
-
     function initJoyride() {
         /* Start joyride if url endswith #joyride */
         if (location.hash === '#joyride') {
@@ -121,8 +123,8 @@ require([
                         var cards = $('.joyride-tip-guide').find('.joyride-content-wrapper');
                         cards.each(function (index, element) {
                             var counter = $('<small>')
-                                .attr('style', 'position:absolute;bottom:1.5rem;right:1.25rem')
-                                .html(index + 1 + ' of ' + cards.length);
+                                    .attr('style', 'position:absolute;bottom:1.5rem;right:1.25rem')
+                                    .html(index + 1 + ' of ' + cards.length);
                             $(element).append(counter);
                         });
                     },
@@ -144,8 +146,8 @@ require([
             ],
             theme: NAV.cssPath + '/openlayers.css'
         }),
-            mapLayer = new OpenLayers.Layer.OSM('OpenStreetMap',
-                '/search/osm_map_redirect/${z}/${x}/${y}.png');
+            mapLayer = new OpenLayers.Layer.OSM(
+                'OpenStreetMap', '/search/osm_map_redirect/${z}/${x}/${y}.png');
 
         mapLayer.tileOptions = {crossOriginKeyword: null};
         map.addLayer(mapLayer);
@@ -256,19 +258,12 @@ require([
         var arr = re.exec(llStr);
         if (arr === null) {
             throw 'error: incorrectly formatted latitude, longitude string "' +
-            llStr + '"';
+                llStr + '"';
         }
         return new OpenLayers.LonLat(arr[2], arr[1]);
     }
 
-    function moveMarker(
-        map,
-        lonlat,
-        marker,
-        position_input,
-        displayProjection,
-        inputProjection) {
-
+    function moveMarker(map, lonlat, marker, position_input, displayProjection, inputProjection) {
         marker.moveTo(map.getLayerPxFromLonLat(lonlat));
         position_input.val(lonLatToStr(lonlat.transform(
             inputProjection,
@@ -276,8 +271,9 @@ require([
         )));
     }
 
-    function initGetLonLatOnClickControl(
-        map, marker, inputProjection, displayProjection, position_input) {
+    function initGetLonLatOnClickControl(map, marker, inputProjection, displayProjection,
+                                         position_input)
+    {
         map.addControl(new OpenLayers.Control.MousePosition());
 
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
@@ -331,6 +327,13 @@ require([
             if (value !== null) { numRows = value; }
         }
 
+        /* If neither a delete nor a move button is detected, no
+         * action is available and thus the checkboxes for marking
+         * action rows should not be displayed. */
+        var showCheckBoxes = true;
+        if (! ($("input[name='delete']").length || $("input[name='move']").length)) {
+            showCheckBoxes = false;
+        }
 
         /* Apply DataTable */
         var table = $(tableSelector).dataTable({
@@ -342,7 +345,12 @@ require([
             "bAutoWidth": true,     // Resize table
             "sScrollX": '100%',     // Scroll when table is bigger than viewport
             "aoColumnDefs": [
-                { 'bSortable': false, 'sWidth': '16px', 'aTargets': [ 0 ] }  // Do not sort on first column
+                {
+                    'bSortable': false,
+                    'sWidth': '16px',
+                    'aTargets': [ 0 ],  // Do not sort on first column
+                    'bVisible': showCheckBoxes
+                }
             ],
             "sPaginationType": "full_numbers", // Display page numbers in pagination
             "sDom": "<lip>t",   // display order of metainfo (lengthchange, info, pagination)

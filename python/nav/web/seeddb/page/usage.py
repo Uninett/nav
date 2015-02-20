@@ -45,7 +45,7 @@ class UsageInfo(SeeddbInfo):
 
 
 class UsageForm(forms.ModelForm):
-    class Meta:
+    class Meta(object):
         model = Usage
 
     def __init__(self, *args, **kwargs):

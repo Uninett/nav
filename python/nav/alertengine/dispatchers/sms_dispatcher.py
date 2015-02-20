@@ -14,8 +14,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""
-"""
+"""SMS queue alert dispatcher implementation"""
 
 import logging
 
@@ -23,12 +22,13 @@ from django.db import DatabaseError, IntegrityError
 
 from nav.models.profiles import SMSQueue
 from nav.models.event import AlertQueueMessage
-from nav.alertengine.dispatchers import dispatcher, DispatcherException
+from nav.alertengine.dispatchers import Dispatcher, DispatcherException
 
-logger = logging.getLogger('nav.alertengine.dispatchers.sms')
+_logger = logging.getLogger('nav.alertengine.dispatchers.sms')
 
-class sms(dispatcher):
-    '''Simple dispatcher that adds alerts to SMSQueue for smsd to handle'''
+
+class Sms(Dispatcher):
+    """Simple dispatcher that adds alerts to SMSQueue for smsd to handle"""
 
     def send(self, address, alert, language='en'):
         if address.account.has_perm('alert_by', 'sms'):
@@ -36,13 +36,20 @@ class sms(dispatcher):
 
             if not address.DEBUG_MODE:
                 try:
-                    SMSQueue.objects.create(account=address.account, message=message, severity=alert.severity, phone=address.address)
-                except [DatabaseError, IntegrityError], e:
-                    raise DispatcherException("Could't add sms to queue: %s" % e)
+                    SMSQueue.objects.create(account=address.account,
+                                            message=message,
+                                            severity=alert.severity,
+                                            phone=address.address)
+                except (DatabaseError, IntegrityError) as err:
+                    raise DispatcherException(
+                        "Couldn't add sms to queue: %s" % err)
             else:
-                logger.debug('alert %d: In testing mode, would have added message to sms queue for user %s at %s' % (alert.id, address.account, address.address))
+                _logger.debug('alert %d: In testing mode, would have added '
+                              'message to sms queue for user %s at %s',
+                              alert.id, address.account, address.address)
         else:
-            logger.warn('alert %d: %s does not have SMS priveleges' % (alert.id, address.account))
+            _logger.warn('alert %d: %s does not have SMS privileges',
+                         alert.id, address.account)
 
     def get_fallback_message(self, alert, language, message_type):
         try:

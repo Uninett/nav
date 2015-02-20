@@ -181,12 +181,11 @@ class Module(Shadow):
         myself_in_db = self.get_existing_model()
 
         same_name_modules = manage.Module.objects.filter(
-            netbox__id = self.netbox.id,
-            name = self.name)
+            netbox__id=self.netbox.id,
+            name=self.name)
 
         if myself_in_db:
-            same_name_modules = same_name_modules.exclude(
-                id = myself_in_db.id)
+            same_name_modules = same_name_modules.exclude(id=myself_in_db.id)
 
         other = same_name_modules.select_related('device', 'netbox')
 
@@ -219,7 +218,7 @@ class Module(Shadow):
     def _handle_missing_modules(cls, containers):
         """Handles modules that have gone missing from a device."""
         netbox = containers.get(None, Netbox)
-        all_modules = manage.Module.objects.filter(netbox__id = netbox.id)
+        all_modules = manage.Module.objects.filter(netbox__id=netbox.id)
         modules_up = all_modules.filter(up=manage.Module.UP_UP)
         modules_down = all_modules.filter(up=manage.Module.UP_DOWN)
 
@@ -622,7 +621,7 @@ class Sensor(Shadow):
     @classmethod
     def cleanup_after_save(cls, containers):
         cls._delete_missing_sensors(containers)
-        
+
     @classmethod
     @db.autocommit
     def _delete_missing_sensors(cls, containers):
@@ -645,7 +644,7 @@ class Sensor(Shadow):
         missing_sensors = manage.Sensor.objects.filter(
             netbox=netbox.id).exclude(pk__in=found_sensor_pks)
         return missing_sensors
-        
+
 class PowerSupplyOrFan(Shadow):
     __shadowclass__ = manage.PowerSupplyOrFan
     __lookups__ = [('netbox', 'name')]
@@ -677,4 +676,3 @@ class PowerSupplyOrFan(Shadow):
         missing_psus_and_fans = manage.PowerSupplyOrFan.objects.filter(
             netbox=netbox.id).exclude(pk__in=found_psus_and_fans_pks)
         return missing_psus_and_fans
-    

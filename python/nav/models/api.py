@@ -30,5 +30,5 @@ class APIToken(models.Model):
     def __unicode__(self):
         return self.token
 
-    class Meta:
+    class Meta(object):
         db_table = 'apitoken'

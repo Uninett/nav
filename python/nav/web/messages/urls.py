@@ -13,6 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Django URL configuration for messages tool"""
 
 from django.conf.urls import url, patterns
 

@@ -36,7 +36,7 @@ except ImportError, error:
 class GammuDispatcher(Dispatcher):
     """The smsd dispatcher for Gammu."""
 
-    def __init__(self, config):
+    def __init__(self, _config):
         """Constructor."""
 
         # Call mother's init

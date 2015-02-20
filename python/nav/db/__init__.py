@@ -162,7 +162,7 @@ def getConnection(scriptName, database='nav'):
         connection.set_client_encoding('utf8')
         conn_object = ConnectionObject(connection, cache_key)
         _connection_cache.cache(conn_object)
-        
+
     return connection
 
 

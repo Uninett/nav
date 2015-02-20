@@ -43,7 +43,7 @@ def timed(f):
         start = time()
         result = f(*args, **kwds)
         elapsed = time() - start
-        _logger.debug("%s took %f seconds to finish" % (f.__name__, elapsed))
+        _logger.debug("%s took %f seconds to finish", f.__name__, elapsed)
         return result
     return wrapper
 
@@ -74,7 +74,7 @@ def get_addresses_to_scan(exclude_list=None):
 def scan(addresses):
     """Scan a list of ip-addresses for netbios names"""
 
-    _logger.debug('Scanning %s addresses' % len(addresses))
+    _logger.debug('Scanning %s addresses', len(addresses))
     proc = Popen(['nbtscan', '-f-', '-s', SPLITCHAR], stdin=PIPE, stdout=PIPE)
     stdout, stderr = proc.communicate('\n'.join(addresses))
     if stderr:

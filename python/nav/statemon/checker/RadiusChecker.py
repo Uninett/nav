@@ -16,10 +16,10 @@
 """RADIUS service checker"""
 
 # NAV ServiceMonitor-modules
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 
-# Python-radius specific modules. pyrad found at 
+# Python-radius specific modules. pyrad found at
 # http://www.wiggy.net/code/pyrad/ by Wichert Akkermann
 import pyrad.packet
 from pyrad.client import Client
@@ -31,7 +31,7 @@ class RadiusChecker(AbstractChecker):
     Radius Monitor-client.
 
     Handles Radius-servers. It tries to authenticate like for example any
-    VPN-concentrator from Cisco would. 
+    VPN-concentrator from Cisco would.
 
     Future enhancements would be to check if we get a certain attribute
     back from the server, and what the value of that attribute would be.
@@ -39,8 +39,8 @@ class RadiusChecker(AbstractChecker):
 
     Arguments:
     ----------
-    hostname  : Accessible from self.getAddress() as pure FQDN hostname
-    port      : Remote udp-port where radius authentication is living. 
+    hostname  : Accessible from self.get_address() as pure FQDN hostname
+    port      : Remote udp-port where radius authentication is living.
                 Port 1812 is default for authentication.
     username  : A valid radius-username
     password  : Clear-text password associated with the username above.
@@ -77,7 +77,7 @@ class RadiusChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=1812, **kwargs)
 
     def execute(self):
-        args = self.getArgs()
+        args = self.args
         #pylint: disable=W0703
         try:
             username = args.get("username", "")
@@ -85,7 +85,7 @@ class RadiusChecker(AbstractChecker):
             rad_secret = args.get("secret", "")
             identifier = args.get("identifier", "")
             dictionary = args.get("dictionary", "")  # or "dictionary"
-            ip, _port = self.getAddress()
+            ip, _port = self.get_address()
             srv = Client(server=ip, secret=rad_secret,
                          dict=Dictionary(dictionary))
             req = srv.CreateAuthPacket(code=pyrad.packet.AccessRequest,
@@ -96,7 +96,7 @@ class RadiusChecker(AbstractChecker):
         except Exception as err:
             return (Event.DOWN,
                     "Failed connecting to %s: %s)" %
-                    (self.getAddress(), str(err)))
+                    (self.get_address(), str(err)))
         version = "FreeRadius 1.0"  # Fetch from radiusmonitor later.
-        self.setVersion(version) 
+        self.version = version
         return Event.UP, "Radius: " + version

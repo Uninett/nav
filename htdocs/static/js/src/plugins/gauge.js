@@ -118,7 +118,6 @@ define(['libs/d3.v2'], function () {
             /* Create text that displays value */
             var valueText = this.vis.append('text')
                 .text(min + this.symbol)
-                .attr('font-family', 'Arial')
                 .attr('y', -ir/2 + this.fontSizeScale(radius) / 2)
                 .attr('font-size', this.fontSizeScale(radius) + 'px')
                 .attr('fill', 'black')
@@ -128,7 +127,6 @@ define(['libs/d3.v2'], function () {
             /* Create text displaying min value */
                 minText = this.vis.append('text')
                 .text(min)
-                .attr('font-family', 'Arial')
                 .attr('fill', '#b3b3b3')
                 .attr('font-size', this.smallfontSizeScale(radius) + 'px')
                 .attr('y', '0')
@@ -138,7 +136,6 @@ define(['libs/d3.v2'], function () {
             /* Create text displaying max value */
                 maxText = this.vis.append('text')
                 .text(max)
-                .attr('font-family', 'Arial')
                 .attr('fill', '#b3b3b3')
                 .attr('font-size', this.smallfontSizeScale(radius) + 'px')
                 .attr('y', '0')

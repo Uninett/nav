@@ -19,8 +19,9 @@ LoggingAdapter class, ripped from the Python 2.6 std library.
 This class is copied here because NAV wants to use also in Python 2.5.
 """
 
-# we are mimicing the logging API, can't help but use non-standard names.
-# pylint: disable=C0103
+# we are mimicing and/or extending the logging API, can't help but use
+# non-standard names and old-style class defs.
+# pylint: disable=C1001,C0103
 class LoggerAdapter:
     """
     An adapter for loggers which makes it easier to specify contextual

@@ -24,34 +24,34 @@ return a None value.
 import re
 
 NTNU_CORE_LAN_PATTERN = re.compile(r"""
-    (?P<net_type>(core|lan)) , 
-    (?P<org>[^,]+) , 
-    (?P<ident> (?P<usage>[^\d,]+) (?P<n>\d+)? ) ( , 
-    (?P<comment>[^,]*) ( , 
+    (?P<net_type>(core|lan)) ,
+    (?P<org>[^,]+) ,
+    (?P<ident> (?P<usage>[^\d,]+) (?P<n>\d+)? ) ( ,
+    (?P<comment>[^,]*) ( ,
     (?P<vlan>\d+) )? )?
     """, re.X | re.I)
 
-NTNU_LINK_PATTERN = re.compile(r"""        
-    (?P<net_type>link) , 
-    (?P<to_router>[^,]+) ( , 
-    (?P<comment>[^,]*) ( , 
+NTNU_LINK_PATTERN = re.compile(r"""
+    (?P<net_type>link) ,
+    (?P<to_router>[^,]+) ( ,
+    (?P<comment>[^,]*) ( ,
     (?P<vlan>\d+) )? )?
     """, re.X | re.I)
 
-NTNU_ELINK_PATTERN = re.compile(r"""        
-    (?P<net_type>elink) , 
-    (?P<to_router>[^,]+) , 
-    (?P<to_org>[^,]+) ( , 
-    (?P<comment>[^,]*) ( , 
+NTNU_ELINK_PATTERN = re.compile(r"""
+    (?P<net_type>elink) ,
+    (?P<to_router>[^,]+) ,
+    (?P<to_org>[^,]+) ( ,
+    (?P<comment>[^,]*) ( ,
     (?P<vlan>\d+) )? )?
     """, re.X | re.I)
 
 def parse_ntnu_convention(sysname, ifalias):
     """Parses router port description, using NTNU conventions.
-    
+
     The conventions are documented at
     https://nav.uninett.no/wiki/subnetsandvlans
-    
+
     """
     # Strip leading and trailing whitespace from each part individually
     string = ','.join([s.strip() for s in ifalias.split(',')])
@@ -62,7 +62,7 @@ def parse_ntnu_convention(sysname, ifalias):
         if match:
             break
     if not match:
-        return None 
+        return None
 
     d = match.groupdict()
     if 'vlan' in d and d['vlan']:
@@ -71,7 +71,7 @@ def parse_ntnu_convention(sysname, ifalias):
         d['n'] = int(d['n'])
 
     if d['net_type'] in ('core', 'lan'):
-        d['netident'] = ','.join(str(d[s]) 
+        d['netident'] = ','.join(str(d[s])
                                  for s in ('org', 'ident', 'comment')
                                  if s in d and d[s])
     elif d['net_type'] in ('link', 'elink'):
@@ -83,8 +83,9 @@ UNINETT_PATTERN = re.compile(r"""
     (?P<comment>[^,]+) ,
     (?P<netident>.*)
     """, re.X | re.I)
- 
-def parse_uninett_convention(sysname, ifalias):
+
+
+def parse_uninett_convention(_sysname, ifalias):
     """Parse router port description, using UNINETT conventions."""
     # Strip leading and trailing whitespace from each part individually
     string = ','.join([s.strip() for s in ifalias.split(',')])

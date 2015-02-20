@@ -34,7 +34,8 @@ from nav.models.profiles import (Account, NavbarLink,
                                  AccountTool, AccountProperty)
 from nav.web import ldapauth, auth
 from nav.web.webfront.utils import quick_read, tool_list
-from nav.web.webfront.forms import LoginForm, NavbarlinkForm, NavbarLinkFormSet, ChangePasswordForm
+from nav.web.webfront.forms import (LoginForm, NavbarlinkForm,
+                                    NavbarLinkFormSet, ChangePasswordForm)
 from nav.web.navlets import list_navlets
 from nav.web.message import new_message, Messages
 
@@ -42,7 +43,8 @@ _logger = logging.getLogger('nav.web.tools')
 
 WEBCONF_DIR_PATH = os.path.join(sysconfdir, "webfront")
 WELCOME_ANONYMOUS_PATH = os.path.join(WEBCONF_DIR_PATH, "welcome-anonymous.txt")
-WELCOME_REGISTERED_PATH = os.path.join(WEBCONF_DIR_PATH, "welcome-registered.txt")
+WELCOME_REGISTERED_PATH = os.path.join(WEBCONF_DIR_PATH,
+                                       "welcome-registered.txt")
 NAV_LINKS_PATH = os.path.join(WEBCONF_DIR_PATH, "nav-links.conf")
 
 
@@ -244,7 +246,9 @@ def set_tool_layout(request):
 
 
 def _create_preference_context(request):
-    """ Creates a context used by different views for the multiform preference page """
+    """
+    Creates a context used by different views for the multiform preference page
+    """
     account = get_account(request)
 
     if account.ext_sync:
@@ -259,7 +263,8 @@ def _create_preference_context(request):
         'account': account,
         'tool': {'name': 'My account',
                  'description': 'Edit my personal NAV account settings'},
-        'navbar_formset': NavbarLinkFormSet(queryset=NavbarLink.objects.filter(account=account)),
+        'navbar_formset': NavbarLinkFormSet(
+            queryset=NavbarLink.objects.filter(account=account)),
     }
 
     return context
@@ -300,7 +305,7 @@ def change_password(request):
                 'webfront/preferences.html',
                 context
             )
-            
+
     return HttpResponseRedirect(reverse('webfront-preferences'))
 
 

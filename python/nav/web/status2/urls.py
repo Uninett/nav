@@ -13,6 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Django URL configuration for new status tool"""
 from django.conf.urls import url, patterns, include
 from nav.web.status2 import views
 
