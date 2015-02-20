@@ -21,7 +21,7 @@
 
             <td>
               <span class="left">{{ neighbor.remote_id }}</span>
-              <a href="{% url seeddb-netbox-add-suggestion neighbor.remote_id %}"
+              <a href="{% url 'seeddb-netbox-add-suggestion' neighbor.remote_id %}"
                  class="right"
                  style="margin-left: 1em;"
                  title="Add unrecognized neighbor to NAV">
@@ -32,7 +32,7 @@
             <td>
               {{ neighbor.remote_name }}
               {% if neighbor.remote_name %}
-                <a href="{% url seeddb-netbox-add-suggestion neighbor.remote_name %}"
+                <a href="{% url 'seeddb-netbox-add-suggestion' neighbor.remote_name %}"
                    class="right"
                    style="margin-left: 1em;"
                    title="Add unrecognized neighbor to NAV">
