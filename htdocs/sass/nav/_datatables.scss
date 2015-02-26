@@ -10,7 +10,7 @@
 }
 
 .dataTables_wrapper {
-    /* Adds background styling to the datatable. This is too specific for
+    /* Adds background styling to the datatable. This is very specific for
        seeddb as it also floats around elements based on what is
        enabled in seeddb */
     &.dataTables_background {
@@ -53,7 +53,7 @@
     label {
         display: inline;
     }
-    &:after {
+    &:after {  /* Exciting - what is this? */
         content: ".";
         display: block;
         clear: both;
@@ -61,6 +61,7 @@
         line-height: 0;
         height: 0;
     }
+    /* Style the table header cells to indicate sort directions */
     .dataTable {
         th {
             padding-right: 1.4em;
@@ -77,8 +78,8 @@
     }
 }
 
-/* Special styles for overriding global styles */
 
+/* Special styles for overriding global styles */
 .dataTables_scroll table, .DTFC_ScrollWrapper table {
     border: 0;
     margin-bottom: 0;
