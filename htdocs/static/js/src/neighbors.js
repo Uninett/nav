@@ -1,5 +1,5 @@
 /* Javascript forced and smeared on the Unrecognized Neighbors page. No tests, no fuzz :p */
-require(['libs/jquery'], function() {
+require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
 
     console.log('Neighbors script loaded');
 
@@ -73,10 +73,28 @@ require(['libs/jquery'], function() {
     }
 
 
+    /** Apply datatables plugin to table */
+    function applyDatatable() {
+        $table.dataTable({
+            "bPaginate": false,  //  Do not show pagination
+            "bInfo": false,      //  Do not show number of (filtered) results
+            "bAutoWidth": false  //  Do not calculate row width
+        });
+    }
+
+
+    /** Display the table */
+    function showTable() {
+        $table.show();
+    }
+
+
     /* On page ready the following happens */
     $(function() {
         console.log('Neighbors ready');
         addIgnoreNeighborsHandlers();
+        applyDatatable();
+        showTable();
     });
 
 

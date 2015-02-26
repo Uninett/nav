@@ -1,4 +1,10 @@
+.dataTables_wrapper > .dataTables_filter {
+    max-width: 30em;
+}
+
 #unrecognized-neighbors-table {
+    display: none;  // To prevent FOUC
+    * { box-sizing: initial; }  // Needed for datatables to display properly
     td.has-add-button {
         span {
             float: left;
