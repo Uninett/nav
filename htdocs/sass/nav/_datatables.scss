@@ -10,9 +10,43 @@
 }
 
 .dataTables_wrapper {
-    background-color: #eeeeee;
-    border-radius: 3px;
-    border: 1px solid #dddddd;
+    /* Adds background styling to the datatable. This is too specific for
+       seeddb as it also floats around elements based on what is
+       enabled in seeddb */
+    &.dataTables_background {
+        background-color: #eeeeee;
+        border-radius: 3px;
+        border: 1px solid #dddddd;
+        .dataTables_filter {
+            padding: 0 0.7em;
+        }
+        .dataTables_length {
+            @include common_header_styles;
+        }
+        .dataTables_info {
+            @include common_header_styles;
+            font-size: 0.9em;
+            line-height: 1.6em;
+            clear: right;
+        }
+        .dataTables_paginate {
+            @include common_header_styles;
+            float: right;
+            a {
+                &.paginate_button,
+                &.paginate_active {
+                    margin-left: 2px;
+                    cursor: pointer;
+                }
+                &.paginate_button_disabled {
+                    cursor: default;
+                }
+            }
+            .button {
+                margin-bottom: 0;
+            }
+        }
+    }
     select {
         width: auto;
     }
@@ -39,35 +73,6 @@
             &.sorting {
                 background: url('#{$image-path-partials}/datatables/sort_both.png') no-repeat right center #EEEEEE;
             }
-        }
-    }
-    .dataTables_filter {
-        padding: 0 0.7em;
-    }
-    .dataTables_length {
-        @include common_header_styles;
-    }
-    .dataTables_info {
-        @include common_header_styles;
-        font-size: 0.9em;
-        line-height: 1.6em;
-        clear: right;
-    }
-    .dataTables_paginate {
-        @include common_header_styles;
-        float: right;
-        a {
-            &.paginate_button,
-            &.paginate_active {
-                margin-left: 2px;
-                cursor: pointer;
-            }
-            &.paginate_button_disabled {
-                cursor: default;
-            }
-        }
-        .button {
-            margin-bottom: 0;
         }
     }
 }

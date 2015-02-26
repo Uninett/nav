@@ -335,6 +335,9 @@ require([
             showCheckBoxes = false;
         }
 
+        // Add custom class to the wrapper element
+        $.fn.dataTableExt.oStdClasses.sWrapper += ' dataTables_background';
+
         /* Apply DataTable */
         var table = $(tableSelector).dataTable({
             "bPaginate": true,      // Pagination
@@ -366,7 +369,7 @@ require([
                 [10, 25, 50, "All"] // Text for the choices
             ],
             "iDisplayLength": numRows,  // The default number of rows to display
-            "oLanguage": {"sInfo": "_START_-_END_ of _TOTAL_"}  // Format of number of entries visibile
+            "oLanguage": {"sInfo": "_START_-_END_ of _TOTAL_"},  // Format of number of entries visibile
         });
 
         table.fnSort([[1, 'asc']]);  // When loaded, sort ascending on second column
