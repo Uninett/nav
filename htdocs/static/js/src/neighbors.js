@@ -13,23 +13,23 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
 
 
     /** Add event listeners to table for manipulating neighbor ignored state */
-    function addIgnoreNeighborsHandlers() {
+    function addIgnoreNeighborsHandlers(dataTable) {
         // When ignore button is clicked, save neighbor state
         $tableBody.on('click', '.ignore-neighbor', function(event) {
             var $row = $(event.target).closest('tr');
-            setIgnored($row, true);
+            setIgnored($row, true, dataTable);
         });
 
         $tableBody.on('click', '.unignore-neighbor', function(event) {
             var $row = $(event.target).closest('tr');
-            setIgnored($row, false);
+            setIgnored($row, false, dataTable);
         });
 
     }
 
 
     /** Set ignored state on neighbor by executing a request to controller */
-    function setIgnored($row, ignored) {
+    function setIgnored($row, ignored, dataTable) {
         console.log('setIgnored');
 
         // Remove any previous errors
@@ -44,7 +44,7 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
         request.done(function() {
             console.log('Request was successful');
             $row.fadeOut(function() {
-                updateCaption();
+                dataTable.fnDeleteRow($row.get(0)); // Delete row to update counter
             });
         });
 
@@ -57,28 +57,15 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
         });
     }
 
-
-    /** Updates the caption with the premise that number of rows is important */
-    function updateCaption(text) {
-        $captionLength.html(findNumberOfRows());
-        if (typeof text !== 'undefined') {
-            $captionText.html(text);
-        }
-    }
-
-
-    /** Returns the number of rows in the table */
-    function findNumberOfRows() {
-        return $tableBody.find('tr:visible').length;
-    }
-
-
     /** Apply datatables plugin to table */
     function applyDatatable() {
-        $table.dataTable({
-            "bPaginate": false,  //  Do not show pagination
-            "bInfo": false,      //  Do not show number of (filtered) results
-            "bAutoWidth": false  //  Do not calculate row width
+        return $table.dataTable({
+            "bPaginate": false,   //  Do not show pagination
+            "bAutoWidth": false,  //  Do not calculate row width
+            "sDom": '<"top">fi',  //  Put filter and info at the top of the table
+            "oLanguage": {
+                "sInfo": "_TOTAL_ unrecognized neighbors"  // Format number of entries visibile
+            }
         });
     }
 
@@ -92,8 +79,7 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
     /* On page ready the following happens */
     $(function() {
         console.log('Neighbors ready');
-        addIgnoreNeighborsHandlers();
-        applyDatatable();
+        addIgnoreNeighborsHandlers(applyDatatable());
         showTable();
     });
 
