@@ -62,7 +62,7 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
         return $table.dataTable({
             "bPaginate": false,   //  Do not show pagination
             "bAutoWidth": false,  //  Do not calculate row width
-            "sDom": '<"top">fi',  //  Put filter and info at the top of the table
+            "sDom": 'fit',  //  Put filter and info at the top of the table
             "oLanguage": {
                 "sInfo": "_TOTAL_ unrecognized neighbors"  // Format number of entries visibile
             }
