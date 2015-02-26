@@ -60,12 +60,17 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
     /** Apply datatables plugin to table */
     function applyDatatable() {
         return $table.dataTable({
-            "bPaginate": false,   //  Do not show pagination
-            "bAutoWidth": false,  //  Do not calculate row width
+            "bFilter": true,      // Explicitly set filtering
+            "bSort": true,        // Explicitly set sorting
+            "bPaginate": false,   // Do not show pagination
+            "bAutoWidth": false,  // Do not calculate row width
             "sDom": 'fit',  //  Put filter and info at the top of the table
             "oLanguage": {
                 "sInfo": "_TOTAL_ unrecognized neighbors"  // Format number of entries visibile
-            }
+            },
+            "aoColumnDefs": [
+                { 'bSortable': false, 'aTargets': [ -1 ] }  // Do not sort on last column
+            ]
         });
     }
 

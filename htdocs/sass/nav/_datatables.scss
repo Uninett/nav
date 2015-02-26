@@ -65,6 +65,9 @@
     .dataTable {
         th {
             padding-right: 1.4em;
+            &.sorting_disabled {
+                background-color: #EEE;
+            }
             &.sorting_asc {
                 background: url('#{$image-path-partials}/datatables/sort_asc.png') no-repeat right center #EEEEEE;
             }
