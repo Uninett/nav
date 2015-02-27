@@ -62,18 +62,16 @@ def netbox_down_in(room):
 
 
 def get_neighbors(_request, netboxid):
-    """Get neighbours for this netboxid
+    """Get neighbors for this netboxid
 
-    Used in neighbour-map
+    Used in neighbor-map
 
     """
 
-    nodes = []
-    links = []
     link_candidates = {}
 
     netbox = get_object_or_404(Netbox, pk=netboxid)
-    netboxes = [netbox]
+    nodes = [create_object_from(netbox)]
     interfaces = netbox.interface_set.filter(to_netbox__isnull=False)
     for interface in interfaces:
         to_netbox = interface.to_netbox
@@ -85,23 +83,14 @@ def get_neighbors(_request, netboxid):
             link_candidates[interface.to_netbox]['to_ifname'].append(
                 to_interfacename)
         else:
-            netboxes.append(interface.to_netbox)
+            nodes.append(create_object_from(interface.to_netbox))
             link_candidates[interface.to_netbox] = {
                 "sourceId": netbox.id,
                 "targetId": to_netbox.id,
                 "ifname": [interface.ifname],
                 "to_ifname": [to_interfacename]}
 
-    for i in link_candidates.values():
-        links.append(i)
-
-    for nbox in netboxes:
-        nodes.append({"netboxid": nbox.id,
-                      "name": nbox.get_short_sysname(),
-                      "sysname": nbox.sysname,
-                      "category": nbox.category.id})
-
-    # Unrecognized neighbours
+    # Unrecognized neighbors
     unrecognized_nodes = []
     un_candidates = {}
     for unrecognized in netbox.unrecognizedneighbor_set.filter(
@@ -110,6 +99,7 @@ def get_neighbors(_request, netboxid):
             un_candidates[unrecognized.remote_id]['ifname'].append(
                 unrecognized.interface.ifname)
         else:
+            nodes.append(create_unrecognized_object_from(unrecognized))
             unrecognized_nodes.append(unrecognized)
             un_candidates[unrecognized.remote_id] = {
                 "sourceId": netbox.id,
@@ -118,22 +108,29 @@ def get_neighbors(_request, netboxid):
                 "to_ifname": ""
             }
 
-    for i in un_candidates.values():
-        links.append(i)
-
-    for node in unrecognized_nodes:
-        nodes.append({
-            "netboxid": node.remote_id,
-            "name": node.remote_name,
-            "sysname": node.remote_name,
-            "category": 'UNRECOGNIZED'
-        })
-
     data = {
         "nodes": nodes,
-        "links": links
+        "links": link_candidates.values() + un_candidates.values()
     }
 
     return HttpResponse(simplejson.dumps(data), mimetype="application/json")
 
 
+def create_object_from(netbox):
+    """Create dict structure from netbox instance"""
+    return {
+        "netboxid": netbox.id,
+        "name": netbox.get_short_sysname(),
+        "sysname": netbox.sysname,
+        "category": netbox.category.id
+    }
+
+
+def create_unrecognized_object_from(node):
+    """Create dict structure from unrecognized neighbor instance"""
+    return {
+        "netboxid": node.remote_id,
+        "name": node.remote_name,
+        "sysname": node.remote_name,
+        "category": 'UNRECOGNIZED'
+    }
