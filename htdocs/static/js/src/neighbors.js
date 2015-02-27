@@ -8,6 +8,7 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
         $tableBody = $table.find('tbody'),
         stateActive = 'active',
         stateIgnored = 'ignored',
+        checkbox = document.getElementById('toggle-ignored'),
         setIgnoredUrl = NAV.urls.neighbors.neighbors_set_state;
 
 
@@ -44,16 +45,16 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
 
 
     /** Add event listeners to table for manipulating neighbor ignored state */
-    function addIgnoreHandlers() {
+    function addIgnoreHandlers(dataTable) {
         // When ignore button is clicked, save neighbor state
         $tableBody.on('click', '.table-button', function(event) {
             var $button = $(event.target),
                 $row = $(event.target).closest('tr');
 
             if (isStateActive($button)) {
-                setIgnored($row, $button, true);
+                setIgnored($row, $button, true, dataTable);
             } else if (isStateIgnored($button)) {
-                setIgnored($row, $button, false);
+                setIgnored($row, $button, false, dataTable);
             } else {
                 console.log('No such state: ' + $button.attr('data-state'));
             }
@@ -63,8 +64,7 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
 
 
     /** Set ignored state on neighbor by executing a request to controller */
-    function setIgnored($row, $button, ignored) {
-        console.log('setIgnored');
+    function setIgnored($row, $button, ignored, dataTable) {
         var $ignoredSince = $row.find('.ignored-since');
 
         $button.prop('disabled', true); // Disable button to avoid spamming for requests
@@ -80,6 +80,7 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
             console.log('Request was successful');
             $ignoredSince.html(response); // Set or remove ignored timestamp
             setButtonState($button, ignored);
+            dataTable.fnDraw(); // Redraw table to hide/show new row and update counter
         });
 
         // In case of error give user feedback
@@ -98,6 +99,9 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
 
     /** Apply datatables plugin to table */
     function applyDatatable() {
+        // Register new filtering function based on neighbor state
+        $.fn.dataTableExt.afnFiltering.push(filterNeighborState);
+
         return $table.dataTable({
             "bFilter": true,      // Explicitly set filtering
             "bSort": true,        // Explicitly set sorting
@@ -114,19 +118,51 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
     }
 
 
-    /** Display the table */
-    function showTable() {
-        $table.show();
+    /**
+     * Filter rows based on neighbor state. This function is called
+     * for every filtering event
+     */
+    function filterNeighborState(oSettings, aData, iDataIndex) {
+        var row = oSettings.aoData[iDataIndex].nTr,
+            button = row.getElementsByClassName('table-button')[0];
+
+        if (checkbox.checked) {
+            return true;        // Show everything
+        } else {
+            return button.dataset.state === stateActive ? true : false;
+        }
     }
 
 
-    /* On page ready the following happens */
+    /** Add handler for what happens when the checkbox is toggled */
+    function addCheckboxHandler(dataTable) {
+        var columnIndex = 5;
+        $('#toggle-ignored').click(function() {
+            setIgnoredSinceVisibility(dataTable);
+            dataTable.fnDraw(); // Redraw table
+        });
+    }
+
+
+    /** Set visibility on the 'ignored since' column based on checkbox state */
+    function setIgnoredSinceVisibility(dataTable) {
+        var columnIndex = 5;    // The index of the 'Ignored since' column
+        dataTable.fnSetColumnVis(columnIndex, checkbox.checked);
+    }
+
+
+    /** On page ready the following happens */
     $(function() {
         console.log('Neighbors ready');
+
         updateButtonStates();
-        addIgnoreHandlers();
-        applyDatatable();
-        showTable();
+
+        var dataTable = applyDatatable();
+        addIgnoreHandlers(dataTable);
+        setIgnoredSinceVisibility(dataTable);
+        addCheckboxHandler(dataTable);
+        $table.show();
+        console.log('Neighbors done initializing');
     });
 
 
