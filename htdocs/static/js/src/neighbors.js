@@ -5,9 +5,6 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
 
     /* Some global variables */
     var $table = $('#unrecognized-neighbors-table'),
-        $tableCaption = $table.find('caption'),
-        $captionLength = $($tableCaption.find('span')[0]),
-        $captionText = $($tableCaption.find('span')[1]),
         $tableBody = $table.find('tbody'),
         stateActive = 'active',
         stateIgnored = 'ignored',
