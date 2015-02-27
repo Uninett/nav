@@ -8,6 +8,8 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
         $tableBody = $table.find('tbody'),
         stateActive = 'active',
         stateIgnored = 'ignored',
+        stateActiveText = 'Ignore',
+        stateIgnoredText = 'Unignore',
         checkbox = document.getElementById('toggle-ignored'),
         setIgnoredUrl = NAV.urls.neighbors.neighbors_set_state;
 
@@ -19,7 +21,7 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
 
 
     function setButtonState($button, ignored) {
-        $button.attr('data-state', ignored ? 'ignored' : 'active');
+        $button.attr('data-state', ignored ? stateIgnored : stateActive);
         setLayoutState($button);
     }
 
@@ -28,9 +30,9 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
     function setLayoutState($button) {
         $button = $button.length ? $button : $(this);
         if (isStateActive($button)) {
-            $button.removeClass('secondary').text('Ignore');
+            $button.removeClass('secondary').text(stateActiveText);
         } else if (isStateIgnored($button)) {
-            $button.addClass('secondary').text('Unignore');
+            $button.addClass('secondary').text(stateIgnoredText);
         }
     }
 
