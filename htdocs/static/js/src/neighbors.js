@@ -112,7 +112,7 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
             "bAutoWidth": false,  // Do not calculate row width
             "sDom": 'fit',  //  Put filter and info at the top of the table
             "oLanguage": {
-                "sInfo": "_TOTAL_ unrecognized neighbors"  // Format number of entries visibile
+                "sInfo": "_TOTAL_ neighbors"  // Format number of entries visibile
             },
             "aoColumnDefs": [
                 { 'bSortable': false, 'aTargets': [ -1 ] }  // Do not sort on last column
