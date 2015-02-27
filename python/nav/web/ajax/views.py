@@ -95,11 +95,11 @@ def get_neighbors(_request, netboxid):
     for i in link_candidates.values():
         links.append(i)
 
-    for n in netboxes:
-        nodes.append({"netboxid": n.id,
-                      "name": n.get_short_sysname(),
-                      "sysname": n.sysname,
-                      "category": n.category.id})
+    for nbox in netboxes:
+        nodes.append({"netboxid": nbox.id,
+                      "name": nbox.get_short_sysname(),
+                      "sysname": nbox.sysname,
+                      "category": nbox.category.id})
 
     # Unrecognized neighbours
     unrecognized_nodes = []
@@ -120,11 +120,11 @@ def get_neighbors(_request, netboxid):
     for i in un_candidates.values():
         links.append(i)
 
-    for u in unrecognized_nodes:
+    for node in unrecognized_nodes:
         nodes.append({
-            "netboxid": u.remote_id,
-            "name": u.remote_name,
-            "sysname": u.remote_name,
+            "netboxid": node.remote_id,
+            "name": node.remote_name,
+            "sysname": node.remote_name,
             "category": 'UNRECOGNIZED'
         })
 
