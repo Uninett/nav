@@ -28,18 +28,13 @@
 
     <td>{{ neighbor.since }}</td>
 
-    {% if neighbor.ignored_since %}
-      <td>
-        {{ neighbor.ignored_since }}
-      </td>
-      <td class="action-cell ignored-cell">
-        <button class="table-button secondary unignore-neighbor">Unignore</button>
-      </td>
-    {% else %}
-      <td class="action-cell unignored-cell">
-        <button class="table-button ignore-neighbor">Ignore</button>
-      </td>
-    {% endif %}
+    <td class="ignored-since"> {{ neighbor.ignored_since|default:'' }} </td>
+
+    <td class="action-cell">
+      <button class="table-button"
+              data-state="{% if neighbor.ignored_since %}ignored{% else %}active{% endif %}">
+      </button>
+    </td>
 
   </tr>
 {% endfor %}
