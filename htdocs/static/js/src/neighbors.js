@@ -153,6 +153,14 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
     }
 
 
+    /** If a query parameter named filter is found, use that to run an initial filter */
+    function filterQueryParameters(dataTable) {
+        var params = window.location.search.substr(1).split('=');
+        if (params[0] === 'filter') {
+            dataTable.fnFilter(params[1]);
+        }
+    }
+
     /** On page ready the following happens */
     $(function() {
         console.log('Neighbors ready');
@@ -163,6 +171,7 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
         addIgnoreHandlers(dataTable);
         setIgnoredSinceVisibility(dataTable);
         addCheckboxHandler(dataTable);
+        filterQueryParameters(dataTable);
         $table.show();
         console.log('Neighbors done initializing');
     });
