@@ -43,17 +43,6 @@ def render_unrecognized(request):
     return render_page(request, context)
 
 
-def render_ignored(request):
-    """Render ignored neighbors"""
-    context = {
-        'neighbors': UnrecognizedNeighbor.objects.filter(
-            ignored_since__isnull=False),
-        'page': 'ignored'
-    }
-
-    return render_page(request, context)
-
-
 def render_page(request, extra_context):
     """Render the page with a given context"""
     navpath = [('Home', '/'), ('Unrecognized Neighbors', )]
