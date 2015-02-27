@@ -14,19 +14,27 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
         setIgnoredUrl = NAV.urls.neighbors.neighbors_set_state;
 
 
-    function setButtonStates() {
-        $table.find('.action-cell .table-button').each(function(index, button) {
-            var $button = $(button);
-            if (isStateIgnored($button)) {
-                setButtonState($button, true);
-            } else if (isStateActive($button)) {
-                setButtonState($button, false);
-            } else {
-                console.log('Unknown button state: ' + $button.attr('data-state'));
-            }
-        });
+    /** Set layout for all buttons based on ignored state */
+    function updateButtonStates() {
+        $table.find('.action-cell .table-button').each(setLayoutState);
     }
 
+
+    function setButtonState($button, ignored) {
+        $button.attr('data-state', ignored ? 'ignored' : 'active');
+        setLayoutState($button);
+    }
+
+
+    /** Update button layout based on its current state */
+    function setLayoutState($button) {
+        $button = $button.length ? $button : $(this);
+        if (isStateActive($button)) {
+            $button.removeClass('secondary').text('Ignore');
+        } else if (isStateIgnored($button)) {
+            $button.addClass('secondary').text('Unignore');
+        }
+    }
 
     function isStateIgnored($button) {
         return $button.attr('data-state') === stateIgnored;
@@ -38,16 +46,8 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
     }
 
 
-    function setButtonState($button, ignored) {
-        if (!ignored) {
-            $button.removeClass('secondary').text('Ignore').attr('data-state', 'active');
-        } else {
-            $button.addClass('secondary').text('Unignore').attr('data-state', 'ignored');
-        }
-    }
-
     /** Add event listeners to table for manipulating neighbor ignored state */
-    function addIgnoreNeighborsHandlers() {
+    function addIgnoreHandlers() {
         // When ignore button is clicked, save neighbor state
         $tableBody.on('click', '.table-button', function(event) {
             var $button = $(event.target),
@@ -70,11 +70,8 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
         console.log('setIgnored');
         var $ignoredSince = $row.find('.ignored-since');
 
-        // Disable button to avoid spamming for requests
-        $button.prop('disabled', true);
-
-        // Remove any previous errors
-        $row.find('.action-cell .alert-box').remove();
+        $button.prop('disabled', true); // Disable button to avoid spamming for requests
+        $row.find('.action-cell .alert-box').remove(); // Remove any previous error messages
 
         var request = $.post(setIgnoredUrl, {
             neighborid: $row.data('neighborid'),
@@ -84,7 +81,6 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
         // When request is done successfully
         request.done(function(response) {
             console.log('Request was successful');
-            console.log(response);
             $ignoredSince.html(response); // Set or remove ignored timestamp
             setButtonState($button, ignored);
         });
@@ -98,7 +94,7 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
         });
 
         request.always(function() {
-            $button.prop('disabled', false);
+            $button.prop('disabled', false); // Re-enable button
         });
 
     }
@@ -112,7 +108,7 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
             "bAutoWidth": false,  // Do not calculate row width
             "sDom": 'fit',  //  Put filter and info at the top of the table
             "oLanguage": {
-                "sInfo": "_TOTAL_ neighbors"  // Format number of entries visibile
+                "sInfo": "_TOTAL_ neighbors"  // Format for number of entries visible
             },
             "aoColumnDefs": [
                 { 'bSortable': false, 'aTargets': [ -1 ] }  // Do not sort on last column
@@ -130,8 +126,8 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
     /* On page ready the following happens */
     $(function() {
         console.log('Neighbors ready');
-        setButtonStates();
-        addIgnoreNeighborsHandlers();
+        updateButtonStates();
+        addIgnoreHandlers();
         applyDatatable();
         showTable();
     });
