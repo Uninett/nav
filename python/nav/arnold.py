@@ -25,13 +25,11 @@ import os
 import ConfigParser
 import logging
 import socket
-import email.message
-import email.header
-import email.charset
 from datetime import datetime, timedelta
 from IPy import IP
 from subprocess import Popen, PIPE
 from collections import namedtuple
+from smtplib import SMTPException
 
 import nav.Snmp
 import nav.bitvector
@@ -42,6 +40,7 @@ from nav.models.arnold import Identity, Event
 from nav.models.manage import Interface, Prefix
 from nav.portadmin.snmputils import SNMPFactory
 from django.db import connection  # import this after any django models
+from django.core.mail import EmailMessage
 from nav.util import is_valid_ip
 
 CONFIGFILE = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
@@ -471,42 +470,14 @@ def change_port_vlan(identity, vlan):
             return fromvlan
 
 
-def sendmail(fromaddr, toaddr, subject, msg):
-    """
-    Sends mail using mailprogram configured in arnold.conf
-
-    NB: Expects all strings to be in utf-8 format.
-
-    """
-
-    # Get mailprogram from config-file
-    config = get_config(CONFIGFILE)
-    mailprogram = config.get('arnold', 'mailprogram')
+def sendmail(from_email, toaddr, subject, msg):
+    """ Sends mail using Djangos internal mail system """
 
     try:
-        program = Popen(mailprogram, stdin=PIPE).stdin
-    except OSError, error:
-        LOGGER.error('Error opening mailprogram: %s', error.strerror)
-        return
-
-    # Define charset and set content-transfer-encoding to
-    # quoted-printable
-    charset = email.charset.Charset('utf-8')
-    charset.header_encoding = email.charset.QP
-    charset.body_encoding = email.charset.QP
-
-    # Create message-object, fill it and set correct charset.
-    message = email.message.Message()
-    header = email.header.Header(subject, charset)
-    message['To'] = toaddr
-    message['From'] = fromaddr
-    message['Subject'] = header
-
-    message.set_charset(charset)
-    message.set_payload(msg)
-
-    # send mail
-    program.communicate(message.as_string())
+        email = EmailMessage(subject, msg, from_email=from_email, to=[toaddr])
+        email.send()
+    except (SMTPException, socket.error) as error:
+        LOGGER.error('Failed to send mail to %s: %s', toaddr, error)
 
 
 def get_host_name(ip):
