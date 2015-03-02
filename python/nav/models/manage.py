@@ -1241,6 +1241,13 @@ class Interface(models.Model):
         """Returns True if the owning Netbox is on maintenance"""
         return self.netbox.is_on_maintenance()
 
+    def has_unignored_unrecognized_neighbors(self):
+        """Returns True if this interface has unrecognized neighbors that are
+        not ignored
+        """
+        return self.unrecognizedneighbor_set.filter(
+            ignored_since__isnull=True).count > 0
+
 
 class InterfaceStack(models.Model):
     """Interface layered stacking relationships"""
