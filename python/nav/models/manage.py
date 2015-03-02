@@ -1246,7 +1246,7 @@ class Interface(models.Model):
         not ignored
         """
         return self.unrecognizedneighbor_set.filter(
-            ignored_since__isnull=True).count > 0
+            ignored_since__isnull=True).count() > 0
 
 
 class InterfaceStack(models.Model):
