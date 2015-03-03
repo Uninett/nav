@@ -69,8 +69,11 @@ class TestDuplicateHostname(TestCase):
 @patch('nav.watchdog.tests.TestNewCamAndArpRecords.get_latest')
 class TestNewCamAndArp(TestCase):
 
-    def create_mock_time(self, seconds):
-        return Mock(start_time=datetime.now() - timedelta(seconds=seconds))
+    def create_mock_time(self, seconds, endtime=None):
+        if endtime is None:
+            endtime = datetime.max
+        return Mock(start_time=datetime.now() - timedelta(seconds=seconds),
+                    end_time=endtime)
 
     def test_no_arp_or_cam_records(self, get_latest):
         get_latest.return_value = None
