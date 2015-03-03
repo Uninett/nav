@@ -17,11 +17,16 @@
 
 import collections
 import itertools
+import logging
 from datetime import datetime, timedelta
 from django.utils.timesince import timesince
+from django.db.models import Count
 
 from nav.asyncdns import reverse_lookup
 from nav.models.manage import IpdevpollJobLog, Netbox, Arp, Cam
+from nav.models.fields import INFINITY
+
+LOGGER = logging.getLogger(__name__)
 
 
 STATUS_OK = 'ok'
@@ -48,6 +53,7 @@ class Test(object):
 
     name = 'Test'
     description = 'A WatchDog test'
+    active = True
 
     def __init__(self):
         self.status = STATUS_UNKNOWN
@@ -59,7 +65,10 @@ class Test(object):
 
     def run(self):
         """Runs the test. Sets self.errors and self.status"""
+        starttime = datetime.now()
         self.errors = self._get_errors()
+        runtime = datetime.now() - starttime
+        LOGGER.debug('%s used %s', type(self).__name__, runtime)
         self.status = (STATUS_OK if len(self.errors) == 0
                        else STATUS_NOT_OK)
 
@@ -74,6 +83,7 @@ class TestOverdueJobs(Test):
 
     name = 'Job duration'
     description = 'Tests if there exists any overdue ipdevpoll jobs'
+    active = False
 
     def _get_errors(self):
         """
@@ -229,8 +239,8 @@ class TestAbnormalInterfaceCount(Test):
     def _get_errors(self):
         """Fetches netboxes with an abnormal amount of interfaces"""
         results = []
-        for netbox in Netbox.objects.all().order_by('sysname'):
-            count = netbox.interface_set.count()
+        for netbox in Netbox.objects.annotate(Count('interface')):
+            count = netbox.interface__count
             if count > self.abnormal_amount:
                 descr = "{} has {} interfaces".format(netbox.sysname, count)
                 results.append(TestResult(descr, netbox))
@@ -265,7 +275,10 @@ class TestNewCamAndArpRecords(Test):
         recently = timedelta(seconds=self.slack)
         latest_cam = self.get_latest(Cam)
         if latest_cam:
-            cam_diff = now - latest_cam.start_time
+            if latest_cam.end_time < INFINITY:
+                cam_diff = now - latest_cam.end_time
+            else:
+                cam_diff = now - latest_cam.start_time
             if cam_diff > recently:
                 descr = ('CAM records have not been collected in the last '
                          '{}').format(timesince(latest_cam.start_time))
@@ -277,7 +290,10 @@ class TestNewCamAndArpRecords(Test):
         recently = timedelta(seconds=self.slack)
         latest_arp = self.get_latest(Arp)
         if latest_arp:
-            arp_diff = now - latest_arp.start_time
+            if latest_arp.end_time < INFINITY:
+                arp_diff = now - latest_arp.end_time
+            else:
+                arp_diff = now - latest_arp.start_time
             if arp_diff > recently:
                 descr = ('ARP records have not been collected in the last '
                          '{}').format(timesince(latest_arp.start_time))
@@ -287,7 +303,7 @@ class TestNewCamAndArpRecords(Test):
     def get_latest(thing):
         """Get latest Cam or Arp record"""
         try:
-            latest = thing.objects.all().order_by('-start_time')[0]
+            latest = thing.objects.all().order_by('-pk')[0]
         except IndexError:
             return None
         else:
