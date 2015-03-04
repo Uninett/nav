@@ -14,10 +14,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Controllers for WatchDog requests"""
+import json
 from django.shortcuts import render
+from django.http import HttpResponse
 
 from nav.models.fields import INFINITY
-from nav.models.manage import Arp, Cam, Netbox, Device
+from nav.models.manage import Arp, Device
 from nav.web.utils import create_title
 from nav.watchdog.util import get_statuses
 
@@ -35,25 +37,23 @@ def render_index(request):
     return render(request, 'watchdog/base.html', context)
 
 
-def render_overview(request):
-    """Controller for rendering the overview part of WatchDog"""
-    num_active, num_ipv6, num_ipv4 = get_active_addresses()
-    context = {
-        'num_active': num_active,
-        'num_active_ipv6': num_ipv6,
-        'num_active_ipv4': num_ipv4,
-        'num_arp': Arp.objects.count(),
-        'num_cam': Cam.objects.count(),
-        'num_ip_devices': Netbox.objects.count(),
-        'num_serials': Device.objects.distinct('serial').count(),
-    }
-    return render(request, 'watchdog/frag_overview.html', context)
-
-
-def get_active_addresses():
+def get_active_addresses(_):
     """Get active addresses on the network"""
     active = Arp.objects.filter(end_time=INFINITY)
     num_active = active.count()
     num_active_ipv6 = active.extra(where=['family(ip)=6']).count()
     num_active_ipv4 = active.extra(where=['family(ip)=4']).count()
-    return num_active, num_active_ipv6, num_active_ipv4
+    # In 1.7 you can write 'JsonResponse(dict)'
+    return HttpResponse(json.dumps({
+        'active': num_active,
+        'ipv6': num_active_ipv6,
+        'ipv4': num_active_ipv4
+    }), content_type='application/json')
+
+
+def get_serial_numbers(_):
+    """Get number of distinct serial numbers in NAV"""
+    return HttpResponse(
+        json.dumps(Device.objects.distinct('serial').count()),
+        content_type='application/json'
+    )
