@@ -2,9 +2,10 @@
 {% load tools %}
 
 {% block base_header_additional_head %}
-<link rel="stylesheet" href="{{ STATIC_URL }}css/nav/alertprofiles.css" />
-<script src="{{ STATIC_URL }}js/jquery.js"></script>
-<script src="{{ STATIC_URL }}js/alertprofiles.js"></script>
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/alertprofiles.css" />
+  <script>
+   require(['src/alertprofiles']);
+  </script>
 {% endblock %}
 
 {% block base_content %}
@@ -57,20 +58,6 @@
 
       {% block tabcontent %}
       {% endblock %}
-
-
-{% comment %}
-        {% if subsection %}
-        <div class="tabs">
-            {% include "alertprofiles/subsection_tabs.html" %}
-
-            <div class="tabcontent">
-                {% block tabcontent %}
-                {% endblock %}
-            </div>
-        </div>
-        {% endif %}
-{% endcomment %}
 
     </div>
 
