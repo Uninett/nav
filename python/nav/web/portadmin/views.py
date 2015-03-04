@@ -129,7 +129,8 @@ def search_by_kwargs(request, **kwargs):
         netbox = Netbox.objects.get(**kwargs)
     except Netbox.DoesNotExist, do_not_exist_ex:
         _logger.error("Netbox %s not found; DoesNotExist = %s",
-                      sysname, do_not_exist_ex)
+                      kwargs.get('sysname') or kwargs.get('ip'),
+                      do_not_exist_ex)
         messages.error(request, 'Could not find IP device')
         return default_render(request)
     else:
