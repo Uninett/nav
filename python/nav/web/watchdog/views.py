@@ -14,13 +14,11 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Controllers for WatchDog requests"""
-import json
 from django.shortcuts import render
-from django.http import HttpResponse
 
 from nav.models.fields import INFINITY
 from nav.models.manage import Arp, Device
-from nav.web.utils import create_title
+from nav.web.utils import create_title, JsonResponse
 from nav.watchdog.util import get_statuses
 
 
@@ -43,17 +41,13 @@ def get_active_addresses(_):
     num_active = active.count()
     num_active_ipv6 = active.extra(where=['family(ip)=6']).count()
     num_active_ipv4 = active.extra(where=['family(ip)=4']).count()
-    # In 1.7 you can write 'JsonResponse(dict)'
-    return HttpResponse(json.dumps({
+    return JsonResponse({
         'active': num_active,
         'ipv6': num_active_ipv6,
         'ipv4': num_active_ipv4
-    }), content_type='application/json')
+    })
 
 
 def get_serial_numbers(_):
     """Get number of distinct serial numbers in NAV"""
-    return HttpResponse(
-        json.dumps(Device.objects.distinct('serial').count()),
-        content_type='application/json'
-    )
+    return JsonResponse(Device.objects.distinct('serial').count())
