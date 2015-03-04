@@ -328,9 +328,9 @@ def set_ifalias(account, fac, interface, request):
             try:
                 fac.set_if_alias(interface.ifindex, ifalias)
                 interface.ifalias = ifalias
-                _logger.info('%s: %s:%s - ifalias set to "%s"' % (
-                    account.login, interface.netbox.get_short_sysname(),
-                    interface.ifname, ifalias))
+                _logger.info('%s: %s:%s - ifalias set to "%s"', account.login,
+                             interface.netbox.get_short_sysname(),
+                             interface.ifname, ifalias)
             except SnmpError, error:
                 _logger.error('Error setting ifalias: %s', error)
                 messages.error(request, "Error setting ifalias: %s" % error)
@@ -354,9 +354,9 @@ def set_vlan(account, fac, interface, request):
                 fac.set_vlan(interface.ifindex, vlan)
 
             interface.vlan = vlan
-            _logger.info('%s: %s:%s - vlan set to %s' % (
-                account.login, interface.netbox.get_short_sysname(),
-                interface.ifname, vlan))
+            _logger.info('%s: %s:%s - vlan set to %s', account.login,
+                         interface.netbox.get_short_sysname(),
+                         interface.ifname, vlan)
         except (SnmpError, TypeError), error:
             _logger.error('Error setting vlan: %s', error)
             messages.error(request, "Error setting vlan: %s" % error)
@@ -555,8 +555,7 @@ def write_mem(request):
         try:
             fac.write_mem()
         except SnmpError, error:
-            _logger.error(
-                'Error doing write mem on %s: %s' % (fac.netbox, error))
+            _logger.error('Error doing write mem on %s: %s', fac.netbox, error)
 
         return HttpResponse()
 
