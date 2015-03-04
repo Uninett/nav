@@ -14,7 +14,21 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Utils for views"""
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse
+
 
 def create_title(navpath):
     """Create title from navpath (or any other array of tuples)"""
     return " - ".join([x[0] for x in navpath])
+
+
+class JsonResponse(HttpResponse):
+    """Convenience class for creating a json response
+    Made obsolete by Django 1.7
+    """
+    def __init__(self, content='', encoder=DjangoJSONEncoder, **kwargs):
+        kwargs.setdefault('content_type', 'application/json')
+        data = json.dumps(content, cls=encoder)
+        super(JsonResponse, self).__init__(data, **kwargs)
