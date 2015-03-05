@@ -11,6 +11,7 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
         stateActiveText = 'Ignore',
         stateIgnoredText = 'Unignore',
         checkbox = document.getElementById('toggle-ignored'),
+        ignoredSinceIndex = 5,    // The index of the 'Ignored since' column
         setIgnoredUrl = NAV.urls.neighbors.neighbors_set_state;
 
 
@@ -67,7 +68,7 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
 
     /** Set ignored state on neighbor by executing a request to controller */
     function setIgnored($row, $button, ignored, dataTable) {
-        var $ignoredSince = $row.find('.ignored-since');
+        var row = $row[0];
 
         $button.prop('disabled', true); // Disable button to avoid spamming for requests
         $row.find('.action-cell .alert-box').remove(); // Remove any previous error messages
@@ -80,9 +81,18 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
         // When request is done successfully
         request.done(function(response) {
             console.log('Request was successful');
-            $ignoredSince.html(response); // Set or remove ignored timestamp
-            setButtonState($button, ignored);
-            dataTable.fnDraw(); // Redraw table to hide/show new row and update counter
+            // To avoid confusion because a row instantly disappears,
+            // fade it out when not displaying all rows
+            if (ignored === true && !checkbox.checked) {
+                $row.fadeOut(function() {
+                    setButtonState($button, ignored);
+                    dataTable.fnUpdate(response, row, ignoredSinceIndex);
+                    $row.show(); // Fadeout hides the row forever. Fix that.
+                });
+            } else {
+                setButtonState($button, ignored);
+                dataTable.fnUpdate(response, row, ignoredSinceIndex);
+            }
         });
 
         // In case of error give user feedback
@@ -148,8 +158,7 @@ require(['libs/jquery', 'libs/jquery.dataTables.min'], function() {
 
     /** Set visibility on the 'ignored since' column based on checkbox state */
     function setIgnoredSinceVisibility(dataTable) {
-        var columnIndex = 5;    // The index of the 'Ignored since' column
-        dataTable.fnSetColumnVis(columnIndex, checkbox.checked);
+        dataTable.fnSetColumnVis(ignoredSinceIndex, checkbox.checked);
     }
 
 
