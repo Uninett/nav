@@ -140,20 +140,20 @@ def test_snmp_write(ip, community):
 
 def get_snmp_version(ip, community):
     """Gets the snmp version supported by a device"""
+    return (check_snmp_version(ip, community, '2c') or
+            check_snmp_version(ip, community, '1'))
+
+
+def check_snmp_version(ip, community, version):
+    """Check if version of snmp is supported by device"""
     sysobjectid = '1.3.6.1.2.1.1.2.0'
     try:
-        try:
-            snmp = Snmp(ip, community, '2c')
-            snmp.get(sysobjectid)
-            snmp_version = '2c'
-        except Exception:
-            snmp = Snmp(ip, community, '1')
-            snmp.get(sysobjectid)
-            snmp_version = '1'
+        snmp = Snmp(ip, community, version)
+        snmp.get(sysobjectid)
     except SnmpError:
         return None
     else:
-        return snmp_version
+        return version
 
 
 def get_sysname(ip_address):
