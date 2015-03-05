@@ -36,7 +36,8 @@ def index(request):
 def render_unrecognized(request):
     """Render unrecognized neighbors"""
     context = {
-        'neighbors': UnrecognizedNeighbor.objects.all(),
+        'neighbors': UnrecognizedNeighbor.objects.select_related(
+            'interface__netbox'),
         'page': 'unrecognized'
     }
 
