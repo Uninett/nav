@@ -150,7 +150,7 @@ def check_snmp_version(ip, community, version):
     try:
         snmp = Snmp(ip, community, version)
         snmp.get(sysobjectid)
-    except SnmpError:
+    except Exception:  # pylint: disable=W0703
         return None
     else:
         return version
