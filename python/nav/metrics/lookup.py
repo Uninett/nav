@@ -81,7 +81,10 @@ def _reverse_device(sysname, cpuname):
 @reverses(r'\.devices\.(?P<sysname>[^.]+)\.system\.')
 def _reverse_uptime(sysname):
     netbox = _single_like_match(Netbox, sysname=sysname)
-    return getattr(netbox, 'sysname', sysname)
+    if hasattr(netbox, 'sysname'):
+        return netbox
+    else:
+        return sysname
 
 
 @reverses(r'\.devices\.(?P<sysname>[^.]+)$')

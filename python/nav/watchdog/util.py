@@ -25,9 +25,10 @@ def get_statuses():
     # Not sure this is kosher
     test_results = []
     for cls in Test.__subclasses__():
-        test = cls()
-        test.run()
-        test_results.append(test)
+        if cls.active:
+            test = cls()
+            test.run()
+            test_results.append(test)
 
     return test_results
 

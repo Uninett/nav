@@ -71,7 +71,7 @@ def log_search(request):
             time = data.get('time')
             timemode = time[0] if time and len(time) == 2 else ''
             if timemode == 'hours':
-                hours = time[0]
+                hours = time[1]
             elif timemode == 'timestamp':
                 timestamp, slack = split_time(time[1])
 

@@ -23,7 +23,6 @@ class BoxStateHandler(delayedstate.DelayedStateHandler):
     handled_types = ('boxState',)
     WARNING_WAIT_TIME = 'boxDown.warning'
     ALERT_WAIT_TIME = 'boxDown.alert'
-    __waiting_for_resolve = {}
 
     def _is_internally_down(self):
         netbox = self.get_target()

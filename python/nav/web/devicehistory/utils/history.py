@@ -51,10 +51,10 @@ GROUPINGS = {
     'datetime': DATE_GROUPING,
 }
 
-def get_selected_types(type):
+def get_selected_types(selected_type):
     selected_types = {'event': None, 'alert': None}
-    if type and type.find('_') != -1:
-        kind, name = type.split('_')
+    if selected_type and selected_type.find('_') != -1:
+        kind, name = selected_type.split('_', 1)
         kind = 'event' if kind == 'e' else 'alert'
         selected_types[kind] = name
     return selected_types

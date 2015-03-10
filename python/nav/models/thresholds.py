@@ -25,9 +25,15 @@ from nav.metrics.thresholds import ThresholdEvaluator, DEFAULT_INTERVAL
 
 class ThresholdRule(models.Model):
     """A threshold rule"""
+
+    alert_help_text = """
+    Examples: >20, <10. Percent (>20%) can only be used on interface octet
+    counters.
+    """
+
     id = models.AutoField(primary_key=True)
     target = VarcharField()
-    alert = VarcharField(help_text='Examples: >95%, >20, <10')
+    alert = VarcharField(help_text=alert_help_text)
     clear = VarcharField(
         null=True, blank=True,
         help_text='The threshold for cancelling an alert. '
