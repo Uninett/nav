@@ -338,7 +338,7 @@ select[multiple] {
 
 /* Tooltip related stylings */
 .tooltip > p {
-    font-size: initial;
+    font-size: inherit;
 }
 
 [data-tooltip] {
