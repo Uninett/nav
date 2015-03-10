@@ -334,3 +334,13 @@ select[multiple] {
 .graph-toggler {
     cursor: pointer;
 }
+
+
+/* Tooltip related stylings */
+.tooltip > p {
+    font-size: initial;
+}
+
+[data-tooltip] {
+    cursor: help;
+}
