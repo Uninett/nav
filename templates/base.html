@@ -45,82 +45,82 @@
 
 {% comment %} TOP BAR {% endcomment %}
 <nav class="top-bar" data-topbar data-options="is_hover: false">
-    <ul class="title-area">
-        <li class="name">
-          <h1>
-            <a href="/" title="Network Administration Visualized">
-              <img class="nav-logo" src="{{ STATIC_URL }}images/main/nav-logo.svg" alt="NAV">
-            </a>
-          </h1>
-        </li>
-        <li class="toggle-topbar menu-icon">
-            <a href="#"><span>Menu</span></a>
-        </li>
+  <ul class="title-area">
+    <li class="name">
+      <h1>
+        <a href="/" title="Network Administration Visualized">
+          <img class="nav-logo" src="{{ STATIC_URL }}images/main/nav-logo.svg" alt="NAV">
+        </a>
+      </h1>
+    </li>
+    <li class="toggle-topbar menu-icon">
+      <a href="#"><span>Menu</span></a>
+    </li>
+  </ul>
+
+
+  <section class="top-bar-section">
+    <ul class="left">
+      <li class="has-form search">
+        <form id="navbar-search-form" action="{% url info-search %}" method="get">
+          <div class="row collapse">
+            <div class="small-8 columns">
+              <input id="query" type="text" name="query" maxlength="100"/>
+            </div>
+            <div class="small-4 columns">
+              <input class="button secondary" type="submit" value="Search" />
+            </div>
+          </div>
+        </form>
+      </li>
     </ul>
 
-
-    <section class="top-bar-section">
-        <ul class="left">
-            <li class="has-form search">
-                <form id="navbar-search-form" action="{% url info-search %}" method="get">
-                    <div class="row collapse">
-                        <div class="small-8 columns">
-                            <input id="query" type="text" name="query" maxlength="100"/>
-                        </div>
-                        <div class="small-4 columns">
-                            <input class="button secondary" type="submit" value="Search" />
-                        </div>
-                    </div>
-                </form>
+    <ul class="right">
+      {% comment %} This dropdown only visible on small screens {% endcomment %}
+      <li class="has-dropdown hide-for-medium-up">
+        <a href="{% url webfront-toolbox %}">
+          Tools
+        </a>
+        <ul id="toolboxdropdown" class="dropdown">
+          {% for tool in current_user_data.tools %}
+            <li>
+              <a href="{{ tool.uri }}">
+                <img src="{{ tool.icon }}" alt="{{ tool.name }}">
+                {{ tool.name }}
+              </a>
             </li>
+          {% endfor %}
+
         </ul>
+      </li>
 
-        <ul class="right">
-            {% comment %} This dropdown only visible on small screens {% endcomment %}
-            <li class="has-dropdown hide-for-medium-up">
-                <a href="{% url webfront-toolbox %}">
-                    Tools
-                </a>
-                <ul id="toolboxdropdown" class="dropdown">
-                    {% for tool in current_user_data.tools %}
-                        <li>
-                            <a href="{{ tool.uri }}">
-                                <img src="{{ tool.icon }}" alt="{{ tool.name }}">
-                                {{ tool.name }}
-                            </a>
-                        </li>
-                    {% endfor %}
+      <li class="hide-for-small text-center"><a id="megadroptoggler" href="javascript:void(0);">Tools <i class="fa fa-caret-down"></i></a></li>
 
-                </ul>
-            </li>
+      {% if not current_user_data.account.is_default_account %}
+        <li class="has-dropdown">
+          <a href="javascript:void(0);">
+            My stuff
+          </a>
+          <ul class="dropdown">
+            {% for link in current_user_data.my_links %}
+              <li><a href="{{ link.uri }}">{{ link.name }}</a></li>
+            {% endfor %}
+            <li class="divider"><a href="{% url webfront-preferences %}">My account <i class="fa fa-gear"></i></a></li>
+          </ul>
+        </li>
+      {% endif %}
 
-            <li class="hide-for-small text-center"><a id="megadroptoggler" href="javascript:void(0);">Tools <i class="fa fa-caret-down"></i></a></li>
-
-            {% if not current_user_data.account.is_default_account %}
-                <li class="has-dropdown">
-                    <a href="javascript:void(0);">
-                        My stuff
-                    </a>
-                    <ul class="dropdown">
-                        {% for link in current_user_data.my_links %}
-                            <li><a href="{{ link.uri }}">{{ link.name }}</a></li>
-                        {% endfor %}
-                        <li class="divider"><a href="{% url webfront-preferences %}">My account <i class="fa fa-gear"></i></a></li>
-                    </ul>
-                </li>
-            {% endif %}
-
-            {% if current_user_data.account.is_default_account %}
-                <li>
-                    <a class="navbar login button secondary" href="/index/login">Login</a>
-                </li>
-            {% else %}
-                <li>
-                    <a class="navbar logout button secondary" href="/index/logout">Logout {{ current_user_data.account.login }}</a>
-                </li>
-            {% endif %}
-        </ul>
-    </section>
+      {% if current_user_data.account.is_default_account %}
+        <li>
+          <a class="navbar login button secondary" href="/index/login">Login</a>
+        </li>
+      {% else %}
+        <li>
+          <a class="navbar logout button secondary" href="/index/logout">Logout {{ current_user_data.account.login }}</a>
+        </li>
+      {% endif %}
+    </ul>
+  </section>
 </nav>
 
   {% comment %}
