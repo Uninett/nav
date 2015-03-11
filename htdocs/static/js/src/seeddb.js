@@ -243,7 +243,7 @@ require([
         var size = new OpenLayers.Size(21,25);
         var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
         var icon = new OpenLayers.Icon(
-            'http://www.openlayers.org/dev/img/marker.png', size, offset);
+            NAV.imagePath + '/openlayers/marker-green.png', size, offset);
         var marker = new OpenLayers.Marker(lonlat, icon);
         layer.addMarker(marker);
         return marker;
