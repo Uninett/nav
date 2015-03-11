@@ -52,6 +52,13 @@
     h5 { margin-top: 1.3em; }
 }
 
+#toolboxdropdown {
+    img {
+        height: 48px;
+        width: 48px;
+    }
+}
+
 /* Dashboard control center */
 #widgets-action-add {
     background-color: $topbar-bg-color;
