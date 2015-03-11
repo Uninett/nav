@@ -19,7 +19,8 @@
         "Handlebars",
         "Spinner",
         "NAV",
-        "FixedColumns"
+        "FixedColumns",
+        "Modernizr"
     ],
     "browser":  true,
     "devel":    true,
