@@ -154,7 +154,8 @@ class DelayedStateHandler(EventHandler):
         :returns: A plugin instance, if one is waiting, otherwise False.
 
         """
-        return self.__waiting_for_resolve.get(self.get_target(), False)
+        return self.__waiting_for_resolve.get((type(self), self.get_target()),
+                                              False)
 
     def _make_down_warning(self):
         """Posts the initial boxDownWarning alert and schedules the callback
@@ -185,7 +186,7 @@ class DelayedStateHandler(EventHandler):
             else:
                 alert.post()
 
-        del self.__waiting_for_resolve[self.get_target()]
+        del self.__waiting_for_resolve[(type(self), self.get_target())]
         self.task = None
         self.event.delete()
 
@@ -209,7 +210,7 @@ class DelayedStateHandler(EventHandler):
     def schedule(self, delay, action):
         "Schedules a callback and makes a note of it in a class variable"
         self.task = self.engine.schedule(delay, action)
-        self.__waiting_for_resolve[self.get_target()] = self
+        self.__waiting_for_resolve[(type(self), self.get_target())] = self
 
     def deschedule(self):
         """Deschedules any outstanding task and deletes the associated event"""
@@ -218,5 +219,5 @@ class DelayedStateHandler(EventHandler):
         self.engine.cancel(self.task)
         self.task = None
         if self._get_waiting() == self:
-            del self.__waiting_for_resolve[self.get_target()]
+            del self.__waiting_for_resolve[(type(self), self.get_target())]
         self.event.delete()

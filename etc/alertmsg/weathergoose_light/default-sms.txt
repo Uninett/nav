@@ -1,0 +1,5 @@
+{% if event.state == event.STATE_START %}
+{{ goosename }}: light threshold clear - {{ climatevalue }}
+{% else %}
+{{ goosename }}: light threshold exceeded - {{ climatevalue }}
+{% endif %}

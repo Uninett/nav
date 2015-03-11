@@ -1,4 +1,0 @@
-Subject: Weathergoose {{ goosename }}: light threshold exceeded
-
-Threshold: {{ triptype }}
-{{ climatedescr }}: {{ climatevalue }}

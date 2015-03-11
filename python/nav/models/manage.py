@@ -88,7 +88,7 @@ class Netbox(models.Model):
     data = hstore.DictionaryField()
     objects = hstore.HStoreManager()
 
-    class Meta:
+    class Meta(object):
         db_table = 'netbox'
         verbose_name = 'ip device'
         verbose_name_plural = 'ip devices'
@@ -332,6 +332,11 @@ class Netbox(models.Model):
 
         return result
 
+    def has_unignored_unrecognized_neighbors(self):
+        """Returns true if this netbox has unignored unrecognized neighbors"""
+        return self.unrecognizedneighbor_set.filter(
+            ignored_since=None).count() > 0
+
 
 class NetboxInfo(models.Model):
     """From NAV Wiki: The netboxinfo table is the place
@@ -344,7 +349,7 @@ class NetboxInfo(models.Model):
     variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 
-    class Meta:
+    class Meta(object):
         db_table = 'netboxinfo'
         unique_together = (('netbox', 'key', 'variable', 'value'),)
 
@@ -433,14 +438,14 @@ class NetboxPrefix(models.Model):
     prefix = models.ForeignKey('Prefix', db_column='prefixid',
                                related_name='netbox_set')
 
-    class Meta:
+    class Meta(object):
         db_table = 'netboxprefix'
         unique_together = (('netbox', 'prefix'),)
 
     def __unicode__(self):
         return u'%s at %s' % (self.netbox.sysname, self.prefix.net_address)
 
-    def save(self, *args, **kwargs):
+    def save(self, *_args, **_kwargs):
         """Does nothing, since this models a database view."""
         raise Exception("Cannot save to a view.")
 
@@ -458,7 +463,7 @@ class Device(models.Model):
     software_version = VarcharField(db_column='sw_ver', null=True)
     discovered = models.DateTimeField(default=dt.datetime.now)
 
-    class Meta:
+    class Meta(object):
         db_table = 'device'
 
     def __unicode__(self):
@@ -488,7 +493,7 @@ class Module(models.Model):
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
     down_since = models.DateTimeField(db_column='downsince')
 
-    class Meta:
+    class Meta(object):
         db_table = 'module'
         verbose_name = 'module'
         ordering = ('netbox', 'module_number', 'name')
@@ -553,7 +558,7 @@ class Memory(models.Model):
     size = models.IntegerField()
     used = models.IntegerField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'mem'
         unique_together = (('netbox', 'type', 'device'),)
 
@@ -577,7 +582,7 @@ class Room(models.Model):
 
     objects = hstore.HStoreManager()
 
-    class Meta:
+    class Meta(object):
         db_table = 'room'
         verbose_name = 'room'
         ordering = ('id',)
@@ -596,7 +601,7 @@ class Location(models.Model):
     data = hstore.DictionaryField()
     objects = hstore.HStoreManager()
 
-    class Meta:
+    class Meta(object):
         db_table = 'location'
         verbose_name = 'location'
 
@@ -617,7 +622,7 @@ class Organization(models.Model):
 
     objects = hstore.HStoreManager()
 
-    class Meta:
+    class Meta(object):
         db_table = 'org'
         verbose_name = 'organization'
         ordering = ['id']
@@ -639,7 +644,7 @@ class Category(models.Model):
     description = VarcharField(db_column='descr')
     req_snmp = models.BooleanField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'cat'
         verbose_name = 'category'
         verbose_name_plural = 'categories'
@@ -686,7 +691,7 @@ class NetboxGroup(models.Model):
     id = VarcharField(db_column='netboxgroupid', primary_key=True)
     description = VarcharField(db_column='descr')
 
-    class Meta:
+    class Meta(object):
         db_table = 'netboxgroup'
         ordering = ('id',)
         verbose_name = 'device group'
@@ -708,7 +713,7 @@ class NetboxCategory(models.Model):
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     category = models.ForeignKey('NetboxGroup', db_column='category')
 
-    class Meta:
+    class Meta(object):
         db_table = 'netboxcategory'
         unique_together = (('netbox', 'category'),)  # Primary key
 
@@ -726,7 +731,7 @@ class NetboxType(models.Model):
     sysobjectid = VarcharField(unique=True)
     description = VarcharField(db_column='descr')
 
-    class Meta:
+    class Meta(object):
         db_table = 'type'
         unique_together = (('vendor', 'name'),)
 
@@ -759,7 +764,7 @@ class Vendor(models.Model):
     id = models.CharField(db_column='vendorid', max_length=15,
                           primary_key=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'vendor'
         ordering = ('id', )
 
@@ -780,7 +785,7 @@ class GwPortPrefix(models.Model):
     gw_ip = models.IPAddressField(db_column='gwip', primary_key=True)
     virtual = models.BooleanField(default=False)
 
-    class Meta:
+    class Meta(object):
         db_table = 'gwportprefix'
 
     def __unicode__(self):
@@ -810,7 +815,7 @@ class Prefix(models.Model):
     net_address = CIDRField(db_column='netaddr', unique=True)
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
 
-    class Meta:
+    class Meta(object):
         db_table = 'prefix'
 
     def __unicode__(self):
@@ -853,7 +858,7 @@ class Vlan(models.Model):
     net_ident = VarcharField(db_column='netident', null=True, blank=True)
     description = VarcharField(null=True, blank=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'vlan'
 
     def __unicode__(self):
@@ -876,7 +881,7 @@ class NetType(models.Model):
     description = VarcharField(db_column='descr')
     edit = models.BooleanField(default=False)
 
-    class Meta:
+    class Meta(object):
         db_table = 'nettype'
 
     def __unicode__(self):
@@ -890,7 +895,7 @@ class Usage(models.Model):
     id = models.CharField(db_column='usageid', max_length=30, primary_key=True)
     description = VarcharField(db_column='descr')
 
-    class Meta:
+    class Meta(object):
         db_table = 'usage'
         verbose_name = 'usage'
 
@@ -912,7 +917,7 @@ class Arp(models.Model):
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = DateTimeInfinityField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'arp'
 
     def __unicode__(self):
@@ -944,7 +949,7 @@ class SwPortVlan(models.Model):
     direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES,
         default=DIRECTION_UNDEFINED)
 
-    class Meta:
+    class Meta(object):
         db_table = 'swportvlan'
         unique_together = (('interface', 'vlan'),)
 
@@ -963,7 +968,7 @@ class SwPortAllowedVlan(models.Model):
     _cached_hex_string = ''
     _cached_vlan_set = None
 
-    class Meta:
+    class Meta(object):
         db_table = 'swportallowedvlan'
 
     def __contains__(self, item):
@@ -1001,7 +1006,7 @@ class SwPortBlocked(models.Model):
     interface = models.ForeignKey('Interface', db_column='interfaceid')
     vlan = models.IntegerField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'swportblocked'
         unique_together = (('interface', 'vlan'),)  # Primary key
 
@@ -1028,7 +1033,7 @@ class AdjacencyCandidate(models.Model):
     source = VarcharField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
 
-    class Meta:
+    class Meta(object):
         db_table = 'adjacency_candidate'
         unique_together = (('netbox', 'interface', 'to_netbox', 'source'),)
 
@@ -1050,7 +1055,7 @@ class NetboxVtpVlan(models.Model):
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     vtp_vlan = models.IntegerField(db_column='vtpvlan')
 
-    class Meta:
+    class Meta(object):
         db_table = 'netbox_vtpvlan'
         unique_together = (('netbox', 'vtp_vlan'),)
 
@@ -1074,7 +1079,7 @@ class Cam(models.Model):
     # TODO: Create MACAddressField in Django
     mac = models.CharField(max_length=17)
 
-    class Meta:
+    class Meta(object):
         db_table = 'cam'
         unique_together = (('netbox', 'sysname', 'module', 'port',
                             'mac', 'start_time'),)
@@ -1153,7 +1158,7 @@ class Interface(models.Model):
 
     gone_since = models.DateTimeField()
 
-    class Meta:
+    class Meta(object):
         db_table = u'interface'
         ordering = ('baseport', 'ifname')
 
@@ -1309,6 +1314,13 @@ class Interface(models.Model):
         """Returns True if the owning Netbox is on maintenance"""
         return self.netbox.is_on_maintenance()
 
+    def has_unignored_unrecognized_neighbors(self):
+        """Returns True if this interface has unrecognized neighbors that are
+        not ignored
+        """
+        return self.unrecognizedneighbor_set.filter(
+            ignored_since__isnull=True).count() > 0
+
 
 class InterfaceStack(models.Model):
     """Interface layered stacking relationships"""
@@ -1317,7 +1329,7 @@ class InterfaceStack(models.Model):
     lower = models.ForeignKey(Interface, db_column='lower',
                               related_name='lower_layer')
 
-    class Meta:
+    class Meta(object):
         db_table = u'interface_stack'
 
 
@@ -1327,7 +1339,7 @@ class IanaIftype(models.Model):
     name = VarcharField()
     descr = VarcharField()
 
-    class Meta:
+    class Meta(object):
         db_table = u'iana_iftype'
 
 
@@ -1338,7 +1350,7 @@ class RoutingProtocolAttribute(models.Model):
     name = VarcharField(db_column='protoname')
     metric = models.IntegerField()
 
-    class Meta:
+    class Meta(object):
         db_table = u'rproto_attr'
 
 
@@ -1431,7 +1443,7 @@ class Sensor(models.Model):
     internal_name = VarcharField(db_column="internal_name")
     mib = VarcharField(db_column="mib")
 
-    class Meta:
+    class Meta(object):
         db_table = 'sensor'
 
     def get_metric_name(self):
@@ -1466,7 +1478,7 @@ class PowerSupplyOrFan(models.Model):
     sensor_oid = VarcharField(db_column='sensor_oid', null=True)
     up = VarcharField(db_column='up', choices=STATE_CHOICES)
 
-    class Meta:
+    class Meta(object):
         db_table = 'powersupply_or_fan'
 
     def get_unresolved_alerts(self):
@@ -1499,9 +1511,11 @@ class UnrecognizedNeighbor(models.Model):
     remote_name = VarcharField()
     source = VarcharField()
     since = models.DateTimeField(auto_now_add=True)
+    ignored_since = models.DateTimeField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'unrecognized_neighbor'
+        ordering = ('remote_id',)
 
     def __unicode__(self):
         return u'%s:%s %s neighbor %s (%s)' % (
@@ -1520,7 +1534,7 @@ class IpdevpollJobLog(models.Model):
     success = models.BooleanField(default=False, null=False)
     interval = models.IntegerField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'ipdevpoll_job_log'
 
     def __unicode__(self):
@@ -1570,5 +1584,5 @@ class Netbios(models.Model):
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = DateTimeInfinityField(default=datetime.datetime.max)
 
-    class Meta:
+    class Meta(object):
         db_table = 'netbios'

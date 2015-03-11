@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load tools %}
+
+{% block base_header_additional_head %}
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/neighbors.css">
+  <script>
+   require(['src/neighbors']);
+   NAV.urls.neighbors = {
+       'neighbors_set_state': '{% url neighbors-set-state %}'
+   }
+  </script>
+{% endblock %}
+
+
+{% block base_content %}
+
+  {# Heading #}
+  <div class="row">
+    <div class="small-12 columns">
+      {% with tool=current_user_data.tools|get_tool:'Unrecognized Neighbors' %}
+        {% include 'nav_header.html' %}
+      {% endwith %}
+    </div>
+  </div>
+
+  <label style="display: inline">
+    <input id="toggle-ignored" type="checkbox">
+    Show ignored neighbors
+  </label>
+
+  {# Unrecognized neighbors #}
+  <table id="unrecognized-neighbors-table" class="listtable">
+    <thead>
+      <tr>
+        <th>Remote ID</th>
+        <th>Remote Name</th>
+        <th>Seen on interface</th>
+        <th>Source</th>
+        <th>Since</th>
+        <th>
+          Ignored since
+        </th>
+        <th>&nbsp;</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% include 'neighbors/frag-tbody.html' %}
+    </tbody>
+  </table>
+{% endblock %}

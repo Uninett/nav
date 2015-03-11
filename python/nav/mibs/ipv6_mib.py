@@ -83,7 +83,7 @@ class Ipv6Mib(mibretriever.MibRetriever):
             ipv6_address = row_index[1:]
             ip = Ipv6Mib.ipv6address_to_ip(ipv6_address)
             mac = binary_mac_to_hex(phys_address)
-            
+
             row = (ifindex, ip, mac)
             mappings.add(row)
         self._logger.debug("ip/mac pairs: Got %d rows from %s",
@@ -114,7 +114,7 @@ class Ipv6Mib(mibretriever.MibRetriever):
             ip = Ipv6Mib.ipv6address_to_ip(ipv6_address)
 
             prefix = ip.make_net(prefixlen)
-            
+
             row = (ifindex, ip, prefix)
             addresses.add(row)
         self._logger.debug("interface addresses: Got %d rows from %s",

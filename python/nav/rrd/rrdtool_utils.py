@@ -72,7 +72,7 @@ class ErrorRunningRRDToolException(Exception):
         return "Error running rrdtool: %s" % self.errormessage
 
 
-def main(options, args):
+def main(options, _args):
     """
     Handle the options.
     """
@@ -99,7 +99,7 @@ def main(options, args):
 
 
 def rrd_info(rrd_file, raw=False):
-    """ 
+    """
     Intended use is from shell. If you want the whole dict returned by
     rrdtool.info, set raw to true.
     """
@@ -110,7 +110,7 @@ def rrd_info(rrd_file, raw=False):
 
     if not file_info.has_key('ds'):
         #=======================================================================
-        # In version 1.3 the output from info is totally different. We just 
+        # In version 1.3 the output from info is totally different. We just
         # print a key/value output.
         #=======================================================================
         for key in sorted(file_info.keys()):
@@ -346,7 +346,7 @@ def remove_datasource(xml_file, datasource_value):
 
 def find_number_of_datasources(xmlfile):
     """
-    Count the number of datasource nodes in the xmlfile.  
+    Count the number of datasource nodes in the xmlfile.
     """
     number_of_datasources = 0
     for node in xmlfile.documentElement.childNodes:

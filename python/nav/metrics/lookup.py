@@ -59,14 +59,32 @@ def reverses(pattern):
 
 @reverses(r'\.devices\.(?P<sysname>[^.]+)\.ports\.(?P<ifname>[^\.]+)')
 def _reverse_interface(sysname, ifname):
-    return _single_like_match(Interface, related=['netbox'],
-                              sysname=sysname, ifname=ifname)
+    return (_single_like_match(Interface, related=['netbox'],
+                               sysname=sysname, ifname=ifname) or
+            _single_like_match(Interface, related=['netbox'],
+                               sysname=sysname, ifdescr=ifname))
 
 
 @reverses(r'\.devices\.(?P<sysname>[^.]+)\.sensors\.(?P<name>[^\.]+)')
 def _reverse_sensor(sysname, name):
     return _single_like_match(Sensor, related=['netbox'],
                               sysname=sysname, internal_name=name)
+
+
+@reverses(r'\.devices\.(?P<sysname>[^.]+)\.cpu\.(?P<cpuname>[^.]+)')
+def _reverse_device(sysname, cpuname):
+    netbox = _single_like_match(Netbox, sysname=sysname)
+    sysname = getattr(netbox, 'sysname', sysname)
+    return "%s: %s" % (sysname, cpuname)
+
+
+@reverses(r'\.devices\.(?P<sysname>[^.]+)\.system\.')
+def _reverse_uptime(sysname):
+    netbox = _single_like_match(Netbox, sysname=sysname)
+    if hasattr(netbox, 'sysname'):
+        return netbox
+    else:
+        return sysname
 
 
 @reverses(r'\.devices\.(?P<sysname>[^.]+)$')

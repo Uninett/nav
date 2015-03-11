@@ -15,7 +15,7 @@
 #
 """Domain Controller service checker"""
 
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 from nav.util import which
 import os
@@ -31,12 +31,11 @@ class DcChecker(AbstractChecker):
     )
 
     def execute(self):
-        args = self.getArgs()
-        username = args.get('username', '')
+        username = self.args.get('username', '')
         if not username:
             return Event.DOWN, "Missing required argument: username"
 
-        ip, _port = self.getAddress()
+        ip, _port = self.get_address()
 
         cmd = 'rpcclient'
         cmdpath = which(cmd)
@@ -52,7 +51,7 @@ class DcChecker(AbstractChecker):
                                      ip],
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
-            
+
             proc.wait()
         except OSError, msg:
             return Event.DOWN, 'could not run rpcclient: %s' % msg

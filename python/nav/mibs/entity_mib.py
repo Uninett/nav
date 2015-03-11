@@ -30,7 +30,7 @@ class EntityMib(mibretriever.MibRetriever):
         """Retrieves a list of alternate bridge mib instances.
 
         This is accomplished by looking at entLogicalTable.  Returns a
-        deferred whose result value is a list of tuples:: 
+        deferred whose result value is a list of tuples::
 
           (entity_description, community)
 
@@ -152,7 +152,7 @@ class EntityTable(dict):
 
     def get_chassis(self):
         """Return the subset of entities that are chassis.
-        
+
         There will normally be only one chassis in a system, unless
         there is some sort of stcking involved.
 

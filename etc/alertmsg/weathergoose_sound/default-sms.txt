@@ -1,0 +1,5 @@
+{% if event.state == event.STATE_START %}
+{{ goosename }}: sound threshold exceeded - {{ climatevalue }}
+{% else %}
+{{ goosename }}: sound threshold clear - {{ climatevalue }}
+{% endif %}

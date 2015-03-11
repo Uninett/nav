@@ -147,12 +147,12 @@ class NAVDBQueue(object):
         db = dbconn.cursor()
 
         data = dict(sent=sent)
-        sql = """SELECT smsq.id as smsqid, name, msg, time 
-            FROM smsq 
-            JOIN account ON (account.id = smsq.accountid) 
+        sql = """SELECT smsq.id as smsqid, name, msg, time
+            FROM smsq
+            JOIN account ON (account.id = smsq.accountid)
             WHERE sent = %(sent)s ORDER BY time ASC"""
         db.execute(sql, data)
-        
+
         result = []
         for (smsqid, name, msg, time) in db.fetchall():
             result.append(dict(id=smsqid, name=name, msg=msg,

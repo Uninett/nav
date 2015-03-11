@@ -31,7 +31,7 @@ class LoggerCategory(models.Model):
     def __unicode__(self):
         return self.category
 
-    class Meta:
+    class Meta(object):
         db_table = '"logger"."category"'
 
 
@@ -46,7 +46,7 @@ class Origin(models.Model):
     def __unicode__(self):
         return self.name
 
-    class Meta:
+    class Meta(object):
         db_table = '"logger"."origin"'
 
 
@@ -61,7 +61,7 @@ class Priority(models.Model):
     def __unicode__(self):
         return self.keyword
 
-    class Meta:
+    class Meta(object):
         db_table = '"logger"."priority"'
 
 
@@ -81,7 +81,7 @@ class LogMessageType(models.Model):
             self.mnemonic
         ).upper()
 
-    class Meta:
+    class Meta(object):
         db_table = '"logger"."log_message_type"'
         unique_together = (('priority', 'facility', 'mnemonic'),)
 
@@ -97,7 +97,7 @@ class LogMessage(models.Model):
     type = models.ForeignKey(LogMessageType, db_column='type')
     message = VarcharField(db_column='message')
 
-    class Meta:
+    class Meta(object):
         db_table = '"logger"."log_message"'
 
 
@@ -108,7 +108,7 @@ class ErrorError(models.Model):
     id = models.AutoField(db_column='id', primary_key=True)
     message = VarcharField(db_column='message')
 
-    class Meta:
+    class Meta(object):
         db_table = '"logger"."errorerror"'
 
 
@@ -125,7 +125,7 @@ class MessageView(models.Model):
     category = models.ForeignKey(LoggerCategory, db_column='category')
     time = models.DateTimeField(db_column='time')
 
-    class Meta:
+    class Meta(object):
         db_table = '"logger"."message_view"'
         # Models for database-views must set this option.
         managed = False

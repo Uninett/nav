@@ -16,7 +16,7 @@
 """Dummy service checker: It will always report a success status"""
 
 from nav.daemon import safesleep as sleep
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 
 

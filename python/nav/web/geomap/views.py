@@ -91,7 +91,7 @@ def geomap(request, variant):
     if variant not in config['variants']:
         raise Http404
     room_points = geomap_all_room_pos()
-    logger.debug('geomap: room_points = %s' % room_points)
+    logger.debug('geomap: room_points = %s', room_points)
     variant_config = config['variants'][variant]
 
     context = {
@@ -135,6 +135,9 @@ def data(request, variant):
     connection.set_isolation_level(1)
     db = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
+    truthy = ['True', 'true', True]
+    do_create_edges = request.GET.get('create_edges', True) in truthy
+    do_fetch_data = request.GET.get('fetch_data', True) in truthy
     format_ = request.GET['format']
     if 'bbox' in request.GET:
         bbox = request.GET['bbox']
@@ -156,14 +159,15 @@ def data(request, variant):
         time_interval = None
 
     data = get_formatted_data(variant, db, format_, bounds, viewport_size,
-                              limit, time_interval)
+                              limit, time_interval, do_create_edges,
+                              do_fetch_data)
     response = HttpResponse(data)
     response['Content-Type'] = format_mime_type(format_)
     return response
 
 
 def get_formatted_data(variant, db, format_, bounds, viewport_size, limit,
-                       time_interval):
+                       time_interval, do_create_edges, do_fetch_data):
     """Get formatted output for given conditions.
 
     variant -- name of the map variant to create data for (variants
@@ -194,18 +198,21 @@ def get_formatted_data(variant, db, format_, bounds, viewport_size, limit,
     graph = build_graph(data)
     logger.debug('simplify')
     simplify(graph, bounds, viewport_size, limit)
-    logger.debug('_attach_traffic_load')
-    _attach_traffic_load(graph, time_interval)
-    logger.debug('_attach_cpu_load')
-    _attach_cpu_load(graph, time_interval)
+    if do_fetch_data:
+        logger.debug('_attach_cpu_load')
+        _attach_cpu_load(graph, time_interval)
+        if do_create_edges:
+            logger.debug('_attach_traffic_load')
+            _attach_traffic_load(graph, time_interval)
     logger.debug('create_features')
-    features = create_features(variant, graph)
+    features = create_features(variant, graph, do_create_edges)
     logger.debug('format')
     output = format_data(format_, features)
     return output
 
 
-def _attach_traffic_load(graph, time_interval={'start': '-10min', 'end': 'now'}):
+def _attach_traffic_load(graph,
+                         time_interval={'start': '-10min', 'end': 'now'}):
     """
     Inspects a topology graph and adds the required traffic-load
     data to it.

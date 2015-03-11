@@ -25,13 +25,11 @@ import os
 import ConfigParser
 import logging
 import socket
-import email.message
-import email.header
-import email.charset
 from datetime import datetime, timedelta
 from IPy import IP
 from subprocess import Popen, PIPE
 from collections import namedtuple
+from smtplib import SMTPException
 
 import nav.Snmp
 import nav.bitvector
@@ -42,6 +40,7 @@ from nav.models.arnold import Identity, Event
 from nav.models.manage import Interface, Prefix
 from nav.portadmin.snmputils import SNMPFactory
 from django.db import connection  # import this after any django models
+from django.core.mail import EmailMessage
 from nav.util import is_valid_ip
 
 CONFIGFILE = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
@@ -231,7 +230,7 @@ def find_input_type(ip_or_mac):
         input_type = "IP"
     elif re.match("^[A-Fa-f0-9]{12}$", mac):
         input_type = "MAC"
-    elif re.match("^\d+$", ip_or_mac):
+    elif re.match(r"^\d+$", ip_or_mac):
         input_type = "SWPORTID"
 
     return input_type
@@ -269,8 +268,8 @@ def find_computer_info(ip_or_mac, trunk_ok=False):
 
 def disable(candidate, justification, username, comment="", autoenablestep=0):
     """Disable a target by blocking the port"""
-    LOGGER.info('Disabling %s - %s on interface %s' % (
-                candidate.ip, candidate.mac, candidate.interface))
+    LOGGER.info('Disabling %s - %s on interface %s',
+                candidate.ip, candidate.mac, candidate.interface)
 
     if not candidate.interface.netbox.read_write:
         raise NoReadWriteCommunityError(candidate.interface.netbox)
@@ -280,15 +279,15 @@ def disable(candidate, justification, username, comment="", autoenablestep=0):
     update_identity(identity, justification, autoenablestep)
     create_event(identity, comment, username)
 
-    LOGGER.info("Successfully %s %s (%s)" % (
-                identity.status, identity.ip, identity.mac))
+    LOGGER.info("Successfully %s %s (%s)",
+                identity.status, identity.ip, identity.mac)
 
 
 def quarantine(candidate, qvlan, justification, username, comment="",
                autoenablestep=0):
     """Quarantine a target bu changing vlan on port"""
-    LOGGER.info('Quarantining %s - %s on interface %s' % (
-        candidate.ip, candidate.mac, candidate.interface))
+    LOGGER.info('Quarantining %s - %s on interface %s',
+                candidate.ip, candidate.mac, candidate.interface)
 
     if not candidate.interface.netbox.read_write:
         raise NoReadWriteCommunityError(candidate.interface.netbox)
@@ -299,8 +298,8 @@ def quarantine(candidate, qvlan, justification, username, comment="",
     update_identity(identity, justification, autoenablestep)
     create_event(identity, comment, username)
 
-    LOGGER.info("Successfully %s %s (%s)" % (
-                identity.status, identity.ip, identity.mac))
+    LOGGER.info("Successfully %s %s (%s)",
+                identity.status, identity.ip, identity.mac)
 
 
 def check_target(target, trunk_ok=False):
@@ -362,7 +361,7 @@ def raise_if_detainment_not_allowed(interface, trunk_ok=False):
                   for x in str(config.get('arnold', 'allowtypes')).split(',')]
 
     if netbox.category.id not in allowtypes:
-        LOGGER.info("Not allowed to detain on %s" % (netbox.category.id))
+        LOGGER.info("Not allowed to detain on %s", netbox.category.id)
         raise WrongCatidError(netbox.category)
 
     if not trunk_ok and interface.trunk:
@@ -386,8 +385,8 @@ def open_port(identity, username, eventcomment=""):
     except Interface.DoesNotExist:
         LOGGER.info("Interface did not exist, enabling in database only")
     else:
-        LOGGER.info("Trying to lift detention for %s on %s" % (
-            identity.mac, identity.interface))
+        LOGGER.info("Trying to lift detention for %s on %s",
+                    identity.mac, identity.interface)
         if identity.status == 'disabled':
             change_port_status('enable', identity)
         elif identity.status == 'quarantined':
@@ -429,16 +428,14 @@ def change_port_status(action, identity):
     try:
         if action == 'disable':
             agent.set(query, 'i', 2)
-            LOGGER.info('Setting ifadminstatus down on interface %s' % (
-                identity.interface
-            ))
+            LOGGER.info('Setting ifadminstatus down on interface %s',
+                        identity.interface)
         elif action == 'enable':
             agent.set(query, 'i', 1)
-            LOGGER.info('Setting ifadminstatus up on interface %s' % (
-                identity.interface
-            ))
+            LOGGER.info('Setting ifadminstatus up on interface %s',
+                        identity.interface)
     except nav.Snmp.AgentError, why:
-        LOGGER.error("Error when executing snmpquery: %s" % why)
+        LOGGER.error("Error when executing snmpquery: %s", why)
         raise ChangePortStatusError(why)
 
 
@@ -461,7 +458,7 @@ def change_port_vlan(identity, vlan):
     except Exception as error:
         raise ChangePortVlanError(error)
     else:
-        LOGGER.info('Setting vlan %s on interface %s' % (vlan, interface))
+        LOGGER.info('Setting vlan %s on interface %s', vlan, interface)
         try:
             agent.set_vlan(interface.ifindex, vlan)
             agent.restart_if(interface.ifindex)
@@ -471,42 +468,14 @@ def change_port_vlan(identity, vlan):
             return fromvlan
 
 
-def sendmail(fromaddr, toaddr, subject, msg):
-    """
-    Sends mail using mailprogram configured in arnold.conf
-
-    NB: Expects all strings to be in utf-8 format.
-
-    """
-
-    # Get mailprogram from config-file
-    config = get_config(CONFIGFILE)
-    mailprogram = config.get('arnold', 'mailprogram')
+def sendmail(from_email, toaddr, subject, msg):
+    """ Sends mail using Djangos internal mail system """
 
     try:
-        program = Popen(mailprogram, stdin=PIPE).stdin
-    except OSError, error:
-        LOGGER.error('Error opening mailprogram: %s', error.strerror)
-        return
-
-    # Define charset and set content-transfer-encoding to
-    # quoted-printable
-    charset = email.charset.Charset('utf-8')
-    charset.header_encoding = email.charset.QP
-    charset.body_encoding = email.charset.QP
-
-    # Create message-object, fill it and set correct charset.
-    message = email.message.Message()
-    header = email.header.Header(subject, charset)
-    message['To'] = toaddr
-    message['From'] = fromaddr
-    message['Subject'] = header
-
-    message.set_charset(charset)
-    message.set_payload(msg)
-
-    # send mail
-    program.communicate(message.as_string())
+        email = EmailMessage(subject, msg, from_email=from_email, to=[toaddr])
+        email.send()
+    except (SMTPException, socket.error) as error:
+        LOGGER.error('Failed to send mail to %s: %s', toaddr, error)
 
 
 def get_host_name(ip):
@@ -537,7 +506,7 @@ def get_netbios(ip):
     # For each line in output, try to find name of computer.
     for line in result.split("\n\t"):
         if re.search("<00>", line):
-            match_object = re.search("(\S+)\s+<00>", line)
+            match_object = re.search(r"(\S+)\s+<00>", line)
             return match_object.group(1) or ""
 
     # If it times out or for some other reason doesn't match
@@ -602,10 +571,10 @@ def parse_nonblock_file(filename):
         if line.startswith('#'):
             continue
 
-        if re.search('^\d+\.\d+\.\d+\.\d+$', line):
+        if re.search(r'^\d+\.\d+\.\d+\.\d+$', line):
             # Single ip-address
             nonblockdict['ip'][line] = 1
-        elif re.search('^\d+\.\d+\.\d+\.\d+\/\d+$', line):
+        elif re.search(r'^\d+\.\d+\.\d+\.\d+\/\d+$', line):
             # Range
             nonblockdict['range'][line] = 1
 

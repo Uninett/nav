@@ -30,44 +30,47 @@ ___
 1: http://geojson.org/geojson-spec.html
 
 """
-
 import os
 import logging
+from functools import partial
 
-from django.template import Context, Template
+from django.template import Context
 from django import template
 
 import nav
 from nav.web.geomap.conf import get_configuration
-from nav.web.geomap.utils import *
+from nav.web.geomap.utils import union_dict, subdict, concat_list, is_nan
 
-
-logger = logging.getLogger('nav.web.geomap.features')
+_logger = logging.getLogger('nav.web.geomap.features')
 
 _node_feature_properties = []
 _edge_feature_properties = []
 
 
-def create_features(variant, graph):
+def create_features(variant, graph, do_create_edges=True):
     """Create features (points/lines) and popups from a graph."""
     variant_config = get_configuration()['variants'][variant]
     indicators = variant_config['indicators']
     styles = variant_config['styles']
     template_files = variant_config['template_files']
     node_popup_template = load_popup_template(template_files['node_popup'])
-    edge_popup_template = load_popup_template(template_files['edge_popup'])
+    node_feature_creator = partial(
+        create_node_feature,
+        popup_template=node_popup_template,
+        default_style=styles['node'],
+        indicators=indicators['node'])
+    nodes = [node_feature_creator(n) for n in graph.nodes.values()]
+    edges = []
+    if do_create_edges:
+        edge_popup_template = load_popup_template(template_files['edge_popup'])
+        edge_feature_creator = partial(
+            create_edge_features,
+            popup_template=edge_popup_template,
+            default_style=styles['edge'],
+            indicators=indicators['edge'])
+        edges = concat_list(
+            [edge_feature_creator(e) for e in graph.edges.values()])
 
-    node_feature_creator = fix(create_node_feature,
-                               [node_popup_template, styles['node'],
-                                indicators['node']],
-                               1)
-    edge_feature_creator = fix(create_edge_features,
-                               [edge_popup_template, styles['edge'],
-                                indicators['edge']],
-                               1)
-
-    nodes = map(node_feature_creator, graph.nodes.values())
-    edges = concat_list(map(edge_feature_creator, graph.edges.values()))
     return nodes+edges
 
 
@@ -94,7 +97,7 @@ def filter_format(value, arg):
     """
     try:
         return arg % value
-    except:
+    except TypeError:
         return ''
 
 
@@ -109,7 +112,7 @@ def load_popup_template(filename):
     return template_from_config(filename, filters)
 
 
-def template_from_config(filename, filters={}):
+def template_from_config(filename, filters):
     """Create a Django template from a configuration file.
 
     Arguments:
@@ -125,9 +128,9 @@ def template_from_config(filename, filters={}):
         return None
     confdir = os.path.join(nav.path.sysconfdir, 'geomap')
     abs_filename = os.path.join(confdir, filename)
-    file = open(abs_filename, 'r')
-    content = file.read()
-    file.close()
+    afile = open(abs_filename, 'r')
+    content = afile.read()
+    afile.close()
     return compile_template_with_filters(content, filters)
 
 
@@ -159,20 +162,6 @@ def compile_template_with_filters(template_string, filters):
     return parser.parse()
 
 
-# def load_place_popup_template():
-#     global _place_popup_template
-#     if _place_popup_template is None:
-#         _place_popup_template = \
-#             template_from_config('geomap/popup_place.html')
-
-
-# def load_network_popup_template():
-#     global _network_popup_template
-#     if _network_popup_template is None:
-#         _network_popup_template = \
-#             template_from_config('geomap/popup_network.html')
-
-
 def apply_indicator(ind, properties):
     """Apply an indicator to a list of properties.
 
@@ -198,26 +187,21 @@ def apply_indicator(ind, properties):
             # it allows the configuration file to do all kinds of
             # nasty stuff, but it is also quite useful).
             test_result = eval(option['test'], globals(), properties)
-        except Exception, e:
-            logger.warning(('Exception when evaluating test "%s" ' +
-                            'for indicator "%s" on properties %s: %s') %
-                           (option['test'], ind['name'], properties, e))
+        except Exception as err:  # pylint: disable=broad-except
+            _logger.warning('Exception when evaluating test "%s" for indicator '
+                            '"%s" on properties %s: %s',
+                            option['test'], ind['name'], properties, err)
             continue
         if test_result:
             return {ind['property']: option['value']}
-    logger.warning('No tests in indicator %s matched properties %s' %
-                   (ind['name'], properties))
+    _logger.warning('No tests in indicator %s matched properties %s',
+                    ind['name'], properties)
 
 
 def apply_indicators(indicators, properties):
     """Apply a list of indicators to a list of properties."""
-    return apply(union_dict,
-                 map(fix(apply_indicator, properties, 1), indicators))
-
-# def apply_all_indicators(type, properties):
-#     return apply(union_dict,
-#                  map(lambda ind: apply_indicator(ind, type, properties),
-#                      get_configuration()['indicators']))
+    applicator = partial(apply_indicator, properties=properties)
+    return union_dict(*[applicator(i) for i in indicators])
 
 
 def create_node_feature(node, popup_template, default_style, indicators):
@@ -300,28 +284,31 @@ def create_edge_popup(data, popup_template):
         return None
     content = popup_template.render(Context({'network': data}))
     return Popup('popup-' + data['id'], [300, 250], content, True)
-    
 
-class Feature:
-    def __init__(self, id, type, geometry, color, size, popup, properties={}):
-        self.id = id
-        self.type = type
+
+class Feature(object):
+    """Feature attributes"""
+    def __init__(self, id_, typ, geometry, color, size, popup, properties=None):
+        self.id = id_
+        self.type = typ
         self.geometry = geometry
         self.color = color
         self.size = size
         self.popup = popup
-        self.properties = properties
+        self.properties = properties if properties is not None else {}
 
 
-class Geometry:
-    def __init__(self, type, coordinates):
-        self.type = type
+class Geometry(object):
+    """Geometry attributes"""
+    def __init__(self, typ, coordinates):
+        self.type = typ
         self.coordinates = coordinates
-        
 
-class Popup:
-    def __init__(self, id, size, content, closable):
-        self.id = id
+
+class Popup(object):
+    """Popup attributes"""
+    def __init__(self, id_, size, content, closable):
+        self.id = id_
         self.size = size
         self.content = content
         self.closable = closable

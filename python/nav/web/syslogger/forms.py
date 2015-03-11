@@ -57,24 +57,25 @@ class LoggerGroupSearchForm(forms.Form):
                     Fieldset(
                         'Filter <a href="http://www.cisco.com/en/US/docs/ios/system/messages/guide/sm_cnovr.html"><i class="fa fa-info-circle"></i></a>',
                         Row(
-                            Column(Field('facility', css_class='select2 medium-12'),
-                                    css_class='medium-12'),
+                            Column(Field('facility',
+                                         css_class='select2 medium-12'),
+                                   css_class='medium-12'),
                             Column(Field('priority', css_class='select2'),
-                                    css_class='medium-12'),
+                                   css_class='medium-12'),
                             Column(Field('mnemonic', css_class='select2'),
-                                    css_class='medium-12'),
+                                   css_class='medium-12'),
                             Column(Field('origin', css_class='select2'),
-                                    css_class='medium-12'),
+                                   css_class='medium-12'),
                             Column(Field('category', css_class='select2'),
-                                    css_class='medium-12'),
+                                   css_class='medium-12'),
                             Column('timestamp_from', css_class='medium-12'),
                             Column('timestamp_to', css_class='medium-12'),
                             Column('show_log', css_class='medium-12'),
-                           
+
                         ),
                     ),
                     css_class='medium-12'
                 ),
             ),
         )
-        
+

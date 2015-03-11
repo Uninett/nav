@@ -32,7 +32,7 @@ def index(request):
         RequestContext(request)
     )
 
-def not_implemented(*args, **kwargs):
+def not_implemented(*_args, **_kwargs):
     """Simple method used with the view_switcher.
 
     Raises "not implemented if called, but the list pages should make sure this

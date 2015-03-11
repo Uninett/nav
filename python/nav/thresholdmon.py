@@ -164,7 +164,7 @@ def start_event(rule, metric, value):
 
 def end_event(rule, metric, value):
     """Makes and posts a threshold end event"""
-    event = make_event(False, rule,  metric, value)
+    event = make_event(False, rule, metric, value)
     _logger.debug("posted end event: %r", event)
     return event
 
@@ -191,9 +191,12 @@ def make_event(start, rule, metric, value):
 def _add_subject_details(event, metric, varmap):
     obj = lookup(metric)
     if obj:
-        varmap['subject'] = "{table}:{pk}".format(
-            table=getattr(obj, '_meta').db_table,
-            pk=obj.pk)
+        try:
+            varmap['subject'] = "{table}:{pk}".format(
+                table=getattr(obj, '_meta').db_table,
+                pk=obj.pk)
+        except AttributeError:
+            pass  # probably wasn't a Django model object, fuhgeddaboutit
 
         if isinstance(obj, Netbox):
             event.netbox = obj

@@ -1,0 +1,25 @@
+.dataTables_wrapper > .dataTables_filter {
+    max-width: 30em;
+}
+
+.dataTables_wrapper > .dataTables_info {
+    font-weight: bold;
+    padding: 0.3em 0.5em;
+}
+
+#unrecognized-neighbors-table {
+    display: none;  // To prevent FOUC
+    * { box-sizing: initial; }  // Needed for datatables to display properly
+    thead { border-top: 2px solid black; }
+    td.has-add-button {
+        span {
+            float: left;
+        }
+        a {
+            float: right;
+            margin-left: 1em;
+            position: relative;
+            top: 0.16rem;
+        }
+    }
+}

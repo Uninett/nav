@@ -12,6 +12,10 @@ check: build
 	/usr/bin/env
 	docker run --privileged -v $(top_srcdir):/source $(name) /source/tests/docker/test.sh
 
+lint: build
+	/usr/bin/env
+	docker run -v $(top_srcdir):/source $(name) /source/tests/docker/lint.sh
+
 shell:
 	docker run -t -i --privileged -v $(top_srcdir):/source $(name) /bin/bash
 

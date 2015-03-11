@@ -23,15 +23,21 @@ from threading import Thread
 from time import sleep
 
 from nav.errors import ConfigurationError
-from nav.alertengine.dispatchers import dispatcher, DispatcherException, \
+from nav.alertengine.dispatchers import Dispatcher, DispatcherException, \
 is_valid_email
 
-logger = logging.getLogger('nav.alertengine.dispatchers.jabber')
+_logger = logging.getLogger('nav.alertengine.dispatchers.jabber')
 
-class jabber(dispatcher):
+
+class Jabber(Dispatcher):
+    """Jabber/XMPP dispatcher"""
     def __init__(self, *args, **kwargs):
-        self.config = kwargs['config'];
+        super(Jabber, self).__init__(*args, **kwargs)
+
+        self.config = kwargs['config']
         self.ready = False
+        self.jid = None
+        self.client = None
 
         self.thread = Thread(target=self.thread_loop, args=[self.connect])
         self.thread.setDaemon(True)
@@ -48,37 +54,40 @@ class jabber(dispatcher):
 
     @staticmethod
     def presence_handler(connection, presence):
+        """XMPP Presence handler"""
         who = str(presence.getFrom())
-        type = presence.getType()
+        typ = presence.getType()
 
-        logger.debug('presence_handler invoked for %s' % presence)
+        _logger.debug('presence_handler invoked for %s', presence)
 
-        if type == 'subscribe':
-            connection.send(xmpp.Presence(to=who, type='subscribed'))
-            connection.send(xmpp.Presence(to=who, type='subscribe'))
+        if typ == 'subscribe':
+            connection.send(xmpp.Presence(who, 'subscribed'))
+            connection.send(xmpp.Presence(who, 'subscribe'))
 
-            logger.debug('Sent subscription confirmation to %s' % who)
+            _logger.debug('Sent subscription confirmation to %s', who)
 
-        elif type == 'unsubscribe':
-            connection.send(xmpp.Presence(to=who, type='unsubscribed'))
-            connection.send(xmpp.Presence(to=who, type='unsubscribe'))
+        elif typ == 'unsubscribe':
+            connection.send(xmpp.Presence(who, 'unsubscribed'))
+            connection.send(xmpp.Presence(who, 'unsubscribe'))
 
-            logger.debug('Sent unsubscription confirmation to %s' % who)
+            _logger.debug('Sent unsubscription confirmation to %s', who)
 
     @staticmethod
     def thread_loop(connect):
-        logger.debug('starting thread loop')
+        """Main thread loop for XMPP client connection"""
+        _logger.debug('starting thread loop')
 
         client = connect()
 
         # Put thread to sleep waiting for flag to be set.
         while True:
             client.Process(1)
-            logger.debug('thread sleeping 120 seconds')
+            _logger.debug('thread sleeping 120 seconds')
             sleep(120)
-        logger.debug('stopping thread loop')
+        _logger.debug('stopping thread loop')
 
     def connect(self):
+        """Connects to the XMPP server"""
         try:
             self.jid = xmpp.protocol.JID(self.config['jid'])
         except KeyError:
@@ -91,15 +100,19 @@ class jabber(dispatcher):
         if not con:
             raise DispatcherException('Could not connect to jabber server')
 
-        logger.debug('Connected with %s' % con)
+        _logger.debug('Connected with %s', con)
 
         try:
-            auth = self.client.auth(self.jid.getNode(), self.config['password'], resource=self.jid.getResource() or 'alertengine')
+            auth = self.client.auth(
+                self.jid.getNode(), self.config['password'],
+                resource=self.jid.getResource() or 'alertengine')
         except KeyError:
-            raise ConfigurationError('Jabber config is missing "password" entry')
+            raise ConfigurationError(
+                'Jabber config is missing "password" entry')
 
         if not auth:
-            raise DispatcherException('Could not authenticate with jabber server')
+            raise DispatcherException(
+                'Could not authenticate with jabber server')
 
         self.client.RegisterHandler('presence', self.presence_handler)
         self.client.sendInitPresence()
@@ -108,22 +121,27 @@ class jabber(dispatcher):
 
         return self.client
 
-    def send(self, address, alert, language='en', retry=True, retry_reason=None):
+    def send(self, address, alert, language='en', retry=True,
+             retry_reason=None):
         message = self.get_message(alert, language, 'jabber')
 
         if not self.client.isConnected():
             self.connect()
 
         try:
-            id = self.client.send(xmpp.protocol.Message(address.address, message, typ='chat'))
-            logger.debug('Sent message with jabber id %s' % id)
-        except (xmpp.protocol.StreamError, IOError), e:
+            ident = self.client.send(
+                xmpp.protocol.Message(address.address, message, typ='chat'))
+            _logger.debug('Sent message with jabber id %s', ident)
+        except (xmpp.protocol.StreamError, IOError) as err:
             if retry:
-                logger.warning('Sending jabber message failed, retrying once.')
+                _logger.warning('Sending jabber message failed, retrying once')
                 self.connect()
-                self.send(address, alert, language, retry=False, retry_reason=e)
+                self.send(address, alert, language,
+                          retry=False, retry_reason=err)
             else:
-                raise DispatcherException("Couldn't send message due to: '%s', reason for retry: '%s'" % (e, retry_reason))
+                raise DispatcherException(
+                    ("Couldn't send message due to: '%s', reason for retry: "
+                     "'%s'") % (err, retry_reason))
 
     @staticmethod
     def is_valid_address(address):

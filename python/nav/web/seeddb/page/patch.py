@@ -45,7 +45,7 @@ class PatchInfo(SeeddbInfo):
 
 
 class PatchForm(forms.ModelForm):
-    class Meta:
+    class Meta(object):
         model = Patch
 
 

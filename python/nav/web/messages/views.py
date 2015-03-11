@@ -47,7 +47,7 @@ CREATE = {'caption': 'Create new message'}
 FOLLOWUP = {'caption': 'Follow up message'}
 
 
-def redirect_to_active(request):
+def redirect_to_active(_request):
     """Redirect to main page for this tool"""
     return redirect(reverse('messages-home'))
 
@@ -78,7 +78,7 @@ def planned(request):
     info_dict = {'messages': planned_messages}
     info_dict.update(PLANNED_DEFAULTS)
 
-    return render_to_response('messages/list.html',  info_dict,
+    return render_to_response('messages/list.html', info_dict,
                               context_instance=RequestContext(request))
 
 
@@ -109,7 +109,7 @@ def view(request, message_id):
                               context_instance=RequestContext(request))
 
 
-def expire(request, message_id):
+def expire(_request, message_id):
     """ Expires a message. Sets the end date to now """
     message = get_object_or_404(Message, pk=message_id)
     message.publish_end = datetime.datetime.now()

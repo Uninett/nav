@@ -94,7 +94,7 @@ class ThresholdForm(forms.ModelForm):
         validate_expression(clear, self)
         return clear
 
-    class Meta:
+    class Meta(object):
         model = ThresholdRule
         fields = ('target', 'alert', 'clear', 'period', 'description', 'raw')
         widgets = {

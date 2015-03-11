@@ -22,7 +22,8 @@ class LegacyCleanupMiddleware(object):
     end of each request cycle.
 
     """
-    def process_response(self, request, response):
+    @staticmethod
+    def process_response(_request, response):
         """Rolls back any uncommitted legacy database connections,
         to avoid idling indefinitely in transactions.
 

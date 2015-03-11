@@ -1,0 +1,5 @@
+{% if event.state == event.STATE_START %}
+{{ goosename }}: {{ sensorname }} temperature threshold exceeded - {{ climatevalue }}
+{% else %}
+{{ goosename }}: {{ sensorname }} temperature threshold clear - {{ climatevalue }}
+{% endif %}

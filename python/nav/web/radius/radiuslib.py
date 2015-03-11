@@ -90,7 +90,7 @@ def calcTime(seconds):
     # Sometimes (very rare) the acctsessiontime turns out to be in the negative.
     # Not sure why this happens, but this if at least secures correct output
     # Need to look into this.
-    
+
     if seconds >= 0:
         days = remainder // 86400
         remainder = remainder % 86400
@@ -139,10 +139,10 @@ def calcBytes(bytes):
     if bytes == None:
         bytes = 0
 
-    terraBytes, bytes   = divmod(bytes, 1024**4)
-    gigaBytes, bytes    = divmod(bytes, 1024**3)
-    megaBytes, bytes    = divmod(bytes, 1024**2)
-    kiloBytes, bytes    = divmod(bytes, 1024)
+    terraBytes, bytes = divmod(bytes, 1024**4)
+    gigaBytes, bytes = divmod(bytes, 1024**3)
+    megaBytes, bytes = divmod(bytes, 1024**2)
+    kiloBytes, bytes = divmod(bytes, 1024)
 
     return (terraBytes, gigaBytes, megaBytes, kiloBytes, bytes)
 
@@ -184,18 +184,18 @@ def showStopTime(acctstarttime, acctstoptime, acctsessiontime):
     startTime = str(acctstarttime)
     stopTime = None
     sessionTime = 0
- 
+
     if acctstoptime:
         stopTime = str(acctstoptime)
     if acctsessiontime:
         sessionTime = int(acctsessiontime)
 
-    # Since time.strptime does not handle fractions of a second, 
+    # Since time.strptime does not handle fractions of a second,
     # check if our starttime contains fractions before using strptime,
     # and remove them if it does.
     if match(r'.+\d\.\d+', startTime):
         startTime = sub(r'\.\d+', '', startTime)
-        
+
     # Make tuple of the time string
     timeTuple = time.strptime(startTime, DATEFORMAT_DB)
     # Convert to seconds since epoch
@@ -210,7 +210,7 @@ def showStopTime(acctstarttime, acctstoptime, acctsessiontime):
     else:
         stopTime = removeFractions(stopTime)
 
-    return stopTime 
+    return stopTime
 
 
 def removeFractions(timestamp):
@@ -218,14 +218,14 @@ def removeFractions(timestamp):
     Removes the fractions of a second part from the timestamps so we don't
     have to display them on the webpage.
     """
-    
+
     ts = str(timestamp)
-    
+
     if match(r'.+\d\.\d+', ts):
         formattedTime = sub(r'\.\d+', '', ts)
     else:
         formattedTime = ts
-    
+
     return formattedTime
 
 
@@ -244,7 +244,7 @@ def makeSearchURL(page, changeFields, form):
 
     for field in changeFields.keys():
         urlValues[str(field)] = str(changeFields[field])
-        
+
     for field in form.__dict__.items():
         if not str(field[0]) in changeFields.keys():
             urlValues[str(field[0])] = str(field[1])
@@ -254,7 +254,7 @@ def makeSearchURL(page, changeFields, form):
 
 def getSortOrder(sortField, currentField, sortOrder):
     sortOrder = sortOrder.upper()
-    
+
     # If we click on a link a second time, to change the search order
     if sortField == currentField:
         if sortOrder == "ASC":
@@ -262,7 +262,7 @@ def getSortOrder(sortField, currentField, sortOrder):
         else:
             sortOrder = "ASC"
     else:
-        # If the link hasn't been clicked, we want to default to 
+        # If the link hasn't been clicked, we want to default to
         # ascending search order.
         sortOrder = "ASC"
 

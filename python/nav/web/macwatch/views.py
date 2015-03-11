@@ -43,7 +43,7 @@ def do_list(request, messages=None):
                 'macwatch/list_watches.html',
                 info_dict,
                 RequestContext(request))
-    
+
 def list_watch(request):
     """ Render current macwatches and option to add new one. """
     return do_list(request)
@@ -71,7 +71,7 @@ def add_macwatch(request):
                     'macwatch/addmacwatch.html',
                     info_dict,
                     RequestContext(request))
-            
+
     info_dict = populate_info_dict(account)
     macwatchform = MacWatchForm()
     info_dict['form'] = macwatchform
@@ -113,7 +113,7 @@ def delete_macwatch(request, macwatchid):
                     RequestContext(request))
     return HttpResponseRedirect('/macwatch/')
 
-            
+
 def edit_macwatch(request, macwatchid):
     """ Edit description on a macwatch - currently not in use """
     if request.method == 'POST':
@@ -132,7 +132,7 @@ def edit_macwatch(request, macwatchid):
                     'macwatch/editmacwatch.html',
                     info_dict,
                     RequestContext(request))
-        
+
     if macwatchid:
         m = MacWatch.objects.get(id=macwatchid)
         data = {'macaddress': m.mac, 'description': m.description}
@@ -145,11 +145,10 @@ def edit_macwatch(request, macwatchid):
                     RequestContext(request))
 
 def populate_info_dict(account, macwatches=None, messages=None):
-    info_dict = {'account': account }
+    info_dict = {'account': account}
     if macwatches:
         info_dict['macwatches'] = macwatches
     if messages:
         info_dict['messages'] = messages
     info_dict.update(DEFAULT_VALUES)
     return info_dict
-                

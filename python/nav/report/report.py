@@ -56,7 +56,7 @@ class Report(object):
         else:
             self.formatted = database.result
         self.dbresult = database.result
-        
+
         self.query_args = self.strip_pagination_arguments(query_dict)
 
         self.title = configuration.title
@@ -228,13 +228,13 @@ class Report(object):
 
             ## change if the name exist in the overrider hash
             if title in sums:
-                
+
                 ## Sum the results for a given title
                 part_sum = 0
                 for fmt in self.formatted:
                     if fmt[footer] is not None:
                         part_sum += int(str(fmt[footer]))
-                
+
                 total_sum = 0
                 for res in self.dbresult:
                     if res[footer] is not None:
@@ -242,10 +242,10 @@ class Report(object):
 
                 if part_sum == total_sum:
                     this_sum.set_sum(str(part_sum))
-                
+
                 elif sums[title] == 0:
                     this_sum.set_sum("0")
-                
+
                 else:
                     this_sum.set_sum(str(part_sum) + "/" + str(total_sum))
 

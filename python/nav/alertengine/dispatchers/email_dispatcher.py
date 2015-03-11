@@ -14,20 +14,23 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""
-"""
+"""E-Mail dispatcher implementation"""
 
 import logging
 from smtplib import SMTPException, SMTPRecipientsRefused
 
 from django.core.mail import EmailMessage
 
-from nav.alertengine.dispatchers import dispatcher, DispatcherException, \
-FatalDispatcherException, is_valid_email
+from nav.alertengine.dispatchers import (Dispatcher, DispatcherException,
+                                         FatalDispatcherException,
+                                         is_valid_email)
 
-logger = logging.getLogger('nav.alertengine.dispatchers.email')
+_logger = logging.getLogger('nav.alertengine.dispatchers.email')
 
-class email(dispatcher):
+
+class Email(Dispatcher):
+    """E-Mail dispatcher"""
+
     def send(self, address, alert, language='en'):
         message = self.get_message(alert, language, 'email')
 
@@ -44,17 +47,22 @@ class email(dispatcher):
 
         try:
             if not address.DEBUG_MODE:
-                email = EmailMessage(subject=subject, body=message, to=[address.address])
+                email = EmailMessage(subject=subject, body=message,
+                                     to=[address.address])
                 email.send(fail_silently=False)
             else:
-                logger.debug('alert %d: In testing mode, would have sent email to %s' % (alert.id, address.address))
+                _logger.debug('alert %d: In testing mode, would have sent '
+                              'email to %s', alert.id, address.address)
 
-        except SMTPException, e:
-            if isinstance(e, SMTPRecipientsRefused) or \
-                (hasattr(e, "smtp_code") and str(e.smtp_code).startswith('5')):
-                raise FatalDispatcherException('Could not send email: %s" ' % e)
+        except SMTPException, err:
+            msg = 'Could not send email: %s" ' % err
+            if (isinstance(err, SMTPRecipientsRefused) or
+                (hasattr(err, "smtp_code") and
+                 str(err.smtp_code).startswith('5'))):
+                raise FatalDispatcherException(msg)
+
             # Reraise as DispatcherException so that we can catch it further up
-            raise DispatcherException('Could not send email: %s' % e)
+            raise DispatcherException(msg)
 
     @staticmethod
     def is_valid_address(address):

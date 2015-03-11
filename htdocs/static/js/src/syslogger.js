@@ -1,11 +1,12 @@
 require([
     "plugins/table_utils",
     "plugins/tab_navigation",
+    "plugins/jquery_ui_helpers",
     "libs/spin.min",
     "libs/jquery",
-    "libs/jquery-ui-1.8.21.custom.min",
+    "libs/jquery-ui.min",
     "libs/jquery.dataTables.min"
-], function (TableUtil, TabNavigation) {
+], function (TableUtil, TabNavigation, JUIHelpers) {
 
     var mainTabsSelector = '#loggerinfotabs';
 
@@ -51,8 +52,7 @@ require([
 
     function addMainTabs() {
         var tabconfig = {
-            cache: true, // cache loaded pages
-            spinner: '<img src="/static/images/main/process-working.gif">',
+            beforeLoad: JUIHelpers.cacheRequest,
             load: eventLoadingComplete
         };
         var tabs = $(mainTabsSelector).tabs(tabconfig);
@@ -93,7 +93,7 @@ require([
     }
 
     function eventLoadingComplete(event, ui) {
-        if (ui.tab.text.trim() === 'Search') {
+        if ($(ui.tab).text().trim() === 'Search') {
             var suffixes = JSON.parse($('#domain_strip').text());
             stripDomainSuffixOrigin($('#id_origin option'), suffixes);
             updateFormFromRequestArguments();

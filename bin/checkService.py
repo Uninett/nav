@@ -26,7 +26,7 @@ import getopt
 
 from nav.statemon import debug
 debug.setDebugLevel(7)
-from nav.statemon import abstractChecker
+from nav.statemon import abstractchecker
 from nav.statemon import checkermap
 
 
@@ -100,5 +100,5 @@ service={'id':serviceid,
 print "Checking"
 myChecker = checker(service)
 print '  Return value:', myChecker.execute()
-print '       Version:', repr(myChecker.getVersion())
+print '       Version:', repr(myChecker.version)
 print "Finished"

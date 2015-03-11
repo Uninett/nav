@@ -24,7 +24,7 @@ from nav.report.IPtools import getMask, sort_nets_by_prefixlength, andIpMask
 tree = None
 
 def buildTree(start_net, end_net=None, bits_in_matrix=0,
-              add_missing_nets=False, forceBuild=False):
+              add_missing_nets=False):
     """Builds a tree from start_net to (and included) end_net.
 
     Arguments:
@@ -82,10 +82,12 @@ def getSubnets(network, min_length=None):
     """Retrieves all the subnets of the argument ``network''.
 
     Arguments:
-        ``min_length'': minimum subnet mask length, defaults to network.prefixlen().
+        ``min_length'': minimum subnet mask length, defaults to
+                        network.prefixlen().
 
     Returns:
         List with IPy.IP objects
+
     """
     max_length = 128 if network.version() == 6 else 32
     if min_length is None:

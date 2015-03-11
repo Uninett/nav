@@ -27,7 +27,6 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
     ALERT_WAIT_TIME = 'linkDown.alert'
     handled_types = ('linkState',)
 
-    __waiting_for_resolve = {}
     _target = None
 
     def __init__(self, *args, **kwargs):

@@ -13,7 +13,8 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A040830F7FAC5991
 # TODO: Might not need all the dependencies
 RUN apt-get update && \
     apt-get -y --no-install-recommends build-dep \
-	python-psycopg2 python-lxml librrd-dev python-imaging python-ldap
+	python-psycopg2 python-lxml librrd-dev python-imaging python-ldap && \
+    apt-get clean
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends install \
@@ -24,25 +25,23 @@ RUN apt-get update && \
 	ruby1.8-dev libxml2-dev libxslt1-dev net-tools \
 	postgresql-server-dev-9.1 libpq-dev libwww-perl python-rrdtool \
 	python-utidylib iceweasel xvfb nodejs-legacy curl \
-	python-iso8601 imagemagick x11vnc google-chrome-stable rrdtool
-
-RUN apt-get clean
-
-RUN pip install whisper carbon graphite-web django-tagging
+	python-iso8601 imagemagick x11vnc google-chrome-stable rrdtool cloc && \
+    apt-get clean
 
 RUN gem install --version '3.3.9' sass ; \
     gem install --version '~> 0.9' rb-inotify
-
-# Build and install Python requirements
-ADD runtime-requirements.txt /runtime-requirements.txt
-ADD test-requirements.txt /test-requirements.txt
-RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
 
 # NPM for Javascript testing needs
 RUN curl --insecure https://www.npmjs.com/install.sh | clean=no bash
 
 RUN adduser --system --group --home=/build --shell=/bin/bash build
 RUN echo "build    ALL=NOPASSWD: ALL" >> /etc/sudoers
+
+# Build and install Python requirements
+ADD runtime-requirements.txt /runtime-requirements.txt
+ADD test-requirements.txt /test-requirements.txt
+RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
+RUN pip install whisper carbon graphite-web django-tagging
 
 # This does not make files in source accessible for RUN-commands
 VOLUME ["/source"]

@@ -98,7 +98,7 @@ def tool_list(account):
         paths = webfrontConfig.get('toolbox', 'path').split(os.pathsep)
     else:
         return None
-    
+
     tool_list = []
     for path in paths:
         if os.access(path, os.F_OK):

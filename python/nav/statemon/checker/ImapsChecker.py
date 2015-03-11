@@ -19,7 +19,7 @@ import socket
 import imaplib
 from nav.statemon.DNS import socktype_from_addr
 
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import  Event
 
 
@@ -41,11 +41,10 @@ class ImapsChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=993, **kwargs)
 
     def execute(self):
-        args = self.getArgs()
-        user = args.get("username","")
-        ip, port = self.getAddress()
-        passwd = args.get("password","")
-        session = IMAPSConnection(self.getTimeout(), ip, port)
+        user = self.args.get("username", "")
+        ip, port = self.get_address()
+        passwd = self.args.get("password", "")
+        session = IMAPSConnection(self.timeout, ip, port)
         ver = session.welcome
         if user:
             session.login(user, passwd)
@@ -58,7 +57,7 @@ class ImapsChecker(AbstractChecker):
                     version += "%s " % i
                 else:
                     break
-        self.setVersion(version)
+        self.version = version
 
         return Event.UP, version
 
@@ -71,7 +70,8 @@ class IMAPSConnection(imaplib.IMAP4):
 
             host - host's name (default: localhost);
             port - port number (default: standard IMAP4 SSL port).
-            keyfile - PEM formatted file that contains your private key (default: None);
+            keyfile - PEM formatted file that contains your private key
+                      (default: None);
             certfile - PEM formatted certificate chain file (default: None);
 
     for more documentation see the docstring of the parent class IMAP4.

@@ -163,7 +163,7 @@ class SystemMigrator(Migrator):
         elif descr == 'sysUpTime':
             metric = metric_path_for_sysuptime(sysname)
         else:
-            _logger.info('Could not find metric for %s' % descr)
+            _logger.info('Could not find metric for %s', descr)
             metric = None
 
         return metric

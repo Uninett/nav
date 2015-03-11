@@ -23,6 +23,7 @@ E-Mail to NAV event/alert translator.
 import nav
 import nav.event
 
+
 def make_event(**kw):
     """Shortcut to make an event with mailin as source and eventEngine as
     target.
@@ -34,7 +35,8 @@ def make_event(**kw):
                            target='eventEngine',
                            **kw)
 
-class Plugin:
+
+class Plugin(object):
     """Abstract base class for mailin plugin.
 
     Subclass this and override the init(), accept(),
@@ -53,20 +55,20 @@ class Plugin:
 
     def init(self):
         """Plugin specific initialization."""
-        pass
+        raise NotImplementedError
 
     def accept(self, msg):
         """Returns True if the plugin wants to process the message."""
-        return False
+        raise NotImplementedError
 
     def authorize(self, msg):
         """Returns True if the message is authorized by the plugin.
         (This method typically checks the From and Reveiced headers.)"""
-        return True
+        raise NotImplementedError
 
     def process(self, msg):
         """Process the message.
         Called if accept() and authorize() both return True.
         Returns True if the plugin posted one or more events.
         """
-        return False
+        raise NotImplementedError

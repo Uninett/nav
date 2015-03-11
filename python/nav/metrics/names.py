@@ -133,7 +133,7 @@ def raw_metric_query(query):
         return simplejson.load(response)
     except urllib2.URLError as err:
         raise errors.GraphiteUnreachableError(
-            "{0} is unreachable".format(base),err)
+            "{0} is unreachable".format(base), err)
     finally:
         try:
             response.close()

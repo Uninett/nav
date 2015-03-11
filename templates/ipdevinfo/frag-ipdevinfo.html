@@ -6,11 +6,14 @@
 
 {% if netbox %}
 
+
   {% comment %} IP DEVICE {% endcomment %}
   <div class="medium-6 column">
+
     <table class="vertitable full-width">
       <caption>
         IP Device: {{ netbox.get_short_sysname }}
+        {% include 'ipdevinfo/frag-disclaimer.html' %}
       </caption>
       <tbody>
       <tr>

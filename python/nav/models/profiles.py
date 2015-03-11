@@ -84,7 +84,7 @@ class Account(models.Model):
 
     organizations = models.ManyToManyField(Organization, db_table='accountorg')
 
-    class Meta:
+    class Meta(object):
         db_table = u'account'
         ordering = ('login',)
 
@@ -221,7 +221,7 @@ class AccountGroup(models.Model):
     # FIXME this uses a view hack, was AccountInGroup
     accounts = models.ManyToManyField('Account')
 
-    class Meta:
+    class Meta(object):
         db_table = u'accountgroup'
         ordering = ('name',)
 
@@ -253,7 +253,7 @@ class AccountProperty(models.Model):
     property = VarcharField()
     value = VarcharField()
 
-    class Meta:
+    class Meta(object):
         db_table = u'accountproperty'
 
     def __unicode__(self):
@@ -266,7 +266,7 @@ class NavbarLink(models.Model):
     name = models.CharField('Link text', blank=False, max_length=100)
     uri = models.CharField('URL', blank=False, max_length=100)
 
-    class Meta:
+    class Meta(object):
         db_table = u'navbarlink'
         ordering = ('id', )
 
@@ -280,7 +280,7 @@ class Privilege(models.Model):
     type = models.ForeignKey('PrivilegeType', db_column='privilegeid')
     target = VarcharField()
 
-    class Meta:
+    class Meta(object):
         db_table = u'accountgroupprivilege'
 
     def __unicode__(self):
@@ -292,7 +292,7 @@ class PrivilegeType(models.Model):
     id = models.AutoField(db_column='privilegeid', primary_key=True)
     name = models.CharField(max_length=30, db_column='privilegename')
 
-    class Meta:
+    class Meta(object):
         db_table = u'privilege'
 
     def __unicode__(self):
@@ -310,14 +310,14 @@ class AlertAddress(models.Model):
     type = models.ForeignKey('AlertSender', db_column='type')
     address = VarcharField()
 
-    class Meta:
+    class Meta(object):
         db_table = u'alertaddress'
 
     def __unicode__(self):
         return self.type.scheme() + self.address
 
     @transaction.commit_manually
-    def send(self, alert, subscription, dispatcher={}):
+    def send(self, alert, subscription):
         """Handles sending of alerts to with defined alert notification types
 
            Return value should indicate if message was sent"""
@@ -447,7 +447,7 @@ class AlertSender(models.Model):
     def scheme(self):
         return self.SCHEMES.get(self.name, u'')
 
-    class Meta:
+    class Meta(object):
         db_table = 'alertsender'
 
 
@@ -461,7 +461,7 @@ class AlertPreference(models.Model):
     last_sent_day = models.DateTimeField(db_column='lastsentday')
     last_sent_week = models.DateTimeField(db_column='lastsentweek')
 
-    class Meta:
+    class Meta(object):
         db_table = u'alertpreference'
 
     def __unicode__(self):
@@ -500,7 +500,7 @@ class AlertProfile(models.Model):
                                               default=MONDAY)
     weekly_dispatch_time = models.TimeField(default='08:00')
 
-    class Meta:
+    class Meta(object):
         db_table = u'alertprofile'
 
     def __unicode__(self):
@@ -563,7 +563,7 @@ class TimePeriod(models.Model):
     valid_during = models.IntegerField(choices=VALID_DURING_CHOICES,
                                        default=ALL_WEEK)
 
-    class Meta:
+    class Meta(object):
         db_table = u'timeperiod'
 
     def __unicode__(self):
@@ -595,7 +595,7 @@ class AlertSubscription(models.Model):
                                choices=SUBSCRIPTION_TYPES, default=NOW)
     ignore_resolved_alerts = models.BooleanField()
 
-    class Meta:
+    class Meta(object):
         db_table = u'alertsubscription'
 
     def __unicode__(self):
@@ -632,7 +632,7 @@ class FilterGroupContent(models.Model):
     filter = models.ForeignKey('Filter')
     filter_group = models.ForeignKey('FilterGroup')
 
-    class Meta:
+    class Meta(object):
         db_table = u'filtergroupcontent'
         ordering = ['priority']
 
@@ -720,7 +720,7 @@ class Operator(models.Model):
     type = models.IntegerField(choices=OPERATOR_TYPES, db_column='operator_id')
     match_field = models.ForeignKey('MatchField')
 
-    class Meta:
+    class Meta(object):
         db_table = u'operator'
         unique_together = (('type', 'match_field'),)
 
@@ -746,7 +746,7 @@ class Expression(models.Model):
     operator = models.IntegerField(choices=Operator.OPERATOR_TYPES)
     value = VarcharField()
 
-    class Meta:
+    class Meta(object):
         db_table = u'expression'
 
     def __unicode__(self):
@@ -767,7 +767,7 @@ class Filter(models.Model):
     owner = models.ForeignKey('Account', null=True)
     name = VarcharField()
 
-    class Meta:
+    class Meta(object):
         db_table = u'filter'
 
     def __unicode__(self):
@@ -876,7 +876,7 @@ class FilterGroup(models.Model):
     group_permissions = models.ManyToManyField(
         'AccountGroup', db_table='filtergroup_group_permission')
 
-    class Meta:
+    class Meta(object):
         db_table = u'filtergroup'
 
     def __unicode__(self):
@@ -1047,7 +1047,7 @@ class MatchField(models.Model):
                     u'populated by data from the match field selected above.')
     )
 
-    class Meta:
+    class Meta(object):
         db_table = u'matchfield'
 
     def __unicode__(self):
@@ -1099,7 +1099,7 @@ class SMSQueue(models.Model):
     time_sent = models.DateTimeField(db_column='timesent')
     severity = models.IntegerField()
 
-    class Meta:
+    class Meta(object):
         db_table = u'smsq'
 
     def __unicode__(self):
@@ -1121,7 +1121,7 @@ class AccountAlertQueue(models.Model):
     alert = models.ForeignKey('AlertQueue', null=True)
     insertion_time = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
+    class Meta(object):
         db_table = u'accountalertqueue'
 
     def delete(self, *args, **kwargs):
@@ -1216,7 +1216,7 @@ class StatusPreference(models.Model):
     services = models.TextField(blank=True)
     states = models.TextField()
 
-    class Meta:
+    class Meta(object):
         db_table = u'statuspreference'
         ordering = ('position',)
 
@@ -1237,7 +1237,7 @@ class StatusPreferenceOrganization(models.Model):
     statuspreference = models.ForeignKey(StatusPreference)
     organization = models.ForeignKey(Organization)
 
-    class Meta:
+    class Meta(object):
         db_table = u'statuspreference_organization'
 
 
@@ -1246,7 +1246,7 @@ class StatusPreferenceCategory(models.Model):
     statuspreference = models.ForeignKey(StatusPreference)
     category = models.ForeignKey(Category)
 
-    class Meta:
+    class Meta(object):
         db_table = u'statuspreference_category'
 
 
@@ -1303,7 +1303,7 @@ class NetmapView(models.Model):
             'location_room_filter': self.location_room_filter,
         }
 
-    class Meta:
+    class Meta(object):
         db_table = u'netmap_view'
 
 
@@ -1323,7 +1323,7 @@ class NetmapViewDefaultView(models.Model):
             'ownerid': self.owner.id
         }
 
-    class Meta:
+    class Meta(object):
         db_table = u'netmap_view_defaultview'
 
 
@@ -1338,7 +1338,7 @@ class NetmapViewCategories(models.Model):
     def __unicode__(self):
         return u'%s in category %s' % (self.view, self.category)
 
-    class Meta:
+    class Meta(object):
         db_table = u'netmap_view_categories'
         unique_together = (('view', 'category'),)  # Primary key
 
@@ -1353,7 +1353,7 @@ class NetmapViewNodePosition(models.Model):
     x = models.IntegerField()
     y = models.IntegerField()
 
-    class Meta:
+    class Meta(object):
         db_table = u'netmap_view_nodeposition'
 
 
@@ -1368,7 +1368,7 @@ class AccountTool(models.Model):
     def __unicode__(self):
         return "%s - %s" % (self.toolname, self.account)
 
-    class Meta:
+    class Meta(object):
         db_table = u'accounttool'
 
 
@@ -1383,6 +1383,6 @@ class AccountNavlet(models.Model):
     def __unicode__(self):
         return "%s - %s" % (self.navlet, self.account)
 
-    class Meta:
+    class Meta(object):
         db_table = 'account_navlet'
         ordering = ['order']

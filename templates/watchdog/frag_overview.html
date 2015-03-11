@@ -1,34 +1,26 @@
-{% load humanize %}
-
-<ul class="small-block-grid-2 large-block-grid-3">
-  <li>
-    <div>
-      <h5>IP Devices</h5>
-      {{ num_ip_devices }}
-    </div>
-  </li>
-  <li>
-    <div>
-      <h5>Serial numbers</h5>
-      {{ num_serials }}
-    </div>
-  </li>
-  <li>
-    <div>
-      <h5>Active IPs (v4/v6)</h5>
-      {{ num_active|intcomma }} ({{ num_active_ipv4|intcomma }}/{{ num_active_ipv6|intcomma }})
-    </div>
-  </li>
-  <li>
-    <div>
-      <h5>Total Arp records</h5>
-      {{ num_arp|intcomma }}
-    </div>
-  </li>
-  <li>
-    <div>
-      <h5>Total Cam records</h5>
-      {{ num_cam|intcomma }}
-    </div>
-  </li>
-</ul>
+<table class="vertitable"">
+  <tbody>
+    <tr>
+      <th title="A regular count of the IP Devices">IP Devices</th>
+      <td><span id="netbox-count">Fetching...</span></td>
+    </tr>
+    <tr>
+      <th title="A count of all the arp records">Total Arp records</th>
+      <td><span id="arp-count">Fetching...</span></td>
+    </tr>
+    <tr>
+      <th title="A count of all the arp records">Total Cam records</th>
+      <td><span id="cam-count">Fetching...</span></td>
+    </tr>
+    <tr>
+      <th title="All the distinct serial numbers">Serial numbers</th>
+      <td><span id="serial-numbers">Fetching...</span></td>
+    </tr>
+    <tr>
+      <th title="Current active ip-addresses. The split of version 4
+                 and version 6 can be seen after the main number.">
+        Active IPs (v4/v6)</th>
+      <td><span id="active-addresses">Fetching...</span></td>
+    </tr>
+  </tbody>
+</table>

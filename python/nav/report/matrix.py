@@ -8,11 +8,11 @@
 # the terms of the GNU General Public License version 2 as published by
 # the Free Software Foundation.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with
-# NAV. If not, see <http://www.gnu.org/licenses/>.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details. You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Builds the prefix matrix."""
 import math
@@ -72,7 +72,10 @@ class Matrix:
         raise NotImplementedError('Must be implemented in subclass')
 
     def has_too_small_nets(self, net):
-        """Returns true if argument ``net'' has too many small subnets for the matrix."""
+        """
+        Returns True if argument ``net'' has too many small subnets for the
+        matrix.
+        """
         for net in getSubtree(self.tree, net):
             if net.prefixlen() > self.end_net.prefixlen():
                 return True

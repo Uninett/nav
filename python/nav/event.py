@@ -77,7 +77,7 @@ class Event(UserDict):
             return result
     # Alias the delete member function as dispose
     dispose = delete
-        
+
 
 class EventQ(object):
     """Static class to manipulate the event queue"""
@@ -161,7 +161,7 @@ class EventQ(object):
             if curs.rowcount > 0:
                 for var, val in curs.fetchmany():
                     event[var] = val
-        
+
         events = []
         cursor.execute(eventsql, (target,))
         if cursor.rowcount > 0:
@@ -188,7 +188,7 @@ class EventQ(object):
         conn.commit()
         return cursor.statusmessage
 
-    
+
 class EventIdAllocationError(GeneralException):
     """Error allocating a new event ID from the queue"""
     pass
@@ -212,22 +212,22 @@ class EventNotPostedError(GeneralException):
 @transaction.commit_manually
 def create_type_hierarchy(hierarchy):
     """Create an event/alert type hierarchy in the database.
-    
+
     If the hierarchy already exists, nothing is done.
-    
+
     hierarchy -- A structure like this:
       { (event_type_name, description, stateful) :
         [(alert_type_name, description), ...]
       }
-    
+
     Returns: The number of objects created.  A return value of 0
     indicates that all the objects already exist.
-    
+
     This function uses the Django ORM for database access, thus it is
     not async-safe.
-    
+
     Usage example:
-    
+
     >>> h = {('apState', 'Access point assocation/disassociation events', True):
     ...      [('apUp', 'AP associated with controller'),
     ...       ('apDown', 'AP disassociated from controller'),
@@ -235,16 +235,16 @@ def create_type_hierarchy(hierarchy):
     >>> create_type_hierarchy(h)
     3
     >>>
-    
+
     """
     created_count = 0
-    
+
     for event_type, alert_types in hierarchy.items():
         event_type_name, event_descr, stateful = event_type
         if stateful not in ('y', 'n'):
             # Parse the stateful var as a boolean
             stateful = stateful and 'y' or 'n'
-        
+
         try:
             etype = EventType.objects.get(id=event_type_name)
         except EventType.DoesNotExist:
@@ -252,7 +252,7 @@ def create_type_hierarchy(hierarchy):
                               stateful=stateful)
             etype.save()
             created_count += 1
-        
+
         for alert_type_name, alert_descr in alert_types:
             atype, created = AlertType.objects.get_or_create(
                 name=alert_type_name, event_type=etype)

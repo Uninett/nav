@@ -16,7 +16,8 @@
 """Metric threshold related models"""
 from datetime import timedelta
 from django.db import models
-from nav.metrics.graphs import extract_series_name, translate_serieslist_to_regex
+from nav.metrics.graphs import (extract_series_name,
+                                translate_serieslist_to_regex)
 from nav.models.profiles import Account
 from nav.models.fields import VarcharField
 from nav.metrics.thresholds import ThresholdEvaluator, DEFAULT_INTERVAL
@@ -24,9 +25,15 @@ from nav.metrics.thresholds import ThresholdEvaluator, DEFAULT_INTERVAL
 
 class ThresholdRule(models.Model):
     """A threshold rule"""
+
+    alert_help_text = """
+    Examples: >20, <10. Percent (>20%) can only be used on interface octet
+    counters.
+    """
+
     id = models.AutoField(primary_key=True)
     target = VarcharField()
-    alert = VarcharField(help_text='Examples: >95%, >20, <10')
+    alert = VarcharField(help_text=alert_help_text)
     clear = VarcharField(
         null=True, blank=True,
         help_text='The threshold for cancelling an alert. '
@@ -40,7 +47,7 @@ class ThresholdRule(models.Model):
     creator = models.ForeignKey(Account, null=True)
     created = models.DateTimeField(auto_now=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'thresholdrule'
 
     def __repr__(self):

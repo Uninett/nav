@@ -81,7 +81,7 @@ class Interfaces(Plugin):
         interfaces = [self._convert_row_to_container(netbox, ifindex, row)
                       for ifindex, row in result.items()]
         return interfaces
-    
+
     def _convert_row_to_container(self, netbox, ifindex, row):
         """Convert a collected ifTable/ifXTable row into a container object."""
 
@@ -104,7 +104,7 @@ class Interfaces(Plugin):
         interface.ifname = row['ifName'] or interface.baseport or row['ifDescr']
         interface.ifconnectorpresent = row['ifConnectorPresent'] == 1
         interface.ifalias = decode_to_unicode(row['ifAlias'])
-        
+
         # Set duplex if sucessfully retrieved
         if 'duplex' in row and row['duplex'] in DUPLEX_MAP:
             interface.duplex = DUPLEX_MAP[row['duplex']]
@@ -118,7 +118,7 @@ class Interfaces(Plugin):
     def _get_stack_status(self, interfaces):
         """Retrieves data from the ifStackTable and initiates a search for a
         proper ifAlias value for those interfaces that lack it.
-        
+
         """
         def _stackify(stackstatus):
             ifindex_map = dict((ifc.ifindex, ifc) for ifc in interfaces)
@@ -141,7 +141,7 @@ class Interfaces(Plugin):
         virtual port may have no ifAlias value, but the physical interface may
         have.  We want an ifAlias value, since it tells us the netident of the
         router port's network.
-        
+
         """
         for higher, lower in stack:
             if not higher.ifalias and lower.ifalias:

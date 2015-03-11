@@ -10,5 +10,5 @@ def default_datetime(value):
         v = date(value, DATETIME_FORMAT)
     except:
         return value
-    
+
     return v

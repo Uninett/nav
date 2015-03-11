@@ -18,7 +18,7 @@ from nav import buildconf
 from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.event import Event
-from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.abstractchecker import AbstractChecker
 from urlparse import urlsplit
 import httplib
 import socket
@@ -53,13 +53,13 @@ class HttpChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=0, **kwargs)
 
     def execute(self):
-        ip, port = self.getAddress()
-        url = self.getArgs().get('url', '')
+        ip, port = self.get_address()
+        url = self.args.get('url', '')
         if not url:
             url = "/"
         _protocol, vhost, path, query, _fragment = urlsplit(url)
-        
-        i = HTTPConnection(self.getTimeout(), ip, port or 80)
+
+        i = HTTPConnection(self.timeout, ip, port or 80)
         if vhost:
             i.host = vhost
 
@@ -73,7 +73,7 @@ class HttpChecker(AbstractChecker):
         if 200 <= response.status < 400:
             status = Event.UP
             version = response.getheader('SERVER')
-            self.setVersion(version)
+            self.version = version
             info = 'OK (%s) %s' % (str(response.status), version)
         else:
             status = Event.DOWN

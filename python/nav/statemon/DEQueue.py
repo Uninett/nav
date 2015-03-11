@@ -1,4 +1,4 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2002 Norwegian University of Science and Technology
 #
@@ -20,10 +20,10 @@
 #
 #
 # Inspired by a example in Thomas W. Christopher's excellent book
-# Python Programming Patterns. 
+# Python Programming Patterns.
 #
-# $Id$
-# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
+# FIXME: This should probably be replaced by Python's collections.deque
+# pylint: disable=all
 #
 """
 A simple double ended queue
@@ -46,7 +46,7 @@ class DEQueue:
                 self.rep[:self.hd]+  \
                 [None]*len(self.rep)
             self.hd = 0
-        self.rep[(self.hd+self.size)%len(self.rep)]=x
+        self.rep[(self.hd+self.size)%len(self.rep)] = x
         self.size = self.size + 1
 
     def push(self, x):

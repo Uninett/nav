@@ -20,7 +20,8 @@ from django.db.models import Q
 from django.utils.datastructures import SortedDict
 
 from nav.models.event import AlertHistory, AlertHistoryMessage
-from nav.models.manage import Netbox, Device, Location, Room, Module, Organization, Category
+from nav.models.manage import (Netbox, Device, Location, Room, Module,
+                               Organization, Category)
 
 LOCATION_GROUPING = {
     'order_by': 'netbox__room__location__description',
@@ -50,10 +51,10 @@ GROUPINGS = {
     'datetime': DATE_GROUPING,
 }
 
-def get_selected_types(type):
+def get_selected_types(selected_type):
     selected_types = {'event': None, 'alert': None}
-    if type and type.find('_') != -1:
-        kind, name = type.split('_')
+    if selected_type and selected_type.find('_') != -1:
+        kind, name = selected_type.split('_', 1)
         kind = 'event' if kind == 'e' else 'alert'
         selected_types[kind] = name
     return selected_types
@@ -111,7 +112,8 @@ def fetch_history(selection, form):
     # Time limit is done in raw SQL to make sure all parantheses are right.
     history = AlertHistory.objects.select_related(
         'event_type', 'alert_type', 'device',
-        'netbox', 'netbox__room', 'netbox__room__location', 'netbox__organization', 'netbox__category'
+        'netbox', 'netbox__room', 'netbox__room__location',
+        'netbox__organization', 'netbox__category'
     ).filter(
         Q(netbox__in=[n.id for n in netbox]) |
         Q(device__in=[n.device.id for n in netbox]) |

@@ -45,7 +45,7 @@ class VendorInfo(SeeddbInfo):
 
 
 class VendorForm(forms.ModelForm):
-    class Meta:
+    class Meta(object):
         model = Vendor
 
 

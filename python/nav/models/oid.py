@@ -40,7 +40,7 @@ class SnmpOid(models.Model):
     mib = VarcharField()
     unit = VarcharField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'snmpoid'
 
     def __unicode__(self):
@@ -55,7 +55,7 @@ class NetboxSnmpOid(models.Model):
     snmp_oid = models.ForeignKey(SnmpOid, db_column='snmpoidid')
     frequency = models.IntegerField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'netboxsnmpoid'
         unique_together = (('netbox', 'snmp_oid'),)
 

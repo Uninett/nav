@@ -14,13 +14,13 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Functions for topological sorting of graph nodes.""" 
+"""Functions for topological sorting of graph nodes."""
 
 def build_graph(objects, dependency_calculator):
     """Return a graph representation of the objects list.
 
     Arguments:
-    
+
         objects -- a list of objects (nodes) in the graph
         dependency_calculator -- a function that takes an object as its
                                  argument and returns a list of its dependent
@@ -31,7 +31,7 @@ def build_graph(objects, dependency_calculator):
        A dictionary describing the edges/arcs between the nodes in the graph:
 
        {'A': ['B', 'C'],  # Directed edges from 'A' to 'B' and 'C'
-        'B': ['D'],       # Directed edges from 'B' to 'D' 
+        'B': ['D'],       # Directed edges from 'B' to 'D'
         'C': [],          # No directed edges from C
         'D': []           # No directed edges from D
        }
@@ -47,7 +47,7 @@ def build_graph(objects, dependency_calculator):
                 graph[other_obj] = []
     return graph
 
-    
+
 
 def topological_sort(graph):
     """Sort a graph of nodes topologically.
@@ -61,7 +61,7 @@ def topological_sort(graph):
 
 
     Returns:
-    
+
       A new list with the sorted nodes.
 
     """
@@ -78,5 +78,5 @@ def topological_sort(graph):
 
     for node in all_nodes:
         visit(node)
-        
+
     return sorted_nodes

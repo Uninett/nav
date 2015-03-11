@@ -34,7 +34,10 @@ ADMINGROUP = 1
 CONFIGDIR = 'alertprofiles/'
 
 def account_owns_filters(account, *filters):
-    """Checks if account have access to edit/remove filters and/or filter groups."""
+    """
+    Verifies that account has access to edit/remove filters and/or filter
+    groups.
+    """
 
     # Check if user is admin
     groups = account.accountgroup_set.filter(pk=ADMINGROUP).count()
@@ -45,7 +48,7 @@ def account_owns_filters(account, *filters):
         # User is not admin, check each filter
         for filter in filters:
             try:
-                if isinstance(filter, Filter) or isinstance(filter, FilterGroup):
+                if isinstance(filter, (Filter, FilterGroup)):
                     owner = filter.owner
                 else:
                     owner = filter.get().owner

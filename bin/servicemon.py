@@ -39,7 +39,7 @@ import signal
 import nav.daemon
 from nav.daemon import safesleep as sleep
 from nav.statemon import RunQueue
-from nav.statemon import abstractChecker
+from nav.statemon import abstractchecker
 from nav.statemon import config
 from nav.statemon import db
 from nav.statemon import debug
@@ -67,13 +67,13 @@ class controller:
         Fetches new checkers from the NAV database and appends them to
         the runqueue.
         """
-        newcheckers = self.db.getCheckers(self.dirty)
+        newcheckers = self.db.get_checkers(self.dirty)
         self.dirty=0
         # make sure we don't delete all checkers if we get an empty
         # list from the database (maybe we have lost connection to
         # the db)
         if newcheckers:
-            s=[]    
+            s=[]
             for i in newcheckers:
                 if i in self._checkers:
                     oldchecker = self._checkers[self._checkers.index(i)]
@@ -89,7 +89,7 @@ class controller:
         #randomiserer rekkefølgen på checkerbene
         for i in self._checkers:
             self._checkers.append(self._checkers.pop(int(len(self._checkers)*random.random())))
-                    
+
     def main(self):
         """
         Loops until SIGTERM is caught. The looptime is defined
@@ -192,9 +192,9 @@ if __name__=='__main__':
     # chdir into own dir
     #mydir, myname = os.path.split(sys.argv[0])
     #os.chdir(mydir)
-    # Make sure our files are readable for all 
+    # Make sure our files are readable for all
     os.umask(0002)
-                                  
+
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hnv', ['help','nofork', 'version'])
         fork=1
@@ -208,10 +208,10 @@ if __name__=='__main__':
             elif opt in ('-v','--version'):
                 print __version__
                 sys.exit(0)
-                
+
 
     except (getopt.error):
         help()
         sys.exit(2)
-                               
+
     start(fork)

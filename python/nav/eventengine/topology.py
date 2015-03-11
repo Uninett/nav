@@ -101,7 +101,7 @@ def get_graph_for_vlan(vlan):
 
     """
     swpvlan = SwPortVlan.objects.filter(vlan=vlan).select_related(
-        'interface', 'interface__netbox',  'interface__to_netbox',
+        'interface', 'interface__netbox', 'interface__to_netbox',
         'interface__to_interface')
     graph = networkx.MultiGraph(name='graph for vlan %s' % vlan)
     for swp in swpvlan:

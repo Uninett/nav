@@ -40,7 +40,7 @@ class Plugin(nav.mailin.Plugin):
     def process(self, msg):
         body = msg.get_payload()
         body = body.decode('iso-8859-1').encode('utf-8')  # Temporary fix
-        
+
         event = nav.mailin.make_event(eventtypeid='mailinWhatsup')
         event['subject'] = msg['Subject']
         event['body'] = body

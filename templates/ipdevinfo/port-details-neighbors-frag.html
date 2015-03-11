@@ -1,0 +1,30 @@
+{% block content %}
+
+  {% if port.has_unignored_unrecognized_neighbors %}
+    <table class="listtable">
+      <caption>Unrecognized Neighbors</caption>
+      <thead>
+        <tr>
+          <td>Remote Id</td>
+          <td>Remote Name</td>
+          <td>Source</td>
+          <td>Since</td>
+        </tr>
+      </thead>
+      <tbody>
+        {% for neighbor in port.unrecognizedneighbor_set.all %}
+          {% if not neighbor.ignored_since %}
+            <tr>
+              <td>{{ neighbor.remote_id }}</td>
+              <td>{{ neighbor.remote_name }}</td>
+              <td>{{ neighbor.source }}</td>
+              <td>{{ neighbor.since }}</td>
+              <td></td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+{% endblock %}

@@ -18,7 +18,7 @@ import datetime
 
 from django.db.models import Q
 
-from nav.models.manage import Netbox,  Cam, Arp, GwPortPrefix
+from nav.models.manage import Netbox, Cam, Arp, GwPortPrefix
 from nav.models.manage import SwPortVlan, Interface, Prefix
 
 
@@ -102,17 +102,17 @@ def search_expand_swport(swportid=None, swport=None, scanned=[]):
         recurs_found = search_expand_swport(swport=port, scanned=scanned)
         found_gwports.extend(recurs_found[0])
         found_swports.extend(recurs_found[1])
-    
+
     for port in Interface.objects.filter(
             to_interface__in=found_swports,
             gwportprefix__isnull=False):
         found_gwports.append(port)
-    
+
     for port in Interface.objects.filter(
             to_netbox=swport.netbox,
             gwportprefix__isnull=False):
         found_gwports.append(port)
-    
+
     for port in Interface.objects.filter(
             to_interface=swport,
             gwportprefix__isnull=False):
@@ -125,10 +125,10 @@ def search_expand_netbox(netboxid=None, netbox=None):
     """
     Expands all paths to a router from a netboxid
     """
-    
+
     found_gwports = []
     found_swports = []
-    
+
     if not netbox:
         try:
             netbox = Netbox.objects.get(id=netboxid)
@@ -205,7 +205,7 @@ def sysname_search(sysname, exact=False):
     router_matches = set()
     gwport_matches = set()
     swport_matches = set()
-    
+
     if exact:
         routers = Netbox.objects.filter(
             sysname=sysname,
@@ -235,7 +235,7 @@ def sysname_search(sysname, exact=False):
         swport_search = search_expand_swport(swport=swport)
         gwport_matches.update(swport_search[0])
         swport_matches.update(swport_search[1])
-    
+
     router_matches.update([gwport.netbox for gwport in gwport_matches])
 
     return router_matches, gwport_matches, swport_matches
@@ -268,7 +268,7 @@ def ip_search(ip, exact=False):
     router_matches.update([
         netbox for netbox in netboxes.filter(category__in=['GW', 'GSW'])
     ])
-    
+
     for netbox in netboxes:
         netbox_search = search_expand_netbox(netbox=netbox)
         gwport_matches.update(netbox_search[0])
@@ -281,7 +281,7 @@ def ip_search(ip, exact=False):
         mac_search = search_expand_mac(mac=arp_entry.mac)
         gwport_matches.update(mac_search[0])
         swport_matches.update(mac_search[1])
-    
+
     router_matches.update([gwport.netbox for gwport in gwport_matches])
 
     return router_matches, gwport_matches, swport_matches

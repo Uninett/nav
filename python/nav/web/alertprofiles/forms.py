@@ -21,9 +21,9 @@
 from django import forms
 from django.db.models import Q
 
-from nav.alertengine.dispatchers.email_dispatcher import email
-from nav.alertengine.dispatchers.jabber_dispatcher import jabber
-from nav.alertengine.dispatchers.sms_dispatcher import sms
+from nav.alertengine.dispatchers.email_dispatcher import Email
+from nav.alertengine.dispatchers.jabber_dispatcher import Jabber
+from nav.alertengine.dispatchers.sms_dispatcher import Sms
 
 from nav.models.profiles import MatchField, Filter, Expression, FilterGroup
 from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
@@ -40,7 +40,7 @@ _ = lambda a: a
 
 class AccountPropertyForm(forms.ModelForm):
 
-    class Meta:
+    class Meta(object):
         model = AccountProperty
         exclude = ('account',)
 
@@ -77,7 +77,7 @@ class AlertProfileForm(forms.ModelForm):
             )
         )
 
-    class Meta:
+    class Meta(object):
         model = AlertProfile
         exclude = ('account',)
 
@@ -100,7 +100,7 @@ class AlertAddressForm(forms.ModelForm):
             )
         )
 
-    class Meta:
+    class Meta(object):
         model = AlertAddress
         exclude = ('account',)
 
@@ -111,13 +111,13 @@ class AlertAddressForm(forms.ModelForm):
         if type and address:
             error = None
             if type.handler == 'sms':
-                if not sms.is_valid_address(address):
+                if not Sms.is_valid_address(address):
                     error = 'Not a valid phone number.'
             elif type.handler == 'jabber':
-                if not jabber.is_valid_address(address):
+                if not Jabber.is_valid_address(address):
                     error = 'Not a valid jabber address.'
             else:
-                if not email.is_valid_address(address):
+                if not Email.is_valid_address(address):
                     error = 'Not a valid email address.'
 
             if error:
@@ -160,7 +160,7 @@ class TimePeriodForm(forms.ModelForm):
             Submit('submit', submit_text, css_class='small')
         )
 
-    class Meta:
+    class Meta(object):
         model = TimePeriod
 
     def clean(self):
@@ -198,7 +198,7 @@ class TimePeriodForm(forms.ModelForm):
 class AlertSubscriptionForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
 
-    class Meta:
+    class Meta(object):
         model = AlertSubscription
 
     def __init__(self, *args, **kwargs):
@@ -310,7 +310,7 @@ class FilterGroupForm(forms.Form):
     name = forms.CharField(required=True)
     description = forms.CharField(required=False)
 
-    class Meta:
+    class Meta(object):
         model = FilterGroup
         exclude = ('group_permissions',)
 
@@ -344,7 +344,7 @@ class FilterForm(forms.Form):
         u'Uncheck to allow all users to use this filter.'))
     name = forms.CharField(required=True)
 
-    class Meta:
+    class Meta(object):
         model = Filter
 
     def __init__(self, *args, **kwargs):
@@ -404,7 +404,7 @@ class MatchFieldForm(forms.ModelForm):
             )
         )
 
-    class Meta:
+    class Meta(object):
         model = MatchField
 
     def clean_value_name(self):
@@ -451,7 +451,7 @@ class ExpressionForm(forms.ModelForm):
     match_field = forms.IntegerField(widget=forms.widgets.HiddenInput)
     value = forms.CharField(required=True)
 
-    class Meta:
+    class Meta(object):
         model = Expression
 
     def __init__(self, *args, **kwargs):

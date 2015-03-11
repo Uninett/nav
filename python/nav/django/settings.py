@@ -64,13 +64,10 @@ ROOT_URLCONF = 'nav.django.urls'
 
 #Static files
 STATIC_URL = '/static/'
-
-STATICFILES_DIRS = (
-    os.path.join(nav.path.webrootdir, 'static'),
-)
-
+STATIC_ROOT = os.path.join(nav.path.webrootdir, 'static')
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
 
@@ -163,9 +160,9 @@ NAVLETS = (
 
 CRISPY_TEMPLATE_PACK = 'foundation'
 
-INSTALLED_APPS = ( 
-    'nav.models', 
-    'nav.django', 
+INSTALLED_APPS = (
+    'nav.models',
+    'nav.django',
     'django.contrib.staticfiles',
     'django.contrib.sessions',
     'django.contrib.humanize',
