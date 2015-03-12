@@ -112,18 +112,19 @@ define(['libs/jquery', 'libs/OpenLayers'], function() {
     }
 
     function addMarkerLayer(map) {
-        var markerLayer = new OpenLayers.Layer.Markers('Marker');
+        var markerLayer = new OpenLayers.Layer.Vector('MarkerLayer');
         map.addLayer(markerLayer);
         return markerLayer;
     }
 
     function addMarkerToLayer(lonlat, layer) {
-        var size = new OpenLayers.Size(21,25);
-        var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
-        var icon = new OpenLayers.Icon(
-            NAV.imagePath + '/openlayers/marker-green.png', size, offset);
-        var marker = new OpenLayers.Marker(lonlat, icon);
-        layer.addMarker(marker);
+        var geometry = new OpenLayers.Geometry.Point(lonlat.lon, lonlat.lat);
+        var marker = new OpenLayers.Feature.Vector(geometry, null, {
+            externalGraphic: NAV.imagePath + '/openlayers/marker-green.png',
+            graphicHeight: 25,
+            graphicYOffset: -25
+        });
+        layer.addFeatures([marker]);
         return marker;
     }
 
@@ -159,7 +160,7 @@ define(['libs/jquery', 'libs/OpenLayers'], function() {
 
             trigger: function(event) {
                 var lonlat = map.getLonLatFromPixel(event.xy);
-                marker.moveTo(map.getLayerPxFromLonLat(lonlat));
+                marker.move(lonlat);
                 updatePosition(position_input, lonlat, map);
             }
         });
@@ -196,7 +197,7 @@ define(['libs/jquery', 'libs/OpenLayers'], function() {
                 position.coords.latitude
             ]);
             map.setCenter(lonlat);
-            marker.moveTo(map.getLayerPxFromLonLat(lonlat));
+            marker.move(lonlat);
             updatePosition(positionField, lonlat, map);
         }
 
