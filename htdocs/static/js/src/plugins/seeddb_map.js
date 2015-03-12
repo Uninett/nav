@@ -60,11 +60,11 @@ define(['libs/jquery', 'libs/OpenLayers'], function() {
      * Get point given or default coords
      * @param {OpenLayers.Map} map
      * @param {string} positionValue The value from the form position field
+     * @returns {OpenLayers.LonLat}
      */
     function getCenter(map, positionValue) {
         var center;
         if (positionValue) {
-            console.log('Position was set in the form');
             try {
                 var coords = parsePositionValue(positionValue.slice(1, -1));
                 center = getPoint(map, coords);
@@ -75,7 +75,6 @@ define(['libs/jquery', 'libs/OpenLayers'], function() {
                 map.zoomToMaxExtent();
             }
         } else {
-            console.log('No position set in the form');
             center = getPoint(map, [0, 0]);
             map.zoomToMaxExtent();
         }
@@ -190,6 +189,12 @@ define(['libs/jquery', 'libs/OpenLayers'], function() {
         return '(' + [lonlat.lat, lonlat.lon].join() + ')';
     }
 
+    /**
+     * Get and set location using geolocation api.
+     * @param {OpenLayers.Map} map
+     * @param {OpenLayers.Feature.Vector} marker
+     * @param {jQueryDomElement} positionField
+     */
     function getAndSetLocation(map, marker, positionField) {
         function gotPosition(position) {
             var lonlat = getPoint(map, [
