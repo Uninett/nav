@@ -44,9 +44,7 @@ var zoom=6;
 // Variables holding the objects created by init:
 var themap;
 var mapnikLayer;
-var osmaLayer;
 var netLayer;
-var posControl;
 var timeNavigator;
 
 // id attribute of the HTML element containing the map:
@@ -54,7 +52,6 @@ var mapElemId;
 
 // Boolean variable determining whether the map should cover the whole
 // viewport:
-var mapFullscreen = false;
 var nav = nav || {};
 var getDataUrl = 'data';
 var mapSelector = "map";
