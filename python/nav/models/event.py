@@ -269,7 +269,7 @@ class EventQueue(models.Model, EventMixIn):
                                related_name='target_of_events')
     device = models.ForeignKey('models.Device', db_column='deviceid', null=True)
     netbox = models.ForeignKey('models.Netbox', db_column='netboxid', null=True)
-    subid = VarcharField()
+    subid = VarcharField(default='')
     time = models.DateTimeField(default=dt.datetime.now)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     state = models.CharField(max_length=1, choices=STATE_CHOICES,
@@ -359,7 +359,7 @@ class AlertQueue(models.Model, EventMixIn):
     source = models.ForeignKey('Subsystem', db_column='source')
     device = models.ForeignKey('models.Device', db_column='deviceid', null=True)
     netbox = models.ForeignKey('models.Netbox', db_column='netboxid', null=True)
-    subid = VarcharField()
+    subid = VarcharField(default='')
     time = models.DateTimeField()
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
     alert_type = models.ForeignKey('AlertType', db_column='alerttypeid',
@@ -470,7 +470,7 @@ class AlertHistory(models.Model, EventMixIn):
     source = models.ForeignKey('Subsystem', db_column='source')
     device = models.ForeignKey('models.Device', db_column='deviceid', null=True)
     netbox = models.ForeignKey('models.Netbox', db_column='netboxid', null=True)
-    subid = VarcharField()
+    subid = VarcharField(default='')
     start_time = models.DateTimeField()
     end_time = DateTimeInfinityField(null=True)
     event_type = models.ForeignKey('EventType', db_column='eventtypeid')
