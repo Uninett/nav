@@ -19,6 +19,7 @@ define([], function () {
 
     /**
      * Toggle fullscreen mode for an element or document if none
+     * @param {HTMLElement} [element] Element to toggle fullscreen for
      */
     function toggleFullscreen(element) {
         if (isFullscreenSupported()) {
@@ -34,6 +35,7 @@ define([], function () {
 
     /**
      * Returns if fullscreen mode is supported in this browser or not
+     * @returns {boolean}
      */
     function isFullscreenSupported() {
         return document.fullscreenEnabled ||
@@ -44,6 +46,7 @@ define([], function () {
 
     /**
      * Returns if we are in fullscreen mode or not
+     * @returns {boolean}
      */
     function isInFullscreen() {
         return document.fullscreenElement ||
@@ -69,7 +72,7 @@ define([], function () {
 
     /**
      * Request fullscreen for this element or the document if none
-     * @param {HTMLElement} [element] Default document
+     * @param {HTMLElement} [element] Element to toggle fullscreen for
      */
     function requestFullscreen(element) {
         element = element || document.documentElement;
@@ -89,6 +92,7 @@ define([], function () {
      * add it to document, or set append flag.
      * @param {HTMLElement} [element] Optional element to trigger fullscreen on
      * @param {boolean} [append] Append trigger to element or not, default false
+     * @returns {HTMLElement}
      */
     function createFullscreenToggler(element, append) {
         var button = document.createElement('button'),
