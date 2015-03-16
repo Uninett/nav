@@ -74,11 +74,20 @@ function create_bounding_box() {
         }
 
         var roomPositions = new OpenLayers.Geometry.MultiPoint(roomPosArray);
-        nav.geomapBBox = roomPositions.getBounds();
+        nav.geomapBBox = roomPositions.getBounds(); // Is null if no roompositions
+
+        if (nav.geomapBBox === null) {
+            showPositionHint();
+        }
 
         init('map');
     });
 }
+
+function showPositionHint() {
+    $('#position-hint').removeClass('hidden');
+}
+
 
 function getLat(position) {
     return parseFloat(position.split(',')[0]);
@@ -102,7 +111,6 @@ function getLong(position) {
      *
      */
     function init(mapElementId) {
-
         mapElemId = mapElementId;
         setMapSize();
         window.onresize = setMapSize;
@@ -149,9 +157,11 @@ function getLong(position) {
             var requestedBounds = OpenLayers.Bounds.fromArray(parameters.bbox);
             requestedBounds.transform(themap.displayProjection, themap.getProjectionObject());
             themap.zoomToExtent(requestedBounds);
-        } else {
+        } else if (nav.geomapBBox) {
             nav.geomapBBox.transform(themap.displayProjection, themap.getProjectionObject());
             themap.zoomToExtent(nav.geomapBBox);
+        } else {
+            themap.zoomToMaxExtent();
         }
 
         try {
