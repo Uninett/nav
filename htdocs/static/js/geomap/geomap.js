@@ -178,9 +178,8 @@ function getLong(position) {
 
     function addFullScreenToggler() {
         if (fullscreen.isFullscreenSupported()) {
-            var map = document.getElementById(mapElemId),
-            toggler = fullscreen.createFullscreenToggler(map);
-            $(map).prepend(toggler);
+            fullscreen.createFullscreenToggler(
+                document.getElementById(mapElemId), true);
         }
     }
 
