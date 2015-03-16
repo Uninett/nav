@@ -4,14 +4,23 @@
  * NOTE: Fullscreen requests need to be called from within an event handler
  * or otherwise they will be denied.
  *
+ * Written to be jQuery independent
+ *
  * Usage:
- * var map = $(mapSelector),
- * toggler = fullscreen.createFullscreenToggler(map).appendTo(map);
+ * var map = document.getElementById(mapSelector),
+ * toggler = fullscreen.createFullscreenToggler(map, true);
+ *
+ * Overwrite default style:
+ * var toggler = fullscreen.createFullscreenToggler(map, true);
+ * toggler.style.right = 20px;
+ * toggler.style['background-color'] = 'black';
  */
 define([], function () {
 
+    /**
+     * Toggle fullscreen mode for an element or document if none
+     */
     function toggleFullscreen(element) {
-        /** Toggle fullscreen mode for an element or document if none */
         if (isFullscreenSupported()) {
             if (isInFullscreen()) {
                 exitFullscreen();
@@ -23,24 +32,30 @@ define([], function () {
         }
     }
 
+    /**
+     * Returns if fullscreen mode is supported in this browser or not
+     */
     function isFullscreenSupported() {
-        /** Returns if fullscreen mode is supported in this browser or not */
         return document.fullscreenEnabled ||
             document.webkitFullscreenEnabled ||
             document.mozFullScreenEnabled ||
             document.msFullscreenEnabled || false;
     }
 
+    /**
+     * Returns if we are in fullscreen mode or not
+     */
     function isInFullscreen() {
-        /** Returns if we are in fullscreen mode or not */
         return document.fullscreenElement ||
             document.mozFullScreenElement ||
             document.webkitFullscreenElement ||
             document.msFullscreenElement || false;
     }
 
+    /**
+     * Exit fullscreen mode
+     */
     function exitFullscreen() {
-        /** Exit fullscreen mode */
         if (document.exitFullscreen) {
             document.exitFullscreen();
         } else if (document.msExitFullscreen) {
@@ -52,8 +67,11 @@ define([], function () {
         }
     }
 
+    /**
+     * Request fullscreen for this element or the document if none
+     * @param {HTMLElement} [element] Default document
+     */
     function requestFullscreen(element) {
-        /** Request fullscreen for this element or the document if none */
         element = element || document.documentElement;
         if (element.requestFullscreen) {
             element.requestFullscreen();
@@ -67,28 +85,37 @@ define([], function () {
     }
 
     /**
-     * Example fullscreentoggler. Adjust CSS as needed. Remember to
-     * add it to document.
+     * Example fullscreentoggler. Adjust styles as needed. Remember to
+     * add it to document, or set append flag.
      * @param {HTMLElement} [element] Optional element to trigger fullscreen on
+     * @param {boolean} [append] Append trigger to element or not, default false
      */
-    function createFullscreenToggler(element) {
-        var toggler = $('<button class="tiny"><i class="fa fa-arrows-alt fa-lg"></i></button>');
-        toggler.css({
-            'position': 'absolute',
-            'right': '30px',
-            'top': '10px',
-            'z-index': 999
-        });
+    function createFullscreenToggler(element, append) {
+        var button = document.createElement('button'),
+            icon = document.createElement('i');
+        button.className = 'tiny';
+        icon.className = 'fa fa-arrows-alt fa-lg';
+        button.appendChild(icon);
+
+        button.style.position = 'absolute';
+        button.style.right = '30px';
+        button.style.top = '10px';
+        button.style['z-index'] = 999;
 
         if (typeof element !== 'undefined') {
             if (element instanceof jQuery) {
                 element = element[0];
             }
-            toggler.on('click', function() {
+            button.onclick = function() {
                 toggleFullscreen(element);
-            });
+            };
         }
-        return toggler;
+
+        if (append) {
+            element.appendChild(button);
+        }
+
+        return button;
     }
 
 
