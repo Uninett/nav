@@ -18,7 +18,7 @@
  * geomap.js: Shows a map with a network information overlay.
  */
 
-require(['libs/spin', 'libs/jquery'], function (Spinner) {
+require(['libs/spin', 'plugins/fullscreen', 'libs/jquery'], function (Spinner, fullscreen) {
     $(function () {
         var $timePanelToggler = $('#time-panel-toggler'),
             $icon = $timePanelToggler.find('i');
@@ -120,6 +120,7 @@ function getLong(position) {
             });
 
         addLayers();
+        addFullScreenToggler(); // Toggler for fullscreen version of the map
     }
 
     function addLayers() {
@@ -172,6 +173,15 @@ function getLong(position) {
             alert('Error parsing URL query string:\n' + e);
         }
 
+    }
+
+
+    function addFullScreenToggler() {
+        if (fullscreen.isFullscreenSupported()) {
+            var map = document.getElementById(mapElemId),
+            toggler = fullscreen.createFullscreenToggler(map);
+            $(map).prepend(toggler);
+        }
     }
 
 /*
