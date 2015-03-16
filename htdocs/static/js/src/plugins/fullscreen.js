@@ -4,6 +4,9 @@
  * NOTE: Fullscreen requests need to be called from within an event handler
  * or otherwise they will be denied.
  *
+ * Usage:
+ * var map = $(mapSelector),
+ * toggler = fullscreen.createFullscreenToggler(map).appendTo(map);
  */
 define([], function () {
 
@@ -63,12 +66,39 @@ define([], function () {
         }
     }
 
+    /**
+     * Example fullscreentoggler. Adjust CSS as needed. Remember to
+     * add it to document.
+     * @param {HTMLElement} [element] Optional element to trigger fullscreen on
+     */
+    function createFullscreenToggler(element) {
+        var toggler = $('<button class="tiny"><i class="fa fa-arrows-alt fa-lg"></i></button>');
+        toggler.css({
+            'position': 'absolute',
+            'right': '30px',
+            'top': '10px',
+            'z-index': 999
+        });
+
+        if (typeof element !== 'undefined') {
+            if (element instanceof jQuery) {
+                element = element[0];
+            }
+            toggler.on('click', function() {
+                toggleFullscreen(element);
+            });
+        }
+        return toggler;
+    }
+
+
     return {
         'toggleFullscreen': toggleFullscreen,
         'isFullscreenSupported': isFullscreenSupported,
         'isInFullscreen': isInFullscreen,
         'exitFullscreen': exitFullscreen,
-        'requestFullscreen': requestFullscreen
+        'requestFullscreen': requestFullscreen,
+        'createFullscreenToggler': createFullscreenToggler
     };
 
 });
