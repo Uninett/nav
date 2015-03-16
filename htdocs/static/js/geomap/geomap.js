@@ -112,8 +112,6 @@ function getLong(position) {
      */
     function init(mapElementId) {
         mapElemId = mapElementId;
-        setMapSize();
-        window.onresize = setMapSize;
 
         themap = new OpenLayers.Map(mapElementId, {
                 controls: [
@@ -191,61 +189,5 @@ function netLayerLoadEnd() {
 function netLayerLoadCancel() {
     spinner.stop();
 }
-
-/*
- * Update the size of the map element according to the viewport size.
- *
- * It would be nicer to use only CSS for this, but we want the map
- * element to cover the whole viewport _except_ a certain amount at
- * the top and right (for the NAV header and the time selection,
- * respectively), which cannot be expressed in CSS (at least not in
- * version 2).
- */
-function setMapSize() {
-    var mapE = document.getElementById(mapElemId);
-
-    if (mapFullscreen) {
-        mapE.style.position = 'absolute';
-        //mapE.style.zIndex = '1';
-        mapE.style.top = '0';
-        mapE.style.bottom = '0';
-        mapE.style.left = '0';
-        mapE.style.right = '0';
-        mapE.style.height = 'auto';
-        mapE.style.width = 'auto';
-    } else {
-        //var height = window.innerHeight - elemOffsetTop(mapE) - 4;
-        var height = document.getElementById('map-container').innerHeight;
-        var width = document.getElementById('map-container').innerWidth;
-
-        mapE.style.position = '';
-        mapE.style.height = height + 'px';
-        mapE.style.width = width + 'px';
-    }
-    if (themap)
-        themap.updateSize();
-}
-
-/*
- * Distance from top of viewport to top of HTML element elem.
- *
- * (Helper function for setMapSize).
- */
-function elemOffsetTop(elem) {
-    var offset = elem.offsetTop;
-    while (elem = elem.offsetParent)
-	offset += elem.offsetTop;
-    return offset;
-}
-
-/*
- * Switch between fullscreen mode and normal mode.
- */
-function toggleFullscreen() {
-    mapFullscreen = !mapFullscreen;
-    setMapSize();
-    setMapSize();
-}
-
 
 });
