@@ -4,10 +4,11 @@ from IPy import IP
 
 from nav.ipdevpoll.plugins import prefix
 
-class IgnoredPrefixTest(TestCase):
+
+class IgnoredPrefixConfigTest(TestCase):
     def test_single_prefix(self):
         config = Mock()
-        config.get.return_value='127.0.0.0/8'
+        config.get.return_value = '127.0.0.0/8'
 
         result = prefix.get_ignored_prefixes(config)
         self.assertEquals(len(result), 1)
@@ -27,7 +28,7 @@ class IgnoredPrefixTest(TestCase):
         self.assertTrue(result[0] in expected)
         self.assertTrue(result[1] in expected)
 
-    def test_invalid_prefix_shoule_be_silently_ignored(self):
+    def test_invalid_prefix_should_be_silently_ignored(self):
         config = Mock()
         config.get.return_value = '127.0.0.1/8, fe80::/16'
 
@@ -35,6 +36,41 @@ class IgnoredPrefixTest(TestCase):
         self.assertEquals(len(result), 1)
         self.assertTrue(result[0] is not None)
         self.assertEquals(result[0], IP('fe80::/16'))
+
+    def test_prefix_with_match_specifier_should_parse(self):
+        config = Mock()
+        config.get.return_value = '=10.0.0.0/23'
+
+        result = prefix.get_ignored_prefixes(config)
+        self.assertEquals(len(result), 1)
+        self.assertEquals(result[0], IP('10.0.0.0/23'))
+
+    def test_prefix_with_match_specifier_should_parse(self):
+        config = Mock()
+        config.get.return_value = '=10.0.0.0/23, <<=10.1.0.0/23'
+
+        expected = [IP('10.0.0.0/23'), IP('10.1.0.0/23')]
+        result = prefix.get_ignored_prefixes(config)
+        self.assertEquals(len(result), 2)
+        self.assertIn(result[0], expected)
+        self.assertIn(result[1], expected)
+
+
+class IgnoredPrefixTest(TestCase):
+    def test_contained_in_default_match(self):
+        pfx = prefix.IgnoredPrefix('192.168.1.0/24')
+        self.assertTrue(pfx.matches('192.168.1.128/25'))
+        self.assertFalse(pfx.matches('192.168.2.128/25'))
+
+    def test_contained_in_operator_match(self):
+        pfx = prefix.IgnoredPrefix('<<=192.168.1.0/24')
+        self.assertTrue(pfx.matches('192.168.1.128/25'))
+        self.assertFalse(pfx.matches('192.168.2.128/25'))
+
+    def test_contained_in_equals_match(self):
+        pfx = prefix.IgnoredPrefix('=192.168.1.0/24')
+        self.assertTrue(pfx.matches('192.168.1.0/24'))
+        self.assertFalse(pfx.matches('192.168.1.128/25'))
 
 
 class PrefixPluginTest(TestCase):
