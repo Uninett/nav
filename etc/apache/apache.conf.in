@@ -31,6 +31,7 @@ AliasMatch (^/static/.*) @webrootdir@/$1
 
 WSGIDaemonProcess NAV user=@nav_user@ processes=2 display-name=%{GROUP}
 WSGIProcessGroup NAV
+WSGIApplicationGroup %{GLOBAL}
 WSGIScriptAlias / @pythonlibdir@/nav/wsgi.py
 <Directory "@pythonlibdir@/nav">
     Order allow,deny
