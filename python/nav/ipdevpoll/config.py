@@ -42,7 +42,7 @@ max-repetitions = 10
 [jobs]
 
 [prefix]
-ignored = 127.0.0.0/8, fe80::/16
+ignored = <<=127.0.0.0/8, <<=fe80::/16, =128.0.0.0/2
 
 [linkstate]
 filter = topology
