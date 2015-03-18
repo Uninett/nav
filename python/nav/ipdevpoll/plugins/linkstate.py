@@ -27,7 +27,8 @@ class LinkState(Plugin):
 
     def handle(self):
         self.ifmib = IfMib(self.agent)
-        df = self.ifmib.retrieve_columns(['ifName', 'ifOperStatus'])
+        df = self.ifmib.retrieve_columns(
+            ['ifName', 'ifAdminStatus', 'ifOperStatus'])
         df.addCallback(reduce_index)
         return df.addCallback(self._put_results)
 
@@ -42,4 +43,5 @@ class LinkState(Plugin):
         ifc.ifindex = ifindex
         if row['ifName']:
             ifc.ifname = row['ifName']
+        ifc.ifadminstatus = row['ifAdminStatus']
         ifc.ifoperstatus = row['ifOperStatus']
