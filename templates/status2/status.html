@@ -75,18 +75,16 @@
           {% if permits.can_acknowledge_alerts %}
             <div class="medium-4 large-12 column">
               <div class="panel acknowledge">
-                <h5>
-                  <i data-tooltip
-                     aria-haspopup="true"
-                     title="<p>Acknowledged alerts will be hidden for all
-                            users, but not removed. When an end event
-                            arrives the alert will be cleared normally.</p>
-                            <p>Acknowledged alerts can be still be viewed by
-                            checking the <em>Acknowledged</em> checkbox in your
-                            status filter.</p>"
-                     class="has-tip tip-left fa fa-info-circle">
-                  </i>
+                <h5 data-tooltip
+                    title="<p>Acknowledged alerts will be hidden for
+                            all users, but not removed. When an end
+                            event arrives the alert will be cleared
+                            normally.</p> <p>Acknowledged alerts can
+                            be still be viewed by checking the
+                            <em>Acknowledged</em> checkbox in your
+                            status filter.</p>">
                   Acknowledge the alerts
+                  <i class="fa fa-info-circle"></i>
                 </h5>
                 <input type="text" class="usercomment" placeholder="Write a description">
                 <a href="javascript:void(0);" class="button small acknowledge-alerts expand">
@@ -99,16 +97,13 @@
           {% if permits.can_clear_alerts %}
             <div class="medium-4 large-12 column">
               <div class="panel resolve-alerts">
-                <h5>
-                  <i data-tooltip
-                     aria-haspopup="true"
-                     title="Clearing an alert means setting an end time
-                            to it. For instance if an interface has lost its
-                            link and you know this is a permanent state, you
-                            can clear that alert."
-                     class="has-tip tip-left fa fa-info-circle">
-                  </i>
+                <h5 data-tooltip
+                    title="Clearing an alert means setting an end time
+                           to it. For instance if an interface has
+                           lost its link and you know this is a
+                           permanent state, you can clear that alert.">
                   Clear the alerts
+                  <i class="fa fa-info-circle"></i>
                 </h5>
                 <a href="javascript:void(0);" class="button small expand">
                   Clear alerts
@@ -120,15 +115,13 @@
           {% if permits.can_put_on_maintenance %}
             <div class="medium-4 large-12 column">
               <div class="panel maintenance">
-                <h5>
-                  <i data-tooltip
-                     aria-haspopup="true"
-                     title="Putting an alert on maintenance is only
-                            meaningful if the subject can be put on maintenace,
-                            for instance IP Devices and Services."
-                     class="has-tip tip-left fa fa-info-circle">
-                  </i>
+                <h5 data-tooltip
+                    title="Putting an alert on maintenance is only
+                           meaningful if the subject can be put on
+                           maintenace, for instance IP Devices and
+                           Services.">
                   Put alerts on maintenance
+                  <i class="fa fa-info-circle"></i>
                 </h5>
                 <input type="text" class="usercomment" placeholder="Write a description">
                 <a href="javascript:void(0);" class="button small expand">
