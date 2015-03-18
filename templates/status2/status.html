@@ -41,6 +41,8 @@
         {# Panel for alert actions #}
         <div id="action-panel" class="panel white hidden">
 
+          <h5>You can do the following with the selected alerts:</h5>
+
           {% if permits.can_acknowledge_alerts %}
             <div class="panel acknowledge">
               <h5>
@@ -92,7 +94,7 @@
                    for instance IP Devices and Services."
                    class="has-tip tip-left fa fa-info-circle">
                 </i>
-                Put on maintenance
+                Put alerts on maintenance
               </h5>
               <input type="text" class="usercomment" placeholder="Write a description">
               <a href="javascript:void(0);" class="button small expand">
