@@ -103,8 +103,8 @@ class IPDevPollProcess(object):
 
         def _log_job(result, handler, interval):
             success = not isinstance(result, Failure)
-            if result:
-                schedule.log_job_externally(handler, success, interval)
+            schedule.log_job_externally(handler, success if result else None,
+                                        interval)
 
         plugins.import_plugins()
         self._logger.info("Running single %r job for %s",
