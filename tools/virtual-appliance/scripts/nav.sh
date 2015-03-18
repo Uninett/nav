@@ -23,7 +23,7 @@ nav	nav/db_auto_update	boolean	true
 EOF
 
 apt-get -y update
-apt-get --force-yes -y --no-install-recommends install nav graphite-carbon graphite-web
+apt-get --force-yes -y install nav graphite-carbon graphite-web
 # Explicitly install rrdtool to enable data migrations from older NAV versions
 apt-get --force-yes -y --no-install-recommends install rrdtool python-rrdtool
 
