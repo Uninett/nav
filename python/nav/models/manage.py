@@ -1482,6 +1482,10 @@ class IpdevpollJobLog(models.Model):
         except IndexError:
             return None
 
+    def has_result(self):
+        """Returns True if this job ran and had an actual result"""
+        return self.success is not None
+
 
 class Netbios(models.Model):
     """Model representing netbios names collected by the netbios tracker"""
