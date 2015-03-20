@@ -1,5 +1,10 @@
-Version 4.2.4
-(released 19 Mar 2015)
+Version 4.2.5
+(released 20 Mar 2015)
+
+ This was released to replace the broken 4.2.4 release. The fixed regression
+ is this:
+
+  * LP#1434520 (pping is unable to post boxUp/boxDown events)
 
  Bugfixes:
 
@@ -28,6 +33,12 @@ Version 4.2.4
   * LP#1433063 (netmap zoom and pan does not work for some views)
   * LP#1433120 (Shouldn't generate linkState alerts for intentionally shutdown
                 interfaces)
+
+
+Version 4.2.4
+(released 19 Mar 2015)
+
+ Release retracted.
 
 
 Version 4.2.3
