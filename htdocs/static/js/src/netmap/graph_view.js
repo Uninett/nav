@@ -80,10 +80,10 @@ define([
             this.model.set('viewId', this.netmapView.id);
             this.model.set('layer', this.netmapView.get('topology'));
 
-            var zoomStr = this.netmapView.get('zoom').split(';');
-            this.netmapView.baseZoom = zoomStr;
-            this.trans = zoomStr[0].split(',');
-            this.scale = zoomStr[1];
+            var zoomParts = this.getTranslationsAndScale();
+            this.netmapView.baseZoom = zoomParts;
+            this.trans = zoomParts[0];
+            this.scale = zoomParts[1];
             this.zoom.translate(this.trans);
             this.zoom.scale(this.scale);
 
@@ -108,6 +108,31 @@ define([
                     Fullscreen.toggleFullscreen(self.el);
                 });
             }
+        },
+
+        getTranslationsAndScale: function() {
+            var zoomParts = this.netmapView.get('zoom').split(';');
+            var translations = this.getTranslations(zoomParts[0]);
+            var scale = this.getScale(zoomParts[1]);
+            return [translations, scale];
+        },
+
+        /**
+         * Get translation or set sensible defaults
+         */
+        getTranslations: function(zoom) {
+            var translations = zoom.split(',');
+            if (isNaN(translations[0]) || isNaN(translations[1])) {
+                translations = ["0","0"];
+            }
+            return translations;
+        },
+
+        /**
+         * Get scale or set sensible default
+         */
+        getScale: function(scale) {
+            return +scale ? scale : "0.5";
         },
 
         /**
@@ -450,10 +475,10 @@ define([
             this.model.set('viewId', this.netmapView.id);
             this.model.set('layer', this.netmapView.get('topology'));
 
-            var zoomStr = this.netmapView.get('zoom').split(';');
-            this.netmapView.baseZoom = zoomStr;
-            this.trans = zoomStr[0].split(',');
-            this.scale = zoomStr[1];
+            var zoomParts = this.getTranslationsAndScale();
+            this.netmapView.baseZoom = zoomParts;
+            this.trans = zoomParts[0];
+            this.scale = zoomParts[1];
             this.zoom.translate(this.trans);
             this.zoom.scale(this.scale);
 
@@ -560,9 +585,9 @@ define([
         },
 
         resetZoom: function () {
-            var zoomStr = this.netmapView.baseZoom;
-            this.trans = zoomStr[0].split(',');
-            this.scale = zoomStr[1];
+            var zoomParts = this.netmapView.baseZoom;
+            this.trans = zoomParts[0];
+            this.scale = zoomParts[1];
             this.zoom.translate(this.trans);
             this.zoom.scale(this.scale);
             this.transformGraphTransition();

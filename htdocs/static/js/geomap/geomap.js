@@ -44,9 +44,7 @@ var zoom=6;
 // Variables holding the objects created by init:
 var themap;
 var mapnikLayer;
-var osmaLayer;
 var netLayer;
-var posControl;
 var timeNavigator;
 
 // id attribute of the HTML element containing the map:
@@ -54,7 +52,6 @@ var mapElemId;
 
 // Boolean variable determining whether the map should cover the whole
 // viewport:
-var mapFullscreen = false;
 var nav = nav || {};
 var getDataUrl = 'data';
 var mapSelector = "map";
@@ -75,11 +72,20 @@ function create_bounding_box() {
         }
 
         var roomPositions = new OpenLayers.Geometry.MultiPoint(roomPosArray);
-        nav.geomapBBox = roomPositions.getBounds();
+        nav.geomapBBox = roomPositions.getBounds(); // Is null if no roompositions
+
+        if (nav.geomapBBox === null) {
+            showPositionHint();
+        }
 
         init('map');
     });
 }
+
+function showPositionHint() {
+    $('#position-hint').removeClass('hidden');
+}
+
 
 function getLat(position) {
     return parseFloat(position.split(',')[0]);
@@ -103,10 +109,7 @@ function getLong(position) {
      *
      */
     function init(mapElementId) {
-
         mapElemId = mapElementId;
-        setMapSize();
-        window.onresize = setMapSize;
 
         themap = new OpenLayers.Map(mapElementId, {
                 controls: [
@@ -155,9 +158,11 @@ function getLong(position) {
             var requestedBounds = OpenLayers.Bounds.fromArray(parameters.bbox);
             requestedBounds.transform(themap.displayProjection, themap.getProjectionObject());
             themap.zoomToExtent(requestedBounds);
-        } else {
+        } else if (nav.geomapBBox) {
             nav.geomapBBox.transform(themap.displayProjection, themap.getProjectionObject());
             themap.zoomToExtent(nav.geomapBBox);
+        } else {
+            themap.zoomToMaxExtent();
         }
 
         try {
@@ -195,61 +200,5 @@ function netLayerLoadEnd() {
 function netLayerLoadCancel() {
     spinner.stop();
 }
-
-/*
- * Update the size of the map element according to the viewport size.
- *
- * It would be nicer to use only CSS for this, but we want the map
- * element to cover the whole viewport _except_ a certain amount at
- * the top and right (for the NAV header and the time selection,
- * respectively), which cannot be expressed in CSS (at least not in
- * version 2).
- */
-function setMapSize() {
-    var mapE = document.getElementById(mapElemId);
-
-    if (mapFullscreen) {
-        mapE.style.position = 'absolute';
-        //mapE.style.zIndex = '1';
-        mapE.style.top = '0';
-        mapE.style.bottom = '0';
-        mapE.style.left = '0';
-        mapE.style.right = '0';
-        mapE.style.height = 'auto';
-        mapE.style.width = 'auto';
-    } else {
-        //var height = window.innerHeight - elemOffsetTop(mapE) - 4;
-        var height = document.getElementById('map-container').innerHeight;
-        var width = document.getElementById('map-container').innerWidth;
-
-        mapE.style.position = '';
-        mapE.style.height = height + 'px';
-        mapE.style.width = width + 'px';
-    }
-    if (themap)
-        themap.updateSize();
-}
-
-/*
- * Distance from top of viewport to top of HTML element elem.
- *
- * (Helper function for setMapSize).
- */
-function elemOffsetTop(elem) {
-    var offset = elem.offsetTop;
-    while (elem = elem.offsetParent)
-	offset += elem.offsetTop;
-    return offset;
-}
-
-/*
- * Switch between fullscreen mode and normal mode.
- */
-function toggleFullscreen() {
-    mapFullscreen = !mapFullscreen;
-    setMapSize();
-    setMapSize();
-}
-
 
 });

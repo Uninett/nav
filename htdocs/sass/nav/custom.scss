@@ -46,8 +46,17 @@
     img {
         height: 24px;
         width: 24px;
+        position: relative;
+        top: -2px;
     }
     h5 { margin-top: 1.3em; }
+}
+
+#toolboxdropdown {
+    img {
+        height: 48px;
+        width: 48px;
+    }
 }
 
 /* Dashboard control center */
