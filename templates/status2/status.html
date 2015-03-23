@@ -76,13 +76,12 @@
             <div class="medium-4 large-12 column">
               <div class="panel acknowledge">
                 <h5 data-tooltip
-                    title="<p>Acknowledged alerts will be hidden for
-                            all users, but not removed. When an end
-                            event arrives the alert will be cleared
-                            normally.</p> <p>Acknowledged alerts can
-                            be still be viewed by checking the
-                            <em>Acknowledged</em> checkbox in your
-                            status filter.</p>">
+                    title="<p>Acknowledged alerts will be hidden for all users,
+                            but not removed. When an end event arrives the alert
+                            will be cleared normally.</p> <p>Acknowledged alerts
+                            can be still be viewed by checking the
+                            <em>Acknowledged</em> checkbox in your status
+                            filter.</p>">
                   Acknowledge the alerts
                   <i class="fa fa-info-circle"></i>
                 </h5>
@@ -98,10 +97,15 @@
             <div class="medium-4 large-12 column">
               <div class="panel resolve-alerts">
                 <h5 data-tooltip
-                    title="Clearing an alert means setting an end time
-                           to it. For instance if an interface has
-                           lost its link and you know this is a
-                           permanent state, you can clear that alert.">
+                    title="<p> Clearing an alert will set its end time, thereby
+                           closing it and removing it from the list of
+                           problems. Use this to remove alerts that have become
+                           invalid, where there is no way for NAV to
+                           automatically detect this.</p>
+
+                           <p>Be aware that if the root cause of the alert is
+                           still there, NAV may end up posting a new alert for
+                           the same issue. </p>">
                   Clear the alerts
                   <i class="fa fa-info-circle"></i>
                 </h5>
@@ -116,10 +120,9 @@
             <div class="medium-4 large-12 column">
               <div class="panel maintenance">
                 <h5 data-tooltip
-                    title="Putting an alert on maintenance is only
-                           meaningful if the subject can be put on
-                           maintenace, for instance IP Devices and
-                           Services.">
+                    title="Putting an alert on maintenance is only meaningful if
+                           the subject can be put on maintenace, for instance IP
+                           Devices and Services.">
                   Put alerts on maintenance
                   <i class="fa fa-info-circle"></i>
                 </h5>
