@@ -24,11 +24,9 @@ RUN apt-get update && \
 	ruby1.8-dev libxml2-dev libxslt1-dev net-tools \
 	postgresql-server-dev-9.1 libpq-dev libwww-perl python-rrdtool \
 	iceweasel xvfb nodejs-legacy curl \
-	python-iso8601 imagemagick x11vnc google-chrome-stable rrdtool \
-        cmake && \
+	python-iso8601 imagemagick x11vnc google-chrome-stable rrdtool cloc \
+	cmake && \
     apt-get clean
-
-RUN pip install whisper carbon graphite-web django-tagging
 
 RUN gem install --version '3.3.9' sass ; \
     gem install --version '~> 0.9' rb-inotify
@@ -45,13 +43,14 @@ RUN cd /tmp && \
 # Fake symlink for the library so it will work with pytidylib
 RUN ln -s /usr/lib/libtidy5.so /usr/lib/libtidy.so
 
+RUN adduser --system --group --home=/build --shell=/bin/bash build
+RUN echo "build    ALL=NOPASSWD: ALL" >> /etc/sudoers
+
 # Build and install Python requirements
 ADD runtime-requirements.txt /runtime-requirements.txt
 ADD test-requirements.txt /test-requirements.txt
 RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
-
-RUN adduser --system --group --home=/build --shell=/bin/bash build
-RUN echo "build    ALL=NOPASSWD: ALL" >> /etc/sudoers
+RUN pip install whisper carbon graphite-web django-tagging
 
 # This does not make files in source accessible for RUN-commands
 VOLUME ["/source"]
