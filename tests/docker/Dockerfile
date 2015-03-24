@@ -1,6 +1,5 @@
-FROM mbrekkevold/wheezy-no
+FROM mbrekkevold/navbase-debian
 
-ENV DEBIAN_FRONTEND noninteractive
 ENV DISPLAY :99
 ENV ADMINPASSWORD omicronpersei8
 
@@ -24,8 +23,9 @@ RUN apt-get update && \
 	postgresql-9.1 postgresql-contrib-9.1 postgresql-client \
 	ruby1.8-dev libxml2-dev libxslt1-dev net-tools \
 	postgresql-server-dev-9.1 libpq-dev libwww-perl python-rrdtool \
-	python-utidylib iceweasel xvfb nodejs-legacy curl \
+	iceweasel xvfb nodejs-legacy curl \
 	python-iso8601 imagemagick x11vnc google-chrome-stable rrdtool cloc && \
+	cmake && \
     apt-get clean
 
 RUN gem install --version '3.3.9' sass ; \
@@ -33,6 +33,15 @@ RUN gem install --version '3.3.9' sass ; \
 
 # NPM for Javascript testing needs
 RUN curl --insecure https://www.npmjs.com/install.sh | clean=no bash
+
+# Build and install libtidy5
+RUN cd /tmp && \
+    git clone https://github.com/htacg/tidy-html5.git && \
+    cd tidy-html5/build/cmake && \
+    cmake ../.. -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIB:BOOL=ON && \
+    make && make install
+# Fake symlink for the library so it will work with pytidylib
+RUN ln -s /usr/lib/libtidy5.so /usr/lib/libtidy.so
 
 RUN adduser --system --group --home=/build --shell=/bin/bash build
 RUN echo "build    ALL=NOPASSWD: ALL" >> /etc/sudoers

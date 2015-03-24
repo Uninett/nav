@@ -1,3 +1,46 @@
+Version 4.2.5
+(released 20 Mar 2015)
+
+ This was released to replace the broken 4.2.4 release. The fixed regression
+ is this:
+
+  * LP#1434520 (pping is unable to post boxUp/boxDown events)
+
+ Bugfixes:
+
+  * LP#1403365 (offMaintenance alerts for same device every 5 minutes)
+  * LP#1422298 (device history crashes when viewing weathergoose events)
+  * LP#1422316 (thresholdmon AttributeError crash)
+  * LP#1425536 (Status widget error when filtering on Device group)
+  * LP#1425846 (alert profiles does not display without refresh)
+  * LP#1427666 (watchdog is slow)
+  * LP#1428071 (Portadmin crashes when searching by sysname or ip)
+  * LP#1428578 (seeddb test for snmp version crashes if neither v1 or v2c is
+                supported)
+  * LP#1429868 (ipdevpoll jobs that are no longer supposed to run for a device
+                as flagged as "overdue")
+  * LP#1430795 (SeedDB room edit form asks for user's location, shows no map
+                until permission is given)
+  * LP#1430797 (Geomap shows no map at all when no room positions are defined)
+  * LP#1430802 (SeedDB room edit insists on inserting a geoposition)
+  * LP#1430803 (SeedDB room form position indicator icon is missing)
+  * LP#1431780 (Trunk port status is never reset on non-Cisco equipment)
+  * LP#1432056 (mod_wsgi option WSGIApplicationGroup should be %{GLOBAL} by
+                default)
+  * LP#1432057 ([appliance] missing python-dnspython)
+  * LP#1432620 (Unable to load Netmap layer 3 map with ELINK peers)
+  * LP#1432682 (Should be able to specify exact subnet prefixes to ignore)
+  * LP#1433063 (netmap zoom and pan does not work for some views)
+  * LP#1433120 (Shouldn't generate linkState alerts for intentionally shutdown
+                interfaces)
+
+
+Version 4.2.4
+(released 19 Mar 2015)
+
+ Release retracted.
+
+
 Version 4.2.3
 (released 12 Feb 2015)
 

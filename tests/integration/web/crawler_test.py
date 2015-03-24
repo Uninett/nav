@@ -10,7 +10,7 @@ additional test.
 from lxml.html import fromstring
 import os
 import pytest
-import tidy
+from tidylib import tidy_document
 import urllib
 import urllib2
 import urlparse
@@ -29,15 +29,11 @@ TIDY_OPTIONS = {
 }
 
 TIDY_IGNORE = [
-    'trimming empty <option>',
-    'trimming empty <i>',
-    '<table> lacks "summary" attribute',
-    '<nav> is not recognized!',
-    '<section> is not recognized!',
-    '<footer> is not recognized!',
+    # put list of error messages to ignore here (substring matches)
 ]
 
 TIDY_BLACKLIST = [
+    # put list of URIs to not run HTML validation for here
 ]
 
 BLACKLISTED_PATHS = [
@@ -47,7 +43,8 @@ BLACKLISTED_PATHS = [
 ]
 
 if not HOST_URL:
-    pytest.skip(msg="Missing environment variable TARGETURL (ADMINUSERNAME, ADMINPASSWORD) , skipping crawler tests!")
+    pytest.skip(msg="Missing environment variable TARGETURL "
+                    "(ADMINUSERNAME, ADMINPASSWORD) , skipping crawler tests!")
 
 TIMEOUT = 90
 HOST = urlparse.urlsplit(HOST_URL).hostname
@@ -153,7 +150,17 @@ def retrieve_links(current_url):
         register_seen(path, current_url)
 
 def filter_errors(errors):
-    return filter(lambda e: e.message not in TIDY_IGNORE, errors)
+    if errors:
+        return u"\n".join(msg for msg in errors.split(u'\n')
+                          if not _should_ignore(msg))
+
+
+def _should_ignore(msg):
+    for ignore in TIDY_IGNORE:
+        if ignore in msg:
+            return True
+    return False
+
 
 @handle_http_error
 def check_response(current_url):
@@ -179,9 +186,7 @@ def check_validates(url):
     if not should_validate(url):
         return
 
-    errors = tidy.parseString(html_store[url], **TIDY_OPTIONS).errors
+    document, errors = tidy_document(html_store[url], TIDY_OPTIONS)
     errors = filter_errors(errors)
 
-    if errors:
-        errors.insert(0, 'Found following validation errors:')
-        raise Exception(u'\n'.join([unicode(e) for e in errors]))
+    assert not errors, "Found following validation errors:\n" + errors
