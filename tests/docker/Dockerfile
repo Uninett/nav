@@ -1,6 +1,5 @@
-FROM mbrekkevold/wheezy-no
+FROM mbrekkevold/navbase-debian
 
-ENV DEBIAN_FRONTEND noninteractive
 ENV DISPLAY :99
 ENV ADMINPASSWORD omicronpersei8
 
