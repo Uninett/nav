@@ -33,10 +33,3 @@ String.prototype.format = function () {
 
     });
 };
-
-
-
-
-
-
-

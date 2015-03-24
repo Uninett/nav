@@ -18,6 +18,7 @@ require([
 
         // Disable caching for netmap
         $.ajaxSetup({ cache: false });
+        $.ajaxSetup({ timeout: 240000 });
 
         document.navNetmapAppSpinner.stop();
 
