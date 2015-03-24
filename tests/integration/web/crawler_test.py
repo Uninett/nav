@@ -29,15 +29,11 @@ TIDY_OPTIONS = {
 }
 
 TIDY_IGNORE = [
-    'trimming empty <option>',
-    'trimming empty <i>',
-    '<table> lacks "summary" attribute',
-    '<nav> is not recognized!',
-    '<section> is not recognized!',
-    '<footer> is not recognized!',
+    # put list of error messages to ignore here (substring matches)
 ]
 
 TIDY_BLACKLIST = [
+    # put list of URIs to not run HTML validation for here
 ]
 
 BLACKLISTED_PATHS = [
@@ -47,7 +43,8 @@ BLACKLISTED_PATHS = [
 ]
 
 if not HOST_URL:
-    pytest.skip(msg="Missing environment variable TARGETURL (ADMINUSERNAME, ADMINPASSWORD) , skipping crawler tests!")
+    pytest.skip(msg="Missing environment variable TARGETURL "
+                    "(ADMINUSERNAME, ADMINPASSWORD) , skipping crawler tests!")
 
 TIMEOUT = 90
 HOST = urlparse.urlsplit(HOST_URL).hostname
