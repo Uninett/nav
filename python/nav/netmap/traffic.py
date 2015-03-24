@@ -23,7 +23,7 @@ from nav.metrics.templates import metric_path_for_interface
 from nav.models.manage import Interface
 from nav.web.netmap.common import get_traffic_rgb, get_traffic_load_in_percent
 
-TRAFFIC_TIMEPERIOD = '-10min'
+TRAFFIC_TIMEPERIOD = '-15min'
 INOCTETS = 'ifInOctets'
 OUTOCTETS = 'ifOutOctets'
 
