@@ -24,7 +24,7 @@ RUN apt-get update && \
 	ruby1.8-dev libxml2-dev libxslt1-dev net-tools \
 	postgresql-server-dev-9.1 libpq-dev libwww-perl python-rrdtool \
 	iceweasel xvfb nodejs-legacy curl \
-	python-iso8601 imagemagick x11vnc google-chrome-stable rrdtool cloc && \
+	python-iso8601 imagemagick x11vnc google-chrome-stable rrdtool cloc \
 	cmake && \
     apt-get clean
 
