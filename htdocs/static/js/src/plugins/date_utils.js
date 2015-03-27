@@ -1,4 +1,4 @@
-define(['libs/jquery'], function () {
+define([], function () {
 
     function DateUtils() {
 //        this.node = (typeof(node) === 'string') ? $(node) : node;

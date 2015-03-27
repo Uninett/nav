@@ -1,4 +1,4 @@
-require(['libs/jquery'], function () {
+require([], function () {
     $(function () {
         // Find all delete buttons in the link form
         // Slice so we get the last two empty elements

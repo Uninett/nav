@@ -1,6 +1,4 @@
-define([
-    'libs/jquery'
-], function () {
+define([], function () {
 
     // nodes and links should be the same object instances
     // used in a D3.force layout algorithm!

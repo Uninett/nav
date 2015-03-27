@@ -1,4 +1,4 @@
-require(['libs/jquery'], function () {
+require([], function () {
     $(document).ready(function () {
         $('#advToggle').click(function() {
             $('#advblock').toggle();

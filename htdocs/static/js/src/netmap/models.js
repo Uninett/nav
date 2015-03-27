@@ -1,5 +1,4 @@
 define([
-    'libs/jquery',
     'libs/underscore',
     'libs/backbone'
 ], function () {

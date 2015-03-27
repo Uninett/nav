@@ -1,4 +1,4 @@
-require(['libs/jquery', 'libs/spin.min'], function () {
+require(['libs/spin.min'], function () {
     function fetchOverview() {
         /* Fetch overview. This is done with AJAX because it may be very slow */
         var $overview = $('#watchdog-overview'),

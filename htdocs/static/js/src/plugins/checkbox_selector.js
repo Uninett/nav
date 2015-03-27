@@ -1,4 +1,4 @@
-define(['libs/jquery'], function () {
+define([], function () {
     /*
      * Create a checkbox on node, that when clicked on
      * checks and unchecks the checkboxes with selector

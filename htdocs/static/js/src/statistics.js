@@ -1,4 +1,4 @@
-require(['libs/jquery'], function () {
+require([], function () {
     $(function () {
         var $graph = $('.statistics-chart');
 

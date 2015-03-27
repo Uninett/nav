@@ -1,4 +1,4 @@
-require(['plugins/network_tree', 'libs/jquery'], function (NetworkTree) {
+require(['plugins/network_tree'], function (NetworkTree) {
 
     function fadeIn(search_form) {
         search_form.fadeTo('normal', 1.0);

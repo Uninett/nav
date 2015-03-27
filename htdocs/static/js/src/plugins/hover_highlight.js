@@ -1,4 +1,4 @@
-define(['libs/jquery'], function () {
+define([], function () {
 
     function HoverHighlight(node) {
         this.node = typeof node === 'string' ? $(node) : node;

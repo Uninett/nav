@@ -1,4 +1,4 @@
-require(['plugins/graphfetcher', 'libs/jquery'], function (GraphFetcher) {
+require(['plugins/graphfetcher'], function (GraphFetcher) {
     $(function () {
         $('.vlangraph').each(function (index, element) {
             var vlanid = $(element).attr('data-vlan');

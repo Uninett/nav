@@ -1,4 +1,4 @@
-define(['libs/jquery', 'libs/OpenLayers'], function() {
+define(['libs/OpenLayers'], function() {
 
     /**
      * Display map for editing room position in seedDB

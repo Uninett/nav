@@ -16,7 +16,7 @@
  *
  */
 
-require(['libs/jquery'], function() {
+require([], function() {
 
     // Highlights shared time-periods
     var doHighlight = function() {

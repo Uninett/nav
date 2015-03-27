@@ -2,7 +2,6 @@ define([
     'netmap/graph',
     'netmap/models',
     'netmap/graph_info_view',
-    'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker',
