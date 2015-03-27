@@ -1,5 +1,5 @@
 var require = {
-    baseUrl: '/static/js/prod',
+    baseUrl: '/static/js',
     waitSeconds: 7, // default
     paths: {
         "libs": "libs",
@@ -13,7 +13,7 @@ var require = {
         "status": "src/status2"
     },
     shim: {
-        'libs/foundation.min': ['libs/jquery', 'libs/modernizr', 'libs/fastclick'],
+        'libs/foundation.min': ['libs/modernizr', 'libs/fastclick'],
         'libs/jquery-ui-timepicker-addon': ['libs/jquery-ui-1.8.21.custom.min'],
         'libs/underscore': {
             exports: '_'
@@ -30,5 +30,6 @@ var require = {
         },
         'src/dt_plugins/ip_address_sort': ['libs/jquery.dataTables.min'],
         'src/dt_plugins/ip_address_typedetect': ['libs/jquery.dataTables.min']
-    }
+    },
+    deps: ['libs/jquery']
 };
