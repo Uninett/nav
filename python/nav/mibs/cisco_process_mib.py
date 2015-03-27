@@ -39,8 +39,8 @@ class CiscoProcessMib(mibretriever.MibRetriever):
         names = yield self._get_cpu_names(physindexes)
 
         result = {}
-        for index, cpu in load.iteritems():
-            name = names.get(cpu[PHYSICAL_INDEX], str(index[-1]))
+        for index, row in load.iteritems():
+            name = names.get(row[PHYSICAL_INDEX], str(index[-1]))
             result[name] = [(5, row[TOTAL_5_MIN_REV]),
                             (1, row[TOTAL_1_MIN_REV])]
         defer.returnValue(result)
