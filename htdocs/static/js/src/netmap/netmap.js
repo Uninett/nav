@@ -20,8 +20,6 @@ require([
         $.ajaxSetup({ cache: false });
         $.ajaxSetup({ timeout: 240000 });
 
-        document.navNetmapAppSpinner.stop();
-
         var controlView = new ControlView();
         new GraphView({netmapView: controlView.currentView});
     });

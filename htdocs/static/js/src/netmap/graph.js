@@ -29,7 +29,8 @@ define([
                 {name: 'ELINK', checked: true},
                 {name: 'ENV', checked: true},
                 {name: 'POWER', checked: true}
-            ]
+            ],
+            loadingTraffic: false
         },
         interests: {},
 
@@ -85,12 +86,16 @@ define([
          */
         loadTraffic: function () {
             var self = this;
+            this.set('loadingTraffic', true);
             console.log('Start fetching traffic data');
             $.getJSON('traffic/layer' + this.get('layer') + '/')
                 .done(function (data) {
                     self.trafficSuccess.call(self, data);
                 })
-                .fail(this.trafficError);
+                .fail(this.trafficError)
+                .always(function() {
+                    self.set('loadingTraffic', false);
+                });
         },
 
         trafficSuccess: function (data) {
