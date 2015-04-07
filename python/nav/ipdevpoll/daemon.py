@@ -39,7 +39,7 @@ from nav.models import manage
 from django.db.models import Q
 
 from . import plugins
-from nav.ipdevpoll import ContextFormatter, schedule
+from nav.ipdevpoll import ContextFormatter, schedule, db
 
 
 class IPDevPollProcess(object):
@@ -203,6 +203,9 @@ class CommandProcessor(object):
         opt("--capture-vars", action="store_true", dest="capture_vars",
             help="Capture and print locals and globals in tracebacks when "
                  "debug logging")
+        opt("-c", "--clean", action="store_true", dest="clean",
+            help="cleans/purges old job log entries from the database and then "
+                 "exits")
         return parser
 
     def run(self):
@@ -210,6 +213,10 @@ class CommandProcessor(object):
         self.init_logging(self.options.logstderr)
         self._logger = logging.getLogger('nav.ipdevpoll')
 
+        if self.options.clean:
+            self._logger.debug("purging old job log entries")
+            db.purge_old_job_log_entries()
+            sys.exit(0)
         if self.options.multiprocess:
             self._logger.info("--- Starting ipdevpolld multiprocess master ---")
         elif self.options.onlyjob:
