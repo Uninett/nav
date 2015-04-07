@@ -167,3 +167,22 @@ def synchronous_db_access(func):
         return run_in_thread(func, *args, **kwargs)
 
     return wraps(func)(_thread_it)
+
+
+@commit_on_success
+def purge_old_job_log_entries():
+    """
+    Purges old job log entries from the ipdevpoll_job_log db table
+    """
+    cursor = django.db.connection.cursor()
+    # Delete all but the last 100 entries of each netbox/job_name combination,
+    # ordered by timestamp
+    cursor.execute(
+        """
+        WITH ranked AS (SELECT id, rank()
+                        OVER (PARTITION BY netboxid, job_name
+                              ORDER BY end_time DESC)
+                        FROM ipdevpoll_job_log)
+        DELETE FROM ipdevpoll_job_log USING ranked
+              WHERE ipdevpoll_job_log.id = ranked.id AND rank > 100;
+        """)
