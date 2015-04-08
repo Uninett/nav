@@ -35,7 +35,7 @@ CREATE TABLE netboxentity (
              FOREIGN KEY (deviceid)
              REFERENCES device (deviceid)
              ON UPDATE CASCADE ON DELETE CASCADE,
-  CONSTRAINT netboxentity_netboxid_index_unique
-             UNIQUE (netboxid, index)
+  CONSTRAINT netboxentity_netboxid_source_index_unique
+             UNIQUE (netboxid, source, index) INITIALLY DEFERRED
 
 );
