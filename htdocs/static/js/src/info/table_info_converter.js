@@ -1,4 +1,4 @@
-define(['libs/jquery'], function () {
+define([], function () {
 
     /*
      * Return a textstring representing the table as csv suitable for

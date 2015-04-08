@@ -1,4 +1,4 @@
-define(['libs/jquery'], function () {
+define([], function () {
 
     /**
      * Blargh blurph blump - ie. this is a result of not enough time to do it properly

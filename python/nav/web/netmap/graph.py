@@ -15,6 +15,7 @@
 #
 """Graph utility functions for Netmap"""
 
+from datetime import datetime
 from collections import defaultdict
 
 from nav.netmap.metadata import (
@@ -33,9 +34,12 @@ from nav.netmap.topology import (
 )
 from nav.topology import vlan
 from nav.models.manage import Interface, Prefix, GwPortPrefix
-from nav.netmap.traffic import get_traffic_data
+from nav.netmap.traffic import get_traffic_data, get_traffic_for
 
 from .common import get_traffic_rgb
+
+import logging
+_logger = logging.getLogger(__name__)
 
 
 def get_topology_graph(layer=2, load_traffic=False, view=None):
@@ -108,8 +112,32 @@ def get_traffic_gradient():
     ]
 
 
+def get_traffic_interfaces(edges, interfaces):
+    """Gives list of edges and interfaces, filter out the interfaces we are to
+    fetch traffic for
+
+    :param set edges: a set of edges represented by netbox pairs
+    :param QuerySet interfaces: all interfaces
+    :returns: The list of interfaces we have to fetch traffic for.
+    """
+    storage = {}
+    for source, target in edges:
+        edge_interfaces = interfaces.filter(
+            netbox_id=source,
+            to_netbox_id=target
+        )
+        for interface in edge_interfaces:
+            storage[interface.pk] = interface
+            if interface.to_interface:
+                storage[interface.to_interface.pk] = interface.to_interface
+
+    return storage.values()
+
+
 def get_layer2_traffic():
     """Fetches traffic data for layer 2"""
+    start = datetime.now()
+
     interfaces = Interface.objects.filter(
         to_netbox__isnull=False
     ).select_related('netbox', 'to_netbox', 'to_interface__netbox')
@@ -123,6 +151,9 @@ def get_layer2_traffic():
     ])
 
     traffic = []
+    traffic_cache = get_traffic_for(
+        get_traffic_interfaces(edges, interfaces))
+
     for source, target in edges:
         edge_interfaces = interfaces.filter(
             netbox_id=source,
@@ -131,18 +162,20 @@ def get_layer2_traffic():
         edge_traffic = []
         for interface in edge_interfaces:
             to_interface = interface.to_interface
-            d = get_traffic_data((interface, to_interface)).to_json()
-            d.update({
+            data = get_traffic_data(
+                (interface, to_interface), traffic_cache).to_json()
+            data.update({
                 'source_ifname': interface.ifname if interface else '',
                 'target_ifname': to_interface.ifname if to_interface else ''
             })
-            edge_traffic.append(d)
+            edge_traffic.append(data)
         traffic.append({
             'source': source,
             'target': target,
             'edges': edge_traffic,
         })
 
+    _logger.debug('Time used: %s', datetime.now() - start)
     return traffic
 
 

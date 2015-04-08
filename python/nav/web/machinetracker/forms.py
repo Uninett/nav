@@ -30,6 +30,7 @@ class MachineTrackerForm(forms.Form):
                               help_text="Days back in time to search")
 
     def clean_days(self):
+        """Clean the days fields"""
         data = int(self.cleaned_data['days'])
         if data < -1:
             # -1 has a specific meaning of "only active", for backwards
@@ -47,13 +48,13 @@ class MachineTrackerForm(forms.Form):
 
 
 class IpTrackerForm(MachineTrackerForm):
+    """Form for searching by IP-address"""
     # IPAddressField only supports IPv4 as of Django 1.1
     choices = [('active', 'Active'), ('inactive', 'Inactive'),
                ('both', 'Both')]
 
     ip_range = forms.CharField(widget=forms.TextInput(
-        attrs={'placeholder': 'IP-address or range'})
-    )
+        attrs={'placeholder': 'IP-address or range'}))
     period_filter = forms.ChoiceField(widget=forms.RadioSelect(),
                                       choices=choices,
                                       initial='active')
@@ -61,6 +62,7 @@ class IpTrackerForm(MachineTrackerForm):
                                  help_text="Show netbios name (if any)")
 
     def clean_ip_range(self):
+        """Clean the ip_range field"""
         data = self.cleaned_data['ip_range']
         try:
             data = iprange.MachinetrackerIPRange.from_string(data)
@@ -70,13 +72,14 @@ class IpTrackerForm(MachineTrackerForm):
 
 
 class MacTrackerForm(MachineTrackerForm):
+    """Form for searching by MAC-address"""
     mac = forms.CharField(widget=forms.TextInput(
-        attrs={'placeholder': 'Mac-address'})
-    )
+        attrs={'placeholder': 'Mac-address'}))
     netbios = forms.BooleanField(required=False, initial=False,
                                  help_text="Netbios name (if any)")
 
     def clean_mac(self):
+        """Clean the mac field"""
         try:
             mac = MacPrefix(self.cleaned_data['mac'])
         except ValueError as error:
@@ -85,6 +88,7 @@ class MacTrackerForm(MachineTrackerForm):
 
 
 class SwitchTrackerForm(forms.Form):
+    """Form for searching by switch fields"""
     switch = forms.CharField()
     module = forms.CharField(
         required=False,
@@ -98,6 +102,7 @@ class SwitchTrackerForm(forms.Form):
 
 
 class NetbiosTrackerForm(MachineTrackerForm):
+    """Form for searching by netbios name"""
     search = forms.CharField(widget=forms.TextInput(
         attrs={'placeholder': 'Netbios name'}))
 

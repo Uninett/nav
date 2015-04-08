@@ -578,6 +578,11 @@ class GwPortPrefix(Shadow):
         if data.get('org', None):
             vlan.organization = containers.factory(data['org'], Organization)
             vlan.organization.id = data['org']
+        if data.get('vlan'):
+            vlan.vlan = data['vlan']
+            self._logger.info(
+                "forcing vlan tag of %s to %s by description convention",
+                self.prefix.net_address, vlan.vlan)
 
     def prepare(self, containers):
         self._parse_description(containers)

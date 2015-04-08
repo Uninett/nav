@@ -1,4 +1,4 @@
-require(['libs/jquery'], function () {
+require([], function () {
     $(document).ready(function () {
         addToggleFiltersListener();
         addReportWidgetListener();

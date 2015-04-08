@@ -1,4 +1,4 @@
-define(['libs/jquery'], function () {
+define([], function () {
 
     var triggerWidth = 640;  // Width to trigger accordion on
 

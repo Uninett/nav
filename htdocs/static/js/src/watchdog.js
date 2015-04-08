@@ -1,4 +1,4 @@
-require(['libs/jquery', 'libs/spin.min'], function () {
+require(['libs/spin.min'], function () {
 
     /** Adds click handler on the status test labels */
     function addLabelClickHandlers() {

@@ -29,7 +29,8 @@ define([
                 {name: 'ELINK', checked: true},
                 {name: 'ENV', checked: true},
                 {name: 'POWER', checked: true}
-            ]
+            ],
+            loadingTraffic: false
         },
         interests: {},
 
@@ -85,15 +86,20 @@ define([
          */
         loadTraffic: function () {
             var self = this;
+            this.set('loadingTraffic', true);
+            console.log('Start fetching traffic data');
             $.getJSON('traffic/layer' + this.get('layer') + '/')
                 .done(function (data) {
                     self.trafficSuccess.call(self, data);
                 })
-                .fail(this.trafficError);
+                .fail(this.trafficError)
+                .always(function() {
+                    self.set('loadingTraffic', false);
+                });
         },
 
         trafficSuccess: function (data) {
-
+            console.log('Traffic data received, processing.');
             var links = this.get('linkCollection');
 
             // Extend the link-objects with traffic data
@@ -114,14 +120,13 @@ define([
             });
 
             Backbone.EventBroker.trigger('netmap:updateGraph');
+            console.log('Traffic data refreshed');
         },
 
-        trafficError: function () { console.log('Failed to fetch traffic');
-
-            // TODO: Meaningful report
+        trafficError: function (jqXHR, textStatus, errorThrown) {
+            console.log('Failed to fetch traffic: ' + textStatus + ' / ' + errorThrown);
         }
     });
 
     return Graph;
 });
-

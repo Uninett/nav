@@ -3,7 +3,6 @@ define([
     'netmap/models',
     'netmap/graph_info_view',
     'plugins/fullscreen',
-    'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker',
@@ -38,7 +37,6 @@ define([
         },
 
         initialize: function () {
-
             this.w = this.$el.width();
             this.h = $(window).height();
 
@@ -59,6 +57,14 @@ define([
             this.model = new Graph();
             this.netmapView = this.options.netmapView;
 
+            // Indicators
+            this.indicatorHolder = this.createIndicatorHolder();
+            this.loadingGraphIndicator = this.createLoadingGraphIndicator();
+            this.loadingGraphIndicator.appendTo(this.indicatorHolder).hide();
+            this.loadingTrafficIndicator = this.createLoadingTrafficIndicator();
+            this.loadingTrafficIndicator.appendTo(this.indicatorHolder).hide();
+            this.listenTo(this.model, 'change:loadingTraffic', this.toggleLoadingTraffic);
+
             this.graphInfoView = new GraphInfoView({parent: this.el});
 
             this.initializeDOM();
@@ -66,6 +72,43 @@ define([
             this.initializeNetmapView();
             this.fetchGraphModel();
         },
+
+
+        createIndicatorHolder: function() {
+            return $('<div>')
+                .css({
+                    position: 'absolute',
+                    top: '10px',
+                    left: '10px'
+                })
+                .appendTo(this.el);
+        },
+
+
+        createLoadingGraphIndicator: function() {
+            return $('<div class="alert-box info">')
+                .css({ width: '200px' })
+                .html('Loading graph');
+        },
+
+
+        createLoadingTrafficIndicator: function() {
+            return $('<div class="alert-box info">')
+                .css({ width: '200px' })
+                .html('Loading traffic data');
+        },
+
+
+        toggleLoadingTraffic: function() {
+            if (this.model.get('loadingTraffic') === true) {
+                console.log('We are loading traffic');
+                this.loadingTrafficIndicator.show();
+            } else {
+                console.log('We stopped loading traffic');
+                this.loadingTrafficIndicator.hide('slow');
+            }
+        },
+
 
         /**
          * Initializes the graph model from the initially selected
@@ -80,10 +123,10 @@ define([
             this.model.set('viewId', this.netmapView.id);
             this.model.set('layer', this.netmapView.get('topology'));
 
-            var zoomStr = this.netmapView.get('zoom').split(';');
-            this.netmapView.baseZoom = zoomStr;
-            this.trans = zoomStr[0].split(',');
-            this.scale = zoomStr[1];
+            var zoomParts = this.getTranslationsAndScale();
+            this.netmapView.baseZoom = zoomParts;
+            this.trans = zoomParts[0];
+            this.scale = zoomParts[1];
             this.zoom.translate(this.trans);
             this.zoom.scale(this.scale);
 
@@ -108,6 +151,31 @@ define([
                     Fullscreen.toggleFullscreen(self.el);
                 });
             }
+        },
+
+        getTranslationsAndScale: function() {
+            var zoomParts = this.netmapView.get('zoom').split(';');
+            var translations = this.getTranslations(zoomParts[0]);
+            var scale = this.getScale(zoomParts[1]);
+            return [translations, scale];
+        },
+
+        /**
+         * Get translation or set sensible defaults
+         */
+        getTranslations: function(zoom) {
+            var translations = zoom.split(',');
+            if (isNaN(translations[0]) || isNaN(translations[1])) {
+                translations = ["0","0"];
+            }
+            return translations;
+        },
+
+        /**
+         * Get scale or set sensible default
+         */
+        getScale: function(scale) {
+            return +scale ? scale : "0.5";
         },
 
         /**
@@ -424,9 +492,10 @@ define([
 
             var self = this;
 
+            this.loadingGraphIndicator.show();
             this.graphInfoView.reset();
 
-            this.model.fetch({
+            var jqxhr = this.model.fetch({
                 success: function () {
                     self.update();
                     self.model.loadTraffic();
@@ -435,6 +504,11 @@ define([
                     alert('Error loading graph, please try to reload the page');
                 }
             });
+
+            jqxhr.always(function() {
+                self.loadingGraphIndicator.hide('slow');
+            });
+
         },
 
         updateTopologyLayer: function (layer) {
@@ -450,10 +524,10 @@ define([
             this.model.set('viewId', this.netmapView.id);
             this.model.set('layer', this.netmapView.get('topology'));
 
-            var zoomStr = this.netmapView.get('zoom').split(';');
-            this.netmapView.baseZoom = zoomStr;
-            this.trans = zoomStr[0].split(',');
-            this.scale = zoomStr[1];
+            var zoomParts = this.getTranslationsAndScale();
+            this.netmapView.baseZoom = zoomParts;
+            this.trans = zoomParts[0];
+            this.scale = zoomParts[1];
             this.zoom.translate(this.trans);
             this.zoom.scale(this.scale);
 
@@ -560,9 +634,9 @@ define([
         },
 
         resetZoom: function () {
-            var zoomStr = this.netmapView.baseZoom;
-            this.trans = zoomStr[0].split(',');
-            this.scale = zoomStr[1];
+            var zoomParts = this.netmapView.baseZoom;
+            this.trans = zoomParts[0];
+            this.scale = zoomParts[1];
             this.zoom.translate(this.trans);
             this.zoom.scale(this.scale);
             this.transformGraphTransition();

@@ -1,4 +1,4 @@
-require(['libs/jquery', 'src/dt_plugins/ip_address_sort', 'src/dt_plugins/ip_address_typedetect'], function () {
+require(['src/dt_plugins/ip_address_sort', 'src/dt_plugins/ip_address_typedetect'], function () {
 
     function initTimeField() {
         var time_field = $('#id_time_1');

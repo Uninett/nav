@@ -273,6 +273,15 @@ class Interface(Shadow):
             return False
 
     def post_linkstate_event(self):
+        """
+        Posts a linkState event, but only if the interface is
+        administratively up and the link status has changed.
+        """
+        if not self.is_admin_up():
+            self._logger.debug("withholding linkState event, interface %s is "
+                               "not admUp", self.ifname or self.ifindex)
+            return
+
         if not self.is_linkstate_changed():
             return
 
@@ -281,6 +290,10 @@ class Interface(Shadow):
             self._make_linkstate_event(True)
         elif newstate == manage.Interface.OPER_UP:
             self._make_linkstate_event(False)
+
+    def is_admin_up(self):
+        """Returns True if interface is administratively up"""
+        return self.ifadminstatus == manage.Interface.ADM_UP
 
     def _make_linkstate_event(self, start=True):
         django_ifc = self.get_existing_model()

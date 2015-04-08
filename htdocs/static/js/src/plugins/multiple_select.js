@@ -1,4 +1,4 @@
-define(['libs/jquery', 'libs/jquery.tinysort'], function () {
+define(['libs/jquery.tinysort'], function () {
 
     /**
      * MultipleSelect - an alternative to QuickSelect

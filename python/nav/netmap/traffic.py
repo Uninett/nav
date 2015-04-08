@@ -15,14 +15,19 @@
 #
 """Functions for attaching traffic metadata to netmap"""
 import logging
+from collections import defaultdict
+
 from nav.metrics.data import get_metric_average
 from nav.metrics.graphs import get_metric_meta
 from nav.metrics.templates import metric_path_for_interface
 from nav.models.manage import Interface
 from nav.web.netmap.common import get_traffic_rgb, get_traffic_load_in_percent
 
-TRAFFIC_TIMEPERIOD = '-10min'
-_LOGGER = logging.getLogger(__name__)
+TRAFFIC_TIMEPERIOD = '-15min'
+INOCTETS = 'ifInOctets'
+OUTOCTETS = 'ifOutOctets'
+
+_logger = logging.getLogger(__name__)
 
 
 class InterfaceLoad(object):
@@ -80,39 +85,80 @@ class Traffic(object):
         }
 
 
-def get_traffic_data(port_pair):
+def get_traffic_for(interfaces):
+    """Get traffic average for the given interfaces using one request
+
+    :param QueryDict interfaces: interfaces to fetch data for
+    :returns: A dict of {interface: { suffix: value, suffix: value}}
+    """
+    metric_mapping = {}  # Store metric_name -> interface
+    targets = []
+    traffic = defaultdict(dict)
+    for interface in interfaces:
+        metrics = [m for m in interface.get_port_metrics()
+                   if m['suffix'] in [INOCTETS, OUTOCTETS]]
+        for metric in metrics:
+            target = get_metric_meta(metric['id'])['target']
+            metric_mapping[target] = interface
+            targets.append(target)
+
+    data = get_metric_average(sorted(targets), start=TRAFFIC_TIMEPERIOD)
+    for metric, value in data.iteritems():
+        interface = metric_mapping[metric]
+        if INOCTETS in metric:
+            traffic[interface].update({INOCTETS: value})
+        elif OUTOCTETS:
+            traffic[interface].update({OUTOCTETS: value})
+
+    return traffic
+
+
+def get_traffic_data(port_pair, cache=None):
     """Gets a Traffic instance for the link described by the port pair.
 
     :param port_pair: tuple containing (source, target)
     :type port_pair: tuple(Interface, Interface)
     :returns: A Traffic instance.
     """
-    def _fetch_data(interface):
-        in_bps = out_bps = speed = None
-        if isinstance(interface, Interface):
-            speed = interface.speed
-            targets = [metric_path_for_interface(interface.netbox.sysname,
-                                                 interface.ifname, counter)
-                       for counter in ('ifInOctets', 'ifOutOctets')]
-            targets = [get_metric_meta(t)['target'] for t in targets]
-
-            data = get_metric_average(targets, start=TRAFFIC_TIMEPERIOD)
-            for key, value in data.iteritems():
-                if 'ifInOctets' in key:
-                    in_bps = value
-                elif 'ifOutOctets' in key:
-                    out_bps = value
-
-        return InterfaceLoad(in_bps, out_bps, speed)
-
     traffic = Traffic()
     source_port, target_port = port_pair
 
-    traffic.source = _fetch_data(source_port)
+    traffic.source = _fetch_data(source_port, cache)
     if None in (traffic.source.in_bps, traffic.source.out_bps):
-        traffic.target = _fetch_data(target_port)
+        traffic.target = _fetch_data(target_port, cache)
         traffic.source = traffic.target.reversed()
     else:
         traffic.target = traffic.source.reversed()
 
     return traffic
+
+
+def _fetch_data(interface, cache=None):
+    in_bps = out_bps = speed = None
+    if isinstance(interface, Interface):
+        speed = interface.speed
+        if cache:
+            interface_data = cache[interface]
+            if interface_data:
+                in_bps = interface_data.get(INOCTETS)
+                out_bps = interface_data.get(OUTOCTETS)
+        else:
+            in_bps, out_bps = get_interface_data(interface)
+
+    return InterfaceLoad(in_bps, out_bps, speed)
+
+
+def get_interface_data(interface):
+    """Get ifin/outoctets for an interface using a single request"""
+    in_bps = out_bps = None
+    targets = [metric_path_for_interface(interface.netbox.sysname,
+                                         interface.ifname, counter)
+               for counter in (INOCTETS, OUTOCTETS)]
+    targets = [get_metric_meta(t)['target'] for t in targets]
+    data = get_metric_average(targets, start=TRAFFIC_TIMEPERIOD)
+    for key, value in data.iteritems():
+        if 'ifInOctets' in key:
+            in_bps = value
+        elif 'ifOutOctets' in key:
+            out_bps = value
+    return in_bps, out_bps
