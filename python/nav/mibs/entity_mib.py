@@ -107,8 +107,12 @@ class EntityTable(dict):
         # want single integers, not oid tuples as keys/indexes
         super(EntityTable, self).__init__()
         for row in mibresult.values():
-            index = row[0][0]
-            row[0] = index
+            try:
+                index = row[0][0]
+                row[0] = index
+            except TypeError:
+                # likely the tuple was already reduced to a single int
+                index = row[0]
             self[index] = row
 
         self.clean()
