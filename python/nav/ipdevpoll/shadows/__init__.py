@@ -39,6 +39,7 @@ from .interface import Interface, InterfaceStack
 from .swportblocked import SwPortBlocked
 from .cam import Cam
 from .adjacency import AdjacencyCandidate, UnrecognizedNeighbor
+from .entity import NetboxEntity
 
 PREFIX_AUTHORITATIVE_CATEGORIES = ('GW', 'GSW')
 
