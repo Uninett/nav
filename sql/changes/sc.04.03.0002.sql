@@ -21,6 +21,7 @@ CREATE TABLE netboxentity (
   fru BOOLEAN,
   mfg_date TIMESTAMP WITH TIME ZONE,
   uris VARCHAR,
+  data hstore NOT NULL DEFAULT hstore(''),
 
   CONSTRAINT netboxentity_pkey PRIMARY KEY (netboxentityid),
   CONSTRAINT netboxentity_netboxid_fkey
