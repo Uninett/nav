@@ -1,5 +1,5 @@
 /* Javascript for MegaDrop functionality in NAV */
-require(['libs/jquery'], function () {
+require([], function () {
     $(function () {
         var megadropSelector = 'megadrop',
             megadropTogglerSelector = 'megadroptoggler',

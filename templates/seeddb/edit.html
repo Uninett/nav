@@ -16,39 +16,43 @@
         <fieldset>
           <legend>{{ title }}</legend>
           <table class="listtable {% if map %}expand{% endif %} edit">
-          {% if object %}
-          <caption>
-              {{ object }}
-          </caption>
-          {% endif %}
-          {% block formfields %}
-          {% for field in form %}
-          <tr>
-              <th><label for="{{ field.auto_id }}">
-                  <span class="{{ field.field.required|yesno:"required," }}">
-                  {{ field.label }}</span>
-                  </label></th>
-              <td>
-                  {{ field }}
-                  {% if field.errors %}
+            {% if object %}
+              <caption>
+                {{ object }}
+              </caption>
+            {% endif %}
+            {% block formfields %}
+              {% for field in form %}
+                <tr>
+                  <th>
+                    <label for="{{ field.auto_id }}">
+                      <span class="{{ field.field.required|yesno:"required," }}">
+                        {{ field.label }}
+                      </span>
+                    </label>
+                  </th>
+                  <td>
+                    {{ field }}
+                    {% if field.errors %}
                       {{ field.errors }}
-                  {% endif %}
-              </td>
-          </tr>
-          {% endfor %}
-          <tr>
-              <th></th>
-              <td><input type="submit" value="Save" class="button small" /></td>
-          </tr>
-          {% endblock %}
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+              <tr>
+                <th></th>
+                <td><input type="submit" value="Save" class="button small"></td>
+              </tr>
+            {% endblock %}
           </table>
         </fieldset>
       </form>
 
       {% if delete_url and object %}
         <form action="{{ delete_url }}" method="post">
-          <input type="hidden" name="object" value="{{ object.pk }}"/>
-          <input type="submit" name="delete" value="Delete this {{ verbose_name }}" class="button small"/>
+          <input type="hidden" name="object" value="{{ object.pk }}">
+          <input type="submit" name="delete" value="Delete this {{ verbose_name }}"
+                 class="button small">
         </form>
       {% endif %}
 
@@ -57,7 +61,7 @@
     {% if map %}
       <div class="large-6 column">
         <div id="map-container">
-          <button id="get_location_trigger" class="tiny right">Get my location</button>
+          <button id="get_location_trigger" class="tiny right">Use my location</button>
           <h5>Click the map to update the geo position</h5>
 
           <div id="map" class="mapwrapper"></div>

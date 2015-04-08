@@ -34,21 +34,21 @@ class CiscoProcessMib(mibretriever.MibRetriever):
             TOTAL_1_MIN_REV,
         ])
 
-        by_physindex = dict((row[PHYSICAL_INDEX], row)
-                            for row in load.values()
-                            if row[PHYSICAL_INDEX])
-        if by_physindex:
-            result = dict()
-            names = yield self._get_cpu_names(by_physindex.keys())
-            for physindex, row in by_physindex.items():
-                name = names.get(physindex, None)
-                if name:
-                    result[name] = [(5, row[TOTAL_5_MIN_REV]),
-                                    (1, row[TOTAL_1_MIN_REV])]
-            defer.returnValue(result)
+        physindexes = [row[PHYSICAL_INDEX] for row in load.itervalues()
+                       if row[PHYSICAL_INDEX]]
+        names = yield self._get_cpu_names(physindexes)
+
+        result = {}
+        for index, row in load.iteritems():
+            name = names.get(row[PHYSICAL_INDEX], str(index[-1]))
+            result[name] = [(5, row[TOTAL_5_MIN_REV]),
+                            (1, row[TOTAL_1_MIN_REV])]
+        defer.returnValue(result)
 
     @defer.inlineCallbacks
     def _get_cpu_names(self, indexes):
+        if not indexes:
+            defer.returnValue({})
         base_oid = EntityMib.nodes['entPhysicalName'].oid
         oids = [str(base_oid + (index,)) for index in indexes]
         names = yield self.agent_proxy.get(oids)

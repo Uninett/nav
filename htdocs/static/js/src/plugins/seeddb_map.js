@@ -1,11 +1,11 @@
-define(['libs/jquery', 'libs/OpenLayers'], function() {
+define(['libs/OpenLayers'], function() {
 
     /**
      * Display map for editing room position in seedDB
      * @param {string} mapElementId The id of the map element
      * @param {string} positionFieldId The id of the form position field
-     * @param {string} getLocationTrigger The id of the trigger for
-     * getting a location
+     * @param {string} getLocationTrigger The id of the trigger for getting a
+     * location
      */
     function SeedDBMap(mapElementId, positionFieldId, getLocationTrigger) {
         var map = initMap(mapElementId);
@@ -50,7 +50,13 @@ define(['libs/jquery', 'libs/OpenLayers'], function() {
     function populateMap(map, positionField) {
         var center = getCenter(map, positionField.val()),
             marker = addMarkerToLayer(center, addMarkerLayer(map));
-        map.setCenter(center);
+
+        if (isDefaultPoint(center)) {
+            map.zoomToMaxExtent();
+        } else {
+            map.zoomTo(14);
+            moveTo(center, map, marker);
+        }
         initGetLonLatOnClickControl(map, marker, positionField);
         return marker;
     }
@@ -63,20 +69,14 @@ define(['libs/jquery', 'libs/OpenLayers'], function() {
      * @returns {OpenLayers.LonLat}
      */
     function getCenter(map, positionValue) {
-        var center;
+        var center = getPoint(map, [0, 0]);
         if (positionValue) {
             try {
                 var coords = parsePositionValue(positionValue.slice(1, -1));
                 center = getPoint(map, coords);
-                map.zoomTo(14);
             } catch (err) {
                 console.error(err);
-                center = getPoint(map, [0, 0]);
-                map.zoomToMaxExtent();
             }
-        } else {
-            center = getPoint(map, [0, 0]);
-            map.zoomToMaxExtent();
         }
 
         return center;
@@ -98,8 +98,7 @@ define(['libs/jquery', 'libs/OpenLayers'], function() {
     }
 
     /**
-     * Create a LonLat object from coords and transform it to map
-     * projection
+     * Create a LonLat object from coords and transform it to map projection
      * @param {OpenLayers.Map} map
      * @param {array} coords [longitude, latitude]
      * @returns {OpenLayers.LonLat}
@@ -110,8 +109,21 @@ define(['libs/jquery', 'libs/OpenLayers'], function() {
         return lonLat;
     }
 
+
+    /**
+     * Returns if the lonlat is default point. Because of rounding errors when
+     * applying transformations we cannot simply check for 0.
+     * @param {OpenLayers.LonLat} lonlat
+     * @returns {boolean}
+     */
+    function isDefaultPoint(lonlat) {
+        return Math.abs(lonlat.lon) < 1 && Math.abs(lonlat.lat) < 1;
+    }
+
+
     function addMarkerLayer(map) {
         var markerLayer = new OpenLayers.Layer.Vector('MarkerLayer');
+        markerLayer.setVisibility(false);
         map.addLayer(markerLayer);
         return markerLayer;
     }
@@ -159,7 +171,7 @@ define(['libs/jquery', 'libs/OpenLayers'], function() {
 
             trigger: function(event) {
                 var lonlat = map.getLonLatFromPixel(event.xy);
-                marker.move(lonlat);
+                moveTo(lonlat, map, marker);
                 updatePosition(position_input, lonlat, map);
             }
         });
@@ -201,8 +213,7 @@ define(['libs/jquery', 'libs/OpenLayers'], function() {
                 position.coords.longitude,
                 position.coords.latitude
             ]);
-            map.setCenter(lonlat);
-            marker.move(lonlat);
+            moveTo(lonlat, map, marker);
             updatePosition(positionField, lonlat, map);
         }
 
@@ -220,6 +231,26 @@ define(['libs/jquery', 'libs/OpenLayers'], function() {
         } else {
             alert('Your browser does not support geolocation');
         }
+    }
+
+
+    /**
+     * Move the map and marker to a point
+     */
+    function moveTo(point, map, marker) {
+        map.setCenter(point);
+        marker.move(point);
+        getMarkerLayer(map).setVisibility(true);
+    }
+
+
+    /**
+     * Get the layer containing the map marker
+     * @param {OpenLayers.Map} map
+     * @returns {OpenLayers.Layer.Vector}
+     */
+    function getMarkerLayer(map) {
+        return map.getLayersByName('MarkerLayer')[0];
     }
 
     return SeedDBMap;

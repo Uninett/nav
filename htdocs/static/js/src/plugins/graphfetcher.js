@@ -1,4 +1,4 @@
-define(['libs/jquery', 'libs/spin.min'], function () {
+define(['libs/spin.min'], function () {
     /*
      * GraphFetcher
      *

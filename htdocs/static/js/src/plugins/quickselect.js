@@ -15,7 +15,7 @@
  * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-define(['libs/jquery'], function() {
+define([], function() {
 
     /* Todo: Rewrite this to not be so DOM-manipulative */
 

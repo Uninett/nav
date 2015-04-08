@@ -14,7 +14,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Views for ipdevinfo"""
-import IPy
 import re
 import logging
 import datetime as dt
@@ -65,7 +64,7 @@ def find_netboxes(errors, query):
         sysname_filter = Q(sysname=query)
         if settings.DOMAIN_SUFFIX is not None:
             sysname_filter |= Q(sysname='%s%s' %
-                                        (query, settings.DOMAIN_SUFFIX))
+                                (query, settings.DOMAIN_SUFFIX))
         netboxes = Netbox.objects.filter(sysname_filter)
         if len(netboxes) != 1:
             # No exact match, search for matches in substrings
@@ -158,7 +157,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
         filter_stateful = Q(end_time__gt=lowest_end_time)
         filter_stateless = (Q(end_time__isnull=True)
-            & Q(start_time__gt=lowest_end_time))
+                            & Q(start_time__gt=lowest_end_time))
         queryset = netbox.alerthistory_set.filter(
             filter_stateful | filter_stateless
             ).order_by('-start_time')
@@ -321,18 +320,18 @@ def get_port_view(request, netbox_sysname, perspective):
             activity_interval_form = ActivityIntervalForm(request.GET)
             if activity_interval_form.is_valid():
                 activity_interval = activity_interval_form.cleaned_data[
-                                    'interval']
+                    'interval']
         else:
             activity_interval_form = ActivityIntervalForm(
                 initial={'interval': activity_interval})
 
     port_view = {
-            'perspective': perspective,
-            'modules': [],
-            'activity_interval': activity_interval,
-            'activity_interval_start':
-                dt.datetime.now() - dt.timedelta(days=activity_interval),
-            }
+        'perspective': perspective,
+        'modules': [],
+        'activity_interval': activity_interval,
+        'activity_interval_start':
+        dt.datetime.now() - dt.timedelta(days=activity_interval),
+    }
 
     # Check if we got data for the entire search interval
     try:
@@ -362,12 +361,12 @@ def get_port_view(request, netbox_sysname, perspective):
 
     return render_to_response(
         'ipdevinfo/modules.html',
-            {
+        {
             'netbox': netbox,
             'port_view': port_view,
             'ifname_too_long': ifname_too_long,
             'activity_interval_form': activity_interval_form
-            },
+        },
         context_instance=RequestContext(request))
 
 
@@ -390,7 +389,7 @@ def module_details(request, netbox_sysname, module_name):
         if activity_interval is not None:
             module['activity_interval'] = activity_interval
             module['activity_interval_start'] = (
-                    dt.datetime.now() - dt.timedelta(days=activity_interval))
+                dt.datetime.now() - dt.timedelta(days=activity_interval))
 
             # Check if we got data for the entire search interval
             try:
@@ -421,7 +420,8 @@ def module_details(request, netbox_sysname, module_name):
             initial={'interval': activity_interval})
 
     module = get_object_or_404(Module.objects.select_related(depth=1),
-        netbox__sysname=netbox_sysname, name=module_name)
+                               netbox__sysname=netbox_sysname,
+                               name=module_name)
     swportstatus_view = get_module_view(module, 'swportstatus')
     swportactive_view = get_module_view(
         module, 'swportactive', activity_interval)
@@ -442,8 +442,8 @@ def module_details(request, netbox_sysname, module_name):
             'heading': navpath[-1][0],
             'title': create_title(navpath)
         },
-        context_instance=RequestContext(request,
-            processors=[search_form_processor]))
+        context_instance=RequestContext(
+            request, processors=[search_form_processor]))
 
 
 def port_details(request, netbox_sysname, port_type=None, port_id=None,
@@ -558,7 +558,7 @@ def service_matrix(request):
     service handler per column"""
 
     handler_list = [h['handler']
-        for h in Service.objects.values('handler').distinct()]
+                    for h in Service.objects.values('handler').distinct()]
 
     matrix_dict = {}
     for service in Service.objects.select_related(depth=1):
@@ -583,8 +583,8 @@ def service_matrix(request):
             'navpath': navpath,
             'heading': navpath[-1][0]
         },
-        context_instance=RequestContext(request,
-            processors=[search_form_processor]))
+        context_instance=RequestContext(
+            request, processors=[search_form_processor]))
 
 
 def render_affected(request, netboxid):

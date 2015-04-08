@@ -6,7 +6,6 @@ require([
     'plugins/ip_chooser',
     'plugins/seeddb_map',
     'libs/spin',
-    'libs/jquery',
     'libs/jquery.dataTables.min',
     'libs/modernizr',
     'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect, FormFuck,

@@ -1,6 +1,4 @@
-define([
-    'libs/jquery'
-], function () {
+define([], function () {
 
     var publicFunctions = {
 

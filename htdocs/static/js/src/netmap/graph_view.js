@@ -3,7 +3,6 @@ define([
     'netmap/models',
     'netmap/graph_info_view',
     'plugins/fullscreen',
-    'libs/jquery',
     'libs/underscore',
     'libs/backbone',
     'libs/backbone-eventbroker',
@@ -38,7 +37,6 @@ define([
         },
 
         initialize: function () {
-
             this.w = this.$el.width();
             this.h = $(window).height();
 
@@ -59,6 +57,14 @@ define([
             this.model = new Graph();
             this.netmapView = this.options.netmapView;
 
+            // Indicators
+            this.indicatorHolder = this.createIndicatorHolder();
+            this.loadingGraphIndicator = this.createLoadingGraphIndicator();
+            this.loadingGraphIndicator.appendTo(this.indicatorHolder).hide();
+            this.loadingTrafficIndicator = this.createLoadingTrafficIndicator();
+            this.loadingTrafficIndicator.appendTo(this.indicatorHolder).hide();
+            this.listenTo(this.model, 'change:loadingTraffic', this.toggleLoadingTraffic);
+
             this.graphInfoView = new GraphInfoView({parent: this.el});
 
             this.initializeDOM();
@@ -66,6 +72,43 @@ define([
             this.initializeNetmapView();
             this.fetchGraphModel();
         },
+
+
+        createIndicatorHolder: function() {
+            return $('<div>')
+                .css({
+                    position: 'absolute',
+                    top: '10px',
+                    left: '10px'
+                })
+                .appendTo(this.el);
+        },
+
+
+        createLoadingGraphIndicator: function() {
+            return $('<div class="alert-box info">')
+                .css({ width: '200px' })
+                .html('Loading graph');
+        },
+
+
+        createLoadingTrafficIndicator: function() {
+            return $('<div class="alert-box info">')
+                .css({ width: '200px' })
+                .html('Loading traffic data');
+        },
+
+
+        toggleLoadingTraffic: function() {
+            if (this.model.get('loadingTraffic') === true) {
+                console.log('We are loading traffic');
+                this.loadingTrafficIndicator.show();
+            } else {
+                console.log('We stopped loading traffic');
+                this.loadingTrafficIndicator.hide('slow');
+            }
+        },
+
 
         /**
          * Initializes the graph model from the initially selected
@@ -449,9 +492,10 @@ define([
 
             var self = this;
 
+            this.loadingGraphIndicator.show();
             this.graphInfoView.reset();
 
-            this.model.fetch({
+            var jqxhr = this.model.fetch({
                 success: function () {
                     self.update();
                     self.model.loadTraffic();
@@ -460,6 +504,11 @@ define([
                     alert('Error loading graph, please try to reload the page');
                 }
             });
+
+            jqxhr.always(function() {
+                self.loadingGraphIndicator.hide('slow');
+            });
+
         },
 
         updateTopologyLayer: function (layer) {

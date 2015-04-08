@@ -1,4 +1,4 @@
-define(['plugins/navlet_controller', 'libs/jquery'], function (NavletController) {
+define(['plugins/navlet_controller'], function (NavletController) {
     /* Controller for loading and laying out the navlets, and adding buttons for manipulating the navlets */
 
     function NavletsController(node) {

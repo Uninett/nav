@@ -4,7 +4,6 @@ define([
     'libs-amd/text!resources/networkexplorer/swport.html',
     'libs-amd/text!resources/networkexplorer/switch.html',
     'libs-amd/text!resources/networkexplorer/swport_leaf.html',
-    'libs/jquery',
     'libs/backbone',
     'libs/backbone-eventbroker',
     'libs/handlebars'], function (routerTemplate,

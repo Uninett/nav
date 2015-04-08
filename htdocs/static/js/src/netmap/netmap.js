@@ -18,8 +18,7 @@ require([
 
         // Disable caching for netmap
         $.ajaxSetup({ cache: false });
-
-        document.navNetmapAppSpinner.stop();
+        $.ajaxSetup({ timeout: 240000 });
 
         var controlView = new ControlView();
         new GraphView({netmapView: controlView.currentView});

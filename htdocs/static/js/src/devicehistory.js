@@ -13,7 +13,7 @@
  * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
  */
 
-require(['plugins/quickselect', 'libs/jquery'], function (QuickSelect) {
+require(['plugins/quickselect'], function (QuickSelect) {
     $(document).ready(function() {
         new QuickSelect('.quickselect');
         createTooltips();
