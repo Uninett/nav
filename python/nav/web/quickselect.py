@@ -51,11 +51,11 @@ class QuickSelect:
             raise TypeError('__init__() got an unexpected keyword argument '
                             '%s' % key)
 
-        # Quick hack to add the serial to our values.
-        netbox_value_args = [f.attname for f in Netbox._meta.fields]
-        netbox_value_args.append('device__serial')
-        self.netbox_set = Netbox.objects.order_by(
-            'sysname').values(*netbox_value_args)
+        # 'Dirtier than your mother' hack to add the serial to our values.
+        netboxes = Netbox.objects.order_by('sysname')
+        self.netbox_set = [netbox for netbox in netboxes.values()]
+        for index, netbox in enumerate(netboxes):
+            self.netbox_set[index]['device__serial'] = netbox.device.serial
 
         # Rest of the queryset we need
         self.location_set = Location.objects.order_by(('id')).values()

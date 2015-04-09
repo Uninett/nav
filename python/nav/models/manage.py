@@ -49,6 +49,7 @@ import nav.models.event
 #######################################################################
 ### Netbox-related models
 
+
 class Netbox(models.Model):
     """From NAV Wiki: The netbox table is the heart of the heart so to speak,
     the most central table of them all. The netbox tables contains information
@@ -69,7 +70,7 @@ class Netbox(models.Model):
     room = models.ForeignKey('Room', db_column='roomid')
     type = models.ForeignKey('NetboxType', db_column='typeid',
                              blank=True, null=True)
-    device = models.ForeignKey('Device', db_column='deviceid',
+    _device = models.ForeignKey('Device', db_column='deviceid',
                                blank=True, null=True)
     sysname = VarcharField(unique=True)
     category = models.ForeignKey('Category', db_column='catid')
@@ -96,6 +97,11 @@ class Netbox(models.Model):
 
     def __unicode__(self):
         return self.get_short_sysname()
+
+    @property
+    def device(self):
+        """Property to access the former device-field"""
+        return self._device
 
     def is_up(self):
         """Returns True if the Netbox isn't known to be down or in shadow"""
