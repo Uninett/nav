@@ -66,15 +66,23 @@ class Entity(Plugin):
                       for entity in entities.values()]
         self._fix_hierarchy(containers)
 
-    @staticmethod
-    def _fix_hierarchy(containers):
+    def _fix_hierarchy(self, containers):
         by_index = {c.index: c for c in containers}
+        ghosts = set()
         for container in containers:
             if container.contained_in:
                 parent_id = unicode(container.contained_in)
                 parent = by_index.get(parent_id)
                 if parent:
                     container.contained_in = parent
+                else:
+                    ghosts.add(str(container.contained_in))
+                    container.contained_in = None
+
+        if ghosts:
+            self._logger.info(
+                "kick your device vendor in the shin. entPhysicalContainedIn "
+                "values refer to non-existand entities: %s", ", ".join(ghosts))
 
     field_map = {k: 'entPhysical'+v for k, v in dict(
         index='Index',
