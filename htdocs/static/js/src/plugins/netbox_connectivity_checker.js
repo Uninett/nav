@@ -14,8 +14,6 @@ define(['libs/spin'], function (Spinner) {
      */
 
     function Checker(ipchecker) {
-        console.log('ConnectivityCheckerForNetboxes called');
-
         var form = $('#seeddb-netbox-form'),
             button = form.find('.check_connectivity');
 
@@ -36,7 +34,7 @@ define(['libs/spin'], function (Spinner) {
             realSnmpVersionNode = $('#id_snmp_version'),
             realTypeNode = $('#id_type');
 
-        $('#div_id_serial').before(fakeSysnameNode).before(fakeSnmpVersionNode).before(fakeTypeNode);
+        $('#real_collected_fields').after(fakeSysnameNode, fakeSnmpVersionNode, fakeTypeNode);
 
         setDefaultValues();
 

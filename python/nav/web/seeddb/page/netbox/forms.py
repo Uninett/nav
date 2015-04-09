@@ -35,7 +35,6 @@ _logger = logging.getLogger(__name__)
 class NetboxModelForm(forms.ModelForm):
     """Modelform for netbox for use in SeedDB"""
     ip = forms.CharField()
-    serial = forms.CharField(required=False)
     function = forms.CharField(required=False)
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
@@ -46,13 +45,12 @@ class NetboxModelForm(forms.ModelForm):
         model = Netbox
         fields = ['ip', 'room', 'category', 'organization',
                   'read_only', 'read_write', 'snmp_version',
-                  'groups', 'sysname', 'type', 'data', 'serial']
+                  'groups', 'sysname', 'type', 'data']
 
     def __init__(self, *args, **kwargs):
         super(NetboxModelForm, self).__init__(*args, **kwargs)
 
         if self.instance.pk:
-            self.fields['serial'].initial = self.instance.device.serial
             try:
                 netboxinfo = self.instance.info_set.get(variable='function')
             except NetboxInfo.DoesNotExist:
@@ -84,8 +82,8 @@ class NetboxModelForm(forms.ModelForm):
                                        css_class='check_connectivity')),
                     Fieldset('Collected info',
                              Div('sysname', 'snmp_version', 'type',
-                                 css_class='hide'),
-                             'serial'),
+                                 css_class='hide',
+                                 css_id='real_collected_fields')),
                     css_class=css_class),
                 Column(
                     Fieldset('Meta information',
@@ -120,19 +118,6 @@ class NetboxModelForm(forms.ModelForm):
         if not snmp_version:
             snmp_version = 1
         return snmp_version
-
-    def clean_serial(self):
-        """Make sure the serial number is not in use"""
-        serial = self.cleaned_data['serial'].strip()
-        try:
-            netbox_with_serial = Netbox.objects.get(device__serial=serial)
-        except Netbox.DoesNotExist:
-            return serial
-        else:
-            if netbox_with_serial != self.instance:
-                raise forms.ValidationError(
-                    "Serial (%s) is already taken by %s" % (
-                        serial, netbox_with_serial))
 
     def clean(self):
         """Make sure that categories that require communities has that"""
