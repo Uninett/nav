@@ -27,7 +27,7 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 from nav.web.seeddb.utils.bulk import render_bulkimport
-from .forms import NetboxFilterForm, NetboxMoveForm
+from nav.web.seeddb.page.netbox.forms import NetboxFilterForm, NetboxMoveForm
 
 
 class NetboxInfo(SeeddbInfo):
@@ -57,7 +57,7 @@ def netbox_list(request):
     filter_form = NetboxFilterForm(request.GET)
     value_list = (
         'sysname', 'room', 'ip', 'category', 'organization', 'read_only',
-        'read_write', 'snmp_version', 'type__name', 'device__serial')
+        'read_write', 'snmp_version', 'type__name')
     return render_list(request, query, value_list, 'seeddb-netbox-edit',
                        edit_url_attr='pk',
                        filter_form=filter_form,
