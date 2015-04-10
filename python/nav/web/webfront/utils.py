@@ -116,7 +116,7 @@ def tool_list(account):
                     if account.has_perm('web_access', tool.uri):
                         _tool_list.append(tool)
     _tool_list.sort()
-    return tool_list
+    return _tool_list
 
 
 def get_account_tools(account, all_tools):
