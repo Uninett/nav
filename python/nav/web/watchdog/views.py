@@ -15,10 +15,11 @@
 #
 """Controllers for WatchDog requests"""
 from django.shortcuts import render
+from django.http import JsonResponse
 
 from nav.models.fields import INFINITY
 from nav.models.manage import Arp, Device
-from nav.web.utils import create_title, JsonResponse
+from nav.web.utils import create_title
 from nav.watchdog.util import get_statuses
 
 
