@@ -1,5 +1,14 @@
 {% extends "base.html" %}
 
+{% block base_header_additional_head %}
+  <style>
+   #tool_list img {
+       width: 48px;
+       height: 48px;
+   }
+  </style>
+{% endblock %}
+
 {% block base_content %}
   <h2>Toolbox</h2>
 
@@ -9,7 +18,7 @@
         <tr data-toolid="{{ tool.name }}">
           <td>
             <a href="{{ tool.uri }}" title="{{ tool.description }}">
-              <img src="{{ tool.icon }}" alt="{{ tool.name }}">
+              <img src="{{ tool.icon }}" alt="">
             </a>
           </td>
           <td>
