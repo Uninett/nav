@@ -1,3 +1,4 @@
+"""Navbar (tools, preferences) and login related controllers"""
 #
 # Copyright (C) 2009-2011 UNINETT AS
 #
@@ -20,22 +21,18 @@ import simplejson
 import logging
 
 from django.core.urlresolvers import reverse
-from django.forms.formsets import formset_factory
-from django.forms.models import modelformset_factory
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic.simple import direct_to_template
-from django.views.decorators.debug import (sensitive_variables,
-                                           sensitive_post_parameters)
-from django.shortcuts import get_object_or_404
-
+from django.views.decorators.debug import (
+    sensitive_variables, sensitive_post_parameters)
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.path import sysconfdir
 from nav.django.utils import get_account
-from nav.models.profiles import (Account, NavbarLink,
-                                 AccountTool, AccountProperty)
+from nav.models.profiles import (NavbarLink, AccountTool, AccountProperty)
 from nav.web import ldapauth, auth
 from nav.web.webfront.utils import quick_read, tool_list
-from nav.web.webfront.forms import LoginForm, NavbarlinkForm, NavbarLinkFormSet, ChangePasswordForm
+from nav.web.webfront.forms import (
+    LoginForm, NavbarLinkFormSet, ChangePasswordForm)
 from nav.web.navlets import list_navlets
 from nav.web.message import new_message, Messages
 
@@ -43,11 +40,13 @@ _logger = logging.getLogger('nav.web.tools')
 
 WEBCONF_DIR_PATH = os.path.join(sysconfdir, "webfront")
 WELCOME_ANONYMOUS_PATH = os.path.join(WEBCONF_DIR_PATH, "welcome-anonymous.txt")
-WELCOME_REGISTERED_PATH = os.path.join(WEBCONF_DIR_PATH, "welcome-registered.txt")
+WELCOME_REGISTERED_PATH = os.path.join(
+    WEBCONF_DIR_PATH, "welcome-registered.txt")
 NAV_LINKS_PATH = os.path.join(WEBCONF_DIR_PATH, "nav-links.conf")
 
 
 def index(request):
+    """Controller for main page."""
     # Read files that will be displayed on front page
     if request.account.is_default_account():
         welcome = quick_read(WELCOME_ANONYMOUS_PATH)
@@ -68,6 +67,7 @@ def index(request):
 
 @sensitive_post_parameters('password')
 def login(request):
+    """Controller for the login page"""
     if request.method == 'POST':
         return do_login(request)
 
@@ -94,7 +94,7 @@ def login(request):
 
 @sensitive_variables('password')
 def do_login(request):
-    # FIXME Log stuff?
+    """Do a login based on post parameters"""
     errors = []
     form = LoginForm(request.POST)
     origin = request.POST.get('origin', '').strip()
@@ -105,15 +105,15 @@ def do_login(request):
 
         try:
             account = auth.authenticate(username, password)
-        except ldapauth.Error, e:
-            errors.append('Error while talking to LDAP:\n%s' % e)
+        except ldapauth.Error, error:
+            errors.append('Error while talking to LDAP:\n%s' % error)
         else:
             if account:
                 try:
                     request.session[ACCOUNT_ID_VAR] = account.id
                     request.account = account
-                except ldapauth.Error, e:
-                    errors.append('Error while talking to LDAP:\n%s' % e)
+                except ldapauth.Error, error:
+                    errors.append('Error while talking to LDAP:\n%s' % error)
                 else:
                     _logger.info("%s successfully logged in", account.login)
                     if not origin:
@@ -136,6 +136,7 @@ def do_login(request):
 
 
 def logout(request):
+    """Controller for doing a logout"""
     if request.method == 'POST' and 'submit_desudo' in request.POST:
         desudo(request)
         return HttpResponseRedirect(reverse('webfront-index'))
@@ -148,6 +149,7 @@ def logout(request):
 
 
 def about(request):
+    """Controller for the about page"""
     return direct_to_template(
         request,
         'webfront/about.html',
@@ -162,8 +164,8 @@ def toolbox(request):
     """Render the toolbox"""
     account = get_account(request)
     try:
-        layout_prop = AccountProperty.objects.get(account=account,
-                                            property='toolbox-layout')
+        layout_prop = AccountProperty.objects.get(
+            account=account, property='toolbox-layout')
         layout = layout_prop.value
     except AccountProperty.DoesNotExist:
         layout = 'grid'
@@ -189,7 +191,7 @@ def get_account_tools(account, all_tools):
     for tool in all_tools:
         try:
             account_tool = account_tools.get(toolname=tool.name)
-        except AccountTool.DoesNotExist:
+        except AccountTool.DoesNotExist:  # pylint: disable=E1101
             tools.append(tool)
         else:
             tool.priority = account_tool.priority
@@ -211,7 +213,7 @@ def save_tools(request):
             try:
                 atool = AccountTool.objects.get(account=account,
                                                 toolname=toolname)
-            except AccountTool.DoesNotExist:
+            except AccountTool.DoesNotExist:  # pylint: disable=E1101
                 atool = AccountTool(account=account, toolname=toolname)
 
             atool.priority = options['index']
@@ -235,8 +237,8 @@ def set_tool_layout(request):
                 layout_prop = AccountProperty.objects.get(
                     account=account, property='toolbox-layout')
             except AccountProperty.DoesNotExist:
-                layout_prop = AccountProperty(account=account,
-                                             property='toolbox-layout')
+                layout_prop = AccountProperty(
+                    account=account, property='toolbox-layout')
 
             layout_prop.value = layout
             layout_prop.save()
@@ -245,7 +247,9 @@ def set_tool_layout(request):
 
 
 def _create_preference_context(request):
-    """ Creates a context used by different views for the multiform preference page """
+    """
+    Creates a context used by different views for the multiform preference
+    """
     account = get_account(request)
 
     if account.ext_sync:
@@ -260,7 +264,9 @@ def _create_preference_context(request):
         'account': account,
         'tool': {'name': 'My account',
                  'description': 'Edit my personal NAV account settings'},
-        'navbar_formset': NavbarLinkFormSet(queryset=NavbarLink.objects.filter(account=account)),
+
+        'navbar_formset': NavbarLinkFormSet(
+            queryset=NavbarLink.objects.filter(account=account)),
     }
 
     return context
@@ -301,14 +307,13 @@ def change_password(request):
                 'webfront/preferences.html',
                 context
             )
-            
+
     return HttpResponseRedirect(reverse('webfront-preferences'))
 
 
 def save_links(request):
     """ Saves navigation preference links on a user """
     account = get_account(request)
-    formset_from_post = None
     context = _create_preference_context(request)
 
     if request.method == 'POST':
@@ -321,8 +326,8 @@ def save_links(request):
 
             instances = formset.save(commit=False)
             for instance in instances:
-                    instance.account = account
-                    instance.save()
+                instance.account = account
+                instance.save()
             new_message(request, 'Your links were saved.',
                         type=Messages.SUCCESS)
         else:
