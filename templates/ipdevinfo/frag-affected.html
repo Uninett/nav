@@ -6,10 +6,11 @@
   {# List of affected ip-devices #}
   {% if affected %}
     <section>
-      <h5>
+      <h4>
         Affected devices
-        <i class="fa fa-question-circle" title="Devices with or behind devices with redundant links"></i>
-      </h5>
+        <i class="fa fa-question-circle"
+           title="Devices with or behind devices with redundant links"></i>
+      </h4>
 
       <ul>
         {% for netbox in affected %}
@@ -26,7 +27,7 @@
   {# List of unreachable ip-devices #}
   {% if unreachable %}
     <section>
-      <h5>Devices unreachable</h5>
+      <h4>Devices unreachable</h4>
 
       <ul>
         {% for netbox in unreachable %}
@@ -39,7 +40,7 @@
     </section>
 
     <section>
-      <h5>Affected hosts</h5>
+      <h4>Affected hosts</h4>
 
       <p>{{ affected_hosts }} active hosts/users</p>
     </section>
@@ -49,7 +50,7 @@
   {# List of unreachable services #}
   {% if services %}
     <section>
-      <h5>Services on devices going down</h5>
+      <h4>Services on devices going down</h4>
 
       <ul>
         {% for service in services %}
@@ -61,20 +62,23 @@
 
 
   {# List of contacts that are involved #}
-  {% if contacts %}
-    <section>
-      <h5>Organizations</h5>
-      <ul>
-        {% for organization in organizations %}
-          <li>{{ organization }} - {{ organization.contact }}</li>
-        {% endfor %}
-      </ul>
-    </section>
-  {% endif %}
+  <section>
+    <h4>Organizations</h4>
+    <ul>
+      {% for organization in organizations %}
+        <li>{{ organization }} - {{ organization.contact|default:'No contact info' }}</li>
+      {% empty %}
+        <li>No organizations affected</li>
+      {% endfor %}
+    </ul>
+  </section>
 
   {# Form to send mail to involved contacts #}
   <form action="mailto:{{ contacts|join:"," }}">
-    <input type="submit" class="button small" value="Send mail to affected organizations">
+    <input type="submit"
+           class="button small"
+           value="Send mail to affected organizations"
+           {% if not contacts %}disabled{% endif %}>
   </form>
 
 </div>

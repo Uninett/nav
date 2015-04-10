@@ -6,11 +6,14 @@
 
 {% if netbox %}
 
+
   {% comment %} IP DEVICE {% endcomment %}
   <div class="medium-6 column">
+
     <table class="vertitable full-width">
       <caption>
         IP Device: {{ netbox.get_short_sysname }}
+        {% include 'ipdevinfo/frag-disclaimer.html' %}
       </caption>
       <tbody>
       <tr>
@@ -168,7 +171,7 @@
 
   {% comment %} STATUS {% endcomment %}
   <div class="medium-6 column">
-    <table class="vertitable full-width">
+    <table class="vertitable full-width align-top">
       <caption>
         Status
       </caption>
@@ -259,6 +262,60 @@
           {{ netbox.discovered|time }}</td>
       </tr>
 
+      <tr>
+        <th>Active maintenance</th>
+        <td>
+          {% if current_maintenance_tasks %}
+            <ul class="normalize-font-size">
+            {% for task in current_maintenance_tasks %}
+              <li>
+                <a href="{% url maintenance-edit task.id %}">
+                  {{ task.description }} 
+                </a>
+                <div>
+                  ({{ task.start_time }} - 
+                  {% if task.is_endless %}
+                    No endtime
+                  {% else %}
+                    {{ task.end_time }}
+                  {% endif %})
+                </div>
+              </li>
+            {% endfor %}
+            </ul>
+          {% else %}
+            Not on maintenance.
+          {% endif %}
+        </td>
+      </tr>
+
+      <tr>
+        <th>Future maintenance</th>
+        <td>
+          {% if future_maintenance_tasks %}
+            <ul class="normalize-font-size">
+            {% for task in future_maintenance_tasks %}
+              <li>
+                <a href="{% url maintenance-edit task.id %}">
+                  {{ task.description }} 
+                </a>
+                <div>
+                  ({{ task.start_time }} - 
+                  {% if task.is_endless %}
+                    No endtime)
+                  {% else %}
+                    {{ task.end_time }})
+                  {% endif %}
+                </div>
+              </li>
+            {% endfor %}
+            </ul>
+          {% else %}
+            Not scheduled for maintenance.
+          {% endif %}
+        </td>
+      </tr>
+
       </tbody>
     </table>
 
@@ -312,12 +369,17 @@
                      alt="Overdue"
                      title="Overdue - interval is {{ job.interval|interval }}">
               {% else %}
-                {% if job.success %}
-                  <img src="{{ STATIC_URL }}images/lys/green.png"
-                       alt="Success" title="Success">
+                {% if job.has_result %}
+                    {% if job.success %}
+                      <img src="{{ STATIC_URL }}images/lys/green.png"
+                           alt="Success" title="Success">
+                    {% else %}
+                      <img src="{{ STATIC_URL }}images/lys/red.png"
+                           alt="Failed" title="Failed">
+                    {% endif %}
                 {% else %}
-                  <img src="{{ STATIC_URL }}images/lys/red.png"
-                       alt="Failed" title="Failed">
+                      <img src="{{ STATIC_URL }}images/lys/grey.png"
+                           alt="N/A" title="Not applicable">
                 {% endif %}
               {% endif %}
             </td>

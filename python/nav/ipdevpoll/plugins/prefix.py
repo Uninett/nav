@@ -197,13 +197,11 @@ class Prefix(Plugin):
         if prefix is None:
             return False
 
-        for ignored in self.ignored_prefixes:
-            if prefix in ignored:
-                return True
+        return any(ignored.matches(prefix) for ignored in self.ignored_prefixes)
 
-        return False
 
 def get_ignored_prefixes(config):
+    """Returns a list of ignored prefixes from a ConfigParser instance"""
     if config is not None:
         raw_string = config.get('prefix', 'ignored', '')
     else:
@@ -212,11 +210,61 @@ def get_ignored_prefixes(config):
     prefixes = [_convert_string_to_prefix(i) for i in items]
     return [prefix for prefix in prefixes if prefix is not None]
 
+
 def _convert_string_to_prefix(string):
     try:
-        return IP(string)
+        return IgnoredPrefix(string)
     except ValueError:
         logging.getLogger(__name__).error(
             "Ignoring invalid prefix in ignore list: %s",
             string)
 
+
+class IgnoredPrefix(IP):
+    """An ignored prefix.
+
+    May match every contained prefix, or just the identical prefix, according
+    to the input syntax. If no match operator is present, the "contained
+    within or equals" operator is assumed (since that was the default behavior
+    of bare addresses before operators were introduced).
+
+    Examples::
+    >>> IgnoredPrefix('192.168.1.0/24').matches('192.168.1.128/25')
+    True
+    >>> IgnoredPrefix('<<=192.168.1.0/24').matches('192.168.1.128/25')
+    True
+    >>> IgnoredPrefix('=192.168.1.0/24').matches('192.168.1.0/24')
+    True
+
+    """
+    EQUALS_OPERATOR = '='
+    CONTAINED_IN_OPERATOR = '<<='
+    OPERATORS = (EQUALS_OPERATOR, CONTAINED_IN_OPERATOR)
+
+    DEFAULT_OPERATOR = CONTAINED_IN_OPERATOR
+    match_operator = DEFAULT_OPERATOR
+
+    def __init__(self, string):
+        string = string.strip()
+
+        for oper in self.OPERATORS:
+            if string.startswith(oper):
+                self.match_operator = oper
+                string = string[len(oper):]
+                break
+
+        IP.__init__(self, string)  # stupid old-style class implementation!
+
+    def matches(self, prefix):
+        """
+        Returns True if prefix matches this ignored prefix, using the
+        matching operator specified for this instance.
+        """
+        assert self.match_operator in self.OPERATORS
+
+        if self.match_operator == self.EQUALS_OPERATOR:
+            return IP(prefix) == self
+        elif self.match_operator == self.CONTAINED_IN_OPERATOR:
+            return IP(prefix) in self
+        else:
+            return NotImplementedError

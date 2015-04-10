@@ -14,7 +14,7 @@
  public domain referenced from http://fgnass.github.com/spin.js/ (MIT license)
 
  */
-define(['libs/jquery'], function () {
+define([], function () {
     $.fn.spin = function(opts, color) {
         var presets = {
             "tiny": { lines: 8, length: 2, width: 2, radius: 3 },

@@ -6,7 +6,7 @@ umask 0022
 uid=$(stat -c '%u' /source)
 gid=$(stat -c '%g' /source)
 usermod --uid "$uid" build
-groupmod --gid "$gid" build
+groupmod --non-unique  --gid "$gid" build
 
 
 export WORKSPACE="/source"

@@ -1,4 +1,4 @@
-define(['libs/jquery', 'libs/spin.min'], function () {
+define(['libs/spin.min'], function () {
     /*
      * GraphFetcher
      *
@@ -172,11 +172,12 @@ define(['libs/jquery', 'libs/spin.min'], function () {
         },
         getUrl: function () {
             var url = this.urls[this.urlIndex],
+                escapedUrl = escapeUrl(url),
                 separator = '?';
             if (url.indexOf('?') >= 0) {
                 separator = '&';
             }
-            return url + separator + 'timeframe=' + this.timeframe;
+            return escapedUrl + separator + 'timeframe=' + this.timeframe;
         },
         createSpinner: function () {
             var options = {};  // Who knows, maybe in the future?
@@ -187,3 +188,13 @@ define(['libs/jquery', 'libs/spin.min'], function () {
     return GraphFetcher;
 
 });
+
+/**
+ * Escape all parts of an url path.
+ * @param {string} url An url or pathname to escape
+ */
+function escapeUrl(url) {
+    return url.split('/').reduce(function(prev, curr) {
+        return prev + '/' + encodeURIComponent(curr);
+    });
+}

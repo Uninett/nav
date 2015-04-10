@@ -36,20 +36,9 @@ def index(request):
 def render_unrecognized(request):
     """Render unrecognized neighbors"""
     context = {
-        'neighbors': UnrecognizedNeighbor.objects.filter(
-            ignored_since__isnull=True),
+        'neighbors': UnrecognizedNeighbor.objects.select_related(
+            'interface__netbox'),
         'page': 'unrecognized'
-    }
-
-    return render_page(request, context)
-
-
-def render_ignored(request):
-    """Render ignored neighbors"""
-    context = {
-        'neighbors': UnrecognizedNeighbor.objects.filter(
-            ignored_since__isnull=False),
-        'page': 'ignored'
     }
 
     return render_page(request, context)
@@ -77,10 +66,12 @@ def set_ignored_state(request):
         neighbor = get_object_or_404(UnrecognizedNeighbor, pk=nid)
         if ignored:
             neighbor.ignored_since = datetime.now()
+            response = neighbor.ignored_since.strftime('%Y-%m-%d %H:%M:%S')
         else:
             neighbor.ignored_since = None
+            response = ''
         neighbor.save()
-        return HttpResponse()
+        return HttpResponse(response)
 
     return HttpResponse("Wrong request method", status=400)
 

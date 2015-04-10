@@ -15,15 +15,18 @@
 #
 """Loading and caching of unresolved alert states from the database"""
 
-import datetime
 from nav.models.event import AlertHistory
 from nav.models.fields import INFINITY
+import logging
 
+_logger = logging.getLogger(__name__)
 _unresolved_alerts_map = {}
+
 
 def get_map():
     """Returns a cached dictionary of unresolved AlertHistory entries"""
     return _unresolved_alerts_map
+
 
 def update():
     """Updates the map of unresolved alerts from the database"""
@@ -34,6 +37,7 @@ def update():
     _unresolved_alerts_map = dict((alert.get_key(), alert)
                                   for alert in unresolved)
 
+
 def refers_to_unresolved_alert(event):
     """Verifies whether an event appears to refer to a currently
     unresolved alert state.
@@ -42,4 +46,11 @@ def refers_to_unresolved_alert(event):
               or False if none was found.
 
     """
-    return _unresolved_alerts_map.get(event.get_key(), False)
+    try:
+        result = _unresolved_alerts_map[event.get_key()]
+        return result
+    except KeyError:
+        _logger.debug("no match for (%r) %r among list of unresolved alerts",
+                      event.get_key(), event)
+        _logger.debug("unresolved map contains: %r", _unresolved_alerts_map)
+        return False

@@ -1,6 +1,5 @@
 require([
     'plugins/multiple_select',
-    'libs/jquery',
     'libs/jquery.dataTables.min',
     'src/dt_plugins/numeric_html',
     'src/dt_plugins/ip_address_sort',

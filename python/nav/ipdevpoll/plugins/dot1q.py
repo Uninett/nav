@@ -86,6 +86,7 @@ class Dot1q(Plugin):
             interface = self.containers.factory(ifindex,
                                                 shadows.Interface)
             interface.vlan = pvid
+            interface.trunk = False  # default all ports to non-tagging at first
         else:
             self._logger.debug("saw reference to non-existant baseport %s",
                                port)

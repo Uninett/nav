@@ -1,4 +1,4 @@
-require(['libs/spin.min', 'libs/jquery', 'libs/jquery-ui.min'], function () {
+require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
 
     if(!Array.indexOf){
         Array.prototype.indexOf = function(obj){

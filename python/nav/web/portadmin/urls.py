@@ -16,26 +16,24 @@
 #
 """PortAdmin Django URL config"""
 
+
 from django.conf.urls import patterns, url
-from nav.web.portadmin.views import (index, search_by_ip, search_by_sysname,
-                                     search_by_interfaceid,
-                                     save_interfaceinfo, render_trunk_edit,
-                                     restart_interface, write_mem)
 
-urlpatterns = patterns('',
-    url(r'^$', index, name='portadmin-index'),
+urlpatterns = patterns(
+    'nav.web.portadmin.views',
+    url(r'^$', 'index', name='portadmin-index'),
 
-    url(r'^ip=(?P<ip>[\d\.]+)', search_by_ip,
+    url(r'^ip=(?P<ip>[\d\.]+)', 'search_by_ip',
         name='portadmin-ip'),
-    url(r'^sysname=(?P<sysname>\S+)', search_by_sysname,
+    url(r'^sysname=(?P<sysname>\S+)', 'search_by_sysname',
         name='portadmin-sysname'),
-    url(r'^interfaceid=(?P<interfaceid>\d+)', search_by_interfaceid,
+    url(r'^interfaceid=(?P<interfaceid>\d+)', 'search_by_interfaceid',
         name='portadmin-interface'),
 
-    url(r'^save_interfaceinfo', save_interfaceinfo),
-    url(r'^restart_interface', restart_interface),
-    url(r'^write_mem', write_mem),
-    url(r'^trunk/(?P<interfaceid>\d+)', render_trunk_edit,
+    url(r'^save_interfaceinfo', 'save_interfaceinfo'),
+    url(r'^restart_interface', 'restart_interface'),
+    url(r'^write_mem', 'write_mem'),
+    url(r'^trunk/(?P<interfaceid>\d+)', 'render_trunk_edit',
         name="portadmin-render-trunk-edit"),
 
 )

@@ -30,60 +30,18 @@
     <a href="javascript:void(0);" class="button small secondary toggle-panel"></a>
     <div id="status-panel" class="hidden panel">
       {% crispy form %}
-      <a href="javascript:void(0);" class="button small secondary set-default">Save as my default status filter</a>
+      <a href="javascript:void(0);" class="button small secondary set-default">
+        Save as my default status filter
+      </a>
     </div>
 
-    <div id="status-page-fetch-alert" class="alert-box alert with-icon hidden">Failed to fetch events</div>
+    <div id="status-page-fetch-alert" class="alert-box alert with-icon hidden">
+      Failed to fetch events
+    </div>
 
     <div class="row">
 
-      <div class="large-3 large-push-9 column">
-        {# Panel for alert actions #}
-        <div id="action-panel" class="panel white hidden">
-
-          {% if permits.can_acknowledge_alerts %}
-          <div class="panel acknowledge">
-            <h5>Acknowledge the alerts</h5>
-            <input type="text" class="usercomment" placeholder="Write a description">
-            <a href="javascript:void(0);" class="button small acknowledge-alerts expand">
-              Acknowledge alerts
-            </a>
-          </div>
-          {% endif %}
-
-          {% if permits.can_clear_alerts %}
-          <div class="panel resolve-alerts">
-            <h5>Clear the alerts</h5>
-            <a href="javascript:void(0);" class="button small expand">
-              Clear alerts
-            </a>
-          </div>
-          {% endif %}
-
-          {% if permits.can_put_on_maintenance %}
-          <div class="panel maintenance">
-            <h5>Put on maintenance</h5>
-            <input type="text" class="usercomment" placeholder="Write a description">
-            <a href="javascript:void(0);" class="button small expand">
-              Put on maintenance
-            </a>
-          </div>
-          {% endif %}
-
-          {% if not permits.any %}
-            <div class="alert-box">
-              It doesn't seem like you are permitted to do anything here.
-            </div>
-          {% endif %}
-
-          <a href="javascript:void(0);" class="button small secondary cancel-alerts-action">
-            Never mind
-          </a>
-        </div>
-
-      </div>
-
-      <div class="large-9 large-pull-3 column">
+      <div class="large-9 column">
 
         {# Table displaying filtered events #}
         <table id="events-list" class="listtable hover expand tablesorter expandable">
@@ -108,6 +66,86 @@
 
       </div>
 
+      <div class="large-3 column">
+        {# Panel for alert actions #}
+        <div id="action-panel" class="panel white hidden">
+
+          <h5>You can do the following with the selected alerts:</h5>
+
+          {% if permits.can_acknowledge_alerts %}
+            <div class="medium-4 large-12 column">
+              <div class="panel acknowledge">
+                <h5 data-tooltip
+                    title="&lt;p&gt;Acknowledged alerts will be hidden for all users,
+                            but not removed. When an end event arrives the alert
+                            will be cleared normally.&lt;/p&gt; &lt;p&gt;Acknowledged alerts
+                            can be still be viewed by checking the
+                            &lt;em&gt;Acknowledged&lt;/em&gt; checkbox in your status
+                            filter.&lt;/p&gt;">
+                  Acknowledge the alerts
+                  <i class="fa fa-info-circle"></i>
+                </h5>
+                <input type="text" class="usercomment" placeholder="Write a description">
+                <a href="javascript:void(0);" class="button small acknowledge-alerts expand">
+                  Acknowledge alerts
+                </a>
+              </div>
+            </div>
+          {% endif %}
+
+          {% if permits.can_clear_alerts %}
+            <div class="medium-4 large-12 column">
+              <div class="panel resolve-alerts">
+                <h5 data-tooltip
+                    title="&lt;p&gt; Clearing an alert will set its end time, thereby
+                           closing it and removing it from the list of
+                           problems. Use this to remove alerts that have become
+                           invalid, where there is no way for NAV to
+                           automatically detect this.&lt;/p&gt;
+
+                           &lt;p&gt;Be aware that if the root cause of the alert is still
+                           there, NAV may end up posting a new alert for the
+                           same issue. &lt;/p&gt;">
+                  Clear the alerts
+                  <i class="fa fa-info-circle"></i>
+                </h5>
+                <a href="javascript:void(0);" class="button small expand">
+                  Clear alerts
+                </a>
+              </div>
+            </div>
+          {% endif %}
+
+          {% if permits.can_put_on_maintenance %}
+            <div class="medium-4 large-12 column">
+              <div class="panel maintenance">
+                <h5 data-tooltip
+                    title="Putting an alert on maintenance is only meaningful if
+                           the subject can be put on maintenance, for instance IP
+                           Devices and Services.">
+                  Put alerts on maintenance
+                  <i class="fa fa-info-circle"></i>
+                </h5>
+                <input type="text" class="usercomment" placeholder="Write a description">
+                <a href="javascript:void(0);" class="button small expand">
+                  Put on maintenance
+                </a>
+              </div>
+            </div>
+          {% endif %}
+
+          {% if not permits.any %}
+            <div class="alert-box">
+              It doesn't seem like you are permitted to do anything here.
+            </div>
+          {% endif %}
+
+          <a href="javascript:void(0);" class="button small secondary cancel-alerts-action">
+            Never mind
+          </a>
+        </div>
+
+      </div>
 
     </div>
 

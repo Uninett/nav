@@ -48,6 +48,7 @@ class RoomSerializer(serializers.ModelSerializer):
     """Serializer for the room model"""
     @staticmethod
     def transform_position(obj, _value):
+        """Returns string versions of the coordinates"""
         if obj.position:
             lat, lon = obj.position
             return str(lat), str(lon)

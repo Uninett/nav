@@ -114,25 +114,29 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
         // called on this object:
         var thisObj = this;
 
-	// Checkboxes that toggles map state
-	// edgeToggler: toggles whether we add edges between nodes
-	// dataToggler: toggles whether we fetch cpu and interface load
-	var edgeToggler = document.getElementById('edge-toggler');
-	var dataToggler = document.getElementById('data-toggler');
+        // Checkboxes that toggles map state
+        // edgeToggler: toggles whether we add edges between nodes
+        // dataToggler: toggles whether we fetch cpu and interface load
+        var edgeToggler = document.getElementById('edge-toggler'),
+            edgeStorageKey = 'nav.geomap.edge-toggler',
+            dataToggler = document.getElementById('data-toggler'),
+            dataStorageKey = 'nav.geomap.data-toggler';
 
-	// Update default values from localStorage
-	edgeToggler.checked = localStorage.getItem('nav:geomap:edge-toggler') === 'true';
-	dataToggler.checked = localStorage.getItem('nav:geomap:data-toggler') === 'true';
+        // Update default values from localStorage
+        var edgeItem = localStorage.getItem(edgeStorageKey),
+            dataItem = localStorage.getItem(dataStorageKey);
+        edgeToggler.checked = !edgeItem || edgeItem === 'true';
+        dataToggler.checked = !dataItem || dataItem === 'true';
 
-	// Trigger update of map when we toggle the checkboxes
-	edgeToggler.onclick = function() {
-	    localStorage.setItem('nav:geomap:edge-toggler', edgeToggler.checked);
-	    thisObj.update();
-	}
-	dataToggler.onclick = function() {
-	    localStorage.setItem('nav:geomap:data-toggler', dataToggler.checked);
-	    thisObj.update();
-	}
+        // Trigger update of map when we toggle the checkboxes
+        edgeToggler.onclick = function() {
+            localStorage.setItem(edgeStorageKey, edgeToggler.checked);
+            thisObj.update();
+        };
+        dataToggler.onclick = function() {
+            localStorage.setItem(dataStorageKey, dataToggler.checked);
+            thisObj.update();
+        };
 
         // Add the strategy from above and a "protocol" (which
         // determines how to download data), as well as the style map
@@ -153,12 +157,12 @@ NetworkLayer = OpenLayers.Class(OpenLayers.Layer.Vector, {
                     viewportHeight: function () {
                         return thisObj.map.getSize().h;
                     },
-		    create_edges: function() {
-			return edgeToggler.checked;
-		    },
-		    fetch_data: function() {
-			return dataToggler.checked;
-		    },
+                    create_edges: function() {
+                        return edgeToggler.checked;
+                    },
+                    fetch_data: function() {
+                        return dataToggler.checked;
+                    },
                     timeStart: formattedTime(timeInterval.start),
                     timeEnd: formattedTime(timeInterval.end)
                 },

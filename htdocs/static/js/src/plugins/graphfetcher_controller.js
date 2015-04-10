@@ -1,4 +1,4 @@
-require(['plugins/graphfetcher', 'libs/jquery'], function (GraphFetcher) {
+require(['plugins/graphfetcher'], function (GraphFetcher) {
     /*
      * This plugin will provide global controls to the graphs if
      * you wrap your graphs in an element with class 'nav-metrics-container'

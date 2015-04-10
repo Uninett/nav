@@ -1,4 +1,4 @@
-require(['plugins/quickselect', 'plugins/hover_highlight', 'libs/jquery', "libs/jquery-ui-timepicker-addon"], function (QuickSelect, HoverHighlight) {
+require(['plugins/quickselect', 'plugins/hover_highlight', "libs/jquery-ui-timepicker-addon"], function (QuickSelect, HoverHighlight) {
     var calendar = $('.calendar');
     var quickselect = $('.quickselect');
 

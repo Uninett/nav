@@ -110,8 +110,11 @@ class Stat(object):
         """Gets the human readable version of the raw data"""
         display_data = []
         for key, value in self.data:
-            display_data.append((self.get_metric_name(key),
-                                 self.humanize(value)))
+            display_data.append(
+                (self.get_metric_name(key),
+                 self.humanize(value),
+                 self.metric_lookups[key])
+            )
         return display_data
 
     def get_graph_series(self):
@@ -243,7 +246,11 @@ class StatUptime(Stat):
         return data
 
     def get_metric_name(self, metric):
-        return self.metric_lookups[metric]
+        try:
+            return self.metric_lookups[metric].sysname
+        except AttributeError:
+            # Assume the lookup returned the name directly from the metric
+            return self.metric_lookups[metric]
 
 
 # ------------------------

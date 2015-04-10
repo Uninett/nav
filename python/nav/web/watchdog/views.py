@@ -17,8 +17,8 @@
 from django.shortcuts import render
 
 from nav.models.fields import INFINITY
-from nav.models.manage import Arp, Cam, Netbox, Device
-from nav.web.utils import create_title
+from nav.models.manage import Arp, Device
+from nav.web.utils import create_title, JsonResponse
 from nav.watchdog.util import get_statuses
 
 
@@ -35,25 +35,19 @@ def render_index(request):
     return render(request, 'watchdog/base.html', context)
 
 
-def render_overview(request):
-    """Controller for rendering the overview part of WatchDog"""
-    num_active, num_ipv6, num_ipv4 = get_active_addresses()
-    context = {
-        'num_active': num_active,
-        'num_active_ipv6': num_ipv6,
-        'num_active_ipv4': num_ipv4,
-        'num_arp': Arp.objects.count(),
-        'num_cam': Cam.objects.count(),
-        'num_ip_devices': Netbox.objects.count(),
-        'num_serials': Device.objects.distinct('serial').count(),
-    }
-    return render(request, 'watchdog/frag_overview.html', context)
-
-
-def get_active_addresses():
+def get_active_addresses(_):
     """Get active addresses on the network"""
     active = Arp.objects.filter(end_time=INFINITY)
     num_active = active.count()
     num_active_ipv6 = active.extra(where=['family(ip)=6']).count()
     num_active_ipv4 = active.extra(where=['family(ip)=4']).count()
-    return num_active, num_active_ipv6, num_active_ipv4
+    return JsonResponse({
+        'active': num_active,
+        'ipv6': num_active_ipv6,
+        'ipv4': num_active_ipv4
+    })
+
+
+def get_serial_numbers(_):
+    """Get number of distinct serial numbers in NAV"""
+    return JsonResponse(Device.objects.distinct('serial').count())

@@ -14,6 +14,10 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Utils for views"""
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse
+
 
 from django.views.generic.list import ListView
 

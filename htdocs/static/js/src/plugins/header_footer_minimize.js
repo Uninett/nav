@@ -15,7 +15,7 @@
  * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-define(['libs/jquery', 'libs/underscore', 'libs/backbone', 'libs/backbone-eventbroker'], function () {
+define(['libs/underscore', 'libs/backbone', 'libs/backbone-eventbroker'], function () {
 
 
     function header_footer_minimize() {

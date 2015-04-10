@@ -5,3 +5,6 @@
 
 # Delete old messages once a day
 3 3 * * * @bindir@/logengine.py -d
+
+# Delete old ipdevpoll job log entries once every hour
+3 * * * * @bindir@/ipdevpolld --clean

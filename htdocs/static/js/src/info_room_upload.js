@@ -1,4 +1,4 @@
-require(['libs/jquery', 'libs/jquery-ui.min'], function () {
+require(['libs/jquery-ui.min'], function () {
 
     var $container = $('#editimages');
 

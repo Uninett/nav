@@ -23,31 +23,13 @@
     </div>
   </div>
 
-
-  {# Button group for displaying the different types of neighbors #}
-  <ul class="button-group">
-    <li>
-      <a href="{% url 'neighbors-unrecognized' %}"
-         class="button small {% if page == 'unrecognized' %}active{% endif %}"
-         title="Show unrecognized neighbors">
-        Unrecognized neighbors
-      </a>
-    </li>
-    <li>
-      <a href="{% url 'neighbors-ignored' %}"
-         class="button small {% if page == 'ignored' %}active{% endif %}"
-         title="Show hidden neighbors">
-        Ignored neighbors
-      </a>
-    </li>
-  </ul>
-
+  <label style="display: inline">
+    <input id="toggle-ignored" type="checkbox">
+    Show ignored neighbors
+  </label>
 
   {# Unrecognized neighbors #}
   <table id="unrecognized-neighbors-table" class="listtable">
-    <caption>
-      <span>{{ neighbors|length }}</span>
-      <span>unrecognized neighbors</span></caption>
     <thead>
       <tr>
         <th>Remote ID</th>
@@ -55,11 +37,9 @@
         <th>Seen on interface</th>
         <th>Source</th>
         <th>Since</th>
-        {% if page == 'ignored' %}
-          <th>
-            Ignored since
-          </th>
-        {% endif %}
+        <th>
+          Ignored since
+        </th>
         <th>&nbsp;</th>
       </tr>
     </thead>

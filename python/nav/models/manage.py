@@ -1241,6 +1241,13 @@ class Interface(models.Model):
         """Returns True if the owning Netbox is on maintenance"""
         return self.netbox.is_on_maintenance()
 
+    def has_unignored_unrecognized_neighbors(self):
+        """Returns True if this interface has unrecognized neighbors that are
+        not ignored
+        """
+        return self.unrecognizedneighbor_set.filter(
+            ignored_since__isnull=True).count() > 0
+
 
 class InterfaceStack(models.Model):
     """Interface layered stacking relationships"""
@@ -1451,7 +1458,7 @@ class IpdevpollJobLog(models.Model):
     job_name = VarcharField(null=False, blank=False)
     end_time = models.DateTimeField(auto_now_add=True, null=False)
     duration = models.FloatField(null=True)
-    success = models.BooleanField(default=False, null=False)
+    success = models.BooleanField(default=False, null=True)
     interval = models.IntegerField(null=True)
 
     class Meta(object):
@@ -1489,6 +1496,10 @@ class IpdevpollJobLog(models.Model):
             return prev
         except IndexError:
             return None
+
+    def has_result(self):
+        """Returns True if this job ran and had an actual result"""
+        return self.success is not None
 
 
 class Netbios(models.Model):
