@@ -19,12 +19,14 @@ import os
 from datetime import datetime
 import simplejson
 import logging
+from operator import attrgetter
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic.simple import direct_to_template
 from django.views.decorators.debug import (
     sensitive_variables, sensitive_post_parameters)
+
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.path import sysconfdir
 from nav.django.utils import get_account
@@ -170,7 +172,8 @@ def toolbox(request):
     except AccountProperty.DoesNotExist:
         layout = 'grid'
 
-    tools = sorted(get_account_tools(account, tool_list(account)))
+    tools = sorted(get_account_tools(account, tool_list(account)),
+                   key=attrgetter('name'))
 
     return direct_to_template(
         request,
