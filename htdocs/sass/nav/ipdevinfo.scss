@@ -23,6 +23,8 @@
  *
  */
 
+ @import 'foundation/functions';
+
 /* Device details table */
 
 
@@ -44,6 +46,13 @@
 }
 .nowrap {
 	white-space: nowrap;
+}
+
+/* Status table */
+ul {
+    &.normalize-font-size{ 
+        font-size: rem-calc(14);
+    }
 }
 
 /* Port view */
