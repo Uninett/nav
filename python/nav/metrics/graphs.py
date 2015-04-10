@@ -146,8 +146,15 @@ class Graph(object):
         meta = get_metric_meta(target)
         target = meta['target']
         if meta['alias']:
+            # turns out graphite-web cannot handle non-ascii characters in
+            # aliases. we replace them here so we at least get a graph.
+            #
+            # https://github.com/graphite-project/graphite-web/issues/238
+            # https://github.com/graphite-project/graphite-web/pull/480
             target = 'alias({target}, "{alias}")'.format(
-                target=target, alias=meta['alias'])
+                target=target,
+                alias=meta['alias'].encode('ascii', 'replace'))
+
 
         self.args.setdefault('target', []).append(target)
         if meta['unit']:
