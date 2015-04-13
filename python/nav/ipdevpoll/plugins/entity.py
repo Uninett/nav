@@ -127,6 +127,10 @@ class Entity(Plugin):
         if getattr(container, 'serial', None):
             device = self.containers.factory(container.serial, shadows.Device)
             device.serial = container.serial
+            for key in ('hardware', 'firmware', 'software'):
+                val = getattr(container, key + '_revision')
+                if val:
+                    setattr(device, key + '_version', val)
             device.active = True
             container.device = device
 

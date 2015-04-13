@@ -13,15 +13,12 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""ipdevpoll plugin to collect chassis and module information from ENTITY-MIB.
+"""ipdevpoll plugin to collect module information from ENTITY-MIB.
 
 This will collect anything that looks like a field-replaceable module
 with a serial number from the entPhysicalTable.  If a module has a
 name that can be interpreted as a number, it will have its
 module_number field set to this number.
-
-The chassis device will have its serial number and hw/sw/fw-version
-set from the same MIB.
 
 entAliasMappingTable is collected; mappings between any physical
 entity and an interface from IF-MIB is kept.  For each mapping found,
@@ -38,7 +35,7 @@ from nav.ipdevpoll.timestamps import TimestampChecker
 INFO_VAR_NAME = 'modules'
 
 class Modules(Plugin):
-    """Plugin to collect module and chassis data from devices"""
+    """Plugin to collect module data from devices"""
 
     def __init__(self, *args, **kwargs):
         super(Modules, self).__init__(*args, **kwargs)
@@ -53,7 +50,7 @@ class Modules(Plugin):
         need_to_collect = yield self._need_to_collect()
         if need_to_collect:
             physical_table = (
-                yield self.entitymib.get_useful_physical_table_columns())
+                yield self.entitymib.get_entity_physical_table())
 
             alias_mapping = yield self.entitymib.retrieve_column(
                 'entAliasMappingIdentifier')
@@ -69,7 +66,7 @@ class Modules(Plugin):
         result = yield self.stampcheck.is_changed()
         defer.returnValue(result)
 
-    def _device_from_entity(self, ent, chassis=False):
+    def _device_from_entity(self, ent):
         serial_column = 'entPhysicalSerialNum'
         if serial_column in ent and ent[serial_column] and \
             ent[serial_column].strip():
@@ -79,14 +76,7 @@ class Modules(Plugin):
             serial_number = None
             device_key = 'unknown-%s' % ent[0]
 
-        # check whether some plugin already registered a chassis device
-        # without knowing its serial. If so, give the device two keys in the
-        # container repository
-        if chassis and self.containers.get(None, shadows.Device):
-            device = self.containers.get(None, shadows.Device)
-            self.containers[shadows.Device][device_key] = device
-        else:
-            device = self.containers.factory(device_key, shadows.Device)
+        device = self.containers.factory(device_key, shadows.Device)
         if serial_number:
             device.serial = serial_number
         if ent['entPhysicalHardwareRev']:
@@ -128,23 +118,6 @@ class Modules(Plugin):
 
         return module_containers
 
-    def _process_chassis(self, entities):
-        chassis = entities.get_chassis()
-        if not chassis:
-            self._logger.debug('No chassis found')
-            return
-        elif len(chassis) > 1:
-            self._logger.debug('Found multiple chassis')
-
-        # We don't really know how to handle a multiple chassis
-        # situation.  Best effort is to use the first one in the list.
-        # This should be revised by someone who has stacked chassis
-        # devices to test on.
-        the_chassis = chassis[0]
-        device = self._device_from_entity(the_chassis, chassis=True)
-        netbox = self.containers.factory(None, shadows.Netbox)
-        netbox.device = device
-
     def _process_ports(self, entities, module_containers):
         ports = entities.get_ports()
         netbox = self.containers.factory(None, shadows.Netbox)
@@ -182,7 +155,6 @@ class Modules(Plugin):
         entities = EntityTable(result)
 
         module_containers = self._process_modules(entities)
-        self._process_chassis(entities)
         self._process_ports(entities, module_containers)
 
 

@@ -32,15 +32,13 @@ class EntityManager(DefaultManager):
         existing = set(manage.NetboxEntity.objects.filter(
             netbox__id=self.netbox.id).select_related('device'))
         by_id = {entitykey(e): e for e in existing}
-        by_name = {e.name: e for e in existing if e.name}
 
         def _match(ent):
-            match = None
-            if ent.name:
-                match = by_name.get(ent.name)
-            if not match:
-                match = by_id.get(entitykey(ent))
-            return match
+            # Matching by name isn't reliable, since names may not be unique,
+            # or even present. Matching if entityPhysicalIndex is "ok",
+            # but may have bad side effects if and when entities are
+            # re-indexed by a device (e.g. by a reboot)
+            return by_id.get(entitykey(ent))
 
         matches = ((ent, _match(ent)) for ent in self.get_managed())
 
