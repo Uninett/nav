@@ -86,3 +86,16 @@ class NetboxEntity(Shadow):
         if key == 'contained_in' and value == 0:
             value = None
         super(NetboxEntity, self).__setattr__(key, value)
+
+    @classmethod
+    def get_chassis_entities(cls, containers):
+        """Returns a list of chassis entities in containers
+
+        :type containers: nav.ipdevpoll.storage.ContainerRepository
+        """
+        if cls in containers:
+            entities = containers[cls].itervalues()
+            return [e for e in entities
+                    if e.physical_class == manage.NetboxEntity.CLASS_CHASSIS]
+        else:
+            return []
