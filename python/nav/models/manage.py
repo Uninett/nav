@@ -70,8 +70,6 @@ class Netbox(models.Model):
     room = models.ForeignKey('Room', db_column='roomid')
     type = models.ForeignKey('NetboxType', db_column='typeid',
                              blank=True, null=True)
-    _device = models.ForeignKey('Device', db_column='deviceid',
-                               blank=True, null=True)
     sysname = VarcharField(unique=True)
     category = models.ForeignKey('Category', db_column='catid')
     groups = models.ManyToManyField(
