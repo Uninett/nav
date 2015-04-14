@@ -42,33 +42,7 @@ class Netbox(Shadow):
                 setattr(self, attr, getattr(other, attr))
 
     def prepare(self, containers):
-        self._handle_serial_number_conflicts()
         self._handle_sysname_conflicts(containers)
-
-    def _handle_serial_number_conflicts(self):
-        """Attempts to solve serial number conflicts before savetime.
-
-        Specifically, if another Netbox in the database is registered with the
-        same serial number as this one, we empty this one's serial number to
-        avoid db integrity conflicts.
-
-        """
-        if self.device and self.device.serial:
-            try:
-                other = manage.Netbox.objects.get(
-                    device__serial=self.device.serial)
-            except manage.Netbox.DoesNotExist:
-                pass
-            else:
-                if other.id != self.id:
-                    self._logger.warning(
-                        "Serial number conflict, attempting peaceful "
-                        "resolution (%s): "
-                        "%s [%s] (id: %s) <-> %s [%s] (id: %s)",
-                        self.device.serial,
-                        self.sysname, self.ip, self.id,
-                        other.sysname, other.ip, other.id)
-                    self.device.serial = None
 
     def _handle_sysname_conflicts(self, containers):
         if self.id and self.sysname:
@@ -121,5 +95,3 @@ class Netbox(Shadow):
         netbox.module_set.all().delete()
         netbox.interface_set.all().delete()
         netbox.info_set.filter(key='poll_times').delete()
-
-
