@@ -19,6 +19,7 @@ import re
 
 from twisted.internet.defer import inlineCallbacks
 
+from nav.models import manage
 from nav.ipdevpoll import Plugin, shadows
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 
@@ -45,12 +46,18 @@ class System(Plugin):
 
     def _set_device_version(self, version):
         netbox = self.containers.factory(None, shadows.Netbox)
-        if not netbox.device:
+        chassis = shadows.NetboxEntity.get_chassis_entities(self.containers)
+        if not chassis:
             device = self.containers.factory(None, shadows.Device)
-            netbox.device = device
-        if not device.software_version:
-            device.software_version = version
+            if not device.software_version:
+                device.software_version = version
 
+                entity = self.containers.factory(None, shadows.NetboxEntity)
+                entity.netbox = netbox
+                entity.index = 0
+                entity.source = "SNMPv2-MIB"
+                entity.physical_class = manage.NetboxEntity.CLASS_CHASSIS
+                entity.device = device
 
 def parse_version(sysdescr):
     """Parses sysDescr according to known patterns and returns a software

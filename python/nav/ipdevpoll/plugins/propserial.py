@@ -51,7 +51,7 @@ class ProprietarySerial(Plugin):
 
     def _set_chassis_serial(self, serial, source):
         netbox = self.containers.factory(None, Netbox)
-        chassis = self._get_chassis_entities()
+        chassis = NetboxEntity.get_chassis_entities(self.containers)
         if not chassis:
             entity = self.containers.factory(None, NetboxEntity)
             device = self.containers.factory(serial, Device)
@@ -62,12 +62,3 @@ class ProprietarySerial(Plugin):
             entity.source = source
             entity.physical_class = manage.NetboxEntity.CLASS_CHASSIS
             entity.device = device
-
-    def _get_chassis_entities(self):
-        """Returns a list of chassis entities collected in this job run"""
-        if NetboxEntity in self.containers:
-            entities = self.containers[NetboxEntity].itervalues()
-            return [e for e in entities
-                    if e.physical_class == manage.NetboxEntity.CLASS_CHASSIS]
-        else:
-            return []
