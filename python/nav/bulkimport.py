@@ -76,7 +76,6 @@ class NetboxImporter(BulkImporter):
 
         device = self._get_device_from_serial(row['serial'])
         netbox = self._get_netbox_from_row(row)
-        netbox.device = device
         objects = [device, netbox]
 
         netbox.data = self._parse_data(row['data'])

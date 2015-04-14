@@ -32,7 +32,6 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         line_num, objects = importer.next()
 
         (device, netbox) = objects
-        self.assertTrue(netbox.device is device)
         self.assertEquals(device.serial, 'MOOSE123')
         self.assertEquals(netbox.ip, '10.0.90.252')
         self.assertEquals(netbox.room_id, 'myroom')
