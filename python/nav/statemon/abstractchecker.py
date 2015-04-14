@@ -80,7 +80,6 @@ class AbstractChecker(object):
         self.args = service['args']
         self.version = service['version']
         self._sysname = service['sysname']
-        self.deviceid = service['deviceid']
         # This is (and should be) used by all subclasses
         self.port = int(service['args'].get('port', port))
         self.status = status
@@ -134,7 +133,7 @@ class AbstractChecker(object):
             debug("%-20s -> %s, %s" % (service, status, info), 1)
             new_event = event.Event(self.serviceid,
                                     self.netboxid,
-                                    self.deviceid,
+                                    None,  # deviceid
                                     event.Event.serviceState,
                                     "serviceping",
                                     status,
@@ -148,7 +147,7 @@ class AbstractChecker(object):
         if orig_version != self.version and self.status == event.Event.UP:
             new_event = event.Event(self.serviceid,
                                     self.netboxid,
-                                    self.deviceid,
+                                    None,  # deviceid
                                     "version",
                                     "serviceping",
                                     status,

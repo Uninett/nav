@@ -227,10 +227,10 @@ class _DB(threading.Thread):
 
         nextid = self.query("SELECT nextval('eventq_eventqid_seq')")[0][0]
         statement = """INSERT INTO eventq
-                       (eventqid, subid, netboxid, deviceid, eventtypeid,
+                       (eventqid, subid, netboxid, eventtypeid,
                         state, value, source, target)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-        values = (nextid, event.serviceid, event.netboxid, event.deviceid,
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+        values = (nextid, event.serviceid, event.netboxid,
                   event.eventtype, state, value, event.source, "eventEngine")
         self.execute(statement, values)
 
@@ -242,7 +242,7 @@ class _DB(threading.Thread):
 
     def hosts_to_ping(self):
         """Returns a list of netboxes to ping, from the database"""
-        query = """SELECT netboxid, deviceid, sysname, ip, up FROM netbox """
+        query = """SELECT netboxid, sysname, ip, up FROM netbox """
         try:
             self._hosts_to_ping = self.query(query)
         except DbError:
@@ -270,7 +270,7 @@ class _DB(threading.Thread):
             if value:
                 prop[serviceid][prop] = value
 
-        query = """SELECT serviceid ,service.netboxid, netbox.deviceid,
+        query = """SELECT serviceid ,service.netboxid,
         service.active, handler, version, ip, sysname, service.up
         FROM service JOIN netbox ON
         (service.netboxid=netbox.netboxid) order by serviceid"""
@@ -282,7 +282,7 @@ class _DB(threading.Thread):
         self._checkers = []
         for each in fromdb:
             if len(each) == 9:
-                (serviceid, netboxid, deviceid, active, handler, version, ip,
+                (serviceid, netboxid, active, handler, version, ip,
                  sysname, upstate) = each
             else:
                 debug("Invalid checker: %s" % each, 2)
@@ -295,7 +295,6 @@ class _DB(threading.Thread):
                 'id': serviceid,
                 'netboxid': netboxid,
                 'ip': ip,
-                'deviceid': deviceid,
                 'sysname': sysname,
                 'args': prop.get(serviceid, {}),
                 'version': version
