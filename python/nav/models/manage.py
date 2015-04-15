@@ -98,8 +98,13 @@ class Netbox(models.Model):
 
     @property
     def device(self):
-        """Property to access the former device-field"""
-        return self._device
+        """Property to access the former device-field
+
+        Returns the first chassis device if any
+        """
+        for chassis in self.entity_set.filter(device__isnull=False,
+                physical_class=NetboxEntity.CLASS_CHASSIS).order_by('index'):
+            return chassis.device
 
     def is_up(self):
         """Returns True if the Netbox isn't known to be down or in shadow"""
