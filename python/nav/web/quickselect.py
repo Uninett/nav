@@ -23,7 +23,9 @@ from nav.models.manage import Location, Room, Netbox, Module
 from nav.models.service import Service
 
 
-class QuickSelect:
+class QuickSelect(object):
+    """Class for presenting and handling a quickselect form"""
+
     def __init__(self, **kwargs):
         self.button = kwargs.pop('button', 'Add %s')
 
@@ -66,6 +68,7 @@ class QuickSelect:
         self.output = []
 
     def handle_post(self, request):
+        """Handles a post request from a quickselect form"""
         # Django requests has post and get data stored in an attribute called
         # REQUEST, while mod_python request stores it in form.
         #
