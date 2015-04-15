@@ -57,7 +57,8 @@ class QuickSelect(object):
         netboxes = Netbox.objects.order_by('sysname')
         self.netbox_set = [netbox for netbox in netboxes.values()]
         for index, netbox in enumerate(netboxes):
-            self.netbox_set[index]['device__serial'] = netbox.device.serial
+            serial = netbox.device.serial if netbox.device else None
+            self.netbox_set[index]['device__serial'] = serial
 
         # Rest of the queryset we need
         self.location_set = Location.objects.order_by(('id')).values()
