@@ -116,7 +116,7 @@ def fetch_history(selection, form):
         'netbox__organization', 'netbox__category'
     ).filter(
         Q(netbox__in=[n.id for n in netbox]) |
-        Q(device__in=[n.device.id for n in netbox]) |
+        Q(device__in=[n.device.id for n in netbox if n.device]) |
         Q(device__in=[d.id for d in device]),
         *type_filter
     ).extra(
