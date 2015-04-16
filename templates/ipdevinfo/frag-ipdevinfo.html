@@ -77,8 +77,24 @@
       </tr>
 
       <tr>
-        <th>Serial number</th>
-        <td>{{ netbox.device.serial|default:"N/A" }}</td>
+        <th>Chassis</th>
+        <td>
+            {% with netbox.get_chassis as chassis %}
+                {% if chassis %}
+
+                    <ul>
+                        {% for chass in chassis %}
+                            <li>{{ chass.name }} ({{ chass.device.serial|default:"N/A" }})</li>
+                        {% endfor %}
+                    </ul>
+
+                {% else %}
+
+                    N/A
+
+                {% endif %}
+            {% endwith %}
+        </td>
       </tr>
 
       <tr>
