@@ -1,9 +1,8 @@
 #!/usr/bin/python
-# -*- coding: ISO8859-1 -*-
 #
 # $Id$
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2015 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -21,78 +20,50 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-#
-# Authors: Kristian Eide <kreide@online.no>
-#
-# Script to simulate up/down events from pping
-#
-import os
-import nav
-import sys
-from nav import db
-import re
+"""Script to simulate up/down events from pping"""
 
-connection = db.getConnection('pping','manage')
-database = connection.cursor()
+from __future__ import print_function
+import argparse
 
-def handler(nblist, state):
+from nav.models.event import EventQueue as Event, Subsystem, EventType
+from nav.models.manage import Netbox
 
-    for nb in nblist:
-        deviceid = nb[0]
-        netboxid = nb[1]
-        msql = "INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',"+`deviceid`+","+`netboxid`+",'boxState','"+state+"',100)"
+DEFAULT_KWARGS = {
+    'source': Subsystem.objects.get(pk='pping'),
+    'target': Subsystem.objects.get(pk='eventEngine'),
+    'event_type': EventType.objects.get(pk='boxState')
+}
 
-        database.execute(msql)
+def main():
+    """Main script controller"""
+    args = create_parser().parse_args()
+
+    for netbox in Netbox.objects.filter(sysname__icontains=args.sysname):
+        send_event(netbox, args.event, send=args.dry_run)
 
 
-if (len(sys.argv) <= 2):
-    print "Not enough arguments ("+`len(sys.argv)`+"), <match spec> <up|down>"
-    sys.exit(0)
-
-nb = []
-nbdup = {}
-sysname = []
-
-for ii in range(1, len(sys.argv)-1):
-    sql = "SELECT deviceid,netboxid,sysname,typeid FROM netbox JOIN room USING(roomid) WHERE ip IS NOT NULL";
-    qn = sys.argv[ii]
-    if (qn.startswith("_") or qn.startswith("-") or qn.startswith("%") or qn.find(",") >= 0):
-        if (qn.startswith("-")):
-            qn = qn[1:len(qn)]
-            sql += " AND typeid IN ("
-        elif (qn.startswith("_")):
-            qn = qn[1:len(qn)]
-            sql += " AND catid IN ("
-        elif (qn.startswith("%")):
-            qn = qn[1:len(qn)]
-            sql += " AND roomid IN ("
-        else:
-            sql += " AND sysname IN ("
-        ids = qn.split(",")
-        for i in range(0, len(ids)):
-            sql += "'" + ids[i] + "',"
-        if len(ids) > 0: sql = sql[0:len(sql)-1]
-        sql += ")"
-    else:
-        sql += " AND sysname LIKE '"+qn+"'"
-
-    database.execute(sql)
-    for r in database.fetchall():
-        if not nbdup.has_key(r[0]):
-            nb.append([r[0], r[1]])
-            sysname.append(r[2])
-        nbdup[r[0]] = 0
-
-if sys.argv[len(sys.argv)-1].startswith("u"): state = "e"
-elif sys.argv[len(sys.argv)-1].startswith("d"): state = "s"
-else:
-    print "Unknown state: " + sys.argv[len(sys.argv)-1]
-    sys.exit(0)
+def create_parser():
+    """Create a parser for the script arguments"""
+    parser = argparse.ArgumentParser(
+        description='Script to simulate up/down events from pping')
+    parser.add_argument('sysname', help='Sysname used to filter netboxes')
+    parser.add_argument('event', help='Type of event to simulate',
+                        choices=['up', 'down'])
+    parser.add_argument('--dry-run', action='store_false',
+                        help='Print the events to be sent without sending them')
+    return parser
 
 
-if (state=="e"): updown = "up"
-else: updown="down"
-print "Devices going " + updown + ": " + `sysname`
-handler(nb, state)
-connection.commit()
+def send_event(netbox, event_spec, send=True):
+    """Send a boxstate event for a given netbox"""
+    event = Event(**DEFAULT_KWARGS)
+    event.netbox = netbox
+    event.state = 'e' if event_spec == 'up' else 's'
+    print(event)
 
+    if send:
+        event.save()
+
+
+if __name__ == '__main__':
+    main()
