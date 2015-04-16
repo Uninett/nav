@@ -82,7 +82,7 @@
             {% with netbox.get_chassis as chassis %}
                 {% if chassis %}
 
-                    <ul>
+                    <ul class="inline-list comma-separated">
                         {% for chass in chassis %}
                             <li>{{ chass.name }} ({{ chass.device.serial|default:"N/A" }})</li>
                         {% endfor %}
