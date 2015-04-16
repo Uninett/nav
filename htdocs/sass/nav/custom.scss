@@ -216,6 +216,16 @@ li.list-header {
     text-align: left;
 }
 
+/* This class should be used with the .inline-list class */
+ul.comma-separated {
+    li {
+        margin-left: 0;
+        &:after { content: ",\00A0" }
+        &:last-child:after { content: "" }
+    }
+    margin-left: 0;
+}
+
 /* Alert-box style */
 
 .alert-box ul, .error ul {
