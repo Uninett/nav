@@ -102,8 +102,7 @@ class Netbox(models.Model):
 
         Returns the first chassis device if any
         """
-        for chassis in self.entity_set.filter(device__isnull=False,
-                physical_class=NetboxEntity.CLASS_CHASSIS).order_by('index'):
+        for chassis in self.get_chassis().order_by('index'):
             return chassis.device
 
     def is_up(self):
@@ -349,7 +348,8 @@ class Netbox(models.Model):
     def get_chassis(self):
         """Returns a QuerySet of chassis devices seen on this netbox"""
         return self.entity_set.filter(
-            physical_class=NetboxEntity.CLASS_CHASSIS
+            device__isnull=False,
+            physical_class=NetboxEntity.CLASS_CHASSIS,
         ).select_related('device')
 
 
