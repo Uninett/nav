@@ -346,6 +346,12 @@ class Netbox(models.Model):
         return self.unrecognizedneighbor_set.filter(
             ignored_since=None).count() > 0
 
+    def get_chassis(self):
+        """Returns a QuerySet of chassis devices seen on this netbox"""
+        return self.entity_set.filter(
+            physical_class=NetboxEntity.CLASS_CHASSIS
+        ).select_related('device')
+
 
 class NetboxInfo(models.Model):
     """From NAV Wiki: The netboxinfo table is the place
