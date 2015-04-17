@@ -1,9 +1,21 @@
 define(['plugins/navlet_controller'], function (NavletController) {
-    /* Controller for loading and laying out the navlets, and adding buttons for manipulating the navlets */
 
-    function NavletsController(node) {
+    /**
+     * Controller for loading and laying out the navlets, and adding buttons for
+     * manipulating the navlets
+     */
+
+    // What class to use for the different number of columns
+    var columnsMapper = {
+        2: 'medium-6',
+        3: 'medium-4',
+        4: 'medium-3'
+    };
+ 
+    function NavletsController(node, columns) {
         this.container = node;
-        this.createLayout();
+        this.numColumns = columns || 2;
+        this.columns = this.createLayout(this.container, this.numColumns);
 
         this.fetch_navlets_url = this.container.attr('data-list-navlets');
         this.save_ordering_url = this.container.attr('data-save-order-url');
@@ -16,10 +28,15 @@ define(['plugins/navlet_controller'], function (NavletController) {
     }
 
     NavletsController.prototype = {
-        createLayout: function () {
-            var $row = $('<div class="row"/>').appendTo(this.container);
-            this.column1 = $('<div class="large-6 medium-6 column navletColumn"/>').appendTo($row);
-            this.column2 = $('<div class="large-6 medium-6 column navletColumn"/>').appendTo($row);
+        createLayout: function (container, numColumns) {
+            var $row = $('<div class="row"/>').appendTo(container),
+                classes = "column navletColumn " + columnsMapper[numColumns],
+                columns = [];
+
+            for(var i = 0; i < numColumns; i++) {
+                columns.push($('<div>').addClass(classes).appendTo($row));
+            }
+            return columns;
         },
         fetchNavlets: function () {
             var that = this,
@@ -53,11 +70,8 @@ define(['plugins/navlet_controller'], function (NavletController) {
             });
         },
         addNavlet: function (data) {
-            var column = this.column1;
-            if (data.column === 2) {
-                column = this.column2;
-            }
-            new NavletController(this.container, column, data);
+            var column = data.column > this.numColumns ? this.numColumns : data.column;
+            new NavletController(this.container, this.columns[column - 1], data);
         },
         addNavletOrdering: function () {
             var that = this;
@@ -80,14 +94,15 @@ define(['plugins/navlet_controller'], function (NavletController) {
 
         },
         findOrder: function () {
-            var ordering = {column1: {}, column2: {}};
-            this.getNavlets(this.column1).each(function (index, navlet) {
-                ordering.column1[$(navlet).attr('data-id')] = index;
-            });
-            this.getNavlets(this.column2).each(function (index, navlet) {
-                ordering.column2[$(navlet).attr('data-id')] = index;
-            });
-            return ordering;
+            var orderings = [];
+            for(var i = 0; i < this.columns.length; i++) {
+                var columnNavlets = {};
+                this.getNavlets(this.columns[i]).each(function (index, navlet) {
+                    columnNavlets[$(navlet).attr('data-id')] = index;
+                });
+                orderings.push(columnNavlets);
+            }
+            return orderings;
         },
         saveOrder: function (ordering) {
             $.post(this.save_ordering_url, JSON.stringify(ordering));

@@ -332,11 +332,11 @@ def save_navlet_order(request):
 
 def save_order(account, request):
     """Update navlets with new placement data"""
-    orders = json.loads(request.body)
-    for key, value in orders['column1'].items():
-        update_navlet(account, key, value, NAVLET_COLUMN_1)
-    for key, value in orders['column2'].items():
-        update_navlet(account, key, value, NAVLET_COLUMN_2)
+    columns = json.loads(request.body)
+    for index, column in enumerate(columns):
+        index += 1
+        for key, value in column.items():
+            update_navlet(account, key, value, index)
 
 
 def update_navlet(account, key, value, column):
