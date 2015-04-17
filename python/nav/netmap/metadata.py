@@ -17,7 +17,7 @@
 graph"""
 from collections import defaultdict
 import logging
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, NoReverseMatch
 import operator
 from nav.netmap.config import NETMAP_CONFIG
 from nav.errors import GeneralException
@@ -140,12 +140,15 @@ class Group(object):
             ipdevinfo_link = None
             if (self.netbox.sysname and self.interface.ifname and
                     self.interface.ifname != '?'):
-                ipdevinfo_link = reverse(
-                    'ipdevinfo-interface-details-by-name',
-                    kwargs={'netbox_sysname': unicode(
-                        self.netbox.sysname),
-                            'port_name': unicode(
-                                self.interface.ifname)})
+                kwargs = dict(netbox_sysname=unicode(self.netbox.sysname),
+                              port_name=unicode(self.interface.ifname))
+                try:
+                    ipdevinfo_link = reverse(
+                        'ipdevinfo-interface-details-by-name',
+                        kwargs=kwargs)
+                except NoReverseMatch:
+                    ipdevinfo_link = None
+
             json.update({'interface': {
                 'ifname': unicode(self.interface.ifname),
                 'ipdevinfo_link': ipdevinfo_link
