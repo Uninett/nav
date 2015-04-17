@@ -36,7 +36,8 @@ from nav.models.profiles import (Account, NavbarLink,
 from nav.web import ldapauth, auth
 from nav.web.webfront.utils import quick_read, tool_list
 from nav.web.webfront.forms import (LoginForm, NavbarlinkForm,
-                                    NavbarLinkFormSet, ChangePasswordForm)
+                                    NavbarLinkFormSet, ChangePasswordForm,
+                                    ColumnsForm)
 from nav.web.navlets import list_navlets
 from nav.web.message import new_message, Messages
 
@@ -268,6 +269,8 @@ def _create_preference_context(request):
         'navpath': [('Home', '/'), ('Preferences', None)],
         'title': 'Personal NAV preferences',
         'password_form': password_form,
+        'columns_form': ColumnsForm(
+            initial={'num_columns': _get_widget_columns(account)}),
         'account': account,
         'tool': {'name': 'My account',
                  'description': 'Edit my personal NAV account settings'},
@@ -276,6 +279,14 @@ def _create_preference_context(request):
     }
 
     return context
+
+
+def _get_widget_columns(account):
+    """Get the preference for widget columns"""
+    try:
+        return account.properties.get(property='widget_columns').value
+    except AccountProperty.DoesNotExist:
+        return 2  # Fixme - default values should be global variables right?
 
 
 def preferences(request):
@@ -346,4 +357,16 @@ def save_links(request):
                 context
             )
 
+    return HttpResponseRedirect(reverse('webfront-preferences'))
+
+
+def set_widget_columns(request):
+    """Set the number of columns on the webfront"""
+    if request.method == 'POST':
+        form = ColumnsForm(request.POST)
+        if form.is_valid():
+            prop, _created = request.account.properties.get_or_create(
+                property='widget_columns')
+            prop.value = form.cleaned_data.get('num_columns')
+            prop.save()
     return HttpResponseRedirect(reverse('webfront-preferences'))
