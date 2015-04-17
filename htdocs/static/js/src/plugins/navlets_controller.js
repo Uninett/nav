@@ -7,9 +7,9 @@ define(['plugins/navlet_controller'], function (NavletController) {
 
     // What class to use for the different number of columns
     var columnsMapper = {
-        2: 'medium-6',
-        3: 'medium-4',
-        4: 'medium-3'
+        '2': 'medium-6',
+        '3': 'medium-4',
+        '4': 'medium-3'
     };
  
     function NavletsController(node, columns) {

@@ -56,6 +56,12 @@ def index(request):
     else:
         welcome = quick_read(WELCOME_REGISTERED_PATH)
 
+    try:
+        widget_columns = request.account.properties.get(
+            property='widget_columns').value
+    except AccountProperty.DoesNotExist:
+        widget_columns = 2
+
     return direct_to_template(
         request,
         'webfront/index.html',
@@ -64,6 +70,7 @@ def index(request):
             'date_now': datetime.today(),
             'welcome': welcome,
             'navlets': list_navlets(),
+            'widget_columns': widget_columns,
             'title': 'Welcome to NAV',
         }
     )
