@@ -1,3 +1,4 @@
+"""Utility functions for various parts of the frontpage, navbar etc."""
 #
 # Copyright (C) 2009, 2012 UNINETT AS
 #
@@ -21,7 +22,6 @@ import logging
 from django.db.models import Q
 
 from nav.web import webfrontConfig
-from nav.config import read_flat_config
 from nav.models.msgmaint import Message
 from nav.models.event import AlertHistory
 from nav.models.manage import Netbox
@@ -75,14 +75,14 @@ def boxes_down():
         alerthistory__event_type='maintenanceState',
         alerthistory__end_time__gte=infinity,
     )
-    boxes_down = AlertHistory.objects.select_related(
+    _boxes_down = AlertHistory.objects.select_related(
         'netbox'
     ).filter(
         Q(netbox__up=Netbox.UP_DOWN) | Q(netbox__up=Netbox.UP_SHADOW),
         end_time__gte=infinity,
         event_type='boxState'
     ).exclude(netbox__in=on_maintenance).order_by('-start_time')
-    return boxes_down
+    return _boxes_down
 
 def tool_list(account):
     """Get the list of tools existing in the tool directories"""
@@ -99,7 +99,7 @@ def tool_list(account):
     else:
         return None
 
-    tool_list = []
+    _tool_list = []
     for path in paths:
         if os.access(path, os.F_OK):
             filelist = os.listdir(path)
@@ -114,9 +114,9 @@ def tool_list(account):
                         continue
 
                     if account.has_perm('web_access', tool.uri):
-                        tool_list.append(tool)
-    tool_list.sort()
-    return tool_list
+                        _tool_list.append(tool)
+    _tool_list.sort()
+    return _tool_list
 
 
 def get_account_tools(account, all_tools):
@@ -126,7 +126,7 @@ def get_account_tools(account, all_tools):
     for tool in all_tools:
         try:
             account_tool = account_tools.get(toolname=tool.name)
-        except AccountTool.DoesNotExist:
+        except AccountTool.DoesNotExist:  # pylint: disable=E1101
             tools.append(tool)
         else:
             tool.priority = account_tool.priority
@@ -141,7 +141,7 @@ def split_tools(tools, parts=3):
     tools_in_column = len(tools) / parts
     remainder = len(tools) % parts
     first_index = 0
-    for column in range(parts):
+    for _column in range(parts):
         tools_in_this_column = tools_in_column
         if remainder:
             tools_in_this_column += 1
@@ -150,5 +150,3 @@ def split_tools(tools, parts=3):
         columns.append(tools[first_index:last_index])
         first_index += tools_in_this_column
     return columns
-
-

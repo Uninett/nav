@@ -4,26 +4,33 @@
 # This file is part of Network Administration Visualized.
 # This script controls start/stop/status of the NAV ipdevpoll daemon
 #
-# Copyright (C) 2006-2011 UNINETT AS
+# Copyright (C) 2006-2011, 2015 UNINETT AS
 #
 ####################
 ## info: Collects SNMP inventory data from IP devices.
 initdir=@initdir@
 bindir=@bindir@
 user=@nav_user@
+
 IPDEVPOLLD=${bindir}/ipdevpolld
+# Run time options to ipdevpoll. E.g. -m to enable multiprocess mode.
+OPTIONS=""
 
 # Source function library.
 . ${initdir}/functions
 
 [ -x $IPDEVPOLLD ] || exit 2
 
+ipdevpoll() {
+    su - ${user} -c "${IPDEVPOLLD} ${OPTIONS}"
+}
+
 KILLER=killwait
 case "$1" in
 	start)
 		# Start daemon
 		echo -n "Starting ipdevpoll: "
-		daemon "su - ${user} -c $IPDEVPOLLD"
+		daemon ipdevpoll
 		rc=$?
 		echo
 		exit $rc
