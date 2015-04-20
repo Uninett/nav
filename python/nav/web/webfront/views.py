@@ -37,6 +37,7 @@ from nav.web.webfront.forms import (
     LoginForm, NavbarLinkFormSet, ChangePasswordForm, ColumnsForm)
 from nav.web.navlets import list_navlets
 from nav.web.message import new_message, Messages
+from nav.web.webfront import get_widget_columns, WIDGET_COLUMNS_PROPERTY
 
 _logger = logging.getLogger('nav.web.tools')
 
@@ -57,7 +58,7 @@ def index(request):
 
     try:
         widget_columns = request.account.properties.get(
-            property='widget_columns').value
+            property=WIDGET_COLUMNS_PROPERTY).value
     except AccountProperty.DoesNotExist:
         widget_columns = 2
 
@@ -272,7 +273,7 @@ def _create_preference_context(request):
         'title': 'Personal NAV preferences',
         'password_form': password_form,
         'columns_form': ColumnsForm(
-            initial={'num_columns': _get_widget_columns(account)}),
+            initial={'num_columns': get_widget_columns(account)}),
         'account': account,
         'tool': {'name': 'My account',
                  'description': 'Edit my personal NAV account settings'},
@@ -281,14 +282,6 @@ def _create_preference_context(request):
     }
 
     return context
-
-
-def _get_widget_columns(account):
-    """Get the preference for widget columns"""
-    try:
-        return account.properties.get(property='widget_columns').value
-    except AccountProperty.DoesNotExist:
-        return 2  # Fixme - default values should be global variables right?
 
 
 def preferences(request):
@@ -367,7 +360,7 @@ def set_widget_columns(request):
         form = ColumnsForm(request.POST)
         if form.is_valid():
             prop, _created = request.account.properties.get_or_create(
-                property='widget_columns')
+                property=WIDGET_COLUMNS_PROPERTY)
             prop.value = form.cleaned_data.get('num_columns')
             prop.save()
     return HttpResponseRedirect(reverse('webfront-preferences'))
