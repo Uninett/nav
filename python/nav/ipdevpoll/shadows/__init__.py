@@ -106,7 +106,6 @@ class Module(Shadow):
     def prepare(self, containers):
         self._fix_binary_garbage()
         self._fix_missing_name()
-        self._resolve_duplicate_serials()
         self._resolve_duplicate_names()
 
     def _fix_binary_garbage(self):
@@ -119,38 +118,6 @@ class Module(Shadow):
     def _fix_missing_name(self):
         if not self.name and self.device and self.device.serial:
             self.name = "S/N %s" % self.device.serial
-
-    def _resolve_duplicate_serials(self):
-        """Attempts to solve serial number conflicts before savetime.
-
-        Specifically, if another Module in the database is registered with the
-        same serial number as this one, we attach an empty device to the other
-        module.
-
-        """
-        if not self.device or not self.device.serial:
-            return
-
-        myself = self.get_existing_model()
-        try:
-            other = manage.Module.objects.get(
-                device__serial=self.device.serial)
-        except manage.Module.DoesNotExist:
-            return
-
-        if other != myself:
-            myself = myself or self
-            self._logger.warning(
-                "Serial number conflict, attempting peaceful resolution (%s): "
-                "I am %r (%s) at %s (id: %s) <-> "
-                "other is %r (%s) at %s (id: %s)",
-                self.device.serial,
-                self.name, self.description, myself.netbox.sysname, myself.id,
-                other.name, other.description, other.netbox.sysname, other.id)
-            new_device = manage.Device()
-            new_device.save()
-            other.device = new_device
-            other.save()
 
     def _resolve_duplicate_names(self):
         """Attempts to solve module naming conflicts inside the same chassis.
