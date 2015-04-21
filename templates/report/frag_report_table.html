@@ -1,3 +1,4 @@
+{% load string_manipulation %}
 <div class="report-table-wrapper">
   <table class="listtable">
 
@@ -81,7 +82,7 @@
               {% if cell.uri %}
                 <a href="{{ cell.uri }}">{{ cell.text|default:"" }}</a>
               {% else %}
-                {{ cell.text|default:"" }}
+                {{ cell.text|deep_urlize|default:""|safe }}
               {% endif %}
 
             </td>
