@@ -9,21 +9,8 @@ require([
     'libs/jquery.dataTables.min',
     'libs/modernizr',
     'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect, FormFuck,
-                                        ConnectivityChecker, IpChooser, SeedDBRoomMap)
+                                        connectivityChecker, IpChooser, seedDBRoomMap)
 {
-
-    var tableWrapper = '#tablewrapper',
-        tableSelector = '#seeddb-content';
-
-    /* Internet Explorer caching leads to onload event firing before
-     * script is loaded - thus we never get the load event. This code
-     * will at least make it usable. */
-    if (document.readyState === 'complete') {
-        executeOnLoad();
-    } else {
-        $(window).load(executeOnLoad);
-    }
-
 
     function executeOnLoad() {
         /**
@@ -39,7 +26,7 @@ require([
         initJoyride();  /* Start joyride if url endswith #joyride */
 
         if ($('#map').length && $('#id_position').length) {
-            SeedDBRoomMap('map', 'id_position', 'get_location_trigger');
+            seedDBRoomMap('map', 'id_position', 'get_location_trigger');
         }
 
         /* The Datatables plugin works best when content is rendered. Thus
@@ -51,16 +38,29 @@ require([
         }
 
         new CheckboxSelector('#select', '.selector').add();
-        new QuickSelect('.quickselect');
+        var _quickselect = new QuickSelect('.quickselect');
 
 
         /* Add form to hstore fields in room */
         var $textarea = $('textarea#id_data');
         if ($textarea.length) {
-            new FormFuck($textarea);
+            var _formfuck = new FormFuck($textarea);
         }
 
         activateIpDeviceFormPlugins();
+    }
+
+
+    var tableWrapper = '#tablewrapper',
+        tableSelector = '#seeddb-content';
+
+    /* Internet Explorer caching leads to onload event firing before
+     * script is loaded - thus we never get the load event. This code
+     * will at least make it usable. */
+    if (document.readyState === 'complete') {
+        executeOnLoad();
+    } else {
+        $(window).load(executeOnLoad);
     }
 
 
@@ -209,7 +209,7 @@ require([
         var chooser = new IpChooser($feedbackElement, $addressField);
 
         // Initialize connectivitychecker with a chooser as we only wants one.
-        ConnectivityChecker(chooser);
+        connectivityChecker(chooser);
 
         $form.on('submit', function (event, validated) {
             if (!validated) {
