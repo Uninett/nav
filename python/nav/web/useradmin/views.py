@@ -231,61 +231,58 @@ def account_organization_remove(request, account_id, org_id):
                                             args=[account.id]),
                         }, UserAdminContext(request))
 
-def account_group_remove(request, account_id, group_id, missing_redirect=None,
-                         plain_redirect=None):
-    """Controller for removing a group from an account"""
+def account_group_remove(request, account_id, group_id, caller='account'):
+    """Controller for removing a group from an account
+
+    :param caller: indicate if account or group is caller. Used to define
+                   redirect url
+    """
+    if caller == 'account':
+        list_redirect = HttpResponseRedirect(reverse('useradmin-account_list'))
+        detail_redirect = HttpResponseRedirect(
+            reverse('useradmin-account_detail', args=[account_id]))
+    else:
+        list_redirect = HttpResponseRedirect(reverse('useradmin-group_list'))
+        detail_redirect = HttpResponseRedirect(
+            reverse('useradmin-group_detail', args=[group_id]))
+
     try:
         account = Account.objects.get(id=account_id)
     except Account.DoesNotExist:
         messages.error(request, 'Account %s does not exist.' % (account_id))
-        if missing_redirect:
-            return HttpResponseRedirect(missing_redirect)
-        return HttpResponseRedirect(reverse('useradmin-account_list'))
+        return list_redirect
 
     try:
         group = account.accountgroup_set.get(id=group_id)
     except AccountGroup.DoesNotExist:
         messages.warning(request,
-            'Group %s does not exist or it is not associated with %s.' % (
-                group_id, account))
-        if plain_redirect:
-            return HttpResponseRedirect(plain_redirect)
-        return HttpResponseRedirect(reverse('useradmin-account_detail',
-                                            args=[account.id]))
+            'Group %s does not exist or it is not '
+            'associated with %s.' % (group_id, account))
+        return detail_redirect
 
     if group.is_protected_group():
         messages.error(request,
-            '%s can not be removed from %s as it is a protected group.' % (
-                account, group))
-        if plain_redirect:
-            return HttpResponseRedirect(plain_redirect)
-        return HttpResponseRedirect(reverse('useradmin-account_detail',
-                                            args=[account.id]))
+            '%s can not be removed from %s as it is a '
+            'protected group.' % (account, group))
+        return detail_redirect
 
     if group.is_admin_group() and account.is_admin_account():
-        messages.error(request,
-                       '%s can not be removed from %s.' % (account, group))
-        if plain_redirect:
-            return HttpResponseRedirect(plain_redirect)
-        return HttpResponseRedirect(reverse('useradmin-account_detail',
-                                            args=[account.id]))
+        messages.error(
+            request, '%s can not be removed from %s.' % (account, group))
+        return detail_redirect
 
     if request.method == 'POST':
         account.accountgroup_set.remove(group)
-        messages.success(request,
-                         '%s has been removed from %s.' % (account, group))
-        if plain_redirect:
-            return HttpResponseRedirect(plain_redirect)
-        return HttpResponseRedirect(reverse('useradmin-account_detail',
-                                            args=[account.id]))
+        messages.success(
+            request, '%s has been removed from %s.' % (account, group))
+        return detail_redirect
 
     return render_to_response('useradmin/delete.html',
-                        {
-                            'name': '%s from the group %s' % (account, group),
-                            'type': 'account',
-                            'back': reverse('useradmin-account_detail',
-                                            args=[account.id]),
-                        }, UserAdminContext(request))
+        {
+            'name': '%s from the group %s' % (account, group),
+            'type': 'account',
+            'back': reverse('useradmin-account_detail', args=[account.id]),
+        }, UserAdminContext(request))
 
 
 def group_list(request):
@@ -314,7 +311,6 @@ def group_detail(request, group_id=None):
             group_form = forms.AccountGroupForm(request.POST, instance=group)
 
             if group_form.is_valid():
-                # FIXME
                 group = group_form.save()
 
                 messages.success(request, '"%s" has been saved.' % (group))
@@ -356,19 +352,17 @@ def group_detail(request, group_id=None):
                 return HttpResponseRedirect(reverse('useradmin-group_detail',
                                                     args=[group.id]))
 
-    if group:
-        active = {'group_detail': True}
-    else:
-        active = {'group_new': True}
+    active = {'group_detail': True} if group else {'group_new': True}
 
     return render_to_response('useradmin/group_detail.html',
-                        {
-                            'active': active,
-                            'group': group,
-                            'group_form': group_form,
-                            'account_form': account_form,
-                            'privilege_form': privilege_form,
-                        }, UserAdminContext(request))
+        {
+            'active': active,
+            'group': group,
+            'group_form': group_form,
+            'account_form': account_form,
+            'privilege_form': privilege_form,
+        }, UserAdminContext(request))
+
 
 def group_delete(request, group_id):
     """Controller for deleting a user group"""
@@ -391,19 +385,16 @@ def group_delete(request, group_id):
         return HttpResponseRedirect(reverse('useradmin-group_list'))
 
     return render_to_response('useradmin/delete.html',
-                        {
-                            'name': group,
-                            'type': 'group',
-                            'back': reverse('useradmin-group_detail',
-                                            args=[group.id]),
-                        }, UserAdminContext(request))
+        {
+            'name': group,
+            'type': 'group',
+            'back': reverse('useradmin-group_detail', args=[group.id]),
+        }, UserAdminContext(request))
 
 
 def group_account_remove(request, group_id, account_id):
     """Controller for removing an account from a group"""
-    return account_group_remove(request, account_id, group_id,
-            missing_redirect=reverse('useradmin-group_list'),
-            plain_redirect=reverse('useradmin-group_detail', args=[group_id]))
+    return account_group_remove(request, account_id, group_id, caller='group')
 
 
 def group_privilege_remove(request, group_id, privilege_id):
@@ -432,9 +423,8 @@ def group_privilege_remove(request, group_id, privilege_id):
                                             args=[group.id]))
 
     return render_to_response('useradmin/delete.html',
-                        {
-                            'name': '%s from %s' % (privilege, group),
-                            'type': 'privilege',
-                            'back': reverse('useradmin-group_detail',
-                                            args=[group.id]),
-                        }, UserAdminContext(request))
+        {
+            'name': '%s from %s' % (privilege, group),
+            'type': 'privilege',
+            'back': reverse('useradmin-group_detail', args=[group.id]),
+        }, UserAdminContext(request))
