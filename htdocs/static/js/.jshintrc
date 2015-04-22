@@ -20,7 +20,8 @@
         "Spinner",
         "NAV",
         "FixedColumns",
-        "Modernizr"
+        "Modernizr",
+        "Foundation"
     ],
     "browser":  true,
     "devel":    true,
