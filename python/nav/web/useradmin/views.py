@@ -13,24 +13,24 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Controller functions for the useradmin interface"""
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, Http404
-from django.shortcuts import get_object_or_404, get_list_or_404
+from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.decorators.debug import sensitive_post_parameters
-from django.views.generic.list_detail import object_list
 
 from nav.models.profiles import Account, AccountGroup, Privilege
-from nav.django.utils import get_account
+from nav.models.manage import Organization
 
 from nav.django.auth import sudo
 from nav.web.message import new_message, Messages
-from nav.web.useradmin.forms import *
+from nav.web.useradmin import forms
 
 
 class UserAdminContext(RequestContext):
+    """Context container for the useradmin requests"""
     def __init__(self, *args, **kwargs):
         # account_processor is in the settings file.
         if 'processors' not in kwargs:
@@ -42,7 +42,9 @@ def custom_processor(_request):
     """Return some always available variables"""
     return {'navpath': [('Home', '/'), ('User Administration', )]}
 
+
 def account_list(request):
+    """Controller for displaying the account list"""
     accounts = Account.objects.all()
     return render_to_response('useradmin/account_list.html',
                               {'active': {'account_list': 1},
@@ -50,21 +52,21 @@ def account_list(request):
                               UserAdminContext(request))
 
 
-
 @sensitive_post_parameters('password1', 'password2')
 def account_detail(request, account_id=None):
+    """Controller for displaying details for an account"""
     try:
         account = Account.objects.get(id=account_id)
     except Account.DoesNotExist:
         account = None
 
-    account_form = AccountForm(instance=account)
-    org_form = OrganizationAddForm(account)
-    group_form = GroupAddForm(account)
+    account_form = forms.AccountForm(instance=account)
+    org_form = forms.OrganizationAddForm(account)
+    group_form = forms.GroupAddForm(account)
 
     if request.method == 'POST':
         if 'submit_account' in request.POST:
-            account_form = AccountForm(request.POST, instance=account)
+            account_form = forms.AccountForm(request.POST, instance=account)
 
             if account_form.is_valid():
                 account = account_form.save(commit=False)
@@ -81,7 +83,7 @@ def account_detail(request, account_id=None):
                                                     args=[account.id]))
 
         elif 'submit_org' in request.POST:
-            org_form = OrganizationAddForm(account, request.POST)
+            org_form = forms.OrganizationAddForm(account, request.POST)
 
             if org_form.is_valid():
                 organization = org_form.cleaned_data['organization']
@@ -103,7 +105,7 @@ def account_detail(request, account_id=None):
                                                     args=[account.id]))
 
         elif 'submit_group' in request.POST:
-            group_form = GroupAddForm(account, request.POST)
+            group_form = forms.GroupAddForm(account, request.POST)
 
             if group_form.is_valid():
                 group = group_form.cleaned_data['group']
@@ -143,20 +145,21 @@ def account_detail(request, account_id=None):
 
     if account:
         active = {'account_detail': True}
-        current_user = get_account(request)
     else:
         active = {'account_new': True}
 
     return render_to_response('useradmin/account_detail.html',
-                        {
-                            'active': active,
-                            'account': account,
-                            'account_form': account_form,
-                            'org_form': org_form,
-                            'group_form': group_form,
-                        }, UserAdminContext(request))
+                  {
+                      'active': active,
+                      'account': account,
+                      'account_form': account_form,
+                      'org_form': org_form,
+                      'group_form': group_form,
+                  }, UserAdminContext(request))
+
 
 def account_delete(request, account_id):
+    """Controller for displaying the delete account page"""
     try:
         account = Account.objects.get(id=account_id)
     except Account.DoesNotExist:
@@ -187,7 +190,9 @@ def account_delete(request, account_id):
                                             args=[account.id]),
                         }, UserAdminContext(request))
 
+
 def account_organization_remove(request, account_id, org_id):
+    """Controller for removing an organization from an account"""
     try:
         account = Account.objects.get(id=account_id)
     except Account.DoesNotExist:
@@ -224,6 +229,7 @@ def account_organization_remove(request, account_id, org_id):
 
 def account_group_remove(request, account_id, group_id, missing_redirect=None,
                          plain_redirect=None):
+    """Controller for removing a group from an account"""
     try:
         account = Account.objects.get(id=account_id)
     except Account.DoesNotExist:
@@ -289,30 +295,29 @@ def account_group_remove(request, account_id, group_id, missing_redirect=None,
 
 
 def group_list(request):
+    """Controller for listing all user groups in NAV"""
     groups = AccountGroup.objects.all()
     return render_to_response('useradmin/group_list.html',
                               {'active': {'group_list': True},
                                'groups': groups},
                               UserAdminContext(request))
-    # return object_list(request, AccountGroup.objects.all(),
-    #                     template_object_name='group',
-    #                     template_name='useradmin/group_list.html',
-    #                     extra_context={'active': {'group_list': True}})
+
 
 def group_detail(request, group_id=None):
+    """Controller for showing details for a user group"""
     try:
         group = AccountGroup.objects.get(id=group_id)
     except AccountGroup.DoesNotExist:
         group = None
 
-    group_form = AccountGroupForm(instance=group)
-    account_form = AccountAddForm(group)
-    privilege_form = PrivilegeForm()
+    group_form = forms.AccountGroupForm(instance=group)
+    account_form = forms.AccountAddForm(group)
+    privilege_form = forms.PrivilegeForm()
 
     if request.method == 'POST':
 
         if 'submit_group' in request.POST:
-            group_form = AccountGroupForm(request.POST, instance=group)
+            group_form = forms.AccountGroupForm(request.POST, instance=group)
 
             if group_form.is_valid():
                 # FIXME
@@ -324,26 +329,26 @@ def group_detail(request, group_id=None):
                                                     args=[group.id]))
 
         elif 'submit_privilege' in request.POST:
-            privilege_form = PrivilegeForm(request.POST)
+            privilege_form = forms.PrivilegeForm(request.POST)
 
             if privilege_form.is_valid():
-                type = privilege_form.cleaned_data['type']
+                message_type = privilege_form.cleaned_data['type']
                 target = privilege_form.cleaned_data['target']
 
                 try:
-                    group.privilege_set.get(type=type, target=target)
+                    group.privilege_set.get(type=message_type, target=target)
                     new_message(request,
                                 'Privilege was not added as it already exists.',
                                 type=Messages.WARNING)
                 except Privilege.DoesNotExist:
-                    group.privilege_set.create(type=type, target=target)
+                    group.privilege_set.create(type=message_type, target=target)
                     new_message(request, 'Privilege has been added.',
                                 type=Messages.SUCCESS)
 
                 return HttpResponseRedirect(reverse('useradmin-group_detail',
                                                     args=[group.id]))
         elif 'submit_account' in request.POST:
-            account_form = AccountAddForm(group, request.POST)
+            account_form = forms.AccountAddForm(group, request.POST)
 
             if account_form.is_valid():
                 try:
@@ -377,6 +382,7 @@ def group_detail(request, group_id=None):
                         }, UserAdminContext(request))
 
 def group_delete(request, group_id):
+    """Controller for deleting a user group"""
     try:
         group = AccountGroup.objects.get(id=group_id)
     except AccountGroup.DoesNotExist:
@@ -406,12 +412,16 @@ def group_delete(request, group_id):
                                             args=[group.id]),
                         }, UserAdminContext(request))
 
+
 def group_account_remove(request, group_id, account_id):
+    """Controller for removing an account from a group"""
     return account_group_remove(request, account_id, group_id,
             missing_redirect=reverse('useradmin-group_list'),
             plain_redirect=reverse('useradmin-group_detail', args=[group_id]))
 
+
 def group_privilege_remove(request, group_id, privilege_id):
+    """Controller for revoking a privilege from a group"""
     try:
         group = AccountGroup.objects.get(id=group_id)
     except AccountGroup.DoesNotExist:
@@ -427,7 +437,7 @@ def group_privilege_remove(request, group_id, privilege_id):
                     'with %s.' % (privilege_id, group),
                     type=Messages.WARNING)
         return HttpResponseRedirect(reverse('useradmin-account_detail',
-                                            args=[account.id]))
+                                            args=[request.account.id]))
 
     if request.method == 'POST':
         privilege.delete()
