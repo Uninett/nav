@@ -15,6 +15,7 @@
 #
 """Controller functions for the useradmin interface"""
 
+from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -54,99 +55,36 @@ def account_list(request):
 
 @sensitive_post_parameters('password1', 'password2')
 def account_detail(request, account_id=None):
-    """Controller for displaying details for an account"""
+    """Displays details and processes POST-requests for an account"""
     try:
         account = Account.objects.get(id=account_id)
     except Account.DoesNotExist:
         account = None
 
-    account_form = forms.AccountForm(instance=account)
-    org_form = forms.OrganizationAddForm(account)
-    group_form = forms.GroupAddForm(account)
-
     if request.method == 'POST':
         if 'submit_account' in request.POST:
             account_form = forms.AccountForm(request.POST, instance=account)
-
             if account_form.is_valid():
-                account = account_form.save(commit=False)
-
-                if 'password1' in account_form.cleaned_data and \
-                account_form.cleaned_data['password1'] and not account.ext_sync:
-                    account.set_password(account_form.cleaned_data['password1'])
-
-                account.save()
-
-                new_message(request, '"%s" has been saved.' % (account),
-                            type=Messages.SUCCESS)
-                return HttpResponseRedirect(reverse('useradmin-account_detail',
-                                                    args=[account.id]))
+                return save_account(request, account_form)
 
         elif 'submit_org' in request.POST:
             org_form = forms.OrganizationAddForm(account, request.POST)
-
             if org_form.is_valid():
-                organization = org_form.cleaned_data['organization']
-
-                try:
-                    account.organizations.get(id=organization.id)
-                    new_message(request,
-                                'Organization was not added as it has already '
-                                'been added.',
-                                type=Messages.WARNING)
-                except Organization.DoesNotExist:
-                    account.organizations.add(organization)
-                    new_message(request,
-                                'Added organization "%s" to account "%s"' %
-                                (organization, account),
-                                type=Messages.SUCCESS)
-
-                return HttpResponseRedirect(reverse('useradmin-account_detail',
-                                                    args=[account.id]))
+                return save_account_org(request, account, org_form)
 
         elif 'submit_group' in request.POST:
             group_form = forms.GroupAddForm(account, request.POST)
-
             if group_form.is_valid():
-                group = group_form.cleaned_data['group']
-
-                if ((group.is_admin_group() or group.is_protected_group()) and
-                    account.is_default_account()):
-                    new_message(request,
-                                'Default user may not be added to "%s" '
-                                'group.' % group,
-                                type=Messages.ERROR)
-                else:
-                    try:
-                        account.accountgroup_set.get(id=group.id)
-                        new_message(request,
-                                    'Group was not added as it has already '
-                                    'been added.',
-                                    type=Messages.WARNING)
-                    except AccountGroup.DoesNotExist:
-                        account.accountgroup_set.add(group)
-                        new_message(request,
-                                    'Added "%s" to group "%s"' %
-                                    (account, group),
-                                    type=Messages.SUCCESS)
-
-                return HttpResponseRedirect(reverse('useradmin-account_detail',
-                                                    args=[account.id]))
+                return save_account_group(request, account, group_form)
 
         elif 'submit_sudo' in request.POST:
-            sudo_account_id = request.POST.get('account')
-            try:
-                sudo_account = Account.objects.get(pk=sudo_account_id)
-            except Account.DoesNotExist:
-                new_message(request, 'Account not found.', type=Message.ERROR)
-            else:
-                sudo(request, sudo_account)
-            return HttpResponseRedirect(reverse('webfront-index'))
-
-    if account:
-        active = {'account_detail': True}
+            return sudo_to_user(request)
     else:
-        active = {'account_new': True}
+        account_form = forms.AccountForm(instance=account)
+        org_form = forms.OrganizationAddForm(account)
+        group_form = forms.GroupAddForm(account)
+
+    active = {'account_detail': True} if account else {'account_new': True}
 
     return render_to_response('useradmin/account_detail.html',
                   {
@@ -156,6 +94,79 @@ def account_detail(request, account_id=None):
                       'org_form': org_form,
                       'group_form': group_form,
                   }, UserAdminContext(request))
+
+
+def save_account(request, account_form):
+    """Save an account based on post data"""
+    account = account_form.save(commit=False)
+
+    should_set_password = (
+        'password1' in account_form.cleaned_data
+        and account_form.cleaned_data['password1']
+        and not account.ext_sync)
+
+    if should_set_password:
+        account.set_password(account_form.cleaned_data['password1'])
+
+    account.save()
+
+    messages.success(request, '"%s" has been saved.' % (account))
+    return HttpResponseRedirect(reverse('useradmin-account_detail',
+                                        args=[account.id]))
+
+
+def save_account_org(request, account, org_form):
+    """Add an organization to an account"""
+    organization = org_form.cleaned_data['organization']
+
+    try:
+        account.organizations.get(id=organization.id)
+        messages.warning(request,
+            'Organization was not added as it has already been added.')
+    except Organization.DoesNotExist:
+        account.organizations.add(organization)
+        messages.success(request, 'Added organization "%s" to account "%s"' %
+                         (organization, account))
+
+    return HttpResponseRedirect(reverse('useradmin-account_detail',
+                                        args=[account.id]))
+
+
+def save_account_group(request, account, group_form):
+    """Add a group to an account"""
+    group = group_form.cleaned_data['group']
+
+    special_case = (
+        (group.is_admin_group() or group.is_protected_group())
+        and account.is_default_account())
+
+    if special_case:
+        messages.error(
+            request, 'Default user may not be added to "%s" group.' % group)
+    else:
+        try:
+            account.accountgroup_set.get(id=group.id)
+            messages.warning(request,
+                'Group was not added as it has already been added.')
+        except AccountGroup.DoesNotExist:
+            account.accountgroup_set.add(group)
+            messages.success(
+                request, 'Added "%s" to group "%s"' % (account, group))
+
+    return HttpResponseRedirect(reverse('useradmin-account_detail',
+                                        args=[account.id]))
+
+
+def sudo_to_user(request):
+    """Sudo to a user based on POST data"""
+    sudo_account_id = request.POST.get('account')
+    try:
+        sudo_account = Account.objects.get(pk=sudo_account_id)
+    except Account.DoesNotExist:
+        messages.error(request, 'Account not found.')
+    else:
+        sudo(request, sudo_account)
+    return HttpResponseRedirect(reverse('webfront-index'))
 
 
 def account_delete(request, account_id):
