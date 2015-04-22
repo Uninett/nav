@@ -26,7 +26,6 @@ from nav.models.profiles import Account, AccountGroup, Privilege
 from nav.models.manage import Organization
 
 from nav.django.auth import sudo
-from nav.web.message import new_message, Messages
 from nav.web.useradmin import forms
 
 
@@ -174,23 +173,20 @@ def account_delete(request, account_id):
     try:
         account = Account.objects.get(id=account_id)
     except Account.DoesNotExist:
-        new_message(request, 'Account %s does not exist.' % (account_id),
-                    type=Messages.ERROR)
+        messages.error(request, 'Account %s does not exist.' % (account_id))
         return HttpResponseRedirect(reverse('useradmin-account_list'))
 
     if account.is_system_account():
-        new_message(request,
-                    'Account %s can not be deleted as it is a system '
-                    'account.' % (account.name),
-                    type=Messages.ERROR)
+        messages.error(request,
+                       'Account %s can not be deleted as it is a system '
+                       'account.' % (account.name))
         return HttpResponseRedirect(reverse('useradmin-account_detail',
                                             args=[account.id]))
 
     if request.method == 'POST':
         account.delete()
-        new_message(request,
-                    'Account %s has been deleted.' % (account.name),
-                    type=Messages.SUCCESS)
+        messages.success(request,
+                         'Account %s has been deleted.' % (account.name))
         return HttpResponseRedirect(reverse('useradmin-account_list'))
 
     return render_to_response('useradmin/delete.html',
@@ -207,26 +203,23 @@ def account_organization_remove(request, account_id, org_id):
     try:
         account = Account.objects.get(id=account_id)
     except Account.DoesNotExist:
-        new_message(request, 'Account %s does not exist.' % (account_id),
-                    type=Messages.ERROR)
+        messages.error(request, 'Account %s does not exist.' % (account_id))
         return HttpResponseRedirect(reverse('useradmin-account_list'))
 
     try:
         organization = account.organizations.get(id=org_id)
     except Organization.DoesNotExist:
-        new_message(request,
+        messages.error(request,
                     'Organization %s does not exist or it is not associated '
-                    'with %s.' % (org_id, account),
-                    type=Messages.ERROR)
+                    'with %s.' % (org_id, account))
         return HttpResponseRedirect(reverse('useradmin-account_detail',
                                             args=[account.id]))
 
     if request.method == 'POST':
         account.organizations.remove(organization)
-        new_message(request,
+        messages.success(request,
                     'Organization %s has been removed from account %s.' %
-                    (organization, account),
-                    type=Messages.SUCCESS)
+                    (organization, account))
         return HttpResponseRedirect(reverse('useradmin-account_detail',
                                             args=[account.id]))
 
@@ -244,9 +237,7 @@ def account_group_remove(request, account_id, group_id, missing_redirect=None,
     try:
         account = Account.objects.get(id=account_id)
     except Account.DoesNotExist:
-        new_message(request, 'Account %s does not exist.' % (account_id),
-                    type=Messages.ERROR)
-
+        messages.error(request, 'Account %s does not exist.' % (account_id))
         if missing_redirect:
             return HttpResponseRedirect(missing_redirect)
         return HttpResponseRedirect(reverse('useradmin-account_list'))
@@ -254,32 +245,26 @@ def account_group_remove(request, account_id, group_id, missing_redirect=None,
     try:
         group = account.accountgroup_set.get(id=group_id)
     except AccountGroup.DoesNotExist:
-        new_message(request,
-                    'Group %s does not exist or it is not associated with '
-                    '%s.' % (group_id, account),
-                    type=Messages.WARNING)
-
+        messages.warning(request,
+            'Group %s does not exist or it is not associated with %s.' % (
+                group_id, account))
         if plain_redirect:
             return HttpResponseRedirect(plain_redirect)
         return HttpResponseRedirect(reverse('useradmin-account_detail',
                                             args=[account.id]))
 
     if group.is_protected_group():
-        new_message(request,
-                    '%s can not be removed from %s as it is a protected '
-                    'group.' % (account, group),
-                    type=Messages.ERROR)
-
+        messages.error(request,
+            '%s can not be removed from %s as it is a protected group.' % (
+                account, group))
         if plain_redirect:
             return HttpResponseRedirect(plain_redirect)
         return HttpResponseRedirect(reverse('useradmin-account_detail',
                                             args=[account.id]))
 
     if group.is_admin_group() and account.is_admin_account():
-        new_message(request,
-                    '%s can not be removed from %s.' % (account, group),
-                    type=Messages.ERROR)
-
+        messages.error(request,
+                       '%s can not be removed from %s.' % (account, group))
         if plain_redirect:
             return HttpResponseRedirect(plain_redirect)
         return HttpResponseRedirect(reverse('useradmin-account_detail',
@@ -287,10 +272,8 @@ def account_group_remove(request, account_id, group_id, missing_redirect=None,
 
     if request.method == 'POST':
         account.accountgroup_set.remove(group)
-        new_message(request,
-                    '%s has been removed from %s.' % (account, group),
-                    type=Messages.SUCCESS)
-
+        messages.success(request,
+                         '%s has been removed from %s.' % (account, group))
         if plain_redirect:
             return HttpResponseRedirect(plain_redirect)
         return HttpResponseRedirect(reverse('useradmin-account_detail',
@@ -334,8 +317,7 @@ def group_detail(request, group_id=None):
                 # FIXME
                 group = group_form.save()
 
-                new_message(request, '"%s" has been saved.' % (group),
-                            type=Messages.SUCCESS)
+                messages.success(request, '"%s" has been saved.' % (group))
                 return HttpResponseRedirect(reverse('useradmin-group_detail',
                                                     args=[group.id]))
 
@@ -348,13 +330,11 @@ def group_detail(request, group_id=None):
 
                 try:
                     group.privilege_set.get(type=message_type, target=target)
-                    new_message(request,
-                                'Privilege was not added as it already exists.',
-                                type=Messages.WARNING)
+                    messages.warning(request,
+                        'Privilege was not added as it already exists.')
                 except Privilege.DoesNotExist:
                     group.privilege_set.create(type=message_type, target=target)
-                    new_message(request, 'Privilege has been added.',
-                                type=Messages.SUCCESS)
+                    messages.success(request, 'Privilege has been added.')
 
                 return HttpResponseRedirect(reverse('useradmin-group_detail',
                                                     args=[group.id]))
@@ -365,15 +345,13 @@ def group_detail(request, group_id=None):
                 try:
                     account = account_form.cleaned_data['account']
                     group.accounts.get(login=account.login)
-                    new_message(request,
-                                'Account %s was not added as it is already a '
-                                'member of the group.' % account,
-                                type=Messages.WARNING)
+                    messages.warning(request,
+                        'Account %s was not added as it is already '
+                        'a member of the group.' % account)
                 except Account.DoesNotExist:
                     group.accounts.add(account)
-                    new_message(request,
-                                'Account %s has been added.' % account,
-                                type=Messages.SUCCESS)
+                    messages.success(request,
+                                     'Account %s has been added.' % account)
 
                 return HttpResponseRedirect(reverse('useradmin-group_detail',
                                                     args=[group.id]))
@@ -397,22 +375,19 @@ def group_delete(request, group_id):
     try:
         group = AccountGroup.objects.get(id=group_id)
     except AccountGroup.DoesNotExist:
-        new_message(request, 'Group %s does not exist.' % (group_id),
-                    type=Messages.ERROR)
+        messages.error(request, 'Group %s does not exist.' % (group_id))
         return HttpResponseRedirect(reverse('useradmin-group_list'))
 
     if group.is_system_group():
-        new_message(request,
-                    'Group %s is a system group and can not be '
-                    'deleted.' % (group),
-                    type=Messages.ERROR)
+        messages.error(request,
+                       'Group %s is a system group and can not be '
+                       'deleted.' % (group))
         return HttpResponseRedirect(reverse('useradmin-group_detail',
                                             args=[group.id]))
 
     if request.method == 'POST':
         group.delete()
-        new_message(request, 'Group %s has been deleted.' % (group),
-                    type=Messages.SUCCESS)
+        messages.success(request, 'Group %s has been deleted.' % (group))
         return HttpResponseRedirect(reverse('useradmin-group_list'))
 
     return render_to_response('useradmin/delete.html',
@@ -436,26 +411,23 @@ def group_privilege_remove(request, group_id, privilege_id):
     try:
         group = AccountGroup.objects.get(id=group_id)
     except AccountGroup.DoesNotExist:
-        new_message(request, 'Group %s does not exist.' % (group_id),
-                    type=Messages.ERROR)
+        messages.error(request, 'Group %s does not exist.' % (group_id))
         return HttpResponseRedirect(reverse('useradmin-group_list'))
 
     try:
         privilege = group.privilege_set.get(id=privilege_id)
     except Privilege.DoesNotExist:
-        new_message(request,
-                    'Privilege %s does not exist or it is not associated '
-                    'with %s.' % (privilege_id, group),
-                    type=Messages.WARNING)
+        messages.warning(request,
+                         'Privilege %s does not exist or it is not associated '
+                         'with %s.' % (privilege_id, group))
         return HttpResponseRedirect(reverse('useradmin-account_detail',
                                             args=[request.account.id]))
 
     if request.method == 'POST':
         privilege.delete()
-        new_message(request,
-                    'Privilege %s has been removed from group %s.' %
-                    (privilege, group),
-                    type=Messages.SUCCESS)
+        messages.success(request,
+                         'Privilege %s has been removed from group %s.' %
+                         (privilege, group))
         return HttpResponseRedirect(reverse('useradmin-group_detail',
                                             args=[group.id]))
 
