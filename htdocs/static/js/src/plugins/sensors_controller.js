@@ -13,7 +13,7 @@ function (sensorTemplate, detailTemplate, counterTemplate, SensorController) {
         };
 
         $sensors.each(function (index, element) {
-            new SensorController($(element), templates);
+            var _controller = new SensorController($(element), templates);
         });
     }
 
