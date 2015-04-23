@@ -415,7 +415,8 @@ class SNMPHandler(object):
         self._set_interface_hex(interface, bitvector)
         interface.save()
 
-    def _set_interface_hex(self, interface, bitvector):
+    @staticmethod
+    def _set_interface_hex(interface, bitvector):
         try:
             allowedvlan = interface.swportallowedvlan
         except SwPortAllowedVlan.DoesNotExist:
@@ -620,9 +621,9 @@ class SNMPFactory(object):
         if not netbox.type:
             raise NoNetboxTypeError()
         vendor_id = netbox.type.get_enterprise_id()
-        if (vendor_id == VENDOR_CISCO):
+        if vendor_id == VENDOR_CISCO:
             return Cisco(netbox)
-        if (vendor_id == VENDOR_HP):
+        if vendor_id == VENDOR_HP:
             return HP(netbox)
         return SNMPHandler(netbox)
 
