@@ -464,7 +464,13 @@ class Cisco(SNMPHandler):
     TRUNKPORTVLANSENABLED4K = VTPNODES['vlanTrunkPortVlansEnabled4k']['oid']
 
     TRUNKPORTSTATE = VTPNODES['vlanTrunkPortDynamicState']['oid']
+    TRUNKSTATE_ON = 1
+    TRUNKSTATE_OFF = 2
+    TRUNKSTATE_AUTO = 4
+
     TRUNKPORTENCAPSULATION = VTPNODES['vlanTrunkPortEncapsulationType']['oid']
+    ENCAPSULATION_DOT1Q = 4
+    ENCAPSULATION_NEGOTIATE = 5
 
     def __init__(self, netbox):
         super(Cisco, self).__init__(netbox)
@@ -562,9 +568,8 @@ class Cisco(SNMPHandler):
 
     def _set_access_mode(self, interface):
         _logger.debug("set_access_mode: %s", interface)
-        ifindex = interface.ifindex
-        self._set_netbox_value(self.TRUNKPORTSTATE, ifindex, 'i', 2)
-        self._set_netbox_value(self.TRUNKPORTENCAPSULATION, ifindex, 'i', 5)
+        self._set_netbox_value(self.TRUNKPORTSTATE, interface.ifindex, 'i',
+                               self.TRUNKSTATE_OFF)
         interface.trunk = False
         interface.save()
 
@@ -582,9 +587,11 @@ class Cisco(SNMPHandler):
     def _set_trunk_mode(self, interface):
         _logger.debug("_set_trunk_mode %s", interface)
         ifindex = interface.ifindex
-        self._set_netbox_value(self.TRUNKPORTSTATE, ifindex, 'i', 1)
+        self._set_netbox_value(self.TRUNKPORTSTATE, ifindex, 'i',
+                               self.TRUNKSTATE_ON)
         # Set encapsulation to dot1Q TODO: Support other encapsulations
-        self._set_netbox_value(self.TRUNKPORTENCAPSULATION, ifindex, 'i', 2)
+        self._set_netbox_value(self.TRUNKPORTENCAPSULATION, ifindex, 'i',
+                               self.ENCAPSULATION_DOT1Q)
         interface.trunk = True
         interface.save()
 
