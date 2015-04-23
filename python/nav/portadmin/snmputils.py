@@ -561,6 +561,7 @@ class Cisco(SNMPHandler):
         if self._is_trunk(interface):
             self._set_access_mode(interface)
         self.set_trunk_vlans(interface, [])
+        self.set_native_vlan(interface, access_vlan)
         self.set_vlan(interface.ifindex, access_vlan)
         interface.trunk = False # Make sure database is updated
         interface.vlan = access_vlan
