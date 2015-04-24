@@ -59,11 +59,16 @@ class LLDP(Plugin):
         stampcheck = yield self._stampcheck(mib)
         need_to_collect = yield stampcheck.is_changed()
         if need_to_collect:
+            self._logger.debug("collecting LLDP remote table")
             self.remote = yield mib.get_remote_table()
             if self.remote:
                 self._logger.debug("LLDP neighbors:\n %s", pformat(self.remote))
             yield run_in_thread(self._process_remote)
+        else:
+            self._logger.debug("LLDP remote table seems unchanged")
 
+        # Store sentinel to signal that LLDP neighbors have been processed
+        shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
         stampcheck.save()
 
     @defer.inlineCallbacks
@@ -77,9 +82,7 @@ class LLDP(Plugin):
 
     @autocommit
     def _process_remote(self):
-        "Tries to synchronously identify LLDP entries in NAV's database"
-        shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
-
+        """Tries to synchronously identify LLDP entries in NAV's database"""
         neighbors = [LLDPNeighbor(lldp) for lldp in self.remote]
 
         self._process_identified(
