@@ -17,29 +17,21 @@
 
 from django.conf.urls import url, patterns
 
-from nav.web.webfront.views import (index, login, logout, about, toolbox,
-                                    save_tools, set_tool_layout)
-from nav.web.webfront.views import preferences, save_links, change_password
-
-urlpatterns = patterns('',
-    url(r'^$', index,
-        name='webfront-index'),
-    url(r'^index/login/', login,
-        name='webfront-login'),
-    url(r'^index/logout/', logout,
-        name='webfront-logout'),
-    url(r'^about/', about,
-        name='webfront-about'),
-    url(r'^toolbox/$', toolbox,
-        name='webfront-toolbox'),
-    url(r'^toolbox/savetools', save_tools,
-        name='webfront-save-toolbox'),
-    url(r'^toolbox/changelayout', set_tool_layout,
+urlpatterns = patterns(
+    'nav.web.webfront.views',
+    url(r'^$', 'index', name='webfront-index'),
+    url(r'^index/login/', 'login', name='webfront-login'),
+    url(r'^index/logout/', 'logout', name='webfront-logout'),
+    url(r'^about/', 'about', name='webfront-about'),
+    url(r'^toolbox/$', 'toolbox', name='webfront-toolbox'),
+    url(r'^toolbox/savetools', 'save_tools', name='webfront-save-toolbox'),
+    url(r'^toolbox/changelayout', 'set_tool_layout',
         name='webfront-set-tool-layout'),
-    url(r'^preferences/$', preferences,
-        name='webfront-preferences'),
-    url(r'^preferences/savelinks$', save_links,
+    url(r'^preferences/$', 'preferences', name='webfront-preferences'),
+    url(r'^preferences/savelinks$', 'save_links',
         name='webfront-preferences-savelinks'),
-    url(r'^preferences/changepassword$', change_password,
+    url(r'^preferences/changepassword$', 'change_password',
         name='webfront-preferences-changepassword'),
+    url(r'^preferences/setcolumns$', 'set_widget_columns',
+        name='webfront-preferences-setwidgetcolumns'),
 )

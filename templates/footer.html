@@ -10,7 +10,7 @@
            src="{{ STATIC_URL }}images/main/nav-logo-grey.svg" alt="NAV">
 
       <p>
-        NAV (Network Administration Visualized) is a free network management
+        <a href="{% url webfront-about %}">NAV (Network Administration Visualized)</a> is a free network management
         utility from UNINETT, suitable for monitoring large computer networks.
       </p>
     </div>
@@ -42,7 +42,7 @@
 
         <p>
           You are running <a
-                href="https://nav.uninett.no/navdownload">{{ nav_version }}</a>
+                href="https://nav.uninett.no/wiki/navdownload">{{ nav_version }}</a>
           , released under a <a
                 href="http://www.gnu.org/licenses/gpl-2.0.html"> GNU GPLv2
           license</a>.

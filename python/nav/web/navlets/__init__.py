@@ -58,7 +58,7 @@ ERROR_WIDGET = 'nav.web.navlets.error.ErrorWidget'
 
 import logging
 import json
-from collections import namedtuple
+from collections import namedtuple, Counter
 from operator import attrgetter
 
 from django.conf import settings
@@ -72,6 +72,7 @@ from django.views.generic.base import TemplateView
 from nav.models.profiles import AccountNavlet
 from nav.django.auth import get_sudoer
 from nav.django.utils import get_account
+from nav.web.webfront import get_widget_columns
 
 _logger = logging.getLogger(__name__)
 
@@ -270,18 +271,14 @@ def get_default_preferences(navlet):
 
 def find_new_placement(account):
     """Determines the best placement for a new account navlet"""
-    colcount1 = account.accountnavlet_set.filter(
-        column=NAVLET_COLUMN_1).count()
-    colcount2 = account.accountnavlet_set.filter(
-        column=NAVLET_COLUMN_2).count()
+    widget_columns = get_widget_columns(account)
 
-    if colcount1 <= colcount2:
-        column = 1
-        order = colcount1 + 1
-    else:
-        column = 2
-        order = colcount2 + 1
+    column_count = Counter({
+        column: account.accountnavlet_set.filter(column=column).count()
+        for column in range(1, widget_columns + 1)})
 
+    column, order = column_count.most_common()[-1]
+    order += 1
     return column, order
 
 
@@ -332,11 +329,11 @@ def save_navlet_order(request):
 
 def save_order(account, request):
     """Update navlets with new placement data"""
-    orders = json.loads(request.body)
-    for key, value in orders['column1'].items():
-        update_navlet(account, key, value, NAVLET_COLUMN_1)
-    for key, value in orders['column2'].items():
-        update_navlet(account, key, value, NAVLET_COLUMN_2)
+    columns = json.loads(request.body)
+    for index, column in enumerate(columns):
+        index += 1
+        for key, value in column.items():
+            update_navlet(account, key, value, index)
 
 
 def update_navlet(account, key, value, column):

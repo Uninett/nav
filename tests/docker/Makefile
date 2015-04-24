@@ -21,9 +21,11 @@ shell:
 
 runtime-requirements.txt: $(top_srcdir)/requirements.txt
 	cp $< $@
+	touch -d "`hg log -l1 "$(top_srcdir)/requirements.txt" --template '{date|isodate}'`" runtime-requirements.txt
 
 test-requirements.txt: $(top_srcdir)/tests/requirements.txt
 	cp $< $@
+	touch -d "`hg log -l1 "$(top_srcdir)/tests/requirements.txt" --template '{date|isodate}'`" test-requirements.txt
 
 name:
 	echo Image name: $(name)

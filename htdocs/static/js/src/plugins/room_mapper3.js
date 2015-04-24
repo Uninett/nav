@@ -1,4 +1,4 @@
-define(['libs/OpenLayers3-debug'], function () {
+define(['libs/OpenLayers3-debug'], function (ol) {
 
     /**
      * Mapper creates an OpenStreetMap on the node given rooms from NAV

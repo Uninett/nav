@@ -1,7 +1,7 @@
 define([
     "moment", "plugins/counterdisplay", "plugins/gauge",
-    "libs/handlebars", "libs/jquery", "libs/rickshaw.min"],
-function (moment, CounterDisplay, JohnGauge)
+    "libs/rickshaw.min", "libs/handlebars", "libs/jquery"],
+function (moment, CounterDisplay, JohnGauge, Rickshaw)
 {
     function SensorController($node, templates) {
         this.$node = $node;

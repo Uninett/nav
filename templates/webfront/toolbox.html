@@ -1,28 +1,37 @@
 {% extends "base.html" %}
 
-{% block base_content %}
-<h2>Toolbox</h2>
+{% block base_header_additional_head %}
+  <style>
+   #tool_list img {
+       width: 48px;
+       height: 48px;
+   }
+  </style>
+{% endblock %}
 
-    <table id="tool_list" class="table-hover">
-        <tbody>
-        {% for tool in tools %}
-            <tr data-toolid="{{ tool.name }}">
-                <td>
-                    <a href="{{ tool.uri }}" title="{{ tool.description }}">
-                        <img src="{{ tool.icon }}" alt="{{ tool.name }}">
-                    </a>
-                </td>
-                <td>
-                    <a href="{{ tool.uri }}" title="{{ tool.description }}">
-                        <span>{{ tool.name }}</span>
-                    </a>
-                </td>
-                <td>
-                    {{ tool.description }}
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+{% block base_content %}
+  <h2>Toolbox</h2>
+
+  <table id="tool_list" class="table-hover">
+    <tbody>
+      {% for tool in tools %}
+        <tr data-toolid="{{ tool.name }}">
+          <td>
+            <a href="{{ tool.uri }}" title="{{ tool.description }}">
+              <img src="{{ tool.icon }}" alt="">
+            </a>
+          </td>
+          <td>
+            <a href="{{ tool.uri }}" title="{{ tool.description }}">
+              <span>{{ tool.name }}</span>
+            </a>
+          </td>
+          <td>
+            {{ tool.description }}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
 {% endblock %}
