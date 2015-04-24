@@ -227,6 +227,10 @@ class Neighbor(object):
                 'id', 'ifname', 'ifdescr', 'iftype').get(netbox & query)
         except manage.Interface.DoesNotExist:
             return None
+        except manage.Interface.MultipleObjectsReturned:
+            self._logger.info("found multiple matching interfaces on remote, "
+                              "cannot decide: %s", netbox & query)
+            return None
 
         ifc = shadows.Interface(**ifc)
         ifc.netbox = self.netbox
