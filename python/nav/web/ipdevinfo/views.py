@@ -29,6 +29,7 @@ from django.views.generic.list_detail import object_list
 from nav.metrics.errors import GraphiteUnreachableError
 
 from nav.models.manage import Netbox, Module, Interface, Prefix, Arp, Cam
+from nav.models.msgmaint import MaintenanceTask
 from nav.models.arnold import Identity
 from nav.models.service import Service
 
@@ -279,6 +280,20 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         except GraphiteUnreachableError:
             graphite_error = True
 
+    # Display info about current and scheduled maintenance tasks
+    # related to this device
+    current_tasks = MaintenanceTask.objects.current()
+    future_tasks = MaintenanceTask.objects.future()
+    relevant_current_tasks = []
+    relevant_future_tasks = []
+    for task in current_tasks:
+        if netbox in task.get_event_subjects():
+            relevant_current_tasks.append(task)
+
+    for task in future_tasks:
+        if netbox in task.get_event_subjects():
+            relevant_future_tasks.append(task)
+
     return render_to_response(
         'ipdevinfo/ipdev-details.html',
         {
@@ -297,6 +312,8 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'system_metrics': system_metrics,
             'netbox_availability': netbox_availability,
             'graphite_error': graphite_error,
+            'current_maintenance_tasks': relevant_current_tasks,
+            'future_maintenance_tasks': relevant_future_tasks,
         },
         context_instance=RequestContext(request,
                                         processors=[search_form_processor]))
