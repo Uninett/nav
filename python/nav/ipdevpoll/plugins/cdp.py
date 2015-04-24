@@ -57,11 +57,18 @@ class CDP(Plugin):
         stampcheck = yield self._stampcheck(cdp)
         need_to_collect = yield stampcheck.is_changed()
         if need_to_collect:
+            self._logger.debug("collecting CDP cache table")
             cache = yield cdp.get_cdp_neighbors()
             if cache:
                 self._logger.debug("found CDP cache data: %r", cache)
                 self.cache = cache
                 yield run_in_thread(self._process_cache)
+
+            # Store sentinel to signal that CDP neighbors have been processed
+            shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
+
+        else:
+            self._logger.debug("CDP cache table seems unchanged")
 
         stampcheck.save()
 
@@ -76,9 +83,9 @@ class CDP(Plugin):
 
     @autocommit
     def _process_cache(self):
-        "Tries to synchronously identify CDP cache entries in NAV's database"
-        shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
-
+        """
+        Tries to synchronously identify CDP cache entries in NAV's database
+        """
         neighbors = [CDPNeighbor(cdp, self.netbox.ip) for cdp in self.cache]
 
         self._process_identified(

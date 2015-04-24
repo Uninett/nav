@@ -170,9 +170,9 @@ class SNMPHandler(object):
         return self._set_netbox_value(self.IF_ALIAS_OID, if_index, "s",
                                       if_alias)
 
-    def get_vlan(self, if_index):
+    def get_vlan(self, base_port):
         """Get vlan on a specific interface."""
-        return self._query_netbox(self.VlAN_OID, if_index)
+        return self._query_netbox(self.VlAN_OID, base_port)
 
     def get_all_vlans(self):
         """Get all vlans on the switch"""
@@ -193,7 +193,7 @@ class SNMPHandler(object):
             bit[port] = 0
         return str(bit)
 
-    def set_vlan(self, if_index, vlan):
+    def set_vlan(self, base_port, vlan):
         """Set a new vlan on the given interface and remove
         the previous vlan"""
         try:
@@ -201,22 +201,22 @@ class SNMPHandler(object):
         except ValueError:
             raise TypeError('Not a valid vlan %s' % vlan)
         # Fetch current vlan
-        fromvlan = self.get_vlan(if_index)
+        fromvlan = self.get_vlan(base_port)
         # fromvlan and vlan is the same, there's nothing to do
         if fromvlan == vlan:
             return None
         # Add port to vlan. This makes the port active on both old and new vlan
-        self._set_netbox_value(self.VlAN_OID, if_index, "u", vlan)
+        self._set_netbox_value(self.VlAN_OID, base_port, "u", vlan)
         # Remove port from list of ports on old vlan
         hexstring = self._query_netbox(self.VLAN_EGRESS_PORTS, fromvlan)
-        modified_hexport = self._compute_octet_string(hexstring, if_index,
+        modified_hexport = self._compute_octet_string(hexstring, base_port,
                                                       'disable')
         return self._set_netbox_value(self.VLAN_EGRESS_PORTS,
                                       fromvlan, 's', modified_hexport)
 
-    def set_native_vlan(self, if_index, vlan):
+    def set_native_vlan(self, interface, vlan):
         """Set native vlan on a trunk interface"""
-        self.set_vlan(if_index, vlan)
+        self.set_vlan(interface.base_port, vlan)
 
     def set_if_up(self, if_index):
         """Set interface.to up"""
@@ -337,9 +337,9 @@ class SNMPHandler(object):
         :returns native vlan + list of trunked vlan
 
         """
-        native_vlan = self.get_vlan(interface.ifindex)
+        native_vlan = self.get_vlan(interface.baseport)
 
-        bitvector_index = interface.ifindex - 1
+        bitvector_index = interface.baseport - 1
         vlans = []
         for vlan in self.get_available_vlans():
             if vlan == native_vlan:
@@ -365,9 +365,9 @@ class SNMPHandler(object):
         this list based on if it is in the vlans list.
 
         """
-        ifindex = interface.ifindex
-        native_vlan = self.get_vlan(ifindex)
-        bitvector_index = ifindex - 1
+        base_port = interface.baseport
+        native_vlan = self.get_vlan(base_port)
+        bitvector_index = base_port - 1
 
         vlans = [int(vlan) for vlan in vlans]
 
@@ -392,9 +392,8 @@ class SNMPHandler(object):
         """Set this port in access mode and set access vlan
 
         Means - remove all vlans except access vlan from this interface
-
         """
-        self.set_vlan(interface.ifindex, access_vlan)
+        self.set_vlan(interface.baseport, access_vlan)
         self.set_trunk_vlans(interface, [])
         interface.vlan = access_vlan
         interface.trunk = False
@@ -402,7 +401,7 @@ class SNMPHandler(object):
 
     def set_trunk(self, interface, native_vlan, trunk_vlans):
         """Set this port in trunk mode and set native vlan"""
-        self.set_vlan(interface.ifindex, native_vlan)
+        self.set_vlan(interface.baseport, native_vlan)
         self.set_trunk_vlans(interface, trunk_vlans)
         self._save_trunk_interface(interface, native_vlan, trunk_vlans)
 
@@ -415,7 +414,8 @@ class SNMPHandler(object):
         self._set_interface_hex(interface, bitvector)
         interface.save()
 
-    def _set_interface_hex(self, interface, bitvector):
+    @staticmethod
+    def _set_interface_hex(interface, bitvector):
         try:
             allowedvlan = interface.swportallowedvlan
         except SwPortAllowedVlan.DoesNotExist:
@@ -454,7 +454,13 @@ class Cisco(SNMPHandler):
     TRUNKPORTVLANSENABLED4K = VTPNODES['vlanTrunkPortVlansEnabled4k']['oid']
 
     TRUNKPORTSTATE = VTPNODES['vlanTrunkPortDynamicState']['oid']
+    TRUNKSTATE_ON = 1
+    TRUNKSTATE_OFF = 2
+    TRUNKSTATE_AUTO = 4
+
     TRUNKPORTENCAPSULATION = VTPNODES['vlanTrunkPortEncapsulationType']['oid']
+    ENCAPSULATION_DOT1Q = 4
+    ENCAPSULATION_NEGOTIATE = 5
 
     def __init__(self, netbox):
         super(Cisco, self).__init__(netbox)
@@ -479,12 +485,14 @@ class Cisco(SNMPHandler):
         # Add port to vlan. This makes the port active on both old and new vlan
         status = None
         try:
+            _logger.debug("setting vlan: if_index: %s i %s", if_index, vlan)
             status = self._set_netbox_value(self.vlan_oid, if_index, "i", vlan)
         except SnmpError, ex:
             # Ignore this exception,- some boxes want signed integer and
             # we do not know this beforehand.
             # If unsigned fail,- try with signed integer.
-            _logger.debug("set_vlan: Exception = %s", ex)
+            _logger.debug("set_vlan with integer failed: Exception = %s", ex)
+            _logger.debug("setting vlan: if_index: %s u %s", if_index, vlan)
             status = self._set_netbox_value(self.vlan_oid, if_index, "u", vlan)
         return status
 
@@ -539,22 +547,27 @@ class Cisco(SNMPHandler):
 
     def set_access(self, interface, access_vlan):
         """Set interface trunking to off and set encapsulation to negotiate"""
+        _logger.debug("set_access: %s %s", interface, access_vlan)
         if self._is_trunk(interface):
             self._set_access_mode(interface)
         self.set_trunk_vlans(interface, [])
+        self.set_native_vlan(interface, access_vlan)
         self.set_vlan(interface.ifindex, access_vlan)
+        interface.trunk = False # Make sure database is updated
         interface.vlan = access_vlan
         interface.save()
 
     def _set_access_mode(self, interface):
-        ifindex = interface.ifindex
-        self._set_netbox_value(self.TRUNKPORTSTATE, ifindex, 'i', 2)
-        self._set_netbox_value(self.TRUNKPORTENCAPSULATION, ifindex, 'i', 5)
+        _logger.debug("set_access_mode: %s", interface)
+        self._set_netbox_value(self.TRUNKPORTSTATE, interface.ifindex, 'i',
+                               self.TRUNKSTATE_OFF)
         interface.trunk = False
         interface.save()
 
     def set_trunk(self, interface, native_vlan, trunk_vlans):
         """Check for trunk, set native vlan, set trunk vlans"""
+        _logger.debug("set_trunk: %s (%s, %s)",
+                      interface, native_vlan, trunk_vlans)
         if not self._is_trunk(interface):
             self._set_trunk_mode(interface)
 
@@ -563,10 +576,13 @@ class Cisco(SNMPHandler):
         self._save_trunk_interface(interface, native_vlan, trunk_vlans)
 
     def _set_trunk_mode(self, interface):
+        _logger.debug("_set_trunk_mode %s", interface)
         ifindex = interface.ifindex
-        self._set_netbox_value(self.TRUNKPORTSTATE, ifindex, 'i', 1)
+        self._set_netbox_value(self.TRUNKPORTSTATE, ifindex, 'i',
+                               self.TRUNKSTATE_ON)
         # Set encapsulation to dot1Q TODO: Support other encapsulations
-        self._set_netbox_value(self.TRUNKPORTENCAPSULATION, ifindex, 'i', 2)
+        self._set_netbox_value(self.TRUNKPORTENCAPSULATION, ifindex, 'i',
+                               self.ENCAPSULATION_DOT1Q)
         interface.trunk = True
         interface.save()
 
@@ -620,9 +636,9 @@ class SNMPFactory(object):
         if not netbox.type:
             raise NoNetboxTypeError()
         vendor_id = netbox.type.get_enterprise_id()
-        if (vendor_id == VENDOR_CISCO):
+        if vendor_id == VENDOR_CISCO:
             return Cisco(netbox)
-        if (vendor_id == VENDOR_HP):
+        if vendor_id == VENDOR_HP:
             return HP(netbox)
         return SNMPHandler(netbox)
 
