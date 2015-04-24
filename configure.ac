@@ -42,7 +42,8 @@ AC_ARG_VAR(NAV_USER,User to run cronjobs as)
 dnl Setting some default variables for NAV
 webrootdir='${datadir}/htdocs'
 djangotmpldir='${datadir}/templates'
-imagedir='${webrootdir}/images'
+staticdir='${webrootdir}/static'
+imagedir='${staticdir}/images'
 javascriptdir='${webrootdir}/js'
 stylesheetdir='${webrootdir}/style'
 pythonlibdir='${libdir}/python'
