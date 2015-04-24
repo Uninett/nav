@@ -64,11 +64,12 @@ class LLDP(Plugin):
             if self.remote:
                 self._logger.debug("LLDP neighbors:\n %s", pformat(self.remote))
             yield run_in_thread(self._process_remote)
+
+            # Store sentinel to signal that LLDP neighbors have been processed
+            shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
         else:
             self._logger.debug("LLDP remote table seems unchanged")
 
-        # Store sentinel to signal that LLDP neighbors have been processed
-        shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
         stampcheck.save()
 
     @defer.inlineCallbacks

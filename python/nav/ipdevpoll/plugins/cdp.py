@@ -63,11 +63,13 @@ class CDP(Plugin):
                 self._logger.debug("found CDP cache data: %r", cache)
                 self.cache = cache
                 yield run_in_thread(self._process_cache)
+
+            # Store sentinel to signal that CDP neighbors have been processed
+            shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
+
         else:
             self._logger.debug("CDP cache table seems unchanged")
 
-        # Store sentinel to signal that CDP neighbors have been processed
-        shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
         stampcheck.save()
 
     @defer.inlineCallbacks
