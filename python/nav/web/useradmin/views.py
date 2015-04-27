@@ -60,6 +60,10 @@ def account_detail(request, account_id=None):
     except Account.DoesNotExist:
         account = None
 
+    account_form = forms.AccountForm(instance=account)
+    org_form = forms.OrganizationAddForm(account)
+    group_form = forms.GroupAddForm(account)
+
     if request.method == 'POST':
         if 'submit_account' in request.POST:
             account_form = forms.AccountForm(request.POST, instance=account)
