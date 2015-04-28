@@ -23,6 +23,8 @@ from django.utils.functional import wraps
 
 import django.db
 from django.db import transaction
+commit_on_success = transaction.atomic
+autocommit = transaction.non_atomic_requests
 from psycopg2 import InterfaceError
 
 import logging
@@ -56,7 +58,7 @@ def sum_django_queries_runtime():
                 for query in django.db.connection.queries)
     return sum(runtimes)
 
-def commit_on_success(func):
+def __commit_on_success(func):
     """Decorates func such that the current Django transaction is committed on
     successful return.
 
@@ -92,7 +94,7 @@ def commit_on_success(func):
             transaction.leave_transaction_management()
     return wraps(func)(_commit_on_success)
 
-def autocommit(func):
+def __autocommit(func):
     """
     Decorates func such that Django transactions are managed to autocommitt.
 
