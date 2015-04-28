@@ -51,4 +51,4 @@ def get_active_addresses(_):
 
 def get_serial_numbers(_):
     """Get number of distinct serial numbers in NAV"""
-    return JsonResponse(Device.objects.distinct('serial').count())
+    return JsonResponse({'count': Device.objects.distinct('serial').count()})
