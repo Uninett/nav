@@ -43,11 +43,11 @@ import nav.logs
 import nav.path
 import nav.db
 
-import django
-django.setup()
-
 if 'DJANGO_SETTINGS_MODULE' not in os.environ:
     os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
+
+import django
+django.setup()
 
 # These have to be imported after the envrionment is setup
 from django.db import DatabaseError, connection
