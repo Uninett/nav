@@ -18,3 +18,6 @@
 
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
+
+import django
+django.setup()
