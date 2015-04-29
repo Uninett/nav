@@ -23,6 +23,9 @@ from django.utils.functional import wraps
 
 import django.db
 from django.db import transaction
+# Temporary solution to get stuff working again
+# More information:
+# https://docs.djangoproject.com/en/1.7/topics/db/transactions/
 commit_on_success = transaction.atomic
 autocommit = transaction.non_atomic_requests
 from psycopg2 import InterfaceError
