@@ -363,4 +363,5 @@ def set_widget_columns(request):
                 property=WIDGET_COLUMNS_PROPERTY)
             prop.value = form.cleaned_data.get('num_columns')
             prop.save()
+            return HttpResponseRedirect(reverse('webfront-index'))
     return HttpResponseRedirect(reverse('webfront-preferences'))
