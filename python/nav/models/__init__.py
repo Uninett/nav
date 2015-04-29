@@ -17,7 +17,8 @@
 """Django ORM wrapper for the NAV manage database"""
 
 import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
+if 'DJANGO_SETTINGS_MODULE' not in os.environ:
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 
-import django
-django.setup()
+    import django
+    django.setup()
