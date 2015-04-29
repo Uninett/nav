@@ -726,7 +726,7 @@ class PrefixManager(models.Manager):
         ordered by descending network mask length.
 
         """
-        return self.get_query_set().exclude(
+        return self.get_queryset().exclude(
             vlan__net_type="loopback"
         ).extra(
             select={'mlen': 'masklen(netaddr)'},
