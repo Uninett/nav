@@ -1,3 +1,25 @@
+Version 4.2.6
+(released 23 Apr 2015)
+
+ Bugfixes:
+
+  * LP#1248083 (The ipdevinfo "Affected" tab should be renamed to "what if")
+  * LP#1248085 (ipdevinfo "affected" tab needs to properly list the affected
+                organizations)
+  * LP#1338388 (Netmap link traffic does not always show)
+  * LP#1435451 (Vendors report should only show Vendors in use)
+  * LP#1436125 (No CPU graph from some Cisco CPUs)
+  * LP#1436388 (VLAN number cannot be forced by router port description)
+  * LP#1437318 (PostgreSQL load driven up by overzealous pruning of old
+                ipdevpoll_job_log entries in NAV 4.2.5)
+  * LP#1438930 (No negative values can be displayed in graphs)
+  * LP#1442538 (Graphite-web doesn't support metric aliases with non-ASCII
+                characters)
+  * LP#1443775 (alert templates for climate humidity notifications does not
+                exist)
+  * LP#1444416 (netmap L3 crash in urlresolvers.py)
+
+
 Version 4.2.5
 (released 20 Mar 2015)
 
