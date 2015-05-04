@@ -17,7 +17,7 @@
 
 from collections import OrderedDict
 import itertools
-import simplejson
+import json
 from urllib import urlencode, quote
 import urllib2
 from urlparse import urljoin
@@ -130,10 +130,13 @@ def raw_metric_query(query):
     req = urllib2.Request(url)
     try:
         response = urllib2.urlopen(req)
-        return simplejson.load(response)
+        return json.load(response)
     except urllib2.URLError as err:
         raise errors.GraphiteUnreachableError(
             "{0} is unreachable".format(base), err)
+    except ValueError:
+        # response could not be decoded
+        return []
     finally:
         try:
             response.close()
