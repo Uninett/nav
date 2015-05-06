@@ -103,3 +103,11 @@
         }
     }
 }
+
+.Status2Widget {
+    .status2-widget-footer {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+    }
+}
