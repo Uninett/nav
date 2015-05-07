@@ -436,6 +436,7 @@ class NetboxEntity(models.Model):
     fru = models.NullBooleanField(verbose_name='Is a field replaceable unit')
     mfg_date = models.DateTimeField(null=True)
     uris = VarcharField(null=True)
+    gone_since = models.DateTimeField(null=True)
     data = hstore.DictionaryField()
 
     objects = hstore.HStoreManager()
