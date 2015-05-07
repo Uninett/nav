@@ -1,0 +1,3 @@
+Subject: Stack on {{netbox.sysname}} is ok
+
+Stack on {{netbox.sysname}} ({{netbox.ip}}) is ok since {{time}}.
