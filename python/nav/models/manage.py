@@ -445,6 +445,9 @@ class NetboxEntity(models.Model):
         db_table = 'netboxentity'
         unique_together = (('netbox', 'index'),)
 
+    def __unicode__(self):
+        return u"%s:%s:%r" % (self.source, self.index, self.name)
+
 
 class NetboxPrefix(models.Model):
     """Which prefix a netbox is connected to.
