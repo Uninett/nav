@@ -446,7 +446,14 @@ class NetboxEntity(models.Model):
         unique_together = (('netbox', 'index'),)
 
     def __unicode__(self):
-        return u"%s:%s:%r" % (self.source, self.index, self.name)
+        klass = self.get_physical_class_display().capitalize()
+        title = self.name
+        if not title.strip().lower().startswith(klass.lower()):
+            title = "%s %s" % (klass, title)
+
+        return "{title} at {netbox}".format(
+            title=title, netbox=self.netbox
+        )
 
 
 class NetboxPrefix(models.Model):
