@@ -14,11 +14,16 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 from __future__ import absolute_import
+from datetime import datetime
 from nav.toposort import build_graph, topological_sort
 
 from nav.ipdevpoll.storage import Shadow, DefaultManager
 from nav.models import manage
+from nav.models.event import EventQueue as Event
 from .netbox import Netbox
+
+import networkx as nx
+from networkx.algorithms.traversal.depth_first_search import dfs_tree as subtree
 
 
 class EntityManager(DefaultManager):
@@ -27,11 +32,12 @@ class EntityManager(DefaultManager):
         self.netbox = self.containers.get(None, Netbox)
         self.matched = set()
         self.missing = set()
+        self.existing = set()
 
     def prepare(self):
-        existing = set(manage.NetboxEntity.objects.filter(
+        self.existing = set(manage.NetboxEntity.objects.filter(
             netbox__id=self.netbox.id).select_related('device'))
-        by_id = {entitykey(e): e for e in existing}
+        by_id = {entitykey(e): e for e in self.existing}
 
         def _match(ent):
             # Matching by name isn't reliable, since names may not be unique,
@@ -47,12 +53,71 @@ class EntityManager(DefaultManager):
                 collected.set_existing_model(model)
                 self.matched.add(model)
 
-        self.missing = existing.difference(self.matched)
+        self.missing = self.existing.difference(self.matched)
 
     def cleanup(self):
         if self.missing:
-            self._logger.info("want to delete %d disappeared entities",
-                              len(self.missing))
+            w_serial = sum(int(m.device is not None) for m in self.missing)
+            self._logger.info("%d entities have disappeared, %d of which have "
+                              "known serial numbers",
+                              len(self.missing), w_serial)
+
+            to_purge = self.get_purge_list()
+            to_set_missing = self.missing.difference(to_purge)
+            self._logger.info("marking %d entities as missing, purging %d",
+                              len(to_set_missing), len(to_purge))
+
+            manage.NetboxEntity.objects.filter(
+                id__in=[e.id for e in to_purge]).delete()
+            manage.NetboxEntity.objects.filter(
+                id__in=[e.id for e in to_set_missing],
+                gone_since__isnull=True,
+            ).update(gone_since=datetime.now())
+
+            if to_set_missing:
+                self._verify_stack_degradation(to_set_missing)
+
+    def get_purge_list(self):
+        graph = self._build_dependency_graph()
+        to_purge = set(self.missing)
+        missing = (miss for miss in self.missing
+                   if miss.device is not None)
+        for miss in missing:
+            if miss not in to_purge:
+                continue
+            sub = subtree(graph, miss)
+            to_purge.difference_update(sub.nodes())
+        return to_purge
+
+    def _build_dependency_graph(self):
+        self._logger.debug("building dependency graph")
+        by_id = {entity.id: entity for entity in self.existing}
+        graph = nx.DiGraph()
+
+        for entity in self.existing:
+            if entity.contained_in_id in by_id:
+                parent = by_id[entity.contained_in_id]
+                graph.add_edge(parent, entity)
+
+        return graph
+
+    def _verify_stack_degradation(self, missing):
+        chassis_count = sum(e.physical_class == e.CLASS_CHASSIS
+                            for e in self.existing)
+        if chassis_count < 2:
+            # we only care about multi-chassis set-ups
+            return
+
+        chassis = [m for m in missing
+                   if m.physical_class == manage.NetboxEntity.CLASS_CHASSIS]
+        if not chassis:
+            return
+        else:
+            self._logger.warning("%d of %d chassis is missing: %s",
+                                 len(chassis), chassis_count,
+                                 ", ".join(c.name for c in chassis))
+        for chass in chassis:
+            _dispatch_down_event(chass)
 
     def get_managed(self):
         """
@@ -80,12 +145,30 @@ class NetboxEntity(Shadow):
     __shadowclass__ = manage.NetboxEntity
     manager = EntityManager
 
+    def __init__(self, *args, **kwargs):
+        super(NetboxEntity, self).__init__(*args, **kwargs)
+        if 'gone_since' not in kwargs:
+            # make sure to reset the gone_since timestamp on created records
+            self.gone_since = None
+
     def __setattr__(self, key, value):
         if key == 'index' and value is not None:
             value = unicode(value)
         if key == 'contained_in' and value == 0:
             value = None
         super(NetboxEntity, self).__setattr__(key, value)
+
+    def save(self, containers):
+        self._check_for_resolved_chassis_outage()
+        super(NetboxEntity, self).save(containers)
+
+    def _check_for_resolved_chassis_outage(self):
+        if self.physical_class != manage.NetboxEntity.CLASS_CHASSIS:
+            return
+        entity = getattr(self, '_cached_existing_model', None)
+        if entity and entity.gone_since is not None and self.gone_since is None:
+            self._logger.info("%s is back up", entity)
+            _dispatch_up_event(entity)
 
     @classmethod
     def get_chassis_entities(cls, containers):
@@ -99,3 +182,34 @@ class NetboxEntity(Shadow):
                     if e.physical_class == manage.NetboxEntity.CLASS_CHASSIS]
         else:
             return []
+
+
+##
+## Event dispatch functions
+##
+
+
+def _dispatch_down_event(django_entity):
+    event = _make_chassisstate_event(django_entity)
+    event.state = event.STATE_START
+    event.varmap = {'alerttype': 'chassisDown'}
+    event.save()
+
+
+def _dispatch_up_event(django_entity):
+    event = _make_chassisstate_event(django_entity)
+    event.state = event.STATE_END
+    event.varmap = {'alerttype': 'chassisUp'}
+    event.save()
+
+
+def _make_chassisstate_event(django_entity):
+    event = Event()
+    event.source_id = 'ipdevpoll'
+    event.target_id = 'eventEngine'
+    event.device = django_entity.device
+    event.netbox = django_entity.netbox
+    event.subid = unicode(django_entity.id)
+    event.event_type_id = 'chassisState'
+    return event
+

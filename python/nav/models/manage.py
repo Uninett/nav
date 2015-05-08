@@ -436,6 +436,7 @@ class NetboxEntity(models.Model):
     fru = models.NullBooleanField(verbose_name='Is a field replaceable unit')
     mfg_date = models.DateTimeField(null=True)
     uris = VarcharField(null=True)
+    gone_since = models.DateTimeField(null=True)
     data = hstore.DictionaryField()
 
     objects = hstore.HStoreManager()
@@ -443,6 +444,16 @@ class NetboxEntity(models.Model):
     class Meta:
         db_table = 'netboxentity'
         unique_together = (('netbox', 'index'),)
+
+    def __unicode__(self):
+        klass = self.get_physical_class_display().capitalize()
+        title = self.name
+        if not title.strip().lower().startswith(klass.lower()):
+            title = "%s %s" % (klass, title)
+
+        return "{title} at {netbox}".format(
+            title=title, netbox=self.netbox
+        )
 
 
 class NetboxPrefix(models.Model):
