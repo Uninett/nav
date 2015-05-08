@@ -158,6 +158,18 @@ class NetboxEntity(Shadow):
             value = None
         super(NetboxEntity, self).__setattr__(key, value)
 
+    def save(self, containers):
+        self._check_for_resolved_chassis_outage()
+        super(NetboxEntity, self).save(containers)
+
+    def _check_for_resolved_chassis_outage(self):
+        if self.physical_class != manage.NetboxEntity.CLASS_CHASSIS:
+            return
+        entity = getattr(self, '_cached_existing_model', None)
+        if entity and entity.gone_since is not None and self.gone_since is None:
+            self._logger.info("%s is back up", entity)
+            _dispatch_up_event(entity)
+
     @classmethod
     def get_chassis_entities(cls, containers):
         """Returns a list of chassis entities in containers
