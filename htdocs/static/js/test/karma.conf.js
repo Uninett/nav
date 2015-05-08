@@ -10,6 +10,7 @@ module.exports = function (config) {
         // list of files / patterns to load in the browser
         files:          [
             'require_config.js',
+            'libs/jquery.js',
             {pattern: 'libs/**/*.js', included: false},
             {pattern: 'src/**/*.js', included: false},
             {pattern: 'src/**/*.html', included: false},
