@@ -19,6 +19,7 @@ from nav.toposort import build_graph, topological_sort
 
 from nav.ipdevpoll.storage import Shadow, DefaultManager
 from nav.models import manage
+from nav.models.event import EventQueue as Event
 from .netbox import Netbox
 
 import networkx as nx
@@ -148,3 +149,34 @@ class NetboxEntity(Shadow):
                     if e.physical_class == manage.NetboxEntity.CLASS_CHASSIS]
         else:
             return []
+
+
+##
+## Event dispatch functions
+##
+
+
+def _dispatch_down_event(django_entity):
+    event = _make_chassisstate_event(django_entity)
+    event.state = event.STATE_START
+    event.varmap = {'alerttype': 'chassisDown'}
+    event.save()
+
+
+def _dispatch_up_event(django_entity):
+    event = _make_chassisstate_event(django_entity)
+    event.state = event.STATE_END
+    event.varmap = {'alerttype': 'chassisUp'}
+    event.save()
+
+
+def _make_chassisstate_event(django_entity):
+    event = Event()
+    event.source_id = 'ipdevpoll'
+    event.target_id = 'eventEngine'
+    event.device = django_entity.device
+    event.netbox = django_entity.netbox
+    event.subid = unicode(django_entity.id)
+    event.event_type_id = 'chassisState'
+    return event
+
