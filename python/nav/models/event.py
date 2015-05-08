@@ -218,6 +218,7 @@ class EventMixIn(object):
         'serviceState': 'Service',
         'psuState': 'PowerSupplyOrFan',
         'fanState': 'PowerSupplyOrFan',
+        'chassisState': 'NetboxEntity',
     }
 
     def get_subject(self):
