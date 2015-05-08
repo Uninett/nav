@@ -74,6 +74,9 @@ class EntityManager(DefaultManager):
                 gone_since__isnull=True,
             ).update(gone_since=datetime.now())
 
+            if to_set_missing:
+                self._verify_stack_degradation(to_set_missing)
+
     def get_purge_list(self):
         graph = self._build_dependency_graph()
         to_purge = set(self.missing)
@@ -97,6 +100,24 @@ class EntityManager(DefaultManager):
                 graph.add_edge(parent, entity)
 
         return graph
+
+    def _verify_stack_degradation(self, missing):
+        chassis_count = sum(e.physical_class == e.CLASS_CHASSIS
+                            for e in self.existing)
+        if chassis_count < 2:
+            # we only care about multi-chassis set-ups
+            return
+
+        chassis = [m for m in missing
+                   if m.physical_class == manage.NetboxEntity.CLASS_CHASSIS]
+        if not chassis:
+            return
+        else:
+            self._logger.warning("%d of %d chassis is missing: %s",
+                                 len(chassis), chassis_count,
+                                 ", ".join(c.name for c in chassis))
+        for chass in chassis:
+            _dispatch_down_event(chass)
 
     def get_managed(self):
         """
