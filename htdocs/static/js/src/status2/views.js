@@ -5,6 +5,7 @@ define([
     'moment',
     'status/handlebars-helpers',
     'libs/backbone',
+    'libs/backbone-eventbroker',
     'libs/handlebars',
 ], function (Collections, EventTemplate, EventInfoTemplate, moment) {
 
@@ -141,62 +142,90 @@ define([
 
     /** The action panel for manipulation alerts */
     var ActionView = Backbone.View.extend({
-        el: '#action-panel',
+        el: '#action-panel-revised',
 
         events: {
-            'click .acknowledge-alerts': 'acknowledgeAlerts',
-            'click .resolve-alerts .button': 'resolveAlerts',
-            'click .maintenance .button': 'putOnMaintenance',
-            'click .cancel-alerts-action': 'cancelAlertsAction'
-        },
-
-        htmlSnippets: {
-            errorbox: '<div class="alert-box alert"></div>'
+            'click .submit-action': 'submitAction',
+            'change select': 'showOrHideCommentField'
         },
 
         initialize: function () {
-            this.listenTo(alertsToChange, 'add remove reset', this.toggleState);
-            this.resolvePanel = this.$('.panel.resolve-alerts');
-            this.ackPanel = this.$('.panel.acknowledge');
-            this.maintenancePanel = this.$('.panel.maintenance');
+            this.actionSelect = this.$('select');
+            this.comment = this.$('.usercomment');
+            this.commentWrapper = this.$('.usercomment-wrapper');
+            this.feedback = this.$('.feedback');
         },
 
-        toggleState: function () {
-            console.log('alertsToChange: ' + alertsToChange.length);
-            if (alertsToChange.length > 0) {
-                this.$el.slideDown();
+        submitAction: function() {
+            var self = this,
+                action = this.actionSelect.val();
+
+            console.log('Action:' + action);
+            this.feedback.hide(); // Hide previous feedback
+
+            var actions = {
+                'acknowledge': this.acknowledgeAlerts,
+                'clear': this.resolveAlerts,
+                'maintenance': this.putOnMaintenance
+            };
+
+            if (action && alertsToChange.length > 0) {
+                actions[action].call(this);
+            } else if (!action) {
+                this.give_warning_feedback('You must choose an action');
+            } else if (alertsToChange.length <= 0) {
+                this.give_warning_feedback('You must choose one or more alerts');
+            }
+
+            console.log(alertsToChange);
+
+        },
+
+        showOrHideCommentField: function() {
+            if (this.actionSelect.val() === 'clear') {
+                this.commentWrapper.hide();
             } else {
-                this.$el.slideUp();
+                this.commentWrapper.show();
             }
         },
 
-        acknowledgeAlerts: function () {
-            var comment = this.$('.acknowledge .usercomment').val(),
-                self = this;
+        give_feedback: function(msg, klass) {
+            klass = typeof klass !== 'undefined' ? klass : 'success';
+            this.feedback.removeClass('alert warning').addClass(klass).html(msg);
+            this.feedback.fadeIn();
+        },
 
-            this.ackPanel.find('.alert-box.alert').remove();
+        give_error_feedback: function(msg) {
+            this.give_feedback(msg, 'alert');
+        },
+
+        give_warning_feedback: function(msg) {
+            this.give_feedback(msg, 'warning');
+        },
+
+        acknowledgeAlerts: function () {
+            console.log('acknowledgeAlerts');
+            var self = this;
 
             var request = $.post(NAV.urls.status2_acknowledge_alert, {
                 id: alertsToChange.pluck('id'),
-                comment: comment
+                comment: this.comment.val()
             });
 
             request.done(function () {
                 self.collection.fetch();
-                self.cancelAlertsAction();
+                self.give_feedback('Alerts acknowledged');
+                Backbone.EventBroker.trigger('eventsview:reset');
             });
 
             request.fail(function () {
-                self.ackPanel.append(
-                    $(self.htmlSnippets.errorbox).html('Error acknowledging alerts'));
+                self.give_error_feedback('Error acknowledging alerts');
             });
         },
 
         resolveAlerts: function () {
+            console.log('resolveAlerts');
             var self = this;
-
-            // Clear existing alert-box
-            this.resolvePanel.find('.alert-box.alert').remove();
 
             var request = $.post(NAV.urls.status2_clear_alert, {
                 id: alertsToChange.pluck('id')
@@ -204,16 +233,17 @@ define([
 
             request.done(function () {
                 self.collection.remove(alertsToChange.models);
-                self.cancelAlertsAction();
+                self.give_feedback('Alerts cleared');
+                Backbone.EventBroker.trigger('eventsview:reset');
             });
 
             request.fail(function () {
-                self.resolvePanel.append(
-                    $(self.htmlSnippets.errorbox).html('Error resolving alerts'));
+                self.give_error_feedback('Error clearing alerts');
             });
         },
 
         putOnMaintenance: function () {
+            console.log('putOnMaintenance');
             var ids = [],
                 self = this,
                 description = this.$('.maintenance .usercomment').val();
@@ -223,8 +253,6 @@ define([
                 }
             });
 
-            this.maintenancePanel.find('.alert-box.alert').remove();
-
             if (ids.length > 0) {
                 var request = $.post(NAV.urls.status2_put_on_maintenance, {
                     id: ids,
@@ -233,19 +261,16 @@ define([
 
                 request.done(function () {
                     self.collection.fetch();
-                    self.cancelAlertsAction();
+                    self.give_feedback('Maintenances created');
+                    Backbone.EventBroker.trigger('eventsview:reset');
                 });
 
                 request.fail(function () {
-                    self.maintenancePanel.append(
-                        $(self.htmlSnippets.errorbox).html('Error putting on maintenance'));
+                    self.give_error_feedback('Error putting on maintenance');
                 });
+            } else {
+                self.give_error_feedback('None of the subjects are netboxes or services');
             }
-
-        },
-
-        cancelAlertsAction: function () {
-            alertsToChange.reset();
         }
 
     });
@@ -254,6 +279,11 @@ define([
     /** The list of status events */
     var EventsView = Backbone.View.extend({
         el: '#events-list',
+
+        // Used in EventBroker
+        interests: {
+            'eventsview:reset': 'reset'
+        },
 
         events: {
             'click thead .alert-action': 'toggleCheckboxes',
@@ -279,6 +309,8 @@ define([
             this.listenTo(this.collection, 'sort', this.updateSortIndicators);
             this.listenTo(this.collection, 'reset', this.updateSortIndicators);
             this.listenTo(this.collection, 'reset', this.render);
+
+            Backbone.EventBroker.register(this); // Register interests
         },
 
         applySort: function () {
@@ -350,6 +382,11 @@ define([
             } else {
                 alertsToChange.reset();
             }
+        },
+
+        reset: function() {
+            alertsToChange.reset();
+            this.checkBox.prop('checked', false);
         }
 
     });
