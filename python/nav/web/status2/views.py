@@ -22,7 +22,7 @@ from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.views.generic import View
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 
 from rest_framework import viewsets, filters
 from rest_framework.renderers import JSONRenderer
@@ -30,11 +30,14 @@ from rest_framework.views import APIView
 
 from nav.maintengine import check_devices_on_maintenance
 from nav.models.event import AlertHistory
-from nav.models.manage import Netbox
+from nav.models.manage import Netbox, Device, NetboxEntity, Module
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.models.profiles import AccountProperty
 from nav.models.fields import UNRESOLVED, INFINITY
 from . import forms, STATELESS_THRESHOLD, STATUS_PREFERENCE_PROPERTY
+
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class StatusView(View):
@@ -109,31 +112,42 @@ def save_status_preferences(request):
         return HttpResponse('Form was not valid', status=400)
 
 
-def get_alerts_from_request(request):
-    return AlertHistory.objects.filter(pk__in=request.POST.getlist('id[]'))
+def get_alerts_from_request(request, event_type_filter=None):
+    """Gets all the alerts from the request by looking for a list of ids
+
+    If no alerts are found, raises 404
+
+    :param event_type_filter: event type ids to filter on
+    :type event_type_filter: list[string]
+    """
+    alerts = AlertHistory.objects.filter(pk__in=request.POST.getlist('id[]'))
+    if event_type_filter is not None:
+        alerts = [a for a in alerts if a.event_type.id in event_type_filter]
+    if not alerts:
+        raise Http404
+    return alerts
 
 
-def resolve_alerts(request):
-    """Resolves alerts by setting end_time of the alerts to now"""
+def handle_resolve_alerts(request):
+    """Handles a resolve alerts request"""
     if request.method == 'POST':
-        alerts = get_alerts_from_request(request)
-        if not alerts:
-            return HttpResponse(status=404)
-        for alert in alerts:
-            alert.end_time = datetime.datetime.now()
-            alert.save()
-        return HttpResponse(status=200)
+        resolve_alerts(get_alerts_from_request(request))
+        return HttpResponse()
     else:
         return HttpResponse(status=400)
+
+
+def resolve_alerts(alerts):
+    """Resolves alerts by setting end_time of the alerts to now"""
+    for alert in alerts:
+        alert.end_time = datetime.datetime.now()
+        alert.save()
 
 
 def acknowledge_alert(request):
     """Acknowledges all alerts and gives them the same comment"""
     if request.method == 'POST':
         alerts = get_alerts_from_request(request)
-        if not alerts:
-            return HttpResponse("No alerts found", status=404)
-
         comment = request.POST.get('comment')
         for alert in alerts:
             alert.acknowledge(request.account, comment)
@@ -160,6 +174,34 @@ def put_on_maintenance(request):
         return HttpResponse(status=200)
     else:
         return HttpResponse('Wrong request type', status=400)
+
+
+def delete_module_or_chassis(request):
+    """Deletes a module or chassis from the database
+
+    This is done by looking up the device from the alerthistory ids in the
+    request, and deleting all netbox entities and modules corresponding to that
+    device.
+    """
+    accepted_event_types = ['moduleState', 'chassisState']
+
+    if request.method == 'POST':
+        alerts = get_alerts_from_request(
+            request, event_type_filter=accepted_event_types)
+        devices = Device.objects.filter(pk__in=[x.device_id for x in alerts])
+
+        _logger.debug(devices)
+        for module in Module.objects.filter(device__in=devices):
+            _logger.debug('Deleting module: %s', module)
+        for entity in NetboxEntity.objects.filter(device__in=devices):
+            _logger.debug('Deleting entity: %s', entity)
+
+        Module.objects.filter(device__in=devices).delete()
+        NetboxEntity.objects.filter(device__in=devices).delete()
+        resolve_alerts(alerts)
+        return HttpResponse()
+
+    return HttpResponse('Wrong request type', status=400)
 
 
 def is_maintenance_task_posted(netbox):
@@ -192,4 +234,3 @@ def add_maintenance_task(owner, netboxes, description=""):
             value='%d' % netbox.id
         )
         component.save()
-

@@ -166,7 +166,8 @@ define([
             var actions = {
                 'acknowledge': this.acknowledgeAlerts,
                 'clear': this.resolveAlerts,
-                'maintenance': this.putOnMaintenance
+                'maintenance': this.putOnMaintenance,
+                'delete': this.deleteModuleOrChassis
             };
 
             if (action && alertsToChange.length > 0) {
@@ -182,10 +183,11 @@ define([
         },
 
         showOrHideCommentField: function() {
-            if (this.actionSelect.val() === 'clear') {
-                this.commentWrapper.hide();
-            } else {
+            var actionsWithComment = ['acknowledge', 'maintenance'];
+            if (actionsWithComment.indexOf(this.actionSelect.val()) >= 0) {
                 this.commentWrapper.show();
+            } else {
+                this.commentWrapper.hide();
             }
         },
 
@@ -246,7 +248,7 @@ define([
             console.log('putOnMaintenance');
             var ids = [],
                 self = this,
-                description = this.$('.maintenance .usercomment').val();
+                description = this.$('.usercomment').val();
             alertsToChange.each(function (model) {
                 if (model.get('subject_type') === 'Netbox') {
                     ids.push(model.get('id'));
@@ -271,6 +273,39 @@ define([
             } else {
                 self.give_error_feedback('None of the subjects are netboxes or services');
             }
+        },
+
+        deleteModuleOrChassis: function() {
+            console.log('putOnMaintenance');
+            var ids = [],
+                self = this,
+                description = this.$('.usercomment').val();
+            alertsToChange.each(function (model) {
+                if (['Module', 'Chassis'].indexOf(model.get('subject_type')) >= 0) {
+                    ids.push(model.get('id'));
+                }
+            });
+
+            if (ids.length > 0) {
+                var request = $.post(NAV.urls.status2_delete_module_or_chassis, {
+                    id: ids,
+                    description: description
+                });
+
+                request.done(function () {
+                    self.collection.fetch();
+                    self.give_feedback('Modules or chassis deleted');
+                    Backbone.EventBroker.trigger('eventsview:reset');
+                });
+
+                request.fail(function () {
+                    console.log(request);
+                    self.give_error_feedback('Error deleting module or chassis');
+                });
+            } else {
+                self.give_error_feedback('None of the subjects are modules or chassis');
+            }
+            
         }
 
     });

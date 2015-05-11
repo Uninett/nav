@@ -12,6 +12,7 @@
    NAV.urls.status2_clear_alert = '{% url status2_clear_alert %}';
    NAV.urls.status2_acknowledge_alert = '{% url status2_acknowledge_alert %}';
    NAV.urls.status2_put_on_maintenance = '{% url status2_put_on_maintenance %}';
+   NAV.urls.status2_delete_module_or_chassis = '{% url status2_delete_module_or_chassis %}';
    NAV.urls.status2_save_preferences = '{% url status2_save_preferences %}';
   </script>
 {% endblock %}
@@ -88,8 +89,17 @@
 
                       &lt;h5&gt;Put on maintenance&lt;/h5&gt;
 
-                      Putting an alert on maintenance is only meaningful if the subject can be
-                      put on maintenance, for instance IP Devices and Services.">
+                      &lt;p&gt;Putting an alert on maintenance is only meaningful if the 
+                      subject can be put on maintenance, for instance IP Devices and 
+                      Services.&lt;/p&gt;
+
+                      &lt;h5&gt;Remove module or chassis&lt;/h5&gt;
+
+                      &lt;p&gt;NAV does not know if a module or chassis that has disappeared did so
+                      because of an error or because it was physically removed. Thus modules
+                      and chassis that disappear are all listed in status until manually
+                      removed by a manual module/chasses delete.&lt;/p&gt;
+                      ">
           Select action for chosen alerts <span class="fa fa-info-circle"></span>
         </label>
         <select>
@@ -97,6 +107,7 @@
           <option value="acknowledge">Acknowledge the alerts</option>
           <option value="clear">Clear the alerts</option>
           <option value="maintenance">Put on maintenance</option>
+          <option value="delete">Delete module or chassis</option>
         </select>
 
         <div style="display: none" class="usercomment-wrapper">
@@ -104,7 +115,7 @@
             <input type="text" placeholder="Write a description" class="usercomment">
           </label>
         </div>
-        
+
         <a href="javascript:void(0);" class="button small submit-action">Do it</a>
 
         <div style="display: none" class="feedback with-icon alert-box"></div>
