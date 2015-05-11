@@ -36,6 +36,10 @@ class ModuleStateHandler(delayedstate.DelayedStateHandler):
             assert self._target.netbox_id == self.event.netbox.id
         return self._target
 
+    def _is_internally_down(self):
+        module = self.get_target()
+        return module.up != module.UP_UP
+
     def _get_up_alert(self):
         alert = self._get_alert()
         alert.alert_type = "moduleUp"
