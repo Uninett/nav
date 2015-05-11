@@ -21,19 +21,14 @@ from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.views.generic import View
-from django.db.models import Q
 from django.http import HttpResponse, Http404
-
-from rest_framework import viewsets, filters
-from rest_framework.renderers import JSONRenderer
-from rest_framework.views import APIView
 
 from nav.maintengine import check_devices_on_maintenance
 from nav.models.event import AlertHistory
 from nav.models.manage import Netbox, Device, NetboxEntity, Module
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.models.profiles import AccountProperty
-from nav.models.fields import UNRESOLVED, INFINITY
+from nav.models.fields import INFINITY
 from . import forms, STATELESS_THRESHOLD, STATUS_PREFERENCE_PROPERTY
 
 import logging
@@ -44,6 +39,7 @@ class StatusView(View):
     """Generic Status view"""
 
     def get_status_preferences(self):
+        """Gets the status preferences for the user on the request"""
         try:
             status_property = self.request.account.properties.get(
                 property=STATUS_PREFERENCE_PROPERTY)
@@ -54,6 +50,7 @@ class StatusView(View):
 
     @staticmethod
     def set_default_parameters(parameters):
+        """Populates the parameters with the default stateless threshold."""
         if 'stateless_threshold' not in parameters:
             parameters.update({'stateless_threshold': STATELESS_THRESHOLD})
 
