@@ -16,43 +16,50 @@
 #
 """Module comment"""
 
-from optparse import OptionParser
-from nav.models.event import EventQueue as Event, Subsystem, EventType
+from argparse import ArgumentParser
+from nav.event import Event
+from nav.models.event import EventQueue, EventType
 from nav.models.manage import Netbox
 
 
 def main():
     """Main controller"""
-    (options, args) = parse_options()
+    namespace = parse_options()
 
-    source = Subsystem.objects.get(name='ipdevpoll')
-    target = Subsystem.objects.get(name='eventEngine')
-    netbox = Netbox.objects.get(sysname__icontains=options.sysname)
-    device = netbox.device
-    eventtype = EventType.objects.get(pk__icontains=options.eventtype)
+    netbox = Netbox.objects.get(sysname__icontains=namespace.sysname)
+    eventtype = EventType.objects.get(pk__icontains=namespace.eventtype)
+    event = Event(source="ipdevpoll", target="eventEngine",
+                  netboxid=netbox.id,
+                  deviceid=netbox.device.id,
+                  eventtypeid=eventtype.id,
+                  state=get_state(namespace))
 
-    event = Event(source=source, target=target, netbox=netbox, device=device,
-                  event_type=eventtype, state=get_state(args))
-    event.varmap = {'alerttype': options.alerttype}
-    event.save()
+    if namespace.alerttype:
+        event['alerttype'] = namespace.alerttype
+    event.post()
 
 
 def parse_options():
     """Parse command line options and args"""
-    parser = OptionParser(usage="%prog [options] state")
-    parser.add_option('-e', dest='eventtype')
-    parser.add_option('-a', dest='alerttype')
-    parser.add_option('-n', dest='sysname', help='Netbox sysname')
+    parser = ArgumentParser()
+    parser.add_argument('-e', dest='eventtype', required=True,
+                        help='The name of the event type')
+    parser.add_argument('-n', dest='sysname', required=True,
+                        help='Netbox sysname')
+    parser.add_argument('-a', dest='alerttype',
+                        help='The name of the alert type')
+    parser.add_argument('state', choices=('s', 'e'),
+                        help='The state of the event (nothing if stateless)')
     return parser.parse_args()
 
 
 def get_state(args):
     """Return correct event state based on args"""
     if not args:
-        return Event.STATE_STATELESS
+        return EventQueue.STATE_STATELESS
     else:
-        return (Event.STATE_START if args[0].startswith('d')
-                else Event.STATE_END)
+        return (EventQueue.STATE_START if args.state.startswith('s')
+                else EventQueue.STATE_END)
 
 if __name__ == '__main__':
     main()
