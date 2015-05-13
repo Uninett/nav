@@ -31,6 +31,7 @@ def main():
     event = Event(source="ipdevpoll", target="eventEngine",
                   netboxid=netbox.id,
                   deviceid=netbox.device.id,
+                  subid=namespace.subid,
                   eventtypeid=eventtype.id,
                   state=get_state(namespace))
 
@@ -48,6 +49,8 @@ def parse_options():
                         help='Netbox sysname')
     parser.add_argument('-a', dest='alerttype',
                         help='The name of the alert type')
+    parser.add_argument('--subid', dest='subid', default=None,
+                        help='The subid to use')
     parser.add_argument('state', choices=('s', 'e'),
                         help='The state of the event (nothing if stateless)')
     return parser.parse_args()
