@@ -1,1 +1,2 @@
-Stack on {{netbox.sysname}} ({{netbox.ip}}) is ok since {{time}}
+{{event.get_subject}} is up
+
