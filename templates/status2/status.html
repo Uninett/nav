@@ -5,15 +5,16 @@
 {% block base_header_additional_head %}
   <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/nav/status.css"/>
   <script type="text/javascript">require(['status/status']);</script>
-    <script type="text/javascript">
-    var NAV = NAV || {};
-    NAV.urls = NAV.urls || {};
-    NAV.urls.status2_api_alerthistory = '{% url api:alerthistory-list %}';
-    NAV.urls.status2_clear_alert = '{% url status2_clear_alert %}';
-    NAV.urls.status2_acknowledge_alert = '{% url status2_acknowledge_alert %}';
-    NAV.urls.status2_put_on_maintenance = '{% url status2_put_on_maintenance %}';
-    NAV.urls.status2_save_preferences = '{% url status2_save_preferences %}';
-    </script>
+  <script type="text/javascript">
+   var NAV = NAV || {};
+   NAV.urls = NAV.urls || {};
+   NAV.urls.status2_api_alerthistory = '{% url api:alerthistory-list %}';
+   NAV.urls.status2_clear_alert = '{% url status2_clear_alert %}';
+   NAV.urls.status2_acknowledge_alert = '{% url status2_acknowledge_alert %}';
+   NAV.urls.status2_put_on_maintenance = '{% url status2_put_on_maintenance %}';
+   NAV.urls.status2_delete_module_or_chassis = '{% url status2_delete_module_or_chassis %}';
+   NAV.urls.status2_save_preferences = '{% url status2_save_preferences %}';
+  </script>
 {% endblock %}
 
 
@@ -22,7 +23,6 @@
   {% with tool=current_user_data.tools|get_tool:'Status' %}
     {% include 'nav_header.html' %}
   {% endwith %}
-
 
   <div id="status-page">
 
@@ -39,115 +39,91 @@
       Failed to fetch events
     </div>
 
-    <div class="row">
 
-      <div class="large-9 column">
+    {# Table displaying filtered events #}
 
-        {# Table displaying filtered events #}
-        <table id="events-list" class="listtable hover expand tablesorter expandable">
-          <caption>Events<span class="last-changed pull-right"></span></caption>
-          <thead>
-          <tr>
-            <th>
-              <label>
-                <input class="alert-action" type="checkbox">
-              </label>
-            </th>
-            <th>&nbsp;</th>
-            <th>Subject</th>
-            <th>Type</th>
-            <th>Time</th>
-            <th>Duration</th>
-            <th>&nbsp;</th>
-          </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+    <table id="events-list" class="listtable hover expand tablesorter expandable">
+      <caption>Events<span class="last-changed pull-right"></span></caption>
+      <thead>
+        <tr>
+          <th>
+            <label>
+              <input class="alert-action" type="checkbox">
+            </label>
+          </th>
+          <th>&nbsp;</th>
+          <th>Subject</th>
+          <th>Type</th>
+          <th>Time</th>
+          <th>Duration</th>
+          <th>&nbsp;</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-      </div>
+    {# Panel to do stuff with selected alerts #}
+    <div id="action-panel-revised" class="row">
 
-      <div class="large-3 column">
-        {# Panel for alert actions #}
-        <div id="action-panel" class="panel white hidden">
+      <div class="column medium-8 large-4">
+        <label data-tooltip
+               title="&lt;h5&gt;Acknowledge the alerts&lt;/h5&gt;
 
-          <h5>You can do the following with the selected alerts:</h5>
+                      &lt;p&gt;Acknowledged alerts will be hidden for all users, but not
+                      removed. When an end event arrives the alert will be cleared
+                      normally.&lt;/p&gt;
 
-          {% if permits.can_acknowledge_alerts %}
-            <div class="medium-4 large-12 column">
-              <div class="panel acknowledge">
-                <h5 data-tooltip
-                    title="&lt;p&gt;Acknowledged alerts will be hidden for all users,
-                            but not removed. When an end event arrives the alert
-                            will be cleared normally.&lt;/p&gt; &lt;p&gt;Acknowledged alerts
-                            can be still be viewed by checking the
-                            &lt;em&gt;Acknowledged&lt;/em&gt; checkbox in your status
-                            filter.&lt;/p&gt;">
-                  Acknowledge the alerts
-                  <i class="fa fa-info-circle"></i>
-                </h5>
-                <input type="text" class="usercomment" placeholder="Write a description">
-                <a href="javascript:void(0);" class="button small acknowledge-alerts expand">
-                  Acknowledge alerts
-                </a>
-              </div>
-            </div>
-          {% endif %}
+                      &lt;p&gt;Acknowledged alerts can be still be viewed by checking the
+                      &lt;em&gt;Acknowledged&lt;/em&gt; checkbox in your status
+                      filter.&lt;/p&gt;
 
-          {% if permits.can_clear_alerts %}
-            <div class="medium-4 large-12 column">
-              <div class="panel resolve-alerts">
-                <h5 data-tooltip
-                    title="&lt;p&gt; Clearing an alert will set its end time, thereby
-                           closing it and removing it from the list of
-                           problems. Use this to remove alerts that have become
-                           invalid, where there is no way for NAV to
-                           automatically detect this.&lt;/p&gt;
+                      &lt;h5&gt;Clear the alerts&lt;/h5&gt;
 
-                           &lt;p&gt;Be aware that if the root cause of the alert is still
-                           there, NAV may end up posting a new alert for the
-                           same issue. &lt;/p&gt;">
-                  Clear the alerts
-                  <i class="fa fa-info-circle"></i>
-                </h5>
-                <a href="javascript:void(0);" class="button small expand">
-                  Clear alerts
-                </a>
-              </div>
-            </div>
-          {% endif %}
+                      &lt;p&gt; Clearing an alert will set its end time, thereby closing it and
+                      removing it from the list of problems. Use this to remove alerts that have
+                      become invalid, where there is no way for NAV to automatically detect
+                      this.&lt;/p&gt;
 
-          {% if permits.can_put_on_maintenance %}
-            <div class="medium-4 large-12 column">
-              <div class="panel maintenance">
-                <h5 data-tooltip
-                    title="Putting an alert on maintenance is only meaningful if
-                           the subject can be put on maintenance, for instance IP
-                           Devices and Services.">
-                  Put alerts on maintenance
-                  <i class="fa fa-info-circle"></i>
-                </h5>
-                <input type="text" class="usercomment" placeholder="Write a description">
-                <a href="javascript:void(0);" class="button small expand">
-                  Put on maintenance
-                </a>
-              </div>
-            </div>
-          {% endif %}
+                      &lt;p&gt;Be aware that if the root cause of the alert is still there, NAV
+                      may end up posting a new alert for the same issue. &lt;/p&gt;
 
-          {% if not permits.any %}
-            <div class="alert-box">
-              It doesn't seem like you are permitted to do anything here.
-            </div>
-          {% endif %}
+                      &lt;h5&gt;Put on maintenance&lt;/h5&gt;
 
-          <a href="javascript:void(0);" class="button small secondary cancel-alerts-action">
-            Never mind
-          </a>
+                      &lt;p&gt;Putting an alert on maintenance is only meaningful if the 
+                      subject can be put on maintenance, for instance IP Devices and 
+                      Services.&lt;/p&gt;
+
+                      &lt;h5&gt;Remove module or chassis&lt;/h5&gt;
+
+                      &lt;p&gt;NAV does not know if a module or chassis that has disappeared did so
+                      because of an error or because it was physically removed. Thus modules
+                      and chassis that disappear are all listed in status until manually
+                      removed by a manual module/chasses delete.&lt;/p&gt;
+                      ">
+          Select action for chosen alerts <span class="fa fa-info-circle"></span>
+        </label>
+        <select>
+          <option value="">--- Choose action ---</option>
+          <option value="acknowledge">Acknowledge the alerts</option>
+          <option value="clear">Clear the alerts</option>
+          <option value="maintenance">Put on maintenance</option>
+          <option value="delete">Delete module or chassis</option>
+        </select>
+
+        <div style="display: none" class="usercomment-wrapper">
+          <label>Description
+            <input type="text" placeholder="Write a description" class="usercomment">
+          </label>
         </div>
+
+        <a href="javascript:void(0);" class="button small submit-action">Do it</a>
+
+        <div style="display: none" class="feedback with-icon alert-box"></div>
 
       </div>
 
     </div>
+
 
   </div>
 

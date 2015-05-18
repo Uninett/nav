@@ -358,6 +358,11 @@ select[multiple] {
 /* Tooltip related stylings */
 .tooltip > p {
     font-size: inherit;
+    line-height: inherit;
+}
+
+.tooltip > h5 {
+    color: white;
 }
 
 [data-tooltip] {

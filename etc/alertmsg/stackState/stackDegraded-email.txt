@@ -1,3 +1,0 @@
-Subject: Stack on {{netbox.sysname}} has degraded
-
-The stack on {{netbox.sysname}} ({{netbox.ip}}) has lost one or more of its chassis since {{time}}.
