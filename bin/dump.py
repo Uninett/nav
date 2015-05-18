@@ -49,17 +49,20 @@ def lineout(line):
     print SEPARATOR.join(newline).encode('utf-8')
 
 
-class Handlers:
-    def netbox(self):
-        header("#roomid:ip:orgid:catid:[ro:serial:rw:function:"
+class Handlers(object):
+    """Contains methods for printing database info suitable for bulk import"""
+
+    @staticmethod
+    def netbox():
+        """Outputs a line for each netbox in the database"""
+        header("#roomid:ip:orgid:catid:[ro:rw:function:"
                "key1=value1|key2=value2:"
-               "netboxgroup1:netboxgroup2..]")
-        allFunctions = manage.NetboxInfo.objects.filter(key='function')
+               "devicegroup1:devicegroup2..]")
+        all_functions = manage.NetboxInfo.objects.filter(key='function')
         for box in manage.Netbox.objects.all():
             line = [box.room_id, box.ip, box.organization_id, box.category_id,
-                    box.read_only or "", box.device.serial or box.sysname,
-                    box.read_write or ""]
-            functions = allFunctions.filter(netbox=box)
+                    box.read_only or "", box.read_write or ""]
+            functions = all_functions.filter(netbox=box)
             functions = str.join(", ", functions)
             line.append(functions)
             data = u'|'.join(u"%s=%s" % (k, v) for k, v in box.data.items())
