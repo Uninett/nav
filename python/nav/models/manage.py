@@ -455,6 +455,10 @@ class NetboxEntity(models.Model):
             title=title, netbox=self.netbox
         )
 
+    def is_chassis(self):
+        """Returns True if this is a chassis type entity"""
+        return self.physical_class == self.CLASS_CHASSIS
+
 
 class NetboxPrefix(models.Model):
     """Which prefix a netbox is connected to.
@@ -574,6 +578,38 @@ class Module(models.Model):
     def is_on_maintenace(self):
         """Returns True if the owning Netbox is on maintenance"""
         return self.netbox.is_on_maintenance()
+
+    def get_entity(self):
+        """
+        Attempts to find the NetboxEntity entry that corresponds to this module.
+
+        :returns: Either a NetboxEntity object or None.
+        """
+        try:
+            return NetboxEntity.objects.get(netbox=self.netbox,
+                                            device=self.device)
+        except NetboxEntity.DoesNotExist:
+            return None
+
+    def get_chassis(self):
+        """
+        Attempts to find the NetboxEntity that corresponds to the chassis that
+        contains this module.
+
+        :return:
+        """
+        me = self.get_entity()
+        if not me:
+            return
+
+        entities = {e.id: e
+                    for e in NetboxEntity.objects.filter(netbox=self.netbox)}
+        current = entities.get(me.id)
+        while current is not None and not current.is_chassis():
+            current = entities.get(current.contained_in_id)
+            if current.contained_in_id == current.id:
+                return  # no infinite loops, please
+        return current
 
 
 class Memory(models.Model):
