@@ -1,3 +1,7 @@
+"""Tests for bulkparse"""
+
+# pylint: disable=C0111, C0103, W0614
+
 from unittest import TestCase
 from nav.bulkparse import *
 
@@ -39,7 +43,7 @@ class TestNetboxBulkParser(TestCase):
         self.assertTrue(out_data is not None)
 
     def test_parse_single_line_yields_columns(self):
-        data = ("room1:10.0.0.186:myorg:SW:public:parrot:secret:doesthings:"
+        data = ("room1:10.0.0.186:myorg:SW:public:secret:doesthings:"
                 "key=value:blah1:blah2")
         b = NetboxBulkParser(data)
         out_data = b.next()
@@ -48,7 +52,6 @@ class TestNetboxBulkParser(TestCase):
         self.assertEquals(out_data['ip'], '10.0.0.186')
         self.assertEquals(out_data['orgid'], 'myorg')
         self.assertEquals(out_data['catid'], 'SW')
-        self.assertEquals(out_data['serial'], 'parrot')
         self.assertEquals(out_data['data'], 'key=value')
         self.assertEquals(out_data['netboxgroup'], ['blah1', 'blah2'])
 
@@ -56,7 +59,7 @@ class TestNetboxBulkParser(TestCase):
         self.assertEquals(
             NetboxBulkParser.get_header(),
             "#roomid:ip:orgid:catid"
-            "[:ro:serial:rw:function:data:netboxgroup:...]")
+            "[:ro:rw:function:data:netboxgroup:...]")
 
     def test_two_rows_returned_with_empty_lines_in_input(self):
         data = ("room1:10.0.0.186:myorg:SW:public:parrot::\n"
