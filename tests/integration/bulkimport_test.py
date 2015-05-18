@@ -1,3 +1,7 @@
+"""Tests for bulkimport"""
+
+# pylint: disable=W0614, C0111, W0401
+
 from unittest import TestCase
 
 from nav.models import manage
@@ -15,24 +19,22 @@ class TestGenericBulkImport(TestCase):
 
 class TestNetboxImporter(DjangoTransactionTestCase):
     def test_simple_import_yields_netbox_and_device_model(self):
-        data = 'myroom:10.0.90.252:myorg:SW:public:MOOSE123::'
+        data = 'myroom:10.0.90.252:myorg:SW:public::'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
-        line_num, objects = importer.next()
+        _line_num, objects = importer.next()
 
         self.assertTrue(isinstance(objects, list), repr(objects))
-        self.assertTrue(len(objects) == 2, repr(objects))
-        self.assertTrue(isinstance(objects[0], manage.Device), objects[0])
-        self.assertTrue(isinstance(objects[1], manage.Netbox), objects[0])
+        self.assertTrue(len(objects) == 1, repr(objects))
+        self.assertTrue(isinstance(objects[0], manage.Netbox), objects[0])
 
     def test_simple_import_yields_objects_with_proper_values(self):
-        data = 'myroom:10.0.90.252:myorg:SW:public:MOOSE123::'
+        data = 'myroom:10.0.90.252:myorg:SW:public::'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
-        line_num, objects = importer.next()
+        _line_num, objects = importer.next()
 
-        (device, netbox) = objects
-        self.assertEquals(device.serial, 'MOOSE123')
+        (netbox, ) = objects
         self.assertEquals(netbox.ip, '10.0.90.252')
         self.assertEquals(netbox.room_id, 'myroom')
         self.assertEquals(netbox.organization_id, 'myorg')
@@ -40,17 +42,17 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertEquals(netbox.read_only, 'public')
 
     def test_invalid_room_gives_error(self):
-        data = 'invalid:10.0.90.252:myorg:SW:public:MOOSE123::'
+        data = 'invalid:10.0.90.252:myorg:SW:public::'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
-        line_num, objects = importer.next()
+        _line_num, objects = importer.next()
         self.assertTrue(isinstance(objects, DoesNotExist))
 
     def test_netbox_function_is_set(self):
-        data = 'myroom:10.0.90.252:myorg:SW:public:MOOSE123::does things:'
+        data = 'myroom:10.0.90.252:myorg:SW:public::does things:'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
-        line_num, objects = importer.next()
+        _line_num, objects = importer.next()
 
         types = dict((type(c), c) for c in objects)
         self.assertTrue(manage.NetboxInfo in types, types)
@@ -65,11 +67,10 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertEquals(netboxinfo.value, 'hella')
 
     def test_netbox_groups_are_set(self):
-        data = ('myroom:10.0.90.10:myorg:SRV::MOOSE123::fileserver::'
-                'WEB:UNIX:MAIL')
+        data = 'myroom:10.0.90.10:myorg:SRV:::fileserver::WEB:UNIX:MAIL'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
-        line_num, objects = importer.next()
+        _line_num, objects = importer.next()
 
         netboxgroups = [o for o in objects
                         if isinstance(o, manage.NetboxCategory)]
@@ -92,26 +93,24 @@ class TestNetboxImporter(DjangoTransactionTestCase):
     def test_duplicate_locations_should_give_error(self):
         netbox = manage.Netbox(
             sysname='10.1.0.1', ip='10.1.0.1',
-            device=manage.Device.objects.get_or_create(serial='MOOSE42')[0],
             room=manage.Room.objects.get(id='myroom'),
             category=manage.Category.objects.get(id='SRV'),
             organization=manage.Organization.objects.get(id='myorg'),
             snmp_version=1)
         netbox.save()
 
-        data = 'myroom:10.1.0.1:myorg:SRV::MOOSE42::fileserver::WEB:UNIX:MAIL'
+        data = 'myroom:10.1.0.1:myorg:SRV:::fileserver::WEB:UNIX:MAIL'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
-        line_num, objects = importer.next()
+        _line_num, objects = importer.next()
 
         self.assertTrue(isinstance(objects, AlreadyExists))
 
     def test_created_objects_can_be_saved(self):
-        data = ('myroom:10.0.90.10:myorg:SRV::MOOSE123::fileserver::'
-                'WEB:UNIX:MAIL')
+        data = 'myroom:10.0.90.10:myorg:SRV:::fileserver::WEB:UNIX:MAIL'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
-        line_num, objects = importer.next()
+        _line_num, objects = importer.next()
 
         for obj in objects:
             reset_object_foreignkeys(obj)
@@ -124,7 +123,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
         data = "somewhere:Over the rainbow"
         parser = LocationBulkParser(data)
         importer = LocationImporter(parser)
-        line_num, objects = importer.next()
+        _line_num, objects = importer.next()
 
         self.assertTrue(len(objects) == 1, repr(objects))
         self.assertTrue(isinstance(objects[0], manage.Location))
@@ -134,7 +133,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
         data = "somewhere:Over the rainbow"
         parser = LocationBulkParser(data)
         importer = LocationImporter(parser)
-        line_num, objects = importer.next()
+        _line_num, objects = importer.next()
 
         for obj in objects:
             reset_object_foreignkeys(obj)
@@ -142,30 +141,30 @@ class TestLocationImporter(DjangoTransactionTestCase):
             obj.save()
 
     def test_duplicate_locations_should_give_error(self):
-        l = manage.Location.objects.get_or_create(
+        _loc = manage.Location.objects.get_or_create(
             id='somewhere', description='original somewhere')
 
         data = "somewhere:Over the rainbow"
         parser = LocationBulkParser(data)
         importer = LocationImporter(parser)
-        line_num, objects = importer.next()
+        _line_num, objects = importer.next()
 
         self.assertTrue(isinstance(objects, AlreadyExists))
 
 
 class TestPrefixImporter(DjangoTransactionTestCase):
     def setUp(self):
-        org, created = Organization.objects.get_or_create(id='uninett')
+        org, _created = Organization.objects.get_or_create(id='uninett')
         org.save()
 
-        usage, created = Usage.objects.get_or_create(id='employee')
+        usage, _created = Usage.objects.get_or_create(id='employee')
         usage.save()
 
     def test_import(self):
         data = "10.0.1.0/24:lan:uninett:here-there:employee:Employee LAN:20"
         parser = PrefixBulkParser(data)
         importer = PrefixImporter(parser)
-        line_num, objects = importer.next()
+        _line_num, objects = importer.next()
 
         if isinstance(objects, Exception):
             raise objects
