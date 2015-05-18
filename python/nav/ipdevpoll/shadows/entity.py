@@ -13,7 +13,10 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""NetboxEntity shadow and manager classes for ipdevpoll"""
+
 from __future__ import absolute_import
+from collections import defaultdict
 from datetime import datetime
 from nav.toposort import build_graph, topological_sort
 
@@ -27,6 +30,7 @@ from networkx.algorithms.traversal.depth_first_search import dfs_tree as subtree
 
 
 class EntityManager(DefaultManager):
+    """A manager class for NetboxEntity objects"""
     def __init__(self, *args, **kwargs):
         super(EntityManager, self).__init__(*args, **kwargs)
         self.netbox = self.containers.get(None, Netbox)
@@ -35,24 +39,18 @@ class EntityManager(DefaultManager):
         self.existing = set()
 
     def prepare(self):
-        self.existing = set(manage.NetboxEntity.objects.filter(
+        # index known entities in various ways, but only bother to index things
+        # that are unique
+        index = EntityIndex(manage.NetboxEntity.objects.filter(
             netbox__id=self.netbox.id).select_related('device'))
-        by_id = {entitykey(e): e for e in self.existing}
 
-        def _match(ent):
-            # Matching by name isn't reliable, since names may not be unique,
-            # or even present. Matching if entityPhysicalIndex is "ok",
-            # but may have bad side effects if and when entities are
-            # re-indexed by a device (e.g. by a reboot)
-            return by_id.get(entitykey(ent))
-
-        matches = ((ent, _match(ent)) for ent in self.get_managed())
-
+        matches = ((ent, index.match(ent)) for ent in self.get_managed())
         for collected, model in matches:
             if model:
                 collected.set_existing_model(model)
                 self.matched.add(model)
 
+        self.existing = index.entities
         self.missing = self.existing.difference(self.matched)
 
     def cleanup(self):
@@ -78,6 +76,7 @@ class EntityManager(DefaultManager):
                 self._verify_stack_degradation(to_set_missing)
 
     def get_purge_list(self):
+        """Returns a  list of entitites that should be purged from the db"""
         graph = self._build_dependency_graph()
         to_purge = set(self.missing)
         missing = (miss for miss in self.missing
@@ -133,15 +132,24 @@ class EntityManager(DefaultManager):
 
 
 def entitykey(ent):
+    """
+    Returns an identity key for an entity object, based on its source MIB and
+    index within that MIB.
+    """
     return '%s:%s' % (ent.source, ent.index)
 
 
 def parententitykey(ent):
+    """
+    Returns an identity key for an entity object's parent object, based on its
+    source MIB and contained_in pointer within that MIB.
+    """
     if ent.contained_in:
         return '%s:%s' % (ent.source, ent.contained_in)
 
 
 class NetboxEntity(Shadow):
+    """A NetboxEntity shadow class"""
     __shadowclass__ = manage.NetboxEntity
     manager = EntityManager
 
@@ -182,6 +190,68 @@ class NetboxEntity(Shadow):
                     if e.physical_class == manage.NetboxEntity.CLASS_CHASSIS]
         else:
             return []
+
+
+class EntityIndex(object):
+    """
+    Given a sequence of of nav.models.manage.NetboxEntity objects, indexes them
+    in various ways applicable for matching them against collected entities.
+    """
+    def __init__(self, entities):
+        self.entities = set(entities)
+        self.by_id = self.index_by_id()
+        self.by_name = self.index_by_name()
+        self.by_serial = self.index_by_serial()
+
+    def match(self, entity):
+        """
+        Attempts to match entity against one of the indexed
+        nav.models.manage.NetboxEntity objects.
+
+        :param entity: The collected entity to find a match for
+        :type entiy: NetboxEntity
+        :return: A Django model object, if a match was found, otherwise None.
+        :rtype: nav.models.manage.NetboxEntity
+        """
+        match = None
+        if entity.device and entity.device.serial:
+            match = self.by_serial.get((entity.source, entity.device.serial))
+        if not match:
+            match = self.by_name.get((entity.source, entity.name))
+        if not match:
+            match = self.by_id.get(entitykey(entity))
+        return match
+
+    def index_by_id(self):
+        """
+        Builds and returns a dict indexing contained entities by their
+        'entitykey'
+        """
+        return {entitykey(e): e for e in self.entities}
+
+    def index_by_serial(self):
+        """
+        Builds and returns a dict indexing contained entities by their unique
+        serial numbers, if they have one.
+        """
+        by_serial = defaultdict(list)
+        for ent in self.entities:
+            if ent.device and ent.device.serial:
+                by_serial[(ent.source, ent.device.serial)].append(ent)
+        by_serial = {k: v[0] for k, v in by_serial.iteritems() if len(v) == 1}
+        return by_serial
+
+    def index_by_name(self):
+        """
+        Builds and returns a dict indexing contained entities by their unique
+        entity names, if they have one.
+        """
+        by_name = defaultdict(list)
+        for ent in self.entities:
+            if ent.name:
+                by_name[(ent.source, ent.name)].append(ent)
+        by_name = {k: v[0] for k, v in by_name.iteritems() if len(v) == 1}
+        return by_name
 
 
 ##
