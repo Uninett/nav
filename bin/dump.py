@@ -16,6 +16,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+# pylint: disable=C0111
 """Dumps core information from NAV to textfiles importable by editDB."""
 
 import sys
@@ -23,7 +24,7 @@ sys._stdout = sys.stdout
 from nav.models import manage
 import nav.models.service
 # required to register the hstore extension outside webapp environment
-import django_hstore.apps
+import django_hstore.apps  # pylint: disable=W0611
 
 SEPARATOR = ":"
 
@@ -37,13 +38,14 @@ def fail(resultcode, msg):
     sys.exit(resultcode)
 
 
-def header(header):
-    header = header.replace(":", SEPARATOR)
-    print header
+def header(definition):
+    """Output the header definition, possibly with replaced separators"""
+    definition = definition.replace(":", SEPARATOR)
+    print definition
 
 
 def lineout(line):
-    # Remove any : in strings
+    """Output line, remove any : in strings"""
     newline = (u'"%s"' % column if SEPARATOR in column else column
                for column in line)
     print SEPARATOR.join(newline).encode('utf-8')
@@ -73,7 +75,8 @@ class Handlers(object):
             line.extend(categories)
             lineout(line)
 
-    def org(self):
+    @staticmethod
+    def org():
         header("#orgid[:parent:description:attribute=value[:attribute=value]]")
         for org in manage.Organization.objects.all():
             if org.parent:
@@ -84,25 +87,36 @@ class Handlers(object):
             line.extend(['%s=%s' % x for x in org.data.items()])
             lineout(line)
 
-    def netboxgroup(self):
+    @staticmethod
+    def netboxgroup():
         header("#netboxgroupid:description")
         for netboxgroup in manage.NetboxGroup.objects.all():
             line = [netboxgroup.id, netboxgroup.description]
             lineout(line)
 
-    def usage(self):
+
+    @staticmethod
+    def device_group():
+        """Netbox group is a deprecated term, support the new term"""
+        Handlers.netboxgroup()
+
+
+    @staticmethod
+    def usage():
         header("#usageid:descr")
         for usage in manage.Usage.objects.all():
             line = [usage.id, usage.description]
             lineout(line)
 
-    def location(self):
+    @staticmethod
+    def location():
         header("#locationid:descr")
         for location in manage.Location.objects.all():
             line = [location.id, location.description]
             lineout(line)
 
-    def room(self):
+    @staticmethod
+    def room():
         header("#roomid[:locationid:descr:opt1:opt2:opt3:opt4:position]")
         for room in manage.Room.objects.all():
             line = [room.id, room.location.id if room.location else "",
@@ -112,20 +126,23 @@ class Handlers(object):
             line.extend(['%s=%s' % x for x in room.data.items()])
             lineout(line)
 
-    def type(self):
+    @staticmethod
+    def type():
         header("#vendorid:typename:sysoid[:description:cdp:tftp]")
-        for type in manage.NetboxType.objects.all():
-            line = [type.vendor.id, type.name, type.sysobjectid,
-                    type.description]
+        for netbox_type in manage.NetboxType.objects.all():
+            line = [netbox_type.vendor.id, netbox_type.name,
+                    netbox_type.sysobjectid, netbox_type.description]
             lineout(line)
 
-    def vendor(self):
+    @staticmethod
+    def vendor():
         header("#vendorid")
         for vendor in manage.Vendor.objects.all():
             line = [vendor.id]
             lineout(line)
 
-    def prefix(self):
+    @staticmethod
+    def prefix():
         global SEPARATOR
         old_sep = SEPARATOR
         if SEPARATOR == ":":
@@ -146,7 +163,8 @@ class Handlers(object):
             lineout(line)
         SEPARATOR = old_sep
 
-    def service(self):
+    @staticmethod
+    def service():
         global SEPARATOR
         old_sep = SEPARATOR
         if SEPARATOR == ":":
@@ -155,8 +173,8 @@ class Handlers(object):
             warn("Not smart to use : as separator for services, using ;")
             SEPARATOR = ";"
         header("#ip/sysname:handler[:arg=value[:arg=value]]")
-        allServices = nav.models.service.Service.objects.all()
-        for service in allServices.select_related('ServiceProperty'):
+        all_services = nav.models.service.Service.objects.all()
+        for service in all_services.select_related('ServiceProperty'):
             line = [service.netbox.sysname, service.handler]
             properties = ["%s=%s" % (p.property, p.value)
                           for p in service.serviceproperty_set.all()]
@@ -192,7 +210,7 @@ def main():
                       metavar="FILE")
     parser.add_option("-a", "--all", dest="all", action="store_true",
                       help="dump all tables to files named TABLE.txt")
-    (options, args) = parser.parse_args()
+    (options, _args) = parser.parse_args()
 
     if options.separator:
         global SEPARATOR
@@ -203,14 +221,14 @@ def main():
         for key in Handlers.__dict__.keys():
             if key[0] == "_":
                 continue
-            file = key + ".txt"
+            filename = key + ".txt"
             sys.stdout = sys._stdout
-            print "Dumping " + file
+            print "Dumping " + filename
             try:
                 # We're lazy and are using print all the way
-                sys.stdout = open(file, "w")
-            except IOError, e:
-                fail(2, "Could not open file %s: %s" % (options.output, e))
+                sys.stdout = open(filename, "w")
+            except IOError, error:
+                fail(2, "Could not open file %s: %s" % (options.output, error))
             handler = getattr(handlers, key)
             handler()
         sys.exit(0)
@@ -219,8 +237,8 @@ def main():
         try:
             # We're lazy and are using print all the way
             sys.stdout = open(options.output, "w")
-        except IOError, e:
-            fail(2, "Could not open file %s: %s" % (options.output, e))
+        except IOError, error:
+            fail(2, "Could not open file %s: %s" % (options.output, error))
         except TypeError:
             fail(2, "You stupid moron")
 
