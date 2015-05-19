@@ -22,11 +22,14 @@ from nav.toposort import build_graph, topological_sort
 
 from nav.ipdevpoll.storage import Shadow, DefaultManager
 from nav.models import manage
-from nav.models.event import EventQueue as Event
+from nav.event2 import EventFactory
 from .netbox import Netbox
 
 import networkx as nx
 from networkx.algorithms.traversal.depth_first_search import dfs_tree as subtree
+
+chassis_event = EventFactory('ipdevpoll', 'eventEngine',
+                             'chassisState', 'chassisDown', 'chassisUp')
 
 
 class EntityManager(DefaultManager):
@@ -116,7 +119,8 @@ class EntityManager(DefaultManager):
                                  len(chassis), chassis_count,
                                  ", ".join(c.name for c in chassis))
         for chass in chassis:
-            _dispatch_down_event(chass)
+            chassis_event.start(chass.device, chass.netbox, chass.id).save()
+
 
     def get_managed(self):
         """
@@ -176,7 +180,7 @@ class NetboxEntity(Shadow):
         entity = getattr(self, '_cached_existing_model', None)
         if entity and entity.gone_since is not None and self.gone_since is None:
             self._logger.info("%s is back up", entity)
-            _dispatch_up_event(entity)
+            chassis_event.end(entity.device, entity.netbox, entity.id).save()
 
     @classmethod
     def get_chassis_entities(cls, containers):
@@ -252,34 +256,3 @@ class EntityIndex(object):
                 by_name[(ent.source, ent.name)].append(ent)
         by_name = {k: v[0] for k, v in by_name.iteritems() if len(v) == 1}
         return by_name
-
-
-##
-## Event dispatch functions
-##
-
-
-def _dispatch_down_event(django_entity):
-    event = _make_chassisstate_event(django_entity)
-    event.state = event.STATE_START
-    event.varmap = {'alerttype': 'chassisDown'}
-    event.save()
-
-
-def _dispatch_up_event(django_entity):
-    event = _make_chassisstate_event(django_entity)
-    event.state = event.STATE_END
-    event.varmap = {'alerttype': 'chassisUp'}
-    event.save()
-
-
-def _make_chassisstate_event(django_entity):
-    event = Event()
-    event.source_id = 'ipdevpoll'
-    event.target_id = 'eventEngine'
-    event.device = django_entity.device
-    event.netbox = django_entity.netbox
-    event.subid = unicode(django_entity.id)
-    event.event_type_id = 'chassisState'
-    return event
-

@@ -21,13 +21,12 @@ object", in the sense that access to member attributes will not result in
 database I/O.
 
 """
-import datetime
 import IPy
 
 from django.db.models import Q
 
 from nav.models import manage, oid
-from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
+from nav.event2 import EventFactory
 
 from nav.ipdevpoll.storage import MetaShadow, Shadow
 from nav.ipdevpoll import descrparsers
@@ -102,6 +101,7 @@ class Vendor(Shadow):
 class Module(Shadow):
     __shadowclass__ = manage.Module
     __lookups__ = [('netbox', 'device'), ('netbox', 'name')]
+    event = EventFactory('ipdevpoll', 'eventEngine', 'moduleState')
 
     def prepare(self, containers):
         self._fix_binary_garbage()
@@ -160,29 +160,6 @@ class Module(Shadow):
         return other[0] if other else None
 
     @classmethod
-    def _make_modulestate_event(cls, django_module):
-        event = Event()
-        event.source_id = 'ipdevpoll'
-        event.target_id = 'eventEngine'
-        event.device = django_module.device
-        event.netbox = django_module.netbox
-        event.subid = unicode(django_module.id)
-        event.event_type_id = 'moduleState'
-        return event
-
-    @classmethod
-    def _dispatch_down_event(cls, django_module):
-        event = cls._make_modulestate_event(django_module)
-        event.state = event.STATE_START
-        event.save()
-
-    @classmethod
-    def _dispatch_up_event(cls, django_module):
-        event = cls._make_modulestate_event(django_module)
-        event.state = event.STATE_END
-        event.save()
-
-    @classmethod
     def _handle_missing_modules(cls, containers):
         """Handles modules that have gone missing from a device."""
         netbox = containers.get(None, Netbox)
@@ -201,7 +178,7 @@ class Module(Shadow):
             cls._logger.info("%d modules went missing on %s (%s)",
                              netbox.sysname, len(missing_modules), shortlist)
             for module in missing_modules:
-                cls._dispatch_down_event(module)
+                cls.event.start(module.device, module.netbox, module.id).save()
 
         if reappeared_modules:
             shortlist = ", ".join(m.name for m in reappeared_modules)
@@ -209,7 +186,7 @@ class Module(Shadow):
                              netbox.sysname, len(reappeared_modules),
                              shortlist)
             for module in reappeared_modules:
-                cls._dispatch_up_event(module)
+                cls.event.end(module.device, module.netbox, module.id).save()
 
 
     @classmethod

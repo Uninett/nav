@@ -20,6 +20,70 @@ devices to be bombarded with requests from NAV.  The `contrib/patches`
 directory contains a patch for TwistedSNMP that solves this problem.  The
 patch has been submitted upstream, but not yet accepted into a new release.
 
+NAV 4.3
+=======
+
+To see the overview of scheduled features and reported bugs on the 4.3 series
+of NAV, please go to https://launchpad.net/nav/4.3 .
+
+Dependency changes
+------------------
+
+There are none (unless you are a developer, then you should upgrade to the
+latest version of pylint).
+
+Data model changes (chassis, serial numbers, virtual devices, etc.)
+-------------------------------------------------------------------
+
+The 4.3 release changes NAV's data model in a fundamental way. Previously, NAV
+would equate an IP device (a Netbox) with a piece of physical hardware, a
+chassis, possibly with a retrievable serial number. This has become a rather
+antiquated view in modern computer networking, where multiple virtual
+components can be built from a single hardware unit, or a virtual device can
+be built by stacking multiple hardware units.
+
+The old data model would require each IP Device to have a unique serial
+number, and also for any module in any IP Device to have a unique serial
+number among all modules in all IP Devices.
+
+NAV no longer has these restrictions. The hierarchy of physical entities
+within an IP Device are collected from the ENTITY-MIB::entPhysicalTable, if
+available, and all stored in the NAV database. NAV would previously only use
+parts of this information.
+
+A SNMP-less IP Device will no longer have a corresponding (physical) Device
+entry, while a multi-chassis stack (like a Cisco VSS) will have all its
+chassis registered in the database.
+
+A set of Cisco VDCs defined within the same hardware unit will all present
+themselves as physically identical to the hardware unit. Previously, this
+would work poorly with NAV, because if its uniqueness requirement on serial
+numbers.
+
+Next, we aim to write support for collecting this type of hardware information
+from Juniper devices, which, as of this writing, only support proprietary MIBs
+to provide this information.
+
+
+The new chassisState family of alerts
+-------------------------------------
+
+NAV 4.3 introduces the `chassisState` event type, with `chassisDown` and
+`chassisUp` alerts. These can be subscribed to in Alert Profiles.
+
+In a scenario where an IP Device is a stack of multiple physical chassis, NAV
+will produce `chassisState` events if a previously known chassis disappears or
+reappears in the stack. A chassis that is removed from a stack on purpose must
+be manually deleted from NAV, just as purposefully removed modules have always
+needed to be.
+
+The eventengine will further suppress `moduleDown` alerts for modules that
+reside within a chassis that has an active `chassisDown` alert. Previously, a
+Cisco VSS that broke down would cause NAV to report a slew of `moduleDown`
+alerts, one for each of the modules in the lost chassis.
+
+
+
 NAV 4.2
 ========
 
