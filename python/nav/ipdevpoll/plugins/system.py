@@ -47,6 +47,13 @@ class System(Plugin):
     def _set_device_version(self, version):
         netbox = self.containers.factory(None, shadows.Netbox)
         chassis = shadows.NetboxEntity.get_chassis_entities(self.containers)
+        if chassis and len(chassis) == 1:
+            entity = chassis[0]
+            if not entity.software_revision:
+                entity.software_revision = version
+            if entity.device and not entity.device.software_version:
+                entity.device.software_version = version
+
         if not chassis:
             device = self.containers.factory(None, shadows.Device)
             if not device.software_version:
@@ -58,6 +65,8 @@ class System(Plugin):
                 entity.source = "SNMPv2-MIB"
                 entity.physical_class = manage.NetboxEntity.CLASS_CHASSIS
                 entity.device = device
+                entity.software_revision = version
+
 
 def parse_version(sysdescr):
     """Parses sysDescr according to known patterns and returns a software
