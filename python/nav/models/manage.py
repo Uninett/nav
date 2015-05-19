@@ -459,6 +459,58 @@ class NetboxEntity(models.Model):
         """Returns True if this is a chassis type entity"""
         return self.physical_class == self.CLASS_CHASSIS
 
+    def get_software_revision(self):
+        """Returns the software revision applicable to this entity"""
+        if not self.is_chassis():
+            return
+
+        if not self.software_revision:
+            return self._get_applicable_software_revision()
+        return self.software_revision
+
+    def _get_applicable_software_revision(self):
+        """Gets an aggregated software revision for this entity"""
+        if self.netbox.type.vendor.id == 'cisco':
+            return self._get_cisco_sup_software_version()
+
+    def _get_cisco_sup_software_version(self):
+        """Returns the supervisors software version
+
+        Finds all modules in the netbox that matches supervisor patterns and has
+        this entity as a parent. Returns the software version of the first one
+        in that list.
+        """
+        supervisor_patterns = [
+            re.compile(r'supervisor', re.I),
+            re.compile('\bSup\b'),
+            re.compile(r'WS-SUP'),
+        ]
+
+        sup_candidates = []
+        modules = NetboxEntity.objects.filter(
+            physical_class=NetboxEntity.CLASS_MODULE, netbox=self.netbox)
+
+        for pattern in supervisor_patterns:
+            for module in modules:
+                if pattern.search(module.model_name):
+                    sup_candidates.append(module)
+
+        for sup in sup_candidates:
+            parents = sup.get_parents()
+            if self in parents and sup.software_revision:
+                return sup.software_revision
+
+    def get_parents(self):
+        """Gets the parents of this entity
+
+        :rtype: list<NetboxEntity>
+        """
+        parents = []
+        if self.contained_in:
+            parents.append(self.contained_in)
+            parents += self.contained_in.get_parents()
+        return parents
+
 
 class NetboxPrefix(models.Model):
     """Which prefix a netbox is connected to.

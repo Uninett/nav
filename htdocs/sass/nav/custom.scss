@@ -218,6 +218,9 @@ li.list-header {
 
 /* This class should be used with the .inline-list class */
 ul.comma-separated {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
     li {
         margin-left: 0;
         &:after { content: ",\00A0" }

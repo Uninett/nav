@@ -79,27 +79,33 @@
       <tr>
         <th>Chassis</th>
         <td>
-            {% with netbox.get_chassis as chassis %}
-                {% if chassis %}
+          {% with netbox.get_chassis as chassis %}
+            {% if chassis %}
 
-                    <ul class="inline-list comma-separated">
-                        {% for chass in chassis %}
-                            <li>{{ chass.name }} ({{ chass.device.serial|default:"N/A" }})</li>
-                        {% endfor %}
-                    </ul>
+              <ul class="inline-list comma-separated">
+                {% for chass in chassis %}
+                  <li>
+                    {% if chass.gone_since %}
+                      <div class="alert-box inside-table warning with-icon"
+                           title="Gone since {{ chass.gone_since }}">
+                        {{ chass.name }} (serial: {{ chass.device.serial|default:"N/A" }},
+                        software: {{ chass.get_software_revision|default:"N/A" }})
+                      </div>
+                    {% else %}
+                      {{ chass.name }} (serial: {{ chass.device.serial|default:"N/A" }},
+                      software: {{ chass.get_software_revision|default:"N/A" }})
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
 
-                {% else %}
+            {% else %}
 
-                    N/A
+              N/A
 
-                {% endif %}
-            {% endwith %}
+            {% endif %}
+          {% endwith %}
         </td>
-      </tr>
-
-      <tr>
-        <th>Software</th>
-        <td>{{ netbox.device.software_version|default:"N/A" }}</td>
       </tr>
 
       <tr>
