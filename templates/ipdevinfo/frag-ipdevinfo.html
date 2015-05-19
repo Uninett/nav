@@ -82,18 +82,16 @@
           {% with netbox.get_chassis as chassis %}
             {% if chassis %}
 
-              <ul class="inline-list comma-separated">
+              <ul class="no-bullet">
                 {% for chass in chassis %}
                   <li>
+                    {{ chass.name }} (serial: {{ chass.device.serial|default:"N/A" }},
+                    software: {{ chass.get_software_revision|default:"N/A" }})
                     {% if chass.gone_since %}
-                      <div class="alert-box inside-table warning with-icon"
-                           title="Gone since {{ chass.gone_since }}">
-                        {{ chass.name }} (serial: {{ chass.device.serial|default:"N/A" }},
-                        software: {{ chass.get_software_revision|default:"N/A" }})
-                      </div>
-                    {% else %}
-                      {{ chass.name }} (serial: {{ chass.device.serial|default:"N/A" }},
-                      software: {{ chass.get_software_revision|default:"N/A" }})
+                      <span class="label alert"
+                            title="Down since {{ chass.gone_since }}">
+                        Down
+                      </span>
                     {% endif %}
                   </li>
                 {% endfor %}

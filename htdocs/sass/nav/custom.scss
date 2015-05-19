@@ -216,6 +216,20 @@ li.list-header {
     text-align: left;
 }
 
+/* Lists inside vertical tables must align properly */
+.vertitable {
+    ul, ol, dl {
+        line-height: inherit;
+        li {
+            margin-bottom: 2px;
+        }
+        li:last-of-type {
+            margin-bottom: 0;
+        }
+    }
+}
+
+
 /* This class should be used with the .inline-list class */
 ul.comma-separated {
     display: flex;
