@@ -58,6 +58,11 @@ class ModuleStateHandler(delayedstate.DelayedStateHandler):
         module.save()
 
     def _get_down_alert(self):
+        if self._is_chassis_down():
+            self._logger.info("%s: Containing chassis is down, not posting "
+                              "moduleDown", self.get_target())
+            return
+
         alert = self._get_alert()
         alert.alert_type = "moduleDown"
         return alert
@@ -71,9 +76,18 @@ class ModuleStateHandler(delayedstate.DelayedStateHandler):
 
     def _post_down_warning(self):
         """Posts the actual warning alert"""
+        if self._is_chassis_down():
+            self._logger.info("%s: Containing chassis is down, not posting "
+                              "moduleDownWarning", self.get_target())
+            return
+
         alert = self._get_alert()
         alert.alert_type = "moduleDownWarning"
         alert.state = self.event.STATE_STATELESS
         self._logger.info("%s: Posting %s alert",
                           self.get_target(), alert.alert_type)
         alert.post()
+
+    def _is_chassis_down(self):
+        chassis = self.get_target().get_chassis()
+        return chassis and chassis.gone_since
