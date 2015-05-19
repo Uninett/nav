@@ -84,7 +84,16 @@
 
               <ul class="inline-list comma-separated">
                 {% for chass in chassis %}
-                  <li>{{ chass.name }} ({{ chass.device.serial|default:"N/A" }})</li>
+                  <li>
+                    {% if chass.gone_since %}
+                      <div class="alert-box inside-table warning with-icon"
+                           title="Gone since {{ chass.gone_since }}">
+                        {{ chass.name }} ({{ chass.device.serial|default:"N/A" }})
+                      </div>
+                    {% else %}
+                      {{ chass.name }} ({{ chass.device.serial|default:"N/A" }})
+                    {% endif %}
+                  </li>
                 {% endfor %}
               </ul>
 
