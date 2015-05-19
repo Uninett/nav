@@ -281,7 +281,7 @@ define([
                 self = this,
                 description = this.$('.usercomment').val();
             alertsToChange.each(function (model) {
-                if (['Module', 'Chassis'].indexOf(model.get('subject_type')) >= 0) {
+                if (['Module', 'NetboxEntity'].indexOf(model.get('subject_type')) >= 0) {
                     ids.push(model.get('id'));
                 }
             });

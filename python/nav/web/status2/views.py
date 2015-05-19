@@ -185,16 +185,13 @@ def delete_module_or_chassis(request):
     if request.method == 'POST':
         alerts = get_alerts_from_request(
             request, event_type_filter=accepted_event_types)
-        devices = Device.objects.filter(pk__in=[x.device_id for x in alerts])
+        module_ids = [a.subid for a in alerts
+                      if a.event_type.pk == 'moduleState']
+        entity_ids = [a.subid for a in alerts
+                      if a.event_type.pk == 'chassisState']
 
-        _logger.debug(devices)
-        for module in Module.objects.filter(device__in=devices):
-            _logger.debug('Deleting module: %s', module)
-        for entity in NetboxEntity.objects.filter(device__in=devices):
-            _logger.debug('Deleting entity: %s', entity)
-
-        Module.objects.filter(device__in=devices).delete()
-        NetboxEntity.objects.filter(device__in=devices).delete()
+        Module.objects.filter(pk__in=module_ids).delete()
+        NetboxEntity.objects.filter(pk__in=entity_ids).delete()
         resolve_alerts(alerts)
         return HttpResponse()
 
