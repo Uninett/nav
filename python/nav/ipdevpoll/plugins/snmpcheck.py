@@ -20,7 +20,7 @@ import datetime
 from twisted.internet import error, defer
 from twisted.internet.defer import returnValue
 
-from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
+from nav.event2 import EventFactory
 from nav.ipdevpoll.db import commit_on_success
 from nav.models.event import AlertHistory
 from nav.ipdevpoll import Plugin, shadows, db
@@ -28,6 +28,9 @@ from nav.ipdevpoll.snmp import AgentProxy
 from nav.ipdevpoll.jobs import SuggestedReschedule
 
 SYSTEM_OID = '.1.3.6.1.2.1.1'
+EVENT = EventFactory('ipdevpoll', 'eventEngine',
+                     'snmpAgentState', 'snmpAgentDown', 'snmpAgentUp')
+
 
 class SnmpCheck(Plugin):
     """Checks that the device's SNMP agent is responding properly.
@@ -90,7 +93,6 @@ class SnmpCheck(Plugin):
         self._logger.debug("SNMP response: %r", result)
         returnValue(bool(result) and version_number)
 
-
     def _get_alternate_agent(self, version):
         """Create an alternative Agent Proxy for our host.
 
@@ -127,29 +129,11 @@ class SnmpCheck(Plugin):
 
     @commit_on_success
     def _dispatch_down_event(self):
-        event = self._make_snmpagentstate_event()
-        event.state = event.STATE_START
-        event.save()
-        var = EventVar(event_queue=event,
-                       variable='alerttype', value='snmpAgentDown')
-        var.save()
+        EVENT.start(None, self.netbox.id).save()
 
     @commit_on_success
     def _dispatch_up_event(self):
-        event = self._make_snmpagentstate_event()
-        event.state = event.STATE_END
-        event.save()
-        var = EventVar(event_queue=event,
-                       variable='alerttype', value='snmpAgentUp')
-        var.save()
-
-    def _make_snmpagentstate_event(self):
-        event = Event()
-        event.source_id = 'ipdevpoll'
-        event.target_id = 'eventEngine'
-        event.netbox_id = self.netbox.id
-        event.event_type_id = 'snmpAgentState'
-        return event
+        EVENT.end(None, self.netbox.id).save()
 
     def _set_version(self, version):
         if version in (1, 2):
