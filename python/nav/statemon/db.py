@@ -256,7 +256,7 @@ class _DB(threading.Thread):
         service handler registry.
 
         """
-        query = """SELECT serviceid, properties, value
+        query = """SELECT serviceid, property, value
         FROM serviceproperty
         order BY serviceid"""
 
@@ -279,13 +279,8 @@ class _DB(threading.Thread):
             return self._checkers
 
         self._checkers = []
-        for each in fromdb:
-            if len(each) == 8:
-                (serviceid, netboxid, active, handler, version, ip,
-                 sysname, upstate) = each
-            else:
-                debug("Invalid checker: %s" % each, 2)
-                continue
+        for (serviceid, netboxid, active, handler, version, ip,
+             sysname, upstate) in fromdb:
             checker = checkermap.get(handler)
             if not checker:
                 debug("no such checker: %s" % handler, 2)
