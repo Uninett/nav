@@ -256,7 +256,7 @@ class _DB(threading.Thread):
         service handler registry.
 
         """
-        query = """SELECT serviceid, properties, value
+        query = """SELECT serviceid, property, value
         FROM serviceproperty
         order BY serviceid"""
 
