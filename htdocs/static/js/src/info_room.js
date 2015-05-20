@@ -99,10 +99,10 @@ require(
 
         /* Custom format of search filter text */
         function format_filter_text(oSettings, iStart, iEnd, iMax, iTotal, sPre) {
-            if (iEnd == iMax) {
+            if (iEnd === iMax) {
                 return "Showing " + iMax + " entries.";
             } else {
-                var entrytext = iEnd == 1 ? "entry" : "entries";
+                var entrytext = iEnd === 1 ? "entry" : "entries";
                 return "Showing " + iEnd + " " + entrytext + " (filtered from " + iMax + " entries).";
             }
         }
@@ -141,7 +141,7 @@ require(
                 $filters = $page.find('.sub-nav dd');
 
 
-            new SensorsController($sensors);
+            var _controller = new SensorsController($sensors);
             // Apply controller for each sensor
 
             // Filter controls

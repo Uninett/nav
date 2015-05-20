@@ -227,6 +227,10 @@ class Neighbor(object):
                 'id', 'ifname', 'ifdescr', 'iftype').get(netbox & query)
         except manage.Interface.DoesNotExist:
             return None
+        except manage.Interface.MultipleObjectsReturned:
+            self._logger.info("found multiple matching interfaces on remote, "
+                              "cannot decide: %s", netbox & query)
+            return None
 
         ifc = shadows.Interface(**ifc)
         ifc.netbox = self.netbox
@@ -301,11 +305,16 @@ class LLDPNeighbor(Neighbor):
 
             if lookup:
                 try:
-                    return lookup(str(portid))
+                    result = lookup(str(portid))
                 except manage.Interface.MultipleObjectsReturned:
+                    result = None
+                if not result:
+                    # IEEE 802.1AB-2005 9.5.5.2
                     portdesc = self.record.port_desc
                     if portdesc:
                         return self._interface_from_name(str(portdesc))
+                else:
+                    return result
 
     def _interface_from_mac(self, mac):
         assert mac

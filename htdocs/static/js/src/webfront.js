@@ -14,7 +14,8 @@ require(['plugins/room_mapper', 'plugins/navlets_controller', 'libs/jquery-ui.mi
         }
 
         $(function () {
-            var controller = new NavletsController($navletsContainer);
+            var numColumns = $navletsContainer.data('widget-columns');
+            var controller = new NavletsController($navletsContainer, numColumns);
             controller.container.on('navlet-rendered', function (event, node) {
                 var mapwrapper = node.children('.mapwrapper');
                 var room_map = mapwrapper.children('#room_map');

@@ -15,7 +15,7 @@
 
 require(['plugins/quickselect'], function (QuickSelect) {
     $(document).ready(function() {
-        new QuickSelect('.quickselect');
+        var _quickselect = new QuickSelect('.quickselect');
         createTooltips();
     });
 

@@ -18,7 +18,7 @@
  * geomap.js: Shows a map with a network information overlay.
  */
 
-require(['geomap/Geomap'], function (geomap) {
+require(['geomap/GeomapPlugin'], function (geomap) {
     $(function () {
         var $timePanelToggler = $('#time-panel-toggler'),
             $icon = $timePanelToggler.find('i');

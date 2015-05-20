@@ -48,7 +48,8 @@ define([
                 },
                 autoOpen: false,
                 resizable: false,
-                width: 'auto'
+                width: 'auto',
+                appendTo: this.options.parent
             });
 
             this.selectedVlan = -1;
