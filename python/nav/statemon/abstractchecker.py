@@ -230,7 +230,7 @@ class AbstractChecker(object):
         return cmp(self.timestamp, getattr(obj, 'timestamp'), None)
 
     def __hash__(self):
-        tup = (self.serviceid, self.args, self.get_address())
+        tup = (self.serviceid, unicode(self.args), self.get_address())
         return hash(tup)
 
     def __repr__(self):

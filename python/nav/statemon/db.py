@@ -28,6 +28,7 @@ import Queue
 import time
 import atexit
 import traceback
+from collections import defaultdict
 
 import psycopg2
 from psycopg2.errorcodes import IN_FAILED_SQL_TRANSACTION
@@ -255,20 +256,18 @@ class _DB(threading.Thread):
         service handler registry.
 
         """
-        query = """SELECT serviceid, property, value
+        query = """SELECT serviceid, properties, value
         FROM serviceproperty
         order BY serviceid"""
 
-        prop = {}
+        properties = defaultdict(dict)
         try:
-            properties = self.query(query)
+            dbprops = self.query(query)
         except DbError:
             return self._checkers
-        for serviceid, prop, value in properties:
-            if serviceid not in prop:
-                prop[serviceid] = {}
+        for serviceid, prop, value in dbprops:
             if value:
-                prop[serviceid][prop] = value
+                properties[serviceid][prop] = value
 
         query = """SELECT serviceid ,service.netboxid, netbox.deviceid,
         service.active, handler, version, ip, sysname, service.up
@@ -281,7 +280,7 @@ class _DB(threading.Thread):
 
         self._checkers = []
         for each in fromdb:
-            if len(each) == 9:
+            if len(each) == 8:
                 (serviceid, netboxid, deviceid, active, handler, version, ip,
                  sysname, upstate) = each
             else:
@@ -297,7 +296,7 @@ class _DB(threading.Thread):
                 'ip': ip,
                 'deviceid': deviceid,
                 'sysname': sysname,
-                'args': prop.get(serviceid, {}),
+                'args': properties[serviceid],
                 'version': version
                 }
 
