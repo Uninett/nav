@@ -16,13 +16,14 @@
 #
 
 from django import forms
+from django.core.urlresolvers import reverse
 from django.forms.models import (BaseModelFormSet, BaseFormSet,
                                  modelformset_factory)
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column,
                                             Field, HTML, Submit)
 from nav.models.profiles import NavbarLink, Account
-from nav.web.crispyforms import LabelSubmit, CheckBox
+from nav.web.crispyforms import LabelSubmit, CheckBox, NavSubmit
 
 
 class LoginForm(forms.Form):
@@ -41,6 +42,7 @@ class LoginForm(forms.Form):
             'username', 'password', 'origin',
             Submit('submit', 'Log in', css_class='small expand')
         )
+
 
 class NavbarlinkForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -121,3 +123,23 @@ class ChangePasswordForm(forms.Form):
             del cleaned_data['new_password2']
         if 'old_password' in cleaned_data:
             del cleaned_data['old_password']
+
+
+class ColumnsForm(forms.Form):
+    """Form for choosing number of columns on webfront"""
+    _choices = [('2', '2 columns'), ('3', '3 columns'), ('4', '4 columns')]
+    num_columns = forms.ChoiceField(choices=_choices, label='Number of columns')
+
+    def __init__(self, *args, **kwargs):
+        super(ColumnsForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = reverse(
+            'webfront-preferences-setwidgetcolumns')
+
+        self.helper.layout = Layout(
+            Fieldset(
+                'Number of columns for widgets',
+                'num_columns',
+                NavSubmit('submit', 'Save')
+            )
+        )

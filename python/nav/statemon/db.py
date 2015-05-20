@@ -28,6 +28,7 @@ import Queue
 import time
 import atexit
 import traceback
+from collections import defaultdict
 
 import psycopg2
 from psycopg2.errorcodes import IN_FAILED_SQL_TRANSACTION
@@ -259,16 +260,14 @@ class _DB(threading.Thread):
         FROM serviceproperty
         order BY serviceid"""
 
-        prop = {}
+        properties = defaultdict(dict)
         try:
-            properties = self.query(query)
+            dbprops = self.query(query)
         except DbError:
             return self._checkers
-        for serviceid, prop, value in properties:
-            if serviceid not in prop:
-                prop[serviceid] = {}
+        for serviceid, prop, value in dbprops:
             if value:
-                prop[serviceid][prop] = value
+                properties[serviceid][prop] = value
 
         query = """SELECT serviceid ,service.netboxid,
         service.active, handler, version, ip, sysname, service.up
@@ -280,13 +279,8 @@ class _DB(threading.Thread):
             return self._checkers
 
         self._checkers = []
-        for each in fromdb:
-            if len(each) == 9:
-                (serviceid, netboxid, active, handler, version, ip,
-                 sysname, upstate) = each
-            else:
-                debug("Invalid checker: %s" % each, 2)
-                continue
+        for (serviceid, netboxid, active, handler, version, ip,
+             sysname, upstate) in fromdb:
             checker = checkermap.get(handler)
             if not checker:
                 debug("no such checker: %s" % handler, 2)
@@ -296,7 +290,7 @@ class _DB(threading.Thread):
                 'netboxid': netboxid,
                 'ip': ip,
                 'sysname': sysname,
-                'args': prop.get(serviceid, {}),
+                'args': properties[serviceid],
                 'version': version
                 }
 

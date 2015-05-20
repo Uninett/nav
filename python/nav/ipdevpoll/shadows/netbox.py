@@ -86,12 +86,12 @@ class Netbox(Shadow):
         netbox.type = type_
         netbox.up_to_date = False
 
-        new_device = manage.Device()
-        new_device.save()
-        netbox.device = new_device
-
         netbox.save()
 
+        # Delete interfaces and stored hardware information
         netbox.module_set.all().delete()
         netbox.interface_set.all().delete()
+        netbox.entity_set.all().delete()
+        netbox.sensor_set.all().delete()
+        netbox.powersupplyorfan_set.all().delete()
         netbox.info_set.filter(key='poll_times').delete()

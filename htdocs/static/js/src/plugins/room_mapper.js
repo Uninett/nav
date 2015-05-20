@@ -48,7 +48,7 @@ define(['libs/OpenLayers'], function () {
 
         for (var i = 0; i < rooms.length; i++) {
             if (!(rooms[i].position && rooms[i].name && rooms[i].status)) {
-                console.log('Room does not have needed members [position, name, status]')
+                console.log('Room does not have needed members [position, name, status]');
             }
             markers.addFeatures(createMarker(rooms[i], images));
         }

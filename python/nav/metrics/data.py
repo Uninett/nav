@@ -110,6 +110,9 @@ def get_metric_data(target, start="-5min", end="now"):
     except urllib2.URLError as err:
         raise errors.GraphiteUnreachableError(
             "{0} is unreachable".format(base), err)
+    except ValueError:
+        # response could not be decoded
+        return []
     finally:
         try:
             response.close()

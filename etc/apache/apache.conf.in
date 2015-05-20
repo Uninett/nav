@@ -12,7 +12,7 @@ DocumentRoot @webrootdir@
     Allow from all
 </Directory>
 
-Alias /favicon.ico @webrootdir@/images/main/favicon.ico
+Alias /favicon.ico @imagedir@/main/favicon.ico
 Alias /doc @docdir@/html
 
 Alias /uploads @localstatedir@/uploads

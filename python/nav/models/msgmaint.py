@@ -105,6 +105,15 @@ class MaintenanceTask(models.Model):
     def __unicode__(self):
         return u'"%s" by %s' % (self.description, self.author)
 
+    def full_representation(self):
+        """
+        Help function to represent a task with desc, start and end.
+        """
+        return u'%s (%s - %s)' % (
+            self.description, 
+            self.start_time,
+            ('No end time' if self.is_endless() else self.end_time))
+
     def get_components(self):
         """
         Returns the list of model objects involved in this task

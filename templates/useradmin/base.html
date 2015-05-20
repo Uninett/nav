@@ -9,6 +9,14 @@
     {% include 'nav_header.html' %}
   {% endwith %}
 
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert-box with-icon {% if message.tags %}{{ message.tags }}{% endif %}"">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+  
   {% block content %}
   {% endblock %}
 
