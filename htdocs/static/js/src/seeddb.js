@@ -193,7 +193,7 @@ require([
 
         /* Store rowcount when user changes it */
         if (Modernizr.localstorage) {
-            $wrapper.find('.dataTables_length select').change(function () {
+            $wrapper.find('.dataTables_length select').change(function (event) {
                 var newValue = $(event.target).val();
                 localStorage.setItem(key, newValue);
             });
