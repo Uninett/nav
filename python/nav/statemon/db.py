@@ -279,13 +279,8 @@ class _DB(threading.Thread):
             return self._checkers
 
         self._checkers = []
-        for each in fromdb:
-            if len(each) == 9:
-                (serviceid, netboxid, deviceid, active, handler, version, ip,
-                 sysname, upstate) = each
-            else:
-                debug("Invalid checker: %s" % each, 2)
-                continue
+        for (serviceid, netboxid, deviceid, active, handler, version, ip,
+             sysname, upstate) in fromdb:
             checker = checkermap.get(handler)
             if not checker:
                 debug("no such checker: %s" % handler, 2)
