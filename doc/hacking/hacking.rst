@@ -160,23 +160,6 @@ repository :file:`.hgignore` file.
 
 
 
-Using AJAX to access resources that require authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. WARNING:: This section may be severely outdated, please verify.
-
-As your authenticated session might have timed out due to idle (no
-activity), resources will return *500 Internal Error* if you do not supply
-the important ''//X-NAV-AJAX//'' header on your AJAX requests.
-
-So make sure to include the ''**X-NAV-AJAX**'' header so you will get
-proper HTTP response code in the reponse from your request.
-
-NAV has a shortcut for fixing this in :file:`default.js` (adds a function in
-the public namespace ``NAV``), which attaches the required handlers for *jQuery*
-by doing ``NAV.addGlobalAjaxHandlers()``.
-
-
 Database
 ========
 
@@ -350,38 +333,23 @@ build servers to run the test suite. Take a look in the
 Javascript testing
 ------------------
 
-.. WARNING:: This section is outdated. AFAIK, we use Karma now, not Buster.
-             Someone please update!
-
-Testing of Javascript is in its infancy in NAV. We are currently using
-Buster.JS_ as our testing toolkit.
-
-To install Buster.JS_, install Node.js_ and then:
+Testing javascript in NAV is straightforward. We use Karma_ as a testrunner,
+Mocha_ as testing framework and Chai_ as assertion library.
 
 .. code-block:: sh
+   
+   cd htdocs/static/js
+   
+   # Install required libs, you need npm installed
+   npm install --optional
 
-   npm install -g buster
+   # Run tests. This will start browsers. Karma will make sure that tests will
+   # run on changes in js-files.
+   ./node_modules/karma/bin/karma start test/karma.conf.js
 
-
-As we use RequireJS_, you need the AMD module of Buster as well. Install it
-in the :file:`/htdocs/js` directory:
-
-.. code-block:: sh
-
-   npm install buster-amd
-
-
-To run the tests you need to
-
-- Start a buster server by typing :kbd:`buster-server`
-- Capture browsers by pointing browsers to the buster-server (default
-  ``localhost:1111``)
-- Go to :file:`htdocs/js`
-- Run the tests by typing :kbd:`buster-test`.
-
-All tests are located under :file:`htdocs/js/tests/`. Create new tests
+All tests are located under :file:`htdocs/statis/js/test/`. Create new tests
 there. For syntax, assertions and related stuff take a look at the tests
-already there and at the `the Buster documentation`_.
+already there and the relevant documentation linked above.
 
 
 
@@ -454,3 +422,6 @@ report.
 .. _nav-mirror: https://bitbucket.org/mbrekkevold/nav-mirror/ 
 .. _Jenkins: http://jenkins-ci.org/
 .. _pylint: http://www.pylint.org/
+.. _Karma: https://github.com/karma-runner/karma-mocha
+.. _Mocha: http://mochajs.org/
+.. _Chai: http://chaijs.com/
