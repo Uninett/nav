@@ -280,7 +280,7 @@ class _DB(threading.Thread):
 
         self._checkers = []
         for each in fromdb:
-            if len(each) == 8:
+            if len(each) == 9:
                 (serviceid, netboxid, deviceid, active, handler, version, ip,
                  sysname, upstate) = each
             else:
