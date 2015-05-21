@@ -58,14 +58,15 @@ Available endpoints
 -------------------
 
 The available endpoints is listed if you go to the root of the api -
-``/api/``. For NAV 4.1 these endpoints are:
+``/api/``. These endpoints are:
 
+- "alert": "http://<host>/api/alert/"
 - "arp": "http://<host>/api/arp/"
 - "cam": "http://<host>/api/cam/"
 - "room": "http://<host>/api/room/"
 - "netbox": "http://<host>/api/netbox/"
 - "interface": "http://<host>/api/interface/"
-- "prefix": "http://<host>/api/prefix/"
+- "prefix": "http://<host>/api/prefix/" 
 - "prefix_usage": "http://<host>/api/prefix/usage"
 - "prefix_routed": "http://<host>/api/prefix/routed"
 
