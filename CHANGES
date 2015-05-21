@@ -23,6 +23,11 @@ Version 4.3.0rc1
 
   * LP#1397257 (Port Admin may not work properly for any non-HP and non-Cisco
                 device)
+  * LP#1447973 (CDP/LLDP neighbor matching fails when multiple ports match the
+                identification)
+  * LP#1447999 (Existing adjacency candidate data in db is not deleted if a
+                device's CDP cache or LLDP remote table becomes empty)
+  * LP#1448086 (Unable to identify LLDP neighbor's port in some instances)
 
 
 Version 4.2.6
