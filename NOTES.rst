@@ -76,18 +76,18 @@ number field from these files first.
 The new chassisState family of alerts
 -------------------------------------
 
-NAV 4.3 introduces the `chassisState` event type, with `chassisDown` and
-`chassisUp` alerts. These can be subscribed to in Alert Profiles.
+NAV 4.3 introduces the ``chassisState`` event type, with ``chassisDown`` and
+``chassisUp`` alerts. These can be subscribed to in Alert Profiles.
 
 In a scenario where an IP Device is a stack of multiple physical chassis, NAV
-will produce `chassisState` events if a previously known chassis disappears or
-reappears in the stack. A chassis that is removed from a stack on purpose must
-be manually deleted from NAV, just as purposefully removed modules have always
-needed to be.
+will produce ``chassisState`` events if a previously known chassis disappears
+or reappears in the stack. A chassis that is removed from a stack on purpose
+must be manually deleted from NAV, just as purposefully removed modules have
+always needed to be.
 
-The eventengine will further suppress `moduleDown` alerts for modules that
-reside within a chassis that has an active `chassisDown` alert. Previously, a
-Cisco VSS that broke down would cause NAV to report a slew of `moduleDown`
+The eventengine will further suppress ``moduleDown`` alerts for modules that
+reside within a chassis that has an active ``chassisDown`` alert. Previously,
+a Cisco VSS that broke down would cause NAV to report a slew of ``moduleDown``
 alerts, one for each of the modules in the lost chassis.
 
 
