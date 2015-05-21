@@ -79,7 +79,7 @@ class NetboxViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Makes netboxes accessible from api"""
     queryset = manage.Netbox.objects.all()
     serializer_class = serializers.NetboxSerializer
-    filter_fields = ('sysname', 'room', 'organization', 'category')
+    filter_fields = ('ip', 'sysname', 'room', 'organization', 'category')
     search_fields = ('sysname', )
 
 

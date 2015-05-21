@@ -71,7 +71,9 @@ The available endpoints is listed if you go to the root of the api -
 - "prefix_routed": "http://<host>/api/prefix/routed"
 
 These endpoints will give list output limited by page size and any optional
-search or filter parameters (more about that below). 
+search or filter parameters (more about that below).
+
+The :doc:`endpoint parameters <api_parameters>` are separately documented.
 
 
 Paging
