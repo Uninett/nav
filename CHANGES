@@ -1,3 +1,30 @@
+Version 4.3.0rc1
+(released 21 May 2015)
+
+ This release makes some fundamental changes to NAV's data model to improve
+ support for non-physical devices (like Cisco VSS and Cisco VDC). Please read
+ the release notes for further information.
+
+ User-visible features and improvements:
+
+  * LP#744943  (Add switch to toggle display of traffic lines in Geomap)
+  * LP#961212  (Show planned/active maintenance tasks for device in IP Device
+                Info)
+  * LP#1149160 (Auto-recognize HTTP URLs in reports and hyperlink them)
+  * LP#1166695 (PortAdmin available from the toolbox)
+  * LP#1169550 (NAV's data model should reflect modern reality, with virtual
+                device support)
+  * LP#1242872 (Option to turn off traffic stats in Geomap)
+  * LP#1248081 (New interface/tool to browse unrecognized neighbors)
+  * LP#1366895 (Report widget)
+  * LP#1421644 (Support Weathergoose traps from external temperature sensors)
+
+ Bugfixes:
+
+  * LP#1397257 (Port Admin may not work properly for any non-HP and non-Cisco
+                device)
+
+
 Version 4.2.6
 (released 23 Apr 2015)
 

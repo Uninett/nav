@@ -64,6 +64,14 @@ Next, we aim to write support for collecting this type of hardware information
 from Juniper devices, which, as of this writing, only support proprietary MIBs
 to provide this information.
 
+Bulk import format change
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Because of the changed data model, the serial number column in the IP Device
+(Netbox) bulk import/dump format has been removed. If you have old dump files
+that you want to bulk import into NAV 4.3's SeedDB, you must remove the serial
+number field from these files first.
+
 
 The new chassisState family of alerts
 -------------------------------------
@@ -81,6 +89,18 @@ The eventengine will further suppress `moduleDown` alerts for modules that
 reside within a chassis that has an active `chassisDown` alert. Previously, a
 Cisco VSS that broke down would cause NAV to report a slew of `moduleDown`
 alerts, one for each of the modules in the lost chassis.
+
+
+Deleting out of service modules and chassis
+-------------------------------------------
+
+When you physically remove a module to take it out of service, NAV will
+produce a ``moduleDown`` alert. To remove the module from NAV's inventory, you
+would previously need to go to the Device History tool and remove it from the
+"Delete module" tab.
+
+In NAV 4.3, deleting modules and (now) chassis, and their corresponding alerts
+is directly available as one of the bulk actions on the status page.
 
 
 
