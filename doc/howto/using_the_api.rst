@@ -2,11 +2,6 @@
 The NAV API
 ===========
 
-Disclaimer
-==========
-
-**The API in NAV 4.1 is in it's infancy.** Expect some rough edges.
-
 About
 =====
 
