@@ -414,23 +414,30 @@ class AlertSender(models.Model):
     def send(self, *args, **kwargs):
         """Sends an alert via this medium."""
         if self.handler not in self._handlers:
-            # Get config
-            if not hasattr(AlertSender, 'config'):
-                AlertSender.config = get_alertengine_config(
-                    os.path.join(nav.path.sysconfdir, 'alertengine.conf'))
-
-            # Load module
-            module = __import__(
-                'nav.alertengine.dispatchers.%s_dispatcher' % self.handler,
-                globals(), locals(), [self.handler])
-
-            # Init module with config
-            self.__class__._handlers[self.handler] = getattr(
-                module, self.handler)(config=AlertSender.config.get(
-                    self.handler, {}))
+            dispatcher_class = self._load_dispatcher_class()
+            dispatcher = dispatcher_class(
+                config=AlertSender.config.get(self.handler, {}))
+            self._handlers[self.handler] = dispatcher
+        else:
+            dispatcher = self._handlers[self.handler]
 
         # Delegate sending of message
-        return self._handlers[self.handler].send(*args, **kwargs)
+        return dispatcher.send(*args, **kwargs)
+
+    def _load_dispatcher_class(self):
+        # Get config
+        if not hasattr(AlertSender, 'config'):
+            AlertSender.config = get_alertengine_config(
+                os.path.join(nav.path.sysconfdir, 'alertengine.conf'))
+
+        # Load module
+        module = __import__(
+            'nav.alertengine.dispatchers.%s_dispatcher' % self.handler,
+            globals(), locals(), [self.handler])
+
+        # Return matching object from module based on case-insensitive match
+        namemap = {name.lower(): obj for name, obj in vars(module).items()}
+        return namemap[self.handler.lower()]
 
     def blacklist(self, reason=None):
         """Blacklists this sender/medium from further alert dispatch."""
