@@ -85,7 +85,8 @@
               <ul class="no-bullet">
                 {% for chass in chassis %}
                   <li>
-                    {{ chass.name }} (serial: {{ chass.device.serial|default:"N/A" }},
+                    {% firstof chass.name chass.model chass.device.serial 'N/A' %}
+                    (serial: {{ chass.device.serial|default:"N/A" }},
                     software: {{ chass.get_software_revision|default:"N/A" }})
                     {% if chass.gone_since %}
                       <span class="label alert"
