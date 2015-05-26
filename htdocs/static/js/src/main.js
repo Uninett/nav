@@ -1,3 +1,7 @@
+define('jquery', [], function() {
+    return jQuery;
+});
+
 require([
     'plugins/accordion_maker',
     'libs/foundation.min',
