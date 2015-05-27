@@ -69,19 +69,20 @@ class CiscoVTPMib(mibretriever.MibRetriever):
         yield result
 
     @defer.inlineCallbacks
-    def get_vlan_states(self):
-        "Retrieves the state of each VLAN on the device"
+    def get_ethernet_vlan_states(self):
+        """Retrieves the state of each ethernet VLAN on the device"""
         states = yield self.retrieve_columns(
-            ['vtpVlanState']).addCallback(self.translate_result)
+            ['vtpVlanState', 'vtpVlanType']).addCallback(self.translate_result)
 
-        result = dict((vlan, row['vtpVlanState'])
-                      for (_domain, vlan), row in states.items())
+        result = {vlan: row['vtpVlanState']
+                  for (_domain, vlan), row in states.items()
+                  if row['vtpVlanType'] == 'ethernet'}
         defer.returnValue(result)
 
     @defer.inlineCallbacks
     def get_operational_vlans(self):
-        "Retrieves a set of operational VLANs on this device"
-        states = yield self.get_vlan_states()
+        """Retrieves a set of operational ethernet VLANs on this device"""
+        states = yield self.get_ethernet_vlan_states()
         defer.returnValue(set(vlan for vlan, state in states.items()
                               if state == 'operational'))
 
