@@ -124,7 +124,8 @@ require(['libs/jquery.dataTables.min'], function() {
             "bPaginate": false,   // Do not show pagination
             "bAutoWidth": false,  // Do not calculate row width
             "oLanguage": {
-                "sInfo": "_TOTAL_ neighbors"  // Format for number of entries visible
+                "sInfo": "_TOTAL_ neighbors",  // Format for number of entries visible
+                "sSearch": "Filter:"
             },
             "aoColumnDefs": [
                 { 'bSortable': false, 'aTargets': [ 0 ] }  // Do not sort on first column
