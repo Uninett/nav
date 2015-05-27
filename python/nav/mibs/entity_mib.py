@@ -17,11 +17,15 @@
 from collections import defaultdict
 from itertools import chain
 from operator import itemgetter
+import logging
 
 from twisted.internet import defer
 
 from nav.oids import OID
 from nav.mibs import mibretriever
+
+_logger = logging.getLogger(__name__)
+
 
 class EntityMib(mibretriever.MibRetriever):
     from nav.smidumps.entity_mib import MIB as mib
@@ -253,3 +257,22 @@ class EntityTable(dict):
         dupes = dict((key, value) for key, value in dupes.iteritems()
                      if len(value) > 1)
         return dupes
+
+    def clean_unicode(self, encoding="utf-8"):
+        """Decodes every string attribute of every entity as UTF-8.
+
+        Strings that cannot be successfully decoded as UTF-8 will instead be
+        encoded as a Python string repr (and debug logged).
+        """
+        for entity in self.values():
+            for key, value in entity.items():
+                if isinstance(value, str):
+                    try:
+                        new_value = value.decode(encoding)
+                    except UnicodeDecodeError:
+                        new_value = unicode(repr(value))
+                        _logger.debug(
+                            "cannot decode %s value as %s, using python "
+                            "string repr instead: %s",
+                            key, encoding, new_value)
+                    entity[key] = new_value
