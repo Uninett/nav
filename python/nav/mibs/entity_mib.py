@@ -18,6 +18,8 @@ from collections import defaultdict
 from itertools import chain
 from operator import itemgetter
 import logging
+from datetime import datetime
+import struct
 
 from twisted.internet import defer
 
@@ -198,9 +200,17 @@ class EntityTable(dict):
 
     def clean(self):
         """Cleans the table data"""
+        self._parse_mfg_date()
         self._strip_whitespace()
         self._fix_broken_chassis_relative_positions()
         self._rename_stack_duplicates()
+
+    def _parse_mfg_date(self):
+        for entity in self.values():
+            mfg_date = entity.get('entPhysicalMfgDate')
+            if isinstance(mfg_date, basestring):
+                mfg_date = parse_dateandtime_tc(mfg_date)
+                entity['entPhysicalMfgDate'] = mfg_date
 
     def _strip_whitespace(self):
         """Strips leading/trailing whitespace from all string data within"""
@@ -276,3 +286,34 @@ class EntityTable(dict):
                             "string repr instead: %s",
                             key, encoding, new_value)
                     entity[key] = new_value
+
+
+EIGHT_OCTET_DATEANDTIME = struct.Struct("HBBBBBB")
+ELEVEN_OCTET_DATEANDTIME = struct.Struct("HBBBBBBcBB")
+UNDEFINED_DATETIME = "\x00" * 8
+
+
+def parse_dateandtime_tc(value):
+    """Parses an SNMPv2-TC::DateAndTime Textual Convention into a datetime
+    object. Timezone information is ignored by this function.
+
+    :returns: A datetime.datetime object on success, or None on failure.
+    """
+    if value == UNDEFINED_DATETIME:
+        return
+
+    try:
+        (year, month, day, hours, minutes, seconds,
+         deciseconds) = EIGHT_OCTET_DATEANDTIME.unpack(value[:8])
+    except struct.error as err:
+        _logger.debug("could not parse %r as DateAndTime TC: %s",
+                      value, err)
+        return
+
+    microseconds = deciseconds * 100000
+    try:
+        return datetime(year, month, day, hours, minutes, seconds, microseconds)
+    except ValueError as err:
+        _logger.debug("invalid value parsed from DateAndTime TC %r: %s",
+                      value, err)
+        return
