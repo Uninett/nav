@@ -71,8 +71,13 @@ require(['libs/jquery.dataTables.min'], function() {
     }
 
     function setIgnoredState(action) {
-        var checkboxes = $tableBody.find(':checked'),
-            neighborids = getCheckboxIds(checkboxes),
+        var checkboxes = $tableBody.find(':checked');
+
+        if (checkboxes.length <= 0) {
+            return;
+        }
+
+        var neighborids = getCheckboxIds(checkboxes),
             $rows = checkboxes.closest('tr');
 
         var request = $.post(setIgnoredUrl, {
