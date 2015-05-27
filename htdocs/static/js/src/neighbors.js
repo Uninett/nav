@@ -123,7 +123,7 @@ require(['libs/jquery.dataTables.min'], function() {
             "bSort": true,        // Explicitly set sorting
             "bPaginate": false,   // Do not show pagination
             "bAutoWidth": false,  // Do not calculate row width
-            "sDom": 'fit',  //  Put filter and info at the top of the table
+            "sDom": 'fti',  //  Put filter and info at the top of the table
             "oLanguage": {
                 "sInfo": "_TOTAL_ neighbors"  // Format for number of entries visible
             },
