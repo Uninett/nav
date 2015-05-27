@@ -28,19 +28,28 @@
     Show ignored neighbors
   </label>
 
+  <ul id="action-buttons" class="button-group">
+    <li>
+      <button id="ignore-selected" class="tiny">Ignore selected</button>
+    </li>
+    <li>
+      <button id="unignore-selected" class="tiny">Unignore selected</button>
+    </li>
+  </ul>
+
   {# Unrecognized neighbors #}
-  <table id="unrecognized-neighbors-table" class="listtable">
+  <table id="unrecognized-neighbors-table" class="listtable hover">
     <thead>
       <tr>
+        <th><input id="select_all" type="checkbox"></th>
         <th>Remote ID</th>
         <th>Remote Name</th>
         <th>Seen on interface</th>
         <th>Source</th>
-        <th>Since</th>
+        <th>First seen</th>
         <th>
           Ignored since
         </th>
-        <th>&nbsp;</th>
       </tr>
     </thead>
     <tbody>

@@ -1,6 +1,10 @@
 {# Fragment for loading of neighbors #}
 {% for neighbor in neighbors %}
-  <tr data-neighborid="{{ neighbor.pk }}">
+  <tr data-ignored="{{ neighbor.ignored_since|yesno:'true,false' }}">
+
+    <td>
+      <input type="checkbox" value="{{ neighbor.pk }}" />
+    </td>
 
     <td class="has-add-button">
       <span>{{ neighbor.remote_id }}</span>
@@ -29,12 +33,6 @@
     <td>{{ neighbor.since }}</td>
 
     <td class="ignored-since"> {{ neighbor.ignored_since|default:'' }} </td>
-
-    <td class="action-cell">
-      <button class="table-button"
-              data-state="{% if neighbor.ignored_since %}ignored{% else %}active{% endif %}">
-      </button>
-    </td>
 
   </tr>
 {% endfor %}

@@ -16,11 +16,10 @@
 """Controllers for displaying the neighbor app"""
 
 import logging
-import json
 
 from datetime import datetime
 from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 
 from nav.models.manage import UnrecognizedNeighbor
 from nav.web.utils import create_title
@@ -56,21 +55,20 @@ def render_page(request, extra_context):
 
 
 def set_ignored_state(request):
-    """Set ignored state on a neighbor instance"""
+    """Set ignored on a neighbor instance"""
     if request.method == 'POST':
-        nid = request.POST.get('neighborid')
-        ignored = json.loads(request.POST.get('ignored'))
+        ids = request.POST.getlist('neighborids[]')
+        action = request.POST.get('action')
 
-        _logger.debug('set_ignored_state: %s %s', nid, ignored)
+        _logger.debug('%s %s', action, ids)
 
-        neighbor = get_object_or_404(UnrecognizedNeighbor, pk=nid)
-        if ignored:
-            neighbor.ignored_since = datetime.now()
-            response = neighbor.ignored_since.strftime('%Y-%m-%d %H:%M:%S')
+        neighbors = UnrecognizedNeighbor.objects.filter(pk__in=ids)
+        if action == 'ignore':
+            neighbors.update(ignored_since=datetime.now())
+            response = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         else:
-            neighbor.ignored_since = None
+            neighbors.update(ignored_since=None)
             response = ''
-        neighbor.save()
         return HttpResponse(response)
 
     return HttpResponse("Wrong request method", status=400)

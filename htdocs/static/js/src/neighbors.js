@@ -6,17 +6,12 @@ require(['libs/jquery.dataTables.min'], function() {
     /* Global variables */
     var $table = $('#unrecognized-neighbors-table'),
         $tableBody = $table.find('tbody'),
+        dataTable,
 
         // Elements regarding selection
         $selectAll = $('#select_all'),
-        $ignoreSelected = $('#ignore_selected'),
-        $unignoreSelected = $('#unignore_selected'),
-
-        // definitions
-        stateActive = 'active',
-        stateIgnored = 'ignored',
-        stateActiveText = 'Ignore',
-        stateIgnoredText = 'Unignore',
+        $ignoreSelected = $('#ignore-selected'),
+        $unignoreSelected = $('#unignore-selected'),
 
         // Element for toggling display of ignored neighbors
         toggleIgnored = document.getElementById('toggle-ignored'),
@@ -26,8 +21,39 @@ require(['libs/jquery.dataTables.min'], function() {
         setIgnoredUrl = NAV.urls.neighbors.neighbors_set_state;
 
 
+    /** Apply all listeners */
+    function applyListeners() {
+        addToggleIgnoredHandler(dataTable);
+        addToggleAllCheckBoxesListener();
+
+        $ignoreSelected.click(function() {
+            setIgnoredState('ignore');
+        });
+
+        $unignoreSelected.click(function() {
+            setIgnoredState('unignore');
+        });
+    }
+
+
+    /** Add handler for what happens when the toggleIgnored is clicked */
+    function addToggleIgnoredHandler() {
+        $('#toggle-ignored').click(function() {
+            setIgnoredSinceVisibility();
+            dataTable.fnDraw(); // Redraw table
+        });
+    }
+
+
+    /** Set visibility on the 'ignored since' column based on toggleIgnored state */
+    function setIgnoredSinceVisibility() {
+        dataTable.fnSetColumnVis(ignoredSinceIndex, toggleIgnored.checked);
+    }
+
+
+    /** Listen to clicks on checkbox for toggling all checkboxes in column */
     function addToggleAllCheckBoxesListener() {
-        $selectAll.on('click', function() {
+        $selectAll.on('change', function() {
             var checkboxes = $tableBody.find('input[type=checkbox]');
             if (this.checked) {
                 checkboxes.prop('checked', true);
@@ -37,49 +63,47 @@ require(['libs/jquery.dataTables.min'], function() {
         });
     }
 
-
-    function ignoreSelected() {
-        
+    /** Returns values of all checkboxes as a list */
+    function getCheckboxIds(checkboxes) {
+        return checkboxes.map(function() {
+            return this.value;
+        }).get();
     }
 
-
-    /** Set ignored state on neighbor by executing a request to controller */
-    function setIgnored($row, $button, ignored, dataTable) {
-        var row = $row[0];
-
-        $button.prop('disabled', true); // Disable button to avoid spamming for requests
-        $row.find('.action-cell .alert-box').remove(); // Remove any previous error messages
+    function setIgnoredState(action) {
+        var checkboxes = $tableBody.find(':checked'),
+            neighborids = getCheckboxIds(checkboxes),
+            $rows = checkboxes.closest('tr');
 
         var request = $.post(setIgnoredUrl, {
-            neighborid: $row.data('neighborid'),
-            ignored: ignored
+            neighborids: neighborids,
+            action: action
         });
 
-        // When request is done successfully
         request.done(function(response) {
             console.log('Request was successful');
-            // To avoid confusion because a row instantly disappears,
-            // fade it out when not displaying all rows
-            if (ignored === true && !toggleIgnored.checked) {
-                $row.fadeOut(function() {
-                    dataTable.fnUpdate(response, row, ignoredSinceIndex);
-                    $row.show(); // Fadeout hides the row forever. Fix that.
+
+            // Reset all checkboxes
+            checkboxes.prop('checked', false);
+            $selectAll.prop('checked', false);
+
+            // Update datasets with new values. Set value of ignored since column
+            if (action === 'ignore') {
+                $rows.each(function() {
+                    this.dataset.ignored = 'true';
+                    dataTable.fnUpdate(response, this, ignoredSinceIndex, false);
                 });
             } else {
-                dataTable.fnUpdate(response, row, ignoredSinceIndex);
+                $rows.each(function() {
+                    this.dataset.ignored = 'false';
+                    dataTable.fnUpdate('', this, ignoredSinceIndex, false);
+                });
             }
+            dataTable.fnDraw();
         });
-
-        // In case of error give user feedback
+        
         request.fail(function() {
-            console.log('Request was not successful');
-            $row.find('.action-cell').append(
-                $('<span class="alert-box alert" style="display: inline">Error altering neighbor</span>')
-            );
-        });
-
-        request.always(function() {
-            $button.prop('disabled', false); // Re-enable button
+            console.log('Request failed');
         });
 
     }
@@ -115,23 +139,8 @@ require(['libs/jquery.dataTables.min'], function() {
         if (toggleIgnored.checked) {
             return true;        // Show everything
         } else {
-            return row.dataset.ignored.trim() === '';
+            return row.dataset.ignored === 'false';
         }
-    }
-
-
-    /** Add handler for what happens when the toggleIgnored is toggled */
-    function addToggleIgnoredHandler(dataTable) {
-        $('#toggle-ignored').click(function() {
-            setIgnoredSinceVisibility(dataTable);
-            dataTable.fnDraw(); // Redraw table
-        });
-    }
-
-
-    /** Set visibility on the 'ignored since' column based on toggleIgnored state */
-    function setIgnoredSinceVisibility(dataTable) {
-        dataTable.fnSetColumnVis(ignoredSinceIndex, toggleIgnored.checked);
     }
 
 
@@ -147,10 +156,13 @@ require(['libs/jquery.dataTables.min'], function() {
     $(function() {
         console.log('Neighbors ready');
 
-        var dataTable = applyDatatable();
-        setIgnoredSinceVisibility(dataTable);
-        addToggleIgnoredHandler(dataTable);
-        addToggleAllCheckBoxesListener();
+        dataTable = applyDatatable();
+        dataTable.on('draw.dt', function() {
+            console.log('Drawing');
+        });
+
+        setIgnoredSinceVisibility();
+        applyListeners();
 
         filterQueryParameters(dataTable);
 
