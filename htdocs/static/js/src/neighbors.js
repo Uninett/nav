@@ -162,10 +162,6 @@ require(['libs/jquery.dataTables.min'], function() {
         console.log('Neighbors ready');
 
         dataTable = applyDatatable();
-        dataTable.on('draw.dt', function() {
-            console.log('Drawing');
-        });
-
         setIgnoredSinceVisibility();
         applyListeners();
 
