@@ -111,7 +111,9 @@ define(['libs/spin.min'], function () {
                 if (this.navlet.image_reload) {
                     this.refresh = setInterval(function () {
                         /* The random part is courtesy IE */
-                        image.attr('src', imageUrl + '&bust=' + Math.random());
+                        var bustPrefix = imageUrl.indexOf('?') > -1 ? '&' : '?',
+                            bust = bustPrefix + 'bust=' + Math.random();
+                        image.attr('src', imageUrl + bust);
                     }, preferences.refresh_interval);
                 } else if (this.navlet.ajax_reload) {
                     this.refresh = setInterval(function () {
