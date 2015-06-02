@@ -50,7 +50,7 @@ Dumping the MIB
 ===============
 
 The downloaded :file:`akcp.mib` file defines a MIB module named
-``SPAGENT-MIB``. It's definitions can be converted to a Python module thus:
+``SPAGENT-MIB``. Its definitions can be converted to a Python module thus:
 
 .. code-block:: sh
 
