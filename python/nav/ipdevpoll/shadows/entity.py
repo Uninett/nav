@@ -56,6 +56,29 @@ class EntityManager(DefaultManager):
         self.existing = index.entities
         self.missing = self.existing.difference(self.matched)
 
+        self._resolve_key_transitions()
+
+    def _resolve_key_transitions(self):
+        """
+        Tries to resolve expected db integrity violations in cases where
+        entities have changed their internal index/key
+
+        """
+        entitymap = ((ent, ent.get_existing_model())
+                     for ent in self.get_managed())
+        transitioned= ((new, old) for new, old in entitymap
+                       if old and entitykey(new) != entitykey(old))
+
+        for new, old in transitioned:
+            self._logger.debug(
+                "%s has transitioned from index %s to %s, updating any "
+                "entity that is in the way in the db",
+                new.name, old.index, new.index)
+            qset = manage.NetboxEntity.objects.filter(
+                netbox_id=self.netbox.id, source=new.source, index=new.index)
+            qset.update(index=-int(new.index))
+
+
     def cleanup(self):
         if self.missing:
             w_serial = sum(int(m.device is not None) for m in self.missing)
