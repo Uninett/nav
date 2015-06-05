@@ -117,19 +117,29 @@ require(['libs/jquery.dataTables.min'], function() {
     function applyDatatable() {
         // Register new filtering function based on neighbor state
         $.fn.dataTableExt.afnFiltering.push(filterNeighborState);
+        // Add custom class to the wrapper element
+        $.fn.dataTableExt.oStdClasses.sWrapper += ' dataTables_background_white';
 
         return $table.dataTable({
             "bFilter": true,      // Explicitly set filtering
             "bSort": true,        // Explicitly set sorting
-            "bPaginate": false,   // Do not show pagination
+            "bPaginate": true,   // Do show pagination
             "bAutoWidth": false,  // Do not calculate row width
             "oLanguage": {
                 "sInfo": "_TOTAL_ neighbors",  // Format for number of entries visible
                 "sSearch": "Filter:"
             },
+            "sDom": "<flp>t<i>",   // display order of metainfo (lengthchange, info, pagination)
+            "sPaginationType": "full_numbers", // Display page numbers in pagination
             "aoColumnDefs": [
                 { 'bSortable': false, 'aTargets': [ 0 ] }  // Do not sort on first column
-            ]
+            ],
+            "fnDrawCallback": function (oSettings) {
+                /* Run this on redraw of table */
+                $('.paginate_button').removeClass('disabled').addClass('button tiny');
+                $('.paginate_active').addClass('button tiny secondary');
+                $('.paginate_button_disabled').addClass('disabled');
+            }
         });
     }
 
