@@ -7,6 +7,7 @@ require(['libs/jquery.dataTables.min'], function() {
     var $table = $('#unrecognized-neighbors-table'),
         $tableBody = $table.find('tbody'),
         dataTable,
+        $feedback = $('#ignored-feedback'),
 
         // Elements regarding selection
         $selectAll = $('#select_all'),
@@ -85,6 +86,7 @@ require(['libs/jquery.dataTables.min'], function() {
             action: action
         });
 
+        $feedback.hide();
         request.done(function(response) {
             console.log('Request was successful');
 
@@ -94,11 +96,13 @@ require(['libs/jquery.dataTables.min'], function() {
 
             // Update datasets with new values. Set value of ignored since column
             if (action === 'ignore') {
+                feedback('Neighbors ignored');
                 $rows.each(function() {
                     this.dataset.ignored = 'true';
                     dataTable.fnUpdate(response, this, ignoredSinceIndex, false);
                 });
             } else {
+                feedback('Neighbors unignored');
                 $rows.each(function() {
                     this.dataset.ignored = 'false';
                     dataTable.fnUpdate('', this, ignoredSinceIndex, false);
@@ -108,10 +112,27 @@ require(['libs/jquery.dataTables.min'], function() {
         });
         
         request.fail(function() {
+            feedbackFail('Request failed');
             console.log('Request failed');
         });
 
     }
+
+
+    function feedbackSuccess(text) {
+        feedback(text, 'success');
+    }
+
+    function feedbackFail(text) {
+        feedback(text, 'alert');
+    }
+
+    function feedback(text, type) {
+        type = typeof type === 'undefined' ? 'success' : 'alert';
+        $feedback.removeClass('success alert').addClass(type).html(text);
+        $feedback.show();
+    }
+
 
     /** Apply datatables plugin to table */
     function applyDatatable() {

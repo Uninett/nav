@@ -1,3 +1,11 @@
+#action-buttons {
+    display: inline-block;
+}
+
+#ignored-feedback {
+    display: none;
+}
+
 #unrecognized-neighbors-table {
     display: none;  // To prevent FOUC
     * { box-sizing: initial; }  // Needed for datatables to display properly
