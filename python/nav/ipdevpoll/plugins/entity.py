@@ -83,7 +83,7 @@ class Entity(Plugin):
         if ghosts:
             self._logger.info(
                 "kick your device vendor in the shin. entPhysicalContainedIn "
-                "values refer to non-existand entities: %s", ", ".join(ghosts))
+                "values refer to non-existant entities: %s", ", ".join(ghosts))
 
     field_map = {k: 'entPhysical'+v for k, v in dict(
         index='Index',

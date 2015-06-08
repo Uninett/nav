@@ -50,7 +50,7 @@ Dumping the MIB
 ===============
 
 The downloaded :file:`akcp.mib` file defines a MIB module named
-``SPAGENT-MIB``. It's definitions can be converted to a Python module thus:
+``SPAGENT-MIB``. Its definitions can be converted to a Python module thus:
 
 .. code-block:: sh
 
@@ -146,7 +146,7 @@ this output, we can surmise the following:
 
 * A total of 8 temperature sensors can be slotted in. All slots are reported
   in the table, but only the slots with an ``sensorProbeTempOnline`` value of
-  ``online`` actually have a active temperature sensor connected.
+  ``online`` actually have an active temperature sensor connected.
 
 * If we want decimal precision in our temperature readouts, we should use the
   ``sensorProbeTempDegreeRaw`` value. Unfortunately, the MIB definition says
@@ -224,7 +224,7 @@ the following keys:
 ===================  =========================================================
 Key                  Description
 ===================  =========================================================
-oid                  The OID from which a SNMP-GET operation can extract the
+oid                  The OID from which an SNMP-GET operation can extract the
                      readout value. In this example, it corresponds to
                      ``SPAGENT-MIB::sensorProbeTempDegreeRaw.0``
 unit_of_measurement  The unit of measurement, used mostly for display
