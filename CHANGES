@@ -1,5 +1,5 @@
-Version 4.3.0rc1
-(released 21 May 2015)
+Version 4.3.0
+(released 11 Jun 2015)
 
  This release makes some fundamental changes to NAV's data model to improve
  support for non-physical devices (like Cisco VSS and Cisco VDC). Please read
@@ -28,6 +28,11 @@ Version 4.3.0rc1
   * LP#1447999 (Existing adjacency candidate data in db is not deleted if a
                 device's CDP cache or LLDP remote table becomes empty)
   * LP#1448086 (Unable to identify LLDP neighbor's port in some instances)
+  * LP#1458826 (1minstats job crashes on invalid ENTITY-MIB references from
+                CISCO-PROCESS-MIB)
+  * LP#1459138 (Ignore Cisco reserved VLANs when collecting BRIDGE-MIB data)
+  * LP#1463724 (Increase frequency of module status verification)
+
 
 
 Version 4.2.6
