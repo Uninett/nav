@@ -102,6 +102,17 @@ would previously need to go to the Device History tool and remove it from the
 In NAV 4.3, deleting modules and (now) chassis, and their corresponding alerts
 is directly available as one of the bulk actions on the status page.
 
+Link, module and chassis status verification
+--------------------------------------------
+
+As part of the ipdevpoll ``inventory`` job, the ``modules`` and ``entity``
+plugins (which both collect inventory and performs status check against known
+inventory) only run every 6 hours. This is not often enough to provide a
+continuous status verification (and updated alerts).
+
+In response to this, the 5-minute interval ipdevpoll ``linkcheck`` job has
+been renamed to the more generic ``statuscheck``, and the ``modules`` and
+``entity`` plugins now additionally run as part of this job.
 
 
 NAV 4.2
