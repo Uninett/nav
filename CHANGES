@@ -21,6 +21,7 @@ Version 4.3.0
 
  Bugfixes:
 
+  * LP#1233093 (Report pages crash under psycopg2 >= 2.5)
   * LP#1397257 (Port Admin may not work properly for any non-HP and non-Cisco
                 device)
   * LP#1447973 (CDP/LLDP neighbor matching fails when multiple ports match the
@@ -32,7 +33,6 @@ Version 4.3.0
                 CISCO-PROCESS-MIB)
   * LP#1459138 (Ignore Cisco reserved VLANs when collecting BRIDGE-MIB data)
   * LP#1463724 (Increase frequency of module status verification)
-
 
 
 Version 4.2.6
