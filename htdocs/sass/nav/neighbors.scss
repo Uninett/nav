@@ -1,10 +1,9 @@
-.dataTables_wrapper > .dataTables_filter {
-    max-width: 30em;
+#action-buttons {
+    display: inline-block;
 }
 
-.dataTables_wrapper > .dataTables_info {
-    font-weight: bold;
-    padding: 0.3em 0.5em;
+#ignored-feedback {
+    display: none;
 }
 
 #unrecognized-neighbors-table {

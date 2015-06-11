@@ -108,6 +108,9 @@ def get_metric_data(target, start="-5min", end="now"):
         _logger.debug("get_metric_data: returning %d results", len(json))
         return json
     except urllib2.URLError as err:
+        if getattr(err, 'code', None) == 500:
+            _logger.error("Got a 500 error from graphite-web when fetching: %s",
+                          err.url)
         raise errors.GraphiteUnreachableError(
             "{0} is unreachable".format(base), err)
     except ValueError:
