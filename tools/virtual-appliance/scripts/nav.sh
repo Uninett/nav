@@ -1,3 +1,4 @@
+#/bin/sh -e
 # Set up NAV
 
 date > /etc/nav_box_build_time
