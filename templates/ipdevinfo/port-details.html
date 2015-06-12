@@ -47,13 +47,42 @@
   </div>
 
   <h3>Activity graphs</h3>
-  <div class="nav-metrics-container">
-    <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Octets' %}"></div>
-    <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'UcastPkts' %}"></div>
-    <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Errors' %}"></div>
-    <div class="graphitegraph left" data-url="{% url interface-counter-graph port.id 'Discards' %}"></div>
-    <div class="float-clear"></div>
-  </div>
+
+  <ul class="medium-block-grid-2">
+
+    <li>
+      <div class="rickshaw-container"
+           data-url="{% url interface-counter-graph port.id 'Octets' %}"
+           data-title="Traffic on {{ port }}"
+           data-unit="bits/s">
+      </div>
+    </li>
+
+    <li>
+      <div class="rickshaw-container"
+           data-url="{% url interface-counter-graph port.id 'UcastPkts' %}"
+           data-title="Unicast packets on {{ port }}"
+           data-unit="packets/s">
+      </div>
+    </li>
+
+    <li>
+      <div class="rickshaw-container"
+           data-url="{% url interface-counter-graph port.id 'Errors' %}"
+           data-title="Errors on {{ port }}"
+           data-unit="errors/s">
+      </div>
+    </li>
+
+    <li>
+      <div class="rickshaw-container"
+           data-url="{% url interface-counter-graph port.id 'Discards' %}"
+           data-title="Discards on {{ port }}"
+           data-unit="discards/s">
+      </div>
+    </li>
+
+  </ul>
 
   <h3>Metrics</h3>
   {% include 'ipdevinfo/port-details-metrics-frag.html' %}
