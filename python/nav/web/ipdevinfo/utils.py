@@ -428,6 +428,6 @@ def get_interface_counter_graph_url(interface, timeframe='day', kind='Octets'):
 
     return get_simple_graph_url(
         [in_series, out_series], "1" + timeframe,
-        title=title,
+        title=title, format='json',
         width=597, height=251,
         vtitle=unit or '')
