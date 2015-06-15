@@ -6,46 +6,66 @@
 
 @mixin common_header_styles() {
     display: inline-block;
-    padding: 0.7em;
+    padding: .6em;
+}
+
+@mixin datatables_background() {
+    border-radius: 3px;
+    border: 1px solid #dddddd;
+    display: inline-block;
+    table {
+        margin-bottom: 0;
+    }
+    .dataTables_filter {
+        @include common_header_styles;
+        input {
+            display: inline;
+            margin: 0;
+            width: auto;
+        }
+    }
+    .dataTables_length {
+        @include common_header_styles;
+        select {
+            margin: 0;
+        }
+    }
+    .dataTables_info {
+        @include common_header_styles;
+        font-size: 0.9em;
+        line-height: 1.6em;
+        clear: right;
+    }
+    .dataTables_paginate {
+        @include common_header_styles;
+        float: right;
+        a {
+            &.paginate_button,
+            &.paginate_active {
+                margin-left: 2px;
+                cursor: pointer;
+            }
+            &.paginate_button_disabled {
+                cursor: default;
+            }
+        }
+        .button {
+            margin-bottom: 0;
+        }
+    }
 }
 
 .dataTables_wrapper {
     /* Adds background styling to the datatable. This is very specific for
        seeddb as it also floats around elements based on what is
        enabled in seeddb */
-    &.dataTables_background {
+    &.dataTables_background, &.dataTables_background_grey {
         background-color: #eeeeee;
-        border-radius: 3px;
-        border: 1px solid #dddddd;
-        .dataTables_filter {
-            padding: 0 0.7em;
-        }
-        .dataTables_length {
-            @include common_header_styles;
-        }
-        .dataTables_info {
-            @include common_header_styles;
-            font-size: 0.9em;
-            line-height: 1.6em;
-            clear: right;
-        }
-        .dataTables_paginate {
-            @include common_header_styles;
-            float: right;
-            a {
-                &.paginate_button,
-                &.paginate_active {
-                    margin-left: 2px;
-                    cursor: pointer;
-                }
-                &.paginate_button_disabled {
-                    cursor: default;
-                }
-            }
-            .button {
-                margin-bottom: 0;
-            }
-        }
+        @include datatables_background;
+    }
+    &.dataTables_background_white {
+        background-color: white;
+        @include datatables_background;
     }
     select {
         width: auto;

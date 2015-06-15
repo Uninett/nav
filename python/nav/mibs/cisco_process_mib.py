@@ -33,7 +33,7 @@ class CiscoProcessMib(mibretriever.MibRetriever):
             TOTAL_5_MIN_REV,
             TOTAL_1_MIN_REV,
         ])
-
+        self._logger.debug("cpu load results: %r", load)
         physindexes = [row[PHYSICAL_INDEX] for row in load.itervalues()
                        if row[PHYSICAL_INDEX]]
         names = yield self._get_cpu_names(physindexes)
@@ -49,10 +49,12 @@ class CiscoProcessMib(mibretriever.MibRetriever):
     def _get_cpu_names(self, indexes):
         if not indexes:
             defer.returnValue({})
+        self._logger.debug("getting cpu names from ENTITY-MIB")
         base_oid = EntityMib.nodes['entPhysicalName'].oid
         oids = [str(base_oid + (index,)) for index in indexes]
         names = yield self.agent_proxy.get(oids)
-        names = dict((OID(oid)[-1], value) for oid, value in names.items())
+        self._logger.debug("cpu name result: %r", names)
+        names = {OID(oid)[-1]: value for oid, value in names.items() if value}
         defer.returnValue(names)
 
     def get_cpu_utilization(self):

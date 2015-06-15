@@ -21,11 +21,11 @@ shell:
 
 runtime-requirements.txt: $(top_srcdir)/requirements.txt
 	cp $< $@
-	touch -d "`hg log -l1 "$(top_srcdir)/requirements.txt" --template '{date|isodate}'`" runtime-requirements.txt
+	"$(mkfile_dir)/touchme.sh" "$(top_srcdir)/requirements.txt" runtime-requirements.txt
 
 test-requirements.txt: $(top_srcdir)/tests/requirements.txt
 	cp $< $@
-	touch -d "`hg log -l1 "$(top_srcdir)/tests/requirements.txt" --template '{date|isodate}'`" test-requirements.txt
+	"$(mkfile_dir)/touchme.sh" "$(top_srcdir)/tests/requirements.txt" test-requirements.txt
 
 name:
 	echo Image name: $(name)

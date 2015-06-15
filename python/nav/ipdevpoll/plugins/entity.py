@@ -62,6 +62,7 @@ class Entity(Plugin):
         """Process the list of collected entities."""
         # be able to look up all entities using entPhysicalIndex
         entities = EntityTable(result)
+        entities.clean_unicode()
         containers = [self._container_from_entity(entity)
                       for entity in entities.values()]
         self._fix_hierarchy(containers)
@@ -82,7 +83,7 @@ class Entity(Plugin):
         if ghosts:
             self._logger.info(
                 "kick your device vendor in the shin. entPhysicalContainedIn "
-                "values refer to non-existand entities: %s", ", ".join(ghosts))
+                "values refer to non-existant entities: %s", ", ".join(ghosts))
 
     field_map = {k: 'entPhysical'+v for k, v in dict(
         index='Index',

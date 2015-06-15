@@ -56,6 +56,29 @@ class EntityManager(DefaultManager):
         self.existing = index.entities
         self.missing = self.existing.difference(self.matched)
 
+        self._resolve_key_transitions()
+
+    def _resolve_key_transitions(self):
+        """
+        Tries to resolve expected db integrity violations in cases where
+        entities have changed their internal index/key
+
+        """
+        entitymap = ((ent, ent.get_existing_model())
+                     for ent in self.get_managed())
+        transitioned= ((new, old) for new, old in entitymap
+                       if old and entitykey(new) != entitykey(old))
+
+        for new, old in transitioned:
+            self._logger.debug(
+                "%s has transitioned from index %s to %s, updating any "
+                "entity that is in the way in the db",
+                new.name, old.index, new.index)
+            qset = manage.NetboxEntity.objects.filter(
+                netbox_id=self.netbox.id, source=new.source, index=new.index)
+            qset.update(index=-int(new.index))
+
+
     def cleanup(self):
         if self.missing:
             w_serial = sum(int(m.device is not None) for m in self.missing)
@@ -82,13 +105,18 @@ class EntityManager(DefaultManager):
         """Returns a  list of entitites that should be purged from the db"""
         graph = self._build_dependency_graph()
         to_purge = set(self.missing)
-        missing = (miss for miss in self.missing
-                   if miss.device is not None)
-        for miss in missing:
-            if miss not in to_purge:
-                continue
-            sub = subtree(graph, miss)
-            to_purge.difference_update(sub.nodes())
+        try:
+            missing = (miss for miss in self.missing
+                       if miss.device is not None)
+            for miss in missing:
+                if miss not in to_purge:
+                    continue
+                sub = subtree(graph, miss)
+                to_purge.difference_update(sub.nodes())
+        except nx.NetworkXError as err:
+            self._logger.error(
+                "Ignoring suspicious error during processing of entity "
+                "relationships in ENTITY-MIB::entPhysicalTable: %s", err)
         return to_purge
 
     def _build_dependency_graph(self):
