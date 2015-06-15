@@ -99,7 +99,6 @@ define([
             graph.initialized = true;
         }
 
-
     }
 
     return RickshawGraph;

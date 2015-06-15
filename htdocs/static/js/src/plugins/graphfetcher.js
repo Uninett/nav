@@ -22,10 +22,6 @@ define(['plugins/rickshaw_graph', 'libs/spin.min'], function (RickshawGraph) {
     function GraphFetcher(node, urls) {
         this.checkInput(node, urls);
         this.node = node;
-        this.wrapper = $('<div>')
-            .addClass('graphfetcher-wrapper')
-            .attr('style', 'display: inline-block')
-            .appendTo(this.node);
         this.urls = urls.split(';');
         this.lastUrlIndex = -1;
         this.urlIndex = 0;  // Index of this.urls
@@ -97,7 +93,7 @@ define(['plugins/rickshaw_graph', 'libs/spin.min'], function (RickshawGraph) {
             }
         },
         addButtons: function () {
-            var headerNode = $('<div>').appendTo(this.wrapper);
+            var headerNode = $('<div>').appendTo(this.node);
             this.headerNode = headerNode;
 
             for (var key in this.buttons) {
@@ -120,8 +116,9 @@ define(['plugins/rickshaw_graph', 'libs/spin.min'], function (RickshawGraph) {
             var self = this,
                 button = $('<button>').addClass('tiny secondary right').text('Add graph to dashboard');
             button.click(function () {
-                /* Image url is a redirect to graphite. Fetch proxy url and use that as preference for graph widget */
-                var url = self.wrapper.find('img').attr('src'),
+                /* Image url is a redirect to graphite. Fetch proxy url and use
+                 that as preference for graph widget */
+                var url = self.graph.dataURL,
                     headRequest = $.ajax(url, { 'type': 'HEAD' });
                 headRequest.done(function (data, status, xhr) {
                     var proxyUrl = xhr.getResponseHeader('X-Where-Am-I');
@@ -146,7 +143,7 @@ define(['plugins/rickshaw_graph', 'libs/spin.min'], function (RickshawGraph) {
             $('button', this.headerNode).each(function (index, element) {
                 $(element).removeClass('active');
             });
-            this.wrapper.find('button.graph-button-' + this.timeframe).addClass('active');
+            this.node.find('button.graph-button-' + this.timeframe).addClass('active');
         },
         loadGraph: function () {
             this.lastTimeFrame = this.timeframe;
