@@ -63,13 +63,11 @@ define([
             graph = request.graph;
 
         if (!graph.initialized) {
-            console.log('Creating stuff');
             var x_axis = new Rickshaw.Graph.Axis.Time(
                 { 
                     graph: graph,
                     timeFixture: new Rickshaw.Fixtures.Time.Local()
-                }
-            ),
+                }),
                 
                 y_axis = new Rickshaw.Graph.Axis.Y(
                     { 
