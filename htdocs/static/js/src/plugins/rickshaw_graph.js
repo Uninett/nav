@@ -11,7 +11,7 @@ define([
         container.innerHTML = template({
             graph_title: container.dataset.title,
             graph_unit: container.dataset.unit,
-            graph_y_axis: container.dataset.unit || container.dataset.yaxis
+            graph_y_axis: container.dataset.unit
         });
 
         var g = new Rickshaw.Graph.Ajax({
@@ -32,11 +32,11 @@ define([
      * Parse data from Graphite and format it so that Rickshaw understands it.
      */
     function prepareData(data, dataset) {
-        var palette = new Rickshaw.Color.Palette({ scheme: 'spectrum14' });
+        var palette = new Rickshaw.Color.Palette({ scheme: 'colorwheel' });
 
         return data.map(function(series) {
             return { 
-                name: dataset.unit || series.target, 
+                name: series.target, 
                 color: palette.color(), 
                 data: series.datapoints.map(convertToRickshaw)
             };

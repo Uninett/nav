@@ -41,7 +41,12 @@
         <tr>
           <td class="graphitegraph hidden" colspan="3"
               data-url="{% url graphite-render-url metric.id %}"
-              data-handler-id="metric-graph-{{ forloop.counter }}"></td>
+              data-handler-id="metric-graph-{{ forloop.counter }}">
+            <div class="rickshaw-container" style="width:600px;"
+                 data-title="{{ metric.id }}"
+                 data-unit="{{ metric.suffix }}"
+                 ></div>
+          </td>
         </tr>
       {% endfor %}
       </tbody>
