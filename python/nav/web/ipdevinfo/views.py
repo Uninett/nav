@@ -641,7 +641,8 @@ def get_graphite_render_url(request, metric=None):
     """Redirect to graphite graph based on request data"""
     if metric:
         return redirect(get_simple_graph_url(
-            metric, time_frame='1' + request.REQUEST.get('timeframe', 'w')))
+            metric, time_frame='1' + request.REQUEST.get('timeframe', 'w'),
+            format='json'))
     else:
         return HttpResponse(status=400)
 
