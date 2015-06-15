@@ -118,14 +118,14 @@ define(['plugins/rickshaw_graph', 'libs/spin.min'], function (RickshawGraph) {
             button.click(function () {
                 /* Image url is a redirect to graphite. Fetch proxy url and use
                  that as preference for graph widget */
-                var url = self.graph.dataURL,
+                var url = removeURLParameter(self.graph.dataURL, 'format'),
                     headRequest = $.ajax(url, { 'type': 'HEAD' });
                 headRequest.done(function (data, status, xhr) {
                     var proxyUrl = xhr.getResponseHeader('X-Where-Am-I');
                     if (proxyUrl) {
                         var request = $.post(NAV.addGraphWidgetUrl,
                             {
-                                'url': proxyUrl,
+                                'url': removeURLParameter(proxyUrl, 'format'),
                                 'target': window.location.pathname + window.location.hash
                             });
                         request.done(function () {
@@ -188,4 +188,27 @@ function escapeUrl(url) {
     return url.split('/').reduce(function(prev, curr) {
         return prev + '/' + encodeURIComponent(curr);
     });
+}
+
+function removeURLParameter(url, parameter) {
+    //prefer to use l.search if you have a location/link object
+    var urlparts= url.split('?');   
+    if (urlparts.length>=2) {
+
+        var prefix= encodeURIComponent(parameter)+'=';
+        var pars= urlparts[1].split(/[&;]/g);
+
+        //reverse iteration as may be destructive
+        for (var i= pars.length; i-- > 0;) {    
+            //idiom for string.startsWith
+            if (pars[i].lastIndexOf(prefix, 0) !== -1) {  
+                pars.splice(i, 1);
+            }
+        }
+
+        url= urlparts[0]+'?'+pars.join('&');
+        return url;
+    } else {
+        return url;
+    }
 }
