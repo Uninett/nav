@@ -2,7 +2,7 @@
     background-color: white;
     border: 1px solid gainsboro;
     position: relative;
-    padding: 2em 1em 3.3em .5em; /* Padding here affects values for y-axis */
+    padding: 2em 1em 2.5em .5em; /* Padding here affects values for y-axis */
 
     .rickshaw-graph {
         height: 300px;
@@ -68,6 +68,39 @@
         }
     }
 
+    .rickshaw-slider {
+        margin-left: 4em;
+        margin-top: 1.5em;
+        height: 0.8em;
+        position: relative;
+        text-align: left;
+        border: 1px solid #AAA;
+        div {
+            top: 0px;
+            height: 100%;
+            border: 0px none;
+            background: url("../../images/jqueryui/ui-bg_highlight-soft_75_cccccc_1x100.png") repeat-x scroll 50% 50% #CCC;
+            position: absolute;
+            z-index: 1;
+            font-size: 0.7em;
+            display: block;
+            color: #222;
+            font-weight: bold;
+        }
+        span {
+            top: -0.25em;
+            margin-left: -0.6em;
+            position: absolute;
+            z-index: 2;
+            width: 1.2em;
+            height: 1.2em;
+            cursor: default;
+            border: 1px solid #D3D3D3;
+            background: url("../../images/jqueryui/ui-bg_glass_75_e6e6e6_1x400.png") repeat-x scroll 50% 50% #E6E6E6;
+            font-weight: normal;
+            color: #555;
+        }
+    }
     
 }
 

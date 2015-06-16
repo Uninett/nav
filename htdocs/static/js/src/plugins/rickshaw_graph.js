@@ -63,19 +63,17 @@ define([
             graph = request.graph;
 
         if (!graph.initialized) {
-            var x_axis = new Rickshaw.Graph.Axis.Time(
-                { 
-                    graph: graph,
-                    timeFixture: new Rickshaw.Fixtures.Time.Local()
-                }),
+            var x_axis = new Rickshaw.Graph.Axis.Time({ 
+                graph: graph,
+                timeFixture: new Rickshaw.Fixtures.Time.Local()
+            }),
                 
-                y_axis = new Rickshaw.Graph.Axis.Y(
-                    { 
-                        graph: graph, 
-                        orientation: 'left', 
-                        element: $element.siblings('.rickshaw-y-axis')[0],
-                        tickFormat: Rickshaw.Fixtures.Number.formatKMBT
-                    }),
+                y_axis = new Rickshaw.Graph.Axis.Y({ 
+                    graph: graph, 
+                    orientation: 'left', 
+                    element: $element.siblings('.rickshaw-y-axis')[0],
+                    tickFormat: Rickshaw.Fixtures.Number.formatKMBT
+                }),
                 
                 hoverDetail = new Rickshaw.Graph.HoverDetail({
 	            graph: graph,
@@ -93,8 +91,13 @@ define([
                 shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
                     graph: graph,
                     legend: legend
+                }),
+
+                slider = new Rickshaw.Graph.RangeSlider({
+                    graph: graph,
+                    element: $element.siblings('.rickshaw-slider')[0]
                 });
-                
+            
             graph.render();
             graph.initialized = true;
         }
