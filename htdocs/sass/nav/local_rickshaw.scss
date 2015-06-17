@@ -66,10 +66,20 @@
                 bottom: -1.5em;
             }
         }
-        .detail .x_label {
-            color: white;
-            opacity: 0.8;
-            background-color: black;
+        .detail {
+            .x_label {
+                display: none;
+            }
+            .detail_swatch { 
+                float: right;
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                margin: 4px 4px 0 0 
+            }
+            .date {
+                color: hotpink;
+            }
         }
     }
 

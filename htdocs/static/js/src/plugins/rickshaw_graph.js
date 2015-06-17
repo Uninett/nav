@@ -77,8 +77,10 @@ define([
                 
                 hoverDetail = new Rickshaw.Graph.HoverDetail({
 	            graph: graph,
-                    xFormatter: function(x) {
-                        return new Date(x * 1000).toLocaleString();
+                    formatter: function(series, x, y) {
+                        var date = '<span class="date">' + new Date(x * 1000).toLocaleString() + '</span>',
+		            swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>';
+		        return swatch + series.name + ": " + parseInt(y) + '<br>' + date;
                     }
                 }),
                 
