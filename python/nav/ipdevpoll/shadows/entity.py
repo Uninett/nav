@@ -114,7 +114,7 @@ class EntityManager(DefaultManager):
                 sub = subtree(graph, miss)
                 to_purge.difference_update(sub.nodes())
         except nx.NetworkXError as err:
-            self._logger.error(
+            self._logger.warning(
                 "Ignoring suspicious error during processing of entity "
                 "relationships in ENTITY-MIB::entPhysicalTable: %s", err)
         return to_purge
