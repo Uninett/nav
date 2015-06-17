@@ -93,9 +93,9 @@ define([
                     legend: legend
                 }),
 
-                slider = new Rickshaw.Graph.RangeSlider({
+                preview = new Rickshaw.Graph.RangeSlider.Preview({
                     graph: graph,
-                    element: $element.siblings('.rickshaw-slider')[0]
+                    element: $element.siblings('.rickshaw-preview')[0]
                 });
             
             graph.render();
