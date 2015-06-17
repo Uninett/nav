@@ -77,10 +77,21 @@ define([
                 
                 hoverDetail = new Rickshaw.Graph.HoverDetail({
 	            graph: graph,
-                    formatter: function(series, x, y) {
+                    yFormatter: function(y) {
+                        if (y === null || y === 0) {
+                            return y;
+                        }
+                        var value = Number(y);
+                        if (value < Number('0.01')) {
+                            return value.toFixed(5);
+                        }
+                        return value.toFixed(2);
+                    },
+                    formatter: function(series, x, actualY, something, formattedY) {
                         var date = '<span class="date">' + new Date(x * 1000).toLocaleString() + '</span>',
-		            swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>';
-		        return swatch + series.name + ": " + parseInt(y) + '<br>' + date;
+		            swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>',
+                            seriesValue = '<span class="series-value">' + getSeriesName(series.name) + ": " + formattedY + '</span>';
+		        return swatch + seriesValue + '<br>' + date;
                     }
                 }),
                 
@@ -104,6 +115,14 @@ define([
             graph.initialized = true;
         }
 
+    }
+
+    function getSeriesName(name) {
+        var nameParts = name.split('.');
+        if (nameParts[0] === 'nav') {
+            return nameParts[nameParts.length - 1];
+        }
+        return name;
     }
 
     return RickshawGraph;
