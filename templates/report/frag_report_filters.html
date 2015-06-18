@@ -76,6 +76,25 @@
 
         </table>
         <input type="submit" class="button small" value="Filter">
+
+        <div class="row">
+          <div class="column small-12 medium-6">
+            <label>
+              Export delimiter
+              <select name="export">
+                {% for delim in delimiters %}
+                  <option value="{{ delim }}">{{ delim }}</option>
+                {% endfor %}
+              </select>
+            </label>
+          </div>
+          <div class="column small-12 medium-6">
+            <label>
+              &nbsp;
+              <button type="submit" name="exportcsv" value="1" class="prefix">Export CSV </button>
+            </label>
+          </div>
+        </div>
       </div>
 
       <div class="column medium-6">
@@ -106,27 +125,5 @@
     </div>
   </div>
   {# advblock #}
-
-
-  <div class="row">
-    <div class="column large-2 medium-4 small-12">
-      <label for="export">Delimiter: </label>
-
-      <div class="row collapse">
-        <div class="column small-4">
-          <select name="export">
-            {% for delim in delimiters %}
-              <option value="{{ delim }}">{{ delim }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="column small-8">
-          <button type="submit" name="exportcsv" value="1"
-                  class="prefix">Export CSV
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
 </form>
