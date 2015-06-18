@@ -7,7 +7,6 @@ define([
     var template = Handlebars.compile(Template);
 
     function RickshawGraph(container, url) {
-        console.log('Creating new graph');
         container.innerHTML = template({
             graph_title: container.dataset.title,
             graph_unit: container.dataset.unit,
