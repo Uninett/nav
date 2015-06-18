@@ -29,6 +29,7 @@ from nav.django.utils import get_account
 # this is just here to make sure Django finds NAV's settings file
 # pylint: disable=W0611
 from django.core.cache import cache
+from django.core.paginator import Paginator
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.http import HttpResponse, Http404, HttpResponseRedirect
@@ -244,6 +245,8 @@ def make_report(username, report_name, export_delimiter, query_dict):
     # Initiating variables used when caching
     report = contents = neg = operator = adv = result_time = None
 
+    page_size = 50             # Number of rows on a page
+
     if not report_name:
         return None
 
@@ -258,6 +261,16 @@ def make_report(username, report_name, export_delimiter, query_dict):
         del query_dict_no_meta['export']
     if 'exportcsv' in query_dict_no_meta:
         del query_dict_no_meta['exportcsv']
+
+
+    query_string = "&".join(["%s=%s" % (x, y)
+                             for x, y in query_dict.iteritems()
+                             if x != 'page_number'])
+
+    page_number = 1
+    if 'page_number' in query_dict:
+        page_number = int(query_dict['page_number'])
+        del query_dict['page_number']
 
     helper_remove = dict((key, query_dict_no_meta[key])
                          for key in query_dict_no_meta)
@@ -312,10 +325,14 @@ def make_report(username, report_name, export_delimiter, query_dict):
         return generate_export(report, report_name, export_delimiter)
     else:
 
+        paginator = Paginator(report.table.rows, page_size)
         context = {
             'heading': 'Report',
             'result_time': result_time,
             'report': report,
+            'paginator': paginator,
+            'page': paginator.page(page_number),
+            'query_string': query_string,
             'contents': contents,
             'operator': operator,
             'neg': neg,
