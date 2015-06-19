@@ -95,7 +95,7 @@ class Report(object):
         if limit or limit == 0:
             return limit
         else:
-            return 1000
+            return 100000
 
     def set_offset(self, offset):
         """Returns the offset according to the configuration, or the default.

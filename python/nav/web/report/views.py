@@ -240,12 +240,16 @@ def report_list(request):
                               RequestContext(request))
 
 
-def make_report(username, report_name, export_delimiter, query_dict):
-    """Makes a report"""
+def make_report(username, report_name, export_delimiter, query_dict,
+                page_size=50, paginate=True):
+    """Makes a report
+
+    :param page_size: The number of rows shown for each page
+    :param paginate: Introduced to be able to toggle display of the paginate
+                     elements. Used in the widget rendering.
+    """
     # Initiating variables used when caching
     report = contents = neg = operator = adv = result_time = None
-
-    page_size = 50             # Number of rows on a page
 
     if not report_name:
         return None
@@ -331,6 +335,7 @@ def make_report(username, report_name, export_delimiter, query_dict):
             'result_time': result_time,
             'report': report,
             'paginator': paginator,
+            'paginate': paginate,
             'page': paginator.page(page_number),
             'query_string': query_string,
             'contents': contents,

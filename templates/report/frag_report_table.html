@@ -5,44 +5,47 @@
 
     <caption>
 
-      {# Pagination list #}
-      <ul class="pagination right">
+      {% if paginate %}
 
-        <li>
-          <a href="?page_number=1&{{ query_string }}">First</a>
-        </li>
+        {# Pagination list #}
+        <ul class="pagination right">
 
-        {% if page.has_previous %}
-          <li class="arrow">
-            <a href="?page_number={{ page.previous_page_number }}&{{ query_string }}">&laquo;</a>
-          </li>
           <li>
-            <a href="?page_number={{ page.previous_page_number }}&{{ query_string }}">{{ page.previous_page_number }}</a>
+            <a href="?page_number=1&{{ query_string }}">First</a>
           </li>
-        {% else %}
-          <li class="arrow unavailable"><a>&laquo;</a></li>
-        {% endif %}
+
+          {% if page.has_previous %}
+            <li class="arrow">
+              <a href="?page_number={{ page.previous_page_number }}&{{ query_string }}">&laquo;</a>
+            </li>
+            <li>
+              <a href="?page_number={{ page.previous_page_number }}&{{ query_string }}">{{ page.previous_page_number }}</a>
+            </li>
+          {% else %}
+            <li class="arrow unavailable"><a>&laquo;</a></li>
+          {% endif %}
 
 
-        <li class="current"><a>{{ page.number }}</a></li>
+          <li class="current"><a>{{ page.number }}</a></li>
 
 
-        {% if page.has_next %}
+          {% if page.has_next %}
+            <li>
+              <a href="?page_number={{ page.next_page_number }}&{{ query_string }}">{{ page.next_page_number }}</a>
+            </li>
+            <li class="arrow">
+              <a href="?page_number={{ page.next_page_number }}&{{ query_string }}">&raquo;</a>
+            </li>
+          {% else %}
+            <li class="arrow unavailable"><a>&raquo;</a></li>
+          {% endif %}
+
           <li>
-            <a href="?page_number={{ page.next_page_number }}&{{ query_string }}">{{ page.next_page_number }}</a>
+            <a href="?page_number={{ paginator.page_range|last }}&{{ query_string }}">Last</a>
           </li>
-          <li class="arrow">
-            <a href="?page_number={{ page.next_page_number }}&{{ query_string }}">&raquo;</a>
-          </li>
-        {% else %}
-          <li class="arrow unavailable"><a>&raquo;</a></li>
-        {% endif %}
 
-        <li>
-          <a href="?page_number={{ paginator.page_range|last }}&{{ query_string }}">Last</a>
-        </li>
-
-      </ul>
+        </ul>
+      {% endif %}
 
       {{ report.title }}
 
@@ -76,7 +79,7 @@
 
       <tr>
         <th colspan="{{ report.table.header.cells|length }}">
-          <span>{{ paginator.object_list|length }} total rows</span>
+          <span>{{ report.table.rows|length }} total rows</span>
         </th>
       </tr>
     </tfoot>
