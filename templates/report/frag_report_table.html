@@ -11,7 +11,7 @@
         <ul class="pagination right">
 
           <li>
-            <span>Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+            <small>Page {{ page.number }} of {{ page.paginator.num_pages }}</small>
           </li>
 
           <li>
@@ -51,6 +51,10 @@
 
       {{ report.title }}
 
+      {% if paginate %}
+        <small>({{ page.start_index }} - {{ page.end_index }} of {{ page.paginator.count }})</small>
+      {% endif %}
+
     </caption>
 
     {% if report.table.header.cells %}
@@ -78,12 +82,6 @@
           {% endfor %}
         </tr>
       {% endif %}
-
-      <tr>
-        <th colspan="{{ report.table.header.cells|length }}">
-          <span>{{ report.table.rows|length }} total rows</span>
-        </th>
-      </tr>
     </tfoot>
 
     <tbody>
