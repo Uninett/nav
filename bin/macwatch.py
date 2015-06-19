@@ -100,7 +100,6 @@ def post_event(mac_watch, cam, logger):
     value = 100
     severity = 50
     event = Event(source=source, target=target,
-                  deviceid=cam.netbox.device_id,
                   netboxid=cam.netbox.id,
                   eventtypeid=eventtypeid,
                   value=value,
