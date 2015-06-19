@@ -20,14 +20,15 @@ from twisted.internet.defer import succeed
 from nav.namedtuple import namedtuple
 
 def cache_for_session(func):
-    "Decorateor for AgentProxyMixIn.getTable to cache responses"
+    """Decorator for AgentProxyMixIn.getTable to cache responses"""
     def _wrapper(*args, **kwargs):
         self, oids = args[0], args[1]
         cache = getattr(self, '_result_cache')
         key = tuple(oids)
         if key not in cache:
             df = func(*args, **kwargs)
-            df.addCallback(_cache_result, cache, key)
+            if df:
+                df.addCallback(_cache_result, cache, key)
             return df
         else:
             return succeed(cache[key])
