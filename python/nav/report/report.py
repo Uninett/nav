@@ -84,6 +84,7 @@ class Report(object):
         self.table.set_headers(headers)
 
         self.form = self.make_form(self.name)
+        self.database_error = database.error
 
     def set_limit(self, limit):
         """Returns the limit according to the configuration, or the default.
