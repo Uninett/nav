@@ -337,6 +337,8 @@ def make_report(username, report_name, export_delimiter, query_dict,
             'paginator': paginator,
             'paginate': paginate,
             'page': paginator.page(page_number),
+            'current_page_range': find_page_range(page_number,
+                                                  paginator.page_range),
             'query_string': query_string,
             'contents': contents,
             'operator': operator,
@@ -393,6 +395,29 @@ def make_report(username, report_name, export_delimiter, query_dict,
         })
 
         return context
+
+
+def find_page_range(page_number, page_range, visible_pages=5):
+    """Finds a suitable page range given current page.
+
+    Tries to make an even count of pages before and after page_number
+    """
+    length = len(page_range)
+
+    if length <= visible_pages:
+        return page_range
+
+    padding = visible_pages / 2
+    start = page_number - 1 - padding
+    if start < 0:
+        start = 0
+
+    end = start + visible_pages
+    if end >= length:
+        end = length
+        start = length - visible_pages
+
+    return page_range[start:end]
 
 
 def generate_export(report, report_name, export_delimiter):

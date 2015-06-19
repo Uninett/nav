@@ -11,6 +11,10 @@
         <ul class="pagination right">
 
           <li>
+            <span>Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+          </li>
+
+          <li>
             <a href="?page_number=1&{{ query_string }}">First</a>
           </li>
 
@@ -18,21 +22,19 @@
             <li class="arrow">
               <a href="?page_number={{ page.previous_page_number }}&{{ query_string }}">&laquo;</a>
             </li>
-            <li>
-              <a href="?page_number={{ page.previous_page_number }}&{{ query_string }}">{{ page.previous_page_number }}</a>
-            </li>
           {% else %}
             <li class="arrow unavailable"><a>&laquo;</a></li>
           {% endif %}
 
 
-          <li class="current"><a>{{ page.number }}</a></li>
+          {% for page_number in current_page_range  %}
+            <li {% if page_number == page.number %}class="current"{% endif %}>
+              <a href="?page_number={{ page_number }}&{{ query_string }}">{{ page_number }}</a>
+            </li>
+          {% endfor %}
 
 
           {% if page.has_next %}
-            <li>
-              <a href="?page_number={{ page.next_page_number }}&{{ query_string }}">{{ page.next_page_number }}</a>
-            </li>
             <li class="arrow">
               <a href="?page_number={{ page.next_page_number }}&{{ query_string }}">&raquo;</a>
             </li>
