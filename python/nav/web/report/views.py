@@ -244,7 +244,6 @@ def make_report(username, report_name, export_delimiter, query_dict,
                 paginate=True):
     """Makes a report
 
-    :param page_size: The number of rows shown for each page
     :param paginate: Introduced to be able to toggle display of the paginate
                      elements. Used in the widget rendering.
     """
