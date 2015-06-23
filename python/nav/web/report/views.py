@@ -275,6 +275,7 @@ def make_report(username, report_name, export_delimiter, query_dict,
     if 'page_number' in query_dict:
         page_number = int(query_dict['page_number'])
         del query_dict['page_number']
+        del query_dict_no_meta['page_number']
 
     helper_remove = dict((key, query_dict_no_meta[key])
                          for key in query_dict_no_meta)
