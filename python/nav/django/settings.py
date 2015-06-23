@@ -130,7 +130,14 @@ DOMAIN_SUFFIX = nav_config.get('DOMAIN_SUFFIX', None)
 
 # Cache backend. Used only for report subsystem in NAV 3.5.
 # FIXME: Make this configurable in nav.conf (or possibly webfront.conf)
-CACHE_BACKEND = 'file:///tmp/nav_cache?timeout=60'
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/tmp/nav_cache',
+        'TIMEOUT': '60'
+    }
+}
+
 
 SECRET_KEY = nav_config.get('SECRET_KEY', None) # Must be set in nav.conf!
 
