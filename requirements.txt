@@ -26,7 +26,5 @@ iso8601
 # dependencies that our dependencies forgot to mention
 ipaddr==2.1.11  # req by pynetsnmp
 
-# SNMP libraries, pick only one of them. pynetsnmp is recommended; it provides
-# better performance and IPv6 support.
-git+https://github.com/zenoss/pynetsnmp.git
-#http://downloads.sourceforge.net/project/twistedsnmp/pysnmp-se/3.5.2/pysnmp-se-3.5.2.tar.gz
+# Our own, patched version of pynetsnmp, until pull request is accepted by upstream.
+git+https://github.com/lunkwill42/pynetsnmp
