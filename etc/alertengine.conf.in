@@ -17,3 +17,8 @@
 #[jabber]
 # jid: nav@example.com
 # password: CHANGEME
+
+#[slack]
+#username: <username>
+#channel: <channel>
+#emoji: <emoji>
