@@ -8,7 +8,6 @@ existing bug reports, go to https://bugs.launchpad.net/nav .
 If you are upgrading from versions of NAV older than 3.7, please refer to the
 release notes of the in-between versions before reading any further.
 
-
 Known problems
 ==============
 
@@ -19,6 +18,26 @@ retries aren't handled properly, and this may cause slow or otherwise busy
 devices to be bombarded with requests from NAV.  The `contrib/patches`
 directory contains a patch for TwistedSNMP that solves this problem.  The
 patch has been submitted upstream, but not yet accepted into a new release.
+
+NAV 4.4
+=======
+
+Slack dispatcher
+----------------
+
+To dispatch messages to a Slack channel, you need to create a Slack channel and
+add an Incoming Webhooks integration. More information about that can be found
+at https://api.slack.com/incoming-webhooks . You will get an URL to use for
+posting messages.
+
+Then you need to add a Slack alert address to your alert profile and use this
+address in an alert subscription. The address is the URL you got when setting up
+the webhooks integration.
+
+The username, emoji and channel for the messages are defined when setting up the
+integration, but if you for some reason want to override this you can do it in
+alertengine.conf.
+
 
 NAV 4.3
 =======
