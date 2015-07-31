@@ -415,11 +415,11 @@ def get_interface_counter_graph_url(interface, timeframe='day', kind='Octets'):
     in_series = 'alias(color(stacked({0}),"00ff00cc"),"In")'.format(in_series)
     out_series = 'alias({0},"Out")'.format(out_series)
 
-    titlemap = dict(octets='Traffic on {shortname}:{ifname} {ifalias}',
-                    errors='Errors on {shortname}:{ifname} {ifalias}',
-                    ucastpkts='Unicast packets on {shortname}:{ifname}',
-                    discards='Discarded packets on {shortname}:{ifname}')
-    title = titlemap.get(kind.lower(), '{ifname}').format(
+    titlemap = dict(octets=u'Traffic on {shortname}:{ifname} {ifalias}',
+                    errors=u'Errors on {shortname}:{ifname} {ifalias}',
+                    ucastpkts=u'Unicast packets on {shortname}:{ifname}',
+                    discards=u'Discarded packets on {shortname}:{ifname}')
+    title = titlemap.get(kind.lower(), u'{ifname}').format(
         ifname=interface.ifname,
         ifalias=(u"(%s)" % interface.ifalias) if interface.ifalias else u'',
         sysname=interface.netbox.sysname,
