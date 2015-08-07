@@ -45,6 +45,8 @@ def set_log_levels():
             logger_name = ''
         logger = logging.getLogger(logger_name)
 
+        set_custom_log_target(logger, config)
+
         # Allow log levels to be specified as either names or values.
         # Translate any non-integer levels to integer first.
         if not level.isdigit():
@@ -55,6 +57,26 @@ def set_log_levels():
             # Default to INFO
             level = logging.INFO
         logger.setLevel(level)
+
+
+def set_custom_log_target(logger, config):
+    """Set custom log target for this logger
+
+    :param logger: The Logger instance to add a filehandler to
+    :type logger: logging.Logger
+    :param config: The ConfigParser specifying the file to log to
+    :type config: ConfigParser.ConfigParser
+    """
+    logdir = os.path.join(nav.path.localstatedir, 'log')
+
+    custom_target = (config.has_section('targets') and
+                     config.has_option('targets', logger.name))
+
+    if custom_target:
+        filename = config.get('targets', logger.name)
+        filehandler = logging.FileHandler(os.path.join(logdir, filename))
+        filehandler.setFormatter(DEFAULT_LOG_FORMATTER)
+        logger.addHandler(filehandler)
 
 
 def get_logging_conf():
