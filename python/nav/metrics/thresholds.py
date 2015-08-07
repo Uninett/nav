@@ -134,8 +134,9 @@ class ThresholdEvaluator(object):
         start = "-{0}".format(interval_to_graphite(self.period))
         averages = get_metric_average(
             self.target, start=start, end='now', ignore_unknown=True)
-        _logger.debug("retrieved %d values from graphite for %r",
-                      len(averages), self.target)
+        _logger.debug("retrieved %d values from graphite for %r, "
+                      "period %s: %r",
+                      len(averages), self.target, self.period, averages)
         self.result = dict((extract_series_name(key), dict(value=value))
                            for key, value in averages.iteritems())
         return self.result
