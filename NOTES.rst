@@ -34,9 +34,9 @@ Then you need to add a Slack alert address to your alert profile and use this
 address in an alert subscription. The address is the URL you got when setting up
 the webhooks integration.
 
-The username, emoji and channel for the messages are defined when setting up the
-integration, but if you for some reason want to override this you can do it in
-alertengine.conf.
+The username, emoji user-icon and channel for the messages are defined when
+setting up the integration, but if you for some reason want to override this you
+can do it in alertengine.conf.
 
 
 NAV 4.3

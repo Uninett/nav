@@ -19,6 +19,12 @@
 # password: CHANGEME
 
 #[slack]
+# Verify SSL-certificate
+#verify: True
+
+# Slack channel options
 #username: <username>
 #channel: <channel>
-#emoji: <emoji>
+
+# The user icon for the user posting to the channel
+#emoji: <emoji user-icon>

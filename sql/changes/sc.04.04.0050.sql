@@ -1,2 +1,2 @@
 -- Insert Slack alertsender
-INSERT INTO alertsender VALUES (4, 'Slack', 'slack');
+INSERT INTO alertsender (id, name, handler) VALUES (4, 'Slack', 'slack');
