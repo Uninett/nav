@@ -29,6 +29,12 @@ LOGGING_CONF_FILE_DEFAULT = os.path.join(nav.path.sysconfdir, 'logging.conf')
 _logger = logging.getLogger(__name__)
 
 
+def set_log_config():
+    """Set log levels and custom log files"""
+    set_log_levels()
+    set_custom_log_file()
+
+
 def set_log_levels():
     """
     Read the logging config file and set up log levels for the different
@@ -44,36 +50,42 @@ def set_log_levels():
         if logger_name.lower() == 'root':
             logger_name = ''
         logger = logging.getLogger(logger_name)
-
-        set_custom_log_target(logger, config)
-
-        # Allow log levels to be specified as either names or values.
-        # Translate any non-integer levels to integer first.
-        if not level.isdigit():
-            level = logging.getLevelName(level)
-        try:
-            level = int(level)
-        except ValueError:
-            # Default to INFO
-            level = logging.INFO
-        logger.setLevel(level)
+        logger.setLevel(translate_log_level(level))
 
 
-def set_custom_log_target(logger, config):
-    """Set custom log target for this logger
+def translate_log_level(level):
+    """Allow log levels to be specified as either names or values.
 
-    :param logger: The Logger instance to add a filehandler to
-    :type logger: logging.Logger
-    :param config: The ConfigParser specifying the file to log to
-    :type config: ConfigParser.ConfigParser
+    Translate any non-integer levels to integer first.
     """
+    if not level.isdigit():
+        level = logging.getLevelName(level)
+    try:
+        level = int(level)
+    except ValueError:
+        # Default to INFO
+        level = logging.INFO
+
+    return level
+
+
+def set_custom_log_file():
+    """Read logging config and add additional file handlers to specified logs"""
+
     logdir = os.path.join(nav.path.localstatedir, 'log')
+    config = get_logging_conf()
+    section = 'files'
 
-    custom_target = (config.has_section('targets') and
-                     config.has_option('targets', logger.name))
+    if section not in config.sections():
+        return
 
-    if custom_target:
-        filename = config.get('targets', logger.name)
+    for logger_name in config.options(section):
+        filename = config.get(section, logger_name)
+        # Allow the config file to specify the root logger as 'root'
+        if logger_name.lower() == 'root':
+            logger_name = ''
+        logger = logging.getLogger(logger_name)
+
         filehandler = logging.FileHandler(os.path.join(logdir, filename))
         filehandler.setFormatter(DEFAULT_LOG_FORMATTER)
         logger.addHandler(filehandler)
@@ -167,7 +179,7 @@ def init_stderr_logging(formatter=None):
     to sys.stderr.
 
     """
-    set_log_levels()
+    set_log_config()
 
     handler = logging.StreamHandler(sys.stderr)
     formatter = formatter or DEFAULT_LOG_FORMATTER

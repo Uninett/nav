@@ -61,7 +61,7 @@ def init_logging(log_file=None, log_format=None):
             if formatter:
                 handler.setFormatter(formatter)
             root.addHandler(handler)
-        nav.logs.set_log_levels()
+        nav.logs.set_log_config()
     return _logger
 
 

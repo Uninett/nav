@@ -593,7 +593,7 @@ def get_config(configfile):
 
 def init_logging(logfile):
     """Create logger for logging to file"""
-    logs.set_log_levels()
+    logs.set_log_config()
 
     filehandler = logging.FileHandler(logfile)
     formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] '
