@@ -24,6 +24,7 @@ class NetboxSerializer(serializers.ModelSerializer):
     """Serializer for the netbox model"""
     class Meta(object):
         model = manage.Netbox
+        depth = 1
 
 
 class InterfaceSerializer(serializers.ModelSerializer):

@@ -4,6 +4,7 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
     var mainTabsSelector = '#ipdevinfotabs';
     var metricTabsSelector = "#metrictabs";
     var moduleTabsSelector = '#moduletabs';
+    var activityRecheckSelector = '#switchport_activity_recheck';
 
     $(document).ready(function () {
         // Plug row toggler on datasources
@@ -89,35 +90,25 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
      * Add listener to button to recheck switch port activity
      */
     function addActivityButtonListener(event, element) {
-        if (element.index !== 1) {
-            return;
+        if (element.tab.attr('id') === 'swportactivetab') {
+            $(activityRecheckSelector).find('input[type=submit]').on('click', function (event) {
+                event.preventDefault();
+                addIntervalToRequest();
+                $(moduleTabsSelector).tabs('load', element.tab.index());
+            });
         }
-        var activityTab = findActivityTab();
-        var button = activityTab.find('form input[type=submit]');
-
-        button.click(function (event) {
-            event.preventDefault();
-            addIntervalToRequest();
-            $(moduleTabsSelector).tabs('load', 1);
-        });
-    }
-
-    function findActivityTab() {
-        var widget = $(moduleTabsSelector).tabs('widget');
-        return $('#ui-tabs-2', widget);
     }
 
     function addIntervalToRequest() {
-        $(moduleTabsSelector).tabs("option", "ajaxOptions", {
-            data: {
-                'interval': getActivityInterval()
+        $(moduleTabsSelector).tabs({
+            beforeLoad: function(event, ui) {
+                ui.ajaxSettings.url += '?interval=' + getActivityInterval();
             }
         });
     }
 
     function getActivityInterval() {
-        var activityTab = findActivityTab();
-        return $('form input[type=text]', activityTab).val();
+        return $(activityRecheckSelector).find('input[type=text]').val();
     }
 
 });

@@ -396,6 +396,7 @@ def open_port(identity, username, eventcomment=""):
     identity.last_changed = datetime.now()
     identity.fromvlan = None
     identity.tovlan = None
+    identity.autoenable = None
     identity.save()
 
     event = Event(identity=identity, comment=eventcomment, action='enabled',

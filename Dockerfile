@@ -37,7 +37,7 @@ RUN apt-get update \
     && \
     apt-get clean
 
-RUN pip install whisper carbon graphite-web django-tagging
+RUN pip install whisper carbon graphite-web django-tagging==0.3.4
 
 RUN gem install --version '3.3.9' sass ;\
     gem install --version '~> 0.9' rb-inotify
