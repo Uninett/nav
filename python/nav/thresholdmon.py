@@ -73,7 +73,7 @@ def init_logging():
         root.addHandler(stdout_handler)
 
     import nav.logs
-    nav.logs.set_log_levels()
+    nav.logs.set_log_config()
 
 
 def scan():

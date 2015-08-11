@@ -70,7 +70,7 @@ def initialize_logging(options=None):
     root_logger = logging.getLogger('')
     root_logger.addHandler(stderr_handler)
 
-    nav.logs.set_log_levels()
+    nav.logs.set_log_config()
 
     if not options.foreground:
         file_handler = logging.FileHandler(LOGFILE, 'a')
@@ -120,7 +120,7 @@ def sighup_handler(_signum, _frame):
     nav.daemon.redirect_std_fds(
         stderr=nav.logs.get_logfile_from_logger())
     nav.logs.reset_log_levels()
-    nav.logs.set_log_levels()
+    nav.logs.set_log_config()
     _logger.info("Log files reopened, log levels reloaded.")
 
 
