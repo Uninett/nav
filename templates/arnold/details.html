@@ -9,40 +9,43 @@
   {% endif %}
 
   {% comment %} Display info for this identity {% endcomment %}
-  <table class="listtable">
+  <table class="vertitable left" style="margin-right: 2em;">
     <caption>Details for {{ identity.ip }}</caption>
 
-    <thead>
+    <tbody>
+
       <tr>
         <th>Ip</th>
-        <th>Dns</th>
-        <th>Netbios</th>
-        <th>Mac</th>
-        <th>Switch</th>
-        <th>Port</th>
-        <th>Vlan</th>
-        <th>Status</th>
-        <th>Autoenable</th>
-        <th>Mail</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      <tr>
         <td>
-          <a href="{% url machinetracker-ip_short_search identity.ip 100 'on' %}" 
+          <a href="{% url machinetracker-ip_short_search identity.ip 100 'on' %}"
              title="Link to Machine Tracker">
             {{ identity.ip }}
           </a>
         </td>
+      </tr>
+
+      <tr>
+        <th>Dns</th>
         <td>{{ identity.dns }}</td>
+      </tr>
+
+      <tr>
+        <th>Netbios</th>
         <td>{{ identity.netbios }}</td>
+      </tr>
+
+      <tr>
+        <th>Mac</th>
         <td>
-          <a href="{% url machinetracker-mac_search identity.mac 100 'on' %}" 
+          <a href="{% url machinetracker-mac_search identity.mac 100 'on' %}"
              title="Link to Machine Tracker">
             {{ identity.mac }}
           </a>
         </td>
+      </tr>
+
+      <tr>
+        <th>Switch</th>
         <td>
           {% if identity.interface %}
             <a href="{% url ipdevinfo-details-by-name identity.interface.netbox.sysname %}"
@@ -53,6 +56,10 @@
             Last interface was {{ identity.textual_interface }}
           {% endif %}
         </td>
+      </tr>
+
+      <tr>
+        <th>Port</th>
         <td>
           {% if identity.interface %}
             <a href="{% url ipdevinfo-interface-details identity.interface.netbox.sysname identity.interface.id %}"
@@ -62,16 +69,47 @@
           {% if identity.interface %}
             </a>
           {% endif %}
-
-
         </td>
-        <td>{{ identity.interface.vlan|default_if_none:'' }}</td>
-        <td>{{ identity.status }}</td>
+      </tr>
+
+      <tr>
+        <th>Vlan</th>
+        <td>
+          {{ identity.interface.vlan|default_if_none:'' }}
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          Status
+        </th>
+        <td>
+          {{ identity.status }}
+          {% if identity.status != 'enabled' %}
+            <a href="{% url arnold-choose-detentions identity.id %}"
+               class="button table-button right">
+              {% if identity.interface %}
+                Enable
+              {% else %}
+                Close detention
+              {% endif %}
+            </a>
+          {% endif %}
+        </td>
+      </tr>
+
+      <tr>
+        <th>Autoenable</th>
         <td>
           {{ identity.autoenable|date:'DATETIME_FORMAT'|default_if_none:'' }}
         </td>
+      </tr>
+
+      <tr>
+        <th>Mail</th>
         <td>{{ identity.mail }}</td>
       </tr>
+
     </tbody>
 
   </table>
@@ -80,7 +118,7 @@
   {% comment %}Display list of events regarding this identity{% endcomment %}
   {% with identity.event_set.all as events %}
 
-    <table class="listtable">
+    <table class="listtable left">
       <caption>History</caption>
 
       <thead>
