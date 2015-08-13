@@ -78,7 +78,6 @@ class EntityManager(DefaultManager):
                 netbox_id=self.netbox.id, source=new.source, index=new.index)
             qset.update(index=-int(new.index))
 
-
     def cleanup(self):
         if self.missing:
             w_serial = sum(int(m.device is not None) for m in self.missing)
@@ -105,6 +104,8 @@ class EntityManager(DefaultManager):
         """Returns a  list of entitites that should be purged from the db"""
         graph = self._build_dependency_graph()
         to_purge = set(self.missing)
+        if not graph:
+            return to_purge
         try:
             missing = (miss for miss in self.missing
                        if miss.device is not None)
