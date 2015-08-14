@@ -18,18 +18,71 @@ require(['plugins/graphfetcher'], function (GraphFetcher) {
      * be populated with buttons for choosing timeframe for all graphs
      */
 
+    var graphsToOpen = 5, lastOpenGraph, lastOpenedIndex;  // Used for lazyloading
+    
+    /**
+     * Handler for showing and hiding all graphs. We apply a lazyloader when
+     * opening all graphs, so that graphs are opened when scrolling down the
+     * page.
+     */
     function addToggleListeners($parent, graphs) {
-        /* Add listeners for opening and closing all graphs */
-        $parent.find('.all-graph-opener').click(function () {
-            for (var i = 0, l = graphs.length; i < l; i++) {
-                graphs[i].open();
+
+        // Handler for the scroll event. Remember that this runs MANY times
+        var scrollHandler = function() {
+            if (lastOpenGraph) {
+                var bounds = lastOpenGraph.getBoundingClientRect();
+                if (bounds.bottom - $(window).height() < 0) {
+                    lastOpenedIndex = openGraphs(graphs, lastOpenedIndex);
+                }
             }
+        };
+
+        // Open button clicked. Open first graphs and add scroll event handler
+        // for lazy loading
+        $parent.find('.all-graph-opener').click(function () {
+            lastOpenedIndex = openGraphs(graphs);
+            $(window).on('scroll', scrollHandler);
         });
+
+        // Hide-button clicked. Reset scroll vars, unbind event handler and
+        // close all graphs.
         $parent.find('.all-graph-closer').click(function () {
+            resetScrollCounters(scrollHandler);
             for (var i = 0, l = graphs.length; i < l; i++) {
                 graphs[i].close();
             }
         });
+    }
+
+
+    /**
+     * Reset global scroll vars and unbind the scroll event handler.
+     */
+    function resetScrollCounters(scrollHandler) {
+        $(window).off('scroll', scrollHandler);
+        lastOpenGraph = null;
+        lastOpenedIndex = 0;
+    }
+
+    /**
+     * Open 'graphToOpen' number of graphs starting at start-index. Set the last
+     * opened graph as that is used by the lazyloader to see if we are to load
+     * more.
+     * @param {array} graphs The list of graphs available
+     * @param {integer} [start] Index of graphs to start
+     */
+    function openGraphs(graphs, start) {
+        start = typeof start === 'undefined' ? 0 : start;
+        console.log(start);
+        var hasOpened = 0;
+        for (var i = start, l = graphs.length; i < l && hasOpened < graphsToOpen; i++) {
+            console.log('Opening graph ' + i + ' hasOpened: ' + hasOpened);
+            graphs[i].open();
+            hasOpened++;
+        }
+
+        lastOpenGraph = graphs[i-1].node[0];
+        return i;
     }
 
     function addGraphUrlSwitcher($parent, graphs) {
