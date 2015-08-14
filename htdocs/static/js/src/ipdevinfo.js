@@ -1,4 +1,4 @@
-require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "plugins/jquery_ui_helpers", "plugins/graphfetcher_controller", "libs/jquery", "libs/jquery-ui.min", "plugins/rickshaw_controller"
+require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "plugins/jquery_ui_helpers", "plugins/graphfetcher_controller", "libs/jquery", "libs/jquery-ui.min", "plugins/rickshaw_graph"
 ], function (TableUtil, TabNavigation, NeighborMap, JUIHelpers) {
 
     var mainTabsSelector = '#ipdevinfotabs';
