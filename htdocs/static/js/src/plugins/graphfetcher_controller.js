@@ -73,10 +73,8 @@ require(['plugins/graphfetcher'], function (GraphFetcher) {
      */
     function openGraphs(graphs, start) {
         start = typeof start === 'undefined' ? 0 : start;
-        console.log(start);
         var hasOpened = 0;
         for (var i = start, l = graphs.length; i < l && hasOpened < graphsToOpen; i++) {
-            console.log('Opening graph ' + i + ' hasOpened: ' + hasOpened);
             graphs[i].open();
             hasOpened++;
         }
