@@ -1,4 +1,13 @@
-require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map", "plugins/jquery_ui_helpers", "plugins/graphfetcher_controller", "libs/jquery", "libs/jquery-ui.min", "plugins/rickshaw_graph"
+require([
+    "plugins/table_utils",
+    "plugins/tab_navigation",
+    "plugins/neighbor-map",
+    "plugins/jquery_ui_helpers",
+    "plugins/graphfetcher_controller",
+    "libs/jquery",
+    "libs/jquery-ui.min",
+    "libs/jquery.sparkline",
+    "plugins/rickshaw_graph"
 ], function (TableUtil, TabNavigation, NeighborMap, JUIHelpers) {
 
     var mainTabsSelector = '#ipdevinfotabs';
@@ -26,6 +35,12 @@ require(["plugins/table_utils", "plugins/tab_navigation", "plugins/neighbor-map"
         if ($neighbornode.length) {
             new NeighborMap($neighbornode.get(0));
         }
+
+        var options = {type: 'line'};
+        $('.sparkline').each(function(index, element) {
+            var $element = $(element);
+            $element.sparkline($element.data('values'), options);
+        });
     });
 
     function addModuleTabs() {

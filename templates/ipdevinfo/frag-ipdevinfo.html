@@ -392,7 +392,8 @@
             <td title="Next run expected at {{ job.end_time|add_interval:job.interval|date:"DATETIME_FORMAT" }}">
               {{ job.end_time|date:"DATETIME_FORMAT" }}
             </td>
-            <td class="cell-right">
+            <td>
+              <span class="sparkline" data-values="{{ job.get_last_runtimes }}"></span>
               {{ job.duration|stringformat:".2f" }}s
             </td>
             <td class="cell-center">

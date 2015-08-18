@@ -1691,6 +1691,19 @@ class IpdevpollJobLog(models.Model):
         """Returns True if this job ran and had an actual result"""
         return self.success is not None
 
+    def get_last_runtimes(self, job_count=30):
+        """Get the last runtimes for these jobs on this netbox
+
+        Does not verify that the jobs are sequential, there may be large gaps
+        between the actual runtimes.
+        """
+        runtimes = list(IpdevpollJobLog.objects.filter(
+            job_name=self.job_name, netbox=self.netbox).order_by(
+                '-end_time').values_list(
+                    'duration', flat=True)[:job_count])
+        runtimes.reverse()
+        return runtimes
+
 
 class Netbios(models.Model):
     """Model representing netbios names collected by the netbios tracker"""
