@@ -1695,12 +1695,17 @@ class IpdevpollJobLog(models.Model):
         """Get the last runtimes for these jobs on this netbox
 
         Does not verify that the jobs are sequential, there may be large gaps
-        between the actual runtimes.
+        between the actual runs.
+
+        :returns: A list of lists where the first element is local seconds since
+                  epoch and second element is the runtime
         """
-        runtimes = list(IpdevpollJobLog.objects.filter(
+        jobs = IpdevpollJobLog.objects.filter(
             job_name=self.job_name, netbox=self.netbox).order_by(
-                '-end_time').values_list(
-                    'duration', flat=True)[:job_count])
+                '-end_time')[:job_count]
+        runtimes = [
+            [int((j.end_time - dt.datetime(1970, 1, 1)).total_seconds()),
+            j.duration] for j in jobs]
         runtimes.reverse()
         return runtimes
 

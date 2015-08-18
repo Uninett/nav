@@ -36,11 +36,8 @@ require([
             new NeighborMap($neighbornode.get(0));
         }
 
-        var options = {type: 'line'};
-        $('.sparkline').each(function(index, element) {
-            var $element = $(element);
-            $element.sparkline($element.data('values'), options);
-        });
+
+        addSparkLinesToJobs();
     });
 
     function addModuleTabs() {
@@ -124,6 +121,27 @@ require([
 
     function getActivityInterval() {
         return $(activityRecheckSelector).find('input[type=text]').val();
+    }
+
+    function addSparkLinesToJobs() {
+        var formatter = function(sparkline, options, fields) {
+            /* The x value is seconds since epoch in local timezone. As
+               toLocaleString converts based on UTC values, we cheat and say
+             that the timeZone is UTC while keeping the formatting local */
+            var date = new Date(fields.x * 1000).toLocaleString({}, {timeZone: 'UTC'});
+            return '<div class="jqsfield"><span style="color: ' + fields.color + '">&#9679</span> ' + fields.y + '<br/> ' + date + '</div>';
+        };
+
+        var options = {
+            type: 'line',
+            tooltipFormatter: formatter
+        };
+
+        $('#ipdevpoll-jobs .sparkline').each(function() {
+            var $element = $(this);
+            $element.sparkline($element.data('values'), options);
+        });
+
     }
 
 });
