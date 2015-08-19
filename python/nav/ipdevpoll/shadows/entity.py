@@ -21,6 +21,7 @@ from datetime import datetime
 from nav.toposort import build_graph, topological_sort
 
 from nav.ipdevpoll.storage import Shadow, DefaultManager
+from nav.ipdevpoll import db
 from nav.models import manage
 from nav.event2 import EventFactory
 from .netbox import Netbox
@@ -132,6 +133,7 @@ class EntityManager(DefaultManager):
 
         return graph
 
+    @db.commit_on_success
     def _verify_stack_degradation(self, missing):
         chassis_count = sum(e.physical_class == e.CLASS_CHASSIS
                             for e in self.existing)
@@ -149,7 +151,6 @@ class EntityManager(DefaultManager):
                                  ", ".join(c.name for c in chassis))
         for chass in chassis:
             chassis_event.start(chass.device, chass.netbox, chass.id).save()
-
 
     def get_managed(self):
         """
@@ -203,6 +204,7 @@ class NetboxEntity(Shadow):
         self._check_for_resolved_chassis_outage()
         super(NetboxEntity, self).save(containers)
 
+    @db.commit_on_success
     def _check_for_resolved_chassis_outage(self):
         if self.physical_class != manage.NetboxEntity.CLASS_CHASSIS:
             return
