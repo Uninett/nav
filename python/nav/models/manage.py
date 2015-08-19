@@ -447,12 +447,16 @@ class NetboxEntity(models.Model):
 
     def __unicode__(self):
         klass = (self.get_physical_class_display() or '').capitalize()
-        title = self.name
+        title = self.name or '(Unnamed entity)'
         if klass and not title.strip().lower().startswith(klass.lower()):
             title = "%s %s" % (klass, title)
 
+        try:
+            netbox = self.netbox
+        except Netbox.DoesNotExist:
+            netbox = '(Unknown netbox)'
         return "{title} at {netbox}".format(
-            title=title, netbox=self.netbox
+            title=title, netbox=netbox
         )
 
     def is_chassis(self):

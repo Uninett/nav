@@ -236,6 +236,8 @@ def get_address_info(request):
             addresses = [x[4][0] for x in sorted_tuples]
         except socket.error, error:
             context = {'error': str(error)}
+        except UnicodeError, error:
+            context = {'error': str(error)}
         else:
             context = {
                 'addresses': addresses,
