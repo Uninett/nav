@@ -19,6 +19,7 @@ sudo -u nav make
 
 if [[ ! -d "/etc/nav" ]]; then
     cd /source/etc
+    sudo -u nav make clean
     sudo -u nav make
     make install
     cd /etc/nav
