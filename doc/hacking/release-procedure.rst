@@ -75,19 +75,14 @@ Rolling and uploading a new distribution tarball
 * Browse the Launchpad milestone page and create a new release from the
   milestone.
 * Upload the tarball and the detached signature to the release page.
-* Set the `Fix Released` status on all bug reports targeted to the new
+* Set the ``Fix Released`` status on all bug reports targeted to the new
   release.
 
 Announcing the release
 ----------------------
 
-* Update the NAV wiki with new version numbers:
-
-  - on the front page
-  - on the `Downloads` page
-
+* Add a new release entry in the homepage admin panel
 * Change the topic of the #nav freenode IRC channel to reference the new
   release + Launchpad URL.
-
 * Send email announcement to nav-users. Use previous release announcements as
   your template.
