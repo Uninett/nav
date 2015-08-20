@@ -417,7 +417,7 @@ class NetboxEntity(models.Model):
     netbox = models.ForeignKey('Netbox', db_column='netboxid',
                                related_name='entity_set')
 
-    index = VarcharField()
+    index = models.IntegerField()
     source = VarcharField(default='ENTITY-MIB')
     descr = VarcharField(null=True)
     vendor_type = VarcharField(null=True)
