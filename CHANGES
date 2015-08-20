@@ -22,6 +22,8 @@ Version 4.3.1
                 object has no attribute 'strip')
   * LP#1484427 (ipdevpoll 5minstats job fails on some Cisco WLCs)
   * LP#1486415 (IntegrityError when posting chassis events from ipdevpoll)
+  * LP#1486430 (Jobs "inventory" and "statuscheck" fails after switch OS
+                upgrade)
 
 
 Version 4.3.0
