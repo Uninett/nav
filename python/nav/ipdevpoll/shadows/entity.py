@@ -21,6 +21,7 @@ from datetime import datetime
 from nav.toposort import build_graph, topological_sort
 
 from nav.ipdevpoll.storage import Shadow, DefaultManager
+from nav.ipdevpoll import db
 from nav.models import manage
 from nav.event2 import EventFactory
 from .netbox import Netbox
@@ -41,6 +42,11 @@ class EntityManager(DefaultManager):
         self.missing = set()
         self.existing = set()
 
+    @db.commit_on_success
+    def save(self):
+        """Override parent only to add transaction handling"""
+        return super(EntityManager, self).save()
+
     def prepare(self):
         # index known entities in various ways, but only bother to index things
         # that are unique
@@ -55,29 +61,6 @@ class EntityManager(DefaultManager):
 
         self.existing = index.entities
         self.missing = self.existing.difference(self.matched)
-
-        self._resolve_key_transitions()
-
-    def _resolve_key_transitions(self):
-        """
-        Tries to resolve expected db integrity violations in cases where
-        entities have changed their internal index/key
-
-        """
-        entitymap = ((ent, ent.get_existing_model())
-                     for ent in self.get_managed())
-        transitioned= ((new, old) for new, old in entitymap
-                       if old and entitykey(new) != entitykey(old))
-
-        for new, old in transitioned:
-            self._logger.debug(
-                "%s has transitioned from index %s to %s, updating any "
-                "entity that is in the way in the db",
-                new.name, old.index, new.index)
-            qset = manage.NetboxEntity.objects.filter(
-                netbox_id=self.netbox.id, source=new.source, index=new.index)
-            qset.update(index=-int(new.index))
-
 
     def cleanup(self):
         if self.missing:
@@ -105,6 +88,8 @@ class EntityManager(DefaultManager):
         """Returns a  list of entitites that should be purged from the db"""
         graph = self._build_dependency_graph()
         to_purge = set(self.missing)
+        if not graph:
+            return to_purge
         try:
             missing = (miss for miss in self.missing
                        if miss.device is not None)
@@ -131,6 +116,7 @@ class EntityManager(DefaultManager):
 
         return graph
 
+    @db.commit_on_success
     def _verify_stack_degradation(self, missing):
         chassis_count = sum(e.physical_class == e.CLASS_CHASSIS
                             for e in self.existing)
@@ -148,7 +134,6 @@ class EntityManager(DefaultManager):
                                  ", ".join(c.name for c in chassis))
         for chass in chassis:
             chassis_event.start(chass.device, chass.netbox, chass.id).save()
-
 
     def get_managed(self):
         """

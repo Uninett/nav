@@ -80,10 +80,10 @@ require([
             /* This clone is needed to prevent the page from jumping when 'position: fixed' is set */
             toBeFixedClone = toBeFixedClone ? toBeFixedClone : toBeFixed.clone().hide().appendTo(wrapper);
 
-            if (currentY >= startPosY && !toBeFixed.hasClass('floatme')) {
+            if (currentY > startPosY && !toBeFixed.hasClass('floatme')) {
                 toBeFixed.addClass('floatme');
                 toBeFixedClone.show();
-            } else if (currentY < startPosY && toBeFixed.hasClass('floatme')) {
+            } else if (currentY <= startPosY && toBeFixed.hasClass('floatme')) {
                 toBeFixedClone.hide();
                 toBeFixed.removeClass('floatme');
             }
