@@ -45,17 +45,22 @@ require(['plugins/graphfetcher'], function (GraphFetcher) {
             return null;
         },
         openVisible: function() {
+            // Check if we are on a visible tab
             if (!this.$container.is(':visible')) {
                 return;
             }
-            if (this.lastOpenedIndex !== null) {
+
+            var shouldOpenNext = false;
+            if (this.lastOpenedIndex === null) {
+                // Always open if nothing has been opened before
+                shouldOpenNext = true;
+            } else {
                 var bounds = this.getLastOpenedNode().getBoundingClientRect(),
                     screenIsBelowLastGraph = bounds.bottom - $(window).height() < 0;
-                if (screenIsBelowLastGraph && this.nextExists()) {
-                    this.openNext();
-                    this.openVisible();
-                }
-            } else {
+                shouldOpenNext = screenIsBelowLastGraph && this.nextExists();
+            }
+
+            if (shouldOpenNext) {
                 this.openNext();
                 this.openVisible();
             }
