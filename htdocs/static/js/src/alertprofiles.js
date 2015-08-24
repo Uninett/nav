@@ -34,7 +34,7 @@ require([], function() {
 
     // Switch between multiple and single select list in the expression form
     var switchMultiple = function() {
-	if ($("select#id_operator").val() === 11) {
+	if ($("select#id_operator").val() === "11") {
 	    $("select#id_value").attr('multiple', 'multiple');
 	} else {
 	    $("select#id_value").removeAttr('multiple');
