@@ -48,6 +48,7 @@ require([
         }
 
         activateIpDeviceFormPlugins();
+        addConfirmLeavePage();
     }
 
 
@@ -193,7 +194,7 @@ require([
 
         /* Store rowcount when user changes it */
         if (Modernizr.localstorage) {
-            $wrapper.find('.dataTables_length select').change(function () {
+            $wrapper.find('.dataTables_length select').change(function (event) {
                 var newValue = $(event.target).val();
                 localStorage.setItem(key, newValue);
             });
@@ -223,5 +224,31 @@ require([
             }
         });
     }
+
+
+    /**
+     * Some forms are complex enough to varrant a confirmation if the user tries
+     * to leave the page without saving the changed form.
+     *
+     * This function sets the return value on the beforeunload event if the
+     * forms are changed but not saved before leaving the page, in effect
+     * triggering the browsers "Are you sure you want to leave this
+     * page"-confirmation.
+     */
+    function addConfirmLeavePage() {
+        var setReturnValue = function (event) {
+            event.returnValue = 'You have unsaved changes.';
+        };
+
+        var forms = $('#seeddb-netbox-form');
+
+        forms.one('change', function() {
+            window.addEventListener('beforeunload', setReturnValue);
+        });
+        forms.on('submit', function() {
+            window.removeEventListener('beforeunload', setReturnValue);
+        });
+    }
+
 
 });

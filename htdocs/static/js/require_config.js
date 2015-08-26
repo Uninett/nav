@@ -10,7 +10,8 @@ var require = {
         "dt_plugins": "src/dt_plugins",
         "info": "src/info",
         "netmap": "src/netmap",
-        "status": "src/status2"
+        "status": "src/status2",
+        "d3": "libs/d3.min"
     },
     shim: {
         'libs/foundation.min': ['libs/modernizr', 'libs/fastclick'],
@@ -18,16 +19,11 @@ var require = {
         'libs/underscore': {
             exports: '_'
         },
-        'libs/d3.min': { exports: 'd3' },
         'libs/backbone': {
             deps: ["libs/underscore"],
             exports: 'Backbone'
         },
         'libs/backbone-eventbroker': ['libs/backbone'],
-        'libs/rickshaw.min': {
-            exports: 'Rickshaw',
-            deps: ['libs/d3.v2']
-        },
         'src/dt_plugins/ip_address_sort': ['libs/jquery.dataTables.min'],
         'src/dt_plugins/ip_address_typedetect': ['libs/jquery.dataTables.min']
     },

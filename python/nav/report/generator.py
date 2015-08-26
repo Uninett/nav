@@ -56,9 +56,12 @@ class Generator(object):
         arg_parser = ArgumentParser(config)
 
         # Remove non-query arguments
-        if "export" in args:
-            del args["export"]
+        to_remove = ["export", "page_size", "page_number"]
+        for arg in to_remove:
+            if arg in args:
+                del args[arg]
 
+        # Special cases
         if "exportcsv" in args:
             del args["exportcsv"]
             # Export *everything* in CSV file

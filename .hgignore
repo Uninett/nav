@@ -1,6 +1,8 @@
 # use glob syntax.
 syntax: glob
 
+*.orig
+*.rej
 *.pyc
 *.swp
 *~
@@ -12,6 +14,9 @@ syntax: glob
 npm-debug.log
 cloc.xml
 pylint.txt
+tests/*-results.xml
+htdocs/static/js/javascript-*.xml
+tools/virtual-appliance/nav-virtual-appliance.tar*
 
 # Generated doc and build dirs
 doc/_build

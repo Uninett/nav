@@ -21,12 +21,7 @@ from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 
 from nav.web.info.forms import SearchForm
-from nav.web.info.searchproviders import (RoomSearchProvider,
-                                          NetboxSearchProvider,
-                                          FallbackSearchProvider,
-                                          InterfaceSearchProvider,
-                                          VlanSearchProvider,
-                                          UnrecognizedNeighborSearchProvider)
+from nav.web.info import searchproviders as providers
 from nav.web.utils import create_title
 
 from random import choice
@@ -70,14 +65,15 @@ def process_form(form):
     if not query:
         return []
 
-    searchproviders = [RoomSearchProvider(query),
-                       NetboxSearchProvider(query),
-                       InterfaceSearchProvider(query),
-                       VlanSearchProvider(query),
-                       UnrecognizedNeighborSearchProvider(query)]
+    searchproviders = [providers.RoomSearchProvider(query),
+                       providers.NetboxSearchProvider(query),
+                       providers.InterfaceSearchProvider(query),
+                       providers.VlanSearchProvider(query),
+                       providers.DevicegroupSearchProvider(query),
+                       providers.UnrecognizedNeighborSearchProvider(query)]
     providers_with_result = has_results(searchproviders)
     if not providers_with_result:
-        fallback = FallbackSearchProvider(query)
+        fallback = providers.FallbackSearchProvider(query)
         if fallback.results:
             providers_with_result.append(fallback)
 

@@ -396,6 +396,7 @@ def open_port(identity, username, eventcomment=""):
     identity.last_changed = datetime.now()
     identity.fromvlan = None
     identity.tovlan = None
+    identity.autoenable = None
     identity.save()
 
     event = Event(identity=identity, comment=eventcomment, action='enabled',
@@ -593,7 +594,7 @@ def get_config(configfile):
 
 def init_logging(logfile):
     """Create logger for logging to file"""
-    logs.set_log_levels()
+    logs.set_log_config()
 
     filehandler = logging.FileHandler(logfile)
     formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] '

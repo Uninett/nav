@@ -15,7 +15,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """View controller for PortAdmin"""
-import json as simplejson
+import ConfigParser
+import simplejson
 import logging
 
 from operator import or_ as OR
@@ -40,6 +41,7 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      filter_vlans, fetch_voice_vlans,
                                      should_check_access_rights,
                                      mark_detained_interfaces,
+                                     read_config,
                                      is_restart_interface_enabled,
                                      is_write_mem_enabled)
 from nav.Snmp.errors import SnmpError, TimeOutException
@@ -293,19 +295,18 @@ def save_interfaceinfo(request):
 
 def set_interface_values(account, interface, request):
     """Use snmp to set the values in the request on the netbox"""
-    try:
-        fac = SNMPFactory.get_instance(interface.netbox)
-    except SnmpError, error:
-        _logger.error('Error getting snmpfactory instance %s: %s',
-                      interface.netbox, error)
-        messages.info(request, 'Could not connect to netbox')
-    else:
+
+    fac = get_factory(interface.netbox)
+
+    if fac:
         # Order is important here, set_voice need to be before set_vlan
         set_voice_vlan(fac, interface, request)
         set_ifalias(account, fac, interface, request)
         set_vlan(account, fac, interface, request)
         set_admin_status(fac, interface, request)
         save_to_database([interface])
+    else:
+        messages.info(request, 'Could not connect to netbox')
 
 
 def build_ajax_messages(request):
@@ -434,7 +435,7 @@ def render_trunk_edit(request, interfaceid):
     """Controller for rendering trunk edit view"""
 
     interface = Interface.objects.get(pk=interfaceid)
-    agent = SNMPFactory().get_instance(interface.netbox)
+    agent = get_factory(interface.netbox)
     if request.method == 'POST':
         try:
             handle_trunk_edit(request, agent, interface)
@@ -512,24 +513,19 @@ def restart_interface(request):
         interface = get_object_or_404(
             Interface, pk=request.POST.get('interfaceid'))
 
-        try:
-            fac = SNMPFactory.get_instance(interface.netbox)
-        except SnmpError, error:
-            _logger.error('Error getting snmpfactory instance when '
-                          'restarting interface %s: %s',
-                          interface.netbox, error)
+        fac = get_factory(interface.netbox)
+        if fac:
+            _logger.debug('Restarting interface %s', interface)
+            try:
+                # Restart interface so that client fetches new address
+                fac.restart_if(interface.ifindex)
+            except TimeOutException:
+                # Swallow this exception as it is not important. Others should
+                # create an error
+                pass
+            return HttpResponse()
+        else:
             return HttpResponse(status=500)
-
-        _logger.debug('Restarting interface %s', interface)
-        try:
-            # Restart interface so that client fetches new address
-            fac.restart_if(interface.ifindex)
-        except TimeOutException:
-            # Swallow this exception as it is not important. Others should
-            # create an error
-            pass
-
-        return HttpResponse()
 
     return HttpResponse(status=400)
 
@@ -544,19 +540,38 @@ def write_mem(request):
         interface = get_object_or_404(
             Interface, pk=request.POST.get('interfaceid'))
 
-        try:
-            fac = SNMPFactory.get_instance(interface.netbox)
-        except SnmpError, error:
-            _logger.error('Error getting snmpfactory instance when '
-                          'writing to memory %s: %s',
-                          interface.netbox, error)
+        fac = get_factory(interface.netbox)
+        if fac:
+            try:
+                fac.write_mem()
+            except SnmpError, error:
+                _logger.error('Error doing write mem on %s: %s',
+                              fac.netbox, error)
+
+            return HttpResponse()
+        else:
             return HttpResponse(status=500)
 
-        try:
-            fac.write_mem()
-        except SnmpError, error:
-            _logger.error('Error doing write mem on %s: %s', fac.netbox, error)
-
-        return HttpResponse()
-
     return HttpResponse(status=400)
+
+
+def get_factory(netbox):
+    """Get a SNMP factory instance"""
+    config = read_config()
+    timeout = get_config_value(config, 'general', 'timeout', fallback=3)
+    retries = get_config_value(config, 'general', 'retries', fallback=3)
+
+    try:
+        return SNMPFactory.get_instance(netbox, timeout=timeout,
+                                        retries=retries)
+    except SnmpError, error:
+        _logger.error('Error getting snmpfactory instance %s: %s',
+                      netbox, error)
+
+
+def get_config_value(config, section, key, fallback=None):
+    """Get the value of key from a ConfigParser object, with fallback"""
+    try:
+        return config.get(section, key)
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        return fallback

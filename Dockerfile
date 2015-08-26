@@ -20,9 +20,7 @@
 # TODO: Possibly split this into separate containers for PostgreSQL, Graphite
 # and NAV.
 #
-FROM mbrekkevold/wheezy-no
-
-ENV DEBIAN_FRONTEND noninteractive
+FROM mbrekkevold/navbase-debian
 
 #### Install various build and runtime requirements as Debian packages ####
 
@@ -32,15 +30,14 @@ RUN apt-get update \
             python-psycopg2 python-lxml librrd-dev python-imaging python-ldap \
     && \
     apt-get -y --no-install-recommends install \
-            locales mercurial subversion git-core python-virtualenv python-pip \
-            build-essential librrd-dev python-dev autoconf automake libsnmp15 \
+            mercurial subversion git-core \
+            librrd-dev autoconf automake libsnmp15 \
             cron sudo libapache2-mod-wsgi rubygems inotify-tools python-cairo \
             postgresql-9.1 postgresql-contrib-9.1 postgresql-client openssh-server \
-            supervisor \
     && \
     apt-get clean
 
-RUN pip install whisper carbon graphite-web django-tagging
+RUN pip install whisper carbon graphite-web django-tagging==0.3.4
 
 RUN gem install --version '3.3.9' sass ;\
     gem install --version '~> 0.9' rb-inotify

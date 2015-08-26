@@ -13,17 +13,15 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=R0903
-
 """ Module containing different searchproviders used for searching in NAV """
 
 from collections import namedtuple
 
 from django.core.urlresolvers import reverse
-from django.db.models import Q
+from django.db.models import Q, Count
 
 from nav.models.manage import (Room, Netbox, Interface, Vlan,
-                               UnrecognizedNeighbor)
+                               UnrecognizedNeighbor, NetboxGroup)
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.views import is_valid_hostname
 
@@ -189,3 +187,20 @@ class UnrecognizedNeighborSearchProvider(SearchProvider):
             SearchResult(result.interface.get_absolute_url(), result)
             for result in results
         ]
+
+
+class DevicegroupSearchProvider(SearchProvider):
+    """Searchprovider for device group entries"""
+    name = u"Device groups"
+    headers = [
+        ('Device Group', 'id'),
+        ('# netboxes', 'num_netboxes')
+    ]
+    link = 'Device Group'
+
+    def fetch_results(self):
+        self.results = [SearchResult(g.get_absolute_url(), g)
+                        for g in NetboxGroup.objects
+                        .filter(id__icontains=self.query)
+                        .order_by('id')
+                        .annotate(num_netboxes=Count('netbox'))]

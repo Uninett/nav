@@ -7,7 +7,7 @@
     <button class="small"
             data-report_url="{% url 'report-add-widget' %}"
             data-report_id="{{ report.report_id }}"
-            data-report_qs="{{ report.query_args.urlencode }}">
+            data-report_qs="{{ query_string }}">
       Add this report as a widget
     </button>
   </div>
@@ -15,8 +15,15 @@
   {% include 'report/frag_report_filters.html' %}
 
   {% if report %}
-    {% include "report/frag_report_table.html" %}
-    <p>Result generated {{ result_time }}</p>
+    {% if report.database_error %}
+      <div class="alert-box alert">
+        {{ report.database_error }}
+      </div>
+    {% else %}
+      {% include "report/frag_report_table.html" %}
+      <p>Result generated {{ result_time }}</p>
+    {% endif %}
+
 
   {% else %}
     <p class="error">No results found!</p>

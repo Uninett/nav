@@ -1,0 +1,89 @@
+.rickshaw-container {
+    background-color: white;
+    border: 1px solid gainsboro;
+    position: relative;
+    padding: 2em 1em 2.5em .5em; /* Padding here affects values for y-axis */
+
+    .rickshaw-preview {
+        margin-left: 4em;
+        margin-top: 1.2em;
+    }
+
+    .rickshaw-graph {
+        height: 300px;
+        margin-left: 4em;
+    }
+
+    .rickshaw-y-axis {
+        position: absolute;
+        top: 1em;               /* NB: Affected by padding for container */
+        bottom: 0;
+        width: 3em;
+        margin: 1em;
+    }
+
+    .rickshaw-title {
+        position: absolute;
+        text-align: center;
+        top: 0.5em;
+        left: 0;
+        right: 0;
+    }
+
+    .rickshaw-y-axis-term {
+        left: 1em;
+        position: absolute;
+        top: 50%;
+        transform: rotate(270deg) translate(-50%, -50%);
+        transform-origin: left top;
+    }
+
+    .rickshaw-legend {
+        background: none;
+        color: initial;
+        padding: 0;
+        position: absolute;
+        right: 0.5em;
+        bottom: 0.5em;
+        ul {
+            margin: initial;
+            li {
+                float: left;
+                clear: none;
+                min-width: 0;
+            }
+        }
+    }
+
+    .rickshaw_graph {
+        .x_tick {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            .title {
+                position: relative;
+                margin-left: auto;
+                bottom: -1.5em;
+            }
+        }
+        .detail {
+            .x_label {
+                display: none;
+            }
+            .detail_swatch { 
+                float: right;
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                margin: 4px 4px 0 0
+            }
+            .series-value {
+                margin-right: 2em;
+            }
+            .date {
+                color: hotpink;
+            }
+        }
+    }
+
+}

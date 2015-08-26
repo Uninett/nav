@@ -122,7 +122,7 @@ class IPDevPollProcess(object):
         nav.daemon.redirect_std_fds(
             stderr=nav.logs.get_logfile_from_logger())
         nav.logs.reset_log_levels()
-        nav.logs.set_log_levels()
+        nav.logs.set_log_config()
         self._logger.info("Log files reopened, log levels reloaded.")
 
     def sigterm_handler(self, signum, _frame):
@@ -245,7 +245,7 @@ class CommandProcessor(object):
         root_logger = logging.getLogger('')
         root_logger.addHandler(stderr_handler)
 
-        nav.logs.set_log_levels()
+        nav.logs.set_log_config()
 
         if not stderr_only:
             # Now try to load config and output logs to the configured file

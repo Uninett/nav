@@ -58,7 +58,16 @@
         @include alert-style($warning-box-bg, $warning-box-color, $warning-box-border);
         @include alert-icon("\f071");
     }
-  }
+
+    &.inside-table {
+        display: inline-block;
+        padding-top: rem-calc(4);
+        padding-bottom: rem-calc(4);
+        margin-bottom: 0;
+    }
+
+}
+
 
 // Adds class for marking a button as active.
 button, .button {

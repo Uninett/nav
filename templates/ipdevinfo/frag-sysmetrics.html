@@ -36,7 +36,7 @@
 
           <div class="all-graph-buttons"></div>
 
-          <table class="listtable">
+          <table class="listtable full-width">
 
             <caption>{{ group.grouper|capfirst }}</caption>
 
@@ -79,7 +79,12 @@
               <tr>
                 <td class="graphitegraph hidden" colspan="3"
                     data-url="{% url 'graphite-render-url' metric.id %}"
-                    data-handler-id="graph-toggler-{{ group.grouper }}-{{ forloop.counter }}"></td>
+                    data-handler-id="graph-toggler-{{ group.grouper }}-{{ forloop.counter }}">
+                  <div class="rickshaw-container"
+                       data-title="{{ metric.id }}"
+                       data-unit="{{ metric.suffix }}"
+                       ></div>
+                </td>
               </tr>
             {% endfor %}
             </tbody>

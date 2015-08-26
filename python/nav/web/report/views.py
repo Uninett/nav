@@ -24,11 +24,11 @@ from time import localtime, strftime
 import csv
 import os
 import re
-from nav.django.utils import get_account
 
 # this is just here to make sure Django finds NAV's settings file
 # pylint: disable=W0611
 from django.core.cache import cache
+from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.http import HttpResponse, Http404, HttpResponseRedirect
@@ -48,6 +48,7 @@ CONFIG_FILE_PACKAGE = os.path.join(nav.path.sysconfdir, "report/report.conf")
 CONFIG_FILE_LOCAL = os.path.join(nav.path.sysconfdir,
                                  "report/report.local.conf")
 FRONT_FILE = os.path.join(nav.path.sysconfdir, "report/front.html")
+DEFAULT_PAGE_SIZE = 25
 
 
 def index(request):
@@ -88,6 +89,9 @@ def get_report(request, report_name):
             "{0}?{1}".format(request.META['PATH_INFO'], query.urlencode()))
 
     context = make_report(username, report_name, export_delimiter, query)
+    if 'exportcsv' in request.GET:
+        return context
+
     # Magic flag for adding sorting links to table
     context['add_sort_links'] = True
     return render_to_response('report/report.html', context,
@@ -239,25 +243,34 @@ def report_list(request):
                               RequestContext(request))
 
 
-def make_report(username, report_name, export_delimiter, query_dict):
-    """Makes a report"""
+def make_report(username, report_name, export_delimiter, query_dict,
+                paginate=True):
+    """Makes a report
+
+    :param paginate: Introduced to be able to toggle display of the paginate
+                     elements. Used in the widget rendering.
+    """
     # Initiating variables used when caching
     report = contents = neg = operator = adv = result_time = None
 
     if not report_name:
         return None
 
+    # Pagination related variables
+    page_number = query_dict.get('page_number', 1)
+    page_size = query_dict.get('page_size', DEFAULT_PAGE_SIZE)
+    query_string = "&".join(["%s=%s" % (x, y)
+                             for x, y in query_dict.iteritems()
+                             if x != 'page_number'])
+
     query_dict_no_meta = query_dict.copy()
     # Deleting meta variables from uri to help identifying if the report
     # asked for is in the cache or not.
-    if 'offset' in query_dict_no_meta:
-        del query_dict_no_meta['offset']
-    if 'limit' in query_dict_no_meta:
-        del query_dict_no_meta['limit']
-    if 'export' in query_dict_no_meta:
-        del query_dict_no_meta['export']
-    if 'exportcsv' in query_dict_no_meta:
-        del query_dict_no_meta['exportcsv']
+    meta_to_delete = ['offset', 'limit', 'export', 'exportcsv', 'page_number',
+                      'page_size']
+    for meta in meta_to_delete:
+        if meta in query_dict_no_meta:
+            del query_dict_no_meta[meta]
 
     helper_remove = dict((key, query_dict_no_meta[key])
                          for key in query_dict_no_meta)
@@ -312,10 +325,22 @@ def make_report(username, report_name, export_delimiter, query_dict):
         return generate_export(report, report_name, export_delimiter)
     else:
 
+        paginator = Paginator(report.table.rows, page_size)
+        try:
+            page = paginator.page(page_number)
+        except InvalidPage:
+            page_number = 1
+            page = paginator.page(page_number)
+
         context = {
             'heading': 'Report',
             'result_time': result_time,
             'report': report,
+            'paginate': paginate,
+            'page': page,
+            'current_page_range': find_page_range(page_number,
+                                                  paginator.page_range),
+            'query_string': query_string,
             'contents': contents,
             'operator': operator,
             'neg': neg,
@@ -371,6 +396,30 @@ def make_report(username, report_name, export_delimiter, query_dict):
         })
 
         return context
+
+
+def find_page_range(page_number, page_range, visible_pages=5):
+    """Finds a suitable page range given current page.
+
+    Tries to make an even count of pages before and after page_number
+    """
+    length = len(page_range)
+    page_number = int(page_number)
+
+    if length <= visible_pages:
+        return page_range
+
+    padding = visible_pages / 2
+    start = page_number - 1 - padding
+    if start < 0:
+        start = 0
+
+    end = start + visible_pages
+    if end >= length:
+        end = length
+        start = length - visible_pages
+
+    return page_range[start:end]
 
 
 def generate_export(report, report_name, export_delimiter):

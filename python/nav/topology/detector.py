@@ -93,7 +93,7 @@ def init_logging():
         root.addHandler(stdout_handler)
 
     import nav.logs
-    nav.logs.set_log_levels()
+    nav.logs.set_log_config()
 
 def with_exception_logging(func):
     """Decorates a function to log unhandled exceptions"""

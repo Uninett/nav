@@ -1,20 +1,36 @@
 <div id="ports">
-    {% if netbox %}
-        {% if netbox.module_set.count or netbox.interface_set.count %}
+  {% if netbox %}
+    {% if netbox.module_set.count or netbox.interface_set.count %}
 
-            <div id="moduletabs">
-                <ul>
-                    <li><a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'swportstatus' %}">Switch port status</a></li>
-                    <li><a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'swportactive' %}">Switch port activity</a></li>
-                    <li><a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'gwportstatus' %}">Router port status</a></li>
-                    <li><a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'physportstatus' %}">Physical ports</a></li>
-                </ul>
-            </div>
+      <div id="moduletabs">
+        <ul>
+          <li>
+            <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'swportstatus' %}">
+              Switch port status
+            </a>
+          </li>
+          <li id="swportactivetab">
+            <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'swportactive' %}">
+              Switch port activity
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'gwportstatus' %}">
+              Router port status
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'physportstatus' %}">
+              Physical ports
+            </a>
+          </li>
+        </ul>
+      </div>
 
-        {% else %}
-            <div class="alert-box info">
-                No ports found.
-            </div>
-        {% endif %}
+    {% else %}
+      <div class="alert-box info">
+        No ports found.
+      </div>
     {% endif %}
+  {% endif %}
 </div>

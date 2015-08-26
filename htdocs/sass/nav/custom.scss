@@ -216,6 +216,33 @@ li.list-header {
     text-align: left;
 }
 
+/* Lists inside vertical tables must align properly */
+.vertitable {
+    ul, ol, dl {
+        line-height: inherit;
+        li {
+            margin-bottom: 2px;
+        }
+        li:last-of-type {
+            margin-bottom: 0;
+        }
+    }
+}
+
+
+/* This class should be used with the .inline-list class */
+ul.comma-separated {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    li {
+        margin-left: 0;
+        &:after { content: ",\00A0" }
+        &:last-child:after { content: "" }
+    }
+    margin-left: 0;
+}
+
 /* Alert-box style */
 
 .alert-box ul, .error ul {
@@ -331,15 +358,6 @@ select[multiple] {
     height: auto;
 }
 
-/* Style graphtite graph elements */
-.graphitegraph {
-    margin-right: 1em;
-    margin-bottom: 1em;
-    button {
-        margin-bottom: 0;
-    }
-}
-
 .graph-toggler {
     cursor: pointer;
 }
@@ -348,8 +366,42 @@ select[multiple] {
 /* Tooltip related stylings */
 .tooltip > p {
     font-size: inherit;
+    line-height: inherit;
+}
+
+.tooltip > h5 {
+    color: white;
 }
 
 [data-tooltip] {
     cursor: help;
+}
+
+
+
+/**
+ * Fullscreen styles
+ *
+ * Force browsers to resize fullscreen element to cover viewport
+ * For some MOTHERFUCKING reason it will not apply if the rules are combined.
+ */
+:-ms-fullscreen {
+    position: fixed;
+    width: 100%;
+    height: 100% !important;
+    top: 0;
+    background: none;
+}
+
+:-webkit-full-screen {
+    position: fixed;
+    width: 100%;
+    height: 100% !important;
+    top: 0;
+    background: none;
+}
+
+
+#jqstooltip {
+    box-sizing: content-box;
 }

@@ -277,6 +277,13 @@ def do_delete_module(request):
     # Delete modules using raw sql to avoid Django's simulated cascading.
     # AlertHistory entries will be closed by a database trigger.
     cursor.execute("DELETE FROM module WHERE moduleid IN %s", (module_ids,))
+
+    # Delete the entities representing these modules
+    for hist in history:
+        cursor.execute(
+            "DELETE FROM netboxentity WHERE netboxid = %s and deviceid = %s",
+            [hist.module.netbox.id, hist.module.device.id])
+
     transaction.set_dirty()
 
     return HttpResponseRedirect(reverse('devicehistory-module'))

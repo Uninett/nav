@@ -3,7 +3,10 @@
 <div id="portadmin-wrapper" class="faketable">
 
   <div class="caption">
-    {{ netbox.get_short_sysname }}
+    <a href="{{ netbox.get_absolute_url }}"
+       title="Go to Ip Device Info for {{ netbox }}">
+      {{ netbox.get_short_sysname }}
+    </a>
   </div>
 
   <div class="row header_row">

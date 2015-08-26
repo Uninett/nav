@@ -88,26 +88,33 @@ The `SeedDB` tool enables to you add and edit a multitude of information in
 the NAV database, but the essential bit here is the :term:`IP Device`.  Begin,
 for example, by adding one of your switches:
 
-1. Click the `IP device` tab and then the sub-tab `Add new IP device`
-2. Fill out your switch's IP address in the `IP` field, and, for now, select
-   `myroom` and `myorg` in the room and organization drop-downs.
-3. Select `SW` in the category dropdown.  Don't worry, we'll explain the
-   categories later.
-4. Put your switch's SNMP community in the `Read only` field and click the
-   `Continue` button.
+1. Click the :guilabel:`IP device` tab and then the sub-tab :guilabel:`Add new
+   IP device`
+2. Fill out your switch's IP address in the :guilabel:`IP` field, and, for now,
+   select :guilabel:`myroom` and :guilabel:`myorg` in the room and organization
+   drop-downs.
+3. Select :guilabel:`SW` in the category dropdown.  Don't worry, we'll explain
+   the categories later.
+4. Put your switch's SNMP community in the :guilabel:`Read only` field and click
+   the :guilabel:`Check connectivity` button.
 
 .. image:: seeddb-add-ipdevice.png
 
-NAV will now verify that this IP address responds to SNMP (v2c or v1) queries
-using the entered community.  If possible, it will try to detect the device's
-type (from its `sysObjectID` value) and serial number.
+NAV will now check if this IP address responds to SNMP (v2c or v1) queries using
+the entered community and, if possible, detect the device's type (from its
+`sysObjectID` value).  NAV does not require that the connectivity test is
+successful, or even that the test is run, to add the device. But if the test
+fails this means that NAV can not communicate with the device. If that happens
+you should verify that the information in the :guilabel:`IP` and :guilabel:`Read
+only` fields is correct.
 
-If SNMP connectivity was verified, SeedDB will display a summary of the
-information you entered and the information it retrieved from the device.  If
-you want to, you can also enter some free-form text about the function the
-device serves in the `Function` field.
+If you want you can add some free form text about the function of the device in
+the function field, put the device into one or more relevant groups and even
+assign custom attributes to it. These attributes will be used when NAV presents
+information about the device.
 
-Click on `Save` to finalize your entry of this device into NAV's database.
+Click on :guilabel:`Save IP device` to finalize your entry of this device into
+NAV's database.
 
 
 Verifying that collection is working

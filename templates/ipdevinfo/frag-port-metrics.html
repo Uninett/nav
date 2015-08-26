@@ -33,7 +33,15 @@
                     <div class="graphitegraph hidden"
                          data-url="{% for counter_type in counter_types %}{% url 'interface-counter-graph' ifc.id counter_type %}{% if not forloop.last %};{% endif %}{% endfor %}"
                          data-handler-id="port-graph-toggler-{{ counter_type }}{{ ifc.id }}">
-                        <div><a href="{% url 'ipdevinfo-interface-details' netbox.sysname ifc.id %}" title="Port details for {{ ifc.ifname }}">Port details</a></div>
+                        <div>
+                          <a href="{% url 'ipdevinfo-interface-details' netbox.sysname ifc.id %}"
+                             title="Port details for {{ ifc.ifname }}">
+                            Port details</a>
+                        </div>
+                        <div class="rickshaw-container"
+                             data-title="{{ metric.id }}"
+                             data-unit="{{ metric.suffix }}"
+                             ></div>
                     </div>
 
                 </li>

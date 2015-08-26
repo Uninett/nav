@@ -42,9 +42,9 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from urlparse import urljoin
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
-BASE_URL = os.environ['TARGETURL']
+BASE_URL = os.environ.get('TARGETURL', 'http://localhost:8000')
 USERNAME = 'admin'
-PASSWORD = os.environ['ADMINPASSWORD']
+PASSWORD = os.environ.get('ADMINPASSWORD', 'admin')
 DEFAULT_WAIT_TIME = 5  # timer for implicit wait in seconds
 SCREENSHOT_DIRECTORY = '.selenium_screenshots'
 
@@ -93,15 +93,20 @@ class SeleniumTest(unittest.TestCase):
 
     def login(self, driver, username, password):
         """Logs in to NAV"""
-        driver.find_element_by_class_name('login').click()
-        driver.find_element_by_id('id_username').send_keys(username)
-        driver.find_element_by_id('id_password').send_keys(password)
-        driver.find_element_by_css_selector('input[type=submit]').click()
+        self.do_login(driver, username, password)
         try:
             driver.find_element_by_class_name('logout')
         except NoSuchElementException:
             self.tearDown()
             pytest.skip('Login failed')
+
+    @staticmethod
+    def do_login(driver, username=USERNAME, password=PASSWORD):
+        """Do the moves a login requires"""
+        driver.find_element_by_class_name('login').click()
+        driver.find_element_by_id('id_username').send_keys(username)
+        driver.find_element_by_id('id_password').send_keys(password)
+        driver.find_element_by_css_selector('input[type=submit]').click()
 
     def go_to(self, viewname):
         """Tell the driver to go to the url with the given viewname"""
@@ -117,7 +122,7 @@ def get_screenshot_directory():
     """Create and/or get the path to the screenshots for failed tests"""
     directory = os.path.join(os.environ['WORKSPACE'],
                              SCREENSHOT_DIRECTORY,
-                             os.environ['BUILD_ID'])
+                             os.environ.get('BUILD_ID', 'local_test_build'))
     if not os.path.exists(directory):
         os.makedirs(directory)
     return directory

@@ -18,7 +18,8 @@
 from twisted.internet import defer
 
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll.shadows import Netbox, Device
+from nav.ipdevpoll.shadows import Netbox, Device, NetboxEntity
+from nav.models import manage
 
 from nav.mibs.juniper_mib import JuniperMib
 from nav.mibs.powernet_mib import PowerNetMib
@@ -46,16 +47,18 @@ class ProprietarySerial(Plugin):
             if serial:
                 self._logger.debug("got a chassis serial number from %s: %r",
                                    mib.mib.get('moduleName', None), serial)
-                self._set_chassis_serial(serial)
+                self._set_chassis_serial(serial, mib.mib.get('moduleName'))
 
-
-    def _set_chassis_serial(self, serial):
+    def _set_chassis_serial(self, serial, source):
         netbox = self.containers.factory(None, Netbox)
-        if not netbox.device:
-            if not self.containers.get(None, Device):
-                netbox.device = self.containers.factory(None, Device)
-                self.containers[Device][serial] = netbox.device
-            else:
-                netbox.device = self.containers.get(None, Device)
+        chassis = NetboxEntity.get_chassis_entities(self.containers)
+        if not chassis:
+            entity = self.containers.factory(None, NetboxEntity)
+            device = self.containers.factory(serial, Device)
+            device.serial = serial
 
-        netbox.device.serial = serial
+            entity.netbox = netbox
+            entity.index = 0
+            entity.source = source
+            entity.physical_class = manage.NetboxEntity.CLASS_CHASSIS
+            entity.device = device

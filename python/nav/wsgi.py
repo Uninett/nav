@@ -56,7 +56,7 @@ def loginit():
         handler.setFormatter(formatter)
 
         root.addHandler(handler)
-        nav.logs.set_log_levels()
+        nav.logs.set_log_config()
         _loginited = True
 
 loginit()

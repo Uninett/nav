@@ -21,13 +21,12 @@ object", in the sense that access to member attributes will not result in
 database I/O.
 
 """
-import datetime
 import IPy
 
 from django.db.models import Q
 
 from nav.models import manage, oid
-from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
+from nav.event2 import EventFactory
 
 from nav.ipdevpoll.storage import MetaShadow, Shadow
 from nav.ipdevpoll import descrparsers
@@ -39,6 +38,7 @@ from .interface import Interface, InterfaceStack
 from .swportblocked import SwPortBlocked
 from .cam import Cam
 from .adjacency import AdjacencyCandidate, UnrecognizedNeighbor
+from .entity import NetboxEntity
 
 PREFIX_AUTHORITATIVE_CATEGORIES = ('GW', 'GSW')
 
@@ -48,6 +48,7 @@ PREFIX_AUTHORITATIVE_CATEGORIES = ('GW', 'GSW')
 # Shadow classes usually don't need docstrings - these can be found in the
 # Django models being shadowed:
 # pylint: disable=C0111
+
 
 class NetboxType(Shadow):
     __shadowclass__ = manage.NetboxType
@@ -71,6 +72,7 @@ class NetboxType(Shadow):
             enterprise = specific.split('.')[0]
             return long(enterprise)
 
+
 class NetboxInfo(Shadow):
     __shadowclass__ = manage.NetboxInfo
     __lookups__ = [('netbox', 'key', 'variable')]
@@ -93,19 +95,21 @@ class NetboxInfo(Shadow):
 
         return MetaShadow.shadowed_classes.values()
 
+
 class Vendor(Shadow):
     __shadowclass__ = manage.Vendor
+
 
 # pylint is unable to see which members are created dynamically by metaclass:
 # pylint: disable=E0203,W0201
 class Module(Shadow):
     __shadowclass__ = manage.Module
     __lookups__ = [('netbox', 'device'), ('netbox', 'name')]
+    event = EventFactory('ipdevpoll', 'eventEngine', 'moduleState')
 
     def prepare(self, containers):
         self._fix_binary_garbage()
         self._fix_missing_name()
-        self._resolve_duplicate_serials()
         self._resolve_duplicate_names()
 
     def _fix_binary_garbage(self):
@@ -118,38 +122,6 @@ class Module(Shadow):
     def _fix_missing_name(self):
         if not self.name and self.device and self.device.serial:
             self.name = "S/N %s" % self.device.serial
-
-    def _resolve_duplicate_serials(self):
-        """Attempts to solve serial number conflicts before savetime.
-
-        Specifically, if another Module in the database is registered with the
-        same serial number as this one, we attach an empty device to the other
-        module.
-
-        """
-        if not self.device or not self.device.serial:
-            return
-
-        myself = self.get_existing_model()
-        try:
-            other = manage.Module.objects.get(
-                device__serial=self.device.serial)
-        except manage.Module.DoesNotExist:
-            return
-
-        if other != myself:
-            myself = myself or self
-            self._logger.warning(
-                "Serial number conflict, attempting peaceful resolution (%s): "
-                "I am %r (%s) at %s (id: %s) <-> "
-                "other is %r (%s) at %s (id: %s)",
-                self.device.serial,
-                self.name, self.description, myself.netbox.sysname, myself.id,
-                other.name, other.description, other.netbox.sysname, other.id)
-            new_device = manage.Device()
-            new_device.save()
-            other.device = new_device
-            other.save()
 
     def _resolve_duplicate_names(self):
         """Attempts to solve module naming conflicts inside the same chassis.
@@ -176,7 +148,6 @@ class Module(Shadow):
             other.name = u"%s (%s)" % (other.name, other.device.serial)
             other.save()
 
-
     def _find_name_duplicates(self):
         myself_in_db = self.get_existing_model()
 
@@ -190,29 +161,6 @@ class Module(Shadow):
         other = same_name_modules.select_related('device', 'netbox')
 
         return other[0] if other else None
-
-    @classmethod
-    def _make_modulestate_event(cls, django_module):
-        event = Event()
-        event.source_id = 'ipdevpoll'
-        event.target_id = 'eventEngine'
-        event.device = django_module.device
-        event.netbox = django_module.netbox
-        event.subid = unicode(django_module.id)
-        event.event_type_id = 'moduleState'
-        return event
-
-    @classmethod
-    def _dispatch_down_event(cls, django_module):
-        event = cls._make_modulestate_event(django_module)
-        event.state = event.STATE_START
-        event.save()
-
-    @classmethod
-    def _dispatch_up_event(cls, django_module):
-        event = cls._make_modulestate_event(django_module)
-        event.state = event.STATE_END
-        event.save()
 
     @classmethod
     def _handle_missing_modules(cls, containers):
@@ -233,7 +181,7 @@ class Module(Shadow):
             cls._logger.info("%d modules went missing on %s (%s)",
                              netbox.sysname, len(missing_modules), shortlist)
             for module in missing_modules:
-                cls._dispatch_down_event(module)
+                cls.event.start(module.device, module.netbox, module.id).save()
 
         if reappeared_modules:
             shortlist = ", ".join(m.name for m in reappeared_modules)
@@ -241,8 +189,7 @@ class Module(Shadow):
                              netbox.sysname, len(reappeared_modules),
                              shortlist)
             for module in reappeared_modules:
-                cls._dispatch_up_event(module)
-
+                cls.event.end(module.device, module.netbox, module.id).save()
 
     @classmethod
     def cleanup_after_save(cls, containers):
@@ -256,7 +203,6 @@ class Device(Shadow):
 
     def prepare(self, containers):
         self._fix_binary_garbage()
-        self._find_existing_netbox_device(containers)
 
     def _fix_binary_garbage(self):
         """Fixes version strings that appear as binary garbage."""
@@ -272,38 +218,26 @@ class Device(Shadow):
                 setattr(self, attr, repr(value))
         self.clear_cached_objects()
 
-    def _find_existing_netbox_device(self, containers):
-        """Ensures that we re-use the existing Device record for a Netbox when
-        the job didn't collect a serial number for the chassis.
-
-        """
-        if 'serial' in self.get_touched():
-            return
-
-        netbox = containers.get(None, Netbox)
-        if netbox and netbox.device is self:
-            try:
-                device = manage.Device.objects.get(netbox__id=netbox.id)
-            except manage.Device.DoesNotExist:
-                return
-            else:
-                self.set_existing_model(device)
-
 
 class Location(Shadow):
     __shadowclass__ = manage.Location
 
+
 class Room(Shadow):
     __shadowclass__ = manage.Room
+
 
 class Category(Shadow):
     __shadowclass__ = manage.Category
 
+
 class Organization(Shadow):
     __shadowclass__ = manage.Organization
 
+
 class Usage(Shadow):
     __shadowclass__ = manage.Usage
+
 
 class Vlan(Shadow):
     __shadowclass__ = manage.Vlan
@@ -321,14 +255,14 @@ class Vlan(Shadow):
                     pfx.vlan = mdl
                 return
             else:
-                if (self.organization
-                    and not self.organization.get_existing_model()):
+                if (self.organization and
+                        not self.organization.get_existing_model()):
                     self._logger.warning("ignoring unknown organization id %r",
                                          self.organization.id)
                     self.organization = None
 
-                if (self.usage
-                    and not self.usage.get_existing_model()):
+                if (self.usage and
+                        not self.usage.get_existing_model()):
                     self._logger.warning("ignoring unknown usage id %r",
                                          self.usage.id)
                     self.usage = None
@@ -406,9 +340,9 @@ class Vlan(Shadow):
 
     def _log_if_multiple_prefixes(self, prefix_containers):
         if len(prefix_containers) > 1:
-            self._logger.debug("multiple prefixes for %r: %r",
+            self._logger.debug(
+                "multiple prefixes for %r: %r",
                 self, [p.net_address for p in prefix_containers])
-
 
     def _guesstimate_net_type(self, containers):
         """Guesstimates a net type for this VLAN, based on its prefixes.
@@ -469,7 +403,7 @@ class Vlan(Shadow):
         router_count = manage.Netbox.objects.filter(
             address_filter,
             category__id__in=('GW', 'GSW')
-            )
+        )
         return router_count.distinct().count()
 
     def prepare(self, containers):
@@ -485,6 +419,7 @@ class Vlan(Shadow):
             if net_type:
                 self.net_type = net_type
 
+
 class Prefix(Shadow):
     __shadowclass__ = manage.Prefix
     __lookups__ = [('net_address', 'vlan'), 'net_address']
@@ -498,6 +433,7 @@ class Prefix(Shadow):
                     self.net_address, netbox.category_id)
                 return
         return super(Prefix, self).save(containers)
+
 
 class GwPortPrefix(Shadow):
     __shadowclass__ = manage.GwPortPrefix
@@ -528,8 +464,8 @@ class GwPortPrefix(Shadow):
                            for g in containers[cls].values()]
         netbox = containers.get(None, Netbox).get_existing_model()
         missing_addresses = manage.GwPortPrefix.objects.filter(
-            interface__netbox=netbox).exclude(
-            gw_ip__in=found_addresses)
+            interface__netbox=netbox
+        ).exclude(gw_ip__in=found_addresses)
         return missing_addresses
 
     def _parse_description(self, containers):
@@ -551,11 +487,11 @@ class GwPortPrefix(Shadow):
         self._update_with_parsed_description_data(data, containers)
 
     def _are_description_variables_present(self):
-        return self.interface and \
-            self.interface.netbox and \
-            self.interface.ifalias and \
-            self.prefix and \
-            self.prefix.vlan
+        return (self.interface and
+                self.interface.netbox and
+                self.interface.ifalias and
+                self.prefix and
+                self.prefix.vlan)
 
     def _parse_description_with_all_parsers(self):
         for parse in (descrparsers.parse_ntnu_convention,
@@ -587,6 +523,7 @@ class GwPortPrefix(Shadow):
     def prepare(self, containers):
         self._parse_description(containers)
 
+
 class NetType(Shadow):
     __shadowclass__ = manage.NetType
 
@@ -600,6 +537,7 @@ class NetType(Shadow):
 
 class SwPortVlan(Shadow):
     __shadowclass__ = manage.SwPortVlan
+
 
 class Arp(Shadow):
     __shadowclass__ = manage.Arp
@@ -615,9 +553,11 @@ class Arp(Shadow):
             myself = manage.Arp.objects.filter(id=self.id)
             myself.update(**attrs)
 
+
 class SwPortAllowedVlan(Shadow):
     __shadowclass__ = manage.SwPortAllowedVlan
     __lookups__ = ['interface']
+
 
 class Sensor(Shadow):
     __shadowclass__ = manage.Sensor
@@ -632,7 +572,7 @@ class Sensor(Shadow):
     def _delete_missing_sensors(cls, containers):
         missing_sensors = cls._get_missing_sensors(containers)
         sensor_names = [row['internal_name']
-                            for row in missing_sensors.values('internal_name')]
+                        for row in missing_sensors.values('internal_name')]
         if len(missing_sensors) < 1:
             return
         netbox = containers.get(None, Netbox)
@@ -649,6 +589,7 @@ class Sensor(Shadow):
         missing_sensors = manage.Sensor.objects.filter(
             netbox=netbox.id).exclude(pk__in=found_sensor_pks)
         return missing_sensors
+
 
 class PowerSupplyOrFan(Shadow):
     __shadowclass__ = manage.PowerSupplyOrFan
@@ -668,8 +609,8 @@ class PowerSupplyOrFan(Shadow):
             return
         netbox = containers.get(None, Netbox)
         cls._logger.debug('Deleting %d missing psus and fans from %s: %s',
-            len(psu_and_fan_names), netbox.sysname,
-            ", ".join(psu_and_fan_names))
+                          len(psu_and_fan_names), netbox.sysname,
+                          ", ".join(psu_and_fan_names))
         missing_psus_and_fans.delete()
 
     @classmethod

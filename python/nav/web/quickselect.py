@@ -23,7 +23,9 @@ from nav.models.manage import Location, Room, Netbox, Module
 from nav.models.service import Service
 
 
-class QuickSelect:
+class QuickSelect(object):
+    """Class for presenting and handling a quickselect form"""
+
     def __init__(self, **kwargs):
         self.button = kwargs.pop('button', 'Add %s')
 
@@ -51,11 +53,12 @@ class QuickSelect:
             raise TypeError('__init__() got an unexpected keyword argument '
                             '%s' % key)
 
-        # Quick hack to add the serial to our values.
-        netbox_value_args = [f.attname for f in Netbox._meta.fields]
-        netbox_value_args.append('device__serial')
-        self.netbox_set = Netbox.objects.order_by(
-            'sysname').values(*netbox_value_args)
+        # 'Dirtier than your mother' hack to add the serial to our values.
+        netboxes = Netbox.objects.order_by('sysname')
+        self.netbox_set = [netbox for netbox in netboxes.values()]
+        for index, netbox in enumerate(netboxes):
+            serial = netbox.device.serial if netbox.device else None
+            self.netbox_set[index]['device__serial'] = serial
 
         # Rest of the queryset we need
         self.location_set = Location.objects.order_by(('id')).values()
@@ -66,6 +69,7 @@ class QuickSelect:
         self.output = []
 
     def handle_post(self, request):
+        """Handles a post request from a quickselect form"""
         # Django requests has post and get data stored in an attribute called
         # REQUEST, while mod_python request stores it in form.
         #

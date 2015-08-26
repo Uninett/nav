@@ -76,8 +76,8 @@ class pinger:
         netboxmap = {}
         self.ipToNetboxid = {}
         for host in hosts:
-            netboxid, deviceid, sysname, ip, up = host
-            netbox = Netbox(netboxid, deviceid, sysname, ip, up)
+            netboxid, sysname, ip, up = host
+            netbox = Netbox(netboxid, sysname, ip, up)
             if not self.netboxmap.has_key(netbox.netboxid):
                 # new netbox. Be sure to get it's state
                 if netbox.up != 'y':
@@ -136,7 +136,7 @@ class pinger:
             netbox = self.netboxmap[netboxid]
             newEvent = Event(None,
                              netbox.netboxid,
-                             netbox.deviceid,
+                             None,  # deviceid
                              Event.boxState,
                              "pping",
                              Event.DOWN
@@ -153,7 +153,7 @@ class pinger:
                 continue
             newEvent = Event(None,
                              netbox.netboxid,
-                             netbox.deviceid,
+                             None,  # deviceid
                              Event.boxState,
                              "pping",
                              Event.UP

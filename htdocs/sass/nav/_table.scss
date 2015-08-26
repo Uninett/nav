@@ -43,6 +43,7 @@ table {
         }
         th {
             text-align: right;
+            vertical-align: baseline;
         }
     }
     &.listtable {
@@ -65,7 +66,11 @@ table {
     }
     border-bottom: 1px solid #ddd;
     ul {
-        margin-bottom: 0;
+        font-size: inherit;
+        margin-bottom: 0  !important;
+        &.inline-list {
+            margin-left: 0;
+        }
     }
 }
 

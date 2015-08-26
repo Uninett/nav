@@ -26,7 +26,7 @@
         <td>
           {% if netbox.type %}
             <a href="{% url 'report-type-type' netbox.type.id %}">
-              {{ netbox.type }}</a></td>
+              {{ netbox.type }}</a>
           {% else %}
             N/A
           {% endif %}
@@ -77,13 +77,34 @@
       </tr>
 
       <tr>
-        <th>Serial number</th>
-        <td>{{ netbox.device.serial|default:"N/A" }}</td>
-      </tr>
+        <th>Chassis</th>
+        <td>
+          {% with netbox.get_chassis as chassis %}
+            {% if chassis %}
 
-      <tr>
-        <th>Software</th>
-        <td>{{ netbox.device.software_version|default:"N/A" }}</td>
+              <ul class="no-bullet">
+                {% for chass in chassis %}
+                  <li>
+                    {% firstof chass.name chass.model chass.device.serial 'N/A' %}
+                    (serial: {{ chass.device.serial|default:"N/A" }},
+                    software: {{ chass.get_software_revision|default:"N/A" }})
+                    {% if chass.gone_since %}
+                      <span class="label alert"
+                            title="Down since {{ chass.gone_since }}">
+                        Down
+                      </span>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+
+            {% else %}
+
+              N/A
+
+            {% endif %}
+          {% endwith %}
+        </td>
       </tr>
 
       <tr>
@@ -302,7 +323,7 @@
       </tr>
 
       <tr>
-        <th>Future maintenance</th>
+        <th>Planned maintenance</th>
         <td>
           {% if future_maintenance_tasks %}
             <ul class="normalize-font-size">
@@ -352,7 +373,7 @@
 
     {% with netbox.get_last_jobs as jobs %}
     {% if jobs %}
-      <table class="listtable full-width">
+      <table id="ipdevpoll-jobs" class="listtable full-width">
         <caption>Jobs</caption>
         <thead>
         <tr>
@@ -372,7 +393,8 @@
             <td title="Next run expected at {{ job.end_time|add_interval:job.interval|date:"DATETIME_FORMAT" }}">
               {{ job.end_time|date:"DATETIME_FORMAT" }}
             </td>
-            <td class="cell-right">
+            <td>
+              <span class="sparkline" data-values="{{ job.get_last_runtimes }}"></span>
               {{ job.duration|stringformat:".2f" }}s
             </td>
             <td class="cell-center">

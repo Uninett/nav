@@ -83,18 +83,8 @@ class Report(object):
                                           configuration.order_by)
         self.table.set_headers(headers)
 
-        self.navigator = Navigator()
-        self.navigator.set_navigator(self.limit, self.offset, self.query_args,
-                                     self.rowcount)
-
         self.form = self.make_form(self.name)
-
-        if database.error:
-            self.navigator.set_message(database.error)
-
-    def __repr__(self):
-        return "Report[Navigator: {0}]".format(
-            self.navigator if self.navigator else None)
+        self.database_error = database.error
 
     def set_limit(self, limit):
         """Returns the limit according to the configuration, or the default.
@@ -106,7 +96,7 @@ class Report(object):
         if limit or limit == 0:
             return limit
         else:
-            return 1000
+            return 100000
 
     def set_offset(self, offset):
         """Returns the offset according to the configuration, or the default.
@@ -342,69 +332,6 @@ class Report(object):
                 form.append(field)
 
         return form
-
-
-class Navigator(object):
-    """A report pagination status object"""
-    def __init__(self):
-
-        self.view = ""
-        self.previous = ""
-        self.next = ""
-
-    def __repr__(self):
-        return "Navigator[view = {0}, previous={1} next={2}]".format(
-            self.view, self.previous, self.next)
-
-    def set_message(self, message):
-        """Sets the view-field (the line under the title of the page) to
-        "message"
-
-        :param message: the new message to appear at the page.
-        """
-        self.view = message
-
-    def set_navigator(self, limit, offset, query_dict, number):
-        """Sets the values of the navigator object
-
-        :param limit: the number of results per page
-        :param offset: the number of the first result displayed on the page
-        :param query_dict: mutable query_dict used used when making the next
-                           and previous buttons
-        :param number: total number of restults returned from the query
-
-        """
-        offset_int = int(offset)
-        limit_int = int(limit)
-        limit = str(limit)
-        number_int = int(number)
-        number = str(number)
-
-        next_offset = str(offset_int + limit_int)
-        prev_offset = str(offset_int - limit_int)
-        view_from = str(offset_int + 1)
-        view_to_int = offset_int + limit_int
-        view_to = str(view_to_int)
-
-        if offset_int:
-            query_dict['limit'] = limit
-            query_dict['offset'] = prev_offset
-            self.previous = query_dict.copy().urlencode()
-
-        if limit_int + offset_int < number_int:
-            query_dict['limit'] = limit
-            query_dict['offset'] = next_offset
-            self.next = query_dict.copy().urlencode()
-
-        if number_int:
-            if limit_int > number_int:
-                self.view = number+" hits"
-            elif view_to_int > number_int:
-                self.view = view_from + " - " + number + " of " + number
-            else:
-                self.view = view_from + " - " + view_to + " of " + number
-        else:
-            self.view = "Sorry, your search did not return any results"
 
 
 class Table(object):

@@ -24,14 +24,12 @@ from socket import error as SocketError
 from django.core.urlresolvers import reverse
 
 from django.http import HttpResponse
-from django.shortcuts import render_to_response, redirect, render
-from django.template import RequestContext
+from django.shortcuts import redirect, render
 from django.db import transaction
 from django.contrib import messages
 
-from nav.models.manage import Netbox, Device, NetboxCategory, NetboxType
+from nav.models.manage import Netbox, NetboxCategory, NetboxType
 from nav.models.manage import NetboxInfo
-from nav.models.oid import SnmpOid
 from nav.Snmp import Snmp
 from nav.Snmp.errors import SnmpError, TimeOutException
 from nav.util import is_valid_ip
@@ -72,8 +70,7 @@ def netbox_edit(request, netbox_id=None):
         'sub_active': netbox and {'edit': True} or {'add': True},
         'tab_template': 'seeddb/tabs_generic.html',
     })
-    return render_to_response('seeddb/netbox_wizard.html', context,
-                              RequestContext(request))
+    return render(request, 'seeddb/netbox_wizard.html', context)
 
 
 def get_title(netbox):
@@ -90,10 +87,9 @@ def get_read_only_variables(request):
     snmp_version = get_snmp_version(ip_address, read_community)
     sysname = get_sysname(ip_address)
 
-    serial = netbox_type = snmp_write_test = None
+    netbox_type = snmp_write_test = None
     if snmp_version:
         netbox_type = get_type_id(ip_address, read_community, snmp_version)
-        serial = get_serial(ip_address, read_community, snmp_version)
         if write_community:
             snmp_write_test = test_snmp_write(ip_address, write_community)
 
@@ -101,7 +97,6 @@ def get_read_only_variables(request):
         'snmp_version': '2' if snmp_version == '2c' else snmp_version,
         'sysname': sysname,
         'netbox_type': netbox_type,
-        'serial': serial,
         'snmp_write_test': snmp_write_test
     }
     return HttpResponse(json.dumps(data))
@@ -191,50 +186,15 @@ def snmp_type(ip_addr, snmp_ro, snmp_version):
         return None
 
 
-def get_serial(ip_addr, snmp_ro, snmp_version):
-    """Queries an IP address for all serials and returns the first one"""
-    serials = snmp_serials(ip_addr, snmp_ro, snmp_version)
-    if serials:
-        return serials[0]
-
-
-def snmp_serials(ip_addr, snmp_ro, snmp_version):
-    """Query ip for serial using form data"""
-    snmp = Snmp(ip_addr, snmp_ro, snmp_version)
-    oids = SnmpOid.objects.filter(
-        oid_key__icontains='serial'
-    ).values_list(
-        'snmp_oid', 'get_next'
-    )
-    serials = []
-    for (oid, get_next) in oids:
-        try:
-            if get_next:
-                result = snmp.walk(oid)
-                serials.extend([r[1] for r in result if r[1]])
-            else:
-                result = snmp.get(oid)
-                if result:
-                    serials.append(result)
-        except SnmpError:
-            pass
-    return serials
-
-
 @transaction.commit_on_success
 def netbox_do_save(form):
-    """Save netbox"""
-    netbox = form.save(commit=False)
+    """Save netbox.
 
-    # Save the serial field
-    serial = form.cleaned_data['serial']
-    if serial:
-        device, _ = Device.objects.get_or_create(serial=serial)
-        netbox.device = device
-    elif not netbox.pk:
-        device = Device.objects.create(serial=None)
-        netbox.device = device
+    Netboxgroups needs to be set manually because of database structure, thus we
+    do a commit=False save first.
+    """
 
+    netbox = form.save(commit=False) # Prevents saving m2m relationships
     netbox.save()
 
     # Save the function field
@@ -244,8 +204,7 @@ def netbox_do_save(form):
             func = NetboxInfo.objects.get(netbox=netbox, variable='function')
         except NetboxInfo.DoesNotExist:
             func = NetboxInfo(
-                netbox=netbox, variable='function', value=function
-            )
+                netbox=netbox, variable='function', value=function)
         else:
             func.value = function
         func.save()
@@ -275,7 +234,9 @@ def get_address_info(request):
                                    key=lambda item:
                                    socket.inet_pton(item[0], item[4][0]))
             addresses = [x[4][0] for x in sorted_tuples]
-        except Exception, error:
+        except socket.error, error:
+            context = {'error': str(error)}
+        except UnicodeError, error:
             context = {'error': str(error)}
         else:
             context = {

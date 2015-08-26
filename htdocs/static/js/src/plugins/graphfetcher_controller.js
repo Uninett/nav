@@ -18,17 +18,89 @@ require(['plugins/graphfetcher'], function (GraphFetcher) {
      * be populated with buttons for choosing timeframe for all graphs
      */
 
+
+    /**
+     * A little helper thingie to make lazyloading a bit less messier
+     */
+    function GraphHandler($container, graphs) {
+        this.$container = $container;
+        this.graphs = graphs;
+        this.lastOpenedIndex = null;
+
+        console.log('Number of graphs: ' + this.graphs.length);
+    }
+
+    GraphHandler.prototype = {
+        getLastOpenedNode: function() {
+            return this.lastOpenedIndex === null ? null : this.graphs[this.lastOpenedIndex].node[0];
+        },
+        openNext: function() {
+            var index = this.lastOpenedIndex === null ? 0 : this.lastOpenedIndex + 1;
+            if (index < this.graphs.length) {
+                console.log('(' + this.$container.context.id + '): opening graph ' + index);
+                this.graphs[index].open();
+                this.lastOpenedIndex = index;
+                return index;
+            }
+            return null;
+        },
+        openVisible: function() {
+            // Check if we are on a visible tab
+            if (!this.$container.is(':visible')) {
+                return;
+            }
+
+            var shouldOpenNext = false;
+            if (this.lastOpenedIndex === null) {
+                // Always open if nothing has been opened before
+                shouldOpenNext = true;
+            } else {
+                var bounds = this.getLastOpenedNode().getBoundingClientRect(),
+                    screenIsBelowLastGraph = bounds.bottom - $(window).height() < 0;
+                shouldOpenNext = screenIsBelowLastGraph && this.nextExists();
+            }
+
+            if (shouldOpenNext) {
+                this.openNext();
+                this.openVisible();
+            }
+        },
+        nextExists: function() {
+            return this.lastOpenedIndex < this.graphs.length - 1;
+        },
+        closeAll: function() {
+            for (var i = 0, l = this.graphs.length; i < l; i++) {
+                this.graphs[i].close();
+            }
+            this.lastOpenedIndex = null;
+        }
+    };
+    
+    /**
+     * Handler for showing and hiding all graphs. We apply a lazyloader when
+     * opening all graphs, so that graphs are opened when scrolling down the
+     * page.
+     */
     function addToggleListeners($parent, graphs) {
-        /* Add listeners for opening and closing all graphs */
+
+        var handler = new GraphHandler($parent, graphs);
+        
+        // Handler for the scroll event. Remember that this runs MANY times
+        var scrollHandler = function() {
+            handler.openVisible();
+        };
+
+        // Open button clicked. Open visible graphs and add scroll event handler
+        // for lazy loading
         $parent.find('.all-graph-opener').click(function () {
-            for (var i = 0, l = graphs.length; i < l; i++) {
-                graphs[i].open();
-            }
+            handler.openVisible();
+            $(window).on('scroll', scrollHandler);
         });
+
+        // Hide-button clicked. unbind event handler and close all graphs.
         $parent.find('.all-graph-closer').click(function () {
-            for (var i = 0, l = graphs.length; i < l; i++) {
-                graphs[i].close();
-            }
+            handler.closeAll();
+            $(window).off('scroll', scrollHandler);
         });
     }
 

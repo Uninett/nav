@@ -40,6 +40,7 @@ define(["libs/d3.v2"], function () {
             /* Create svg element and define force algorithm */
             this.createSvg();
             this.defineForceAlgorithm();
+            console.log('Init done');
         },
         createSvg: function () {
             this.svg = this.motherNode.append("svg")

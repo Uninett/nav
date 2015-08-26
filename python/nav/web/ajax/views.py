@@ -19,9 +19,8 @@ Ajax view definitions
 The view definitions does not necessarily need to be placed here.
 """
 
-from django.http import HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-import json as simplejson
 
 from nav.models.manage import Room, Netbox
 
@@ -43,8 +42,7 @@ def get_rooms_with_position(_request, roomid=None):
         }
         data['rooms'].append(roomdata)
 
-    return HttpResponse(simplejson.dumps(data),
-                        content_type='application/json')
+    return JsonResponse(data)
 
 
 def get_room_status(room):
@@ -113,7 +111,7 @@ def get_neighbors(_request, netboxid):
         "links": link_candidates.values() + un_candidates.values()
     }
 
-    return HttpResponse(simplejson.dumps(data), mimetype="application/json")
+    return JsonResponse(data)
 
 
 def create_object_from(netbox):

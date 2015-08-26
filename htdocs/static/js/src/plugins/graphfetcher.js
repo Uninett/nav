@@ -1,4 +1,4 @@
-define(['libs/spin.min'], function () {
+define(['plugins/rickshaw_graph', 'libs/spin.min'], function (RickshawGraph) {
     /*
      * GraphFetcher
      *
@@ -22,10 +22,6 @@ define(['libs/spin.min'], function () {
     function GraphFetcher(node, urls) {
         this.checkInput(node, urls);
         this.node = node;
-        this.wrapper = $('<div>')
-            .addClass('graphfetcher-wrapper')
-            .attr('style', 'display: inline-block')
-            .appendTo(this.node);
         this.urls = urls.split(';');
         this.lastUrlIndex = -1;
         this.urlIndex = 0;  // Index of this.urls
@@ -97,7 +93,7 @@ define(['libs/spin.min'], function () {
             }
         },
         addButtons: function () {
-            var headerNode = $('<div>').appendTo(this.wrapper);
+            var headerNode = $('<div>').appendTo(this.node);
             this.headerNode = headerNode;
 
             for (var key in this.buttons) {
@@ -120,15 +116,16 @@ define(['libs/spin.min'], function () {
             var self = this,
                 button = $('<button>').addClass('tiny secondary right').text('Add graph to dashboard');
             button.click(function () {
-                /* Image url is a redirect to graphite. Fetch proxy url and use that as preference for graph widget */
-                var url = self.wrapper.find('img').attr('src'),
+                /* Image url is a redirect to graphite. Fetch proxy url and use
+                 that as preference for graph widget */
+                var url = removeURLParameter(self.graph.dataURL, 'format'),
                     headRequest = $.ajax(url, { 'type': 'HEAD' });
                 headRequest.done(function (data, status, xhr) {
                     var proxyUrl = xhr.getResponseHeader('X-Where-Am-I');
                     if (proxyUrl) {
                         var request = $.post(NAV.addGraphWidgetUrl,
                             {
-                                'url': proxyUrl,
+                                'url': removeURLParameter(proxyUrl, 'format'),
                                 'target': window.location.pathname + window.location.hash
                             });
                         request.done(function () {
@@ -146,7 +143,7 @@ define(['libs/spin.min'], function () {
             $('button', this.headerNode).each(function (index, element) {
                 $(element).removeClass('active');
             });
-            this.wrapper.find('button.graph-button-' + this.timeframe).addClass('active');
+            this.node.find('button.graph-button-' + this.timeframe).addClass('active');
         },
         loadGraph: function () {
             this.lastTimeFrame = this.timeframe;
@@ -155,20 +152,14 @@ define(['libs/spin.min'], function () {
             this.selectButton();
         },
         displayGraph: function (url) {
-            this.spinner.spin(this.wrapper.get(0));
-            var self = this;
-            var image = new Image();
-            image.src = url;
-            image.onload = function () {
-                self.wrapper.find('img').remove();
-                self.wrapper.append(image);
-                self.spinner.stop();
-            };
-            image.onerror = function () {
-                self.wrapper.find('img').remove();
-                self.wrapper.append("<span class='alert-box alert'>Error loading image</span>");
-                self.spinner.stop();
-            };
+            //this.spinner.spin(this.wrapper.get(0));
+            var graphContainer = this.node.find('.rickshaw-container')[0];
+            if (typeof this.graph === 'undefined') {
+                this.graph = new RickshawGraph(graphContainer, url);
+            } else {
+                this.graph.dataURL = url;
+                this.graph.request();
+            }
         },
         getUrl: function () {
             var url = this.urls[this.urlIndex],
@@ -197,4 +188,27 @@ function escapeUrl(url) {
     return url.split('/').reduce(function(prev, curr) {
         return prev + '/' + encodeURIComponent(curr);
     });
+}
+
+function removeURLParameter(url, parameter) {
+    //prefer to use l.search if you have a location/link object
+    var urlparts= url.split('?');   
+    if (urlparts.length>=2) {
+
+        var prefix= encodeURIComponent(parameter)+'=';
+        var pars= urlparts[1].split(/[&;]/g);
+
+        //reverse iteration as may be destructive
+        for (var i= pars.length; i-- > 0;) {    
+            //idiom for string.startsWith
+            if (pars[i].lastIndexOf(prefix, 0) !== -1) {  
+                pars.splice(i, 1);
+            }
+        }
+
+        url= urlparts[0]+'?'+pars.join('&');
+        return url;
+    } else {
+        return url;
+    }
 }

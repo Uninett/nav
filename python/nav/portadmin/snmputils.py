@@ -80,11 +80,13 @@ class SNMPHandler(object):
 
     netbox = None
 
-    def __init__(self, netbox):
+    def __init__(self, netbox, **kwargs):
         self.netbox = netbox
         self.read_only_handle = None
         self.read_write_handle = None
         self.available_vlans = None
+        self.timeout = kwargs.get('timeout', 3)
+        self.retries = kwargs.get('retries', 3)
 
     def __unicode__(self):
         return self.netbox.type.vendor.id
@@ -117,7 +119,9 @@ class SNMPHandler(object):
         """Get a read only SNMP-handle."""
         if self.read_only_handle is None:
             self.read_only_handle = Snmp(self.netbox.ip, self.netbox.read_only,
-                                         self.netbox.snmp_version)
+                                         self.netbox.snmp_version,
+                                         retries=self.retries,
+                                         timeout=self.timeout)
         return self.read_only_handle
 
     def _query_netbox(self, oid, if_index):
@@ -135,7 +139,9 @@ class SNMPHandler(object):
         if self.read_write_handle is None:
             self.read_write_handle = Snmp(self.netbox.ip,
                                           self.netbox.read_write,
-                                          self.netbox.snmp_version)
+                                          self.netbox.snmp_version,
+                                          retries=self.retries,
+                                          timeout=self.timeout)
         return self.read_write_handle
 
     def _set_netbox_value(self, oid, if_index, value_type, value):
@@ -462,8 +468,8 @@ class Cisco(SNMPHandler):
     ENCAPSULATION_DOT1Q = 4
     ENCAPSULATION_NEGOTIATE = 5
 
-    def __init__(self, netbox):
-        super(Cisco, self).__init__(netbox)
+    def __init__(self, netbox, **kwargs):
+        super(Cisco, self).__init__(netbox, **kwargs)
         self.vlan_oid = '1.3.6.1.4.1.9.9.68.1.2.2.1.2'
         self.write_mem_oid = '1.3.6.1.4.1.9.2.1.54.0'
 
@@ -620,8 +626,8 @@ class Cisco(SNMPHandler):
 
 class HP(SNMPHandler):
     """A specialized class for handling ports in HP switches."""
-    def __init__(self, netbox):
-        super(HP, self).__init__(netbox)
+    def __init__(self, netbox, **kwargs):
+        super(HP, self).__init__(netbox, **kwargs)
 
 VENDOR_CISCO = 9
 VENDOR_HP = 11
@@ -631,16 +637,16 @@ class SNMPFactory(object):
     """Factory class for returning SNMP-handles depending
     on a netbox' vendor identification."""
     @classmethod
-    def get_instance(cls, netbox):
+    def get_instance(cls, netbox, **kwargs):
         """Get and SNMP-handle depending on vendor type"""
         if not netbox.type:
             raise NoNetboxTypeError()
         vendor_id = netbox.type.get_enterprise_id()
         if vendor_id == VENDOR_CISCO:
-            return Cisco(netbox)
+            return Cisco(netbox, **kwargs)
         if vendor_id == VENDOR_HP:
-            return HP(netbox)
-        return SNMPHandler(netbox)
+            return HP(netbox, **kwargs)
+        return SNMPHandler(netbox, **kwargs)
 
     def __init__(self):
         pass

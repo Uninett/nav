@@ -140,7 +140,6 @@ def is_netbox_changed(netbox1, netbox2):
                  'type',
                  'read_only',
                  'snmp_version',
-                 'device',
                  'up',
                  'snmp_up',
                  ):

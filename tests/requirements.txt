@@ -1,5 +1,5 @@
 pytest==2.5.2
-mock>=0.8.0
+mock>=0.8.0,<1.1.0
 pylint==1.4.1
 whisper>=0.9.9
 selenium>=2.34.0

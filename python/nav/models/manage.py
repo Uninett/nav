@@ -49,6 +49,7 @@ import nav.models.event
 #######################################################################
 ### Netbox-related models
 
+
 class Netbox(models.Model):
     """From NAV Wiki: The netbox table is the heart of the heart so to speak,
     the most central table of them all. The netbox tables contains information
@@ -69,7 +70,6 @@ class Netbox(models.Model):
     room = models.ForeignKey('Room', db_column='roomid')
     type = models.ForeignKey('NetboxType', db_column='typeid',
                              blank=True, null=True)
-    device = models.ForeignKey('Device', db_column='deviceid')
     sysname = VarcharField(unique=True)
     category = models.ForeignKey('Category', db_column='catid')
     groups = models.ManyToManyField(
@@ -95,6 +95,15 @@ class Netbox(models.Model):
 
     def __unicode__(self):
         return self.get_short_sysname()
+
+    @property
+    def device(self):
+        """Property to access the former device-field
+
+        Returns the first chassis device if any
+        """
+        for chassis in self.get_chassis().order_by('index'):
+            return chassis.device
 
     def is_up(self):
         """Returns True if the Netbox isn't known to be down or in shadow"""
@@ -336,6 +345,13 @@ class Netbox(models.Model):
         return self.unrecognizedneighbor_set.filter(
             ignored_since=None).count() > 0
 
+    def get_chassis(self):
+        """Returns a QuerySet of chassis devices seen on this netbox"""
+        return self.entity_set.filter(
+            device__isnull=False,
+            physical_class=NetboxEntity.CLASS_CHASSIS,
+        ).select_related('device')
+
 
 class NetboxInfo(models.Model):
     """From NAV Wiki: The netboxinfo table is the place
@@ -354,6 +370,150 @@ class NetboxInfo(models.Model):
 
     def __unicode__(self):
         return u'%s="%s"' % (self.variable, self.value)
+
+
+class NetboxEntity(models.Model):
+    """
+    Represents a physical Entity within a Netbox. Largely modeled after
+    ENTITY-MIB::entPhysicalTable. See RFC 4133 (and RFC 6933), but may be
+    filled from other sources where applicable.
+
+    """
+    # Class choices, extracted from RFC 6933
+
+    CLASS_OTHER = 1
+    CLASS_UNKNOWN = 2
+    CLASS_CHASSIS = 3
+    CLASS_BACKPLANE = 4
+    CLASS_CONTAINER = 5  # e.g., chassis slot or daughter-card holder
+    CLASS_POWERSUPPLY = 6
+    CLASS_FAN = 7
+    CLASS_SENSOR = 8
+    CLASS_MODULE = 9  # e.g., plug-in card or daughter-card
+    CLASS_PORT = 10
+    CLASS_STACK = 11  # e.g., stack of multiple chassis entities
+    CLASS_CPU = 12
+    CLASS_ENERGYOBJECT = 13
+    CLASS_BATTERY = 14
+
+    CLASS_CHOICES = (
+        (CLASS_OTHER, 'other'),
+        (CLASS_UNKNOWN, 'unknown'),
+        (CLASS_CHASSIS, 'chassis'),
+        (CLASS_BACKPLANE, 'backplane'),
+        (CLASS_CONTAINER, 'container'),
+        (CLASS_POWERSUPPLY, 'powerSupply'),
+        (CLASS_FAN, 'fan'),
+        (CLASS_SENSOR, 'sensor'),
+        (CLASS_MODULE, 'module'),
+        (CLASS_PORT, 'port'),
+        (CLASS_STACK, 'stack'),
+        (CLASS_CPU, 'cpu'),
+        (CLASS_ENERGYOBJECT, 'energyObject'),
+        (CLASS_BATTERY, 'battery'),
+    )
+
+    id = models.AutoField(db_column='netboxentityid', primary_key=True)
+    netbox = models.ForeignKey('Netbox', db_column='netboxid',
+                               related_name='entity_set')
+
+    index = models.IntegerField()
+    source = VarcharField(default='ENTITY-MIB')
+    descr = VarcharField(null=True)
+    vendor_type = VarcharField(null=True)
+    contained_in = models.ForeignKey('NetboxEntity', null=True)
+    physical_class = models.IntegerField(choices=CLASS_CHOICES, null=True)
+    parent_relpos = models.IntegerField(null=True)
+    name = VarcharField(null=True)
+    hardware_revision = VarcharField(null=True)
+    firmware_revision = VarcharField(null=True)
+    software_revision = VarcharField(null=True)
+    device = models.ForeignKey('Device', null=True, db_column='deviceid')
+    mfg_name = VarcharField(null=True)
+    model_name = VarcharField(null=True)
+    alias = VarcharField(null=True)
+    asset_id = VarcharField(null=True)
+    fru = models.NullBooleanField(verbose_name='Is a field replaceable unit')
+    mfg_date = models.DateTimeField(null=True)
+    uris = VarcharField(null=True)
+    gone_since = models.DateTimeField(null=True)
+    data = hstore.DictionaryField()
+
+    objects = hstore.HStoreManager()
+
+    class Meta:
+        db_table = 'netboxentity'
+        unique_together = (('netbox', 'index'),)
+
+    def __unicode__(self):
+        klass = (self.get_physical_class_display() or '').capitalize()
+        title = self.name or '(Unnamed entity)'
+        if klass and not title.strip().lower().startswith(klass.lower()):
+            title = "%s %s" % (klass, title)
+
+        try:
+            netbox = self.netbox
+        except Netbox.DoesNotExist:
+            netbox = '(Unknown netbox)'
+        return "{title} at {netbox}".format(
+            title=title, netbox=netbox
+        )
+
+    def is_chassis(self):
+        """Returns True if this is a chassis type entity"""
+        return self.physical_class == self.CLASS_CHASSIS
+
+    def get_software_revision(self):
+        """Returns the software revision applicable to this entity"""
+        if not self.is_chassis():
+            return
+
+        if not self.software_revision:
+            return self._get_applicable_software_revision()
+        return self.software_revision
+
+    def _get_applicable_software_revision(self):
+        """Gets an aggregated software revision for this entity"""
+        if self.netbox.type.vendor.id == 'cisco':
+            return self._get_cisco_sup_software_version()
+
+    def _get_cisco_sup_software_version(self):
+        """Returns the supervisors software version
+
+        Finds all modules in the netbox that matches supervisor patterns and has
+        this entity as a parent. Returns the software version of the first one
+        in that list.
+        """
+        supervisor_patterns = [
+            re.compile(r'supervisor', re.I),
+            re.compile('\bSup\b'),
+            re.compile(r'WS-SUP'),
+        ]
+
+        sup_candidates = []
+        modules = NetboxEntity.objects.filter(
+            physical_class=NetboxEntity.CLASS_MODULE, netbox=self.netbox)
+
+        for pattern in supervisor_patterns:
+            for module in modules:
+                if pattern.search(module.model_name):
+                    sup_candidates.append(module)
+
+        for sup in sup_candidates:
+            parents = sup.get_parents()
+            if self in parents and sup.software_revision:
+                return sup.software_revision
+
+    def get_parents(self):
+        """Gets the parents of this entity
+
+        :rtype: list<NetboxEntity>
+        """
+        parents = []
+        if self.contained_in:
+            parents.append(self.contained_in)
+            parents += self.contained_in.get_parents()
+        return parents
 
 
 class NetboxPrefix(models.Model):
@@ -474,6 +634,38 @@ class Module(models.Model):
     def is_on_maintenace(self):
         """Returns True if the owning Netbox is on maintenance"""
         return self.netbox.is_on_maintenance()
+
+    def get_entity(self):
+        """
+        Attempts to find the NetboxEntity entry that corresponds to this module.
+
+        :returns: Either a NetboxEntity object or None.
+        """
+        try:
+            return NetboxEntity.objects.get(netbox=self.netbox,
+                                            device=self.device)
+        except NetboxEntity.DoesNotExist:
+            return None
+
+    def get_chassis(self):
+        """
+        Attempts to find the NetboxEntity that corresponds to the chassis that
+        contains this module.
+
+        :return:
+        """
+        me = self.get_entity()
+        if not me:
+            return
+
+        entities = {e.id: e
+                    for e in NetboxEntity.objects.filter(netbox=self.netbox)}
+        current = entities.get(me.id)
+        while current is not None and not current.is_chassis():
+            current = entities.get(current.contained_in_id)
+            if current.contained_in_id == current.id:
+                return  # no infinite loops, please
+        return current
 
 
 class Memory(models.Model):
@@ -954,9 +1146,11 @@ class AdjacencyCandidate(models.Model):
     id = models.AutoField(db_column='adjacency_candidateid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     interface = models.ForeignKey('Interface', db_column='interfaceid')
-    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid')
+    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
+                                  related_name='to_adjacencycandidate_set')
     to_interface = models.ForeignKey('Interface', db_column='to_interfaceid',
-                                     null=True)
+                                     null=True,
+                                     related_name='to_adjacencycandidate_set')
     source = VarcharField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
 
@@ -1500,6 +1694,24 @@ class IpdevpollJobLog(models.Model):
     def has_result(self):
         """Returns True if this job ran and had an actual result"""
         return self.success is not None
+
+    def get_last_runtimes(self, job_count=30):
+        """Get the last runtimes for these jobs on this netbox
+
+        Does not verify that the jobs are sequential, there may be large gaps
+        between the actual runs.
+
+        :returns: A list of lists where the first element is local seconds since
+                  epoch and second element is the runtime
+        """
+        jobs = IpdevpollJobLog.objects.filter(
+            job_name=self.job_name, netbox=self.netbox).order_by(
+                '-end_time')[:job_count]
+        runtimes = [
+            [int((j.end_time - dt.datetime(1970, 1, 1)).total_seconds()),
+            j.duration] for j in jobs]
+        runtimes.reverse()
+        return runtimes
 
 
 class Netbios(models.Model):

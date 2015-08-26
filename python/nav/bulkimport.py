@@ -18,7 +18,7 @@
 # pylint: disable=R0903
 from __future__ import absolute_import
 
-from nav.models.manage import Device, Netbox, Room, Organization
+from nav.models.manage import Netbox, Room, Organization
 from nav.models.manage import Category, NetboxInfo, NetboxGroup
 from nav.models.manage import NetboxCategory, Interface
 from nav.models.manage import Location, Usage, NetboxType, Vendor
@@ -74,10 +74,8 @@ class NetboxImporter(BulkImporter):
         raise_if_exists(Netbox, ip=row['ip'])
         raise_if_exists(Netbox, sysname=row['ip'])
 
-        device = self._get_device_from_serial(row['serial'])
         netbox = self._get_netbox_from_row(row)
-        netbox.device = device
-        objects = [device, netbox]
+        objects = [netbox]
 
         netbox.data = self._parse_data(row['data'])
 
@@ -92,18 +90,6 @@ class NetboxImporter(BulkImporter):
             objects.extend(netboxgroups)
 
         return objects
-
-    @staticmethod
-    def _get_device_from_serial(serial):
-        if not serial:
-            return Device(serial=None)
-
-        try:
-            device = Device.objects.get(serial=serial)
-        except Device.DoesNotExist:
-            return Device(serial=serial)
-        else:
-            return device
 
     @staticmethod
     def _get_netbox_from_row(row):

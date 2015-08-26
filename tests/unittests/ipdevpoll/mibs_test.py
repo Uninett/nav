@@ -16,6 +16,7 @@
 
 import unittest
 import os
+import datetime
 from IPy import IP
 
 from twisted.internet import defer
@@ -32,8 +33,9 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 from nav.oids import OID
 from nav.mibs.ip_mib import IpMib, IndexToIpException
 from nav.mibs.ipv6_mib import Ipv6Mib
-from nav.mibs.entity_mib import EntityMib
+from nav.mibs.entity_mib import EntityMib, parse_dateandtime_tc
 from nav.mibs.snmpv2_mib import Snmpv2Mib
+
 
 class IpMibTests(unittest.TestCase):
     def test_ipv4_syntax_with_length_should_be_parsed_correctly(self):
@@ -120,6 +122,7 @@ class EntityMibTests(unittest.TestCase):
         if isinstance(df.result, failure.Failure):
             df.result.raiseException()
 
+
 class Snmpv2MibTests(unittest.TestCase):
     def test_simple_uptime_deviation_should_be_correct(self):
         first_uptime =  (1338372778.0, 10000L)
@@ -156,6 +159,25 @@ class CiscoHSRPMibTests(unittest.TestCase):
         self.assertTrue(df.called)
         self.assertTrue((IP('10.0.1.1'), 153) in df.result.items())
         self.assertTrue((IP('10.0.42.1'), 155) in df.result.items())
+
+
+def test_short_dateandtime_parses_properly():
+    parsed = parse_dateandtime_tc('\xdf\x07\x05\x0e\x0c\x1e*\x05')
+    assert parsed == datetime.datetime(2015, 05, 14, 12, 30, 42, 500000)
+
+
+def test_long_dateandtime_parses_properly():
+    parsed = parse_dateandtime_tc('\xdf\x07\x05\x0e\x0c\x1e*\x05+\x02\x00')
+    assert parsed == datetime.datetime(2015, 05, 14, 12, 30, 42, 500000)
+
+
+def test_zero_dateandtime_parses_properly():
+    parsed = parse_dateandtime_tc('\x00\x00\x00\x00\x00\x00\x00\x00')
+    assert parsed is None
+
+
+def test_crazy_dateandtime_should_not_crash():
+    assert parse_dateandtime_tc("FOOBAR") is None
 
 if __name__ == '__main__':
     unittest.main()
