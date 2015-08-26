@@ -36,7 +36,7 @@ start_xvfb() {
 
 
 init_db() {
-    /source/tests/docker/create-db.sh
+    . /source/tests/docker/create-db.sh
 }
 
 run_pytests() {
@@ -46,6 +46,7 @@ run_pytests() {
 
     cd "${WORKSPACE}/tests"
     py.test --junitxml=unit-results.xml --verbose unittests
+    "$BUILDDIR/bin/navsyncdb" -r test_dump.sql
     py.test --junitxml=integration-results.xml --verbose integration
     py.test --junitxml=functional-results.xml --verbose functional
 
