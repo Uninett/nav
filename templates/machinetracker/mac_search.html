@@ -83,7 +83,7 @@
     </div>
   </form>
 
-  {% if mac_tracker != None or uplink_tracker or ip_tracker or interface_tracker %}
+  {% if mac_tracker or uplink_tracker or ip_tracker or interface_tracker %}
     {% if uplink_tracker %}
       <div class="results">
         {% include "machinetracker/uplink_tracker.html" %}
@@ -105,6 +105,8 @@
     <div class="results">
       {% include "machinetracker/ip_tracker.html" %}
     </div>
+  {% elif mac_tracker != None %}
+    <div class="alert-box">No results for "{{ form_data.mac }}"</div>
   {% endif %}
 
   <div id="valid-search-terms" class="reveal-modal" data-reveal>

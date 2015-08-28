@@ -102,15 +102,13 @@
 
   </form>
 
-  {% if display_no_results %}
-    <div class="errorbox">
-      <p>Your search did not give any results. ({{ subnet_start }}-{{ subnet_end }})</p>
-    </div>
-  {% endif %}
-
   {% if ip_tracker %}
     <div class="results">
       {% include "machinetracker/ip_tracker.html" %}
+    </div>
+  {% elif ip_tracker != None %}
+    <div class="alert-box">
+      No results for {{ subnet_start }}-{{ subnet_end }}
     </div>
   {% endif %}
 

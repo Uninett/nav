@@ -66,10 +66,12 @@
     </div>
   </form>
 
-  {% if mac_tracker != None %}
+  {% if mac_tracker %}
     <div class="results">
       {% include "machinetracker/mac_tracker.html" %}
     </div>
+  {% elif mac_tracker != None %}
+    <div class="alert-box">No results for "{{ form_data.switch }}"</div>
   {% endif %}
 
   <div id="valid-search-terms" class="reveal-modal" data-reveal>
