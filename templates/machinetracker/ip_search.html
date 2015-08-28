@@ -9,7 +9,7 @@
             <div class="medium-9 columns {% if form.ip_range.errors %}error{% endif %}">
               {{ form.ip_range }}
               {% if form.ip_range.errors %}
-                <small>{{ form.ip_range.errors }}</small>
+                <small class="error">{{ form.ip_range.errors }}</small>
               {% endif %}
             </div>
             <div class="medium-3 columns">
