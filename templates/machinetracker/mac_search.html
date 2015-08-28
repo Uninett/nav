@@ -83,7 +83,7 @@
     </div>
   </form>
 
-  {% if mac_tracker or uplink_tracker or ip_tracker or interface_tracker %}
+  {% if mac_tracker != None or uplink_tracker or ip_tracker or interface_tracker %}
     {% if uplink_tracker %}
       <div class="results">
         {% include "machinetracker/uplink_tracker.html" %}
