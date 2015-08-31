@@ -39,9 +39,7 @@ RUN cd /tmp && \
     git clone https://github.com/htacg/tidy-html5.git && \
     cd tidy-html5/build/cmake && \
     cmake ../.. -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIB:BOOL=ON && \
-    make && make install
-# Fake symlink for the library so it will work with pytidylib
-RUN ln -s /usr/lib/libtidy5.so /usr/lib/libtidy.so
+    make && make install && echo tidy5 installed
 
 RUN adduser --system --group --home=/build --shell=/bin/bash build
 RUN echo "build    ALL=NOPASSWD: ALL" >> /etc/sudoers

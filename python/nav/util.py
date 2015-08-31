@@ -18,6 +18,7 @@
 import os
 import re
 import stat
+import socket
 import datetime
 from functools import wraps
 from itertools import chain, tee, ifilter
@@ -62,13 +63,37 @@ def colortohex(triplet):
     return ('%02x' * 3) % triplet
 
 
-def is_valid_ip(ip):
+def is_valid_ip(ip, use_socket_lib=False):
     """Verifies that a string is a single, valid IPv4 or IPv6 address.
 
-    A cleaned up version of the IP address string is returned if it is
-    verified, otherwise a false value is returned.
+    Uses the IPy or socket library to verify addresses.
+    """
+    if use_socket_lib:
+        return _is_valid_ip_socket(ip)
+    else:
+        return _is_valid_ip_ipy(ip)
 
-    Uses the IPy library to verify addresses.
+
+def _is_valid_ip_socket(ip):
+    """Checks for ip validity using the socket library"""
+    try:
+        socket.inet_pton(socket.AF_INET, ip)  # IPv4
+    except socket.error:
+        try:
+            socket.inet_pton(socket.AF_INET6, ip)  # IPv6
+        except socket.error:
+            return False
+        else:
+            return True
+    else:
+        return True
+
+
+def _is_valid_ip_ipy(ip):
+    """Checks for ip validity using the IPy library
+
+    A cleaned up version of the IP address string is returned if it is verified,
+    otherwise a false value is returned.
     """
     if isinstance(ip, (str, unicode)) and not ip.isdigit():
         try:
@@ -79,7 +104,7 @@ def is_valid_ip(ip):
             pass
     return False
 
-
+    
 def is_valid_cidr(cidr):
     """Verifies that a string is valid IPv4 or IPv6 CIDR specification.
 

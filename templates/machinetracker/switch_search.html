@@ -2,87 +2,94 @@
 
 {% block content %}
 
-    <form action="{% url machinetracker-swp %}" method="get">
-        <div id="search_form" class="row">
-            <div class="medium-8 column">
-                <table class="listtable expand">
-                    <caption>Switch search</caption>
-                    <tbody>
-                        <tr>
-                            <th><label for="id_switch">Switch</label></th>
-                            <td {% if form.switch.errors %}class="error"{% endif %} >
-                                {{ form.switch }}
-                                {% if form.switch.errors %}
-                                    <small class="nomargin">{{ form.switch.errors }}</small>
-                                {% endif %}
-                            </td>
+  <form action="{% url machinetracker-swp %}" method="get">
+    <div id="search_form" class="row">
+      <div class="medium-8 column">
+        <table class="listtable expand">
+          <caption>Switch search</caption>
+          <tbody>
+            <tr>
+              <th><label for="id_switch">Switch</label></th>
+              <td {% if form.switch.errors %}class="error"{% endif %} >
+                {{ form.switch }}
+                {% if form.switch.errors %}
+                  <small class="error">{{ form.switch.errors }}</small>
+                {% endif %}
+              </td>
 
-                            <th><label for="id_hide">Only active</label></th>
-                            <td><input id="id_hide" type="checkbox" name="days" value="-1" onclick="document.getElementById('id_days').disabled = this.checked;" /></td>
-                        </tr>
+              <th><label for="id_hide">Only active</label></th>
+              <td>
+                <input id="id_hide" type="checkbox" name="days" value="-1"
+                       onclick="document.getElementById('id_days').disabled = this.checked;" />
+              </td>
+            </tr>
 
-                        <tr>
-                            <th><label for="id_module">Module</label></th>
-                            <td {% if form.module.errors %}class="error"{% endif %}>
-                                {{ form.module }}
-                                {% if form.module.errors %}
-                                    <small class="nomargin">{{ form.module.errors }}</small>
-                                {% endif %}
-                            </td>
+            <tr>
+              <th><label for="id_module">Module</label></th>
+              <td {% if form.module.errors %}class="error"{% endif %}>
+                {{ form.module }}
+                {% if form.module.errors %}
+                  <small class="error">{{ form.module.errors }}</small>
+                {% endif %}
+              </td>
 
-                            <th><label for="id_days">Days</label></th>
-                            <td {% if form.days.errors %}class="error"{% endif %}>
-                                {{ form.days }}
-                                {% if form.days.errors %}
-                                    <small class="nomargin">{{ form.days.errors }}</small>
-                                {% endif %}
-                            </td>
-                        </tr>
+              <th><label for="id_days">Days</label></th>
+              <td {% if form.days.errors %}class="error"{% endif %}>
+                {{ form.days }}
+                {% if form.days.errors %}
+                  <small class="error">{{ form.days.errors }}</small>
+                {% endif %}
+              </td>
+            </tr>
 
-                        <tr>
-                            <th><label for="id_port">Port</label></th>
-                            <td {% if form.port.errors %}class="error"{% endif %}>
-                                {{ form.port }}
-                                {% if form.port.errors %}
-                                    <small class="nomargin">{{ form.port.errors }}</small>
-                                {% endif %}
-                            </td>
-                            <td colspan="2"><input type="submit" value="Search" class="button small right"/></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <tr>
+              <th><label for="id_port">Port</label></th>
+              <td {% if form.port.errors %}class="error"{% endif %}>
+                {{ form.port }}
+                {% if form.port.errors %}
+                  <small class="error">{{ form.port.errors }}</small>
+                {% endif %}
+              </td>
+              <td colspan="2">
+                <input type="submit" value="Search" class="button small right"/>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-            <div class="medium-4 column">
-                <a href="#" data-reveal-id="valid-search-terms" title="Help" data-reveal
-                   class="button secondary small right">Help</a>
-            </div>
+      <div class="medium-4 column">
+        <a href="#" data-reveal-id="valid-search-terms" title="Help" data-reveal
+           class="button secondary small right">Help</a>
+      </div>
 
-        </div>
-    </form>
-
-{% if mac_tracker %}
-    <div class="results">
-        {% include "machinetracker/mac_tracker.html" %}
     </div>
-{% endif %}
+  </form>
 
-<div id="valid-search-terms" class="reveal-modal" data-reveal>
+  {% if mac_tracker %}
+    <div class="results">
+      {% include "machinetracker/mac_tracker.html" %}
+    </div>
+  {% elif mac_tracker != None %}
+    <div class="alert-box">No results for "{{ form_data.switch }}"</div>
+  {% endif %}
+
+  <div id="valid-search-terms" class="reveal-modal" data-reveal>
     <h4>Search Hints</h4>
     <ul>
-        <li>
-            Switch search will search for switches having a sysname that starts
-            with whatever you enter as switch name.  E.g. searching for
-            &quot;<tt>blapp-sw</tt>&quot; will retrieve both
-            &quot;<tt>blapp-sw.ntnu.no</tt>&quot; and
-            &quot;<tt>blapp-sw2.ntnu.no</tt>&quot;
-        </li>
-        <li>
-            Leaving the <i>module</i> or <i>interface</i> fields empty in the
-            switch search will find any module or interface that have matching
-            records for your selected switch.
-        </li>
+      <li>
+        Switch search will search for switches having a sysname that starts
+        with whatever you enter as switch name.  E.g. searching for
+        &quot;<tt>blapp-sw</tt>&quot; will retrieve both
+        &quot;<tt>blapp-sw.ntnu.no</tt>&quot; and
+        &quot;<tt>blapp-sw2.ntnu.no</tt>&quot;
+      </li>
+      <li>
+        Leaving the <i>module</i> or <i>interface</i> fields empty in the
+        switch search will find any module or interface that have matching
+        records for your selected switch.
+      </li>
     </ul>
-</div>
+  </div>
 
 {% endblock content %}

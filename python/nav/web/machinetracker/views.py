@@ -95,11 +95,6 @@ def ip_do_search(request):
                                  ip_range, ip_result)
         row_count = sum(len(mac_ip_pair) for mac_ip_pair in tracker.values())
 
-   # If the form was valid, but we found no results, display error message
-    display_no_results = False
-    if form.is_valid() and not row_count:
-        display_no_results = True
-
     info_dict = {
         'form': form,
         'form_data': form_data,
@@ -107,7 +102,6 @@ def ip_do_search(request):
         'ip_tracker_count': row_count,
         'subnet_start': unicode(from_ip),
         'subnet_end': unicode(to_ip),
-        'display_no_results': display_no_results,
         'colspan': find_colspan('ip', form)
     }
     info_dict.update(IP_DEFAULTS)
