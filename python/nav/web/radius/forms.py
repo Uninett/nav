@@ -24,7 +24,6 @@ from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Submit
 
 from nav.util import is_valid_cidr
-from nav.web.djangoforms import InlineMultipleChoiceField
 
 
 def validate_integer(value):
@@ -205,7 +204,8 @@ class AccountLogSearchForm(forms.Form):
     port_type = forms.ChoiceField(
         required=False,
         choices=PORT_TYPES)
-    dns_lookup = InlineMultipleChoiceField(
+    dns_lookup = forms.MultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
         required=False,
         choices=DNS_LOOKUPS)
 
@@ -240,7 +240,8 @@ class AccountChartsForm(forms.Form):
         min_value=0.5,
         initial=7,
         label='Day(s)')
-    charts = InlineMultipleChoiceField(
+    charts = forms.MultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
         choices=CHARTS,
         initial=CHARTS[0])
 
