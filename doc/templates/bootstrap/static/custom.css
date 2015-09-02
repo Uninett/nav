@@ -7,3 +7,10 @@ img {
 footer {
     margin-top: 2em;
 }
+
+
+/* Override the red color and background for code elements */
+code {
+    color: inherit;
+    background-color: #ecf0f1;
+}
