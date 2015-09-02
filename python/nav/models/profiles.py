@@ -401,11 +401,13 @@ class AlertSender(models.Model):
     JABBER = u'Jabber'
     EMAIL = u'Email'
     SMS = u'SMS'
+    SLACK = u'Slack'
 
     SCHEMES = {
         JABBER: u'jabber:',
         EMAIL: u'mailto:',
         SMS: u'sms:',
+        SLACK: u'slack:'
     }
 
     def __unicode__(self):
