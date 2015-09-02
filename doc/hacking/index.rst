@@ -11,5 +11,5 @@
    using-docker
    javascript
    release-procedure
+   writing-a-servicemon-plugin
    adding-environment-probe-support
-
