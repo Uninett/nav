@@ -211,19 +211,18 @@ class AccountLogSearchForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(AccountLogSearchForm, self).__init__(*args, **kwargs)
-        css_class = 'medium-6'
+        css_class_large = 'large-4 medium-6'
+        css_class_small = 'large-2 medium-6'
         self.helper = FormHelper()
         self.helper.form_action = ''
         self.helper.form_method = 'GET'
         self.helper.form_class = 'custom'
         self.helper.layout = Layout(
             Row(
-                Column('query', css_class=css_class),
-                Column('time', css_class=css_class)
-            ),
-            Row(
-                Column('port_type', css_class=css_class),
-                Column('dns_lookup', css_class=css_class),
+                Column('query', css_class=css_class_large),
+                Column('time', css_class=css_class_large),
+                Column('port_type', css_class=css_class_small),
+                Column('dns_lookup', css_class=css_class_small),
             ),
             Submit('send', 'Search', css_class='small')
         )
