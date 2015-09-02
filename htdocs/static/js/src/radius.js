@@ -55,7 +55,7 @@ require(['src/dt_plugins/ip_address_sort', 'src/dt_plugins/ip_address_typedetect
             'aoColumnDefs': [
                 {'bSortable': false, 'aTargets': nosort}
             ],
-            'sDom': '<"caption"<"info"i><"filter"f>>t',
+            'sDom': '<"ftable"<f><"info"i>>t',
             'oLanguage': {'sSearch': 'Filter results:'}
         });
 
