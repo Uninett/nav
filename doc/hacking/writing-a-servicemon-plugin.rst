@@ -18,7 +18,7 @@ The basic limitations are as follows:
 - A service must be associated with an IP device (e.g. a server).
 - A service must necessarily be hosted on the single management IP address of
   the server. Multi-homed servers are not supported (although you can
-  potentially hack this by adding an IP address as a required argument to your
+  potentially hack this by adding an IP address as an argument to your
   plugin).
 
 
@@ -46,7 +46,7 @@ Requirements:
 Writing a simple checker skeleton
 ---------------------------------
 We begin with something like this, in the file
-:file:`nav/statemon/checkers/PanicChecker.py`:
+:file:`nav/statemon/checker/PanicChecker.py`:
 
 .. code-block:: python
    :linenos:
@@ -83,7 +83,7 @@ And the service matrix status should be green:
           service checker actually runs and reports a failure.
 
 Congratulations, you have just recreated the
-:py:mod:`nav.statemon.checkers.DummyChecker` - a checker that accepts no
+:py:mod:`nav.statemon.checker.DummyChecker` - a checker that accepts no
 arguments and always reports a positive result.
 
 Fleshing out the plugin
