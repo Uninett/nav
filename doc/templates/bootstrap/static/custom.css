@@ -11,6 +11,6 @@ footer {
 
 /* Override the red color and background for code elements */
 code {
-    color: inherit;
-    background-color: #ecf0f1;
+    color: #2C3E50;
+    background-color: #ECF0F1;
 }
