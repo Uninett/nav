@@ -20,7 +20,10 @@ require([], function() {
 
     var containerSelector = "#timeperiods_table_container";
     
-    // Highlights shared time-periods
+
+    /**
+     * Highlights shared time-periods
+     */
     var doHighlight = function() {
 	// The last class should (in theory) be the "shared_period"
 	// class
@@ -28,13 +31,19 @@ require([], function() {
 	$("." + shared_id).addClass('hilight');
     };
 
-    // Removes highlight from shared time-periods
+
+    /**
+     * Removes highlight from shared time-periods
+     */
     var removeHighlight = function() {
 	var shared_id = $(this).attr('class').split(' ').slice(-1);
 	$("." + shared_id).removeClass('hilight');
     };
 
-    // Switch between multiple and single select list in the expression form
+    
+    /**
+     * Switch between multiple and single select list in the expression form
+     */
     var switchMultiple = function() {
 	if ($("select#id_operator").val() === "11") {
 	    $("select#id_value").attr('multiple', 'multiple');
