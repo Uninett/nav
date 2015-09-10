@@ -22,13 +22,25 @@ require([], function() {
     
 
     /**
+     * Finds and returns the class that starts with 'period_' for the given
+     * element. The class is prepended a dot (.) for use in jQuery selectors.
+     *
+     * @param {HTMLElement} element Element that has the class
+     */
+    var findSharedClass = function(element) {
+        return element.className.split(' ').filter(function(klass){
+            return klass.match(/period_/);
+        }).map(function(klass) {
+            return '.' + klass;
+        }).join(' ');        
+    };
+    
+
+    /**
      * Highlights shared time-periods
      */
     var doHighlight = function() {
-	// The last class should (in theory) be the "shared_period"
-	// class
-	var shared_id = $(this).attr('class').split(' ').slice(-1);
-	$("." + shared_id).addClass('hilight');
+        $(findSharedClass(this)).addClass('hilight');
     };
 
 
@@ -36,8 +48,7 @@ require([], function() {
      * Removes highlight from shared time-periods
      */
     var removeHighlight = function() {
-	var shared_id = $(this).attr('class').split(' ').slice(-1);
-	$("." + shared_id).removeClass('hilight');
+        $(findSharedClass(this)).removeClass('hilight');
     };
 
     
