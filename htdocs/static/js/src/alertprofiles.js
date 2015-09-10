@@ -18,6 +18,8 @@
 
 require([], function() {
 
+    var containerSelector = "#timeperiods_table_container";
+    
     // Highlights shared time-periods
     var doHighlight = function() {
 	// The last class should (in theory) be the "shared_period"
@@ -41,26 +43,28 @@ require([], function() {
 	}
     };
 
-    // Check multiple checkboxes for shared periods
+
+    /**
+     * When toggling a period that is shared with another period, toggle the
+     * other period aswell.
+     */
     var checkMultiple = function() {
-	// The last class is "hilight", the second last is the
-	// "shared_period" class
-	var shared_id = $(this).parents("tr").attr('class').split(' ').slice(-2, -1);
-	if ($(this).attr('checked')) {
-	    $("." + shared_id + " input").attr('checked', 'checked');
-	} else {
-	    $("." + shared_id + " input").removeAttr('checked');
-	}
+        var that = this,
+            sharedClass = $(this).closest('td').attr('class'),
+            selector = '.' + sharedClass + ' input';
+        
+        $(containerSelector).find(selector).filter(function() {
+            return this !== that;
+        }).prop('checked', this.checked);
     };
 
     $(function() {
-        var $timePeriods = $("#timeperiods_table_container tr.all_days_period"),
+        var $timePeriods = $(containerSelector).find("tr.all_days_period"),
             $operator = $("select#id_operator");
 	$timePeriods.hover(doHighlight, removeHighlight);
 	$timePeriods.find("input").click(checkMultiple);
 	$operator.ready(switchMultiple);
 	$operator.change(switchMultiple);
-
     });
 
 });
