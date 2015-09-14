@@ -25,7 +25,6 @@ from nav.statemon.event import  Event
 
 class ImapsChecker(AbstractChecker):
     """Internet mail application protocol (ssl)"""
-    TYPENAME = "imaps"
     IPV6_SUPPORT = True
     DESCRIPTION = "Internet mail application protocol (ssl)"
     ARGS = (

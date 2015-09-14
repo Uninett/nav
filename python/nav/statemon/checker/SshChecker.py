@@ -24,7 +24,6 @@ from nav.statemon.event import Event
 
 class SshChecker(AbstractChecker):
     """Checks for SSH availability"""
-    TYPENAME = "ssh"
     IPV6_SUPPORT = True
     DESCRIPTION = "Secure shell server"
     OPTARGS = (

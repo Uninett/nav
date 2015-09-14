@@ -23,7 +23,6 @@ from nav.util import which
 
 class RpcChecker(AbstractChecker):
     """RPC portmapper"""
-    TYPENAME = "rpc"
     DESCRIPTION = "RPC portmapper"
     OPTARGS = (
         ('required', 'A comma separated list of require services. Example: '

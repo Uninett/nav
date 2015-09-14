@@ -24,7 +24,6 @@ from nav.statemon.event import Event
 
 class Pop3Checker(AbstractChecker):
     """Post office protocol"""
-    TYPENAME = "pop3"
     IPV6_SUPPORT = True
     DESCRIPTION = "Post office protocol"
     ARGS = (

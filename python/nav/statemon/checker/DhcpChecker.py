@@ -26,7 +26,6 @@ from nav.util import which, is_setuid_root
 
 class DhcpChecker(AbstractChecker):
     """DHCP"""
-    TYPENAME = "dhcp"
     DESCRIPTION = "DHCP"
     OPTARGS = (
         ('timeout', ''),

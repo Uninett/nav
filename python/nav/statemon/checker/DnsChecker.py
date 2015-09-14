@@ -22,7 +22,6 @@ from nav.statemon import DNS
 
 class DnsChecker(AbstractChecker):
     """Domain Name Service"""
-    TYPENAME = "dns"
     IPV6_SUPPORT = True
     DESCRIPTION = "Domain Name Service"
     ARGS = (
