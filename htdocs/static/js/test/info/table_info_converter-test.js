@@ -2,7 +2,7 @@ define(['info/table_info_converter', 'libs/jquery'], function (converter) {
     describe("table info converter", function () {
         beforeEach(function () {
             this.wrapper = $('<div></div>');
-            var table = $('<table><caption><a href="">uninett-gw.uninett.no</a> - blapp</caption><thead></thead><tbody></tbody></table>');
+            var table = $('<table><caption><a href=""> uninett-gw.uninett.no   \n</a> - blapp</caption><thead></thead><tbody></tbody></table>');
             $(this.wrapper).append(table);
 
             var row = $('<tr></tr>');
