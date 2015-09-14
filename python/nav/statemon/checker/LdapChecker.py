@@ -25,7 +25,6 @@ import ldap
 
 class LdapChecker(AbstractChecker):
     """LDAP"""
-    TYPENAME = "ldap"
     IPV6_SUPPORT = True
     DESCRIPTION = "LDAP"
     OPTARGS = (

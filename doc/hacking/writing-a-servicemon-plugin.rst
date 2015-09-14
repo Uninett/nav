@@ -56,7 +56,6 @@ We begin with something like this, in the file
 
 
    class PanicChecker(AbstractChecker):
-       TYPENAME = "panic"
        IPV6_SUPPORT = True
        DESCRIPTION = "Checks for panic"
 
@@ -95,7 +94,7 @@ Requests library to fetch the web page and examine its contents:
 
 .. code-block:: python
    :linenos:
-   :emphasize-lines: 12, 13
+   :emphasize-lines: 11, 12
 
    import requests
    from nav.statemon.event import Event
@@ -103,7 +102,6 @@ Requests library to fetch the web page and examine its contents:
 
 
    class PanicChecker(AbstractChecker):
-       TYPENAME = "panic"
        IPV6_SUPPORT = True
        DESCRIPTION = "Checks for panic"
 
@@ -181,8 +179,7 @@ What have we learned so far?
   while the second element must be a human-readable description of the status
   (which will be attached to any events posted).
 - The plugin can describe itself to the outside world by setting the class
-  variables ``TYPENAME`` (an identifier that should not change over the
-  plugin's lifetime), ``IPV6_SUPPORT`` and ``DESCRIPTION``.
+  variables ``IPV6_SUPPORT`` and ``DESCRIPTION``.
 
 Adding arguments
 ----------------
@@ -200,7 +197,7 @@ Let's make the document path configurable in our plugin:
 
 .. code-block:: python
    :linenos:
-   :emphasize-lines: 16
+   :emphasize-lines: 15
 
    import requests
    from nav.statemon.event import Event
@@ -208,7 +205,6 @@ Let's make the document path configurable in our plugin:
 
 
    class PanicChecker(AbstractChecker):
-       TYPENAME = "panic"
        IPV6_SUPPORT = True
        DESCRIPTION = "Checks for panic"
        OPTARGS = (

@@ -54,7 +54,6 @@ class OracleChecker(AbstractChecker):
         return Event.DOWN, str(sys.exc_value)
 
     """
-    TYPENAME = "oracle"
     DESCRIPTION = "Oracle database"
     OPTARGS = (
         ('port', ''),

@@ -43,7 +43,6 @@ class HTTPSConnection(httplib.HTTPSConnection):
 
 class HttpsChecker(AbstractChecker):
     """HTTPS"""
-    TYPENAME = "https"
     IPV6_SUPPORT = True
     DESCRIPTION = "HTTPS"
     OPTARGS = (
