@@ -39,8 +39,8 @@ The web-interface is accessible from the Toolbox. When using Arnold you have
 several views available. They are as follows:
 
 - **History** lists the detentions for the last x days. This will list both
-  active and lifted detentions.
-- **Detained ports** lists all currently detained ports.
+  active detentions and detentions no longer in effect.
+- **Detained ports** lists all active detentions.
 - **Detention reasons** lists all existing reasons for a detention. A reason is
   directly connected to a detention, and makes it easy to group detentions by
   reasons.
@@ -133,13 +133,12 @@ behind the detained port is active on another port. If it is, it enforces the
 detention on that port aswell. Depending on options given at detention-time it
 will either remove the detention on the old port or just leave it.
 
-.. note:: This does not detain the new port immediately after a detained
-          computer has moved to it, because it takes some time before NAV
-          discovers the new location of the MAC-address. This combined with the
-          interval t1000.py runs in could give the user quite some time with
-          access before being detained again. This on-and-off behavior of
-          internet access has been known to cause confusion and annoyance among
-          the users - use this script knowing that.
+.. warning:: This does not detain the new port immediately after a detained
+   computer has moved to it, because it takes some time before NAV discovers the
+   new location of the MAC-address. This combined with the interval t1000.py
+   runs in could give the user quite some time with access before being detained
+   again. This on-and-off behavior of internet access has been known to cause
+   confusion and annoyance among the users - use this script knowing that.
 
 Configuring Arnold
 ==================
@@ -190,9 +189,16 @@ has more information about how to create a template.
 Logging
 =======
 
-The arnold scripts logs to individual files stored in nav/var/log/arnold. The
-webinterface logs to STDERR, which Apache most probably puts in it's
-error.log. The loglevel used for each script is defined in logging.conf.
+The arnold scripts logs to individual files stored in
+``nav/var/log/arnold/``. The webinterface logs to STDERR, which Apache most
+probably puts in it's error.log. The loglevel used for each script must be set
+in ``logging.conf``.
+
+The loggers (with default loglevels) are::
+
+  start_arnold = INFO
+  t1000 = INFO
+  autoenable = INFO
 
 
 FAQ
