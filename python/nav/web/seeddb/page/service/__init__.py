@@ -53,7 +53,8 @@ def service_list(request):
     query = Service.objects.all()
     value_list = ('netbox__sysname', 'handler', 'version')
     return render_list(request, query, value_list, 'seeddb-service-edit',
-                       extra_context=info.template_context)
+                       extra_context=info.template_context,
+                       add_descriptions=True)
 
 
 def service_delete(request):
