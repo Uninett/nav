@@ -16,6 +16,12 @@ code {
 }
 
 
+/* Contrast for pre elements was to small. */
+pre {
+    color: #2C3E50;
+}
+
+
 /* The following overrides the admonition colors. They all pass the WCAG 2.0
 level AA test for contrast */
 
@@ -29,7 +35,6 @@ level AA test for contrast */
 .alert-warning {
     color: #9f5000;
     background-color: #feefb3;
-    /* background-color: #FFF3E0; */
 }
 
 /* This covers the admonitions 'alert' and 'danger' */
@@ -37,3 +42,7 @@ level AA test for contrast */
     color: #a73a00;
     background-color: #F2DEDE;
 }
+
+/* Fix links inside admonitions */
+.alert a, .alert .alert-link { color: #18BC9C; }
+
