@@ -37,9 +37,16 @@ class ServiceChoiceForm(forms.Form):
         super(ServiceChoiceForm, self).__init__(*args, **kwargs)
         self.fields['netbox'] = forms.ChoiceField(
             label='IP Device',
-            choices=self._build_netbox_choices())
+            choices=self._build_netbox_choices(),
+            widget=forms.Select(attrs={'class': 'select2'})
+        )
         self.fields['service'] = forms.ChoiceField(
-            choices=sorted(self._build_checker_choices()))
+            choices=sorted(self._build_checker_choices()),
+            widget=forms.Select(attrs={'class': 'select2'})
+        )
+
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
 
     @staticmethod
     def _build_checker_choices():
