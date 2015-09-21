@@ -22,6 +22,8 @@ from django.template import RequestContext
 from django.http import HttpResponseRedirect
 from django.db import transaction
 
+from crispy_forms.helper import FormHelper
+
 from nav.models.service import Service, ServiceProperty
 from nav.models.manage import Netbox
 from nav.web.servicecheckers import get_description, load_checker_classes
@@ -70,6 +72,11 @@ class ServiceForm(forms.Form):
     netbox = forms.IntegerField(
         widget=forms.HiddenInput)
 
+    def __init__(self, *args, **kwargs):
+        super(ServiceForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
+
 
 class ServicePropertyForm(forms.Form):
     """Form for editing service properties"""
@@ -80,11 +87,17 @@ class ServicePropertyForm(forms.Form):
         opt_args = service_description.get('optargs')
 
         if args:
-            for arg in args:
-                self.fields[arg] = forms.CharField(required=True)
+            for arg, descr in args:
+                self.fields[arg] = forms.CharField(required=True,
+                                                   help_text=descr)
         if opt_args:
-            for arg in opt_args:
-                self.fields[arg] = forms.CharField(required=False)
+            for arg, descr in opt_args:
+                self.fields[arg] = forms.CharField(required=False,
+                                                   help_text=descr)
+
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
+
 
 
 def service_edit(request, service_id=None):
