@@ -5,26 +5,38 @@
 
   <p><a href="{{ back_url }}">Back to list</a></p>
 
+  {% if object %}
+    <h4>
+      Editing service <em>{{ handler }}</em> on <em>{{ netbox }}</em>
+    </h4>
+  {% else %}
+    <h4>
+      Add new service checker for <em>{{ handler }}</em> on <em>{{ netbox }}</em>
+    </h4>
+  {% endif %}
+
   <div class="row">
     <div class="column large-6 small-12">
       <form action="" method="post">
-        {% crispy service_form %}
-        {% if property_form.fields %}
-          {% crispy property_form %}
-        {% else %}
-          <div class="alert-box">
-            There are no properties for this service.
-            <strong>You just need to save the service</strong>.
-          </div>
-        {% endif %}
-
-          <input class="button small left" type="submit" name="save"
-                 {% if object %}
-                 value="Save changes"
-                 {% else %}
-                 value="Save new service"
-                 {% endif %}
-                 />
+        <fieldset>
+          <legend>Attributes</legend>
+          {% crispy service_form %}
+          {% if property_form.fields %}
+            {% crispy property_form %}
+          {% else %}
+            <div class="alert-box">
+              There are no attributes for this service.
+              <strong>You just need to save the service</strong>.
+            </div>
+          {% endif %}
+        </fieldset>
+        <input class="button small left" type="submit" name="save"
+               {% if object %}
+               value="Save changes"
+               {% else %}
+               value="Save new service"
+               {% endif %}
+               />
       </form>
 
       {% if delete_url and object %}
