@@ -21,37 +21,12 @@ Climate Monitor, versions 1 and 2.
 """
 import re
 import logging
+from collections import defaultdict
 
 import nav.event
 from nav.db import getConnection
 
 logger = logging.getLogger('nav.snmptrapd.weathergoose')
-
-
-EVENTTYPES = {
-    'weathergoose_temperature':
-        ['cmClimateTempCTRAP',
-         'cmClimateTempCCLEAR', 'gstClimateTempCCLEAR',
-         'cmClimateTempCNOTIFY', 'gstClimateTempCNOTIFY',
-         'cmTempSensorTempCNOTIFY', 'gstTempSensorTempCNOTIFY',
-         'cmTempSensorTempCCLEAR', 'gstTempSensorTempCCLEAR'],
-    'weathergoose_humidity':
-        ['cmClimateHumidityTRAP',
-         'cmClimateHumidityCLEAR', 'gstClimateHumidityCLEAR',
-         'cmClimateHumidityNOTIFY', 'gstClimateHumidityNOTIFY'],
-    'weathergoose_airflow':
-        ['cmClimateAirflowTRAP',
-         'cmClimateAirflowCLEAR', 'gstClimateAirflowCLEAR',
-         'cmClimateAirflowNOTIFY', 'gstClimateAirflowNOTIFY'],
-    'weathergoose_light':
-        ['cmClimateLightTRAP',
-         'cmClimateLightCLEAR', 'gstClimateLightCLEAR',
-         'cmClimateLightNOTIFY', 'gstClimateLightNOTIFY'],
-    'weathergoose_sound':
-        ['cmClimateSoundTRAP',
-         'cmClimateSoundCLEAR', 'gstClimateSoundCLEAR',
-         'cmClimateSoundNOTIFY', 'gstClimateSoundNOTIFY'],
-    }
 
 
 class WeatherGoose1(object):
@@ -239,6 +214,9 @@ class GeistWeatherGoose(WeatherGoose2):
     }
 
 
+HANDLER_CLASSES = (WeatherGoose1, WeatherGoose2, GeistWeatherGoose)
+
+
 # pylint: disable=unused-argument
 def handleTrap(trap, config=None):
     """ This function is called from snmptrapd """
@@ -255,7 +233,7 @@ def handleTrap(trap, config=None):
     netboxid, sysname, roomid = cur.fetchone()
 
     oid = trap.snmpTrapOID
-    for handler_class in WeatherGoose1, WeatherGoose2, GeistWeatherGoose:
+    for handler_class in HANDLER_CLASSES:
         if handler_class.can_handle(oid):
             handler = handler_class(trap, netboxid, sysname, roomid)
             return handler.post_event()
@@ -264,26 +242,35 @@ def handleTrap(trap, config=None):
 
 
 def initialize_eventdb():
-    """ Populate the database with eventtype and alerttype information """
-    h = {}
-    for eventtype in EVENTTYPES:
-        eventdescr = (eventtype, '', True)
-        h[eventdescr] = []
-        for alerttype in EVENTTYPES[eventtype]:
-            h[eventdescr].append((alerttype,
-                                  _get_alert_description(alerttype)))
-
+    """Populates the database with eventtype and alerttype information"""
     try:
-        nav.event.create_type_hierarchy(h)
+        nav.event.create_type_hierarchy(_get_event_hierarchy())
     except Exception, e:
         logger.error(e)
         return False
 
 
-def _get_alert_description(alerttype):
-    for goose_ver in WeatherGoose1, WeatherGoose2, GeistWeatherGoose:
-        if alerttype in goose_ver.TRAPS:
-            return goose_ver.TRAPS[alerttype]['description']
+def _get_event_hierarchy():
+    """
+    Builds an event/alert hierarchy data structure from the known handler
+    classes.
+    """
+    seen_alerts = set()
+    hiera = defaultdict(list)
+    for klass in HANDLER_CLASSES:
+        alerts = klass.TRIGGERTRAPS.copy()
+        alerts.update(klass.CLEARTRAPS)
+
+        for alert, event in alerts.items():
+            if alert in seen_alerts:
+                continue
+            seen_alerts.add(alert)
+
+            eventdescr = (event, '', True)
+            alertdescr = klass.TRAPS.get(alert, {}).get('description', '')
+            hiera[eventdescr].append((alert, alertdescr))
+
+    return dict(hiera)
 
 
 def initialize():
