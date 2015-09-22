@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2009 Norwegian University of Science and Technology
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011, 2015 UNINETT AS
 # Copyright (C) 2011 Narvik University College
 #
 # This file is part of Network Administration Visualized (NAV).
@@ -19,7 +19,7 @@
 Climate Monitor, versions 1 and 2.
 
 """
-
+import re
 import logging
 
 import nav.event
@@ -30,19 +30,29 @@ logger = logging.getLogger('nav.snmptrapd.weathergoose')
 
 EVENTTYPES = {
     'weathergoose_temperature':
-        ['cmClimateTempCTRAP', 'cmClimateTempCCLEAR', 'cmClimateTempCNOTIFY',
-         'cmTempSensorTempCNOTIFY', 'cmTempSensorTempCCLEAR'],
+        ['cmClimateTempCTRAP',
+         'cmClimateTempCCLEAR', 'gstClimateTempCCLEAR',
+         'cmClimateTempCNOTIFY', 'gstClimateTempCNOTIFY',
+         'cmTempSensorTempCNOTIFY', 'gstTempSensorTempCNOTIFY',
+         'cmTempSensorTempCCLEAR', 'gstTempSensorTempCCLEAR'],
     'weathergoose_humidity':
-        ['cmClimateHumidityTRAP', 'cmClimateHumidityCLEAR',
-         'cmClimateHumidityNOTIFY'],
+        ['cmClimateHumidityTRAP',
+         'cmClimateHumidityCLEAR', 'gstClimateHumidityCLEAR',
+         'cmClimateHumidityNOTIFY', 'gstClimateHumidityNOTIFY'],
     'weathergoose_airflow':
-        ['cmClimateAirflowTRAP', 'cmClimateAirflowCLEAR',
-         'cmClimateAirflowNOTIFY'],
+        ['cmClimateAirflowTRAP',
+         'cmClimateAirflowCLEAR', 'gstClimateAirflowCLEAR',
+         'cmClimateAirflowNOTIFY', 'gstClimateAirflowNOTIFY'],
     'weathergoose_light':
-        ['cmClimateLightTRAP', 'cmClimateLightCLEAR', 'cmClimateLightNOTIFY'],
+        ['cmClimateLightTRAP',
+         'cmClimateLightCLEAR', 'gstClimateLightCLEAR',
+         'cmClimateLightNOTIFY', 'gstClimateLightNOTIFY'],
     'weathergoose_sound':
-        ['cmClimateSoundTRAP', 'cmClimateSoundCLEAR', 'cmClimateSoundNOTIFY'],
+        ['cmClimateSoundTRAP',
+         'cmClimateSoundCLEAR', 'gstClimateSoundCLEAR',
+         'cmClimateSoundNOTIFY', 'gstClimateSoundNOTIFY'],
     }
+
 
 class WeatherGoose1(object):
     from nav.smidumps.itw_mib import MIB
@@ -176,6 +186,7 @@ class WeatherGoose1(object):
             if value:
                 return value
 
+
 class WeatherGoose2(WeatherGoose1):
     from nav.smidumps.itw_mibv3 import MIB
 
@@ -201,6 +212,32 @@ class WeatherGoose2(WeatherGoose1):
     CLEARTRAPS.update({'cmTempSensorTempCCLEAR':
                        'weathergoose_temperature', })
 
+# IT Watchdogs -> Geist transition pattern
+_geistpattern = re.compile("^cm")
+
+
+class GeistWeatherGoose(WeatherGoose2):
+    """The rebranded MIB after IT Watchdogs merged with Geist"""
+    from nav.smidumps.geist_mibv3 import MIB
+
+    # Define supported traps and relations
+    TRAPS = MIB['notifications']
+    NODES = MIB['nodes']
+    TRIPTYPE = "." + NODES['alarmTripType']['oid'] + '.0'
+    GOOSENAME = "." + NODES['productFriendlyName']['oid'] + '.0'
+    SUBID = "." + NODES['alarmInstance']['oid'] + '.0'
+    SENSORNAMES = ['tempSensorName', 'climateName']
+
+    # Values in TRIGGERTRAPS and CLEARTRAPS are used as event types
+    TRIGGERTRAPS = {
+        _geistpattern.sub("gst", key): value
+        for key, value in WeatherGoose2.TRIGGERTRAPS.items()
+    }
+    CLEARTRAPS = {
+        _geistpattern.sub("gst", key): value
+        for key, value in WeatherGoose2.CLEARTRAPS.items()
+    }
+
 
 # pylint: disable=unused-argument
 def handleTrap(trap, config=None):
@@ -218,12 +255,13 @@ def handleTrap(trap, config=None):
     netboxid, sysname, roomid = cur.fetchone()
 
     oid = trap.snmpTrapOID
-    for handler_class in WeatherGoose1, WeatherGoose2:
+    for handler_class in WeatherGoose1, WeatherGoose2, GeistWeatherGoose:
         if handler_class.can_handle(oid):
             handler = handler_class(trap, netboxid, sysname, roomid)
             return handler.post_event()
 
     return False
+
 
 def initialize_eventdb():
     """ Populate the database with eventtype and alerttype information """
@@ -241,13 +279,15 @@ def initialize_eventdb():
         logger.error(e)
         return False
 
+
 def _get_alert_description(alerttype):
-    for goose_ver in WeatherGoose1, WeatherGoose2:
+    for goose_ver in WeatherGoose1, WeatherGoose2, GeistWeatherGoose:
         if alerttype in goose_ver.TRAPS:
             return goose_ver.TRAPS[alerttype]['description']
 
+
 def initialize():
-    """Initialize method for snmpdtrap daemon so it can initialize plugin
+    """Initialize method for snmptrapd daemon so it can initialize plugin
     after __import__
     """
     initialize_eventdb()
