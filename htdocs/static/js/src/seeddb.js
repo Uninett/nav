@@ -23,6 +23,15 @@ require([
             initDeviceGroupSelectMultiple($formElement, $searchField);
         }
 
+        /**
+         * Checks if we are on the service page. If so, initalize the ajax
+         * search for IP device and service handler
+         */
+        var $serviceCheckerAddForm = $('#service_checker_add_form');
+        if ($serviceCheckerAddForm.length) {
+            initSearchForIpDevice();
+        }
+
         initJoyride();  /* Start joyride if url endswith #joyride */
 
         if ($('#map').length && $('#id_position').length) {
@@ -220,6 +229,38 @@ require([
                         $form.trigger('submit', true);
                     }
                 });
+            }
+        });
+    }
+
+    function initSearchForIpDevice() {
+        $('#id_netbox').select2({
+            placeholder: 'Search for IP device',
+            minimumInputLength: 3,
+            ajax: {
+                url: NAV.urls.api_netbox_list,
+                dataType: 'json',
+                quietMillis: 250,
+                data: function(params) {
+                    return {
+                        search: params
+                    };
+                },
+                results: function(data, page, query) {
+                    var results = data.results;
+                    data.results.sort(function(a, b) {
+                        if (a.sysname.toLowerCase() < b.sysname.toLowerCase()) {
+                            return -1;
+                        } else {
+                            return 1;
+                        }
+                    });
+                    return {
+                        results: data.results.map(function(obj) {
+                            return { id: obj.id, text: obj.sysname };
+                        })
+                    };
+                }
             }
         });
     }

@@ -35,10 +35,11 @@ class ServiceChoiceForm(forms.Form):
     """For for editing services"""
     def __init__(self, *args, **kwargs):
         super(ServiceChoiceForm, self).__init__(*args, **kwargs)
-        self.fields['netbox'] = forms.ChoiceField(
+        # NB: Setting the TextInput to hidden is done to display the label.
+        #     The HiddenInput widget will remove the label
+        self.fields['netbox'] = forms.CharField(
             label='IP Device',
-            choices=self._build_netbox_choices(),
-            widget=forms.Select(attrs={'class': 'select2'})
+            widget=forms.TextInput(attrs={'type': 'hidden'})
         )
         self.fields['service'] = forms.ChoiceField(
             choices=sorted(self._build_checker_choices()),
