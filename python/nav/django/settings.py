@@ -26,7 +26,7 @@ import os
 try:
     nav_config = read_flat_config('nav.conf')
 except IOError:
-    nav_config = {}
+    nav_config = {'SECRET_KEY': 'Very bad default value'}
 
 try:
     webfront_config = getconfig('webfront/webfront.conf',
