@@ -106,6 +106,20 @@ class Service(models.Model):
         else:
             return lastdown.end_time
 
+    def get_handler_description(self):
+        """Returns the description of the handler
+
+        The description is defined in the service checker
+        """
+        classname = u"{}Checker".format(str(self.handler).capitalize())
+        modulename = u"nav.statemon.checker.{}".format(classname)
+        checker = __import__(modulename, globals(), locals(), [classname], -1)
+        klass = getattr(checker, classname)
+        return getattr(klass, 'DESCRIPTION', '')
+
+    description = property(get_handler_description)
+
+
 
 class ServiceProperty(models.Model):
     """From NAV Wiki: Each service may have an additional set of attributes.

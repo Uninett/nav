@@ -60,7 +60,6 @@ class RadiusChecker(AbstractChecker):
         return Event.DOWN, str(sys.exc_value)
     """
     # TODO: Check for IPv6 compatibility in pyrad
-    TYPENAME = "radius"
     DESCRIPTION = "RADIUS"
     ARGS = (
         ('dictionary', 'Full path to a file containing the dictionary for '

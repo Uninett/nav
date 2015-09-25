@@ -19,47 +19,46 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 import os
-import sys
-import re
-import debug
+import importlib
 from debug import debug
+
+HANDLER_PATTERN = "Checker.py"
+CHECKER_DIR = os.path.join(os.path.dirname(__file__), "checker")
 
 checkers = {}
 dirty = []  # store failed imports here
-checkerdir = os.path.join(os.path.dirname(__file__), "checker")
-if checkerdir not in sys.path:
-    sys.path.append(checkerdir)
+
+
 def register(key, module):
-    if not key in checkers.keys():
+    if key not in checkers:
         debug("Registering checker %s from module %s" % (key, module))
         checkers[key] = module
 
+
 def get(checker):
+    """Gets a specific checker class from its short handler name"""
     if checker in dirty:
         return
-    if not checker in checkers.keys():
+    if checker not in checkers:
         parsedir()
-    module = checkers.get(checker.lower(), '')
-    if not module:
+    module_name = class_name = checkers.get(checker.lower(), '')
+    if not module_name:
         return
     try:
-        exec("import " + module)
-    except Exception, e:
-        debug("Failed to import %s, %s" % (module, str(e)))
+        module = importlib.import_module('.' + module_name,
+                                         'nav.statemon.checker')
+    except Exception as e:
+        debug("Failed to import %s, %s" % (module_name, e))
         dirty.append(checker)
         return
-    return eval(module+'.'+module)
+    return getattr(module, class_name)
+
 
 def parsedir():
-    """
-    Parses the checkerdir for Handlers.
-    """
-    files = os.listdir(checkerdir)
-    handlerpattern = "Checker.py"
-    for file in files:
-        if file.endswith(handlerpattern):
-            key = file[:-len(handlerpattern)].lower()
-            handler = file[:-3]
+    """Finds potential checker modules in the CHECKER_DIR"""
+    fnames = os.listdir(CHECKER_DIR)
+    for fname in fnames:
+        if fname.endswith(HANDLER_PATTERN):
+            key = fname[:-len(HANDLER_PATTERN)].lower()
+            handler = fname[:-3]
             register(key, handler)
-
-

@@ -1,3 +1,4 @@
+"""Forms and view functions for editing services in SeedDB"""
 #
 # Copyright (C) 2011, 2013-2015 UNINETT AS
 #
@@ -21,23 +22,32 @@ from django.template import RequestContext
 from django.http import HttpResponseRedirect
 from django.db import transaction
 
+from crispy_forms.helper import FormHelper
+
 from nav.models.service import Service, ServiceProperty
 from nav.models.manage import Netbox
 from nav.web.servicecheckers import get_description, load_checker_classes
 from nav.web.message import new_message, Messages
-from nav.web.quickselect import QuickSelect
-
 from nav.web.seeddb.page.service import ServiceInfo
 
 
 class ServiceChoiceForm(forms.Form):
+    """For for editing services"""
     def __init__(self, *args, **kwargs):
         super(ServiceChoiceForm, self).__init__(*args, **kwargs)
-        self.fields['netbox'] = forms.ChoiceField(
+        # NB: Setting the TextInput to hidden is done to display the label.
+        #     The HiddenInput widget will remove the label
+        self.fields['netbox'] = forms.CharField(
             label='IP Device',
-            choices=self._build_netbox_choices())
+            widget=forms.TextInput(attrs={'type': 'hidden'})
+        )
         self.fields['service'] = forms.ChoiceField(
-            choices=sorted(self._build_checker_choices()))
+            choices=sorted(self._build_checker_choices()),
+            widget=forms.Select(attrs={'class': 'select2'})
+        )
+
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
 
     @staticmethod
     def _build_checker_choices():
@@ -62,6 +72,7 @@ class ServiceChoiceForm(forms.Form):
 
 
 class ServiceForm(forms.Form):
+    """Form for adding hidden fields to a service property edit"""
     service = forms.IntegerField(
         widget=forms.HiddenInput, required=False)
     handler = forms.CharField(
@@ -69,8 +80,14 @@ class ServiceForm(forms.Form):
     netbox = forms.IntegerField(
         widget=forms.HiddenInput)
 
+    def __init__(self, *args, **kwargs):
+        super(ServiceForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
+
 
 class ServicePropertyForm(forms.Form):
+    """Form for editing service properties"""
     def __init__(self, *args, **kwargs):
         service_description = kwargs.pop('service_args')
         super(ServicePropertyForm, self).__init__(*args, **kwargs)
@@ -78,14 +95,21 @@ class ServicePropertyForm(forms.Form):
         opt_args = service_description.get('optargs')
 
         if args:
-            for arg in args:
-                self.fields[arg] = forms.CharField(required=True)
+            for arg, descr in args:
+                self.fields[arg] = forms.CharField(required=True,
+                                                   help_text=descr)
         if opt_args:
-            for arg in opt_args:
-                self.fields[arg] = forms.CharField(required=False)
+            for arg, descr in opt_args:
+                self.fields[arg] = forms.CharField(required=False,
+                                                   help_text=descr)
+
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
+
 
 
 def service_edit(request, service_id=None):
+    """Controller for editing services"""
     service = None
     netbox = None
     service_form = None
@@ -134,6 +158,7 @@ def service_edit(request, service_id=None):
 
 
 def service_add(request):
+    """Controller for adding services"""
     info = ServiceInfo()
     if request.method == 'POST':
         choice_form = ServiceChoiceForm(request.POST)
@@ -174,6 +199,7 @@ def service_add(request):
 
 @transaction.commit_on_success
 def service_save(request, service_form, property_form):
+    """Saves a service based on two form inputs"""
     service_id = service_form.cleaned_data.get('service')
     if service_id:
         service = Service.objects.select_related(

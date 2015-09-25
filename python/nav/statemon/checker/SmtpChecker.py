@@ -25,7 +25,6 @@ from nav.statemon.event import Event
 
 class SmtpChecker(AbstractChecker):
     """SMTP"""
-    TYPENAME = "smtp"
     IPV6_SUPPORT = True
     DESCRIPTION = "Simple mail transport protocol"
     OPTARGS = (

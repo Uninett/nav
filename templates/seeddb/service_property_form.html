@@ -1,29 +1,54 @@
 {% extends "seeddb/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 
   <p><a href="{{ back_url }}">Back to list</a></p>
 
-
-  <form action="" method="post">
-    <table class="listtable edit">
-      <caption>
-        Edit service {{ handler }} on {{ netbox }}
-      </caption>
-      {{ service_form }}
-      {{ property_form }}
-      <tr>
-        <th></th>
-        <td><input class="button small" type="submit" value="Save" name="save"/></td>
-      </tr>
-    </table>
-  </form>
-
-  {% if delete_url and object %}
-    <form action="{{ delete_url }}" method="post">
-      <input type="hidden" name="object" value="{{ object.pk }}"/>
-      <input type="submit" name="delete" value="Delete this service" class="button small"/>
-    </form>
+  {% if object %}
+    <h4>
+      Editing service <em>{{ handler }}</em> on <em>{{ netbox }}</em>
+    </h4>
+  {% else %}
+    <h4>
+      Add new service checker for <em>{{ handler }}</em> on <em>{{ netbox }}</em>
+    </h4>
   {% endif %}
+
+  <div class="row">
+    <div class="column large-6 small-12">
+      <form action="" method="post">
+        <fieldset>
+          <legend>Attributes</legend>
+          {% crispy service_form %}
+          {% if property_form.fields %}
+            {% crispy property_form %}
+          {% else %}
+            <div class="alert-box">
+              There are no attributes for this service.
+              <strong>You just need to save the service</strong>.
+            </div>
+          {% endif %}
+        </fieldset>
+        <input class="button small left" type="submit" name="save"
+               {% if object %}
+               value="Save changes"
+               {% else %}
+               value="Save new service"
+               {% endif %}
+               />
+      </form>
+
+      {% if delete_url and object %}
+        <form action="{{ delete_url }}" method="post" class="right">
+          <input type="hidden" name="object" value="{{ object.pk }}"/>
+          <input type="submit" name="delete"
+                 value="Delete this service" class="button small secondary"/>
+        </form>
+      {% endif %}
+
+    </div>
+  </div>
+
 
 {% endblock %}

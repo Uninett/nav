@@ -22,7 +22,6 @@ from nav.statemon.event import Event
 
 class DummyChecker(AbstractChecker):
     """Dummy"""
-    TYPENAME = "dummy"
     IPV6_SUPPORT = True
 
     def execute(self):

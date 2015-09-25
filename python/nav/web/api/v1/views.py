@@ -28,10 +28,12 @@ from rest_framework.reverse import reverse
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSet
 from rest_framework.generics import ListAPIView
 from nav.models.api import APIToken
 from nav.models import manage, event
 from nav.models.fields import INFINITY, UNRESOLVED
+from nav.web.servicecheckers import load_checker_classes
 
 from nav.web.api.v1 import serializers, alert_serializers
 from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
@@ -54,6 +56,8 @@ def api_root(request):
         'cam': reverse('api:1:cam-list', request=request),
         'arp': reverse('api:1:arp-list', request=request),
         'alert': reverse('api:1:alerthistory-list', request=request),
+        'servicehandler': reverse('api:1:servicehandler-list',
+                                  request=request),
         'prefix': reverse('api:1:prefix-list', request=request),
         'prefix_routed': reverse('api:1:prefix-routed-list', request=request),
         'prefix_usage': reverse('api:1:prefix-usage-list', request=request),
@@ -66,6 +70,32 @@ class NAVAPIMixin(APIView):
     permission_classes = (APIPermission,)
     renderer_classes = (JSONRenderer,)
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
+
+
+class ServiceHandlerViewSet(NAVAPIMixin, ViewSet):
+    """Makes service handlers available from the API"""
+
+    def list(self, _request):
+        """Handle list requests"""
+        queryset = [self._build_object(c) for c in load_checker_classes()]
+        serializer = serializers.ServiceHandlerSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, _request, pk=None):
+        """Handle retrieve requests"""
+        for checker in load_checker_classes():
+            if checker.get_type() == pk:
+                serializer = serializers.ServiceHandlerSerializer(
+                    self._build_object(checker))
+                return Response(serializer.data)
+
+    @staticmethod
+    def _build_object(checker):
+        return {
+            'name': checker.get_type(),
+            'ipv6_support': checker.IPV6_SUPPORT,
+            'description': checker.DESCRIPTION
+        }
 
 
 class RoomViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):

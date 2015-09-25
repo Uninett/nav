@@ -23,7 +23,6 @@ from nav.statemon.event import Event
 
 class MysqlChecker(AbstractChecker):
     """MySQL"""
-    TYPENAME = "mysql"
     IPV6_SUPPORT = True
 
     def __init__(self, service, **kwargs):

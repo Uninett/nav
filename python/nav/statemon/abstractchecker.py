@@ -59,7 +59,6 @@ class AbstractChecker(object):
         # and then we return status UP, and our version string.
         return Event.UP, version
     """
-    TYPENAME = None
     IPV6_SUPPORT = False
     DESCRIPTION = ""
     ARGS = ()
@@ -215,7 +214,11 @@ class AbstractChecker(object):
     @classmethod
     def get_type(cls):
         """Returns the name of the handler. """
-        return cls.TYPENAME
+        suffix = "checker"
+        name = cls.__name__.lower()
+        if name.endswith(suffix):
+            name = name[:-len(suffix)]
+        return name
 
     def get_address(self):
         """Returns a tuple (ip, port) """

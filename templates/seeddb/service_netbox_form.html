@@ -1,23 +1,27 @@
 {% extends "seeddb/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 
   <p><a href="{{ back_url }}">Back to list</a></p>
 
-  <p>
-    Choose IP Device and service handler.
-  </p>
+  <h4>
+    Choose IP Device and service handler
+  </h4>
 
-  <form action="" method="post">
-    <fieldset>
-      <legend>Add new service</legend>
-      <table class="listtable">
-        {{ choice_form }}
-        <tr>
-          <th></th>
-          <td><input type="submit" value="Continue" class="button small"/></td>
-        </tr>
-      </table>
-    </fieldset>
-  </form>
+  <div class="row">
+    <div class="column large-6 small-12">
+
+      {# This form is ONLY FOR ADDING new service checkers (netbox-service combo) #}
+      <form id="service_checker_add_form" action="" method="post">
+        <fieldset>
+          <legend>Add new service checker</legend>
+          {% crispy choice_form %}
+          <input type="submit" value="Continue" class="button small"/>
+        </fieldset>
+      </form>
+      
+    </div>
+  </div>
+
 {% endblock %}

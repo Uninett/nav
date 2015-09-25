@@ -49,9 +49,11 @@
           {% if object_list %}
             {% for object in object_list %}
               <tr>
-                <td><input type="checkbox" name="object" value="{{ object.pk }}" class="selector" /></td>
+                <td>
+                  <input type="checkbox" name="object" value="{{ object.pk }}" class="selector" />
+                </td>
                 {% for element in object.values_list %}
-                  <td>
+                  <td {% if object.description %}title="{{ object.description }}"{% endif %}>
                     {% if forloop.first %}
                       {% if object.url %}
                         <a href="{{ object.url }}">{{ element }}</a>

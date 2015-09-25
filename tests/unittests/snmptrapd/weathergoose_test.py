@@ -179,3 +179,13 @@ class WeatherGoose2Test(WeatherGooseMockedDb):
         goose = wg.WeatherGoose2(trap, None, None, None)
         self.assertEqual(goose._get_sensorname(), 'SuperDuperGoose II')
         self.assertEqual(goose.goosename, 'SuperGoose II')
+
+
+class GeistWeatherGooseTest(WeatherGooseMockedDb):
+    def test_should_handle_a_geist_weathergoose_trap(self):
+        self.assertTrue(wg.GeistWeatherGoose.can_handle(
+            '.1.3.6.1.4.1.21239.2.32767.0.10205'))
+
+    def test_should_handle_a_geist_weathergoose_remote_trap(self):
+        self.assertTrue(wg.GeistWeatherGoose.can_handle(
+            '.1.3.6.1.4.1.21239.2.32767.0.10405'))

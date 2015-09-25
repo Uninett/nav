@@ -1,6 +1,6 @@
 var require = {
     baseUrl: '/static/js',
-    waitSeconds: 7, // default
+    waitSeconds: 90, // default 7
     paths: {
         "libs": "libs",
         "moment": "libs/moment.min",

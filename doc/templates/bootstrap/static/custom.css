@@ -7,3 +7,42 @@ img {
 footer {
     margin-top: 2em;
 }
+
+
+/* Override the red color and background for code elements */
+code {
+    color: #2C3E50;
+    background-color: #ECF0F1;
+}
+
+
+/* Contrast for pre elements was to small. */
+pre {
+    color: #2C3E50;
+}
+
+
+/* The following overrides the admonition colors. They all pass the WCAG 2.0
+level AA test for contrast */
+
+/* This covers the admonitions 'note', 'attention', 'hint', 'important' and 'tip' */
+.alert-info {
+    color: #2a617d;
+    background-color: #D9EDF7;
+}
+
+/* This covers the admonitions 'warning' and 'caution' */
+.alert-warning {
+    color: #9f5000;
+    background-color: #feefb3;
+}
+
+/* This covers the admonitions 'alert' and 'danger' */
+.alert-danger {
+    color: #a73a00;
+    background-color: #F2DEDE;
+}
+
+/* Fix links inside admonitions */
+.alert a, .alert .alert-link { color: #18BC9C; }
+

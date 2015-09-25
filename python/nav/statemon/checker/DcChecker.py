@@ -24,7 +24,6 @@ import subprocess
 
 class DcChecker(AbstractChecker):
     """Domain Controller"""
-    TYPENAME = "dc"
     DESCRIPTION = "Domain Controller"
     ARGS = (
         ('username', ''),

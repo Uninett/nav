@@ -44,7 +44,6 @@ class ImapChecker(AbstractChecker):
     username
     password
     """
-    TYPENAME = "imap"
     IPV6_SUPPORT = True
     DESCRIPTION = "Internet mail application protocol"
     ARGS = (

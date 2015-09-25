@@ -33,19 +33,31 @@ def get_checkers():
     return [f[:-len(_CHECKER_PATTERN)].lower() for f in get_checker_modules()]
 
 
-def get_description(checker_name):
+def get_descriptions(checker_names):
+    """Returns metadata about the checkers"""
+    checker_modules = get_checker_modules_as_dict()
+    return {c:get_description(c, checker_modules) for c in checker_names}
+
+
+def get_description(checker_name, checkers=None):
     """Returns a description of a service checker"""
-    checkers = dict((c.get_type(), c) for c in load_checker_classes())
+    if checkers is None:
+        checkers = get_checker_modules_as_dict()
     if checker_name not in checkers:
         return
     checker = checkers[checker_name]
 
     result = {
         'description': checker.DESCRIPTION,
-        'args': [name for name, desc in checker.ARGS],
-        'optargs': [name for name, desc in checker.OPTARGS],
+        'args': checker.ARGS,
+        'optargs': checker.OPTARGS,
     }
     return result
+
+
+def get_checker_modules_as_dict():
+    """Load all checker classes and construct a dictionary of the result"""
+    return {c.get_type(): c for c in load_checker_classes()}
 
 
 def load_checker_classes():

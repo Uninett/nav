@@ -29,7 +29,7 @@ from nav.django.utils import get_verbose_name
 def render_list(request, queryset, value_list, edit_url=None,
                 edit_url_attr='pk', filter_form=None,
                 template='seeddb/list.html', extra_context=None,
-                censor_list=None):
+                censor_list=None, add_descriptions=False):
     """Renders a Seed DB list.
 
     Parameters:
@@ -66,6 +66,8 @@ def render_list(request, queryset, value_list, edit_url=None,
                                              edit_url, edit_url_attr)
 
     labels = _label(queryset.model, value_list, datakeys)
+    if add_descriptions:
+        _add_descriptions(objects, queryset)
 
     context = {
         'object_list': objects,
@@ -152,3 +154,12 @@ def _label(model, value_list, datakeys=None):
             except FieldDoesNotExist:
                 labels.append(value)
     return zip(labels, attrs)
+
+
+def _add_descriptions(objects, queryset):
+    """Adds a description key to all objects"""
+    for obj in objects:
+        model = queryset.get(pk=obj['pk'])
+        obj['description'] = getattr(model, 'description', '')
+
+
