@@ -9,6 +9,14 @@ footer {
 }
 
 
+/* When people creates documentation they usually end up with a big honking list
+of h3's. This makes it very hard to separate the different sections, and adding
+this border helps a lot with that. That and I always wanted to make a css style
+that used some form of pink in a not horrific way, and it worked! */
+h3 {
+    border-bottom: 1px solid lightpink;
+}
+
 /* Override the red color and background for code elements */
 code {
     color: #2C3E50;
