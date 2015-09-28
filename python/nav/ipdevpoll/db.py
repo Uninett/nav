@@ -56,6 +56,7 @@ def sum_django_queries_runtime():
                 for query in django.db.connection.queries)
     return sum(runtimes)
 
+
 def commit_on_success(func):
     """Decorates func such that the current Django transaction is committed on
     successful return.
@@ -76,21 +77,26 @@ def commit_on_success(func):
        process will keep spewing error messages.
 
     """
-    def _commit_on_success(*args, **kwargs):
+    def entering(using):
+        transaction.enter_transaction_management(using=using)
+        transaction.managed(True, using=using)
+
+    def exiting(exc_value, using):
         try:
-            transaction.enter_transaction_management()
-            transaction.managed(True)
-            try:
-                result = func(*args, **kwargs)
-            except:
-                transaction.rollback()
-                raise
+            if exc_value is not None:
+                transaction.rollback(using=using)
             else:
-                transaction.commit()
-            return result
+                try:
+                    transaction.commit(using=using)
+                except:
+                    transaction.rollback(using=using)
+                    raise
         finally:
-            transaction.leave_transaction_management()
-    return wraps(func)(_commit_on_success)
+            transaction.leave_transaction_management(using=using)
+
+    return transaction.Transaction(entering, exiting,
+                                   transaction.DEFAULT_DB_ALIAS)(func)
+
 
 def autocommit(func):
     """
