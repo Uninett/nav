@@ -45,7 +45,8 @@ class EntityManager(DefaultManager):
     @db.commit_on_success
     def save(self):
         """Override parent only to add transaction handling"""
-        return super(EntityManager, self).save()
+        super(EntityManager, self).save()
+        self._delete_missing()
 
     def prepare(self):
         # index known entities in various ways, but only bother to index things
@@ -62,7 +63,7 @@ class EntityManager(DefaultManager):
         self.existing = index.entities
         self.missing = self.existing.difference(self.matched)
 
-    def cleanup(self):
+    def _delete_missing(self):
         if self.missing:
             w_serial = sum(int(m.device is not None) for m in self.missing)
             self._logger.info("%d entities have disappeared, %d of which have "
