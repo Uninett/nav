@@ -49,7 +49,7 @@ Configuration
   None
 
 Logging
-  - **collect_active_ip.log**
+  - :file:`collect_active_ip.log`
 
 
 alertengine
@@ -74,11 +74,11 @@ Run mode
   daemon
 
 Configuration
-  - **alertengine.conf**
-  - alert templates are defined in the directory ``alertmsg``
+  - :file:`alertengine.conf`
+  - alert templates are defined in the directory :file:`alertmsg`
 
 Logging
-  - **alertengine.log**
+  - :file:`alertengine.log`
 
 
 eventengine
@@ -101,10 +101,10 @@ Run mode
   daemon
 
 Configuration
-  - **eventengine.conf**
+  - :file:`eventengine.conf`
 
 Logging
-  - **eventengine.log**
+  - :file:`eventengine.log`
 
 
 ipdevpoll
@@ -121,10 +121,10 @@ Run mode
   daemon
 
 Configuration
-  - **ipdevpoll.conf**
+  - :file:`ipdevpoll.conf`
 
 Logging
-  - **ipdevpoll.log**
+  - :file:`ipdevpoll.log`
 
 Details
 +++++++
@@ -167,11 +167,11 @@ Run mode
   cron
 
 Configuration
-  - **logger.conf**
+  - :file:`logger.conf`
 
 Logging
   - Outputs only to STDERR. Error messages will be sent to the email address
-    specified in **nav.conf** as *ADMIN_MAIL*.
+    specified in :file:`nav.conf` as *ADMIN_MAIL*.
 
 
 mactrace
@@ -199,7 +199,7 @@ Configuration
   - The configuration of MAC addresses to look for is done in the web interface.
 
 Logging
-  - **macwatch.log**
+  - :file:`macwatch.log`
 
 
 maintengine
@@ -221,7 +221,7 @@ Configuration
   The configuration of maintenances is done in the web interface.
 
 Logging
-  - **maintengine.log**
+  - :file:`maintengine.log`
 
 
 netbiostracker
@@ -239,10 +239,10 @@ Run mode
   cron
 
 Configuration
-  - **netbiostracker.conf**
+  - :file:`netbiostracker.conf`
 
 Logging
-  - **netbiostracker.log**
+  - :file:`netbiostracker.log`
 
 pping
 -----
@@ -271,10 +271,10 @@ Run mode
   daemon
 
 Configuration
-  - **pping.conf**
+  - :file:`pping.conf`
 
 Logging
-  - Logs to configurable file, default **pping.log**
+  - Logs to configurable file, default :file:`pping.log`
 
 
 psuwatch
@@ -296,7 +296,7 @@ Configuration
   None
 
 Logging
-  - **powersupplywatch.log**
+  - :file:`powersupplywatch.log`
 
 
 servicemon
@@ -321,11 +321,11 @@ Run mode
   daemon
 
 Configuration
-  - **servicemon.conf**
+  - :file:`servicemon.conf`
 
 Logging
-  - **servicemon.conf** has an option for specifying log file that by default is
-    set to **servicemon.log**
+  - :file:`servicemon.conf` has an option for specifying log file that by
+    default is set to :file:`servicemon.log`
 
 
 smsd
@@ -344,10 +344,10 @@ Run mode
   daemon
 
 Configuration
-  - **smsd.conf**
+  - :file:`smsd.conf`
 
 Logging
-  - **smsd.log**
+  - :file:`smsd.log`
 
 
 snmptrapd
@@ -357,7 +357,7 @@ Receives and processes SNMP traps and notifications.
 
 *snmptrapd* listens to port 162 for incoming traps. When the snmptrapd receives
 a trap it puts all the information in a trap-object and sends the object to
-every traphandler stated in the *traphandlers* option in **snmptrapd.conf**. It
+every traphandler stated in the *traphandlers* option in :file:`snmptrapd.conf`. It
 is then up to the traphandler to decide if it wants to process the trap or just
 discard it.
 
@@ -365,11 +365,11 @@ Run mode
   daemon
 
 Configuration
-   - **snmptrapd.conf**
+   - :file:`snmptrapd.conf`
 
 Logging:
-  - **snmptrapd.log**: logs output from the snmptrapd
-  - **snmptraps.log**: logs all traps that the snmptrapd has received
+  - :file:`snmptrapd.log`: logs output from the snmptrapd
+  - :file:`snmptraps.log`: logs all traps that the snmptrapd has received
 
 
 thresholdmon
@@ -396,7 +396,7 @@ Configuration
   All configuration is done using the web interface.
 
 Logging
-  - **thresholdmon.log**
+  - :file:`thresholdmon.log`
 
 .. [#] With *alert flapping* we mean the situation where the monitored value
        oscillates above and below the configured threshold so that a stream of
@@ -460,7 +460,7 @@ Configuration
   None
 
 Logging
-  - **navtopology.log**
+  - :file:`navtopology.log`
 
 
 Other processes
