@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2009 Norwegian University of Science and Technology
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011, 2015 UNINETT AS
 # Copyright (C) 2011 Narvik University College
 #
 # This file is part of Network Administration Visualized (NAV).
@@ -19,30 +19,15 @@
 Climate Monitor, versions 1 and 2.
 
 """
-
+import re
 import logging
+from collections import defaultdict
 
 import nav.event
 from nav.db import getConnection
 
 logger = logging.getLogger('nav.snmptrapd.weathergoose')
 
-
-EVENTTYPES = {
-    'weathergoose_temperature':
-        ['cmClimateTempCTRAP', 'cmClimateTempCCLEAR', 'cmClimateTempCNOTIFY',
-         'cmTempSensorTempCNOTIFY', 'cmTempSensorTempCCLEAR'],
-    'weathergoose_humidity':
-        ['cmClimateHumidityTRAP', 'cmClimateHumidityCLEAR',
-         'cmClimateHumidityNOTIFY'],
-    'weathergoose_airflow':
-        ['cmClimateAirflowTRAP', 'cmClimateAirflowCLEAR',
-         'cmClimateAirflowNOTIFY'],
-    'weathergoose_light':
-        ['cmClimateLightTRAP', 'cmClimateLightCLEAR', 'cmClimateLightNOTIFY'],
-    'weathergoose_sound':
-        ['cmClimateSoundTRAP', 'cmClimateSoundCLEAR', 'cmClimateSoundNOTIFY'],
-    }
 
 class WeatherGoose1(object):
     from nav.smidumps.itw_mib import MIB
@@ -176,6 +161,7 @@ class WeatherGoose1(object):
             if value:
                 return value
 
+
 class WeatherGoose2(WeatherGoose1):
     from nav.smidumps.itw_mibv3 import MIB
 
@@ -201,6 +187,35 @@ class WeatherGoose2(WeatherGoose1):
     CLEARTRAPS.update({'cmTempSensorTempCCLEAR':
                        'weathergoose_temperature', })
 
+# IT Watchdogs -> Geist transition pattern
+_geistpattern = re.compile("^cm")
+
+
+class GeistWeatherGoose(WeatherGoose2):
+    """The rebranded MIB after IT Watchdogs merged with Geist"""
+    from nav.smidumps.geist_mibv3 import MIB
+
+    # Define supported traps and relations
+    TRAPS = MIB['notifications']
+    NODES = MIB['nodes']
+    TRIPTYPE = "." + NODES['alarmTripType']['oid'] + '.0'
+    GOOSENAME = "." + NODES['productFriendlyName']['oid'] + '.0'
+    SUBID = "." + NODES['alarmInstance']['oid'] + '.0'
+    SENSORNAMES = ['tempSensorName', 'climateName']
+
+    # Values in TRIGGERTRAPS and CLEARTRAPS are used as event types
+    TRIGGERTRAPS = {
+        _geistpattern.sub("gst", key): value
+        for key, value in WeatherGoose2.TRIGGERTRAPS.items()
+    }
+    CLEARTRAPS = {
+        _geistpattern.sub("gst", key): value
+        for key, value in WeatherGoose2.CLEARTRAPS.items()
+    }
+
+
+HANDLER_CLASSES = (WeatherGoose1, WeatherGoose2, GeistWeatherGoose)
+
 
 # pylint: disable=unused-argument
 def handleTrap(trap, config=None):
@@ -218,36 +233,48 @@ def handleTrap(trap, config=None):
     netboxid, sysname, roomid = cur.fetchone()
 
     oid = trap.snmpTrapOID
-    for handler_class in WeatherGoose1, WeatherGoose2:
+    for handler_class in HANDLER_CLASSES:
         if handler_class.can_handle(oid):
             handler = handler_class(trap, netboxid, sysname, roomid)
             return handler.post_event()
 
     return False
 
-def initialize_eventdb():
-    """ Populate the database with eventtype and alerttype information """
-    h = {}
-    for eventtype in EVENTTYPES:
-        eventdescr = (eventtype, '', True)
-        h[eventdescr] = []
-        for alerttype in EVENTTYPES[eventtype]:
-            h[eventdescr].append((alerttype,
-                                  _get_alert_description(alerttype)))
 
+def initialize_eventdb():
+    """Populates the database with eventtype and alerttype information"""
     try:
-        nav.event.create_type_hierarchy(h)
+        nav.event.create_type_hierarchy(_get_event_hierarchy())
     except Exception, e:
         logger.error(e)
         return False
 
-def _get_alert_description(alerttype):
-    for goose_ver in WeatherGoose1, WeatherGoose2:
-        if alerttype in goose_ver.TRAPS:
-            return goose_ver.TRAPS[alerttype]['description']
+
+def _get_event_hierarchy():
+    """
+    Builds an event/alert hierarchy data structure from the known handler
+    classes.
+    """
+    seen_alerts = set()
+    hiera = defaultdict(list)
+    for klass in HANDLER_CLASSES:
+        alerts = klass.TRIGGERTRAPS.copy()
+        alerts.update(klass.CLEARTRAPS)
+
+        for alert, event in alerts.items():
+            if alert in seen_alerts:
+                continue
+            seen_alerts.add(alert)
+
+            eventdescr = (event, '', True)
+            alertdescr = klass.TRAPS.get(alert, {}).get('description', '')
+            hiera[eventdescr].append((alert, alertdescr))
+
+    return dict(hiera)
+
 
 def initialize():
-    """Initialize method for snmpdtrap daemon so it can initialize plugin
+    """Initialize method for snmptrapd daemon so it can initialize plugin
     after __import__
     """
     initialize_eventdb()
