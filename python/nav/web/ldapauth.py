@@ -42,6 +42,9 @@ debug=no
 lookupmethod=direct
 manager=
 manager_password=
+bind_as_user=False
+username_suffix=
+group_search=(member=%%s)
 encoding=utf-8
 """)
 
@@ -121,10 +124,10 @@ def authenticate(login, password):
     """
     lconn = open_ldap()
     server = _config.get('ldap', 'server')
-    user = LDAPUser(login, lconn)
+    user = LDAPUser(login, lconn, password)
     # Bind to user using the supplied password
     try:
-        user.bind(password)
+        user.bind()
     except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR):
         _logger.exception("LDAP server is down")
         raise NoAnswerError(server)
@@ -173,18 +176,19 @@ class LDAPUser(object):
     webfront.conf config file.
 
     """
-    def __init__(self, username, ldap_conn):
+    def __init__(self, username, ldap_conn, password):
         self.username = username
         self.ldap = ldap_conn
         self.user_dn = None
+        self.password = password
 
-    def bind(self, password):
+    def bind(self):
         """Performs an authenticated bind for this user using password"""
         user_dn = self.get_user_dn()
         _logger.debug("Attempting authenticated bind to %s", user_dn)
         encoding = _config.get('ldap', 'encoding')
         self.ldap.simple_bind_s(user_dn.encode(encoding),
-                                password.encode(encoding))
+                                self.password.encode(encoding))
 
     def get_user_dn(self):
         """
@@ -226,10 +230,18 @@ class LDAPUser(object):
         manager = _config.get('ldap', 'manager').encode(encoding)
         manager_password = _config.get(
             'ldap', 'manager_password', raw=True).encode(encoding)
-        if manager:
+        bind_as_user = _config.getboolean('ldap', 'bind_as_user')
+        username_suffix = _config.get('ldap', 'username_suffix').encode(encoding)
+        if manager and not bind_as_user:
             _logger.debug("Attempting authenticated bind as manager to %s",
                           manager)
             self.ldap.simple_bind_s(manager, manager_password)
+        if bind_as_user:
+            _logger.debug("Attempting authenticated bind as user %s",
+                          self.username + username_suffix)
+            self.ldap.simple_bind_s(self.username.encode(encoding) +
+                                    username_suffix,
+                                    self.password.encode(encoding))
         filter_ = "(%s=%s)" % (uid_attr, escape_filter_chars(
             self.username.encode(encoding)))
         result = self.ldap.search_s(_config.get('ldap', 'basedn'),
@@ -277,10 +289,11 @@ class LDAPUser(object):
         objects, the latter should work for posixGroup objects.
         """
         encoding = _config.get('ldap', 'encoding')
+        group_search = _config.get('ldap','group_search')
         user_dn = self.get_user_dn().encode(encoding)
         # Match groupOfNames/groupOfUniqueNames objects
         try:
-            filterstr = '(member=%s)' % escape_filter_chars(user_dn)
+            filterstr = group_search % escape_filter_chars(user_dn)
             result = self.ldap.search_s(group_dn, ldap.SCOPE_BASE, filterstr)
             _logger.debug("groupOfNames results: %s", result)
             if len(result) < 1:

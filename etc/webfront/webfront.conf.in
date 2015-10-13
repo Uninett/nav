@@ -55,6 +55,10 @@ lookupmethod=direct
 #manager=
 #manager_password=
 
+# Choose to bind to LDAP as user with suffix for Active Directory support.
+#bind_as_user = True
+#username_suffix = @ad.example.com
+
 # Require users to be members of this group to allow logging into NAV.
 # If not set, group membership will not be required.  This object's
 # class should be either groupOfNames, groupOfUniqueNames or
@@ -65,6 +69,9 @@ lookupmethod=direct
 # match the user's login name (uid) against the memberUid attribute.
 #
 #require_group = cn=noc-operators,cn=groups,dc=example,dc=com
+
+# Specify group search filter to support nested group memberships in AD.
+#group_search = (member:1.2.840.113556.1.4.1941:=%%s)
 
 # Which character encoding to use when talking to the LDAP server
 #encoding=utf-8
