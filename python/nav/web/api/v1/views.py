@@ -59,6 +59,7 @@ def api_root(request):
         'servicehandler': reverse('api:1:servicehandler-list',
                                   request=request),
         'prefix': reverse('api:1:prefix-list', request=request),
+        'vlan': reverse('api:1:vlan-list', request=request),
         'prefix_routed': reverse('api:1:prefix-routed-list', request=request),
         'prefix_usage': reverse('api:1:prefix-usage-list', request=request),
     })
@@ -150,6 +151,15 @@ class ArpViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(end_time=INFINITY)
 
         return queryset
+
+
+class VlanViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """Makes vlans available from api"""
+    queryset = manage.Vlan.objects.all()
+    serializer_class = serializers.VlanSerializer
+    filter_fields = ['vlan', 'net_type', 'net_ident', 'description',
+                     'organization', 'usage']
+    search_fields = ['net_ident', 'description']
 
 
 class PrefixViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
