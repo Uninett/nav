@@ -141,8 +141,8 @@ require(
                 $filters = $page.find('.sub-nav dd');
 
 
-            var _controller = new SensorsController($sensors);
             // Apply controller for each sensor
+            var _controller = new SensorsController($sensors);
 
             // Filter controls
             $filters.on('click', function (event) {

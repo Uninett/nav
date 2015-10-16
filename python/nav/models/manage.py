@@ -1555,9 +1555,9 @@ class Sensor(models.Model):
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
     oid = VarcharField(db_column="oid")
     unit_of_measurement = VarcharField(db_column="unit_of_measurement",
-                                        choices=UNIT_OF_MEASUREMENTS_CHOICES)
+                                       choices=UNIT_OF_MEASUREMENTS_CHOICES)
     data_scale = VarcharField(db_column="data_scale",
-                                choices=DATA_SCALE_CHOICES)
+                              choices=DATA_SCALE_CHOICES)
     precision = models.IntegerField(db_column="precision")
     human_readable = VarcharField(db_column="human_readable")
     name = VarcharField(db_column="name")
