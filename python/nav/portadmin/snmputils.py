@@ -474,6 +474,7 @@ class Cisco(SNMPHandler):
         super(Cisco, self).__init__(netbox, **kwargs)
         self.vlan_oid = '1.3.6.1.4.1.9.9.68.1.2.2.1.2'
         self.write_mem_oid = '1.3.6.1.4.1.9.2.1.54.0'
+        self.voice_vlan_oid = '1.3.6.1.4.1.9.9.68.1.5.1.1.1'
 
     def get_vlan(self, if_index):
         return self._query_netbox(self.vlan_oid, if_index)
@@ -517,6 +518,20 @@ class Cisco(SNMPHandler):
             except SnmpError:
                 _logger.error('Setting native vlan on %s ifindex %s failed',
                               self.netbox, if_index)
+
+    def set_cisco_voice_vlan(self, interface, voice_vlan):
+        """Set a voice vlan using Cisco specific oid"""
+        status = None
+        try:
+            voice_vlan = int(voice_vlan)
+            status = self._set_netbox_value(
+                self.voice_vlan_oid, interface.ifindex, 'i', voice_vlan)
+        except SnmpError, error:
+            _logger.error('Error setting voice vlan: %s', error)
+        except ValueError, error:
+            _logger.error('%s is not a valid voice vlan', voice_vlan)
+
+        return status
 
     def write_mem(self):
         """Use OLD-CISCO-SYS-MIB (v1) writeMem to write tomemory.
