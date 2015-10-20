@@ -187,9 +187,10 @@ def find_default_vlan(include_netident=False):
             return FantasyVlan(defaultvlan)
 
 
-def fetch_voice_vlans():
+def fetch_voice_vlans(config=None):
     """Fetch the voice vlans (if any) from the config file"""
-    config = read_config()
+    if config is None:
+        config = read_config()
     if config.has_section("general"):
         if config.has_option("general", "voice_vlans"):
             try:
@@ -266,11 +267,12 @@ def check_format_on_ifalias(ifalias):
         return True
 
 
-def get_ifaliasformat():
+def get_ifaliasformat(config=None):
     """Get format for ifalias defined in config file"""
+    if config is None:
+        config = read_config()
     section = "ifaliasformat"
     option = "format"
-    config = read_config()
     if config.has_section(section) and config.has_option(section, option):
         return config.get(section, option)
 
