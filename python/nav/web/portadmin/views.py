@@ -269,7 +269,7 @@ def set_voice_vlan_attribute_cisco(voice_vlan, interfaces, fac):
     """Set voice vlan attribute for Cisco voice vlan"""
     voice_mapping = fac.get_cisco_voice_vlans()
     for interface in interfaces:
-        voice_activated = voice_mapping[interface.ifindex] == voice_vlan
+        voice_activated = voice_mapping.get(interface.ifindex) == voice_vlan
         interface.voice_activated = voice_activated
 
 
