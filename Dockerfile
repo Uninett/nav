@@ -69,6 +69,8 @@ RUN cp /opt/graphite/conf/graphite.wsgi.example /opt/graphite/conf/graphite.wsgi
 ADD tools/docker/nav-apache-site.conf /etc/apache2/sites-available/nav-site
 RUN a2dissite 000-default; a2ensite nav-site
 
+ADD tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
+
 RUN echo "root:password" | chpasswd
 
 VOLUME ["/source"]

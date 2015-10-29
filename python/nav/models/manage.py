@@ -1418,6 +1418,10 @@ class Interface(models.Model):
         """
         return (self.gwportprefix_set.count() > 0)
 
+    def is_admin_up(self):
+        """Returns True if interface is administratively up"""
+        return self.ifadminstatus == self.ADM_UP
+
     def below_me(self):
         """Returns interfaces stacked with this one on a layer below"""
         return Interface.objects.filter(lower_layer__higher=self)

@@ -80,15 +80,9 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
             status = 'w'
         elif oper_status == 'offAdmin':
             status = 'u'
-        if (oper_status == 'offEnvOther'
-            or oper_status == 'offDenied'
-              or oper_status == 'offEnvPower'
-                or oper_status == 'offEnvTemp'
-                  or oper_status == 'offEnvFan'
-                    or oper_status == 'failed'
-                      or oper_status == 'offCooling'
-                        or oper_status == 'offConnectorRating'
-                          or oper_status == 'onButInlinePowerFail'):
+        if oper_status in ('offEnvOther', 'offDenied', 'offEnvPower',
+                           'offEnvTemp', 'offEnvFan', 'failed', 'offCooling',
+                           'offConnectorRating', 'onButInlinePowerFail'):
             status = 'n'
         return status
 
