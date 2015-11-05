@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load tools %}
+
+
+{% block base_content %}
+
+
+  {% with tool=current_user_data.tools|get_tool:'Business reports' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
+
+  {% block content %}
+    <h3>Available reports</h3>
+    <ul>
+      <li>
+        <a href="{% url business-report-availability %}">Availability</a>
+        - displays a list of IP Devices that has less than 100% uptime.
+      </li>
+    </ul>
+  {% endblock %}
+
+
+{% endblock %}
