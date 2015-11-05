@@ -3,10 +3,10 @@
 
 {% block report-content %}
 
-  <h3>Availability report</h3>
+  <h3>Availability</h3>
 
   <p>
-    This report displays the IP Devices that has less than 100% availability.
+    This report displays the IP Devices that has less than 100% availability in a given period.
   </p>
 
   <div>
@@ -28,18 +28,34 @@
   </div>
 
 
-  {% if alerts %}
+  {% if records %}
 
-    <table>
+    <table class="listtable">
       <caption>
         Availability report for {{ start|date:'F Y' }}
       </caption>
-      {% for alert in alerts %}
+      <tr>
+        <th>IP Device</th>
+        <th>Incidents</th>
+        <th>Downtime</th>
+        <th>Availability</th>
+      </tr>
+      {% for record in records %}
         <tr>
-          <td>{{ alert.netbox }}</td>
-          <td>{{ alert.start_time }}</td>
-          <td>{{ alert.end_time }}</td>
+          <td>{{ record.netbox|default_if_none:'<em>N/A</em>' }}</td>
+          <td>{{ record.incidents|length }}</td>
+          <td>{{ record.downtime }}</td>
+          <td>{{ record.availability|floatformat:"-5" }}%</td>
         </tr>
+        {% for incident in record.incidents %}
+          <tr>
+            <td colspan="4">
+              {{ incident.alert_type.name }}
+              {{ incident.start_time }} - 
+              {{ incident.end_time }}
+            </td>
+          </tr>
+        {% endfor %}
       {% endfor %}
     </table>
 
