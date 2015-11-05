@@ -52,13 +52,10 @@ def compute_downtime(alerts, start, end):
                                alert.end_time <= end)
 
         if start_inside_interval or end_inside_interval:
-            interval_start = start
-            if start_inside_interval:
-                interval_start = alert.start_time
-
-            interval_end = end
-            if end_inside_interval:
-                interval_end = alert.end_time
+            # I want one liners dammit! :p
+            # pylint: disable=C0301
+            interval_start = alert.start_time if start_inside_interval else start
+            interval_end = alert.end_time if end_inside_interval else end
             downtime += (interval_end - interval_start)
         elif alert.start_time <= start and alert.end_time >= end:
             # If the alert covers the whole interval
