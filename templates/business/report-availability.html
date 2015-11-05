@@ -6,9 +6,11 @@
   <h3>Availability</h3>
 
   <p>
-    This report displays the IP Devices that has less than 100% availability in a given period.
+    This report displays the IP Devices that have less than 100% availability in the given period.
   </p>
 
+
+  {# Form for choosing period #}
   <div>
     I want a report for
     <form id="report-form" class="inline-form">
@@ -28,37 +30,92 @@
   </div>
 
 
+  {# Display records #}
   {% if records %}
 
-    <table class="listtable">
+    <table id="record-table" class="listtable expandable">
       <caption>
         Availability report for {{ start|date:'F Y' }}
       </caption>
-      <tr>
-        <th>IP Device</th>
-        <th>Incidents</th>
-        <th>Downtime</th>
-        <th>Availability</th>
-      </tr>
-      {% for record in records %}
+
+      {# Table header #}
+      <thead>
         <tr>
-          <td>{{ record.netbox|default_if_none:'<em>N/A</em>' }}</td>
-          <td>{{ record.incidents|length }}</td>
-          <td>{{ record.downtime }}</td>
-          <td>{{ record.availability|floatformat:"-5" }}%</td>
+          <th>IP Device</th>
+          <th>Incidents</th>
+          <th>Downtime</th>
+          <th>Availability</th>
         </tr>
-        {% for incident in record.incidents %}
-          <tr>
+      </thead>
+
+      {# Table body #}
+      <tbody>
+
+        {% for record in records %}
+          {# Main information row #}
+          <tr class="record-row">
+            <td>{{ record.netbox|default_if_none:'<em>N/A</em>' }}</td>
+            <td>
+              {{ record.incidents|length }}
+              <a href="javascript:void(0);" class="toggle-incident pull-right">
+                Show
+              </a>
+            </td>
+            <td>{{ record.downtime }}</td>
+            <td>{{ record.availability|floatformat:"-5" }}%</td>
+          </tr>
+
+          {# Hidden incidents row #}
+          <tr class="hidden incident-row">
             <td colspan="4">
-              {{ incident.alert_type.name }}
-              {{ incident.start_time }} - 
-              {{ incident.end_time }}
+              <div>
+                <b>{{ record.incidents|length }} incident{{ record.incidents|pluralize }}</b>
+                <ul>
+                  {% for incident in record.incidents %}
+                    <li>
+                      <em>{{ incident.alert_type.name }}</em>
+                      {{ incident.start_time }} -
+                      {{ incident.end_time }}
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
             </td>
           </tr>
+
         {% endfor %}
-      {% endfor %}
+      </tbody>
+
     </table>
 
   {% endif %}
 
+{% endblock %}
+
+
+
+{% block base_header_additional_head %}
+  <style>
+   .incident-row td {
+       box-shadow: 0px 0px 6px #AAA inset;
+       background-color: #EEE;
+   }
+  </style>
+  <script>
+   $(function(){
+       $('#record-table').on('click', function(event){
+           var $target = $(event.target);
+           if ($target.hasClass('toggle-incident')) {
+               var $incident = $target.closest('.record-row').next();
+               if ($incident.hasClass('hidden')) {
+                   $incident.removeClass('hidden');
+                   $target.text('Hide');
+               } else {
+                   $incident.addClass('hidden');
+                   $target.text('Show');                   
+               }
+           }
+       })
+   });
+  </script>
 {% endblock %}
