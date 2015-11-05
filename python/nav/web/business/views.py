@@ -1,6 +1,7 @@
 """Controllers for business tool"""
 
 from collections import defaultdict
+from operator import attrgetter
 from datetime import datetime
 
 from django.core.urlresolvers import reverse
@@ -46,7 +47,8 @@ class AvailabilityReportView(BusinessView):
             start, end = utils.get_interval(sometime)
             context['start'] = start
             context['end'] = end
-            context['records'] = self.get_ipdevice_records(start, end)
+            context['records'] = sorted(self.get_ipdevice_records(start, end),
+                                        key=attrgetter('availability'))
 
         context['months'] = utils.get_months()
 
