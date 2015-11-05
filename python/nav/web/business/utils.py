@@ -79,4 +79,7 @@ def create_record(netbox, alerts, start, end):
     interval = end - start
     availability = compute_availability(downtime, interval)
 
+    # Cheekily remove microseconds
+    downtime = downtime - timedelta(microseconds=downtime.microseconds)
+
     return AvailabilityRecord(netbox, alerts, downtime, availability)
