@@ -1,4 +1,4 @@
 name=Business reports
-uri=/business_reports/
-icon=/static/images/toolbox/suitcase.png
+uri=/business/
+icon=/static/images/toolbox/suitcase.svg
 description=View business reports
