@@ -73,7 +73,7 @@
                 <ul>
                   {% for incident in record.incidents %}
                     <li>
-                      <em>{{ incident.alert_type.name }}</em>
+                      <em>{{ incident.alert_type.name }}</em> &mdash;
                       {{ incident.start_time }} -
                       {{ incident.end_time }}
                     </li>
