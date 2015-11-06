@@ -54,7 +54,7 @@
         {% for record in records %}
           {# Main information row #}
           <tr class="record-row">
-            <td>{{ record.netbox|default_if_none:'<em>N/A</em>' }}</td>
+            <td>{{ record.subject|default_if_none:'<em>N/A</em>' }}</td>
             <td>
               {{ record.incidents|length }}
               <a href="javascript:void(0);" class="toggle-incident pull-right">

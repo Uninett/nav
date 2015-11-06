@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from collections import namedtuple
 
 AvailabilityRecord = namedtuple(
-    'AvailabilityRecord', ['netbox', 'incidents', 'downtime', 'availability'])
+    'AvailabilityRecord', ['subject', 'incidents', 'downtime', 'availability'])
 
 
 def get_interval(sometime, _interval='month'):
@@ -73,8 +73,8 @@ def compute_availability(downtime, interval):
     return availability * 100
 
 
-def create_record(netbox, alerts, start, end):
-    """Creates an availability record based on a netbox' alerts in a period"""
+def create_record(subject, alerts, start, end):
+    """Creates an availability record based on a subject' alerts in a period"""
     downtime = compute_downtime(alerts, start, end)
     interval = end - start
     availability = compute_availability(downtime, interval)
@@ -82,4 +82,4 @@ def create_record(netbox, alerts, start, end):
     # Cheekily remove microseconds
     downtime = downtime - timedelta(microseconds=downtime.microseconds)
 
-    return AvailabilityRecord(netbox, alerts, downtime, availability)
+    return AvailabilityRecord(subject, alerts, downtime, availability)

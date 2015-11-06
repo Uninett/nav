@@ -6,6 +6,9 @@ from nav.web.business import views
 urlpatterns = patterns('',
     url(r'^$', views.BusinessView.as_view(),
         name='business-index'),
-    url('^availability/$', views.AvailabilityReportView.as_view(),
-        name='business-report-availability')
+    url('^device_availability/$', views.DeviceAvailabilityReport.as_view(),
+        name='business-report-device-availability'),
+    url('^link_availability/$', views.LinkAvailabilityReport.as_view(),
+        name='business-report-link-availability')
 )
+
