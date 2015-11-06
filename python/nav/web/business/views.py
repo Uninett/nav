@@ -15,7 +15,7 @@ from nav.models.event import AlertHistory
 class BusinessView(TemplateView):
     """A default business view"""
     template_name = 'business/base.html'
-    page_name = ''
+    report_name = ''
 
     def get_context_data(self, **kwargs):
         """Creates a common context for business pages"""
@@ -23,11 +23,12 @@ class BusinessView(TemplateView):
         navpath = [('Home', '/'),
                    ('Business reports', reverse('business-index'))]
 
-        if self.page_name:
-            navpath.append((self.page_name,))
+        if self.report_name:
+            navpath.append((self.report_name,))
 
         context['navpath'] = navpath
         context['title'] = create_title(navpath)
+        context['available_reports'] = [AvailabilityReportView]
 
         return context
 
@@ -35,7 +36,9 @@ class BusinessView(TemplateView):
 class AvailabilityReportView(BusinessView):
     """View for the availability report"""
     template_name = 'business/report-availability.html'
-    page_name = 'Availability'
+    report_name = 'Availability'
+    description = 'Displays a list of IP Devices that ' \
+                  'has less than 100% uptime.'
 
     def get_context_data(self, **kwargs):
         context = super(AvailabilityReportView, self).get_context_data(**kwargs)
@@ -51,6 +54,7 @@ class AvailabilityReportView(BusinessView):
                                         key=attrgetter('availability'))
 
         context['months'] = utils.get_months()
+        context['report'] = self
 
         return context
 

@@ -2,6 +2,12 @@
 {% load tools %}
 
 
+{% block base_header_additional_head %}
+  <script>require(['src/business']);</script>
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/business.css">
+{% endblock %}
+
+
 {% block base_content %}
 
 
@@ -12,11 +18,12 @@
 
   {% block content %}
     <h3>Available reports</h3>
-    <ul>
-      <li>
-        <a href="{% url business-report-availability %}">Availability</a>
-        - displays a list of IP Devices that has less than 100% uptime.
-      </li>
+    <ul id="report-list" class="small-block-grid-2 medium-block-grid-3 large-block-grid-4">
+      {% for report in available_reports %}
+        <li>
+          {% include 'business/frag-report-card.html' %}
+        </li>
+      {% endfor %}
     </ul>
   {% endblock %}
 

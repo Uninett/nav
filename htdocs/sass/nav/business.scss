@@ -1,0 +1,13 @@
+#report-list {
+    .button {
+        height: 100%;
+        h3 { color: white; }
+        p { margin-bottom: 2em; }
+        small {
+            position: absolute;
+            bottom: 1em;
+            left: 0;
+            right: 0;
+        }
+    }
+}

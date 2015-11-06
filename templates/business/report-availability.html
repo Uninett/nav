@@ -3,10 +3,10 @@
 
 {% block report-content %}
 
-  <h3>Availability</h3>
+  <h3>{{ report.report_name }}</h3>
 
   <p>
-    This report displays the IP Devices that have less than 100% availability in the given period.
+    {{ report.description  }}
   </p>
 
 
