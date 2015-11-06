@@ -96,7 +96,7 @@ class AvailabilityReportView(BusinessView):
 class DeviceAvailabilityReport(AvailabilityReportView):
     """Availability for IP Devices"""
     report_name = 'Device Availability'
-    description = 'Displays a list of IP Devices that ' \
+    description = 'Displays a report of IP Devices that ' \
                   'have less than 100% uptime.'
 
     def get_url(self):
@@ -106,7 +106,7 @@ class DeviceAvailabilityReport(AvailabilityReportView):
 class LinkAvailabilityReport(AvailabilityReportView):
     """Availability for links"""
     report_name = 'Link Availability'
-    description = 'Displays a list of links that ' \
+    description = 'Displays a report of links that ' \
                   'have less than 100% uptime.'
 
     def get_url(self):
