@@ -11,3 +11,10 @@
         }
     }
 }
+
+
+/* Style for the incidents panel in availability records */ 
+#record-table .incident-row td {
+    box-shadow: 0px 0px 6px #AAA inset;
+    background-color: #EEE;
+}

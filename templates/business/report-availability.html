@@ -91,31 +91,3 @@
   {% endif %}
 
 {% endblock %}
-
-
-
-{% block base_header_additional_head %}
-  <style>
-   .incident-row td {
-       box-shadow: 0px 0px 6px #AAA inset;
-       background-color: #EEE;
-   }
-  </style>
-  <script>
-   $(function(){
-       $('#record-table').on('click', function(event){
-           var $target = $(event.target);
-           if ($target.hasClass('toggle-incident')) {
-               var $incident = $target.closest('.record-row').next();
-               if ($incident.hasClass('hidden')) {
-                   $incident.removeClass('hidden');
-                   $target.text('Hide');
-               } else {
-                   $incident.addClass('hidden');
-                   $target.text('Show');                   
-               }
-           }
-       })
-   });
-  </script>
-{% endblock %}

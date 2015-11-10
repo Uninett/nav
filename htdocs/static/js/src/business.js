@@ -27,6 +27,7 @@ require(['libs/jquery'], function() {
      */
     $(function() {
 
+        // Make sure all report links are of same height
         var $listElements = $('#report-list li');
         if ($listElements.length > 1) {
             setMaxHeight($listElements);
@@ -35,6 +36,21 @@ require(['libs/jquery'], function() {
             });
         }
 
+
+        // For availability reports, toggle incidents on click
+        $('#record-table').on('click', function(event){
+           var $target = $(event.target);
+           if ($target.hasClass('toggle-incident')) {
+               var $incident = $target.closest('.record-row').next();
+               if ($incident.hasClass('hidden')) {
+                   $incident.removeClass('hidden');
+                   $target.text('Hide');
+               } else {
+                   $incident.addClass('hidden');
+                   $target.text('Show');                   
+               }
+           }
+       });
     });
 
 });
