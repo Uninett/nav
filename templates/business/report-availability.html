@@ -1,4 +1,5 @@
 {% extends 'business/report.html' %}
+{% load info %}
 
 
 {% block report-content %}
@@ -75,7 +76,11 @@
                     <li>
                       <em>{{ incident.alert_type.name }}</em> &mdash;
                       {{ incident.start_time }} -
-                      {{ incident.end_time }}
+                      {% if incident.end_time|is_max_timestamp %}
+                        Incident has not ended
+                      {% else %}
+                        {{ incident.end_time }}
+                      {% endif %}
                     </li>
                   {% endfor %}
                 </ul>
