@@ -11,6 +11,10 @@ from nav.web.utils import create_title
 from nav.web.business import utils
 from nav.models.event import AlertHistory
 from nav.models.manage import Interface
+from nav.metrics.data import get_netboxes_availability
+
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class BusinessView(TemplateView):
@@ -74,11 +78,11 @@ class AvailabilityReportView(BusinessView):
                ))
 
         # Group alerts by subject
-        grouped_alerts = self.group_alerts(alerts)
+        self.grouped_alerts = self.group_alerts(alerts)
 
         # Create availability records for each subject
         return [utils.create_record(subject, alerts, start, end)
-            for subject, alerts in grouped_alerts.items()]
+            for subject, alerts in self.grouped_alerts.items()]
 
     @staticmethod
     def group_alerts(alerts):
@@ -102,6 +106,18 @@ class DeviceAvailabilityReport(AvailabilityReportView):
     def get_url(self):
         return reverse('business-report-device-availability')
 
+    def get_context_data(self, **kwargs):
+        context = super(DeviceAvailabilityReport, self).get_context_data()
+        if 'start' in context:
+            _logger.debug('Fetching graphite data')
+            netboxes = [n for n in self.grouped_alerts.keys() if n]
+            availabilities = get_netboxes_availability(
+                netboxes, data_sources=['availability'],
+                start_time=context['start'], end_time=context['end'])
+            utils.add_packetloss(context['records'], availabilities)
+            context['display_packet_loss'] = True
+
+        return context
 
 class LinkAvailabilityReport(AvailabilityReportView):
     """Availability for links"""
