@@ -1,5 +1,6 @@
 {% extends 'business/report.html' %}
 {% load info %}
+{% load date_and_time %}
 
 
 {% block report-content %}
@@ -32,7 +33,7 @@
 
 
   {# Display records #}
-  {% if records %}
+  {% if 'report-month' in request.GET %}
 
     <table id="record-table" class="listtable expandable">
       <caption>
@@ -86,7 +87,7 @@
 
           {# Hidden incidents row #}
           <tr class="hidden incident-row">
-            <td colspan="4">
+            <td colspan="10">
               <div>
                 <b>{{ record.incidents|length }} incident{{ record.incidents|pluralize }}</b>
                 <ul>
@@ -99,6 +100,8 @@
                       {% else %}
                         {{ incident.end_time }}
                       {% endif %}
+                      &mdash;
+                      Total downtime: {{ incident.get_downtime|remove_microseconds }}
                     </li>
                   {% endfor %}
                 </ul>
@@ -106,6 +109,12 @@
             </td>
           </tr>
 
+        {% empty %}
+          <tr>
+            <td>
+              No downtime in {{ start|date:'F Y' }}
+            </td>
+          </tr>
         {% endfor %} {# End listing of records #}
       </tbody>
 
