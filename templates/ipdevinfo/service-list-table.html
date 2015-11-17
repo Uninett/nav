@@ -41,8 +41,16 @@
 <tbody>
     {% for service in service_list %}
     <tr class="{% cycle oddrow,evenrow %}">
-        <td class="status_{{ service.get_up_display }}">
+      
+        {% if service.is_on_maintenance %}
+            <td class="status_maintenance">
+            {{ service.get_up_display|capfirst }}
+            <i class="fa fa-wrench fa-lg" title="On maintenance"></i></td>
+        {% else %}
+            <td class="status_{{ service.get_up_display }}">
             {{ service.get_up_display|capfirst }}</td>
+        {% endif %}
+
         {% if show_ipdev_info %}
             <td><a href="{{ service.netbox.get_absolute_url }}">
                 {{ service.netbox.get_short_sysname }}</a></td>

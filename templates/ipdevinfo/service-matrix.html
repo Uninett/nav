@@ -20,9 +20,15 @@
                         {{ row.netbox }}</a></td>
                     {% for service in row.services %}
                         {% if service %}
-                            <td class="status_{{ service.get_up_display }}">
-                                {{ service.get_up_display|capfirst }}
-                            </td>
+                            {% if service.is_on_maintenance %}
+                                <td class="status_maintenance">
+                                    <span title="On maintenance">{{ service.get_up_display|capfirst }}</span>
+                                </td>
+                            {% else %}
+                                <td class="status_{{ service.get_up_display }}">
+                                    {{ service.get_up_display|capfirst }}
+                                </td>
+                            {% endif %}
                         {% else %}
                             <td></td>
                         {% endif %}
