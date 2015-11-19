@@ -9,9 +9,12 @@ of them.
 The nav command
 ===============
 
-The shell command ``nav list`` lists all back-end processes. ``nav status``
-tells you if they are running as they should. With reference to the list, jump
-directly to the relevant section in this document:
+The :program:`nav` program is used to start, stop and query the running state
+of NAV's backend processes.
+
+:kbd:`nav list` lists all back-end processes. :kbd:`nav status` reports their
+current running state. With reference to the list, jump directly to the
+relevant section in this document:
 
 - `activeip`_
 - `alertengine`_
@@ -32,217 +35,163 @@ directly to the relevant section in this document:
 activeip
 --------
 
-Collects active ip-adresses for all prefixes.
+This process runs every 30 minutes, summarizing the number of active IP
+addresses per prefix, based on data from the NAV database. The numbers are
+stored as Graphite metrics, thus enabling the subnet utilization trend graphs,
+available pr. prefix or VLAN in the web UI.
 
-This process finds all active IP addresses for all prefixes by querying the
-database, and stores the them by sending the data to the configured Carbon instance.
-This is done to be able to view history and trends regarding active IP
-addresses.
 
-Dependencies
+:Dependencies:
   A working Carbon instance
-
-Run mode
+:Run mode:
   cron
-
-Configuration
+:Configuration:
   None
-
-Logging
-  - :file:`collect_active_ip.log`
+:Logs:
+  :file:`collect_active_ip.log`
 
 
 alertengine
 -----------
 
-*alertengine* dispatches alerts according to individual alert profiles.
+The Alert Engine monitors the alert queue and dispatches alerts according to
+the individual users' active alert profiles.
 
-The alert engine processes alerts on the alert queue and checks whether any
-users have subscribed to the alert in their active user profile. If so, alert
-engine sends the alert to the user on a predefined format set in the
-profile.
-
-Alert templates must be defined for alerts to be understandable by the
+Alert message templates must be defined for alerts to be understandable by the
 recipients.
 
-Dependencies
+:Dependencies:
   `eventengine`_ must be running and post alerts to the alert queue. NAV users
-  must have set up their profiles. If their are no matches here, *alertengine*
-  will simply delete the alerts.
-
-Run mode
+  must have set up their profiles.
+:Run mode:
   daemon
-
-Configuration
+:Configuration:
   - :file:`alertengine.conf`
-  - alert templates are defined in the directory :file:`alertmsg`
-
-Logging
-  - :file:`alertengine.log`
+  - alert templates are defined in the config directory :file:`alertmsg/`
+:Logs:
+  :file:`alertengine.log`
 
 
 eventengine
 -----------
 
-Reacts and creates alerts from events on the event queue.
+The Event Engine monitors the event queue, translating new events to alerts,
+which are then posted to the alert queue for processing by `alertengine`_.
 
-The event engine processes events on the event queue and posts alerts on the
-alert queue. Event engine has a mechanism to correlate events; i.e. if the
-ppinger posts up events right after down events, this will not be sent as
-boxDown alerts, only boxDown warnings. Further if a number of boxDown events are
-seen, event engine looks at topology and reports boxShadow events for boxes in
-shadow of the box being the root cause.
+The Event Engine has mechanisms for correlating and delaying events. For
+example, when `pping`_ sends a down event for an IP device, it has a grace
+period of about 4 minutes to send a corresponding up event, before the Event
+Engine actually posts the alert that declares the IP device as down.
 
-Dependencies
-  The various monitors need to post events on the `event queue` (with `target`
-  event engine) in order for event engine to have work.
+Also, the Event Engine examines the network topology to correlate events from
+`pping`_. If an IP device appears to be unreachable because NAV's path to it
+passes through another device currently known to be down, a ``boxShadow``
+alert will be posted instead of a ``boxDown`` alert.
 
-Run mode
+:Dependencies:
+  The various monitors need to post events on the *event queue*, targeted at
+  ``eventEngine``, in order for the Event Engine to have anything to do.
+:Run mode:
   daemon
-
-Configuration
-  - :file:`eventengine.conf`
-
-Logging
-  - :file:`eventengine.log`
+:Configuration:
+  :file:`eventengine.conf`
+:Logs:
+  :file:`eventengine.log`
 
 
 ipdevpoll
 ---------
 
-Collects SNMP inventory data from IP devices.
+Collects inventory and status information from IP devices, using SNMP. More
+information can be found by reading the :doc:`ipdevpoll` documentation.
 
-More information can be found by reading the :doc:`ipdevpoll` documentation.
-
-Dependencies
+:Dependencies:
   Seed data must be added using the Seed Database tool.
-
-Run mode
+:Run mode:
   daemon
-
-Configuration
-  - :file:`ipdevpoll.conf`
-
-Logging
-  - :file:`ipdevpoll.log`
-
-Details
-+++++++
-
-jobs and plugins
-  All ipdevpoll's work is done by plugins. Plugins are organized into jobs, and
-  jobs are scheduled for each active IP device individually.
-
-inventory job
-  Polls for inventory information every 6 hours (by default). Inventory
-  information includes interfaces, serial numbers, modules, VLANs and prefixes.
-
-profiler job
-  Runs every 5 minutes, profiling devices if deemed necessary. NAV has an
-  internal list of SNMP OIDs that are tested for compatibility with each
-  device. This is used to create a sort of profile that says what the device
-  supports - the profile is typically used to produce a Cricket configuration
-  that will collect statistics from proprietary OIDs.
-
-logging job
-  Runs every 30 minutes and collects log-like information from devices. At the
-  time being, only the arp plugin runs, collecting ARP caches from routers. ARP
-  data is logged to a table, and aids in topology detection and client machine
-  tracking.
+:Configuration:
+  :file:`ipdevpoll.conf`
+:Logs:
+  :file:`ipdevpoll.log`
 
 
 logengine
 ---------
 
-Regularly check the syslog for network messages and update the logger database.
+Monitors a log file for Cisco syslog messages, structuring them and storing
+them in the NAV database. These messages are made searchable through the
+Syslog Analyzer web UI.
 
-*logengine* analyzes cisco syslog messages from switches and routers and inserts
-them in a structured manner in the logger database. This enables using the web
-interface for searching and filtering log messages.
-
-Dependencies
-  Something must put logs in a file for parsing
-
-Run mode
+:Dependencies:
+  Something, typically a syslog daemon, must put logs in a file for parsing.
+:Run mode:
   cron
-
-Configuration
-  - :file:`logger.conf`
-
-Logging
-  - Outputs only to STDERR. Error messages will be sent to the email address
-    specified in :file:`nav.conf` as *ADMIN_MAIL*.
+:Configuration:
+  :file:`logger.conf`
+:Logs:
+  Outputs only to STDERR. Error messages will be sent by the cron daemon to
+  the email address specified in the ``ADMIN_MAIL`` option of
+  :file:`nav.conf`.
 
 
 mactrace
 --------
 
-Checks NAV's cam log for watched MAC addresses.
+Regularly search NAV's CAM log for "watched" MAC addresses, reporting new
+matching entries. Use the *MAC Watch* web tool to put MAC addresses under
+surveillance.
 
-This process tries to find MAC-addresses that are under surveillance and reports
-where they are located. To put a MAC-address under surveillance, the *MAC Watch*
-tool in the web interface needs to be used.
+This process has a misleading name, for historical reasons. Previously, there
+existed a process called *mactrace* that collected NAV's CAM logs from
+switches. Today, this collection takes place in an `ipdevpoll`_ job, but
+for deployment reasons, the file needed to have the same name.
 
-This process has a misleading name for historical reasons. Previously there
-existed a process called *mactrace* that collected cam information from
-switches. This process was implemented into `ipdevpoll`_, but for deployment
-reasons the file needed to have the same name.
-
-Dependencies
+:Dependencies:
   For this process to be useful, MAC addresses need to be added by using the
-  *MAC Watch* tool in the web-interface.
-
-Run mode
+  *MAC Watch* tool in the web interface.
+:Run mode:
   cron
-
-Configuration
-  - The configuration of MAC addresses to look for is done in the web interface.
-
-Logging
-  - :file:`macwatch.log`
+:Configuration:
+  None, other than the list of watched addresses entered through the web
+  interface.
+:Logs:
+  :file:`macwatch.log`
 
 
 maintengine
 -----------
 
-Regularly check the maintenance-queue and post events to eventq.
+Regularly checks the maintenance schedule, enforcing it by dispatching the
+appropriate maintenance events for individual devices and services on NAV's
+*event queue*.
 
-*maintengine* checks the defined maintenance schedules. If start or end of a
-maintenance period occurs at this run time, the relevant maintenance events are
-posted on the event queue - one for each IP device and/or service in question.
-
-Dependencies
-  NAV users must have set up maintenances for this process to do anything useful.
-
-Run mode
+:Dependencies:
+  NAV users must add maintenance tasks to the maintenance schedule for
+  this process to do anything useful.
+:Run mode:
   cron
-
-Configuration
-  The configuration of maintenances is done in the web interface.
-
-Logging
-  - :file:`maintengine.log`
+:Configuration:
+  Maintenance tasks are configured in the web interface.
+:Logs:
+  :file:`maintengine.log`
 
 
 netbiostracker
 --------------
 
-Regularly fetch netbiosnames from active computers.
+Regularly fetches NetBIOS names from active hosts in your network.
 
-*netbiostracker* scans IPv4-networks using the ``nbtscan`` program. All results
-are stored in the database for use when displaying data about IP addresses.
+*netbiostracker* scans IPv4 networks, using the ``nbtscan`` program. Results
+are searchable through the Machine Tracker tool.
 
-Dependencies
+:Dependencies:
   The program ``nbtscan`` must be installed
-
-Run mode
+:Run mode:
   cron
-
-Configuration
-  - :file:`netbiostracker.conf`
-
-Logging
-  - :file:`netbiostracker.log`
+:Configuration:
+  :file:`netbiostracker.conf`
+:Logs:
+  :file:`netbiostracker.log`
 
 pping
 -----
@@ -251,30 +200,28 @@ Pings all IP devices for status monitoring.
 
 *pping* monitors all IP devices in the database. It works effectively in
 parallel, being able to ping a large number of devices. Has configurable
-robustnes criteria for defining when a box actually is down. Results are posted
-on the event queue.
+robustness criteria for defining when a box actually is down. Results are
+posted on the event queue.
 
-.. important:: A host is declared down on the event queue after four consecutive
-               “no responses”. This means that it takes between 80 and 99
-               seconds from a host is down till pping declares it as down.
+.. important:: A host is declared unresponsive by pping after four consecutive
+               packet losses. This means that it takes between 80 and 99
+               seconds from a host stops responding until pping posts a
+               ``boxState`` event on the *event queue*
 
-               The event engine will have a grace period of one minute before a
-               box down warning is posted on the alert queue, and another
-               three minutes before the box is declared down.
+               `eventengine`_ will have a grace period of one minute, before a
+               ``boxDownWarning`` is posted on the *alert queue*, and another
+               three minutes before an actual ``boxDown`` state is declared.
 
-               **In summery expect 5-6 minutes before a host is declared down.**
+               **In summary, expect 5-6 minutes to pass before a host is declared down.**
 
-Dependencies
+:Dependencies:
   None
-
-Run mode
+:Run mode:
   daemon
-
-Configuration
-  - :file:`pping.conf`
-
-Logging
-  - Logs to configurable file, default :file:`pping.log`
+:Configuration:
+  :file:`pping.conf`
+:Logs:
+  :file:`pping.log` (configurable)
 
 
 psuwatch
@@ -286,17 +233,14 @@ Uses SNMP to query for current state and compares it with the state stored in
 the database. Results are posted on the event queue. The event- and alert system
 takes care of messaging.
 
-Dependencies
+:Dependencies:
   Supports only HP and Cisco devices
-
-Run mode
+:Run mode:
   cron
-
-Configuration
+:Configuration:
   None
-
-Logging
-  - :file:`powersupplywatch.log`
+:Logs:
+  :file:`powersupplywatch.log`
 
 
 servicemon
@@ -313,42 +257,42 @@ Each plugin is by default run every minute with a default timeout of five
 seconds. After the plugin has reported the service down three times, servicemon
 declares it down.
 
-Dependencies
+:Dependencies:
   The service monitor itself has no dependencies, however custom service
   monitors may introduce local dependencies.
-
-Run mode
+:Run mode:
   daemon
-
-Configuration
-  - :file:`servicemon.conf`
-
-Logging
-  - :file:`servicemon.conf` has an option for specifying log file that by
-    default is set to :file:`servicemon.log`
+:Configuration:
+  :file:`servicemon.conf`
+:Logs:
+  :file:`servicemon.log` (configurable)
 
 
 smsd
 ----
 
-Dispatches queued SMS alerts.
+Monitors the SMS message queue, dispatching new messages as they appear.
 
-Checks the database for new messages, formats the messages into one SMS and
-dispatches it via one or more dispatchers with a general interface. Support for
-multiple dispatchers are handled by a dispatcher handler layer.
+If there are multiple simultaneous message to the same phone number, smsd
+strives to fit as many of them as it can into a single SMS.
 
-Dependencies
-  `alertengine`_ must have posted alerts
+smsd supports multiple SMS dispatch methods, implemented as plugins. Multiple
+dispatcher plugins can be ordered to facilitate fallback methods when the
+primary dispatch methods fail. The recommended dispatcher is based on
+`Gammu`_, and requires a mobile phone or other GSM unit attached directly to
+the NAV server (typically using its RS232 or USB interfaces).
 
-Run mode
+:Dependencies:
+  A running `alertengine`_ to post SMS alerts in the SMS queue.
+:Run mode:
   daemon
+:Configuration:
+  :file:`smsd.conf`
+:Logs:
+  :file:`smsd.log`
 
-Configuration
-  - :file:`smsd.conf`
 
-Logging
-  - :file:`smsd.log`
-
+.. _Gammu: http://wammu.eu/gammu/
 
 snmptrapd
 ---------
@@ -356,20 +300,18 @@ snmptrapd
 Receives and processes SNMP traps and notifications.
 
 *snmptrapd* listens to port 162 for incoming traps. When the snmptrapd receives
-a trap it puts all the information in a trap-object and sends the object to
-every traphandler stated in the *traphandlers* option in :file:`snmptrapd.conf`. It
-is then up to the traphandler to decide if it wants to process the trap or just
+a trap, it puts all the information in a trap object and sends the object to
+every *trap handler* stated in the ``traphandlers`` option of :file:`snmptrapd.conf`. It
+is then up to the *trap handler* to decide if it wants to process the trap or just
 discard it.
 
-Run mode
+:Run mode:
   daemon
-
-Configuration
-   - :file:`snmptrapd.conf`
-
-Logging:
-  - :file:`snmptrapd.log`: logs output from the snmptrapd
-  - :file:`snmptraps.log`: logs all traps that the snmptrapd has received
+:Configuration:
+   :file:`snmptrapd.conf`
+:Logs:
+  - :file:`snmptrapd.log`: logs regular log output from the daemon
+  - :file:`snmptraps.log`: logs details of all received traps
 
 
 thresholdmon
@@ -377,30 +319,24 @@ thresholdmon
 
 Monitors your Graphite metrics for exceeded thresholds.
 
-For each given threshold rule *thresholdmon* checks if the collected value
-surpasses the given threshold. If it does, an event is posted. The event- and
-alert system takes care of the notifications.
+For each configured threshold rule, *thresholdmon* monitors the associated
+Graphite metrics. Any metric that exceeds the threshold configured by the rule
+will cause *thresholdmon* to post a threshold start event to the *event
+queue*.
 
-For thresholds that are already surpassed, a check is done to see if the values
-are down to normal. A normal state is by default defined as the inverted of the
-alert threshold, but a separate threshold can be defined for the purpose of
-avoiding alert flapping [#]_.
+A threshold end event is posted when the metric returns to a value below the
+set threshold - or, if you want hysteresis (which you probably do), the
+threshold rule can also specify an explicit lower threshold value for clearing
+the threshold alert.
 
-Dependencies
-  Thresholds to monitor need to be added using the web interface.
-
-Run mode
+:Dependencies:
+  Threshold rules must be added using the web interface.
+:Run mode:
   cron
-
-Configuration
+:Configuration:
   All configuration is done using the web interface.
-
-Logging
-  - :file:`thresholdmon.log`
-
-.. [#] With *alert flapping* we mean the situation where the monitored value
-       oscillates above and below the configured threshold so that a stream of
-       up and down alerts are posted.
+:Logs:
+  :file:`thresholdmon.log`
 
 
 topology
@@ -408,7 +344,7 @@ topology
 
 Detects the topology of your network.
 
-The topology process builds NAV's model of the physical network topology as well
+The topology process builds NAV's model of the physical network topology, as well
 as the VLAN sub-topologies.
 
 Physical topology
@@ -419,18 +355,21 @@ cues from information collected previously via SNMP.
 
 The information cues come from routers' IPv4 ARP caches and IPv6 Neighbor
 Discovery caches, interface physical (MAC) addresses, switch forwarding tables
-and CDP (Cisco Discovery Protocol). The mactrace process has already pre-parsed
-these cues and created a list of neighbor candidates for each port in the
-network.
+and CDP (Cisco Discovery Protocol). These cues are mostly collected by the
+`ipdevpoll_` ``topo`` job, which maintains a list of neighbor candidates for
+each port in the network.
 
 The physical topology detection algorithm is responsible for reducing the list
 of neighbor candidates of each port to just one single device.
 
-In practice the use of CDP makes this process very reliable for the devices
-supporting it, and this makes it easier to correctly determine the remaining
-topology even in the case of missing information. CDP is, however, not trusted
-more than switch forwarding tables, as CDP packets may pass unaltered through
-switches that don't support CDP, causing CDP data to be inaccurate.
+In practice, the use of LLDP (and CDP) makes this process very reliable for
+the devices supporting it, and this makes it easier to correctly determine the
+remaining topology even in the case of missing information.
+
+(However, CDP can be slightly unreliable in a heterogeneous network, as CDP
+packets may pass unaltered through switches that don't support CDP. Two Cisco
+switches on each end of an HP switch may see each other as directly connected,
+while the HP switch between them remains invisible).
 
 VLAN topology
 +++++++++++++
@@ -438,29 +377,26 @@ VLAN topology
 After the physical topology model of the network has been built, the logical
 topology of the VLANs still remains. Since modern switches support 802.1Q
 trunking, which can transport several independent VLANs over a single physical
-link, the logical topology can be non-trivial and indeed, in practice it usually
+link, the logical topology can be non-trivial, and indeed, in practice it usually
 is.
 
-The vlan discovery system uses a simple top-down depth-first graph traversal
+The VLAN discovery system uses a simple top-down, depth-first graph traversal
 algorithm to discover which VLANs are actually running on the different trunks
 and in which direction. Direction is here defined relative to the router port,
 which is the top of the tree, currently owning the lowest gateway IP or the
-virtual IP in the case of HSRP. Re-use of VLAN numbers in physicallyq disjoint
-parts of the network is supported.
+virtual IP in the case of HSRP/VRRP. Re-use of VLAN numbers in physically
+disjoint parts of the network is supported.
 
 The VLAN topology detector does not currently support mapping unrouted VLANs.
 
-Dependencies
+:Dependencies:
   Needs complete and sane information in the database
-
-Run mode
+:Run mode:
   cron
-
-Configuration
+:Configuration:
   None
-
-Logging
-  - :file:`navtopology.log`
+:Logging:
+  :file:`navtopology.log`
 
 
 Other processes
