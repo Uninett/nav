@@ -1,3 +1,46 @@
+Version 4.3.2
+(released 19 Nov 2015)
+
+ Bugfixes:
+
+  * LP#1487436 (arnold rejects ip-addresses that ends with the number 0)
+  * LP#1488003 (Alert Profiles UI does not enable multi-value select for the
+                "IN" filter operator)
+  * LP#1488010 (link to ipdevinfo if applicable for subjects without absolute
+                url)
+  * LP#1488441 (room map widget does not load map)
+  * LP#1488774 (Arnold documentation should be updated and moved from wiki to
+                Sphinx)
+  * LP#1489843 (javascript require-libs timeout)
+  * LP#1492246 (Topology of disabled interfaces may linger in some cases)
+  * LP#1494190 (clicking on a shared time period in alert profiles selects all)
+  * LP#1494232 (hovering a shared time period in alert profiles highlights all)
+  * LP#1494233 (When exporting switch port information from a room view as CSV,
+                the output contains extra spaces and newlines in the first
+                column)
+  * LP#1494279 (Inconsistent Servicemon checker names)
+  * LP#1496396 (Service checker descriptions and service checker argument
+                descriptions are not displayed to the user in SeedDB)
+  * LP#1496780 (Threshold alerts are not very descriptive on the status page)
+  * LP#1497970 (Add SEMI-MIB to retrieve serial number for HP 1810 switch)
+  * LP#1498323 (Traps from WeatherGoose devices no longer work after rebranding
+                from IT Watchdogs to Geist)
+  * LP#1499343 (The wiki page describing background processes in NAV should be
+                moved to Sphinx docs)
+  * LP#1500423 (ipdevpoll: Transaction managed block ended with pending
+                COMMIT/ROLLBACK)
+  * LP#1500425 (Inventory and statuscheck jobs of ipdevpoll still can fail after
+                an OS upgrade)
+  * LP#1505524 (Retrieve software version for HP 1810 switch)
+  * LP#1505945 (Add API endpoint for VLAN information)
+  * LP#1507467 (Temperature sensor gauges as widgets)
+  * LP#1513046 (LLDP neighbors with "funny" names may cause ipdevinfo
+                NoReverseMatch crash)
+  * LP#1516956 (Services should be considered on maintenance when their parent
+                IP Device is on maintenance)
+  * LP#1516972 (Maintenance status is not visible in service matrix and service
+                lists)
+
 Version 4.3.1
 (released 20 Aug 2015)
 
@@ -506,7 +549,7 @@ Version 4.0b2
   * LP#1267464 (NAV 4 must provide a tool for migrating RRD data from NAV 3)
 
  User-visible features and improvements:
-  
+
   Various UI improvements to the room photo database, toolbox dropdown,
   Network Explorer, Geomap and Ranked statistics.
 
@@ -897,7 +940,7 @@ Version 3.14.1
   * The status page and portadmin have been adapted to work well on small
     screens/mobile devices.
 
-  * Portadmin now supports editing trunks. 
+  * Portadmin now supports editing trunks.
 
   * Portadmin includes a new feature to enable trunking of predefined voice
     VLANs on access ports, for SIP phones that support 802.1Q trunking
@@ -1043,7 +1086,7 @@ Version 3.13.0b1
   * LP#1062130 (NAV should graph IP address usage per prefix)
   * LP#1069773 (macwatch should be able to look for MAC address prefixes too)
 
- 
+
 Version 3.12.4
 (released 06 Dec 2012)
 
@@ -1548,14 +1591,14 @@ Version 3.9.1
   from the changelog:
 
   * LP#737102 (Trying to add a prefix that already exists yields an
-               error, but an entry (without the prefix) is added to 
+               error, but an entry (without the prefix) is added to
                vlan-table)
   * LP#771677 (the delete button on seeddb/prefix is missing)
 
 
   * LP#643469 (Status history link URL is ridiculously long)
   * LP#643472 (Device history search results lack context)
-  * LP#643544 (Partial fix for: Flexibility when entering ip address in 
+  * LP#643544 (Partial fix for: Flexibility when entering ip address in
                machine tracker)
   * LP#726545 (SeedDB should verify SNMP write community)
   * LP#751302 (Change the name for prefix matrix to "Subnet matrix")
@@ -1696,7 +1739,7 @@ Version 3.8.2
    preferences.  A missing setting in the default preferences assigned to all
    new users would cause the status system to not display devices on
    maintenance in the "maintenance" section unless they were actually down or
-   in shadow (as described in LP#723688). 
+   in shadow (as described in LP#723688).
 
    After the upgrade, go to `Status` -> `Preferences` -> `IP Devices on
    Maintenance` and add `Up` to the list of states to display.  This choice
@@ -2469,7 +2512,7 @@ Version 3.5.0b2
   * LP#289823 (AlertEngine idles in transactions)
   * LP#289825 (AlertEngine eats RAM)
 
- 
+
 Version 3.5.0b1
 (released 07 October 2008)
 
@@ -2496,7 +2539,7 @@ Version 3.5.0b1
 
   * IP Device Center is replaced by IP Device Info, written from
     scratch using Django.
-  
+
   * Alert Profiles, user admin, user info and network explorer web
     tools rewritten from scratch using Python/Django.
 
@@ -2538,7 +2581,7 @@ Version 3.4.4
 
  Bugfixes:
 
-  * LP#263931 regression (Status subsystem crashes when there are custom 
+  * LP#263931 regression (Status subsystem crashes when there are custom
               status page preferences)
   * LP#273030 (getDeviceData crashes with ConcurrentModificationException)
   * LP#273866 (servicemon potentially crashes during NTP clock adjustments)
@@ -2905,7 +2948,7 @@ Version 3.2.0
   * Many SQL errors related to missing tables in FROM clauses fixed.
 
   * Fixed bug #1551839 (Cannot change IP address in EditDB)
-  
+
   * Fixed bug #1602315 (EditDB crashes when attempting to delete rooms in use)
 
   * Fixed bug #1643321 (EditDB crashes when entering invalid IP address)
@@ -2993,11 +3036,11 @@ Version 3.1.1
 
  * The Traffic Map admin buttons no longer disappear when the Traffic Map
    applet is reloaded (#1495566).
- 
+
  * The traffic map would never display any load data for links on interfaces
    with spaces in their names (such as ATM interfaces on Cisco devices).
 
- * The "black load" syndrome of the Traffic Map has been compensated for. 
+ * The "black load" syndrome of the Traffic Map has been compensated for.
 
  * The cam collector would not insert port numbers in cam records unless NAV
    had collected proper ifName/ifDescr values for the ports in question.
@@ -3039,7 +3082,7 @@ Version 3.1.0
  * Extra tab on IP Device Center to illustrate switch port usage.
 
  * The IP Device Center will now display a device's software version,
-   and a timestamp of the last update made by getDeviceData.  
+   and a timestamp of the last update made by getDeviceData.
 
  * A "refresh" link on the IP Device Center allows the user to trigger
    a new collection run to refresh the device data.
@@ -3147,7 +3190,7 @@ Version 3.0.1
 
  * Much of the Alert Engine's debug logs were unreadable because they
    referred to many entities by their internal database IDs.
- 
+
  * The type information shipped with NAV incorrectly specified that
    Cisco 3750 and 2970 based devices did not support the cs@vlan
    convention, thus disabling proper CAM table collection from these
@@ -3350,7 +3393,7 @@ Version 3.0_beta9
 (released 21 January 2005)
 
  User-visible changes:
- 
+
  * For performance reasons, the WestHawk Java SNMP library has been
    discarded in favor of Java SNMP, which has a nice GPL license and
    doesn't hog resources by creating lots of threads.
@@ -3436,13 +3479,13 @@ Version 3.0_beta8
    center and Network Explorer.  Will now also display an error
    message when contact cannot be establishwith the vPServer, whereas
    previously it would only present a blank screen.
- 
+
 
 Version 3.0_beta7
 (released 21 July 2004)
 
  Changelog for version 3 first created.  This entry contains changes
- since 3.0_beta6.  
+ since 3.0_beta6.
 
 #####################################################################
 ##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##

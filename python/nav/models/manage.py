@@ -1418,6 +1418,10 @@ class Interface(models.Model):
         """
         return (self.gwportprefix_set.count() > 0)
 
+    def is_admin_up(self):
+        """Returns True if interface is administratively up"""
+        return self.ifadminstatus == self.ADM_UP
+
     def below_me(self):
         """Returns interfaces stacked with this one on a layer below"""
         return Interface.objects.filter(lower_layer__higher=self)
@@ -1555,9 +1559,9 @@ class Sensor(models.Model):
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
     oid = VarcharField(db_column="oid")
     unit_of_measurement = VarcharField(db_column="unit_of_measurement",
-                                        choices=UNIT_OF_MEASUREMENTS_CHOICES)
+                                       choices=UNIT_OF_MEASUREMENTS_CHOICES)
     data_scale = VarcharField(db_column="data_scale",
-                                choices=DATA_SCALE_CHOICES)
+                              choices=DATA_SCALE_CHOICES)
     precision = models.IntegerField(db_column="precision")
     human_readable = VarcharField(db_column="human_readable")
     name = VarcharField(db_column="name")

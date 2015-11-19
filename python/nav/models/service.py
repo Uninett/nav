@@ -85,10 +85,16 @@ class Service(models.Model):
         return result
 
     def is_on_maintenance(self):
-        """Returns True if this service is currently on maintenance"""
+        """
+        Returns True if this service, or its owning Netbox, is currently on
+        maintenance.
+        """
         states = self.netbox.get_unresolved_alerts('maintenanceState').filter(
             variables__variable='service', subid=self.id)
-        return states.count() > 0
+        if states.count() < 1:
+            return self.netbox.is_on_maintenance()
+        else:
+            return True
 
     def last_downtime_ended(self):
         """

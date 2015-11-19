@@ -115,3 +115,15 @@
         justify-content: space-between;
     }
 }
+
+
+.SensorWidget {
+    .navlet-body {
+        overflow: visible;
+    }
+    .room-sensor {
+        margin-left: auto;
+        margin-right: auto;
+    }
+    @import "sensors";
+}

@@ -28,6 +28,7 @@ PATTERNS = [
     re.compile(r"V(?P<version>[0-9]+[0-9A-Za-z.]*)"),
     re.compile(r"SW:(?P<version>v?[0-9]+[0-9A-Za-z.]*)"),
     re.compile(r" (?P<version>[0-9]+\.[0-9A-Za-z.]+)"),
+    re.compile(r" (?P<version>[A-Z]+\.[0-9]+\.[0-9]+)"),
     ]
 
 class System(Plugin):

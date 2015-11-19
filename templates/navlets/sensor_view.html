@@ -1,0 +1,21 @@
+{% extends 'navlets/base.html' %}
+{% load thresholds %}
+
+{% block navlet-content %}
+
+  {% if sensor %}
+
+    <div class="room-sensor"
+         data-url="{{ sensor.get_graph_url }}"
+         data-unit="{{ sensor.unit_of_measurement }}"
+         data-sensorid="{{ sensor.id }}"
+         data-sensorname="{{ sensor.human_readable }}"
+         data-thresholds="{{ sensor.get_metric_name|find_thresholds }}"
+         >
+    </div>
+
+  {% else %}
+    <span class="alert-box">No sensor to show</span>
+  {% endif %}
+
+{% endblock %}

@@ -1,6 +1,14 @@
 <div style="position: relative">
   <div class="legendwrapper text-center">
-    <span title="{{ legend }}">{{ legend }}</span>
+    <span title="{{ legend }}">
+      {{ legend }}
+      {{#if dashboardUrl}}
+      &nbsp;
+      <i class="fa fa-plus-circle add-to-dashboard"
+         data-url="{{ dashboardUrl }}"
+         title="Add sensor to dashboard"></i>
+      {{/if}}
+    </span>
   </div>
   <div id="current{{ sensorid }}" class="current"></div>
   <div class="rs-graph">

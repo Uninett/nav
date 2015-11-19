@@ -24,17 +24,19 @@
 
             <td>
               <span class="left">{{ neighbor.remote_id }}</span>
-              <a href="{% url seeddb-netbox-add-suggestion neighbor.remote_id %}"
-                 style="margin-left: 1em; float: right;"
-                 title="Add unrecognized neighbor to NAV">
-                <span class="fa fa-plus-square"></span>
-              </a>
+              {% if neighbor.remote_id %}
+                <a href="{% url seeddb-netbox-add-suggestion neighbor.remote_id|urlencode %}"
+                   style="margin-left: 1em; float: right;"
+                   title="Add unrecognized neighbor to NAV">
+                  <span class="fa fa-plus-square"></span>
+                </a>
+              {% endif %}
             </td>
 
             <td>
               <span class="left">{{ neighbor.remote_name }}</span>
               {% if neighbor.remote_name %}
-                <a href="{% url seeddb-netbox-add-suggestion neighbor.remote_name %}"
+                <a href="{% url seeddb-netbox-add-suggestion neighbor.remote_name|urlencode %}"
                    style="margin-left: 1em; float: right;"
                    title="Add unrecognized neighbor to NAV">
                   <span class="fa fa-plus-square"></span>

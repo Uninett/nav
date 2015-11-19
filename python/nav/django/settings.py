@@ -163,6 +163,7 @@ NAVLETS = (
     'nav.web.navlets.watchdog.WatchDogWidget',
     'nav.web.navlets.status2.Status2Widget',
     'nav.web.navlets.report.ReportWidget',
+    'nav.web.navlets.sensor.SensorWidget',
 )
 
 CRISPY_TEMPLATE_PACK = 'foundation'

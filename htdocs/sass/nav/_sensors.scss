@@ -1,0 +1,113 @@
+@import 'navsettings';
+
+/*
+ * Styles for everything in the environment tab
+ */
+.room-sensor {
+  width: 300px;
+  margin-bottom: 3em; }
+  .room-sensor .legendwrapper {
+    margin-bottom: 0.5em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; }
+    .room-sensor .legendwrapper span {
+      color: grey;
+      font-size: 1.2em;
+      font-weight: bold; }
+  .room-sensor .current {
+    text-align: center;
+    width: 300px; }
+    .room-sensor .current.counter {
+      width: 150px;
+      padding-top: 20px;
+      margin-left: auto;
+      margin-right: auto; }
+    .room-sensor .current .counter-node {
+      background-color: steelblue;
+      color: white;
+      font-family: Arial;
+      height: 150px;
+      line-height: 9em;
+      text-align: center;
+      width: 150px; }
+      .room-sensor .current .counter-node .values {
+        display: inline-block;
+        line-height: normal;
+        vertical-align: middle; }
+        .room-sensor .current .counter-node .values .value {
+          font-size: 3em; }
+  .room-sensor .rs-graph {
+    position: relative;
+    margin-top: 1em;
+    /* Add all jquery ui styles so that the slider appears correct */ }
+    .room-sensor .rs-graph .rs-ynode {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 40px; }
+    .room-sensor .rs-graph .rs-graphnode {
+      margin-left: 40px;
+      position: relative; }
+    .room-sensor .rs-graph .rs-slidernode {
+      margin-left: 40px;
+      margin-top: 20px;
+      height: 0.8em;
+      position: relative;
+      text-align: left;
+      border: 1px solid #AAA; }
+      .room-sensor .rs-graph .rs-slidernode div {
+        top: 0px;
+        height: 100%;
+        border: 0px none;
+        background: url("../../images/jqueryui/ui-bg_highlight-soft_75_cccccc_1x100.png") repeat-x scroll 50% 50% #cccccc;
+        position: absolute;
+        z-index: 1;
+        font-size: 0.7em;
+        display: block;
+        color: #222;
+        font-weight: bold; }
+      .room-sensor .rs-graph .rs-slidernode span {
+        top: -0.25em;
+        margin-left: -0.6em;
+        position: absolute;
+        z-index: 2;
+        width: 1.2em;
+        height: 1.2em;
+        cursor: default;
+        border: 1px solid #D3D3D3;
+        background: url("../../images/jqueryui/ui-bg_glass_75_e6e6e6_1x400.png") repeat-x scroll 50% 50% #e6e6e6;
+        font-weight: normal;
+        color: #555; }
+
+/* .rickshaw_graph is the name of the class added to graph element by RickShaw */
+.rickshaw_graph .detail {
+  z-index: 100; }
+  .rickshaw_graph .detail .date {
+    color: #a0a0a0; }
+  .rickshaw_graph .detail .x_label {
+    display: none; }
+  .rickshaw_graph .detail .item {
+    line-height: 1.4;
+    padding: 0.5em; }
+  .rickshaw_graph .detail .series_value {
+    padding-right: 20px;
+    width: 200px;
+    white-space: pre-wrap; }
+  .rickshaw_graph .detail .detail_swatch {
+    float: right;
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin: 2px 4px 0 0; }
+.rickshaw_graph .x_tick .title {
+  bottom: -15px;
+  left: -19px; }
+
+.add-to-dashboard {
+    color: $secondary-color;
+    cursor: pointer;
+    &:hover { color: $primary-color; }
+    &.success { color: $success-color; }
+    &.failure { color: $alert-color; }
+}
