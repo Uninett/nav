@@ -46,7 +46,7 @@ run_pytests() {
 
     cd "${WORKSPACE}/tests"
     py.test --junitxml=unit-results.xml --verbose unittests
-    "$BUILDDIR/bin/navsyncdb" --drop-database --create --restore test_dump.sql
+    "$BUILDDIR/bin/navsyncdb" --drop-database --create --out-of-order --restore test_dump.sql
     py.test --junitxml=integration-results.xml --verbose integration
     py.test --junitxml=functional-results.xml --verbose functional
 
