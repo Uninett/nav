@@ -24,7 +24,7 @@
                data-unit="{{ sensor.unit_of_measurement }}"
                data-sensorid="{{ sensor.id }}"
                data-sensorname="{{ sensor.human_readable }}"
-               data-dashboard_url="{% url add-user-navlet-sensor %}?sensor_id={{ sensor.pk }}"
+               data-dashboard_url="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}"
                data-thresholds="{{ sensor.get_metric_name|find_thresholds }}"
                >
           </div>
