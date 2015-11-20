@@ -6,9 +6,9 @@
     <link href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"  rel="stylesheet">
     <script>require(["src/info_room_upload"]);</script>
      <script>
-        NAV.urls['room-info-update-title'] = "{% url room-info-update-title %}";
-        NAV.urls['room-info-delete-image'] = "{% url room-info-delete-image %}";
-        NAV.urls['room-info-update-priority'] = "{% url room-info-update-priority %}";
+        NAV.urls['room-info-update-title'] = "{% url 'room-info-update-title' %}";
+        NAV.urls['room-info-delete-image'] = "{% url 'room-info-delete-image' %}";
+        NAV.urls['room-info-update-priority'] = "{% url 'room-info-update-priority' %}";
     </script>
 {% endblock %}
 
