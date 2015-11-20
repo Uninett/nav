@@ -7,6 +7,9 @@ name := navtest:$(shell hg parent --template '{node|short}')
 build: runtime-requirements.txt test-requirements.txt
 	docker build -t $(name) $(mkfile_dir)
 
+buildnocache: runtime-requirements.txt test-requirements.txt
+	docker build --no-cache -t $(name) $(mkfile_dir)
+
 check: build
 # Running in privileged mode because Google Chrome apparently requires it
 	/usr/bin/env
