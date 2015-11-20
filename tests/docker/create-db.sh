@@ -1,4 +1,5 @@
 #!/bin/bash -xe
+DESIRED_RAMDISK_SIZE=1G
 
 check_for_postgres() {
     local ver
@@ -12,10 +13,21 @@ check_for_postgres() {
     (which initdb && which pg_ctl) || return 1
 }
 
+verify_ramdisk_size() {
+    local mount="$1"
+    echo "Ramdisk resize"
+    df -h "$mount"
+    echo "Resizing $mount"
+    sudo mount -o remount,size="$DESIRED_RAMDISK_SIZE" "$mount"
+    df -h "$mount"
+}
+
 bootstrap_postgres_in_ram() {
     # Run a PostgreSQL cluster in ram
     local ram_mount="/dev/shm"
     local datadir="pg-${EXECUTOR_NUMBER:-$$}"
+
+    verify_ramdisk_size "$ram_mount"
 
     PGDATA="$ram_mount/$datadir"
     PGPORT=5432
