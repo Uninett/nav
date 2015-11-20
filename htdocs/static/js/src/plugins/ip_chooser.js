@@ -1,7 +1,10 @@
 define([], function () {
 
     /**
-     * Blargh blurph blump - ie. this is a result of not enough time to do it properly
+     * Plugin for choosing IP addresses if there are more than one result of a
+     * lookup.
+     *
+     * Used in SeedDB - IP Device tab
      */
 
     function IpChooser(feedbackElement, addressField) {

@@ -237,6 +237,8 @@ class EventMixIn(object):
             elif (self.event_type_id == 'maintenanceState'
                   and 'service' in self.varmap.get(EventQueue.STATE_START, {})):
                 model = models.get_model('models', 'Service')
+            elif self.event_type_id == 'thresholdState':
+                return ThresholdEvent(self)
             else:
                 return UnknownEventSubject(self.netbox, subid)
 
@@ -250,6 +252,41 @@ class EventMixIn(object):
 
         # catch-all
         return self.netbox or u"N/A"
+
+
+class ThresholdEvent(object):
+    """
+    Magic class to act as a threshold event subject that produces useful
+    descriptions and relations to the event.
+    """
+    def __init__(self, event):
+        self.event = event
+        ruleid, self.metric = event.subid.split(':', 1)
+        klass = models.get_model('models', 'ThresholdRule')
+        try:
+            self.rule = klass.objects.get(pk=ruleid)
+        except klass.DoesNotExist:
+            self.rule = None
+
+        from nav.metrics.lookup import lookup
+        self.subject = lookup(self.metric)
+
+    def __unicode__(self):
+        subject = self.subject or self.metric
+        if self.rule:
+            descr = self.rule.description or self.rule.alert
+        else:
+            descr = u'Unknown rule'
+
+        if subject:
+            return u"{} ({})".format(subject, descr)
+        else:
+            return u"{} ({})".format(descr, subject)
+
+    def get_absolute_url(self):
+        """Returns a URL to the metric subject, if one was found"""
+        if self.subject and hasattr(self.subject, 'get_absolute_url'):
+            return self.subject.get_absolute_url()
 
 
 class EventQueue(models.Model, EventMixIn):

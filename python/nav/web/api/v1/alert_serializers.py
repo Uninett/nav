@@ -88,7 +88,10 @@ class AlertHistorySerializer(serializers.ModelSerializer):
         try:
             return obj.get_subject().get_absolute_url()
         except AttributeError:
-            return None
+            try:
+                return obj.get_subject().netbox.get_absolute_url()
+            except AttributeError:
+                return None
 
     @staticmethod
     def is_on_maintenance(obj):

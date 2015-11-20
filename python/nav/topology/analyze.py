@@ -294,6 +294,8 @@ def build_candidate_graph_from_db():
     graph = nx.DiGraph(name="network adjacency candidates")
 
     for cand in acs:
+        if not cand.interface.is_admin_up():
+            continue  # ignore data from disabled interfaces
         if cand.to_interface:
             dest_node = Port((cand.to_netbox.id,
                               cand.to_interface.id))

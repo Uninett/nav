@@ -14,7 +14,7 @@ Getting help
 
 * Search for information on our `wiki pages`_.
 
-* Post a question on `the nav-users mailing list`_ or search the 
+* Post a question on `the nav-users mailing list`_ or search the
   `nav-users mailing list archives`_.
 
 * Ask a question on the `#nav IRC channel`_ on freenode.
@@ -22,8 +22,8 @@ Getting help
 * Report a bug in our `bug tracker`_.
 
 .. _wiki pages: https://nav.uninett.no/wiki/
-.. _nav-users mailing list archives: https://postlister.uninett.no/sympa/arc/nav-users
-.. _the nav-users mailing list: https://postlister.uninett.no/sympa/info/nav-users
+.. _nav-users mailing list archives: https://sympa.uninett.no/lists/uninett.no/arc/nav-users
+.. _the nav-users mailing list: https://sympa.uninett.no/lists/uninett.no/info/nav-users
 .. _#nav IRC channel: irc://irc.freenode.net/nav
 .. _bug tracker: https://bugs.launchpad.net/nav
 

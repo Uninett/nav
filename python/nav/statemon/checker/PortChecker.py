@@ -24,7 +24,6 @@ from nav.statemon.event import  Event
 
 class PortChecker(AbstractChecker):
     """Generic TCP port checker"""
-    TYPENAME = "port"
     IPV6_SUPPORT = True
     DESCRIPTION = "Generic port checker"
     ARGS = (

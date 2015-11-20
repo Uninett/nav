@@ -29,7 +29,6 @@ SMBCLIENT_PATTERN = re.compile(
 
 class SmbChecker(AbstractChecker):
     """Windows file sharing"""
-    TYPENAME = "smb"
     IPV6_SUPPORT = True
     DESCRIPTION = "Windows file sharing"
     OPTARGS = (

@@ -223,10 +223,8 @@ def find_input_type(ip_or_mac):
     ip_or_mac = str(ip_or_mac)
     mac = ip_or_mac.replace(':', '')
 
-    # idValidIP returns 10.0.0.0 if you type 10.0.0. Check that this is not the
-    # case.
     input_type = "UNKNOWN"
-    if is_valid_ip(ip_or_mac) and not is_valid_ip(ip_or_mac).endswith('.0'):
+    if is_valid_ip(ip_or_mac, use_socket_lib=True):
         input_type = "IP"
     elif re.match("^[A-Fa-f0-9]{12}$", mac):
         input_type = "MAC"

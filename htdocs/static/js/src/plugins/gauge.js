@@ -9,7 +9,7 @@ define(['libs/d3.v2'], function () {
      */
 
     function JohnGauge(config) {
-        var nodeId = config.nodeId,
+        var node = config.node,
             radius = config.radius || 100,
             width = 2 * radius,
             ir = radius * 0.6,
@@ -26,7 +26,7 @@ define(['libs/d3.v2'], function () {
         this.animationSpeed = 1000;  // Speed of value transitions
 
         /* Create SVG element */
-        var vis = d3.select("#" + nodeId).append('svg')
+        var vis = d3.select(node).append('svg')
             .attr("width", width)
             .attr("height", radius)
             .append("svg:g")
@@ -46,7 +46,7 @@ define(['libs/d3.v2'], function () {
         this.arc = d3.svg.arc().outerRadius(radius).innerRadius(ir).startAngle(this.myScale(min));
 
         /* Create background arc with gradient */
-        var gradientId = this.createGradient(nodeId);
+        var gradientId = this.createGradient(node);
         vis.append('path')
             .datum({ endAngle: this.myScale(max)})
             .attr('d', this.arc)
@@ -158,9 +158,9 @@ define(['libs/d3.v2'], function () {
                 .interpolate(d3.interpolateRgb)
                 .range(colors);
         },
-        createGradient: function (nodeId) {
+        createGradient: function (node) {
             /* Greate gradient for background arc */
-            var gradientId = nodeId + 'gradient';
+            var gradientId = node.id + 'gradient';
             var grads = this.vis.append("defs")
                 .append("radialGradient")
                 .attr("gradientUnits", "userSpaceOnUse")

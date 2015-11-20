@@ -21,13 +21,16 @@ from nav.ipdevpoll import Plugin
 from nav.ipdevpoll.shadows import Netbox, Device, NetboxEntity
 from nav.models import manage
 
+from nav.mibs.hp_httpmanageable_mib import HPHTTPManageableMib
 from nav.mibs.juniper_mib import JuniperMib
 from nav.mibs.powernet_mib import PowerNetMib
 
+VENDORID_HP = 11
 VENDORID_APC = 318
 VENDORID_JUNIPER = 2636
 
 VENDOR_MIBS = {
+    VENDORID_HP: HPHTTPManageableMib,
     VENDORID_APC: PowerNetMib,
     VENDORID_JUNIPER: JuniperMib,
 }
@@ -35,7 +38,7 @@ VENDOR_MIBS = {
 
 class ProprietarySerial(Plugin):
     """retrieves chassis serial numbers from various proprietary MIBs"""
-    RESTRICT_TO_VENDORS = [VENDORID_APC, VENDORID_JUNIPER]
+    RESTRICT_TO_VENDORS = VENDOR_MIBS.keys()
 
     @defer.inlineCallbacks
     def handle(self):

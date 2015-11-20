@@ -381,6 +381,18 @@ def add_user_navlet_graph(request):
     return HttpResponse(status=400)
 
 
+def add_user_navlet_sensor(request):
+    """Add a sensor widget with sensor id set"""
+    if request.method == 'POST':
+        sensor_id = int(request.REQUEST.get('sensor_id'))
+        if sensor_id:
+            add_navlet(request.account, 'nav.web.navlets.sensor.SensorWidget',
+                       {'sensor_id': sensor_id})
+            return HttpResponse(status=200)
+
+    return HttpResponse(status=400)
+
+
 def set_navlet_preferences(request):
     """Set preferences for a NAvlet"""
     if request.method == 'POST':

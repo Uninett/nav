@@ -37,7 +37,7 @@ RUN apt-get update \
     && \
     apt-get clean
 
-RUN pip install whisper carbon graphite-web django-tagging==0.3.4
+RUN pip install whisper carbon graphite-web==0.9.12 django-tagging==0.3.4
 
 RUN gem install --version '3.3.9' sass ;\
     gem install --version '~> 0.9' rb-inotify
@@ -49,7 +49,7 @@ RUN echo "import sys\nsys.path.append('/source/python')" > /etc/python2.7/sitecu
 
 
 #################################################################################
-### ADDing the requirements file to pip-install Python requirements will bust ###
+### ADDing the requirements file to pip-install Python requirements may bust  ###
 ### Docker's cache at this point, so everything you want to keep in the cache ###
 ### should go before this.                                                    ###
 #################################################################################
@@ -68,6 +68,8 @@ RUN cp /opt/graphite/conf/graphite.wsgi.example /opt/graphite/conf/graphite.wsgi
 
 ADD tools/docker/nav-apache-site.conf /etc/apache2/sites-available/nav-site
 RUN a2dissite 000-default; a2ensite nav-site
+
+ADD tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
 RUN echo "root:password" | chpasswd
 

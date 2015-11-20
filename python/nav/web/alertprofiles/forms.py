@@ -116,7 +116,7 @@ class AlertAddressForm(forms.ModelForm):
             elif type.handler == 'jabber':
                 if not Jabber.is_valid_address(address):
                     error = 'Not a valid jabber address.'
-            else:
+            elif type.handler == 'email':
                 if not Email.is_valid_address(address):
                     error = 'Not a valid email address.'
 

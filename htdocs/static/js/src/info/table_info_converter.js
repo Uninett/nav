@@ -19,7 +19,7 @@ define([], function () {
     }
 
     function find_sysname(table) {
-        return $(table).find('caption a').text();
+        return $(table).find('caption a').text().trim();
     }
 
     /*

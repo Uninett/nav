@@ -85,10 +85,16 @@ class Service(models.Model):
         return result
 
     def is_on_maintenance(self):
-        """Returns True if this service is currently on maintenance"""
+        """
+        Returns True if this service, or its owning Netbox, is currently on
+        maintenance.
+        """
         states = self.netbox.get_unresolved_alerts('maintenanceState').filter(
             variables__variable='service', subid=self.id)
-        return states.count() > 0
+        if states.count() < 1:
+            return self.netbox.is_on_maintenance()
+        else:
+            return True
 
     def last_downtime_ended(self):
         """
@@ -105,6 +111,20 @@ class Service(models.Model):
             return
         else:
             return lastdown.end_time
+
+    def get_handler_description(self):
+        """Returns the description of the handler
+
+        The description is defined in the service checker
+        """
+        classname = u"{}Checker".format(str(self.handler).capitalize())
+        modulename = u"nav.statemon.checker.{}".format(classname)
+        checker = __import__(modulename, globals(), locals(), [classname], -1)
+        klass = getattr(checker, classname)
+        return getattr(klass, 'DESCRIPTION', '')
+
+    description = property(get_handler_description)
+
 
 
 class ServiceProperty(models.Model):

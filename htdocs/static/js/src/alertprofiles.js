@@ -18,49 +18,73 @@
 
 require([], function() {
 
-    // Highlights shared time-periods
+    var containerSelector = "#timeperiods_table_container";
+    
+
+    /**
+     * Finds and returns the class that starts with 'period_' for the given
+     * element. The class is prepended a dot (.) for use in jQuery selectors.
+     *
+     * @param {HTMLElement} element Element that has the class
+     */
+    var findSharedClass = function(element) {
+        return element.className.split(' ').filter(function(klass){
+            return klass.match(/period_/);
+        }).map(function(klass) {
+            return '.' + klass;
+        }).join(' ');        
+    };
+    
+
+    /**
+     * Highlights shared time-periods
+     */
     var doHighlight = function() {
-	// The last class should (in theory) be the "shared_period"
-	// class
-	var shared_id = $(this).attr('class').split(' ').slice(-1);
-	$("." + shared_id).addClass('hilight');
+        $(findSharedClass(this)).addClass('hilight');
     };
 
-    // Removes highlight from shared time-periods
+
+    /**
+     * Removes highlight from shared time-periods
+     */
     var removeHighlight = function() {
-	var shared_id = $(this).attr('class').split(' ').slice(-1);
-	$("." + shared_id).removeClass('hilight');
+        $(findSharedClass(this)).removeClass('hilight');
     };
 
-    // Switch between multiple and single select list in the expression form
+    
+    /**
+     * Switch between multiple and single select list in the expression form
+     */
     var switchMultiple = function() {
-	if ($("select#id_operator").val() === 11) {
+	if ($("select#id_operator").val() === "11") {
 	    $("select#id_value").attr('multiple', 'multiple');
 	} else {
 	    $("select#id_value").removeAttr('multiple');
 	}
     };
 
-    // Check multiple checkboxes for shared periods
+
+    /**
+     * When toggling a period that is shared with another period, toggle the
+     * other period aswell.
+     */
     var checkMultiple = function() {
-	// The last class is "hilight", the second last is the
-	// "shared_period" class
-	var shared_id = $(this).parents("tr").attr('class').split(' ').slice(-2, -1);
-	if ($(this).attr('checked')) {
-	    $("." + shared_id + " input").attr('checked', 'checked');
-	} else {
-	    $("." + shared_id + " input").removeAttr('checked');
-	}
+        var that = this,
+            sharedClass = $(this).closest('td').attr('class'),
+            selector = '.' + sharedClass + ' input';
+        
+        $(containerSelector).find(selector).filter(function() {
+            return this !== that;
+        }).prop('checked', this.checked);
     };
 
     $(function() {
-        var $timePeriods = $("#timeperiods_table_container tr.all_days_period"),
+        var $timePeriods = $(containerSelector).find("tr.all_days_period"),
             $operator = $("select#id_operator");
 	$timePeriods.hover(doHighlight, removeHighlight);
 	$timePeriods.find("input").click(checkMultiple);
 	$operator.ready(switchMultiple);
 	$operator.change(switchMultiple);
-
     });
 
 });

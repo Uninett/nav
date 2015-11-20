@@ -28,7 +28,7 @@ ALLOWED_HOSTS = ['*']
 try:
     nav_config = read_flat_config('nav.conf')
 except IOError:
-    nav_config = {}
+    nav_config = {'SECRET_KEY': 'Very bad default value'}
 
 try:
     webfront_config = getconfig('webfront/webfront.conf',
@@ -166,6 +166,7 @@ NAVLETS = (
     'nav.web.navlets.watchdog.WatchDogWidget',
     'nav.web.navlets.status2.Status2Widget',
     'nav.web.navlets.report.ReportWidget',
+    'nav.web.navlets.sensor.SensorWidget',
 )
 
 CRISPY_TEMPLATE_PACK = 'foundation'

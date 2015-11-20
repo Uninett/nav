@@ -9,6 +9,8 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
         this.unit = this.$node.attr('data-unit');
         this.sensorid = this.$node.attr('data-sensorid');
         this.sensorname = this.$node.attr('data-sensorname');
+        this.dashboardUrl = this.$node.attr('data-dashboard_url') || '';
+        this.dashboardIcon = 'fa-plus-circle';
         this.thresholds = this.parseThresholds();
 
         this.displayGauge = true;
@@ -26,6 +28,8 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
         this.currentNode = $html.find('.current');
         this.sliderNode = $html.find('.rs-slidernode');
 
+        this.addDashboardListener($html);
+
         this.detailTemplate = templates.detailsTemplate;
         this.counterTemplate = templates.counterTemplate;
 
@@ -40,6 +44,7 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
         render: function (template) {
             var $html = $(template({
                 legend: this.sensorname,
+                dashboardUrl: this.dashboardUrl,
                 sensorid: this.sensorid
             }));
             $html.appendTo(this.$node);
@@ -49,6 +54,19 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
                 $html.find('.current').addClass('counter');
             }
             return $html;
+        },
+        addDashboardListener: function ($html) {
+            var self = this;
+            $html.find('.add-to-dashboard').one('click', function() {
+                var $element = $(this);
+                var request = $.post(this.dataset.url);
+                request.done(function() {
+                    $element.removeClass(self.dashboardIcon).addClass('fa-check-circle-o success');
+                });
+                request.fail(function() {
+                    $element.removeClass(self.dashboardIcon).addClass('fa-times-circle failure');
+                });
+            });
         },
         parseThresholds: function () {
             var input = this.$node.attr('data-thresholds');
@@ -92,7 +110,7 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
         createCurrent: function (value) {
             if (this.displayGauge) {
                 return new JohnGauge({
-                    nodeId: this.currentNode.prop('id'),
+                    node: this.currentNode.get(0),
                     min: 0,
                     value: value,
                     max: this.maxValue,

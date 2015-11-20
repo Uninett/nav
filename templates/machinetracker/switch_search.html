@@ -13,7 +13,7 @@
               <td {% if form.switch.errors %}class="error"{% endif %} >
                 {{ form.switch }}
                 {% if form.switch.errors %}
-                  <small class="nomargin">{{ form.switch.errors }}</small>
+                  <small class="error">{{ form.switch.errors }}</small>
                 {% endif %}
               </td>
 
@@ -29,7 +29,7 @@
               <td {% if form.module.errors %}class="error"{% endif %}>
                 {{ form.module }}
                 {% if form.module.errors %}
-                  <small class="nomargin">{{ form.module.errors }}</small>
+                  <small class="error">{{ form.module.errors }}</small>
                 {% endif %}
               </td>
 
@@ -37,7 +37,7 @@
               <td {% if form.days.errors %}class="error"{% endif %}>
                 {{ form.days }}
                 {% if form.days.errors %}
-                  <small class="nomargin">{{ form.days.errors }}</small>
+                  <small class="error">{{ form.days.errors }}</small>
                 {% endif %}
               </td>
             </tr>
@@ -47,7 +47,7 @@
               <td {% if form.port.errors %}class="error"{% endif %}>
                 {{ form.port }}
                 {% if form.port.errors %}
-                  <small class="nomargin">{{ form.port.errors }}</small>
+                  <small class="error">{{ form.port.errors }}</small>
                 {% endif %}
               </td>
               <td colspan="2">
@@ -70,6 +70,8 @@
     <div class="results">
       {% include "machinetracker/mac_tracker.html" %}
     </div>
+  {% elif mac_tracker != None %}
+    <div class="alert-box">No results for "{{ form_data.switch }}"</div>
   {% endif %}
 
   <div id="valid-search-terms" class="reveal-modal" data-reveal>

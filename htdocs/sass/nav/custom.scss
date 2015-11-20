@@ -199,8 +199,13 @@ ul.ui-tabs-nav {
 /* List styles */
 
 ul.errorlist {
+    font-size: inherit;
     margin-bottom: 0;
     list-style-type: none;
+}
+
+small.error ul.errorlist {
+    margin-left: 0;
 }
 
 ul.clean, ol.clean, dl.clean {

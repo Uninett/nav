@@ -23,7 +23,6 @@ from nav.statemon.event import Event
 
 class PostgresqlChecker(AbstractChecker):
     """PostgreSQL"""
-    TYPENAME = "postgresql"
     IPV6_SUPPORT = True
     DESCRIPTION = "PostgreSQL"
     ARGS = (

@@ -25,8 +25,11 @@ router.register(r'room', views.RoomViewSet)
 router.register(r'netbox', views.NetboxViewSet)
 router.register(r'interface', views.InterfaceViewSet)
 router.register(r'prefix', views.PrefixViewSet)
+router.register(r'vlan', views.VlanViewSet)
 router.register(r'cam', views.CamViewSet, base_name='cam')
 router.register(r'arp', views.ArpViewSet, base_name='arp')
+router.register(r'servicehandler', views.ServiceHandlerViewSet,
+                base_name='servicehandler')
 router.register(r'alert', views.AlertHistoryViewSet)
 
 urlpatterns = patterns(

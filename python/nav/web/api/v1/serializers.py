@@ -59,6 +59,12 @@ class RoomSerializer(serializers.ModelSerializer):
         fields = ('id', 'location', 'description', 'position')
 
 
+class VlanSerializer(serializers.ModelSerializer):
+    """Serializer for the vlan model"""
+    class Meta(object):
+        model = manage.Vlan
+
+
 class PrefixSerializer(serializers.ModelSerializer):
     """Serializer for prefix model"""
     class Meta(object):
@@ -73,3 +79,19 @@ class PrefixUsageSerializer(serializers.Serializer):
     usage = serializers.FloatField()
     active_addresses = serializers.IntegerField()
     max_addresses = serializers.IntegerField()
+
+
+class ServiceHandlerSerializer(serializers.Serializer):
+    """Serializer for service handlers.
+
+    These handlers does not exist in the database but as python modules.
+
+    NB: Later versions of django rest framework supports list and dict
+    fields. Then we can add the args and optargs.
+    """
+
+    name = serializers.CharField()
+    ipv6_support = serializers.BooleanField()
+    description = serializers.CharField()
+
+
