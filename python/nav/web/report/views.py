@@ -20,6 +20,7 @@
 from IPy import IP
 
 from operator import itemgetter
+from collections import defaultdict, namedtuple
 from time import localtime, strftime
 import csv
 import os
@@ -34,6 +35,8 @@ from django.template import RequestContext
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.db import connection
 
+from nav.models.manage import Prefix
+
 from nav.report.IPtree import getMaxLeaf, buildTree
 from nav.report.generator import Generator, ReportList
 from nav.report.matrixIPv4 import MatrixIPv4
@@ -44,6 +47,7 @@ import nav.path
 from nav.web.navlets import add_navlet
 
 
+IpGroup = namedtuple('IpGroup', 'private ipv4 ipv6')
 CONFIG_FILE_PACKAGE = os.path.join(nav.path.sysconfdir, "report/report.conf")
 CONFIG_FILE_LOCAL = os.path.join(nav.path.sysconfdir,
                                  "report/report.local.conf")
@@ -150,54 +154,18 @@ def matrix_report(request):
     }
 
     if 'scope' not in request.GET:
-        cursor = connection.cursor()
-        cursor.execute("""
-            SELECT netaddr, description
-            FROM prefix
-            INNER JOIN vlan USING (vlanid)
-            WHERE nettype='scope'
-        """.strip())
-
-        if cursor.rowcount == 1:
-            # Id there is only one scope in the database,
-            # display that scope
-            scope = IP(cursor.fetchone()[0])
+        scopes = Prefix.objects.filter(vlan__net_type='scope')
+        if scopes.count() == 1:
+            # If there is only one scope in the database display that scope
+            scope = IP(scopes[0].net_address)
         else:
-            # Else let the user select from a list
-            scopes = cursor.fetchall()
-            context['scopes'] = scopes
-            return render_to_response(
-                'report/matrix.html',
-                context,
-                context_instance=RequestContext(request))
+            # Else let the user select one
+            context['scopes'] = group_scopes(scopes)
+            return render(request, 'report/matrix.html', context)
     else:
         scope = IP(request.GET.get('scope'))
 
-    tree = buildTree(scope)
-    if scope.version() == 6:
-        end_net = getMaxLeaf(tree)
-        matrix = MatrixIPv6(scope, end_net=end_net)
-    elif scope.version() == 4:
-        if scope.prefixlen() < 24:
-            end_net = IP(scope.net().strNormal() + '/30')
-            matrix = MatrixIPv4(scope, show_unused, end_net=end_net,
-                                bits_in_matrix=6)
-        else:
-            max_leaf = getMaxLeaf(tree)
-            bits_in_matrix = max_leaf.prefixlen() - scope.prefixlen()
-            matrix = MatrixIPv4(
-                scope,
-                show_unused,
-                end_net=max_leaf,
-                bits_in_matrix=bits_in_matrix)
-    else:
-        raise UnknownNetworkTypeException(
-            'version: ' + str(scope.version))
-
-    # Invalidating the MetaIP cache to get rid of processed data.
-    MetaIP.invalidateCache()
-
-    matrix.build()
+    matrix = create_matrix(scope, show_unused)
 
     hide_content_for_colspan = []
     if scope.version() == 4:
@@ -214,6 +182,52 @@ def matrix_report(request):
         'report/matrix.html',
         context,
         context_instance=RequestContext(request))
+
+
+def group_scopes(scopes):
+    """Group scopes by version and type"""
+    def _prefix_as_int(prefix):
+        return IP(prefix.net_address).int()
+
+    groups = defaultdict(list)
+    for scope in scopes:
+        prefix = IP(scope.net_address)
+        if prefix.iptype() == 'PRIVATE':
+            groups['private'].append(scope)
+        elif prefix.version() == 4:
+            groups['ipv4'].append(scope)
+        elif prefix.version() == 6:
+            groups['ipv6'].append(scope)
+
+    return IpGroup(*[sorted(groups[x], key=_prefix_as_int)
+                     for x in ('private', 'ipv4', 'ipv6')])
+
+
+def create_matrix(scope, show_unused):
+    """Creates a matrix for the given scope"""
+    tree = buildTree(scope)
+    if scope.version() == 6:
+        end_net = getMaxLeaf(tree)
+        matrix = MatrixIPv6(scope, end_net=end_net)
+    elif scope.version() == 4:
+        if scope.prefixlen() < 24:
+            end_net = IP(scope.net().strNormal() + '/30')
+            matrix = MatrixIPv4(scope, show_unused, end_net=end_net,
+                                bits_in_matrix=6)
+        else:
+            max_leaf = getMaxLeaf(tree)
+            bits_in_matrix = max_leaf.prefixlen() - scope.prefixlen()
+            matrix = MatrixIPv4(scope, show_unused, end_net=max_leaf,
+                bits_in_matrix=bits_in_matrix)
+    else:
+        raise UnknownNetworkTypeException(
+            'version: ' + str(scope.version))
+
+    # Invalidating the MetaIP cache to get rid of processed data.
+    MetaIP.invalidateCache()
+
+    matrix.build()
+    return matrix
 
 
 def report_list(request):
