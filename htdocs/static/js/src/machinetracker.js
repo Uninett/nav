@@ -5,12 +5,13 @@ require(["libs/jquery.tablesorter.min", "libs/jquery"], function (tablesorter) {
         searchFormId = 'search_form';
 
     /**
-     * Enable setting and getting of local search settings (checkboxes
-     * only) using localstorage
+     * Enable setting and getting of local search settings (checkboxes only)
+     * using localstorage. Do not do this when following links, only on clean
+     * url
      */
     function addLocalStateSettings() {
         var form = $('#' + searchFormId);
-        if (Modernizr.localstorage && form.length) {
+        if (!window.location.search && Modernizr.localstorage && form.length) {
             addSettingsListener(form);
             setElementState();
         }
