@@ -50,14 +50,14 @@ basedn = ou=people,dc=example,dc=com
 # 'search' searches for <uid_attr>=<login name> using basedn as searchbase.
 lookupmethod=direct
 
+# Choose to bind to LDAP as the user with 'suffix' for Active Directory support.
+# lookupmethod should be set to search for this option to function. 
+#suffix = @ad.example.com
+
 # If the LDAP directory requires an authenticated user to search for a user
 # object, authenticate as the following user.
 #manager=
 #manager_password=
-
-# Choose to bind to LDAP as user with suffix for Active Directory support.
-#bind_as_user = True
-#username_suffix = @ad.example.com
 
 # Require users to be members of this group to allow logging into NAV.
 # If not set, group membership will not be required.  This object's
