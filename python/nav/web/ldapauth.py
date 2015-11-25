@@ -43,7 +43,6 @@ lookupmethod=direct
 suffix=
 manager=
 manager_password=
-bind_as_user=False
 group_search=(member=%%s)
 encoding=utf-8
 """)
