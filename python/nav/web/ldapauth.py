@@ -40,10 +40,10 @@ require_group=
 timeout=2
 debug=no
 lookupmethod=direct
+suffix=
 manager=
 manager_password=
 bind_as_user=False
-username_suffix=
 group_search=(member=%%s)
 encoding=utf-8
 """)
@@ -176,19 +176,30 @@ class LDAPUser(object):
     webfront.conf config file.
 
     """
-    def __init__(self, username, ldap_conn, password):
+    def __init__(self, username, ldap_conn):
         self.username = username
         self.ldap = ldap_conn
         self.user_dn = None
-        self.password = password
 
     def bind(self):
         """Performs an authenticated bind for this user using password"""
-        user_dn = self.get_user_dn()
-        _logger.debug("Attempting authenticated bind to %s", user_dn)
         encoding = _config.get('ldap', 'encoding')
-        self.ldap.simple_bind_s(user_dn.encode(encoding),
-                                self.password.encode(encoding))
+        suffix = _config.get('ldap', 'suffix').encode(encoding)
+        
+        if not suffix:
+            user_dn = self.get_user_dn()
+            _logger.debug("Attempting authenticated bind to %s", user_dn)
+        
+            self.ldap.simple_bind_s(user_dn.encode(encoding),
+                                    self.password.encode(encoding))
+        if suffix:
+            _logger.debug("Attempting authenticated bind as user %s",
+                          self.username + suffix)
+
+            self.ldap.simple_bind_s(self.username.encode(encoding) +
+                                   suffix,
+                                   password.encode(encoding))
+    
 
     def get_user_dn(self):
         """
@@ -230,18 +241,10 @@ class LDAPUser(object):
         manager = _config.get('ldap', 'manager').encode(encoding)
         manager_password = _config.get(
             'ldap', 'manager_password', raw=True).encode(encoding)
-        bind_as_user = _config.getboolean('ldap', 'bind_as_user')
-        username_suffix = _config.get('ldap', 'username_suffix').encode(encoding)
-        if manager and not bind_as_user:
+        if manager:
             _logger.debug("Attempting authenticated bind as manager to %s",
                           manager)
             self.ldap.simple_bind_s(manager, manager_password)
-        if bind_as_user:
-            _logger.debug("Attempting authenticated bind as user %s",
-                          self.username + username_suffix)
-            self.ldap.simple_bind_s(self.username.encode(encoding) +
-                                    username_suffix,
-                                    self.password.encode(encoding))
         filter_ = "(%s=%s)" % (uid_attr, escape_filter_chars(
             self.username.encode(encoding)))
         result = self.ldap.search_s(_config.get('ldap', 'basedn'),
