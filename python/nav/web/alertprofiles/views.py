@@ -249,6 +249,46 @@ def profile_new(request):
     return profile_show_form(request)
 
 
+def set_active_profile(request, profile):
+    """Set active profile to given profile"""
+    preference, _created = AlertPreference.objects.get_or_create(
+        account=request.account, defaults={'active_profile': profile})
+    preference.active_profile = profile
+    preference.save()
+    new_message(request,
+                'Active profile automatically set to {}'.format(profile.name),
+                Messages.NOTICE)
+
+
+def create_time_periods(request, profile):
+    """Creates time periods for this profile based on template chosen"""
+    templates = read_time_period_templates()
+    template = templates.get(request.POST.get('template'), None)
+
+    if template:
+        # A template were selected. Loop through each subsection and make
+        # periods if the title of the subsection is 'all_week', 'weekends'
+        # or 'weekdays'.
+        for key, value in template.items():
+            periods = {}
+            if key == 'all_week':
+                valid_during = TimePeriod.ALL_WEEK
+                periods = value
+            elif key == 'weekdays':
+                valid_during = TimePeriod.WEEKDAYS
+                periods = value
+            elif key == 'weekends':
+                valid_during = TimePeriod.WEEKENDS
+                periods = value
+
+            # Make the time periods.
+            for start_time in periods.values():
+                period = TimePeriod(profile=profile, start=start_time,
+                                    valid_during=valid_during)
+                period.save()
+
+
+
 @requires_post('alertprofiles-profile')
 def profile_save(request):
     """Saves profile data"""
@@ -259,11 +299,11 @@ def profile_save(request):
             profile = AlertProfile.objects.get(pk=request.POST.get('id'))
         except AlertProfile.DoesNotExist:
             return alertprofiles_response_not_found(
-                request, _('Requested profile does not exist'))
+                request, 'Requested profile does not exist')
 
         if profile.account != account:
             return alertprofiles_response_forbidden(
-                request, _('You do not own this profile.'))
+                request, 'You do not own this profile.')
     else:
         profile = AlertProfile(account=account)
 
@@ -275,57 +315,21 @@ def profile_save(request):
 
     profile = profile_form.save()
 
+    # No other profile, set active profile to this profile.
     if AlertProfile.objects.filter(account=account).count() == 1:
-        # No other profile, might as well set active profile to this
-        # profile.
-        # A bit magic, but removes a step for the user to perform.
-        try:
-            preference = AlertPreference.objects.get(account=account)
-        except AlertPreference.DoesNotExist:
-            preference = AlertPreference(account=account,
-                                         active_profile=profile)
-        else:
-            preference.active_profile = profile
-        preference.save()
-        new_message(request,
-                    _('Active profile automatically set to %(profile)s') % {
-                        'profile': profile.name,
-                    },
-                    Messages.NOTICE)
+        set_active_profile(request, profile)
 
-    # Should we make some time periods from a template?
+    # If the user has chosen a time period template, add that period to the
+    # profile
     if 'template' in request.POST:
-        templates = read_time_period_templates()
-        template = templates.get(request.POST.get('template'), None)
-
-        if template:
-            # A template were selected. Loop through each subsection and make
-            # periods if the title of the subsection is 'all_week', 'weekends'
-            # or 'weekdays'.
-            for key, value in template.items():
-                periods = {}
-                if key == 'all_week':
-                    valid_during = TimePeriod.ALL_WEEK
-                    periods = value
-                elif key == 'weekdays':
-                    valid_during = TimePeriod.WEEKDAYS
-                    periods = value
-                elif key == 'weekends':
-                    valid_during = TimePeriod.WEEKENDS
-                    periods = value
-
-                # Make the time periods. We're only interested in the values of
-                # the dictionary, not the keys.
-                for start_time in periods.values():
-                    period = TimePeriod(profile=profile, start=start_time,
-                                        valid_during=valid_during)
-                    period.save()
+        create_time_periods(request, profile)
 
     new_message(request,
-                _('Saved profile %(profile)s') % {'profile': profile.name},
+                'Saved profile {}'.format(profile.name),
                 Messages.SUCCESS)
-    return HttpResponseRedirect(reverse('alertprofiles-profile-detail',
-                                        args=(profile.id,)))
+
+    return HttpResponseRedirect(
+        reverse('alertprofiles-profile-detail', args=(profile.id,)))
 
 
 @requires_post('alertprofiles-profile')
