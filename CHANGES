@@ -1,3 +1,15 @@
+Version 4.3.3
+(released 26 Nov 2015)
+
+ Bugfixes:
+
+  * LP#1518950 (machine tracker - form should reflect link parameters)
+  * LP#1519362 (Forgetting to add a name to an alert profile causes template
+                selection to be cleared in form)
+  * LP#1520119 (Servicemon silently stops checking services after running for a
+                while)
+
+
 Version 4.3.2
 (released 19 Nov 2015)
 

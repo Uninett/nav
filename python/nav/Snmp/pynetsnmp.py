@@ -16,7 +16,7 @@
 """High level synchronouse NAV API for NetSNMP"""
 
 from __future__ import absolute_import
-from .import errors
+from .errors import *
 
 from IPy import IP
 from nav.oids import OID
@@ -57,7 +57,7 @@ class Snmp(object):
         if self.version == '2':
             self.version = '2c'
         if self.version not in ('1', '2c'):
-            raise errors.UnsupportedSnmpVersionError(self.version)
+            raise UnsupportedSnmpVersionError(self.version)
         self.port = int(port)
         self.retries = retries
         self.timeout = timeout
@@ -202,7 +202,7 @@ class Snmp(object):
 
         """
         if str(self.version) != "2c":
-            raise errors.UnsupportedSnmpVersionError(
+            raise UnsupportedSnmpVersionError(
                 "Cannot use BULKGET in SNMP version " + self.version)
         result = []
         root_oid = OID(query)
@@ -372,9 +372,9 @@ def _raise_on_error(err_code):
     if err_code == 0:
         return
     elif err_code == netsnmp.SNMPERR_TIMEOUT:
-        raise errors.TimeOutException(snmp_api_errstring(err_code))
+        raise TimeOutException(snmp_api_errstring(err_code))
     else:
-        raise errors.SnmpError("%s: %s" % (SNMPERR_MAP.get(err_code, ''),
+        raise SnmpError("%s: %s" % (SNMPERR_MAP.get(err_code, ''),
                                            snmp_api_errstring(err_code)))
 
 
@@ -387,9 +387,9 @@ def _raise_on_protocol_error(response):
     if response.errstat > 0:
         errstring = snmp_errstring(response.errstat)
         if response.errstat == netsnmp.SNMP_ERR_NOSUCHNAME:
-            raise errors.NoSuchObjectError(errstring)
+            raise NoSuchObjectError(errstring)
         if response.errstat > 0:
-            raise errors.SnmpError(errstring)
+            raise SnmpError(errstring)
 
     # check for SNMP varbind exception values
     var = response.variables
@@ -398,7 +398,7 @@ def _raise_on_protocol_error(response):
         oid = OID([var.name[i] for i in range(var.name_length)])
         vtype = ord(var.type)
         if vtype in (netsnmp.SNMP_NOSUCHINSTANCE, netsnmp.SNMP_NOSUCHOBJECT):
-            raise errors.NoSuchObjectError(oid)
+            raise NoSuchObjectError(oid)
         elif vtype == netsnmp.SNMP_ENDOFMIBVIEW:
-            raise errors.EndOfMibViewError(oid)
+            raise EndOfMibViewError(oid)
         var = var.next_variable

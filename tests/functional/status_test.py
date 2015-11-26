@@ -17,7 +17,6 @@
 
 from nav.tests.selenium import SeleniumTest
 
-
 class StatusSeleniumTest(SeleniumTest):
     """Testrunner for the Status page"""
 
