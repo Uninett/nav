@@ -75,7 +75,7 @@ class Worker(threading.Thread):
         if (self._runqueue.get_max_run_count() != 0 and
                 self._runcount > self._runqueue.get_max_run_count()):
             self._running = 0
-            self._runqueue.unusedThreadName.append(self.getName())
+            self._runqueue.unused_thread_name.append(self.getName())
             self._runqueue.workers.remove(self)
             debug("%s is recycling." % self.getName())
         debug("%s finished checker number %i" %
