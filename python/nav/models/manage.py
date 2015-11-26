@@ -612,8 +612,8 @@ class Module(models.Model):
 
     def get_swports(self):
         """Returns all interfaces that are switch ports."""
-        return Interface.objects.select_related(
-            depth=2).filter(module=self, baseport__isnull=False)
+        return Interface.objects.select_related().filter(
+            module=self, baseport__isnull=False)
 
     def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
