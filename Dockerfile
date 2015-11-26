@@ -37,7 +37,7 @@ RUN apt-get update \
     && \
     apt-get clean
 
-RUN pip install whisper carbon graphite-web==0.9.12 django-tagging==0.3.4
+RUN pip install whisper carbon graphite-web==0.9.14 django-tagging==0.3.4 pytz
 
 RUN gem install --version '3.3.9' sass ;\
     gem install --version '~> 0.9' rb-inotify
@@ -74,7 +74,7 @@ ADD tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 RUN echo "root:password" | chpasswd
 
 VOLUME ["/source"]
-ENV    PYTHONPATH /source/python
+ENV    PYTHONPATH /source/python:/opt/graphite/webapp
 ENV    PATH /source/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin
 RUN    echo "PATH=$PATH" > /etc/profile.d/navpath.sh
 EXPOSE 22 80 8000
