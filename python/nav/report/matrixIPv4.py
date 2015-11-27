@@ -79,7 +79,7 @@ class MatrixIPv4(Matrix):
             if key in host_nybbles_map:
                 ip = host_nybbles_map[key]
                 meta = metaIP.MetaIP(ip)
-                matrix_cell = self.create_cell(ip, meta, key)
+                matrix_cell = self.create_cell(ip, meta, key=key)
                 next_header_idx = (self.column_headings.index(i)
                                    + int(self._colspan(ip)))
             else:
@@ -103,7 +103,7 @@ class MatrixIPv4(Matrix):
         that span more than one row"""
         meta = metaIP.MetaIP(subnet)
         rowspan = 2 ** (self._get_row_size() - subnet.prefixlen())
-        matrix_row.append(self._create_big_cell(subnet, meta, rowspan))
+        matrix_row.append(self.create_cell(subnet, meta, rowspan=rowspan))
 
         # As we increase the rowspan we need to add additional rows.
         num_extra_rows = rowspan - 1
@@ -113,11 +113,11 @@ class MatrixIPv4(Matrix):
             row_net = IPtools.get_next_subnet(row_net)
             extra_rows.append([self._create_index_cell(row_net, link=False)])
 
-
-    def create_cell(self, ip, meta, key=0):
+    def create_cell(self, ip, meta, rowspan=1, key=0):
         """Creates a table cell based on ip"""
         return Cell(
             colspan=self._colspan(ip),
+            rowspan=rowspan,
             color=self._load_color(meta.usage_percent, meta.nettype),
             content=_matrixlink(key, ip, meta))
 
@@ -143,11 +143,6 @@ class MatrixIPv4(Matrix):
     @staticmethod
     def _create_empty_cell():
         return Cell(colspan=80, color=None, content='&nbsp;')
-
-    def _create_big_cell(self, subnet, meta, rowspan):
-        cell = self.create_cell(subnet, meta)
-        cell.rowspan = rowspan
-        return cell
 
     def _get_row_size(self):
         """Gets the prefixlength for a row"""
