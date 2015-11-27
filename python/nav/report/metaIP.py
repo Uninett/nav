@@ -28,7 +28,7 @@ class MetaIP:
     IPv4MetaMap = None
     IPv6MetaMap = None
 
-    def __init__(self, ip):
+    def __init__(self, ip, skip_count=True):
         self.netaddr = ip
         self.prefixid = None
         self.active_ip_cnt = None
@@ -36,6 +36,7 @@ class MetaIP:
         self.nettype = None
         self.usage_percent = None
         self.ipv6_color = None
+        self.skip_count = skip_count
 
         if ip.version() == 4:
             if MetaIP.IPv4MetaMap == None:
@@ -117,25 +118,36 @@ class MetaIP:
             result[IP(row[3])] = tupple
         return result
 
-    @classmethod
-    def _createIpv4MetaMap(cls):
-        sql = """SELECT prefixid, active_ip_cnt, max_ip_cnt, nettype, netaddr
-                 FROM prefix LEFT OUTER JOIN prefix_active_ip_cnt USING(prefixid)
-                             LEFT OUTER JOIN prefix_max_ip_cnt USING(prefixid)
-                             LEFT OUTER JOIN vlan USING(vlanid)
-                 WHERE family(netaddr)=4"""
+    def _createIpv4MetaMap(self):
+        if self.skip_count:
+            sql = """SELECT prefixid, nettype, netaddr
+                     FROM prefix LEFT JOIN vlan USING (vlanid)
+                     WHERE family(netaddr) = 4"""
+        else:
+            sql = """
+            SELECT prefixid, active_ip_cnt, max_ip_cnt, nettype, netaddr
+            FROM prefix LEFT OUTER JOIN prefix_active_ip_cnt USING(prefixid)
+                LEFT OUTER JOIN prefix_max_ip_cnt USING(prefixid)
+                LEFT OUTER JOIN vlan USING(vlanid)
+            WHERE family(netaddr)=4"""
 
         cursor = db.getConnection('default', 'manage').cursor()
         cursor.execute(sql)
         rows = cursor.fetchall()
         result = {}
         for row in rows:
-            tupple = {}
-            tupple["prefixid"] = row[0]
-            tupple["active_ip_cnt"] = row[1]
-            tupple["max_ip_cnt"] = row[2]
-            tupple["nettype"] = row[3]
-            result[IP(row[4])] = tupple
+            if self.skip_count:
+                result[IP(row[2])] = {
+                    "prefixid": row[0],
+                    "nettype": row[1],
+                }
+            else:
+                result[IP(row[4])] = {
+                    "prefixid": row[0],
+                    "active_ip_cnt": row[1],
+                    "max_ip_cnt": row[2],
+                    "nettype": row[3],
+                }
         return result
 
     def double_log(self, in_count):
@@ -162,24 +174,22 @@ class MetaIP:
             self.ipv6_color = self.calc_ipv6_color((self.active_ip_cnt + 1))
 
     def _setupIpv4(self):
+        def _find_usage_percent():
+            return int(math.ceil(100*float(self.active_ip_cnt)/self.max_ip_cnt))
+
         if self.netaddr in MetaIP.IPv4MetaMap:
             metainfo = MetaIP.IPv4MetaMap[self.netaddr]
             self.prefixid = metainfo["prefixid"]
             self.nettype = metainfo["nettype"]
 
-            active_ip_cnt = metainfo["active_ip_cnt"]
-            max_ip_cnt = metainfo["max_ip_cnt"]
+            active_ip_cnt = metainfo.get("active_ip_cnt")
+            self.active_ip_cnt = (0 if active_ip_cnt is None
+                                  else int(active_ip_cnt))
 
-            if active_ip_cnt is None:
-                self.active_ip_cnt = 0
-            else:
-                self.active_ip_cnt = int(active_ip_cnt)
-
-            self.max_ip_cnt = int(max_ip_cnt)
-
+            max_ip_cnt = metainfo.get("max_ip_cnt")
+            self.max_ip_cnt = int(max_ip_cnt) if max_ip_cnt else 0
             if self.active_ip_cnt > 0 and self.max_ip_cnt > 0:
-                self.usage_percent = int(
-                    math.ceil(100*float(self.active_ip_cnt)/self.max_ip_cnt))
+                self.usage_percent = _find_usage_percent()
             else:
                 self.usage_percent = 0
 

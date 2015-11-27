@@ -239,17 +239,16 @@ def _matrixlink(nybble, ip, meta):
         'machinetracker-prefixid_search_active',
         kwargs={'prefix_id': meta.prefixid})
 
-    return """
-        <a href="{0}">.{1}/{2}</a>
-        <a href="{3}" title="{4}/{5}">({6}%)</a>
-    """.format(
-        report_url,
-        nybble,
-        ip.prefixlen(),
-        machinetracker_url,
-        meta.active_ip_cnt,
-        meta.max_ip_cnt,
-        meta.usage_percent)
+    netlink = '<a href="{0}">.{1}/{2}</a>'.format(report_url, nybble,
+                                                  ip.prefixlen())
+    if meta.skip_count:
+        usagelink = ''
+    else:
+        usagelink = '<a href="{0}" title="{1}/{2}">({3}%)</a>'.format(
+            machinetracker_url, meta.active_ip_cnt, meta.max_ip_cnt,
+            meta.usage_percent)
+
+    return "{} {}".format(netlink, usagelink)
 
 
 def _netlink(ip, append_term_and_prefix=False):
