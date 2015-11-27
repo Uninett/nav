@@ -63,7 +63,7 @@ class MatrixIPv4(Matrix):
 
         nets = IPtools.sort_nets_by_address(self.tree_nets.keys())
         self.nodes = [
-            self.Node(net, self._new_write_subnets(net, self.tree_nets[net]))
+            self.Node(net, self._write_subnets(net, self.tree_nets[net]))
             for net in nets
         ]
 
@@ -148,7 +148,7 @@ class MatrixIPv4(Matrix):
         """Gets the prefixlength for a row"""
         return self.end_net.prefixlen() - self.bits_in_matrix
 
-    def _new_write_subnets(self, net, nets):
+    def _write_subnets(self, net, nets):
         """Create a subnet structure
 
         :param net: IP instance of prefix to display
