@@ -289,3 +289,18 @@ def getLastSubnet(network, last_network_prefix_len=None):
         last_network_prefix_len = network.netmask().prefixlen()
     return IP(''.join([network.net().strNormal(), "/",
                        str(last_network_prefix_len)]))
+
+def get_next_subnet(net):
+    """Returns the next subnet of the same size as net"""
+    return IP(net.int() + net.len()).make_net(net.netmask())
+
+def create_subnet_range(net, prefixlen):
+    """Creates all subnets of the given size inside the net"""
+    assert prefixlen > net.prefixlen(), '{} <= than {}'.format(net, prefixlen)
+    subnet = IP("{}/{}" .format(net.net().strNormal(), prefixlen))
+    subnet_range = []
+    while net.overlaps(subnet):
+        subnet_range.append(subnet)
+        subnet = get_next_subnet(subnet)
+
+    return subnet_range

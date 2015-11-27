@@ -28,16 +28,23 @@ from nav.report.IPtools import getLastSubnet
 logger = logging.getLogger("nav.report.matrix")
 
 
+class Cell(object):
+    """Represents a table cell in subnet matrix"""
+    def __init__(self, **kwargs):
+        self.colspan = kwargs.get('colspan', 1)
+        self.rowspan = kwargs.get('rowspan', 1)
+        self.color = kwargs.get('color')
+        self.content = kwargs.get('content', '&nbsp;')
+
+
 class Matrix:
 
     Node = namedtuple(
         'Node',
         'net subnets'
     )
-    Cell = namedtuple(
-        'Cell',
-        'colspan color content'
-    )
+
+    Cell = Cell
 
     def __init__(self, start_net, end_net=None, bits_in_matrix=3):
         """This class is "abstract" and should not be instansiated directly.

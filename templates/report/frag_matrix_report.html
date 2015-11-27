@@ -48,6 +48,7 @@
       <tr>
         {% for cell in subnet %}
           <td colspan="{{ cell.colspan }}"
+              rowspan="{{ cell.rowspan }}"
               style="background: {{ cell.color }};"
               {% if cell.content != '&nbsp;' %}
               {% if forloop.counter != 1 and cell.colspan in hide_for %}
