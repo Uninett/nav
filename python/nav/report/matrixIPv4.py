@@ -22,7 +22,6 @@ from django.core.urlresolvers import reverse
 
 import nav.path
 from nav.report import IPtools, metaIP
-from nav.report.IPtools import netDiff
 from nav.report.matrix import Matrix, Cell
 from nav.report.colorconfig import ColorConfig
 
