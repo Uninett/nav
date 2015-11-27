@@ -30,19 +30,6 @@ configfile = os.path.join(nav.path.sysconfdir, "report/matrix.conf")
 
 import logging
 _logger = logging.getLogger(__name__)
-from datetime import datetime
-
-
-def timeit(func):
-    """A decorator for timing functions"""
-    def _runit(*args, **kwargs):
-        start = datetime.now()
-        result = func(*args, **kwargs)
-        interval = datetime.now() - start
-        _logger.debug('%s ran in %s', func.__name__, interval)
-        return result
-
-    return _runit
 
 
 class MatrixIPv4(Matrix):
