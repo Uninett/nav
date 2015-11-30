@@ -49,13 +49,24 @@
         {% for cell in subnet %}
           <td colspan="{{ cell.colspan }}"
               rowspan="{{ cell.rowspan }}"
-              style="background: {{ cell.color }};"
+
+              {% if cell.color %}
+              {% if '#' in cell.color %}
+              style="background-color: {{ cell.color }}"
+              class="add-border"
+              {% else %}
+              class="add-border {{ cell.color }}"
+              {% endif %}
+              {% endif %}
+              
+              
               {% if cell.content != '&nbsp;' %}
               {% if forloop.counter != 1 and cell.colspan in hide_for %}
               data-tooltip title='{{ cell.content }}'
               {% endif %}
               {% endif %}
-              {% if cell.color %}class="add-border"{% endif %}>
+              >  {# cell #}
+
             {% if forloop.counter == 1 or cell.colspan not in hide_for %}
               {{ cell.content|safe }}
             {% else %}

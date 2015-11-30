@@ -17,6 +17,15 @@
  *
  */
 
+$color_usage_high: #df421e;
+$color_usage_medium: #eed680;
+$color_usage_low: #efe0cd;
+$color_usage_vlow: #c5d2c8;
+
+$color_other: #e0c39e;
+$color_large: #ada7c8;
+
+
 #subnet-matrix {
     td:first-child, th:first-child {
         width: 10.4%;
@@ -36,6 +45,15 @@
         }
         th {
             text-align: left;
+        }
+        td {
+            transition: background-color 3s;
+            &.usage-high { background-color: $color_usage_high; }
+            &.usage-medium { background-color: $color_usage_medium; }
+            &.usage-low { background-color: $color_usage_low; }
+            &.usage-vlow { background-color: $color_usage_vlow; }
+            &.subnet-other { background-color: $color_other; }
+            &.subnet-large { background-color: $color_large; }
         }
     }
     &.ipv6 {

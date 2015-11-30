@@ -15,18 +15,13 @@
 #
 """This class serves as an interface for the prefix matrix."""
 
-import os
 import IPy
 
 from django.core.urlresolvers import reverse
 
-import nav.path
 from nav.report import IPtools, metaIP
 from nav.report.matrix import Matrix, Cell
-from nav.report.colorconfig import ColorConfig
 
-
-configfile = os.path.join(nav.path.sysconfdir, "report/matrix.conf")
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -43,7 +38,6 @@ class MatrixIPv4(Matrix):
         self.visible_column_headings = self.column_headings[::4]
         self.num_columns = len(self.column_headings)
         self.show_unused_addresses = show_unused_addresses
-        self.color_configuration = ColorConfig(configfile)
         self.heading_colspan = 4
 
     def build(self):
@@ -105,7 +99,7 @@ class MatrixIPv4(Matrix):
         return Cell(
             colspan=self._colspan(ip),
             rowspan=rowspan,
-            color=self._load_color(meta.usage_percent, meta.nettype),
+            color=_get_color(meta.usage_percent, meta.nettype),
             content=_matrixlink(key, ip, meta))
 
     @staticmethod
@@ -124,7 +118,7 @@ class MatrixIPv4(Matrix):
     def _create_too_small_subnets_cell(self):
         return Cell(
             colspan=self.num_columns,
-            color=self._load_color(0, 'large'),
+            color=_get_color(0, 'large'),
             content='Too many small nets')
 
     @staticmethod
@@ -203,20 +197,6 @@ class MatrixIPv4(Matrix):
         return subnet_matrix
 
 
-    def _load_color(self, percent, nettype):
-        if nettype == 'static' or nettype == 'scope' or nettype == 'reserved':
-            return self.color_configuration.extras.get('other')
-        elif nettype == 'large':
-            return self.color_configuration.extras.get('large')
-        else:
-            limits = self.color_configuration.limits.items()
-            limits.sort(
-                key=lambda x: x[0],
-                reverse=True)
-            for limit in limits:
-                if percent >= int(limit[0]):
-                    return limit[1]
-
     def _get_column_headers(self):
         netsize = self.end_net.len()
         factor = 32 - self.end_net.prefixlen()
@@ -262,3 +242,24 @@ def _netlink(ip, append_term_and_prefix=False):
         url = reverse('report-prefix-netaddr', kwargs={'netaddr': nip + '.%'})
         text = nip
     return '<a href="{0}">{1}</a>'.format(url, text)
+
+
+def _get_color(percent, nettype):
+    """Gets the css-class name added to the cell based on usage"""
+
+    # These mappings represent css-classes for different usage percents
+    color_mapping = {
+        80: 'usage-high',
+        50: 'usage-medium',
+        10: 'usage-low',
+        0: ' usage-vlow'
+    }
+
+    if nettype == 'static' or nettype == 'scope' or nettype == 'reserved':
+        return 'subnet_other'
+    elif nettype == 'large':
+        return 'subnet_large'
+    else:
+        for key, value in color_mapping.items():
+            if percent >= key:
+                return value

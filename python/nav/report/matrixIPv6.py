@@ -14,17 +14,11 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """This class serves as an interface for the prefix matrix."""
-import os
-import nav.path
 
 from django.core.urlresolvers import reverse
 
 from nav.report import IPtools, metaIP
 from nav.report.matrix import Matrix
-from nav.report.colorconfig import ColorConfig
-
-
-configfile = os.path.join(nav.path.sysconfdir, "report/matrix.conf")
 
 
 class MatrixIPv6(Matrix):
@@ -35,7 +29,6 @@ class MatrixIPv6(Matrix):
         self.column_headings = ["%X" % i for i in range(0, 16)]
         self.visible_column_headings = self.column_headings
         self.num_columns = len(self.column_headings)
-        self.color_configuration = ColorConfig(configfile)
 
     def build(self):
 
