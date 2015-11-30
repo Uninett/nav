@@ -79,6 +79,7 @@ class PrefixUsageSerializer(serializers.Serializer):
     usage = serializers.FloatField()
     active_addresses = serializers.IntegerField()
     max_addresses = serializers.IntegerField()
+    max_hosts = serializers.IntegerField()
 
 
 class ServiceHandlerSerializer(serializers.Serializer):

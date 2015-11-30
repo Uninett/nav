@@ -32,7 +32,8 @@ class UsageResult(object):
         self.prefix = prefix
         self.active_addresses = active_addresses
         self.max_addresses = self.prefix.len()
-        self.usage = self.active_addresses / float(self.max_addresses) * 100
+        self.max_hosts = self.max_addresses - 2
+        self.usage = self.active_addresses / float(self.max_hosts) * 100
         self.starttime = starttime
         self.endtime = endtime if self.starttime else None
 
