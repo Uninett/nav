@@ -1,3 +1,5 @@
+{% load date_and_time %}
+
 <div id="timeperiods_table_container" class="row">
 {% for type in alert_subscriptions %}
   <div class="column medium-6">
@@ -36,7 +38,7 @@
 
         <td>
           <a href="{% url alertprofiles-profile-timeperiod  a.time_period.id %}">
-            {{ a.time_period.start|time:'TIME_FORMAT_SHORT' }} - {{ a.time_period.end|time:'TIME_FORMAT_SHORT' }}
+            {{ a.time_period.start|short_time_format }} - {{ a.time_period.end|short_time_format }}
           </a>
         </td>
 
