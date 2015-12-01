@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block base_header_additional_head %}
+  <script>require(["src/subnetmatrix"]);</script>
   <link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/subnet_matrix.css" />
 {% endblock base_header_additional_head %}
 
