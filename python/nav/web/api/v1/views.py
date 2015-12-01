@@ -235,9 +235,9 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
         page = self.paginate_queryset(self.object_list)
 
         starttime, endtime = get_times(self.request)
-        prefixes = prefix_collector.fetch_usages(
-            [i for i in [IP(p.net_address) for p in page.object_list]
-             if i.len() >= MINIMUMPREFIXLENGTH],
+        prefixes = prefix_collector.fetch_usages([
+            p for p in page.object_list
+            if IP(p.net_address).len() >= MINIMUMPREFIXLENGTH],
             starttime, endtime)
 
         if page is not None:

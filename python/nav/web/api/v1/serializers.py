@@ -80,6 +80,7 @@ class PrefixUsageSerializer(serializers.Serializer):
     active_addresses = serializers.IntegerField()
     max_addresses = serializers.IntegerField()
     max_hosts = serializers.IntegerField()
+    url_machinetracker = serializers.CharField()
 
 
 class ServiceHandlerSerializer(serializers.Serializer):
