@@ -42,21 +42,32 @@ require([], function() {
 
             var $element = $table.find('[data-netaddr="' + result.prefix + '"]');
 
-            console.log(result);
             if (is_v4()) {
-                // Add correct class based on usage
-                $element.removeClass(getColorClasses).addClass(getClass(result));
-                if ($element.attr('colspan') <= 4) {
-                    // This is a small cell
-                    addToTitle($element.find('a'), result);
-                } else {
-                    // Add link and text for usage
-                    $element.append(createLink(result));
-                }
+                modifyV4Cell($element, result);
             } else {
-                $element.attr('style', 'background-color: ' + getIpv6Color(result));
+                modifyV6Cell($element, result);
             }
         }
+    }
+
+
+    function modifyV4Cell($element, result) {
+        // Add correct class based on usage
+        $element.removeClass(getColorClasses).addClass(getClass(result));
+        if ($element.attr('colspan') <= 4) {
+            // This is a small cell
+            addToTitle($element.find('a'), result);
+        } else {
+            // Add link and text for usage
+            $element.append(createLink(result));
+        }
+    }
+
+    function modifyV6Cell($element, result) {
+        $element.attr('style', 'background-color: ' + getIpv6Color(result));
+        var $link = $element.find('a');
+        var newTitle = 'Active IPs: ' + result.active_addresses + '. ' + $link.attr('title');
+        $link.attr('title', newTitle);
     }
 
 
