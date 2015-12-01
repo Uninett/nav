@@ -18,7 +18,10 @@
 from django.core.urlresolvers import reverse
 
 from nav.report import IPtools, metaIP
-from nav.report.matrix import Matrix
+from nav.report.matrix import Matrix, Cell
+
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class MatrixIPv6(Matrix):
@@ -35,11 +38,11 @@ class MatrixIPv6(Matrix):
         nets = IPtools.sort_nets_by_address(self.tree_nets.keys())
 
         self.nodes = [
-            self.Node(net, self._write_subnets(self.tree_nets[net], 1))
+            self.Node(net, self._write_subnets(self.tree_nets[net]))
             for net in nets
         ]
 
-    def _write_subnets(self, net, depth):
+    def _write_subnets(self, net):
 
         nodes = IPtools.sort_nets_by_address(net.keys())
         lastnet = None
@@ -55,14 +58,7 @@ class MatrixIPv6(Matrix):
 
                 lastnet = subnet
 
-                matrix_row = [
-                    self.Cell(
-                        colspan=1,
-                        color=None,
-                        content='{0}{1}'.format(
-                            Matrix.print_depth(depth),
-                            _netlink(subnet)))
-                ]
+                matrix_row = [Cell(content=_netlink(subnet))]
 
                 host_nybbles_map = IPtools.getLastbitsIpMap(
                     self.matrix_nets[subnet].keys())
@@ -75,51 +71,37 @@ class MatrixIPv6(Matrix):
                     if key in host_nybbles_map:
                         meta = metaIP.MetaIP(host_nybbles_map[key])
                         ip = host_nybbles_map[key]
-                        matrix_cell = self.Cell(
+
+                        matrix_cell = Cell(
+                            prefixid=meta.prefixid,
                             colspan=self._colspan(ip),
-                            color=meta.ipv6_color,
                             netaddr=ip,
                             content=_matrixlink(key, ip))
                         next_header_idx = self.column_headings.index(
                             i) + int(self._colspan(ip))
                     else:
-                        matrix_cell = self.Cell(
-                            colspan=1,
-                            color=None,
-                            content='&nbsp;')
+                        matrix_cell = Cell(is_empty=True)
                     matrix_row.append(matrix_cell)
                 subnet_matrix.append(matrix_row)
             else:
+                _logger.debug('%s is NOT in matrix nets', subnet)
+
                 subnet_matrix.append(None)
                 lastnet = subnet
+                meta = metaIP.MetaIP(subnet)
                 matrix_row = [
-                    self.Cell(
-                        colspan=1,
-                        color=None,
-                        content='{0}{1}'.format(
-                            Matrix.print_depth(depth),
-                            _netlink(subnet, True))),
-                    self.Cell(
-                        colspan=self.num_columns,
-                        color=None,
-                        content='&nbsp;')
+                    Cell(prefixid=meta.prefixid,
+                         content=_netlink(subnet, True)),
+                    Cell(colspan=self.num_columns)
                 ]
                 subnet_matrix.append(matrix_row)
                 subnet_matrix.extend(
-                    self._write_subnets(net[subnet], depth + 1))
+                    self._write_subnets(net[subnet]))
         return subnet_matrix
 
 
 def _matrixlink(nybble, ip):
-    meta = metaIP.MetaIP(ip)
-    url = reverse(
-        'report-prefix-prefix',
-        kwargs={'prefix_id': meta.prefixid})
-    return '<a href="{0}" title="active IPs: {1}">{2}::/{3}</a>'.format(
-        url,
-        meta.active_ip_cnt,
-        nybble,
-        ip.prefixlen())
+    return '{}::/{}'.format(nybble, ip.prefixlen())
 
 
 def _netlink(ip, append_term_and_prefix=False):
