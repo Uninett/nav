@@ -59,12 +59,13 @@
               {% endif %}
               {% endif %}
               
-              
               {% if cell.content != '&nbsp;' %}
               {% if forloop.counter != 1 and cell.colspan in hide_for %}
-              data-tooltip title='{{ cell.content }}'
+              title='{{ cell.content }}'
               {% endif %}
               {% endif %}
+
+              {% if cell.netaddr %}data-netaddr="{{ cell.netaddr }}"{% endif %}
               >  {# cell #}
 
             {% if forloop.counter == 1 or cell.colspan not in hide_for %}

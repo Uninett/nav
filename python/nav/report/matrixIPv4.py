@@ -100,7 +100,7 @@ class MatrixIPv4(Matrix):
             colspan=self._colspan(ip),
             rowspan=rowspan,
             color=_get_color(meta.usage_percent, meta.nettype),
-            content=_matrixlink(key, ip, meta))
+            content=_matrixlink(key, ip, meta), netaddr=ip)
 
     @staticmethod
     def _create_index_cell(subnet, link=True):

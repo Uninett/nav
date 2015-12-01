@@ -35,6 +35,7 @@ class Cell(object):
         self.rowspan = kwargs.get('rowspan', 1)
         self.color = kwargs.get('color')
         self.content = kwargs.get('content', '&nbsp;')
+        self.netaddr = kwargs.get('netaddr')
 
 
 class Matrix:

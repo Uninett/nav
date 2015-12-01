@@ -78,6 +78,7 @@ class MatrixIPv6(Matrix):
                         matrix_cell = self.Cell(
                             colspan=self._colspan(ip),
                             color=meta.ipv6_color,
+                            netaddr=ip,
                             content=_matrixlink(key, ip))
                         next_header_idx = self.column_headings.index(
                             i) + int(self._colspan(ip))
