@@ -44,7 +44,7 @@ require([], function() {
 
             if ($element.attr('colspan') <= 4) {
                 // This is a small cell
-                addToTitle($element.closest('td'), result);
+                addToTitle($element.find('a'), result);
             } else {
                 // Add link and text for usage
                 $element.append(createLink(result));
@@ -87,7 +87,7 @@ require([], function() {
     function createLink(data) {
         return $('<a>')
             .attr('href', data.url_machinetracker)
-            .attr('title', addresString(data))
+            .attr('title', addresString(data) + 'Click to see addresses in Machine Tracker.')
             .html(usageString(data));
     }
 
@@ -96,8 +96,7 @@ require([], function() {
      * String used for listing active vs max addresses
      */
     function addresString(data) {
-        return 'Usage: ' + data.active_addresses + ' of max ' + data.max_hosts + ' addresses. ' +
-            'Click to see addresses in Machine Tracker.';
+        return 'Usage: ' + data.active_addresses + ' of max ' + data.max_hosts + ' addresses. ';
     }
     
 
@@ -110,7 +109,10 @@ require([], function() {
 
 
     function addToTitle($element, data) {
-        $element.attr('title', $element.attr('title') + ' ' + usageString(data));
+        var toAdd = $element.attr('title') + ' - ' + addresString(data) +
+                'Click to see the report for this prefix.';
+        
+        $element.attr('title', toAdd);
     }
 
 

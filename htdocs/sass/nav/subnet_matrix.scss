@@ -43,6 +43,10 @@ $color_large: #ada7c8;
                 color: hsl(200, 100, 25);
                 &:hover { text-decoration: underline; }
             }
+            .fill-cell {
+                display: block;
+                width: 100%;
+            }
         }
     }
     &.ipv4 {

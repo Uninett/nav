@@ -64,12 +64,15 @@
                   rowspan="{{ cell.rowspan }}"
                   {% if not cell.is_empty %} class="has-data" {% endif %}
                   {% if cell.netaddr %}data-netaddr="{{ cell.netaddr }}"{% endif %}
+                  >  {# cell #}
 
                   {# Cells that are too small to have text #}
                   {% if cell.colspan in hide_for %}
-                  title='{{ cell.content }}'
+                    <a href="{% url 'report-prefix-prefix' cell.prefixid %}"
+                       class="fill-cell" title="{{ cell.netaddr }}">
+                      &nbsp;
+                    </a>
                   {% endif %}
-                  >  {# cell #}
 
                   {% if cell.colspan not in hide_for %}
                     <a href="{% url 'report-prefix-prefix' cell.prefixid %}"
