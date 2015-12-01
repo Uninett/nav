@@ -31,10 +31,12 @@ logger = logging.getLogger("nav.report.matrix")
 class Cell(object):
     """Represents a table cell in subnet matrix"""
     def __init__(self, **kwargs):
+        self.prefixid = kwargs.get('prefixid', '')
         self.colspan = kwargs.get('colspan', 1)
         self.rowspan = kwargs.get('rowspan', 1)
         self.color = kwargs.get('color')
         self.content = kwargs.get('content', '&nbsp;')
+        self.is_empty = kwargs.get('is_empty', False)
         self.netaddr = kwargs.get('netaddr')
 
 

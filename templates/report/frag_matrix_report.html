@@ -47,33 +47,41 @@
     {% for subnet in node.subnets %}
       <tr>
         {% for cell in subnet %}
-          <td colspan="{{ cell.colspan }}"
-              rowspan="{{ cell.rowspan }}"
 
-              {% if cell.color %}
-              {% if '#' in cell.color %}
-              style="background-color: {{ cell.color }}"
-              class="add-border"
-              {% else %}
-              class="add-border {{ cell.color }}"
-              {% endif %}
-              {% endif %}
-              
-              {% if cell.content != '&nbsp;' %}
-              {% if forloop.counter != 1 and cell.colspan in hide_for %}
-              title='{{ cell.content }}'
-              {% endif %}
-              {% endif %}
+          {% if cell.is_empty %}
+            <td>&nbsp;</td>
+          {% else %}
 
-              {% if cell.netaddr %}data-netaddr="{{ cell.netaddr }}"{% endif %}
-              >  {# cell #}
+            {% if forloop.counter == 1 %}
+              {# First cell contains only the net address #}
+              <td>
+                {{ cell.content|safe }}
+              </td>
 
-            {% if forloop.counter == 1 or cell.colspan not in hide_for %}
-              {{ cell.content|safe }}
             {% else %}
-              &nbsp;
+
+              <td colspan="{{ cell.colspan }}"
+                  rowspan="{{ cell.rowspan }}"
+                  {% if not cell.is_empty %} class="has-data" {% endif %}
+                  {% if cell.netaddr %}data-netaddr="{{ cell.netaddr }}"{% endif %}
+
+                  {# Cells that are too small to have text #}
+                  {% if cell.colspan in hide_for %}
+                  title='{{ cell.content }}'
+                  {% endif %}
+                  >  {# cell #}
+
+                  {% if cell.colspan not in hide_for %}
+                    <a href="{% url 'report-prefix-prefix' cell.prefixid %}"
+                       title="Go to the report for this prefix">
+                      {{ cell.content }}
+                    </a>
+                  {% endif %}
+              </td>
+
             {% endif %}
-          </td>
+          {% endif %}
+
         {% empty %}
           <td class="blank" colspan="{{ matrix.num_columns|add:"1" }}"></td>
         {% endfor %}

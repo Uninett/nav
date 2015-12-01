@@ -64,10 +64,7 @@ class MatrixIPv4(Matrix):
                 next_header_idx = (self.column_headings.index(i)
                                    + int(self._colspan(ip)))
             else:
-                matrix_cell = Cell(
-                    colspan=1,
-                    color=None,
-                    content='&nbsp;')
+                matrix_cell = Cell(is_empty=True)
             cells.append(matrix_cell)
 
         return cells
@@ -97,10 +94,12 @@ class MatrixIPv4(Matrix):
     def create_cell(self, ip, meta, rowspan=1, key=0):
         """Creates a table cell based on ip"""
         return Cell(
+            prefixid=meta.prefixid,
             colspan=self._colspan(ip),
             rowspan=rowspan,
             color=_get_color(meta.usage_percent, meta.nettype),
-            content=_matrixlink(key, ip, meta), netaddr=ip)
+            content=_get_content(key, ip),
+            netaddr=ip)
 
     @staticmethod
     def _create_index_cell(subnet, link=True):
@@ -115,7 +114,7 @@ class MatrixIPv4(Matrix):
         else:
             return Cell(content=metaIP.MetaIP(subnet).getTreeNet())
 
-    def _create_too_small_subnets_cell(self):
+    def _create_to_small_subnets_cell(self):
         return Cell(
             colspan=self.num_columns,
             color=_get_color(0, 'large'),
@@ -123,7 +122,7 @@ class MatrixIPv4(Matrix):
 
     @staticmethod
     def _create_empty_cell():
-        return Cell(colspan=80, color=None, content='&nbsp;')
+        return Cell(colspan=80, color=None, is_empty=True)
 
     def _get_row_size(self):
         """Gets the prefixlength for a row"""
@@ -158,7 +157,7 @@ class MatrixIPv4(Matrix):
             if subnet in self.matrix_nets:
                 # We have data for this subnet, create cells for that data
                 if self.has_too_small_nets(subnet):
-                    matrix_row.append(self._create_too_small_subnets_cell())
+                    matrix_row.append(self._create_to_small_subnets_cell())
 
                 elif self.matrix_nets[subnet]:
                     # this subnet is divided into parts
@@ -211,24 +210,8 @@ class MatrixIPv4(Matrix):
                                        self.bits_in_matrix)
 
 
-def _matrixlink(nybble, ip, meta):
-    report_url = reverse(
-        'report-prefix-prefix',
-        kwargs={'prefix_id': meta.prefixid})
-    machinetracker_url = reverse(
-        'machinetracker-prefixid_search_active',
-        kwargs={'prefix_id': meta.prefixid})
-
-    netlink = '<a href="{0}">.{1}/{2}</a>'.format(report_url, nybble,
-                                                  ip.prefixlen())
-    if meta.skip_count:
-        usagelink = ''
-    else:
-        usagelink = '<a href="{0}" title="{1}/{2}">({3}%)</a>'.format(
-            machinetracker_url, meta.active_ip_cnt, meta.max_ip_cnt,
-            meta.usage_percent)
-
-    return "{} {}".format(netlink, usagelink)
+def _get_content(nybble, ip):
+    return ".{}/{}".format(nybble, ip.prefixlen())
 
 
 def _netlink(ip, append_term_and_prefix=False):
@@ -252,7 +235,7 @@ def _get_color(percent, nettype):
         80: 'usage-high',
         50: 'usage-medium',
         10: 'usage-low',
-        0: ' usage-vlow'
+        0: 'usage-vlow'
     }
 
     if nettype == 'static' or nettype == 'scope' or nettype == 'reserved':

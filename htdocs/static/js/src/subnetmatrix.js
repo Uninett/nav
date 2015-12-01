@@ -28,22 +28,27 @@ require([], function() {
      * Handles the responsedata
      */
     function handleData(data) {
-        // if (data.next) {
-        // fetchUsage(data.next);
-        // }
+        if (data.next) {
+            fetchUsage(data.next);
+        }
 
         var $table = $('#subnet-matrix');
 
         // For each result, modify the cell based on the result data
         for (var i = 0, l = data.results.length; i < l; i++) {
             var result = data.results[i];
-            console.log(result);
 
             var $element = $table.find('[data-netaddr="' + result.prefix + '"]');
             // Add correct class based on usage
             $element.removeClass(getColorClasses).addClass(getClass(result.usage));
-            // Add link and text for usage
-            $element.append(createLink(result));
+
+            if ($element.attr('colspan') <= 4) {
+                // This is a small cell
+                addToTitle($element.closest('td'), result);
+            } else {
+                // Add link and text for usage
+                $element.append(createLink(result));
+            }
         }
     }
 
@@ -104,7 +109,7 @@ require([], function() {
 
 
     function addToTitle($element, data) {
-        $element.attr('title', $element.attr('title') + ' ' + usageString());
+        $element.attr('title', $element.attr('title') + ' ' + usageString(data));
     }
 
 
