@@ -48,7 +48,6 @@ from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 from nav.models import manage
 from nav.ipdevpoll import Plugin, db
 from nav.ipdevpoll import storage, shadows
-from nav.ipdevpoll.db import autocommit
 
 INCOMPLETE_MAC = '00:00:00:00:00:00'
 
@@ -161,7 +160,6 @@ class Arp(Plugin):
         return df
 
     @classmethod
-    @autocommit
     def _load_prefixes_synchronously(cls):
         return list(manage.Prefix.objects.all().values('id', 'net_address'))
 

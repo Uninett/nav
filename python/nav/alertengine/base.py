@@ -121,7 +121,7 @@ def check_alerts(debug=False):
 
 
 
-@transaction.commit_on_success
+@transaction.atomic()
 def handle_new_alerts(new_alerts):
     """Handles new alerts on the queue"""
     memoized_check_alert = memoize(check_alert_against_filtergroupcontents, {},

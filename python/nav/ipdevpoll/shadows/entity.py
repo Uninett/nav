@@ -21,11 +21,11 @@ from datetime import datetime
 from nav.toposort import build_graph, topological_sort
 
 from nav.ipdevpoll.storage import Shadow, DefaultManager
-from nav.ipdevpoll import db
 from nav.models import manage
 from nav.event2 import EventFactory
 from .netbox import Netbox
 
+from django.db import transaction
 import networkx as nx
 from networkx.algorithms.traversal.depth_first_search import dfs_tree as subtree
 
@@ -42,7 +42,7 @@ class EntityManager(DefaultManager):
         self.missing = set()
         self.existing = set()
 
-    @db.commit_on_success
+    @transaction.atomic()
     def save(self):
         """Override parent only to add transaction handling"""
         super(EntityManager, self).save()
@@ -117,7 +117,7 @@ class EntityManager(DefaultManager):
 
         return graph
 
-    @db.commit_on_success
+    @transaction.atomic()
     def _verify_stack_degradation(self, missing):
         chassis_count = sum(e.physical_class == e.CLASS_CHASSIS
                             for e in self.existing)

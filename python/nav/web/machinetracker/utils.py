@@ -22,10 +22,9 @@ from collections import namedtuple
 
 from nav import asyncdns
 from nav.models.manage import Prefix, Netbox, Interface
-from nav.ipdevpoll.db import commit_on_success
 
 from django.utils.datastructures import SortedDict
-from django.db import DatabaseError
+from django.db import DatabaseError, transaction
 
 _cached_hostname = {}
 
@@ -51,8 +50,7 @@ def hostname(ip):
     _cached_hostname[addr] = dns[0]
     return dns[0]
 
-
-@commit_on_success
+@transaction.atomic()
 def get_prefix_info(addr):
     """Returns the smallest prefix from the NAVdb that an IP address fits into.
 

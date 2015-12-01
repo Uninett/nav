@@ -22,7 +22,7 @@ from nav.models import manage
 from nav.mibs.lldp_mib import LLDPMib
 from nav.ipdevpoll import Plugin, shadows
 from nav.ipdevpoll.neighbor import LLDPNeighbor, filter_duplicate_neighbors
-from nav.ipdevpoll.db import autocommit, run_in_thread
+from nav.ipdevpoll.db import run_in_thread
 from nav.ipdevpoll.timestamps import TimestampChecker
 
 INFO_VAR_NAME = 'lldp'
@@ -48,7 +48,6 @@ class LLDP(Plugin):
         defer.returnValue(has_ifcs and daddy_says_ok)
 
     @classmethod
-    @autocommit
     def _has_interfaces(cls, netbox):
         return manage.Interface.objects.filter(
             netbox__id=netbox.id).count() > 0
@@ -81,7 +80,6 @@ class LLDP(Plugin):
 
         defer.returnValue(stampcheck)
 
-    @autocommit
     def _process_remote(self):
         """Tries to synchronously identify LLDP entries in NAV's database"""
         neighbors = [LLDPNeighbor(lldp) for lldp in self.remote]

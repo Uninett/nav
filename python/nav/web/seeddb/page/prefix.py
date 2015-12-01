@@ -112,7 +112,7 @@ def prefix_bulk(request):
         extra_context=info.template_context)
 
 
-@transaction.commit_on_success
+@transaction.atomic()
 def prefix_edit(request, prefix_id=None):
     """Controller for editing a prefix"""
     info = PrefixInfo()

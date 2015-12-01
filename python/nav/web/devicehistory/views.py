@@ -22,7 +22,7 @@ from django.db import connection, transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.db.transaction import commit_on_success
+from django.db import transaction
 
 from nav.models.fields import INFINITY
 from nav.models.manage import Netbox, Module
@@ -253,7 +253,7 @@ def delete_module(request):
     )
 
 
-@commit_on_success
+@transaction.atomic()
 def do_delete_module(request):
     """Executes an actual database deletion after deletion was confirmed by
     the delete_module() view.

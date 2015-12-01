@@ -37,7 +37,7 @@ from collections import defaultdict
 from nav.models import manage
 from nav import ipdevpoll
 from . import storage
-from nav.ipdevpoll.db import autocommit, django_debug_cleanup, run_in_thread
+from nav.ipdevpoll.db import django_debug_cleanup, run_in_thread
 import django.db
 
 class NetboxLoader(dict):
@@ -57,7 +57,6 @@ class NetboxLoader(dict):
         # pylint: disable=W0104
         self._logger
 
-    @autocommit
     def load_all_s(self):
         """Synchronously load netboxes from database.
 

@@ -30,7 +30,7 @@ from nav.models.thresholds import ThresholdRule
 from nav.models.event import EventQueue as Event, AlertHistory
 from nav.metrics.lookup import lookup
 
-from django.db.transaction import commit_on_success
+from django.db import transaction
 
 LOGFILE_NAME = 'thresholdmon.log'
 LOGFILE_PATH = os.path.join(buildconf.localstatedir, 'log', LOGFILE_NAME)
@@ -169,7 +169,7 @@ def end_event(rule, metric, value):
     return event
 
 
-@commit_on_success
+@transaction.atomic()
 def make_event(start, rule, metric, value):
     """Makes and posts a threshold event"""
     event = _event_template()

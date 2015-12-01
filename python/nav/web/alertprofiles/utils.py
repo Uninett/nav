@@ -76,7 +76,7 @@ def resolve_account_admin_and_owner(request):
 
     return (account, admin, owner)
 
-@transaction.commit_on_success
+@transaction.atomic()
 def order_filter_group_content(filter_group):
     """Filter group content is ordered by priority where each filters priority
     is the previous filters priority incremented by one, starting at 1. Here we

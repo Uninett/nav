@@ -36,7 +36,6 @@ from nav.mibs.lldp_mib import IdSubtypes
 
 from nav.ipdevpoll.log import ContextLogger
 from nav.ipdevpoll import shadows
-from nav.ipdevpoll.db import autocommit
 from nav.ipdevpoll.utils import is_invalid_utf8
 
 HSRP_MAC_PREFIXES = ('00:00:0c:07:ac',)
@@ -45,7 +44,6 @@ IGNORED_MAC_PREFIXES = HSRP_MAC_PREFIXES + VRRP_MAC_PREFIXES
 
 @synchronized(threading.Lock())
 @cachedfor(timedelta(minutes=5))
-@autocommit
 def get_netbox_macs():
     """Returns a dict of (mac, netboxid) mappings of NAV-monitored devices.
 
@@ -71,7 +69,6 @@ def _mac_is_ignored(mac):
 
 @synchronized(threading.Lock())
 @cachedfor(timedelta(minutes=10))
-@autocommit
 def get_netbox_catids():
     """Returns a dict of {netboxid: catid} pairs of NAV-monitored devices"""
     return _get_netbox_catids()

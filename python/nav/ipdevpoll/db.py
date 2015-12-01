@@ -18,20 +18,15 @@
 import gc
 from pprint import pformat
 from twisted.internet import threads
-# django already has a workaround for "no functools on py2.4"
-from django.utils.functional import wraps
+from functools import wraps
 
 import django.db
 from django.db import transaction
-# Temporary solution to get stuff working again
-# More information:
-# https://docs.djangoproject.com/en/1.7/topics/db/transactions/
-commit_on_success = transaction.atomic
-autocommit = transaction.non_atomic_requests
 from psycopg2 import InterfaceError
 
 import logging
 _logger = logging.getLogger(__name__)
+
 
 def django_debug_cleanup():
     """Resets Django's list of logged queries.
@@ -55,80 +50,13 @@ def django_debug_cleanup():
         django.db.reset_queries()
         gc.collect()
 
+
 def sum_django_queries_runtime():
     """Sums the runtime of all queries logged by django.db.connection.queries"""
     runtimes = (float(query['time'])
                 for query in django.db.connection.queries)
     return sum(runtimes)
 
-
-def __commit_on_success(func):
-    """Decorates func such that the current Django transaction is committed on
-    successful return.
-
-    If func raises an exception, the current transaction is rolled back.
-
-    Why don't we use django.db.transaction.commit_on_success()? Because it does
-    not commit or rollback unless Django actually tried to change something in
-    the database. It was designed with short-lived web request cycles in mind.
-    This gives us two problems:
-
-    1. If the transaction consisted of read-only operations, the connection
-       will stay idle inside a transaction, and that's bad.
-
-    2. If a database error occurred inside a transaction, the connection would
-       be useless until the transaction is rolled back.  Any further attempts
-       to use the same connection will result in more errors, and a long-lived
-       process will keep spewing error messages.
-
-    """
-    def entering(using):
-        transaction.enter_transaction_management(using=using)
-        transaction.managed(True, using=using)
-
-    def exiting(exc_value, using):
-        try:
-            if exc_value is not None:
-                transaction.rollback(using=using)
-            else:
-                try:
-                    transaction.commit(using=using)
-                except:
-                    transaction.rollback(using=using)
-                    raise
-        finally:
-            transaction.leave_transaction_management(using=using)
-
-    return transaction.Transaction(entering, exiting,
-                                   transaction.DEFAULT_DB_ALIAS)(func)
-
-
-def __autocommit(func):
-    """
-    Decorates func such that Django transactions are managed to autocommitt.
-
-    Django's autocommit decorator begins and commits a transaction on every
-    statement, but will not properly rollback such a failed transaction unless
-    it marked as dirty (something tried to modify the database).  This is
-    because Django is optimized for a web request cycle and throws away the
-    connection at the end of each request.
-
-    """
-    def _autocommit(*args, **kw):
-        try:
-            transaction.enter_transaction_management()
-            transaction.managed(False)
-            try:
-                result = func(*args, **kw)
-            except:
-                transaction.rollback_unless_managed()
-                raise
-            else:
-                transaction.commit_unless_managed()
-                return result
-        finally:
-            transaction.leave_transaction_management()
-    return wraps(func)(_autocommit)
 
 def cleanup_django_debug_after(func):
     """Decorates func such that django_debug_cleanup is run after func.
@@ -180,7 +108,7 @@ def synchronous_db_access(func):
     return wraps(func)(_thread_it)
 
 
-@commit_on_success
+@transaction.atomic()
 def purge_old_job_log_entries():
     """
     Purges old job log entries from the ipdevpoll_job_log db table

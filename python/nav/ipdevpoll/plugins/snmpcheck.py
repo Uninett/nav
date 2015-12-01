@@ -21,11 +21,12 @@ from twisted.internet import error, defer
 from twisted.internet.defer import returnValue
 
 from nav.event2 import EventFactory
-from nav.ipdevpoll.db import commit_on_success
 from nav.models.event import AlertHistory
 from nav.ipdevpoll import Plugin, shadows, db
 from nav.ipdevpoll.snmp import AgentProxy
 from nav.ipdevpoll.jobs import SuggestedReschedule
+
+from django.db import transaction
 
 SYSTEM_OID = '.1.3.6.1.2.1.1'
 EVENT = EventFactory('ipdevpoll', 'eventEngine',
@@ -127,11 +128,11 @@ class SnmpCheck(Plugin):
             self.down_set.remove(self.netbox.id)
             yield db.run_in_thread(self._dispatch_up_event)
 
-    @commit_on_success
+    @transaction.atomic()
     def _dispatch_down_event(self):
         EVENT.start(None, self.netbox.id).save()
 
-    @commit_on_success
+    @transaction.atomic()
     def _dispatch_up_event(self):
         EVENT.end(None, self.netbox.id).save()
 
@@ -142,7 +143,7 @@ class SnmpCheck(Plugin):
             netbox.snmp_version = version
 
 
-@commit_on_success
+@transaction.atomic()
 def get_snmp_agent_down_set():
     """Returns a set of netbox ids where the SNMP agent is known to be down"""
     infinity = datetime.datetime.max

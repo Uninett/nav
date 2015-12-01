@@ -110,7 +110,7 @@ def dependencies(queryset, whitelist):
 
     return related_objects
 
-@transaction.commit_on_success
+@transaction.atomic()
 def qs_delete(queryset):
     """Deletes objects from the database.
 
