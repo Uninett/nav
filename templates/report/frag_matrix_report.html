@@ -72,9 +72,7 @@
                        class="fill-cell" title="{{ cell.netaddr }}">
                       &nbsp;
                     </a>
-                  {% endif %}
-
-                  {% if cell.colspan not in hide_for %}
+                  {% else %}
                     <a href="{% url 'report-prefix-prefix' cell.prefixid %}"
                        title="Go to the report for {{ cell.netaddr }}">
                       {{ cell.content }}
