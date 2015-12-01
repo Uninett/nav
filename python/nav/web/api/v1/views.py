@@ -211,15 +211,43 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
         return super(PrefixUsageList, self).get(request, *args, **kwargs)
 
     def get_queryset(self):
-        """Override to provide custom queryset"""
-        prefixes = []
-        starttime, endtime = get_times(self.request)
-        for prefix in manage.Prefix.objects.all():
-            tmp_prefix = IP(prefix.net_address)
-            if tmp_prefix.len() >= MINIMUMPREFIXLENGTH:
-                prefixes.append(tmp_prefix)
+        """Filter for ip family"""
+        if 'family' in self.request.GET:
+            queryset = manage.Prefix.objects.extra(
+                where=['family(netaddr)=%s'],
+                params=[self.request.GET.get('family')])
+        else:
+            queryset = manage.Prefix.objects.all()
 
-        return prefix_collector.fetch_usages(prefixes, starttime, endtime)
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        """Delivers a list of usage objects as a response
+
+        The queryset contains prefixes, but we use a custom object for
+        representing the usage statistics for the prefix. Thus we need to
+        convert the filtered prefixes to the custom object format.
+
+        Also we need to run the prefix collector after paging to avoid
+        unnecessary usage calculations
+        """
+        self.object_list = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(self.object_list)
+
+        starttime, endtime = get_times(self.request)
+        prefixes = prefix_collector.fetch_usages(
+            [i for i in [IP(p.net_address) for p in page.object_list]
+             if i.len() >= MINIMUMPREFIXLENGTH],
+            starttime, endtime)
+
+        if page is not None:
+            page.object_list = prefixes
+            serializer = self.get_pagination_serializer(page)
+        else:
+            serializer = self.get_serializer(prefixes, many=True)
+
+        return Response(serializer.data)
+
 
 
 class PrefixUsageDetail(NAVAPIMixin, APIView):
