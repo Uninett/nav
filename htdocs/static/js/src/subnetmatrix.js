@@ -96,7 +96,8 @@ require([], function() {
      * String used for listing active vs max addresses
      */
     function addresString(data) {
-        return data.active_addresses + '/' + data.max_hosts;
+        return 'Usage: ' + data.active_addresses + '/' + data.max_hosts + ' addresses. ' +
+            'Click to see addresses in Machine Tracker.';
     }
     
 
