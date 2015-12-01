@@ -27,6 +27,7 @@ class MetaIP:
     # Class variables for caching
     IPv4MetaMap = None
     IPv6MetaMap = None
+    MetaMap = None
 
     def __init__(self, ip, skip_count=True):
         self.netaddr = ip
@@ -38,14 +39,9 @@ class MetaIP:
         self.ipv6_color = None
         self.skip_count = skip_count
 
-        if ip.version() == 4:
-            if MetaIP.IPv4MetaMap == None:
-                MetaIP.IPv4MetaMap = self._createIpv4MetaMap()
-            self._setupIpv4()
-        else:
-            if MetaIP.IPv6MetaMap == None:
-                MetaIP.IPv6MetaMap = self._createIpv6MetaMap()
-            self._setupIpv6()
+        if MetaIP.MetaMap == None:
+            MetaIP.MetaMap = self._createMetaMap(ip.version())
+        self._setup()
 
     @classmethod
     def invalidateCache(cls):
@@ -92,6 +88,24 @@ class MetaIP:
             netaddr = netaddr[:netaddr.rfind(':')+1] + last_hexlet
 
         return netaddr
+
+    @staticmethod
+    def _createMetaMap(family):
+        sql = """SELECT prefixid, nettype, netaddr
+                 FROM prefix LEFT JOIN vlan USING (vlanid)
+                 WHERE family(netaddr) = %s""" % family
+        cursor = db.getConnection('default', 'manage').cursor()
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        result = {}
+        for row in rows:
+            result[IP(row[2])] = {
+                "prefixid": row[0],
+                "nettype": row[1],
+            }
+
+        return result
+
 
     @classmethod
     def _createIpv6MetaMap(cls):
@@ -159,6 +173,12 @@ class MetaIP:
             int(255 *
                 self.double_log(active_ip_cnt) / self.double_log(2**64)) - 1)
         return "#ff%02x%02x" % (new_color, new_color)
+
+    def _setup(self):
+        if self.netaddr in MetaIP.MetaMap:
+            metainfo = MetaIP.MetaMap[self.netaddr]
+            self.prefixid = metainfo["prefixid"]
+            self.nettype = metainfo["nettype"]
 
     def _setupIpv6(self):
         if self.netaddr in MetaIP.IPv6MetaMap:

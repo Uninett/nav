@@ -34,7 +34,6 @@ class Cell(object):
         self.prefixid = kwargs.get('prefixid', '')
         self.colspan = kwargs.get('colspan', 1)
         self.rowspan = kwargs.get('rowspan', 1)
-        self.color = kwargs.get('color')
         self.content = kwargs.get('content', '&nbsp;')
         self.is_empty = kwargs.get('is_empty', False)
         self.netaddr = kwargs.get('netaddr')
@@ -46,8 +45,6 @@ class Matrix:
         'Node',
         'net subnets'
     )
-
-    Cell = Cell
 
     def __init__(self, start_net, end_net=None, bits_in_matrix=3):
         """This class is "abstract" and should not be instansiated directly.

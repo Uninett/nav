@@ -1,5 +1,7 @@
 require([], function() {
 
+    var tableSelector = '#subnet-matrix';
+    var family = 4;
     var color_mapping = {
         80: 'usage-high',
         50: 'usage-medium',
@@ -12,13 +14,13 @@ require([], function() {
      * Fetch the usages for all elements
      */
     function fetchUsage(nextUrl) {
-        var url = nextUrl || getUrl(4);
+        var url = nextUrl || getUrl();
         var request = $.getJSON(url);
         request.done(handleData);
     }
 
 
-    function getUrl(family) {
+    function getUrl() {
         var page_size = 10;  // Results per query
         return NAV.urls.api_prefix_usage_list + '?family=' + family + '&page_size=' + page_size;
     }
@@ -39,15 +41,20 @@ require([], function() {
             var result = data.results[i];
 
             var $element = $table.find('[data-netaddr="' + result.prefix + '"]');
-            // Add correct class based on usage
-            $element.removeClass(getColorClasses).addClass(getClass(result.usage));
 
-            if ($element.attr('colspan') <= 4) {
-                // This is a small cell
-                addToTitle($element.find('a'), result);
+            console.log(result);
+            if (is_v4()) {
+                // Add correct class based on usage
+                $element.removeClass(getColorClasses).addClass(getClass(result));
+                if ($element.attr('colspan') <= 4) {
+                    // This is a small cell
+                    addToTitle($element.find('a'), result);
+                } else {
+                    // Add link and text for usage
+                    $element.append(createLink(result));
+                }
             } else {
-                // Add link and text for usage
-                $element.append(createLink(result));
+                $element.attr('style', 'background-color: ' + getIpv6Color(result));
             }
         }
     }
@@ -66,18 +73,17 @@ require([], function() {
     /**
      * Returns correct css-class based on usage
      */
-    function getClass(usage) {
+    function getClass(result) {
         var values = Object.keys(color_mapping).map(Number).sort();
         values.reverse();
         for (var i = 0; i < values.length; i++) {
             var value = values[i];
-            if (usage >= value) {
+            if (result.usage >= value) {
                 return color_mapping[value];
             }
         }
 
         return 'subnet-other';
-        
     }
 
 
@@ -116,8 +122,31 @@ require([], function() {
     }
 
 
+    function is_v4() {return family === 4;}
+    function is_v6() {return family === 6;}
+
+
+    function doubleLog(count) {
+        return Math.log(Math.log(count + 1) + 1);
+    }
+    
+
+    /**
+     * Returns a color based on active addresses using a mysterious formula
+     */
+    function getIpv6Color(result) {
+        var smallNumber1 = doubleLog(result.active_addresses);
+        var smallNumber2 = doubleLog(Math.pow(2, 64));
+        var new_color = 256 - parseInt(255 * smallNumber1 / smallNumber2) - 1;
+        var asHex = new_color.toString(16);
+        return "#ff" + asHex + asHex;
+    }
+
+
+
     // On page load, fetch all usages
     $(function() {
+        family = Number($(tableSelector).data('family'));
         fetchUsage();
     });
 

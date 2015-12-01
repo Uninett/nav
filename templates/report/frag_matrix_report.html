@@ -23,7 +23,9 @@
   {% endif %}
 {% endwith %}
 
-<table id="subnet-matrix" class="full-width {% if ipv4 %}ipv4{% else %}ipv6{% endif %} ">
+<table id="subnet-matrix"
+       data-family="{{ family }}"
+       class="full-width {% if ipv4 %}ipv4{% else %}ipv6{% endif %} ">
   <thead>
     <tr>
       <th>
