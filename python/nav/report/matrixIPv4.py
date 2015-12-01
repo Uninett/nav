@@ -97,7 +97,6 @@ class MatrixIPv4(Matrix):
             prefixid=meta.prefixid,
             colspan=self._colspan(ip),
             rowspan=rowspan,
-            color=_get_color(meta.usage_percent, meta.nettype),
             content=_get_content(key, ip),
             netaddr=ip)
 
@@ -117,7 +116,7 @@ class MatrixIPv4(Matrix):
     def _create_to_small_subnets_cell(self):
         return Cell(
             colspan=self.num_columns,
-            color=_get_color(0, 'large'),
+            color=_get_color('large'),
             content='Too many small nets')
 
     @staticmethod
@@ -227,22 +226,10 @@ def _netlink(ip, append_term_and_prefix=False):
     return '<a href="{0}">{1}</a>'.format(url, text)
 
 
-def _get_color(percent, nettype):
+def _get_color(nettype):
     """Gets the css-class name added to the cell based on usage"""
-
-    # These mappings represent css-classes for different usage percents
-    color_mapping = {
-        80: 'usage-high',
-        50: 'usage-medium',
-        10: 'usage-low',
-        0: 'usage-vlow'
-    }
 
     if nettype == 'static' or nettype == 'scope' or nettype == 'reserved':
         return 'subnet_other'
     elif nettype == 'large':
         return 'subnet_large'
-    else:
-        for key, value in color_mapping.items():
-            if percent >= key:
-                return value
