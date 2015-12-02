@@ -70,9 +70,12 @@ $color_large: #ada7c8;
         td, th {
             width: 5.625%;
         }
+        td {
+            transition: background-color 3s;
+        }
     }
 }
 
 .tooltip a {
-    color: #dcdcdc;
+    color: hsl(200, 100, 60);
 }
