@@ -1,4 +1,4 @@
-require([], function() {
+require(['libs/underscore'], function() {
 
     function UsageFetcher(container) {
         this.page_size = 10;  // Results per query
@@ -10,6 +10,23 @@ require([], function() {
             10: 'usage-low',
             0: ' usage-vlow'
         };
+        this.tooltipTemplateV4 = _.template(
+            '<h5><%= heading %></h5>' +
+                '<p>Active IPs: <%= active %> (of max <%= max %>)<br>' +
+                'Usage: <%= usage %>%</p>' +
+                '<a href="<%= url_machinetracker %>" title="<%= title_machinetracker %>">' +
+                '<%= linktext_machinetracker %></a><br>' +
+                '<a href="<%= url_report %>" title="<%= title_report %>">' +
+                '<%= linktext_report %></a>'
+        );
+        this.tooltipTemplateV6 = _.template(
+            '<h5><%= heading %></h5>' +
+                '<p>Active IPs: <%= active %></p>' +
+                '<a href="<%= url_machinetracker %>" title="<%= title_machinetracker %>">' +
+                '<%= linktext_machinetracker %></a><br>' +
+                '<a href="<%= url_report %>" title="<%= title_report %>">' +
+                '<%= linktext_report %></a>'
+        );
     }
 
     UsageFetcher.prototype = {
@@ -56,12 +73,12 @@ require([], function() {
                 // Add link and text for usage if colspan is large enough
                 $element.append(this.usageString(result));
             }
-            this.createTooltipText($element, result);
+            this.createTooltipText($element, this.tooltipTemplateV4, result);
         },
 
         modifyV6Cell: function($element, result) {
             $element.attr('style', 'background-color: ' + this.getIpv6Color(result));
-            this.createTooltipText($element, result);
+            this.createTooltipText($element, this.tooltipTemplateV6, result);
         },
 
 
@@ -88,31 +105,20 @@ require([], function() {
         },
 
 
-        createTooltipText: function($element, data) {
-            var toAdd = ['<em>' + data.prefix + '</em><br>',
-                         this.metaInfo(data),
-                         this.createLink(data),
-                         $element.attr('title')];
-            $element.attr('title', toAdd.join('<br>'));
-        },
-
-
-        /** Creates a link for usage text */
-        createLink: function(data) {
-            return '<a href=' + data.url_machinetracker + '>' +
-                'View active addresses' +
-                '</a>';
-        },
-
-
-        /** String used for listing active vs max addresses */
-        metaInfo: function(data) {
-            if (this.is_v4()) {
-                return ['Active IPs: ' + data.active_addresses + ' (of max ' + data.max_hosts + ')',
-                        'Usage: ' + data.usage.toFixed(1) + '%'].join('<br>');
-            } else {
-                return 'Active IPs: ' + data.active_addresses;
-            }
+        createTooltipText: function($element, template, data) {
+            var text = template({
+                heading: data.prefix,
+                active: data.active_addresses,
+                max: data.max_hosts,
+                usage: data.usage.toFixed(1),
+                url_machinetracker: data.url_machinetracker,
+                title_machinetracker: "View active addresses in MachineTracker",
+                linktext_machinetracker: "View active addresses",
+                url_report: data.url_report,
+                title_report: "View report for " + data.prefix,
+                linktext_report: "View report"
+            });
+            $element.attr('title', text);
         },
 
 
@@ -157,7 +163,7 @@ require([], function() {
         addListeners: function() {
             var self = this;
 
-            // Create tooltips on mouseenter to avoid title to be shown
+            // Create tooltips on mouseenter (as opposed to on click) to avoid title to be shown
             this.container.on('mouseenter', '.has-loaded', function(event) {
                 var $target = $(event.target);
 
@@ -192,7 +198,6 @@ require([], function() {
         },
 
         createTooltip: function(target) {
-            console.log('Creating tooltip');
             Foundation.libs.tooltip.create(target);
         },
 
