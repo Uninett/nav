@@ -35,6 +35,7 @@ $color_large: #ada7c8;
         padding-left: 0;
         padding-right: 0;
         text-align: center;
+        transition: color 3s, background-color 3s;
         &.has-data {
             border: 1px solid #FFFFFF;
             background-color: #DDD;
@@ -48,6 +49,9 @@ $color_large: #ada7c8;
                 width: 100%;
             }
         }
+        &.has-loaded {
+            cursor: pointer;
+        }
     }
     &.ipv4 {
         td, th {
@@ -57,7 +61,6 @@ $color_large: #ada7c8;
             text-align: left;
         }
         td {
-            transition: color 3s, background-color 3s;
             &.usage-high { background-color: $color_usage_high; a { color: white; }}
             &.usage-medium { background-color: $color_usage_medium; }
             &.usage-low { background-color: $color_usage_low; }
@@ -69,9 +72,6 @@ $color_large: #ada7c8;
     &.ipv6 {
         td, th {
             width: 5.625%;
-        }
-        td {
-            transition: background-color 3s;
         }
     }
 }
