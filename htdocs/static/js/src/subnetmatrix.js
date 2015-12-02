@@ -36,8 +36,6 @@ require([], function() {
                 this.fetchUsage(data.next);
             }
 
-            console.log(data);
-            
             // For each result, modify the cell based on the result data
             for (var i = 0, l = data.results.length; i < l; i++) {
                 var result = data.results[i];
