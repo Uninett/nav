@@ -29,6 +29,7 @@ import re
 # this is just here to make sure Django finds NAV's settings file
 # pylint: disable=W0611
 from django.core.cache import cache
+from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
@@ -147,8 +148,8 @@ def matrix_report(request):
     context = {
         'navpath': [
             ('Home', '/'),
-            ('Report', '/report/'),
-            ('Subnet matrix', False)
+            ('Report', reverse('report-index')),
+            ('Subnet matrix', reverse('report-matrix'))
         ],
         'show_unused': show_unused
     }

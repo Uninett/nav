@@ -66,12 +66,6 @@
                   rowspan="{{ cell.rowspan }}"
                   {% if not cell.is_empty %} class="has-data" {% endif %}
                   {% if cell.netaddr %}data-netaddr="{{ cell.netaddr }}"{% endif %}
-                  title="
-                         <a href='{% url 'report-prefix-prefix' cell.prefixid %}'
-                         title='Go to the report for {{ cell.netaddr }}'>
-                         View report
-                         </a>
-                         "
                   >  {# cell #}
 
                 {# Cells that are too small to have text #}
