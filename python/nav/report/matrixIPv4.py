@@ -88,24 +88,28 @@ class MatrixIPv4(Matrix):
     def _create_extra_rows(self, num_extra_rows, thing):
         """Returns the extra rows when dealing with large subnets
 
-        Two cases:
+        Two cases (thing is different in these two cases):
         1: if we display unused address rows, we need to pop from the generated
-           subnets
+           subnets.
         2: when displaying only used, we need to create new rows
+
+        A row consists of a list containing one index cell
         """
         if self.show_unused_addresses:
+            assert isinstance(thing, list)
             return [
                 [self._create_index_cell(thing.pop(0), link=False)]
                 for _ in range(num_extra_rows)
             ]
         else:
+            assert isinstance(thing, IPy.IP)
+            extra_nets = []
             row_net = IPy.IP('{}/{}'.format(thing.net(), self._get_row_size()))
-            return [
-                [self._create_index_cell(IPtools.get_next_subnet(row_net),
-                                         link=False)]
-                for _ in range(num_extra_rows)
-            ]
-
+            for _ in range(num_extra_rows):
+                row_net = IPtools.get_next_subnet(row_net)
+                extra_nets.append(
+                    [self._create_index_cell(row_net, link=False)])
+            return extra_nets
 
     def create_cell(self, ip, meta, rowspan=1, key=0):
         """Creates a table cell based on ip"""
