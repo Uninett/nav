@@ -70,6 +70,7 @@ class Matrix:
         self.matrix_nets = self.extract_matrix_nets()
         self.heading_colspan = 1
         self.nodes = None
+        self.num_columns = None
 
     def build(self):
         """Builds the datastructure for the template to render
@@ -99,7 +100,8 @@ class Matrix:
             self.tree, self.end_net.prefixlen()-self.bits_in_matrix+1)
 
     def _colspan(self, ip):
-        return int(math.pow(2, self.end_net.prefixlen() - ip.prefixlen()))
+        return min(self.num_columns,
+                   int(math.pow(2, self.end_net.prefixlen() - ip.prefixlen())))
 
     @staticmethod
     def print_depth(depth):
