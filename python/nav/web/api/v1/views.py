@@ -212,7 +212,10 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
 
     def get_queryset(self):
         """Filter for ip family"""
-        if 'family' in self.request.GET:
+        if 'scope' in self.request.GET:
+            queryset = manage.Prefix.objects.within(
+                self.request.GET.get('scope')).order_by('net_address')
+        elif 'family' in self.request.GET:
             queryset = manage.Prefix.objects.extra(
                 where=['family(netaddr)=%s'],
                 params=[self.request.GET.get('family')])
@@ -258,11 +261,11 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
         """Handles get request for prefix usage"""
 
         try:
-            prefix = IP(prefix)
+            ip_prefix = IP(prefix)
         except ValueError:
             return Response("Bad prefix", status=status.HTTP_400_BAD_REQUEST)
 
-        if prefix.len() < MINIMUMPREFIXLENGTH:
+        if ip_prefix.len() < MINIMUMPREFIXLENGTH:
             return Response("Prefix is too small",
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -273,8 +276,9 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
                 'start or endtime not formatted correctly. Use iso8601 format',
                 status=status.HTTP_400_BAD_REQUEST)
 
+        db_prefix = manage.Prefix.objects.get(net_address=prefix)
         serializer = serializers.PrefixUsageSerializer(
-            prefix_collector.fetch_usage(prefix, starttime, endtime))
+            prefix_collector.fetch_usage(db_prefix, starttime, endtime))
 
         return Response(serializer.data)
 

@@ -4,6 +4,7 @@ require(['libs/underscore'], function() {
         this.page_size = 10;  // Results per query
         this.container = container;
         this.family = this.container.data('family') || 4;
+        this.scope = this.container.data('scope');
         this.color_mapping = {
             80: 'usage-high',
             50: 'usage-medium',
@@ -42,7 +43,9 @@ require(['libs/underscore'], function() {
         },
 
         getUrl: function() {
-            var query = 'family=' + this.family + '&page_size=' + this.page_size;
+            var params = ['page_size=' + this.page_size,
+                          'scope=' + encodeURIComponent(this.scope)];
+            var query = params.join('&');
             return NAV.urls.api_prefix_usage_list + '?' + query;
         },
 
@@ -56,7 +59,7 @@ require(['libs/underscore'], function() {
             for (var i = 0, l = data.results.length; i < l; i++) {
                 var result = data.results[i];
                 var $element = this.container.find('[data-netaddr="' + result.prefix + '"]');
-                
+
                 if (this.is_v4()) {
                     this.modifyV4Cell($element, result);
                 } else {

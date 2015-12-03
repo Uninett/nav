@@ -177,6 +177,7 @@ def matrix_report(request):
         'sub': matrix.end_net.prefixlen() - matrix.bits_in_matrix,
         'ipv4': scope.version() == 4,
         'family': scope.version(),
+        'scope': scope,
         'hide_for': hide_content_for_colspan
     })
 
