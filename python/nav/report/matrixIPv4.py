@@ -76,20 +76,36 @@ class MatrixIPv4(Matrix):
             if large_net.overlaps(subnet):
                 return index
 
-    def _add_large_subnet(self, subnet, matrix_row, extra_rows):
-        """Adds correct rowspan to cell and extra rows when displaying subnets
-        that span more than one row"""
+    def _add_large_subnet(self, subnet, matrix_row):
+        """Adds correct rowspan to cell for large nets """
         meta = metaIP.MetaIP(subnet)
         rowspan = 2 ** (self._get_row_size() - subnet.prefixlen())
         matrix_row.append(self.create_cell(subnet, meta, rowspan=rowspan))
 
-        # As we increase the rowspan we need to add additional rows.
-        num_extra_rows = rowspan - 1
+        # Return the number of extra rows that need to be made
+        return rowspan - 1
 
-        row_net = IPy.IP('{}/{}'.format(subnet.net(), self._get_row_size()))
-        for _row in range(num_extra_rows):
-            row_net = IPtools.get_next_subnet(row_net)
-            extra_rows.append([self._create_index_cell(row_net, link=False)])
+    def _create_extra_rows(self, num_extra_rows, thing):
+        """Returns the extra rows when dealing with large subnets
+
+        Two cases:
+        1: if we display unused address rows, we need to pop from the generated
+           subnets
+        2: when displaying only used, we need to create new rows
+        """
+        if self.show_unused_addresses:
+            return [
+                [self._create_index_cell(thing.pop(0), link=False)]
+                for _ in range(num_extra_rows)
+            ]
+        else:
+            row_net = IPy.IP('{}/{}'.format(thing.net(), self._get_row_size()))
+            return [
+                [self._create_index_cell(IPtools.get_next_subnet(row_net),
+                                         link=False)]
+                for _ in range(num_extra_rows)
+            ]
+
 
     def create_cell(self, ip, meta, rowspan=1, key=0):
         """Creates a table cell based on ip"""
@@ -147,7 +163,9 @@ class MatrixIPv4(Matrix):
         else:
             subnets = IPtools.sort_nets_by_address(nets.keys())
 
-        for subnet in subnets:
+        while subnets:
+            subnet = subnets.pop(0)
+
             matrix_row = []  # contains all cells in the row
             extra_rows = []  # For large nets
 
@@ -178,13 +196,17 @@ class MatrixIPv4(Matrix):
                     # should be displayed here
                     index = self._find_large_net(subnet, large_subnets)
                     if index is not None:
-                        self._add_large_subnet(large_subnets.pop(index),
-                                               matrix_row, extra_rows)
+                        num_extra_rows = self._add_large_subnet(
+                            large_subnets.pop(index), matrix_row)
+                        extra_rows = self._create_extra_rows(num_extra_rows,
+                                                             subnets)
                     else:
                         matrix_row.append(self._create_empty_cell())
                 else:
                     # This net spans more then one row
-                    self._add_large_subnet(subnet, matrix_row, extra_rows)
+                    num_extra_rows = self._add_large_subnet(subnet, matrix_row)
+                    extra_rows = self._create_extra_rows(num_extra_rows, subnet)
+
 
             subnet_matrix.append(matrix_row)
 
