@@ -292,7 +292,7 @@ def getLastSubnet(network, last_network_prefix_len=None):
 
 def get_next_subnet(net):
     """Returns the next subnet of the same size as net"""
-    return IP(net.int() + net.len()).make_net(net.netmask())
+    return IP(net.int() + net.len()).make_net(net.prefixlen())
 
 def create_subnet_range(net, prefixlen):
     """Creates all subnets of the given size inside the net"""
