@@ -41,7 +41,7 @@ before running NAV:
     3. :kbd:`pwgen -s 51 1`
 
   Please see
-  https://docs.djangoproject.com/en/1.4/ref/settings/#std:setting-SECRET_KEY
+  https://docs.djangoproject.com/en/1.7/ref/settings/#std:setting-SECRET_KEY
   if you want to know more about this.
 
 

@@ -382,7 +382,7 @@ the test case DjangoTransactionTestCase in :py:mod:`nav.tests.cases`.
 See :py:mod:`nav.tests.integration.l2trace_test` for an example on applying
 fixtures for your particular test case.
 
-See https://docs.djangoproject.com/en/1.4/topics/serialization/
+See https://docs.djangoproject.com/en/1.7/topics/serialization/
 
 .. TODO:: Be able to use `django-admin's management command: dumpdata
    <https://docs.djangoproject.com/en/dev/ref/django-admin/#dumpdata-appname-appname-appname-model>`_
