@@ -42,14 +42,14 @@ class MetaIP:
         handler."""
         cls.MetaMap = None
 
-    def getTreeNet(self, leadingZeros=True):
+    def getTreeNet(self):
         """This method is used to get the string representation of the IP
         shown in the tree to left of the prefix matrix."""
 
         #IPv6: Whole address
         #IPv4: Not whole address
         if self.netaddr.version() == 6:
-            return self._getTreeNetIpv6(leadingZeros)
+            return self._getTreeNetIpv6()
         elif self.netaddr.version() == 4:
             return self._getTreeNetIpv4()
 
@@ -58,27 +58,17 @@ class MetaIP:
         netaddr_string = self.netaddr.net().strNormal()
         return netaddr_string[:netaddr_string.rfind(".")]
 
-    def _getTreeNetIpv6(self, leadingZeros):
-        """Compress self.netaddr, remove "::", and padd with ":0"."""
-        netaddr = None
-        hexlets_in_address = int(float(self.netaddr.prefixlen())/16+0.5)
-        if self.netaddr.prefixlen() < 112:
-            netaddr = self.netaddr.net().strCompressed()[:-2]
-        else:
-            netaddr = self.netaddr.net().strCompressed()
+    def _getTreeNetIpv6(self):
+        """Compress self.netaddr, remove '::'"""
+        netaddr = self.netaddr.net()
+        index = self.netaddr.prefixlen() / 4
+        address_part = netaddr.strFullsize().replace(':', '')[:index]
+        hextets = [address_part[i:i+4] for i in range(0, len(address_part), 4)]
+        ipstr = ":".join(hextets)
+        if len(hextets) < 8:
+            ipstr += '::'
 
-        #in case .strCompressed() compressed it too much
-        while netaddr.count(":") < hexlets_in_address-1:
-            netaddr = ":".join([netaddr, "0"])
-
-        if leadingZeros:
-            last_hexlet = netaddr[netaddr.rfind(':')+1:]
-            zeros_to_pad = 4-len(last_hexlet)
-            last_hexlet = zeros_to_pad*'0' + last_hexlet
-
-            netaddr = netaddr[:netaddr.rfind(':')+1] + last_hexlet
-
-        return netaddr
+        return IP(ipstr).net().strCompressed().rstrip(':')
 
     @staticmethod
     def _createMetaMap(family):
