@@ -98,6 +98,35 @@ class Matrix(object):
         return IPtree.removeSubnetsWithPrefixLength(
             self.tree, self.end_net.prefixlen()-self.bits_in_matrix+1)
 
+    def _colspan(self, ip):
+        return min(self.num_columns,
+                   int(math.pow(2, self.end_net.prefixlen() - ip.prefixlen())))
+
+    def _get_row_size(self):
+        """Gets the prefixlength for a row"""
+        return self.end_net.prefixlen() - self.bits_in_matrix
+
+    def _create_data_row(self, subnet):
+        """Create a data row containing a list of cells
+
+        :rtype: list[Cell]
+        """
+        if self.has_too_small_nets(subnet):
+            return [self._create_to_small_subnets_cell()]
+
+        elif self.matrix_nets[subnet]:
+            _logger.debug('divided into several smaller nets')
+            # this subnet is divided into parts
+            host_nybbles_map = IPtools.getLastbitsIpMap(
+                self.matrix_nets[subnet].keys())
+            _logger.debug('nybbels: %s', host_nybbles_map)
+            return self._add_child_nets(host_nybbles_map)
+
+        else:
+            # this subnet spans the whole row
+            meta = metaIP.MetaIP(subnet)
+            return [self._create_cell(subnet, meta)]
+
     def _add_child_nets(self, host_nybbles_map):
         next_header_idx = -1
         cells = []
@@ -117,33 +146,6 @@ class Matrix(object):
             cells.append(matrix_cell)
 
         return cells
-
-    def _colspan(self, ip):
-        return min(self.num_columns,
-                   int(math.pow(2, self.end_net.prefixlen() - ip.prefixlen())))
-
-    def _get_row_size(self):
-        """Gets the prefixlength for a row"""
-        return self.end_net.prefixlen() - self.bits_in_matrix
-
-    def _create_data_row(self, subnet):
-        """Create a data row containing a list of cells
-
-        :rtype: list[Cell]
-        """
-        if self.has_too_small_nets(subnet):
-            return [self._create_to_small_subnets_cell()]
-
-        elif self.matrix_nets[subnet]:
-            # this subnet is divided into parts
-            host_nybbles_map = IPtools.getLastbitsIpMap(
-                self.matrix_nets[subnet].keys())
-            return self._add_child_nets(host_nybbles_map)
-
-        else:
-            # this subnet spans the whole row
-            meta = metaIP.MetaIP(subnet)
-            return [self._create_cell(subnet, meta)]
 
     def _create_cell(self, ip, meta, rowspan=1, key=0):
         """Creates a table cell based on ip"""
