@@ -41,7 +41,6 @@ class MatrixIPv6(Matrix):
         ]
 
     def _write_subnets(self, net):
-
         nodes = IPtools.sort_nets_by_address(net.keys())
         subnet_matrix = []  # The resulting list of rows to display
 
@@ -71,15 +70,7 @@ class MatrixIPv6(Matrix):
     @staticmethod
     def _netlink(ip, append_term_and_prefix=False):
         """Creates the content for the index row"""
-        nip = metaIP.MetaIP(ip).getTreeNet(leadingZeros=True)
-        link = metaIP.MetaIP(ip).getTreeNet(leadingZeros=False)[:-1] + '_::'
-
-        if append_term_and_prefix:
-            url = reverse(
-                'report-matrix-scope',
-                kwargs={'scope': '{0}::%2F{1}'.format(nip, ip.prefixlen())})
-            text = '{0}::/{1}'.format(nip, ip.prefixlen())
-        else:
-            url = reverse('report-prefix-netaddr', kwargs={'netaddr': link})
-            text = nip[:-1] + 'x'
+        ip = metaIP.MetaIP(ip).getTreeNet()
+        url = reverse('report-prefix-netaddr', kwargs={'netaddr': ip + '*'})
+        text = ip + 'x'
         return '<a class="monosp" href="{0}">{1}</a>'.format(url, text)
