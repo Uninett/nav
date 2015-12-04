@@ -15,7 +15,7 @@
 #
 """Django URL configuration for devicehistory."""
 
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 
 from nav.web.devicehistory.views import (devicehistory_search,
                                          devicehistory_view, error_form,

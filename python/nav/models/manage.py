@@ -612,8 +612,8 @@ class Module(models.Model):
 
     def get_swports(self):
         """Returns all interfaces that are switch ports."""
-        return Interface.objects.select_related(
-            depth=2).filter(module=self, baseport__isnull=False)
+        return Interface.objects.select_related().filter(
+            module=self, baseport__isnull=False)
 
     def get_swports_sorted(self):
         """Returns swports naturally sorted by interface name"""
@@ -918,7 +918,7 @@ class PrefixManager(models.Manager):
         ordered by descending network mask length.
 
         """
-        return self.get_query_set().exclude(
+        return self.get_queryset().exclude(
             vlan__net_type="loopback"
         ).extra(
             select={'mlen': 'masklen(netaddr)'},
@@ -1309,7 +1309,7 @@ class Interface(models.Model):
 
         # XXX: This causes a DB query per port
         vlans = [swpv.vlan.vlan
-            for swpv in self.swportvlan_set.select_related(depth=1)]
+            for swpv in self.swportvlan_set.select_related('vlan', 'interface')]
         if self.vlan is not None and self.vlan not in vlans:
             vlans.append(self.vlan)
         vlans.sort()

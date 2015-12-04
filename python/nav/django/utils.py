@@ -38,7 +38,10 @@ def get_request_body(request):
 
 def get_account(request):
     """Returns the account associated with the request"""
-    return request.account
+    try:
+        return request.account
+    except AttributeError:
+        return Account.objects.get(id=Account.DEFAULT_ACCOUNT)
 
 
 def is_admin(account):

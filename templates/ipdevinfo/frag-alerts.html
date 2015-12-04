@@ -22,14 +22,14 @@
                     {% if alert_info.is_more_alerts %}
                         Showing {{ alert_info.alerts|length }} of
                         {{ alert_info.count }} alerts, see
-                        <a href="{% url devicehistory-view-netbox netbox.id %}">
+                        <a href="{% url 'devicehistory-view-netbox' netbox.id %}">
                             Device History</a> for all
                     {% else %}
                         {{ alert_info.alerts|length }}
                         alert{{ alert_info.alerts|length|pluralize }}
                         found,
                         see
-                        <a href="{% url devicehistory-view-netbox netbox.id %}">Device
+                        <a href="{% url 'devicehistory-view-netbox' netbox.id %}">Device
                             History</a> for details
                     {% endif %}
                 </th>

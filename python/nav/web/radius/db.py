@@ -12,7 +12,7 @@ from radius_config import (DATEFORMAT_SEARCH,
                            ACCT_TABLE,
                            LOG_TABLE)
 
-from django.db import connection
+from django.db import connection, transaction
 from twisted.names.dns import Message, Query
 
 import radiuslib
@@ -50,11 +50,11 @@ class SQLQuery(object):
 
     def execute(self):
         cursor = get_named_cursor()
-        cursor.execute(self.query, self.parameters)
-
-        self.result = [
-            self.result_tuple._make(self._format(row))
-            for row in cursor]
+        with transaction.atomic():
+            cursor.execute(self.query, self.parameters)
+            self.result = [
+                self.result_tuple._make(self._format(row))
+                for row in cursor]
 
     def _format(self, row):
         """

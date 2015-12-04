@@ -27,7 +27,6 @@ from nav.ipdevpoll import Plugin, db
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll import utils
 from nav.ipdevpoll.neighbor import get_netbox_macs
-from nav.ipdevpoll.db import autocommit
 
 class Cam(Plugin):
     """Collects switches' forwarding tables and port STP states.
@@ -59,7 +58,6 @@ class Cam(Plugin):
         defer.returnValue(has_ifcs and daddy_says_ok)
 
     @classmethod
-    @autocommit
     def _has_interfaces(cls, netbox):
         return manage.Interface.objects.filter(
             netbox__id=netbox.id).count() > 0

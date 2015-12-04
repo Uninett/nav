@@ -2,7 +2,7 @@
 
 {% block tabcontent %}
 
-    <form action="{% url arnold-lift-detentions %}" method="POST">
+    <form action="{% url 'arnold-lift-detentions' %}" method="POST">
 
         <table class="listtable">
             <caption>
@@ -25,14 +25,14 @@
             {% for detention in detentions %}
                 <tr class="$rowcycler">
                     <td>
-                        <a href="{% url machinetracker-ip_short_search detention.ip 100 'on' %}"
+                        <a href="{% url 'machinetracker-ip_short_search' detention.ip 100 'on' %}"
                            title="Link to Machine Tracker" target="_blank">
                             {{ detention.ip }}
                         </a>
                     </td>
 
                     <td>
-                        <a href="{% url machinetracker-mac_search detention.mac 100 'on' %}"
+                        <a href="{% url 'machinetracker-mac_search' detention.mac 100 'on' %}"
                            title="Link to Machine Tracker" target="_blank">
                             {{ detention.mac }}
                         </a>
@@ -43,7 +43,7 @@
 
                     <td>
                         {% if detention.interface %}
-                        <a href="{% url ipdevinfo-details-by-name detention.interface.netbox.sysname %}"
+                        <a href="{% url 'ipdevinfo-details-by-name' detention.interface.netbox.sysname %}"
                            title="Link to Ip Device Info" target="_blank">
                             {{ detention.interface.netbox.sysname }}
                         </a>
@@ -54,7 +54,7 @@
 
                     <td>
                         {% if detention.interface %}
-                        <a href="{% url ipdevinfo-interface-details detention.interface.netbox.sysname detention.interface.id %}"
+                        <a href="{% url 'ipdevinfo-interface-details' detention.interface.netbox.sysname detention.interface.id %}"
                            title="Link to interface details" target="_blank">
                             {{ detention.interface.ifname }}
                         </a>

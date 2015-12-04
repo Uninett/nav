@@ -238,7 +238,7 @@ def cancel(request, task_id):
         )
 
 
-@transaction.commit_on_success()
+@transaction.atomic()
 def edit(request, task_id=None, start_time=None):
     account = get_account(request)
     quickselect = QuickSelect(service=True)
@@ -389,7 +389,7 @@ def add_box_to_maintenance(request):
     return HttpResponseRedirect(reverse('status-index'))
 
 
-@transaction.commit_on_success
+@transaction.atomic()
 def _add_neverending_maintenance_task(owner, netbox):
     logger.debug('Adding maintenance task...')
     maint_task = MaintenanceTask()

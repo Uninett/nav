@@ -253,7 +253,7 @@ class TestNewCamAndArpRecords(Test):
 
     slack = 60 * 60  # 1 hour in seconds
     name = "ARP and CAM"
-    description = ("Tests whether any ARP or CAM records have been collected "
+    description = (u"Tests whether any ARP or CAM records have been collected "
                    "the last hour")
 
     def _get_errors(self):
@@ -280,7 +280,7 @@ class TestNewCamAndArpRecords(Test):
             else:
                 cam_diff = now - latest_cam.start_time
             if cam_diff > recently:
-                descr = ('CAM records have not been collected in the last '
+                descr = (u'CAM records have not been collected in the last '
                          '{}').format(timesince(latest_cam.start_time))
                 return TestResult(descr, latest_cam)
 
@@ -295,7 +295,7 @@ class TestNewCamAndArpRecords(Test):
             else:
                 arp_diff = now - latest_arp.start_time
             if arp_diff > recently:
-                descr = ('ARP records have not been collected in the last '
+                descr = (u'ARP records have not been collected in the last '
                          '{}').format(timesince(latest_arp.start_time))
                 return TestResult(descr, latest_arp)
 

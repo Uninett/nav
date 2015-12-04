@@ -5,8 +5,8 @@
   {{ block.super }}
   <script>
     NAV.urls.seeddb = NAV.urls.seeddb || {};
-    NAV.urls.get_readonly = '{% url seeddb-netbox-get-readonly %}';
-    NAV.urls.seeddb.verifyAddress = '{% url seeddb-netbox-get-address-info %}';
+    NAV.urls.get_readonly = "{% url 'seeddb-netbox-get-readonly' %}";
+    NAV.urls.seeddb.verifyAddress = "{% url 'seeddb-netbox-get-address-info' %}";
   </script>
 {% endblock %}
 
@@ -24,7 +24,7 @@
     <div class="small-6 column">
       {% if object %}
         <h4>Edit
-          <a href="{% url ipdevinfo-details-by-id object.pk %}"
+          <a href="{% url 'ipdevinfo-details-by-id' object.pk %}"
              title="See device info for {{ object.sysname }}">
             {{ object.sysname }}
           </a>
@@ -35,7 +35,7 @@
     </div>
     <div class="small-6 column">
       {% if object %}
-        <form action="{% url seeddb-netbox %}" method="post" class="pull-right">
+        <form action="{% url 'seeddb-netbox' %}" method="post" class="pull-right">
           <input type="hidden" name="object" value="{{ object.pk }}"/>
           <input type="submit" name="delete" value="Delete this IP device" class="button small secondary"/>
         </form>

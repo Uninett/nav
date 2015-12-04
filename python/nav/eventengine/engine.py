@@ -33,10 +33,9 @@ from nav.eventengine.plugin import EventHandler
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.config import EVENTENGINE_CONF
 from nav.eventengine import unresolved
-from nav.ipdevpoll.db import commit_on_success
 from nav.models.event import EventQueue as Event
 import nav.db
-from django.db import connection, DatabaseError
+from django.db import connection, DatabaseError, transaction
 
 _logger = logging.getLogger(__name__)
 
@@ -131,7 +130,7 @@ class EventEngine(object):
 
     @staticmethod
     @retry_on_db_loss()
-    @commit_on_success
+    @transaction.atomic()
     def _listen():
         """Ensures that we subscribe to new_event notifications on our
         PostgreSQL connection.
@@ -154,7 +153,7 @@ class EventEngine(object):
         self._scheduler.enter(delay, 0, action, ())
 
     @swallow_unhandled_exceptions
-    @commit_on_success
+    @transaction.atomic()
     def load_new_events(self):
         "Loads and processes new events on the queue, if any"
         self._logger.debug("checking for new events on queue")
@@ -198,7 +197,7 @@ class EventEngine(object):
             self._logger.info('Ignoring duplicate %s event', event.event_type)
         event.delete()
 
-    @commit_on_success
+    @transaction.atomic()
     def handle_event(self, event):
         "Handles a single event"
         self._logger.debug("handling %r", event)

@@ -1,11 +1,11 @@
 {% extends "alertprofiles/base_detail.html" %}
 
-{% block url_edit %}{% url alertprofiles-filters-save %}{% endblock %}
-{% block url_remove_expression %}{% url alertprofiles-filters-removeexpression %}{% endblock %}
-{% block url_add_expression %}{% url alertprofiles-filters-addexpression %}{% endblock %}
+{% block url_edit %}{% url 'alertprofiles-filters-save' %}{% endblock %}
+{% block url_remove_expression %}{% url 'alertprofiles-filters-removeexpression' %}{% endblock %}
+{% block url_add_expression %}{% url 'alertprofiles-filters-addexpression' %}{% endblock %}
 
 {% block backnavigation %}
-  <p><a href="{% url alertprofiles-filters %}">Back to filters</a></p>
+  <p><a href="{% url 'alertprofiles-filters' %}">Back to filters</a></p>
 {% endblock %}
 
 {% block expressions_caption_content %}

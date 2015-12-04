@@ -21,15 +21,15 @@
     <h3>Time frame</h3>
 
     <ul>
-        <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"year" %}">
+        <li><a href="{% url 'rrdviewer-rrd-by-ds-tf' rrddatasource.id "year" %}">
             Year</a></li>
-        <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"month" %}">
+        <li><a href="{% url 'rrdviewer-rrd-by-ds-tf' rrddatasource.id "month" %}">
             Month</a></li>
-        <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"week" %}">
+        <li><a href="{% url 'rrdviewer-rrd-by-ds-tf' rrddatasource.id "week" %}">
             Week</a></li>
-        <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"day" %}">
+        <li><a href="{% url 'rrdviewer-rrd-by-ds-tf' rrddatasource.id "day" %}">
             Day</a></li>
-        <li><a href="{% url rrdviewer-rrd-by-ds-tf rrddatasource.id,"hour" %}">
+        <li><a href="{% url 'rrdviewer-rrd-by-ds-tf' rrddatasource.id "hour" %}">
             Hour</a></li>
     </ul>
 {% endif %}

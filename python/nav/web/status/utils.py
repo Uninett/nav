@@ -43,7 +43,7 @@ def extract_post(post):
             post[key] = value
     return post
 
-@transaction.commit_on_success
+@transaction.atomic()
 def order_status_preferences(account):
     prefs = StatusPreference.objects.filter(
         account=account
@@ -60,7 +60,7 @@ def order_status_preferences(account):
     else:
         return 0
 
-@transaction.commit_on_success
+@transaction.atomic()
 def make_default_preferences(account):
     sections = StatusPreference.objects.filter(
         account=Account.DEFAULT_ACCOUNT

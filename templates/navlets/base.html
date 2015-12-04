@@ -38,7 +38,7 @@
       <span class="subheader" title="{{ navlet.description }}"
         {% if navlet.is_title_editable %}
           {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
-              data-set-title="{% url set-navlet-preferences %}"
+              data-set-title="{% url 'set-navlet-preferences' %}"
           {% endif %}
         {% endif %}>
         <span class="navlet-title">{{ navlet.title }}</span>

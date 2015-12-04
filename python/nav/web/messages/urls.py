@@ -15,7 +15,7 @@
 #
 """Django URL configuration for messages tool"""
 
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 
 from nav.web.messages.views import active, historic, planned
 from nav.web.messages.views import save, followup, redirect_to_active

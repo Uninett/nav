@@ -23,6 +23,7 @@ from nav.models.fields import (VarcharField, LegacyGenericForeignKey,
 from nav.models import manage, service
 
 
+
 class Message(models.Model):
     """From NAV Wiki: The table contains the messages registered
     in the messages tool. Each message has a timeframe for when
@@ -58,22 +59,22 @@ class MaintenanceTaskManager(models.Manager):
         Retrieves tasks whose time window matches the current time.
         """
         now = relative_to or datetime.now()
-        return self.get_query_set().filter(start_time__lte=now,
-                                           end_time__gte=now)
+        return self.get_queryset().filter(start_time__lte=now,
+                                          end_time__gte=now)
 
     def past(self, relative_to=None):
         """Retrieves past maintenance tasks"""
         now = relative_to or datetime.now()
-        return self.get_query_set().filter(end_time__lt=now)
+        return self.get_queryset().filter(end_time__lt=now)
 
     def future(self, relative_to=None):
         """Retrieves future maintenance tasks"""
         now = relative_to or datetime.now()
-        return self.get_query_set().filter(start_time__gt=now)
+        return self.get_queryset().filter(start_time__gt=now)
 
     def endless(self):
         """Retrieves tasks with an unspecified end time"""
-        return self.get_query_set().filter(end_time__gte=INFINITY)
+        return self.get_queryset().filter(end_time__gte=INFINITY)
 
 
 class MaintenanceTask(models.Model):

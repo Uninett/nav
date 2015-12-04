@@ -17,15 +17,15 @@
 
 import os
 from datetime import datetime
-import simplejson
+import json as simplejson
 import logging
 from operator import attrgetter
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
-from django.views.generic.simple import direct_to_template
-from django.views.decorators.debug import (
-    sensitive_variables, sensitive_post_parameters)
+from django.views.decorators.debug import (sensitive_variables,
+                                           sensitive_post_parameters)
+from django.shortcuts import get_object_or_404, render
 
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.path import sysconfdir
@@ -61,8 +61,7 @@ def index(request):
             property=WIDGET_COLUMNS_PROPERTY).value
     except AccountProperty.DoesNotExist:
         widget_columns = 2
-
-    return direct_to_template(
+    return render(
         request,
         'webfront/index.html',
         {
@@ -91,7 +90,7 @@ def login(request):
     else:
         errors = []
 
-    return direct_to_template(
+    return render(
         request,
         'webfront/login.html',
         {
@@ -134,7 +133,7 @@ def do_login(request):
                 errors.append('Username or password is incorrect.')
 
     # Something went wrong. Display login page with errors.
-    return direct_to_template(
+    return render(
         request,
         'webfront/login.html',
         {
@@ -160,7 +159,7 @@ def logout(request):
 
 def about(request):
     """Controller for the about page"""
-    return direct_to_template(
+    return render(
         request,
         'webfront/about.html',
         {
@@ -183,7 +182,7 @@ def toolbox(request):
     tools = sorted(get_account_tools(account, tool_list(account)),
                    key=attrgetter('name'))
 
-    return direct_to_template(
+    return render(
         request,
         'webfront/toolbox.html',
         {
@@ -288,7 +287,7 @@ def preferences(request):
     """ My preferences """
     context = _create_preference_context(request)
 
-    return direct_to_template(
+    return render(
         request,
         'webfront/preferences.html',
         context
@@ -302,7 +301,7 @@ def change_password(request):
     account = get_account(request)
 
     if account.is_default_account():
-        return direct_to_template(request, 'useradmin/not-logged-in.html', {})
+        return render(request, 'useradmin/not-logged-in.html', {})
 
     if request.method == 'POST':
         password_form = ChangePasswordForm(request.POST, my_account=account)
@@ -314,7 +313,7 @@ def change_password(request):
                         type=Messages.SUCCESS)
         else:
             context['password_form'] = password_form
-            return direct_to_template(
+            return render(
                 request,
                 'webfront/preferences.html',
                 context
@@ -345,7 +344,7 @@ def save_links(request):
         else:
             context['navbar_formset'] = formset
 
-            return direct_to_template(
+            return render(
                 request,
                 'webfront/preferences.html',
                 context

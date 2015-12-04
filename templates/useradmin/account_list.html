@@ -8,7 +8,7 @@
     <div class="tabcontent">
       {% include 'useradmin/feedback.html' %}
 
-      <a href="{% url useradmin-account_new %}" class="button small">
+      <a href="{% url 'useradmin-account_new' %}" class="button small">
         Create new account
       </a>
 
@@ -28,7 +28,7 @@
         {% for account in accounts %}
           <tr class="{% cycle oddrow,evenrow %}">
             <td>
-              <a href="{% url useradmin-account_detail account.id %}">{{ account.login }}</a>
+              <a href="{% url 'useradmin-account_detail' account.id %}">{{ account.login }}</a>
             </td>
             <td>{{ account.name }}</td>
             <td>{{ account.ext_sync|default_if_none:"" }}</td>

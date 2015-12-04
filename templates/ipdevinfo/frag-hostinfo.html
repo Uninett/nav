@@ -24,12 +24,12 @@
         {% for address in host_info.addresses %}
             <tr class="{% cycle oddrow,evenrow %}">
                 <td>
-                    <a href="{% url ipdevinfo-details-by-addr address.addr %}">
+                    <a href="{% url 'ipdevinfo-details-by-addr' address.addr %}">
                         {{ address.addr }}</a>
                 </td>
                 <td>
                     {% if address.name %}
-                        <a href="{% url ipdevinfo-details-by-name address.name %}">{{ address.name }}</a>
+                        <a href="{% url 'ipdevinfo-details-by-name' address.name %}">{{ address.name }}</a>
                     {% endif %}
                     {% if address.error %}
                         ({{ address.error }})

@@ -3,6 +3,27 @@
 
 {% block base_header_additional_head %}
   <script>require(["src/radius"]);</script>
+  <style>
+   form .ctrlHolder ul {
+       list-style: none;
+       margin-left: 0;
+   }
+   
+   #resulttable_wrapper .ftable  {
+       display: table;
+       width: 100%;
+   }
+   #resulttable_wrapper .ftable > div {
+       display: table-cell;
+       width: 50%;
+   }
+   #resulttable_wrapper .ftable .info {
+       vertical-align: bottom;
+       margin-bottom: .3rem;
+   }
+   #resulttable_info { float: right; }
+   #resulttable_filter input { margin-bottom: .5rem; }
+  </style>
 {% endblock base_header_additional_head %}
 
 {% block base_content %}
@@ -15,25 +36,25 @@
   {% block radius-helper %}{% endblock %}
 
   {% block page_content %}
-  <div class="tabs">
-    <ul>
-      <li class="{{ acctsearch|yesno:"tabactive," }}">
-        <a href="{% url radius-account_search %}">Account Log</a>
-      </li>
-      <li class="{{ logsearch|yesno:"tabactive," }}">
-        <a href="{% url radius-log_search %}">Error Log</a>
-      </li>
-      <li class="{{ acctcharts|yesno:"tabactive," }}">
-        <a href="{% url radius-account_charts %}">Top talkers</a>
-      </li>
-    </ul>
+    <div class="tabs">
+      <ul>
+        <li class="{{ acctsearch|yesno:"tabactive," }}">
+          <a href="{% url 'radius-account_search' %}">Account Log</a>
+        </li>
+        <li class="{{ logsearch|yesno:"tabactive," }}">
+          <a href="{% url 'radius-log_search' %}">Error Log</a>
+        </li>
+        <li class="{{ acctcharts|yesno:"tabactive," }}">
+          <a href="{% url 'radius-account_charts' %}">Top talkers</a>
+        </li>
+      </ul>
 
-    <div class="tabcontent">
-      {% block content %}
-      {% endblock content %}
+      <div class="tabcontent">
+        {% block content %}
+        {% endblock content %}
+      </div>
+
     </div>
-
-  </div>
   {% endblock page_content %}
 
 

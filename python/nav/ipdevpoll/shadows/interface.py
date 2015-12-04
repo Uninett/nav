@@ -17,7 +17,6 @@
 import datetime
 import operator
 from itertools import groupby
-from django.db.models import Q
 
 from nav.models import manage
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
@@ -25,7 +24,9 @@ from nav.models.event import AlertHistory
 from nav import natsort
 
 from nav.ipdevpoll.storage import Shadow, DefaultManager
-from nav.ipdevpoll import db
+
+from django.db.models import Q
+from django.db import transaction
 
 from .netbox import Netbox
 
@@ -174,7 +175,7 @@ class InterfaceManager(DefaultManager):
             self._delete_missing_interfaces()
         self._generate_linkstate_events()
 
-    @db.commit_on_success
+    @transaction.atomic()
     def _mark_missing_interfaces(self):
         """Marks interfaces in db as gone if they haven't been collected in
         this round.
@@ -189,7 +190,7 @@ class InterfaceManager(DefaultManager):
                 id__in=self._missing_ifcs.keys())
             missing.update(gone_since=datetime.datetime.now())
 
-    @db.commit_on_success
+    @transaction.atomic()
     def _delete_missing_interfaces(self):
         """Deletes missing interfaces from the database."""
         indexless = self._get_indexless_ifcs()
@@ -219,7 +220,7 @@ class InterfaceManager(DefaultManager):
                     and (not ifc.module or ifc.module.up == 'y'))
         return [ifc for ifc in self._db_ifcs if is_dead(ifc)]
 
-    @db.commit_on_success
+    @transaction.atomic()
     def _generate_linkstate_events(self):
         changed_ifcs = [ifc for ifc in self.get_managed()
                         if ifc.is_linkstate_changed()]

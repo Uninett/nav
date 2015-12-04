@@ -36,7 +36,7 @@ start_xvfb() {
 
 
 init_db() {
-    /source/tests/docker/create-db.sh
+    . /source/tests/docker/create-db.sh
 }
 
 run_pytests() {

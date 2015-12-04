@@ -1,7 +1,7 @@
 {% extends "alertprofiles/base_list.html" %}
 
 {% block top_links %}
-  <a href="{% url alertprofiles-filters-new %}" class="button small">New filter</a>
+  <a href="{% url 'alertprofiles-filters-new' %}" class="button small">New filter</a>
 {% endblock %}
 
 {% block captioncontent %}
@@ -13,12 +13,12 @@
 
     <th>
     {% ifequal order_by "name" %}
-        <a href="{% url alertprofiles-filters %}?page={{ page_obj.number }}&amp;order_by=-name">
+        <a href="{% url 'alertprofiles-filters' %}?page={{ page_obj.number }}&amp;order_by=-name">
           Name
           <i class="fa fa-caret-down"></i>
         </a>
     {% else %}
-        <a href="{% url alertprofiles-filters %}?page={{ page_obj.number }}&amp;order_by=name">
+        <a href="{% url 'alertprofiles-filters' %}?page={{ page_obj.number }}&amp;order_by=name">
           Name
           {% ifequal order_by "-name" %}
             <i class="fa fa-caret-up"></i>
@@ -29,12 +29,12 @@
 
     <th>
     {% ifequal order_by "owner" %}
-        <a href="{% url alertprofiles-filters %}?page={{ page_obj.number }}&amp;order_by=-owner">
+        <a href="{% url 'alertprofiles-filters' %}?page={{ page_obj.number }}&amp;order_by=-owner">
           Owner
           <i class="fa fa-caret-down"></i>
         </a>
     {% else %}
-        <a href="{% url alertprofiles-filters %}?page={{ page_obj.number }}&amp;order_by=owner">
+        <a href="{% url 'alertprofiles-filters' %}?page={{ page_obj.number }}&amp;order_by=owner">
           Owner
           {% ifequal order_by "-owner" %}
             <i class="fa fa-caret-up"></i>
@@ -54,7 +54,7 @@
                 type="checkbox"
                 {% if not admin and not filter.owner %}disabled="disabled" {% endif %}/>
             </td>
-            <td><a href="{% url alertprofiles-filters-detail filter.id %}">
+            <td><a href="{% url 'alertprofiles-filters-detail' filter.id %}">
                 {{ filter.name }}</a></td>
             <td>{% if filter.owner %}Private{% else %}Public{% endif %}</td>
         </tr>

@@ -6,8 +6,8 @@ require(['plugins/graphfetcher'], function (GraphFetcher) {
      *
      * Example:
      * <div class='nav-metrics-container'>
-     *   <div class="graphitegraph" data-url="{% url interface-counter-graph port.id 'Octets' %}"></div>
-     *   <div class="graphitegraph" data-url="{% url interface-counter-graph port.id 'Octets' %}"></div>
+     *   <div class="graphitegraph" data-url="{% url 'interface-counter-graph' port.id 'Octets' %}"></div>
+     *   <div class="graphitegraph" data-url="{% url 'interface-counter-graph' port.id 'Octets' %}"></div>
      * </div>
      *
      * You can create buttons inside 'nav-metrics-controller' to open and

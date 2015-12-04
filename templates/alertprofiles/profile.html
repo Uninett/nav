@@ -2,11 +2,11 @@
 
 {% block tabcontent %}
 
-  <a href="{% url alertprofiles-profile-new %}" class="button small">New profile</a>
+  <a href="{% url 'alertprofiles-profile-new' %}" class="button small">New profile</a>
   <h4>Profiles</h4>
 
 
-  <form action="{% url alertprofiles-profile-remove %}" method="post">
+  <form action="{% url 'alertprofiles-profile-remove' %}" method="post">
     <table class="listtable">
       <thead>
       <tr>
@@ -14,11 +14,11 @@
 
         <th>
           {% ifequal order_by "name" %}
-            <a href="{% url alertprofiles-profile %}?page={{ page_obj.number }}&amp;order_by=-name">
+            <a href="{% url 'alertprofiles-profile' %}?page={{ page_obj.number }}&amp;order_by=-name">
               Name <i class="fa fa-caret-down"></i>
             </a>
           {% else %}
-            <a href="{% url alertprofiles-profile %}?page={{ page_obj.number }}&amp;order_by=name">
+            <a href="{% url 'alertprofiles-profile' %}?page={{ page_obj.number }}&amp;order_by=name">
               Name
             {% ifequal order_by "-name" %}
               <i class="fa fa-caret-up"></i>
@@ -44,7 +44,7 @@
             </td>
 
             <td>
-              <a href="{% url alertprofiles-profile-detail profile.id %}">{{ profile.name }}</a>
+              <a href="{% url 'alertprofiles-profile-detail' profile.id %}">{{ profile.name }}</a>
             </td>
 
             {% ifequal profile.id active_profile.id %}

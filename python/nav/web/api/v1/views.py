@@ -261,8 +261,7 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         """Gets an AlertHistory QuerySet"""
         if not self.request.QUERY_PARAMS.get('stateless', False):
-            return event.AlertHistory.objects.unresolved().select_related(
-                depth=1)
+            return event.AlertHistory.objects.unresolved().select_related()
         else:
             return self._get_stateless_queryset()
 
@@ -274,7 +273,7 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         threshold = datetime.now() - timedelta(hours=hours)
         stateless = Q(start_time__gte=threshold) & Q(end_time__isnull=True)
         return event.AlertHistory.objects.filter(
-            stateless | UNRESOLVED).select_related(depth=1)
+            stateless | UNRESOLVED).select_related()
 
 
 def get_or_create_token(request):

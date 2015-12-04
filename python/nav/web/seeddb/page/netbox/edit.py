@@ -186,7 +186,7 @@ def snmp_type(ip_addr, snmp_ro, snmp_version):
         return None
 
 
-@transaction.commit_on_success
+@transaction.atomic()
 def netbox_do_save(form):
     """Save netbox.
 

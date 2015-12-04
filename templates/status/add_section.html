@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<form action="{% url status-preferences-addsection %}" method="post">
+<form action="{% url 'status-preferences-addsection' %}" method="post">
 {% if add_form %}
 <div class="info">
     {{ add_form.section }}

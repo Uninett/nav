@@ -9,7 +9,7 @@
     <td class="has-add-button">
       <span>{{ neighbor.remote_id }}</span>
       {% if neighbor.remote_id %}
-        <a href="{% url seeddb-netbox-add-suggestion neighbor.remote_id|urlencode %}"
+        <a href="{% url 'seeddb-netbox-add-suggestion' neighbor.remote_id|urlencode %}"
            title="Add unrecognized neighbor to NAV">
           <span class="fa fa-plus-square"></span>
         </a>
@@ -19,7 +19,7 @@
     <td class="has-add-button">
       <span>{{ neighbor.remote_name }}</span>
       {% if neighbor.remote_name %}
-        <a href="{% url seeddb-netbox-add-suggestion neighbor.remote_name|urlencode %}"
+        <a href="{% url 'seeddb-netbox-add-suggestion' neighbor.remote_name|urlencode %}"
            title="Add unrecognized neighbor to NAV">
           <span class="fa fa-plus-square"></span>
         </a>

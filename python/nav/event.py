@@ -209,7 +209,7 @@ class EventNotPostedError(GeneralException):
     pass
 
 
-@transaction.commit_manually
+@transaction.atomic
 def create_type_hierarchy(hierarchy):
     """Create an event/alert type hierarchy in the database.
 
@@ -261,5 +261,4 @@ def create_type_hierarchy(hierarchy):
                 atype.save()
                 created_count += 1
 
-    transaction.commit()
     return created_count

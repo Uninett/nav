@@ -357,7 +357,6 @@ class JobHandler(object):
         so we get ForeignKeys stored before the objects that are using them
         are stored.
         """
-        @db.autocommit
         @db.cleanup_django_debug_after
         def complete_save_cycle():
             # Traverse all the classes in the container repository and

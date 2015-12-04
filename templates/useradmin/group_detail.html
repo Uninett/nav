@@ -10,13 +10,13 @@
 
   <div class="row">
     <div class="column small-12">
-      <a href="{% url useradmin-group_list %}">Back to group list</a>
+      <a href="{% url 'useradmin-group_list' %}">Back to group list</a>
 
       {% comment %} ACTION BUTTONS {% endcomment %}
       <ul class="button-group right">
         {% if group and not group.is_system_group %}
           <li>
-            <a href="{% url useradmin-group_delete group.id %}"
+            <a href="{% url 'useradmin-group_delete' group.id %}"
                class="button small alert">Delete group</a>
           </li>
         {% endif %}
@@ -46,7 +46,7 @@
               <td>{{ privilege.type }}</td>
               <td class="break-word">{{ privilege.target }}</td>
               <td class="text-right">
-                <a href="{% url useradmin-group_privilege_remove group.id,privilege.id %}"
+                <a href="{% url 'useradmin-group_privilege_remove' group.id privilege.id %}"
                    class="button secondary small">
                   Revoke
                 </a>
@@ -79,11 +79,11 @@
             {% for account in group.accounts.all %}
               <tr>
                 <td>
-                  <a href="{% url useradmin-account_detail account.id %}">{{ account }}</a>
+                  <a href="{% url 'useradmin-account_detail' account.id %}">{{ account }}</a>
                 </td>
                 <td class="text-right">
                   {% if not group.is_protected_group %}
-                    <a href="{% url useradmin-group_account_remove group.id,account.id %}"
+                    <a href="{% url 'useradmin-group_account_remove' group.id account.id %}"
                        class="button small secondary">Remove</a>
                   {% endif %}
                 </td>

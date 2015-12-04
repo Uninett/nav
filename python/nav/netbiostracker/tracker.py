@@ -24,7 +24,7 @@ from time import time
 from subprocess import Popen, PIPE
 from nav.models.manage import Arp, Netbios
 from nav.macaddress import MacAddress
-from django.db.transaction import commit_on_success
+from django.db import transaction
 
 SPLITCHAR = '!'
 
@@ -152,7 +152,7 @@ def fetch_database_entries():
 
 
 @timed
-@commit_on_success
+@transaction.atomic()
 def set_end_time(database_entries, entries_to_end):
     """End the entries given"""
     _logger.debug('Ending %s entries', len(entries_to_end))
@@ -163,7 +163,7 @@ def set_end_time(database_entries, entries_to_end):
 
 
 @timed
-@commit_on_success
+@transaction.atomic()
 def create_entries(entries_to_create):
     """Create new netbios entries for the data given"""
     _logger.debug('Creating %s new entries', len(entries_to_create))

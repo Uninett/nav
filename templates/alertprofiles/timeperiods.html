@@ -35,7 +35,7 @@
         </td>
 
         <td>
-          <a href="{% url alertprofiles-profile-timeperiod  a.time_period.id %}">
+          <a href="{% url 'alertprofiles-profile-timeperiod'  a.time_period.id %}">
             {{ a.time_period.start|time:'TIME_FORMAT_SHORT' }} - {{ a.time_period.end|time:'TIME_FORMAT_SHORT' }}
           </a>
         </td>
@@ -45,8 +45,8 @@
           {% if a.alert_subscriptions %}
             {% for b in a.alert_subscriptions %}
             <li>
-                Watch <em><a href="{% url alertprofiles-filter_groups-detail b.filter_group.id %}">{{ b.filter_group.name }}</a></em>,
-                send to <em><a href="{% url alertprofiles-address-detail b.alert_address.id %}">{{ b.alert_address.address }}</a></em>,
+                Watch <em><a href="{% url 'alertprofiles-filter_groups-detail' b.filter_group.id %}">{{ b.filter_group.name }}</a></em>,
+                send to <em><a href="{% url 'alertprofiles-address-detail' b.alert_address.id %}">{{ b.alert_address.address }}</a></em>,
                 {{ b.get_type_display }}.
             </li>
             {% endfor %}
@@ -54,7 +54,7 @@
             <li><em>No subscriptions in this time period.</em></li>
           {% endif %}
           </ul>
-          <a href="{% url alertprofiles-profile-timeperiod-setup a.time_period.id %}"
+          <a href="{% url 'alertprofiles-profile-timeperiod-setup' a.time_period.id %}"
              class="button tiny secondary">
             Edit subscriptions
           </a>

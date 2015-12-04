@@ -60,7 +60,7 @@ def loginit():
         _loginited = True
 
 loginit()
-import django.core.handlers.wsgi
+from django.core.wsgi import get_wsgi_application
 # Such is the WSGI api:
 # pylint: disable=C0103
-application = django.core.handlers.wsgi.WSGIHandler()
+application = get_wsgi_application()

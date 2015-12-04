@@ -19,7 +19,7 @@ from django.conf.urls import patterns, url
 
 urlpatterns = patterns(
     'nav.web.watchdog.views',
-    url('^$', 'render_index', name='watchdog-index'),
+    url(r'^$', 'render_index', name='watchdog-index'),
     url(r'^active_addresses', 'get_active_addresses',
         name='watchdog-active-addresses'),
     url(r'^serial_numbers', 'get_serial_numbers',

@@ -26,6 +26,8 @@ from mock import Mock
 from nav.mibs.cisco_hsrp_mib import CiscoHSRPMib
 
 os.environ['PYSNMP_API_VERSION'] = 'v3'
+import django
+django.setup()
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 
 from nav.oids import OID

@@ -15,9 +15,9 @@
 
     <form method="post"
             {% if confirm_delete %}
-          action="{% url devicehistory-do_delete_module %}"
+          action="{% url 'devicehistory-do_delete_module' %}"
             {% else %}
-          action="{% url devicehistory-module %}"
+          action="{% url 'devicehistory-module' %}"
             {% endif %}
             >
 
@@ -26,7 +26,7 @@
       {% if confirm_delete %}
         <input type="hidden" name="confirm_delete" value="1"/>
         <button type="submit">Yes</button>
-        <a href="{% url devicehistory-module %}" class="button secondary">No</a>
+        <a href="{% url 'devicehistory-module' %}" class="button secondary">No</a>
       {% else %}
         <button type="submit">Remove modules</button>
       {% endif %}

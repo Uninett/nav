@@ -62,7 +62,7 @@
 
       $.ajax({
         type: 'PUT',
-        url: '{% url netmap-defaultview-global %}',
+        url: '{% url 'netmap-defaultview-global' %}',
         data: {view: viewid, owner: 0}
       })
       .done(function () {

@@ -41,7 +41,7 @@
             {% for result in search_result %}
                 <tr>
                     <td>
-                        <a href="{% url machinetracker-ip_short_search result.ip 100 'on' %}"
+                        <a href="{% url 'machinetracker-ip_short_search' result.ip 100 'on' %}"
                            title="Link to Machine Tracker" target="_blank">
                             {{ result.ip }}
                         </a>
@@ -50,7 +50,7 @@
                     <td>{{ result.dns }}</td>
 
                     <td>
-                        <a href="{% url machinetracker-mac_search result.mac 100 'on' %}"
+                        <a href="{% url 'machinetracker-mac_search' result.mac 100 'on' %}"
                            title="Link to Machine Tracker" target="_blank">
                             {{ result.mac }}
                         </a>
@@ -60,7 +60,7 @@
                     <td>{{ result.status }}</td>
                     <td>{{ result.justification }}</td>
                     <td>{{ result.last_changed|date:"DATETIME_FORMAT" }}</td>
-                    <td><a href="{% url arnold-details result.id %}">Details</a></td>
+                    <td><a href="{% url 'arnold-details' result.id %}">Details</a></td>
                 </tr>
             {% endfor %}
             </tbody>

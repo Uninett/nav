@@ -16,7 +16,7 @@
 """Django URL configuration"""
 
 
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 from nav.web.info.vlan.views import (index, vlan_details,
                                      create_prefix_graph, create_vlan_graph)
 

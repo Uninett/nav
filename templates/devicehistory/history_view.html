@@ -2,11 +2,11 @@
 {% load crispy_forms_tags %}
 
 {% block tabcontent %}
-    <a href="{% url devicehistory-search %}" class="button small secondary">New search</a>
+    <a href="{% url 'devicehistory-search' %}" class="button small secondary">New search</a>
 
     <div class="row">
         <div class="medium-9 columns">
-            <form action="{% url devicehistory-view %}" method="get">
+            <form action="{% url 'devicehistory-view' %}" method="get">
                 {% for type, elements in selection.items %}
                     {% for id in elements %}
                         <input type="hidden" name="{{ type }}" value="{{ id }}" />

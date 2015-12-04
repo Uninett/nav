@@ -38,7 +38,7 @@
                     {% for room in rooms %}
                         <tr>
                             <td>
-                                <a href="{% url room-info room.id %}">{{ room.id }}</a>
+                                <a href="{% url 'room-info' room.id %}">{{ room.id }}</a>
                             </td>
                             <td>
                                 {{ room.description }}

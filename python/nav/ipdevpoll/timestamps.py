@@ -89,7 +89,6 @@ class TimestampChecker(object):
     @defer.inlineCallbacks
     def load(self):
         "Loads existing timestamps from db"
-        @db.autocommit
         def _unpickle():
             try:
                 info = manage.NetboxInfo.objects.get(

@@ -25,18 +25,17 @@ from django.db.models import Q
 from django.shortcuts import (render_to_response, get_object_or_404, redirect,
                               render)
 from django.template import RequestContext
-from django.views.generic.list_detail import object_list
+
 from nav.metrics.errors import GraphiteUnreachableError
 
 from nav.models.manage import Netbox, Module, Interface, Prefix, Arp, Cam
 from nav.models.msgmaint import MaintenanceTask
 from nav.models.arnold import Identity
 from nav.models.service import Service
-
 from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import get_interface_counter_graph_url
-from nav.web.utils import create_title
+from nav.web.utils import create_title, SubListView
 from nav.metrics.graphs import get_simple_graph_url
 
 from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
@@ -47,7 +46,6 @@ from .host_information import get_host_info
 NAVPATH = [('Home', '/'), ('IP Device Info', '/ipdevinfo')]
 
 _logger = logging.getLogger('nav.web.ipdevinfo')
-
 
 def find_netboxes(errors, query):
     """Find netboxes based on query parameter
@@ -124,7 +122,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         """Lookup IP device in NAV by either hostname or IP address"""
 
         # Prefetch related objects as to reduce number of database queries
-        netboxes = Netbox.objects.select_related(depth=2)
+        netboxes = Netbox.objects.select_related()
         netbox = None
 
         if name:
@@ -436,9 +434,9 @@ def module_details(request, netbox_sysname, module_name):
         activity_interval_form = ActivityIntervalForm(
             initial={'interval': activity_interval})
 
-    module = get_object_or_404(Module.objects.select_related(depth=1),
-                               netbox__sysname=netbox_sysname,
-                               name=module_name)
+    module = get_object_or_404(Module.objects.select_related(),
+        netbox__sysname=netbox_sysname, name=module_name)
+
     swportstatus_view = get_module_view(module, 'swportstatus')
     swportactive_view = get_module_view(
         module, 'swportactive', activity_interval)
@@ -470,7 +468,7 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
     if not (port_id or port_name):
         return Http404
 
-    ports = Interface.objects.select_related(depth=2)
+    ports = Interface.objects.select_related()
 
     if port_id is not None:
         port = get_object_or_404(ports, id=port_id)
@@ -541,7 +539,7 @@ def service_list(request, handler=None):
 
     page = request.GET.get('page', '1')
 
-    services = Service.objects.select_related(depth=1).order_by(
+    services = Service.objects.select_related('netbox').order_by(
         'netbox__sysname', 'handler')
     if handler:
         services = services.filter(handler=handler)
@@ -550,24 +548,23 @@ def service_list(request, handler=None):
     navpath = NAVPATH + [('Service List',)]
 
     # Pass on to generic view
-    return object_list(
-        request,
-        services,
+    return SubListView.as_view(
+        queryset=services,
         paginate_by=100,
-        page=page,
         template_name='ipdevinfo/service-list.html',
+        allow_empty=True,
         extra_context={
             'show_ipdev_info': True,
             'handler_list': handler_list,
             'handler': handler,
             'title': create_title(navpath),
             'navpath': navpath,
-            'heading': navpath[-1][0]
-
-        },
-        allow_empty=True,
-        context_processors=[search_form_processor],
-        template_object_name='service')
+            'heading': navpath[-1][0],
+            'services': services,
+            'page': page,
+            'context_processors': [search_form_processor],
+            'template_object_name': 'service'
+        },)(request)
 
 
 def service_matrix(request):
@@ -578,7 +575,7 @@ def service_matrix(request):
                     for h in Service.objects.values('handler').distinct()]
 
     matrix_dict = {}
-    for service in Service.objects.select_related(depth=1):
+    for service in Service.objects.select_related('netbox'):
         if service.netbox.id not in matrix_dict:
             matrix_dict[service.netbox.id] = {
                 'sysname': service.netbox.sysname,

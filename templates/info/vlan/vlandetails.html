@@ -54,17 +54,17 @@
             {% for gwportprefix in gwportprefixes %}
                 <tr>
                     <td>
-                        <a href="{% url ipdevinfo-details-by-name gwportprefix.interface.netbox.sysname %}">
+                        <a href="{% url 'ipdevinfo-details-by-name' gwportprefix.interface.netbox.sysname %}">
                             {{ gwportprefix.interface.netbox.sysname }}
                         </a>
                     </td>
                     <td>
-                        <a href="{% url ipdevinfo-details-by-addr gwportprefix.gw_ip %}">
+                        <a href="{% url 'ipdevinfo-details-by-addr' gwportprefix.gw_ip %}">
                             {{ gwportprefix.gw_ip }}
                         </a>
                     </td>
                     <td>
-                        <a href="{% url ipdevinfo-interface-details gwportprefix.interface.netbox.sysname gwportprefix.interface.id %}">
+                        <a href="{% url 'ipdevinfo-interface-details' gwportprefix.interface.netbox.sysname gwportprefix.interface.id %}">
                             {{ gwportprefix.interface.ifname }}
                         </a>
                     </td>
@@ -90,7 +90,7 @@
             {% for prefix in prefixes %}
                 <tr>
                     <td>
-                        <a href="{% url report-prefix-prefix prefix.id %}">
+                        <a href="{% url 'report-prefix-prefix' prefix.id %}">
                             {{ prefix.net_address }}
                         </a>
                     </td>

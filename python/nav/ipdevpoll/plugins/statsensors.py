@@ -18,7 +18,7 @@
 from twisted.internet import defer
 import time
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll.db import autocommit, run_in_thread
+from nav.ipdevpoll.db import run_in_thread
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_path_for_sensor
 from nav.models.manage import Sensor
@@ -43,7 +43,6 @@ class StatSensors(Plugin):
         defer.returnValue(base_can_handle)
 
     @classmethod
-    @autocommit
     def _has_sensors(cls, netbox):
         return Sensor.objects.filter(netbox=netbox.id).count() > 0
 
@@ -59,7 +58,6 @@ class StatSensors(Plugin):
                 self._response_to_metrics, sensors)
             self._logger.debug("got data from sensors: %r", data)
 
-    @autocommit
     def _get_sensors(self):
         sensors = Sensor.objects.filter(netbox=self.netbox.id).values()
         return dict((row['oid'], row) for row in sensors)

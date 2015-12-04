@@ -21,7 +21,7 @@
             {% if metric.thresholds %}
               {% for rule in metric.thresholds %}
                 <strong>
-                  <a href="{% url threshold-edit rule.id %}"
+                  <a href="{% url 'threshold-edit' rule.id %}"
                      {% if rule.description %}title="{{ rule.description }}"{% endif %}>
                     {{ rule.alert }}
                   </a>
@@ -33,14 +33,14 @@
             {% endif %}
           </td>
           <td>
-            <a href="{% url threshold-add metric.id %}"
+            <a href="{% url 'threshold-add' metric.id %}"
                title="Add a new threshold rule for this metric"
                class="tiny button secondary">Add</a>
           </td>
         </tr>
         <tr>
           <td class="graphitegraph hidden" colspan="3"
-              data-url="{% url graphite-render-url metric.id %}"
+              data-url="{% url 'graphite-render-url' metric.id %}"
               data-handler-id="metric-graph-{{ forloop.counter }}">
             <div class="rickshaw-container"
                  data-title="{{ metric.id }}"

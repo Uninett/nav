@@ -1,12 +1,25 @@
 """Template tags used in info subsystem"""
 import time
-from django import template
+from django import template, VERSION as DJANGO_VERSION
 from datetime import datetime, timedelta
 from django.utils.timesince import timesince
 
 # pylint: disable=C0103
 register = template.Library()
 
+NON_BREAKING_SPACE = u'\xa0'
+
+def get_stupid_space():
+    """Returns normal space for django<1.6 and non-breaking-space for >=1.6
+       https://code.djangoproject.com/ticket/20246
+       https://github.com/django/django/commit/7d77e9786a118dd95a268872dd9d36664066b96a
+    """
+    major = DJANGO_VERSION[0]
+    minor = DJANGO_VERSION[1]
+    if major >=1 and minor >=6:
+        return NON_BREAKING_SPACE
+    else:
+        return " "
 
 @register.filter
 def time_since(timestamp):
@@ -21,7 +34,8 @@ def time_since(timestamp):
     if timestamp is None:
         return "Never"
 
-    if timestamp == datetime.max or timesince(timestamp) == "0 minutes":
+    if timestamp == datetime.max or timesince(timestamp) == u"0{}minutes".format(
+        get_stupid_space()):
         return "Now"
     else:
         text = timesince(timestamp)
@@ -37,7 +51,8 @@ def days_since(timestamp):
     if timestamp is None:
         return "Never"
 
-    if timestamp == datetime.max or timesince(timestamp) == "0 minutes":
+    if timestamp == datetime.max or timesince(timestamp) == "0{}minutes".format(
+        get_stupid_space()):
         return "Now"
     elif timestamp.date() == datetime.now().date():
         return "Today"

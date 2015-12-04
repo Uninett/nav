@@ -6,7 +6,7 @@
 
   {% if active_profile %}
     <h4>Active profile:
-      <a href="{% url alertprofiles-profile-detail active_profile.id %}">
+      <a href="{% url 'alertprofiles-profile-detail' active_profile.id %}">
         {{ active_profile.name }}
       </a>
     </h4>
@@ -17,10 +17,10 @@
       There is no active profile set.
     </p>
 
-      <a href="{% url alertprofiles-profile %}" class="button small">
+      <a href="{% url 'alertprofiles-profile' %}" class="button small">
           Activate an existing one
       </a>
-      <a href="{% url alertprofiles-profile-new %}" class="button small">
+      <a href="{% url 'alertprofiles-profile-new' %}" class="button small">
           Create a new profile
       </a>
 
@@ -49,7 +49,7 @@
 
       <div class="column medium-4">
         <h5>Alert language</h5>
-        <form action="{% url alertprofiles-language-save %}" method="post" class="inline-form custom">
+        <form action="{% url 'alertprofiles-language-save' %}" method="post" class="inline-form custom">
           {{ language_form.value }}
           {{ language_form.property }}
           <input type="submit" value="Save changes" class="button tiny"/>

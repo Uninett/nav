@@ -27,7 +27,7 @@
         {% for netboxgroup in netboxgroups %}
             <tr>
                 <td>
-                    <a href="{% url netbox-group-detail netboxgroup.pk %}">{{ netboxgroup.pk }}</a>
+                    <a href="{% url 'netbox-group-detail' netboxgroup.pk %}">{{ netboxgroup.pk }}</a>
                 </td>
                 <td>{{ netboxgroup.description }}</td>
                 <td>
@@ -36,7 +36,7 @@
                             {% if netboxes %}
                                 {% for netbox in netboxes %}
                                     <li>
-                                        <a href="{% url ipdevinfo-details-by-name netbox.sysname %}">
+                                        <a href="{% url 'ipdevinfo-details-by-name' netbox.sysname %}">
                                             {{ netbox.sysname }}
                                         </a>
                                     </li>
@@ -48,7 +48,7 @@
                     </ul>
                 </td>
                 <td>
-                    <a href="{% url netbox-group-edit netboxgroup.pk %}">Edit</a>
+                    <a href="{% url 'netbox-group-edit' netboxgroup.pk %}">Edit</a>
                 </td>
             </tr>
         {% endfor %}

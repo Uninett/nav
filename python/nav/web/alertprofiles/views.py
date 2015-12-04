@@ -30,7 +30,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.shortcuts import render_to_response
-from django.views.generic.list_detail import object_list
+from nav.web.utils import SubListView
 
 from nav.models.profiles import (
     Account,
@@ -170,14 +170,12 @@ def show_profile(request):
         'navpath': BASE_PATH+[('Profiles', None)],
         'title': 'NAV - Alert profiles',
     }
-    return object_list(
-        request,
+    return SubListView.as_view(
         queryset=profiles,
         paginate_by=PAGINATE_BY,
-        page=page,
         template_name='alertprofiles/profile.html',
         extra_context=info_dict,
-    )
+    )(request)
 
 
 def profile_show_form(request, profile_id=None, profile_form=None,
@@ -941,6 +939,7 @@ def address_list(request):
     ).filter(account=account.pk).order_by(order_by)
 
     info_dict = {
+        'page': page,
         'active': {'address': True},
         'subsection': {'list': True},
         'form_action': reverse('alertprofiles-address-remove'),
@@ -949,14 +948,12 @@ def address_list(request):
         'navpath': BASE_PATH+[('Address', None)],
         'title': 'NAV - Alert profiles',
     }
-    return object_list(
-        request,
+    return SubListView.as_view(
         queryset=address,
         paginate_by=PAGINATE_BY,
-        page=page,
         template_name='alertprofiles/address_list.html',
         extra_context=info_dict,
-    )
+    )(request)
 
 
 def address_show_form(request, address_id=None, address_form=None):
@@ -1206,20 +1203,19 @@ def sms_list(request):
     sms = SMSQueue.objects.filter(account=account).order_by(order_by)
 
     info_dict = {
+        'page': page,
         'active': {'sms': True},
         'page_link': reverse('alertprofiles-sms'),
         'order_by': order_by,
         'navpath': BASE_PATH+[('My SMS', None)],
         'title': 'NAV - Alert profiles',
     }
-    return object_list(
-        request,
+    return SubListView.as_view(
         queryset=sms,
         paginate_by=PAGINATE_BY,
-        page=page,
         template_name='alertprofiles/sms_list.html',
         extra_context=info_dict,
-    )
+    )(request)
 
 
 def filter_list(request):
@@ -1244,6 +1240,7 @@ def filter_list(request):
 
     active = {'filters': True}
     info_dict = {
+        'page': page,
         'active': active,
         'subsection': {'list': True},
         'admin': admin,
@@ -1253,14 +1250,12 @@ def filter_list(request):
         'navpath': BASE_PATH+[('Filters', None)],
         'title': 'NAV - Alert profiles',
     }
-    return object_list(
-        request,
+    return SubListView.as_view(
         queryset=filters,
         paginate_by=PAGINATE_BY,
-        page=page,
         template_name='alertprofiles/filter_list.html',
         extra_context=info_dict,
-    )
+    )(request)
 
 
 def filter_show_form(request, filter_id=None, filter_form=None):
@@ -1686,6 +1681,7 @@ def filter_group_list(request):
 
     active = {'filter_groups': True}
     info_dict = {
+        'page': page,
         'active': active,
         'subsection': {'list': True},
         'admin': admin,
@@ -1697,14 +1693,12 @@ def filter_group_list(request):
         ],
         'title': 'NAV - Alert profiles',
     }
-    return object_list(
-        request,
+    return SubListView.as_view(
         queryset=filter_groups,
         paginate_by=PAGINATE_BY,
-        page=page,
         template_name='alertprofiles/filter_group_list.html',
         extra_context=info_dict,
-    )
+    )(request)
 
 
 def filter_group_show_form(request, filter_group_id=None,
@@ -2224,6 +2218,7 @@ def matchfield_list(request):
     # Get all matchfields aka. filter variables
     matchfields = MatchField.objects.all().order_by(order_by)
     info_dict = {
+        'page': page,
         'active': {'matchfields': True},
         'subsection': {'list': True},
         'form_action': reverse('alertprofiles-matchfields-remove'),
@@ -2233,14 +2228,12 @@ def matchfield_list(request):
         ],
         'title': 'NAV - Alert profiles',
     }
-    return object_list(
-        request,
+    return SubListView.as_view(
         queryset=matchfields,
         paginate_by=PAGINATE_BY,
-        page=page,
         template_name='alertprofiles/matchfield_list.html',
         extra_context=info_dict,
-    )
+    )(request)
 
 
 def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):

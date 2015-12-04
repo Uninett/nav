@@ -6,9 +6,9 @@
 
   <table class="listtable status2table expand">
     <caption>
-      <a href="{% url status2-index %}" title="Go to the status page">Status now</a>
-      <span class="last-updated right">{{ last_updated }}</span>
-    </caption>
+      <a href="{% url 'status2-index' %}" title="Go to the status page">Status now</a>
+      <span class="last-updated pull-right">{{ last_updated }}</span>
+	</caption>
     <thead>
     <tr>
       <th>Subject</th>
@@ -47,7 +47,7 @@
     </div>
 
     <div class="status2-widget-footer">
-      <a href="{% url status2-index %}" title="Go to the status page">Go to the status page</a>
+      <a href="{% url 'status2-index' %}" title="Go to the status page">Go to the status page</a>
       <small class="last-updated">Last updated: {{ last_updated }}</small>
     </div>
 

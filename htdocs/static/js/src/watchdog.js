@@ -36,7 +36,7 @@ require(['libs/spin.min'], function () {
         });
 
         doRequest(serialNumbers, '/watchdog/serial_numbers', function(data) {
-            serialNumbers.innerHTML = intComma(data);
+            serialNumbers.innerHTML = intComma(data.count);
         });
 
     }

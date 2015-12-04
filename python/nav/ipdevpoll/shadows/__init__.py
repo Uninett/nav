@@ -444,7 +444,6 @@ class GwPortPrefix(Shadow):
         cls._delete_missing_addresses(containers)
 
     @classmethod
-    @db.autocommit
     def _delete_missing_addresses(cls, containers):
         missing_addresses = cls._get_missing_addresses(containers)
         gwips = [row['gw_ip'] for row in missing_addresses.values('gw_ip')]
@@ -458,7 +457,6 @@ class GwPortPrefix(Shadow):
         missing_addresses.delete()
 
     @classmethod
-    @db.autocommit
     def _get_missing_addresses(cls, containers):
         found_addresses = [g.gw_ip
                            for g in containers[cls].values()]
@@ -568,7 +566,6 @@ class Sensor(Shadow):
         cls._delete_missing_sensors(containers)
 
     @classmethod
-    @db.autocommit
     def _delete_missing_sensors(cls, containers):
         missing_sensors = cls._get_missing_sensors(containers)
         sensor_names = [row['internal_name']
@@ -582,7 +579,6 @@ class Sensor(Shadow):
         missing_sensors.delete()
 
     @classmethod
-    @db.autocommit
     def _get_missing_sensors(cls, containers):
         found_sensor_pks = [sensor.id for sensor in containers[cls].values()]
         netbox = containers.get(None, Netbox)
@@ -600,7 +596,6 @@ class PowerSupplyOrFan(Shadow):
         cls._delete_missing_psus_and_fans(containers)
 
     @classmethod
-    @db.autocommit
     def _delete_missing_psus_and_fans(cls, containers):
         missing_psus_and_fans = cls._get_missing_psus_and_fans(containers)
         psu_and_fan_names = [row['name']
@@ -614,7 +609,6 @@ class PowerSupplyOrFan(Shadow):
         missing_psus_and_fans.delete()
 
     @classmethod
-    @db.autocommit
     def _get_missing_psus_and_fans(cls, containers):
         found_psus_and_fans_pks = [psu_fan.id
                                    for psu_fan in containers[cls].values()]

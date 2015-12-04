@@ -16,9 +16,10 @@
 """netbox related shadow classes"""
 from nav.models import manage
 from django.db.models import Q
+from django.db import transaction
 
 from nav.ipdevpoll.storage import Shadow
-from nav.ipdevpoll import db
+
 
 # pylint: disable=C0111
 class Netbox(Shadow):
@@ -61,7 +62,7 @@ class Netbox(Shadow):
             self.sysname = liveself.ip
 
     @classmethod
-    @db.commit_on_success
+    @transaction.atomic()
     def cleanup_replaced_netbox(cls, netbox_id, new_type):
         """Removes basic inventory knowledge for a netbox.
 

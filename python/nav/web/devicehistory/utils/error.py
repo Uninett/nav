@@ -35,7 +35,7 @@ STATE_END = 'e'
 
 _ = lambda a: a
 
-@transaction.commit_on_success
+@transaction.atomic()
 def register_error_events(request, **kwargs):
     messages = Messages(request)
 

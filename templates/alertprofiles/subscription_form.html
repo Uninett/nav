@@ -7,9 +7,9 @@
   </h4>
 
   {% if profile %}
-    <p><a href="{% url alertprofiles-profile-detail profile.id %}">Back to profile</a></p>
+    <p><a href="{% url 'alertprofiles-profile-detail' profile.id %}">Back to profile</a></p>
   {% else %}
-    <p><a href="{% url alertprofiles-profile %}">Back to profiles</a></p>
+    <p><a href="{% url 'alertprofiles-profile' %}">Back to profiles</a></p>
   {% endif %}
 
   {% if not editing %}
@@ -23,7 +23,7 @@
 {% block subscriptions %}
 {% if subscriptions %}
 
-<form action="{% url alertprofiles-profile-timeperiod-subscription-remove %}" method="post">
+<form action="{% url 'alertprofiles-profile-timeperiod-subscription-remove' %}" method="post">
     <table class="listtable full-width">
         <thead>
             <tr>
@@ -41,11 +41,11 @@
             <tr>
                 <td><input type="checkbox" name="subscription"
                 id="id_subscription_{{ s.id }}" value="{{ s.id }}" /></td>
-                <td><a href="{% url alertprofiles-filter_groups-detail s.filter_group.id %}">{{ s.filter_group.name }}</a></td>
-                <td><a href="{% url alertprofiles-address-detail s.alert_address.id %}">{{ s.alert_address }}</a></td>
+                <td><a href="{% url 'alertprofiles-filter_groups-detail' s.filter_group.id %}">{{ s.filter_group.name }}</a></td>
+                <td><a href="{% url 'alertprofiles-address-detail' s.alert_address.id %}">{{ s.alert_address }}</a></td>
                 <td>{{ s.get_type_display|capfirst }}</td>
                 <td>{{ s.ignore_resolved_alerts|yesno:"Yes,No" }}</td>
-                <td><a href="{% url alertprofiles-profile-timeperiod-subscription s.id %}">
+                <td><a href="{% url 'alertprofiles-profile-timeperiod-subscription' s.id %}">
                     Edit</a></td>
             </tr>
         {% endfor %}
@@ -62,21 +62,21 @@
 {% block subscription_form %}
 
 <div class="addexpressionform">
-    <form action="{% url alertprofiles-profile-timeperiod-subscription-add %}" method="post">
+    <form action="{% url 'alertprofiles-profile-timeperiod-subscription-add' %}" method="post">
         <h5>{{ editing|yesno:"Edit,Add new" }} subscription</h5>
         <div class="formcontainer">
 
         {% if not num_addresses %}
             <div class="alert-box alert">
               There are no alert addresses.
-              <a href="{% url alertprofiles-address-new %}">Add your first address</a> to fix this problem.
+              <a href="{% url 'alertprofiles-address-new' %}">Add your first address</a> to fix this problem.
             </div>
         {% endif %}
 
         {% if not num_filter_groups %}
             <div class="alert-box alert">
               There are no available filter groups.
-              <a href="{% url alertprofiles-filter_groups-new %}">Add your first filter group</a> to fix this problem.
+              <a href="{% url 'alertprofiles-filter_groups-new' %}">Add your first filter group</a> to fix this problem.
             </div>
         {% endif %}
           {% crispy form %}

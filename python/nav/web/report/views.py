@@ -444,7 +444,7 @@ def generate_export(report, report_name, export_delimiter):
         else:
             return cell.text
 
-    response = HttpResponse(mimetype="text/x-csv; charset=utf-8")
+    response = HttpResponse(content_type="text/x-csv; charset=utf-8")
     response["Content-Type"] = "application/force-download"
     response["Content-Disposition"] = (
         "attachment; filename=report-%s-%s.csv" %

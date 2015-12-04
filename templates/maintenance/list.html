@@ -34,7 +34,7 @@
                 </td>
             {% endif %}
             <td>
-                <a href="{% url maintenance-view task.id %}" class="url">
+                <a href="{% url 'maintenance-view' task.id %}" class="url">
                   <span class="summary">
                     {{ task.description|truncatewords:8 }}
                   </span>
@@ -42,7 +42,7 @@
             </td>
             <td>
                 {% if task.netbox %}
-                    <a href="{% url ipdevinfo-details-by-name task.netbox.sysname %}">
+                    <a href="{% url 'ipdevinfo-details-by-name' task.netbox.sysname %}">
                         {{ task.netbox.get_short_sysname }}</a>
                 {% else %}
                     {{ task.component_count}}

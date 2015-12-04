@@ -1,8 +1,12 @@
+from __future__ import unicode_literals
+
 import unittest
 
 from datetime import timedelta, datetime
-from nav.django.templatetags.info import (time_since, is_max_timestamp,
+from nav.django.templatetags.info import (get_stupid_space, time_since,
+                                          is_max_timestamp,
                                           get_attr, find_attr)
+
 
 class DummyObject(object):
     def __init__(self):
@@ -31,10 +35,10 @@ class TemplateTagsTest(unittest.TestCase):
             "Never")
         self.assertEqual(
             time_since(timestamp_calc(seconds=(10 * minute + 10))),
-            "10 mins")
+            "10{}mins".format(get_stupid_space()))
         self.assertEqual(
             time_since(timestamp_calc(seconds=(1 * minute + 5))),
-            "1 min")
+            "1{}min".format(get_stupid_space()))
         self.assertEqual(
             time_since(timestamp_calc(0)),
             "Now")
@@ -51,7 +55,7 @@ class TemplateTagsTest(unittest.TestCase):
     def test_get_attr_basic_lookup(self):
         """Test template filter for getting attributes from objects"""
 
-        self.assertTrue(isinstance(get_attr(self.dummy, 'test'), str))
+        self.assertTrue(isinstance(get_attr(self.dummy, 'test'), unicode))
         self.assertTrue(
             isinstance(get_attr(self.dummy, 'dummyobject'), AnotherDummyObject))
         self.assertEqual(get_attr(self.dummy, 'tes'), "")
@@ -61,7 +65,7 @@ class TemplateTagsTest(unittest.TestCase):
         """Test template filter for getting attributes from objects"""
 
         self.assertTrue(
-            isinstance(get_attr(self.dummy, 'dummyobject.test'), str))
+            isinstance(get_attr(self.dummy, 'dummyobject.test'), unicode))
 
 
     def test_get_attr_chained_lookup_error(self):
@@ -81,7 +85,7 @@ class TemplateTagsTest(unittest.TestCase):
         """Test helper function for getting attributes from objects"""
 
         self.assertTrue(
-            isinstance(find_attr(self.dummy, ['dummyobject', 'test']), str))
+            isinstance(find_attr(self.dummy, ['dummyobject', 'test']), unicode))
 
 
     def test_find_attr_error_lookup(self):

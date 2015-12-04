@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013-2015 UNINETT
+# Copyright (C) 2013 UNINETT
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,7 +16,7 @@
 """Retrieval and calculations on raw numbers from Graphite metrics"""
 
 from datetime import datetime
-import simplejson
+import json as simplejson
 from urllib import urlencode
 import urllib2
 from urlparse import urljoin

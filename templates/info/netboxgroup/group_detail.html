@@ -4,7 +4,7 @@
 
     <h4>Details for group {{ netboxgroup.pk }}</h4>
 
-    <a href="{% url netbox-group-edit netboxgroup.pk %}" class="button small">Edit device group</a>
+    <a href="{% url 'netbox-group-edit' netboxgroup.pk %}" class="button small">Edit device group</a>
 
     <table class="listtable netbox_availability_list">
         <caption>Netboxes in {{ netboxgroup.pk }}</caption>

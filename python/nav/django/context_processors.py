@@ -62,9 +62,14 @@ def account_processor(request):
     """
     account = get_account(request)
     admin = is_admin(account)
-    messages = Messages(request)
-    messages = messages.get_and_delete()
-    sudo = get_sudoer(request)
+
+    if hasattr(request, 'session'):
+        messages = Messages(request)
+        messages = messages.get_and_delete()
+        sudo = get_sudoer(request)
+    else:
+        messages = None
+        sudo = None
 
     my_links = NavbarLink.objects.filter(account=account)
 

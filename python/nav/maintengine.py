@@ -30,7 +30,7 @@ from nav.models import manage, service
 from nav.models.event import EventQueue as Event, AlertHistory
 from nav.models.msgmaint import MaintenanceTask
 
-from django.db.transaction import commit_on_success
+from django.db import transaction
 from django.db.models import Q
 
 INFINITY = datetime.datetime.max
@@ -65,7 +65,7 @@ def init_logging(log_file=None, log_format=None):
     return _logger
 
 
-@commit_on_success
+@transaction.atomic()
 def schedule():
     """Changes invalid task states to 'scheduled'"""
     tasks = MaintenanceTask.objects.filter(
@@ -74,7 +74,7 @@ def schedule():
     tasks.update(state=MaintenanceTask.STATE_SCHEDULED)
 
 
-@commit_on_success
+@transaction.atomic()
 def check_tasks_without_end():
     """
     Ends all endless maintenance tasks whose event subjects have all been up
@@ -105,7 +105,7 @@ def check_tasks_without_end():
             task.save()
 
 
-@commit_on_success
+@transaction.atomic()
 def do_state_transitions():
     """
     Finds active or scheduled tasks that have run out and sets them as passed,
@@ -176,7 +176,7 @@ def check_state_differences():
         create_event(subject, state=Event.STATE_END, value=0)
 
 
-@commit_on_success
+@transaction.atomic()
 def create_event(subject, state, value, taskid=None):
     """
     Adds events to the EventQueue that starts or ends maintenance tasks based

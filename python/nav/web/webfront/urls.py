@@ -15,7 +15,7 @@
 #
 """Django URL configuration for webfront"""
 
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 
 urlpatterns = patterns(
     'nav.web.webfront.views',

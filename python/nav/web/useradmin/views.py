@@ -82,10 +82,6 @@ def account_detail(request, account_id=None):
 
         elif 'submit_sudo' in request.POST:
             return sudo_to_user(request)
-    else:
-        account_form = forms.AccountForm(instance=account)
-        org_form = forms.OrganizationAddForm(account)
-        group_form = forms.GroupAddForm(account)
 
     active = {'account_detail': True} if account else {'account_new': True}
 

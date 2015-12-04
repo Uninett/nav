@@ -428,7 +428,6 @@ def log_job_externally(job_handler, success=True, interval=None):
                            duration.microseconds / 1e6)
     timestamp = time.time()
 
-    @db.autocommit
     def _create_record(timestamp):
         log = manage.IpdevpollJobLog(
             netbox_id=job_handler.netbox.id,

@@ -20,7 +20,7 @@ from nav.models import manage
 from nav.ipdevpoll import Plugin, shadows
 from nav.mibs.cisco_cdp_mib import CiscoCDPMib
 from nav.ipdevpoll.neighbor import CDPNeighbor, filter_duplicate_neighbors
-from nav.ipdevpoll.db import autocommit, run_in_thread
+from nav.ipdevpoll.db import run_in_thread
 from nav.ipdevpoll.timestamps import TimestampChecker
 
 INFO_VAR_NAME = 'cdp'
@@ -46,7 +46,6 @@ class CDP(Plugin):
         defer.returnValue(has_ifcs and daddy_says_ok)
 
     @classmethod
-    @autocommit
     def _has_interfaces(cls, netbox):
         return manage.Interface.objects.filter(
             netbox__id=netbox.id).count() > 0
@@ -81,7 +80,6 @@ class CDP(Plugin):
 
         defer.returnValue(stampcheck)
 
-    @autocommit
     def _process_cache(self):
         """
         Tries to synchronously identify CDP cache entries in NAV's database

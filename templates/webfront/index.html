@@ -26,7 +26,7 @@
                     <td>{{ navlet.title }}</td>
                     <td>{{ navlet.description }}</td>
                     <td>
-                        <form class="add-user-navlet" action="{% url add-user-navlet %}"
+                        <form class="add-user-navlet" action="{% url 'add-user-navlet' %}"
                               method="post">
                             <input type="hidden" name="navlet"
                                    value="{{ navlet.get_class }}">
@@ -44,10 +44,10 @@
 
   {% comment %} Main container for navlets {% endcomment %}
   <div id="navlets"
-       data-list-navlets="{% url get-user-navlets %}"
-       data-remove-navlet="{% url remove-user-navlet %}"
-       data-save-order-url="{% url save-navlet-order %}"
-       data-base-template-url={% url navlet-base-template %}
+       data-list-navlets="{% url 'get-user-navlets' %}"
+       data-remove-navlet="{% url 'remove-user-navlet' %}"
+       data-save-order-url="{% url 'save-navlet-order' %}"
+       data-base-template-url="{% url 'navlet-base-template' %}"
        data-widget-columns="{{ widget_columns }}"
           ></div>
 

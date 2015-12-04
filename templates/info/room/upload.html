@@ -6,9 +6,9 @@
     <link href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"  rel="stylesheet">
     <script>require(["src/info_room_upload"]);</script>
      <script>
-        NAV.urls['room-info-update-title'] = "{% url room-info-update-title %}";
-        NAV.urls['room-info-delete-image'] = "{% url room-info-delete-image %}";
-        NAV.urls['room-info-update-priority'] = "{% url room-info-update-priority %}";
+        NAV.urls['room-info-update-title'] = "{% url 'room-info-update-title' %}";
+        NAV.urls['room-info-delete-image'] = "{% url 'room-info-delete-image' %}";
+        NAV.urls['room-info-update-priority'] = "{% url 'room-info-update-priority' %}";
     </script>
 {% endblock %}
 
@@ -32,9 +32,9 @@
     </ul>
   </div>
 
-  <p><a href="{% url room-info room.id %}">Back to room</a></p>
+  <p><a href="{% url 'room-info' room.id %}">Back to room</a></p>
 
-  <form action="{% url room-info-upload room.id %}" method="POST" enctype="multipart/form-data">
+  <form action="{% url 'room-info-upload' room.id %}" method="POST" enctype="multipart/form-data">
     {% crispy uploadform %}
   </form>
 

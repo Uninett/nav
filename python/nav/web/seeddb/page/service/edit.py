@@ -197,7 +197,7 @@ def service_add(request):
                               context, RequestContext(request))
 
 
-@transaction.commit_on_success
+@transaction.atomic()
 def service_save(request, service_form, property_form):
     """Saves a service based on two form inputs"""
     service_id = service_form.cleaned_data.get('service')

@@ -15,7 +15,7 @@
 #
 """macwatch Django URL config"""
 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 from nav.web.macwatch.views import list_watch, add_macwatch, delete_macwatch
 from nav.web.macwatch.views import edit_macwatch
 

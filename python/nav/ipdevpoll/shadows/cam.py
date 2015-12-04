@@ -50,8 +50,8 @@ from collections import namedtuple
 from nav.models import manage
 from nav.models.fields import INFINITY
 from django.db.models import Q
+from django.db import transaction
 from nav.ipdevpoll.storage import DefaultManager
-from nav.ipdevpoll.db import commit_on_success
 from .netbox import Netbox
 from .interface import Interface
 
@@ -116,7 +116,7 @@ class CamManager(DefaultManager):
             len(self._previously_open), reclaimable_count, len(self._now_open),
             len(self._keepers), len(self._new), len(self._missing))
 
-    @commit_on_success
+    @transaction.atomic()
     def save(self):
         # Reuse the same object over and over in an attempt to avoid the
         # overhead of Python object creation

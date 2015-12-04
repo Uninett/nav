@@ -313,7 +313,7 @@ class VlanTopologyUpdater(object):
     def __call__(self):
         return self.update()
 
-    @transaction.commit_on_success
+    @transaction.atomic()
     def update(self):
         """Updates the VLAN topology in the NAV database"""
         for ifc, vlans in self.ifc_vlan_map.items():

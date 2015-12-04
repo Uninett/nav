@@ -55,7 +55,7 @@
             <td><a href="{{ service.netbox.get_absolute_url }}">
                 {{ service.netbox.get_short_sysname }}</a></td>
         {% endif %}
-        <td><a href="{% url ipdevinfo-service-list-handler service.handler %}">
+        <td><a href="{% url 'ipdevinfo-service-list-handler' service.handler %}">
             {{ service.handler }}</a></td>
         <td>{{ service.version|default:"N/A" }}</td>
         {% with service.get_statistics as stats %}
@@ -107,9 +107,9 @@
         {% endwith %}
         {% endwith %}
         <td>
-            <a href="{% url seeddb-service-edit service.id %}">
+            <a href="{% url 'seeddb-service-edit' service.id %}">
                 Edit</a>,
-            <a href="{% url maintenance-new-service service.id %}">
+            <a href="{% url 'maintenance-new-service' service.id %}">
                 schedule maintenance</a>
         </td>
     </tr>

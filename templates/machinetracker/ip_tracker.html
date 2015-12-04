@@ -41,16 +41,16 @@
 
             <td>
                 {% with form_data.dns|yesno:"True," as dns %}
-                <span style="display:none;">{{ row.ip_int_value }}</span> <a href="{% url machinetracker-ip_short_search row.ip form_data.days dns %}" title="Search for this IP address">
+                <span style="display:none;">{{ row.ip_int_value }}</span> <a href="{% url 'machinetracker-ip_short_search' row.ip form_data.days dns %}" title="Search for this IP address">
                     {{ row.ip }}</a>
             </td>
             <td>
-                <a href="{% url ipdevinfo-details-by-addr row.ip %}" title="Lookup this IP in IP Device Info">
+                <a href="{% url 'ipdevinfo-details-by-addr' row.ip %}" title="Lookup this IP in IP Device Info">
                 <img src="{{ STATIC_URL }}images/arpcam/ipinfolink.png" alt="IP Info search" /></a>
             </td>
             <td>
                 {% if row.mac %}
-                <a href="{% url machinetracker-mac_search row.mac form_data.days dns %}" title="Search for this MAC address">
+                <a href="{% url 'machinetracker-mac_search' row.mac form_data.days dns %}" title="Search for this MAC address">
                 {{ row.mac }}</a>
                 {% endif %}
                 {% endwith %}

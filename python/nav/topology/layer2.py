@@ -22,7 +22,7 @@ from nav.models.manage import Interface, Netbox
 from django.db import transaction
 from django.db.models import Q
 
-@transaction.commit_on_success
+@transaction.atomic()
 def update_layer2_topology(links):
     """Updates the layer 2 topology in the NAV database.
 

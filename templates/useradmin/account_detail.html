@@ -11,7 +11,7 @@
   {% comment %} ACTION BUTTONS {% endcomment %}
   <div class="row">
     <div class="column small-12">
-      <a href="{% url useradmin-account_list %}">Back to account list</a>
+      <a href="{% url 'useradmin-account_list' %}">Back to account list</a>
 
       <ul class="inline-list right">
         {% if account and current_user_data.is_admin and not current_user_data.sudoer %}
@@ -28,7 +28,7 @@
 
         {% if account and not account.is_system_account %}
           <li>
-            <a href="{% url useradmin-account_delete account.id %}"
+            <a href="{% url 'useradmin-account_delete' account.id %}"
                class="button alert small">
               Delete account
             </a>
@@ -61,7 +61,7 @@
               <tr>
                 <td>{{ org }}</td>
                 <td class="text-right">
-                  <a href="{% url useradmin-account_organization_remove account.id,org.id %}"
+                  <a href="{% url 'useradmin-account_organization_remove' account.id org.id %}"
                      class="button secondary tiny">Remove</a>
                 </td>
               </tr>
@@ -84,14 +84,14 @@
             {% for group in account.accountgroup_set.all %}
               <tr>
                 <td>
-                  <a href="{% url useradmin-group_detail group.id %}">{{ group }}</a>
+                  <a href="{% url 'useradmin-group_detail' group.id %}">{{ group }}</a>
                 </td>
                 <td>
                   {{ group.description }}
                 </td>
                 <td class="text-right">
                   {% if not group.is_protected_group %}
-                    <a href="{% url useradmin-account_group_remove account.id,group.id %}"
+                    <a href="{% url 'useradmin-account_group_remove' account.id group.id %}"
                        class="button secondary tiny">Remove</a>
                   {% else %}
                     &nbsp;

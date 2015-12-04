@@ -15,7 +15,7 @@
 #
 """SeedDB Django URL config"""
 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 
 from nav.web.maintenance.views import active, planned, historic, calendar
 from nav.web.maintenance.views import view, cancel, edit, redirect_to_calendar

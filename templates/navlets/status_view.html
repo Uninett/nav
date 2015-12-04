@@ -5,7 +5,7 @@
         <table class="listtable expand table-hover">
 
             <caption>
-                <a href="{% url status-index %}">Status now</a>
+                <a href="{% url 'status-index' %}">Status now</a>
                 &ndash;
                 <span class="subtitle">
                             {{ boxes_down|length }} IP device{{ boxes_down|pluralize }} down,
@@ -25,7 +25,7 @@
             {% for b in boxes_down %}
                 <tr>
                     <td>
-                        <a href="{% url ipdevinfo-details-by-name b.netbox.sysname %}">
+                        <a href="{% url 'ipdevinfo-details-by-name' b.netbox.sysname %}">
                             {{ b.netbox.sysname }}</a></td>
                     <td class="hide-for-medium-down">{{ b.netbox.ip }}</td>
                     <td>{{ b.start_time|timesince:date_now }}</td>
@@ -37,7 +37,7 @@
         {% if problems %}
           <p class="alert-box alert">
             There are also {{ problems }} other problems.
-            <a href="{% url status-index %}">See the full list.</a>
+            <a href="{% url 'status-index' %}">See the full list.</a>
           </p>
         {% endif %}
     {% else %}
@@ -45,7 +45,7 @@
         {% if problems %}
           <p class="alert-box alert">
             However there are {{ problems }} other problems.
-            <a href="{% url status-index %}">See the full list.</a>
+            <a href="{% url 'status-index' %}">See the full list.</a>
           </p>
         {% endif %}
     {% endif %}

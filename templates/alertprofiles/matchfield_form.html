@@ -1,9 +1,9 @@
 {% extends "alertprofiles/base_detail.html" %}
 
-{% block url_edit %}{% url alertprofiles-matchfields-save %}{% endblock %}
+{% block url_edit %}{% url 'alertprofiles-matchfields-save' %}{% endblock %}
 
 {% block backnavigation %}
-    <p><a href="{% url alertprofiles-matchfields %}">Back to matchfields</a></p>
+    <p><a href="{% url 'alertprofiles-matchfields' %}">Back to matchfields</a></p>
 {% endblock %}
 
 {% block headercontent %}

@@ -316,7 +316,7 @@ class AlertAddress(models.Model):
     def __unicode__(self):
         return self.type.scheme() + self.address
 
-    @transaction.commit_manually
+    @transaction.atomic
     def send(self, alert, subscription):
         """Handles sending of alerts to with defined alert notification types
 
@@ -338,24 +338,17 @@ class AlertAddress(models.Model):
                 'to be fixed before the user will recieve any alerts.',
                 alert.id, alert, alert.netbox, self.account, self.id)
 
-            transaction.commit()
-
             return True
 
         if self.type.is_blacklisted():
-            transaction.rollback()
-
             logger.warning(
                 'Not sending alert %s to %s as handler %s is blacklisted: %s',
                 alert.id, self.address, self.type,
                 self.type.blacklist_reason())
-
             return False
 
         try:
             self.type.send(self, alert, language=lang)
-            transaction.commit()
-
             logger.info(
                 'alert %d sent by %s to %s due to %s subscription %d',
                 alert.id, self.type, self.address,
@@ -366,8 +359,6 @@ class AlertAddress(models.Model):
                 '%s raised a FatalDispatcherException indicating that the '
                 'alert never will be sent: %s',
                 self.type, error)
-            transaction.rollback()
-
             raise
 
         except DispatcherException, error:
@@ -375,15 +366,12 @@ class AlertAddress(models.Model):
                 '%s raised a DispatcherException indicating that an alert '
                 'could not be sent at this time: %s',
                 self.type, error)
-            transaction.rollback()
-
             return False
 
         except Exception, error:
             logger.exception(
                 'Unhandled error from %s (the handler has been blacklisted)',
                 self.type)
-            transaction.rollback()
             self.type.blacklist(error)
             return False
 
@@ -413,6 +401,7 @@ class AlertSender(models.Model):
     def __unicode__(self):
         return self.name
 
+    @transaction.atomic
     def send(self, *args, **kwargs):
         """Sends an alert via this medium."""
         if self.handler not in self._handlers:

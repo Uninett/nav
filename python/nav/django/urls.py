@@ -19,7 +19,7 @@ import sys
 import os
 import nav
 from django.conf import settings
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import patterns, include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from nav.web.webfront.urls import urlpatterns
 from nav.web.styleguide import styleguide_index

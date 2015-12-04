@@ -19,16 +19,18 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 
 
+from django.views.generic.list import ListView
+
+
 def create_title(navpath):
     """Create title from navpath (or any other array of tuples)"""
     return " - ".join([x[0] for x in navpath])
 
 
-class JsonResponse(HttpResponse):
-    """Convenience class for creating a json response
-    Made obsolete by Django 1.7
-    """
-    def __init__(self, content='', encoder=DjangoJSONEncoder, **kwargs):
-        kwargs.setdefault('content_type', 'application/json')
-        data = json.dumps(content, cls=encoder)
-        super(JsonResponse, self).__init__(data, **kwargs)
+class SubListView(ListView):
+    """ Subclass of the generic list ListView to allow extra context """
+    extra_context = {}
+    def get_context_data(self,*args, **kwargs):
+        context = super(SubListView, self).get_context_data(*args, **kwargs)
+        context.update(self.extra_context)
+        return context

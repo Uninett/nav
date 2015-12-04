@@ -16,7 +16,7 @@
 """Django URL configuration"""
 
 
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 from nav.web.info.room.views import (search, roominfo, render_netboxes,
                                      upload_image, update_title, delete_image,
                                      update_priority, create_csv,

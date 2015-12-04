@@ -24,7 +24,6 @@ from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Submit
 
 from nav.util import is_valid_cidr
-from nav.web.djangoforms import InlineMultipleChoiceField
 
 
 def validate_integer(value):
@@ -205,25 +204,25 @@ class AccountLogSearchForm(forms.Form):
     port_type = forms.ChoiceField(
         required=False,
         choices=PORT_TYPES)
-    dns_lookup = InlineMultipleChoiceField(
+    dns_lookup = forms.MultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
         required=False,
         choices=DNS_LOOKUPS)
 
     def __init__(self, *args, **kwargs):
         super(AccountLogSearchForm, self).__init__(*args, **kwargs)
-        css_class = 'medium-6'
+        css_class_large = 'large-4 medium-6'
+        css_class_small = 'large-2 medium-6'
         self.helper = FormHelper()
         self.helper.form_action = ''
         self.helper.form_method = 'GET'
         self.helper.form_class = 'custom'
         self.helper.layout = Layout(
             Row(
-                Column('query', css_class=css_class),
-                Column('time', css_class=css_class)
-            ),
-            Row(
-                Column('port_type', css_class=css_class),
-                Column('dns_lookup', css_class=css_class),
+                Column('query', css_class=css_class_large),
+                Column('time', css_class=css_class_large),
+                Column('port_type', css_class=css_class_small),
+                Column('dns_lookup', css_class=css_class_small),
             ),
             Submit('send', 'Search', css_class='small')
         )
@@ -241,7 +240,8 @@ class AccountChartsForm(forms.Form):
         min_value=0.5,
         initial=7,
         label='Day(s)')
-    charts = InlineMultipleChoiceField(
+    charts = forms.MultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
         choices=CHARTS,
         initial=CHARTS[0])
 

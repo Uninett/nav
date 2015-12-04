@@ -24,7 +24,7 @@ The developer should make sure that the data exposed is indeed suitable
 for open access.
 """
 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 
 from nav.web.ajax.views import get_rooms_with_position, get_neighbors
 

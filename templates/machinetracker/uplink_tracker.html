@@ -20,7 +20,7 @@
         <tr>
 
             <td>
-                <a href="{% url ipdevinfo-details-by-name row.sysname %}">{{ row.sysname }}</a>
+                <a href="{% url 'ipdevinfo-details-by-name' row.sysname %}">{{ row.sysname }}</a>
             </td>
 
             <td>
@@ -40,7 +40,7 @@
             </td>
 
             <td>
-                <a href="{% url machinetracker-mac_search row.mac form_data.days dns %}" title="Search again for this MAC address">
+                <a href="{% url 'machinetracker-mac_search' row.mac form_data.days dns %}" title="Search again for this MAC address">
                 {{ row.mac }}</a>
             </td>
 

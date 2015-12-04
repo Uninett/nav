@@ -1,7 +1,7 @@
 {% extends "alertprofiles/base_list.html" %}
 
 {% block top_links %}
-  <a href="{% url alertprofiles-matchfields-new %}" class="button small">New match field</a>
+  <a href="{% url 'alertprofiles-matchfields-new' %}" class="button small">New match field</a>
 {% endblock %}
 
 {% block captioncontent %}
@@ -14,12 +14,12 @@
     <th></th>
     <th>
     {% ifequal order_by "name" %}
-        <a href="{% url alertprofiles-matchfields %}?page={{ page_obj.number }}&amp;order_by=-name">
+        <a href="{% url 'alertprofiles-matchfields' %}?page={{ page_obj.number }}&amp;order_by=-name">
           Name
           <i class="fa fa-caret-down"></i>
         </a>
     {% else %}
-        <a href="{% url alertprofiles-matchfields %}?page={{ page_obj.number }}&amp;order_by=name">
+        <a href="{% url 'alertprofiles-matchfields' %}?page={{ page_obj.number }}&amp;order_by=name">
         Name
           {% ifequal order_by "-name" %}
             <i class="fa fa-caret-up"></i>
@@ -29,12 +29,12 @@
     </th>
     <th>
     {% ifequal order_by "description" %}
-        <a href="{% url alertprofiles-matchfields %}?page={{ page_obj.number }}&amp;order_by=-description">
+        <a href="{% url 'alertprofiles-matchfields' %}?page={{ page_obj.number }}&amp;order_by=-description">
           Description
           <i class="fa fa-caret-down"></i>
         </a>
     {% else %}
-        <a href="{% url alertprofiles-matchfields %}?page={{ page_obj.number }}&amp;order_by=description">
+        <a href="{% url 'alertprofiles-matchfields' %}?page={{ page_obj.number }}&amp;order_by=description">
           Description
           {% ifequal order_by "-description" %}
             <i class="fa fa-caret-up"></i>
@@ -48,7 +48,7 @@
     {% for matchfield in object_list %}
         <tr>
             <td><input name="matchfield" value="{{ matchfield.id }}" type="checkbox" /></td>
-            <td><a href="{% url alertprofiles-matchfields-detail matchfield.id %}">
+            <td><a href="{% url 'alertprofiles-matchfields-detail' matchfield.id %}">
                 {{ matchfield.name }}</a></td>
             <td>{{ matchfield.description }}</td>
         </tr>

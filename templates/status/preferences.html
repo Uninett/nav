@@ -4,7 +4,7 @@
 {% block page_header %}Status preferences{% endblock %}
 
 {% block content %}
-  <p><a href="{% url status-index %}">Back to status</a></p>
+  <p><a href="{% url 'status-index' %}">Back to status</a></p>
   <div class="row">
     <div class="column medium-9">
       {% crispy add_section_form %}
@@ -36,7 +36,7 @@
                        value="{{ section.id }}"/>
               </td>
               <td>
-                <a href="{% url status-preferences-edit section.id %}">
+                <a href="{% url 'status-preferences-edit' section.id %}">
                   {{ section.name }}
                 </a>
                 ({{ section.readable_type }})

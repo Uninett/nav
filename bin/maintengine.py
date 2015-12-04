@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+#
 # Copyright 2003-2005 Norwegian University of Science and Technology
 # Copyright 2006, 2008, 2011 UNINETT AS
 #

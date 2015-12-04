@@ -10,7 +10,7 @@
 {% block base_content %}
   <h4>{{ heading }}</h4>
 
-  <p><a href="{% url threshold-index %}">Back to thresholds</a></p>
+  <p><a href="{% url 'threshold-index' %}">Back to thresholds</a></p>
 
   <a href="#" class="button small secondary" data-reveal-id="add-threshold-help" data-reveal>Help</a>
 
@@ -18,8 +18,8 @@
 
     <div class="column medium-6">
       <div class="dataelement"
-           data-url="{% url threshold-search %}"
-           data-renderurl="{% url threshold-graph %}"
+           data-url="{% url 'threshold-search' %}"
+           data-renderurl="{% url 'threshold-graph' %}"
            data-metric="{{ metric|default_if_none:'' }}">
         {% crispy form %}
       </div>
