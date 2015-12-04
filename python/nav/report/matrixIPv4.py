@@ -49,6 +49,81 @@ class MatrixIPv4(Matrix):
         ]
 
 
+    def _write_subnets(self, net, nets):
+        """Create a subnet structure
+
+        :param net: IP instance of prefix to display
+        :param nets: List of nets (rows) that have subnets. The subnets are
+                     located in self.matrix_nets
+        """
+
+        large_subnets = []  # When displaying unused addresses, we need to know
+                            # about the subnets that span more than one row
+        subnet_matrix = []  # The resulting list of rows to display
+
+        # Initially, create the rows (subnets) we're going to display
+        if self.show_unused_addresses:
+            subnets = IPtools.create_subnet_range(net, self._get_row_size())
+            large_subnets = [x for x in nets.keys()
+                             if x.prefixlen() < self._get_row_size()]
+        else:
+            subnets = IPtools.sort_nets_by_address(nets.keys())
+
+        while subnets:
+            subnet = subnets.pop(0)
+
+            matrix_row = []  # contains all cells in the row
+            extra_rows = []  # For large nets
+
+            matrix_row.append(self._create_index_cell(subnet))
+
+            if subnet in self.matrix_nets:
+                # We have data for this subnet, create cells for that data
+                if self.has_too_small_nets(subnet):
+                    matrix_row.append(self._create_to_small_subnets_cell())
+
+                elif self.matrix_nets[subnet]:
+                    # this subnet is divided into parts
+                    host_nybbles_map = IPtools.getLastbitsIpMap(
+                        self.matrix_nets[subnet].keys())
+                    _logger.debug('host_nybbles_map %s', host_nybbles_map)
+                    matrix_row.extend(self._add_child_nets(host_nybbles_map))
+
+                else:
+                    # this subnet spans the whole row
+                    meta = metaIP.MetaIP(subnet)
+                    matrix_row.append(self.create_cell(subnet, meta))
+
+            else:
+                # Either this subnet is bigger then a row or no subnet
+                # exists here - we need to find out
+
+                if self.show_unused_addresses:
+                    # Find out if this subnet is part of a bigger subnet that
+                    # should be displayed here
+                    index = self._find_large_net(subnet, large_subnets)
+                    if index is not None:
+                        num_extra_rows = self._add_large_subnet(
+                            large_subnets.pop(index), matrix_row)
+                        extra_rows = self._create_extra_rows(num_extra_rows,
+                                                             subnets)
+                    else:
+                        matrix_row.append(self._create_empty_cell())
+                else:
+                    # This net spans more then one row
+                    num_extra_rows = self._add_large_subnet(subnet, matrix_row)
+                    extra_rows = self._create_extra_rows(num_extra_rows, subnet)
+
+
+            subnet_matrix.append(matrix_row)
+
+            # These rows needs to be added after the main row is created for
+            # nets that span more then one row
+            subnet_matrix.extend(extra_rows)
+
+        return subnet_matrix
+
+
     def _add_child_nets(self, host_nybbles_map):
         next_header_idx = -1
         cells = []
@@ -146,80 +221,6 @@ class MatrixIPv4(Matrix):
     def _get_row_size(self):
         """Gets the prefixlength for a row"""
         return self.end_net.prefixlen() - self.bits_in_matrix
-
-    def _write_subnets(self, net, nets):
-        """Create a subnet structure
-
-        :param net: IP instance of prefix to display
-        :param nets: List of nets (rows) that have subnets. The subnets are
-                     located in self.matrix_nets
-        """
-
-        large_subnets = []  # When displaying unused addresses, we need to know
-                            # about the subnets that span more than one row
-        subnet_matrix = []  # The resulting list of rows to display
-
-        # Initially, create the rows (subnets) we're going to display
-        if self.show_unused_addresses:
-            subnets = IPtools.create_subnet_range(net, self._get_row_size())
-            large_subnets = [x for x in nets.keys()
-                             if x.prefixlen() < self._get_row_size()]
-        else:
-            subnets = IPtools.sort_nets_by_address(nets.keys())
-
-        while subnets:
-            subnet = subnets.pop(0)
-
-            matrix_row = []  # contains all cells in the row
-            extra_rows = []  # For large nets
-
-            matrix_row.append(self._create_index_cell(subnet))
-
-            if subnet in self.matrix_nets:
-                # We have data for this subnet, create cells for that data
-                if self.has_too_small_nets(subnet):
-                    matrix_row.append(self._create_to_small_subnets_cell())
-
-                elif self.matrix_nets[subnet]:
-                    # this subnet is divided into parts
-                    host_nybbles_map = IPtools.getLastbitsIpMap(
-                        self.matrix_nets[subnet].keys())
-                    matrix_row.extend(self._add_child_nets(host_nybbles_map))
-
-                else:
-                    # this subnet spans the whole row
-                    meta = metaIP.MetaIP(subnet)
-                    matrix_row.append(self.create_cell(subnet, meta))
-
-            else:
-                # Either this subnet is bigger then a row or no subnet
-                # exists here - we need to find out
-
-                if self.show_unused_addresses:
-                    # Find out if this subnet is part of a bigger subnet that
-                    # should be displayed here
-                    index = self._find_large_net(subnet, large_subnets)
-                    if index is not None:
-                        num_extra_rows = self._add_large_subnet(
-                            large_subnets.pop(index), matrix_row)
-                        extra_rows = self._create_extra_rows(num_extra_rows,
-                                                             subnets)
-                    else:
-                        matrix_row.append(self._create_empty_cell())
-                else:
-                    # This net spans more then one row
-                    num_extra_rows = self._add_large_subnet(subnet, matrix_row)
-                    extra_rows = self._create_extra_rows(num_extra_rows, subnet)
-
-
-            subnet_matrix.append(matrix_row)
-
-            # These rows needs to be added after the main row is created for
-            # nets that span more then one row
-            subnet_matrix.extend(extra_rows)
-
-        return subnet_matrix
-
 
     def _get_column_headers(self):
         netsize = self.end_net.len()
