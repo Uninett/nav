@@ -18,7 +18,7 @@
 from django.core.urlresolvers import reverse
 
 from nav.report import IPtools, metaIP
-from nav.report.matrix import Matrix, Cell
+from nav.report.matrix import Matrix
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -34,9 +34,7 @@ class MatrixIPv6(Matrix):
         self.num_columns = len(self.column_headings)
 
     def build(self):
-
         nets = IPtools.sort_nets_by_address(self.tree_nets.keys())
-
         self.nodes = [
             self.Node(net, self._write_subnets(self.tree_nets[net]))
             for net in nets
@@ -45,76 +43,43 @@ class MatrixIPv6(Matrix):
     def _write_subnets(self, net):
 
         nodes = IPtools.sort_nets_by_address(net.keys())
-        lastnet = None
-        subnet_matrix = []
+        subnet_matrix = []  # The resulting list of rows to display
 
         for subnet in nodes:
-            if lastnet is None:
-                lastnet = subnet
+            matrix_row = []  # contains all cells in the row
+            extra_rows = []  # For large nets
+
+            matrix_row.append(self._create_index_cell(subnet))
 
             if subnet in self.matrix_nets:
-                if IPtools.isIntermediateNets(lastnet, subnet):
-                    subnet_matrix.append(None)
-
-                lastnet = subnet
-
-                matrix_row = [Cell(content=_netlink(subnet))]
-
-                host_nybbles_map = IPtools.getLastbitsIpMap(
-                    self.matrix_nets[subnet].keys())
-                next_header_idx = -1
-                for i in self.column_headings:
-                    if self.column_headings.index(i) < next_header_idx:
-                        continue
-
-                    key = i.lower()
-                    if key in host_nybbles_map:
-                        meta = metaIP.MetaIP(host_nybbles_map[key])
-                        ip = host_nybbles_map[key]
-
-                        matrix_cell = Cell(
-                            prefixid=meta.prefixid,
-                            colspan=self._colspan(ip),
-                            netaddr=ip,
-                            content=_matrixlink(key, ip))
-                        next_header_idx = self.column_headings.index(
-                            i) + int(self._colspan(ip))
-                    else:
-                        matrix_cell = Cell(is_empty=True)
-                    matrix_row.append(matrix_cell)
-                subnet_matrix.append(matrix_row)
+                # We have data for this subnet, create cells for that data
+                matrix_row.extend(self._create_data_row(subnet))
             else:
-                _logger.debug('%s is NOT in matrix nets', subnet)
+                # subnet is larger than row size
+                num_extra_rows = self._add_large_subnet(subnet, matrix_row)
+                extra_rows = self._create_extra_rows(num_extra_rows, subnet)
 
-                subnet_matrix.append(None)
-                lastnet = subnet
-                meta = metaIP.MetaIP(subnet)
-                matrix_row = [
-                    Cell(prefixid=meta.prefixid,
-                         content=_netlink(subnet, True)),
-                    Cell(colspan=self.num_columns)
-                ]
-                subnet_matrix.append(matrix_row)
-                subnet_matrix.extend(
-                    self._write_subnets(net[subnet]))
+            subnet_matrix.append(matrix_row)
+            subnet_matrix.extend(extra_rows)
+
         return subnet_matrix
 
+    @staticmethod
+    def _get_content(nybble, ip):
+        return '{}::/{}'.format(nybble, ip.prefixlen())
 
-def _matrixlink(nybble, ip):
-    return '{}::/{}'.format(nybble, ip.prefixlen())
+    @staticmethod
+    def _netlink(ip, append_term_and_prefix=False):
+        """Creates the content for the index row"""
+        nip = metaIP.MetaIP(ip).getTreeNet(leadingZeros=True)
+        link = metaIP.MetaIP(ip).getTreeNet(leadingZeros=False)[:-1] + '_::'
 
-
-def _netlink(ip, append_term_and_prefix=False):
-
-    nip = metaIP.MetaIP(ip).getTreeNet(leadingZeros=True)
-    link = metaIP.MetaIP(ip).getTreeNet(leadingZeros=False)[:-1] + '_::'
-
-    if append_term_and_prefix:
-        url = reverse(
-            'report-matrix-scope',
-            kwargs={'scope': '{0}::%2F{1}'.format(nip, ip.prefixlen())})
-        text = '{0}::/{1}'.format(nip, ip.prefixlen())
-    else:
-        url = reverse('report-prefix-netaddr', kwargs={'netaddr': link})
-        text = nip[:-1] + 'x'
-    return '<a class="monosp" href="{0}">{1}</a>'.format(url, text)
+        if append_term_and_prefix:
+            url = reverse(
+                'report-matrix-scope',
+                kwargs={'scope': '{0}::%2F{1}'.format(nip, ip.prefixlen())})
+            text = '{0}::/{1}'.format(nip, ip.prefixlen())
+        else:
+            url = reverse('report-prefix-netaddr', kwargs={'netaddr': link})
+            text = nip[:-1] + 'x'
+        return '<a class="monosp" href="{0}">{1}</a>'.format(url, text)
