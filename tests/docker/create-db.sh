@@ -78,10 +78,6 @@ create_nav_db() {
     echo Creating and populating initial database
     "$BUILDDIR/bin/navsyncdb" -c
 
-    ## Now do it again, with test data
-    #echo Loading test database from scratch
-    #"$BUILDDIR/bin/navsyncdb" --drop-database --create --out-of-order --restore "${WORKSPACE}/tests/test_dump.sql"
-
     if [ -n "$ADMINPASSWORD" ]; then
       psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'";
     fi
