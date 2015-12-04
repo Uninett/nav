@@ -147,17 +147,7 @@ def main(args):
     logger.info('Starting alertengine loop.')
     while True:
         try:
-            # Changing the isolation level is done to prevent idle transactions
-            # between runs. Isolation level 0 = autocommit and level 1 = read
-            # commited.
-            if connection.connection and not connection.connection.closed:
-                connection.connection.set_isolation_level(1)
-
             check_alerts(debug=opttest)
-
-            if connection.connection and not connection.connection.closed:
-                connection.connection.set_isolation_level(0)
-
             # nav.db connections are currently not in autocommit mode, and
             # since the current auth code uses legacy db connections we need to
             # be sure that we end all and any transactions so that we don't
@@ -166,8 +156,9 @@ def main(args):
             for conn in conns:
                 conn.commit()
 
-        except DatabaseError, e:
-            logger.error('Database error, closing the DB connection just in case:\n%s' % e)
+        except DatabaseError as err:
+            logger.error('Database error, closing the DB connection just in '
+                         'case:\n%s', err)
             logger.debug('', exc_info=True)
             if connection.queries:
                 logger.debug(connection.queries[-1]['sql'])
@@ -176,8 +167,8 @@ def main(args):
             except InterfaceError:
                 connection.connection = None
 
-        except Exception, e:
-            logger.critical('Unhandled error: %s' % e, exc_info=True)
+        except Exception as err:
+            logger.critical('Unhandled error: %s', err, exc_info=True)
             sys.exit(1)
 
         # Devel only
