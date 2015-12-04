@@ -18,6 +18,9 @@
 from IPy import IP
 import math
 
+import logging
+_logger = logging.getLogger(__name__)
+
 class UnknownIpVersionError(Exception): pass
 
 def sort_nets_by_address(list):
@@ -153,7 +156,6 @@ def getLastbitsIpMap(ip_list):
 
     Used by the presentation logic for Column-to-IP mapping
     """
-
     if ip_list is None or len(ip_list) < 1:
         return None
 
@@ -171,15 +173,10 @@ def _ipv4_getLastbitsMap(ip_list):
                      for i in ip_list], ip_list))
 
 def _ipv6_getNybblesMap(ip_list):
-    start_nybble_index = None
-
-    if ip_list[0].prefixlen() < 112:
-        start_nybble_index = -3
-    else:
-        start_nybble_index = -1
-
+    """Finds the column where the IPs in the list should be displayed"""
+    nybble_index = (ip_list[0].prefixlen() / 4) - 1
     return dict(
-        zip([i.net().strCompressed()[start_nybble_index:start_nybble_index+1]
+        zip([i.net().strFullsize().replace(':', '')[nybble_index]
              for i in ip_list], ip_list))
 
 def andIpMask(ip, mask):
