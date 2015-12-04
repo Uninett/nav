@@ -17,7 +17,7 @@
     <p class="alert-box secondary">
       This message will replace
       <a href="{% url 'messages-view' replaces.id %}">{{ replaces.title }}</a>
-      from {{ replaces.publish_start|date:"DATETIME_FORMAT_SHORT" }}
+      from {{ replaces.publish_start|date:"SHORT_DATETIME_FORMAT" }}
       by {{ replaces.author }}
     </p>
   {% endif %}
