@@ -210,8 +210,12 @@ def create_matrix(scope, show_unused):
     """Creates a matrix for the given scope"""
     tree = buildTree(scope)
     if scope.version() == 6:
-        end_net = getMaxLeaf(tree)
-        matrix = MatrixIPv6(scope, end_net=end_net)
+        if scope.prefixlen() < 60:
+            end_net = IP(scope.net().strNormal() + '/64')
+            matrix = MatrixIPv6(scope, end_net=end_net)
+        else:
+            end_net = getMaxLeaf(tree)
+            matrix = MatrixIPv6(scope, end_net=end_net)
     elif scope.version() == 4:
         if scope.prefixlen() < 24:
             end_net = IP(scope.net().strNormal() + '/30')
