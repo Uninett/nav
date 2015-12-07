@@ -230,8 +230,6 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
                             return [point[1], point[0]];
                         });
 
-                    console.log(data);
-                    
                     $toolTip.find('.usage-sparkline').sparkline(dataPoints, {
                         tooltipFormatter: self.getFormatter(),
                         type: 'line',
