@@ -44,8 +44,7 @@ def loginit():
 
     # Attempt to mimic Apache's standard log time format
     formatter = logging.Formatter(
-        "[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s",
-        "%a %b %d %H:%M:%S %Y")
+        "[%(levelname)s] [pid=%(process)d %(name)s] %(message)s")
     try:
         handler = logging.StreamHandler(sys.stderr)
     except IOError:
