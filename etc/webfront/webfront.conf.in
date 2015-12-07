@@ -25,12 +25,12 @@ server = ldap.example.com
 # non-encrypted and TLS-encrypted sessions.  Standard port for SSL
 # (ldaps) encrypted sessions is 636.
 #
-port = 389
+#port = 389
 
 # Specify which type of encryption to employ when talking to the LDAP
 # server.  Valid alternatives are "tls", "ssl" or "none".
 #
-encryption = tls
+#encryption = none
 
 # What object attribute refers to the user id (login name)
 #
@@ -48,7 +48,7 @@ basedn = ou=people,dc=example,dc=com
 # How to lookup a user object from LDAP. 
 # 'direct' binds to <uid_attr>=<login name>,<user_basedn>
 # 'search' searches for <uid_attr>=<login name> using basedn as searchbase.
-lookupmethod=direct
+#lookupmethod=direct
 
 # Choose to bind to LDAP as the user with 'suffix' for Active Directory support.
 # lookupmethod should be set to search for this option to function. 
@@ -70,8 +70,16 @@ lookupmethod=direct
 #
 #require_group = cn=noc-operators,cn=groups,dc=example,dc=com
 
-# Specify group search filter to support nested group memberships in AD.
-#group_search = (member:1.2.840.113556.1.4.1941:=%%s)
+# The search filter to use when verifying group memberships (for non-POSIX
+# groups). The string %%s will be substituted for the authenticating user's
+# distinguished name.
+#
+# The default value is fine for most purposes. AD will support a
+# recursive group search operator, so that nested group memberships are
+# allowed. Use a value of (member:1.2.840.113556.1.4.1941:=%%s) to enable
+# this AD extension
+#
+#group_search = (member=%%s)
 
 # Which character encoding to use when talking to the LDAP server
 #encoding=utf-8
@@ -79,4 +87,4 @@ lookupmethod=direct
 # Whether the underlying LDAP library should output debug information to
 # stderr.  If enabled, you will typically find this output in the Apache error
 # log.
-debug = no
+#debug = no
