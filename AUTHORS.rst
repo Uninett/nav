@@ -7,12 +7,6 @@ form of code, documentation or packaging.
 Currently active contributors/maintainers
 -----------------------------------------
 
-* Vidar Faltinsen <vidar.faltinsen at uninett.no>
-  Founded the project in 1999.  He doesn't code, but he knows his way
-  around a network, and has been a NAV mentor for all these years -
-  producing documentation and offering keen insight into the problem
-  domain.
-
 * John-Magne Bredal <john.m.bredal at uninett.no>
   Joined in 2000, and is instrumental in anything related to Cricket,
   end user detentions (Arnold) and the web front end in general.
@@ -23,6 +17,18 @@ Currently active contributors/maintainers
   project's opinionated know-it-all, working as the current project
   lead, after taking over for Vidar Faltinsen.
 
+
+Other contributors and previous maintainers
+-------------------------------------------
+* Vidar Faltinsen <vidar.faltinsen at uninett.no>
+  Founded the project in 1999.  He doesn't code, but he knows his way
+  around a network, and has been a NAV mentor for all these years -
+  producing documentation and offering keen insight into the problem
+  domain.
+
+* Pär Stolpe <par at stolpe.se>
+  Contributed more flexible LDAP authentication for Microsoft AD servers.
+
 * Christian Strand Young <christian at strandyoung.com>
   Joined in the summer of 2011.  His main contributions are implementing IPv6
   support in pping and asynchronous DNS lookups in ipdevinfo & the Machine
@@ -32,9 +38,6 @@ Currently active contributors/maintainers
   Interaction designer, hired as a consultant from NTNU to give feedback on UX
   during the NAV 4.0 interface redesign process.
 
-
-Other contributors and previous maintainers
--------------------------------------------
 * Morten Werner Forsbring <werner at debian.org>
   Packaging NAV for Debian 2004-2013.
 
