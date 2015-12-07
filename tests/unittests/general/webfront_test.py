@@ -92,7 +92,8 @@ class LdapUserTestCase(TestCase):
                           'basedn': 'empty',
                           'lookupmethod': 'direct',
                           'uid_attr': 'uid',
-                          'encoding': 'utf-8'}
+                          'encoding': 'utf-8',
+                          'suffix': ''}
                  })
     def test_non_ascii_password_should_work(self):
         """LP#1213818"""
@@ -107,7 +108,8 @@ class LdapUserTestCase(TestCase):
                           'basedn': 'cn=users,dc=example,dc=org',
                           'lookupmethod': 'direct',
                           'uid_attr': 'uid',
-                          'encoding': 'utf-8'},
+                          'encoding': 'utf-8',
+                          'group_search': '(member=%%s)' },
                  })
     def test_is_group_member_for_non_ascii_user_should_not_raise(self):
         """LP#1301794"""
