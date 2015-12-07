@@ -231,5 +231,5 @@ class Matrix(object):
     @staticmethod
     def _get_prefix_url(prefix):
         return get_simple_graph_url(
-            [metric_path_for_prefix(prefix.strNormal(), 'ip_count')],
+            [metric_path_for_prefix(prefix.strCompressed(), 'ip_count')],
             format='json')
