@@ -120,7 +120,7 @@ class Matrix(object):
         :rtype: list[Cell]
         """
         if self.has_too_small_nets(subnet):
-            return [self._create_to_small_subnets_cell()]
+            return [self._create_too_small_subnets_cell()]
 
         elif self.matrix_nets[subnet]:
             _logger.debug('divided into several smaller nets')
@@ -181,7 +181,7 @@ class Matrix(object):
         else:
             return Cell(content=metaIP.MetaIP(subnet).getTreeNet())
 
-    def _create_to_small_subnets_cell(self):
+    def _create_too_small_subnets_cell(self):
         return Cell(
             colspan=self.num_columns,
             color=self._get_color('large'),

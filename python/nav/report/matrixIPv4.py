@@ -18,7 +18,7 @@
 from django.core.urlresolvers import reverse
 
 from nav.report import IPtools, metaIP
-from nav.report.matrix import Matrix, Link
+from nav.report.matrix import Matrix, Link, Cell
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -166,3 +166,10 @@ class MatrixIPv4(Matrix):
                           kwargs={'netaddr': nip + '.%'})
             text = nip
         return Link(url, text, 'Go to prefix report')
+
+    def _create_too_small_subnets_cell(self):
+        return Cell(
+            colspan=self.num_columns,
+            color=self._get_color('large'),
+            content='Too many small nets')
+
