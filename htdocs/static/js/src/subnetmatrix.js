@@ -219,6 +219,11 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
             this.openTips.push($target);
         },
 
+        /**
+         * Add sparklines to tooltips. The tooltips created by Foundation
+         * tooltips can be found by following the selector on the element with
+         * the listener.
+         */
         addSparkline: function($target) {
             var self = this;
             var $toolTip = $('#' + $target.data('selector'));
@@ -231,7 +236,7 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
                         });
 
                     $toolTip.find('.usage-sparkline').sparkline(dataPoints, {
-                        tooltipFormatter: self.getFormatter(),
+                        tooltipFormatter: self.formatter,
                         type: 'line',
                         width: '100%'
                     });
@@ -239,15 +244,12 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
             }
         },
 
-        getFormatter: function() {
-            return function(sparkline, options, fields) {
-                console.log(fields);
-                /* The x value is seconds since epoch in local timezone. As
-                 toLocaleString converts based on UTC values, we cheat and say
-                 that the timeZone is UTC while keeping the formatting local */
-                var date = new Date(fields.x * 1000).toLocaleString({}, {timeZone: 'UTC'});
-                return '<div class="jqsfield"><span style="color:' + fields.color + '">&#9679</span> ' + fields.y + '<br/> ' + date + '</div>';
-            };
+        /**
+         * Formatter for sparkline tooltip
+         */
+        formatter: function(sparkline, options, fields) {
+            var date = new Date(fields.x * 1000).toLocaleString();
+            return '<div class="jqsfield"><span style="color:' + fields.color + '">&#9679</span> ' + fields.y + '<br/> ' + date + '</div>';
         }
 
     };
