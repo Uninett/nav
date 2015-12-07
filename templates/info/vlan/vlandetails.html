@@ -107,11 +107,11 @@
   <h2>Vlan graphs</h2>
 
   {% if has_v4 %}
-    <div class="vlangraph graphitegraph left" data-vlan="{{ vlan.id }}" data-family="4"></div>
+    <div class="vlangraph graphitegraph" data-vlan="{{ vlan.id }}" data-family="4"></div>
   {% endif %}
 
   {% if has_v6 %}
-    <div class="vlangraph graphitegraph left" data-vlan="{{ vlan.id }}" data-family="6"></div>
+    <div class="vlangraph graphitegraph" data-vlan="{{ vlan.id }}" data-family="6"></div>
   {% endif %}
 
   <div class="float-clear"></div>
@@ -119,9 +119,8 @@
   {% comment %} Graph for each prefix containing ip-addresses, mac-addresses and size of range {% endcomment %}
   <h2>Prefix graphs</h2>
   {% for prefix in prefixes %}
-    <div class="prefixgraph graphitegraph left" data-prefix="{{ prefix.id }}"></div>
+    <div class="prefixgraph graphitegraph" data-prefix="{{ prefix.id }}"></div>
   {% endfor %}
-
   <div class="float-clear"></div>
 
 {% endblock %}
