@@ -18,7 +18,7 @@
 from django.core.urlresolvers import reverse
 
 from nav.report import IPtools, metaIP
-from nav.report.matrix import Matrix
+from nav.report.matrix import Matrix, Link
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -73,4 +73,4 @@ class MatrixIPv6(Matrix):
         ip = metaIP.MetaIP(ip).getTreeNet()
         url = reverse('report-prefix-netaddr', kwargs={'netaddr': ip + '*'})
         text = ip + 'x'
-        return '<a class="monosp" href="{0}">{1}</a>'.format(url, text)
+        return Link(url, text, 'Go to prefix report')

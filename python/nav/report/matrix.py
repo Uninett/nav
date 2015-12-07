@@ -19,6 +19,7 @@ import math
 import IPy
 from collections import namedtuple
 
+from django.core.urlresolvers import reverse
 from nav.report import metaIP, IPtools, IPtree
 
 
@@ -35,6 +36,9 @@ class Cell(object):
         self.content = kwargs.get('content', '&nbsp;')
         self.is_empty = kwargs.get('is_empty', False)
         self.netaddr = kwargs.get('netaddr')
+        self.link = kwargs.get('link')
+
+Link = namedtuple('Link', ('href', 'text', 'title'))
 
 
 class Matrix(object):
@@ -168,7 +172,7 @@ class Matrix(object):
         :param link: If the cell should contain a link to subnet or not
         """
         if link:
-            return Cell(content=self._netlink(subnet))
+            return Cell(link=self._netlink(subnet))
         else:
             return Cell(content=metaIP.MetaIP(subnet).getTreeNet())
 
@@ -176,7 +180,7 @@ class Matrix(object):
         return Cell(
             colspan=self.num_columns,
             color=self._get_color('large'),
-            content='Too many small nets')
+            link=self._get_too_small_net_link())
 
     def _add_large_subnet(self, subnet, matrix_row):
         """Adds correct rowspan to cell for large nets """
@@ -203,6 +207,12 @@ class Matrix(object):
     @staticmethod
     def _netlink(ip, append_term_and_prefix=False):
         raise NotImplementedError
+
+    def _get_too_small_net_link(self):
+        """Creates a link to the next drill down net"""
+        link = reverse('report-matrix-scope', args=[self.end_net])
+        return Link(link, 'Too many small nets',
+                    'Go to matrix for smaller prefix')
 
     @staticmethod
     def _get_color(nettype):
