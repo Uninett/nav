@@ -38,6 +38,9 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
             var url = nextUrl || this.getUrl();
             var request = $.getJSON(url);
             request.done(function(data) {
+                if (data.next) {
+                    self.fetchUsage(data.next);
+                }
                 self.handleData(data);
             });
         },
@@ -51,10 +54,6 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
 
         /** Handles the responsedata */
         handleData: function(data) {
-            if (data.next) {
-                this.fetchUsage(data.next);
-            }
-
             // For each result, modify the cell based on the result data
             for (var i = 0, l = data.results.length; i < l; i++) {
                 var result = data.results[i];
