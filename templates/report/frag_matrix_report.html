@@ -58,9 +58,14 @@
             {% if forloop.counter == 1 %}
               {# First cell contains only the net address #}
               <td>
-                <a href="{{ cell.link.href }}" title="{{ cell.link.title }}">
-                  {{ cell.link.text }}
-                </a>
+                {% if cell.link %}
+                  <a href="{{ cell.link.href }}" title="{{ cell.link.title }}">
+                    {{ cell.link.text }}
+                  </a>
+
+                {% else %}
+                  {{ cell.content }}
+                {% endif %}
               </td>
 
             {% else %}
