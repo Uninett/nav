@@ -184,11 +184,11 @@ class LDAPUser(object):
         """Performs an authenticated bind for this user using password"""
         encoding = _config.get('ldap', 'encoding')
         suffix = _config.get('ldap', 'suffix').encode(encoding)
-        
+
         if not suffix:
             user_dn = self.get_user_dn()
             _logger.debug("Attempting authenticated bind to %s", user_dn)
-        
+
             self.ldap.simple_bind_s(user_dn.encode(encoding),
                                     password.encode(encoding))
         if suffix:
@@ -198,7 +198,7 @@ class LDAPUser(object):
             self.ldap.simple_bind_s(self.username.encode(encoding) +
                                    suffix,
                                    password.encode(encoding))
-    
+
 
     def get_user_dn(self):
         """
