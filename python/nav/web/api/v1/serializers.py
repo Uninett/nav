@@ -82,6 +82,7 @@ class PrefixUsageSerializer(serializers.Serializer):
     max_hosts = serializers.IntegerField()
     url_machinetracker = serializers.CharField()
     url_report = serializers.CharField()
+    url_vlan = serializers.CharField()
 
 
 class ServiceHandlerSerializer(serializers.Serializer):

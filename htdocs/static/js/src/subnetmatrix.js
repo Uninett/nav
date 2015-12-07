@@ -18,7 +18,9 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
                 '<a href="<%= url_machinetracker %>" title="<%= title_machinetracker %>">' +
                 '<%= linktext_machinetracker %></a><br>' +
                 '<a href="<%= url_report %>" title="<%= title_report %>">' +
-                '<%= linktext_report %></a>'
+                '<%= linktext_report %></a><br>' +
+                '<a href="<%= url_vlan %>" title="<%= title_vlan %>">' +
+                '<%= linktext_vlan %></a>'
         );
         this.tooltipTemplateV6 = _.template(
             '<h5><%= heading %></h5>' +
@@ -26,7 +28,9 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
                 '<a href="<%= url_machinetracker %>" title="<%= title_machinetracker %>">' +
                 '<%= linktext_machinetracker %></a><br>' +
                 '<a href="<%= url_report %>" title="<%= title_report %>">' +
-                '<%= linktext_report %></a>'
+                '<%= linktext_report %></a><br>' +
+                '<a href="<%= url_vlan %>" title="<%= title_vlan %>">' +
+                '<%= linktext_vlan %></a>'
         );
     }
 
@@ -118,7 +122,10 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
                 linktext_machinetracker: "View active addresses",
                 url_report: data.url_report,
                 title_report: "View report for " + data.prefix,
-                linktext_report: "View report"
+                linktext_report: "View report",
+                url_vlan: data.url_vlan,
+                title_vlan: "View vlan info for related vlan",
+                linktext_vlan: "View vlan info"
             });
             $element.attr('title', text);
         },

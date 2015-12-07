@@ -41,6 +41,7 @@ class UsageResult(object):
         self.url_machinetracker = reverse(
             'machinetracker-prefixid_search_active', args=[prefix.pk])
         self.url_report = reverse('report-prefix-prefix', args=[prefix.pk])
+        self.url_vlan = reverse('vlan-details', args=[prefix.vlan.pk])
 
 
 def fetch_usages(prefixes, starttime, endtime):
