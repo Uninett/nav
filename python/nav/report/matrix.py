@@ -20,6 +20,9 @@ import IPy
 from collections import namedtuple
 
 from django.core.urlresolvers import reverse
+
+from nav.metrics.templates import metric_path_for_prefix
+from nav.metrics.graphs import get_simple_graph_url
 from nav.report import metaIP, IPtools, IPtree
 
 
@@ -36,6 +39,7 @@ class Cell(object):
         self.content = kwargs.get('content', '&nbsp;')
         self.is_empty = kwargs.get('is_empty', False)
         self.netaddr = kwargs.get('netaddr')
+        self.dataurl = kwargs.get('dataurl')
         self.link = kwargs.get('link')
 
 Link = namedtuple('Link', ('href', 'text', 'title'))
@@ -158,6 +162,7 @@ class Matrix(object):
             colspan=self._colspan(ip),
             rowspan=rowspan,
             content=self._get_content(key, ip),
+            dataurl=self._get_prefix_url(ip),
             netaddr=ip)
 
     @staticmethod
@@ -222,3 +227,9 @@ class Matrix(object):
             return 'subnet_other'
         elif nettype == 'large':
             return 'subnet_large'
+
+    @staticmethod
+    def _get_prefix_url(prefix):
+        return get_simple_graph_url(
+            [metric_path_for_prefix(prefix.strNormal(), 'ip_count')],
+            format='json')

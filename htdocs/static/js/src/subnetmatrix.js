@@ -1,4 +1,4 @@
-require(['libs/underscore'], function() {
+require(['libs/underscore', 'libs/jquery.sparkline'], function() {
 
     function UsageFetcher(container) {
         this.page_size = 10;  // Results per query
@@ -213,9 +213,43 @@ require(['libs/underscore'], function() {
         },
 
         openTip: function($target) {
-            Foundation.libs.tooltip.showTip($target);
             this.closeAllTips();
+            Foundation.libs.tooltip.showTip($target);
+            this.addSparkline($target);
             this.openTips.push($target);
+        },
+
+        addSparkline: function($target) {
+            var self = this;
+            var $toolTip = $('#' + $target.data('selector'));
+            if ($toolTip.find('.usage-sparkline').length === 0) {
+                $.getJSON($target.data('url'), function(response) {
+                    $toolTip.append($('<div class="usage-sparkline">&nbsp;</div>'));
+                    var data = response.pop(),
+                        dataPoints = data.datapoints.map(function(point) {
+                            return [point[1], point[0]];
+                        });
+
+                    console.log(data);
+                    
+                    $toolTip.find('.usage-sparkline').sparkline(dataPoints, {
+                        tooltipFormatter: self.getFormatter(),
+                        type: 'line',
+                        width: '100%'
+                    });
+                });
+            }
+        },
+
+        getFormatter: function() {
+            return function(sparkline, options, fields) {
+                console.log(fields);
+                /* The x value is seconds since epoch in local timezone. As
+                 toLocaleString converts based on UTC values, we cheat and say
+                 that the timeZone is UTC while keeping the formatting local */
+                var date = new Date(fields.x * 1000).toLocaleString({}, {timeZone: 'UTC'});
+                return '<div class="jqsfield"><span style="color:' + fields.color + '">&#9679</span> ' + fields.y + '<br/> ' + date + '</div>';
+            };
         }
 
     };

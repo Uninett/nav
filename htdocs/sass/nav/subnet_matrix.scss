@@ -79,5 +79,9 @@ $color_large: #ada7c8;
 .tooltip {
     a { color: hsl(200, 100, 60); }
     p { margin-bottom: 0.5rem; }
-    
+    .usage-sparkline {
+        background-color: white;
+        margin-top: 1em;
+        padding: 3px;
+    }
 }
