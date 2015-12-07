@@ -40,8 +40,10 @@ require_group=
 timeout=2
 debug=no
 lookupmethod=direct
+suffix=
 manager=
 manager_password=
+group_search=(member=%%s)
 encoding=utf-8
 """)
 
@@ -180,11 +182,23 @@ class LDAPUser(object):
 
     def bind(self, password):
         """Performs an authenticated bind for this user using password"""
-        user_dn = self.get_user_dn()
-        _logger.debug("Attempting authenticated bind to %s", user_dn)
         encoding = _config.get('ldap', 'encoding')
-        self.ldap.simple_bind_s(user_dn.encode(encoding),
-                                password.encode(encoding))
+        suffix = _config.get('ldap', 'suffix').encode(encoding)
+
+        if not suffix:
+            user_dn = self.get_user_dn()
+            _logger.debug("Attempting authenticated bind to %s", user_dn)
+
+            self.ldap.simple_bind_s(user_dn.encode(encoding),
+                                    password.encode(encoding))
+        if suffix:
+            _logger.debug("Attempting authenticated bind as user %s",
+                          self.username + suffix)
+
+            self.ldap.simple_bind_s(self.username.encode(encoding) +
+                                   suffix,
+                                   password.encode(encoding))
+
 
     def get_user_dn(self):
         """
@@ -277,10 +291,11 @@ class LDAPUser(object):
         objects, the latter should work for posixGroup objects.
         """
         encoding = _config.get('ldap', 'encoding')
+        group_search = _config.get('ldap','group_search')
         user_dn = self.get_user_dn().encode(encoding)
         # Match groupOfNames/groupOfUniqueNames objects
         try:
-            filterstr = '(member=%s)' % escape_filter_chars(user_dn)
+            filterstr = group_search % escape_filter_chars(user_dn)
             result = self.ldap.search_s(group_dn, ldap.SCOPE_BASE, filterstr)
             _logger.debug("groupOfNames results: %s", result)
             if len(result) < 1:

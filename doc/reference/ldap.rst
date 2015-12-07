@@ -44,14 +44,35 @@ Available options:
   allowed to log in to NAV.  Its objectClass should be one of `groupOfNames`,
   `groupOfUniqueNames` or `posixGroup`.
 
+**group_search**
+  .. versionadded:: 4.4
+
+  Can be used to customize the search filter used when verifying group
+  memberships using the `require_group` option (specifically for group schemas
+  that register user distinguished names as member values).
+
+  The default value, ``(member=%%s)`` is fine for most purposes. Microsoft AD
+  will support a recursive group search operator, so that nested group
+  memberships are allowed. Use a value of
+  ``(member:1.2.840.113556.1.4.1941:=%%s)`` to enable this AD extension
+
 **lookupmethod**
   .. versionadded:: 3.7
 
   Selects which method to use for finding users in the LDAP directory. Valid
-  settings are `direct` and `search`.  `direct` will cause the user's DN to be
-  constructed as ``<uid_attr>=<login name>,<basedn>``.  Specifying `search`
+  settings are `direct` and `search`. `direct` will cause the user's DN to be
+  constructed as ``<uid_attr>=<login name>,<basedn>``. Specifying `search`
   will bind to the LDAP directory as `<manager>`, if specified, and search for
-  ``<uid_attr>=<login name>``.
+  ``<uid_attr>=<login name>``. If a bind `suffix` is specified for AD-style
+  binds, using a manager account can be avoided.
+
+**suffix**
+  .. versionadded:: 4.4
+
+  When set to a doman suffix, such as ``@ad.example.com``, the username to
+  bind as will be constructed from the login name and this suffix. This type
+  of direct bind is supported by Microsoft AD, and can be used to avoid having
+  to configure a manager user to search the catalog.
 
 **manager**
   .. versionadded:: 3.7
@@ -64,6 +85,12 @@ Available options:
   .. versionadded:: 3.7
 
   Password needed to bind as the `manager` user.
+
+**encoding**
+  .. versionadded:: 3.15
+
+  Specifies the character encoding to expect from the LDAP catalog. The
+  default value is UTF-8.
 
 **debug**
   Set to `yes` to have the OpenLDAP library output debug information to
@@ -99,6 +126,21 @@ A typical setup for Microsoft Active Directory would look more like this:
   lookupmethod = search
   manager = cn=John Doe,ou=people,dc=example,dc=com
   managerpassword = secret
+
+Or, without a manager account, like this:
+
+.. code-block:: ini
+
+  [ldap]
+  enabled = yes
+  server = ad.example.com
+  port = 636
+  encryption = ssl
+
+  uid_attr = sAMAccountName
+  basedn = ou=people,dc=example,dc=com
+  suffix = @ad.example.com
+  lookupmethod = search
 
 
 Certificates
