@@ -154,12 +154,31 @@ define(['plugins/rickshaw_graph', 'libs/spin.min'], function (RickshawGraph) {
         displayGraph: function (url) {
             //this.spinner.spin(this.wrapper.get(0));
             var graphContainer = this.node.find('.rickshaw-container')[0];
-            if (typeof this.graph === 'undefined') {
-                this.graph = new RickshawGraph(graphContainer, url);
+
+            if (!graphContainer) {
+                // If we have no container, assume old loading with images.
+                var self = this;
+                var image = new Image();
+                image.src = url;
+                image.onload = function () {
+                    self.node.find('img').remove();
+                    self.node.append(image);
+                    self.spinner.stop();
+                };
+                image.onerror = function () {
+                    self.wrapper.find('img').remove();
+                    self.wrapper.append("<span class='alert-box alert'>Error loading image</span>");
+                    self.spinner.stop();
+                };
             } else {
-                this.graph.dataURL = url;
-                this.graph.request();
+                if (typeof this.graph === 'undefined') {
+                    this.graph = new RickshawGraph(graphContainer, url);
+                } else {
+                    this.graph.dataURL = url;
+                    this.graph.request();
+                }
             }
+            
         },
         getUrl: function () {
             var url = this.urls[this.urlIndex],
