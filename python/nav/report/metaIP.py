@@ -15,7 +15,7 @@
 #
 """Holds meta information on one IPy.IP address."""
 
-
+import re
 import math
 from IPy import IP
 from nav import db
@@ -59,16 +59,12 @@ class MetaIP:
         return netaddr_string[:netaddr_string.rfind(".")]
 
     def _getTreeNetIpv6(self):
-        """Compress self.netaddr, remove '::'"""
-        netaddr = self.netaddr.net()
-        index = self.netaddr.prefixlen() / 4
+        netaddr = self.netaddr
+        index = self.netaddr.prefixlen() / 4  # Index for where the addresses start
         address_part = netaddr.strFullsize().replace(':', '')[:index]
-        hextets = [address_part[i:i+4] for i in range(0, len(address_part), 4)]
-        ipstr = ":".join(hextets)
-        if len(hextets) < 8:
-            ipstr += '::'
-
-        return IP(ipstr).net().strCompressed().rstrip(':')
+        ipstr = ":".join([address_part[i:i+4].lstrip('0')
+                          for i in range(0, len(address_part), 4)])
+        return re.sub(':{3,}', '::', ipstr)  # remove superfluous colon
 
     @staticmethod
     def _createMetaMap(family):
