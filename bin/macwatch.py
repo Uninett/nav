@@ -32,6 +32,7 @@ from nav.models.manage import Cam
 from nav.event import Event
 from nav.web.macwatch.models import MacWatch
 from nav.web.macwatch.models import MacWatchMatch
+import django
 
 
 LOGFILE = join(nav.buildconf.localstatedir, "log/macwatch.log")
@@ -184,6 +185,7 @@ def main():
     # Create logger, start logging
     logger = get_logger()
     logger.info("--> Starting macwatch. Loglevel: %s <--", LOGLEVEL)
+    django.setup()
 
     # For each active macwatch entry, check if mac is active and post event.
     for mac_watch in MacWatch.objects.all():

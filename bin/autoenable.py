@@ -36,6 +36,9 @@ import nav.buildconf
 from nav.arnold import (open_port, init_logging, GeneralException)
 from nav.models.arnold import Identity
 
+import django
+
+
 LOGGER = logging.getLogger('autoenable')
 
 
@@ -43,6 +46,7 @@ def main():
     """Main controller"""
     init_logging(nav.buildconf.localstatedir + "/log/arnold/autoenable.log")
     LOGGER.info("Starting autoenable")
+    django.setup()
 
     candidates = Identity.objects.filter(
         autoenable__lte=datetime.now(), status__in=['disabled', 'quarantined'])

@@ -39,6 +39,8 @@ from nav.arnold import (find_computer_info, disable, quarantine,
                         raise_if_detainment_not_allowed,
                         DetainmentNotAllowedError)
 from nav.models.arnold import Identity, DetentionProfile
+import django
+
 
 CONFIGFILE = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
 
@@ -49,6 +51,7 @@ def main():
     """Main controller"""
     init_logging(nav.buildconf.localstatedir + "/log/arnold/t1000.log")
     LOGGER.info("Starting t1000")
+    django.setup()
 
     # Fetch all mac-addresses that we have detained, check if they are
     # active somewhere else. As NAV collects arp and cam data periodically,

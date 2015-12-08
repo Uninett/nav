@@ -35,6 +35,9 @@ from nav.Snmp import Snmp
 from nav.models.manage import PowerSupplyOrFan, Device
 from nav.logs import set_log_levels
 
+import django
+
+
 VENDOR_CISCO = 9
 VENDOR_HP = 11
 
@@ -141,6 +144,7 @@ LOGGER = logging.getLogger('nav.powersupplywatch')
 def main():
     """Main program"""
     stderr = init_logging()
+    django.setup()
 
     parser = OptionParser()
     parser.add_option(

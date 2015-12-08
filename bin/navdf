@@ -19,11 +19,13 @@ A command line interface to list and filter IP devices monitored by NAV
 """
 from optparse import OptionParser
 from nav.models.manage import Netbox
+import django
 
 
 def main():
     """Main program"""
     (options, args) = parse_args()
+    django.setup()
     if args:
         filtr = ' '.join(args)
         qs = eval('Netbox.objects.' + filtr)

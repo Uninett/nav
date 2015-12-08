@@ -30,6 +30,7 @@ from nav.models.thresholds import ThresholdRule
 from nav.models.event import EventQueue as Event, AlertHistory
 from nav.metrics.lookup import lookup
 
+import django
 from django.db import transaction
 
 LOGFILE_NAME = 'thresholdmon.log'
@@ -44,6 +45,7 @@ def main():
     (_options, _args) = parser.parse_args()
 
     init_logging()
+    django.setup()
     scan()
 
 

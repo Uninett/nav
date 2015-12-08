@@ -23,6 +23,7 @@ from nav.netbiostracker import tracker
 from nav.netbiostracker.config import NetbiosTrackerConfig
 from nav.path import localstatedir
 from nav.logs import set_log_levels
+import django
 
 _logger = logging.getLogger('netbiostracker')
 LOGFILE = 'netbiostracker.log'
@@ -31,6 +32,7 @@ LOGFILE = 'netbiostracker.log'
 def main():
     """Main controller"""
     init_logger(join(localstatedir, 'log', LOGFILE))
+    django.setup()
     config = NetbiosTrackerConfig()
 
     start = time.time()

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- testargs: .1.3.6.1.2.1.1.2 -*-
 #
 # Copyright (C) 2014 UNINETT AS
 #
@@ -29,11 +30,13 @@ from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
 from nav.oids import OID
 
 from twisted.internet import reactor, defer, task
+import django
 
 
 def main():
     """Main program"""
     options = parse_args()
+    django.setup()
 
     sysnames = [n.strip() for n in sys.stdin.readlines()]
     if sysnames:
