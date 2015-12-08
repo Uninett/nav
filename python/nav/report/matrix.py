@@ -123,11 +123,9 @@ class Matrix(object):
             return [self._create_too_small_subnets_cell()]
 
         elif self.matrix_nets[subnet]:
-            _logger.debug('divided into several smaller nets')
             # this subnet is divided into parts
             host_nybbles_map = IPtools.getLastbitsIpMap(
                 self.matrix_nets[subnet].keys())
-            _logger.debug('nybbels: %s', host_nybbles_map)
             return self._add_child_nets(host_nybbles_map)
 
         else:
