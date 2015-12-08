@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# -*- testargs: -h -*-
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
 # Copyright (C) 2009 UNINETT AS
@@ -31,7 +32,7 @@ def main(args):
     for (switch, arg) in opts:
         if switch in ('-h', '--help'):
             usage()
-            sys.exit(10)
+            sys.exit()
 
     if len(args) < 3:
         print >> sys.stderr, "Not enough parameters, see help screen."

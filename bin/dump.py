@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# -*- testargs: -h -*-
 #
 # Copyright (C) 2004,2009 Norwegian University of Science and Technology
 # Copyright (C) 2010-2011, 2013-2015 UNINETT AS

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# -*- notest -*-
 #
 # Copyright 2008 University of Tromsø 
 #

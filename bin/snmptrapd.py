@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- testargs: -h -*-
 #
 # Copyright 2007 (C) Norwegian University of Science and Technology
 #

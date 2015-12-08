@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- testargs: -h -*-
 #
 # Copyright (C) 2012 UNINETT AS
 #

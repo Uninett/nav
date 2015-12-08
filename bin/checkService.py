@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# -*- notest -*-
+#
+# FIXME: Refactor to use argparse
+#
 #
 # Copyright (C) 2003 Norwegian University of Science and Technology
 #
