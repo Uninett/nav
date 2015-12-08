@@ -25,7 +25,7 @@ RUN apt-get update && \
 	postgresql-server-dev-9.1 libpq-dev libwww-perl python-rrdtool \
 	iceweasel xvfb nodejs-legacy curl \
 	python-iso8601 imagemagick x11vnc google-chrome-stable rrdtool cloc \
-	cmake && \
+	cmake nbtscan python-gammu && \
     apt-get clean
 
 RUN gem install --version '3.3.9' sass ; \
