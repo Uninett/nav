@@ -2,6 +2,7 @@ bin_SCRIPTS = $(wildcard *.py) $(wildcard *.sh) \
               eventengine \
               ipdevpolld \
               nav \
+              navcheckservice \
               navdf \
               naventity \
               navoidverify \
