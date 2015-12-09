@@ -56,6 +56,7 @@ try:
             'PORT': _port,
             'USER': _user,
             'PASSWORD': _password,
+            'CONN_MAX_AGE': 300,  # 5 minutes
         }
     }
 except IOError:
