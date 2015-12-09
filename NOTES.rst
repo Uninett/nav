@@ -25,6 +25,8 @@ NAV 4.4
 Slack dispatcher
 ----------------
 
+NAV 4.4 adds a Slack dispatcher to the Alert Engine.
+
 To dispatch messages to a Slack channel, you need to create a Slack channel and
 add an Incoming Webhooks integration. More information about that can be found
 at https://api.slack.com/incoming-webhooks . You will get an URL to use for
@@ -37,6 +39,15 @@ the webhooks integration.
 The username, emoji user-icon and channel for the messages are defined when
 setting up the integration, but if you for some reason want to override this you
 can do it in alertengine.conf.
+
+
+checkService.py has been renamed
+--------------------------------
+
+If you were using `checkService.py` to test your servicemon plugins, this
+command has now been renamed to `navcheckservice`, and its command line
+options have slightly changed. Run it with `--help` for more information.
+
 
 
 NAV 4.3
