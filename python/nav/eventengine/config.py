@@ -13,7 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""eventengengine config"""
+"""eventengine config"""
 from nav.config import NAVConfigParser
 from nav.util import parse_interval
 from ConfigParser import NoSectionError, NoOptionError
