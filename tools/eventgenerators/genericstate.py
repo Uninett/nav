@@ -30,7 +30,6 @@ def main():
     eventtype = EventType.objects.get(pk__icontains=namespace.eventtype)
     event = Event(source="ipdevpoll", target="eventEngine",
                   netboxid=netbox.id,
-                  deviceid=netbox.device.id,
                   subid=namespace.subid,
                   eventtypeid=eventtype.id,
                   state=get_state(namespace))
