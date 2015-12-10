@@ -72,14 +72,16 @@ class DelayedStateHandler(EventHandler):
                     "down in %s seconds (if still unresolved)",
                     self.event.event_type, self.get_target(),
                     self.WARNING_WAIT_TIME, self.ALERT_WAIT_TIME)
-                self.schedule(self.WARNING_WAIT_TIME, self._make_down_warning)
+                self.schedule(self.WARNING_WAIT_TIME, self._make_down_warning,
+                              args=(self.event.get_subject(),))
             else:
                 self._logger.info(
                     "%s start event for %s; declaring down in %s seconds "
                     "(if still unresolved)",
                     self.event.event_type, self.get_target(),
                     self.ALERT_WAIT_TIME)
-                self.schedule(self.ALERT_WAIT_TIME, self._make_down_alert)
+                self.schedule(self.ALERT_WAIT_TIME, self._make_down_alert,
+                              args=(self.event.get_subject(),))
 
     def _set_internal_state_down(self):
         """Called to set target's internal state to down as soon as start event
@@ -157,7 +159,7 @@ class DelayedStateHandler(EventHandler):
         return self.__waiting_for_resolve.get((type(self), self.get_target()),
                                               False)
 
-    def _make_down_warning(self):
+    def _make_down_warning(self, _comment=None):
         """Posts the initial boxDownWarning alert and schedules the callback
         for the final boxDown alert.
 
@@ -170,13 +172,14 @@ class DelayedStateHandler(EventHandler):
 
         self.task = self.engine.schedule(
             max(self.ALERT_WAIT_TIME-self.WARNING_WAIT_TIME, 0),
-            self._make_down_alert)
+            self._make_down_alert,
+            args=(self.event.get_subject(),))
 
     def _post_down_warning(self):
         """Posts the actual warning alert"""
         raise NotImplementedError
 
-    def _make_down_alert(self):
+    def _make_down_alert(self, _comment=None):
         alert = self._get_down_alert()
         if alert:
             self._logger.info("%s: Posting %s alert", self.get_target(),
@@ -207,9 +210,9 @@ class DelayedStateHandler(EventHandler):
         Netbox.objects.filter(id=netbox.id).update(up=netbox.up)
         return netbox.up == Netbox.UP_SHADOW
 
-    def schedule(self, delay, action):
+    def schedule(self, delay, action, args=()):
         "Schedules a callback and makes a note of it in a class variable"
-        self.task = self.engine.schedule(delay, action)
+        self.task = self.engine.schedule(delay, action, args=args)
         self.__waiting_for_resolve[(type(self), self.get_target())] = self
 
     def deschedule(self):

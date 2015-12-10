@@ -174,15 +174,23 @@ class EventEngine(object):
                     if event.id:
                         event.delete()
 
-            self._log_task_queue()
+        self._log_task_queue()
 
     def _log_task_queue(self):
+        logger = logging.getLogger(__name__ + '.queue')
+        if not logger.isEnabledFor(logging.DEBUG):
+            return
+
         modified_queue = [
             e for e in self._scheduler.queue
             if e.action != self._load_new_events_and_reschedule
         ]
         if modified_queue:
-            self._logger.debug("task queue: %r", modified_queue)
+            logtime = time.time()
+            logger.debug("%d tasks in queue at %s",
+                         len(modified_queue), logtime)
+            for event in modified_queue:
+                logger.debug("In %s seconds: %r", event.time - logtime, event)
 
     def _post_generic_alert(self, event):
         alert = AlertGenerator(event)
