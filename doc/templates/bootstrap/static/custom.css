@@ -54,3 +54,24 @@ level AA test for contrast */
 /* Fix links inside admonitions */
 .alert a, .alert .alert-link { color: #18BC9C; }
 
+
+
+/* Definition list */
+dl {
+    overflow: auto;
+}
+
+dt {
+    clear: left;
+    float: left;
+    width: 15rem;
+}
+
+dt:after {
+    content: ':'
+}
+
+dd {
+    margin-top: 0;
+    margin-left: 15rem;
+}
