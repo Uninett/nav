@@ -1,7 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright (C) 2003, 2004 Norwegian University of Science and Technology
-# Copyright (C) 2007, 2012 UNINETT AS
+# Copyright (C) 2007, 2012, 2015 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,64 +14,69 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"Script to simulate link up/down events from snmptrapd / ipdevpoll"
+"""Script to simulate link up/down events from snmptrapd / ipdevpoll"""
 
-import sys
-from nav import db
+from __future__ import print_function
+import argparse
 
-def handler(cursor, boxlist, state):
-
-    for (deviceid, netboxid, subid) in boxlist:
-        sql = """INSERT INTO eventq
-                   (source, target, deviceid, netboxid, subid, eventtypeid,
-                    state,severity)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
-        cursor.execute(sql, ('snmptrapd', 'eventEngine', deviceid,
-                             netboxid, subid, 'linkState', state, 100))
+from nav.models.event import EventQueue as Event, Subsystem, EventType
+from nav.models.manage import Interface
+from django.db import transaction
 
 
+DEFAULT_KWARGS = {
+    'source': Subsystem.objects.get(pk='ipdevpoll'),
+    'target': Subsystem.objects.get(pk='eventEngine'),
+    'event_type': EventType.objects.get(pk='linkState')
+}
+
+
+@transaction.atomic
 def main():
-    if (len(sys.argv) <= 2):
-        print "Not enough arguments (%d), <match spec> <up|down>" % (
-            len(sys.argv),)
-        sys.exit(0)
+    """Main script controller"""
+    args = create_parser().parse_args()
 
-    connection = db.getConnection('getDeviceData','manage')
-    cursor = connection.cursor()
-
-    netboxes = []
-    device_dupes = set()
-    sysnames = []
-
-    for spec in sys.argv[1:-1]:
-        sql = """SELECT deviceid, interfaceid, ifname, netboxid, sysname
-                 FROM netbox
-                 JOIN interface USING (netboxid)
-                 WHERE ip IS NOT NULL
-                    AND sysname ILIKE %s AND ifname ILIKE %s"""
-
-        box, module = spec.split(":")
-        cursor.execute(sql, (box, module))
-        for (deviceid, interfaceid, ifname, netboxid, sysname
-             ) in cursor.fetchall():
-            if interfaceid not in device_dupes:
-                netboxes.append((deviceid, netboxid, interfaceid))
-                sysnames.append((sysname, ifname))
-            device_dupes.add(interfaceid)
-
-    if sys.argv[-1].startswith("u"):
-        state = "e"
-    elif sys.argv[-1].startswith("d"):
-        state = "s"
-    else:
-        print "Unknown state: " + sys.argv[-1]
-        sys.exit(0)
+    for sysname, ifname in args.interfaces:
+        for interface in Interface.objects.filter(
+            netbox__sysname__icontains=sysname,
+            ifname__icontains=ifname
+        ):
+            send_event(interface, args.event, send=args.dry_run)
 
 
-    updown = "up" if (state=="e") else "down"
-    print "Links going %s: %r" % (updown, sysnames)
-    handler(cursor, netboxes, state)
-    connection.commit()
+def interface_spec(spec):
+    sysname, ifname = spec.split(":", 1)
+    return sysname, ifname
+
+
+def create_parser():
+    """Create a parser for the script arguments"""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('event', help='Type of event to simulate',
+                        choices=['up', 'down'])
+    parser.add_argument('interfaces', metavar='sysname:ifname', nargs='+',
+                        type=interface_spec,
+                        help='Select which interfaces to make events for')
+    parser.add_argument('--dry-run', action='store_false',
+                        help='Print the events to be sent without sending them')
+    return parser
+
+
+def send_event(interface, event_spec, send=True):
+    """Send a linkState event for a given interface"""
+    event = Event(**DEFAULT_KWARGS)
+    event.netbox = interface.netbox
+    event.subid = interface.pk
+    event.state = Event.STATE_END if event_spec == 'up' else Event.STATE_START
+    print("{type} {state} event for {subject}".format(
+        type=event.event_type_id,
+        state="start" if event.state == Event.STATE_START else "end",
+        subject=event.get_subject()
+    ))
+
+    if send:
+        event.save()
+
 
 if __name__ == '__main__':
     main()
