@@ -17,6 +17,15 @@
  *
  */
 
+$color_usage_high: #d2322d;
+$color_usage_medium: hsl(28, 100, 80);
+$color_usage_low: #efe0cd;
+$color_usage_vlow: #c5d2c8;
+
+$color_other: #e0c39e;
+$color_large: #ada7c8;
+
+
 #subnet-matrix {
     td:first-child, th:first-child {
         width: 10.4%;
@@ -26,8 +35,22 @@
         padding-left: 0;
         padding-right: 0;
         text-align: center;
-        &.add-border {
+        transition: color 3s, background-color 3s;
+        &.has-data {
             border: 1px solid #FFFFFF;
+            background-color: #DDD;
+            a {
+                /* Need darker colors for links with all these different backgrounds here */
+                color: hsl(200, 100, 25);
+                &:hover { text-decoration: underline; }
+            }
+            .fill-cell {
+                display: block;
+                width: 100%;
+            }
+        }
+        &.has-loaded {
+            cursor: pointer;
         }
     }
     &.ipv4 {
@@ -37,6 +60,14 @@
         th {
             text-align: left;
         }
+        td {
+            &.usage-high { background-color: $color_usage_high; a { color: white; }}
+            &.usage-medium { background-color: $color_usage_medium; }
+            &.usage-low { background-color: $color_usage_low; }
+            &.usage-vlow { background-color: $color_usage_vlow; }
+            &.subnet-other { background-color: $color_other; }
+            &.subnet-large { background-color: $color_large; }
+        }
     }
     &.ipv6 {
         td, th {
@@ -45,6 +76,12 @@
     }
 }
 
-.tooltip a {
-    color: #dcdcdc;
+.tooltip {
+    a { color: hsl(200, 100, 60); }
+    p { margin-bottom: 0.5rem; }
+    .usage-sparkline {
+        background-color: cornflowerblue;
+        margin-top: 1em;
+        padding: 5px 3px;
+    }
 }

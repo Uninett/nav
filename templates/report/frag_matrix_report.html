@@ -23,7 +23,10 @@
   {% endif %}
 {% endwith %}
 
-<table id="subnet-matrix" class="full-width {% if ipv4 %}ipv4{% else %}ipv6{% endif %} ">
+<table id="subnet-matrix"
+       data-family="{{ family }}"
+       data-scope="{{ scope }}"
+       class="full-width {% if ipv4 %}ipv4{% else %}ipv6{% endif %} ">
   <thead>
     <tr>
       <th>
@@ -47,20 +50,50 @@
     {% for subnet in node.subnets %}
       <tr>
         {% for cell in subnet %}
-          <td colspan="{{ cell.colspan }}"
-              style="background: {{ cell.color }};"
-              {% if cell.content != '&nbsp;' %}
-              {% if forloop.counter != 1 and cell.colspan in hide_for %}
-              data-tooltip title='{{ cell.content }}'
-              {% endif %}
-              {% endif %}
-              {% if cell.color %}class="add-border"{% endif %}>
-            {% if forloop.counter == 1 or cell.colspan not in hide_for %}
-              {{ cell.content|safe }}
+
+          {% if cell.is_empty %}
+            <td>&nbsp;</td>
+          {% else %}
+
+            {% if forloop.counter == 1 %}
+              {# First cell contains only the net address #}
+              <td>
+                {% if cell.link %}
+                  <a href="{{ cell.link.href }}" title="{{ cell.link.title }}">
+                    {{ cell.link.text }}
+                  </a>
+
+                {% else %}
+                  {{ cell.content }}
+                {% endif %}
+              </td>
+
             {% else %}
-              &nbsp;
+
+              <td colspan="{{ cell.colspan }}"
+                  rowspan="{{ cell.rowspan }}"
+                  {% if not cell.is_empty %} class="has-data" {% endif %}
+                  {% if cell.netaddr %}data-netaddr="{{ cell.netaddr }}"{% endif %}
+                  {% if cell.dataurl %}data-url="{{ cell.dataurl }}"{% endif %}
+                  >  {# cell #}
+
+                {# Cells that are too small to have text #}
+                {% if cell.colspan in hide_for %}
+                  &nbsp;
+                {% else %}
+                  {% if cell.link %}
+                    <a href="{{ cell.link.href }}" title="{{ cell.link.title }}">
+                      {{ cell.link.text }}
+                    </a>
+                  {% else %}
+                    {{ cell.content }}
+                  {% endif %}
+                {% endif %}
+              </td>
+
             {% endif %}
-          </td>
+          {% endif %}
+
         {% empty %}
           <td class="blank" colspan="{{ matrix.num_columns|add:"1" }}"></td>
         {% endfor %}

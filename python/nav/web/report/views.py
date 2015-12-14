@@ -29,6 +29,7 @@ import re
 # this is just here to make sure Django finds NAV's settings file
 # pylint: disable=W0611
 from django.core.cache import cache
+from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
@@ -149,8 +150,8 @@ def matrix_report(request):
     context = {
         'navpath': [
             ('Home', '/'),
-            ('Report', '/report/'),
-            ('Subnet matrix', False)
+            ('Report', reverse('report-index')),
+            ('Subnet matrix', reverse('report-matrix'))
         ],
         'show_unused': show_unused
     }
@@ -177,6 +178,8 @@ def matrix_report(request):
         'matrix': matrix,
         'sub': matrix.end_net.prefixlen() - matrix.bits_in_matrix,
         'ipv4': scope.version() == 4,
+        'family': scope.version(),
+        'scope': scope,
         'hide_for': hide_content_for_colspan
     })
 
@@ -209,8 +212,12 @@ def create_matrix(scope, show_unused):
     """Creates a matrix for the given scope"""
     tree = buildTree(scope)
     if scope.version() == 6:
-        end_net = getMaxLeaf(tree)
-        matrix = MatrixIPv6(scope, end_net=end_net)
+        if scope.prefixlen() < 60:
+            end_net = IP(scope.net().strNormal() + '/64')
+            matrix = MatrixIPv6(scope, end_net=end_net)
+        else:
+            end_net = getMaxLeaf(tree)
+            matrix = MatrixIPv6(scope, end_net=end_net)
     elif scope.version() == 4:
         if scope.prefixlen() < 24:
             end_net = IP(scope.net().strNormal() + '/30')

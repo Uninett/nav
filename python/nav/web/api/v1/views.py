@@ -211,15 +211,47 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
         return super(PrefixUsageList, self).get(request, *args, **kwargs)
 
     def get_queryset(self):
-        """Override to provide custom queryset"""
-        prefixes = []
-        starttime, endtime = get_times(self.request)
-        for prefix in manage.Prefix.objects.all():
-            tmp_prefix = IP(prefix.net_address)
-            if tmp_prefix.len() >= MINIMUMPREFIXLENGTH:
-                prefixes.append(tmp_prefix)
+        """Filter for ip family"""
+        if 'scope' in self.request.GET:
+            queryset = (manage.Prefix.objects.within(
+                self.request.GET.get('scope')).select_related('vlan')
+                        .order_by('net_address'))
+        elif 'family' in self.request.GET:
+            queryset = manage.Prefix.objects.extra(
+                where=['family(netaddr)=%s'],
+                params=[self.request.GET.get('family')])
+        else:
+            queryset = manage.Prefix.objects.all()
 
-        return prefix_collector.fetch_usages(prefixes, starttime, endtime)
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        """Delivers a list of usage objects as a response
+
+        The queryset contains prefixes, but we use a custom object for
+        representing the usage statistics for the prefix. Thus we need to
+        convert the filtered prefixes to the custom object format.
+
+        Also we need to run the prefix collector after paging to avoid
+        unnecessary usage calculations
+        """
+        self.object_list = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(self.object_list)
+
+        starttime, endtime = get_times(self.request)
+        prefixes = prefix_collector.fetch_usages([
+            p for p in page.object_list
+            if IP(p.net_address).len() >= MINIMUMPREFIXLENGTH],
+            starttime, endtime)
+
+        if page is not None:
+            page.object_list = prefixes
+            serializer = self.get_pagination_serializer(page)
+        else:
+            serializer = self.get_serializer(prefixes, many=True)
+
+        return Response(serializer.data)
+
 
 
 class PrefixUsageDetail(NAVAPIMixin, APIView):
@@ -230,11 +262,11 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
         """Handles get request for prefix usage"""
 
         try:
-            prefix = IP(prefix)
+            ip_prefix = IP(prefix)
         except ValueError:
             return Response("Bad prefix", status=status.HTTP_400_BAD_REQUEST)
 
-        if prefix.len() < MINIMUMPREFIXLENGTH:
+        if ip_prefix.len() < MINIMUMPREFIXLENGTH:
             return Response("Prefix is too small",
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -245,8 +277,9 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
                 'start or endtime not formatted correctly. Use iso8601 format',
                 status=status.HTTP_400_BAD_REQUEST)
 
+        db_prefix = manage.Prefix.objects.get(net_address=prefix)
         serializer = serializers.PrefixUsageSerializer(
-            prefix_collector.fetch_usage(prefix, starttime, endtime))
+            prefix_collector.fetch_usage(db_prefix, starttime, endtime))
 
         return Response(serializer.data)
 

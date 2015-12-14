@@ -11,7 +11,7 @@
 
 
   {% if scopes.ipv4 %}
-    <h4>IP-v4</h4>
+    <h4>IPv4</h4>
     {% with prefixes=scopes.ipv4 %}
       {% include 'report/frag_matrix_report_link.html' %}
     {% endwith %}
@@ -19,7 +19,7 @@
 
 
   {% if scopes.ipv6 %}
-    <h4>IP-v6</h4>
+    <h4>IPv6</h4>
     {% with prefixes=scopes.ipv6 %}
       {% include 'report/frag_matrix_report_link.html' %}
     {% endwith %}

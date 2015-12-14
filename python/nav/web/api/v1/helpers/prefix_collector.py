@@ -16,7 +16,9 @@
 """Provides functions for fetching prefix related data in the API"""
 
 from IPy import IP
+
 from django.db import connection
+from django.core.urlresolvers import reverse
 
 
 class UsageResult(object):
@@ -24,17 +26,22 @@ class UsageResult(object):
     def __init__(self, prefix, active_addresses, starttime=None, endtime=None):
         """
 
-        :type prefix: IPy.IP
+        :type prefix: manage.Prefix
         :type active_addresses: int
         :type starttime: datetime.datetime
         :type endtime: datetime.datetime
         """
-        self.prefix = prefix
+        self.prefix = prefix.net_address
         self.active_addresses = active_addresses
-        self.max_addresses = self.prefix.len()
-        self.usage = self.active_addresses / float(self.max_addresses) * 100
+        self.max_addresses = IP(self.prefix).len()
+        self.max_hosts = self.max_addresses - 2
+        self.usage = self.active_addresses / float(self.max_hosts) * 100
         self.starttime = starttime
         self.endtime = endtime if self.starttime else None
+        self.url_machinetracker = reverse(
+            'machinetracker-prefixid_search_active', args=[prefix.pk])
+        self.url_report = reverse('report-prefix-prefix', args=[prefix.pk])
+        self.url_vlan = reverse('vlan-details', args=[prefix.vlan.pk])
 
 
 def fetch_usages(prefixes, starttime, endtime):
@@ -46,7 +53,7 @@ def fetch_usage(prefix, starttime, endtime):
     """Fetches usage for the prefix
 
     :param prefix: the prefix to fetch active addresses from
-    :type prefix: IPy.IP
+    :type prefix: manage.Prefix
     :type starttime: datetime.datetime
     :type endtime: datetime.datetime
     """
@@ -58,7 +65,7 @@ def collect_active_ip(prefix, starttime=None, endtime=None):
     """Collects active ip based on prefix and optional starttime and endtime
 
     :param prefix: prefix to find active ip addresses for
-    :type prefix: IPy.IP
+    :type prefix: manage.Prefix
 
     :param starttime: if set will query for active ip-addresses at that time.
                       if set with endtime indicates the start of the window
@@ -74,7 +81,7 @@ def collect_active_ip(prefix, starttime=None, endtime=None):
 
     cursor = connection.cursor()
     basequery = "SELECT COUNT(DISTINCT ip) AS ipcount FROM arp"
-    prefix = prefix.strCompressed()
+    prefix = prefix.net_address
 
     if starttime and endtime:
         query = basequery + """

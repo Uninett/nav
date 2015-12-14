@@ -15,19 +15,13 @@
 #
 """This class serves as an interface for the prefix matrix."""
 
-import os
-import IPy
-
 from django.core.urlresolvers import reverse
 
-import nav.path
-from nav.report import IPtools, IPtree, metaIP
-from nav.report.IPtools import netDiff
-from nav.report.matrix import Matrix
-from nav.report.colorconfig import ColorConfig
+from nav.report import IPtools, metaIP
+from nav.report.matrix import Matrix, Link, Cell
 
-
-configfile = os.path.join(nav.path.sysconfdir, "report/matrix.conf")
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class MatrixIPv4(Matrix):
@@ -41,217 +35,110 @@ class MatrixIPv4(Matrix):
         self.visible_column_headings = self.column_headings[::4]
         self.num_columns = len(self.column_headings)
         self.show_unused_addresses = show_unused_addresses
-        self.color_configuration = ColorConfig(configfile)
         self.heading_colspan = 4
 
     def build(self):
-
         nets = IPtools.sort_nets_by_address(self.tree_nets.keys())
         self.nodes = [
-            self.Node(net, self._write_subnets(self.tree_nets[net], 1))
+            self.Node(net, self._write_subnets(net, self.tree_nets[net]))
             for net in nets
         ]
 
-    def _write_subnets(self, net, depth):
 
-        nodes = IPtools.sort_nets_by_address(net.keys())
-        lastnet = None
-        subnet_matrix = []
+    def _write_subnets(self, net, nets):
+        """Create a subnet structure
 
-        for subnet in nodes:
-            if lastnet is None:
-                lastnet = subnet
+        :param net: IP instance of prefix to display
+        :param nets: List of nets (rows) that have subnets. The subnets are
+                     located in self.matrix_nets
+        """
+
+        large_subnets = []  # When displaying unused addresses, we need to know
+                            # about the subnets that span more than one row
+        subnet_matrix = []  # The resulting list of rows to display
+
+        # Initially, create the rows (subnets) we're going to display
+        if self.show_unused_addresses:
+            subnets = IPtools.create_subnet_range(net, self._get_row_size())
+            large_subnets = [x for x in nets.keys()
+                             if x.prefixlen() < self._get_row_size()]
+        else:
+            subnets = IPtools.sort_nets_by_address(nets.keys())
+
+        while subnets:
+            subnet = subnets.pop(0)
+
+            matrix_row = []  # contains all cells in the row
+            extra_rows = []  # For large nets
+
+            matrix_row.append(self._create_index_cell(subnet))
 
             if subnet in self.matrix_nets:
-                if self.show_unused_addresses:
-                    subnet_matrix.extend(
-                        self._nets_in_range(
-                            lastnet,
-                            subnet,
-                            depth))
-
-                lastnet = subnet
-                matrix_row = [
-                    self.Cell(
-                        colspan=1,
-                        color=None,
-                        content='{0} {1}'.format(
-                            Matrix.print_depth(depth),
-                            _netlink(subnet)))
-                ]
-
-                host_nybbles_map = IPtools.getLastbitsIpMap(
-                    self.matrix_nets[subnet].keys())
-                next_header_idx = -1
-
-                if self.has_too_small_nets(subnet):
-                    matrix_row.append(
-                        self.Cell(
-                            colspan=self.num_columns,
-                            color=self._load_color(0, 'large'),
-                            content='Too many small nets')
-                    )
-
-                elif host_nybbles_map is None:
-                # i.e. there exist a net with no
-                # subnets <==> net spans whole row
-                    ip = IPy.IP(subnet)
-                    meta = metaIP.MetaIP(ip)
-                    matrix_row.append(
-                        self.Cell(
-                            colspan=self.num_columns,
-                            color=self._load_color(
-                                meta.usage_percent,
-                                meta.nettype),
-                            content=_matrixlink(0, ip))
-                    )
-
-                else:
-                # The net exists and have subnets
-                    for i in self.column_headings:
-                        if self.column_headings.index(i) < next_header_idx:
-                            continue
-
-                        key = i.lower()
-                        if key in host_nybbles_map:
-                            ip = host_nybbles_map[key]
-                            meta = metaIP.MetaIP(ip)
-                            matrix_cell = self.Cell(
-                                colspan=self._colspan(ip),
-                                color=self._load_color(
-                                    meta.usage_percent,
-                                    meta.nettype),
-                                content=_matrixlink(key, ip))
-                            next_header_idx = (self.column_headings.index(i)
-                                               + int(self._colspan(ip)))
-                        else:
-                            matrix_cell = self.Cell(
-                                colspan=1,
-                                color=None,
-                                content='&nbsp;')
-                        matrix_row.append(matrix_cell)
-                subnet_matrix.append(matrix_row)
+                # We have data for this subnet, create cells for that data
+                matrix_row.extend(self._create_data_row(subnet))
             else:
-                if (self.matrix_nets
-                    and lastnet.prefixlen() <
-                        self.matrix_nets.keys()[0].prefixlen()):
-                    mnets = self.generate_matrix_nets(lastnet)
-                    subnet_extended = IPy.IP(
-                        '/'.join([
-                            subnet.net().strNormal(),
-                            str(self.matrix_nets.keys()[0].prefixlen())
-                        ]))
-                    subnet_matrix.extend(
-                        self._nets_in_range(
-                            mnets[-1],
-                            subnet_extended,
-                            depth))
-                lastnet = subnet
-                meta = metaIP.MetaIP(subnet)
-                matrix_row = [
-                    self.Cell(
-                        colspan=1,
-                        color=None,
-                        content='{0} {1}'.format(
-                            Matrix.print_depth(depth),
-                            _netlink(subnet, True))),
-                    self.Cell(
-                        colspan=self.num_columns,
-                        color=self._load_color(
-                            meta.usage_percent,
-                            meta.nettype),
-                        content=_supernet_matrixlink(subnet))
-                ]
-                subnet_matrix.append(matrix_row)
-                subnet_matrix.extend(
-                    self._write_subnets(net[subnet], depth + 1))
-                subnet_matrix.extend(
-                    self._remaining_blank_nets(subnet, depth + 1))
+                # Either this subnet is bigger then a row or no subnet
+                # exists here - we need to find out
+
+                if self.show_unused_addresses:
+                    # Find out if this subnet is part of a bigger subnet that
+                    # should be displayed here
+                    index = self._find_large_net(subnet, large_subnets)
+                    if index is not None:
+                        num_extra_rows = self._add_large_subnet(
+                            large_subnets.pop(index), matrix_row)
+                        extra_rows = self._get_extra_rows(num_extra_rows,
+                                                             subnets)
+                    else:
+                        matrix_row.append(self._create_empty_cell())
+                else:
+                    # This net spans more then one row
+                    num_extra_rows = self._add_large_subnet(subnet, matrix_row)
+                    extra_rows = self._get_extra_rows(num_extra_rows, subnet)
+
+            subnet_matrix.append(matrix_row)
+
+            # These rows needs to be added after the main row is created for
+            # nets that span more then one row
+            subnet_matrix.extend(extra_rows)
+
         return subnet_matrix
 
-    def _remaining_blank_nets(self, ip, depth):
-        if not self.show_unused_addresses:
-            return []
+    @staticmethod
+    def _find_large_net(subnet, large_subnets):
+        """Returns the index of the first large_subnet that overlaps subnet"""
+        for index, large_net in enumerate(large_subnets):
+            if large_net.overlaps(subnet):
+                return index
 
-        rows = []
-        tTree = self.tree
-        subtree = IPtree.getSubtree(tTree, ip)
-        nets = self.generate_matrix_nets(ip)
+    def _get_extra_rows(self, num_extra_rows, thing):
+        """Returns the extra rows when dealing with large subnets
 
-        for net in nets:
-            overlap = False
-            for subnet in subtree.keys():
-                if subnet.overlaps(net) == 1:
-                    overlap = True
-                    break
+        Two cases (thing is different in these two cases):
+        1: if we display unused address rows, we need to pop from the generated
+           subnets.
+        2: when displaying only used, we need to create new rows
 
-            if overlap or IPtree.search(subtree, net):
-                continue
-            else:
-                rows.append([
-                    self.Cell(
-                        colspan=1,
-                        color=None,
-                        content='{0} {1}'.format(
-                            Matrix.print_depth(depth),
-                            _netlink(net))),
-                    self.Cell(
-                        colspan=self.num_columns,
-                        color=None,
-                        content='&nbsp;')
-                ])
-        return rows
-
-    def _load_color(self, percent, nettype):
-        if nettype == 'static' or nettype == 'scope' or nettype == 'reserved':
-            return self.color_configuration.extras.get('other')
-        elif nettype == 'large':
-            return self.color_configuration.extras.get('large')
+        A row consists of a list containing one index cell
+        """
+        if self.show_unused_addresses:
+            assert isinstance(thing, list)
+            return [
+                [self._create_index_cell(thing.pop(0), link=False)]
+                for _ in range(num_extra_rows)
+            ]
         else:
-            limits = self.color_configuration.limits.items()
-            limits.sort(
-                key=lambda x: x[0],
-                reverse=True)
-            for limit in limits:
-                if percent >= int(limit[0]):
-                    return limit[1]
+            return self._create_extra_rows(num_extra_rows, thing)
+
+    def _get_row_size(self):
+        """Gets the prefixlength for a row"""
+        return self.end_net.prefixlen() - self.bits_in_matrix
 
     def _get_column_headers(self):
         netsize = self.end_net.len()
         factor = 32 - self.end_net.prefixlen()
         return [str((2**factor)*i) for i in range(0, 256/netsize)]
         # return [str((2**lsb)*i) for i in range(0, msb)]
-
-    def generate_matrix_nets(self, supernet):
-        """Generates all the matrix nets which belongs under ``supernet''."""
-        matrix_prefixlen = self.end_net.prefixlen() - self.bits_in_matrix
-        start_net = supernet.net().make_net(matrix_prefixlen)
-
-        #hack, assumes matrix_prefixlen == 24
-        max_address = supernet[-1]
-        end_net = max_address.make_net(24)
-
-        return netDiff(start_net, end_net)
-
-    def _nets_in_range(self, net1, net2, depth):
-        rows = []
-        if net1.prefixlen() == net2.prefixlen():
-            diff = netDiff(net1, net2)
-            if len(diff) > 1:
-                for net in diff[1:]:
-                    rows.append([
-                        self.Cell(
-                            colspan=1,
-                            color=None,
-                            content='{0} {1}'.format(
-                                Matrix.print_depth(depth),
-                                _netlink(net))),
-                        self.Cell(
-                            colspan=self.num_columns,
-                            color=None,
-                            content='&nbsp;')
-                    ])
-        return rows
 
     def __repr__(self):
         return "%s(%r, %r, %r, %r)" % (self.__class__.__name__,
@@ -261,48 +148,28 @@ class MatrixIPv4(Matrix):
                                        self.bits_in_matrix)
 
 
-def _supernet_matrixlink(ip):
-    meta = metaIP.MetaIP(ip)
-    url = reverse(
-        'machinetracker-prefixid_search_active',
-        kwargs={'prefix_id': meta.prefixid})
-    return '<a href="{0}" title="{1}/{2}">({3}%)</a>'.format(
-        url,
-        meta.active_ip_cnt,
-        meta.max_ip_cnt,
-        meta.usage_percent)
+    @staticmethod
+    def _get_content(nybble, ip):
+        return ".{}/{}".format(nybble, ip.prefixlen())
 
 
-def _matrixlink(nybble, ip):
-    meta = metaIP.MetaIP(ip)
-    report_url = reverse(
-        'report-prefix-prefix',
-        kwargs={'prefix_id': meta.prefixid})
-    machinetracker_url = reverse(
-        'machinetracker-prefixid_search_active',
-        kwargs={'prefix_id': meta.prefixid})
+    @staticmethod
+    def _netlink(ip, append_term_and_prefix=False):
+        nip = metaIP.MetaIP(ip).getTreeNet()
+        if append_term_and_prefix:
+            url = reverse(
+                'report-matrix-scope',
+                kwargs={'scope': ip.strNormal().replace('/', '%2F')})
+            text = ip.strNormal()
+        else:
+            url = reverse('report-prefix-netaddr',
+                          kwargs={'netaddr': nip + '.%'})
+            text = nip
+        return Link(url, text, 'Go to prefix report')
 
-    return """
-        <a href="{0}">.{1}/{2}</a>
-        <a href="{3}" title="{4}/{5}">({6}%)</a>
-    """.format(
-        report_url,
-        nybble,
-        ip.prefixlen(),
-        machinetracker_url,
-        meta.active_ip_cnt,
-        meta.max_ip_cnt,
-        meta.usage_percent)
+    def _create_too_small_subnets_cell(self):
+        return Cell(
+            colspan=self.num_columns,
+            color=self._get_color('large'),
+            content='Too many small nets')
 
-
-def _netlink(ip, append_term_and_prefix=False):
-    nip = metaIP.MetaIP(ip).getTreeNet()
-    if append_term_and_prefix:
-        url = reverse(
-            'report-matrix-scope',
-            kwargs={'scope': ip.strNormal().replace('/', '%2F')})
-        text = ip.strNormal()
-    else:
-        url = reverse('report-prefix-netaddr', kwargs={'netaddr': nip + '.%'})
-        text = nip
-    return '<a href="{0}">{1}</a>'.format(url, text)
