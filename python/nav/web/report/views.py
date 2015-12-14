@@ -53,6 +53,8 @@ CONFIG_FILE_LOCAL = os.path.join(nav.path.sysconfdir,
                                  "report/report.local.conf")
 FRONT_FILE = os.path.join(nav.path.sysconfdir, "report/front.html")
 DEFAULT_PAGE_SIZE = 25
+PAGE_SIZES = [25, 50, 100, 500, 1000]
+PAGE_SIZE_PREFERENCE_KEY = 'report_page_size'
 
 
 def index(request):
@@ -75,9 +77,8 @@ def get_report_for_widget(request, report_name):
     """Fetches a report for display in a widget"""
     query = _strip_empty_arguments(request)
     export_delimiter = _get_export_delimiter(query)
-    username = request.account.login
 
-    context = make_report(username, report_name, export_delimiter, query)
+    context = make_report(request, report_name, export_delimiter, query)
     return render(request, 'report/frag_report_table.html', context)
 
 
@@ -85,19 +86,20 @@ def get_report(request, report_name):
     """Loads and displays a specific reports with optional search arguments"""
     query = _strip_empty_arguments(request)
     export_delimiter = _get_export_delimiter(query)
-    username = request.account.login
 
     if query != request.GET:
         # some arguments were stripped, let's clean up the URL
         return HttpResponseRedirect(
             "{0}?{1}".format(request.META['PATH_INFO'], query.urlencode()))
 
-    context = make_report(username, report_name, export_delimiter, query)
+    context = make_report(request, report_name, export_delimiter, query)
     if 'exportcsv' in request.GET:
         return context
 
     # Magic flag for adding sorting links to table
     context['add_sort_links'] = True
+    context['page_sizes'] = PAGE_SIZES
+
     return render_to_response('report/report.html', context,
                               RequestContext(request))
 
@@ -250,14 +252,14 @@ def report_list(request):
         ],
         'heading': 'Report list',
         'report_list': reports,
-        'report_list_local': reports_local,
+        'report_list_local': reports_local
     }
 
     return render_to_response('report/report_list.html', context,
                               RequestContext(request))
 
 
-def make_report(username, report_name, export_delimiter, query_dict,
+def make_report(request, report_name, export_delimiter, query_dict,
                 paginate=True):
     """Makes a report
 
@@ -272,7 +274,8 @@ def make_report(username, report_name, export_delimiter, query_dict,
 
     # Pagination related variables
     page_number = query_dict.get('page_number', 1)
-    page_size = query_dict.get('page_size', DEFAULT_PAGE_SIZE)
+    page_size = get_page_size(request)
+
     query_string = "&".join(["%s=%s" % (x, y)
                              for x, y in query_dict.iteritems()
                              if x != 'page_number'])
@@ -296,7 +299,8 @@ def make_report(username, report_name, export_delimiter, query_dict,
                      for key in query_dict_no_meta)
     mtime_config = (os.stat(CONFIG_FILE_PACKAGE).st_mtime +
                     os.stat(CONFIG_FILE_LOCAL).st_mtime)
-    cache_name = 'report_%s__%s%s' % (username, report_name, mtime_config)
+    cache_name = 'report_%s__%s%s' % (request.account.login,
+                                      report_name, mtime_config)
 
     def _fetch_data_from_db():
         (report, contents, neg, operator, adv, config, dbresult) = (
@@ -410,6 +414,22 @@ def make_report(username, report_name, export_delimiter, query_dict,
         })
 
         return context
+
+
+def get_page_size(request):
+    """Gets the page size based on preferences"""
+    account = request.account
+    if 'page_size' in request.GET:
+        page_size = request.GET.get('page_size')
+        if account.preferences.get(PAGE_SIZE_PREFERENCE_KEY) != page_size:
+            account.preferences[PAGE_SIZE_PREFERENCE_KEY] = page_size
+            account.save()
+    elif PAGE_SIZE_PREFERENCE_KEY in account.preferences:
+        page_size = account.preferences[PAGE_SIZE_PREFERENCE_KEY]
+    else:
+        page_size = DEFAULT_PAGE_SIZE
+
+    return page_size
 
 
 def find_page_range(page_number, page_range, visible_pages=5):

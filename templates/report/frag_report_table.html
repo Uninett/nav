@@ -9,6 +9,21 @@
 
         {# Pagination list #}
         <ul class="pagination right">
+          <li>
+            Page size:
+            <form id="reportPageSize" style="display: inline-block">
+              <label>
+                <select name="page_size" style="padding: 0 0.5em; height: auto">
+                  {% for page_size in page_sizes %}
+                    <option value="{{ page_size }}"
+                            {% if page_size == page.paginator.per_page %}selected{% endif %}>
+                      {{ page_size }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </label>
+            </form>
+          </li>
 
           <li>
             <small>Page {{ page.number }} of {{ page.paginator.num_pages }}</small>
