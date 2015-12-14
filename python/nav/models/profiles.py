@@ -33,6 +33,7 @@ except ImportError:
 
 
 from django.db import models, transaction
+from django_hstore import hstore
 
 import nav.path
 import nav.pwhash
@@ -81,6 +82,9 @@ class Account(models.Model):
     name = VarcharField()
     password = VarcharField()
     ext_sync = VarcharField()
+    preferences = hstore.DictionaryField()
+
+    objects = hstore.HStoreManager()
 
     organizations = models.ManyToManyField(Organization, db_table='accountorg')
 
