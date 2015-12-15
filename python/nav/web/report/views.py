@@ -36,6 +36,7 @@ from django.template import RequestContext
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.db import connection
 
+from nav.models import PREFERENCE_KEY_REPORT_PAGE_SIZE
 from nav.models.manage import Prefix
 
 from nav.report.IPtree import getMaxLeaf, buildTree
@@ -55,7 +56,6 @@ CONFIG_FILE_LOCAL = os.path.join(nav.path.sysconfdir,
 FRONT_FILE = os.path.join(nav.path.sysconfdir, "report/front.html")
 DEFAULT_PAGE_SIZE = 25
 PAGE_SIZES = [25, 50, 100, 500, 1000]
-PAGE_SIZE_PREFERENCE_KEY = 'report_page_size'
 
 
 def index(request):
@@ -428,11 +428,12 @@ def get_page_size(request):
     account = request.account
     if 'page_size' in request.GET:
         page_size = request.GET.get('page_size')
-        if account.preferences.get(PAGE_SIZE_PREFERENCE_KEY) != page_size:
-            account.preferences[PAGE_SIZE_PREFERENCE_KEY] = page_size
+        if account.preferences.get(
+                PREFERENCE_KEY_REPORT_PAGE_SIZE) != page_size:
+            account.preferences[PREFERENCE_KEY_REPORT_PAGE_SIZE] = page_size
             account.save()
-    elif PAGE_SIZE_PREFERENCE_KEY in account.preferences:
-        page_size = account.preferences[PAGE_SIZE_PREFERENCE_KEY]
+    elif PREFERENCE_KEY_REPORT_PAGE_SIZE in account.preferences:
+        page_size = account.preferences[PREFERENCE_KEY_REPORT_PAGE_SIZE]
     else:
         page_size = DEFAULT_PAGE_SIZE
 
