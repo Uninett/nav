@@ -91,6 +91,7 @@ class EntityManager(DefaultManager):
         to_purge = set(self.missing)
         if not graph:
             return to_purge
+        collected = set(entitykey(e) for e in self.get_managed())
         try:
             missing = (miss for miss in self.missing
                        if miss.device is not None)
@@ -98,7 +99,10 @@ class EntityManager(DefaultManager):
                 if miss not in to_purge:
                     continue
                 sub = subtree(graph, miss)
-                to_purge.difference_update(sub.nodes())
+                # filter away any missing entity whose index appears to have
+                # been re-used
+                not_replaced = [n for n in sub if entitykey(n) not in collected]
+                to_purge.difference_update(not_replaced)
         except nx.NetworkXError as err:
             self._logger.warning(
                 "Ignoring suspicious error during processing of entity "
