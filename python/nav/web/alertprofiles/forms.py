@@ -27,7 +27,7 @@ from nav.alertengine.dispatchers.sms_dispatcher import Sms
 
 from nav.models.profiles import MatchField, Filter, Expression, FilterGroup
 from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
-from nav.models.profiles import AlertAddress, AccountProperty
+from nav.models.profiles import AlertAddress
 from nav.web.crispyforms import HelpField
 
 from crispy_forms.helper import FormHelper
@@ -38,21 +38,9 @@ from nav.web.crispyforms import HelpField
 _ = lambda a: a
 
 
-class AccountPropertyForm(forms.ModelForm):
-
-    class Meta(object):
-        model = AccountProperty
-        exclude = ('account',)
-
-    def __init__(self, *args, **kwargs):
-        property = kwargs.pop('property', None)
-        values = kwargs.pop('values', None)
-
-        super(AccountPropertyForm, self).__init__(*args, **kwargs)
-
-        self.fields['property'] = forms.CharField(
-            widget=forms.widgets.HiddenInput, initial=property)
-        self.fields['value'] = forms.ChoiceField(choices=values)
+class LanguageForm(forms.Form):
+    language = forms.ChoiceField(choices = [('en', 'English'),
+                                            ('no', 'Norwegian')])
 
 
 class AlertProfileForm(forms.ModelForm):

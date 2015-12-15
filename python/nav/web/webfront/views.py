@@ -30,14 +30,14 @@ from django.shortcuts import get_object_or_404, render
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.path import sysconfdir
 from nav.django.utils import get_account
-from nav.models.profiles import (NavbarLink, AccountTool, AccountProperty)
+from nav.models.profiles import NavbarLink
 from nav.web import ldapauth, auth
 from nav.web.webfront.utils import quick_read, tool_list
 from nav.web.webfront.forms import (
     LoginForm, NavbarLinkFormSet, ChangePasswordForm, ColumnsForm)
 from nav.web.navlets import list_navlets
 from nav.web.message import new_message, Messages
-from nav.web.webfront import get_widget_columns, WIDGET_COLUMNS_PROPERTY
+from nav.web.webfront import get_widget_columns, PREFERENCE_KEY_WIDGET_COLUMNS
 
 _logger = logging.getLogger('nav.web.tools')
 
@@ -56,11 +56,6 @@ def index(request):
     else:
         welcome = quick_read(WELCOME_REGISTERED_PATH)
 
-    try:
-        widget_columns = request.account.properties.get(
-            property=WIDGET_COLUMNS_PROPERTY).value
-    except AccountProperty.DoesNotExist:
-        widget_columns = 2
     return render(
         request,
         'webfront/index.html',
@@ -69,7 +64,7 @@ def index(request):
             'date_now': datetime.today(),
             'welcome': welcome,
             'navlets': list_navlets(),
-            'widget_columns': widget_columns,
+            'widget_columns': get_widget_columns(request.account),
             'title': 'Welcome to NAV',
         }
     )
@@ -171,89 +166,18 @@ def about(request):
 
 def toolbox(request):
     """Render the toolbox"""
-    account = get_account(request)
-    try:
-        layout_prop = AccountProperty.objects.get(
-            account=account, property='toolbox-layout')
-        layout = layout_prop.value
-    except AccountProperty.DoesNotExist:
-        layout = 'grid'
-
-    tools = sorted(get_account_tools(account, tool_list(account)),
-                   key=attrgetter('name'))
+    account = request.account
+    tools = sorted(tool_list(account), key=attrgetter('name'))
 
     return render(
         request,
         'webfront/toolbox.html',
         {
             'navpath': [('Home', '/'), ('Toolbox', None)],
-            'layout': layout,
             'tools': tools,
             'title': 'NAV toolbox',
         },
     )
-
-
-def get_account_tools(account, all_tools):
-    """Get tools for this account"""
-    account_tools = account.accounttool_set.all()
-    tools = []
-    for tool in all_tools:
-        try:
-            account_tool = account_tools.get(toolname=tool.name)
-        except AccountTool.DoesNotExist:  # pylint: disable=E1101
-            tools.append(tool)
-        else:
-            tool.priority = account_tool.priority
-            tool.display = account_tool.display
-            tools.append(tool)
-    return tools
-
-
-def save_tools(request):
-    """Save changes to tool setup for user"""
-    account = get_account(request)
-    if account.is_default_account():
-        return HttpResponse(status=401)
-
-    if 'data' in request.POST:
-        account = get_account(request)
-        tools = simplejson.loads(request.POST.get('data'))
-        for toolname, options in tools.items():
-            try:
-                atool = AccountTool.objects.get(account=account,
-                                                toolname=toolname)
-            except AccountTool.DoesNotExist:  # pylint: disable=E1101
-                atool = AccountTool(account=account, toolname=toolname)
-
-            atool.priority = options['index']
-            atool.display = options['display']
-            atool.save()
-
-    return HttpResponse()
-
-
-def set_tool_layout(request):
-    """Save tool layout for user"""
-    account = get_account(request)
-    if account.is_default_account():
-        return HttpResponse(status=401)
-
-    if 'layout' in request.POST:
-        account = get_account(request)
-        layout = request.POST['layout']
-        if layout in ['grid', 'list']:
-            try:
-                layout_prop = AccountProperty.objects.get(
-                    account=account, property='toolbox-layout')
-            except AccountProperty.DoesNotExist:
-                layout_prop = AccountProperty(
-                    account=account, property='toolbox-layout')
-
-            layout_prop.value = layout
-            layout_prop.save()
-
-    return HttpResponse()
 
 
 def _create_preference_context(request):
@@ -358,9 +282,9 @@ def set_widget_columns(request):
     if request.method == 'POST':
         form = ColumnsForm(request.POST)
         if form.is_valid():
-            prop, _created = request.account.properties.get_or_create(
-                property=WIDGET_COLUMNS_PROPERTY)
-            prop.value = form.cleaned_data.get('num_columns')
-            prop.save()
+            account = request.account
+            num_columns = form.cleaned_data.get('num_columns')
+            account.preferences[PREFERENCE_KEY_WIDGET_COLUMNS] = num_columns
+            account.save()
             return HttpResponseRedirect(reverse('webfront-index'))
     return HttpResponseRedirect(reverse('webfront-preferences'))

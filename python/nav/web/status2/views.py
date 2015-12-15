@@ -24,12 +24,12 @@ from django.views.generic import View
 from django.http import HttpResponse, Http404
 
 from nav.maintengine import check_devices_on_maintenance
+from nav.models import PREFERENCE_KEY_STATUS
 from nav.models.event import AlertHistory
 from nav.models.manage import Netbox, Device, NetboxEntity, Module
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
-from nav.models.profiles import AccountProperty
 from nav.models.fields import INFINITY
-from . import forms, STATELESS_THRESHOLD, STATUS_PREFERENCE_PROPERTY
+from . import forms, STATELESS_THRESHOLD
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -40,13 +40,10 @@ class StatusView(View):
 
     def get_status_preferences(self):
         """Gets the status preferences for the user on the request"""
-        try:
-            status_property = self.request.account.properties.get(
-                property=STATUS_PREFERENCE_PROPERTY)
-        except AccountProperty.DoesNotExist:
-            pass
-        else:
-            return pickle.loads(status_property.value)
+        preferences = self.request.account.preferences.get(
+            PREFERENCE_KEY_STATUS)
+        if preferences:
+            return pickle.loads(preferences)
 
     @staticmethod
     def set_default_parameters(parameters):
@@ -95,15 +92,9 @@ def save_status_preferences(request):
 
     form = forms.StatusPanelForm(request.POST)
     if form.is_valid():
-        try:
-            status_property = request.account.properties.get(
-                property=STATUS_PREFERENCE_PROPERTY)
-        except AccountProperty.DoesNotExist:
-            status_property = AccountProperty(
-                account=request.account, property=STATUS_PREFERENCE_PROPERTY)
-
-        status_property.value = pickle.dumps(form.cleaned_data)
-        status_property.save()
+        request.account.preferences[PREFERENCE_KEY_STATUS] = pickle.dumps(
+            form.cleaned_data)
+        request.account.save()
         return HttpResponse()
     else:
         return HttpResponse('Form was not valid', status=400)

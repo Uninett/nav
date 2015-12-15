@@ -1,13 +1,10 @@
 """NAV web common package."""
-from nav.models.profiles import AccountProperty
 
 DEFAULT_WIDGET_COLUMNS = 2
-WIDGET_COLUMNS_PROPERTY = 'widget_columns'
+
+from nav.models import PREFERENCE_KEY_WIDGET_COLUMNS
 
 def get_widget_columns(account):
     """Get the preference for widget columns"""
-    try:
-        return int(account.properties.get(
-            property=WIDGET_COLUMNS_PROPERTY).value)
-    except AccountProperty.DoesNotExist:
-        return DEFAULT_WIDGET_COLUMNS
+    return int(account.preferences.get(PREFERENCE_KEY_WIDGET_COLUMNS,
+                                       DEFAULT_WIDGET_COLUMNS))

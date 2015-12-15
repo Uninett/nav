@@ -35,7 +35,6 @@ from nav.web.utils import SubListView
 from nav.models.profiles import (
     Account,
     AccountGroup,
-    AccountProperty,
     AlertAddress,
     AlertPreference,
     AlertProfile,
@@ -50,10 +49,11 @@ from nav.models.profiles import (
     SMSQueue,
     AccountAlertQueue
 )
+from nav.models import PREFERENCE_KEY_LANGUAGE
 from nav.django.utils import get_account, is_admin
 from nav.web.message import Messages, new_message
 
-from nav.web.alertprofiles.forms import AccountPropertyForm, TimePeriodForm
+from nav.web.alertprofiles.forms import TimePeriodForm, LanguageForm
 from nav.web.alertprofiles.forms import AlertProfileForm, AlertSubscriptionForm
 from nav.web.alertprofiles.forms import AlertAddressForm, FilterForm
 from nav.web.alertprofiles.forms import ExpressionForm, FilterGroupForm
@@ -74,7 +74,6 @@ from .decorators import requires_post
 _ = lambda a: a
 
 PAGINATE_BY = 25
-
 
 def overview(request):
     """The Alert Profiles overview / index page"""
@@ -100,20 +99,8 @@ def overview(request):
     filter_dict = {'group_permissions__in': [g.id for g in groups]}
     filter_groups = FilterGroup.objects.filter(**filter_dict).order_by('name')
 
-    try:
-        language = AccountProperty.objects.get(
-            account=account,
-            property='language'
-        )
-    except AccountProperty.DoesNotExist:
-        language = AccountProperty(account=account, property='language',
-                                   value='en')
-
-    language_form = AccountPropertyForm(
-        instance=language,
-        property='language',
-        values=[('en', 'English'), ('no', 'Norwegian')]
-    )
+    language = account.preferences.get(PREFERENCE_KEY_LANGUAGE, 'en')
+    language_form = LanguageForm(initial={'language': language})
 
     info_dict = {
         'active': {'overview': True},
@@ -1162,26 +1149,15 @@ def address_remove(request):
         )
 
 
-@requires_post('alertprofiles-profile', ('value',))
+@requires_post('alertprofiles-profile', ('language',))
 def language_save(request):
     """Saves the user's preferred language"""
-    account = get_account(request)
+    account = request.account
+    value = request.POST.get('language')
+    account.preferences[PREFERENCE_KEY_LANGUAGE] = value
+    account.save()
 
-    # Try to fetch language property. If it doesn't exist we must make it.
-    try:
-        language = AccountProperty.objects.get(
-            account=account,
-            property='language'
-        )
-    except AccountProperty.DoesNotExist:
-        language = AccountProperty(account=account, property='language',
-                                   value='en')
-
-    value = request.POST.get('value')
-    language.value = value
-    language.save()
-
-    new_message(request, _('Changed language'), Messages.SUCCESS)
+    new_message(request, 'Changed language', Messages.SUCCESS)
     return HttpResponseRedirect(reverse('alertprofiles-overview'))
 
 

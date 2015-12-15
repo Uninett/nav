@@ -41,6 +41,7 @@ from nav.config import getconfig as get_alertengine_config
 from nav.alertengine.dispatchers import DispatcherException
 from nav.alertengine.dispatchers import FatalDispatcherException
 
+from nav.models import PREFERENCE_KEY_LANGUAGE
 from nav.models.event import AlertQueue, AlertType, EventType
 from nav.models.manage import Arp, Cam, Category, Device, Location
 from nav.models.manage import Memory, Netbox, NetboxInfo, NetboxType
@@ -249,21 +250,6 @@ class AccountGroup(models.Model):
         return self.id == self.ADMIN_GROUP
 
 
-class AccountProperty(models.Model):
-    """Key-value for account settings"""
-
-    account = models.ForeignKey('Account', db_column='accountid', null=True,
-                                related_name='properties')
-    property = VarcharField()
-    value = VarcharField()
-
-    class Meta(object):
-        db_table = u'accountproperty'
-
-    def __unicode__(self):
-        return '%s=%s' % (self.property, self.value)
-
-
 class NavbarLink(models.Model):
     """A hyperlink on a user's navigation bar."""
     account = models.ForeignKey('Account', db_column='accountid')
@@ -329,11 +315,7 @@ class AlertAddress(models.Model):
         logger = logging.getLogger('nav.alertengine.alertaddress.send')
 
         # Determine the right language for the user.
-        try:
-            lang = self.account.properties.get(
-                property='language').value or 'en'
-        except AccountProperty.DoesNotExist:
-            lang = 'en'
+        lang = self.account.preferences.get(PREFERENCE_KEY_LANGUAGE, 'en')
 
         if not (self.address or '').strip():
             logger.error(
