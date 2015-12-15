@@ -49,7 +49,6 @@ from nav.models.profiles import (
     SMSQueue,
     AccountAlertQueue
 )
-from nav.models import PREFERENCE_KEY_LANGUAGE
 from nav.django.utils import get_account, is_admin
 from nav.web.message import Messages, new_message
 
@@ -99,7 +98,7 @@ def overview(request):
     filter_dict = {'group_permissions__in': [g.id for g in groups]}
     filter_groups = FilterGroup.objects.filter(**filter_dict).order_by('name')
 
-    language = account.preferences.get(PREFERENCE_KEY_LANGUAGE, 'en')
+    language = account.preferences.get(account.PREFERENCE_KEY_LANGUAGE, 'en')
     language_form = LanguageForm(initial={'language': language})
 
     info_dict = {
@@ -1154,7 +1153,7 @@ def language_save(request):
     """Saves the user's preferred language"""
     account = request.account
     value = request.POST.get('language')
-    account.preferences[PREFERENCE_KEY_LANGUAGE] = value
+    account.preferences[account.PREFERENCE_KEY_LANGUAGE] = value
     account.save()
 
     new_message(request, 'Changed language', Messages.SUCCESS)

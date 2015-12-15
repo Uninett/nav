@@ -41,7 +41,6 @@ from nav.config import getconfig as get_alertengine_config
 from nav.alertengine.dispatchers import DispatcherException
 from nav.alertengine.dispatchers import FatalDispatcherException
 
-from nav.models import PREFERENCE_KEY_LANGUAGE
 from nav.models.event import AlertQueue, AlertType, EventType
 from nav.models.manage import Arp, Cam, Category, Device, Location
 from nav.models.manage import Memory, Netbox, NetboxInfo, NetboxType
@@ -75,6 +74,13 @@ class Account(models.Model):
 
     DEFAULT_ACCOUNT = 0
     ADMIN_ACCOUNT = 1
+
+    # An overview of current preferences.
+    # They should start with PREFERENCE_KEY
+    PREFERENCE_KEY_LANGUAGE = 'language'  # AlertProfiles
+    PREFERENCE_KEY_STATUS = 'status-preferences'
+    PREFERENCE_KEY_WIDGET_COLUMNS = 'widget_columns'
+    PREFERENCE_KEY_REPORT_PAGE_SIZE = 'report_page_size'
 
     # FIXME get this from setting.
     MIN_PASSWD_LENGTH = 8
@@ -315,7 +321,8 @@ class AlertAddress(models.Model):
         logger = logging.getLogger('nav.alertengine.alertaddress.send')
 
         # Determine the right language for the user.
-        lang = self.account.preferences.get(PREFERENCE_KEY_LANGUAGE, 'en')
+        lang = self.account.preferences.get(
+            Account.PREFERENCE_KEY_LANGUAGE, 'en')
 
         if not (self.address or '').strip():
             logger.error(

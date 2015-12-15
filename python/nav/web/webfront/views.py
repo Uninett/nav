@@ -37,7 +37,7 @@ from nav.web.webfront.forms import (
     LoginForm, NavbarLinkFormSet, ChangePasswordForm, ColumnsForm)
 from nav.web.navlets import list_navlets
 from nav.web.message import new_message, Messages
-from nav.web.webfront import get_widget_columns, PREFERENCE_KEY_WIDGET_COLUMNS
+from nav.web.webfront import get_widget_columns
 
 _logger = logging.getLogger('nav.web.tools')
 
@@ -284,7 +284,8 @@ def set_widget_columns(request):
         if form.is_valid():
             account = request.account
             num_columns = form.cleaned_data.get('num_columns')
-            account.preferences[PREFERENCE_KEY_WIDGET_COLUMNS] = num_columns
+            account.preferences[
+                account.PREFERENCE_KEY_WIDGET_COLUMNS] = num_columns
             account.save()
             return HttpResponseRedirect(reverse('webfront-index'))
     return HttpResponseRedirect(reverse('webfront-preferences'))

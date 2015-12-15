@@ -36,7 +36,6 @@ from django.template import RequestContext
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.db import connection
 
-from nav.models import PREFERENCE_KEY_REPORT_PAGE_SIZE
 from nav.models.manage import Prefix
 
 from nav.report.IPtree import getMaxLeaf, buildTree
@@ -426,14 +425,15 @@ def make_report(request, report_name, export_delimiter, query_dict,
 def get_page_size(request):
     """Gets the page size based on preferences"""
     account = request.account
+    key = account.PREFERENCE_KEY_REPORT_PAGE_SIZE
+
     if 'page_size' in request.GET:
         page_size = request.GET.get('page_size')
-        if account.preferences.get(
-                PREFERENCE_KEY_REPORT_PAGE_SIZE) != page_size:
-            account.preferences[PREFERENCE_KEY_REPORT_PAGE_SIZE] = page_size
+        if account.preferences.get(key) != page_size:
+            account.preferences[key] = page_size
             account.save()
-    elif PREFERENCE_KEY_REPORT_PAGE_SIZE in account.preferences:
-        page_size = account.preferences[PREFERENCE_KEY_REPORT_PAGE_SIZE]
+    elif key in account.preferences:
+        page_size = account.preferences[key]
     else:
         page_size = DEFAULT_PAGE_SIZE
 

@@ -24,7 +24,6 @@ from django.views.generic import View
 from django.http import HttpResponse, Http404
 
 from nav.maintengine import check_devices_on_maintenance
-from nav.models import PREFERENCE_KEY_STATUS
 from nav.models.event import AlertHistory
 from nav.models.manage import Netbox, Device, NetboxEntity, Module
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
@@ -41,7 +40,7 @@ class StatusView(View):
     def get_status_preferences(self):
         """Gets the status preferences for the user on the request"""
         preferences = self.request.account.preferences.get(
-            PREFERENCE_KEY_STATUS)
+            self.request.account.PREFERENCE_KEY_STATUS)
         if preferences:
             return pickle.loads(preferences)
 
@@ -92,9 +91,10 @@ def save_status_preferences(request):
 
     form = forms.StatusPanelForm(request.POST)
     if form.is_valid():
-        request.account.preferences[PREFERENCE_KEY_STATUS] = pickle.dumps(
+        account = request.account
+        account.preferences[account.PREFERENCE_KEY_STATUS] = pickle.dumps(
             form.cleaned_data)
-        request.account.save()
+        account.save()
         return HttpResponse()
     else:
         return HttpResponse('Form was not valid', status=400)
