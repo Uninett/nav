@@ -87,26 +87,25 @@ class EntityManager(DefaultManager):
 
     def get_purge_list(self):
         """Returns a  list of entitites that should be purged from the db"""
-        graph = self._build_dependency_graph()
         to_purge = set(self.missing)
+        graph = self._build_dependency_graph()
         if not graph:
             return to_purge
         collected = set(entitykey(e) for e in self.get_managed())
-        try:
-            missing = (miss for miss in self.missing
-                       if miss.device is not None)
-            for miss in missing:
-                if miss not in to_purge:
-                    continue
+        missing = (miss for miss in self.missing
+                   if miss.device is not None and miss in to_purge)
+        for miss in missing:
+            try:
                 sub = subtree(graph, miss)
-                # filter away any missing entity whose index appears to have
-                # been re-used
-                not_replaced = [n for n in sub if entitykey(n) not in collected]
-                to_purge.difference_update(not_replaced)
-        except nx.NetworkXError as err:
-            self._logger.warning(
-                "Ignoring suspicious error during processing of entity "
-                "relationships in ENTITY-MIB::entPhysicalTable: %s", err)
+            except nx.NetworkXError as err:
+                self._logger.warning(
+                    "Ignoring suspicious error during processing of entity "
+                    "relationships in ENTITY-MIB::entPhysicalTable: %s", err)
+                continue
+            # filter away any missing entity whose index appears to have
+            # been re-used
+            not_replaced = [n for n in sub if entitykey(n) not in collected]
+            to_purge.difference_update(not_replaced)
         return to_purge
 
     def _build_dependency_graph(self):
