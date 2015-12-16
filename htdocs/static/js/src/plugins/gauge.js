@@ -88,14 +88,15 @@ define(['libs/d3.v2'], function () {
                 self.refresh(value);
             });
         },
-        refresh: function (value) {
+        refresh: function (inputValue) {
             var self = this;
+            var value = Number(inputValue);
 
-            if (value === null) {
+            if (inputValue === null) {
                 this.valueText.text('N/A');
                 value = 0;
             } else {
-                this.valueText.text(value + this.symbol);
+                this.valueText.text(+(value.toFixed(1)) + this.symbol);
             }
 
             /* Transition arc and color to new value */
