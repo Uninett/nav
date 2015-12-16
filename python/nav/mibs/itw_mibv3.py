@@ -51,6 +51,14 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     lowercase_nodes = dict((key.lower(), key)
                             for key in mib['nodes'])
 
+    def _debug(self, msg, *args, **kwargs):
+        return self._logger.debug(self.__class__.__name__ + ":: " + msg,
+                                  *args, **kwargs)
+
+    def _error(self, msg, *args, **kwargs):
+        return self._logger.error(self.__class__.__name__ + ":: " + msg,
+                                  *args, **kwargs)
+
     def get_module_name(self):
         """ Return this official MIB-name"""
         return self.mib.get('moduleName', None)
@@ -821,16 +829,14 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
         result = dict((self.oid_name_map[oid], count)
                       for oid, count in mapped_counts
                       if oid in self.oid_name_map)
-        self._logger.debug('ItWatchDogsMib:: _get_sensor_count: result = %s',
-                            result)
+        self._debug('_get_sensor_count: result = %s', result)
         defer.returnValue(result)
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
         """ Try to retrieve all available sensors in this WxGoose"""
         sensor_counts = yield self._get_sensor_count()
-        self._logger.debug('ItWatchDogsMib:: get_all_sensors: ip = %s',
-                          self.agent_proxy.ip)
+        self._debug('get_all_sensors: ip = %s', self.agent_proxy.ip)
 
         tables = ((self.translate_counter_to_table(counter), count)
                   for counter, count in sensor_counts.items())
@@ -839,15 +845,13 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
 
         result = []
         for table in tables:
-            self._logger.debug('ItWatchDogsMib:: get_all_sensors: table = %s',
-                                    table)
+            self._debug('get_all_sensors: table = %s', table)
             sensors = yield self.retrieve_table(
                                         table).addCallback(reduce_index)
-            self._logger.debug('ItWatchDogsMib:: get_all_sensors: %s = %s',
-                              table, sensors)
+            self._debug('get_all_sensors: %s = %s', table, sensors)
             handler = for_table.map.get(table, None)
             if not handler:
-                self._logger.error("There is not data handler for %s", table)
+                self._error("There is not data handler for %s", table)
             else:
                 method = getattr(self, handler)
                 result.extend(method(sensors))
