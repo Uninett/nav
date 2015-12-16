@@ -30,8 +30,15 @@ def _nav_binary_tests():
                 yield args
 
 def _nav_binary_list():
-    files = sorted(os.path.join(bindir, f) for f in os.listdir(bindir))
+    files = sorted(os.path.join(bindir, f)
+                   for f in os.listdir(bindir)
+                   if not _is_excluded(f))
     return (f for f in files if os.path.isfile(f))
+
+
+def _is_excluded(filename):
+    return (filename.endswith('~') or filename.startswith('.') or
+            filename.startswith('Makefile'))
 
 
 def _scan_testargs(filename):

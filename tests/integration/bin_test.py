@@ -1,6 +1,14 @@
-from subprocess import call
-import pytest
+import sys
+import subprocess
+
 
 def test_binary_runs(binary):
-    retval = call(binary)
-    assert retval == 0
+    """Verifies that a command runs with a zero exit code"""
+    proc = subprocess.Popen(binary, stderr=subprocess.STDOUT,
+                            stdout=subprocess.PIPE)
+    (done, fail) = proc.communicate()
+    retcode = proc.wait()
+
+    sys.stdout.write(done)
+
+    assert retcode == 0
