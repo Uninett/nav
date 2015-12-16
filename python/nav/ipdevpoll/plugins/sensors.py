@@ -25,6 +25,7 @@ from twisted.internet import defer
 
 from nav.mibs.itw_mib import ItWatchDogsMib
 from nav.mibs.itw_mibv3 import ItWatchDogsMibV3
+from nav.mibs.geist_mibv3 import GeistMibV3
 from nav.mibs.cisco_envmon_mib import CiscoEnvMonMib
 from nav.mibs.entity_sensor_mib import EntitySensorMib
 from nav.mibs.cisco_entity_sensor_mib import CiscoEntitySensorMib
@@ -49,8 +50,9 @@ VENDOR_EMERSON_COMPUTER_POWER = 476
 VENDOR_EATON = 534
 # Merlin Gerin, MGE UPSes
 VENDOR_MGE = 705
-# IT-Watchdogs,- i.e. WxGooses
+# IT-Watchdogs (WeatherGoose products), now rebranded as Geist
 VENDOR_ITWATCHDOGS = 17373
+VENDOR_GEIST = 21239
 # Comet
 VENDOR_COMET = 22626
 VENDOR_AKCP = 3854
@@ -71,6 +73,7 @@ class MIBFactory(object):
             vendor_id = netbox.type.get_enterprise_id()
         if vendor_id:
             # Allocate vendor-specific mibs if we know the vendor
+            # FIXME: This is horrible, we need a better mechanism.
             if vendor_id == VENDOR_CISCO:
                 # Some cisco-boxes may use standard-mib
                 mibs = [EntitySensorMib(agent),
@@ -89,6 +92,8 @@ class MIBFactory(object):
             elif vendor_id == VENDOR_ITWATCHDOGS:
                 # Try with the most recent first
                 mibs = [ItWatchDogsMibV3(agent), ItWatchDogsMib(agent)]
+            elif vendor_id == VENDOR_GEIST:
+                mibs = [GeistMibV3(agent)]
             elif vendor_id == VENDOR_COMET:
                 mibs = [P8541Mib(agent)]
             elif vendor_id == VENDOR_AKCP:
