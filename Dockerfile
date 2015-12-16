@@ -34,10 +34,11 @@ RUN apt-get update \
             librrd-dev autoconf automake libsnmp15 \
             cron sudo libapache2-mod-wsgi rubygems inotify-tools python-cairo \
             postgresql-9.1 postgresql-contrib-9.1 postgresql-client openssh-server \
+            vim less nbtscan
     && \
     apt-get clean
 
-RUN pip install whisper carbon graphite-web==0.9.14 django-tagging==0.3.4 pytz
+RUN pip install whisper carbon graphite-web==0.9.14 django-tagging==0.3.4 pytz ipython
 
 RUN gem install --version '3.3.9' sass ;\
     gem install --version '~> 0.9' rb-inotify
