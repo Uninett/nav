@@ -5,6 +5,7 @@ define([
 ], function(Rickshaw, Template) {
     
     var template = Handlebars.compile(Template);
+    var resizeTimeout = 250;  // Throttle resize to trigger at most every resizeTimeout ms
 
     function RickshawGraph(container, url) {
         container.innerHTML = template({
@@ -24,7 +25,27 @@ define([
             stack: false  // Need to set this so that data is not stacked
         });
 
+        var timer = null;
+        window.addEventListener('resize', function() {
+            if (!timer) {
+                timer = setTimeout(function() {
+                    resizeGraph(g.graph);
+                    timer = null;
+                }, resizeTimeout);
+            }
+        });
+
         return g;
+    }
+
+
+    function resizeGraph(graph) {
+        var boundingRect = graph.element.getBoundingClientRect();
+        graph.configure({
+            width: boundingRect.width,
+            height: boundingRect.height
+        });
+        graph.render();
     }
 
 
