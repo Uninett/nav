@@ -35,7 +35,6 @@ require(['plugins/graphfetcher'], function (GraphFetcher) {
         openNext: function() {
             var index = this.lastOpenedIndex === null ? 0 : this.lastOpenedIndex + 1;
             if (index < this.graphs.length) {
-                console.log('(' + this.$container.context.id + '): opening graph ' + index);
                 this.graphs[index].open();
                 this.lastOpenedIndex = index;
                 return index;
@@ -164,7 +163,7 @@ require(['plugins/graphfetcher'], function (GraphFetcher) {
                 try {
                     graphs.push(new GraphFetcher($node, $node.attr('data-url')));
                 } catch (error) {
-                    console.log('Error initializing graphloader');
+                    console.error('Error initializing graphloader');
                 }
             });
 
