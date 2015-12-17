@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #encoding: utf-8
-
+# -*- testargs: -h -*-
 """
 The NAV eventengine deamon
 """
