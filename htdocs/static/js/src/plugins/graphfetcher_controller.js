@@ -26,8 +26,6 @@ require(['plugins/graphfetcher'], function (GraphFetcher) {
         this.$container = $container;
         this.graphs = graphs;
         this.lastOpenedIndex = null;
-
-        console.log('Number of graphs: ' + this.graphs.length);
     }
 
     GraphHandler.prototype = {
