@@ -20,7 +20,8 @@ define([
                 return prepareData(data, container.dataset);
             },
             onComplete: onComplete,
-            renderer: 'line'
+            renderer: 'line',
+            stack: false  // Need to set this so that data is not stacked
         });
 
         return g;
