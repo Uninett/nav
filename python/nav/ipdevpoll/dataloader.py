@@ -34,7 +34,7 @@ interfering with the daemon's asynchronous operations.
 """
 from collections import defaultdict
 
-from nav.models import manage
+from nav.models import manage, event
 from nav import ipdevpoll
 from . import storage
 from nav.ipdevpoll.db import django_debug_cleanup, run_in_thread
@@ -76,13 +76,13 @@ class NetboxLoader(dict):
         """
         related = ('room__location', 'type__vendor',
                    'category', 'organization', 'device')
-        snmp_up_query = """SELECT COUNT(*) = 0
-                           FROM alerthist
-                           WHERE alerthist.netboxid = netbox.netboxid
-                             AND eventtypeid='snmpAgentState'
-                             AND end_time >= 'infinity' """
-        queryset = (manage.Netbox.objects.select_related(*related).
-                    extra(select={'snmp_up': snmp_up_query}))
+        snmp_down = set(event.AlertHistory.objects.unresolved(
+            'snmpAgentState').values_list('netbox__id', flat=True))
+        self._logger.debug("These netboxes have active snmpAgentStates: %r",
+                           snmp_down)
+        queryset = list(manage.Netbox.objects.select_related(*related))
+        for netbox in queryset:
+            netbox.snmp_up = netbox.id not in snmp_down
         netbox_list = storage.shadowify_queryset(queryset)
         netbox_dict = dict((netbox.id, netbox) for netbox in netbox_list)
 
