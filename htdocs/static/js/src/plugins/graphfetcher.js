@@ -1,4 +1,8 @@
-define(['plugins/rickshaw_graph', 'libs/spin.min'], function (RickshawGraph) {
+define([
+    'plugins/rickshaw_graph',
+    'nav-url-utils',
+    'libs/spin.min'
+], function (RickshawGraph, Utils) {
     /*
      * GraphFetcher
      *
@@ -118,14 +122,14 @@ define(['plugins/rickshaw_graph', 'libs/spin.min'], function (RickshawGraph) {
             button.click(function () {
                 /* Image url is a redirect to graphite. Fetch proxy url and use
                  that as preference for graph widget */
-                var url = removeURLParameter(self.graph.dataURL, 'format'),
+                var url = Utils.removeURLParameter(self.graph.dataURL, 'format'),
                     headRequest = $.ajax(url, { 'type': 'HEAD' });
                 headRequest.done(function (data, status, xhr) {
                     var proxyUrl = xhr.getResponseHeader('X-Where-Am-I');
                     if (proxyUrl) {
                         var request = $.post(NAV.addGraphWidgetUrl,
                             {
-                                'url': removeURLParameter(proxyUrl, 'format'),
+                                'url': Utils.removeURLParameter(proxyUrl, 'format'),
                                 'target': window.location.pathname + window.location.hash
                             });
                         request.done(function () {
@@ -180,15 +184,21 @@ define(['plugins/rickshaw_graph', 'libs/spin.min'], function (RickshawGraph) {
             }
             
         },
+
+        /**
+         * We expect the urls to be urls to graphite. This means that they
+         * should have parameters specifiying how to draw the graph.
+         */
         getUrl: function () {
-            var url = this.urls[this.urlIndex],
-                escapedUrl = escapeUrl(url),
-                separator = '?';
+            var url = this.urls[this.urlIndex];
             if (url.indexOf('?') >= 0) {
-                separator = '&';
+                // Add/alter timecomponent
+                return Utils.removeURLParameter(url, 'from') + '&' + 'from=-1' + this.timeframe;
+            } else {
+                return url;
             }
-            return escapedUrl + separator + 'timeframe=' + this.timeframe;
         },
+
         createSpinner: function () {
             var options = {};  // Who knows, maybe in the future?
             return new Spinner(options);
@@ -198,36 +208,3 @@ define(['plugins/rickshaw_graph', 'libs/spin.min'], function (RickshawGraph) {
     return GraphFetcher;
 
 });
-
-/**
- * Escape all parts of an url path.
- * @param {string} url An url or pathname to escape
- */
-function escapeUrl(url) {
-    return url.split('/').reduce(function(prev, curr) {
-        return prev + '/' + encodeURIComponent(curr);
-    });
-}
-
-function removeURLParameter(url, parameter) {
-    //prefer to use l.search if you have a location/link object
-    var urlparts= url.split('?');   
-    if (urlparts.length>=2) {
-
-        var prefix= encodeURIComponent(parameter)+'=';
-        var pars= urlparts[1].split(/[&;]/g);
-
-        //reverse iteration as may be destructive
-        for (var i= pars.length; i-- > 0;) {    
-            //idiom for string.startsWith
-            if (pars[i].lastIndexOf(prefix, 0) !== -1) {  
-                pars.splice(i, 1);
-            }
-        }
-
-        url= urlparts[0]+'?'+pars.join('&');
-        return url;
-    } else {
-        return url;
-    }
-}
