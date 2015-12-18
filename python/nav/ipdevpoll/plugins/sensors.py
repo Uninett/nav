@@ -40,22 +40,17 @@ from nav.mibs.xups_mib import XupsMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
-VENDOR_CISCO = 9
-VENDOR_HP = 11
-# American Power Conversion Corp., APC UPSes
-VENDOR_APC = 318
-# Emerson Computer Power, Liebert UPSes
-VENDOR_EMERSON_COMPUTER_POWER = 476
-# Eaton Corporation, Eaton UPSes
-VENDOR_EATON = 534
-# Merlin Gerin, MGE UPSes
-VENDOR_MGE = 705
-# IT-Watchdogs (WeatherGoose products), now rebranded as Geist
-VENDOR_ITWATCHDOGS = 17373
-VENDOR_GEIST = 21239
-# Comet
-VENDOR_COMET = 22626
-VENDOR_AKCP = 3854
+from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
+                                VENDOR_ID_HEWLETT_PACKARD,
+                                VENDOR_ID_AMERICAN_POWER_CONVERSION_CORP,
+                                VENDOR_ID_EMERSON_COMPUTER_POWER,
+                                VENDOR_ID_EATON_CORPORATION,
+                                VENDOR_ID_MERLIN_GERIN,
+                                VENDOR_ID_IT_WATCHDOGS_INC,
+                                VENDOR_ID_GEIST_MANUFACTURING_INC,
+                                VENDOR_ID_COMET_SYSTEM_SRO,
+                                VENDOR_ID_KCP_INC,
+                                )
 
 
 class MIBFactory(object):
@@ -74,29 +69,29 @@ class MIBFactory(object):
         if vendor_id:
             # Allocate vendor-specific mibs if we know the vendor
             # FIXME: This is horrible, we need a better mechanism.
-            if vendor_id == VENDOR_CISCO:
+            if vendor_id == VENDOR_ID_CISCOSYSTEMS:
                 # Some cisco-boxes may use standard-mib
                 mibs = [EntitySensorMib(agent),
                         CiscoEntitySensorMib(agent),
                         CiscoEnvMonMib(agent)]
-            elif vendor_id == VENDOR_HP:
+            elif vendor_id == VENDOR_ID_HEWLETT_PACKARD:
                 mibs = [EntitySensorMib(agent)]
-            elif vendor_id == VENDOR_APC:
+            elif vendor_id == VENDOR_ID_AMERICAN_POWER_CONVERSION_CORP:
                 mibs = [PowerNetMib(agent)]
-            elif vendor_id == VENDOR_EMERSON_COMPUTER_POWER:
+            elif vendor_id == VENDOR_ID_EMERSON_COMPUTER_POWER:
                 mibs = [UpsMib(agent)]
-            elif vendor_id == VENDOR_EATON:
+            elif vendor_id == VENDOR_ID_EATON_CORPORATION:
                 mibs = [XupsMib(agent)]
-            elif vendor_id == VENDOR_MGE:
+            elif vendor_id == VENDOR_ID_MERLIN_GERIN:
                 mibs = [MgSnmpUpsMib(agent)]
-            elif vendor_id == VENDOR_ITWATCHDOGS:
+            elif vendor_id == VENDOR_ID_IT_WATCHDOGS_INC:
                 # Try with the most recent first
                 mibs = [ItWatchDogsMibV3(agent), ItWatchDogsMib(agent)]
-            elif vendor_id == VENDOR_GEIST:
+            elif vendor_id == VENDOR_ID_GEIST_MANUFACTURING_INC:
                 mibs = [GeistMibV3(agent)]
-            elif vendor_id == VENDOR_COMET:
+            elif vendor_id == VENDOR_ID_COMET_SYSTEM_SRO:
                 mibs = [P8541Mib(agent)]
-            elif vendor_id == VENDOR_AKCP:
+            elif vendor_id == VENDOR_ID_KCP_INC:
                 mibs = [SPAgentMib(agent)]
         if not mibs:
             # And then we just sweep up the remains if we could not

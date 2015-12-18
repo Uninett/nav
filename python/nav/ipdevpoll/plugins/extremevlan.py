@@ -28,8 +28,8 @@ from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
 from .dot1q import vlan_list_to_hex
+from nav.enterprise.ids import VENDOR_ID_EXTREME_NETWORKS
 
-VENDORID_EXTREMENETWORKS = 1916
 
 class ExtremeVlan(Plugin):
     """Collects 802.1q info from EXTREME-VLAN-MIB and BRIDGE-MIB"""
@@ -45,7 +45,7 @@ class ExtremeVlan(Plugin):
         daddy_says_ok = super(ExtremeVlan, cls).can_handle(netbox)
         if netbox.type:
             vendor_id = netbox.type.get_enterprise_id()
-            if vendor_id != VENDORID_EXTREMENETWORKS:
+            if vendor_id != VENDOR_ID_EXTREME_NETWORKS:
                 return False
         return daddy_says_ok
 

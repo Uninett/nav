@@ -25,8 +25,7 @@ from nav.ipdevpoll import Plugin
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_path_for_multicast_usage
 from nav.mibs.statistics_mib import StatisticsMib
-
-VENDORID_HP = 11
+from nav.enterprise.ids import VENDOR_ID_HEWLETT_PACKARD
 
 
 class StatMulticast(Plugin):
@@ -36,7 +35,7 @@ class StatMulticast(Plugin):
     def handle(self):
         vendor = (self.netbox.type.get_enterprise_id()
                   if self.netbox.type else None)
-        if vendor == VENDORID_HP:
+        if vendor == VENDOR_ID_HEWLETT_PACKARD:
             yield self._collect_hp_multicast()
 
 

@@ -25,6 +25,8 @@ from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
                              NoSuchObjectError)
 from nav.bitvector import BitVector
 from nav.models.manage import Vlan, SwPortAllowedVlan
+from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
+                                VENDOR_ID_HEWLETT_PACKARD)
 
 
 _logger = logging.getLogger("nav.portadmin.snmputils")
@@ -629,9 +631,6 @@ class HP(SNMPHandler):
     def __init__(self, netbox, **kwargs):
         super(HP, self).__init__(netbox, **kwargs)
 
-VENDOR_CISCO = 9
-VENDOR_HP = 11
-
 
 class SNMPFactory(object):
     """Factory class for returning SNMP-handles depending
@@ -642,9 +641,9 @@ class SNMPFactory(object):
         if not netbox.type:
             raise NoNetboxTypeError()
         vendor_id = netbox.type.get_enterprise_id()
-        if vendor_id == VENDOR_CISCO:
+        if vendor_id == VENDOR_ID_CISCOSYSTEMS:
             return Cisco(netbox, **kwargs)
-        if vendor_id == VENDOR_HP:
+        if vendor_id == VENDOR_ID_HEWLETT_PACKARD:
             return HP(netbox, **kwargs)
         return SNMPHandler(netbox, **kwargs)
 
