@@ -1,8 +1,9 @@
 define([
     'libs/rickshaw.min',
     'libs-amd/text!resources/rickshawgraph/graphtemplate.hbs',
+    'nav-url-utils',
     'libs/handlebars'
-], function(Rickshaw, Template) {
+], function(Rickshaw, Template, Utils) {
     
     var template = Handlebars.compile(Template);
     var resizeTimeout = 250;  // Throttle resize to trigger at most every resizeTimeout ms
@@ -83,6 +84,8 @@ define([
         var $element = $(request.args.element),
             graph = request.graph;
 
+        updateMeta($element, request);
+
         if (!graph.initialized) {
             var x_axis = new Rickshaw.Graph.Axis.Time({ 
                 graph: graph,
@@ -137,6 +140,22 @@ define([
         }
 
     }
+
+
+    /**
+     * Update the title and term based on url-parameters.
+     */
+    function updateMeta($element, request) {
+        var container = $element.closest('.rickshaw-container');
+        var params = Utils.deSerialize(request.dataURL);
+        if (!container.data('title')) {
+            container.find('.rickshaw-title').html(params.title);
+        }
+        if (!container.data('unit')) {
+            container.find('.rickshaw-y-axis-term').html(params.vtitle);
+        }
+    }
+
 
     function getSeriesName(name) {
         var nameParts = name.split('.');
