@@ -31,7 +31,7 @@
           </span>
 
           <div class="graphitegraph hidden"
-               data-url="{% for counter_type in counter_types %}{% url 'interface-counter-graph' ifc.id counter_type %}{% if not forloop.last %};{% endif %}{% endfor %}"
+               data-url="{{ ifc.combined_data_urls|join:';' }}"
                data-handler-id="port-graph-toggler-{{ ifc.id }}">
             <div>
               <a href="{% url 'ipdevinfo-interface-details' netbox.sysname ifc.id %}"

@@ -50,43 +50,17 @@
 
   <ul class="medium-block-grid-2 nav-metrics-container">
 
+    {% for url in port.combined_data_urls  %}
+
     <li>
       <div class="graphitegraph"
-           data-url="{% url 'interface-counter-graph' port.id 'Octets' %}">
-        <div class="rickshaw-container"
-             data-title="Traffic on {{ port }}"
-             data-unit="bits/s">
+           data-url="{{ url }}">
+        <div class="rickshaw-container">
         </div>
       </div>
     </li>
 
-    <li>
-      <div class="graphitegraph" 
-           data-url="{% url 'interface-counter-graph' port.id 'UcastPkts' %}">
-        <div class="rickshaw-container"
-             data-title="Unicast packets on {{ port }}"
-             data-unit="packets/s">
-        </div>
-      </div>
-    </li>
-
-    <li>
-      <div class="graphitegraph" data-url="{% url 'interface-counter-graph' port.id 'Errors' %}">
-        <div class="rickshaw-container"
-             data-title="Errors on {{ port }}"
-             data-unit="errors/s">
-        </div>
-      </div>
-    </li>
-    
-    <li>
-      <div class="graphitegraph" data-url="{% url 'interface-counter-graph' port.id 'Discards' %}">
-        <div class="rickshaw-container"
-             data-title="Discards on {{ port }}"
-             data-unit="discards/s">
-        </div>
-      </div>
-    </li>
+    {% endfor %}
 
   </ul>
 

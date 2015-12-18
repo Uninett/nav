@@ -397,6 +397,12 @@ def sort_by_netbox(netboxes):
     return sorted(netboxes, key=attrgetter('category.id', 'sysname'))
 
 
+def create_combined_urls(interface, counters):
+    """Creates urls for displaying combined statistics for an interface"""
+    return [get_interface_counter_graph_url(interface, kind=counter)
+            for counter in counters]
+
+
 def get_interface_counter_graph_url(interface, timeframe='day', kind='Octets'):
     """Returns a Graphite graph render URL for an interface traffic graph"""
 
@@ -429,5 +435,4 @@ def get_interface_counter_graph_url(interface, timeframe='day', kind='Octets'):
     return get_simple_graph_url(
         [in_series, out_series], "1" + timeframe,
         title=title, format='json',
-        width=597, height=251,
         vtitle=unit or '')

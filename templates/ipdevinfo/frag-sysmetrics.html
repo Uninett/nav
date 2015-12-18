@@ -78,7 +78,7 @@
               </tr>
               <tr>
                 <td class="graphitegraph hidden" colspan="3"
-                    data-url="{% url 'graphite-render-url' metric.id %}"
+                    data-url="{{ metric.graphite_data_url }}"
                     data-handler-id="graph-toggler-{{ group.grouper }}-{{ forloop.counter }}">
                   <div class="rickshaw-container"
                        data-title="{{ metric.id }}"

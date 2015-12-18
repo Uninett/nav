@@ -34,7 +34,7 @@ from nav.models.arnold import Identity
 from nav.models.service import Service
 from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
-from nav.web.ipdevinfo.utils import get_interface_counter_graph_url
+from nav.web.ipdevinfo.utils import create_combined_urls
 from nav.web.utils import create_title, SubListView
 from nav.metrics.graphs import get_simple_graph_url
 
@@ -44,6 +44,8 @@ from nav.web.ipdevinfo import utils
 from .host_information import get_host_info
 
 NAVPATH = [('Home', '/'), ('IP Device Info', '/ipdevinfo')]
+COUNTER_TYPES = ('Octets', 'UcastPkts', 'Errors', 'Discards')
+
 
 _logger = logging.getLogger('nav.web.ipdevinfo')
 
@@ -270,6 +272,9 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
         try:
             system_metrics = netbox.get_system_metrics()
+            for metric in system_metrics:
+                metric['graphite_data_url'] = get_simple_graph_url(
+                    metric['id'], format='json')
         except GraphiteUnreachableError:
             graphite_error = True
 
@@ -292,14 +297,18 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         if netbox in task.get_event_subjects():
             relevant_future_tasks.append(task)
 
+    interfaces = netbox.interface_set.order_by('ifindex') if netbox else None
+    for interface in interfaces:
+        interface.combined_data_urls = create_combined_urls(
+            interface, COUNTER_TYPES)
+
     return render_to_response(
         'ipdevinfo/ipdev-details.html',
         {
             'host_info': host_info,
             'netbox': netbox,
-            'interfaces': (netbox.interface_set.order_by('ifindex')
-                           if netbox else None),
-            'counter_types': ('Octets', 'UcastPkts', 'Errors', 'Discards'),
+            'interfaces': interfaces,
+            'counter_types': COUNTER_TYPES,
             'heading': navpath[-1][0],
             'alert_info': alert_info,
             'no_netbox': no_netbox,
@@ -500,6 +509,14 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
     except Identity.DoesNotExist:
         detention = None
 
+
+    # Add urls to Graphite to the relevant objects
+    port.combined_data_urls = create_combined_urls(port, COUNTER_TYPES)
+    for metric in port_metrics:
+        metric['graphite_data_url'] = get_simple_graph_url(
+            metric['id'], format='json')
+
+
     return render_to_response(
         'ipdevinfo/port-details.html',
         {
@@ -514,24 +531,6 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
         },
         context_instance=RequestContext(
             request, processors=[search_form_processor]))
-
-
-def port_counter_graph(request, interfaceid, kind='Octets'):
-    """Returns a JSON response containing a Graphite graph render URL for
-    counter values for an interface.
-
-    """
-    if kind not in ('Octets', 'Errors', 'UcastPkts', 'Discards'):
-        raise Http404
-
-    timeframe = request.GET.get('timeframe', 'day')
-    port = get_object_or_404(Interface, id=interfaceid)
-    url = get_interface_counter_graph_url(port, timeframe, kind)
-
-    if url:
-        return redirect(url)
-    else:
-        return HttpResponse(status=500)
 
 
 def service_list(request, handler=None):
@@ -632,15 +631,3 @@ def render_host_info(request, identifier):
     return render(request, 'ipdevinfo/frag-hostinfo.html', {
         'host_info': get_host_info(identifier)
     })
-
-
-def get_graphite_render_url(request, metric=None):
-    """Redirect to graphite graph based on request data"""
-    if metric:
-        return redirect(get_simple_graph_url(
-            metric, time_frame='1' + request.REQUEST.get('timeframe', 'w'),
-            format='json'))
-    else:
-        return HttpResponse(status=400)
-
-
