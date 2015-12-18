@@ -11,7 +11,8 @@ var require = {
         "info": "src/info",
         "netmap": "src/netmap",
         "status": "src/status2",
-        "d3": "libs/d3.min"
+        "d3": "libs/d3.min",
+        "nav-url-utils": "src/plugins/nav-url-utils"
     },
     shim: {
         'libs/foundation.min': ['libs/modernizr', 'libs/fastclick'],
