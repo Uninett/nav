@@ -4,7 +4,7 @@
 <ul class="no-bullet">
   {% for scope in prefixes %}
     <li>
-      <a href="{% url 'report-matrix-scope' scope.net_address|urlencode|escapeslash %}">
+      <a href="{% url 'report-matrix-scope' scope.net_address %}">
         {{ scope.net_address }}
       </a> &ndash;
       {{ scope.vlan.description|default:"<em>No description</em>" }}
