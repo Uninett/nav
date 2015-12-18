@@ -87,6 +87,10 @@ define([
         updateMeta($element, request);
 
         if (!graph.initialized) {
+            graph.series.forEach(function(serie) {
+                serie.name = getSeriesName(serie.name);
+            });
+            
             var x_axis = new Rickshaw.Graph.Axis.Time({ 
                 graph: graph,
                 timeFixture: new Rickshaw.Fixtures.Time.Local()
@@ -114,7 +118,7 @@ define([
                     formatter: function(series, x, actualY, something, formattedY) {
                         var date = '<span class="date">' + new Date(x * 1000).toLocaleString() + '</span>',
 		            swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>',
-                            seriesValue = '<span class="series-value">' + getSeriesName(series.name) + ": " + formattedY + '</span>';
+                            seriesValue = '<span class="series-value">' + series.name + ": " + formattedY + '</span>';
 		        return swatch + seriesValue + '<br>' + date;
                     }
                 }),
@@ -157,12 +161,14 @@ define([
     }
 
 
+    function getSeriesNotation(name) {
+        return getSeriesName(name).split('.').pop();
+    }
+
+
     function getSeriesName(name) {
-        var nameParts = name.split('.');
-        if (nameParts[0] === 'nav') {
-            return nameParts[nameParts.length - 1];
-        }
-        return name;
+        var result = name.match(/nav\.[^),]+/);
+        return result ? result[0] : name;
     }
 
     return RickshawGraph;
