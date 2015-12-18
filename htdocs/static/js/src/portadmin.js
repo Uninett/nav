@@ -11,6 +11,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
         };
     }
 
+    var restart_queue = [];  // Queue for interfaces that are restarting
     var nav_ajax_queue = [];  // Queue for cards we are saving
     var queue_data = {};  // Object containing data for ajax requests
 
@@ -248,7 +249,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
                 spinner.stop();
                 if (nav_ajax_queue.length === 0) {
                     enableSaveallButtons();
-                    writeMem(interfaceData.interfaceid);
+                    writeMemWhenRestartsDone(interfaceData.interfaceid);
                 } else {
                     // Process next entry in queue
                     doAjaxRequest(nav_ajax_queue[0]);
@@ -257,14 +258,41 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
         });
     }
 
+    /**
+     * Verify that no interfaces are restarting before sending the write mem
+     * request
+     */
+    function writeMemWhenRestartsDone(interfaceid) {
+        if (restart_queue.length === 0) {
+            writeMem(interfaceid);
+        } else {
+            console.log('Waiting for interfaces to restart');
+            $('body').one('nav:restartQueueEmpty', function() {
+                writeMem(interfaceid);
+            });
+        }
+    }
+
     function writeMem(interfaceid) {
         /** Do a request to write to memory */
+        console.log('Sending write mem request');
         $.post('write_mem', {'interfaceid': interfaceid});
     }
 
     function restartInterface(interfaceid) {
         /* Do a request to restart the interface with given id */
-        $.post('restart_interface', {'interfaceid': interfaceid});
+        restart_queue.push(interfaceid);
+        var request = $.post('restart_interface', {'interfaceid': interfaceid});
+        request.always(function() {
+            var index = restart_queue.indexOf(interfaceid);
+            if (index > -1) {
+                restart_queue.splice(index, 1);
+            }
+            console.log('Inteface ' + interfaceid + ' restarted');
+            if (restart_queue.length === 0) {
+                $('body').triggerHandler('nav:restartQueueEmpty');
+            }
+        });
     }
 
     function disableButtons(row) {
