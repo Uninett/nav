@@ -27,12 +27,12 @@ import re
 import string
 from datetime import datetime
 
-from nav import enterprise
+from nav.enterprise import ids
 
 IANA_URL = "http://www.iana.org/assignments/enterprise-numbers"
 Enterprise = namedtuple('Enterprise', 'decimal organization contact email')
 
-VENDOR_MAP = {value: constant for constant, value in vars(enterprise).items()
+VENDOR_MAP = {value: constant for constant, value in vars(ids).items()
               if constant.startswith('VENDOR_ID_')}
 _used_names = Counter(VENDOR_MAP)
 
@@ -57,14 +57,15 @@ def main():
             entmap[ent] = var
             print("{} = {}".format(var, ent.decimal))
 
-    print("\n# Name map\n")
-    print("VENDOR_NAMES = {")
-
-    for ent in enterprises:
-        if ent in entmap:
-            print("    {}: {!r},".format(entmap[ent], ent.organization))
-
-    print("}")
+    # Is this map really necessary? It's huge!
+    # print("\n# Name map\n")
+    # print("VENDOR_NAMES = {")
+    #
+    # for ent in enterprises:
+    #     if ent in entmap:
+    #         print("    {}: {!r},".format(entmap[ent], ent.organization))
+    #
+    # print("}")
 
 
 def parse_enterprises(filehandle):
