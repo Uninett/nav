@@ -234,18 +234,29 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
             var self = this;
             var $toolTip = $('#' + $target.data('selector'));
             if ($toolTip.find('.usage-sparkline').length === 0) {
-                $.getJSON($target.data('url'), function(response) {
-                    $toolTip.append($('<div class="usage-sparkline">&nbsp;</div>'));
-                    var data = response.pop(),
-                        dataPoints = data.datapoints.map(function(point) {
-                            return [point[1], point[0]];
-                        });
+                var request = $.getJSON($target.data('url'));
+                var sparkContainer = $('<div class="usage-sparkline">&nbsp;</div>');
+                sparkContainer.appendTo($toolTip);
+                
+                request.done(function(response) {
+                    if (response.length > 0) {
+                        var data = response[0],
+                            dataPoints = data.datapoints.map(function(point) {
+                                return [point[1], point[0]];
+                            });
 
-                    $toolTip.find('.usage-sparkline').sparkline(dataPoints, {
-                        tooltipFormatter: self.formatter,
-                        type: 'line',
-                        width: '100%'
-                    });
+                        sparkContainer.sparkline(dataPoints, {
+                            tooltipFormatter: self.formatter,
+                            type: 'line',
+                            width: '100%'
+                        });
+                    } else {
+                        sparkContainer.html('No data from Graphite');
+                    }
+                });
+
+                request.error(function() {
+                    sparkContainer.html('Error fetching data from Graphite');
                 });
             }
         },
