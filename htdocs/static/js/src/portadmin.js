@@ -1,5 +1,81 @@
 require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
 
+    /**
+     * Helper object to manipulate the modal and give feedback
+     */
+    function Feedbacker(modal) {
+        this.modal = modal;
+        this.isOpen = false;
+        this.list = modal.find('ul');
+    }
+
+    Feedbacker.prototype = {
+        modalOpen: function() {
+            if (!this.isOpen) {
+                this.list.empty();
+                this.modal.foundation('reveal', 'open', {
+                    'close_on_background_click': false
+                });
+                this.isOpen = true;
+            }
+        },
+        addCloseButton: function() {
+            var self = this;
+            var $button = $('<button class="button small">Close</button>');
+            this.modal.append($button);
+            $button.on('click', function() {
+                self.modal.foundation('reveal', 'close');
+                self.isOpen = false;
+                $button.remove();
+            });
+
+        },
+        addFeedback: function(text, status, message) {
+            this.modalOpen();
+            var listItem = $('<li>').appendTo(this.list).html(text);
+            if (typeof status !== 'undefined') {
+                listItem.append(this.createAlert(status, message));
+            }
+            return listItem;
+        },
+        createAlert: function(status, message) {
+            var alert = $('<span class="label" style="margin-left: 1em;">').attr('title', message);
+            switch (status) {
+            case 'success':
+                alert.addClass(status).html('Ok');
+                break;
+            case 'alert':
+                alert.addClass(status).html('Failed');
+                break;
+            }
+            return alert;
+        },
+        createProgress: function() {
+            return $('<progress style="margin-left: 1em; width: 50px; vertical-align: sub"></progress>');
+        },
+        savingInterface: function($row) {
+            return this.addFeedback('Interface ' + $row.find('.port-name').text())
+                .append(this.createProgress());
+        },
+        savedInterface: function(listItem, status) {
+            status = typeof status === 'undefined' ? 'success' : status;
+            listItem.append(this.createAlert(status));
+            listItem.find('progress').remove();
+        },
+        restartingInterfaces: function() {
+            var restartReason = "<p>A computer connected to a port does not detect that the vlan changes. When that happens the computer will have the IP-address from the old vlan and it will lose connectivity. But if the link goes down and up (a 'restart') the computer will send a request for a new address.</p> 'Restarting' interfaces is only done when changing vlans.";
+            var why = $('<span data-tooltip title="' + restartReason + '">(why?)</span>');
+            var listItem = this.addFeedback('Restarting interfaces ').append(why, this.createProgress());
+            $(document).foundation('tooltip', 'reflow');
+            return listItem;
+        },
+        restartInterfacesDone: function(listItem) {
+            listItem.append(this.createAlert('success'));
+            listItem.find('progress').remove();
+        }
+    };
+
+
     if(!Array.indexOf){
         Array.prototype.indexOf = function(obj){
             for(var i=0; i<this.length; i++){
@@ -24,9 +100,11 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
     /* Generic spinner created for display in the middle of a cell */
     var spinner = new Spinner({length: 3, width: 2, radius: 5});
     var parentSelector = '.port_row';
+    var feedback;
 
     $(document).ready(function(){
         var $wrapper = $('#portadmin-wrapper');
+        feedback = new Feedbacker($('#portadmin-modal-feedback'));
 
         if ($wrapper.length) {
             addTrunkSelectedListener($wrapper);
@@ -82,7 +160,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
 
     function addSaveListener($wrapper) {
         /* Save when clicking on the save buttons. */
-        $wrapper.on('click', '.portadmin-save', function (event) {
+        $wrapper.on('click', '.changed .portadmin-save', function (event) {
             var $row = $(event.target).parents(parentSelector);
             saveRow($row);
         });
@@ -222,6 +300,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
     function doAjaxRequest(rowid) {
         var $row = $('#' + rowid);
         var interfaceData = queue_data[rowid];
+        var listItem = feedback.savingInterface($row);
         $.ajax({url: "save_interfaceinfo",
             data: interfaceData,
             dataType: 'json',
@@ -232,8 +311,8 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
             },
             success: function () {
                 clearChangedState($row);
-                indicateSuccess($row);
                 updateDefaults($row, interfaceData);
+                feedback.savedInterface(listItem);
                 // Restart the interface if a vlan change is done.
                 if (interfaceData.hasOwnProperty('vlan')) {
                     restartInterface(interfaceData.interfaceid);
@@ -242,6 +321,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
             error: function (jqXhr) {
                 console.log(jqXhr.responseText);
                 indicateError($row, $.parseJSON(jqXhr.responseText).messages);
+                feedback.savedInterface(listItem, 'alert');
             },
             complete: function (jqXhr) {
                 removeFromQueue(rowid);
@@ -267,7 +347,9 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
             writeMem(interfaceid);
         } else {
             console.log('Waiting for interfaces to restart');
+            var listItem = feedback.restartingInterfaces();
             $('body').one('nav:restartQueueEmpty', function() {
+                feedback.restartInterfacesDone(listItem);
                 writeMem(interfaceid);
             });
         }
@@ -276,7 +358,18 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
     function writeMem(interfaceid) {
         /** Do a request to write to memory */
         console.log('Sending write mem request');
-        $.post('write_mem', {'interfaceid': interfaceid});
+
+        var request = $.post('write_mem', {'interfaceid': interfaceid});
+        var text = 'Write to memory';
+        request.done(function() {
+            feedback.addFeedback(text, 'success', request.responseText);
+        });
+        request.fail(function() {
+            feedback.addFeedback(text, 'alert', request.responseText);
+        });
+        request.always(function() {
+            feedback.addCloseButton();
+        });
     }
 
     function restartInterface(interfaceid) {
@@ -395,5 +488,5 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
         $("input.saveall_button").removeAttr('disabled');
     }
 
-});
 
+});
