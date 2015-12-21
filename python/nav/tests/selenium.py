@@ -35,13 +35,11 @@ import os
 import sys
 import unittest
 import pytest
-from django.core.urlresolvers import reverse
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from urlparse import urljoin
 
-os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 BASE_URL = os.environ.get('TARGETURL', 'http://localhost:8000')
 USERNAME = 'admin'
 PASSWORD = os.environ.get('ADMINPASSWORD', 'admin')
@@ -113,9 +111,9 @@ class SeleniumTest(unittest.TestCase):
         self.driver.get(self.get_url(viewname))
 
     @staticmethod
-    def get_url(viewname):
-        """Get url based on viewname"""
-        return urljoin(BASE_URL, reverse(viewname))
+    def get_url(uri):
+        """Get url based on uri"""
+        return urljoin(BASE_URL, uri)
 
 
 def get_screenshot_directory():

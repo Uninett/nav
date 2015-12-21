@@ -23,6 +23,6 @@ class ArnoldSeleniumTest(SeleniumTest):
     """Testrunner for the Arnold page"""
 
     def test_should_default_to_detained_ports(self):
-        self.driver.get(self.get_url('arnold_index'))
+        self.driver.get(self.get_url('/arnold/'))
         title = self.driver.title
         self.assertTrue('Detentions' in title)

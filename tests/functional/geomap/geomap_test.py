@@ -25,7 +25,7 @@ class GeoMapSeleniumTest(SeleniumTest):
 
     def test_map_loaded(self):
         """Test if map is loaded"""
-        self.driver.get(self.get_url('geomap-forward'))
+        self.driver.get(self.get_url('/geomap/'))
         try:
             self.driver.find_element_by_class_name('olMapViewport')
         except NoSuchElementException:

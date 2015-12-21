@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Selenium tests for Status"""
+from time import sleep
 
 from nav.tests.selenium import SeleniumTest
 
@@ -23,7 +24,7 @@ class StatusSeleniumTest(SeleniumTest):
     def setUp(self):
         """Setup"""
         super(StatusSeleniumTest, self).setUp()
-        self.driver.get(self.get_url('status2-index'))
+        self.driver.get(self.get_url('/status/'))
         self.panel = self.driver.find_element_by_id('status-panel')
         self.filter_toggle = self.driver.find_element_by_class_name('toggle-panel')
 
@@ -38,6 +39,7 @@ class StatusSeleniumTest(SeleniumTest):
         """Test if the panel stays in the same state after page refresh"""
         assert self.panel.is_displayed() == False
         self.filter_toggle.click()
+        sleep(1)
         self.driver.refresh()
         # We need to fetch panel element again after a refresh
         self.panel = self.driver.find_element_by_id('status-panel')

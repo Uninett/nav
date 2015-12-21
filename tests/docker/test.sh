@@ -47,8 +47,7 @@ run_pytests() {
     cd "${WORKSPACE}/tests"
     py.test --junitxml=unit-results.xml --verbose unittests
     py.test --junitxml=integration-results.xml --verbose integration
-    echo "FUNCTIONAL TESTS ARE TEMPORARILY DISABLED DUE TO SELENIUM ISSUES (2015-11-26)"
-    #py.test --junitxml=functional-results.xml --verbose functional
+    py.test --junitxml=functional-results.xml --verbose functional
 
     echo Python tests are done
 }
