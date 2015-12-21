@@ -534,7 +534,7 @@ def write_mem(request):
     """Do a write mem on the netbox"""
     if not is_write_mem_enabled():
         _logger.debug('Not doing a write mem, it is configured off')
-        return HttpResponse()
+        return HttpResponse("Write mem is configured to not be done")
 
     interface = get_object_or_404(
         Interface, pk=request.POST.get('interfaceid'))
@@ -544,8 +544,10 @@ def write_mem(request):
         try:
             fac.write_mem()
         except SnmpError, error:
-            _logger.error('Error doing write mem on %s: %s',
-                          fac.netbox, error)
+            error_message = 'Error doing write mem on {}: {}'.format(
+                fac.netbox, error)
+            _logger.error(error_message)
+            return HttpResponse(error_message, status=500)
 
         return HttpResponse()
     else:
