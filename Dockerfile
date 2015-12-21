@@ -34,7 +34,7 @@ RUN apt-get update \
             librrd-dev autoconf automake libsnmp15 \
             cron sudo libapache2-mod-wsgi rubygems inotify-tools python-cairo \
             postgresql-9.1 postgresql-contrib-9.1 postgresql-client openssh-server \
-            vim less nbtscan
+            vim less nbtscan \
     && \
     apt-get clean
 

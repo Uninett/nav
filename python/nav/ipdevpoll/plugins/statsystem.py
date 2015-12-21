@@ -40,24 +40,24 @@ from nav.mibs.cisco_process_mib import CiscoProcessMib
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.mibs.statistics_mib import StatisticsMib
 from nav.mibs.juniper_mib import JuniperMib
+from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
+                                VENDOR_ID_HEWLETT_PACKARD,
+                                VENDOR_ID_JUNIPER_NETWORKS_INC)
 
-VENDORID_CISCO = 9
-VENDORID_HP = 11
-VENDORID_JUNIPER = 2636
 
 BANDWIDTH_MIBS = {
-    VENDORID_CISCO: [CiscoStackMib, CiscoC2900Mib, ESSwitchMib],
+    VENDOR_ID_CISCOSYSTEMS: [CiscoStackMib, CiscoC2900Mib, ESSwitchMib],
 }
 
 CPU_MIBS = {
-    VENDORID_CISCO: [CiscoProcessMib, OldCiscoCpuMib],
-    VENDORID_HP: [StatisticsMib],
-    VENDORID_JUNIPER: [JuniperMib],
+    VENDOR_ID_CISCOSYSTEMS: [CiscoProcessMib, OldCiscoCpuMib],
+    VENDOR_ID_HEWLETT_PACKARD: [StatisticsMib],
+    VENDOR_ID_JUNIPER_NETWORKS_INC: [JuniperMib],
 }
 
 MEMORY_MIBS = {
-    VENDORID_CISCO: [CiscoMemoryPoolMib],
-    VENDORID_HP: [NetswitchMib],
+    VENDOR_ID_CISCOSYSTEMS: [CiscoMemoryPoolMib],
+    VENDOR_ID_HEWLETT_PACKARD: [NetswitchMib],
 }
 
 

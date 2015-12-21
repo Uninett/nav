@@ -25,6 +25,8 @@ from twisted.internet.defer import Deferred
 from twisted.internet import reactor
 
 from nav.oids import get_enterprise_id
+from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
+
 
 _logger = logging.getLogger(__name__)
 
@@ -134,10 +136,9 @@ def get_dot1d_instances(agentproxy):
     from nav.mibs.cisco_vtp_mib import CiscoVTPMib
     from nav.mibs.entity_mib import EntityMib
 
-    cisco = 9
     enterprise_id = yield (Snmpv2Mib(agentproxy).get_sysObjectID().
                            addCallback(get_enterprise_id))
-    if enterprise_id == cisco:
+    if enterprise_id == VENDOR_ID_CISCOSYSTEMS:
         for mibclass in (EntityMib, CiscoVTPMib):
             mib = mibclass(agentproxy)
             instances = yield mib.retrieve_alternate_bridge_mibs()

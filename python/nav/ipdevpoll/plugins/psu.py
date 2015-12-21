@@ -38,9 +38,9 @@ from nav.mibs.entity_mib import EntityMib, EntityTable
 
 from nav.mibs.cisco_entity_fru_control_mib import CiscoEntityFruControlMib
 from nav.mibs.hp_entity_fru_control_mib import HpEntityFruControlMib
-
-VENDOR_CISCO = 9
-VENDOR_HP = 11
+from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
+                                VENDOR_ID_HEWLETT_PACKARD,
+                                )
 
 
 class PowerSupplyUnit(Plugin):
@@ -55,9 +55,9 @@ class PowerSupplyUnit(Plugin):
         self.vendor_id = None
         if self.netbox.type:
             self.vendor_id = self.netbox.type.get_enterprise_id()
-        if self.vendor_id == VENDOR_CISCO:
+        if self.vendor_id == VENDOR_ID_CISCOSYSTEMS:
             self.entity_fru_control = CiscoEntityFruControlMib(self.agent)
-        elif self.vendor_id == VENDOR_HP:
+        elif self.vendor_id == VENDOR_ID_HEWLETT_PACKARD:
             self.entity_fru_control = HpEntityFruControlMib(self.agent)
 
     @staticmethod
@@ -83,7 +83,7 @@ class PowerSupplyUnit(Plugin):
                 power_supplies.append(unit)
             if self.is_fan(unit):
                 fans.append(unit)
-        if self.vendor_id and self.vendor_id == VENDOR_HP:
+        if self.vendor_id and self.vendor_id == VENDOR_ID_HEWLETT_PACKARD:
             # Index-numbers from HP-netboxes need to be re-numbered to match
             # index-numbers in POWERSUPPLY-MIB and FAN-MIB.
             # Index-numbers should in practice start at 1 for both PSUs and

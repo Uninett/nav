@@ -21,52 +21,48 @@ This program controls the service monitoring in NAV.
 """
 import os
 import sys
-import types
 import time
-import getopt
 import random
 import gc
 import threading
 import signal
+import argparse
+from nav import buildconf
 
 import nav.daemon
 from nav.daemon import safesleep as sleep
-from nav.statemon import RunQueue
-from nav.statemon import abstractchecker
-from nav.statemon import config
-from nav.statemon import db
-from nav.statemon import debug
+from nav.statemon import RunQueue, config, db, debug
 
-class controller:
+
+class Controller:
     def __init__(self, **kwargs):
         signal.signal(signal.SIGHUP, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
-        self.conf=config.serviceconf()
+        self.conf = config.serviceconf()
         debug.setDebugLevel(int(self.conf.get('debuglevel', 4)))
-        self._deamon=kwargs.get("fork", 1)
-        self._isrunning=1
-        self._checkers=[]
-        self._looptime=int(self.conf.get("checkinterval",60))
-        debug.debug("Setting checkinterval=%i"% self._looptime)
-        self.db=db.db()
+        self._deamon = kwargs.get("fork", 1)
+        self._isrunning = 1
+        self._checkers = []
+        self._looptime = int(self.conf.get("checkinterval", 60))
+        debug.debug("Setting checkinterval=%i" % self._looptime)
+        self.db = db.db()
         debug.debug("Reading database config")
         debug.debug("Setting up runqueue")
-        self._runqueue=RunQueue.RunQueue(controller=self)
+        self._runqueue = RunQueue.RunQueue(controller=self)
         self.dirty = 1
 
-
-    def getCheckers(self):
+    def get_checkers(self):
         """
         Fetches new checkers from the NAV database and appends them to
         the runqueue.
         """
         newcheckers = self.db.get_checkers(self.dirty)
-        self.dirty=0
+        self.dirty = 0
         # make sure we don't delete all checkers if we get an empty
         # list from the database (maybe we have lost connection to
         # the db)
         if newcheckers:
-            s=[]
+            s = []
             for i in newcheckers:
                 if i in self._checkers:
                     oldchecker = self._checkers[self._checkers.index(i)]
@@ -74,14 +70,13 @@ class controller:
                 else:
                     s.append(i)
 
-            self._checkers=s
+            self._checkers = s
         elif self.db.status and self._checkers:
             debug.debug("No checkers left in database, flushing list.")
-            self._checkers=[]
+            self._checkers = []
 
-        #randomiserer rekkefølgen på checkerbene
-        for i in self._checkers:
-            self._checkers.append(self._checkers.pop(int(len(self._checkers)*random.random())))
+        # Randomize order of checker plugins
+        random.shuffle(self._checkers)
 
     def main(self):
         """
@@ -90,41 +85,43 @@ class controller:
         """
         self.db.start()
         while self._isrunning:
-            start=time.time()
-            self.getCheckers()
+            start = time.time()
+            self.get_checkers()
 
-            wait=self._looptime - (time.time() - start)
+            wait = self._looptime - (time.time() - start)
             if wait <= 0:
-                debug.debug("System clock has drifted backwards, resetting loop delay", 2)
+                debug.debug("System clock has drifted backwards, resetting "
+                            "loop delay", 2)
                 wait = self._looptime
             if self._checkers:
-                pause=wait/(len(self._checkers)*2)
+                pause = wait/(len(self._checkers)*2)
             else:
-                pause=0
+                pause = 0
             for checker in self._checkers:
                 self._runqueue.enq(checker)
                 sleep(pause)
 
             # extensive debugging
-            dbgthreads=[]
+            dbgthreads = []
             for i in gc.get_objects():
                 if isinstance(i, threading.Thread):
                     dbgthreads.append(i)
-            debug.debug("Garbage: %s Objects: %i Threads: %i" % (gc.garbage, len(gc.get_objects()), len(dbgthreads)))
+            debug.debug("Garbage: %s Objects: %i Threads: %i" % (
+                gc.garbage, len(gc.get_objects()), len(dbgthreads)))
 
-            wait=(self._looptime - (time.time() - start))
+            wait = self._looptime - (time.time() - start)
             debug.debug("Waiting %i seconds." % wait)
             if wait <= 0:
-                debug.debug("Only superman can do this. Humans cannot wait for %i seconds." % wait,2)
+                debug.debug("Only superman can do this. Humans cannot wait "
+                            "for %i seconds." % wait, 2)
                 wait %= self._looptime
                 sleep(wait)
             else:
                 sleep(wait)
 
-
-    def signalhandler(self, signum, frame):
+    def signalhandler(self, signum, _):
         if signum == signal.SIGTERM:
-            debug.debug( "Caught SIGTERM. Exiting.")
+            debug.debug("Caught SIGTERM. Exiting.")
             self._runqueue.terminate()
             sys.exit(0)
         elif signum == signal.SIGHUP:
@@ -136,21 +133,18 @@ class controller:
 
             debug.debug("Reopened logfile: %s" % logfile_path)
         else:
-            debug.debug( "Caught %s. Resuming operation." % (signum))
+            debug.debug("Caught %s. Resuming operation." % signum)
 
 
-def start(fork):
-    """
-    Forks a new prosess, letting the service run as
-    a daemon.
-    """
+def main(fork):
+    """Daemon main entry point"""
     conf = config.serviceconf()
-    pidfilename = conf.get("pidfile","servicemon.pid")
+    pidfilename = conf.get("pidfile", "servicemon.pid")
 
     # Already running?
     try:
         nav.daemon.justme(pidfilename)
-    except nav.daemon.AlreadyRunningError, e:
+    except nav.daemon.AlreadyRunningError:
         otherpid = file(pidfilename, "r").read().strip()
         sys.stderr.write("servicemon is already running (pid: %s)\n" % otherpid)
         sys.exit(1)
@@ -159,52 +153,26 @@ def start(fork):
         sys.exit(1)
 
     if fork:
-        logfile_path = conf.get('logfile','servicemon.log')
+        logfile_path = conf.get('logfile', 'servicemon.log')
         logfile = file(logfile_path, 'a')
         nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
 
-    myController=controller(fork=fork)
-    myController.main()
+    my_controller = Controller(fork=fork)
+    my_controller.main()
 
 
-def help():
-    print """Service monitor for NAV (Network Administration Visualized).
-
-    Usage: %s [OPTIONS]
-    -h  --help      Displays this message
-    -n  --nofork    Run in foreground
-    -v  --version   Display version and exit
-
-
-Written by Erik Gorset and Magnus Nordseth, 2002
-
-    """  % os.path.basename(sys.argv[0])
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Service monitor for NAV (Network Administration "
+                    "Visualized)",
+        version="NAV " + buildconf.VERSION,
+    )
+    parser.add_argument('-n', '--nofork', action="store_true",
+                        help="run in foreground")
+    return parser.parse_args()
 
 
-if __name__=='__main__':
-    # chdir into own dir
-    #mydir, myname = os.path.split(sys.argv[0])
-    #os.chdir(mydir)
-    # Make sure our files are readable for all
+if __name__ == '__main__':
     os.umask(0002)
-
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hnv', ['help','nofork', 'version'])
-        fork=1
-
-        for opt, val in opts:
-            if opt in ('-h','--help'):
-                help()
-                sys.exit(0)
-            elif opt in ('-n','--nofork'):
-                fork=0
-            elif opt in ('-v','--version'):
-                print __version__
-                sys.exit(0)
-
-
-    except (getopt.error):
-        help()
-        sys.exit(2)
-
-    start(fork)
+    args = parse_args()
+    main(not args.nofork)
