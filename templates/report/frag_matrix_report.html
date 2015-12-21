@@ -9,7 +9,7 @@
   {{ matrix.end_net.prefixlen }}
 </p>
 
-{% with matrix.start_net.strNormal|urlencode|escapeslash as link %}
+{% with matrix.start_net.strNormal as link %}
   {% if show_unused %}
     <a href="{% url 'report-matrix-scope' link %}" class="button small">
       Hide unused address rows
