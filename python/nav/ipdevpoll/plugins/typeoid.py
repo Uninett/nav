@@ -20,11 +20,20 @@ Collects sysObjectId and compares with the registered type of the
 netbox.
 
 """
+from twisted.internet import defer
 
 from nav.ipdevpoll import Plugin, storage, shadows, signals, db
-from nav.oids import OID
+from nav.oids import OID, get_enterprise_id
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.models import manage
+from django.db import connection
+
+from nav.enterprise import ids
+CONSTANT_PREFIX = 'VENDOR_ID_'
+_enterprise_map = {value: constant
+                   for constant, value in vars(ids).items()
+                   if constant.startswith(CONSTANT_PREFIX)}
+
 
 class InvalidResponseError(Exception):
     pass
@@ -99,9 +108,10 @@ class TypeOid(Plugin):
                 return self.create_new_type()
         return type_
 
+    @defer.inlineCallbacks
     def create_new_type(self):
         """Creates a new NetboxType from the collected sysObjectID."""
-        vendor_id = 'unknown'
+        vendor_id = yield db.run_in_thread(get_vendor_id, self.sysobjectid)
         vendor = self.containers.factory(vendor_id, shadows.Vendor)
         vendor.id = vendor_id
 
@@ -115,7 +125,29 @@ class TypeOid(Plugin):
             type_.description = descr
             return type_
 
-        df = self.snmpv2_mib.get_sysDescr()
-        df.addCallback(_set_sysdescr)
-        return df
+        yield self.snmpv2_mib.get_sysDescr().addCallback(_set_sysdescr)
 
+#
+# Helper functions
+#
+
+
+def get_vendor_id(sysobjectid):
+    """Looks up the most likely vendorid based on a sysObjectID"""
+    enterprise = get_enterprise_id(sysobjectid)
+    cx = connection.cursor()
+    cx.execute("SELECT vendorid FROM enterprise_number "
+               "WHERE enterprise = %s LIMIT 1", (enterprise,))
+    vendorid = cx.fetchone()
+    return vendorid[0] if vendorid else make_new_vendor_id(sysobjectid)
+
+
+def make_new_vendor_id(sysobjectid):
+    """Makes up a new vendorid based on a sysObjectID"""
+    enterprise = get_enterprise_id(sysobjectid)
+    if enterprise in _enterprise_map:
+        name = _enterprise_map[enterprise]
+        name = name.replace(CONSTANT_PREFIX, '').replace('_', '').lower()[:15]
+        return name
+    else:
+        return u'unknown'
