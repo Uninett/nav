@@ -27,6 +27,7 @@ from django.shortcuts import render, render_to_response, get_object_or_404
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+from django.views.decorators.http import require_POST
 
 from nav.django.utils import get_account
 from nav.web.utils import create_title
@@ -503,56 +504,54 @@ def handle_trunk_edit(request, agent, interface):
         agent.set_access(interface, native_vlan)
 
 
+@require_POST
 def restart_interface(request):
     """Restart the interface by setting admin status to down and up"""
     if not is_restart_interface_enabled():
         _logger.debug('Not doing a restart of interface, it is configured off')
         return HttpResponse()
 
-    if request.method == 'POST':
-        interface = get_object_or_404(
-            Interface, pk=request.POST.get('interfaceid'))
+    interface = get_object_or_404(
+        Interface, pk=request.POST.get('interfaceid'))
 
-        fac = get_factory(interface.netbox)
-        if fac:
-            _logger.debug('Restarting interface %s', interface)
-            try:
-                # Restart interface so that client fetches new address
-                fac.restart_if(interface.ifindex)
-            except TimeOutException:
-                # Swallow this exception as it is not important. Others should
-                # create an error
-                pass
-            return HttpResponse()
-        else:
-            return HttpResponse(status=500)
-
-    return HttpResponse(status=400)
+    fac = get_factory(interface.netbox)
+    if fac:
+        _logger.debug('Restarting interface %s', interface)
+        try:
+            # Restart interface so that client fetches new address
+            fac.restart_if(interface.ifindex)
+        except TimeOutException:
+            # Swallow this exception as it is not important. Others should
+            # create an error
+            pass
+        return HttpResponse()
+    else:
+        return HttpResponse(status=500)
 
 
+@require_POST
 def write_mem(request):
     """Do a write mem on the netbox"""
     if not is_write_mem_enabled():
         _logger.debug('Not doing a write mem, it is configured off')
+        return HttpResponse("Write mem is configured to not be done")
+
+    interface = get_object_or_404(
+        Interface, pk=request.POST.get('interfaceid'))
+
+    fac = get_factory(interface.netbox)
+    if fac:
+        try:
+            fac.write_mem()
+        except SnmpError, error:
+            error_message = 'Error doing write mem on {}: {}'.format(
+                fac.netbox, error)
+            _logger.error(error_message)
+            return HttpResponse(error_message, status=500)
+
         return HttpResponse()
-
-    if request.method == 'POST':
-        interface = get_object_or_404(
-            Interface, pk=request.POST.get('interfaceid'))
-
-        fac = get_factory(interface.netbox)
-        if fac:
-            try:
-                fac.write_mem()
-            except SnmpError, error:
-                _logger.error('Error doing write mem on %s: %s',
-                              fac.netbox, error)
-
-            return HttpResponse()
-        else:
-            return HttpResponse(status=500)
-
-    return HttpResponse(status=400)
+    else:
+        return HttpResponse(status=500)
 
 
 def get_factory(netbox):
