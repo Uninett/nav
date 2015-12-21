@@ -64,7 +64,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
         },
         restartingInterfaces: function() {
             var restartReason = "<p>A computer connected to a port does not detect that the vlan changes. When that happens the computer will have the IP-address from the old vlan and it will lose connectivity. But if the link goes down and up (a 'restart') the computer will send a request for a new address.</p> 'Restarting' interfaces is only done when changing vlans.";
-            var why = $('<span data-tooltip title="' + restartReason + '">(why?)</span>');
+            var why = $('<span data-tooltip class="has-tip" title="' + restartReason + '">(why?)</span>');
             var listItem = this.addFeedback('Restarting interfaces ').append(why, this.createProgress());
             $(document).foundation('tooltip', 'reflow');
             return listItem;
