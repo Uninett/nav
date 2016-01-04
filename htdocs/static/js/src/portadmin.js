@@ -16,19 +16,41 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
                 this.modal.foundation('reveal', 'open', {
                     'close_on_background_click': false
                 });
+                this.addCancelButton();
                 this.isOpen = true;
             }
+        },
+        modalClose: function() {
+            this.modal.foundation('reveal', 'close');
+            this.isOpen = false;
+            [this.closeButton, this.cancelButton].forEach(function($button) {
+                $button.remove();
+            });
         },
         addCloseButton: function() {
             var self = this;
             var $button = $('<button class="button small">Close</button>');
             this.modal.append($button);
+            this.cancelButton.attr('disabled', true);
             $button.on('click', function() {
-                self.modal.foundation('reveal', 'close');
-                self.isOpen = false;
-                $button.remove();
+                self.modalClose();
             });
-
+            this.closeButton = $button;
+        },
+        /**
+         * The cancel button will empty the queue of interfaces to handle, but
+         * the write to memory request will still be sent.
+         */
+        addCancelButton: function() {
+            var self = this;
+            var $button = $('<button class="button secondary small pull-right">Cancel</button>');
+            this.modal.append($button);
+            $button.on('click', function() {
+                emptyQueue();
+                self.addFeedback('Jobs cancelled');
+                $button.attr('disabled', true);
+            });
+            this.cancelButton = $button;
         },
         addFeedback: function(text, status, message) {
             this.modalOpen();
@@ -280,7 +302,6 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
 
     function saveInterface(interfaceData) {
         var rowid = interfaceData.interfaceid;
-        console.log('Saving interface with id ' + rowid);
         // If a save on this card is already in progress, do nothing.
         if (nav_ajax_queue.indexOf(rowid) > -1) {
             return;
@@ -298,6 +319,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
     }
 
     function doAjaxRequest(rowid) {
+        console.log('Saving interface with id ' + rowid);
         var $row = $('#' + rowid);
         var interfaceData = queue_data[rowid];
         var listItem = feedback.savingInterface($row);
@@ -473,11 +495,22 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
     }
 
     function removeFromQueue(id) {
-        delete queue_data[id];
+        if (queue_data.hasOwnProperty(id)) {
+            delete queue_data[id];
+        }
         var index = nav_ajax_queue.indexOf(id);
         if (index > -1) {
             nav_ajax_queue.splice(index, 1);
         }
+    }
+
+    function emptyQueue() {
+        for(var prop in queue_data) {
+            if (queue_data.hasOwnProperty(prop)) {
+                delete queue_data[prop];
+            }
+        }
+        nav_ajax_queue.splice(0, nav_ajax_queue.length);
     }
 
     function disableSaveallButtons() {
