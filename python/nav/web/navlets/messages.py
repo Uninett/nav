@@ -22,6 +22,7 @@ class MessagesNavlet(Navlet):
 
     title = 'Messages'
     description = 'Displays messages given by NAV admins'
+    refresh_interval = 60 * 1000
 
     def get_template_basename(self):
         return 'messages'
@@ -31,6 +32,3 @@ class MessagesNavlet(Navlet):
         context['current_messages'] = current_messages()
 
         return context
-
-
-
