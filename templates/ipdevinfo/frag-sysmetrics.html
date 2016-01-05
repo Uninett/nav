@@ -80,10 +80,7 @@
                 <td class="graphitegraph hidden" colspan="3"
                     data-url="{{ metric.graphite_data_url }}"
                     data-handler-id="graph-toggler-{{ group.grouper }}-{{ forloop.counter }}">
-                  <div class="rickshaw-container"
-                       data-title="{{ metric.id }}"
-                       data-unit="{{ metric.suffix }}"
-                       ></div>
+                  <div class="rickshaw-container"></div>
                 </td>
               </tr>
             {% endfor %}

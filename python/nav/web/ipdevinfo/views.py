@@ -36,7 +36,7 @@ from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import create_combined_urls
 from nav.web.utils import create_title, SubListView
-from nav.metrics.graphs import get_simple_graph_url
+from nav.metrics.graphs import Graph
 
 from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
 from nav.web.ipdevinfo.context_processors import search_form_processor
@@ -273,8 +273,8 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         try:
             system_metrics = netbox.get_system_metrics()
             for metric in system_metrics:
-                metric['graphite_data_url'] = get_simple_graph_url(
-                    metric['id'], format='json')
+                metric['graphite_data_url'] = Graph(
+                    magic_targets=[metric['id']], format='json')
         except GraphiteUnreachableError:
             graphite_error = True
 
@@ -513,8 +513,8 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
     # Add urls to Graphite to the relevant objects
     port.combined_data_urls = create_combined_urls(port, COUNTER_TYPES)
     for metric in port_metrics:
-        metric['graphite_data_url'] = get_simple_graph_url(
-            metric['id'], format='json')
+        metric['graphite_data_url'] = Graph(
+            magic_targets=[metric['id']], format='json')
 
 
     return render_to_response(
