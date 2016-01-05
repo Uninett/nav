@@ -79,7 +79,7 @@ META_LOOKUPS = (
     (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.ping\.roundTripTime$'),
      dict(alias="{sysname}", title="Ping packet round trip time")),
     (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.ping\.packetLoss$'),
-     dict(alias="{sysname}", title="Ping packet loss")),
+     dict(alias="{sysname}", title="Ping packet loss", unit="packets")),
 
     (re.compile(r'\.ipdevpoll\..*\.runtime$'),
      dict(transform="keepLastValue({id})")),
@@ -96,8 +96,9 @@ class Graph(object):
 
     """
     def __init__(self, title=u'', width=480, height=250, targets=None,
-                 magic_targets=None):
+                 magic_targets=None, **kwargs):
         self.args = dict(template=u'nav', width=width, height=height)
+        self.args.update(kwargs)
         if title:
             self.args['title'] = title
 
