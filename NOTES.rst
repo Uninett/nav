@@ -22,6 +22,27 @@ patch has been submitted upstream, but not yet accepted into a new release.
 NAV 4.4
 =======
 
+Dependency changes
+------------------
+
+- The Python library :mod:`django` must now be version *1.7*.
+- The Python library :mod:`djangorestframework` must now be version *2.4*.
+- The Python Imaging Library (PIL) seems dead and appears to no longer be
+  available in the Python Package Index. We have replaced the dependency with
+  :mod:`Pillow`, which is a fork of PIL. NAV should still work with the old
+  library, though.
+
+Interactive trend graphs
+------------------------
+
+Whereas NAV 4.3 and earlier would call on graphite-web to produce graphs as
+static PNG images, NAV 4.4 uses the Rickshaw Javascript library to render
+graphs from the same Graphite data.
+
+These graphs allow for more user interaction, such as zooming and value
+inspection. The are, however, not as readily re-usable by passing around URLs.
+
+
 Slack dispatcher
 ----------------
 

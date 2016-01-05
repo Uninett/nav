@@ -1,3 +1,28 @@
+Version 4.4.0
+(released xx Jan 2016)
+
+ User-visible features and improvements:
+
+  * LP#1248195 (Make NAV compatible with Django 1.7)
+  * LP#1350815 (Add zooming in graphs, like Cacti)
+  * LP#1465571 (PortAdmin should log to separate log file)
+  * LP#1466373 (seeddb confirm navigation when form is not saved)
+  * LP#1466440 (Device groups should be searchable from the navbar)
+  * LP#1466462 (Report pagination is nearly invisible)
+  * LP#1483578 (request: enable-button in /arnold/details/)
+  * LP#1511363 (Organize scope-list in Subnet Matrix-frontend)
+  * LP#1526789 (Support sensor discovery on Geist-branded WeatherGoose products)
+  * LP#1528124 (Autocreate new types with sensible vendor id's)
+
+ Bugfixes:
+
+  * LP#1521107 (Messages widget does not refresh)
+  * LP#1521124 (Django security fix in Debian makes time periods display as
+                blank)
+  * LP#1526282 (Module replacements will sometimes crash ipdevpoll inventory job
+                with IntegrityError)
+
+
 Version 4.3.3
 (released 26 Nov 2015)
 
