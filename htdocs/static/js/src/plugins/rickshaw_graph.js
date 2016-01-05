@@ -153,7 +153,15 @@ define([
         var container = $element.closest('.rickshaw-container');
         var params = Utils.deSerialize(request.dataURL);
         if (!container.data('title')) {
-            container.find('.rickshaw-title').html(params.title);
+            // Desperately try to set title
+            var titleElement = container.find('.rickshaw-title');
+            if (params.title) {
+                titleElement.html(params.title);
+            } else {
+                var seriesNames = request.graph.series
+                        .map(function(x){return getSeriesNotation(x.name);}).join(', ');
+                titleElement.html(seriesNames);
+            }
         }
         if (!container.data('unit')) {
             container.find('.rickshaw-y-axis-term').html(params.vtitle);
