@@ -66,6 +66,7 @@ ADD tools/docker/carbon.conf /opt/graphite/conf/
 RUN cp /opt/graphite/conf/graphite.wsgi.example /opt/graphite/conf/graphite.wsgi ;\
     chown -R graphite:graphite /opt/graphite ;\
     sudo -u graphite python /opt/graphite/webapp/graphite/manage.py syncdb --noinput
+RUN echo "TIME_ZONE = 'Europe/Oslo'" > /opt/graphite/webapp/graphite/local_settings.py
 
 ADD tools/docker/nav-apache-site.conf /etc/apache2/sites-available/nav-site
 RUN a2dissite 000-default; a2ensite nav-site
