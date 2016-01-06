@@ -33,17 +33,22 @@ from nav.web.crispyforms import HelpField
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
                                             HTML)
-from nav.web.crispyforms import HelpField
 
 _ = lambda a: a
 
 
 class LanguageForm(forms.Form):
-    language = forms.ChoiceField(choices = [('en', 'English'),
-                                            ('no', 'Norwegian')])
+    """The language form is used to choose alert language"""
+    language = forms.ChoiceField(choices=[('en', 'English'),
+                                          ('no', 'Norwegian')])
 
 
 class AlertProfileForm(forms.ModelForm):
+    """Form for editing and creating alert profiles.
+
+    The alert profile form enables the user to configure what alerts are sent at
+    which times
+    """
     id = forms.IntegerField(required=False, widget=forms.HiddenInput)
 
     def __init__(self, *args, **kwargs):
@@ -71,6 +76,11 @@ class AlertProfileForm(forms.ModelForm):
 
 
 class AlertAddressForm(forms.ModelForm):
+    """Form for editing and creating alert addresses
+
+    An alert address is where the alert is sent, and can be either email, slack
+    or jabber in addition to sms.
+    """
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     address = forms.CharField(required=True)
 
@@ -117,6 +127,7 @@ class AlertAddressForm(forms.ModelForm):
 
 
 class TimePeriodForm(forms.ModelForm):
+    """Form for editing time periods"""
     id = forms.IntegerField(required=False, widget=forms.HiddenInput)
     profile = forms.ModelChoiceField(
         AlertProfile.objects.all(),
@@ -150,6 +161,7 @@ class TimePeriodForm(forms.ModelForm):
 
     class Meta(object):
         model = TimePeriod
+        fields = '__all__'
 
     def clean(self):
         ident = self.cleaned_data.get('id', None)
@@ -184,10 +196,12 @@ class TimePeriodForm(forms.ModelForm):
 
 
 class AlertSubscriptionForm(forms.ModelForm):
+    """Form for editing an alert subscription"""
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
 
     class Meta(object):
         model = AlertSubscription
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         time_period = kwargs.pop('time_period', None)
@@ -359,6 +373,12 @@ class FilterForm(forms.Form):
 
 
 class MatchFieldForm(forms.ModelForm):
+    """Allows creation and editing of match fields
+
+    A filter contains of match fields that should be some value. Match fields
+    are normally not created or edited by other than users that are very
+    confident in the NAV database layout.
+    """
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     list_limit = forms.ChoiceField(
         choices=((100, 100), (200, 200), (300, 300), (500, 500),
@@ -394,19 +414,21 @@ class MatchFieldForm(forms.ModelForm):
 
     class Meta(object):
         model = MatchField
+        fields = '__all__'
 
     def clean_value_name(self):
+        """Cleans the field 'value_name'"""
         clean_value_name = self.cleaned_data['value_name']
         try:
             clean_value_id = self.cleaned_data['value_id']
-        except:
+        except KeyError:
             # value_id is not set. We pass and return clean_value_name.
             # value_id is required and will raise it's own ValidationErrors
             pass
         else:
             if clean_value_name:
-                model, attname = MatchField.MODEL_MAP[clean_value_id]
-                name_model, name_attname = MatchField.MODEL_MAP[
+                model, _attname = MatchField.MODEL_MAP[clean_value_id]
+                name_model, _name_attname = MatchField.MODEL_MAP[
                     clean_value_name.split('|')[0]]
                 if not model == name_model:
                     raise forms.util.ValidationError(
@@ -415,17 +437,18 @@ class MatchFieldForm(forms.ModelForm):
         return clean_value_name
 
     def clean_value_sort(self):
+        """Cleans the field 'value_sort'"""
         clean_value_sort = self.cleaned_data['value_sort']
         try:
             clean_value_id = self.cleaned_data['value_id']
-        except:
+        except KeyError:
             # value_id is not set. We pass and return clean_value_name.
             # value_id is required and will raise it's own ValidationErrors
             pass
         else:
             if clean_value_sort:
-                model, attname = MatchField.MODEL_MAP[clean_value_id]
-                sort_model, sort_attname = MatchField.MODEL_MAP[
+                model, _attname = MatchField.MODEL_MAP[clean_value_id]
+                sort_model, _sort_attname = MatchField.MODEL_MAP[
                     clean_value_sort]
                 if not model == sort_model:
                     raise forms.util.ValidationError(
@@ -435,12 +458,18 @@ class MatchFieldForm(forms.ModelForm):
 
 
 class ExpressionForm(forms.ModelForm):
+    """Enables editing and creating expressions
+
+    An expression ties together a match field with and operator and a value to
+    create expressions that can be used in a filter.
+    """
     filter = forms.IntegerField(widget=forms.widgets.HiddenInput)
     match_field = forms.IntegerField(widget=forms.widgets.HiddenInput)
     value = forms.CharField(required=True)
 
     class Meta(object):
         model = Expression
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         match_field = kwargs.pop('match_field', None)
