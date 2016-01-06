@@ -79,6 +79,7 @@ class RoomForm(forms.ModelForm):
 
     class Meta(object):
         model = Room
+        fields = '__all__'
 
 
 class RoomMoveForm(forms.Form):
@@ -88,11 +89,13 @@ class RoomMoveForm(forms.Form):
 
 
 class LocationForm(forms.ModelForm):
+    """Form for editing and adding a location"""
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
 
     class Meta(object):
         model = Location
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(LocationForm, self).__init__(*args, **kwargs)
@@ -126,6 +129,7 @@ class OrganizationForm(forms.ModelForm):
 
     class Meta(object):
         model = Organization
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(OrganizationForm, self).__init__(*args, **kwargs)
@@ -159,6 +163,7 @@ class NetboxTypeForm(forms.ModelForm):
     """Form for editing a netbox type"""
     class Meta(object):
         model = NetboxType
+        fields = '__all__'
 
 
 class CablingFilterForm(forms.Form):
@@ -176,6 +181,7 @@ class CablingForm(forms.ModelForm):
     """Form for editing a cabling instance"""
     class Meta(object):
         model = Cabling
+        fields = '__all__'
 
 
 class DeviceGroupForm(forms.ModelForm):
@@ -199,6 +205,7 @@ class DeviceGroupForm(forms.ModelForm):
 
     class Meta(object):
         model = NetboxGroup
+        fields = '__all__'
 
 
 def to_choice_format(objects, key, value):
