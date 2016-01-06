@@ -14,6 +14,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Module containing all things regarding usages in seeddb"""
 
 from django import forms
 
@@ -31,6 +32,7 @@ from nav.web.seeddb.utils.bulk import render_bulkimport
 
 
 class UsageInfo(SeeddbInfo):
+    """Class for storing meta information related to editing usages"""
     active = {'usage': True}
     caption = 'Usage categories'
     tab_template = 'seeddb/tabs_generic.html'
@@ -45,8 +47,11 @@ class UsageInfo(SeeddbInfo):
 
 
 class UsageForm(forms.ModelForm):
+    """Form for editing and creating usages"""
+
     class Meta(object):
         model = Usage
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(UsageForm, self).__init__(*args, **kwargs)
@@ -55,6 +60,7 @@ class UsageForm(forms.ModelForm):
 
 
 def usage(request):
+    """Creates a view switcher containing the appropriate views"""
     return view_switcher(request,
                          list_view=usage_list,
                          move_view=not_implemented,
@@ -62,6 +68,7 @@ def usage(request):
 
 
 def usage_list(request):
+    """The view used when listing all usages"""
     info = UsageInfo()
     query = Usage.objects.all()
     value_list = ('id', 'description')
@@ -70,6 +77,7 @@ def usage_list(request):
 
 
 def usage_delete(request):
+    """The view used when deleting usages"""
     info = UsageInfo()
     return render_delete(request, Usage, 'seeddb-usage',
                          whitelist=SEEDDB_EDITABLE_MODELS,
@@ -77,6 +85,7 @@ def usage_delete(request):
 
 
 def usage_edit(request, usage_id=None):
+    """The view used when editing usages"""
     info = UsageInfo()
     return render_edit(request, Usage, UsageForm, usage_id,
                        'seeddb-usage-edit',
@@ -84,6 +93,7 @@ def usage_edit(request, usage_id=None):
 
 
 def usage_bulk(request):
+    """The view used when bulk importing usages"""
     info = UsageInfo()
     return render_bulkimport(
         request, UsageBulkParser, UsageImporter,
