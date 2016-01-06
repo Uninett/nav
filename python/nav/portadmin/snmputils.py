@@ -69,6 +69,8 @@ class SNMPHandler(object):
 
     IF_ALIAS_OID = '1.3.6.1.2.1.31.1.1.1.18'  # From IF-MIB
     IF_ADMIN_STATUS = '1.3.6.1.2.1.2.2.1.7'
+    IF_ADMIN_STATUS_UP = 1
+    IF_ADMIN_STATUS_DOWN = 2
     IF_OPER_STATUS = '1.3.6.1.2.1.2.2.1.8'
 
     # The VLAN ID assigned to untagged frames
@@ -236,11 +238,13 @@ class SNMPHandler(object):
 
     def set_if_up(self, if_index):
         """Set interface.to up"""
-        return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i", 1)
+        return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i",
+                                      self.IF_ADMIN_STATUS_UP)
 
     def set_if_down(self, if_index):
         """Set interface.to down"""
-        return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i", 2)
+        return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i",
+                                      self.IF_ADMIN_STATUS_DOWN)
 
     def restart_if(self, if_index, wait=5):
         """ Take interface down and up.
