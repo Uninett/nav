@@ -14,6 +14,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Module containing everything regarding patches in SeedDB"""
 
 from django import forms
 
@@ -31,6 +32,7 @@ from nav.web.seeddb.utils.delete import render_delete
 
 
 class PatchInfo(SeeddbInfo):
+    """Class for storing meta information related to patches in SeedDB"""
     active = {'patch': True}
     caption = 'Patch'
     tab_template = 'seeddb/tabs_generic.html'
@@ -45,11 +47,15 @@ class PatchInfo(SeeddbInfo):
 
 
 class PatchForm(forms.ModelForm):
+    """Form for editing and creating patches"""
+
     class Meta(object):
         model = Patch
+        fields = '__all__'
 
 
 def patch(request):
+    """Creates a view switcher containing the appropriate views"""
     return view_switcher(request,
                          list_view=patch_list,
                          move_view=not_implemented,
@@ -57,6 +63,7 @@ def patch(request):
 
 
 def patch_list(request):
+    """The view used when listing all patches"""
     query = Patch.objects.all()
     info = PatchInfo()
     value_list = (
@@ -67,6 +74,7 @@ def patch_list(request):
 
 
 def patch_delete(request):
+    """The view used when deleting patches"""
     info = PatchInfo()
     return render_delete(request, Patch, 'seeddb-patch',
                          whitelist=SEEDDB_EDITABLE_MODELS,
@@ -74,6 +82,7 @@ def patch_delete(request):
 
 
 def patch_edit(request, patch_id=None):
+    """The view used when editing patches"""
     info = PatchInfo()
     return render_edit(request, Patch, PatchForm, patch_id,
                        'seeddb-patch-edit',
@@ -81,6 +90,7 @@ def patch_edit(request, patch_id=None):
 
 
 def patch_bulk(request):
+    """The view used when bulk importing patches"""
     info = PatchInfo()
     return render_bulkimport(
         request, PatchBulkParser, PatchImporter,
