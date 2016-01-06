@@ -4,34 +4,38 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
      * Helper object to manipulate the modal and give feedback
      */
     function Feedbacker(modal) {
+        var self = this;
         this.modal = modal;
         this.isOpen = false;
         this.list = modal.find('ul');
+
+        modal.on('open opened', function () {
+            self.isOpen = true;
+        });
+
+        modal.on('close closed', function (event) {
+            self.isOpen = false;
+        });
+
     }
 
     Feedbacker.prototype = {
         modalOpen: function() {
             if (!this.isOpen) {
-                this.list.empty();
                 this.modal.foundation('reveal', 'open', {
                     'close_on_background_click': false
                 });
-                this.addCancelButton();
-                this.isOpen = true;
             }
         },
         modalClose: function() {
             this.modal.foundation('reveal', 'close');
-            this.isOpen = false;
-            [this.closeButton, this.cancelButton].forEach(function($button) {
-                $button.remove();
-            });
+            this.closeButton.remove();
+            this.list.empty();
         },
         addCloseButton: function() {
             var self = this;
             var $button = $('<button class="button small">Close</button>');
             this.modal.append($button);
-            this.cancelButton.attr('disabled', true);
             $button.on('click', function() {
                 self.modalClose();
             });
@@ -40,6 +44,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
         /**
          * The cancel button will empty the queue of interfaces to handle, but
          * the write to memory request will still be sent.
+         * NB: Currently not in use
          */
         addCancelButton: function() {
             var self = this;
@@ -76,7 +81,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
             return $('<progress style="margin-left: 1em; width: 50px; vertical-align: sub"></progress>');
         },
         savingInterface: function($row) {
-            return this.addFeedback('Interface ' + $row.find('.port-name').text())
+            return this.addFeedback('Configuring interface ' + $row.find('.port-name').text())
                 .append(this.createProgress());
         },
         savedInterface: function(listItem, status) {
