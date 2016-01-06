@@ -46,7 +46,7 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      is_restart_interface_enabled,
                                      is_write_mem_enabled)
 from nav.Snmp.errors import SnmpError, TimeOutException
-from nav.portadmin.snmputils import SNMPFactory
+from nav.portadmin.snmputils import SNMPFactory, SNMPHandler
 from .forms import SearchForm
 
 _logger = logging.getLogger("nav.web.portadmin")
@@ -549,6 +549,11 @@ def restart_interface(request):
 
     fac = get_factory(interface.netbox)
     if fac:
+        adminstatus = fac.get_if_admin_status(interface.ifindex)
+        if adminstatus == SNMPHandler.IF_ADMIN_STATUS_DOWN:
+            _logger.debug('Not restarting %s as it is down', interface)
+            return HttpResponse()
+
         _logger.debug('Restarting interface %s', interface)
         try:
             # Restart interface so that client fetches new address
