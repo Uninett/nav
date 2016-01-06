@@ -14,6 +14,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Module containing everything regarding vendors in SeedDB"""
 
 from django import forms
 
@@ -31,6 +32,7 @@ from nav.web.seeddb.utils.delete import render_delete
 
 
 class VendorInfo(SeeddbInfo):
+    """Class for storing meta information related to vendors in SeedDB"""
     active = {'vendor': True}
     caption = 'Vendors'
     verbose_name = Vendor._meta.verbose_name
@@ -45,11 +47,15 @@ class VendorInfo(SeeddbInfo):
 
 
 class VendorForm(forms.ModelForm):
+    """Form for editing and creating vendors"""
+
     class Meta(object):
         model = Vendor
+        fields = '__all__'
 
 
 def vendor(request):
+    """Creates a view switcher containing the appropriate views"""
     return view_switcher(request,
                          list_view=vendor_list,
                          move_view=not_implemented,
@@ -57,6 +63,7 @@ def vendor(request):
 
 
 def vendor_list(request):
+    """The view used when listing all vendors"""
     info = VendorInfo()
     query = Vendor.objects.all()
     value_list = ('id',)
@@ -65,6 +72,7 @@ def vendor_list(request):
 
 
 def vendor_delete(request):
+    """The view used when deleting vendors"""
     info = VendorInfo()
     return render_delete(request, Vendor, 'seeddb-vendor',
                          whitelist=SEEDDB_EDITABLE_MODELS,
@@ -72,6 +80,7 @@ def vendor_delete(request):
 
 
 def vendor_edit(request, vendor_id=None):
+    """The view used when editing vendors"""
     info = VendorInfo()
     return render_edit(request, Vendor, VendorForm, vendor_id,
                        'seeddb-vendor',
@@ -79,6 +88,7 @@ def vendor_edit(request, vendor_id=None):
 
 
 def vendor_bulk(request):
+    """The view used when bulk importing vendors"""
     info = VendorInfo()
     return render_bulkimport(
         request, VendorBulkParser, VendorImporter,
