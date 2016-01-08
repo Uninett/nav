@@ -77,6 +77,87 @@ define([
     }
 
 
+    var NavHover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
+        createHoverElements: function(args) {
+            if (typeof this.hoverElements !== 'undefined') {
+                return this.hoverElements;
+            }
+            var container = document.createElement('div');
+            container.className = 'item';
+
+            var date = document.createElement('span');
+            date.className = 'date';
+
+            var lines = {};
+            var dots = {};
+
+            this.graph.series.forEach(function(serie) {
+                var line = document.createElement('div');
+                lines[serie.name] = line;
+
+                var dot = document.createElement('div');
+                dot.style.borderColor = serie.color;
+                dot.className = 'dot';
+                dots[serie.name] = dot;
+            });
+
+            this.hoverElements = {
+                container: container,
+                date: date,
+                lines: lines,
+                dots: dots
+            };
+
+            return this.hoverElements;
+        },
+        render: function(args) {
+            var hoverElements = this.createHoverElements(args);
+            var container = hoverElements.container,
+                date = hoverElements.date;
+
+            // Put a date at the top of the container
+            container.innerHTML = '';
+            date.innerHTML = new Date(args.points[0].value.x * 1000).toLocaleString();
+            container.appendChild(date);
+
+            // Add all targets and dots
+            args.points.sort(function(a, b) {
+                return a.order - b.order;
+            }).forEach(function(point) {
+                var series = point.series;
+	        var actualY = series.scale ? series.scale.invert(point.value.y) : point.value.y;
+
+                // Each line describes a target
+                var line = hoverElements.lines[point.name];
+                line.innerHTML = this.formatter(series, point.value.x, actualY, point.formattedXValue, point.formattedYValue, point);
+                container.appendChild(line);
+
+                // Place dots - remember that they are not part of container
+                var dot = hoverElements.dots[point.name];
+                dot.style.top = this.graph.y(point.value.y0 + point.value.y) + 'px';
+                dot.classList.add('active');
+                this.element.appendChild(dot);
+            }, this);
+
+            // Decide on which side of line to put hover element
+	    container.classList.remove('left', 'right');
+	    container.classList.add('active', 'right');
+
+            // Put element next to mouse
+            container.style.top = args.mouseY + 'px';
+
+            this.element.appendChild(container);
+            this.show();
+
+            // If it is positioned badly, change side
+            if (this._calcLayoutError([container]) > 0) {
+                container.classList.remove('right');
+                container.classList.add('left');
+            }
+
+        }
+    });
+
     /**
      * Add all functionality when ajax call returns
      */
@@ -102,7 +183,8 @@ define([
                     element: $element.siblings('.rickshaw-y-axis')[0],
                     tickFormat: Rickshaw.Fixtures.Number.formatKMBT
                 }),
-                hoverDetail = new Rickshaw.Graph.HoverDetail({
+
+                hoverDetail = new NavHover({
 	            graph: graph,
                     yFormatter: function(y) {
                         if (y === null || y === 0) {
