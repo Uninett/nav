@@ -110,6 +110,14 @@ define([
 
             return this.hoverElements;
         },
+
+        formatter: function(series, x, actualY, something, formattedY) {
+            var unit = this.unit || '';
+            var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>',
+                seriesValue = '<span class="series-value">' + series.name + ": " + formattedY + unit + '</span>';
+	    return swatch + seriesValue;
+        },
+
         render: function(args) {
             var hoverElements = this.createHoverElements(args);
             var container = hoverElements.container,
@@ -158,6 +166,22 @@ define([
         }
     });
 
+    var numberFormatter = function(y) {
+        if (y === null || y === 0) {
+            return y;
+        }
+        var value = Number(y);
+        if (value < Number('0.01')) {
+            return value.toFixed(5);
+        }
+
+        if (value >= 1000000000000)   { return ~~(value / 1000000000000) + " T"; }
+	else if (value >= 1000000000) { return ~~(value / 1000000000) + " G"; }
+	else if (value >= 1000000)    { return ~~(value / 1000000) + " M"; }
+	else if (value >= 1000)       { return ~~(value / 1000) + " K"; }
+        else { return value.toFixed(2); }
+    };
+
     /**
      * Add all functionality when ajax call returns
      */
@@ -165,9 +189,10 @@ define([
         var $element = $(request.args.element),
             graph = request.graph;
 
-        updateMeta($element, request);
+        var meta = updateMeta($element, request);
 
         if (!graph.initialized) {
+
             graph.series.forEach(function(serie) {
                 serie.name = getSeriesName(serie.name);
             });
@@ -186,21 +211,7 @@ define([
 
                 hoverDetail = new NavHover({
 	            graph: graph,
-                    yFormatter: function(y) {
-                        if (y === null || y === 0) {
-                            return y;
-                        }
-                        var value = Number(y);
-                        if (value < Number('0.01')) {
-                            return value.toFixed(5);
-                        }
-                        return value.toFixed(2);
-                    },
-                    formatter: function(series, x, actualY, something, formattedY) {
-                        var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>',
-                            seriesValue = '<span class="series-value">' + series.name + ": " + formattedY + '</span>';
-		        return swatch + seriesValue;
-                    }
+                    yFormatter: numberFormatter
                 }),
 
                 legend = new Rickshaw.Graph.Legend({
@@ -246,6 +257,7 @@ define([
         if (!container.data('unit')) {
             container.find('.rickshaw-y-axis-term').html(params.vtitle);
         }
+        return params;
     }
 
 
