@@ -4,7 +4,7 @@ define([
     'nav-url-utils',
     'libs/handlebars'
 ], function(Rickshaw, Template, Utils) {
-    
+
     var template = Handlebars.compile(Template);
     var resizeTimeout = 250;  // Throttle resize to trigger at most every resizeTimeout ms
 
@@ -57,9 +57,9 @@ define([
         var palette = new Rickshaw.Color.Palette({ scheme: 'colorwheel' });
 
         return data.map(function(series) {
-            return { 
-                name: series.target, 
-                color: palette.color(), 
+            return {
+                name: series.target,
+                color: palette.color(),
                 data: series.datapoints.map(convertToRickshaw)
             };
         });
@@ -90,19 +90,18 @@ define([
             graph.series.forEach(function(serie) {
                 serie.name = getSeriesName(serie.name);
             });
-            
-            var x_axis = new Rickshaw.Graph.Axis.Time({ 
+
+            var x_axis = new Rickshaw.Graph.Axis.Time({
                 graph: graph,
                 timeFixture: new Rickshaw.Fixtures.Time.Local()
             }),
-                
-                y_axis = new Rickshaw.Graph.Axis.Y({ 
-                    graph: graph, 
-                    orientation: 'left', 
+
+                y_axis = new Rickshaw.Graph.Axis.Y({
+                    graph: graph,
+                    orientation: 'left',
                     element: $element.siblings('.rickshaw-y-axis')[0],
                     tickFormat: Rickshaw.Fixtures.Number.formatKMBT
                 }),
-                
                 hoverDetail = new Rickshaw.Graph.HoverDetail({
 	            graph: graph,
                     yFormatter: function(y) {
@@ -116,18 +115,17 @@ define([
                         return value.toFixed(2);
                     },
                     formatter: function(series, x, actualY, something, formattedY) {
-                        var date = '<span class="date">' + new Date(x * 1000).toLocaleString() + '</span>',
-		            swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>',
+                        var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>',
                             seriesValue = '<span class="series-value">' + series.name + ": " + formattedY + '</span>';
-		        return swatch + seriesValue + '<br>' + date;
+		        return swatch + seriesValue;
                     }
                 }),
-                
+
                 legend = new Rickshaw.Graph.Legend({
                     graph: graph,
                     element: $element.siblings('.rickshaw-legend')[0]
                 }),
-                
+
                 // Toggle visibility of data series
                 shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
                     graph: graph,
@@ -138,7 +136,7 @@ define([
                     graph: graph,
                     element: $element.siblings('.rickshaw-preview')[0]
                 });
-            
+
             graph.render();
             graph.initialized = true;
         }
