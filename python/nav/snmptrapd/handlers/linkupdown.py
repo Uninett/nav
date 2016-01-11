@@ -113,9 +113,9 @@ def post_link_event(down, netboxid, deviceid, interfaceid, modulename, ifname,
                   subid=interfaceid, eventtypeid="linkState",
                   state=state)
     event['alerttype'] = 'linkDown' if down else 'linkUp'
-    event['module'] = modulename
-    event['interface'] = ifname
-    event['ifalias'] = ifalias
+    event['module'] = modulename or ''
+    event['interface'] = ifname or ''
+    event['ifalias'] = ifalias or ''
 
     try:
         event.post()
