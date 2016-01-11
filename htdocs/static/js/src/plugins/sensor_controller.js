@@ -99,7 +99,7 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
                     });
                     var last = datapoints[datapoints.length - 1].y || datapoints[datapoints.length - 2].y;
                     self.updateCurrent(last);
-                    self.updateGraph(datapoints);
+                    self.updateGraph(datapoints, last);
                 }
             });
         },
@@ -113,7 +113,7 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
             if (this.displayGauge) {
                 return new JohnGauge({
                     node: this.currentNode.get(0),
-                    min: 0,
+                    min: value < 0 ? -25 : 0,
                     value: value,
                     max: this.maxValue,
                     thresholds: this.thresholds,
@@ -124,21 +124,22 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
                 return new CounterDisplay(this.counterTemplate, this.currentNode.prop('id'), 9999, this.unit);
             }
         },
-        updateGraph: function (values) {
+        updateGraph: function (values, last) {
             if (!this.graph) {
                 console.log('Creating graph');
-                this.graph = this.createGraph();
+                this.graph = this.createGraph(last);
             }
             this.graph.series[0].data = values;
             this.graph.render();
         },
-        createGraph: function () {
+        createGraph: function (last) {
             var graph = new Rickshaw.Graph({
                 element: this.graphNode.get(0),
                 width: 230,
                 height: 150,
                 renderer: 'line',
                 max: this.maxValue,
+                min: last < 0 ? -25 : 0,
                 series: [{
                     color: 'steelblue',
                     data: [{x: 0, y: 0}], // Data is overridden on update

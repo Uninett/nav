@@ -25,16 +25,18 @@ define(['libs/d3.v2'], function () {
         this.symbol = config.symbol || '\u00B0';  // Default is degrees
         this.animationSpeed = 1000;  // Speed of value transitions
 
+        var height = min < 0 ? radius * 2 : radius;
         /* Create SVG element */
         var vis = d3.select(node).append('svg')
             .attr("width", width)
-            .attr("height", radius)
+            .attr("height", height)
             .append("svg:g")
             .attr("transform", "translate(" + radius + "," + radius + ")");
         this.vis = vis;
 
+        var startAngle = min < 0 ? -180 : -90;
         /* Create linear scale for start and end points */
-        this.myScale = d3.scale.linear().domain([min, max]).range([-90 * (pi/180), 90 * (pi/180)]);
+        this.myScale = d3.scale.linear().domain([min, max]).range([startAngle * (pi/180), 90 * (pi/180)]);
 
         /* Create linear scale for color transitions */
         this.color = this.createColorScale(min, max, thresholds, invertScale);
@@ -116,18 +118,28 @@ define(['libs/d3.v2'], function () {
 
         },
         createTexts: function (radius, ir, min, max) {
+            if (min < 0) {
+                /* Create text displaying if value is below zero */
+                var belowZeroText = this.vis.append('text')
+                        .text(min)
+                        .attr('fill', '#b3b3b3')
+                        .attr('font-size', this.smallfontSizeScale(radius) + 'px')
+                        .attr('y', ir - 5)
+                        .attr('text-anchor', 'middle');
+            }
+
             /* Create text that displays value */
             var valueText = this.vis.append('text')
                 .text(min + this.symbol)
-                .attr('y', -ir/2 + this.fontSizeScale(radius) / 2)
+                // .attr('y', -ir/2 + this.fontSizeScale(radius) / 2)
                 .attr('font-size', this.fontSizeScale(radius) + 'px')
                 .attr('fill', 'black')
                 .attr('font-weight', 'bold')
                 .attr('text-anchor', 'middle'),
 
-            /* Create text displaying min value */
-                minText = this.vis.append('text')
-                .text(min)
+            /* Create text displaying zero value */
+                zeroText = this.vis.append('text')
+                .text(0)
                 .attr('fill', '#b3b3b3')
                 .attr('font-size', this.smallfontSizeScale(radius) + 'px')
                 .attr('y', '0')
@@ -150,12 +162,19 @@ define(['libs/d3.v2'], function () {
                 max = thresholds[0];
             }
             var colors = ["#a9d70b", "#f9c802", "#ff0000"];
+            var domain = [min, (max - min) / 2, max];
+            if (min < 0) {
+                colors = ["#0074D9", "#7FDBFF", "#a9d70b", "#f9c802"];
+                var step = (max - min) / 4;
+                domain = [min, 0, step, max];
+            }
+
             if (invert) {
                 colors = ["#ff0000", "#f9c802", "#a9d70b"];
             }
 
             return d3.scale.linear()
-                .domain([min, (max - min) / 2, max])
+                .domain(domain)
                 .interpolate(d3.interpolateRgb)
                 .range(colors);
         },
