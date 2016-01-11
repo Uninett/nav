@@ -166,21 +166,27 @@ define([
         }
     });
 
-    var numberFormatter = function(y) {
+    var siNumbers = function(y, toInteger) {
         if (y === null || y === 0) {
             return y;
         }
-        var value = Number(y);
-        if (value < Number('0.01')) {
-            return value.toFixed(5);
-        }
 
-        if (value >= 1000000000000)   { return ~~(value / 1000000000000) + " T"; }
-	else if (value >= 1000000000) { return ~~(value / 1000000000) + " G"; }
-	else if (value >= 1000000)    { return ~~(value / 1000000) + " M"; }
-	else if (value >= 1000)       { return ~~(value / 1000) + " K"; }
-        else { return value.toFixed(2); }
+        var precision = typeof toInteger === 'undefined' ? 2: 0;
+        var convert = function(value, converter) {
+            return (value / converter).toFixed(precision);
+        };
+
+        var value = Number(y);
+        if (value >= 1000000000000) { return convert(value, 1000000000000) + " T"; }
+	else if (value >= 1000000000) { return convert(value, 1000000000) + " G"; }
+	else if (value >= 1000000) { return convert(value, 1000000) + " M"; }
+	else if (value >= 1000) { return convert(value, 1000) + " K"; }
+        else if (value <= 0.000001) { return convert(value, 1/1000000 ) +  " µ"; }
+        else if (value <= 0.01) { return convert(value, 1/1000) +  " m"; }
+        else if (value <= 0) { return value.toFixed(3); }  // This is inconsistent
+        else { return value.toFixed(precision); }
     };
+
 
     /**
      * Add all functionality when ajax call returns
@@ -211,7 +217,7 @@ define([
 
                 hoverDetail = new NavHover({
 	            graph: graph,
-                    yFormatter: numberFormatter
+                    yFormatter: siNumbers
                 }),
 
                 legend = new Rickshaw.Graph.Legend({
