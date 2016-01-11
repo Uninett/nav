@@ -195,7 +195,7 @@ define([
                 // Add/alter timecomponent
                 return Utils.removeURLParameter(url, 'from') + '&' + 'from=-1' + this.timeframe;
             } else {
-                return url;
+                return url + '?timeframe=' + this.timeframe;
             }
         },
 
