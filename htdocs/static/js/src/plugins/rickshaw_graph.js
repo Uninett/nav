@@ -78,6 +78,14 @@ define([
 
 
     var NavHover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
+        initialize: function($super, args) {
+            var self = this;
+            $super(args);
+            $(this.graph.element).on('NAV:Rickshaw:updateMeta', function(event, data) {
+                self.unit = data.vtitle || '';
+            });
+        },
+
         createHoverElements: function(args) {
             if (typeof this.hoverElements !== 'undefined') {
                 return this.hoverElements;
@@ -113,8 +121,10 @@ define([
 
         formatter: function(series, x, actualY, something, formattedY) {
             var unit = this.unit || '';
+            // If the formatted y-value contains a symbol, we do not want a spacer value
+            var spacer = isNaN(+formattedY) ? '' : ' ';
             var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>',
-                seriesValue = '<span class="series-value">' + series.name + ": " + formattedY + unit + '</span>';
+                seriesValue = '<span class="series-value">' + series.name + ": " + formattedY + spacer + unit + '</span>';
 	    return swatch + seriesValue;
         },
 
@@ -180,7 +190,7 @@ define([
         if (value >= 1000000000000) { return convert(value, 1000000000000) + " T"; }
 	else if (value >= 1000000000) { return convert(value, 1000000000) + " G"; }
 	else if (value >= 1000000) { return convert(value, 1000000) + " M"; }
-	else if (value >= 1000) { return convert(value, 1000) + " K"; }
+	else if (value >= 1000) { return convert(value, 1000) + " k"; }
         else if (value <= 0.000001) { return convert(value, 1/1000000 ) +  " µ"; }
         else if (value <= 0.01) { return convert(value, 1/1000) +  " m"; }
         else if (value <= 1) { return value.toFixed(3); }  // This is inconsistent
@@ -196,6 +206,8 @@ define([
             graph = request.graph;
 
         var meta = updateMeta($element, request);
+
+        $(graph.element).trigger('NAV:Rickshaw:updateMeta', meta);
 
         if (!graph.initialized) {
 
@@ -236,6 +248,7 @@ define([
                     element: $element.siblings('.rickshaw-preview')[0]
                 });
 
+            hoverDetail.unit = meta.vtitle || '';
             graph.render();
             graph.initialized = true;
         }
