@@ -183,7 +183,7 @@ define([
 	else if (value >= 1000) { return convert(value, 1000) + " K"; }
         else if (value <= 0.000001) { return convert(value, 1/1000000 ) +  " µ"; }
         else if (value <= 0.01) { return convert(value, 1/1000) +  " m"; }
-        else if (value <= 0) { return value.toFixed(3); }  // This is inconsistent
+        else if (value <= 1) { return value.toFixed(3); }  // This is inconsistent
         else { return value.toFixed(precision); }
     };
 
