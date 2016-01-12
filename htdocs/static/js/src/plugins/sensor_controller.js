@@ -178,7 +178,7 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
                         color: series.color,
                         name: series.name,
                         date: date,
-                        number: parseInt(y, 10)
+                        number: +y.toFixed(2)
                     });
                 }
             });
