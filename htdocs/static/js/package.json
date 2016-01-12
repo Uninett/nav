@@ -15,7 +15,7 @@
     "karma-coverage": "*",
     "karma-chrome-launcher": "~0.1.0",
     "karma-firefox-launcher": "*",
-    "karma-phantomjs-launcher": "*",
+    "karma-phantomjs-launcher": "~0.1.0",
     "karma-junit-reporter": "~0.1.0",
     "jshint": "*"
   },
