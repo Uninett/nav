@@ -40,7 +40,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = u'NAV'
-copyright = u'2012-2015, UNINETT AS'
+copyright = u'2012-2016, UNINETT AS'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
