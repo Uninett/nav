@@ -13,14 +13,20 @@ Version 4.4.0
   * LP#1511363 (Organize scope-list in Subnet Matrix-frontend)
   * LP#1526789 (Support sensor discovery on Geist-branded WeatherGoose products)
   * LP#1528124 (Autocreate new types with sensible vendor id's)
+  * LP#1531159 (portadmin: support for Cisco voice vlans)
 
  Bugfixes:
 
+  * LP#1248205 (403 Forbidden on front page with apache 2.4)
+  * LP#1518246 (subnet matrix - first subnet is not shown)
+  * LP#1518251 (subnet matrix - /23 prefixes are displayed incorrectly)
+  * LP#1518254 (subnet matrix - link to prefix is suddenly a scope)
   * LP#1521107 (Messages widget does not refresh)
   * LP#1521124 (Django security fix in Debian makes time periods display as
                 blank)
   * LP#1526282 (Module replacements will sometimes crash ipdevpoll inventory job
                 with IntegrityError)
+  * LP#1532701 (Snmptrapd fails to post link events if module name is unknown)
 
 
 Version 4.3.3
