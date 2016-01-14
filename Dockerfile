@@ -20,23 +20,41 @@
 # TODO: Possibly split this into separate containers for PostgreSQL, Graphite
 # and NAV.
 #
-FROM mbrekkevold/navbase-debian
+FROM mbrekkevold/navbase-debian:jessie
 
 #### Install various build and runtime requirements as Debian packages ####
 
 RUN apt-get update \
-    && \
-    apt-get -y --no-install-recommends build-dep \
-            python-psycopg2 python-lxml librrd-dev python-imaging python-ldap \
-    && \
-    apt-get -y --no-install-recommends install \
-            mercurial subversion git-core \
-            librrd-dev autoconf automake libsnmp15 \
-            cron sudo libapache2-mod-wsgi rubygems inotify-tools python-cairo \
-            postgresql-9.1 postgresql-contrib-9.1 postgresql-client openssh-server \
-            vim less nbtscan \
-    && \
-    apt-get clean
+    && apt-get -y --no-install-recommends build-dep \
+       python-psycopg2 \
+       python-lxml \
+       librrd-dev \
+       python-imaging \
+       python-ldap
+
+RUN apt-get update \
+    && apt-get -y --no-install-recommends install \
+       mercurial \
+       subversion \
+       git-core \
+       librrd-dev \
+       autoconf \
+       automake \
+       libsnmp30 \
+       cron \
+       sudo \
+       apache2 \
+       libapache2-mod-wsgi \
+       rubygems \
+       inotify-tools \
+       python-cairo \
+       postgresql \
+       postgresql-contrib \
+       postgresql-client \
+       openssh-server \
+       vim \
+       less \
+       nbtscan
 
 RUN pip install whisper carbon graphite-web==0.9.14 django-tagging==0.3.4 pytz ipython
 
@@ -68,7 +86,7 @@ RUN cp /opt/graphite/conf/graphite.wsgi.example /opt/graphite/conf/graphite.wsgi
     sudo -u graphite python /opt/graphite/webapp/graphite/manage.py syncdb --noinput
 RUN echo "TIME_ZONE = 'Europe/Oslo'" > /opt/graphite/webapp/graphite/local_settings.py
 
-ADD tools/docker/nav-apache-site.conf /etc/apache2/sites-available/nav-site
+ADD tools/docker/nav-apache-site.conf /etc/apache2/sites-available/nav-site.conf
 RUN a2dissite 000-default; a2ensite nav-site
 
 ADD tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
