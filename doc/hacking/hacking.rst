@@ -341,7 +341,7 @@ Mocha_ as testing framework and Chai_ as assertion library.
    cd htdocs/static/js
    
    # Install required libs, you need npm installed
-   npm install --optional
+   npm install
 
    # Run tests. This will start browsers. Karma will make sure that tests will
    # run on changes in js-files.
