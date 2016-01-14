@@ -12,7 +12,7 @@ NPM=`which npm`
 
 cd ${JSDIR}
 npm cache clean
-npm install --optional
+npm install
 
 echo "Running jshint"
 cd "${WORKSPACE}"

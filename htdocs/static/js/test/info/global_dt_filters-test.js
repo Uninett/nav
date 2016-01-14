@@ -84,7 +84,7 @@ define(['info/global_dt_filters', 'libs/jquery'], function (plugin) {
                     this.input.value = '$days:3';
                     assert.isTrue(plugin.filter_last_seen('', this.data, ''));
                 });
-                it("on trunk", function () {
+                describe("on trunk", function () {
                     beforeEach(function () {
                         this.data[3] = this.trunk_cell;
                     });
