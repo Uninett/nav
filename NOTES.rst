@@ -62,6 +62,15 @@ setting up the integration, but if you for some reason want to override this you
 can do it in alertengine.conf.
 
 
+Subnet matrix improvements
+--------------------------
+
+Various mysterious layout bugs in the subnet matrix have been fixed, by way of
+a partial rewrite. Utilization data is now retrieve asynchronously, which
+means that the matrix itself should load a lot faster. More details of each
+subnet is now available in pop-up menus when clicking on them.
+
+
 checkService.py has been renamed
 --------------------------------
 
