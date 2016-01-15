@@ -21,7 +21,7 @@ class PwHashTestCase(unittest.TestCase):
 
     def test_methods_are_callable(self):
         """All values in the known_methods dictionary must be callable"""
-        for method in pwhash.known_methods.values():
+        for method in pwhash.KNOWN_METHODS.values():
             self.assert_(callable(method))
 
     def test_sha1_hash(self):
@@ -33,6 +33,12 @@ class PwHashTestCase(unittest.TestCase):
         hash = pwhash.Hash('md5', 'e7MaFMQE', 'foobar')
         self.assertEquals('{md5}e7MaFMQE$wbzoUnM9Jju9ob9bY29+hA==',
                           str(hash))
+
+    def test_pbkdf25_hash(self):
+        hash = pwhash.Hash('pbkdf2', 'e7MaFMQE', 'foobar')
+        self.assertEquals(
+            '{pbkdf2}e7MaFMQE$7j7bgQb8xED7mEY+8g1QM2zs/ispKZVeNEv/nMCYPX0=',
+            str(hash))
 
     def test_unknown_hash(self):
         self.assertRaises(pwhash.UnknownHashMethodError,
