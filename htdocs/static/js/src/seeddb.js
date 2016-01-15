@@ -6,9 +6,8 @@ require([
     'plugins/ip_chooser',
     'plugins/seeddb_map',
     'libs/spin',
-    'libs/jquery.dataTables.min',
-    'libs/modernizr',
-    'libs/FixedColumns.min'], function (CheckboxSelector, QuickSelect, FormFuck,
+    'libs/datatables.min',
+    'libs/modernizr'], function (CheckboxSelector, QuickSelect, FormFuck,
                                         connectivityChecker, IpChooser, seedDBRoomMap)
 {
 
@@ -151,7 +150,7 @@ require([
             numRows = 10;
         if (Modernizr.localstorage) {
             var value = localStorage.getItem(key);
-            if (value !== null) { numRows = value; }
+            if (value !== null) { numRows = +value; }
         }
 
         /* If neither a delete nor a move button is detected, no
@@ -166,40 +165,43 @@ require([
         $.fn.dataTableExt.oStdClasses.sWrapper += ' dataTables_background';
 
         /* Apply DataTable */
-        var table = $(tableSelector).dataTable({
-            "bPaginate": true,      // Pagination
-            "bLengthChange": true,  // Change number of visible rows
-            "bFilter": false,       // Searchbox
-            "bSort": true,          // Sort when clicking on headers
-            "bInfo": true,          // Show number of entries visible
-            "bAutoWidth": true,     // Resize table
-            "sScrollX": '100%',     // Scroll when table is bigger than viewport
-            "aoColumnDefs": [
-                {
-                    'bSortable': false,
-                    'sWidth': '16px',
-                    'aTargets': [ 0 ],  // Do not sort on first column
-                    'bVisible': showCheckBoxes
-                }
-            ],
-            "sPaginationType": "full_numbers", // Display page numbers in pagination
-            "sDom": "<lip>t",   // display order of metainfo (lengthchange, info, pagination)
-            "fnDrawCallback": function (oSettings) {
-                /* Run this on redraw of table */
-                $('.paginate_button').removeClass('disabled').addClass('button tiny');
-                $('.paginate_active').addClass('button tiny secondary');
-                $('.paginate_button_disabled').addClass('disabled');
-                $(tableWrapper).removeClass('notvisible');
-            },
-            "aLengthMenu": [
-                [10, 25, 50, -1],   // Choices for number of entries to display
+        var table = $(tableSelector).DataTable({
+            // Enable and configure paging 
+            paging: true,
+            pagingType: 'full_numbers',
+            lengthChange: true,  // Change number of visible rows
+            lengthMenu: [
+                [10, 25, 50, -1],   // Choices for number of rows to display
                 [10, 25, 50, "All"] // Text for the choices
             ],
-            "iDisplayLength": numRows,  // The default number of rows to display
-            "oLanguage": {"sInfo": "_START_-_END_ of _TOTAL_"},  // Format of number of entries visibile
-        });
+            pageLength: numRows,  // The default number of rows to display
 
-        table.fnSort([[1, 'asc']]);  // When loaded, sort ascending on second column
+            // Enable and configure ordering
+            ordering: true,  // Sort when clicking on headers
+            order: [[1, 'asc']],
+            columnDefs: [
+                {
+                    orderable: false,  // Do not sort
+                    visible: showCheckBoxes, // Display or not based on 'showCheckBoxes'
+                    targets: 0  // On this column
+                }
+            ],
+
+            info: true,  // Show number of entries visible
+            language: {
+                info: '_START_ - _END_ of _TOTAL_'
+            },
+            
+            dom: "<lip>t",   // display order of metainfo (lengthchange, info, pagination)
+            drawCallback: function (oSettings) {
+                /* Run this on redraw of table */
+                $('.paginate_button').removeClass('disabled', 'secondary').addClass('button tiny');
+                $('.paginate_button.current').addClass('secondary');
+                $('.paginate_button_disabled').addClass('disabled');
+                $('.ellipsis').addClass('button tiny secondary disabled paginate_button');
+                $(tableWrapper).removeClass('notvisible');
+            }
+        });
 
         /* Store rowcount when user changes it */
         if (Modernizr.localstorage) {
