@@ -195,9 +195,8 @@ require([
             dom: "<lip>t",   // display order of metainfo (lengthchange, info, pagination)
             drawCallback: function (oSettings) {
                 /* Run this on redraw of table */
-                $('.paginate_button').removeClass('disabled', 'secondary').addClass('button tiny');
+                $('.paginate_button').removeClass('secondary').addClass('button tiny');
                 $('.paginate_button.current').addClass('secondary');
-                $('.paginate_button_disabled').addClass('disabled');
                 $('.ellipsis').addClass('button tiny secondary disabled paginate_button');
                 $(tableWrapper).removeClass('notvisible');
             }
