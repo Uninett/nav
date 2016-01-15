@@ -1,6 +1,6 @@
 require([
     'plugins/multiple_select',
-    'libs/jquery.dataTables.min',
+    'libs/datatables.min',
     'src/dt_plugins/numeric_html',
     'src/dt_plugins/ip_address_sort',
     'src/dt_plugins/ip_address_typedetect',
@@ -10,7 +10,7 @@ function (MultipleSelect) {
     $(function () {
         new MultipleSelect();
 
-        $('.netbox_availability_list').dataTable({
+        $('.netbox_availability_list').DataTable({
             'bPaginate': false,
             'bLengthChange': false,
             'bFilter': false,

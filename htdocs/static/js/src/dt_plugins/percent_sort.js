@@ -2,7 +2,7 @@
     Copied from: http://legacy.datatables.net/plug-ins/sorting
     Author: Jonathan Romley
 */
-require(['libs/jquery.dataTables.min'], function () {
+require(['libs/datatables.min'], function () {
     jQuery.extend(jQuery.fn.dataTableExt.oSort, {
         "percent-pre": function (a) {
             var x = (a == "-") ? 0 : a.replace(/%/, "");

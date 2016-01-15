@@ -2,7 +2,7 @@
     Copied from: http://legacy.datatables.net/plug-ins/sorting
     Author: Allan Jardine
 */
-require(['libs/jquery.dataTables.min'], function () {
+require(['libs/datatables.min'], function () {
     jQuery.extend(jQuery.fn.dataTableExt.oSort, {
         "num-html-pre": function (a) {
             var x = String(a).replace(/<[\s\S]*?>/g, "");

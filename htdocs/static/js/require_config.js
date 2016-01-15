@@ -24,9 +24,7 @@ var require = {
             deps: ["libs/underscore"],
             exports: 'Backbone'
         },
-        'libs/backbone-eventbroker': ['libs/backbone'],
-        'src/dt_plugins/ip_address_sort': ['libs/jquery.dataTables.min'],
-        'src/dt_plugins/ip_address_typedetect': ['libs/jquery.dataTables.min']
+        'libs/backbone-eventbroker': ['libs/backbone']
     },
     deps: ['libs/jquery']
 };
