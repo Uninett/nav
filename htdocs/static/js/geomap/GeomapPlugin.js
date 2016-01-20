@@ -85,7 +85,7 @@ function(Spinner, fullscreen) {
      */
     function addLayers(map) {
         var mapnikLayer = new OpenLayers.Layer.OSM(
-            "OpenStreetMap", NAV.proxyOsmUrl + '/${z}/${x}/${y}.png');
+            "OpenStreetMap", NAV.osmTileUrl + '/${z}/${x}/${y}.png');
         mapnikLayer.tileOptions = {crossOriginKeyword: null};
         map.addLayer(mapnikLayer);
 
