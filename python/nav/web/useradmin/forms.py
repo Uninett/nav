@@ -114,7 +114,7 @@ class AccountForm(forms.ModelForm):
 
     class Meta(object):
         model = Account
-        exclude = ('password', 'ext_sync', 'organizations')
+        exclude = ('password', 'ext_sync', 'organizations', 'preferences')
 
 
 class PrivilegeForm(forms.Form):
