@@ -13,11 +13,11 @@ function(Spinner, fullscreen) {
             var roomPoints = data.rooms.map(createPoint),
                 roomPositions = new OpenLayers.Geometry.MultiPoint(roomPoints),
                 boundingBox = roomPositions.getBounds(); // Is null if no roompositions
-            
+
             if (boundingBox === null) {
                 showPositionHint();
             }
-            
+
             init(boundingBox);
         });
     }
@@ -49,7 +49,7 @@ function(Spinner, fullscreen) {
 
 
     /**
-     * Creates a map, adds the layers and zooms to the given bounds. 
+     * Creates a map, adds the layers and zooms to the given bounds.
      */
     function init(boundingBox) {
         var map = createMap();
@@ -79,7 +79,7 @@ function(Spinner, fullscreen) {
     /**
      * Add layers to the map, and connect the layers and the time navigation
      * panel.
-     * 
+     *
      * TODO: This is still not fully refactored. Among other things this has a
      * circular dependency with the netLayer and timeNavigator.
      */
@@ -155,5 +155,5 @@ function(Spinner, fullscreen) {
     }
 
     return geomap;
-    
+
 });
