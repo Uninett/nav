@@ -533,6 +533,25 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             request, processors=[search_form_processor]))
 
 
+def port_counter_graph(request, interfaceid, kind='Octets'):
+    """Creates an url to Graphite for rendering a graph as an image
+
+    Redirects to the created url if successful
+    """
+    if kind not in ('Octets', 'Errors', 'UcastPkts', 'Discards'):
+        raise Http404
+
+    timeframe = request.GET.get('timeframe', 'day')
+    port = get_object_or_404(Interface, id=interfaceid)
+    url = utils.get_interface_counter_graph_url(port, timeframe, kind,
+                                                expect='png')
+
+    if url:
+        return redirect(url)
+    else:
+        return HttpResponse(status=500)
+
+
 def service_list(request, handler=None):
     """List services with given handler or any handler"""
 

@@ -21,7 +21,8 @@ from django.conf.urls import url, patterns
 from nav.web.ipdevinfo.views import (search, service_list, service_matrix,
                                      ipdev_details, module_details,
                                      port_details, get_port_view,
-                                     render_affected, render_host_info)
+                                     render_affected, render_host_info,
+                                     port_counter_graph)
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
@@ -56,6 +57,10 @@ urlpatterns = patterns('',
         port_details, name='ipdevinfo-interface-details'),
     url(r'^(?P<netbox_sysname>[^/]+)/ifname=(?P<port_name>[^&]+)/$',
         port_details, name='ipdevinfo-interface-details-by-name'),
+    url(r'^g/port/(?P<interfaceid>\d+)/$', port_counter_graph,
+        name='interface-counter-graph'),
+    url(r'^g/port/(?P<interfaceid>\d+)/(?P<kind>[^/]+)/$', port_counter_graph,
+        name='interface-counter-graph'),
 
     # Modules
     url(r'^(?P<netbox_sysname>.+)/modules/(?P<perspective>\w+)/$',
