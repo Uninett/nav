@@ -96,11 +96,3 @@ def has_only_one_result(searchproviders):
     for provider in searchproviders:
         results += len(provider.results)
     return results == 1
-
-
-def osm_map_redirecter(_, zoom, ytile, ztile):
-    """A redirector for OpenStreetmap tiles"""
-    server = choice(['a', 'b', 'c'])
-    url = "http://%s.tile.openstreetmap.org/%s/%s/%s.png" % (
-        server, zoom, ytile, ztile)
-    return redirect(url, permanent=True)
