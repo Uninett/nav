@@ -65,15 +65,17 @@ class NetmapViewSerializer(serializers.Serializer):
     zoom = serializers.CharField(required=False)
     last_modified = serializers.DateTimeField()
     is_public = serializers.BooleanField()
-    categories = MultipleChoiceField(
-        choices=[
-            (category, category)
-            for category in Category.objects.values_list('id', flat=True)
-        ],
-    )
+    categories = MultipleChoiceField()
     location_room_filter = serializers.CharField(max_length=255, required=False)
     display_orphans = serializers.BooleanField()
     display_elinks = serializers.BooleanField()
+
+    def __init__(self, *args, **kwargs):
+        super(NetmapViewSerializer, self).__init__(*args, **kwargs)
+        self.fields['categories'].choices = [
+            (category, category)
+            for category in Category.objects.values_list('id', flat=True)
+        ]
 
     def restore_object(self, attrs, instance=None):
 
