@@ -7,7 +7,7 @@ define(['libs/OpenLayers'], function () {
     function RoomMapper(node, rooms) {
         this.node = node;
         this.rooms = rooms;
-        this.proxyurl = NAV.proxyOsmUrl + '${z}/${x}/${y}.png';
+        this.proxyurl = NAV.osmTileUrl + '/${z}/${x}/${y}.png';
         this.imagePath = NAV.imagePath + '/openlayers/';
         this.markerImages = {
             faulty: this.imagePath + 'marker.png',

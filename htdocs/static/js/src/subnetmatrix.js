@@ -5,6 +5,7 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
         this.container = container;
         this.family = this.container.data('family') || 4;
         this.scope = this.container.data('scope');
+        this.feedbackContainer = $('#subnet-matrix-feedback');
         this.color_mapping = {
             80: 'usage-high',
             50: 'usage-medium',
@@ -46,6 +47,10 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
                     self.fetchUsage(data.next);
                 }
                 self.handleData(data);
+            });
+            request.fail(function() {
+                self.feedbackContainer.html('Some or all of the prefix usage data could not be loaded. If you want to try again, you must reload the page.');
+                self.feedbackContainer.removeClass('hidden');
             });
         },
 
@@ -275,10 +280,12 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
     // Initialize stuff on page load
     $(function() {
         var $container = $('#subnet-matrix');
-        var tooltipHandler = new TooltipHandler($container);
-        tooltipHandler.addListeners();
-        var fetcher = new UsageFetcher($container);
-        fetcher.fetchUsage();
+        if ($container.length) {
+            var tooltipHandler = new TooltipHandler($container);
+            tooltipHandler.addListeners();
+            var fetcher = new UsageFetcher($container);
+            fetcher.fetchUsage();
+        }
     });
 
 

@@ -403,7 +403,8 @@ def create_combined_urls(interface, counters):
             for counter in counters]
 
 
-def get_interface_counter_graph_url(interface, timeframe='day', kind='Octets'):
+def get_interface_counter_graph_url(interface, timeframe='day', kind='Octets',
+                                    expect='json'):
     """Returns a Graphite graph render URL for an interface traffic graph"""
 
     def _get_target(direction):
@@ -434,5 +435,5 @@ def get_interface_counter_graph_url(interface, timeframe='day', kind='Octets'):
 
     return get_simple_graph_url(
         [in_series, out_series], "1" + timeframe,
-        title=title, format='json',
+        title=title, format=expect,
         vtitle=unit or '')

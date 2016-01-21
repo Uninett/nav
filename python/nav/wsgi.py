@@ -19,9 +19,7 @@ import os
 import sys
 import logging
 import nav.logs
-
-os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
-
+import nav.models  # This MUST be here to avoid a strange deadlock in Django
 
 def loginit():
     """Initialize a logging setup for the NAV web interface.

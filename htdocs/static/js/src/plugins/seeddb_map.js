@@ -33,7 +33,7 @@ define(['libs/OpenLayers'], function() {
             theme: NAV.cssPath + '/openlayers.css'
         }),
             mapLayer = new OpenLayers.Layer.OSM(
-                'OpenStreetMap', '/search/osm_map_redirect/${z}/${x}/${y}.png');
+                'OpenStreetMap', NAV.osmTileUrl + '/${z}/${x}/${y}.png');
 
         mapLayer.tileOptions = {crossOriginKeyword: null};
         map.addLayer(mapLayer);

@@ -1,3 +1,18 @@
+Version 4.4.1
+(released 21 Jan 2016)
+
+ Bugfixes:
+
+  * LP#1535647 (Broken graph widgets after upgrade to 4.0.0)
+  * LP#1535688 (ipdevpoll multiprocess mode broken in NAV 4.0.0)
+  * LP#1535701 (subnet matrix has no visible feedback to user if prefix
+                utilization API call fails)
+  * LP#1535723 (Room page's interface tab is blank in NAV 4.0.0)
+  * LP#1536031 (Unable to create a new user)
+  * LP#1536060 (Unable to get switch port activity for anything but the default
+                interval value)
+
+
 Version 4.4.0
 (released 14 Jan 2016)
 

@@ -96,9 +96,9 @@ define(['libs/OpenLayers3-debug'], function (ol) {
     };
 
     function getOSMsource() {
-        /** Return OpenStreeMap source for OpenLayers3 with NAV proxy */
+        /** Return OpenStreeMap source for OpenLayers3 */
         return new ol.source.OSM({
-            url: NAV.proxyOsmUrl + '{z}/{x}/{y}.png',
+            url: NAV.osmTileUrl + '/{z}/{x}/{y}.png',
             crossOrigin: null
         });
     }

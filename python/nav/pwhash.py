@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2005 Norwegian University of Science and Technology
+# Copyright (C) 2016 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,29 +15,40 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Provides password hashing algorithms for NAV."""
+from __future__ import absolute_import
 
 import os
 import random
-# support Python 2.4 and 2.6.  2.6 deprecates
-# the sha1 and md5 modules, merging them into hashlib
-try:
-    from hashlib import sha1
-    from hashlib import md5
-except ImportError:
-    from sha import sha as sha1
-    from md5 import md5
+import hashlib
 import base64
 import re
-import errors
+from nav import errors
+from django.utils import crypto
 
-known_methods = {
+
+def sha1(password, salt):
+    return hashlib.sha1(password + salt).digest()
+
+
+def md5(password, salt):
+    return hashlib.md5(password + salt).digest()
+
+
+def pbkdf2(password, salt):
+    return crypto.pbkdf2(password, salt, iterations=10000)
+
+
+KNOWN_METHODS = {
     'sha1': sha1,
-    'md5': md5
-    }
+    'md5': md5,
+    'pbkdf2': pbkdf2,
+}
+DEFAULT_METHOD = 'pbkdf2'
+
 
 def generate_salt():
-    "Generate and return a salt string"
-    saltlen = 6
+    """"Generate and return a salt string"""
+    saltlen = 8
     if hasattr(os, 'urandom') and callable(os.urandom):
         raw_salt = os.urandom(saltlen)
     else:
@@ -44,6 +56,7 @@ def generate_salt():
                             [random.randint(0, 255) for x in range(saltlen)]])
 
     return base64.encodestring(raw_salt).strip()
+
 
 class Hash(object):
     """Class to represent a password hash.
@@ -53,14 +66,14 @@ class Hash(object):
     """
     _hashmatch = re.compile(r'\{([^\}]+)\}([^\$]+)\$(.+)$')
 
-    def __init__(self, method='sha1', salt=None, password=None):
+    def __init__(self, method=DEFAULT_METHOD, salt=None, password=None):
         """Create a hash object.
 
         method -- The digest method to use. sha1 and md5 are supported.
         salt -- The salt to use. Will be auto-generated if omitted.
         password -- Password to hash
         """
-        if method not in known_methods:
+        if method not in KNOWN_METHODS:
             raise UnknownHashMethodError, method
         self.method = method
         if not salt:
@@ -76,8 +89,7 @@ class Hash(object):
 
     def __str__(self):
         digest64 = base64.encodestring(self.digest).strip()
-        hash = "{%s}%s$%s" % (self.method, self.salt, digest64)
-        return hash
+        return "{%s}%s$%s" % (self.method, self.salt, digest64)
 
     def update(self, password):
         """Update the hash with a new password."""
@@ -88,8 +100,8 @@ class Hash(object):
         if isinstance(password, unicode):
             password = password.encode('utf-8')
 
-        hasher = known_methods[self.method](password + salt)
-        self.digest = hasher.digest()
+        hasher = KNOWN_METHODS[self.method]
+        self.digest = hasher(password, salt)
 
     def set_hash(self, hash):
         """Set the hash directly from a previously stored hash string."""
@@ -98,7 +110,7 @@ class Hash(object):
             raise InvalidHashStringError, hash
         else:
             method = match.group(1)
-            if method not in known_methods:
+            if method not in KNOWN_METHODS:
                 raise UnknownHashMethodError, method
             else:
                 self.method = method
@@ -111,9 +123,11 @@ class Hash(object):
                                    password=password)
         return self == otherhash
 
+
 class InvalidHashStringError(errors.GeneralException):
-    "Invalid hash string"
+    """Invalid hash string"""
+
 
 class UnknownHashMethodError(errors.GeneralException):
-    "Unknown hash method"
+    """Unknown hash method"""
 

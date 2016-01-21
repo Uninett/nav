@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import unittest
 
 from datetime import timedelta, datetime
-from nav.django.templatetags.info import (get_stupid_space, time_since,
+from nav.django.templatetags.info import (time_since,
                                           is_max_timestamp,
                                           get_attr, find_attr)
 
@@ -35,17 +35,16 @@ class TemplateTagsTest(unittest.TestCase):
             "Never")
         self.assertEqual(
             time_since(timestamp_calc(seconds=(10 * minute + 10))),
-            "10{}mins".format(get_stupid_space()))
+            u"10\xa0mins")
         self.assertEqual(
             time_since(timestamp_calc(seconds=(1 * minute + 5))),
-            "1{}min".format(get_stupid_space()))
+            u"1\xa0min")
         self.assertEqual(
             time_since(timestamp_calc(0)),
-            "Now")
+            u"Now")
         self.assertEqual(
             time_since(datetime.max),
-            "Now")
-
+            u"Now")
 
     def test_is_max_timestamp(self):
         self.assertTrue(is_max_timestamp(datetime.max))
