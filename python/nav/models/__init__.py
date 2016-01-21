@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007 UNINETT AS
+# Copyright (C) 2007, 2016 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,8 +16,14 @@
 """Django ORM wrapper for the NAV manage database"""
 
 import os
+import sys
+import django
+from django.apps import apps as _apps
+
+# This is here to ensure NAV's models can be used by anyone importing this
+# module while having no interest in Django voodoo.
 if 'DJANGO_SETTINGS_MODULE' not in os.environ:
     os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 
-    import django
+if not _apps.ready:
     django.setup()
