@@ -275,10 +275,12 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
     // Initialize stuff on page load
     $(function() {
         var $container = $('#subnet-matrix');
-        var tooltipHandler = new TooltipHandler($container);
-        tooltipHandler.addListeners();
-        var fetcher = new UsageFetcher($container);
-        fetcher.fetchUsage();
+        if ($container.length) {
+            var tooltipHandler = new TooltipHandler($container);
+            tooltipHandler.addListeners();
+            var fetcher = new UsageFetcher($container);
+            fetcher.fetchUsage();
+        }
     });
 
 
