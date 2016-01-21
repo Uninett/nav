@@ -49,20 +49,33 @@ MINIMUMPREFIXLENGTH = 4
 @renderer_classes((JSONRenderer,))
 def api_root(request):
     """Create api root for informing about possible endpoints"""
-    return Response({
-        'room': reverse('api:1:room-list', request=request),
-        'netbox': reverse('api:1:netbox-list', request=request),
-        'interface': reverse('api:1:interface-list', request=request),
-        'cam': reverse('api:1:cam-list', request=request),
-        'arp': reverse('api:1:arp-list', request=request),
-        'alert': reverse('api:1:alerthistory-list', request=request),
-        'servicehandler': reverse('api:1:servicehandler-list',
+    return Response(get_endpoints(request))
+
+
+def get_endpoints(request=None, version=1):
+    """Returns all endpoints for the API"""
+
+    apiprefix = 'api'
+    prefix = ('{}:{}:'.format(apiprefix, version)
+              if version else '{}:'.format(apiprefix))
+
+    return {
+        'alert': reverse('{}alerthistory-list'.format(prefix), request=request),
+        'arp': reverse('{}arp-list'.format(prefix), request=request),
+        'cam': reverse('{}cam-list'.format(prefix), request=request),
+        'interface': reverse('{}interface-list'.format(prefix),
+                             request=request),
+        'netbox': reverse('{}netbox-list'.format(prefix), request=request),
+        'prefix': reverse('{}prefix-list'.format(prefix), request=request),
+        'prefix_routed': reverse('{}prefix-routed-list'.format(prefix),
+                                 request=request),
+        'prefix_usage': reverse('{}prefix-usage-list'.format(prefix),
+                                request=request),
+        'room': reverse('{}room-list'.format(prefix), request=request),
+        'servicehandler': reverse('{}servicehandler-list'.format(prefix),
                                   request=request),
-        'prefix': reverse('api:1:prefix-list', request=request),
-        'vlan': reverse('api:1:vlan-list', request=request),
-        'prefix_routed': reverse('api:1:prefix-routed-list', request=request),
-        'prefix_usage': reverse('api:1:prefix-usage-list', request=request),
-    })
+        'vlan': reverse('{}vlan-list'.format(prefix), request=request),
+    }
 
 
 class NAVAPIMixin(APIView):
