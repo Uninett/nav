@@ -120,7 +120,7 @@ require([
     }
 
     function getActivityInterval() {
-        return $(activityRecheckSelector).find('input[type=text]').val();
+        return $(activityRecheckSelector).find('input[id=id_interval]').val();
     }
 
     function addSparkLinesToJobs() {
