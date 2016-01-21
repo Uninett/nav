@@ -2,7 +2,6 @@ import pytest
 import os
 import re
 import shlex
-from django import setup
 from nav.buildconf import bindir
 
 TESTARGS_PATTERN = re.compile(
@@ -10,11 +9,6 @@ TESTARGS_PATTERN = re.compile(
     re.MULTILINE)
 NOTEST_PATTERN = re.compile(
     r'^# +-\*-\s*notest\s*(-\*-)?\s*$', re.MULTILINE)
-
-
-def pytest_configure():
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
-    setup()
 
 
 def pytest_generate_tests(metafunc):
