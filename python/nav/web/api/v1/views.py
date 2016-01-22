@@ -24,7 +24,7 @@ import iso8601
 from provider.utils import long_token
 from rest_framework import status, filters, viewsets
 from rest_framework.decorators import api_view, renderer_classes
-from rest_framework.reverse import reverse
+from rest_framework.reverse import reverse_lazy
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -58,23 +58,24 @@ def get_endpoints(request=None, version=1):
     apiprefix = 'api'
     prefix = ('{}:{}:'.format(apiprefix, version)
               if version else '{}:'.format(apiprefix))
+    kwargs = {'request': request}
 
     return {
-        'alert': reverse('{}alerthistory-list'.format(prefix), request=request),
-        'arp': reverse('{}arp-list'.format(prefix), request=request),
-        'cam': reverse('{}cam-list'.format(prefix), request=request),
-        'interface': reverse('{}interface-list'.format(prefix),
-                             request=request),
-        'netbox': reverse('{}netbox-list'.format(prefix), request=request),
-        'prefix': reverse('{}prefix-list'.format(prefix), request=request),
-        'prefix_routed': reverse('{}prefix-routed-list'.format(prefix),
-                                 request=request),
-        'prefix_usage': reverse('{}prefix-usage-list'.format(prefix),
-                                request=request),
-        'room': reverse('{}room-list'.format(prefix), request=request),
-        'servicehandler': reverse('{}servicehandler-list'.format(prefix),
-                                  request=request),
-        'vlan': reverse('{}vlan-list'.format(prefix), request=request),
+        'alert': reverse_lazy('{}alerthistory-list'.format(prefix), **kwargs),
+        'arp': reverse_lazy('{}arp-list'.format(prefix), **kwargs),
+        'cam': reverse_lazy('{}cam-list'.format(prefix), **kwargs),
+        'interface': reverse_lazy('{}interface-list'.format(prefix),
+                             **kwargs),
+        'netbox': reverse_lazy('{}netbox-list'.format(prefix), **kwargs),
+        'prefix': reverse_lazy('{}prefix-list'.format(prefix), **kwargs),
+        'prefix_routed': reverse_lazy('{}prefix-routed-list'.format(prefix),
+                                 **kwargs),
+        'prefix_usage': reverse_lazy('{}prefix-usage-list'.format(prefix),
+                                **kwargs),
+        'room': reverse_lazy('{}room-list'.format(prefix), **kwargs),
+        'servicehandler': reverse_lazy('{}servicehandler-list'.format(prefix),
+                                  **kwargs),
+        'vlan': reverse_lazy('{}vlan-list'.format(prefix), **kwargs),
     }
 
 
