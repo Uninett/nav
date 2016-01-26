@@ -310,7 +310,7 @@ def make_report(request, report_name, export_delimiter, query_dict,
 
     def _fetch_data_from_db():
         (report, contents, neg, operator, adv, config, dbresult) = (
-            gen.make_report(report_name, CONFIG_FILE_PACKAGE,
+            gen.make_report(request, report_name, CONFIG_FILE_PACKAGE,
                             CONFIG_FILE_LOCAL, query_dict, None, None))
         if not report:
             raise Http404
@@ -334,7 +334,7 @@ def make_report(request, report_name, export_delimiter, query_dict,
              result_time) = _fetch_data_from_db()
         else:
             (report, contents, neg, operator, adv) = (
-                gen.make_report(report_name, None, None, query_dict,
+                gen.make_report(request, report_name, None, None, query_dict,
                                 config_cache, dbresult_cache))
             result_time = cache.get(cache_name)[8]
 
