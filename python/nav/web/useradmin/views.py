@@ -441,6 +441,11 @@ class TokenList(generic.ListView):
     model = APIToken
     template_name = 'useradmin/token_list.html'
 
+    def get_context_data(self, *args, **kwargs):
+        context = super(TokenList, self).get_context_data(*args, **kwargs)
+        context['active'] = {'token_list': True}
+        return context
+
 
 class TokenCreate(generic.CreateView):
     """Class based view for creating a new token"""
