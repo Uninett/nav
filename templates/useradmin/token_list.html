@@ -1,10 +1,20 @@
 {% extends "useradmin/base.html" %}
 {% load info %}
 
+
 {% block base_header_additional_head %}
   <style>
    .label.endpoint { cursor: help; margin-bottom: 1px; }
   </style>
+  <script>
+   require(['libs/jquery.tablesorter.min'], function() {
+       $(function() {
+           $('#token-list-table').tablesorter({
+               sortList: [[1,0]]
+           });
+       });
+   });
+  </script>
 {% endblock %}
 
 
@@ -18,7 +28,7 @@
         Create new token
       </a>
 
-      <table class="listtable hover">
+      <table id="token-list-table" class="listtable hover tablesorter">
         <caption>
           Token list
         </caption>
