@@ -33,7 +33,7 @@ class APIToken(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     client = models.ForeignKey(Account, db_column='client')
     scope = models.IntegerField(null=True, default=0)
-    comment = models.TextField()
+    comment = models.TextField(null=True, blank=True)
     revoked = models.BooleanField(default=False)
     last_used = models.DateTimeField(null=True)
     endpoints = hstore.DictionaryField()
