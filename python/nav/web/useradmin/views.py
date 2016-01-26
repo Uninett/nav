@@ -16,14 +16,16 @@
 """Controller functions for the useradmin interface"""
 
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.views import generic
 from django.views.decorators.debug import sensitive_post_parameters
 
 from nav.models.profiles import Account, AccountGroup, Privilege
 from nav.models.manage import Organization
+from nav.models.api import APIToken
 
 from nav.django.auth import sudo
 from nav.web.useradmin import forms
@@ -428,3 +430,38 @@ def group_privilege_remove(request, group_id, privilege_id):
             'type': 'privilege',
             'back': reverse('useradmin-group_detail', args=[group.id]),
         }, UserAdminContext(request))
+
+
+# The Django generic views are heavy on mixins - disable warning about ancestors
+# pylint: disable=too-many-ancestors
+
+class TokenList(generic.ListView):
+    """Class based view for a token listing"""
+
+    model = APIToken
+    template_name = 'useradmin/token_list.html'
+
+
+class TokenCreate(generic.CreateView):
+    """Class based view for creating a new token"""
+
+    model = APIToken
+    form_class = forms.TokenForm
+    template_name = 'useradmin/token_edit.html'
+    success_url = reverse_lazy('useradmin-token_list')
+
+
+class TokenEdit(generic.UpdateView):
+    """Class based view for editing a token"""
+
+    model = APIToken
+    form_class = forms.TokenForm
+    template_name = 'useradmin/token_edit.html'
+    success_url = reverse_lazy('useradmin-token_list')
+
+
+class TokenDelete(generic.DeleteView):
+    """Delete a token"""
+
+    model = APIToken
+    success_url = reverse_lazy('useradmin-token_list')

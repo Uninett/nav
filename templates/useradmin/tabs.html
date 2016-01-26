@@ -6,4 +6,7 @@
   <li{% if active.group_list %} class="tabactive"{% endif %}>
     <a href="{% url 'useradmin-group_list' %}">Group List</a>
   </li>
+  <li{% if active.token_list %} class="tabactive"{% endif %}>
+    <a href="{% url 'useradmin-token_list' %}">Token List</a>
+  </li>
 </ul>

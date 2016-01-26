@@ -15,10 +15,15 @@
 #
 # pylint: disable=R0903
 """Forms for the user admin system"""
+from datetime import date, timedelta
+from provider.utils import long_token
+
 from django import forms
 
 from nav.models.profiles import Account, AccountGroup, PrivilegeType
 from nav.models.manage import Organization
+from nav.models.api import APIToken
+from nav.web.api.v1.views import get_endpoints as get_api_endpoints
 
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Fieldset, Submit, Row,
@@ -214,3 +219,62 @@ class AccountAddForm(forms.Form):
                        css_class='medium-3')
             )
         )
+
+
+def _build_endpoint_choices(endpoints):
+    """:type endpoints: dict"""
+    return [(x, y) for x, y in endpoints.items()]
+
+
+def _get_default_expires():
+    return date.today() + timedelta(days=365)
+
+
+class ReadonlyField(forms.CharField):
+    """A readonly text field"""
+    def widget_attrs(self, widget):
+        attrs = super(ReadonlyField, self).widget_attrs(widget)
+        attrs.update({'readonly': True})
+        return attrs
+
+
+class TokenForm(forms.ModelForm):
+    """Form for creating a new token"""
+
+    token = ReadonlyField(initial=long_token)
+    available_endpoints = get_api_endpoints()
+    endpoints = forms.MultipleChoiceField(
+        choices=_build_endpoint_choices(available_endpoints))
+    expires = forms.DateField(initial=_get_default_expires)
+
+    def __init__(self, *args, **kwargs):
+        super(TokenForm, self).__init__(*args, **kwargs)
+
+        # If we are editing an existing token, convert the previously chosen
+        # endpoints from a dictionary to a list of keys. The 'clean_endpoints'
+        # method does the opposite when saving.
+        if self.instance:
+            self.initial['endpoints'] = [
+                key for key, _value in self.instance.endpoints.items()]
+
+        # Create the formhelper and define the layout of the form. The form
+        # element itself aswell as the submit button is defined in the template
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column(Fieldset('Token details', 'token', 'expires', 'comment'),
+                       css_class='large-4 small-12'),
+                Column(Fieldset('Token endpoints', 'endpoints'),
+                       css_class='large-8 small-12'),
+            )
+        )
+
+    def clean_endpoints(self):
+        """Convert endpoints from list to dictionary"""
+        endpoints = self.cleaned_data.get('endpoints')
+        return {x:str(self.available_endpoints.get(x)) for x in endpoints}
+
+    class Meta(object):
+        model = APIToken
+        fields = ['token', 'expires', 'comment', 'endpoints']

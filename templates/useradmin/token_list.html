@@ -1,0 +1,70 @@
+{% extends "useradmin/base.html" %}
+{% load info %}
+
+{% block base_header_additional_head %}
+  <style>
+   .label.endpoint { cursor: help; margin-bottom: 1px; }
+  </style>
+{% endblock %}
+
+
+{% block content %}
+
+  <div class="tabs">
+    {% include 'useradmin/tabs.html' %}
+
+    <div class="tabcontent">
+      <a href="{% url 'useradmin-token_create' %}" class="button small">
+        Create new token
+      </a>
+
+      <table class="listtable hover">
+        <caption>
+          Token list
+        </caption>
+
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Created</th>
+            <th>Expires</th>
+            <th>Last used</th>
+            <th>Endpoints</th>
+            <th>Comment</th>
+            <th>&nbsp;</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for token in object_list %}
+            <tr>
+              <td>{{ token.token }}</td>
+              <td>{{ token.created|default:'' }}</td>
+              <td>{{ token.expires|date:'DATE_FORMAT' }}</td>
+              <td>{{ token.last_used|default:'Never' }}</td>
+
+              {# Token endpoints #}
+              <td>
+                {% for key in token.endpoints|dictsortkeys %}
+                  <span class="label endpoint" title="{{ token.endpoints|lookup:key }}">
+                    {{ key }}
+                  </span>
+                {% endfor %}
+              </td>
+
+              {# Token comment #}
+              <td>{{ token.comment|default:'' }}</td>
+
+              {# Link to token edit #}
+              <td>
+                <a href="{% url 'useradmin-token_edit' token.pk %}" title="Edit this token">Edit</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+
+{% endblock %}

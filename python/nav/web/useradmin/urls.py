@@ -22,6 +22,7 @@
 """Django URL config for useradmin"""
 
 from django.conf.urls import url, patterns
+from nav.web.useradmin import views
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('nav.web.useradmin.views',
@@ -29,6 +30,7 @@ urlpatterns = patterns('nav.web.useradmin.views',
     url(r'^$', 'account_list', name='useradmin'),
     url(r'^accounts/$', 'account_list', name='useradmin-account_list'),
     url(r'^groups/$', 'group_list', name='useradmin-group_list'),
+
 
     # Edit/Create accounts
     url(r'^account/new/$', 'account_detail', name='useradmin-account_new'),
@@ -57,4 +59,14 @@ urlpatterns = patterns('nav.web.useradmin.views',
         name='useradmin-group_account_remove'),
     url(r'^group/(?P<group_id>\d+)/remove/privilege/(?P<privilege_id>\d+)/$',
         'group_privilege_remove', name='useradmin-group_privilege_remove'),
+
+    # Manage tokens
+    url(r'^tokens/$', views.TokenList.as_view(), name='useradmin-token_list'),
+    url(r'^tokens/create/$', views.TokenCreate.as_view(),
+        name='useradmin-token_create'),
+    url(r'^tokens/edit/(?P<pk>\d+)/$', views.TokenEdit.as_view(),
+        name='useradmin-token_edit'),
+    url(r'^tokens/delete/(?P<pk>\d+)/$', views.TokenDelete.as_view(),
+        name='useradmin-token_delete'),
+
 )

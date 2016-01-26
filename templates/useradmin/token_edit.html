@@ -1,0 +1,56 @@
+{% extends "useradmin/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block base_header_additional_head %}
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/multi-select.css">
+  <style>
+   #edit-token-form input[type=submit] { float:left; margin-right: 1em }
+   #delete-token-form { float: left; };
+  </style>
+  <script>
+   require(['libs/jquery.multi-select'], function(){
+       $('#id_endpoints').multiSelect();
+   })
+  </script>
+{% endblock %}
+
+
+{% block content %}
+
+  <a href="{% url 'useradmin-token_list' %}">Back to token list</a>
+
+  <div id="form-panel" class="panel white">
+
+    <h4>
+      {% if object %}
+        Edit token
+      {% else %}
+        Create new token
+      {% endif %}
+    </h4>
+
+
+    <form id="edit-token-form" action="" method="post">{% csrf_token %}
+      {% crispy form %}
+
+      {% if object %}
+        <input type="submit" value="Save token" class="button small">
+      {% else %}
+        <input type="submit" value="Save new token" class="button small">
+      {% endif %}
+
+    </form>
+
+    {# Display form for deleting a token #}
+    {% if object %}
+      <form id="delete-token-form" action="{% url 'useradmin-token_delete' object.pk %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="Delete token" class="button small alert">
+      </form>
+    {% endif %}
+
+    <div class="float-clear"></div>
+    
+  </div>
+  
+{% endblock %}
