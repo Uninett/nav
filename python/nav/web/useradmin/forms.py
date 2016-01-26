@@ -221,11 +221,6 @@ class AccountAddForm(forms.Form):
         )
 
 
-def _build_endpoint_choices(endpoints):
-    """:type endpoints: dict"""
-    return [(x, y) for x, y in endpoints.items()]
-
-
 def _get_default_expires():
     return date.today() + timedelta(days=365)
 
@@ -244,7 +239,7 @@ class TokenForm(forms.ModelForm):
     token = ReadonlyField(initial=long_token)
     available_endpoints = get_api_endpoints()
     endpoints = forms.MultipleChoiceField(
-        choices=_build_endpoint_choices(available_endpoints))
+        choices=sorted(available_endpoints.items()))
     expires = forms.DateField(initial=_get_default_expires)
 
     def __init__(self, *args, **kwargs):
@@ -254,8 +249,7 @@ class TokenForm(forms.ModelForm):
         # endpoints from a dictionary to a list of keys. The 'clean_endpoints'
         # method does the opposite when saving.
         if self.instance:
-            self.initial['endpoints'] = [
-                key for key, _value in self.instance.endpoints.items()]
+            self.initial['endpoints'] = self.instance.endpoints.keys()
 
         # Create the formhelper and define the layout of the form. The form
         # element itself aswell as the submit button is defined in the template
