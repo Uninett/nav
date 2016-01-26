@@ -55,8 +55,8 @@
 
               {# Token endpoints #}
               <td>
-                {% for key in token.endpoints|dictsortkeys %}
-                  <span class="label endpoint" title="{{ token.endpoints|lookup:key }}">
+                {% for key, value in token.endpoints|sortdict %}
+                  <span class="label endpoint" title="{{ value }}">
                     {{ key }}
                   </span>
                 {% endfor %}
