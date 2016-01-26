@@ -164,3 +164,17 @@ def get_value(something, key):
         return something.get(key)
     except AttributeError:
         pass
+
+@register.filter
+def dictsortkeys(dictionary, reverse=False):
+    """Returns a list of sorted dictionary keys
+
+    This can be combined with the 'lookup' or 'get_value' filter to print out a
+    dictionary sorted by key
+
+    Example:
+    {% for key in dictionary|dictsortkeys %}
+        <span title="{{ dictionary|lookup:key }}">{{ key }}</span>
+    {% endfor %}
+    """
+    return sorted(list(dictionary), reverse=bool(reverse))
