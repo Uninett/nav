@@ -54,7 +54,7 @@ define([
      * Parse data from Graphite and format it so that Rickshaw understands it.
      */
     function prepareData(data, dataset) {
-        var palette = new Rickshaw.Color.Palette({ scheme: 'colorwheel' });
+        var palette = new Rickshaw.Color.Palette({ scheme: 'munin' });
 
         return data.map(function(series) {
             return {
@@ -235,6 +235,11 @@ define([
                 legend = new Rickshaw.Graph.Legend({
                     graph: graph,
                     element: $element.siblings('.rickshaw-legend')[0]
+                }),
+
+                highlighter = new Rickshaw.Graph.Behavior.Series.Highlight({
+                    graph: graph,
+                    legend: legend
                 }),
 
                 // Toggle visibility of data series
