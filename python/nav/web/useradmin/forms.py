@@ -229,7 +229,7 @@ class ReadonlyField(forms.CharField):
     """A readonly text field"""
     def widget_attrs(self, widget):
         attrs = super(ReadonlyField, self).widget_attrs(widget)
-        attrs.update({'readonly': True})
+        attrs.update({'readonly': 'True'})
         return attrs
 
 
