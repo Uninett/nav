@@ -37,7 +37,7 @@ class APIToken(models.Model):
     comment = models.TextField(null=True, blank=True)
     revoked = models.BooleanField(default=False)
     last_used = models.DateTimeField(null=True)
-    endpoints = hstore.DictionaryField()
+    endpoints = hstore.DictionaryField(null=True, blank=True)
 
     objects = hstore.HStoreManager()
 
