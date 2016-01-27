@@ -15,6 +15,7 @@
 #
 """Models for the NAV API"""
 
+from datetime import datetime
 from django.db import models
 from django_hstore import hstore
 from nav.models.fields import VarcharField
@@ -42,6 +43,10 @@ class APIToken(models.Model):
 
     def __unicode__(self):
         return self.token
+
+    def is_expired(self):
+        """Check is I am expired"""
+        return self.expires < datetime.now()
 
     class Meta(object):
         db_table = 'apitoken'
