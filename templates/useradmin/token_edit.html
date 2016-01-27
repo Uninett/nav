@@ -5,12 +5,19 @@
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/multi-select.css">
   <style>
    #edit-token-form input[type=submit] { float:left; margin-right: 1em }
-   #delete-token-form { float: left; };
   </style>
   <script>
    require(['libs/jquery.multi-select'], function(){
-       $('#id_endpoints').multiSelect();
-   })
+       $(function(){
+           /* Add multiselect for selecting endpoints */
+           $('#id_endpoints').multiSelect();
+
+           /* This is the code for closing the content dropdown */
+           $('#confirm-token-delete .close-button').click(function () {
+               $(document).foundation('dropdown', 'close', $(this).parents('.f-dropdown:first'));
+           });
+       });
+   });
   </script>
 {% endblock %}
 
@@ -43,14 +50,22 @@
 
     {# Display form for deleting a token #}
     {% if object %}
-      <form id="delete-token-form" action="{% url 'useradmin-token_delete' object.pk %}" method="post">
-        {% csrf_token %}
-        <input type="submit" value="Delete token" class="button small alert">
-      </form>
+      <a href="javascript:void(0);" class="button small alert" data-dropdown="confirm-token-delete">
+        Delete token?
+      </a>
+
+      <div id="confirm-token-delete" class="f-dropdown content">
+        <form id="delete-token-form"
+              action="{% url 'useradmin-token_delete' object.pk %}"
+              method="post">{% csrf_token %}
+          <input type="submit" value="Yes, delete" class="button small alert expand">
+        </form>
+        <span class="button secondary small close-button expand">No, don't delete</span>
+      </div>
     {% endif %}
 
     <div class="float-clear"></div>
-    
+
   </div>
-  
+
 {% endblock %}
