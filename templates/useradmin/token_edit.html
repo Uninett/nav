@@ -5,12 +5,16 @@
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/multi-select.css">
   <style>
    #edit-token-form input[type=submit] { float:left; margin-right: 1em }
+   label[for='id_endpoints'] { display: none; }
   </style>
   <script>
    require(['libs/jquery.multi-select'], function(){
        $(function(){
            /* Add multiselect for selecting endpoints */
-           $('#id_endpoints').multiSelect();
+           $('#id_endpoints').multiSelect({
+               selectableHeader: 'Available endpoints',
+               selectionHeader: 'Selected endpoints'
+           });
 
            /* This is the code for closing the content dropdown */
            $('#confirm-token-delete .close-button').click(function () {
