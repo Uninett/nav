@@ -4,7 +4,7 @@
 
 {% block base_header_additional_head %}
   <style>
-   .label.endpoint { cursor: help; margin-bottom: 1px; }
+   #token-list-table .label { cursor: help; margin-bottom: 1px; }
   </style>
   <script>
    require(['libs/jquery.tablesorter.min'], function() {
@@ -50,13 +50,22 @@
             <tr>
               <td>{{ token.token }}</td>
               <td>{{ token.created|default:'' }}</td>
-              <td>{{ token.expires|date:'DATE_FORMAT' }}</td>
+              <td>
+                {% if token.is_expired %}
+                  <span class="label warning"
+                        title="Token expired {{ token.expires|date:'DATE_FORMAT' }}">
+                    Expired
+                  </span>
+                {% else %}
+                  {{ token.expires|date:'DATE_FORMAT' }}
+                {% endif %}
+              </td>
               <td>{{ token.last_used|default:'Never' }}</td>
 
               {# Token endpoints #}
               <td>
                 {% for key, value in token.endpoints|sortdict %}
-                  <span class="label endpoint" title="{{ value }}">
+                  <span class="label endpoint secondary" title="{{ value }}">
                     {{ key }}
                   </span>
                 {% endfor %}
