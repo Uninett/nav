@@ -17,6 +17,7 @@
 
 from datetime import datetime
 from django.db import models
+from django.core.urlresolvers import reverse
 from django_hstore import hstore
 from nav.models.fields import VarcharField
 from nav.models.profiles import Account
@@ -47,6 +48,10 @@ class APIToken(models.Model):
     def is_expired(self):
         """Check is I am expired"""
         return self.expires < datetime.now()
+
+    def get_absolute_url(self):
+        """Special method that Django uses in many cases"""
+        return reverse('useradmin-token_edit', args=[self.pk])
 
     class Meta(object):
         db_table = 'apitoken'
