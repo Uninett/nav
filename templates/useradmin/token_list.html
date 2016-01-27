@@ -10,7 +10,13 @@
    require(['libs/jquery.tablesorter.min'], function() {
        $(function() {
            $('#token-list-table').tablesorter({
-               sortList: [[1,1]]
+               sortList: [[1,0]],
+               headers: {
+                   4: { sorter: false},
+                   5: { sorter: false},
+                   6: { sorter: false},
+               }
+               
            });
        });
    });
@@ -36,8 +42,8 @@
         <thead>
           <tr>
             <th>Token</th>
-            <th>Created</th>
             <th>Expires</th>
+            <th>Created</th>
             <th>Last used</th>
             <th>Endpoints</th>
             <th>Comment</th>
@@ -49,7 +55,6 @@
           {% for token in object_list %}
             <tr>
               <td>{{ token.token }}</td>
-              <td>{{ token.created|default:'' }}</td>
               <td>
                 {% if token.is_expired %}
                   <span class="label warning"
@@ -60,6 +65,7 @@
                   {{ token.expires|date:'DATE_FORMAT' }}
                 {% endif %}
               </td>
+              <td>{{ token.created|default:'' }}</td>
               <td>{{ token.last_used|default:'Never' }}</td>
 
               {# Token endpoints #}
