@@ -33,41 +33,41 @@
     </div>
 
     {% if group %}
-    <div class="column medium-8">
+      <div class="column medium-8">
 
-      {% comment %} PRIVILEGES {% endcomment %}
-      <h5>Privileges</h5>
+        {% comment %} PRIVILEGES {% endcomment %}
+        <h5>Privileges</h5>
 
-      {% if group.privilege_set.all %}
-        <table class="expand table-hover">
-          <tbody>
-          {% for privilege in group.privilege_set.all %}
-            <tr>
-              <td>{{ privilege.type }}</td>
-              <td class="break-word">{{ privilege.target }}</td>
-              <td class="text-right">
-                <a href="{% url 'useradmin-group_privilege_remove' group.id privilege.id %}"
-                   class="button secondary small">
-                  Revoke
-                </a>
-              </td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p>Group has no privileges set.</p>
-      {% endif %}
+        {% if group.privilege_set.all %}
+          <table class="expand table-hover">
+            <tbody>
+              {% for privilege in group.privilege_set.all %}
+                <tr>
+                  <td>{{ privilege.type }}</td>
+                  <td class="break-word">{{ privilege.target }}</td>
+                  <td class="text-right">
+                    <a href="{% url 'useradmin-group_privilege_remove' group.id privilege.id %}"
+                       class="button secondary small">
+                      Revoke
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>Group has no privileges set.</p>
+        {% endif %}
 
-      {% if privilege_form %}
-        <p>Grant privileges <i class="fa fa-info-circle has-tip" data-tooltip data-options="hoverDelay: 2000" title="
-          See <a href='http://docs.python.org/howto/regex.html'>
-          this HOWTO</a> on the Regular expressions used for
-          matching targets for privileges like 'web_access'.
-          "></i></p>
+        {% if privilege_form %}
+          <p>Grant privileges <i class="fa fa-info-circle has-tip" data-tooltip data-options="hoverDelay: 2000" title="
+                                                                                                                       See <a href='http://docs.python.org/howto/regex.html'>
+                                                                                                                       this HOWTO</a> on the Regular expressions used for
+                                                                                                                       matching targets for privileges like 'web_access'.
+                                                                                                                       "></i></p>
 
-        {% crispy privilege_form %}
-      {% endif %}
+          {% crispy privilege_form %}
+        {% endif %}
 
 
         {% comment %} GROUP MEMBERSHIPS {% endcomment %}
@@ -76,19 +76,19 @@
         {% if group.accounts.all %}
           <table class="table-hover expand">
             <tbody>
-            {% for account in group.accounts.all %}
-              <tr>
-                <td>
-                  <a href="{% url 'useradmin-account_detail' account.id %}">{{ account }}</a>
-                </td>
-                <td class="text-right">
-                  {% if not group.is_protected_group %}
-                    <a href="{% url 'useradmin-group_account_remove' group.id account.id %}"
-                       class="button small secondary">Remove</a>
-                  {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
+              {% for account in group.accounts.all %}
+                <tr>
+                  <td>
+                    <a href="{% url 'useradmin-account_detail' account.id %}">{{ account }}</a>
+                  </td>
+                  <td class="text-right">
+                    {% if not group.is_protected_group %}
+                      <a href="{% url 'useradmin-group_account_remove' group.id account.id %}"
+                         class="button small secondary">Remove</a>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
             </tbody>
           </table>
         {% else %}
@@ -98,7 +98,7 @@
         {% crispy account_form %}
 
       </div>
-    </div>
+  </div>
 
 
     {% endif %}
