@@ -17,6 +17,7 @@
 
 import logging
 from datetime import datetime
+from urlparse import urlparse
 from rest_framework.permissions import BasePermission
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authentication import (TokenAuthentication,
@@ -69,9 +70,28 @@ class APIPermission(BasePermission):
             return True
 
         token = request.auth
-        # If the token exists we have already done a verification for it
-        # in the authentication
         if token:
-            return True
+            # Compare registered token endpoints with request path
+            return token_has_permission(request, token)
 
         return False
+
+
+def token_has_permission(request, token_hash):
+    """Verify that this token has permission to access the path"""
+    try:
+        token = APIToken.objects.get(token=token_hash)
+    except APIToken.DoesNotExist:
+        return False
+    else:
+        if token.endpoints:
+            request_path = ensure_trailing_slash(request.path)
+            return any([request_path.startswith(
+                ensure_trailing_slash(urlparse(endpoint).path))
+                        for endpoint in token.endpoints.values()])
+    return False
+
+
+def ensure_trailing_slash(path):
+    """Ensure that the path ends with a slash"""
+    return path if path.endswith('/') else path + '/'
