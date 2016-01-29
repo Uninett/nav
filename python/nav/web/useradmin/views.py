@@ -195,6 +195,7 @@ def account_delete(request, account_id):
                         {
                             'name': '%s (%s)' % (account.name, account.login),
                             'type': 'account',
+                            'action': 'delete account',
                             'back': reverse('useradmin-account_detail',
                                             args=[account.id]),
                         }, UserAdminContext(request))
@@ -227,8 +228,9 @@ def account_organization_remove(request, account_id, org_id):
 
     return render_to_response('useradmin/delete.html',
                         {
-                            'name': '%s from %s' % (organization, account),
+                            'name': 'in %s from %s' % (organization, account),
                             'type': 'organization',
+                            'action': 'remove organization membership',
                             'back': reverse('useradmin-account_detail',
                                             args=[account.id]),
                         }, UserAdminContext(request))
@@ -240,13 +242,13 @@ def account_group_remove(request, account_id, group_id, caller='account'):
                    redirect url
     """
     if caller == 'account':
+        back_url = reverse('useradmin-account_detail', args=[account_id])
         list_redirect = HttpResponseRedirect(reverse('useradmin-account_list'))
-        detail_redirect = HttpResponseRedirect(
-            reverse('useradmin-account_detail', args=[account_id]))
+        detail_redirect = HttpResponseRedirect(back_url)
     else:
+        back_url = reverse('useradmin-group_detail', args=[group_id])
         list_redirect = HttpResponseRedirect(reverse('useradmin-group_list'))
-        detail_redirect = HttpResponseRedirect(
-            reverse('useradmin-group_detail', args=[group_id]))
+        detail_redirect = HttpResponseRedirect(back_url)
 
     try:
         account = Account.objects.get(id=account_id)
@@ -283,7 +285,8 @@ def account_group_remove(request, account_id, group_id, caller='account'):
         {
             'name': '%s from the group %s' % (account, group),
             'type': 'account',
-            'back': reverse('useradmin-account_detail', args=[account.id]),
+            'action': 'remove group member',
+            'back': back_url,
         }, UserAdminContext(request))
 
 
@@ -390,6 +393,7 @@ def group_delete(request, group_id):
         {
             'name': group,
             'type': 'group',
+            'action': 'delete group',
             'back': reverse('useradmin-group_detail', args=[group.id]),
         }, UserAdminContext(request))
 
@@ -428,6 +432,7 @@ def group_privilege_remove(request, group_id, privilege_id):
         {
             'name': '%s from %s' % (privilege, group),
             'type': 'privilege',
+            'action': 'revoke privilege',
             'back': reverse('useradmin-group_detail', args=[group.id]),
         }, UserAdminContext(request))
 
