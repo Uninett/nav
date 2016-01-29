@@ -22,11 +22,9 @@
       <div class="token-card panel white">
         <a href="{% url 'useradmin-token_edit' object.pk %}" class="right">Edit token</a>
 
-        <h4>Token details</h4>
+        <h3>Token details</h3>
 
-        <p>
-          <small>{{ object.token }}</small>
-        </p>
+        <p>{{ object.token }}</p>
 
         <div class="alert-box {% if object.is_expired %}warning{% endif %}">
           {% if object.is_expired %}
@@ -43,7 +41,7 @@
           <h5>Endpoints</h5>
           <p>
             {% for key, value in object.endpoints|sortdict  %}
-              <span class="label secondary" title="{{ value }}">
+              <span class="label" title="{{ value }}">
                 {{ key }}
               </span>
             {% empty %}
