@@ -43,10 +43,10 @@
           <tr>
             <th>Token</th>
             <th>Expires</th>
-            <th>Created</th>
-            <th>Last used</th>
-            <th>Endpoints</th>
-            <th>Comment</th>
+            <th class="show-for-large-up">Created</th>
+            <th class="show-for-large-up">Last used</th>
+            <th class="show-for-medium-up">Endpoints</th>
+            <th class="show-for-medium-up">Comment</th>
             <th>&nbsp;</th>
           </tr>
         </thead>
@@ -54,7 +54,7 @@
         <tbody>
           {% for token in object_list %}
             <tr>
-              <td>{{ token.token }}</td>
+              <td>{{ token.token|truncatechars:10 }}</td>
               <td>
                 {% if token.is_expired %}
                   <span class="label warning"
@@ -65,11 +65,15 @@
                   {{ token.expires|date:'DATE_FORMAT' }}
                 {% endif %}
               </td>
-              <td>{{ token.created|default:'' }}</td>
-              <td>{{ token.last_used|default:'Never' }}</td>
+
+              {# Created #}
+              <td class="show-for-large-up">{{ token.created|default:'' }}</td>
+
+              {# Last used #}
+              <td class="show-for-large-up">{{ token.last_used|default:'Never' }}</td>
 
               {# Token endpoints #}
-              <td>
+              <td class="show-for-medium-up">
                 {% for key, value in token.endpoints|sortdict %}
                   <span class="label endpoint secondary" title="{{ value }}">
                     {{ key }}
@@ -78,7 +82,7 @@
               </td>
 
               {# Token comment #}
-              <td>{{ token.comment|default:'' }}</td>
+              <td class="show-for-medium-up">{{ token.comment|default:'' }}</td>
 
               {# Link to token edit #}
               <td>
