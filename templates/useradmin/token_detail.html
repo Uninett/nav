@@ -6,8 +6,9 @@
 
 {% block base_header_additional_head %}
   <style>
-   .token-card { max-width: 450px; }
+   .token-card { max-width: 470px; }
    .token-card .label { cursor: help; margin-bottom: 1px; }
+   .token-card code { display: inline-block; width: 100%; }
   </style>
 {% endblock %}
 
@@ -24,9 +25,11 @@
 
         <h3>Token details</h3>
 
-        <p>{{ object.token }}</p>
+        <p>
+          <code>{{ object.token }}</code>
+        </p>
 
-        <div class="alert-box {% if object.is_expired %}warning{% endif %}">
+        <div class="alert-box {% if object.is_expired %}warning with-icon{% endif %}">
           {% if object.is_expired %}
             Expired
           {% else %}
