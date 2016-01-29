@@ -124,8 +124,7 @@ class AccountForm(forms.ModelForm):
 
 class PrivilegeForm(forms.Form):
     """Form for adding a privilege to a group from the group page"""
-    type = forms.models.ModelChoiceField(PrivilegeType.objects.all(), label='',
-                                         empty_label='--- Type ---')
+    type = forms.models.ModelChoiceField(PrivilegeType.objects.all(), label='')
     target = forms.CharField(required=True, label='',
                              widget=forms.TextInput(
                                  attrs={'placeholder': 'Target'}))
@@ -201,18 +200,12 @@ class AccountAddForm(forms.Form):
             query = Account.objects.all()
 
         self.fields['account'] = forms.models.ModelChoiceField(
-            query, required=True, widget=forms.Select(), label='',
-            empty_label='--- Account ---')
+            query, required=True, widget=forms.Select(), label='')
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Row(
-                Column(Field('account', css_class='select2'),
-                       css_class='medium-6'),
-                Column(Submit('submit_account', 'Add to group',
-                              css_class='postfix'),
-                       css_class='medium-6')
-            )
+            Field('account', css_class='select2'),
+            Submit('submit_account', 'Add to group', css_class='postfix')
         )
 
 
