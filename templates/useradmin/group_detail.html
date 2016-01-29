@@ -1,6 +1,18 @@
 {% extends "useradmin/base.html" %}
 {% load crispy_forms_tags %}
 
+{% block base_header_additional_head %}
+  <style>
+   #grant-tooltip {
+       background-color: #d9edf7;
+       border-color: #bce8f1;
+       padding: 1em;
+   }
+   #grant-tooltip::before { border-color: transparent transparent #d9edf7}
+   #grant-tooltip::after { border-color: transparent transparent #bce8f1;}
+  </style>
+{% endblock %}
+
 
 {% block content %}
 
@@ -104,11 +116,18 @@
             {% endif %}
 
             {% if privilege_form %}
-              <p>Grant privileges <i class="fa fa-info-circle has-tip" data-tooltip data-options="hoverDelay: 2000" title="
-                                                                                                                           See <a href='http://docs.python.org/howto/regex.html'>
-                                                                                                                           this HOWTO</a> on the Regular expressions used for
-                                                                                                                           matching targets for privileges like 'web_access'.
-                                                                                                                           "></i></p>
+              <p>
+                Grant privileges
+                <i class="fa fa-info-circle has-tip"
+                   data-dropdown="grant-tooltip"
+                   data-options="is_hover:true"></i>
+                          
+                <div id="grant-tooltip" class="f-dropdown" data-dropdown-content>
+                  See <a href='http://docs.python.org/howto/regex.html'>this HOWTO</a>
+                  on the Regular expressions used for matching targets for
+                  privileges like 'web_access'."
+                </div>
+              </p>
 
               {% crispy privilege_form %}
             {% endif %}
