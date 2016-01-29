@@ -41,8 +41,8 @@ class AccountGroupForm(forms.ModelForm):
         self.helper.form_action = ''
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
-            Fieldset('Group', 'name', 'description',
-                     Submit('submit_group', 'Save changes')))
+            Fieldset('Group info', 'name', 'description',
+                     Submit('submit_group', 'Save changes', css_class='small')))
 
     class Meta(object):
         model = AccountGroup
@@ -207,16 +207,16 @@ class AccountAddForm(forms.Form):
 
         self.fields['account'] = forms.models.ModelChoiceField(
             query, required=True, widget=forms.Select(), label='',
-            empty_label='--- Choose account ---')
+            empty_label='--- Account ---')
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Row(
                 Column(Field('account', css_class='select2'),
-                       css_class='medium-9'),
+                       css_class='medium-6'),
                 Column(Submit('submit_account', 'Add to group',
                               css_class='postfix'),
-                       css_class='medium-3')
+                       css_class='medium-6')
             )
         )
 
