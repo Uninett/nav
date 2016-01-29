@@ -454,6 +454,10 @@ class TokenCreate(generic.CreateView):
     form_class = forms.TokenForm
     template_name = 'useradmin/token_edit.html'
 
+    def get_success_url(self):
+        messages.success(self.request, 'New token created')
+        return super(TokenCreate, self).get_success_url()
+
 
 class TokenEdit(generic.UpdateView):
     """Class based view for editing a token"""
@@ -462,12 +466,19 @@ class TokenEdit(generic.UpdateView):
     form_class = forms.TokenForm
     template_name = 'useradmin/token_edit.html'
 
+    def get_success_url(self):
+        messages.success(self.request, 'Token saved')
+        return super(TokenEdit, self).get_success_url()
+
 
 class TokenDelete(generic.DeleteView):
     """Delete a token"""
 
     model = APIToken
-    success_url = reverse_lazy('useradmin-token_list')
+
+    def get_success_url(self):
+        messages.success(self.request, 'Token deleted')
+        return reverse_lazy('useradmin-token_list')
 
 
 class TokenDetail(generic.DetailView):
