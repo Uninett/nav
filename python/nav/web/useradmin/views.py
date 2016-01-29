@@ -453,7 +453,6 @@ class TokenCreate(generic.CreateView):
     model = APIToken
     form_class = forms.TokenForm
     template_name = 'useradmin/token_edit.html'
-    success_url = reverse_lazy('useradmin-token_list')
 
 
 class TokenEdit(generic.UpdateView):
@@ -462,7 +461,6 @@ class TokenEdit(generic.UpdateView):
     model = APIToken
     form_class = forms.TokenForm
     template_name = 'useradmin/token_edit.html'
-    success_url = reverse_lazy('useradmin-token_list')
 
 
 class TokenDelete(generic.DeleteView):
@@ -470,3 +468,10 @@ class TokenDelete(generic.DeleteView):
 
     model = APIToken
     success_url = reverse_lazy('useradmin-token_list')
+
+
+class TokenDetail(generic.DetailView):
+    """Display details for a token"""
+
+    model = APIToken
+    template_name = 'useradmin/token_detail.html'

@@ -66,6 +66,8 @@ urlpatterns = patterns('nav.web.useradmin.views',
         name='useradmin-token_create'),
     url(r'^tokens/edit/(?P<pk>\d+)/$', views.TokenEdit.as_view(),
         name='useradmin-token_edit'),
+    url(r'^tokens/detail/(?P<pk>\d+)/$', views.TokenDetail.as_view(),
+        name='useradmin-token_detail'),
     url(r'^tokens/delete/(?P<pk>\d+)/$', views.TokenDelete.as_view(),
         name='useradmin-token_delete'),
 

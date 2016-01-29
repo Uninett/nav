@@ -16,7 +16,7 @@
                    5: { sorter: false},
                    6: { sorter: false},
                }
-               
+
            });
        });
    });
@@ -54,7 +54,12 @@
         <tbody>
           {% for token in object_list %}
             <tr>
-              <td>{{ token.token|truncatechars:10 }}</td>
+              <td>
+                <a href="{% url 'useradmin-token_detail' token.pk %}"
+                   title="See details for this token">
+                  {{ token.token|truncatechars:10 }}
+                </a>
+              </td>
               <td>
                 {% if token.is_expired %}
                   <span class="label warning"

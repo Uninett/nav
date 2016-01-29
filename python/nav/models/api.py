@@ -50,8 +50,8 @@ class APIToken(models.Model):
         return self.expires < datetime.now()
 
     def get_absolute_url(self):
-        """Special method that Django uses in many cases"""
-        return reverse('useradmin-token_edit', args=[self.pk])
+        """Special method that Django uses as default url for an object"""
+        return reverse('useradmin-token_detail', args=[self.pk])
 
     class Meta(object):
         db_table = 'apitoken'
