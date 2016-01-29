@@ -161,13 +161,8 @@ class OrganizationAddForm(forms.Form):
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Row(
-                Column(Field('organization', css_class='select2'),
-                       css_class='medium-8'),
-                Column(Submit('submit_org', 'Add organization',
-                              css_class='postfix'),
-                       css_class='medium-4')
-            )
+            Field('organization', css_class='select2'),
+            Submit('submit_org', 'Add organization', css_class='postfix')
         )
 
 

@@ -2,115 +2,144 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-  {% if account %}
-    <h4>Editing account "{{ account.name }}" (#{{ account.id }})</h4>
-  {% else %}
-    <h4>Create new account</h4>
-  {% endif %}
 
-  {% comment %} ACTION BUTTONS {% endcomment %}
-  <div class="row">
-    <div class="column small-12">
-      <a href="{% url 'useradmin-account_list' %}">Back to account list</a>
+  <a href="{% url 'useradmin-account_list' %}">Back to account list</a>
 
-      <ul class="inline-list right">
-        {% if account and current_user_data.is_admin and not current_user_data.sudoer %}
-          {% ifnotequal current_user_data.account.id account.id %}
+  <div class="panel white">
+
+    {# Heading and actions buttons #}
+    <div class="row">
+
+      {# HEADING #}
+      <div class="column large-6">
+        <h4>
+          {% if account %}
+            Editing account "{{ account.name }}" (#{{ account.id }})
+          {% else %}
+            Create new account
+          {% endif %}
+        </h4>
+      </div> {# column #}
+
+
+      {% comment %} ACTION BUTTONS {% endcomment %}
+      <div class="column large-6">
+
+        <ul class="inline-list">
+          {% if account and current_user_data.is_admin and not current_user_data.sudoer %}
+            {% ifnotequal current_user_data.account.id account.id %}
+              <li>
+                <form action="." method="post">
+                  <input type="hidden" name="account" value="{{ account.id }}"/>
+                  <input type="submit" value="Operate as this user"
+                         name="submit_sudo" class="button small"/>
+                </form>
+              </li>
+            {% endifnotequal %}
+          {% endif %}
+
+          {% if account and not account.is_system_account %}
             <li>
-              <form action="." method="post">
-                <input type="hidden" name="account" value="{{ account.id }}"/>
-                <input type="submit" value="Operate as this user"
-                       name="submit_sudo" class="button small"/>
-              </form>
+              <a href="{% url 'useradmin-account_delete' account.id %}"
+                 class="button alert small">
+                Delete account
+              </a>
             </li>
-          {% endifnotequal %}
-        {% endif %}
+          {% endif %}
+        </ul>
 
-        {% if account and not account.is_system_account %}
-          <li>
-            <a href="{% url 'useradmin-account_delete' account.id %}"
-               class="button alert small">
-              Delete account
-            </a>
-          </li>
-        {% endif %}
-      </ul>
-
-    </div>
-  </div>
-
-
-  <div class="row">
-
-    {% comment %} ACCOUNT FORM {% endcomment %}
-    {% if account_form %}
-      <div class="column large-4 medium-5">
-        {% crispy account_form %}
       </div>
-    {% endif %}
 
-    {% if account %}
-      <div class="column large-8 medium-7">
+    </div> {# row #}
+
+
+    <div class="row">
+
+      {% comment %} ACCOUNT FORM {% endcomment %}
+      {% if account_form %}
+        <div class="column medium-6 large-3">
+          {% crispy account_form %}
+        </div>
+      {% endif %}
+
+
+      {% if account %}
 
         {% comment %} ORGANIZATIONS {% endcomment %}
-        <h5>Organizations</h5>
-        {% if account.organizations.all %}
-          <table class="table-hover expand">
-            <tbody>
-            {% for org in account.organizations.all %}
-              <tr>
-                <td>{{ org }}</td>
-                <td class="text-right">
-                  <a href="{% url 'useradmin-account_organization_remove' account.id org.id %}"
-                     class="button secondary tiny">Remove</a>
-                </td>
-              </tr>
-            {% endfor %}
-            </tbody>
-          </table>
-        {% else %}
-          <p>Not member of any organizations.</p>
-        {% endif %}
+        <div class="column medium-6 large-3">
+          <fieldset>
+            <legend>Organizations</legend>
+            {% if account.organizations.all %}
+              <table class="hover expand">
+                <tbody>
+                  {% for org in account.organizations.all %}
+                    <tr>
+                      <td>{{ org }}</td>
+                      <td class="text-right">
+                        <a href="{% url 'useradmin-account_organization_remove' account.id org.id %}"
+                           class="table-button secondary">Remove</a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <p>Not member of any organizations.</p>
+            {% endif %}
 
-        {% if org_form %}
-          {% crispy org_form %}
-        {% endif %}
+            {% if org_form %}
+              {% crispy org_form %}
+            {% endif %}
 
-        <h5>Group memberships</h5>
+          </fieldset>
 
-        {% if account.accountgroup_set.all %}
-          <table class="table-hover expand">
-            <tbody>
-            {% for group in account.accountgroup_set.all %}
-              <tr>
-                <td>
-                  <a href="{% url 'useradmin-group_detail' group.id %}">{{ group }}</a>
-                </td>
-                <td>
-                  {{ group.description }}
-                </td>
-                <td class="text-right">
-                  {% if not group.is_protected_group %}
-                    <a href="{% url 'useradmin-account_group_remove' account.id group.id %}"
-                       class="button secondary tiny">Remove</a>
-                  {% else %}
-                    &nbsp;
-                  {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-            </tbody>
-          </table>
-        {% else %}
-          <p>Not member of any groups.</p>
-        {% endif %}
+        </div>
+        {# END ORGANIZATIONS #}
 
-        {% if group_form %}
-          {% crispy group_form %}
-        {% endif %}
-      </div>
-    {% endif %}
-  </div>
 
+        {# GROUP MEMBERSHIPS #}
+        <div class="column medium-12 large-6">
+          <fieldset>
+            <legend>Group memberships</legend>
+
+            {% if account.accountgroup_set.all %}
+              <table class="hover expand">
+                <tbody>
+                  {% for group in account.accountgroup_set.all %}
+                    <tr>
+                      <td>
+                        <a href="{% url 'useradmin-group_detail' group.id %}">{{ group }}</a>
+                      </td>
+                      <td>
+                        {{ group.description }}
+                      </td>
+                      <td class="text-right">
+                        {% if not group.is_protected_group %}
+                          <a href="{% url 'useradmin-account_group_remove' account.id group.id %}"
+                             class="table-button secondary">Remove</a>
+                        {% else %}
+                          &nbsp;
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <p>Not member of any groups.</p>
+            {% endif %}
+
+            {% if group_form %}
+              {% crispy group_form %}
+            {% endif %}
+          </fieldset>
+        </div> {# end column #}
+        {# END GROUP MEMBERSHIPS #}
+
+
+      {% endif %} {# endif account #}
+    </div> {# end row #}
+
+  </div> {# panel #}
 
 {% endblock %}
