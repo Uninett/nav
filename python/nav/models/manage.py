@@ -903,7 +903,7 @@ class GwPortPrefix(models.Model):
     """
     interface = models.ForeignKey('Interface', db_column='interfaceid')
     prefix = models.ForeignKey('Prefix', db_column='prefixid')
-    gw_ip = models.IPAddressField(db_column='gwip', primary_key=True)
+    gw_ip = CIDRField(db_column='gwip', primary_key=True)
     virtual = models.BooleanField(default=False)
 
     class Meta(object):
