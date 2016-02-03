@@ -34,7 +34,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
                                             HTML)
 
-_ = lambda a: a
+_ = lambda a: a  # gettext variable (for future implementations)
 
 
 class LanguageForm(forms.Form):
@@ -184,13 +184,15 @@ class TimePeriodForm(forms.ModelForm):
             valid_during__in=valid_during_choices
         )
         if len(time_periods) > 0:
-            error_msg = []
-            for period in time_periods:
-                error_msg.append(
-                    u'Collides with existing time period: %s for %s' % (
-                        period.start, period.get_valid_during_display())
-                )
-            raise forms.util.ValidationError(error_msg)
+            errors = [
+                forms.ValidationError(
+                    _("""Collides with existing time period: %(start)s for
+                    %(valid)s"""),
+                    params={'start': period.start,
+                            'valid': period.get_valid_during_display()},
+                    code='timeperiod-collide'
+                ) for period in time_periods]
+            raise forms.ValidationError(errors)
         else:
             return self.cleaned_data
 
@@ -279,7 +281,7 @@ class AlertSubscriptionForm(forms.ModelForm):
         ignore = self.cleaned_data.get('ignore_resolved_alerts', False)
         ident = self.cleaned_data['id']
 
-        error_msg = []
+        errors = []
 
         existing_subscriptions = AlertSubscription.objects.filter(
             Q(alert_address=alert_address),
@@ -289,18 +291,27 @@ class AlertSubscriptionForm(forms.ModelForm):
         )
 
         for sub in existing_subscriptions:
-            error_msg.append(
-                u'''Filter group and alert address must be unique for each
-                subscription. This one collides with group %s watched by %s
-                ''' % (sub.filter_group.name, sub.alert_address.address)
+            errors.append(
+                forms.ValidationError(
+                    _("""Filter group and alert address must be unique for each
+                    subscription. This one collides with group %(group)s
+                    watched by %(address)s"""),
+                    code='unique-group-and-address',
+                    params={'group': sub.filter_group.name,
+                            'address': sub.alert_address.address})
             )
 
         if subscription_type == AlertSubscription.NOW and ignore:
-            error_msg.append(u'Resolved alerts cannot be ignored for '
-                             u'immediate subscriptions')
+            errors.append(
+                forms.ValidationError(
+                    _("""Resolved alerts cannot be ignored for immediate
+                    subscriptions"""),
+                    code='resolved-alert-cannot-be-ignored',
+                )
+            )
 
-        if error_msg:
-            raise forms.util.ValidationError(error_msg)
+        if errors:
+            raise forms.ValidationError(errors)
 
         return self.cleaned_data
 
@@ -416,6 +427,14 @@ class MatchFieldForm(forms.ModelForm):
         model = MatchField
         fields = '__all__'
 
+    @staticmethod
+    def _get_field_not_same_model_error():
+        return forms.ValidationError(
+            _("""This field must be the same model as match field,
+            or not set at all."""),
+            code='field_not_same_model'
+        )
+
     def clean_value_name(self):
         """Cleans the field 'value_name'"""
         clean_value_name = self.cleaned_data['value_name']
@@ -431,9 +450,7 @@ class MatchFieldForm(forms.ModelForm):
                 name_model, _name_attname = MatchField.MODEL_MAP[
                     clean_value_name.split('|')[0]]
                 if not model == name_model:
-                    raise forms.util.ValidationError(
-                        u'This field must be the same model as match field, '
-                        u'or not set at all.')
+                    raise self._get_field_not_same_model_error()
         return clean_value_name
 
     def clean_value_sort(self):
@@ -451,9 +468,7 @@ class MatchFieldForm(forms.ModelForm):
                 sort_model, _sort_attname = MatchField.MODEL_MAP[
                     clean_value_sort]
                 if not model == sort_model:
-                    raise forms.util.ValidationError(
-                        u'This field must be the same model as match field, '
-                        u'or not set at all.')
+                    raise self._get_field_not_same_model_error()
         return clean_value_sort
 
 
