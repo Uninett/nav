@@ -99,7 +99,7 @@ class GammuDispatcher(Dispatcher):
                                                             error[0]['Code'],
                                                             error[0]['Text'])
 
-        if type(smsid) == int:
+        if isinstance(smsid, (int, long)):
             result = True
         else:
             result = False
