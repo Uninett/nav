@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2006 UNINETT AS
+# Copyright (C) 2006, 2016 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -99,7 +98,7 @@ class GammuDispatcher(Dispatcher):
                                                             error[0]['Code'],
                                                             error[0]['Text'])
 
-        if type(smsid) == int:
+        if isinstance(smsid, (int, long)):
             result = True
         else:
             result = False
