@@ -20,6 +20,7 @@
 
 import datetime as dt
 import IPy
+import math
 import re
 
 from django.conf import settings
@@ -903,7 +904,7 @@ class GwPortPrefix(models.Model):
     """
     interface = models.ForeignKey('Interface', db_column='interfaceid')
     prefix = models.ForeignKey('Prefix', db_column='prefixid')
-    gw_ip = models.IPAddressField(db_column='gwip', primary_key=True)
+    gw_ip = CIDRField(db_column='gwip', primary_key=True)
     virtual = models.BooleanField(default=False)
 
     class Meta(object):
@@ -1122,6 +1123,22 @@ class SwPortAllowedVlan(models.Model):
             self._cached_vlan_set = self._calculate_allowed_vlans()
 
         return self._cached_vlan_set or set()
+
+    @staticmethod
+    def vlan_list_to_hex(vlans):
+        """Convert a list of VLAN numbers to a hexadecimal string."""
+        # Make sure there are at least 256 digits (128 octets) in the
+        # resulting hex string.  This is necessary for parts of NAV to
+        # parse the hexstring correctly.
+        max_vlan = sorted(vlans)[-1]
+        needed_octets = int(math.ceil((max_vlan+1) / 8.0))
+        bits = BitVector('\x00' * max(needed_octets, 128))
+        for vlan in vlans:
+            bits[vlan] = True
+        return bits.to_hex()
+
+    def set_allowed_vlans(self, vlans):
+        self.hex_string = self.vlan_list_to_hex(vlans)
 
     def _calculate_allowed_vlans(self):
         octets = [self.hex_string[x:x + 2]

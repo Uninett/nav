@@ -35,7 +35,7 @@ class NavBlogNavlet(Navlet):
 
     def get_context_data(self, **kwargs):
         context = super(NavBlogNavlet, self).get_context_data(**kwargs)
-        blogurl = 'http://blog.nav.uninett.no/rss'
+        blogurl = 'http://blog.nav.uninett.no/feeds/posts/default'
         maxposts = 5
 
         feed = feedparser.parse(blogurl)

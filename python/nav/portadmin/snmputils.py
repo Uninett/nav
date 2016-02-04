@@ -439,20 +439,17 @@ class SNMPHandler(object):
     def _save_trunk_interface(self, interface, native_vlan, trunk_vlans):
         interface.vlan = native_vlan
         interface.trunk = True
-        bitvector = BitVector(128 * '\000')
-        for vlan in trunk_vlans:
-            bitvector[vlan] = 1
-        self._set_interface_hex(interface, bitvector)
+        self._set_interface_hex(interface, trunk_vlans)
         interface.save()
 
     @staticmethod
-    def _set_interface_hex(interface, bitvector):
+    def _set_interface_hex(interface, trunk_vlans):
         try:
             allowedvlan = interface.swportallowedvlan
         except SwPortAllowedVlan.DoesNotExist:
             allowedvlan = SwPortAllowedVlan(interface=interface)
 
-        allowedvlan.hex_string = bitvector.to_hex()
+        allowedvlan.set_allowed_vlans(trunk_vlans)
         allowedvlan.save()
 
     @staticmethod

@@ -47,7 +47,7 @@ class ReportWidget(Navlet):
             context['query_string'] = query_string
         elif self.mode == NAVLET_MODE_VIEW:
             full_context = make_report(
-                self.request.account.login, report_id, None,
+                self.request, report_id, None,
                 QueryDict(query_string).copy(), paginate=False)
             if full_context:
                 report = full_context.get('report')

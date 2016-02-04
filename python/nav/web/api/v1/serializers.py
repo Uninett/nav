@@ -56,7 +56,6 @@ class RoomSerializer(serializers.ModelSerializer):
 
     class Meta(object):
         model = manage.Room
-        fields = ('id', 'location', 'description', 'position')
 
 
 class VlanSerializer(serializers.ModelSerializer):
