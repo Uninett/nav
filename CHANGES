@@ -1,3 +1,19 @@
+Version 4.4.2
+(released 4 Feb 2016)
+
+ Bugfixes:
+
+  * LP#1538029 (Rickshaw color palette is bad for color blind users)
+  * LP#1538113 (report widget crashes with 500)
+  * LP#1538270 (PortAdmin crashes when non admin try to remove a vlan from the
+                trunk)
+  * LP#1540839 (ipdevpoll inventory job fails when deleting old router
+                addresses)
+  * LP#1541246 (alertprofiles: adding subscription fails (when form is not
+                valid?))
+  * LP#1541358 (NAV doesn't work with python-gammu versions 2 and up)
+
+
 Version 4.4.1
 (released 21 Jan 2016)
 
