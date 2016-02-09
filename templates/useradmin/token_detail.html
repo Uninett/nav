@@ -6,9 +6,9 @@
 
 {% block base_header_additional_head %}
   <style>
-   .token-card { max-width: 470px; }
-   .token-card .label { cursor: help; margin-bottom: 1px; }
-   .token-card code { display: inline-block; width: 100%; }
+    .token-card { max-width: 470px; }
+    .token-card .label { cursor: help; margin-bottom: 1px; }
+    .token-card code { display: inline-block; width: 100%; }
   </style>
 {% endblock %}
 
@@ -40,22 +40,24 @@
 
         <p class="comment">{{ object.comment|default:'' }}</p>
 
-        <div class="panel endpoints">
-          <h5>Endpoints</h5>
-          <p>
-            {% for key, value in object.endpoints|sortdict  %}
-              <span class="label" title="{{ value }}">
-                {{ key }}
-              </span>
-            {% empty %}
-              No endpoints set
-            {% endfor %}
-          </p>
-        </div>
+        <h5>Endpoints</h5>
+        <p>
+          {% for key, value in object.endpoints|sortdict  %}
+            <span class="label" title="{{ value }}">
+              {{ key }}
+            </span>
+          {% empty %}
+            No endpoints set
+          {% endfor %}
+        </p>
 
         <ul class="no-bullet">
-          <li>Created: {{ object.created|default:'N/A' }}</li>
-          <li>Last used: {{ object.last_used|default:'Never' }}</li>
+          <li>
+              <small>Created: {{ object.created|default:'N/A' }}</small>
+          </li>
+          <li>
+            <small>Last used: {{ object.last_used|default:'Never' }}</small>
+          </li>
         </ul>
 
       </div> {# end panel #}
