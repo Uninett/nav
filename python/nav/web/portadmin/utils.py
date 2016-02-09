@@ -105,10 +105,6 @@ def find_allowed_vlans_for_user_on_netbox(account, netbox, factory=None):
     else:
         allowed_vlans = netbox_vlans
 
-    defaultvlan = find_default_vlan()
-    if defaultvlan and defaultvlan not in allowed_vlans:
-        allowed_vlans.append(defaultvlan)
-
     return sorted(allowed_vlans, key=attrgetter('vlan'))
 
 
@@ -161,6 +157,11 @@ def find_allowed_vlans_for_user(account):
     allowed_vlans = []
     for org in account.organizations.all():
         allowed_vlans.extend(find_vlans_in_org(org))
+
+    defaultvlan = find_default_vlan()
+    if defaultvlan and defaultvlan not in allowed_vlans:
+        allowed_vlans.append(defaultvlan)
+
     return allowed_vlans
 
 
