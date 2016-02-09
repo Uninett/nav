@@ -296,12 +296,11 @@ def save_to_database(interfaces):
 def filter_vlans(target_vlans, old_vlans, allowed_vlans):
     """Return a list of vlans that matches following criteria
 
-    - the vlans was on the trunk before
-    - or is set by user and in allowed_vlans
-
+    - All target vlans should be set if the vlan is in allowed_vlans
+    - Remove the old_vlans if they are in allowed_vlans
     """
-    return (list((set(target_vlans) | set(old_vlans)) &
-                 (set(old_vlans) | set(allowed_vlans))))
+    return list((set(target_vlans) & set(allowed_vlans)) |
+                (set(old_vlans) - set(allowed_vlans)))
 
 
 def should_check_access_rights(account):

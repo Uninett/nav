@@ -78,10 +78,37 @@ class TestPortAdminUtil(unittest.TestCase):
                                  FantasyVlan(self.vlan2.vlan),
                                  FantasyVlan(self.vlan3.vlan)]))
 
-    def test_filter_vlans(self):
+    def test_filter_vlans_add(self):
+        vlans_from_request = [1, 2, 3]
+        old_trunked_vlans = [3]  # Vlans from querying the netbox
+        allowed_vlans = range(1, 10)
+
+        self.assertEqual(filter_vlans(vlans_from_request, old_trunked_vlans,
+                                      allowed_vlans), [1, 2, 3])
+
+    def test_filter_vlans_add_deny(self):
+        """Only add vlans that are in allowed vlans"""
         vlans_from_request = [1, 2, 3]
         old_trunked_vlans = [3]  # Vlans from querying the netbox
         allowed_vlans = [1]
 
         self.assertEqual(filter_vlans(vlans_from_request, old_trunked_vlans,
                                       allowed_vlans), [1, 3])
+
+    def test_filter_vlans_remove(self):
+        """It should be possible to remove vlans by not including them"""
+        vlans_from_request = [1, 2]
+        old_trunked_vlans = [3]
+        allowed_vlans = range(1, 10)
+
+        self.assertEqual(filter_vlans(vlans_from_request, old_trunked_vlans,
+                                      allowed_vlans), [1, 2])
+
+    def test_filter_vlans_remove_deny(self):
+        """Only remove vlans that are in allowed vlans list"""
+        vlans_from_request = [2]
+        old_trunked_vlans = [1, 2, 3]
+        allowed_vlans = range(1, 3)
+
+        self.assertEqual(filter_vlans(vlans_from_request, old_trunked_vlans,
+                                      allowed_vlans), [2, 3])
