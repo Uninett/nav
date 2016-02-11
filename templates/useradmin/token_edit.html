@@ -4,7 +4,7 @@
 {% block base_header_additional_head %}
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/multi-select.css">
   <style>
-    #edit-token-form input[type=submit] { float:left; margin-right: 1em }
+    #edit-token-form input[type=submit] { float:left; margin-right: 1.25rem }
     label[for='id_endpoints'] { display: none; }
   </style>
   <script>
@@ -61,8 +61,14 @@
 
     </form>
 
-    {# Display form for deleting a token #}
+
     {% if object %}
+      {# Display button for revoking a token #}
+      <form action="{% url 'useradmin-token_expire' object.pk %}" method="post">
+        <input type="submit" value="Expire token" class="button small">
+      </form>
+
+      {# Display form for deleting a token #}
       <a href="javascript:void(0);" class="button small alert"
          data-options="align:top"
          data-dropdown="confirm-token-delete">

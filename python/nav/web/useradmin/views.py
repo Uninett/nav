@@ -15,12 +15,15 @@
 #
 """Controller functions for the useradmin interface"""
 
+from datetime import datetime
+
 from django.contrib import messages
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
 from django.views import generic
+from django.views.decorators.http import require_POST
 from django.views.decorators.debug import sensitive_post_parameters
 
 from nav.models.profiles import Account, AccountGroup, Privilege
@@ -491,3 +494,18 @@ class TokenDetail(generic.DetailView):
 
     model = APIToken
     template_name = 'useradmin/token_detail.html'
+
+
+@require_POST
+def token_expire(request, pk):
+    """Expire a token
+
+    :param pk: Primary key
+    :type request: django.http.request.HttpRequest
+    """
+    token = get_object_or_404(APIToken, pk=pk)
+    token.expires = datetime.now()
+    token.save()
+
+    messages.success(request, 'Token has been manually expired')
+    return redirect(token)

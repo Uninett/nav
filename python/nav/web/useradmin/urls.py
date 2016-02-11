@@ -70,5 +70,7 @@ urlpatterns = patterns('nav.web.useradmin.views',
         name='useradmin-token_detail'),
     url(r'^tokens/delete/(?P<pk>\d+)/$', views.TokenDelete.as_view(),
         name='useradmin-token_delete'),
+    url(r'^tokens/expire/(?P<pk>\d+)/$', 'token_expire',
+        name='useradmin-token_expire'),
 
 )
