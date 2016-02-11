@@ -1,9 +1,9 @@
 {% load url from future %}
 
+<h3>Subnet Matrix</h3>
+
 {% if scopes %}
 
-
-  <h3>Subnet Matrix</h3>
 
   <p class="alert-box secondary">
     Select scope you want to see the subnet matrix for.
@@ -39,7 +39,8 @@
 
   <p class="alert-box secondary">
     The NAV-database does not contain any network scopes.
-    <a href="{% url 'seeddb-index' %}">Seed the database</a> and return here to see the subnet matrix.
+    <a href="{% url 'seeddb-prefix-edit' %}">Seed the database</a>
+    and return here to see the subnet matrix.
   </p>
 
 
