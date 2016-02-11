@@ -13,9 +13,9 @@
 
 // Override this mixin to default to secondary colors on alert-box
 @mixin alert($radius:false) {
-  @include alert-base;
-  @include alert-style();
-  @include radius($radius);
+    @include alert-base;
+    @include alert-style();
+    @include radius($radius);
 }
 
 @mixin alert-icon($icon) {
@@ -31,6 +31,8 @@
 // Main configuration for alert-box class
 .alert-box {
     @include alert;
+
+    a { color: #014265; }  // Add darker link color for higher contrast.
 
     .close { @include alert-close; }
 
