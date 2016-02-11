@@ -11,9 +11,14 @@
     require(['libs/jquery.multi-select'], function(){
       $(function(){
         /* Add multiselect for selecting endpoints */
-        $('#id_endpoints').multiSelect({
-          selectableHeader: 'Available endpoints',
-          selectionHeader: 'Selected endpoints'
+        var msSelector = '#id_endpoints';
+        $(msSelector).multiSelect({
+          selectableHeader: 'Available endpoints <a id="select-all-endpoints" class="right">Select all</a>',
+          selectionHeader: 'Selected endpoints <a id="remove-all-endpoints" class="right">Remove all</a>',
+          afterInit: function(){
+            $('#select-all-endpoints').click(function(){ $(msSelector).multiSelect('select_all') });
+            $('#remove-all-endpoints').click(function(){ $(msSelector).multiSelect('deselect_all') });
+          }
         });
 
         /* This is the code for closing the content dropdown */
