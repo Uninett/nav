@@ -4,22 +4,22 @@
 
 {% block base_header_additional_head %}
   <style>
-   #token-list-table .label { cursor: help; margin-bottom: 1px; }
+    #token-list-table .label { cursor: help; margin-bottom: 1px; }
   </style>
   <script>
-   require(['libs/jquery.tablesorter.min'], function() {
-       $(function() {
-           $('#token-list-table').tablesorter({
-               sortList: [[1,0]],
-               headers: {
-                   4: { sorter: false},
-                   5: { sorter: false},
-                   6: { sorter: false},
-               }
+    require(['libs/jquery.tablesorter.min'], function() {
+      $(function() {
+        $('#token-list-table').tablesorter({
+          sortList: [[1,0]],
+          headers: {
+            4: { sorter: false},
+            5: { sorter: false},
+            6: { sorter: false},
+          }
 
-           });
-       });
-   });
+        });
+      });
+    });
   </script>
 {% endblock %}
 
