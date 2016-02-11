@@ -10,7 +10,7 @@
     require(['libs/jquery.tablesorter.min'], function() {
       $(function() {
         $('#token-list-table').tablesorter({
-          sortList: [[1,0]],
+          sortList: [[1,1]],
           headers: {
             4: { sorter: false},
             5: { sorter: false},
@@ -36,7 +36,7 @@
 
       <table id="token-list-table" class="listtable hover tablesorter">
         <caption>
-          Token list
+          List of issued API tokens
         </caption>
 
         <thead>
