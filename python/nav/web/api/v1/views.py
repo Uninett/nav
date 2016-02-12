@@ -25,7 +25,7 @@ from provider.utils import long_token
 from rest_framework import status, filters, viewsets
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.reverse import reverse_lazy
-from rest_framework.renderers import JSONRenderer
+from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
@@ -46,9 +46,34 @@ MINIMUMPREFIXLENGTH = 4
 
 
 @api_view(('GET',))
-@renderer_classes((JSONRenderer,))
+@renderer_classes((JSONRenderer, BrowsableAPIRenderer))
 def api_root(request):
-    """Create api root for informing about possible endpoints"""
+    """
+    The NAV API is currently read only.
+
+    To get programmatic access to the API you need a token. Read more
+    in the official [documentation][1].
+
+    Paging
+    ------
+    `/api/netbox/?page_size=10`
+
+    Default page_size is 100
+
+    Searching
+    ---------
+    `/api/netbox/?search=something`
+
+    Which fields are searched is documented for each endpoint.
+
+    Filtering
+    ---------
+    `/api/netbox/?category=GSW`
+
+    Which fields can be used for filtering is documented for each endpoint.
+
+    [1]: https://nav.uninett.no/doc/latest/howto/using_the_api.html
+    """
     return Response(get_endpoints(request))
 
 
@@ -83,12 +108,12 @@ class NAVAPIMixin(APIView):
     """Mixin for providing permissions and renderers"""
     authentication_classes = (NavBaseAuthentication, APIAuthentication)
     permission_classes = (APIPermission,)
-    renderer_classes = (JSONRenderer,)
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
 
 
 class ServiceHandlerViewSet(NAVAPIMixin, ViewSet):
-    """Makes service handlers available from the API"""
+    """List all service handlers"""
 
     def list(self, _request):
         """Handle list requests"""
@@ -114,14 +139,35 @@ class ServiceHandlerViewSet(NAVAPIMixin, ViewSet):
 
 
 class RoomViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
-    """Makes rooms accessible from api"""
+    """Lists all rooms.
+
+    Filters
+    -------
+    - description
+    - location
+    """
     queryset = manage.Room.objects.all()
     serializer_class = serializers.RoomSerializer
     filter_fields = ('location', 'description')
 
 
 class NetboxViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
-    """Makes netboxes accessible from api"""
+    """Lists all netboxes.
+
+    Search
+    ------
+    Searches in *sysname*.
+
+    Filters
+    -------
+    - category
+    - ip
+    - organization
+    - room
+    - sysname
+
+    When the filtered item is an object, it will filter on the id.
+    """
     queryset = manage.Netbox.objects.all()
     serializer_class = serializers.NetboxSerializer
     filter_fields = ('ip', 'sysname', 'room', 'organization', 'category')
@@ -129,7 +175,23 @@ class NetboxViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
 
 class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
-    """Makes interfaces accessible from api"""
+    """Lists all interfaces.
+
+    Search
+    ------
+    Searches in *ifalias*, *ifdescr* and *ifname*
+
+    Filters
+    -------
+    - baseport
+    - ifadminstatus
+    - ifindex
+    - ifname
+    - ifoperstatus
+    - iftype
+    - netbox
+    - trunk
+    """
     queryset = manage.Interface.objects.all()
     serializer_class = serializers.InterfaceSerializer
     filter_fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
@@ -138,7 +200,16 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
 
 class CamViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
-    """Makes cam accessible from api"""
+    """Lists all cam records.
+
+    Filters
+    -------
+    - active: *set this to list only records that has not ended*
+    - ifindex
+    - mac
+    - netbox
+    - port
+    """
     serializer_class = serializers.CamSerializer
     filter_fields = ('mac', 'netbox', 'ifindex', 'port')
 
@@ -153,7 +224,17 @@ class CamViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
 
 class ArpViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
-    """Makes cam accessible from api"""
+    """Lists all arp records.
+
+    Filters
+    -------
+
+    - ip
+    - mac
+    - netbox
+    - prefix
+
+    """
     serializer_class = serializers.ArpSerializer
     filter_fields = ('ip', 'mac', 'netbox', 'prefix')
 
@@ -168,7 +249,21 @@ class ArpViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
 
 class VlanViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
-    """Makes vlans available from api"""
+    """Lists all vlans.
+
+    Search
+    ------
+    Searches in *net_ident* and *description*
+
+    Filters
+    -------
+    - description
+    - net_type
+    - net_ident
+    - organization
+    - usage
+    - vlan
+    """
     queryset = manage.Vlan.objects.all()
     serializer_class = serializers.VlanSerializer
     filter_fields = ['vlan', 'net_type', 'net_ident', 'description',
@@ -177,14 +272,28 @@ class VlanViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
 
 class PrefixViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
-    """Makes prefixes available from api"""
+    """Lists all prefixes.
+
+    Filters
+    -------
+    - net_address
+    - vlan
+    - vlan__vlan: *Filters on the vlan number of the vlan*
+
+    """
     queryset = manage.Prefix.objects.all()
     serializer_class = serializers.PrefixSerializer
     filter_fields = ('vlan', 'net_address', 'vlan__vlan')
 
 
 class RoutedPrefixList(NAVAPIMixin, ListAPIView):
-    """Fetches routed prefixes"""
+    """Lists all routed prefixes. A router has category *GSW* or *GW*
+
+    Filters
+    -------
+    - family: *either 4 or 6, else both will be listed*
+    
+    """
     _router_categories = ['GSW', 'GW']
     serializer_class = serializers.PrefixSerializer
 
@@ -192,10 +301,9 @@ class RoutedPrefixList(NAVAPIMixin, ListAPIView):
         prefixes = manage.Prefix.objects.filter(
             gwportprefix__interface__netbox__category__in=
             self._router_categories)
-        if 'family' in self.request.GET:
+        if self.request.GET.get('family'):
             prefixes = prefixes.extra(where=['family(netaddr)=%s'],
-                                      params=[self.request.GET.get('family')])
-
+                                      params=[self.request.GET['family']])
         return prefixes
 
 
@@ -211,7 +319,31 @@ def get_times(request):
 
 
 class PrefixUsageList(NAVAPIMixin, ListAPIView):
-    """Makes prefix usage for all prefixes available"""
+    """Lists the usage of prefixes. This means how many addresses are in use
+    in the prefix.
+
+    Usage is only the result of active/max and is kinda silly on v6-addresses.
+
+    Filters
+    -------
+    - scope: *limit results to a specific scope*
+    - family: *limit results to family (either 4 or 6)*
+    - starttime: *If set without endtime, will find active addresses at that
+            time. If set *with* endtime, defines the interval to find active
+            addresses. Format is [iso8601][1].*
+    - endtime: *Must be set together with starttime. Defines the interval to
+            find active addresses. Format is [iso8601][1].*
+
+    See also the [iso8601 module doc](https://pypi.python.org/pypi/iso8601).
+
+    Examples: 
+
+    - `?starttime=2016-02-02`
+    - `?starttime=2016-02-02T15:00:00` - default Zulu time.
+    - `?starttime=2016-02-02T15:00:00%2B05` - plus needs to be encoded.
+
+    [1]: https://xkcd.com/1179/
+    """
     serializer_class = serializers.PrefixUsageSerializer
 
     def get(self, request, *args, **kwargs):
@@ -230,10 +362,10 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
             queryset = (manage.Prefix.objects.within(
                 self.request.GET.get('scope')).select_related('vlan')
                         .order_by('net_address'))
-        elif 'family' in self.request.GET:
+        elif self.request.GET.get('family'):
             queryset = manage.Prefix.objects.extra(
                 where=['family(netaddr)=%s'],
-                params=[self.request.GET.get('family')])
+                params=[self.request.GET['family']])
         else:
             queryset = manage.Prefix.objects.all()
 
@@ -299,7 +431,15 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
 
 
 class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
-    """API view for listing AlertHistory entries"""
+    """Lists all alerts.
+
+    Filters
+    -------
+    - stateless: *also lists stateless alerts (alerts without end time)*
+    - stateless_threshold: *hours back in time to fetch stateless alerts*
+
+    Example: `?stateless=1&stateless_threshold=1000`
+    """
 
     filter_backends = (AlertHistoryFilterBackend,)
     queryset = event.AlertHistory.objects.none()
