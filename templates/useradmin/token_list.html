@@ -9,14 +9,17 @@
   <script>
     require(['libs/jquery.tablesorter.min'], function() {
       $(function() {
-        $('#token-list-table').tablesorter({
-          sortList: [[1,0]],
-          headers: {
-            4: { sorter: false},
-            5: { sorter: false},
-            6: { sorter: false}
-          }
-        });
+        var $table = $('#token-list-table');
+        if ($table.length && $table.find('tbody tr').length > 0) {
+          $table.tablesorter({
+            sortList: [[1, 0]],
+            headers: {
+              4: {sorter: false},
+              5: {sorter: false},
+              6: {sorter: false}
+            }
+          });
+        }
       });
     });
   </script>
@@ -33,71 +36,83 @@
         Create new token
       </a>
 
-      <table id="token-list-table" class="listtable hover tablesorter">
-        <caption>
-          List of issued API tokens
-        </caption>
+      {# Show table with tokens if there are any #}
+      {% if object_list %}
 
-        <thead>
-          <tr>
-            <th>Token</th>
-            <th>Expires</th>
-            <th class="show-for-large-up">Created</th>
-            <th class="show-for-large-up">Last used</th>
-            <th class="show-for-medium-up">Endpoints</th>
-            <th class="show-for-medium-up">Comment</th>
-            <th>&nbsp;</th>
-          </tr>
-        </thead>
+        <table id="token-list-table" class="listtable hover tablesorter">
+          <caption>
+            List of issued API tokens
+          </caption>
 
-        <tbody>
-          {% for token in object_list %}
+          <thead>
             <tr>
-              <td>
-                <a href="{% url 'useradmin-token_detail' token.pk %}"
-                   title="See details for this token">
-                  {{ token.token|truncatechars:10 }}
-                </a>
-              </td>
-              <td>
-                {% if token.is_expired %}
-                  <span class="label warning"
-                        title="Token expired {{ token.expires|date:'DATE_FORMAT' }}">
-                    Expired
-                  </span>
-                {% else %}
-                  {{ token.expires|date:'DATE_FORMAT' }}
-                {% endif %}
-              </td>
-
-              {# Created #}
-              <td class="show-for-large-up">{{ token.created|default:'' }}</td>
-
-              {# Last used #}
-              <td class="show-for-large-up">{{ token.last_used|default:'Never' }}</td>
-
-              {# Token endpoints #}
-              <td class="show-for-medium-up">
-                {% for key, value in token.endpoints|sortdict %}
-                  <span class="label endpoint" title="{{ value }}">
-                    {{ key }}
-                  </span>
-                {% endfor %}
-              </td>
-
-              {# Token comment #}
-              <td class="show-for-medium-up">{{ token.comment|default:'' }}</td>
-
-              {# Link to token edit #}
-              <td>
-                <a href="{% url 'useradmin-token_edit' token.pk %}" title="Edit this token">Edit</a>
-              </td>
+              <th>Token</th>
+              <th>Expires</th>
+              <th class="show-for-large-up">Created</th>
+              <th class="show-for-large-up">Last used</th>
+              <th class="show-for-medium-up">Endpoints</th>
+              <th class="show-for-medium-up">Comment</th>
+              <th>&nbsp;</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
 
-    </div>
-  </div>
+          <tbody>
+            {% for token in object_list %}
+              <tr>
+                <td>
+                  <a href="{% url 'useradmin-token_detail' token.pk %}"
+                     title="See details for this token">
+                    {{ token.token|truncatechars:10 }}
+                  </a>
+                </td>
+                <td>
+                  {% if token.is_expired %}
+                    <span class="label warning"
+                          title="Token expired {{ token.expires|date:'DATE_FORMAT' }}">
+                      Expired
+                    </span>
+                  {% else %}
+                    {{ token.expires|date:'DATE_FORMAT' }}
+                  {% endif %}
+                </td>
+
+                {# Created #}
+                <td class="show-for-large-up">{{ token.created|default:'' }}</td>
+
+                {# Last used #}
+                <td class="show-for-large-up">{{ token.last_used|default:'Never' }}</td>
+
+                {# Token endpoints #}
+                <td class="show-for-medium-up">
+                  {% for key, value in token.endpoints|sortdict %}
+                    <span class="label endpoint" title="{{ value }}">
+                      {{ key }}
+                    </span>
+                  {% endfor %}
+                </td>
+
+                {# Token comment #}
+                <td class="show-for-medium-up">{{ token.comment|default:'' }}</td>
+
+                {# Link to token edit #}
+                <td>
+                  <a href="{% url 'useradmin-token_edit' token.pk %}" title="Edit this token">Edit</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+      {% else %}
+
+        {# If there are no tokens, show information about creating one #}
+        <div class="alert-box info">No tokens are issued. Do you want to
+          <a href="{% url 'useradmin-token_create' %}">create one</a>?
+        </div>
+
+      {% endif %}
+
+    </div>  {# .tabcontent #}
+  </div>  {# .tabs #}
 
 {% endblock %}
