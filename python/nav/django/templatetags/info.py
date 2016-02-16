@@ -155,3 +155,8 @@ def get_value(something, key):
         return something.get(key)
     except AttributeError:
         pass
+
+@register.filter
+def sortdict(dictionary, reverse=False):
+    """Returns a list of sorted dictionary items"""
+    return sorted(dictionary.items(), reverse=bool(reverse))

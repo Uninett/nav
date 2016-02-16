@@ -1,0 +1,69 @@
+{% extends "useradmin/base.html" %}
+{% load info %}
+
+{#  Display information about a single token #}
+
+
+{% block base_header_additional_head %}
+  <style>
+    .token-card { max-width: 470px; }
+    .token-card .label { cursor: help; margin-bottom: 1px; }
+    .token-card code { display: inline-block; width: 100%; }
+  </style>
+{% endblock %}
+
+
+{% block content %}
+
+  <a href="{% url 'useradmin-token_list' %}">Back to token list</a>
+
+  <div class="row">
+    <div class="column small-12">
+
+      <div class="token-card panel white">
+        <a href="{% url 'useradmin-token_edit' object.pk %}" class="right">Edit token</a>
+
+        <h3>Token details</h3>
+
+        <p>
+          <code>{{ object.token }}</code>
+        </p>
+
+        <div class="alert-box {% if object.is_expired %}warning with-icon{% endif %}">
+          {% if object.is_expired %}
+            Expired
+          {% else %}
+            Expires
+          {% endif %}
+          {{ object.expires|date:'DATE_FORMAT' }}
+        </div>
+
+        <p class="comment">{{ object.comment|default:'' }}</p>
+
+        <h5>Endpoints</h5>
+        <p>
+          {% for key, value in object.endpoints|sortdict  %}
+            <span class="label" title="{{ value }}">
+              {{ key }}
+            </span>
+          {% empty %}
+            No endpoints set
+          {% endfor %}
+        </p>
+
+        <ul class="no-bullet">
+          <li>
+              <small>Created: {{ object.created|default:'N/A' }}</small>
+          </li>
+          <li>
+            <small>Last successfully used: {{ object.last_used|default:'Never' }}</small>
+          </li>
+        </ul>
+
+      </div> {# end panel #}
+
+
+    </div> {# end column #}
+  </div> {# end row #}
+
+{% endblock %}

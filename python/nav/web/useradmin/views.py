@@ -15,15 +15,20 @@
 #
 """Controller functions for the useradmin interface"""
 
+from datetime import datetime
+
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
+from django.views import generic
+from django.views.decorators.http import require_POST
 from django.views.decorators.debug import sensitive_post_parameters
 
 from nav.models.profiles import Account, AccountGroup, Privilege
 from nav.models.manage import Organization
+from nav.models.api import APIToken
 
 from nav.django.auth import sudo
 from nav.web.useradmin import forms
@@ -193,6 +198,7 @@ def account_delete(request, account_id):
                         {
                             'name': '%s (%s)' % (account.name, account.login),
                             'type': 'account',
+                            'action': 'delete account',
                             'back': reverse('useradmin-account_detail',
                                             args=[account.id]),
                         }, UserAdminContext(request))
@@ -225,8 +231,9 @@ def account_organization_remove(request, account_id, org_id):
 
     return render_to_response('useradmin/delete.html',
                         {
-                            'name': '%s from %s' % (organization, account),
+                            'name': 'in %s from %s' % (organization, account),
                             'type': 'organization',
+                            'action': 'remove organization membership',
                             'back': reverse('useradmin-account_detail',
                                             args=[account.id]),
                         }, UserAdminContext(request))
@@ -238,13 +245,13 @@ def account_group_remove(request, account_id, group_id, caller='account'):
                    redirect url
     """
     if caller == 'account':
+        back_url = reverse('useradmin-account_detail', args=[account_id])
         list_redirect = HttpResponseRedirect(reverse('useradmin-account_list'))
-        detail_redirect = HttpResponseRedirect(
-            reverse('useradmin-account_detail', args=[account_id]))
+        detail_redirect = HttpResponseRedirect(back_url)
     else:
+        back_url = reverse('useradmin-group_detail', args=[group_id])
         list_redirect = HttpResponseRedirect(reverse('useradmin-group_list'))
-        detail_redirect = HttpResponseRedirect(
-            reverse('useradmin-group_detail', args=[group_id]))
+        detail_redirect = HttpResponseRedirect(back_url)
 
     try:
         account = Account.objects.get(id=account_id)
@@ -281,7 +288,8 @@ def account_group_remove(request, account_id, group_id, caller='account'):
         {
             'name': '%s from the group %s' % (account, group),
             'type': 'account',
-            'back': reverse('useradmin-account_detail', args=[account.id]),
+            'action': 'remove group member',
+            'back': back_url,
         }, UserAdminContext(request))
 
 
@@ -388,6 +396,7 @@ def group_delete(request, group_id):
         {
             'name': group,
             'type': 'group',
+            'action': 'delete group',
             'back': reverse('useradmin-group_detail', args=[group.id]),
         }, UserAdminContext(request))
 
@@ -426,5 +435,77 @@ def group_privilege_remove(request, group_id, privilege_id):
         {
             'name': '%s from %s' % (privilege, group),
             'type': 'privilege',
+            'action': 'revoke privilege',
             'back': reverse('useradmin-group_detail', args=[group.id]),
         }, UserAdminContext(request))
+
+
+# The Django generic views are heavy on mixins - disable warning about ancestors
+# pylint: disable=too-many-ancestors
+
+class TokenList(generic.ListView):
+    """Class based view for a token listing"""
+
+    model = APIToken
+    template_name = 'useradmin/token_list.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(TokenList, self).get_context_data(*args, **kwargs)
+        context['active'] = {'token_list': True}
+        return context
+
+
+class TokenCreate(generic.CreateView):
+    """Class based view for creating a new token"""
+
+    model = APIToken
+    form_class = forms.TokenForm
+    template_name = 'useradmin/token_edit.html'
+
+    def get_success_url(self):
+        messages.success(self.request, 'New token created')
+        return super(TokenCreate, self).get_success_url()
+
+
+class TokenEdit(generic.UpdateView):
+    """Class based view for editing a token"""
+
+    model = APIToken
+    form_class = forms.TokenForm
+    template_name = 'useradmin/token_edit.html'
+
+    def get_success_url(self):
+        messages.success(self.request, 'Token saved')
+        return super(TokenEdit, self).get_success_url()
+
+
+class TokenDelete(generic.DeleteView):
+    """Delete a token"""
+
+    model = APIToken
+
+    def get_success_url(self):
+        messages.success(self.request, 'Token deleted')
+        return reverse_lazy('useradmin-token_list')
+
+
+class TokenDetail(generic.DetailView):
+    """Display details for a token"""
+
+    model = APIToken
+    template_name = 'useradmin/token_detail.html'
+
+
+@require_POST
+def token_expire(request, pk):
+    """Expire a token
+
+    :param pk: Primary key
+    :type request: django.http.request.HttpRequest
+    """
+    token = get_object_or_404(APIToken, pk=pk)
+    token.expires = datetime.now()
+    token.save()
+
+    messages.success(request, 'Token has been manually expired')
+    return redirect(token)

@@ -38,17 +38,18 @@ $secondary-color: #DFDFDF;
 
 $alert-color: #d2322d;
 $success-color: #5cb85c;
+$warning-color: #ff9233;
 
 $alert-box-bg: #f2dede;
-$alert-box-color: #b94a48;
+$alert-box-color: #a6413f;
 $alert-box-border: #eed3d7;
 
 $success-box-bg: #dff0d8;
-$success-box-color: #468847;
+$success-box-color: #3d763e;
 $success-box-border: #d6e9c6;
 
 $info-box-bg: #d9edf7;
-$info-box-color: #3a87ad;
+$info-box-color: #2d6886;
 $info-box-border: #bce8f1;
 
 $warning-box-bg: #fff3e0;
@@ -59,6 +60,15 @@ $crumb-bg: $secondary-color;
 $crumb-border-color: #F6F6F6;
 
 $table-border-style: none;
+
+/* Threshold for using alternative font color. 
+
+NB: This variable is introduced by us because Foundation allowed font color with
+too little contrast according to WCAG2.0. This variable must be manually
+introduced in Foundation scss files when updating Foundation.
+
+Currently used in _labels.scss and _buttons.scss, where the it replaces 70% */
+$lightness-threshold: 52%;
 
 // Variables
 // -----------------------------------------------------------------------

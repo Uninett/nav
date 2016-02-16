@@ -15,20 +15,43 @@
 #
 """Models for the NAV API"""
 
+from datetime import datetime
 from django.db import models
+from django.core.urlresolvers import reverse
+from django_hstore import hstore
 from nav.models.fields import VarcharField
 from nav.models.profiles import Account
 
 
 class APIToken(models.Model):
-    """APItokens are used for authenticating to the api"""
+    """APItokens are used for authenticating to the api
+
+    Endpoints may be connected to the token in which case the token also works
+    as an authorization token.
+    """
+
     token = VarcharField()
     expires = models.DateTimeField()
+    created = models.DateTimeField(auto_now_add=True)
     client = models.ForeignKey(Account, db_column='client')
     scope = models.IntegerField(null=True, default=0)
+    comment = models.TextField(null=True, blank=True)
+    revoked = models.BooleanField(default=False)
+    last_used = models.DateTimeField(null=True)
+    endpoints = hstore.DictionaryField(null=True, blank=True)
+
+    objects = hstore.HStoreManager()
 
     def __unicode__(self):
         return self.token
+
+    def is_expired(self):
+        """Check is I am expired"""
+        return self.expires < datetime.now()
+
+    def get_absolute_url(self):
+        """Special method that Django uses as default url for an object"""
+        return reverse('useradmin-token_detail', args=[self.pk])
 
     class Meta(object):
         db_table = 'apitoken'

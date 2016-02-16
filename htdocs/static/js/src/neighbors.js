@@ -1,5 +1,5 @@
 /* Javascript forced and smeared on the Unrecognized Neighbors page. No tests, no fuzz :p */
-require(['libs/jquery.dataTables.min'], function() {
+require(['libs/datatables.min'], function() {
 
     console.log('Neighbors script loaded');
 
@@ -157,9 +157,9 @@ require(['libs/jquery.dataTables.min'], function() {
             ],
             "fnDrawCallback": function (oSettings) {
                 /* Run this on redraw of table */
-                $('.paginate_button').removeClass('disabled').addClass('button tiny');
-                $('.paginate_active').addClass('button tiny secondary');
-                $('.paginate_button_disabled').addClass('disabled');
+                $('.paginate_button').removeClass('secondary').addClass('button tiny');
+                $('.paginate_button.current').addClass('secondary');
+                $('.ellipsis').addClass('button tiny secondary disabled paginate_button');
             }
         });
     }

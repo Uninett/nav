@@ -2,49 +2,49 @@
 
 {% block content %}
 
-    <h4>Edit devices in {{ netboxgroup.pk }}</h4>
+  <h4>Edit devices in {{ netboxgroup.pk }}</h4>
 
-    {% block netboxgroup_content %}
+  {% block netboxgroup_content %}
 
-        <div class="row">
-            <div class="column medium-6">
+    <div class="row">
+      <div class="column medium-6">
 
-                <form method="POST" action="">
+        <form method="POST" action="">
 
-                    <div class="multiple-select-container">
+          <div class="multiple-select-container">
 
-                        <input type="search" placeholder="Filter devices not in group">
+            <input type="search" placeholder="Filter devices not in group">
 
-                        <div class="row">
-                            <div class="column medium-6">
-                                <label for="not_in_group">Devices not in group</label>
-                                <select id="not_in_group" multiple="multiple" class="multiple-select multiple-select-choices" name="choices">
-                                    {% for netbox in netboxes %}
-                                        <option value="{{ netbox.pk }}">{{ netbox.sysname }}</option>
-                                    {% endfor %}
+            <div class="row">
+              <div class="column medium-6">
+                <label for="not_in_group">Devices not in group</label>
+                <select id="not_in_group" multiple="multiple" class="multiple-select multiple-select-choices" name="choices">
+                  {% for netbox in netboxes %}
+                    <option value="{{ netbox.pk }}">{{ netbox.sysname }}</option>
+                  {% endfor %}
 
-                                </select>
-                            </div>
+                </select>
+              </div>
 
-                            <div class="column medium-6">
-                                <label for="in_group">Devices in group</label>
-                                <select id="in_group" multiple="multiple" name="netboxes" class="multiple-select multiple-select-initial">
-                                    {% for netbox in netboxgroup.netbox_set.all %}
-                                        <option value="{{ netbox.pk }}">{{ netbox.sysname }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <input type="submit" value="Save changes" class="small button">
-                </form>
-
+              <div class="column medium-6">
+                <label for="in_group">Devices in group</label>
+                <select id="in_group" multiple="multiple" name="netboxes" class="multiple-select multiple-select-initial">
+                  {% for netbox in netboxgroup.netbox_set.all %}
+                    <option value="{{ netbox.pk }}">{{ netbox.sysname }}</option>
+                  {% endfor %}
+                </select>
+              </div>
             </div>
-        </div>
+
+          </div>
+
+          <input type="submit" value="Save changes" class="small button">
+        </form>
+
+      </div>
+    </div>
 
 
-    {% endblock %}
+  {% endblock %}
 
 {% endblock %}

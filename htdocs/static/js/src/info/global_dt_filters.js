@@ -1,4 +1,4 @@
-define(['libs/jquery.dataTables.min'], function () {
+define(['libs/datatables.min'], function () {
     /*
      * Primary filter is the main filter run on all tables
      * Secondary filters are run together with the primary filter

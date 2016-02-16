@@ -15,10 +15,15 @@
 #
 # pylint: disable=R0903
 """Forms for the user admin system"""
+from datetime import date, timedelta
+from provider.utils import long_token
+
 from django import forms
 
 from nav.models.profiles import Account, AccountGroup, PrivilegeType
 from nav.models.manage import Organization
+from nav.models.api import APIToken
+from nav.web.api.v1.views import get_endpoints as get_api_endpoints
 
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Fieldset, Submit, Row,
@@ -36,8 +41,8 @@ class AccountGroupForm(forms.ModelForm):
         self.helper.form_action = ''
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
-            Fieldset('Group', 'name', 'description',
-                     Submit('submit_group', 'Save changes')))
+            Fieldset('Group info', 'name', 'description',
+                     Submit('submit_group', 'Save changes', css_class='small')))
 
     class Meta(object):
         model = AccountGroup
@@ -119,8 +124,7 @@ class AccountForm(forms.ModelForm):
 
 class PrivilegeForm(forms.Form):
     """Form for adding a privilege to a group from the group page"""
-    type = forms.models.ModelChoiceField(PrivilegeType.objects.all(), label='',
-                                         empty_label='--- Type ---')
+    type = forms.models.ModelChoiceField(PrivilegeType.objects.all(), label='')
     target = forms.CharField(required=True, label='',
                              widget=forms.TextInput(
                                  attrs={'placeholder': 'Target'}))
@@ -156,13 +160,8 @@ class OrganizationAddForm(forms.Form):
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Row(
-                Column(Field('organization', css_class='select2'),
-                       css_class='medium-8'),
-                Column(Submit('submit_org', 'Add organization',
-                              css_class='postfix'),
-                       css_class='medium-4')
-            )
+            Field('organization', css_class='select2'),
+            Submit('submit_org', 'Add organization', css_class='postfix')
         )
 
 
@@ -201,16 +200,64 @@ class AccountAddForm(forms.Form):
             query = Account.objects.all()
 
         self.fields['account'] = forms.models.ModelChoiceField(
-            query, required=True, widget=forms.Select(), label='',
-            empty_label='--- Choose account ---')
+            query, required=True, widget=forms.Select(), label='')
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
+            Field('account', css_class='select2'),
+            Submit('submit_account', 'Add to group', css_class='postfix')
+        )
+
+
+def _get_default_expires():
+    return date.today() + timedelta(days=365)
+
+
+class ReadonlyField(forms.CharField):
+    """A readonly text field"""
+    def widget_attrs(self, widget):
+        attrs = super(ReadonlyField, self).widget_attrs(widget)
+        attrs.update({'readonly': 'True'})
+        return attrs
+
+
+class TokenForm(forms.ModelForm):
+    """Form for creating a new token"""
+
+    token = ReadonlyField(initial=long_token)
+    available_endpoints = get_api_endpoints()
+    endpoints = forms.MultipleChoiceField(
+        required=False,
+        choices=sorted(available_endpoints.items()))
+    expires = forms.DateField(initial=_get_default_expires)
+
+    def __init__(self, *args, **kwargs):
+        super(TokenForm, self).__init__(*args, **kwargs)
+
+        # If we are editing an existing token, convert the previously chosen
+        # endpoints from a dictionary to a list of keys. The 'clean_endpoints'
+        # method does the opposite when saving.
+        if self.instance and self.instance.endpoints:
+            self.initial['endpoints'] = self.instance.endpoints.keys()
+
+        # Create the formhelper and define the layout of the form. The form
+        # element itself aswell as the submit button is defined in the template
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
             Row(
-                Column(Field('account', css_class='select2'),
-                       css_class='medium-9'),
-                Column(Submit('submit_account', 'Add to group',
-                              css_class='postfix'),
-                       css_class='medium-3')
+                Column(Fieldset('Token details', 'token', 'expires', 'comment'),
+                       css_class='large-4 small-12'),
+                Column(Fieldset('Token endpoints', 'endpoints'),
+                       css_class='large-8 small-12'),
             )
         )
+
+    def clean_endpoints(self):
+        """Convert endpoints from list to dictionary"""
+        endpoints = self.cleaned_data.get('endpoints')
+        return {x:str(self.available_endpoints.get(x)) for x in endpoints}
+
+    class Meta(object):
+        model = APIToken
+        fields = ['token', 'expires', 'comment', 'endpoints']

@@ -1,4 +1,4 @@
-define(['libs/jquery.dataTables.min'], function(){
+define(['libs/datatables.min'], function(){
     /*
      * Natural Sort algorithm for Javascript - Version 0.7 - Released under MIT license
      * Author: Jim Palmer (based on chunking idea from Dave Koelle)

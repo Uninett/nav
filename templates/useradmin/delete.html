@@ -1,15 +1,24 @@
 {% extends "useradmin/base.html" %}
 
 {% block content %}
-  <h5>Are you sure you want to delete/remove the {{ type }} {{ name }}</h5>
 
-  <form action="." method="post">
+  <a href="{{ back }}" title="Go back to where you came from">Go back</a>
+  <div class="panel white">
+
+    <h4>{{ action|capfirst }}</h4>
+
     <p>
+      Are you sure you want to {{ action }} {{ name }}?
+    </p>
+
+    <form action="" method="post">
       {% if type and id %}
         <input type="hidden" name="{{ type }}" value="{{ id }}"/>
       {% endif %}
-      <input type="submit" value="Yes" class="button"/>
-      <a href="{{ back }}" class="button secondary">No</a>
-    </p>
-  </form>
+      <input type="submit" value="Yes, {{ action }}" class="button small"/>
+      <a href="{{ back }}" class="button small secondary">No, do not {{ action }}</a>
+    </form>
+
+  </div>
+
 {% endblock %}

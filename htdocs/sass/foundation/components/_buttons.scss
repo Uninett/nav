@@ -162,11 +162,11 @@ $button-disabled-cursor: $cursor-default-value !default;
     &:focus { background-color: $bg-hover; }
 
     // We control the text color for you based on the background color.
-    color: if($bg-lightness > 70%, $button-font-color-alt, $button-font-color);
+    color: if($bg-lightness > $lightness-threshold, $button-font-color-alt, $button-font-color);
 
     &:hover,
     &:focus {
-      color: if($bg-hover-lightness > 70%, $button-font-color-alt, $button-font-color);
+        color: if($bg-hover-lightness > $lightness-threshold, $button-font-color-alt, $button-font-color);
     }
   }
 

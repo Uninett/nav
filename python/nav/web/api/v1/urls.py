@@ -35,7 +35,6 @@ router.register(r'alert', views.AlertHistoryViewSet)
 urlpatterns = patterns(
     "",
     url(r'^$', views.api_root),
-    url(r'^', include(router.urls)),
     url(r'^token/$', views.get_or_create_token, name="token"),
     url(r"^prefix/routed/?$", views.RoutedPrefixList.as_view(),
         name="prefix-routed-list"),
@@ -43,4 +42,5 @@ urlpatterns = patterns(
         name="prefix-usage-list"),
     url(r"^prefix/usage/(?P<prefix>.*)$", views.PrefixUsageDetail.as_view(),
         name="prefix-usage-detail"),
+    url(r'^', include(router.urls)),
 )
