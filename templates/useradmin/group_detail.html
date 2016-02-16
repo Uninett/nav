@@ -21,10 +21,9 @@
 
   <div class="panel white">
 
-    <a href="{% url 'useradmin-group_delete' group.id %}"
-       class="button small alert right">Delete group</a>
-
     {% if group %}
+      <a href="{% url 'useradmin-group_delete' group.id %}"
+         class="button small alert right">Delete group</a>
       <h4>Editing group "{{ group.name }}"</h4>
     {% else %}
       <h4>Create new group</h4>
