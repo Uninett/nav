@@ -1,2 +1,2 @@
 ## stats: Collect statistics defined in stats.conf
-*/10 * * * * @bindir@/stats.py
+*/5 * * * * @bindir@/stats.py
