@@ -9,28 +9,32 @@
 
 {% for netbox in netboxes %}
   {% if netbox.sensor_set.count > 0 %}
-    <div class="clearfix netbox-sensor-container">
+    <div class="netbox-sensor-container left">
       <h3>Sensors for
         <a href="{% url 'ipdevinfo-details-by-name' netbox.sysname %}/#!sysmetrics!metricsensors"
            title="See all sensor metrics for this IP device">
           {{ netbox.sysname }}
         </a>
       </h3>
-      {% for sensor in netbox.sensor_set.all %}
-        {% if 'celsius' in sensor.unit_of_measurement|lower or 'percent' in sensor.unit_of_measurement|lower %}
+      <div class="room-sensors">
+        {% for sensor in netbox.sensor_set.all %}
+          {% if 'celsius' in sensor.unit_of_measurement|lower or 'percent' in sensor.unit_of_measurement|lower %}
 
-          <div class="room-sensor left"
-               data-url="{{ sensor.get_graph_url }}"
-               data-unit="{{ sensor.unit_of_measurement }}"
-               data-sensorid="{{ sensor.id }}"
-               data-sensorname="{{ sensor.human_readable }}"
-               data-dashboard_url="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}"
-               data-thresholds="{{ sensor.get_metric_name|find_thresholds }}"
-               >
-          </div>
-        {% endif %}
+            <div class="room-sensor"
+                 data-url="{{ sensor.get_graph_url }}"
+                 data-unit="{{ sensor.unit_of_measurement }}"
+                 data-sensorid="{{ sensor.id }}"
+                 data-sensorname="{{ sensor.human_readable }}"
+                 data-dashboard_url="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}"
+                 data-thresholds="{{ sensor.get_metric_name|find_thresholds }}"
+            >
+            </div>
+          {% endif %}
 
-      {% endfor %}
+        {% endfor %}
+      </div>
     </div>
   {% endif %}
 {% endfor %}
+
+<div class="float-clear"></div>

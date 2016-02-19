@@ -1602,6 +1602,7 @@ class Sensor(models.Model):
 
     class Meta(object):
         db_table = 'sensor'
+        ordering = ('name',)
 
     def get_metric_name(self):
         return metric_path_for_sensor(self.netbox.sysname, self.internal_name)

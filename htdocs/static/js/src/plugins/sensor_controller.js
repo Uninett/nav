@@ -59,14 +59,15 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
         },
         addDashboardListener: function ($html) {
             var self = this;
-            $html.find('.add-to-dashboard').one('click', function() {
+            $html.find('.add-to-dashboard').one('click', function(event) {
                 var $element = $(this);
+                event.preventDefault();
                 var request = $.post(this.dataset.url);
                 request.done(function() {
-                    $element.removeClass(self.dashboardIcon).addClass('fa-check-circle-o success');
+                    $element.removeClass('secondary').addClass('success');
                 });
                 request.fail(function() {
-                    $element.removeClass(self.dashboardIcon).addClass('fa-times-circle failure');
+                    $element.removeClass('secondary').addClass('failure');
                 });
             });
         },
