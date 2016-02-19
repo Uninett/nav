@@ -78,7 +78,6 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
                 for (var i = 0, j = values.length; i < j; i++) {
                     values[i] = parseFloat(values[i].replace(/\D/g, ''));
                 }
-                console.log(values);
                 return values;
             } else {
                 return null;
@@ -89,6 +88,7 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
         },
         loadData: function () {
             var self = this;
+            var minimumValue = 0;
             $.getJSON(this.url, function (data) {
                 if (data && data.length) {
                     var datapoints = data[0].datapoints.map(function (point) {
@@ -98,22 +98,26 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
                         };
                     });
                     var last = datapoints[datapoints.length - 1].y || datapoints[datapoints.length - 2].y;
-                    self.updateCurrent(last);
-                    self.updateGraph(datapoints, last);
+                    if (!self.current) {  // Calculate minimum only if no graph has been made.
+                        minimumValue = getMinimumValue(datapoints);
+                    }
+
+                    self.updateCurrent(last, minimumValue);
+                    self.updateGraph(datapoints, minimumValue);
                 }
             });
         },
-        updateCurrent: function (value) {
+        updateCurrent: function (value, minimum) {
             if (!this.current) {
-                this.current = this.createCurrent(value);
+                this.current = this.createCurrent(value, minimum);
             }
             this.current.refresh(value);
         },
-        createCurrent: function (value) {
+        createCurrent: function (value, minimum) {
             if (this.displayGauge) {
                 return new JohnGauge({
                     node: this.currentNode.get(0),
-                    min: value < 0 ? -25 : 0,
+                    min: minimum < 0 ? -25 : 0,
                     value: value,
                     max: this.maxValue,
                     thresholds: this.thresholds,
@@ -124,22 +128,22 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
                 return new CounterDisplay(this.counterTemplate, this.currentNode.prop('id'), 9999, this.unit);
             }
         },
-        updateGraph: function (values, last) {
+        updateGraph: function (values, minimum) {
             if (!this.graph) {
                 console.log('Creating graph');
-                this.graph = this.createGraph(last);
+                this.graph = this.createGraph(minimum);
             }
             this.graph.series[0].data = values;
             this.graph.render();
         },
-        createGraph: function (last) {
+        createGraph: function (minimum) {
             var graph = new Rickshaw.Graph({
                 element: this.graphNode.get(0),
                 width: 230,
                 height: 150,
                 renderer: 'line',
                 max: this.maxValue,
-                min: last < 0 ? -25 : 0,
+                min: minimum < 0 ? -25 : 0,
                 series: [{
                     color: 'steelblue',
                     data: [{x: 0, y: 0}], // Data is overridden on update
@@ -186,6 +190,15 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
             return graph;
         }
     };
+
+    /** Get minimum value of an array of datapoints (y=value), skipping NaNs */
+    function getMinimumValue(datapoints) {
+        return Math.min.apply(null, datapoints.map(function (point) {
+            return point.y;
+        }).filter(function (value) {
+            return !isNaN(value);
+        }));
+    }
 
     return SensorController;
 
