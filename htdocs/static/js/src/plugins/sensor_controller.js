@@ -10,7 +10,6 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
         this.sensorid = this.$node.attr('data-sensorid');
         this.sensorname = this.$node.attr('data-sensorname');
         this.dashboardUrl = this.$node.attr('data-dashboard_url') || '';
-        this.dashboardIcon = 'fa-plus-circle';
         this.thresholds = this.parseThresholds();
 
         this.displayGauge = true;

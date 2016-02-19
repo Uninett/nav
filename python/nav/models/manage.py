@@ -353,6 +353,12 @@ class Netbox(models.Model):
             physical_class=NetboxEntity.CLASS_CHASSIS,
         ).select_related('device')
 
+    def get_environment_sensors(self):
+        """Returns the sensors to be displayed on the Environment Sensor tab"""
+        return self.sensor_set.filter(
+            Q(unit_of_measurement__icontains='celsius') |
+            Q(unit_of_measurement__icontains='percent'))
+
 
 class NetboxInfo(models.Model):
     """From NAV Wiki: The netboxinfo table is the place
@@ -1604,12 +1610,29 @@ class Sensor(models.Model):
         db_table = 'sensor'
         ordering = ('name',)
 
+    def __unicode__(self):
+        return self.human_readable
+
     def get_metric_name(self):
         return metric_path_for_sensor(self.netbox.sysname, self.internal_name)
 
     def get_graph_url(self, time_frame='1day'):
         return get_simple_graph_url([self.get_metric_name()],
                                     time_frame=time_frame)
+
+    @property
+    def normalized_unit(self):
+        """Try to normalize the unit
+
+        The unit_of_measurement is the value reported by the device, and is
+        all sorts of stuff like percentRH, Celcius. Here we try to normalize
+        those units (in a very basic way).
+        """
+        units = ['celsius', 'percent']
+        for unit in units:
+            if unit in self.unit_of_measurement.lower():
+                return unit
+        return self.unit_of_measurement
 
 
 class PowerSupplyOrFan(models.Model):

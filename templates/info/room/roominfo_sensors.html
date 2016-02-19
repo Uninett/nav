@@ -1,40 +1,66 @@
 {% load thresholds %}
 
-<dl class="sub-nav">
-  <dt>Filter:</dt>
-  <dd class="active"><a href="javascript:void(0);" data-action="all">All</a></dd>
-  <dd><a href="javascript:void(0);" data-action="gauges">Gauges</a></dd>
-  <dd><a href="javascript:void(0);" data-action="charts">Charts</a></dd>
-</dl>
+{% if has_sensors %}
 
-{% for netbox in netboxes %}
-  {% if netbox.sensor_set.count > 0 %}
-    <div class="netbox-sensor-container left">
-      <h3>Sensors for
-        <a href="{% url 'ipdevinfo-details-by-name' netbox.sysname %}/#!sysmetrics!metricsensors"
-           title="See all sensor metrics for this IP device">
-          {{ netbox.sysname }}
-        </a>
-      </h3>
-      <div class="room-sensors">
-        {% for sensor in netbox.sensor_set.all %}
-          {% if 'celsius' in sensor.unit_of_measurement|lower or 'percent' in sensor.unit_of_measurement|lower %}
+  <dl class="sub-nav">
+    <dt>Filter:</dt>
+    <dd class="active"><a href="javascript:void(0);" data-action="all">All</a></dd>
+    <dd><a href="javascript:void(0);" data-action="gauges">Gauges</a></dd>
+    <dd><a href="javascript:void(0);" data-action="charts">Charts</a></dd>
+  </dl>
 
+  {% for netbox in netboxes %}
+    {% if netbox.get_environment_sensors.count > 0 %}
+      <div class="netbox-sensor-container left">
+        <h4>Sensors for
+          <a href="{% url 'ipdevinfo-details-by-name' netbox.sysname %}/#!sysmetrics!metricsensors"
+             title="See all sensor metrics for this IP device">
+            {{ netbox.sysname }}
+          </a>
+        </h4>
+        <div class="room-sensors">
+          {% for sensor in netbox.get_environment_sensors %}
             <div class="room-sensor"
                  data-url="{{ sensor.get_graph_url }}"
-                 data-unit="{{ sensor.unit_of_measurement }}"
+                 data-unit="{{ sensor.normalized_unit }}"
                  data-sensorid="{{ sensor.id }}"
                  data-sensorname="{{ sensor.human_readable }}"
                  data-dashboard_url="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}"
                  data-thresholds="{{ sensor.get_metric_name|find_thresholds }}"
-            >
-            </div>
-          {% endif %}
-
-        {% endfor %}
+            ></div>
+          {% endfor %}
+        </div>
       </div>
-    </div>
-  {% endif %}
-{% endfor %}
+    {% endif %}
+  {% endfor %}
 
-<div class="float-clear"></div>
+  <div class="float-clear"></div>
+
+{% else %}
+
+  {# There are no sensors in this room #}
+  <div class="alert-box">
+    {% if netboxes %}
+
+      <p>We could not find any IP devices in the <em>environment category</em> with environment sensors in this room.</p>
+
+      {% if netboxes %}
+        <p>The following IP devices with category ENV are in this room:</p>
+        <ul>
+          {% for netbox in netboxes %}
+            <li>
+              <a href="{{ netbox.get_absolute_url }}" title="See this device in IpDeviceInfo">
+                {{ netbox }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+    {% else %}
+
+      There are no IP devices in the <em>environment category</em> in this room.
+
+    {% endif %}
+  </div>
+{% endif %}
