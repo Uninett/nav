@@ -19,6 +19,8 @@
 import logging
 import os.path
 import time
+from functools import partial
+import ConfigParser
 
 from django.db import connection, DatabaseError
 
@@ -29,18 +31,18 @@ from nav.logs import set_log_levels
 from nav.metrics.carbon import send_metrics
 from nav.metrics.names import escape_metric_name
 
-_logger = logging.getLogger('bin.stats')
-LOGFILE = 'stats.log'
+_logger = logging.getLogger('bin.navstats')
+LOGFILE = 'navstats.log'
 
 
-class StatsCollectorConfig(NAVConfigParser):
-    """Configparser for Netbiostracker"""
-    DEFAULT_CONFIG_FILES = ('stats.conf',)
+class NAVStatsConfig(NAVConfigParser):
+    """Configparser for NAVStats"""
+    DEFAULT_CONFIG_FILES = ('navstats.conf',)
 
 
 def main():
     init_logging()
-    config = StatsCollectorConfig()
+    config = NAVStatsConfig()
     collect_stats(config)
 
 
@@ -59,26 +61,28 @@ def init_logging():
 def collect_stats(config):
     """Collect stats with given config
 
-    :type config: StatsCollectorConfig
+    :type config: NAVStatsConfig
     """
     _logger.info('--> Starting stats collection <--')
 
     for section in config.sections():
         _logger.info("Collecting statistic %s", section)
         try:
-            collect(config.get(section, 'path'), config.get(section, 'query'))
-        except DatabaseError as error:
+            get = partial(config.get, section)
+            collect(get('path'), get('query'), int(get('valueindex')))
+        except (DatabaseError, ConfigParser.Error, ValueError) as error:
             _logger.error('Error collecting stats for %s: %s', section, error)
 
     _logger.info('--> Stats collection done <--')
 
 
-def collect(metric_path_fmt, query):
+def collect(metric_path_fmt, query, valueindex):
     """Collect and store a statistic based on the result of the query
 
     :param metric_path_fmt: The metric path format to use. Note that the
     number of columns in the result of the query must match the format.
     :param query: SQL query to run to get values
+    :param valueindex: The index of the result in the row
     """
 
     assert metric_path_fmt and query
@@ -87,22 +91,24 @@ def collect(metric_path_fmt, query):
 
     with connection.cursor() as cursor:
         cursor.execute(query)
-        metrics = [create_metric(result, metric_path_fmt, timestamp)
+        metrics = [create_metric(result, metric_path_fmt, timestamp,
+                                 valueindex)
                    for result in cursor.fetchall()]
     send_metrics(metrics)
 
 
-def create_metric(result, metric_path_fmt, timestamp):
+def create_metric(result, metric_path_fmt, timestamp, valueindex=-1):
     """Create a metric ready for sending to carbon
 
     :param result: the database row
     :param metric_path_fmt: a string format to turn into a metric path
     :param timestamp: timestamp used in metric
+    :param valueindex: The index of the result in the row
     :return: a metric tuple suitable for sending to carbon
     """
-    args = [escape_metric_name(x) for x in result[:-1]]
+    args = [escape_metric_name(str(x)) for x in result]
     metric_path = metric_path_fmt.format(*args)
-    value = result[-1]
+    value = result[valueindex]
     _logger.debug('%s - %s:%s', metric_path, timestamp, value)
     return metric_path, (timestamp, value)
 
