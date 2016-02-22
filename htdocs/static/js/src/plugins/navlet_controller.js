@@ -172,10 +172,20 @@ define(['libs/spin.min'], function () {
                 removeButton = this.node.find('.navlet-remove-button');
 
             removeButton.click(function () {
-                if(confirm('Do you want to remove this widget from the page?')) {
+                var $cancelButton = $('<button class="button small secondary full-width">No</button>');
+                var $confirmButton = $('<button class="button small warning full-width">Yes</button>');
+                var modal = $('<div class="reveal-modal remove-widget" data-reveal><p>Remove the widget from the page?</p></div>');
+                modal.append($cancelButton, $confirmButton).appendTo('body');
+
+                $cancelButton.click(function () {
+                    $(modal).foundation('reveal', 'close');
+                });
+
+                $confirmButton.click(function () {
+                    modal.find('.alert-box').remove();
                     var request = $.post(that.removeUrl, {'navletid': that.navlet.id});
                     request.fail(function () {
-                        that.displayError('Could not remove widget, maybe it has become self aware...!');
+                        $('<div class="alert-box alert">Could not remove widget, maybe try again?</div>').appendTo(modal);
                     });
                     request.done(function () {
                         if (that.refresh) {
@@ -183,8 +193,15 @@ define(['libs/spin.min'], function () {
                             clearInterval(that.refresh);
                         }
                         that.node.remove();
+                        $(modal).foundation('reveal', 'close');
                     });
-                }
+                });
+
+                $(modal).foundation('reveal', 'open');
+                $(document).on('closed.fndtn.reveal', '[data-reveal]', function () {
+                    modal.remove();
+                });
+
             });
         },
         applyReloadListener: function () {

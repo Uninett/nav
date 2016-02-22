@@ -16,9 +16,12 @@
 }
 
 @media #{$medium-up} {
-    #navbar-search-form {
-        width: 400px;
-    }
+    #navbar-search-form { width: 400px; }
+    .remove-widget { max-width: 250px; }
+}
+
+@media #{$small-only} {
+    .remove-widget { width: 100%; }
 }
 
 /* MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP  */
