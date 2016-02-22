@@ -3,6 +3,15 @@
 {% block base_header_additional_head %}
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/index.css" />
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/navlets.css" />
+  <style>
+    #navlet-list input[type='submit'] { margin-bottom: 0; }
+    #navlet-list .panel {
+      background-color: #dfdfdf;
+      border: 1px solid #ccc;
+      margin-bottom: 0;
+      padding: 0.9rem;
+    }
+  </style>
   <script>require(["src/webfront"]);</script>
 {% endblock %}
 
@@ -19,25 +28,21 @@
     {% comment %} List of navlets to add {% endcomment %}
     <div id="navlet-list" class="reveal-modal" data-reveal>
       <h4>Add a widget to your page</h4>
-      <table class="expand table-hover">
-        <tbody>
-          {% for navlet in navlets %}
-            <tr>
-              <td>{{ navlet.title }}</td>
-              <td>{{ navlet.description }}</td>
-              <td>
-                <form class="add-user-navlet" action="{% url 'add-user-navlet' %}"
-                      method="post">
-                  <input type="hidden" name="navlet"
-                         value="{{ navlet.get_class }}">
-                  <input type="submit"
-                         class="button tiny" value="Add">
-                </form>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+
+      <ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-3">
+        {% for navlet in navlets %}
+          <li>
+            <div class="panel">
+              <form class="add-user-navlet right" action="{% url 'add-user-navlet' %}" method="post">
+                <input type="hidden" name="navlet" value="{{ navlet.get_class }}">
+                <input type="submit" class="button tiny" value="Add">
+              </form>
+              <h5>{{ navlet.title }}</h5>
+              <span>{{ navlet.description }}</span>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
     </div>
 
   {% endif %}
