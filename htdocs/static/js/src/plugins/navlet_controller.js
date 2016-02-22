@@ -173,7 +173,7 @@ define(['libs/spin.min'], function () {
 
             removeButton.click(function () {
                 var $cancelButton = $('<button class="button small secondary full-width">No</button>');
-                var $confirmButton = $('<button class="button small warning full-width">Yes</button>');
+                var $confirmButton = $('<button class="button small full-width">Yes</button>');
                 var modal = $('<div class="reveal-modal remove-widget" data-reveal><p>Remove the widget from the page?</p></div>');
                 modal.append($cancelButton, $confirmButton).appendTo('body');
 
