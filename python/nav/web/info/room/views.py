@@ -280,5 +280,7 @@ def render_sensors(request, roomid):
     netboxes = room.netbox_set.filter(category='ENV')
 
     return render(request, 'info/room/roominfo_sensors.html', {
-        'netboxes': netboxes
+        'netboxes': netboxes,
+        'has_sensors': any([x.get_environment_sensors().count()
+                            for x in netboxes])
     })

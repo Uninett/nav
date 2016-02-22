@@ -3,71 +3,80 @@
 /*
  * Styles for everything in the environment tab
  */
+
+.room-sensors {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
 .room-sensor {
   width: 300px;
-  margin-bottom: 3em; }
-  .room-sensor .legendwrapper {
-    margin-bottom: 0.5em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis; }
-    .room-sensor .legendwrapper span {
-      color: grey;
-      font-size: 1.2em;
-      font-weight: bold; }
-  .room-sensor .current {
-    text-align: center;
-    width: 300px; }
-    .room-sensor .current.counter {
-      width: 150px;
-      padding-top: 20px;
-      margin-left: auto;
-      margin-right: auto; }
-    .room-sensor .current .counter-node {
+  margin-bottom: 1em;
+
+  h5 { text-align: center; }
+  .button-wrapper { text-align: center; }
+
+  .current {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 300px;
+    height: 110px;
+    margin-bottom: 1em;
+
+    .counter-node {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
       background-color: steelblue;
       color: white;
-      font-family: Arial;
-      height: 150px;
-      line-height: 9em;
-      text-align: center;
-      width: 150px; }
-      .room-sensor .current .counter-node .values {
-        display: inline-block;
-        line-height: normal;
-        vertical-align: middle; }
-        .room-sensor .current .counter-node .values .value {
-          font-size: 3em; }
-  .room-sensor .rs-graph {
+      height: 110px;
+      width: 110px;
+      .values {
+        text-align: center;
+        .value {
+          font-size: 2em;
+        }
+      }
+    }
+  }
+
+  .rs-graph {
     position: relative;
-    margin-top: 1em;
-    /* Add all jquery ui styles so that the slider appears correct */ }
-    .room-sensor .rs-graph .rs-ynode {
+    margin-bottom: 1em;
+    /* Add all jquery ui styles so that the slider appears correct */
+    .rs-ynode {
       position: absolute;
       top: 0;
       bottom: 0;
-      width: 40px; }
-    .room-sensor .rs-graph .rs-graphnode {
+      width: 40px;
+    }
+    .rs-graphnode {
       margin-left: 40px;
-      position: relative; }
-    .room-sensor .rs-graph .rs-slidernode {
+      position: relative;
+    }
+    .rs-slidernode {
       margin-left: 40px;
       margin-top: 20px;
       height: 0.8em;
       position: relative;
       text-align: left;
-      border: 1px solid #AAA; }
-      .room-sensor .rs-graph .rs-slidernode div {
-        top: 0px;
+      border: 1px solid #AAA;
+      div {
+        top: 0;
         height: 100%;
-        border: 0px none;
+        border: 0 none;
         background: url("../../images/jqueryui/ui-bg_highlight-soft_75_cccccc_1x100.png") repeat-x scroll 50% 50% #cccccc;
         position: absolute;
         z-index: 1;
         font-size: 0.7em;
         display: block;
         color: #222;
-        font-weight: bold; }
-      .room-sensor .rs-graph .rs-slidernode span {
+        font-weight: bold;
+      }
+      span {
         top: -0.25em;
         margin-left: -0.6em;
         position: absolute;
@@ -78,7 +87,11 @@
         border: 1px solid #D3D3D3;
         background: url("../../images/jqueryui/ui-bg_glass_75_e6e6e6_1x400.png") repeat-x scroll 50% 50% #e6e6e6;
         font-weight: normal;
-        color: #555; }
+        color: #555;
+      }
+    }
+  }
+}
 
 /* .rickshaw_graph is the name of the class added to graph element by RickShaw */
 .rickshaw_graph .detail {
@@ -103,11 +116,3 @@
 .rickshaw_graph .x_tick .title {
   bottom: -15px;
   left: -19px; }
-
-.add-to-dashboard {
-    color: $secondary-color;
-    cursor: pointer;
-    &:hover { color: $primary-color; }
-    &.success { color: $success-color; }
-    &.failure { color: $alert-color; }
-}
