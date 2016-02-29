@@ -419,7 +419,7 @@ def get_interface_counter_graph_url(interface, timeframe='day', kind='Octets',
     (out_series, unit), (in_series, unit) = [
         _get_target(d) for d in ('out', 'in')]
 
-    in_series = 'alias(color(stacked({0}),"00ff00cc"),"In")'.format(in_series)
+    in_series = 'alias({0},"In")'.format(in_series)
     out_series = 'alias({0},"Out")'.format(out_series)
 
     titlemap = dict(octets=u'Traffic on {shortname}:{ifname} {ifalias}',
