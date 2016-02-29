@@ -142,8 +142,9 @@ def _get_export_delimiter(query):
 
 
 def matrix_report(request):
-    """Subnet matrix view"""
-
+    """Subnet matrix view
+    :type request: django.http.request.HttpRequest
+    """
     show_unused = request.GET.get('show_unused_addresses', False)
 
     context = {
@@ -189,7 +190,9 @@ def matrix_report(request):
 
 
 def group_scopes(scopes):
-    """Group scopes by version and type"""
+    """Group scopes by version and type
+    :type scopes: list[Prefix]
+    """
     def _prefix_as_int(prefix):
         return IP(prefix.net_address).int()
 
@@ -203,8 +206,11 @@ def group_scopes(scopes):
         elif prefix.version() == 6:
             groups['ipv6'].append(scope)
 
-    return IpGroup(*[sorted(groups[x], key=_prefix_as_int)
-                     for x in ('private', 'ipv4', 'ipv6')])
+    if any([groups['private'], groups['ipv4'], groups['ipv6']]):
+        return IpGroup(*[sorted(groups[x], key=_prefix_as_int)
+                         for x in ('private', 'ipv4', 'ipv6')])
+    else:
+        return []
 
 
 def create_matrix(scope, show_unused):

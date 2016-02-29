@@ -176,23 +176,24 @@ define([
         }
     });
 
-    var siNumbers = function(y, toInteger) {
+    var siNumbers = function(y, toInteger, spacer) {
         if (y === null || y === 0) {
             return y;
         }
 
         var precision = typeof toInteger === 'undefined' ? 2: 0;
+        var space = typeof spacer === 'undefined' ? ' ': spacer;
         var convert = function(value, converter) {
             return (value / converter).toFixed(precision);
         };
 
         var value = Number(y);
-        if (value >= 1000000000000) { return convert(value, 1000000000000) + " T"; }
-	else if (value >= 1000000000) { return convert(value, 1000000000) + " G"; }
-	else if (value >= 1000000) { return convert(value, 1000000) + " M"; }
-	else if (value >= 1000) { return convert(value, 1000) + " k"; }
-        else if (value <= 0.000001) { return convert(value, 1/1000000 ) +  " µ"; }
-        else if (value <= 0.01) { return convert(value, 1/1000) +  " m"; }
+        if (value >= 1000000000000) { return convert(value, 1000000000000) + space + "T"; }
+        else if (value >= 1000000000) { return convert(value, 1000000000) + space + "G"; }
+        else if (value >= 1000000) { return convert(value, 1000000) + space + "M"; }
+        else if (value >= 1000) { return convert(value, 1000) + space + "k"; }
+        else if (value <= 0.000001) { return convert(value, 1/1000000 ) + space + "µ"; }
+        else if (value <= 0.01) { return convert(value, 1/1000) + space + "m"; }
         else if (value <= 1) { return value.toFixed(3); }  // This is inconsistent
         else { return value.toFixed(precision); }
     };
@@ -224,7 +225,9 @@ define([
                     graph: graph,
                     orientation: 'left',
                     element: $element.siblings('.rickshaw-y-axis')[0],
-                    tickFormat: Rickshaw.Fixtures.Number.formatKMBT
+                    tickFormat: function(val) {
+                        return siNumbers(val, true, '');
+                    }
                 }),
 
                 hoverDetail = new NavHover({

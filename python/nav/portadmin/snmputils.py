@@ -222,13 +222,16 @@ class SNMPHandler(object):
         fromvlan = self.get_vlan(base_port)
         # fromvlan and vlan is the same, there's nothing to do
         if fromvlan == vlan:
+            _logger.debug('fromvlan and vlan is the same - skip')
             return None
         # Add port to vlan. This makes the port active on both old and new vlan
+        _logger.debug('Enabling port %s on vlan %s', base_port, vlan)
         self._set_netbox_value(self.VlAN_OID, base_port, "u", vlan)
         # Remove port from list of ports on old vlan
         hexstring = self._query_netbox(self.VLAN_EGRESS_PORTS, fromvlan)
         modified_hexport = self._compute_octet_string(hexstring, base_port,
                                                       'disable')
+        _logger.debug('Disabling port %s on old vlan %s', base_port, fromvlan)
         return self._set_netbox_value(self.VLAN_EGRESS_PORTS,
                                       fromvlan, 's', modified_hexport)
 
@@ -400,30 +403,48 @@ class SNMPHandler(object):
         native_vlan = self.get_vlan(base_port)
         bitvector_index = base_port - 1
 
+        _logger.debug('base_port: %s, native_vlan: %s, trunk_vlans: %s',
+                      base_port, native_vlan, vlans)
+        
         vlans = [int(vlan) for vlan in vlans]
 
         for available_vlan in self.get_available_vlans():
             if native_vlan == available_vlan:
+                _logger.debug('native vlan (%s) == available vlan (%s) - skip',
+                              native_vlan, available_vlan)
                 continue
 
             bitvector = self._get_egress_interfaces_as_bitvector(
                 available_vlan)
+
+            original_value = bitvector[bitvector_index]
             if available_vlan in vlans:
                 bitvector[bitvector_index] = 1
             else:
                 bitvector[bitvector_index] = 0
 
-            self._set_egress_interfaces(available_vlan, bitvector)
+            if bitvector[bitvector_index] != original_value:
+                _logger.debug('vlan %(vlan)s: state for port %(port)s changed',
+                              {'port': base_port, 'vlan': available_vlan})
+                self._set_egress_interfaces(available_vlan, bitvector)
 
     def _set_egress_interfaces(self, vlan, bitvector):
-        self._set_netbox_value(self.VLAN_EGRESS_PORTS, vlan, 's',
-                               str(bitvector))
+        try:
+            _logger.debug('Setting egress ports for vlan %s, set bits: %s',
+                          vlan, bitvector.get_set_bits())
+            self._set_netbox_value(self.VLAN_EGRESS_PORTS,
+                                   vlan, 's', str(bitvector))
+        except SnmpError, error:
+            _logger.error("Error setting egress ports: %s", error)
+            raise error
 
     def set_access(self, interface, access_vlan):
         """Set this port in access mode and set access vlan
 
         Means - remove all vlans except access vlan from this interface
         """
+        _logger.debug('Setting access mode vlan %s on interface %s',
+                      access_vlan, interface)
         self.set_vlan(interface.baseport, access_vlan)
         self.set_trunk_vlans(interface, [])
         interface.vlan = access_vlan

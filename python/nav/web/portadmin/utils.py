@@ -105,10 +105,6 @@ def find_allowed_vlans_for_user_on_netbox(account, netbox, factory=None):
     else:
         allowed_vlans = netbox_vlans
 
-    defaultvlan = find_default_vlan()
-    if defaultvlan and defaultvlan not in allowed_vlans:
-        allowed_vlans.append(defaultvlan)
-
     return sorted(allowed_vlans, key=attrgetter('vlan'))
 
 
@@ -161,6 +157,11 @@ def find_allowed_vlans_for_user(account):
     allowed_vlans = []
     for org in account.organizations.all():
         allowed_vlans.extend(find_vlans_in_org(org))
+
+    defaultvlan = find_default_vlan()
+    if defaultvlan and defaultvlan not in allowed_vlans:
+        allowed_vlans.append(defaultvlan)
+
     return allowed_vlans
 
 
@@ -296,12 +297,11 @@ def save_to_database(interfaces):
 def filter_vlans(target_vlans, old_vlans, allowed_vlans):
     """Return a list of vlans that matches following criteria
 
-    - the vlans was on the trunk before
-    - or is set by user and in allowed_vlans
-
+    - All target vlans should be set if the vlan is in allowed_vlans
+    - Remove the old_vlans if they are in allowed_vlans
     """
-    return (list((set(target_vlans) | set(old_vlans)) &
-                 (set(old_vlans) | set(allowed_vlans))))
+    return list((set(target_vlans) & set(allowed_vlans)) |
+                (set(old_vlans) - set(allowed_vlans)))
 
 
 def should_check_access_rights(account):
