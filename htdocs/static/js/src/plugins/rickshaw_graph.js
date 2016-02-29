@@ -270,16 +270,16 @@ define([
         if (!container.data('title')) {
             // Desperately try to set title
             var titleElement = container.find('.rickshaw-title');
-            if (params.title) {
-                titleElement.html(params.title);
+            if (params.title && params.title.length > 0) {
+                titleElement.html(params.title[0]);
             } else {
                 var seriesNames = request.graph.series
                         .map(function(x){return getSeriesNotation(x.name);}).join(', ');
                 titleElement.html(seriesNames);
             }
         }
-        if (!container.data('unit')) {
-            container.find('.rickshaw-y-axis-term').html(params.vtitle);
+        if (!container.data('unit') && params.vtitle && params.vtitle.length > 0) {
+            container.find('.rickshaw-y-axis-term').html(params.vtitle[0]);
         }
         return params;
     }
