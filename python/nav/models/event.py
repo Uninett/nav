@@ -181,9 +181,10 @@ class StateVariableMap(VariableMapBase):
 
 class UnknownEventSubject(object):
     """Representation of unknown alert/event subjects"""
-    def __init__(self, netbox, subid):
-        self.netbox = netbox
-        self.subid = subid
+    def __init__(self, alert):
+        self._alert = alert
+        self.netbox = alert.netbox
+        self.subid = alert.subid
 
     def get_absolute_url(self):
         """Returns a fall-back canonical URL to the netbox, if attached"""
@@ -191,8 +192,20 @@ class UnknownEventSubject(object):
             return self.netbox.get_absolute_url()
 
     def __unicode__(self):
-        fmt = u"{0} ({1})"
-        return fmt.format(self.netbox or u"N/A", self.subid)
+        descr = self._get_description_from_message()
+        if descr:
+            return descr
+        else:
+            fmt = u"{0} ({1})"
+            return fmt.format(self.netbox or u"N/A", self.subid)
+
+    def _get_description_from_message(self):
+        if not hasattr(self._alert, 'messages'):
+            return
+
+        m = self._alert.messages.filter(type='sms', language='en')
+        if m:
+            return m[0].message
 
 
 class EventMixIn(object):
@@ -240,7 +253,7 @@ class EventMixIn(object):
             elif self.event_type_id == 'thresholdState':
                 return ThresholdEvent(self)
             else:
-                return UnknownEventSubject(self.netbox, subid)
+                return UnknownEventSubject(self)
 
             if model:
                 try:
@@ -248,7 +261,7 @@ class EventMixIn(object):
                 except model.DoesNotExist:
                     _logger.warning("alert subid %s points to non-existant %s",
                                     subid, model)
-                    return UnknownEventSubject(self.netbox, subid)
+                    return UnknownEventSubject(self)
 
         # catch-all
         return self.netbox or u"N/A"
