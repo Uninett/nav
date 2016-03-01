@@ -190,13 +190,33 @@ define([
          * should have parameters specifiying how to draw the graph.
          */
         getUrl: function () {
+            var self = this;
             var url = this.urls[this.urlIndex];
+            var addTimeShift = false;
+            var generatedURL;
+
             if (url.indexOf('?') >= 0) {
                 // Add/alter timecomponent
-                return Utils.removeURLParameter(url, 'from') + '&' + 'from=-1' + this.timeframe;
+                var interval = '-1' + this.timeframe;
+                generatedURL = Utils.removeURLParameter(url, 'from') + '&' + 'from=' + interval;
+
+                if (addTimeShift) {
+                    var targets = Utils.deSerialize(url).target;
+                    targets.forEach(function (target) {
+                        var timeshiftCall = 'timeShift(' + target + ',"' + interval + '")';
+                        var targetAlias = getSeriesName(target) + ' (' + getTimeDescription(self.timeframe) + ')';
+                        var aliasCall = 'alias(' + timeshiftCall + ', "' + targetAlias + '")';
+                        var parameter = 'target=' + aliasCall;
+                        generatedURL = [generatedURL, parameter].join('&');
+                    });
+                }
+
+                return generatedURL;
             } else {
-                return url + '?timeframe=' + this.timeframe;
+                generatedURL = url + '?timeframe=' + this.timeframe;
             }
+
+            return generatedURL;
         },
 
         createSpinner: function () {
@@ -204,6 +224,34 @@ define([
             return new Spinner(options);
         }
     };
+
+    /**
+     * @param {string} timeframe - Timeframe to map from */
+    function getTimeDescription(timeframe) {
+        var mappings = {
+            'd': 'day',
+            'w': 'week',
+            'm': 'month',
+            'y': 'year'
+        };
+
+        for (var time in mappings) {
+            if (mappings.hasOwnProperty(time)) {
+                if (timeframe.substr(0, 1) === time) {
+                    return '1 ' + mappings[time] + ' ago';
+                }
+            }
+        }
+    }
+
+    /** Assume optimistically that alias is always the last wrapped function */
+    function getSeriesName(target) {
+        if (target.match(/alias/)) {
+            var parts = target.split(',');
+            return parts[parts.length-1].replace(/[")]/g, '');
+        }
+        return target;
+    }
 
     return GraphFetcher;
 

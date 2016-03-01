@@ -72,14 +72,25 @@ META_LOOKUPS = (
 
     (re.compile(r'\.loadavg[0-9]+min$'), dict(unit="%")),
     (re.compile(r'_percent$'), dict(unit="%")),
-    (re.compile(r'\.memory\..*\.(free|used)$'),
-     dict(unit="bytes", yUnitSystem="binary")),
+
+    # Memory
+    (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.memory\..*\.used$'),
+     dict(unit="bytes", yUnitSystem="binary", title="Used memory",
+          alias="{sysname}")),
+    (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.memory\..*\.free$'),
+     dict(unit="bytes", yUnitSystem="binary", title="Free memory",
+          alias="{sysname}")),
+
     (re.compile(r'\.(roundTripTime|responseTime)$'), dict(unit="seconds")),
 
     (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.ping\.roundTripTime$'),
      dict(alias="{sysname}", title="Ping packet round trip time")),
     (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.ping\.packetLoss$'),
      dict(alias="{sysname}", title="Ping packet loss", unit="packets")),
+
+    # Sysuptime
+    (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\..*\.sysuptime$'),
+     dict(alias="{sysname}", title="Uptime", unit="days")),
 
     (re.compile(r'\.ipdevpoll\..*\.runtime$'),
      dict(transform="keepLastValue({id})")),
@@ -155,7 +166,6 @@ class Graph(object):
             target = 'alias({target}, "{alias}")'.format(
                 target=target,
                 alias=meta['alias'].encode('ascii', 'replace'))
-
 
         self.args.setdefault('target', []).append(target)
         if meta['unit']:

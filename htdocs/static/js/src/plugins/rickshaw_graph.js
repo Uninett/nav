@@ -56,8 +56,9 @@ define([
     function prepareData(data, dataset) {
         var palette = new Rickshaw.Color.Palette({ scheme: 'munin' });
 
-        return data.map(function(series) {
+        return data.map(function (series, index) {
             return {
+                key: index,
                 name: series.target,
                 color: palette.color(),
                 data: series.datapoints.map(convertToRickshaw)
@@ -99,14 +100,13 @@ define([
             var lines = {};
             var dots = {};
 
-            this.graph.series.forEach(function(serie) {
-                var line = document.createElement('div');
-                lines[serie.name] = line;
+            this.graph.series.forEach(function (serie) {
+                lines[serie.key] = document.createElement('div');
 
                 var dot = document.createElement('div');
                 dot.style.borderColor = serie.color;
                 dot.className = 'dot';
-                dots[serie.name] = dot;
+                dots[serie.key] = dot;
             });
 
             this.hoverElements = {
@@ -125,7 +125,7 @@ define([
             var spacer = isNaN(+formattedY) ? '' : ' ';
             var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>',
                 seriesValue = '<span class="series-value">' + series.name + ": " + formattedY + spacer + unit + '</span>';
-	    return swatch + seriesValue;
+            return swatch + seriesValue;
         },
 
         render: function(args) {
@@ -141,25 +141,25 @@ define([
             // Add all targets and dots
             args.points.sort(function(a, b) {
                 return a.order - b.order;
-            }).forEach(function(point) {
+            }).forEach(function (point, index) {
                 var series = point.series;
-	        var actualY = series.scale ? series.scale.invert(point.value.y) : point.value.y;
+                var actualY = series.scale ? series.scale.invert(point.value.y) : point.value.y;
 
                 // Each line describes a target
-                var line = hoverElements.lines[point.name];
+                var line = hoverElements.lines[index];
                 line.innerHTML = this.formatter(series, point.value.x, actualY, point.formattedXValue, point.formattedYValue, point);
                 container.appendChild(line);
 
                 // Place dots - remember that they are not part of container
-                var dot = hoverElements.dots[point.name];
+                var dot = hoverElements.dots[index];
                 dot.style.top = this.graph.y(point.value.y0 + point.value.y) + 'px';
                 dot.classList.add('active');
                 this.element.appendChild(dot);
             }, this);
 
             // Decide on which side of line to put hover element
-	    container.classList.remove('left', 'right');
-	    container.classList.add('active', 'right');
+            container.classList.remove('left', 'right');
+            container.classList.add('active', 'right');
 
             // Put element next to mouse
             container.style.top = args.mouseY + 'px';
@@ -188,15 +188,29 @@ define([
 
         var value = Number(y);
         if (value >= 1000000000000) { return convert(value, 1000000000000) + " T"; }
-	else if (value >= 1000000000) { return convert(value, 1000000000) + " G"; }
-	else if (value >= 1000000) { return convert(value, 1000000) + " M"; }
-	else if (value >= 1000) { return convert(value, 1000) + " k"; }
+    	else if (value >= 1000000000) { return convert(value, 1000000000) + " G"; }
+	    else if (value >= 1000000) { return convert(value, 1000000) + " M"; }
+	    else if (value >= 1000) { return convert(value, 1000) + " k"; }
         else if (value <= 0.000001) { return convert(value, 1/1000000 ) +  " µ"; }
         else if (value <= 0.01) { return convert(value, 1/1000) +  " m"; }
         else if (value <= 1) { return value.toFixed(3); }  // This is inconsistent
         else { return value.toFixed(precision); }
     };
 
+
+    /**
+     * Series names are often wrapped in function calls. Remove the calls
+     * Ex:
+     * keepLastValue(nav.devices.buick_lab_uninett_no.ipdevpoll.1minstats.runtime)
+     * => nav.devices.buick_lab_uninett_no.ipdevpoll.1minstats.runtime
+     */
+    function filterFunctionCalls(name) {
+        var match = name.match(/\w+\((.+)\)/);
+        if (match) {
+            name = filterFunctionCalls(match[1]);
+        }
+        return name;
+    }
 
     /**
      * Add all functionality when ajax call returns
@@ -207,63 +221,68 @@ define([
 
         var meta = updateMeta($element, request);
 
-        $(graph.element).trigger('NAV:Rickshaw:updateMeta', meta);
-
         if (!graph.initialized) {
 
-            graph.series.forEach(function(serie) {
-                serie.name = getSeriesName(serie.name);
+            graph.series.forEach(function (serie) {
+                serie.name = filterFunctionCalls(serie.name);
             });
 
-            var x_axis = new Rickshaw.Graph.Axis.Time({
+            new Rickshaw.Graph.Axis.Time({
                 graph: graph,
                 timeFixture: new Rickshaw.Fixtures.Time.Local()
-            }),
+            });
 
-                y_axis = new Rickshaw.Graph.Axis.Y({
-                    graph: graph,
-                    orientation: 'left',
-                    element: $element.siblings('.rickshaw-y-axis')[0],
-                    tickFormat: Rickshaw.Fixtures.Number.formatKMBT
-                }),
+            new Rickshaw.Graph.Axis.Y({
+                graph: graph,
+                orientation: 'left',
+                element: $element.siblings('.rickshaw-y-axis')[0],
+                tickFormat: Rickshaw.Fixtures.Number.formatKMBT
+            });
 
-                hoverDetail = new NavHover({
-	            graph: graph,
-                    yFormatter: siNumbers
-                }),
+            // Display information about series when hovering over the graph
+            new NavHover({
+                graph: graph,
+                yFormatter: siNumbers
+            });
 
-                legend = new Rickshaw.Graph.Legend({
-                    graph: graph,
-                    element: $element.siblings('.rickshaw-legend')[0]
-                }),
+            // Add legend for each data series
+            graph.legend = new Rickshaw.Graph.Legend({
+                graph: graph,
+                element: $element.siblings('.rickshaw-legend')[0]
+            });
 
-                highlighter = new Rickshaw.Graph.Behavior.Series.Highlight({
-                    graph: graph,
-                    legend: legend
-                }),
+            // Add preview of all data that can be zoomed with sliders.
+            var preview = new Rickshaw.Graph.RangeSlider.Preview({
+                graph: graph,
+                element: $element.siblings('.rickshaw-preview')[0]
+            });
 
-                // Toggle visibility of data series
-                shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
-                    graph: graph,
-                    legend: legend
-                }),
-
-                preview = new Rickshaw.Graph.RangeSlider.Preview({
-                    graph: graph,
-                    element: $element.siblings('.rickshaw-preview')[0]
-                });
-
-            hoverDetail.unit = meta.vtitle || '';
-            graph.render();
             graph.initialized = true;
+        } else {
+            // Update stuff that doesn't update itself.
+            graph.legend.render();
         }
+
+        // Some stuff needs to be added even on updates
+
+        // Highlight data series when user mouses over legend.
+        new Rickshaw.Graph.Behavior.Series.Highlight({
+            graph: graph,
+            legend: graph.legend
+        });
+
+        // Toggle visibility of data series
+        new Rickshaw.Graph.Behavior.Series.Toggle({
+            graph: graph,
+            legend: graph.legend
+        });
+
+        $(graph.element).trigger('NAV:Rickshaw:updateMeta', meta);
 
     }
 
 
-    /**
-     * Update the title and term based on url-parameters.
-     */
+    /** Update the title and term based on url-parameters. */
     function updateMeta($element, request) {
         var container = $element.closest('.rickshaw-container');
         var params = Utils.deSerialize(request.dataURL);
@@ -272,10 +291,6 @@ define([
             var titleElement = container.find('.rickshaw-title');
             if (params.title && params.title.length > 0) {
                 titleElement.html(params.title[0]);
-            } else {
-                var seriesNames = request.graph.series
-                        .map(function(x){return getSeriesNotation(x.name);}).join(', ');
-                titleElement.html(seriesNames);
             }
         }
         if (!container.data('unit') && params.vtitle && params.vtitle.length > 0) {
@@ -284,16 +299,6 @@ define([
         return params;
     }
 
-
-    function getSeriesNotation(name) {
-        return getSeriesName(name).split('.').pop();
-    }
-
-
-    function getSeriesName(name) {
-        var result = name.match(/nav\.[^),]+/);
-        return result ? result[0] : name;
-    }
 
     return RickshawGraph;
 
