@@ -3,44 +3,101 @@ define([
     'libs-amd/text!resources/rickshawgraph/graphtemplate.hbs',
     'nav-url-utils',
     'libs/handlebars'
-], function(Rickshaw, Template, Utils) {
+], function (Rickshaw, Template, Utils) {
 
     var template = Handlebars.compile(Template);
     var resizeTimeout = 250;  // Throttle resize to trigger at most every resizeTimeout ms
 
-    function RickshawGraph(container, url) {
+    function RickshawGraph(container, data, url) {
         container.innerHTML = template({
             graph_title: container.dataset.title,
             graph_unit: container.dataset.unit,
             graph_y_axis: container.dataset.unit
         });
 
-        var g = new Rickshaw.Graph.Ajax({
-            dataURL: url,
-            element: container.getElementsByClassName('rickshaw-graph')[0],
-            onData: function(data) {
-                return prepareData(data, container.dataset);
-            },
-            onComplete: onComplete,
+        var element = container.getElementsByClassName('rickshaw-graph')[0];
+        var graph = new Rickshaw.Graph({
+            element: element,
+            series: prepareData(data),
             renderer: 'line',
             stack: false  // Need to set this so that data is not stacked
         });
 
+        addUtility(graph);
+        var $element = $(element);
+        $element.trigger('NAV:Rickshaw:updateMeta', updateMeta($element, url));
+        graph.render();
+
         var timer = null;
-        window.addEventListener('resize', function() {
+        window.addEventListener('resize', function () {
             if (!timer) {
-                timer = setTimeout(function() {
-                    resizeGraph(g.graph);
+                timer = setTimeout(function () {
+                    resizeGraph(graph);
                     timer = null;
                 }, resizeTimeout);
             }
         });
 
-        return g;
+        return graph;
+    }
+
+
+    /** Add all utility stuff to the graph */
+    function addUtility(graph) {
+        var $element = $(graph.element);
+
+        graph.series.forEach(function (serie) {
+            serie.name = filterFunctionCalls(serie.name);
+        });
+
+        new Rickshaw.Graph.Axis.Time({
+            graph: graph,
+            timeFixture: new Rickshaw.Fixtures.Time.Local()
+        });
+
+        new Rickshaw.Graph.Axis.Y({
+            graph: graph,
+            orientation: 'left',
+            element: $element.siblings('.rickshaw-y-axis')[0],
+            tickFormat: Rickshaw.Fixtures.Number.formatKMBT
+        });
+
+        // Display information about series when hovering over the graph
+        new NavHover({
+            graph: graph,
+            yFormatter: siNumbers
+        });
+
+        // Add legend for each data series
+        var legend = new Rickshaw.Graph.Legend({
+            graph: graph,
+            element: $element.siblings('.rickshaw-legend')[0]
+        });
+
+
+        // Highlight data series when user mouses over legend.
+        new Rickshaw.Graph.Behavior.Series.Highlight({
+            graph: graph,
+            legend: legend
+        });
+
+        // Toggle visibility of data series
+        new Rickshaw.Graph.Behavior.Series.Toggle({
+            graph: graph,
+            legend: legend
+        });
+
+        // Add preview of all data that can be zoomed with sliders.
+        var preview = new Rickshaw.Graph.RangeSlider.Preview({
+            graph: graph,
+            element: $element.siblings('.rickshaw-preview')[0]
+        });
+
     }
 
 
     function resizeGraph(graph) {
+        console.log('Resizing');
         var boundingRect = graph.element.getBoundingClientRect();
         graph.configure({
             width: boundingRect.width,
@@ -49,12 +106,44 @@ define([
         graph.render();
     }
 
+    /**
+     * Series names are often wrapped in function calls. Remove the calls
+     * Ex:
+     * keepLastValue(nav.devices.buick_lab_uninett_no.ipdevpoll.1minstats.runtime)
+     * => nav.devices.buick_lab_uninett_no.ipdevpoll.1minstats.runtime
+     */
+    function filterFunctionCalls(name) {
+        var match = name.match(/\w+\((.+)\)/);
+        if (match) {
+            name = filterFunctionCalls(match[1]);
+        }
+        return name;
+    }
+
+
+    /** Update the title and term based on url-parameters. */
+    function updateMeta($element, url) {
+        var container = $element.closest('.rickshaw-container');
+        var params = Utils.deSerialize(url);
+        if (!container.data('title')) {
+            // Desperately try to set title
+            var titleElement = container.find('.rickshaw-title');
+            if (params.title && params.title.length > 0) {
+                titleElement.html(params.title[0]);
+            }
+        }
+        if (!container.data('unit') && params.vtitle && params.vtitle.length > 0) {
+            container.find('.rickshaw-y-axis-term').html(params.vtitle[0]);
+        }
+        return params;
+    }
+
 
     /**
      * Parse data from Graphite and format it so that Rickshaw understands it.
      */
-    function prepareData(data, dataset) {
-        var palette = new Rickshaw.Color.Palette({ scheme: 'munin' });
+    function prepareData(data) {
+        var palette = new Rickshaw.Color.Palette({scheme: 'munin'});
 
         return data.map(function (series, index) {
             return {
@@ -79,15 +168,15 @@ define([
 
 
     var NavHover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
-        initialize: function($super, args) {
+        initialize: function ($super, args) {
             var self = this;
             $super(args);
-            $(this.graph.element).on('NAV:Rickshaw:updateMeta', function(event, data) {
+            $(this.graph.element).on('NAV:Rickshaw:updateMeta', function (event, data) {
                 self.unit = data.vtitle || '';
             });
         },
 
-        createHoverElements: function(args) {
+        createHoverElements: function (args) {
             if (typeof this.hoverElements !== 'undefined') {
                 return this.hoverElements;
             }
@@ -119,7 +208,7 @@ define([
             return this.hoverElements;
         },
 
-        formatter: function(series, x, actualY, something, formattedY) {
+        formatter: function (series, x, actualY, something, formattedY) {
             var unit = this.unit || '';
             // If the formatted y-value contains a symbol, we do not want a spacer value
             var spacer = isNaN(+formattedY) ? '' : ' ';
@@ -128,7 +217,7 @@ define([
             return swatch + seriesValue;
         },
 
-        render: function(args) {
+        render: function (args) {
             var hoverElements = this.createHoverElements(args);
             var container = hoverElements.container,
                 date = hoverElements.date;
@@ -139,7 +228,7 @@ define([
             container.appendChild(date);
 
             // Add all targets and dots
-            args.points.sort(function(a, b) {
+            args.points.sort(function (a, b) {
                 return a.order - b.order;
             }).forEach(function (point, index) {
                 var series = point.series;
@@ -176,128 +265,42 @@ define([
         }
     });
 
-    var siNumbers = function(y, toInteger) {
+    var siNumbers = function (y, toInteger) {
         if (y === null || y === 0) {
             return y;
         }
 
-        var precision = typeof toInteger === 'undefined' ? 2: 0;
-        var convert = function(value, converter) {
+        var precision = typeof toInteger === 'undefined' ? 2 : 0;
+        var convert = function (value, converter) {
             return (value / converter).toFixed(precision);
         };
 
         var value = Number(y);
-        if (value >= 1000000000000) { return convert(value, 1000000000000) + " T"; }
-    	else if (value >= 1000000000) { return convert(value, 1000000000) + " G"; }
-	    else if (value >= 1000000) { return convert(value, 1000000) + " M"; }
-	    else if (value >= 1000) { return convert(value, 1000) + " k"; }
-        else if (value <= 0.000001) { return convert(value, 1/1000000 ) +  " µ"; }
-        else if (value <= 0.01) { return convert(value, 1/1000) +  " m"; }
-        else if (value <= 1) { return value.toFixed(3); }  // This is inconsistent
-        else { return value.toFixed(precision); }
+        if (value >= 1000000000000) {
+            return convert(value, 1000000000000) + " T";
+        }
+        else if (value >= 1000000000) {
+            return convert(value, 1000000000) + " G";
+        }
+        else if (value >= 1000000) {
+            return convert(value, 1000000) + " M";
+        }
+        else if (value >= 1000) {
+            return convert(value, 1000) + " k";
+        }
+        else if (value <= 0.000001) {
+            return convert(value, 1 / 1000000) + " µ";
+        }
+        else if (value <= 0.01) {
+            return convert(value, 1 / 1000) + " m";
+        }
+        else if (value <= 1) {
+            return value.toFixed(3);
+        }  // This is inconsistent
+        else {
+            return value.toFixed(precision);
+        }
     };
-
-
-    /**
-     * Series names are often wrapped in function calls. Remove the calls
-     * Ex:
-     * keepLastValue(nav.devices.buick_lab_uninett_no.ipdevpoll.1minstats.runtime)
-     * => nav.devices.buick_lab_uninett_no.ipdevpoll.1minstats.runtime
-     */
-    function filterFunctionCalls(name) {
-        var match = name.match(/\w+\((.+)\)/);
-        if (match) {
-            name = filterFunctionCalls(match[1]);
-        }
-        return name;
-    }
-
-    /**
-     * Add all functionality when ajax call returns
-     */
-    function onComplete(request) {
-        var $element = $(request.args.element),
-            graph = request.graph;
-
-        var meta = updateMeta($element, request);
-
-        if (!graph.initialized) {
-
-            graph.series.forEach(function (serie) {
-                serie.name = filterFunctionCalls(serie.name);
-            });
-
-            new Rickshaw.Graph.Axis.Time({
-                graph: graph,
-                timeFixture: new Rickshaw.Fixtures.Time.Local()
-            });
-
-            new Rickshaw.Graph.Axis.Y({
-                graph: graph,
-                orientation: 'left',
-                element: $element.siblings('.rickshaw-y-axis')[0],
-                tickFormat: Rickshaw.Fixtures.Number.formatKMBT
-            });
-
-            // Display information about series when hovering over the graph
-            new NavHover({
-                graph: graph,
-                yFormatter: siNumbers
-            });
-
-            // Add legend for each data series
-            graph.legend = new Rickshaw.Graph.Legend({
-                graph: graph,
-                element: $element.siblings('.rickshaw-legend')[0]
-            });
-
-            // Add preview of all data that can be zoomed with sliders.
-            var preview = new Rickshaw.Graph.RangeSlider.Preview({
-                graph: graph,
-                element: $element.siblings('.rickshaw-preview')[0]
-            });
-
-            graph.initialized = true;
-        } else {
-            // Update stuff that doesn't update itself.
-            graph.legend.render();
-        }
-
-        // Some stuff needs to be added even on updates
-
-        // Highlight data series when user mouses over legend.
-        new Rickshaw.Graph.Behavior.Series.Highlight({
-            graph: graph,
-            legend: graph.legend
-        });
-
-        // Toggle visibility of data series
-        new Rickshaw.Graph.Behavior.Series.Toggle({
-            graph: graph,
-            legend: graph.legend
-        });
-
-        $(graph.element).trigger('NAV:Rickshaw:updateMeta', meta);
-
-    }
-
-
-    /** Update the title and term based on url-parameters. */
-    function updateMeta($element, request) {
-        var container = $element.closest('.rickshaw-container');
-        var params = Utils.deSerialize(request.dataURL);
-        if (!container.data('title')) {
-            // Desperately try to set title
-            var titleElement = container.find('.rickshaw-title');
-            if (params.title && params.title.length > 0) {
-                titleElement.html(params.title[0]);
-            }
-        }
-        if (!container.data('unit') && params.vtitle && params.vtitle.length > 0) {
-            container.find('.rickshaw-y-axis-term').html(params.vtitle[0]);
-        }
-        return params;
-    }
 
 
     return RickshawGraph;
