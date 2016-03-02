@@ -97,7 +97,6 @@ define([
 
 
     function resizeGraph(graph) {
-        console.log('Resizing');
         var boundingRect = graph.element.getBoundingClientRect();
         graph.configure({
             width: boundingRect.width,
