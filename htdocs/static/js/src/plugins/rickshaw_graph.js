@@ -48,6 +48,11 @@ define([
 
         graph.series.forEach(function (serie) {
             serie.name = filterFunctionCalls(serie.name);
+            // If this is a nav-metric, typically very long, display only the last two "parts"
+            if (serie.name.substr(0, 4) === 'nav.') {
+                var parts = serie.name.split('.');
+                serie.name = [parts[parts.length - 2], parts[parts.length - 1]].join('.');
+            }
         });
 
         new Rickshaw.Graph.Axis.Time({
@@ -109,15 +114,16 @@ define([
     }
 
     /**
-     * Series names are often wrapped in function calls. Remove the calls
+     * Series names are often wrapped in function calls. Remove the calls.
+     * If there is a space in the function call, then we're fucked.
      * Ex:
      * keepLastValue(nav.devices.buick_lab_uninett_no.ipdevpoll.1minstats.runtime)
      * => nav.devices.buick_lab_uninett_no.ipdevpoll.1minstats.runtime
      */
     function filterFunctionCalls(name) {
-        var match = name.match(/\w+\((.+)\)/);
+        var match = name.match(/\w+\(([^ ]+)\)(.*)/);
         if (match) {
-            name = filterFunctionCalls(match[1]);
+            name = filterFunctionCalls(match[1]) + match[2];
         }
         return name;
     }
