@@ -55,7 +55,11 @@
 
       </table>
     {% else %}
-      <p>Error fetching data</p>
+      <div class="alert-box error">
+        No data was found for the given timeframe. This may indicate a problem
+        with the data collection and/or presentation. Try choosing a longer
+        timeframe to see when the problem started.
+      </div>
     {% endif %}
   {% endif %}
 
