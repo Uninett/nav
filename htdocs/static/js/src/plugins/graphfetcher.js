@@ -157,6 +157,7 @@ define([
             });
             trendLabel.append(this.trends);
             this.headerNode.append(trendLabel);
+            trendLabel.change(this.loadGraph.bind(this));
         },
         selectButton: function () {
             $('button', this.headerNode).each(function (index, element) {
