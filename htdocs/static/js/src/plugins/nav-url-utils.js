@@ -3,7 +3,7 @@ define([], function() {
     /**
      * http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
      *
-     * Returns querystring as a key => value construct
+     * Returns querystring as a key => list[value] construct
      */
     function deSerialize(query) {
         query = typeof query === 'undefined' ?
@@ -16,7 +16,12 @@ define([], function() {
             decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); };
         urlParams = {};
         while ((match = search.exec(query))) {
-            urlParams[decode(match[1])] = decode(match[2]);
+            var key = decode(match[1]);
+            if (key in urlParams) {
+                urlParams[key].push(decode(match[2]));
+            } else {
+                urlParams[key] = [decode(match[2])];
+            }
         }
         return urlParams;
     }

@@ -1,0 +1,117 @@
+#!/usr/bin/env python
+#
+# Copyright (C) 2016 UNINETT AS
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
+"""Sends NAV statistics to the Carbon collector"""
+
+import logging
+import os.path
+import time
+from functools import partial
+import ConfigParser
+
+from django.db import connection, DatabaseError
+
+import nav.models
+from nav.buildconf import localstatedir
+from nav.config import NAVConfigParser
+from nav.logs import set_log_levels
+from nav.metrics.carbon import send_metrics
+from nav.metrics.names import escape_metric_name
+
+_logger = logging.getLogger('bin.navstats')
+LOGFILE = 'navstats.log'
+
+
+class NAVStatsConfig(NAVConfigParser):
+    """Configparser for NAVStats"""
+    DEFAULT_CONFIG_FILES = ('navstats.conf',)
+
+
+def main():
+    init_logging()
+    config = NAVStatsConfig()
+    collect_stats(config)
+
+
+def init_logging():
+    """Initialize logging to file"""
+    set_log_levels()
+
+    handler = logging.FileHandler(os.path.join(localstatedir, 'log', LOGFILE))
+    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] '
+                                  '[%(name)s] %(message)s')
+    handler.setFormatter(formatter)
+    root = logging.getLogger('')
+    root.addHandler(handler)
+
+
+def collect_stats(config):
+    """Collect stats with given config
+
+    :type config: NAVStatsConfig
+    """
+    _logger.info('--> Starting stats collection <--')
+
+    for section in config.sections():
+        _logger.info("Collecting statistic %s", section)
+        try:
+            get = partial(config.get, section)
+            collect(get('path'), get('query'), int(get('valueindex')))
+        except (DatabaseError, ConfigParser.Error, ValueError) as error:
+            _logger.error('Error collecting stats for %s: %s', section, error)
+
+    _logger.info('--> Stats collection done <--')
+
+
+def collect(metric_path_fmt, query, valueindex):
+    """Collect and store a statistic based on the result of the query
+
+    :param metric_path_fmt: The metric path format to use. Note that the
+    number of columns in the result of the query must match the format.
+    :param query: SQL query to run to get values
+    :param valueindex: The index of the result in the row
+    """
+
+    assert metric_path_fmt and query
+
+    timestamp = int(time.time())
+
+    with connection.cursor() as cursor:
+        cursor.execute(query)
+        metrics = [create_metric(result, metric_path_fmt, timestamp,
+                                 valueindex)
+                   for result in cursor.fetchall()]
+    send_metrics(metrics)
+
+
+def create_metric(result, metric_path_fmt, timestamp, valueindex=-1):
+    """Create a metric ready for sending to carbon
+
+    :param result: the database row
+    :param metric_path_fmt: a string format to turn into a metric path
+    :param timestamp: timestamp used in metric
+    :param valueindex: The index of the result in the row
+    :return: a metric tuple suitable for sending to carbon
+    """
+    args = [escape_metric_name(str(x)) for x in result]
+    metric_path = metric_path_fmt.format(*args)
+    value = result[valueindex]
+    _logger.debug('%s - %s:%s', metric_path, timestamp, value)
+    return metric_path, (timestamp, value)
+
+
+if __name__ == '__main__':
+    main()

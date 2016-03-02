@@ -30,7 +30,12 @@ define([
         this.lastUrlIndex = -1;
         this.urlIndex = 0;  // Index of this.urls
 
-        this.buttons = {'day': 'Day', 'week': 'Week', 'month': 'Month', 'year': 'Year'};
+        this.buttons = {
+            'day': 'Day',
+            'week': 'Week',
+            'month': 'Month',
+            'year': 'Year'
+        };
         this.lastTimeFrame = '';
         this.timeframe = 'day';
         this.isOpen = false;
@@ -105,6 +110,7 @@ define([
                     this.addButton(headerNode, key, this.buttons[key]);
                 }
             }
+            this.appendToggleTrendCheckbox();
             this.appendAddGraphButton();
         },
         addButton: function (node, timeframe, text) {
@@ -122,8 +128,8 @@ define([
             button.click(function () {
                 /* Image url is a redirect to graphite. Fetch proxy url and use
                  that as preference for graph widget */
-                var url = Utils.removeURLParameter(self.graph.dataURL, 'format'),
-                    headRequest = $.ajax(url, { 'type': 'HEAD' });
+                var url = Utils.removeURLParameter(self.generatedURL, 'format'),
+                    headRequest = $.ajax(url, {'type': 'HEAD'});
                 headRequest.done(function (data, status, xhr) {
                     var proxyUrl = xhr.getResponseHeader('X-Where-Am-I');
                     if (proxyUrl) {
@@ -143,7 +149,17 @@ define([
             });
             this.headerNode.append(button);
         },
-        selectButton: function() {
+        appendToggleTrendCheckbox: function () {
+            this.trends = $('<input type="checkbox">');
+            var trendLabel = $('<label>').html('Show trends ').css({
+                display: 'inline-block',
+                'margin-left': '1em'
+            });
+            trendLabel.append(this.trends);
+            this.headerNode.append(trendLabel);
+            trendLabel.change(this.loadGraph.bind(this));
+        },
+        selectButton: function () {
             $('button', this.headerNode).each(function (index, element) {
                 $(element).removeClass('active');
             });
@@ -158,10 +174,10 @@ define([
         displayGraph: function (url) {
             //this.spinner.spin(this.wrapper.get(0));
             var graphContainer = this.node.find('.rickshaw-container')[0];
+            var self = this;
 
             if (!graphContainer) {
                 // If we have no container, assume old loading with images.
-                var self = this;
                 var image = new Image();
                 image.src = url;
                 image.onload = function () {
@@ -175,14 +191,10 @@ define([
                     self.spinner.stop();
                 };
             } else {
-                if (typeof this.graph === 'undefined') {
-                    this.graph = new RickshawGraph(graphContainer, url);
-                } else {
-                    this.graph.dataURL = url;
-                    this.graph.request();
-                }
+                $.get(url, function (data) {
+                    self.rickshawgraph = new RickshawGraph(graphContainer, data, url);
+                });
             }
-            
         },
 
         /**
@@ -190,13 +202,32 @@ define([
          * should have parameters specifiying how to draw the graph.
          */
         getUrl: function () {
+            var self = this;
             var url = this.urls[this.urlIndex];
+            var addTimeShift = this.trends.is(':checked');
+            var generatedURL;
+
             if (url.indexOf('?') >= 0) {
                 // Add/alter timecomponent
-                return Utils.removeURLParameter(url, 'from') + '&' + 'from=-1' + this.timeframe;
+                var interval = '-1' + this.timeframe;
+                generatedURL = Utils.removeURLParameter(url, 'from') + '&' + 'from=' + interval;
+
+                if (addTimeShift) {
+                    var targets = Utils.deSerialize(url).target;
+                    targets.forEach(function (target) {
+                        var timeshiftCall = 'timeShift(' + target + ',"' + interval + '")';
+                        var targetAlias = getSeriesName(target) + ' (' + getTimeDescription(self.timeframe) + ')';
+                        var aliasCall = 'alias(' + timeshiftCall + ', "' + targetAlias + '")';
+                        var parameter = 'target=' + aliasCall;
+                        generatedURL = [generatedURL, parameter].join('&');
+                    });
+                }
             } else {
-                return url + '?timeframe=' + this.timeframe;
+                generatedURL = url + '?timeframe=' + this.timeframe;
             }
+
+            this.generatedURL = generatedURL;
+            return generatedURL;
         },
 
         createSpinner: function () {
@@ -204,6 +235,34 @@ define([
             return new Spinner(options);
         }
     };
+
+    /**
+     * @param {string} timeframe - Timeframe to map from */
+    function getTimeDescription(timeframe) {
+        var mappings = {
+            'd': 'day',
+            'w': 'week',
+            'm': 'month',
+            'y': 'year'
+        };
+
+        for (var time in mappings) {
+            if (mappings.hasOwnProperty(time)) {
+                if (timeframe.substr(0, 1) === time) {
+                    return '1 ' + mappings[time] + ' ago';
+                }
+            }
+        }
+    }
+
+    /** Assume optimistically that alias is always the last wrapped function */
+    function getSeriesName(target) {
+        if (target.match(/alias/)) {
+            var parts = target.split(',');
+            return parts[parts.length - 1].replace(/[")]/g, '');
+        }
+        return target;
+    }
 
     return GraphFetcher;
 
