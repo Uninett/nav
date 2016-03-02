@@ -6,7 +6,7 @@ define([
 ], function (Rickshaw, Template, Utils) {
 
     var template = Handlebars.compile(Template);
-    var resizeTimeout = 250;  // Throttle resize to trigger at most every resizeTimeout ms
+    var resizeTimeout = 250;  // resize throttled at resizeTimeout ms
 
     function RickshawGraph(container, data, url) {
         container.innerHTML = template({
@@ -23,11 +23,10 @@ define([
             stack: false  // Need to set this so that data is not stacked
         });
 
-        addUtility(graph);
-        var $element = $(element);
-        $element.trigger('NAV:Rickshaw:updateMeta', updateMeta($element, url));
+        addUtility(container, graph, url);
         graph.render();
 
+        // Throttle resize
         var timer = null;
         window.addEventListener('resize', function () {
             if (!timer) {
@@ -43,8 +42,9 @@ define([
 
 
     /** Add all utility stuff to the graph */
-    function addUtility(graph) {
+    function addUtility(container, graph, url) {
         var $element = $(graph.element);
+        var urlParams = Utils.deSerialize(url);
 
         graph.series.forEach(function (serie) {
             serie.name = filterFunctionCalls(serie.name);
@@ -65,7 +65,8 @@ define([
         // Display information about series when hovering over the graph
         new NavHover({
             graph: graph,
-            yFormatter: siNumbers
+            yFormatter: siNumbers,
+            urlparams: urlParams
         });
 
         // Add legend for each data series
@@ -92,6 +93,8 @@ define([
             graph: graph,
             element: $element.siblings('.rickshaw-preview')[0]
         });
+
+        updateMeta(container, urlParams);
 
     }
 
@@ -120,19 +123,20 @@ define([
     }
 
 
-    /** Update the title and term based on url-parameters. */
-    function updateMeta($element, url) {
-        var container = $element.closest('.rickshaw-container');
-        var params = Utils.deSerialize(url);
-        if (!container.data('title')) {
-            // Desperately try to set title
-            var titleElement = container.find('.rickshaw-title');
-            if (params.title && params.title.length > 0) {
-                titleElement.html(params.title[0]);
-            }
+    /**
+     * Update the title and unit based on url-parameters.
+     * @param {HTMLElement} container - The rickshaw container element
+     * @param {object} params - object containing all url parameters
+     */
+    function updateMeta(container, params) {
+        var $container = $(container);
+        // Try to set title
+        if (!$container.data('title') && params.title && params.title.length > 0) {
+            $container.find('.rickshaw-title').html(params.title[0]);
         }
-        if (!container.data('unit') && params.vtitle && params.vtitle.length > 0) {
-            container.find('.rickshaw-y-axis-term').html(params.vtitle[0]);
+        // Try to set units on y-axis
+        if (!$container.data('unit') && params.vtitle && params.vtitle.length > 0) {
+            $container.find('.rickshaw-y-axis-term').html(params.vtitle[0]);
         }
         return params;
     }
@@ -166,13 +170,11 @@ define([
     }
 
 
+    /** Create a hover detail that displays all series at the same time */
     var NavHover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
         initialize: function ($super, args) {
-            var self = this;
             $super(args);
-            $(this.graph.element).on('NAV:Rickshaw:updateMeta', function (event, data) {
-                self.unit = data.vtitle || '';
-            });
+            this.urlparams = args.urlparams;
         },
 
         createHoverElements: function (args) {
@@ -208,7 +210,7 @@ define([
         },
 
         formatter: function (series, x, actualY, something, formattedY) {
-            var unit = this.unit || '';
+            var unit = 'vtitle' in this.urlparams ? this.urlparams.vtitle[0] : '';
             // If the formatted y-value contains a symbol, we do not want a spacer value
             var spacer = isNaN(+formattedY) ? '' : ' ';
             var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>',
