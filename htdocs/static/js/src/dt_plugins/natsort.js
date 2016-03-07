@@ -1,4 +1,4 @@
-define(['libs/datatables.min'], function(){
+define(['libs/datatables.min'], function(DataTables){
     /*
      * Natural Sort algorithm for Javascript - Version 0.7 - Released under MIT license
      * Author: Jim Palmer (based on chunking idea from Dave Koelle)
@@ -34,17 +34,15 @@ define(['libs/datatables.min'], function(){
         return 0;
     }
 
-    if (jQuery.fn.dataTableExt) {
-        jQuery.extend( jQuery.fn.dataTableExt.oSort, {
-            "natural-asc": function ( a, b ) {
-                return naturalSort(a,b);
-            },
+    $.extend(DataTables.ext.oSort, {
+        "natural-asc": function (a, b) {
+            return naturalSort(a, b);
+        },
 
-            "natural-desc": function ( a, b ) {
-                return naturalSort(a,b) * -1;
-            }
-        } );
-    }
+        "natural-desc": function (a, b) {
+            return naturalSort(a, b) * -1;
+        }
+    });
 
     return naturalSort;
 });

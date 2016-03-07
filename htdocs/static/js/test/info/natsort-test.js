@@ -1,6 +1,6 @@
 define([
     'dt_plugins/natsort', 'libs/datatables.min'
-], function (natsort) {
+], function (natsort, DataTable) {
     describe("natsort", function () {
         it("should sort basic numbers", function () {
             var l = [2, 1];
@@ -36,24 +36,24 @@ define([
         });
         describe("sort ascending", function () {
             it("should be appended to jquery datatable", function () {
-                assert.isFunction($.fn.dataTableExt.oSort['natural-asc']);
+                assert.isFunction(DataTable.ext.oSort['natural-asc']);
             });
             it("should sort ascending",function () {
                var l = [1, 2];
                assert.deepEqual(
-                   l.sort($.fn.dataTableExt.oSort['natural-asc']),
+                   l.sort(DataTable.ext.oSort['natural-asc']),
                    [1, 2]
                );
             });
         });
         describe("sort descending", function () {
             it("should be appended to jquery datatable", function () {
-                assert.isFunction($.fn.dataTableExt.oSort['natural-desc']);
+                assert.isFunction(DataTable.ext.oSort['natural-desc']);
             });
             it("should sort descending", function () {
                 var l = [1, 2];
                 assert.deepEqual(
-                    l.sort($.fn.dataTableExt.oSort['natural-desc']),
+                    l.sort(DataTable.ext.oSort['natural-desc']),
                     [2, 1]
                 );
             });

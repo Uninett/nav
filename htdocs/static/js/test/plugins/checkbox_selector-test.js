@@ -11,9 +11,7 @@ define(['plugins/checkbox_selector', 'libs/jquery'], function (CheckboxSelector)
                 this.table.find('#blapp input[type=checkbox]').length, 1);
         });
         it("should toggle on all the other checkboxes based on main one", function () {
-            // Need to click twice, no idea why
             var mainCheckbox = this.table.find('#blapp input[type=checkbox]');
-            mainCheckbox.click();
             mainCheckbox.click();
             var toggled = 0;
             this.table.find('.selector').each(function () {

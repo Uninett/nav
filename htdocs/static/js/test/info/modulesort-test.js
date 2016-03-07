@@ -1,6 +1,6 @@
 define([
     'dt_plugins/modulesort', 'libs/datatables.min'
-], function (modulesort) {
+], function (modulesort, DataTables) {
     describe("modulesort", function () {
         it("basic numeric sort should work", function () {
             var l = [2, 1];
@@ -69,24 +69,24 @@ define([
         });
         describe("module-asc", function () {
             it("should be appended to jquery datatable", function () {
-                assert.isFunction($.fn.dataTableExt.oSort['module-asc']);
+                assert.isFunction(DataTables.ext.oSort['module-asc']);
             });
             it("should sort modules ascending", function () {
                 var l = [1, 2];
                 assert.deepEqual(
-                    l.sort($.fn.dataTableExt.oSort['module-asc']),
+                    l.sort(DataTables.ext.oSort['module-asc']),
                     [1, 2]
                 );
             });
         });
         describe("module-desc", function () {
             it("should be appended to jquery datatable", function () {
-                assert.isFunction($.fn.dataTableExt.oSort['module-desc']);
+                assert.isFunction(DataTables.ext.oSort['module-desc']);
             });
             it("should sort modules ascending", function () {
                 var l = [1, 2];
                 assert.deepEqual(
-                    l.sort($.fn.dataTableExt.oSort['module-desc']),
+                    l.sort(DataTables.ext.oSort['module-desc']),
                     [2, 1]
                 );
             });
