@@ -369,13 +369,16 @@ def set_vlan(account, fac, interface, request):
     if 'vlan' in request.POST:
         vlan = int(request.POST.get('vlan'))
 
-        # If the voice_vlan flag is flagged we need to take some extra care
-        voice_activated = request.POST.get('voice_activated', False)
         try:
-            # If Cisco and voice vlan, we have to set native vlan instead of
-            # access vlan
-            if interface.netbox.type.vendor.id == 'cisco' and voice_activated:
-                fac.set_native_vlan(interface, vlan)
+            if interface.netbox.type.vendor.id == 'cisco':
+                # If Cisco and trunk voice vlan (not Cisco voice vlan),
+                # we have to set native vlan instead of access vlan
+                config = read_config()
+                voice_activated = request.POST.get('voice_activated', False)
+                if not is_cisco_voice_enabled(config) and voice_activated:
+                    fac.set_native_vlan(interface, vlan)
+                else:
+                    fac.set_vlan(interface.ifindex, vlan)
             else:
                 fac.set_vlan(interface.ifindex, vlan)
 
