@@ -33,17 +33,35 @@ define([], function () {
 
     /**
      * Series names are often wrapped in function calls. Remove the calls.
-     * If there is a space in the function call, then we're fucked.
      * Ex:
      * keepLastValue(nav.devices.buick_lab_uninett_no.ipdevpoll.1minstats.runtime)
      * => nav.devices.buick_lab_uninett_no.ipdevpoll.1minstats.runtime
      */
     function filterFunctionCalls(name) {
-        var match = name.match(/\w+\(([^ ]+)\)(.*)/);
-        if (match) {
-            name = filterFunctionCalls(match[1]) + match[2];
+        var serieMatch = name.match(/nav\.[.\w]+/);
+        if (serieMatch) {
+            var serie = serieMatch[0];
+            // Remove all functions and return the rest
+            return serie + removeFunctionCalls(name);
+        } else {
+            return name;
         }
-        return name;
+
+    }
+
+
+    /**
+     * Remove all function calls from a string. We do it recursively starting
+     * at the innermost one
+     */
+    function removeFunctionCalls(string) {
+        var functionRegex = /(\w+\([^()]+\))/;
+        var functionMatch = string.match(functionRegex);
+        if (functionMatch) {
+            string = string.replace(functionRegex, '');
+            string = removeFunctionCalls(string);
+        }
+        return string;
     }
 
 
@@ -85,6 +103,7 @@ define([], function () {
         createSeries: createSeries,
         convertToRickshaw: convertToRickshaw,
         filterFunctionCalls: filterFunctionCalls,
+        removeFunctionCalls: removeFunctionCalls,
         resizeGraph: resizeGraph,
         siNumbers: siNumbers
     };
