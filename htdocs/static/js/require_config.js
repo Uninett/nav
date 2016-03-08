@@ -12,7 +12,8 @@ var require = {
         "netmap": "src/netmap",
         "status": "src/status2",
         "d3": "libs/d3.min",
-        "nav-url-utils": "src/plugins/nav-url-utils"
+        "nav-url-utils": "src/plugins/nav-url-utils",
+        "rickshaw-utils": "src/plugins/rickshaw-utils"
     },
     shim: {
         'libs/foundation.min': ['libs/modernizr', 'libs/fastclick'],

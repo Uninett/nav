@@ -2,8 +2,9 @@ define([
     'libs/rickshaw.min',
     'libs-amd/text!resources/rickshawgraph/graphtemplate.hbs',
     'nav-url-utils',
+    'rickshaw-utils',
     'libs/handlebars'
-], function (Rickshaw, Template, Utils) {
+], function (Rickshaw, Template, Utils, RickshawUtils) {
 
     var template = Handlebars.compile(Template);
     var resizeTimeout = 250;  // resize throttled at resizeTimeout ms
@@ -18,7 +19,7 @@ define([
         var element = container.getElementsByClassName('rickshaw-graph')[0];
         var graph = new Rickshaw.Graph({
             element: element,
-            series: prepareData(data),
+            series: RickshawUtils.createSeries(data),
             renderer: 'line',
             stack: false  // Need to set this so that data is not stacked
         });
@@ -31,7 +32,7 @@ define([
         window.addEventListener('resize', function () {
             if (!timer) {
                 timer = setTimeout(function () {
-                    resizeGraph(graph);
+                    RickshawUtils.resizeGraph(graph);
                     timer = null;
                 }, resizeTimeout);
             }
@@ -47,7 +48,7 @@ define([
         var urlParams = Utils.deSerialize(url);
 
         graph.series.forEach(function (serie) {
-            serie.name = filterFunctionCalls(serie.name);
+            serie.name = RickshawUtils.filterFunctionCalls(serie.name);
             // If this is a nav-metric, typically very long, display only the last two "parts"
             if (serie.name.substr(0, 4) === 'nav.') {
                 var parts = serie.name.split('.');
@@ -70,7 +71,7 @@ define([
         // Display information about series when hovering over the graph
         new NavHover({
             graph: graph,
-            yFormatter: siNumbers,
+            yFormatter: RickshawUtils.siNumbers,
             urlparams: urlParams
         });
 
@@ -104,31 +105,6 @@ define([
     }
 
 
-    function resizeGraph(graph) {
-        var boundingRect = graph.element.getBoundingClientRect();
-        graph.configure({
-            width: boundingRect.width,
-            height: boundingRect.height
-        });
-        graph.render();
-    }
-
-    /**
-     * Series names are often wrapped in function calls. Remove the calls.
-     * If there is a space in the function call, then we're fucked.
-     * Ex:
-     * keepLastValue(nav.devices.buick_lab_uninett_no.ipdevpoll.1minstats.runtime)
-     * => nav.devices.buick_lab_uninett_no.ipdevpoll.1minstats.runtime
-     */
-    function filterFunctionCalls(name) {
-        var match = name.match(/\w+\(([^ ]+)\)(.*)/);
-        if (match) {
-            name = filterFunctionCalls(match[1]) + match[2];
-        }
-        return name;
-    }
-
-
     /**
      * Update the title and unit based on url-parameters.
      * @param {HTMLElement} container - The rickshaw container element
@@ -145,34 +121,6 @@ define([
             $container.find('.rickshaw-y-axis-term').html(params.vtitle[0]);
         }
         return params;
-    }
-
-
-    /**
-     * Parse data from Graphite and format it so that Rickshaw understands it.
-     */
-    function prepareData(data) {
-        var palette = new Rickshaw.Color.Palette({scheme: 'munin'});
-
-        return data.map(function (series, index) {
-            return {
-                key: index,
-                name: series.target,
-                color: palette.color(),
-                data: series.datapoints.map(convertToRickshaw)
-            };
-        });
-    }
-
-    /**
-     * Rickshaw demands  {x: timestamp, y: value}
-     * Graphite delivers [value, timestamp]
-     */
-    function convertToRickshaw(dataPoint) {
-        return {
-            x: dataPoint[1],
-            y: dataPoint[0]
-        };
     }
 
 
@@ -271,28 +219,6 @@ define([
 
         }
     });
-
-    var siNumbers = function(y, toInteger, spacer) {
-        if (y === null || y === 0) {
-            return y;
-        }
-
-        var precision = typeof toInteger === 'undefined' ? 2: 0;
-        var space = typeof spacer === 'undefined' ? ' ': spacer;
-        var convert = function(value, converter) {
-            return (value / converter).toFixed(precision);
-        };
-
-        var value = Number(y);
-        if (value >= 1000000000000) { return convert(value, 1000000000000) + space + "T"; }
-        else if (value >= 1000000000) { return convert(value, 1000000000) + space + "G"; }
-        else if (value >= 1000000) { return convert(value, 1000000) + space + "M"; }
-        else if (value >= 1000) { return convert(value, 1000) + space + "k"; }
-        else if (value <= 0.000001) { return convert(value, 1/1000000 ) + space + "µ"; }
-        else if (value <= 0.01) { return convert(value, 1/1000) + space + "m"; }
-        else if (value <= 1) { return value.toFixed(3); }  // This is inconsistent
-        else { return value.toFixed(precision); }
-    };
 
     return RickshawGraph;
 
