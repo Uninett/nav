@@ -55,7 +55,7 @@ class Netbox(Shadow):
                 other = other[0]
 
             liveself = self.get_existing_model(containers)
-            self._logger.error(
+            self._logger.warning(
                 "%s and %s both appear to resolve to the same DNS name (%s)."
                 "Are they the same device? Setting sysname = IP Address to "
                 "avoid conflicts", liveself.ip, other.ip, self.sysname)
