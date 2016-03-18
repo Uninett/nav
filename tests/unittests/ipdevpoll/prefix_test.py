@@ -1,6 +1,7 @@
 from unittest import TestCase
 from mock import Mock
 from IPy import IP
+from random import randint
 
 from nav.ipdevpoll.plugins import prefix
 
@@ -78,3 +79,20 @@ class PrefixPluginTest(TestCase):
         netbox = Mock('Netbox')
         netbox.sysname = 'foo-sw.example.org'
         plugin = prefix.Prefix(netbox, None, None)
+
+
+class VlanPatternTest(TestCase):
+    def setUp(self):
+        self.vlan = str(randint(0, 4096))
+
+    def test_cisco_long_names_should_match(self):
+        match = prefix.VLAN_PATTERN.match("VLAN" + self.vlan)
+        self.assertEquals(match.group('vlan'), self.vlan)
+
+    def test_cisco_short_names_should_match(self):
+        match = prefix.VLAN_PATTERN.match("Vl" + self.vlan)
+        self.assertEquals(match.group('vlan'), self.vlan)
+
+    def test_juniper_names_names_should_match(self):
+        match = prefix.VLAN_PATTERN.match("irb." + self.vlan)
+        self.assertEquals(match.group('vlan'), self.vlan)
