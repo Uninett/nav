@@ -211,8 +211,8 @@ define([
         $(graph.element).trigger('NAV:Rickshaw:updateMeta', meta);
 
         if (!graph.initialized) {
-
             graph.series.forEach(function(serie) {
+                serie.key = serie.name;
                 serie.name = getSeriesName(serie.name);
             });
 
