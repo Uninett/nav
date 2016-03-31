@@ -1,3 +1,24 @@
+Version 4.4.3
+(released 31 Apr 2016)
+
+ Bugfixes:
+
+  * LP#1538270 (PortAdmin crashes when non admin try to remove a vlan from the
+                trunk)
+  * LP#1543529 (portadmin: default vlan is not setable for non-admin if auth is
+                enabled)
+  * LP#1543953 (Wrong units in Gbits/s graphs)
+  * LP#1544059 (Subnet matrix is no longer helpful when no scopes have been
+                defined)
+  * LP#1551205 (Subject description of 3rd party alerts in status page are
+                uninformative)
+  * LP#1552198 (ranked statistics give vague error when no data exists)
+  * LP#1554466 (PortAdmin: when proper cisco voice vlans enabled changing vlan
+                changes native vlan)
+  * LP#1559004 (Extract VLAN information from Juniper routers)
+  * LP#1563369 (Rickshaw graphs do not update on interval change)
+
+
 Version 4.4.2
 (released 4 Feb 2016)
 
