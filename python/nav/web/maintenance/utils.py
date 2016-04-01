@@ -22,7 +22,7 @@ from time import strftime
 from django.core.urlresolvers import reverse
 from django.utils.html import conditional_escape
 
-from nav.models.manage import Netbox, Room, Location
+from nav.models.manage import Netbox, Room, Location, NetboxGroup
 from nav.models.service import Service
 from nav.models.msgmaint import MaintenanceTask
 
@@ -107,6 +107,7 @@ def get_component_keys(post):
         'netbox': post.getlist('netbox'),
         'room': post.getlist('room'),
         'location': post.getlist('location'),
+        'netboxgroup': post.getlist('netboxgroup'),
     }
     raw_component_keys['location'].extend(post.getlist('loc'))
     if 'remove' in post:
@@ -115,8 +116,10 @@ def get_component_keys(post):
             'netbox': post.getlist('remove_netbox'),
             'room': post.getlist('remove_room'),
             'location': post.getlist('remove_location'),
+            'netboxgroup': post.getlist('remove_netboxgroup'),
         }
-    component_keys = {'service': [], 'netbox': [], 'room': [], 'location': []}
+    component_keys = {'service': [], 'netbox': [], 'room': [], 'location': [],
+                      'netboxgroup': []}
     for key in raw_component_keys:
         for value in raw_component_keys[key]:
             if not remove or value not in remove[key]:
@@ -149,6 +152,10 @@ def components_for_keys(component_keys):
             id__in=component_keys['location']
         ).values(
             'id', 'description')
+    component_data['netboxgroup'] = NetboxGroup.objects.filter(
+            id__in=component_keys['netboxgroup']
+        ).values(
+            'id', 'description')
     return component_data
 
 
@@ -164,11 +171,25 @@ def structure_component_data(component_data):
 
 
 def task_component_trails(component_keys, components):
+    """Create the 'trail' of selected components
+
+    An IP Device would have a trail consisting of a location, room and the
+    device itself, and a room would have a trail consisting of a location and
+    the room itself.
+
+    Ex:
+    IP Device: <location> -> <room> -> <device>
+    """
+
+    # Mapping for changing the title of the trail.
+    title_mapping = {
+        'netbox': 'IP Device',
+        'netboxgroup': 'Device Group'
+    }
+    
     trails = []
     for key in component_keys:
-        title = key
-        if title == 'netbox':
-            title = 'IP Device'
+        title = title_mapping.get(key, key)
         for pkey in component_keys[key]:
             trail = []
             try:
@@ -214,6 +235,12 @@ def task_component_trails(component_keys, components):
                         'url': None,
                         'title': None,
                         'name': comp['handler'],
+                    })
+                if key == 'netboxgroup':
+                    trail.append({
+                        'url': reverse('netbox-group-detail', args=[comp['id']]),
+                        'title': '',
+                        'name': comp['id'],
                     })
             trails.append({
                 'id': pkey,

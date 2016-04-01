@@ -19,7 +19,7 @@
 from django.template.loader import get_template
 from django.template import Context
 
-from nav.models.manage import Location, Room, Netbox, Module
+from nav.models.manage import Location, Room, Netbox, Module, NetboxGroup
 from nav.models.service import Service
 
 
@@ -32,6 +32,7 @@ class QuickSelect(object):
         self.location = kwargs.pop('location', True)
         self.room = kwargs.pop('room', True)
         self.netbox = kwargs.pop('netbox', True)
+        self.netboxgroup = kwargs.pop('netboxgroup', True)
         self.service = kwargs.pop('service', False)
         self.module = kwargs.pop('module', False)
 
@@ -40,12 +41,14 @@ class QuickSelect(object):
         self.room_label = kwargs.pop('room_label',
                                      '%(id)s (%(description)s)')
         self.netbox_label = kwargs.pop('netbox_label', '%(sysname)s')
+        self.netboxgroup_label = kwargs.pop('netboxgroup_label', '%(pk)s')
         self.service_label = kwargs.pop('service_label', '%(handler)s')
         self.module_label = kwargs.pop('module_label', '%(name)s')
 
         self.location_multi = kwargs.pop('location_multiple', True)
         self.room_multi = kwargs.pop('room_multiple', True)
         self.netbox_multi = kwargs.pop('netbox_multiple', True)
+        self.netboxgroup_multi = kwargs.pop('netboxgroup_multiple', True)
         self.service_multi = kwargs.pop('service_multiple', True)
         self.module_multi = kwargs.pop('module_multiple', True)
 
@@ -65,6 +68,7 @@ class QuickSelect(object):
         self.service_set = Service.objects.order_by('handler').values()
         self.module_set = Module.objects.order_by('module_number').values()
         self.room_set = Room.objects.order_by('id').values()
+        self.netboxgroup_set = NetboxGroup.objects.order_by('id').values()
 
         self.output = []
 
@@ -85,6 +89,7 @@ class QuickSelect(object):
             'netbox': [],
             'module': [],
             'room': [],
+            'netboxgroup': [],
         }
 
         for field in result.keys():
@@ -188,6 +193,20 @@ class QuickSelect(object):
                         'objects': sorted(netboxes.iteritems()),
                     })
 
+            if self.netboxgroup:
+                netboxgroups = {'': []}
+                for netboxgroup in self.netboxgroup_set:
+                    netboxgroups[''].append((netboxgroup['id'], netboxgroup['id']))
+
+                output.append({
+                        'label': 'Device Group',
+                        'button': self.button % 'device group',
+                        'multi': self.netboxgroup_multi,
+                        'name': 'netboxgroup',
+                        'collapse': True,
+                        'objects': sorted(netboxgroups.iteritems()),
+                    })
+
             if self.service:
                 services = {}
                 for service in self.service_set:
@@ -225,6 +244,7 @@ class QuickSelect(object):
                         'collapse': True,
                         'objects': sorted(modules.iteritems()),
                     })
+
             self.output = output
 
         template = get_template('webfront/quickselect.html')

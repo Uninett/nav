@@ -128,7 +128,8 @@ class MaintenanceTask(models.Model):
         """
         subjects = []
         for component in self.get_components():
-            if isinstance(component, manage.Room):
+            if (isinstance(component, manage.Room) or
+                isinstance(component, manage.NetboxGroup)):
                 subjects.extend(component.netbox_set.all())
             elif isinstance(component, manage.Location):
                 subjects.extend(manage.Netbox.objects.filter(

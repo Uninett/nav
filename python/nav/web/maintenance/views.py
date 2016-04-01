@@ -188,7 +188,8 @@ def view(request, task_id):
     maint_components = MaintenanceComponent.objects.filter(
         maintenance_task=task.id).values_list('key', 'value')
 
-    component_keys = {'service': [], 'netbox': [], 'room': [], 'location': []}
+    component_keys = {'service': [], 'netbox': [], 'room': [], 'location': [],
+                      'netboxgroup': []}
     for key, value in maint_components:
         if key in PRIMARY_KEY_INTEGER:
             value = int(value)
@@ -245,7 +246,6 @@ def edit(request, task_id=None, start_time=None):
     component_trail = None
     component_keys = None
     task = None
-    num_components = 0
 
     if task_id:
         task = get_object_or_404(MaintenanceTask, pk=task_id)
@@ -256,7 +256,7 @@ def edit(request, task_id=None, start_time=None):
         component_keys = get_component_keys(request.POST)
     elif task:
         component_keys = {'service': [], 'netbox': [],
-                          'room': [], 'location': []}
+                          'room': [], 'location': [], 'netboxgroup': []}
         for key, value in task.maintenancecomponent_set.values_list('key',
                                                                     'value'):
             if key in PRIMARY_KEY_INTEGER:
@@ -269,15 +269,13 @@ def edit(request, task_id=None, start_time=None):
         component_data = components_for_keys(component_keys)
         components = structure_component_data(component_data)
         component_trail = task_component_trails(component_keys, components)
-        num_components += (len(component_data['service'])
-                                + len(component_data['netbox']))
-        num_components += (len(component_data['room'])
-                                + len(component_data['location']))
 
     if request.method == 'POST':
         if 'save' in request.POST:
             task_form = MaintenanceTaskForm(request.POST)
-            if task_form.is_valid() and num_components > 0:
+            if not any(component_data.values()):
+                new_message(request, "No components selected.", Messages.ERROR)
+            elif task_form.is_valid():
                 start_time = task_form.cleaned_data['start_time']
                 end_time = task_form.cleaned_data['end_time']
                 no_end_time = task_form.cleaned_data['no_end_time']
@@ -317,8 +315,6 @@ def edit(request, task_id=None, start_time=None):
                             Messages.SUCCESS)
                 return HttpResponseRedirect(reverse('maintenance-view',
                                                     args=[new_task.id]))
-            if num_components <= 0:
-                new_message(request, "No components selected.", Messages.ERROR)
         else:
             task_form = MaintenanceTaskForm(initial=request.POST)
 
