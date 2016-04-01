@@ -6,74 +6,74 @@
 
   {% include 'maintenance/heading.html' %}
 
-<table class="vertitable vertitablefull vevent">
+  <table class="vertitable vertitablefull vevent">
     <caption class="summary">
-        {{ task.description }}
+      {{ task.description }}
     </caption>
 
     <tbody>
-        <tr>
-            <th>Start</th>
-            <td>
-              <time class="dtstart" datetime="{{ task.start_time }}">
-                {{ task.start_time|date:"Y-m-d H:i" }}
-              </time>
-            </td>
-        </tr>
-        <tr>
-            <th>End</th>
-            {% if task.is_endless %}
-                <td>No end time</td>
-            {% else %}
-                <td>
-                  <time class="dtend" datetime="{{ task.end_time }}">
-                    {{ task.end_time|date:"Y-m-d H:i" }}
-                  </time>
-                </td>
-            {% endif %}
-        </tr>
-        <tr>
-            <th>Description</th>
-            <td>{{ task.description }}</td>
-        </tr>
-        <tr>
-            <th>Components</th>
-            <td>
-            {% if components %}
+      <tr>
+        <th>Start</th>
+        <td>
+          <time class="dtstart" datetime="{{ task.start_time }}">
+            {{ task.start_time|date:"Y-m-d H:i" }}
+          </time>
+        </td>
+      </tr>
+      <tr>
+        <th>End</th>
+        {% if task.is_endless %}
+          <td>No end time</td>
+        {% else %}
+          <td>
+            <time class="dtend" datetime="{{ task.end_time }}">
+              {{ task.end_time|date:"Y-m-d H:i" }}
+            </time>
+          </td>
+        {% endif %}
+      </tr>
+      <tr>
+        <th>Description</th>
+        <td>{{ task.description }}</td>
+      </tr>
+      <tr>
+        <th>Components</th>
+        <td>
+          {% if components %}
             <ul class="no-bullet">
-            {% for comp in components %}
+              {% for comp in components %}
                 <li>
-                    {{ comp.title|capfirst }}:
-                {% for elem in comp.trail %}
+                  {{ comp.title|capfirst }}:
+                  {% for elem in comp.trail %}
                     {% if elem.url %}
-                    <a href="{{ elem.url }}" title="{{ elem.title }}">{{ elem.name }}</a>
+                      <a href="{{ elem.url }}" title="{{ elem.title }}">{{ elem.name }}</a>
                     {% else %}
-                    {{ elem.name }}
+                      {{ elem.name }}
                     {% endif %}
                     {% if not forloop.last %}
-                    &rarr;
+                      &rarr;
                     {% endif %}
-                {% endfor %}
+                  {% endfor %}
                 </li>
-            {% endfor %}
+              {% endfor %}
             </ul>
-            {% else %}
-                (none)
-            {% endif %}
-            </td>
-        </tr>
+          {% else %}
+            (none)
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <th>Author</th>
+        <td>{{ task.author }}</td>
+      </tr>
+      {% if not current_user_data.account.is_default_account %}
         <tr>
-            <th>Author</th>
-            <td>{{ task.author }}</td>
+          <th>State</th>
+          <td>{{ task.state|capfirst }}</td>
         </tr>
-        {% if not current_user_data.account.is_default_account %}
-        <tr>
-            <th>State</th>
-            <td>{{ task.state|capfirst }}</td>
-        </tr>
-        {% endif %}
+      {% endif %}
     </tbody>
-</table>
+  </table>
 
   {% if not current_user_data.account.is_default_account %}
     <a href="{% url 'maintenance-edit' task.id %}" class="button small secondary">Edit</a>
