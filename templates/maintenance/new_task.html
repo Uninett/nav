@@ -1,68 +1,97 @@
 {% extends "maintenance/base.html" %}
 {% load crispy_forms_tags %}
 
+{% block base_header_additional_head %}
+  {{ block.super }}
+  <style>
+   #new-task-form textarea {
+       height: 8em;
+   }
+   #new-task-form select[multiple] {
+       height: 8em;
+   }
+   #component-list li { overflow: auto; }
+   #component-list li div:first-child {
+       float: left;
+       width: 8em;
+   }
+   #component-list li div:last-child {
+       margin-left: 8em;
+   }
+  </style>
+{% endblock %}
+
+
 {% block content %}
 
   {% include 'maintenance/back.html' %}
 
   <h4>{{ heading }}</h4>
 
-  <form action="{{ request.path }}" method="post">
+  <div class="panel white">
+    <form id="new-task-form" action="{{ request.path }}" method="post">
 
-    <div class="row">
-      <div class="medium-6 columns">
-        <fieldset>
-          <legend>Details</legend>
-          {% crispy task_form %}
-        </fieldset>
+      <div class="row">
 
-        <fieldset>
-        <legend>Selected components</legend>
-        {% for key, identifiers in selected.items %}
-          {% for id in identifiers %}
-            <input type="hidden" name="{{ key }}" value="{{ id }}"/>
-          {% endfor %}
-        {% endfor %}
+        <div class="large-4 columns">
+          <fieldset>
+            <legend>Details</legend>
+            {% crispy task_form %}
+          </fieldset>
+        </div>
 
-        {% if components %}
-          <ul class="no-bullet">
-            {% for comp in components %}
-              <li>
-                <input type="hidden" name="{{ comp.type }}" value="{{ comp.id }}"/>
-                <input type="checkbox" name="remove_{{ comp.type }}" value="{{ comp.id }}"/>
-                {{ comp.title|capfirst }}:
-                {% for elem in comp.trail %}
-                  {% if elem.url %}
-                    <a href="{{ elem.url }}" title="{{ elem.title }}">{{ elem.name }}</a>
-                  {% else %}
-                    {{ elem.name }}
-                  {% endif %}
-                  {% if not forloop.last %}
-                    &rarr;
-                  {% endif %}
-                {% endfor %}
-              </li>
+        <div class="large-4 columns">
+          <fieldset>
+            <legend>Select components</legend>
+            {{ quickselect }}
+          </fieldset>
+        </div>
+
+        <div class="large-4 columns">
+          <fieldset>
+            <legend>Selected components</legend>
+            {% for key, identifiers in selected.items %}
+              {% for id in identifiers %}
+                <input type="hidden" name="{{ key }}" value="{{ id }}"/>
+              {% endfor %}
             {% endfor %}
-          </ul>
-          <input type="submit" name="remove" value="Remove selected" class="button small secondary"/>
-        {% else %}
-          <p>(none)</p>
-          <input type="submit" name="remove" value="Remove selected" disabled="disabled" class="button small secondary"/>
-        {% endif %}
-        </fieldset>
 
-      </div>
+            {% if components %}
+              <ul id="component-list" class="no-bullet">
+                {% for comp in components %}
+                  <li>
+                    <div>
+                      <input type="hidden" name="{{ comp.type }}" value="{{ comp.id }}"/>
+                      <input type="checkbox" name="remove_{{ comp.type }}" value="{{ comp.id }}"/>
+                      {{ comp.title|capfirst }}:
+                    </div>
+                    <div>
+                      {% for elem in comp.trail %}
+                        {% if elem.url %}
+                          <a href="{{ elem.url }}" title="{{ elem.title }}">{{ elem.name }}</a>
+                        {% else %}
+                          {{ elem.name }}
+                        {% endif %}
+                        {% if not forloop.last %}
+                          &rarr;
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+              <input type="submit" name="remove"
+                     value="Remove selected" class="button small secondary"/>
+            {% else %}
+              <p>(none)</p>
+              <input type="submit" name="remove"
+                     value="Remove selected" disabled="disabled" class="button small secondary"/>
+            {% endif %}
+          </fieldset>
+        </div> {# column #}
+      </div> {# row #}
 
-      <div class="medium-6 columns">
-        <fieldset>
-          <legend>Select components</legend>
-          {{ quickselect }}
-        </fieldset>
-      </div>
-
-    </div>
-
-    <input type="submit" name="save" value="Save task" class="button" />
-  </form>
-
+      <input type="submit" name="save" value="Save task" class="button" />
+    </form>
+  </div>
 {% endblock %}

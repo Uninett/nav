@@ -38,11 +38,7 @@ class MaintenanceTaskForm(forms.Form):
                 Column(Field('end_time', css_class='datetimepicker'),
                        css_class="medium-6"),
             ),
-            Row(
-                Column(css_class='medium-6'),
-                Column('no_end_time', css_class="medium-6")
-            ),
-            'description')
+            'no_end_time', 'description')
 
         # If end_time infinity, check no_end time and disable input
         try:
