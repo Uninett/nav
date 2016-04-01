@@ -6,80 +6,84 @@
 
   {% include 'maintenance/heading.html' %}
 
-  <table class="vertitable vertitablefull vevent">
-    <caption class="summary">
-      {{ task.description }}
-    </caption>
+  <div class="panel white">
 
-    <tbody>
-      <tr>
-        <th>Start</th>
-        <td>
-          <time class="dtstart" datetime="{{ task.start_time }}">
-            {{ task.start_time|date:"Y-m-d H:i" }}
-          </time>
-        </td>
-      </tr>
-      <tr>
-        <th>End</th>
-        {% if task.is_endless %}
-          <td>No end time</td>
-        {% else %}
+    <table class="vertitable vertitablefull vevent">
+      <caption class="summary">
+        {{ task.description }}
+      </caption>
+
+      <tbody>
+        <tr>
+          <th>Start</th>
           <td>
-            <time class="dtend" datetime="{{ task.end_time }}">
-              {{ task.end_time|date:"Y-m-d H:i" }}
+            <time class="dtstart" datetime="{{ task.start_time }}">
+              {{ task.start_time|date:"Y-m-d H:i" }}
             </time>
           </td>
-        {% endif %}
-      </tr>
-      <tr>
-        <th>Description</th>
-        <td>{{ task.description }}</td>
-      </tr>
-      <tr>
-        <th>Components</th>
-        <td>
-          {% if components %}
-            <ul class="no-bullet">
-              {% for comp in components %}
-                <li>
-                  {{ comp.title|capfirst }}:
-                  {% for elem in comp.trail %}
-                    {% if elem.url %}
-                      <a href="{{ elem.url }}" title="{{ elem.title }}">{{ elem.name }}</a>
-                    {% else %}
-                      {{ elem.name }}
-                    {% endif %}
-                    {% if not forloop.last %}
-                      &rarr;
-                    {% endif %}
-                  {% endfor %}
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            (none)
-          {% endif %}
-        </td>
-      </tr>
-      <tr>
-        <th>Author</th>
-        <td>{{ task.author }}</td>
-      </tr>
-      {% if not current_user_data.account.is_default_account %}
-        <tr>
-          <th>State</th>
-          <td>{{ task.state|capfirst }}</td>
         </tr>
-      {% endif %}
-    </tbody>
-  </table>
+        <tr>
+          <th>End</th>
+          {% if task.is_endless %}
+            <td>No end time</td>
+          {% else %}
+            <td>
+              <time class="dtend" datetime="{{ task.end_time }}">
+                {{ task.end_time|date:"Y-m-d H:i" }}
+              </time>
+            </td>
+          {% endif %}
+        </tr>
+        <tr>
+          <th>Description</th>
+          <td>{{ task.description }}</td>
+        </tr>
+        <tr>
+          <th>Components</th>
+          <td>
+            {% if components %}
+              <ul class="no-bullet">
+                {% for comp in components %}
+                  <li>
+                    {{ comp.title|capfirst }}:
+                    {% for elem in comp.trail %}
+                      {% if elem.url %}
+                        <a href="{{ elem.url }}" title="{{ elem.title }}">{{ elem.name }}</a>
+                      {% else %}
+                        {{ elem.name }}
+                      {% endif %}
+                      {% if not forloop.last %}
+                        &rarr;
+                      {% endif %}
+                    {% endfor %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              (none)
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th>Author</th>
+          <td>{{ task.author }}</td>
+        </tr>
+        {% if not current_user_data.account.is_default_account %}
+          <tr>
+            <th>State</th>
+            <td>{{ task.state|capfirst }}</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
 
-  {% if not current_user_data.account.is_default_account %}
-    <a href="{% url 'maintenance-edit' task.id %}" class="button small secondary">Edit</a>
-    {% ifnotequal task.state "canceled" %}
-      <a href="{% url 'maintenance-cancel' task.id %}" class="button small secondary">Cancel now</a>
-    {% endifnotequal %}
-  {% endif %}
+    {% if not current_user_data.account.is_default_account %}
+      <a href="{% url 'maintenance-edit' task.id %}" class="button small secondary">Edit</a>
+      {% ifnotequal task.state "canceled" %}
+        <a href="{% url 'maintenance-cancel' task.id %}" class="button small secondary">Cancel now</a>
+      {% endifnotequal %}
+    {% endif %}
+
+  </div>
 
 {% endblock %}
