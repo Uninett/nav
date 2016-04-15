@@ -43,7 +43,7 @@ require([
         accordionMaker($('.tabs')); // Apply accordionmaker for tabs
         $('select.select2').select2();
 
-        addSearchFocusHandlers();
+        // addSearchFocusHandlers();  Fix this to not grab every / before activating
 
     });
 });
