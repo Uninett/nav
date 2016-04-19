@@ -125,7 +125,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
     };
 
     /* Generic spinner created for display in the middle of a cell */
-    var spinner = new Spinner({length: 3, width: 2, radius: 5});
+    // var spinner = new Spinner({length: 3, width: 2, radius: 5});
     var parentSelector = '.port_row';
     var feedback;
 
@@ -334,7 +334,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
             type: 'POST',
             beforeSend: function () {
                 disableButtons($row);
-                spinner.spin($row);
+                // spinner.spin($row);
             },
             success: function () {
                 clearChangedState($row);
@@ -353,7 +353,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
             complete: function (jqXhr) {
                 removeFromQueue(rowid);
                 enableButtons($row);
-                spinner.stop();
+                // spinner.stop();
                 if (nav_ajax_queue.length === 0) {
                     enableSaveallButtons();
                     writeMemWhenRestartsDone(interfaceData.interfaceid);
