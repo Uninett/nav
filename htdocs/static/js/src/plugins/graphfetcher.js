@@ -26,6 +26,7 @@ define([
     function GraphFetcher(node, urls) {
         this.checkInput(node, urls);
         this.node = node;
+        this.graphContainer = this.node.find('.rickshaw-container')[0];
         this.urls = urls.split(';');
         this.lastUrlIndex = -1;
         this.urlIndex = 0;  // Index of this.urls
@@ -110,7 +111,9 @@ define([
                     this.addButton(headerNode, key, this.buttons[key]);
                 }
             }
-            this.appendToggleTrendCheckbox();
+            if (this.graphContainer) {
+                this.appendToggleTrendCheckbox();
+            }
             this.appendAddGraphButton();
         },
         addButton: function (node, timeframe, text) {
@@ -173,10 +176,9 @@ define([
         },
         displayGraph: function (url) {
             //this.spinner.spin(this.wrapper.get(0));
-            var graphContainer = this.node.find('.rickshaw-container')[0];
             var self = this;
 
-            if (!graphContainer) {
+            if (!this.graphContainer) {
                 // If we have no container, assume old loading with images.
                 var image = new Image();
                 image.src = url;
@@ -192,7 +194,7 @@ define([
                 };
             } else {
                 $.get(url, function (data) {
-                    self.rickshawgraph = new RickshawGraph(graphContainer, data, url);
+                    self.rickshawgraph = new RickshawGraph(self.graphContainer, data, url);
                 });
             }
         },
@@ -204,7 +206,7 @@ define([
         getUrl: function () {
             var self = this;
             var url = this.urls[this.urlIndex];
-            var addTimeShift = this.trends.is(':checked');
+            var addTimeShift = this.graphContainer && this.trends.is(':checked');
             var generatedURL;
 
             if (url.indexOf('?') >= 0) {
