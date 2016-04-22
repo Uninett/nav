@@ -42,7 +42,7 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      filter_vlans, fetch_voice_vlans,
                                      should_check_access_rights,
                                      mark_detained_interfaces,
-                                     read_config,
+                                     read_config, is_cisco,
                                      is_restart_interface_enabled,
                                      is_write_mem_enabled)
 from nav.Snmp.errors import SnmpError, TimeOutException
@@ -181,7 +181,7 @@ def populate_infodict(request, netbox, interfaces):
             request.account, netbox, interfaces, fac)
         voice_vlan = fetch_voice_vlan_for_netbox(request, fac, config)
         if voice_vlan:
-            if is_cisco_voice_enabled(config):
+            if is_cisco_voice_enabled(config) and is_cisco(netbox):
                 set_voice_vlan_attribute_cisco(voice_vlan, interfaces, fac)
             else:
                 set_voice_vlan_attribute(voice_vlan, interfaces)
@@ -370,7 +370,7 @@ def set_vlan(account, fac, interface, request):
         vlan = int(request.POST.get('vlan'))
 
         try:
-            if interface.netbox.type.vendor.id == 'cisco':
+            if is_cisco(interface.netbox):
                 # If Cisco and trunk voice vlan (not Cisco voice vlan),
                 # we have to set native vlan instead of access vlan
                 config = read_config()
@@ -404,7 +404,8 @@ def set_voice_vlan(fac, interface, request):
     if 'voicevlan' in request.POST:
         config = read_config()
         voice_vlan = fetch_voice_vlan_for_netbox(request, fac, config)
-        use_cisco_voice_vlan = is_cisco_voice_enabled(config)
+        use_cisco_voice_vlan = (is_cisco_voice_enabled(config) and
+                                is_cisco(interface.netbox))
 
         # Either the voicevlan is turned off or turned on
         turn_on_voice_vlan = request.POST.get('voicevlan') == 'true'
