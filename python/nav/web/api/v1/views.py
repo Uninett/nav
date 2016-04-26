@@ -31,7 +31,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.generics import ListAPIView
 from nav.models.api import APIToken
-from nav.models import manage, event
+from nav.models import manage, event, cabling
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
 
@@ -88,6 +88,7 @@ def get_endpoints(request=None, version=1):
     return {
         'alert': reverse_lazy('{}alerthistory-list'.format(prefix), **kwargs),
         'arp': reverse_lazy('{}arp-list'.format(prefix), **kwargs),
+        'cabling': reverse_lazy('{}cabling-list'.format(prefix), **kwargs),
         'cam': reverse_lazy('{}cam-list'.format(prefix), **kwargs),
         'interface': reverse_lazy('{}interface-list'.format(prefix),
                              **kwargs),
@@ -109,7 +110,8 @@ class NAVAPIMixin(APIView):
     authentication_classes = (NavBaseAuthentication, APIAuthentication)
     permission_classes = (APIPermission,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
-    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
+    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend,
+                       filters.OrderingFilter)
 
 
 class ServiceHandlerViewSet(NAVAPIMixin, ViewSet):
@@ -197,6 +199,18 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     filter_fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
                      'ifadminstatus', 'iftype', 'baseport')
     search_fields = ('ifalias', 'ifdescr', 'ifname')
+
+
+class CablingViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """List all cablings
+
+    
+    """
+    queryset = cabling.Cabling.objects.all()
+    serializer_class = serializers.CablingSerializer
+    filter_fields = ('room', 'jack', 'building', 'target_room', 'category')
+    search_fields = ('jack', 'target_room', 'building')
+    
 
 
 class CamViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):

@@ -26,6 +26,7 @@ router.register(r'netbox', views.NetboxViewSet)
 router.register(r'interface', views.InterfaceViewSet)
 router.register(r'prefix', views.PrefixViewSet)
 router.register(r'vlan', views.VlanViewSet)
+router.register(r'cabling', views.CablingViewSet)
 router.register(r'cam', views.CamViewSet, base_name='cam')
 router.register(r'arp', views.ArpViewSet, base_name='arp')
 router.register(r'servicehandler', views.ServiceHandlerViewSet,

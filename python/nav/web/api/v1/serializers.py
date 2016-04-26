@@ -16,7 +16,7 @@
 # pylint: disable=R0903
 """Serializers for the NAV REST api"""
 
-from nav.models import manage
+from nav.models import manage, cabling
 from rest_framework import serializers
 
 
@@ -31,6 +31,12 @@ class InterfaceSerializer(serializers.ModelSerializer):
     """Serializer for the interface model"""
     class Meta(object):
         model = manage.Interface
+
+
+class CablingSerializer(serializers.ModelSerializer):
+    """Serializer for the cabling model"""
+    class Meta(object):
+        model = cabling.Cabling
 
 
 class CamSerializer(serializers.ModelSerializer):
