@@ -18,6 +18,7 @@
 from ..forms import CablingFilterForm, CablingForm
 
 from nav.models.cabling import Cabling
+from nav.models.manage import Room
 from nav.bulkparse import CablingBulkParser
 from nav.bulkimport import CablingImporter
 
@@ -54,13 +55,16 @@ def cabling(request):
 
 def cabling_list(request):
     info = CablingInfo()
-    query = Cabling.objects.none()
-    filter_form = CablingFilterForm(request.GET)
-    value_list = (
-        'room', 'jack', 'building', 'target_room', 'category', 'description')
+    query = Cabling.objects.none()  # Everything is fetched by API
+    value_list = ('room', 'jack', 'building', 'target_room', 'category',
+                  'description')
+    context = info.template_context
+    context.update({
+        'rooms': Room.objects.all().order_by('id')
+    })
     return render_list(request, query, value_list, 'seeddb-cabling-edit',
-                       filter_form=filter_form,
-                       extra_context=info.template_context)
+                       template='seeddb/list_cables.html',
+                       extra_context=context)
 
 
 def cabling_delete(request):

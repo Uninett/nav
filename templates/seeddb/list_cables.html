@@ -1,0 +1,24 @@
+{% extends "seeddb/list.html" %}
+
+{% block base_header_additional_head %}
+  {{ block.super }}
+  <style>
+   .filters .select2-container {
+       display: inline-block;
+       width: 25em;
+       margin-top: .8em;
+       margin-right: .6em;
+   }
+  </style>
+{% endblock %}
+
+{% block content %}
+  {{ block.super }}
+
+  <select id="id_room">
+    <option value="">--- Room filter ---</option>
+    {% for room in rooms %}
+      <option value="{{ room.pk }}">{{ room }}</option>
+    {% endfor %}
+  </select>
+{% endblock content %}

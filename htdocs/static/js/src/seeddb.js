@@ -168,8 +168,6 @@ require([
         // Add custom class to the wrapper element
         $.fn.dataTableExt.oStdClasses.sWrapper += ' dataTables_background';
 
-        console.log('Enriching table');
-
         var columns = {
             0: 'id', 1: 'room', 2: 'jack', 3: 'building', 4: 'target_room',
             5: 'category', 6: 'description'
@@ -182,10 +180,10 @@ require([
             ajax: {
                 url: '/api/1/cabling?format=json',
                 data: function(d) {
-                    console.log(d);
                     d.page = d.start / d.length + 1;
                     d.page_size = d.length;
                     d.search = d.search.value;
+                    d.room = $('#id_room').val();
                     d.ordering = d.order.map(function(order) {
                         var direction = order.dir === 'asc' ? '' : '-';
                         return direction + columns[order.column];
@@ -237,8 +235,7 @@ require([
             language: {
                 info: '_START_ - _END_ of _TOTAL_'
             },
-            
-            dom: "<f><lip>t",   // display order of metainfo (lengthchange, info, pagination)
+            dom: "<'filters'f><lip>t",   // display order of metainfo (lengthchange, info, pagination)
             drawCallback: function (oSettings) {
                 /* Run this on redraw of table */
                 $('.paginate_button').removeClass('secondary').addClass('button tiny');
@@ -248,6 +245,16 @@ require([
             }
         });
 
+        /* 
+         Add a dropdown to select room. The dropdown is prepopulated. Do a new
+         query when using the dropdown.
+         */
+        $('#id_room').appendTo('.filters').change(function() {
+            table.draw();
+        });
+
+        $('#id_room').select2(); // Apply select2 to the room dropdown
+        
         /* Store rowcount when user changes it */
         if (Modernizr.localstorage) {
             $wrapper.find('.dataTables_length select').change(function (event) {
