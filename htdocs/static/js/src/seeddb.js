@@ -226,7 +226,10 @@ require([
                 {
                     orderable: false,  // Do not sort
                     visible: showCheckBoxes, // Display or not based on 'showCheckBoxes'
-                    targets: 0  // On this column
+                    render: function(data, type, row) {
+                        return '<input type="checkbox" name="object" class="selector" value="' + data + '">';
+                    },
+                    targets: 0  // On this column (column 0)
                 }
             ],
 
