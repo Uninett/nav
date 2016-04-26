@@ -28,10 +28,10 @@ class Cabling(models.Model):
     id = models.AutoField(db_column='cablingid', primary_key=True)
     room = models.ForeignKey(Room, db_column='roomid')
     jack = VarcharField()
-    building = VarcharField()
-    target_room = VarcharField(db_column='targetroom')
-    description = VarcharField(db_column='descr')
-    category = VarcharField()
+    building = VarcharField(blank=True)
+    target_room = VarcharField(db_column='targetroom', blank=True)
+    description = VarcharField(db_column='descr', blank=True)
+    category = VarcharField(blank=True)
 
     class Meta(object):
         db_table = 'cabling'
