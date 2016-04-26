@@ -42,9 +42,9 @@ require([
         var $dataTable = $(tableSelector),
             $tableWrapper = $(tableWrapper);
         if ($tableWrapper.data('page') === 'cabling') {
-            addDataTableCabling();
+            enrichTable('cabling');
         } else if ($dataTable.find('tbody tr').length > 1) {
-            enrichTable();
+            enrichTable('default');
         } else {
             $(tableWrapper).removeClass('notvisible');
         }
@@ -147,7 +147,29 @@ require([
         }
     }
 
-    function addDataTableCabling() {
+
+    function enrichTable(tableType) {
+        var config = prepareDataTable(),
+            $wrapper = config.wrapper,
+            key = config.key;
+
+        var tableTypes = {
+            'default': applyDefaultDataTable,
+            'cabling': applyCablingDataTable
+        };
+        
+        var table = tableTypes[tableType](config);
+
+        /* Store rowcount when user changes it */
+        if (Modernizr.localstorage) {
+            $wrapper.find('.dataTables_length select').change(function (event) {
+                var newValue = $(event.target).val();
+                localStorage.setItem(key, newValue);
+            });
+        }
+    }
+
+    function prepareDataTable() {
         var $wrapper = $(tableWrapper),
             keyPrefix = 'nav.seeddb.rowcount',
             key = [keyPrefix, $wrapper.attr('data-forpage')].join('.'),
@@ -168,6 +190,62 @@ require([
         // Add custom class to the wrapper element
         $.fn.dataTableExt.oStdClasses.sWrapper += ' dataTables_background';
 
+        return {
+            wrapper: $wrapper,
+            key: key,
+            numRows: numRows,
+            showCheckBoxes: showCheckBoxes
+        };
+    }
+
+    function applyDefaultDataTable(config) {
+        var numRows = config.numRows,
+            showCheckBoxes = config.showCheckBoxes;
+        
+        /* Apply default DataTable */
+        return $(tableSelector).DataTable({
+            // Enable and configure paging 
+            paging: true,
+            pagingType: 'full_numbers',
+            lengthChange: true,  // Change number of visible rows
+            lengthMenu: [
+                [10, 25, 50, -1],   // Choices for number of rows to display
+                [10, 25, 50, "All"] // Text for the choices
+            ],
+            pageLength: numRows,  // The default number of rows to display
+
+            // Enable and configure ordering
+            ordering: true,  // Sort when clicking on headers
+            order: [[1, 'asc']],
+            columnDefs: [
+                {
+                    orderable: false,  // Do not sort
+                    visible: showCheckBoxes, // Display or not based on 'showCheckBoxes'
+                    targets: 0  // On this column
+                }
+            ],
+
+            info: true,  // Show number of entries visible
+            language: {
+                info: '_START_ - _END_ of _TOTAL_'
+            },
+            
+            dom: "<lip>t",   // display order of metainfo (lengthchange, info, pagination)
+            drawCallback: function (oSettings) {
+                /* Run this on redraw of table */
+                $('.paginate_button').removeClass('secondary').addClass('button tiny');
+                $('.paginate_button.current').addClass('secondary');
+                $('.ellipsis').addClass('button tiny secondary disabled paginate_button');
+                $(tableWrapper).removeClass('notvisible');
+            }
+        });
+        
+    }
+
+    function applyCablingDataTable(config) {
+        var numRows = config.numRows,
+            showCheckBoxes = config.showCheckBoxes;
+        
         var columns = {
             0: 'id', 1: 'room', 2: 'jack', 3: 'building', 4: 'target_room',
             5: 'category', 6: 'description'
@@ -255,84 +333,9 @@ require([
 
         $('#id_room').select2(); // Apply select2 to the room dropdown
         
-        /* Store rowcount when user changes it */
-        if (Modernizr.localstorage) {
-            $wrapper.find('.dataTables_length select').change(function (event) {
-                var newValue = $(event.target).val();
-                localStorage.setItem(key, newValue);
-            });
-        }
+        return table;
+    }
         
-    }
-
-    function enrichTable() {
-        var $wrapper = $(tableWrapper),
-            keyPrefix = 'nav.seeddb.rowcount',
-            key = [keyPrefix, $wrapper.attr('data-forpage')].join('.'),
-            numRows = 10;
-        if (Modernizr.localstorage) {
-            var value = localStorage.getItem(key);
-            if (value !== null) { numRows = +value; }
-        }
-
-        /* If neither a delete nor a move button is detected, no
-         * action is available and thus the checkboxes for marking
-         * action rows should not be displayed. */
-        var showCheckBoxes = true;
-        if (! ($("input[name='delete']").length || $("input[name='move']").length)) {
-            showCheckBoxes = false;
-        }
-
-        // Add custom class to the wrapper element
-        $.fn.dataTableExt.oStdClasses.sWrapper += ' dataTables_background';
-
-        /* Apply DataTable */
-        var table = $(tableSelector).DataTable({
-            // Enable and configure paging 
-            paging: true,
-            pagingType: 'full_numbers',
-            lengthChange: true,  // Change number of visible rows
-            lengthMenu: [
-                [10, 25, 50, -1],   // Choices for number of rows to display
-                [10, 25, 50, "All"] // Text for the choices
-            ],
-            pageLength: numRows,  // The default number of rows to display
-
-            // Enable and configure ordering
-            ordering: true,  // Sort when clicking on headers
-            order: [[1, 'asc']],
-            columnDefs: [
-                {
-                    orderable: false,  // Do not sort
-                    visible: showCheckBoxes, // Display or not based on 'showCheckBoxes'
-                    targets: 0  // On this column
-                }
-            ],
-
-            info: true,  // Show number of entries visible
-            language: {
-                info: '_START_ - _END_ of _TOTAL_'
-            },
-            
-            dom: "<lip>t",   // display order of metainfo (lengthchange, info, pagination)
-            drawCallback: function (oSettings) {
-                /* Run this on redraw of table */
-                $('.paginate_button').removeClass('secondary').addClass('button tiny');
-                $('.paginate_button.current').addClass('secondary');
-                $('.ellipsis').addClass('button tiny secondary disabled paginate_button');
-                $(tableWrapper).removeClass('notvisible');
-            }
-        });
-
-        /* Store rowcount when user changes it */
-        if (Modernizr.localstorage) {
-            $wrapper.find('.dataTables_length select').change(function (event) {
-                var newValue = $(event.target).val();
-                localStorage.setItem(key, newValue);
-            });
-        }
-    }
-
     function activateIpDeviceFormPlugins() {
         // The connectivity checker
         var $form = $('#seeddb-netbox-form'),
