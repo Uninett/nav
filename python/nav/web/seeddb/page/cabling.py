@@ -33,6 +33,7 @@ from nav.web.seeddb.utils.delete import render_delete
 class CablingInfo(SeeddbInfo):
     active = {'cabling': True}
     caption = 'Cabling'
+    active_page = 'cabling'
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'Cabling'
     verbose_name = Cabling._meta.verbose_name
@@ -53,7 +54,7 @@ def cabling(request):
 
 def cabling_list(request):
     info = CablingInfo()
-    query = Cabling.objects.all()
+    query = Cabling.objects.none()
     filter_form = CablingFilterForm(request.GET)
     value_list = (
         'room', 'jack', 'building', 'target_room', 'category', 'description')

@@ -37,6 +37,7 @@ def reverse_lazy(*args, **kwargs):
 
 class SeeddbInfo(object):
     active = {'index': True}
+    active_page = ''
     caption = 'Seed Database'
     verbose_name = ''
     tab_template = None
@@ -66,6 +67,7 @@ class SeeddbInfo(object):
     def template_context(self):
         return {
             'active': self.active,
+            'active_page': self.active_page,
             'title': self.title,
             'verbose_name': self.verbose_name,
             'caption': self.caption,

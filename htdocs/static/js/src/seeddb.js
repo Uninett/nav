@@ -39,7 +39,11 @@ require([
 
         /* The Datatables plugin works best when content is rendered. Thus
          * we activate it on load */
-        if ($(tableSelector).find('tbody tr').length > 1) {
+        var $dataTable = $(tableSelector),
+            $tableWrapper = $(tableWrapper);
+        if ($tableWrapper.data('page') === 'cabling') {
+            addDataTableCabling();
+        } else if ($dataTable.find('tbody tr').length > 1) {
             enrichTable();
         } else {
             $(tableWrapper).removeClass('notvisible');
@@ -141,6 +145,114 @@ require([
             });
             $(document).foundation('joyride', 'start');
         }
+    }
+
+    function addDataTableCabling() {
+        var $wrapper = $(tableWrapper),
+            keyPrefix = 'nav.seeddb.rowcount',
+            key = [keyPrefix, $wrapper.attr('data-forpage')].join('.'),
+            numRows = 10;
+        if (Modernizr.localstorage) {
+            var value = localStorage.getItem(key);
+            if (value !== null) { numRows = +value; }
+        }
+
+        /* If neither a delete nor a move button is detected, no
+         * action is available and thus the checkboxes for marking
+         * action rows should not be displayed. */
+        var showCheckBoxes = true;
+        if (! ($("input[name='delete']").length || $("input[name='move']").length)) {
+            showCheckBoxes = false;
+        }
+
+        // Add custom class to the wrapper element
+        $.fn.dataTableExt.oStdClasses.sWrapper += ' dataTables_background';
+
+        console.log('Enriching table');
+
+        var columns = {
+            0: 'id', 1: 'room', 2: 'jack', 3: 'building', 4: 'target_room',
+            5: 'category', 6: 'description'
+        };
+        
+        /* Apply DataTable */
+        var table = $(tableSelector).DataTable({
+            processing: true,  // Indicate on long loading times
+            serverSide: true,  // https://datatables.net/manual/server-side
+            ajax: {
+                url: '/api/1/cabling?format=json',
+                data: function(d) {
+                    console.log(d);
+                    d.page = d.start / d.length + 1;
+                    d.page_size = d.length;
+                    d.search = d.search.value;
+                    d.ordering = d.order.map(function(order) {
+                        var direction = order.dir === 'asc' ? '' : '-';
+                        return direction + columns[order.column];
+                    }).join(',');
+                },
+                dataFilter: function(data){
+                    var json = jQuery.parseJSON( data );
+                    json.recordsTotal = json.count;
+                    json.recordsFiltered = json.count;
+                    json.data = json.results;
+                    return JSON.stringify( json );
+                }
+            },
+            columns: [
+                { data: columns[0] },
+                { data: columns[1] },
+                { data: columns[2] },
+                { data: columns[3] },
+                { data: columns[4] },
+                { data: columns[5] },
+                { data: columns[6] }
+            ],
+            searching: true,
+            // Enable and configure paging
+            paging: true,
+            pagingType: 'full_numbers',
+            lengthChange: true,  // Change number of visible rows
+            lengthMenu: [
+                [10, 25, 50, -1],   // Choices for number of rows to display
+                [10, 25, 50, "All"] // Text for the choices
+            ],
+            pageLength: numRows,  // The default number of rows to display
+
+            // Enable and configure ordering
+            ordering: true,  // Sort when clicking on headers
+            order: [[1, 'asc']],
+            columnDefs: [
+                {
+                    orderable: false,  // Do not sort
+                    visible: showCheckBoxes, // Display or not based on 'showCheckBoxes'
+                    targets: 0  // On this column
+                }
+            ],
+
+            info: true,  // Show number of entries visible
+            language: {
+                info: '_START_ - _END_ of _TOTAL_'
+            },
+            
+            dom: "<f><lip>t",   // display order of metainfo (lengthchange, info, pagination)
+            drawCallback: function (oSettings) {
+                /* Run this on redraw of table */
+                $('.paginate_button').removeClass('secondary').addClass('button tiny');
+                $('.paginate_button.current').addClass('secondary');
+                $('.ellipsis').addClass('button tiny secondary disabled paginate_button');
+                $(tableWrapper).removeClass('notvisible');
+            }
+        });
+
+        /* Store rowcount when user changes it */
+        if (Modernizr.localstorage) {
+            $wrapper.find('.dataTables_length select').change(function (event) {
+                var newValue = $(event.target).val();
+                localStorage.setItem(key, newValue);
+            });
+        }
+        
     }
 
     function enrichTable() {
