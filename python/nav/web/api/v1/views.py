@@ -202,15 +202,34 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
 
 class CablingViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
-    """List all cablings
+    """Lists all cables.
 
-    
+    Search
+    ------
+    Searches in *jack*, *target_room*, *building*
+
+    Filters
+    -------
+    - available: *set this to list only cables that are not patched*
+    - building
+    - category
+    - jack
+    - room
+    - target_room
+
     """
-    queryset = cabling.Cabling.objects.all()
     serializer_class = serializers.CablingSerializer
     filter_fields = ('room', 'jack', 'building', 'target_room', 'category')
     search_fields = ('jack', 'target_room', 'building')
-    
+
+    def get_queryset(self):
+        queryset = cabling.Cabling.objects.all()
+        not_patched = self.request.QUERY_PARAMS.get('available', None)
+        if not_patched:
+            queryset = queryset.filter(patch=None)
+
+        return queryset
+
 
 
 class CamViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
@@ -306,7 +325,7 @@ class RoutedPrefixList(NAVAPIMixin, ListAPIView):
     Filters
     -------
     - family: *either 4 or 6, else both will be listed*
-    
+
     """
     _router_categories = ['GSW', 'GW']
     serializer_class = serializers.PrefixSerializer
@@ -350,7 +369,7 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
 
     See also the [iso8601 module doc](https://pypi.python.org/pypi/iso8601).
 
-    Examples: 
+    Examples:
 
     - `?starttime=2016-02-02`
     - `?starttime=2016-02-02T15:00:00` - default Zulu time.

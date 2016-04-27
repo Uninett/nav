@@ -27,8 +27,25 @@ class NetboxSerializer(serializers.ModelSerializer):
         depth = 1
 
 
+class PatchSerializer(serializers.ModelSerializer):
+    """Serializer for the patch model"""
+    class Meta(object):
+        model = cabling.Patch
+        depth = 1
+
+
+class SpecificPatchSerializer(serializers.ModelSerializer):
+    """Specific serializer used for InterfaceSerializer"""
+    class Meta(object):
+        model = cabling.Patch
+        depth = 1
+        fields = ('id', 'cabling', 'split')
+
+
 class InterfaceSerializer(serializers.ModelSerializer):
     """Serializer for the interface model"""
+    patches = SpecificPatchSerializer()
+
     class Meta(object):
         model = manage.Interface
 
@@ -102,5 +119,3 @@ class ServiceHandlerSerializer(serializers.Serializer):
     name = serializers.CharField()
     ipv6_support = serializers.BooleanField()
     description = serializers.CharField()
-
-
