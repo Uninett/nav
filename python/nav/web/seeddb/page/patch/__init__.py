@@ -17,8 +17,12 @@
 """Module containing everything regarding patches in SeedDB"""
 
 from django import forms
+from django.http import HttpResponse
+from django.shortcuts import render, get_object_or_404
+from django.views.decorators.http import require_POST
 
-from nav.models.cabling import Patch
+from nav.models.cabling import Patch, Cabling
+from nav.models.manage import Netbox, Interface
 from nav.bulkparse import PatchBulkParser
 from nav.bulkimport import PatchImporter
 
@@ -29,6 +33,10 @@ from nav.web.seeddb.utils.list import render_list
 from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.utils.delete import render_delete
+
+
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class PatchInfo(SeeddbInfo):
@@ -81,12 +89,42 @@ def patch_delete(request):
                          extra_context=info.template_context)
 
 
-def patch_edit(request, patch_id=None):
-    """The view used when editing patches"""
-    info = PatchInfo()
-    return render_edit(request, Patch, PatchForm, patch_id,
-                       'seeddb-patch-edit',
-                       extra_context=info.template_context)
+def patch_edit(request):
+    """Renders gui for editing patches"""
+    context = PatchInfo().template_context
+
+    try:
+        netbox = Netbox.objects.get(pk=request.GET.get('netboxid'))
+    except (ValueError, Netbox.DoesNotExist):
+        netbox = Netbox.objects.none()
+        cables = Cabling.objects.none()
+    else:
+        cables = Cabling.objects.filter(room=netbox.room)
+
+    context.update({
+        'netboxes': Netbox.objects.filter(category__id__in=['SW', 'GSW']),
+        'netbox': netbox,
+        'cables': cables
+    })
+
+    return render(request, 'seeddb/edit_patch.html', context)
+
+
+@require_POST
+def patch_save(request):
+    """Save a patch"""
+    interface = get_object_or_404(Interface, pk=request.POST.get('interfaceid'))
+    cable = get_object_or_404(Cabling, pk=request.POST.get('cableid'))
+    split = request.POST.get('split', '')
+    _logger.debug('Creating patch for interface %s and cable %s', interface, cable)
+
+    try:
+        Patch.objects.create(interface=interface, cabling=cable, split=split)
+    except Exception as error:
+        _logger.debug(error)
+        return HttpResponse(error, status=500)
+
+    return HttpResponse()
 
 
 def patch_bulk(request):
@@ -96,3 +134,10 @@ def patch_bulk(request):
         request, PatchBulkParser, PatchImporter,
         'seeddb-patch',
         extra_context=info.template_context)
+
+def load_cell(request):
+    """Renders patches for an interface"""
+    interface = Interface.objects.get(pk=request.GET.get('interfaceid'))
+    return render(request, 'seeddb/fragments/patches.html', {
+        'interface': interface
+    })

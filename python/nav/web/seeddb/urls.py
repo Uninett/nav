@@ -32,7 +32,7 @@ from nav.web.seeddb.page.vlan import vlan_list, vlan_edit
 from nav.web.seeddb.page.prefix import (get_prefix_view, prefix_edit,
                                         prefix_bulk)
 from nav.web.seeddb.page.cabling import cabling, cabling_edit, cabling_bulk
-from nav.web.seeddb.page.patch import patch, patch_edit, patch_bulk
+from nav.web.seeddb.page import patch
 from nav.web.seeddb.page.netbox import netbox, netbox_bulk
 from nav.web.seeddb.page.netbox.edit import (
     netbox_edit, get_read_only_variables, get_address_info)
@@ -168,13 +168,15 @@ urlpatterns = patterns('',
         name='seeddb-cabling-bulk'),
 
     # Patch
-    url(r'^patch/$', patch,
+    url(r'^patch/$', patch.patch,
         name='seeddb-patch'),
-    url(r'^patch/edit/(?P<patch_id>[\d]+)/$', patch_edit,
+    url(r'^patch/edit/$', patch.patch_edit,
         name='seeddb-patch-edit'),
-    url(r'^patch/add/$', patch_edit,
-        name='seeddb-patch-edit'),
-    url(r'^patch/bulk/$', patch_bulk,
+    url(r'^patch/bulk/$', patch.patch_bulk,
         name='seeddb-patch-bulk'),
+    url(r'^patch/save/', patch.patch_save,
+        name='seeddb-patch-save'),
+    url(r'^patch/loadcell/', patch.load_cell,
+        name='seeddb-patch-load-cell'),
 
 )

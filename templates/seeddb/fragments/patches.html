@@ -1,0 +1,3 @@
+{% for patch in interface.patches.all %}
+  <span class="label secondary">Patched to <em>{{ patch.cabling.verbose }}</em></span>
+{% endfor %}

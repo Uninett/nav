@@ -1,0 +1,168 @@
+{% extends 'seeddb/base.html' %}
+
+{% block base_header_additional_head %}
+  {{ block.super }}
+  <script>
+   require(['libs/select2.min'], function(){
+       $(function(){
+           NAV.urls.seeddb_patch_save = "{% url 'seeddb-patch-save' %}";
+           NAV.urls.seeddb_patch_load_cell = "{% url 'seeddb-patch-load-cell' %}";
+           var room = "{{ netbox.room.pk }}";
+
+           /* Enable search for cables in the modal */
+           $('#cable-search').select2({
+               ajax: {
+                   url: '/api/1/cabling/',
+                   dataType: 'json',
+                   data: function(term) {
+                       return {
+                           search: term,
+                           room: room,
+                           available: 1
+                       }
+                   },
+                   results: function(data) {
+                       return {
+                           results: data.results.map(function(obj){
+                               return {
+                                   id: obj.id,
+                                   text: 'Jack ' + obj.jack + ' - ' + [obj.building, obj.target_room, obj.description].filter(function(x){
+                                       return Boolean(x)
+                                   }).join(', ')
+                               }
+                           })
+                       }
+                   }
+               },
+               minimumInputLength: 2
+           });
+
+           /* Global variables */
+           var $modal = $('#add-patch-modal');
+           var $interfaceNameElement = $modal.find('.interfacename');
+           var $interfaceIdElement = $modal.find('#interface-id');
+           var $cableIdElement = $modal.find('#cable-search');
+           var $form = $('#add-patch-form');
+           var $feedback = $modal.find('.alert-box')
+
+
+           /* Open modal and provide user with interface for creating patches */
+           $('#interface-table').on('click', '.table-button', function(event){
+               $feedback.hide();
+               var $button = $(event.target);
+               var $row = $button.closest('tr');
+               var $cells = $row.find('td');
+               var interfacename = $cells.get(0).innerHTML;
+               var interfacealias = $cells.get(1).innerHTML;
+               var interfaceid = $row.data('interfaceid');
+               $interfaceNameElement.text(interfacename + ' - ' + interfacealias);
+               $interfaceIdElement.val(interfaceid);
+               $modal.foundation('reveal', 'open');
+           });
+
+
+           /* When user clicks the save-patch button, create a patch and give feedback */
+           $('#save-patch-button').on('click', function(event){
+               event.preventDefault();
+               if ($cableIdElement.val() > 0) {
+                   var request = $.post(NAV.urls.seeddb_patch_save, $form.serialize());
+                   request.done(function(){
+                       reloadCableCell($interfaceIdElement.val());
+                       $cableIdElement.select2('val','');
+                       $modal.foundation('reveal', 'close');
+                   });
+                   request.fail(function(response){
+                       console.log(response)
+                       $feedback.show().html('Error saving patch - ' + response.responseText);
+                   });
+               } else {
+                   $feedback.show().html('Please choose a cable');
+               }
+           });
+
+
+           /* Update the cell with cable info */
+           function reloadCableCell(interfaceid) {
+               var request = $.get(NAV.urls.seeddb_patch_load_cell,
+                                   { interfaceid: interfaceid });
+               request.done(function(data){
+                   var $row = $('tr[data-interfaceid=' + interfaceid + ']');
+                   $row.find('.patch-cell').html(data);
+               });
+           }
+           
+       });
+       
+   });
+  </script>
+{% endblock %}
+
+{% block content %}
+
+  <form id="choose-netbox-form" method="get" action="">
+    <select name="netboxid">
+      <option value="">--- Choose IP Device ---</option>
+      {% for n in netboxes %}
+        <option value="{{ n.pk }}"
+                {% if n.pk == netbox.pk %}selected="selected"{% endif %}>
+          {{ n }}
+        </option>
+      {% endfor %}
+    </select>
+    <input type="submit" value="Go">
+  </form>
+
+  {% if netbox %}
+    {% if cables %}
+      <table id="interface-table" class="listtable">
+        <caption>{{ netbox }} located in {{ netbox.room }}</caption>
+        <thead>
+          <tr>
+            <td>IfName</td>
+            <td>IfAlias</td>
+            <td>Cable</td>
+            <td>&nbsp;</td>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for interface in netbox.interface_set.all %}
+            <tr data-interfaceid="{{ interface.pk }}">
+              <td>{{ interface.ifname }}</td>
+              <td>{{ interface.ifalias }}</td>
+              <td class="patch-cell">
+                {% include 'seeddb/fragments/patches.html' %}
+              </td>
+              <td>
+                <button class="table-button">
+                  Add cable
+                </button>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+    {% else %}
+
+      <div class="alert-box info">There are no patches in {{ netbox.room }}</div>
+
+    {% endif %}
+  {% endif %}
+
+
+  {# The modal element for adding patches #}
+  <div id="add-patch-modal" class="reveal-modal tiny" data-reveal>
+    <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+    <h4>Add cable to interface</h4>
+    Connect interface <em class="interfacename"></em> to
+    <form id="add-patch-form">
+      <input id="cable-search" name="cableid" type="text" placeholder="Search for cable">
+      <input id="interface-id" name="interfaceid" type="hidden" value="">
+      <button id="save-patch-button" class="button small">Save patch</button>
+    </form>
+    <div class="alert-box alert" style="display: none">Error saving patch</div>
+  </div>
+
+
+{% endblock %}

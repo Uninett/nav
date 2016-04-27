@@ -40,12 +40,19 @@ class Cabling(models.Model):
     def __unicode__(self):
         return u'jack %s, in room %s' % (self.jack, self.room.id)
 
+    def verbose(self):
+        return u'jack {}, {}'.format(self.jack, ", ".join(
+            [x for x in [self.building, self.target_room, self.description]
+             if x]))
+
+                                     
 class Patch(models.Model):
     """From NAV Wiki: The patch table documents the cross connect from switch
     port to jack."""
 
     id = models.AutoField(db_column='patchid', primary_key=True)
-    interface = models.ForeignKey(Interface, db_column='interfaceid')
+    interface = models.ForeignKey(Interface, db_column='interfaceid',
+                                  related_name='patches')
     cabling = models.ForeignKey(Cabling, db_column='cablingid')
     split = VarcharField(default='no')
 
