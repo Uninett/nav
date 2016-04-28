@@ -18,6 +18,8 @@
 from IPy import IP
 from django.http import HttpResponse
 from django.db.models import Q
+from django.db.models.related import RelatedObject
+from django.db.models.fields import FieldDoesNotExist
 from datetime import datetime, timedelta
 import iso8601
 
@@ -105,13 +107,43 @@ def get_endpoints(request=None, version=1):
     }
 
 
+class RelatedOrderingFilter(filters.OrderingFilter):
+    """
+    Extends OrderingFilter to support ordering by fields in related models
+    using the Django ORM __ notation
+    """
+    def is_valid_field(self, model, field):
+        """
+        Return true if the field exists within the model (or in the related
+        model specified using the Django ORM __ notation)
+        """
+        components = field.split('__', 1)
+        try:
+            field, _parent_model, _direct, _m2m = \
+                model._meta.get_field_by_name(components[0])
+
+            # reverse relation
+            if isinstance(field, RelatedObject):
+                return self.is_valid_field(field.model, components[1])
+
+            # foreign key
+            if field.rel and len(components) == 2:
+                return self.is_valid_field(field.rel.to, components[1])
+            return True
+        except FieldDoesNotExist:
+            return False
+
+    def remove_invalid_fields(self, queryset, ordering, view):
+        return [term for term in ordering
+                if self.is_valid_field(queryset.model, term.lstrip('-'))]
+
 class NAVAPIMixin(APIView):
     """Mixin for providing permissions and renderers"""
     authentication_classes = (NavBaseAuthentication, APIAuthentication)
     permission_classes = (APIPermission,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend,
-                       filters.OrderingFilter)
+                       RelatedOrderingFilter)
 
 
 class ServiceHandlerViewSet(NAVAPIMixin, ViewSet):
