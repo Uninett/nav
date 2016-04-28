@@ -411,20 +411,23 @@ function (CheckboxSelector, QuickSelect, FormFuck, connectivityChecker, IpChoose
         var table = $(tableSelector).DataTable(config);
 
         /* 
-         Add a dropdown to select room. The dropdown is prepopulated. Do a new
-         query when using the dropdown.
+         Add dropdowns to select room and netbox. The dropdowns are
+         prepopulated. Do a new query when using the dropdowns. They reset each
+         other.
          */
-        $('#id_room').appendTo('.filters').change(function() {
+        var $roomdropdown = $('#id_room'),
+            $netboxdropdown = $('#id_netbox');
+        $roomdropdown.appendTo('.filters').change(function() {
+            $netboxdropdown.select2('val', '');
             table.draw();
         });
-
-        $('#id_room').select2(); // Apply select2 to the room dropdown
+        $roomdropdown.select2(); // Apply select2 to the room dropdown
         
-        $('#id_netbox').appendTo('.filters').change(function() {
+        $netboxdropdown.appendTo('.filters').change(function() {
+            $roomdropdown.select2('val', '');
             table.draw();
         });
-
-        $('#id_netbox').select2(); // Apply select2 to the room dropdown
+        $netboxdropdown.select2(); // Apply select2 to the room dropdown
         
         return table;
     }
