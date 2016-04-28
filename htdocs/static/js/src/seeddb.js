@@ -7,9 +7,8 @@ require([
     'plugins/seeddb_map',
     'libs/spin',
     'libs/datatables.min',
-    'libs/modernizr'], function (CheckboxSelector, QuickSelect, FormFuck,
-                                        connectivityChecker, IpChooser, seedDBRoomMap)
-{
+    'libs/modernizr'],
+function (CheckboxSelector, QuickSelect, FormFuck, connectivityChecker, IpChooser, seedDBRoomMap) {
 
     function executeOnLoad() {
         /**
@@ -198,13 +197,9 @@ require([
         };
     }
 
-    function applyDefaultDataTable(config) {
-        var numRows = config.numRows,
-            showCheckBoxes = config.showCheckBoxes;
-        
-        /* Apply default DataTable */
-        return $(tableSelector).DataTable({
-            // Enable and configure paging 
+    function getPageConfig(numRows) {
+        // Enable and configure paging
+        return {
             paging: true,
             pagingType: 'full_numbers',
             lengthChange: true,  // Change number of visible rows
@@ -212,8 +207,23 @@ require([
                 [10, 25, 50, -1],   // Choices for number of rows to display
                 [10, 25, 50, "All"] // Text for the choices
             ],
-            pageLength: numRows,  // The default number of rows to display
+            pageLength: numRows  // The default number of rows to display
+        };
+    }
 
+    /* Runs on redraw of DataTable */
+    function drawCallback(oSettings) {
+        $('.paginate_button').removeClass('secondary').addClass('button tiny');
+        $('.paginate_button.current').addClass('secondary');
+        $('.ellipsis').addClass('button tiny secondary disabled paginate_button');
+        $(tableWrapper).removeClass('notvisible');
+    }
+
+    function applyDefaultDataTable(options) {
+        var numRows = options.numRows,
+            showCheckBoxes = options.showCheckBoxes;
+
+        var config = {
             // Enable and configure ordering
             ordering: true,  // Sort when clicking on headers
             order: [[1, 'asc']],
@@ -231,28 +241,25 @@ require([
             },
             
             dom: "<lip>t",   // display order of metainfo (lengthchange, info, pagination)
-            drawCallback: function (oSettings) {
-                /* Run this on redraw of table */
-                $('.paginate_button').removeClass('secondary').addClass('button tiny');
-                $('.paginate_button.current').addClass('secondary');
-                $('.ellipsis').addClass('button tiny secondary disabled paginate_button');
-                $(tableWrapper).removeClass('notvisible');
-            }
-        });
+            drawCallback: drawCallback
+        };
+        $.extend(config, getPageConfig(numRows));
+        
+        /* Apply default DataTable */
+        return $(tableSelector).DataTable(config);
         
     }
 
-    function applyCablingDataTable(config) {
-        var numRows = config.numRows,
-            showCheckBoxes = config.showCheckBoxes;
+    function applyCablingDataTable(options) {
+        var numRows = options.numRows,
+            showCheckBoxes = options.showCheckBoxes;
         
         var columns = {
             0: 'id', 1: 'room', 2: 'jack', 3: 'building', 4: 'target_room',
             5: 'category', 6: 'description'
         };
-        
-        /* Apply DataTable */
-        var table = $(tableSelector).DataTable({
+
+        var config = {
             processing: true,  // Indicate on long loading times
             serverSide: true,  // https://datatables.net/manual/server-side
             ajax: {
@@ -285,16 +292,6 @@ require([
                 { data: columns[6] }
             ],
             searching: true,
-            // Enable and configure paging
-            paging: true,
-            pagingType: 'full_numbers',
-            lengthChange: true,  // Change number of visible rows
-            lengthMenu: [
-                [10, 25, 50, -1],   // Choices for number of rows to display
-                [10, 25, 50, "All"] // Text for the choices
-            ],
-            pageLength: numRows,  // The default number of rows to display
-
             // Enable and configure ordering
             ordering: true,  // Sort when clicking on headers
             order: [[1, 'asc']],
@@ -314,14 +311,13 @@ require([
                 info: '_START_ - _END_ of _TOTAL_'
             },
             dom: "<'filters'f><lip>t",   // display order of metainfo (lengthchange, info, pagination)
-            drawCallback: function (oSettings) {
-                /* Run this on redraw of table */
-                $('.paginate_button').removeClass('secondary').addClass('button tiny');
-                $('.paginate_button.current').addClass('secondary');
-                $('.ellipsis').addClass('button tiny secondary disabled paginate_button');
-                $(tableWrapper).removeClass('notvisible');
-            }
-        });
+            drawCallback: drawCallback
+        };
+        $.extend(config, getPageConfig(numRows));
+        
+        
+        /* Apply DataTable */
+        var table = $(tableSelector).DataTable(config);
 
         /* 
          Add a dropdown to select room. The dropdown is prepopulated. Do a new
