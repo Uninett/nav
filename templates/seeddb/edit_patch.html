@@ -90,17 +90,26 @@
                    $row.find('.patch-cell').html(data);
                });
            }
-           
+
        });
-       
+
    });
+
   </script>
+
+  <style>
+   #choose-netbox-form .select2-container {
+       width: 25em;
+       display: inline-block;
+   }
+   #choose-netbox-form input { vertical-align: top; }
+  </style>
 {% endblock %}
 
 {% block content %}
 
   <form id="choose-netbox-form" method="get" action="">
-    <select name="netboxid">
+    <select name="netboxid" class="select2">
       <option value="">--- Choose IP Device ---</option>
       {% for n in netboxes %}
         <option value="{{ n.pk }}"
@@ -109,7 +118,7 @@
         </option>
       {% endfor %}
     </select>
-    <input type="submit" value="Go">
+    <input type="submit" class="button small" value="See patch list">
   </form>
 
   {% if netbox %}
