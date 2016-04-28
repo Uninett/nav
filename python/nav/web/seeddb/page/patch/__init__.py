@@ -22,7 +22,7 @@ from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 
 from nav.models.cabling import Patch, Cabling
-from nav.models.manage import Netbox, Interface
+from nav.models.manage import Netbox, Interface, Room
 from nav.bulkparse import PatchBulkParser
 from nav.bulkimport import PatchImporter
 
@@ -42,6 +42,7 @@ _logger = logging.getLogger(__name__)
 class PatchInfo(SeeddbInfo):
     """Class for storing meta information related to patches in SeedDB"""
     active = {'patch': True}
+    active_page = 'patch'
     caption = 'Patch'
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'Patch'
@@ -75,11 +76,17 @@ def patch_list(request):
     query = Patch.objects.none()
     info = PatchInfo()
     value_list = (
-        'interface__netbox__sysname', 'interface__ifname',
-        'cabling__room', 'cabling__jack', 'split')
+        'cabling__room', 'interface__netbox__sysname', 'interface__ifname',
+        'cabling__jack', 'split')
+
+    context = info.template_context
+    context.update({
+        'rooms': Room.objects.all(),
+        'netboxes': Netbox.objects.all()
+    })
     return render_list(request, query, value_list, 'seeddb-patch-edit',
                        template='seeddb/list_patches.html',
-                       extra_context=info.template_context)
+                       extra_context=context)
 
 
 def patch_delete(request):

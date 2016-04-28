@@ -42,6 +42,8 @@ function (CheckboxSelector, QuickSelect, FormFuck, connectivityChecker, IpChoose
             $tableWrapper = $(tableWrapper);
         if ($tableWrapper.data('page') === 'cabling') {
             enrichTable('cabling');
+        } else if ($tableWrapper.data('page') === 'patch') {
+            enrichTable('patch');
         } else if ($dataTable.find('tbody tr').length > 1) {
             enrichTable('default');
         } else {
@@ -154,7 +156,8 @@ function (CheckboxSelector, QuickSelect, FormFuck, connectivityChecker, IpChoose
 
         var tableTypes = {
             'default': applyDefaultDataTable,
-            'cabling': applyCablingDataTable
+            'cabling': applyCablingDataTable,
+            'patch': applyPatchDataTable
         };
         
         var table = tableTypes[tableType](config);
@@ -328,6 +331,94 @@ function (CheckboxSelector, QuickSelect, FormFuck, connectivityChecker, IpChoose
         });
 
         $('#id_room').select2(); // Apply select2 to the room dropdown
+        
+        return table;
+    }
+        
+    function applyPatchDataTable(options) {
+        var numRows = options.numRows,
+            showCheckBoxes = options.showCheckBoxes;
+        
+        var columns = {
+            0: 'id', 1: 'cabling.room.id', 2: 'interface.netbox.sysname',
+            3: 'interface.ifname', 4: 'cabling.jack', 5: 'split'
+        };
+
+        var config = {
+            processing: true,  // Indicate on long loading times
+            serverSide: true,  // https://datatables.net/manual/server-side
+            ajax: {
+                url: '/api/1/patch?format=json',
+                data: function(d) {
+                    d.page = d.start / d.length + 1;
+                    d.page_size = d.length;
+                    d.search = d.search.value;
+                    d.cabling__room = $('#id_room').val();
+                    d.interface__netbox = $('#id_netbox').val();
+                    d.ordering = d.order.map(function(order) {
+                        var direction = order.dir === 'asc' ? '' : '-';
+                        return direction + columns[order.column].split('.').join('__');
+                    }).join(',');
+                },
+                dataFilter: function(data){
+                    var json = jQuery.parseJSON( data );
+                    json.recordsTotal = json.count;
+                    json.recordsFiltered = json.count;
+                    json.data = json.results;
+                    return JSON.stringify( json );
+                }
+            },
+            columns: [
+                { data: columns[0] },
+                { data: columns[1] },
+                { data: columns[2] },
+                { data: columns[3] },
+                { data: columns[4] },
+                { data: columns[5] },
+            ],
+            searching: true,
+            // Enable and configure ordering
+            ordering: true,  // Sort when clicking on headers
+            order: [[1, 'asc']],
+            columnDefs: [
+                {
+                    orderable: false,  // Do not sort
+                    visible: showCheckBoxes, // Display or not based on 'showCheckBoxes'
+                    render: function(data, type, row) {
+                        return '<input type="checkbox" name="object" class="selector" value="' + data + '">';
+                    },
+                    targets: 0  // On this column (column 0)
+                }
+            ],
+
+            info: true,  // Show number of entries visible
+            language: {
+                info: '_START_ - _END_ of _TOTAL_'
+            },
+            dom: "<'filters'f><lip>t",   // display order of metainfo (lengthchange, info, pagination)
+            drawCallback: drawCallback
+        };
+        $.extend(config, getPageConfig(numRows));
+        
+        
+        /* Apply DataTable */
+        var table = $(tableSelector).DataTable(config);
+
+        /* 
+         Add a dropdown to select room. The dropdown is prepopulated. Do a new
+         query when using the dropdown.
+         */
+        $('#id_room').appendTo('.filters').change(function() {
+            table.draw();
+        });
+
+        $('#id_room').select2(); // Apply select2 to the room dropdown
+        
+        $('#id_netbox').appendTo('.filters').change(function() {
+            table.draw();
+        });
+
+        $('#id_netbox').select2(); // Apply select2 to the room dropdown
         
         return table;
     }
