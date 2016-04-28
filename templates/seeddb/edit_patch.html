@@ -138,7 +138,7 @@
         </thead>
 
         <tbody>
-          {% for interface in netbox.interface_set.all %}
+          {% for interface in netbox.get_swports_sorted %}
             <tr data-interfaceid="{{ interface.pk }}">
               <td>{{ interface.ifname }}</td>
               <td>{{ interface.ifalias }}</td>
