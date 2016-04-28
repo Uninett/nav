@@ -110,7 +110,7 @@ def patch_edit(request):
         cables = Cabling.objects.filter(room=netbox.room)
 
     context.update({
-        'netboxes': Netbox.objects.filter(category__id__in=['SW', 'GSW']),
+        'netboxes': Netbox.objects.all(),
         'netbox': netbox,
         'cables': cables
     })
