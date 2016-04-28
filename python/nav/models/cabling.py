@@ -41,11 +41,12 @@ class Cabling(models.Model):
         return u'jack %s, in room %s' % (self.jack, self.room.id)
 
     def verbose(self):
+        """Returns a more verbose description of this cable"""
         return u'jack {}, {}'.format(self.jack, ", ".join(
             [x for x in [self.building, self.target_room, self.description]
              if x]))
 
-                                     
+
 class Patch(models.Model):
     """From NAV Wiki: The patch table documents the cross connect from switch
     port to jack."""
