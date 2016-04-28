@@ -31,7 +31,7 @@ class PatchSerializer(serializers.ModelSerializer):
     """Serializer for the patch model"""
     class Meta(object):
         model = cabling.Patch
-        depth = 1
+        depth = 2
 
 
 class SpecificPatchSerializer(serializers.ModelSerializer):

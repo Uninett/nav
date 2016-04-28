@@ -201,6 +201,32 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     search_fields = ('ifalias', 'ifdescr', 'ifname')
 
 
+class PatchViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """Lists all patches
+
+    Search
+    ------
+    Searches in the cables *jack*-field
+
+    Filters
+    -------
+    - cabling: The cable id
+    - cabling__room: The room id
+    - interface: The interface id
+    - interface__netbox: The netbox id
+
+    ### (Silly) Example
+    `patch/?interface__netbox=138&interface=337827&search=a`
+    """
+
+    queryset = cabling.Patch.objects.select_related(
+        'cabling__room', 'interface__netbox').all()
+    serializer_class = serializers.PatchSerializer
+    filter_fields = ('cabling', 'cabling__room',
+                     'interface', 'interface__netbox')
+    search_fields = ('cabling__jack',)
+
+
 class CablingViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Lists all cables.
 
