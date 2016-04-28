@@ -388,6 +388,12 @@ function (CheckboxSelector, QuickSelect, FormFuck, connectivityChecker, IpChoose
                         return '<input type="checkbox" name="object" class="selector" value="' + data + '">';
                     },
                     targets: 0  // On this column (column 0)
+                },
+                {
+                    render: function(data, type, obj) {
+                        return '<a href="' + NAV.urls.seeddb_patch_edit + '?netboxid=' + obj.interface.netbox.id + '">' + data + '</a>';
+                    },
+                    targets: 2
                 }
             ],
 
