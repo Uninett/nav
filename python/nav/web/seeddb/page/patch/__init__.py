@@ -72,12 +72,13 @@ def patch(request):
 
 def patch_list(request):
     """The view used when listing all patches"""
-    query = Patch.objects.all()
+    query = Patch.objects.none()
     info = PatchInfo()
     value_list = (
         'interface__netbox__sysname', 'interface__ifname',
         'cabling__room', 'cabling__jack', 'split')
     return render_list(request, query, value_list, 'seeddb-patch-edit',
+                       template='seeddb/list_patches.html',
                        extra_context=info.template_context)
 
 
