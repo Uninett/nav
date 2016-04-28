@@ -306,6 +306,12 @@ function (CheckboxSelector, QuickSelect, FormFuck, connectivityChecker, IpChoose
                         return '<input type="checkbox" name="object" class="selector" value="' + data + '">';
                     },
                     targets: 0  // On this column (column 0)
+                },
+                {
+                    targets: 2,
+                    render: function(data, type, obj) {
+                        return '<a href="' + NAV.urls.seeddb_cabling_edit + '?cablingid=' + obj.id + '">' + data + '</a>';
+                    }
                 }
             ],
 

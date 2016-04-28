@@ -160,10 +160,10 @@ urlpatterns = patterns('',
     # Cabling
     url(r'^cabling/$', cabling,
         name='seeddb-cabling'),
-    url(r'^cabling/edit/(?P<cabling_id>[\d]+)/$', cabling_edit,
+    url(r'^cabling/edit/$', cabling_edit,
         name='seeddb-cabling-edit'),
     url(r'^cabling/add/$', cabling_edit,
-        name='seeddb-cabling-edit'),
+        name='seeddb-cabling-add'),
     url(r'^cabling/bulk/$', cabling_bulk,
         name='seeddb-cabling-bulk'),
 
