@@ -69,10 +69,10 @@
     <tr>
       <th>Patched to</th>
       <td>
-        {% if port.patch_set.count %}
-          <ul>
-            {% for patch in port.patch_set.all %}
-              <li>Jack {{ patch.cabling.jack }}, in room
+        {% if port.patches.count %}
+          <ul class="no-bullet">
+            {% for patch in port.patches.all %}
+              <li>{{ patch.cabling.verbose|capfirst }}, in room
                 <a href="{% url 'report-netbox-room' patch.cabling.room.id %}">
                   {{ patch.cabling.room.id }}</a></li>
             {% endfor %}

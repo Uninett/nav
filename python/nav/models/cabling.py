@@ -42,9 +42,9 @@ class Cabling(models.Model):
 
     def verbose(self):
         """Returns a more verbose description of this cable"""
-        return u'jack {}, {}'.format(self.jack, ", ".join(
-            [x for x in [self.building, self.target_room, self.description]
-             if x]))
+        return u'jack {}'.format(", ".join(
+            [x for x in [self.jack, self.building, self.target_room,
+                         self.description] if x]))
 
 
 class Patch(models.Model):
