@@ -4,6 +4,7 @@
   {{ block.super }}
   <script>
    NAV.urls.seeddb_patch_save = "{% url 'seeddb-patch-save' %}";
+   NAV.urls.seeddb_patch_remove = "{% url 'seeddb-patch-remove' %}";
    NAV.urls.seeddb_patch_load_cell = "{% url 'seeddb-patch-load-cell' %}";
    NAV.seeddb_add_patch = {
        room: "{{ netbox.room.pk }}"
@@ -22,7 +23,7 @@
 {% block content %}
 
   <p><a href="{{ back_url }}">Back to list</a></p>
-  
+
   <form id="choose-netbox-form" method="get" action="">
     <select name="netboxid" class="select2">
       <option value="">--- Choose IP Device ---</option>
@@ -44,7 +45,7 @@
           <tr>
             <td>IfName</td>
             <td>IfAlias</td>
-            <td>Cable</td>
+            <td>Patch</td>
             <td>&nbsp;</td>
           </tr>
         </thead>
@@ -58,7 +59,11 @@
                 {% include 'seeddb/fragments/patches.html' %}
               </td>
               <td class="patch-button-cell">
-                {% if not interface.patches.all %}
+                {% if interface.patches.all %}
+                  <button class="table-button remove-patch secondary">
+                    Remove patch
+                  </button>
+                {% else %}
                   <button class="table-button add-patch">
                     Add patch
                   </button>
@@ -80,16 +85,30 @@
   {# The modal element for adding patches #}
   <div id="add-patch-modal" class="reveal-modal tiny" data-reveal>
     <a class="close-reveal-modal" aria-label="Close">&#215;</a>
-    <h4>Add cable to interface</h4>
+    <h4>Add patch</h4>
     Connect interface <em class="interfacename"></em> to
-    <form id="add-patch-form">
+    <form>
       <input id="cable-search" name="cableid" type="text" placeholder="Search for cable">
       <input name="split" type="text" placeholder="Split" value="">
-      <input id="interface-id" name="interfaceid" type="hidden" value="">
+      <input class="interfaceid" name="interfaceid" type="hidden" value="">
       <button id="save-patch-button" class="button small">Save patch</button>
     </form>
     <div class="alert-box alert" style="display: none">Error saving patch</div>
   </div>
 
+  {# The modal for deleting patches #}
+  <div id="remove-patch-modal" class="reveal-modal tiny" data-reveal>
+    <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+    <h4>Remove patch</h4>
+    Remove patch from interface <em class="interfacename"></em>?
+    <div>
+      <form class="left">
+        <input class="interfaceid" type="hidden" name="interfaceid" value="">
+        <button id="remove-patch-button" class="button small warning">Yes</button>
+      </form>
+      <button id="cancel-remove-patch-button" class="button small secondary">No</button>
+    </div>
+    <div class="alert-box alert" style="display: none">Error removing patch</div>
+  </div>
 
 {% endblock %}

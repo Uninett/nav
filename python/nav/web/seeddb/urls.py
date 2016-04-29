@@ -176,6 +176,8 @@ urlpatterns = patterns('',
         name='seeddb-patch-bulk'),
     url(r'^patch/save/', patch.patch_save,
         name='seeddb-patch-save'),
+    url(r'^patch/remove/', patch.patch_remove,
+        name='seeddb-patch-remove'),
     url(r'^patch/loadcell/', patch.load_cell,
         name='seeddb-patch-load-cell'),
 

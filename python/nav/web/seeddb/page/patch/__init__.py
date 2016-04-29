@@ -136,6 +136,14 @@ def patch_save(request):
     return HttpResponse()
 
 
+@require_POST
+def patch_remove(request):
+    """Remove all patches from an interface"""
+    interface = get_object_or_404(Interface, pk=request.POST.get('interfaceid'))
+    Patch.objects.filter(interface=interface).delete()
+    return HttpResponse()
+
+
 def patch_bulk(request):
     """The view used when bulk importing patches"""
     info = PatchInfo()
