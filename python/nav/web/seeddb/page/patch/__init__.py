@@ -124,7 +124,8 @@ def patch_save(request):
     interface = get_object_or_404(Interface, pk=request.POST.get('interfaceid'))
     cable = get_object_or_404(Cabling, pk=request.POST.get('cableid'))
     split = request.POST.get('split', '')
-    _logger.debug('Creating patch for interface %s and cable %s', interface, cable)
+    _logger.debug('Creating patch for interface %s and cable %s',
+                  interface, cable)
 
     try:
         Patch.objects.create(interface=interface, cabling=cable, split=split)
