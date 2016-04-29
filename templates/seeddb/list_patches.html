@@ -1,0 +1,34 @@
+{% extends "seeddb/list.html" %}
+
+{% block base_header_additional_head %}
+  {{ block.super }}
+  <style>
+   .filters .select2-container {
+       display: inline-block;
+       width: 25em;
+       margin-top: .8em;
+       margin-right: .6em;
+   }
+  </style>
+  <script>
+   NAV.urls.seeddb_patch_edit = "{% url 'seeddb-patch-edit' %}";
+  </script>
+{% endblock %}
+
+{% block content %}
+  {{ block.super }}
+
+  <select id="id_room">
+    <option value="">--- Room filter ---</option>
+    {% for room in rooms %}
+      <option value="{{ room.pk }}">{{ room }}</option>
+    {% endfor %}
+  </select>
+
+  <select id="id_netbox">
+    <option value="">--- Device filter ---</option>
+    {% for netbox in netboxes %}
+      <option value="{{ netbox.pk }}">{{ netbox }}</option>
+    {% endfor %}
+  </select>
+{% endblock content %}
