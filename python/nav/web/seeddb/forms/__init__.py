@@ -166,22 +166,14 @@ class NetboxTypeForm(forms.ModelForm):
         fields = '__all__'
 
 
-class CablingFilterForm(forms.Form):
-    """Form for filtering cabling by room"""
-    room = forms.ModelChoiceField(
-        Room.objects.order_by('id').all(), required=False)
-
-    def __init__(self, *args, **kwargs):
-        super(CablingFilterForm, self).__init__(*args, **kwargs)
-        self.helper = get_formhelper()
-        self.helper.layout = get_single_layout('Filter cabling', 'room')
-
-
 class CablingForm(forms.ModelForm):
     """Form for editing a cabling instance"""
     class Meta(object):
         model = Cabling
         fields = '__all__'
+        widgets = {
+            'room': forms.Select(attrs={'class': 'select2'})
+        }
 
 
 class DeviceGroupForm(forms.ModelForm):

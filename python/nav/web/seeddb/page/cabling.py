@@ -15,7 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from ..forms import CablingFilterForm, CablingForm
+from ..forms import CablingForm
 
 from nav.models.cabling import Cabling
 from nav.models.manage import Room
