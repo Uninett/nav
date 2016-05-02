@@ -40,7 +40,7 @@ from nav.web.servicecheckers import load_checker_classes
 from nav.web.api.v1 import serializers, alert_serializers
 from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
 from .helpers import prefix_collector
-from .filter_backends import AlertHistoryFilterBackend
+from .filter_backends import AlertHistoryFilterBackend, NaturalIfnameFilter
 from nav.web.status2 import STATELESS_THRESHOLD
 
 EXPIRE_DELTA = timedelta(days=365)
@@ -251,6 +251,8 @@ class PatchViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     ### (Silly) Example
     `patch/?interface__netbox=138&interface=337827&search=a`
     """
+
+    filter_backends = NAVAPIMixin.filter_backends + (NaturalIfnameFilter, )
 
     queryset = cabling.Patch.objects.select_related(
         'cabling__room', 'interface__netbox').all()

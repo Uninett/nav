@@ -18,6 +18,25 @@
 from . import alert_serializers
 from rest_framework import filters
 
+from nav import natsort
+
+
+class NaturalIfnameFilter(filters.BaseFilterBackend):
+    """Filter naturally on interface ifname"""
+
+    def filter_queryset(self, request, queryset, view):
+        """Filter on interface__ifname if it exists in GET-request"""
+
+        to_match = ['interface__ifname', '-interface__ifname']
+        intersection = (set(request.GET.get('ordering', '').split(',')) &
+                        set(to_match))
+        if intersection:
+            match_field = intersection.pop()
+            return sorted(queryset,
+                          key=lambda x: natsort.split(x.interface.ifname),
+                          reverse=match_field.startswith('-'))
+        return queryset
+
 
 class AlertHistoryFilterBackend(filters.BaseFilterBackend):
     """
