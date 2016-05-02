@@ -208,7 +208,7 @@ function() {
         
         var columns = {
             0: 'id', 1: 'cabling.room.id', 2: 'interface.netbox.sysname',
-            3: 'interface.ifname', 4: 'cabling.jack', 5: 'split'
+            3: 'interface.ifname', 4: 'interface.ifalias', 5: 'cabling.jack', 6: 'split'
         };
 
         var config = {
@@ -242,6 +242,7 @@ function() {
                 { data: columns[3] },
                 { data: columns[4] },
                 { data: columns[5] },
+                { data: columns[6] },
             ],
             searching: true,
             // Enable and configure ordering

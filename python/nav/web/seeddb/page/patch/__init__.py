@@ -77,7 +77,7 @@ def patch_list(request):
     info = PatchInfo()
     value_list = (
         'cabling__room', 'interface__netbox__sysname', 'interface__ifname',
-        'cabling__jack', 'split')
+        'interface__ifalias', 'cabling__jack', 'split')
 
     context = info.template_context
     context.update({
