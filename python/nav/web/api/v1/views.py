@@ -95,6 +95,7 @@ def get_endpoints(request=None, version=1):
         'interface': reverse_lazy('{}interface-list'.format(prefix),
                              **kwargs),
         'netbox': reverse_lazy('{}netbox-list'.format(prefix), **kwargs),
+        'patch': reverse_lazy('{}patch-list'.format(prefix), **kwargs),
         'prefix': reverse_lazy('{}prefix-list'.format(prefix), **kwargs),
         'prefix_routed': reverse_lazy('{}prefix-routed-list'.format(prefix),
                                  **kwargs),
