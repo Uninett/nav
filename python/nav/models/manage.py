@@ -661,11 +661,14 @@ class Module(models.Model):
 
         entities = {e.id: e
                     for e in NetboxEntity.objects.filter(netbox=self.netbox)}
+        visited = set()
         current = entities.get(me.id)
         while current is not None and not current.is_chassis():
+            visited.add(current)
             current = entities.get(current.contained_in_id)
-            if current.contained_in_id == current.id:
-                return  # no infinite loops, please
+            if current in visited:
+                # there's a loop here, exit now
+                return
         return current
 
 
