@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 import iso8601
 
 from provider.utils import long_token
-from rest_framework import status, filters, viewsets
+from rest_framework import status, filters, viewsets, exceptions
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.reverse import reverse_lazy
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
@@ -45,6 +45,11 @@ from nav.web.status2 import STATELESS_THRESHOLD
 
 EXPIRE_DELTA = timedelta(days=365)
 MINIMUMPREFIXLENGTH = 4
+
+
+class Iso8601ParseError(exceptions.ParseError):
+    default_detail = 'Wrong format on timestamp. See ' \
+                     'https://pypi.python.org/pypi/iso8601'
 
 
 @api_view(('GET',))
@@ -137,6 +142,7 @@ class RelatedOrderingFilter(filters.OrderingFilter):
     def remove_invalid_fields(self, queryset, ordering, view):
         return [term for term in ordering
                 if self.is_valid_field(queryset.model, term.lstrip('-'))]
+
 
 class NAVAPIMixin(APIView):
     """Mixin for providing permissions and renderers"""
@@ -292,17 +298,23 @@ class CablingViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-
 class CamViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Lists all cam records.
 
     Filters
     -------
     - active: *set this to list only records that has not ended*
+    - starttime: *if set without endtime: lists all active records at that
+      timestamp*
+    - endtime: *must be set with starttime: lists all active records in the
+      period between starttime and endtime*
     - ifindex
     - mac
     - netbox
     - port
+
+    For timestamp formats see the [iso8601 module
+    doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>
     """
     serializer_class = serializers.CamSerializer
     filter_fields = ('mac', 'netbox', 'ifindex', 'port')
@@ -311,8 +323,18 @@ class CamViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         """Filter on custom parameters"""
         queryset = manage.Cam.objects.all()
         active = self.request.QUERY_PARAMS.get('active', None)
+        starttime, endtime = get_times(self.request)
+
         if active:
             queryset = queryset.filter(end_time=INFINITY)
+        elif starttime and not endtime:
+            queryset = queryset.extra(
+                where=["'{}' BETWEEN start_time AND end_time".format(
+                    starttime)])
+        elif starttime and endtime:
+            queryset = queryset.extra(
+                where=["(start_time, end_time) OVERLAPS ('{}', '{}')".format(
+                    starttime, endtime)])
 
         return queryset
 
@@ -323,11 +345,19 @@ class ArpViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     Filters
     -------
 
+    - active: *set this to list only records that has not ended. This will then
+      ignore any start and endtimes set*
+    - starttime: *if set without endtime: lists all active records at that
+      timestamp*
+    - endtime: *must be set with starttime: lists all active records in the
+      period between starttime and endtime*
     - ip
     - mac
     - netbox
     - prefix
 
+    For timestamp formats see the [iso8601 module
+    doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>
     """
     serializer_class = serializers.ArpSerializer
     filter_fields = ('ip', 'mac', 'netbox', 'prefix')
@@ -336,8 +366,18 @@ class ArpViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         """Filter on custom parameters"""
         queryset = manage.Arp.objects.all()
         active = self.request.QUERY_PARAMS.get('active', None)
+        starttime, endtime = get_times(self.request)
+
         if active:
             queryset = queryset.filter(end_time=INFINITY)
+        elif starttime and not endtime:
+            queryset = queryset.extra(
+                where=["'{}' BETWEEN start_time AND end_time".format(
+                    starttime)])
+        elif starttime and endtime:
+            queryset = queryset.extra(
+                where=["(start_time, end_time) OVERLAPS ('{}', '{}')".format(
+                    starttime, endtime)])
 
         return queryset
 
@@ -402,13 +442,21 @@ class RoutedPrefixList(NAVAPIMixin, ListAPIView):
 
 
 def get_times(request):
-    """Gets start and endtime from request"""
+    """Gets start and endtime from request
+
+    As we use no timezone in NAV, remove it from parsed timestamps
+    :param request: django.http.HttpRequest
+    """
     starttime = request.GET.get('starttime')
     endtime = request.GET.get('endtime')
-    if starttime:
-        starttime = iso8601.parse_date(starttime)
-    if endtime:
-        endtime = iso8601.parse_date(endtime)
+    try:
+        if starttime:
+            starttime = iso8601.parse_date(starttime).replace(tzinfo=None)
+        if endtime:
+            endtime = iso8601.parse_date(endtime).replace(tzinfo=None)
+    except iso8601.ParseError:
+        raise Iso8601ParseError
+
     return starttime, endtime
 
 
@@ -442,12 +490,7 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
 
     def get(self, request, *args, **kwargs):
         """Override get method to verify url parameters"""
-        try:
-            get_times(request)
-        except (ValueError, iso8601.ParseError):
-            return Response(
-                'start or endtime not formatted correctly. Use iso8601 format',
-                status=status.HTTP_400_BAD_REQUEST)
+        get_times(request)
         return super(PrefixUsageList, self).get(request, *args, **kwargs)
 
     def get_queryset(self):
@@ -493,7 +536,6 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
         return Response(serializer.data)
 
 
-
 class PrefixUsageDetail(NAVAPIMixin, APIView):
     """Makes prefix usage accessible from api"""
 
@@ -510,13 +552,7 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
             return Response("Prefix is too small",
                             status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            starttime, endtime = get_times(request)
-        except (ValueError, iso8601.ParseError):
-            return Response(
-                'start or endtime not formatted correctly. Use iso8601 format',
-                status=status.HTTP_400_BAD_REQUEST)
-
+        starttime, endtime = get_times(request)
         db_prefix = manage.Prefix.objects.get(net_address=prefix)
         serializer = serializers.PrefixUsageSerializer(
             prefix_collector.fetch_usage(db_prefix, starttime, endtime))
