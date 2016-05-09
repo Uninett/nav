@@ -2,7 +2,7 @@
     background-color: white;
     border: 1px solid gainsboro;
     position: relative;
-    padding: 2em 1em .5em .5em; /* Padding here affects values for y-axis */
+    padding: 2.5em 1em .5em .5em; /* Padding here affects values for y-axis */
 
     .rickshaw-preview {
         margin-left: 4em;
@@ -17,7 +17,7 @@
 
     .rickshaw-y-axis {
         position: absolute;
-        top: 1em;               /* NB: Affected by padding for container */
+        top: 1.5em;               /* NB: Affected by padding for container */
         bottom: 0;
         width: 3em;
         margin: 1em;
