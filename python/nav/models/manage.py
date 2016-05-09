@@ -27,6 +27,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
+from functools import partial
 from itertools import count, groupby
 
 from nav.bitvector import BitVector
@@ -37,7 +38,8 @@ from nav.metrics.templates import (
     metric_prefix_for_interface,
     metric_prefix_for_ports,
     metric_prefix_for_device,
-    metric_path_for_sensor
+    metric_path_for_sensor,
+    metric_path_for_prefix
 )
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
@@ -45,6 +47,7 @@ from nav.models.fields import CIDRField
 from nav.models.rrd import RrdDataSource
 from django_hstore import hstore
 import nav.models.event
+
 
 
 #######################################################################
@@ -981,6 +984,17 @@ class Prefix(models.Model):
             'interface', 'interface__netbox'
         ).order_by('-virtual', 'gw_ip')
 
+    def get_graph_url(self):
+        """Creates the graph url used for graphing this prefix"""
+        path = partial(metric_path_for_prefix, self.net_address)
+        ip_count = 'alias({0}, "IP addresses ")'.format(path('ip_count'))
+        ip_range = 'alias({0}, "Max addresses")'.format(path('ip_range'))
+        mac_count = 'alias({0}, "MAC addresses")'.format(path('mac_count'))
+        metrics = [ip_count, mac_count]
+        if IPy.IP(self.net_address).version() == 4:
+            metrics.append(ip_range)
+        return get_simple_graph_url(metrics, title=str(self), format='json')
+
 
 class Vlan(models.Model):
     """From NAV Wiki: The vlan table defines the IP broadcast domain / vlan. A
@@ -1010,6 +1024,35 @@ class Vlan(models.Model):
         if self.net_ident:
             result += ' (%s)' % self.net_ident
         return result
+
+    def get_graph_urls(self):
+        """Fetches the graph urls for graphing this vlan"""
+        return [url for url in [self.get_graph_url(f) for f in [4, 6]] if url]
+
+    def get_graph_url(self, family=4):
+        """Creates a graph url for the given family with all prefixes stacked"""
+        assert family in [4, 6]
+        prefixes = self.prefix_set.extra(where=["family(netaddr)=%s" % family])
+        metrics = ["stacked(group(%s), 'stack')" % ",".join([
+            "alias({}, '{}')".format(
+                metric_path_for_prefix(prefix.net_address, 'ip_count'),
+                prefix.net_address
+            )
+            for prefix in prefixes])]
+
+        if family == 4 and metrics:
+            metrics.append(
+                "alias(sumSeries(%s), 'Max addresses')" % ",".join([
+                    metric_path_for_prefix(prefix.net_address, 'ip_range')
+                    for prefix in prefixes
+                ])
+            )
+        if metrics:
+            return get_simple_graph_url(
+                metrics,
+                title="Total IPv{} addresses on vlan {} - stacked".format(
+                    family, str(self)),
+                format='json')
 
 
 class NetType(models.Model):

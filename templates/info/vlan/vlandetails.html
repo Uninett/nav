@@ -1,5 +1,10 @@
 {% extends 'info/vlan/base.html' %}
 
+{% block base_header_additional_head %}
+  {{ block.super }}
+  <link rel="stylesheet" href="/static/css/nav/local_rickshaw.css"/>
+{% endblock %}
+
 {% block vlandetails %}
 
   <div id="tablecontainer">
@@ -106,24 +111,24 @@
   {% comment %} Graph with stacked ip-address count from all ipv4 and ipv6 prefixes {% endcomment %}
   <h2>Vlan graphs</h2>
 
-  {% if has_v4 %}
-    <div class="vlangraph graphitegraph" data-vlan="{{ vlan.id }}"
-         data-family="4"></div>
-  {% endif %}
+  <ul class="small-block-grid-1 large-block-grid-2">
+    {% for graph_url in vlan.get_graph_urls %}
+      <li class="vlangraph graphitegraph" data-url="{{ graph_url }}">
+        <div class="rickshaw-container"></div>
+      </li>
+    {% endfor %}
+  </ul>
 
-  {% if has_v6 %}
-    <div class="vlangraph graphitegraph" data-vlan="{{ vlan.id }}"
-         data-family="6"></div>
-  {% endif %}
-
-  <div class="float-clear"></div>
 
   {% comment %} Graph for each prefix containing ip-addresses, mac-addresses and size of range {% endcomment %}
   <h2>Prefix graphs</h2>
-  {% for prefix in prefixes %}
-    <div class="prefixgraph graphitegraph" data-prefix="{{ prefix.id }}"></div>
-  {% endfor %}
 
-  <div class="float-clear"></div>
+  <ul class="small-block-grid-1 large-block-grid-2">
+    {% for prefix in prefixes %}
+      <li class="prefixgraph graphitegraph" data-url="{{ prefix.get_graph_url }}">
+        <div class="rickshaw-container"></div>
+      </li>
+    {% endfor %}
+  </ul>
 
 {% endblock %}
