@@ -1033,21 +1033,18 @@ class Vlan(models.Model):
         """Creates a graph url for the given family with all prefixes stacked"""
         assert family in [4, 6]
         prefixes = self.prefix_set.extra(where=["family(netaddr)=%s" % family])
-        metrics = ["stacked(group(%s), 'stack')" % ",".join([
-            "alias({}, '{}')".format(
-                metric_path_for_prefix(prefix.net_address, 'ip_count'),
-                prefix.net_address
-            )
-            for prefix in prefixes])]
-
-        if family == 4 and metrics:
-            metrics.append(
-                "alias(sumSeries(%s), 'Max addresses')" % ",".join([
-                    metric_path_for_prefix(prefix.net_address, 'ip_range')
-                    for prefix in prefixes
-                ])
-            )
-        if metrics:
+        series = ["alias({}, '{}')".format(
+            metric_path_for_prefix(prefix.net_address, 'ip_count'),
+            prefix.net_address) for prefix in prefixes]
+        if series:
+            metrics = ["stacked(group(%s), 'stack')" % ",".join(series)]
+            if family == 4:
+                metrics.append(
+                    "alias(sumSeries(%s), 'Max addresses')" % ",".join([
+                        metric_path_for_prefix(prefix.net_address, 'ip_range')
+                        for prefix in prefixes
+                    ])
+                )
             return get_simple_graph_url(
                 metrics,
                 title="Total IPv{} addresses on vlan {} - stacked".format(
