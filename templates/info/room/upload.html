@@ -65,7 +65,7 @@
   <div class="row">
     <div class="column small-12">
       <a href="#" data-reveal-id="add_image_help" class="small secondary button right" data-reveal>Help</a>
-      <h3>Images for {{ room.id }}</h3>
+      <h3>Images for &laquo;{{ room.id }}&raquo;</h3>
     </div>
   </div>
 
@@ -82,7 +82,7 @@
 
   <p><a href="{% url 'room-info' room.id %}">Back to room</a></p>
 
-  <form action="{% url 'room-info-upload' room.id %}" method="POST" enctype="multipart/form-data">
+  <form id="uploadform" action="{% url 'room-info-upload' room.id %}" method="POST" enctype="multipart/form-data">
     <input id="file" type="file" name="images" multiple class="inputfile" data-multiple-caption="{count} files selected">
     <label for="file" class="button small"><i class="fa fa-upload"></i><span>Select images to upload</span></label>
     <input type="submit" class="button small secondary" value="Upload selected images">
@@ -91,8 +91,7 @@
   <div class="user-feedback">
     {% for message in messages %}
       <div class="alert-box {{ message.tags }}" data-alert>
-        {{ message }}
-        <a href="#" class="close">&times;</a>
+        {{ message|safe }}
       </div>
     {% endfor %}
   </div>

@@ -141,10 +141,11 @@ def upload_image(request, roomid):
         for image in images:
             try:
                 handle_image(image, room, uploader=account)
-                messages.success(request, 'Image uploaded')
+                messages.success(
+                    request, 'Image &laquo;%s&raquo; uploaded' % image.name)
             except IOError, e:
                 _logger.error(e)
-                messages.error(request, 'Image %s not saved - '
+                messages.error(request, 'Image &laquo;%s&raquo; not saved - '
                                         'perhaps unsupported type' % image.name)
 
         return redirect("room-info-upload", roomid=room.id)
@@ -208,7 +209,8 @@ def delete_image(request):
                 if error.errno != 2:
                     return HttpResponse(status=500)
             else:
-                messages.success(request, 'Image deleted')
+                messages.success(
+                    request, 'Image &laquo;%s&raquo; deleted' % image.title)
 
             try:
                 os.unlink(join(filepath, 'thumbs', image.name))

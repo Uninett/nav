@@ -12,10 +12,15 @@ require(['libs/jquery-ui.min'], function () {
         }
 
         setTimeout(function () {
-            $('.user-feedback .alert-box').each(function () {
+            $('.user-feedback .alert-box.success').each(function () {
                 removeAlertBox($(this));
             });
         }, 3000);
+
+        /* Remove all feedback when clicked on */
+        $('.user-feedback').click(function (event) {
+            $(event.target).closest('.alert-box').remove();
+        });
     });
 
     function addButtonListeners(index, element) {

@@ -89,18 +89,15 @@ img.textbottom {
     width: auto;
 }
 
-/* Feedback when user is on the upload page */
+#uploadform {
+    display: inline-block;
+}
+
 .user-feedback {
-    position: absolute;
-    left: 0;
-    right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    z-index: 10000;
-    > div {
-        margin-left: auto;
-        margin-right: auto;
-        width: 300px;
-        top: -50px;
+    display: inline-block;
+    .alert-box {
+        display: inline-block;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
     }
 }
