@@ -34,7 +34,7 @@ from django.contrib import messages
 from nav.django.utils import get_account
 from nav.models.manage import Room, Netbox
 from nav.models.roommeta import Image, ROOMIMAGEPATH
-from nav.web.info.room.forms import SearchForm, UploadForm
+from nav.web.info.room.forms import SearchForm
 from nav.web.info.room.utils import (get_extension, create_hash,
                                      create_image_directory,
                                      get_next_priority, save_image,
@@ -135,39 +135,40 @@ def upload_image(request, roomid):
     account = get_account(request)
 
     if request.method == 'POST':
-        _logger.debug('Uploading image')
+        _logger.debug('Uploading images')
 
-        uploadform = UploadForm(request.POST, request.FILES)
-        if uploadform.is_valid():
-            image = request.FILES['roomimage'].read()
-            original_name = request.FILES['roomimage'].name
-            imagename = "%s%s" % (create_hash(image, True),
-                                  get_extension(original_name))
-            imagedirectory = create_hash(room.id)
-            imagedirectorypath = join(ROOMIMAGEPATH, imagedirectory)
-            title = request.POST.get('title') or original_name
+        images = request.FILES.getlist('images')
+        for image in images:
+            try:
+                handle_image(image, room, uploader=account)
+                messages.success(request, 'Image uploaded')
+            except IOError, e:
+                _logger.error(e)
+                messages.error(request, 'Image %s not saved - '
+                                        'perhaps unsupported type' % image.name)
 
-            create_image_directory(imagedirectorypath)
-            save_image(image, join(imagedirectorypath, imagename))
-            save_thumbnail(imagename, imagedirectorypath,
-                           join(imagedirectorypath, 'thumbs'))
-
-            Image(title=title, path=imagedirectory, name=imagename, room=room,
-                  priority=get_next_priority(room),
-                  uploader=account).save()
-
-            messages.success(request, 'Image uploaded')
-
-            return redirect("room-info-upload", roomid=room.id)
-    else:
-        _logger.debug('Showing upload form')
-        uploadform = UploadForm()
+        return redirect("room-info-upload", roomid=room.id)
 
     return render_to_response("info/room/upload.html",
                               {"room": room, "navpath": navpath,
-                               "title": create_title(navpath),
-                               'uploadform': uploadform},
+                               "title": create_title(navpath)},
                               context_instance=RequestContext(request))
+
+
+def handle_image(image, room, uploader):
+    _logger.debug('Uploading image %s', image)
+    original_name = image.name
+    imagename = "%s%s" % (create_hash(image, True),
+                          get_extension(original_name))
+    imagedirectory = create_hash(room.id)
+    imagedirectorypath = join(ROOMIMAGEPATH, imagedirectory)
+    create_image_directory(imagedirectorypath)
+    save_image(image, join(imagedirectorypath, imagename))
+    save_thumbnail(imagename, imagedirectorypath,
+                   join(imagedirectorypath, 'thumbs'))
+    Image(title=original_name, path=imagedirectory, name=imagename, room=room,
+          priority=get_next_priority(room),
+          uploader=uploader).save()
 
 
 def update_title(request):

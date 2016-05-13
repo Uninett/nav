@@ -2,14 +2,62 @@
 {% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
-    <link href="{{ STATIC_URL }}css/nav/info_room.css"  rel="stylesheet">
-    <link href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"  rel="stylesheet">
-    <script>require(["src/info_room_upload"]);</script>
-     <script>
-        NAV.urls['room-info-update-title'] = "{% url 'room-info-update-title' %}";
-        NAV.urls['room-info-delete-image'] = "{% url 'room-info-delete-image' %}";
-        NAV.urls['room-info-update-priority'] = "{% url 'room-info-update-priority' %}";
-    </script>
+  <link href="{{ STATIC_URL }}css/nav/info_room.css" rel="stylesheet">
+  <link href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"
+        rel="stylesheet">
+  <script>require(["src/info_room_upload"]);</script>
+  <script>
+    NAV.urls['room-info-update-title'] = "{% url 'room-info-update-title' %}";
+    NAV.urls['room-info-delete-image'] = "{% url 'room-info-delete-image' %}";
+    NAV.urls['room-info-update-priority'] = "{% url 'room-info-update-priority' %}";
+  </script>
+  <style>
+    {# Styles for the form file input #}
+    .inputfile {
+      width: 0.1px;
+      height: 0.1px;
+      opacity: 0;
+      overflow: hidden;
+      position: absolute;
+      z-index: -1;
+    }
+
+    .fa.fa-upload { margin-right: .8em; }
+
+  </style>
+{% endblock %}
+
+{% block footer_scripts %}
+    <script>
+      var input = document.querySelector('.inputfile');
+      var label = input.nextElementSibling,
+          labelVal = label.innerHTML;
+
+      input.addEventListener('change', function (e) {
+        var fileName = '', title = '';
+        if (this.files && this.files.length > 1) {
+          console.log(this.files);
+          fileName = ( this.getAttribute('data-multiple-caption') || '' ).replace('{count}', this.files.length);
+          var names = [];
+          for (var i = 0; i < this.files.length; i++) {
+            names.push(this.files[i].name);
+          }
+          title = names.join('\n');
+        } else {
+          fileName = e.target.value.split('\\').pop();
+        }
+
+        if (fileName) {
+          label.querySelector('span').innerHTML = fileName;
+        } else {
+          label.innerHTML = labelVal;
+        }
+        label.setAttribute('title', title);
+
+      });
+  </script>
+
+
 {% endblock %}
 
 {% block base_content %}
@@ -35,7 +83,9 @@
   <p><a href="{% url 'room-info' room.id %}">Back to room</a></p>
 
   <form action="{% url 'room-info-upload' room.id %}" method="POST" enctype="multipart/form-data">
-    {% crispy uploadform %}
+    <input id="file" type="file" name="images" multiple class="inputfile" data-multiple-caption="{count} files selected">
+    <label for="file" class="button small"><i class="fa fa-upload"></i><span>Select images to upload</span></label>
+    <input type="submit" class="button small secondary" value="Upload selected images">
   </form>
 
   <div class="user-feedback">

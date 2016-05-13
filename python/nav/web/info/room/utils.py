@@ -32,7 +32,7 @@ def get_extension(filename):
 
 def create_hash(something, salt=False):
     """Create a hash from something, optionally salted with current epoch"""
-    data = something + str(time.time()) if salt else something
+    data = str(something) + str(time.time()) if salt else something
     try:
         hash_object = hashlib.sha1(data)
     except UnicodeEncodeError:
@@ -55,9 +55,13 @@ def create_image_directory(imagedirectory):
 
 
 def save_image(image, imagefullpath):
-    """Save image as a file on the given path"""
+    """Save image as a file on the given path
+    :type image: django.core.files.uploadedfile.InMemoryUploadedFile
+    :type imagefullpath: str
+    """
     with open(imagefullpath, 'wb+') as destination:
-        destination.write(image)
+        for chunk in image.chunks():
+            destination.write(chunk)
         os.chmod(imagefullpath, 0644)
 
 
