@@ -22,7 +22,6 @@ define([
                 return prepareData(data, container.dataset);
             },
             onComplete: onComplete,
-            renderer: 'line',
             stack: false  // Need to set this so that data is not stacked
         });
 
@@ -198,7 +197,6 @@ define([
         else { return value.toFixed(precision); }
     };
 
-
     /**
      * Add all functionality when ajax call returns
      */
@@ -211,9 +209,14 @@ define([
         $(graph.element).trigger('NAV:Rickshaw:updateMeta', meta);
 
         if (!graph.initialized) {
+            graph.setRenderer('multi');
             graph.series.forEach(function(serie) {
-                serie.key = serie.name;
-                serie.name = getSeriesName(serie.name);
+                var metaParts = getSeriesMeta(serie.name),
+                    name = metaParts.pop(),
+                    meta = buildObject(metaParts);
+                serie.key = name;
+                serie.name = getSeriesName(name);
+                serie.renderer = meta.renderer ? meta.renderer : 'line';
             });
 
             var x_axis = new Rickshaw.Graph.Axis.Time({
@@ -287,6 +290,19 @@ define([
         return params;
     }
 
+
+    function buildObject(parts) {
+        var obj = {};
+        for(i = 0; i < parts.length; i++) {
+            var keyValue = parts[i].split('=');
+            obj[keyValue[0]] = keyValue[1];
+        }
+        return obj;
+    }
+
+    function getSeriesMeta(name) {
+        return name.split(';;');
+    }
 
     function getSeriesNotation(name) {
         return getSeriesName(name).split('.').pop();

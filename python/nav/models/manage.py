@@ -22,6 +22,7 @@ import datetime as dt
 import IPy
 import math
 import re
+import json
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -1033,20 +1034,21 @@ class Vlan(models.Model):
         """Creates a graph url for the given family with all prefixes stacked"""
         assert family in [4, 6]
         prefixes = self.prefix_set.extra(where=["family(netaddr)=%s" % family])
-        series = ["alias({}, '{}')".format(
+        # Put metainformation in the alias so that Rickshaw can pick it up and
+        # know how to draw the series.
+        series = ["alias({}, 'renderer=area;;{}')".format(
             metric_path_for_prefix(prefix.net_address, 'ip_count'),
             prefix.net_address) for prefix in prefixes]
         if series:
-            metrics = ["stacked(group(%s), 'stack')" % ",".join(series)]
             if family == 4:
-                metrics.append(
+                series.append(
                     "alias(sumSeries(%s), 'Max addresses')" % ",".join([
                         metric_path_for_prefix(prefix.net_address, 'ip_range')
                         for prefix in prefixes
                     ])
                 )
             return get_simple_graph_url(
-                metrics,
+                series,
                 title="Total IPv{} addresses on vlan {} - stacked".format(
                     family, str(self)),
                 format='json')
