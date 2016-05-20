@@ -3,22 +3,22 @@
     <i class="fa fa-toggle-down"></i>
   {% endif %}
   <a href="{% url 'seeddb-organization-edit' org.pk %}"
-     data-tooltip title="<h5>{{ org }}</h5>
-                         <dl>
-                         {% if org.contact %}
-                         <dt>Contact</dt><dd>{{ org.contact }}</dd>
-                         {% endif %}
-                         {% for key, value in org.data.items %}
-                         <dt>{{ key }}</dt><dd>{{ value }}</dd>
-                         {% endfor %}
-                         </dl>
-                         {% if org.has_children %}
-                         <em>
-                         {{ org.get_children.count }} child organizations with a total
-                         of {{ org.get_descendants|length }} descendants.
-                         </em>
-                         {% endif %}
-                         ">
+     title="<h5>{{ org }}</h5>
+            <dl>
+            {% if org.contact %}
+            <dt>Contact</dt><dd>{{ org.contact }}</dd>
+            {% endif %}
+            {% for key, value in org.data.items %}
+            <dt>{{ key }}</dt><dd>{{ value }}</dd>
+            {% endfor %}
+            </dl>
+            {% if org.has_children %}
+            <em>
+            {{ org.get_children.count }} child organizations with a total
+            of {{ org.get_descendants|length }} descendants.
+            </em>
+            {% endif %}
+            ">
     {{ org }}
   </a>
   

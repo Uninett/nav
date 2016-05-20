@@ -31,6 +31,11 @@
        $('.org-list [class*="fa-toggle-"]').removeClass('fa-toggle-right').addClass('fa-toggle-down');
    });
   </script>
+  <script>
+   require(['plugins/delegate_tooltip'], function(tooltip) {
+       tooltip(document.querySelector('.org-list'), '.org > a');
+   });
+  </script>
 {% endblock %}
 
 
