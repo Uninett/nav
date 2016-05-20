@@ -1,0 +1,49 @@
+{% extends "seeddb/base.html" %}
+
+{% block additional_seeddb_head %}
+  <style>
+   .org-list .fa {
+       cursor: pointer;
+   }
+   .tooltip dl {
+       font-size: inherit;
+       margin-bottom: 0;
+   }
+   .tooltip h5 { border-bottom: 1px solid salmon; }
+  </style>
+{% endblock %}
+
+
+{% block footer_scripts %}
+  {{ block.super }}
+  <script>
+   $('.org-list').on('click', 'i.fa', function(event) {
+       $(event.target).toggleClass('fa-toggle-right fa-toggle-down').nextAll('.child').slideToggle();
+   });
+
+   $('#collapse-all').click(function(){
+       $('.org-list .child').hide();
+       $('.org-list [class*="fa-toggle-"]').removeClass('fa-toggle-down').addClass('fa-toggle-right');
+   });
+
+   $('#expand-all').click(function(){
+       $('.child').show();
+       $('.org-list [class*="fa-toggle-"]').removeClass('fa-toggle-right').addClass('fa-toggle-down');
+   });
+  </script>
+{% endblock %}
+
+
+{% block content %}
+
+  <button id="collapse-all" class="button small">Collapse all</button>
+  <button id="expand-all" class="button small">Expand all</button>
+
+  <ul class="org-list no-bullet">
+    {% for org in root_orgs %}
+      {% include 'seeddb/fragments/orgs.html' %}
+    {% endfor %}
+  </ul>
+
+
+{% endblock %}

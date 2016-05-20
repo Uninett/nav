@@ -720,11 +720,11 @@ class Room(models.Model):
 
 
 class Location(models.Model):
-    """From NAV Wiki: The location table defines a group of rooms; i.e. a
-    campus."""
+    """The location table defines a group of rooms; i.e. a campus."""
 
     id = models.CharField(db_column='locationid',
                           max_length=30, primary_key=True)
+    parent = models.ForeignKey('self', blank=True, null=True)
     description = VarcharField(db_column='descr')
     data = hstore.DictionaryField()
     objects = hstore.HStoreManager()
@@ -762,6 +762,23 @@ class Organization(models.Model):
         """Naively extract email addresses from the contact string"""
         contact = self.contact if self.contact else ""
         return re.findall(r'(\b[\w.]+@[\w.]+\b)', contact)
+
+    def has_children(self):
+        """Returns true if this organization has children"""
+        return self.get_children().exists()
+
+    def get_children(self):
+        """Gets all children of this organization"""
+        return Organization.objects.filter(parent=self)
+
+    def get_descendants(self, include_self=False):
+        """Gets all descendants of this organization"""
+        descendants = []
+        if include_self:
+            descendants.append(self)
+        for child in self.get_children():
+            descendants += child.get_descendants(include_self=True)
+        return descendants
 
 
 class Category(models.Model):

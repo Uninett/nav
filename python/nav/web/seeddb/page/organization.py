@@ -15,6 +15,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from django.shortcuts import render
+
 from ..forms import (OrganizationFilterForm, OrganizationForm,
                      OrganizationMoveForm)
 
@@ -54,13 +56,11 @@ def organization(request):
 
 def organization_list(request):
     info = OrganizationInfo()
-    query = Organization.objects.all()
-    filter_form = OrganizationFilterForm(request.GET)
-    value_list = (
-        'id', 'parent', 'description', 'data')
-    return render_list(request, query, value_list, 'seeddb-organization-edit',
-                       filter_form=filter_form,
-                       extra_context=info.template_context)
+    context = info.template_context
+    context.update({
+        'root_orgs': Organization.objects.filter(parent=None).order_by('id')
+    })
+    return render(request, 'seeddb/list_orgs.html', context)
 
 
 def organization_move(request):
