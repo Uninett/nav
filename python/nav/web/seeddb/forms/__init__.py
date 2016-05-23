@@ -90,17 +90,26 @@ class RoomMoveForm(forms.Form):
 
 class LocationForm(forms.ModelForm):
     """Form for editing and adding a location"""
+    parent = forms.ModelChoiceField(
+        queryset=Location.objects.order_by('id'),
+        required=False)
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
 
     class Meta(object):
         model = Location
-        fields = '__all__'
+        fields = ('parent', 'id', 'description', 'data')
 
     def __init__(self, *args, **kwargs):
         super(LocationForm, self).__init__(*args, **kwargs)
         if kwargs.get('instance'):
+            # disallow editing the primary key of existing record
             del self.fields['id']
+            # remove self from list of selectable parents
+            parent = self.fields['parent']
+            parent.queryset = parent.queryset.exclude(
+                id=kwargs['instance'].id)
+            
 
 
 class OrganizationFilterForm(forms.Form):

@@ -724,7 +724,8 @@ class Location(models.Model):
 
     id = models.CharField(db_column='locationid',
                           max_length=30, primary_key=True)
-    parent = models.ForeignKey('self', blank=True, null=True)
+    parent = models.ForeignKey('self', db_column='parent',
+                               blank=True, null=True)
     description = VarcharField(db_column='descr')
     data = hstore.DictionaryField()
     objects = hstore.HStoreManager()
