@@ -40,7 +40,7 @@ def create_hierarchy(klass):
     visualize the tree structure of the data.
     """
     roots = klass.objects.filter(parent__isnull=True).order_by('id')
-    choices = []
+    choices = [('', '---------')]
     for root in roots:
         create_choices(root, choices)
     return choices
@@ -71,6 +71,13 @@ def tree_pad(string, level=0, last=False):
         for _ in range(level-1):
             string = "&#9474; " + string  # │
     return mark_safe(string)
+
+
+def cut_branch(field, klass, pk):
+    """Filter choices for a field based on descendants of an instance"""
+    descendants = klass.objects.get(pk=pk).get_descendants(include_self=True)
+    descendant_ids = [d.pk for d in descendants]
+    return [c for c in field.choices if c[0] not in descendant_ids]
 
 
 def get_formhelper():
@@ -138,9 +145,8 @@ class RoomMoveForm(forms.Form):
 
 class LocationForm(forms.ModelForm):
     """Form for editing and adding a location"""
-    parent = forms.ModelChoiceField(
-        queryset=Location.objects.order_by('id'),
-        required=False)
+    parent = forms.ChoiceField(choices=create_hierarchy(Location),
+                               required=False)
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
 
@@ -150,15 +156,23 @@ class LocationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(LocationForm, self).__init__(*args, **kwargs)
-        if kwargs.get('instance'):
+        if self.instance.id:
             # disallow editing the primary key of existing record
             del self.fields['id']
             # remove self and all descendants from list of selectable parents
-            parent = self.fields['parent']
-            descendants = Location.objects.get(
-                pk=kwargs['instance'].id).get_descendants(include_self=True)
-            descendant_ids = [d.pk for d in descendants]
-            parent.queryset = parent.queryset.exclude(id__in=descendant_ids)
+            field = self.fields['parent']
+            field.choices = cut_branch(field, Location, self.instance.id)
+
+    def clean_parent(self):
+        """Provide a model as the parent.
+        
+        This is needed because we use a normal ChoiceField (because of the tree
+        structure) that does not provide a model instance when selected.
+        """
+        parent = self.cleaned_data.get('parent')
+        if parent:
+            return Location.objects.get(pk=parent)
+        return parent
 
 
 class OrganizationFilterForm(forms.Form):
@@ -179,9 +193,8 @@ class OrganizationFilterForm(forms.Form):
 
 class OrganizationForm(forms.ModelForm):
     """Form for editing an organization"""
-    parent = forms.ModelChoiceField(
-        queryset=Organization.objects.order_by('id'),
-        required=False)
+    parent = forms.ChoiceField(choices=create_hierarchy(Organization),
+                               required=False)
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
 
@@ -191,15 +204,23 @@ class OrganizationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(OrganizationForm, self).__init__(*args, **kwargs)
-        if kwargs.get('instance'):
+        if self.instance.id:
             # disallow editing the primary key of existing record
             del self.fields['id']
             # remove self and all descendants from list of selectable parents
-            parent = self.fields['parent']
-            descendants = Organization.objects.get(
-                pk=kwargs['instance'].id).get_descendants(include_self=True)
-            descendant_ids = [d.pk for d in descendants]
-            parent.queryset = parent.queryset.exclude(id__in=descendant_ids)
+            field = self.fields['parent']
+            field.choices = cut_branch(field, Organization, self.instance.id)
+
+    def clean_parent(self):
+        """Provide a model as the parent.
+        
+        This is needed because we use a normal ChoiceField (because of the tree
+        structure) that does not provide a model instance when selected.
+        """
+        parent = self.cleaned_data.get('parent')
+        if parent:
+            return Organization.objects.get(pk=parent)
+        return parent
 
 
 class OrganizationMoveForm(forms.Form):
