@@ -153,10 +153,12 @@ class LocationForm(forms.ModelForm):
         if kwargs.get('instance'):
             # disallow editing the primary key of existing record
             del self.fields['id']
-            # remove self from list of selectable parents
+            # remove self and all descendants from list of selectable parents
             parent = self.fields['parent']
-            parent.queryset = parent.queryset.exclude(
-                id=kwargs['instance'].id)
+            descendants = Location.objects.get(
+                pk=kwargs['instance'].id).get_descendants(include_self=True)
+            descendant_ids = [d.pk for d in descendants]
+            parent.queryset = parent.queryset.exclude(id__in=descendant_ids)
 
 
 class OrganizationFilterForm(forms.Form):
@@ -192,10 +194,12 @@ class OrganizationForm(forms.ModelForm):
         if kwargs.get('instance'):
             # disallow editing the primary key of existing record
             del self.fields['id']
-            # remove self from list of selectable parents
+            # remove self and all descendants from list of selectable parents
             parent = self.fields['parent']
-            parent.queryset = parent.queryset.exclude(
-                id=kwargs['instance'].id)
+            descendants = Organization.objects.get(
+                pk=kwargs['instance'].id).get_descendants(include_self=True)
+            descendant_ids = [d.pk for d in descendants]
+            parent.queryset = parent.queryset.exclude(id__in=descendant_ids)
 
 
 class OrganizationMoveForm(forms.Form):
