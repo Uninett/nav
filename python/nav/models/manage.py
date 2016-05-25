@@ -719,7 +719,33 @@ class Room(models.Model):
         return u'%s (%s)' % (self.id, self.description)
 
 
-class Location(models.Model):
+class TreeMixin(object):
+    """A mixin that provides methods for models that use parenting hierarchy"""
+    def num_ancestors(self):
+        """The number of ancestors, how deep am I?"""
+        if self.parent:
+            return 1 + self.parent.num_ancestors()
+        return 0
+
+    def has_children(self):
+        """Returns true if this organization has children"""
+        return self.get_children().exists()
+
+    def get_children(self):
+        """Gets all children"""
+        return self.__class__.objects.filter(parent=self)
+
+    def get_descendants(self, include_self=False):
+        """Gets all descendants of this organization"""
+        descendants = []
+        if include_self:
+            descendants.append(self)
+        for child in self.get_children():
+            descendants += child.get_descendants(include_self=True)
+        return descendants
+
+
+class Location(models.Model, TreeMixin):
     """The location table defines a group of rooms; i.e. a campus."""
 
     id = models.CharField(db_column='locationid',
@@ -737,17 +763,8 @@ class Location(models.Model):
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
 
-    def num_ancestors(self):
-        if self.parent:
-            return 1 + self.parent.num_ancestors()
-        return 0
 
-    def get_children(self):
-        """Gets all children of this location"""
-        return Location.objects.filter(parent=self)
-
-
-class Organization(models.Model):
+class Organization(models.Model, TreeMixin):
     """From NAV Wiki: The org table defines an organization which is in charge
     of a given netbox and is the user of a given prefix."""
 
@@ -772,28 +789,6 @@ class Organization(models.Model):
         """Naively extract email addresses from the contact string"""
         contact = self.contact if self.contact else ""
         return re.findall(r'(\b[\w.]+@[\w.]+\b)', contact)
-
-    def num_ancestors(self):
-        if self.parent:
-            return 1 + self.parent.num_ancestors()
-        return 0
-
-    def has_children(self):
-        """Returns true if this organization has children"""
-        return self.get_children().exists()
-
-    def get_children(self):
-        """Gets all children of this organization"""
-        return Organization.objects.filter(parent=self)
-
-    def get_descendants(self, include_self=False):
-        """Gets all descendants of this organization"""
-        descendants = []
-        if include_self:
-            descendants.append(self)
-        for child in self.get_children():
-            descendants += child.get_descendants(include_self=True)
-        return descendants
 
 
 class Category(models.Model):
