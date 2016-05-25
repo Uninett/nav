@@ -737,6 +737,15 @@ class Location(models.Model):
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
 
+    def num_ancestors(self):
+        if self.parent:
+            return 1 + self.parent.num_ancestors()
+        return 0
+
+    def get_children(self):
+        """Gets all children of this location"""
+        return Location.objects.filter(parent=self)
+
 
 class Organization(models.Model):
     """From NAV Wiki: The org table defines an organization which is in charge
@@ -763,6 +772,11 @@ class Organization(models.Model):
         """Naively extract email addresses from the contact string"""
         contact = self.contact if self.contact else ""
         return re.findall(r'(\b[\w.]+@[\w.]+\b)', contact)
+
+    def num_ancestors(self):
+        if self.parent:
+            return 1 + self.parent.num_ancestors()
+        return 0
 
     def has_children(self):
         """Returns true if this organization has children"""

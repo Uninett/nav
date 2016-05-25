@@ -28,6 +28,7 @@ from nav.models.manage import Room, Category, Organization, Netbox
 from nav.models.manage import NetboxInfo
 from nav.web.seeddb.utils.edit import (resolve_ip_and_sysname, does_ip_exist,
                                        does_sysname_exist)
+from nav.web.seeddb.forms import create_hierarchy
 
 _logger = logging.getLogger(__name__)
 
@@ -40,6 +41,7 @@ class NetboxModelForm(forms.ModelForm):
                            required=False)
     sysname = forms.CharField(required=False)
     snmp_version = forms.IntegerField(required=False)
+    organization = forms.ChoiceField(choices=create_hierarchy(Organization))
 
     class Meta(object):
         model = Netbox
@@ -118,6 +120,10 @@ class NetboxModelForm(forms.ModelForm):
         if not snmp_version:
             snmp_version = 1
         return snmp_version
+
+    def clean_organization(self):
+        data = self.cleaned_data.get('organization')
+        return Organization.objects.get(pk=data)
 
     def clean(self):
         """Make sure that categories that require communities has that"""

@@ -1,4 +1,4 @@
-#
+# -*- coding: utf-8 -*-#
 # Copyright (C) 2014 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
@@ -18,6 +18,7 @@
 
 from django import forms
 from django_hstore.forms import DictionaryField
+from django.utils.safestring import mark_safe
 
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column,
@@ -27,6 +28,49 @@ from nav.web.crispyforms import LabelSubmit
 from nav.models.manage import (Location, Room, Organization, NetboxType,
                                Vendor, NetboxGroup, Category, Netbox)
 from nav.models.cabling import Cabling
+
+import logging
+_logger = logging.getLogger(__name__)
+
+
+def create_hierarchy(klass):
+    """Creates a tree structure for select choices
+    
+    This is used in forms that use Organization and Location fields, and will
+    visualize the tree structure of the data.
+    """
+    roots = klass.objects.filter(parent__isnull=True).order_by('id')
+    choices = []
+    for root in roots:
+        create_choices(root, choices)
+    return choices
+
+
+def create_choices(element, choices, last=False):
+    """Recursively create and pad the choices for each element"""
+    choices.append((element.pk,
+         tree_pad(unicode(element.pk),
+                  element.num_ancestors(), last=last)))
+
+    children = element.get_children()
+    num_children = len(children)
+    for index, child in enumerate(children):
+        if index == num_children - 1:
+            create_choices(child, choices, last=True)
+        else:
+            create_choices(child, choices)
+            
+
+def tree_pad(string, level=0, last=False):
+    """Pad the string according to level and if its last"""
+    if level:
+        if last:
+            string = "&#9492; " + string  # └
+        else:
+            string = "&#9500; " + string  # ├
+        for _ in range(level-1):
+            string = "&#9474; " + string  # │
+    return mark_safe(string)
 
 
 def get_formhelper():
@@ -73,13 +117,17 @@ class RoomFilterForm(forms.Form):
 
 class RoomForm(forms.ModelForm):
     """Form for editing/adding rooms"""
-    location = forms.ModelChoiceField(queryset=Location.objects.order_by('id'))
+    location = forms.ChoiceField(choices=create_hierarchy(Location))
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
 
     class Meta(object):
         model = Room
         fields = '__all__'
+
+    def clean_location(self):
+        data = self.cleaned_data.get('location')
+        return Location.objects.get(pk=data)
 
 
 class RoomMoveForm(forms.Form):
@@ -109,7 +157,6 @@ class LocationForm(forms.ModelForm):
             parent = self.fields['parent']
             parent.queryset = parent.queryset.exclude(
                 id=kwargs['instance'].id)
-            
 
 
 class OrganizationFilterForm(forms.Form):
