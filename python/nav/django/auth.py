@@ -21,7 +21,6 @@ from logging import getLogger
 from nav.models.profiles import Account
 from nav.django.utils import is_admin, get_account
 
-from django.core.urlresolvers import reverse
 from django.http import (HttpResponseForbidden, HttpResponseRedirect,
                          HttpResponse)
 
@@ -30,6 +29,10 @@ _logger = getLogger(__name__)
 ACCOUNT_ID_VAR = 'account_id'
 SUDOER_ID_VAR = 'sudoer'
 
+# This may seem like redundant information, but it seems urlresolvers.reverse
+# will hang under some usages of these middleware classes - so until we figure
+# out what's going on, we'll hardcode this here.
+LOGIN_URL = '/index/login/'
 
 class AuthenticationMiddleware(object):
     def process_request(self, request):
@@ -71,7 +74,7 @@ class AuthorizationMiddleware(object):
             return HttpResponse(status=401)
 
         new_url = '{0}?origin={1}&noaccess'.format(
-            reverse('webfront-login'),
+            LOGIN_URL,
             urllib.quote(request.get_full_path()))
         return HttpResponseRedirect(new_url)
 
@@ -143,5 +146,3 @@ class SudoNotAdminError(Exception):
 
     def __unicode__(self):
         return self.msg
-
-
