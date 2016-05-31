@@ -1655,6 +1655,10 @@ class Sensor(models.Model):
         return get_simple_graph_url([self.get_metric_name()],
                                     time_frame=time_frame)
 
+    def __unicode__(self):
+        return "Sensor '{}' on {}".format(
+            self.human_readable or self.internal_name,
+            self.netbox)
 
 class PowerSupplyOrFan(models.Model):
     STATE_UP = u'y'
