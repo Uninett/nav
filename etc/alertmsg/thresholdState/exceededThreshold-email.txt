@@ -1,4 +1,8 @@
 Subject: Threshold exceeded on {{ metric }}
 
-The metric {{ metric }} was measured at {{ measured_value }} on {{ time }},
-exceeding the configured threshold of {{ alert|safe }}.
+A configured threshold rule was exceeded:
+
+Metric: {{ metric }}
+Time: {{ time }}
+Value: {{ measured_value }}
+Threshold: {{ alert|safe }}
