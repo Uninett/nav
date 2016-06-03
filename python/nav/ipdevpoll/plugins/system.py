@@ -50,14 +50,21 @@ class System(Plugin):
         chassis = shadows.NetboxEntity.get_chassis_entities(self.containers)
         if chassis and len(chassis) == 1:
             entity = chassis[0]
+            self._logger.debug("found a pre-existing chassis: %s/%s (%s)",
+                               entity.name, entity.source,
+                               entity.device.serial if entity.device else "N/A")
             if not entity.software_revision:
                 entity.software_revision = version
+                self._logger.debug("set pre-existing entity software revision")
             if entity.device and not entity.device.software_version:
                 entity.device.software_version = version
+                self._logger.debug("set pre-existing device software revision")
 
         if not chassis:
             device = self.containers.factory(None, shadows.Device)
             if not device.software_version:
+                self._logger.debug(
+                    "didn't find a pre-existing chassis, making one")
                 device.software_version = version
 
                 entity = self.containers.factory(None, shadows.NetboxEntity)

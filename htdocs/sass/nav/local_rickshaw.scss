@@ -2,11 +2,12 @@
     background-color: white;
     border: 1px solid gainsboro;
     position: relative;
-    padding: 2em 1em 2.5em .5em; /* Padding here affects values for y-axis */
+    padding: 2.5em 1em .5em .5em; /* Padding here affects values for y-axis */
 
     .rickshaw-preview {
         margin-left: 4em;
         margin-top: 1.2em;
+        margin-bottom: 1em;
     }
 
     .rickshaw-graph {
@@ -16,7 +17,7 @@
 
     .rickshaw-y-axis {
         position: absolute;
-        top: 1em;               /* NB: Affected by padding for container */
+        top: 1.5em;               /* NB: Affected by padding for container */
         bottom: 0;
         width: 3em;
         margin: 1em;
@@ -41,10 +42,9 @@
     .rickshaw-legend {
         background: none;
         color: initial;
+        display: flex;
+        justify-content: flex-end;
         padding: 0;
-        position: absolute;
-        right: 0.5em;
-        bottom: 0.5em;
         ul {
             margin: initial;
             li {
@@ -70,7 +70,7 @@
             .x_label {
                 display: none;
             }
-            .detail_swatch { 
+            .detail_swatch {
                 float: right;
                 display: inline-block;
                 width: 10px;

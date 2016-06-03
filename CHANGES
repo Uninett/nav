@@ -1,3 +1,46 @@
+Version 4.4.4
+(released 02 Jun 2016)
+
+ Bugfixes:
+
+  * LP#1551217 (Alert from 3rd party - maintenance mode not respected)
+  * LP#1569704 (Supplied Apache config example doesn't explicitly allow access
+                to read files in the upload location)
+  * LP#1570814 (DNS lookups in web UI leak UDP sockets until resource
+                exhaustion)
+  * LP#1571010 (timeformat unreadable in scheduled messages)
+  * LP#1572580 (Malformed month names in syslog messages cause logengine crash)
+  * LP#1572599 (Adding VLAN graphs to dashboard does nothing)
+  * LP#1572894 (portadmin: Save all button disappears on small screens)
+  * LP#1573486 (netmap crashes when a room is not connected to a location)
+  * LP#1573569 (portadmin: crash when cisco voice enabled and visiting hp
+                device)
+  * LP#1578108 (eventengine enters an infinite loop and stops processing events)
+  * LP#1588201 (Status page describes many threshold alerts only as "Sensor 
+                object")
+
+
+Version 4.4.3
+(released 31 Mar 2016)
+
+ Bugfixes:
+
+  * LP#1538270 (PortAdmin crashes when non admin try to remove a vlan from the
+                trunk)
+  * LP#1543529 (portadmin: default vlan is not setable for non-admin if auth is
+                enabled)
+  * LP#1543953 (Wrong units in Gbits/s graphs)
+  * LP#1544059 (Subnet matrix is no longer helpful when no scopes have been
+                defined)
+  * LP#1551205 (Subject description of 3rd party alerts in status page are
+                uninformative)
+  * LP#1552198 (ranked statistics give vague error when no data exists)
+  * LP#1554466 (PortAdmin: when proper cisco voice vlans enabled changing vlan
+                changes native vlan)
+  * LP#1559004 (Extract VLAN information from Juniper routers)
+  * LP#1563369 (Rickshaw graphs do not update on interval change)
+
+
 Version 4.4.2
 (released 4 Feb 2016)
 

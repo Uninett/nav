@@ -298,8 +298,13 @@ class ThresholdEvent(object):
 
     def get_absolute_url(self):
         """Returns a URL to the metric subject, if one was found"""
-        if self.subject and hasattr(self.subject, 'get_absolute_url'):
-            return self.subject.get_absolute_url()
+        if self.subject:
+            if hasattr(self.subject, 'get_absolute_url'):
+                return self.subject.get_absolute_url()
+            elif (hasattr(self.subject, 'netbox') and
+                  hasattr(self.subject.netbox, 'get_absolute_url')
+            ):
+                return self.subject.netbox.get_absolute_url()
 
 
 class EventQueue(models.Model, EventMixIn):

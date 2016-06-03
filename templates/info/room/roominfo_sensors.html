@@ -13,7 +13,7 @@
     {% if netbox.get_environment_sensors.count > 0 %}
       <div class="netbox-sensor-container left">
         <h4>Sensors for
-          <a href="{% url 'ipdevinfo-details-by-name' netbox.sysname %}/#!sysmetrics!metricsensors"
+          <a href="{% url 'ipdevinfo-details-by-name' netbox.sysname %}#!sysmetrics!metricsensors"
              title="See all sensor metrics for this IP device">
             {{ netbox.sysname }}
           </a>

@@ -1,31 +1,31 @@
 {% extends "messages/base.html" %}
 {% block tabcontent %}
 
-    {% if messages %}
-        <table class="listtable">
-            <caption>{{ caption }}</caption>
-            <thead>
-                <tr>
-                    <th>Published</th>
-                    <th>Title</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for message in messages %}
-                    <tr>
-                        <td>{{ message.publish_start|date:"DATETIME_FORMAT_SHORT" }}</td>
-                        <td><a href="{% url 'messages-view' message.id %}">{{ message.title }}</a></td>
-                        <td>{{ message.description }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p class="alert-box secondary">No messages</p>
-    {% endif %}
+  {% if messages %}
+    <table class="listtable">
+      <caption>{{ caption }}</caption>
+      <thead>
+        <tr>
+          <th>Published</th>
+          <th>Title</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for message in messages %}
+          <tr>
+            <td>{{ message.publish_start|date:"SHORT_DATETIME_FORMAT" }}</td>
+            <td><a href="{% url 'messages-view' message.id %}">{{ message.title }}</a></td>
+            <td>{{ message.description }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="alert-box secondary">No messages</p>
+  {% endif %}
 
-    {% if not current_user_data.account.is_default_account %}
-      <a href="{% url 'messages-create' %}" class="button small">Create new message</a>
-    {% endif %}
+  {% if not current_user_data.account.is_default_account %}
+    <a href="{% url 'messages-create' %}" class="button small">Create new message</a>
+  {% endif %}
 {% endblock tabcontent %}

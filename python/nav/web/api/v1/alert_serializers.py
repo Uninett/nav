@@ -99,7 +99,11 @@ class AlertHistorySerializer(serializers.ModelSerializer):
         try:
             return obj.get_subject().is_on_maintenance()
         except AttributeError:
-            pass
+            try:
+                # attempt fallback to owning netbox, if any
+                return obj.get_subject().netbox.is_on_maintenance()
+            except AttributeError:
+                pass
 
     @staticmethod
     def get_event_history_url(obj):

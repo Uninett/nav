@@ -36,6 +36,14 @@ Alias /uploads @localstatedir@/uploads
 <Location /uploads>
     # Files here may be sensitive. Do not allow browsing.
     Options -Indexes
+    # Access directives are different from Apache 2.4 and on
+    <IfVersion < 2.4>
+      Order allow,deny
+      Allow from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+      Require all granted
+    </IfVersion>
 </Location>
 
 AliasMatch (^/static/.*) @webrootdir@/$1
