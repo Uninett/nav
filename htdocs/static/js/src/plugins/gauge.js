@@ -155,7 +155,7 @@ define(['libs/d3.v2'], function () {
             return valueText;
         },
         addEllipsis: function(text, maxLength) {
-            if (text.length > maxLength && text.length > maxLength) {
+            if (text.length > maxLength) {
                 return text.substr(0, maxLength - 3) + '...';
             }
             return text;
