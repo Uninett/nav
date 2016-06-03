@@ -23,6 +23,7 @@ define(['libs/d3.v2'], function () {
             thresholds = config.thresholds || [];
 
         this.symbol = config.symbol || '\u00B0';  // Default is degrees
+        this.unit = config.unit || '';
         this.animationSpeed = 1000;  // Speed of value transitions
 
         /* Create SVG element */
@@ -143,7 +144,21 @@ define(['libs/d3.v2'], function () {
                 .attr('x', ir - 5)
                 .attr('text-anchor', 'end');
 
+            /* Create text displaying unit */
+                maxText = this.vis.append('text')
+                .text(this.addEllipsis(this.unit, 10))
+                .attr('fill', '#b3b3b3')
+                .attr('font-size', this.smallfontSizeScale(radius) + 'px')
+                .attr('y', '0')
+                .attr('text-anchor', 'middle');
+
             return valueText;
+        },
+        addEllipsis: function(text, maxLength) {
+            if (text.length > maxLength && text.length > maxLength) {
+                return text.substr(0, maxLength - 3) + '...';
+            }
+            return text;
         },
         createColorScale: function (min, max, thresholds, invert) {
             if (thresholds.length === 1) {

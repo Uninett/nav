@@ -121,6 +121,7 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
                     value: value,
                     max: this.maxValue,
                     thresholds: this.thresholds,
+                    unit: this.unit,
                     symbol: this.sensorsymbol,
                     radius: 110
                 });
