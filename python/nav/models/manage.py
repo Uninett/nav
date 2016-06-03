@@ -1656,7 +1656,9 @@ class Sensor(models.Model):
         ordering = ('name',)
 
     def __unicode__(self):
-        return self.human_readable
+        return "Sensor '{}' on {}".format(
+            self.human_readable or self.internal_name,
+            self.netbox)
 
     def get_metric_name(self):
         return metric_path_for_sensor(self.netbox.sysname, self.internal_name)
