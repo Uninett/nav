@@ -282,7 +282,8 @@ def render_sensors(request, roomid):
     for netbox in netboxes:
         netbox.env_sensors = netbox.sensor_set.filter(
             Q(unit_of_measurement__icontains='celsius') |
-            Q(unit_of_measurement__icontains='percent'))
+            Q(unit_of_measurement__icontains='percent') |
+            Q(unit_of_measurement__startswith='%'))
 
     return render(request, 'info/room/roominfo_sensors.html', {
         'netboxes': [n for n in netboxes if n.env_sensors]
