@@ -13,12 +13,8 @@ define([], function () {
         var checkbox = $('<input type="checkbox"/>');
         var that = this;
         this.node.append(checkbox);
-        checkbox.click(function() {
-            if (checkbox.prop('checked')) {
-                $(that.selector).attr("checked", "checked");
-            } else {
-                $(that.selector).removeAttr("checked");
-            }
+        checkbox.change(function() {
+            $(that.selector).prop("checked", checkbox.prop('checked'));
         });
     };
 
