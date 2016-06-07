@@ -229,7 +229,8 @@ class TokenForm(forms.ModelForm):
     endpoints = forms.MultipleChoiceField(
         required=False,
         choices=sorted(available_endpoints.items()))
-    expires = forms.DateField(initial=_get_default_expires)
+    expires = forms.DateField(initial=_get_default_expires,
+                              widget=forms.DateInput(attrs={'type': 'date'}))
 
     def __init__(self, *args, **kwargs):
         super(TokenForm, self).__init__(*args, **kwargs)
