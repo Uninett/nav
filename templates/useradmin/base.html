@@ -5,7 +5,7 @@
 
 {% block base_content %}
 
-  {% with tool=current_user_data.tools|get_tool:'User Administration' %}
+  {% with tool=current_user_data.tools|get_tool:'User and API Administration' %}
     {% include 'nav_header.html' %}
   {% endwith %}
 
