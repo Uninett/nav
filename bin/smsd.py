@@ -124,7 +124,9 @@ def main(args):
         'loglevel': 'INFO',
         'mailwarnlevel': 'ERROR',
         'mailserver': 'localhost',
-        'mailaddr': nav.config.read_flat_config('nav.conf')['ADMIN_MAIL']
+        'mailaddr': nav.config.read_flat_config('nav.conf')['ADMIN_MAIL'],
+        'fromaddr': nav.config.read_flat_config('nav.conf')[
+            'DEFAULT_FROM_EMAIL'],
     }
 
     # Read config file
@@ -152,6 +154,7 @@ def main(args):
     mailwarnlevel = logging.getLevelName(config['main']['mailwarnlevel'])
     mailserver = config['main']['mailserver']
     mailaddr = config['main']['mailaddr']
+    fromaddr = config['main']['fromaddr']
 
     # Initialize logger
     global logger
@@ -160,7 +163,7 @@ def main(args):
     loginitstderr(loglevel)
     if not loginitfile(loglevel, logfile):
         sys.exit('Failed to init file logging.')
-    if not loginitsmtp(mailwarnlevel, mailaddr, mailserver):
+    if not loginitsmtp(mailwarnlevel, mailaddr, fromaddr, mailserver):
         sys.exit('Failed to init SMTP logging.')
 
 
@@ -488,16 +491,11 @@ def loguninitstderr():
             return True
 
 
-def loginitsmtp(loglevel, mailaddr, mailserver):
+def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
     """Initalize the logging handler for SMTP."""
 
     try:
-        # localuser will be root if smsd was started as root, since
-        # switchuser() is first called at a later time
-        localuser = pwd.getpwuid(os.getuid())[0]
         hostname = socket.gethostname()
-        fromaddr = localuser + '@' + hostname
-
         mailhandler = logging.handlers.SMTPHandler(mailserver, fromaddr,
             mailaddr, 'NAV smsd warning from ' + hostname)
         mailformat = '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s'
