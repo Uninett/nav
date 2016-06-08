@@ -199,11 +199,26 @@ class EventEngine(object):
 
         is_stateless = event.state == Event.STATE_STATELESS
         if is_stateless or not alert.is_event_duplicate():
-            self._logger.debug('Posting %s event', event.event_type)
-            alert.post()
+            if self._box_is_on_maintenance(event):
+                self._logger.debug('%s is on maintenance, only posting to '
+                                   'alert history for %s event',
+                                   event.netbox, event.event_type)
+                alert.post_alert_history()
+            else:
+                self._logger.debug('Posting %s event', event.event_type)
+                alert.post()
         else:
             self._logger.info('Ignoring duplicate %s event', event.event_type)
         event.delete()
+
+    @staticmethod
+    def _box_is_on_maintenance(event):
+        """Returns True if the event's associated netbox is currently on
+        maintenance.
+        """
+        return event.netbox.get_unresolved_alerts(
+            'maintenanceState').count() > 0
+
 
     @transaction.atomic()
     def handle_event(self, event):
@@ -228,8 +243,8 @@ class EventEngine(object):
                     event.delete()
 
         if event.id:
-            self._logger.debug("event wasn't disposed of, "
-                               "maybe held for later processing?")
+            self._logger.debug("event %s wasn't disposed of, "
+                               "maybe held for later processing?", event.id)
 
     def schedule(self, delay, action, args=()):
         """Schedule running action after a given delay"""
