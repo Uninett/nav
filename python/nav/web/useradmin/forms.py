@@ -200,7 +200,7 @@ class AccountAddForm(forms.Form):
             query = Account.objects.all()
 
         self.fields['account'] = forms.models.ModelChoiceField(
-            query, required=True, widget=forms.Select(), label='Add group member')
+            query, required=True, widget=forms.Select(), label='')
 
         self.helper = FormHelper()
         self.helper.layout = Layout(

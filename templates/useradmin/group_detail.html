@@ -2,6 +2,7 @@
 {% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
+  {{ block.super }}
   <style>
    #grant-tooltip {
        background-color: #d9edf7;
@@ -10,22 +11,6 @@
    }
    #grant-tooltip::before { border-color: transparent transparent #d9edf7}
    #grant-tooltip::after { border-color: transparent transparent #bce8f1;}
-
-   #group-members-fieldset .asteriskField {
-       display: none;
-   }
-
-   #group-members-wrapper {
-       border: 1px solid lightgray;
-       margin-bottom: 1em;
-       max-height: 250px;
-       overflow: auto;
-   }
-
-   #group-members-wrapper > table {
-       border: none;
-       margin-bottom: 0;
-   }
   </style>
 {% endblock %}
 
@@ -69,7 +54,7 @@
             <legend>Group members</legend>
 
             {% if group.accounts.all %}
-              <div id="group-members-wrapper">
+              <div class="long-listing">
                 <table class="listtable hover expand">
                   <tbody>
                     {% for account in group.accounts.all %}
@@ -92,6 +77,7 @@
               <p>Group does not have any members.</p>
             {% endif %}
 
+            <h6>Add group member</h6>
             {% crispy account_form %}
           </fieldset>
         </div>
@@ -105,46 +91,49 @@
             <legend>Group privileges</legend>
 
             {% if group.privilege_set.all %}
-              <table class="listtable expand hover">
-                <thead>
-                  <tr>
-                    <th>Type</th>
-                    <th>Target</th>
-                    <th>&nbsp;</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for privilege in group.privilege_set.all %}
+              <div class="long-listing">
+                <table class="listtable expand hover">
+                  <thead>
                     <tr>
-                      <td>{{ privilege.type }}</td>
-                      <td class="break-word">{{ privilege.target }}</td>
-                      <td class="text-right">
-                        <a href="{% url 'useradmin-group_privilege_remove' group.id privilege.id %}"
-                           class="table-button secondary">
-                          Revoke
-                        </a>
-                      </td>
+                      <th>Type</th>
+                      <th>Target</th>
+                      <th>&nbsp;</th>
                     </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {% for privilege in group.privilege_set.all %}
+                      <tr>
+                        <td>{{ privilege.type }}</td>
+                        <td class="break-word">{{ privilege.target }}</td>
+                        <td class="text-right">
+                          <a href="{% url 'useradmin-group_privilege_remove' group.id privilege.id %}"
+                             class="table-button secondary">
+                            Revoke
+                          </a>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
             {% else %}
               <p>Group has no privileges set.</p>
             {% endif %}
 
             {% if privilege_form %}
-              <p>
+              
+              <h6>
                 Grant privileges
                 <i class="fa fa-info-circle has-tip"
                    data-dropdown="grant-tooltip"
                    data-options="is_hover:true"></i>
+              </h6>
 
-                <div id="grant-tooltip" class="f-dropdown" data-dropdown-content>
-                  See <a href='http://docs.python.org/howto/regex.html'>this HOWTO</a>
-                  on the Regular expressions used for matching targets for
-                  privileges like 'web_access'."
-                </div>
-              </p>
+              <div id="grant-tooltip" class="f-dropdown" data-dropdown-content>
+                See <a href='http://docs.python.org/howto/regex.html'>this HOWTO</a>
+                on the Regular expressions used for matching targets for
+                privileges like 'web_access'."
+              </div>
 
               {% crispy privilege_form %}
             {% endif %}
