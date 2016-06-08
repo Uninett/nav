@@ -10,6 +10,22 @@
    }
    #grant-tooltip::before { border-color: transparent transparent #d9edf7}
    #grant-tooltip::after { border-color: transparent transparent #bce8f1;}
+
+   #group-members-fieldset .asteriskField {
+       display: none;
+   }
+
+   #group-members-wrapper {
+       border: 1px solid lightgray;
+       margin-bottom: 1em;
+       max-height: 250px;
+       overflow: auto;
+   }
+
+   #group-members-wrapper > table {
+       border: none;
+       margin-bottom: 0;
+   }
   </style>
 {% endblock %}
 
@@ -49,27 +65,29 @@
         {% comment %} START GROUP MEMBERS {% endcomment %}
         <div class="column medium-6 large-3">
 
-          <fieldset>
+          <fieldset id="group-members-fieldset">
             <legend>Group members</legend>
 
             {% if group.accounts.all %}
-              <table class="listtable hover expand">
-                <tbody>
-                  {% for account in group.accounts.all %}
-                    <tr>
-                      <td>
-                        <a href="{% url 'useradmin-account_detail' account.id %}">{{ account }}</a>
-                      </td>
-                      <td class="text-right">
-                        {% if not group.is_protected_group %}
-                          <a href="{% url 'useradmin-group_account_remove' group.id account.id %}"
-                             class="table-button small secondary">Remove</a>
-                        {% endif %}
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
+              <div id="group-members-wrapper">
+                <table class="listtable hover expand">
+                  <tbody>
+                    {% for account in group.accounts.all %}
+                      <tr>
+                        <td>
+                          <a href="{% url 'useradmin-account_detail' account.id %}">{{ account }}</a>
+                        </td>
+                        <td class="text-right">
+                          {% if not group.is_protected_group %}
+                            <a href="{% url 'useradmin-group_account_remove' group.id account.id %}"
+                               class="table-button small secondary">Remove</a>
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
             {% else %}
               <p>Group does not have any members.</p>
             {% endif %}
@@ -120,7 +138,7 @@
                 <i class="fa fa-info-circle has-tip"
                    data-dropdown="grant-tooltip"
                    data-options="is_hover:true"></i>
-                          
+
                 <div id="grant-tooltip" class="f-dropdown" data-dropdown-content>
                   See <a href='http://docs.python.org/howto/regex.html'>this HOWTO</a>
                   on the Regular expressions used for matching targets for
