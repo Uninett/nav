@@ -228,8 +228,8 @@ class EventEngine(object):
                     event.delete()
 
         if event.id:
-            self._logger.debug("event wasn't disposed of, "
-                               "maybe held for later processing?")
+            self._logger.debug("event %s wasn't disposed of, "
+                               "maybe held for later processing?", event.id)
 
     def schedule(self, delay, action, args=()):
         """Schedule running action after a given delay"""
