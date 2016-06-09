@@ -1,3 +1,27 @@
+Version 4.5.0
+(released 09 Jun 2016)
+
+ User-visible features and improvements:
+
+  * LP#1321249 (A new tool for generating Graphite metrics from PostgreSQL
+                queries)
+  * LP#1531851 (Trend comparison in graphs)
+  * LP#1531853 (API: more flexible authorization and administration)
+  * LP#1534481 (Maintenance task selection based on device group)
+  * LP#1546434 (Add bulk upload of images in room view)
+  * LP#1577318 (Add timestamp filtering to cam and arp API)
+  * LP#1588187 (Cabling/patch registration and presentation in need of serious
+                usability improvements)
+
+ Bugfixes:
+
+  * LP#1551217 (Alert from 3rd party - maintenance mode not respected) [the
+               4.4.4 release did not fix the eventengine part of this issue,
+               this release does]
+  * LP#1590654 (Lost ipdevpoll database connections aren't properly reset under
+                Django 1.7)
+
+
 Version 4.4.4
 (released 02 Jun 2016)
 
@@ -16,7 +40,7 @@ Version 4.4.4
   * LP#1573569 (portadmin: crash when cisco voice enabled and visiting hp
                 device)
   * LP#1578108 (eventengine enters an infinite loop and stops processing events)
-  * LP#1588201 (Status page describes many threshold alerts only as "Sensor 
+  * LP#1588201 (Status page describes many threshold alerts only as "Sensor
                 object")
 
 
