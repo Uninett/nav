@@ -162,6 +162,8 @@ class JobHandler(object):
             try:
                 can_handle = yield defer.maybeDeferred(cls.can_handle,
                                                        self.netbox)
+            except db.ResetDBConnectionError:
+                raise
             except Exception, err:
                 self._logger.exception(
                     "Unhandled exception from can_handle(): %r", cls)
@@ -195,6 +197,8 @@ class JobHandler(object):
                 self._logger.debug("Plugin %s suggested a reschedule in "
                                    "%d seconds",
                                    plugin_instance, failure.value.delay)
+            elif failure.check(db.ResetDBConnectionError):
+                pass
             else:
                 log_unhandled_failure(self._logger,
                                       failure,
@@ -254,9 +258,10 @@ class JobHandler(object):
             return failure
 
         def save_failure(failure):
-            log_unhandled_failure(self._logger,
-                                  failure,
-                                  "Save stage failed with unhandled error")
+            if not failure.check(db.ResetDBConnectionError):
+                log_unhandled_failure(self._logger,
+                                      failure,
+                                      "Save stage failed with unhandled error")
             self._log_timings()
             raise AbortedJobError("Job aborted due to save failure",
                                   cause=failure.value)

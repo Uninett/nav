@@ -18,14 +18,21 @@
 import gc
 from pprint import pformat
 from twisted.internet import threads
+import threading
 from functools import wraps
 
 import django.db
 from django.db import transaction
-from psycopg2 import InterfaceError
+from django.db.utils import OperationalError as DjangoOperationalError
+from django.db.utils import InterfaceError as DjangoInterfaceError
+from psycopg2 import InterfaceError, OperationalError
 
 import logging
 _logger = logging.getLogger(__name__)
+
+
+class ResetDBConnectionError(Exception):
+    pass
 
 
 def django_debug_cleanup():
@@ -89,11 +96,19 @@ def reset_connection_on_interface_error(func):
     def _reset(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except InterfaceError:
-            _logger.warning("it appears the database connection was dropped, "
-                            "resetting")
+        except (InterfaceError, OperationalError,
+                DjangoInterfaceError, DjangoOperationalError) as error:
+            thread = threading.current_thread()
+            _logger.warning("it appears this thread's database connection was "
+                            "dropped, resetting it now - you may see further "
+                            "errors about this until the situation is fully "
+                            "resolved for all threads "
+                            "(this thread is '%s', error was '%s')",
+                            thread.name, error)
             django.db.connection.connection = None
-            raise
+            raise ResetDBConnectionError("The database connection was reset",
+                                         error)
+
     return wraps(func)(_reset)
 
 

@@ -226,9 +226,10 @@ class NetboxJobScheduler(object):
 
 
     def _log_unhandled_error(self, failure):
-        log_unhandled_failure(self._logger,
-                              failure,
-                              "Unhandled exception raised by JobHandler")
+        if not failure.check(db.ResetDBConnectionError):
+            log_unhandled_failure(self._logger,
+                                  failure,
+                                  "Unhandled exception raised by JobHandler")
 
     def _unregister_handler(self, result):
         """Remove a JobHandler from internal data structures."""
@@ -358,7 +359,8 @@ class JobScheduler(object):
     def _reload_netboxes(self):
         """Reload the set of netboxes to poll and update schedules."""
         deferred = self.netboxes.load_all()
-        deferred.addCallback(self._process_reloaded_netboxes)
+        deferred.addCallbacks(self._process_reloaded_netboxes,
+                              self._handle_reload_failures)
         return deferred
 
     def _process_reloaded_netboxes(self, result):
@@ -377,6 +379,11 @@ class JobScheduler(object):
                                  key=_lastupdated)
         for netbox_id in new_and_changed:
             self.add_netbox_scheduler(netbox_id)
+
+    def _handle_reload_failures(self, failure):
+        failure.trap(db.ResetDBConnectionError)
+        self._logger.error("Reloading the IP device list failed because the "
+                           "database connection was reset")
 
     def add_netbox_scheduler(self, netbox_id):
         netbox = self.netboxes[netbox_id]
@@ -454,7 +461,9 @@ def log_job_externally(job_handler, success=True, interval=None):
     _log_to_graphite()
     try:
         yield db.run_in_thread(_create_record, timestamp)
-    except Exception, error:
+    except db.ResetDBConnectionError:
+        pass  # this is being logged all over the place at the moment
+    except Exception as error:
         _logger.warning("failed to log job to database: %s", error)
 
 
