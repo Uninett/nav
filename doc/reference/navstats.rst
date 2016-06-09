@@ -70,12 +70,12 @@ The query will produce lines like this::
   hp       | hp2610_24               |     2
   hp       | hp2610_24_pwr           |     1
 
-NAMESPACE
+Namespace
 ---------
 
 We choose to put all data in the namespace **nav.stats**.
 
-RESULTING CONFIG
+Resulting config
 ----------------
 
 ::
@@ -95,7 +95,7 @@ Thus the path for the values above will be::
 (The script will do some modifications to the path to make sure Graphite can
 handle them.)
 
-RESULT
+Result
 ------
 
 The script (the one that is started as a cron-job when you write ``nav start
