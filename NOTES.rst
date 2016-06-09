@@ -5,9 +5,6 @@
 Please report bugs at https://bugs.launchpad.net/nav/+filebug . To browse
 existing bug reports, go to https://bugs.launchpad.net/nav .
 
-If you are upgrading from versions of NAV older than 3.7, please refer to the
-release notes of the in-between versions before reading any further.
-
 Known problems
 ==============
 
