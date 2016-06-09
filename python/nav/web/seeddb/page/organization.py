@@ -34,11 +34,13 @@ from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 
 
+
 class OrganizationInfo(SeeddbInfo):
-    active = {'organization': True}
-    caption = 'Organizations'
+    active_page = 'organization'
+    active = {active_page: True}
+    caption = "{}s".format(active_page.capitalize())
+    _title = caption
     tab_template = 'seeddb/tabs_generic.html'
-    _title = 'Organizations'
     verbose_name = Organization._meta.verbose_name
     _navpath = [('Organizations', reverse_lazy('seeddb-organization'))]
     delete_url = reverse_lazy('seeddb-organization')

@@ -60,6 +60,8 @@ function (datatables, CheckboxSelector, QuickSelect, FormFuck, connectivityCheck
 
         activateIpDeviceFormPlugins();
         addConfirmLeavePage();
+
+        addParentSelect2();
     }
 
 
@@ -223,6 +225,14 @@ function (datatables, CheckboxSelector, QuickSelect, FormFuck, connectivityCheck
                     };
                 }
             }
+        });
+    }
+
+
+    /** Add Select2 to parent fields. They demand extra styling and thus special treatment */
+    function addParentSelect2() {
+        $('#id_parent').select2({
+            dropdownCssClass: 'parent-element'
         });
     }
 
