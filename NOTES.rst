@@ -19,6 +19,50 @@ devices to be bombarded with requests from NAV.  The `contrib/patches`
 directory contains a patch for TwistedSNMP that solves this problem.  The
 patch has been submitted upstream, but not yet accepted into a new release.
 
+NAV 4.5
+========
+
+To see the overview of scheduled features and reported bugs on the 4.5 series
+of NAV, please go to https://launchpad.net/nav/4.5 .
+
+Dependency changes
+------------------
+
+There are none :-)
+
+Cabling and patches
+-------------------
+
+The cabling and patch registry was introduced originally with NAV 3.0, but
+never gained widespread usage, and had therefore fallen behind the rest of
+NAV.
+
+The University of Linköping has graciously sponsored a reworking of the SeedDB
+cabling and patch forms, so that these are now actually usable in a NAV
+installation with more than a handful of switches, cables and patches.
+Information about patch points is now also displayed on each port's ipdevinfo
+page.
+
+
+navstats
+--------
+
+NAV 4.5 adds a simple program, `navstats`, that can be used to periodically
+extract stats from the NAV database and store those stats as Graphite metrics.
+To configure your own stats, however, you need to know your way around SQL and
+the NAV DB schema.
+
+For more information, see the `navstats` reference documentation.
+
+API changes
+-----------
+
+API tokens can now be managed more flexibly via the User Admin tool. Multiple
+tokens can be issued and revoked separately. Each token has its own expiry
+time and list of authorized API endpoints.
+
+
+
 NAV 4.4
 =======
 
@@ -440,7 +484,7 @@ Schema changes and hstore
 -------------------------
 
 PostgreSQL's hstore extension has been utilized to implement the new
-flexible attribute feature for organization and room records. 
+flexible attribute feature for organization and room records.
 
 The hstore extension has been distributed with PostgreSQL since version 9, but
 will on some Linux distros be shipped in a separate package from the
@@ -547,7 +591,7 @@ Migrating existing data
 
 Existing threshold values for RRD-based data sources cannot be consistently
 migrated to the new threshold rule system, so you will need to configure your
-threshold rules from scratch. 
+threshold rules from scratch.
 
 We do provide a program for migrating time-series data stored in RRD files
 into Graphite, which will enable you to keep old data when upgrading from an
