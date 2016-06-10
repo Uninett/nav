@@ -78,6 +78,9 @@ def tree_pad(string, ancestors, last=False):
     :param ancestors: a list of booleans for each ancestor. The value indicates
                       if this ancestor was the last child
     :param last: indicates if this is the last child
+
+    :returns: a string (marked safe) representing an option in a dropdown,
+              drawing it's part of the tree-structure
     """
     charmap = {
         True: "&#9492; ",  # └
