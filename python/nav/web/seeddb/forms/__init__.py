@@ -42,36 +42,42 @@ def create_hierarchy(klass):
     roots = klass.objects.filter(parent__isnull=True).order_by('id')
     choices = [('', '---------')]
     for index, root in enumerate(roots):
-        last_root = index == roots.count() - 1
+        is_last_root = index == roots.count() - 1
         ancestors = []
-        create_choices(root, choices, ancestors, last_root)
+        choices = choices + create_choices(root, ancestors, is_last_root)
     return choices
 
 
-def create_choices(element, choices, ancestors, last=False):
-    """Recursively create and pad the choices for each element
+def create_choices(element, ancestors, is_last_child=False):
+    """Recursively create a choice for the element and its children
 
     :param element: a model instance using the TreeMixin
-    :param choices: a list of tuples for a select dropdown
-    :param last: indicates if this is the last sibling
-    """
-    choices.append((element.pk,
-         tree_pad(unicode(element.pk), ancestors, last=last)))
+    :param ancestors: list of booleans for each ancestor, indicating if that
+                      ancestor was the last child
+    :param is_last_child: indicates if this is the last child
 
-    child_ancestors = ancestors + [last]
+    :returns: a list of tuples meant to be used as choices in a form select. The
+              string element is padded to indicate placement in a tree-structure
+    """
+    choices = [(element.pk,
+                tree_pad(unicode(element.pk), ancestors, last=is_last_child))]
+    child_ancestors = ancestors + [is_last_child]
     children = element.get_children()
     num_children = children.count()
     for index, child in enumerate(children):
         last = index == num_children - 1
-        create_choices(child, choices, child_ancestors, last=last)
+        choices = choices + create_choices(child, child_ancestors,
+                                           is_last_child=last)
+        
+    return choices
             
 
 def tree_pad(string, ancestors, last=False):
-    """Pad the string according to level and if its last
+    """Pad the string according to ancestors and position
     
-    :param ancestors: a list of booleans for each ancestor that is true if this
-                      ancestor was the last sibling
-    :param last: indicates if this is the last sibling
+    :param ancestors: a list of booleans for each ancestor. The value indicates
+                      if this ancestor was the last child
+    :param last: indicates if this is the last child
     """
 
     if ancestors:
