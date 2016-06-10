@@ -41,35 +41,49 @@ def create_hierarchy(klass):
     """
     roots = klass.objects.filter(parent__isnull=True).order_by('id')
     choices = [('', '---------')]
-    for root in roots:
-        create_choices(root, choices)
+    for index, root in enumerate(roots):
+        last_root = index == roots.count() - 1
+        ancestors = []
+        create_choices(root, choices, ancestors, last_root)
     return choices
 
 
-def create_choices(element, choices, last=False):
-    """Recursively create and pad the choices for each element"""
-    choices.append((element.pk,
-         tree_pad(unicode(element.pk),
-                  element.num_ancestors(), last=last)))
+def create_choices(element, choices, ancestors, last=False):
+    """Recursively create and pad the choices for each element
 
+    :param element: a model instance using the TreeMixin
+    :param choices: a list of tuples for a select dropdown
+    :param last: indicates if this is the last sibling
+    """
+    choices.append((element.pk,
+         tree_pad(unicode(element.pk), ancestors, last=last)))
+
+    child_ancestors = ancestors + [last]
     children = element.get_children()
-    num_children = len(children)
+    num_children = children.count()
     for index, child in enumerate(children):
-        if index == num_children - 1:
-            create_choices(child, choices, last=True)
-        else:
-            create_choices(child, choices)
+        last = index == num_children - 1
+        create_choices(child, choices, child_ancestors, last=last)
             
 
-def tree_pad(string, level=0, last=False):
-    """Pad the string according to level and if its last"""
-    if level:
+def tree_pad(string, ancestors, last=False):
+    """Pad the string according to level and if its last
+    
+    :param ancestors: a list of booleans for each ancestor that is true if this
+                      ancestor was the last sibling
+    :param last: indicates if this is the last sibling
+    """
+
+    if ancestors:
         if last:
             string = "&#9492; " + string  # └
         else:
             string = "&#9500; " + string  # ├
-        for _ in range(level-1):
-            string = "&#9474; " + string  # │
+        for was_last in reversed(ancestors[1:]):
+            if was_last:
+                string = "&nbsp;&nbsp;" + string  # two spaces
+            else:
+                string = "&#9474; " + string  # │
     return mark_safe(string)
 
 
@@ -145,8 +159,7 @@ class RoomMoveForm(forms.Form):
 
 class LocationForm(forms.ModelForm):
     """Form for editing and adding a location"""
-    parent = forms.ChoiceField(choices=create_hierarchy(Location),
-                               required=False)
+    parent = forms.ChoiceField(required=False)
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
 
@@ -156,11 +169,13 @@ class LocationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(LocationForm, self).__init__(*args, **kwargs)
+        field = self.fields['parent']
+        field.choices = create_hierarchy(Location)
+
         if self.instance.id:
             # disallow editing the primary key of existing record
             del self.fields['id']
             # remove self and all descendants from list of selectable parents
-            field = self.fields['parent']
             field.choices = cut_branch(field, Location, self.instance.id)
 
     def clean_parent(self):
@@ -193,8 +208,7 @@ class OrganizationFilterForm(forms.Form):
 
 class OrganizationForm(forms.ModelForm):
     """Form for editing an organization"""
-    parent = forms.ChoiceField(choices=create_hierarchy(Organization),
-                               required=False)
+    parent = forms.ChoiceField(required=False)
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
 
@@ -204,11 +218,13 @@ class OrganizationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(OrganizationForm, self).__init__(*args, **kwargs)
+        field = self.fields['parent']
+        field.choices=create_hierarchy(Organization)        
+
         if self.instance.id:
             # disallow editing the primary key of existing record
             del self.fields['id']
             # remove self and all descendants from list of selectable parents
-            field = self.fields['parent']
             field.choices = cut_branch(field, Organization, self.instance.id)
 
     def clean_parent(self):
