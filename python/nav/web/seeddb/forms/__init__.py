@@ -33,6 +33,14 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
+BOX_CHARS = {
+    'SPACE': '&nbsp;',
+    'VERTICAL': '&#9474;',  # │
+    'UP_AND_RIGHT': '&#9492;',  # └
+    'VERTICAL_AND_RIGHT': '&#9500;' # ├
+}
+
+
 def create_hierarchy(klass):
     """Creates a tree structure for select choices
     
@@ -83,8 +91,8 @@ def tree_pad(string, ancestors, last=False):
               drawing it's part of the tree-structure
     """
     charmap = {
-        True: "&#9492; ",  # └
-        False: "&#9500; "  # ├
+        True: BOX_CHARS['UP_AND_RIGHT'] + BOX_CHARS['SPACE'],  # └
+        False: BOX_CHARS['VERTICAL_AND_RIGHT'] + BOX_CHARS['SPACE']  # ├ 
     }
     
     if ancestors:
@@ -95,8 +103,8 @@ def tree_pad(string, ancestors, last=False):
 def get_prefix(ancestors):
     """Adds characters based on ancestor last child status"""
     charmap = {
-        True: "&nbsp;&nbsp;",  # double space
-        False: "&#9474; "  # │
+        True: 2 * BOX_CHARS['SPACE'],  # double space
+        False: BOX_CHARS['VERTICAL'] + BOX_CHARS['SPACE']  # │
     }
     return "".join([charmap[x] for x in ancestors[1:]])
 
