@@ -79,18 +79,23 @@ def tree_pad(string, ancestors, last=False):
                       if this ancestor was the last child
     :param last: indicates if this is the last child
     """
-
+    charmap = {
+        True: "&#9492; ",  # └
+        False: "&#9500; "  # ├
+    }
+    
     if ancestors:
-        if last:
-            string = "&#9492; " + string  # └
-        else:
-            string = "&#9500; " + string  # ├
-        for was_last in reversed(ancestors[1:]):
-            if was_last:
-                string = "&nbsp;&nbsp;" + string  # two spaces
-            else:
-                string = "&#9474; " + string  # │
+        string = "".join([get_prefix(ancestors), charmap[last], string])
     return mark_safe(string)
+
+
+def get_prefix(ancestors):
+    """Adds characters based on ancestor last child status"""
+    charmap = {
+        True: "&nbsp;&nbsp;",  # double space
+        False: "&#9474; "  # │
+    }
+    return "".join([charmap[x] for x in ancestors[1:]])
 
 
 def cut_branch(field, klass, pk):
