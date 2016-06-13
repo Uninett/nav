@@ -16,6 +16,7 @@
 #
 
 from django import forms
+from django.shortcuts import render
 
 from nav.models.manage import Location
 from nav.bulkparse import LocationBulkParser
@@ -54,10 +55,12 @@ def location(request):
 
 def location_list(request):
     info = LocationInfo()
-    value_list = ('id', 'description', 'data')
-    query = Location.objects.all()
-    return render_list(request, query, value_list, 'seeddb-location-edit',
-                       extra_context=info.template_context)
+    context = info.template_context    
+    context.update({
+        'roots': Location.objects.filter(parent=None).order_by('id'),
+        'edit_url_name': 'seeddb-location-edit'
+    })
+    return render(request, 'seeddb/list_tree.html', context)
 
 
 def location_delete(request):

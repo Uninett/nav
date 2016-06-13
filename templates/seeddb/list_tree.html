@@ -2,7 +2,7 @@
 
 {% block base_header_additional_head %}
   <style>
-   .org-list .fa {
+   .tree-list .fa {
        cursor: pointer;
    }
    .tooltip dl {
@@ -17,23 +17,23 @@
 {% block footer_scripts %}
   {{ block.super }}
   <script>
-   $('.org-list').on('click', 'i.fa', function(event) {
+   $('.tree-list').on('click', 'i.fa', function(event) {
        $(event.target).toggleClass('fa-toggle-right fa-toggle-down').nextAll('.child').slideToggle();
    });
 
    $('#collapse-all').click(function(){
-       $('.org-list .child').hide();
-       $('.org-list [class*="fa-toggle-"]').removeClass('fa-toggle-down').addClass('fa-toggle-right');
+       $('.tree-list .child').hide();
+       $('.tree-list [class*="fa-toggle-"]').removeClass('fa-toggle-down').addClass('fa-toggle-right');
    });
 
    $('#expand-all').click(function(){
        $('.child').show();
-       $('.org-list [class*="fa-toggle-"]').removeClass('fa-toggle-right').addClass('fa-toggle-down');
+       $('.tree-list [class*="fa-toggle-"]').removeClass('fa-toggle-right').addClass('fa-toggle-down');
    });
   </script>
   <script>
    require(['plugins/delegate_tooltip'], function(tooltip) {
-       tooltip(document.querySelector('.org-list'), '.org > a');
+       tooltip(document.querySelector('.tree-list'), '.branch > a');
    });
   </script>
 {% endblock %}
@@ -44,9 +44,9 @@
   <button id="collapse-all" class="button small">Collapse all</button>
   <button id="expand-all" class="button small">Expand all</button>
 
-  <ul class="org-list no-bullet">
-    {% for org in root_orgs %}
-      {% include 'seeddb/fragments/orgs.html' %}
+  <ul class="tree-list no-bullet">
+    {% for branch in roots %}
+      {% include 'seeddb/fragments/branch.html' %}
     {% endfor %}
   </ul>
 

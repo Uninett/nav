@@ -1,0 +1,43 @@
+<li class="branch" data-orgid="{{ branch.pk }}">
+  {% if branch.has_children %}
+    <i class="fa fa-toggle-down"></i>
+  {% endif %}
+  <a href="{% url edit_url_name branch.pk %}"
+     class="tip-top"
+     title="<h5>{{ branch }}</h5>
+            <dl>
+
+            {% if branch.contact %}
+            <dt>Contact</dt><dd>{{ branch.contact }}</dd>
+            {% endif %}
+
+            {% for key, value in branch.data.items %}
+            <dt>{{ key }}</dt><dd>{{ value }}</dd>
+            {% endfor %}
+
+            </dl>
+
+            {% if branch.has_children %}
+            <em>
+            {{ branch.get_children.count }}
+            child{{ branch.get_children.count|pluralize:'ren' }}
+            {% with num_descendants=branch.get_descendants %}
+            ({{ num_descendants|length }} descendant{{ num_descendants|length|pluralize }})
+            {% endwith %}
+            </em>
+            {% endif %}
+
+            ">
+    {{ branch }}
+  </a>
+  
+  {% if branch.has_children %}
+    <ul class="child">
+      {% for child in branch.get_children %}
+        {% with branch=child %}
+          {% include 'seeddb/fragments/branch.html' %}
+        {% endwith %}
+      {% endfor %}
+    </ul>
+  {% endif %}
+</li>

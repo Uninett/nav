@@ -60,9 +60,10 @@ def organization_list(request):
     info = OrganizationInfo()
     context = info.template_context
     context.update({
-        'root_orgs': Organization.objects.filter(parent=None).order_by('id')
+        'roots': Organization.objects.filter(parent=None).order_by('id'),
+        'edit_url_name': 'seeddb-organization-edit'
     })
-    return render(request, 'seeddb/list_orgs.html', context)
+    return render(request, 'seeddb/list_tree.html', context)
 
 
 def organization_move(request):
