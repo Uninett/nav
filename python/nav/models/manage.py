@@ -728,7 +728,7 @@ class TreeMixin(object):
         return 0
 
     def has_children(self):
-        """Returns true if this organization has children"""
+        """Returns true if this instance has children"""
         return self.get_children().exists()
 
     def get_children(self):
@@ -736,12 +736,12 @@ class TreeMixin(object):
         return self.__class__.objects.filter(parent=self)
 
     def get_descendants(self, include_self=False):
-        """Gets all descendants of this organization"""
+        """Gets all descendants of this instance"""
         descendants = []
         if include_self:
             descendants.append(self)
         for child in self.get_children():
-            descendants += child.get_descendants(include_self=True)
+            descendants.extend(child.get_descendants(include_self=True))
         return descendants
 
 

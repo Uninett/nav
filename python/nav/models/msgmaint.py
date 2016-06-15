@@ -128,16 +128,16 @@ class MaintenanceTask(models.Model):
         """
         subjects = []
         for component in self.get_components():
-            if (isinstance(component, manage.Room) or
-                isinstance(component, manage.NetboxGroup)):
+            if isinstance(component, (manage.Room, manage.NetboxGroup)):
                 subjects.extend(component.netbox_set.all())
             elif isinstance(component, manage.Location):
-                subjects.extend(manage.Netbox.objects.filter(
-                    room__location=component))
+                for location in component.get_descendants(include_self=True):
+                    subjects.extend(manage.Netbox.objects.filter(
+                        room__location=location))
             else:
                 subjects.append(component)
 
-        return subjects
+        return list(set(subjects))
 
     def is_endless(self):
         """Returns true if the task is endless"""
