@@ -25,7 +25,7 @@ from IPy import IP
 from socket import gethostbyaddr, gethostbyname, error as SocketError
 
 from django.core.urlresolvers import reverse, NoReverseMatch
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, Http404
 from django.db.models import Q
@@ -37,7 +37,6 @@ _logger = logging.getLogger(__name__)
 
 
 def render_edit(request, model, form_model, object_id, redirect,
-                identifier_attr='pk', title_attr='pk',
                 template='seeddb/edit.html',
                 lon=None, lat=None, extra_context=None):
     """Handles editing for objects in seeddb."""
@@ -45,9 +44,7 @@ def render_edit(request, model, form_model, object_id, redirect,
     if not extra_context:
         extra_context = {}
 
-    obj = _get_object(model, object_id, identifier_attr)
-    (identifier, title) = _get_identifier_title(
-        obj, identifier_attr, title_attr)
+    obj = _get_object(model, object_id)
     verbose_name = model._meta.verbose_name
 
     if not obj and (lat and lon):
@@ -72,14 +69,10 @@ def render_edit(request, model, form_model, object_id, redirect,
             else:
                 obj = form.save()
 
-            (identifier, title) = _get_identifier_title(
-                obj, identifier_attr, title_attr)
-            new_message(request,
-                        "Saved %s %s" % (verbose_name, title),
+            new_message(request, "Saved %s %s" % (verbose_name, obj),
                         Messages.SUCCESS)
             try:
-                return HttpResponseRedirect(
-                    reverse(redirect, args=(identifier,)))
+                return HttpResponseRedirect(reverse(redirect, args=(obj.pk,)))
             except NoReverseMatch:
                 return HttpResponseRedirect(reverse(redirect))
     else:
@@ -94,53 +87,20 @@ def render_edit(request, model, form_model, object_id, redirect,
     }
     if obj and obj.pk:
         context.update({
-            'title': 'Edit %s "%s"' % (verbose_name, title),
+            'title': 'Edit %s "%s"' % (verbose_name, obj),
             'sub_active': {'edit': True},
         })
     extra_context.update(context)
     return render_to_response(template, extra_context, RequestContext(request))
 
 
-def _get_object(model, object_id, identifier_attr):
-    """Fetches the object where identifier_attr=object_id.
+def _get_object(model, object_id, identifier_attr='pk'):
+    """Get object if it exists, else raise 404"""
+    try:
+        return get_object_or_404(model, **{identifier_attr: object_id})
+    except Http404:
+        pass
 
-    model           - the model the lookup is performed on
-    object_id       - the value we are looking for
-    identifier_attr - the name of the column we are looking for object_id in
-
-    Returns:
-     - the object if found
-     - none if object_id is a None value
-
-    Raises:
-     - Http404 if object_id is not a None value, but a corresponding object was
-       not found.
-    """
-    if object_id:
-        try:
-            params = {identifier_attr: object_id}
-            obj = model.objects.get(**params)
-        except model.DoesNotExist:
-            raise Http404
-        return obj
-    return None
-
-def _get_identifier_title(obj, identifier_attr, title_attr):
-    """Gets the values for given attributes from an object.
-
-    obj - the object we are looking at
-    identifier_attr - the name of the attribute we will use as identifier
-    title_attr - the name of the attribute we will use as the title
-
-    Returns:
-     - A tuple with the identifier and title.
-    """
-    identifier = None
-    title = None
-    if obj:
-        identifier = getattr(obj, identifier_attr)
-        title = getattr(obj, title_attr)
-    return (identifier, title)
 
 def resolve_ip_and_sysname(name):
     """Given a name that can be either an ip or a hostname/domain name, this

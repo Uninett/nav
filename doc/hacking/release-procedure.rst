@@ -7,8 +7,8 @@ Checklist for releasing a new NAV version
 CI status check
 ---------------
 
-* Verify that the `stable` jobs in Hudson, at
-  https://ci.nav.uninett.no/ , are all green.
+* Verify that the Jenkins jobs (at https://ci.nav.uninett.no/) related to the
+  current stable branch are all green.
 * If any tests are failing, these must be resolved before moving forward.
 
 
@@ -24,18 +24,12 @@ Review milestone for next release in Launchpad
 Getting the code
 ----------------
 
-* Start by cloning the official stable branch (or use `hg pull` to update your
-  existing clone)::
+* Start by cloning the latest stable branch (or use `hg pull` to update your
+  existing clone), e.g. 4.5.x::
 
-    hg clone https://nav.uninett.no/hg/stable
-    cd stable
-    hg up tip
+    hg clone -b 4.5.x https://nav.uninett.no/hg/default nav
+    cd nav
 
-* Verify that the current checkout is on the named branch for the currently
-  supported stable release, it should be named according to the M.N.x pattern,
-  e.g. `3.11.x` for the 3.11 series::
-
-    hg branch
 
 Updating changelog and release notes
 ------------------------------------

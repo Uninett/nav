@@ -63,7 +63,7 @@ def forward_lookup(names):
 class Resolver(object):
     """Abstract base class for resolvers"""
     def __init__(self):
-        self._resolvers = cycle([_Resolver('/etc/resolv.conf')
+        self._resolvers = cycle([client.Resolver('/etc/resolv.conf')
                                  for _i in range(3)])
         self.results = defaultdict(list)
         self._finished = False
@@ -86,6 +86,9 @@ class Resolver(object):
 
         while not self._finished:
             reactor.iterate()
+        # Although the results are in at this point, we may need an extra
+        # iteration to ensure the resolver library closes its UDP sockets
+        reactor.iterate()
 
         return dict(self.results)
 
@@ -168,13 +171,3 @@ class ReverseResolver(Resolver):
                     name_list.append(str(record.payload.name))
 
         return ip, name_list
-
-
-class _Resolver(client.Resolver):
-    def connectionLost(self, _):
-        """This overrides the connectionLost method of client.Resolver.
-
-        It's basically here to fix a deficiency in the Twisted version we're
-        working on.
-        """
-        pass

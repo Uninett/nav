@@ -149,7 +149,7 @@ Pro tip is to create :file:`require_config.dev.js` in :file:`htdocs/js/``
 and add the following configuration to RequireJS:
 
 .. code-block:: javascript
- 
+
    require.urlArgs = "bust=" +  (new Date()).getTime();
 
 This makes sure your not using cached resources in your browser when
@@ -259,20 +259,19 @@ this to the database.
 Version Control
 ===============
 
-NAV uses Mercurial_ for distributed version control. Official repositories
-are located at https://nav.uninett.no/hg/ .
+NAV uses Mercurial_ for distributed version control. The official repository
+is located at https://nav.uninett.no/hg/default .
 
-Trunk (default)
----------------
+Trunk / master / default / what-have-you
+----------------------------------------
 
-New, bleeding edge development occurs on the ``default`` branch and
-published to the http://nav.uninett.no/hg/default/ repository.
+New, bleeding edge development occurs on the ``default`` branch.
 
 Feature branches
 ----------------
 
-The ``default`` repository is mirrored on Bitbucket_. If you go to the
-nav-mirror_ repository, you can fork it there and use Bitbucket to submit
+The official source code repository is mirrored on Bitbucket_. If you go to
+the nav-mirror_ repository, you can fork it there and use Bitbucket to submit
 pull requests for us to review.
 
 Stable
@@ -280,16 +279,12 @@ Stable
 
 Once we are nearing a new series release of NAV (such as 4.2 or 4.3), a new
 named *series* branch is created from the *default* branch (This branch is
-named 4.3.x in the case of the 4.3 series of NAV). 
+named 4.3.x in the case of the 4.3 series of NAV).
 
 Once this branch is stabilized, the first version is tagged and released.
 After this point, we accept only bug fixes in this branch. Further point
 releases in this series are tagged on this branch, and all changes are
 merged back onto the ``default`` branch.
-
-The repository published at https://nav.uninett.no/hg/stable contains the
-latest stable series branch, and excludes the latest trunk developments you
-can find in the ``default`` repository.
 
 When someone writes a patch for a bug, this should usually be committed to
 the latest active series branch which is affected by the bug. Once a new
@@ -337,9 +332,9 @@ Testing javascript in NAV is straightforward. We use Karma_ as a testrunner,
 Mocha_ as testing framework and Chai_ as assertion library.
 
 .. code-block:: sh
-   
+
    cd htdocs/static/js
-   
+
    # Install required libs, you need npm installed
    npm install
 
@@ -419,7 +414,7 @@ report.
 .. _Buster.JS: http://busterjs.org/
 .. _the Buster documentation: http://docs.busterjs.org/en/latest/#user-s-guide
 .. _Node.js: http://nodejs.org/
-.. _nav-mirror: https://bitbucket.org/mbrekkevold/nav-mirror/ 
+.. _nav-mirror: https://bitbucket.org/mbrekkevold/nav-mirror/
 .. _Jenkins: http://jenkins-ci.org/
 .. _pylint: http://www.pylint.org/
 .. _Karma: https://github.com/karma-runner/karma-mocha

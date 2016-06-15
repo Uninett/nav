@@ -151,17 +151,17 @@ def create_message(line, database=None):
         msgtype = match.group('type')
         description = match.group('description')
 
-        timestamp = datetime.datetime(year, month, day, hour, minute, second)
-
         try:
+            timestamp = datetime.datetime(year, month, day, hour, minute,
+                                          second)
             return Message(timestamp, origin, msgtype, description)
-        except ValueError:
+        except (ValueError, TypeError):
             _logger.debug("syslog line parse error: %s", line,
                           exc_info=True)
 
     # if this message shows sign of cisco format, put it in the error log
     typematch = _type_match_re.search(line)
-    if typematch:
+    if typematch and database:
         database.execute("INSERT INTO errorerror (message) "
                          "VALUES (%s)", (line,))
 

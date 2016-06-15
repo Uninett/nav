@@ -42,18 +42,43 @@ define([
     }
 
 
+    function buildObject(parts) {
+        var obj = {};
+        for(var i = 0; i < parts.length; i++) {
+            var keyValue = parts[i].split('=');
+            obj[keyValue[0]] = keyValue[1];
+        }
+        return obj;
+    }
+
+    function getSeriesMeta(name) {
+        return name.split(';;');
+    }
+
     /** Add all utility stuff to the graph */
     function addUtility(container, graph, url) {
         var $element = $(graph.element);
         var urlParams = Utils.deSerialize(url);
 
+        graph.setRenderer('multi');
         graph.series.forEach(function (serie) {
-            serie.name = RickshawUtils.filterFunctionCalls(serie.name);
+            var metaParts = getSeriesMeta(serie.name),
+                name = metaParts.pop(),
+                meta = buildObject(metaParts);
+            serie.key = name;
+            serie.name = RickshawUtils.filterFunctionCalls(name);
+            serie.renderer = meta.renderer ? meta.renderer : 'line';
+
             // If this is a nav-metric, typically very long, display only the last two "parts"
             if (serie.name.substr(0, 4) === 'nav.') {
                 var parts = serie.name.split('.');
                 serie.name = [parts[parts.length - 2], parts[parts.length - 1]].join('.');
             }
+
+            console.log("key: " + serie.key);
+            console.log("name: " + serie.name);
+
+
         });
 
         new Rickshaw.Graph.Axis.Time({
@@ -185,17 +210,17 @@ define([
             // Add all targets and dots
             args.points.sort(function (a, b) {
                 return a.order - b.order;
-            }).forEach(function (point, index) {
+            }).forEach(function (point) {
                 var series = point.series;
                 var actualY = series.scale ? series.scale.invert(point.value.y) : point.value.y;
 
                 // Each line describes a target
-                var line = hoverElements.lines[index];
+                var line = hoverElements.lines[point.name];
                 line.innerHTML = this.formatter(series, point.value.x, actualY, point.formattedXValue, point.formattedYValue, point);
                 container.appendChild(line);
 
                 // Place dots - remember that they are not part of container
-                var dot = hoverElements.dots[index];
+                var dot = hoverElements.dots[point.name];
                 dot.style.top = this.graph.y(point.value.y0 + point.value.y) + 'px';
                 dot.classList.add('active');
                 this.element.appendChild(dot);

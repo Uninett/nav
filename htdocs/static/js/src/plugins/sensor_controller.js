@@ -13,7 +13,7 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
         this.thresholds = this.parseThresholds();
 
         this.displayGauge = true;
-        if (this.unit.toLowerCase() === 'percent') {
+        if (this.unit.toLowerCase() === 'percent' || this.unit.substr(0, 1) === '%') {
             this.maxValue = 100;  // Max value for graphs and gauges
             this.sensorsymbol = '%';
         } else if (this.unit.toLowerCase() === 'celsius') {
@@ -121,6 +121,7 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
                     value: value,
                     max: this.maxValue,
                     thresholds: this.thresholds,
+                    unit: this.unit,
                     symbol: this.sensorsymbol,
                     radius: 110
                 });

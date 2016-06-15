@@ -70,24 +70,27 @@
           <fieldset>
             <legend>Organizations</legend>
             {% if account.organizations.all %}
-              <table class="hover expand">
-                <tbody>
-                  {% for org in account.organizations.all %}
-                    <tr>
-                      <td>{{ org }}</td>
-                      <td class="text-right">
-                        <a href="{% url 'useradmin-account_organization_remove' account.id org.id %}"
-                           class="table-button secondary">Remove</a>
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
+              <div class="long-listing">
+                <table class="hover expand">
+                  <tbody>
+                    {% for org in account.organizations.all %}
+                      <tr>
+                        <td>{{ org }}</td>
+                        <td class="text-right">
+                          <a href="{% url 'useradmin-account_organization_remove' account.id org.id %}"
+                             class="table-button secondary">Remove</a>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
             {% else %}
               <p>Not member of any organizations.</p>
             {% endif %}
 
             {% if org_form %}
+              <h6>Add organization membership</h6>
               {% crispy org_form %}
             {% endif %}
 
@@ -103,33 +106,36 @@
             <legend>Group memberships</legend>
 
             {% if account.accountgroup_set.all %}
-              <table class="hover expand">
-                <tbody>
-                  {% for group in account.accountgroup_set.all %}
-                    <tr>
-                      <td>
-                        <a href="{% url 'useradmin-group_detail' group.id %}">{{ group }}</a>
-                      </td>
-                      <td>
-                        {{ group.description }}
-                      </td>
-                      <td class="text-right">
-                        {% if not group.is_protected_group %}
-                          <a href="{% url 'useradmin-account_group_remove' account.id group.id %}"
-                             class="table-button secondary">Remove</a>
-                        {% else %}
-                          &nbsp;
-                        {% endif %}
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
+              <div class="long-listing">
+                <table class="hover expand">
+                  <tbody>
+                    {% for group in account.accountgroup_set.all %}
+                      <tr>
+                        <td>
+                          <a href="{% url 'useradmin-group_detail' group.id %}">{{ group }}</a>
+                        </td>
+                        <td>
+                          {{ group.description }}
+                        </td>
+                        <td class="text-right">
+                          {% if not group.is_protected_group %}
+                            <a href="{% url 'useradmin-account_group_remove' account.id group.id %}"
+                               class="table-button secondary">Remove</a>
+                          {% else %}
+                            &nbsp;
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
             {% else %}
               <p>Not member of any groups.</p>
             {% endif %}
 
             {% if group_form %}
+              <h6>Add group membership</h6>
               {% crispy group_form %}
             {% endif %}
           </fieldset>

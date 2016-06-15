@@ -24,6 +24,7 @@ from nav.models.profiles import AccountGroup
 from nav.path import sysconfdir
 from nav.portadmin.snmputils import SNMPFactory, FantasyVlan
 from nav.models.arnold import Identity
+from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 from operator import attrgetter
 from os.path import join
 
@@ -321,3 +322,9 @@ def mark_detained_interfaces(interfaces):
             interface.detained = True
         if interface.identity_set.filter(status='quarantined').count() > 0:
             interface.detained = True
+
+def is_cisco(netbox):
+    """Returns true if netbox is of vendor cisco
+    :type netbox: manage.Netbox
+    """
+    return netbox.type.get_enterprise_id() == VENDOR_ID_CISCOSYSTEMS

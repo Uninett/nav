@@ -26,11 +26,11 @@
       Vlan
     </div>
     {% if voice_vlan %}
-    <div class="hide-for-small medium-1 column ">
-      Tel
-    </div>
+      <div class="hide-for-small medium-1 column ">
+        Tel
+      </div>
     {% endif %}
-    <div class="hide-for-small column {% if voice_vlan %}medium-1{% else %}medium-2{% endif %} text-right">
+    <div class="column {% if voice_vlan %}medium-1{% else %}medium-2{% endif %} text-right">
       {% if not readonly %}
         <input type="button" class="saveall_button button tiny" value="Save all"/>
       {% endif %}
@@ -62,7 +62,7 @@
         <span class="left hide-for-medium-up">Linked&nbsp;</span>
         <img title="OperStatus - If red there is no link on the interface"
              src="{{ STATIC_URL }}images/lys/{{ interface.ifoperstatus|drawLight }}"
-             />
+        />
       </div>
 
       {# Port Description - input field #}
@@ -91,21 +91,21 @@
               </a>
             {% else %}
               <form class="custom">
-              <select class="vlanlist" name="{{ interface.ifname }}">
-                {% for vlan in allowed_vlans %}
-                  {% if not interface.voice_activated or vlan.vlan != voice_vlan %}
-                    <option value="{{ vlan.vlan }}"
-                            {% if interface.vlan == vlan.vlan %}selected="selected"
-                            data-orig="{{ vlan.vlan }}"{% endif %}>
-                      {{ vlan.vlan }}
-                    </option>
-                  {% endif %}
-                {% endfor %}
-                <option value="trunk"
-                        data-url="{% url 'portadmin-render-trunk-edit' interface.id %}">
-                  Trunk
-                </option>
-              </select>
+                <select class="vlanlist" name="{{ interface.ifname }}">
+                  {% for vlan in allowed_vlans %}
+                    {% if not interface.voice_activated or vlan.vlan != voice_vlan %}
+                      <option value="{{ vlan.vlan }}"
+                              {% if interface.vlan == vlan.vlan %}selected="selected"
+                              data-orig="{{ vlan.vlan }}"{% endif %}>
+                        {{ vlan.vlan }}
+                      </option>
+                    {% endif %}
+                  {% endfor %}
+                  <option value="trunk"
+                          data-url="{% url 'portadmin-render-trunk-edit' interface.id %}">
+                    Trunk
+                  </option>
+                </select>
               </form>
             {% endif %}
           {% else %}
@@ -116,21 +116,21 @@
 
       {# Optional checkbox for voice vlan #}
       {% if voice_vlan %}
-      <div class="small-4 medium-1 column">
-        {% if interface.voice_activated or not interface.trunk %}
-          <span> {# This span is needed because of the hide-for-medium-up class on the child #}
-            <span class="hide-for-medium-up">Tel:</span>
-            <input class="voicevlan"
-                   type="checkbox"
-                   name="voice_vlan"
-                   data-orig="{{ interface.voice_activated|default:'false' }}"
-                   {% if interface.voice_activated %}checked{% endif %}
-                   {% if not interface.iseditable %}disabled="disabled"{% endif %}>
-          </span>
-        {% else %}
-          &nbsp;
-        {% endif %}
-      </div>
+        <div class="small-4 medium-1 column">
+          {% if interface.voice_activated or not interface.trunk %}
+            <span> {# This span is needed because of the hide-for-medium-up class on the child #}
+              <span class="hide-for-medium-up">Tel:</span>
+              <input class="voicevlan"
+                     type="checkbox"
+                     name="voice_vlan"
+                     data-orig="{{ interface.voice_activated|default:'false' }}"
+                     {% if interface.voice_activated %}checked{% endif %}
+                     {% if not interface.iseditable %}disabled="disabled"{% endif %}>
+            </span>
+          {% else %}
+            &nbsp;
+          {% endif %}
+        </div>
       {% endif %}
 
       {# Button for saving #}

@@ -15,6 +15,7 @@ This section contains reference material for end-users.
    ipdevpoll
    ldap
    mailin
+   navstats
    portadmin
    radius
    radius-install

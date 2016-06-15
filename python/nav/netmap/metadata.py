@@ -87,6 +87,13 @@ class Node(object):
                 'is_elink_node': True
             })
         else:
+            try:
+                location = self.node.room.location
+                locationid = location.id
+                location_descr = location.description
+            except AttributeError:
+                locationid = ''
+                location_descr = ''
             json.update({
                 'id': str(self.node.id),
                 'sysname': str(self.node.sysname),
@@ -97,8 +104,8 @@ class Node(object):
                 'up': str(self.node.up),
                 'up_image': get_status_image_link(self.node.up),
                 'roomid': self.node.room.id,
-                'locationid': unicode(self.node.room.location.id),
-                'location': unicode(self.node.room.location.description),
+                'locationid': unicode(locationid),
+                'location': unicode(location_descr),
                 'room': unicode(self.node.room),
                 'is_elink_node': False,
             })
