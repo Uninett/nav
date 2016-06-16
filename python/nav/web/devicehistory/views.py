@@ -25,14 +25,13 @@ from django.template import RequestContext
 from django.db import transaction
 
 from nav.models.fields import INFINITY
-from nav.models.manage import Netbox, Module
+from nav.models.manage import Netbox, Module, Location
 from nav.models.event import AlertHistory
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
-from nav.web.devicehistory.utils.history import (fetch_history,
-                                                 get_messages_for_history,
-                                                 group_history_and_messages,
-                                                 describe_search_params)
+from nav.web.devicehistory.utils.history import (
+    fetch_history, get_messages_for_history, group_history_and_messages,
+    describe_search_params, add_descendants)
 from nav.web.devicehistory.utils.error import register_error_events
 from nav.web.devicehistory.forms import DeviceHistoryViewFilter
 
@@ -106,6 +105,10 @@ def devicehistory_view(request):
     else:
         form = DeviceHistoryViewFilter()
     if form.is_valid():
+        # We need to handle locations as they are tree-based
+        selection['room__location'] = add_descendants(
+            selection['room__location'])
+
         alert_history = fetch_history(selection, form)
         grouped_history = group_history_and_messages(
             alert_history,
