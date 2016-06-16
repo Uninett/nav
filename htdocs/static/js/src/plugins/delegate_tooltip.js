@@ -30,7 +30,7 @@ define([], function() {
                 if (tipTextElement.length) {
                     $target.attr('title', tipTextElement.html());
                 }
-                Foundation.libs.tooltip.create($target, options);
+                Foundation.libs.tooltip.create($target);
                 $target.on('mouseleave', function (event) {
                     Foundation.libs.tooltip.hide($target);
                 });
