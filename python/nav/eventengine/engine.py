@@ -86,9 +86,9 @@ class EventEngine(object):
 
     def __init__(self, target="eventEngine", config=EVENTENGINE_CONF):
         self._scheduler = sched.scheduler(time.time, self._notifysleep)
+        self._unfinished = set()
         self.target = target
         self.config = config
-        self.last_event_id = 0
         self.handlers = EventHandler.load_and_find_subclasses()
         self._logger.debug("found %d event handler%s: %r",
                            len(self.handlers),
@@ -157,13 +157,15 @@ class EventEngine(object):
     def load_new_events(self):
         "Loads and processes new events on the queue, if any"
         self._logger.debug("checking for new events on queue")
-        events = Event.objects.filter(target=self.target,
-                                      id__gt=self.last_event_id).order_by('id')
+        events = Event.objects.filter(target=self.target).order_by('id')
         if events:
-            events = list(events)
-            self._logger.info("found %d new events in queue db", len(events))
-            self.last_event_id = events[-1].id
-            for event in events:
+            old_events = [event for event in events
+                          if event.id in self._unfinished]
+            new_events = [event for event in events
+                          if event.id not in self._unfinished]
+            self._logger.info("found %d new and %d old events in queue db",
+                              len(new_events), len(old_events))
+            for event in new_events:
                 unresolved.update()
                 try:
                     self.handle_event(event)
@@ -225,6 +227,8 @@ class EventEngine(object):
     @transaction.atomic()
     def handle_event(self, event):
         "Handles a single event"
+        original_id = event.id
+
         self._logger.debug("handling %r", event)
         queue = [cls(event, self) for cls in self.handlers
                  if cls.can_handle(event)]
@@ -245,8 +249,11 @@ class EventEngine(object):
                     event.delete()
 
         if event.id:
-            self._logger.debug("event %s wasn't disposed of, "
-                               "maybe held for later processing?", event.id)
+            self._logger.debug("event wasn't disposed of, "
+                               "maybe held for later processing? %r", event)
+            self._unfinished.add(event.id)
+        elif original_id in self._unfinished:
+            self._unfinished.remove(original_id)
 
     def schedule(self, delay, action, args=()):
         """Schedule running action after a given delay"""
