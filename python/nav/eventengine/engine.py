@@ -208,7 +208,9 @@ class EventEngine(object):
                 self._logger.debug('Posting %s event', event.event_type)
                 alert.post()
         else:
-            self._logger.info('Ignoring duplicate %s event', event.event_type)
+            self._logger.info('Ignoring duplicate %s event for %s',
+                              event.event_type, event.netbox)
+            self._logger.debug('ignored alert details: %r', event)
         event.delete()
 
     @staticmethod
