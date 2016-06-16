@@ -25,7 +25,12 @@ define([], function() {
             if (!$target.data('selector')) {
                 // selector data attribute is only there if create has been run
                 // before
-                Foundation.libs.tooltip.create($target);
+                // Enable using a separate element for the tooltip text.
+                var tipTextElement = $target.find('.tooltip-text');
+                if (tipTextElement.length) {
+                    $target.attr('title', tipTextElement.html());
+                }
+                Foundation.libs.tooltip.create($target, options);
                 $target.on('mouseleave', function (event) {
                     Foundation.libs.tooltip.hide($target);
                 });

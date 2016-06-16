@@ -1,0 +1,23 @@
+<h5>{{ branch }}</h5>
+<dl>
+
+  {% if branch.contact %}
+    <dt>Contact</dt><dd>{{ branch.contact }}</dd>
+  {% endif %}
+
+  {% for key, value in branch.data.items %}
+    <dt>{{ key }}</dt><dd>{{ value }}</dd>
+  {% endfor %}
+
+</dl>
+
+{% if branch.has_children %}
+  <em>
+    {{ branch.get_children.count }}
+    child{{ branch.get_children.count|pluralize:'ren' }}
+    {% with num_descendants=branch.get_descendants %}
+      ({{ num_descendants|length }} descendant{{ num_descendants|length|pluralize }})
+    {% endwith %}
+  </em>
+{% endif %}
+

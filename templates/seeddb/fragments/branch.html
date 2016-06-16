@@ -2,33 +2,11 @@
   {% if branch.has_children %}
     <i class="fa fa-toggle-down"></i>
   {% endif %}
-  <a href="{% url edit_url_name branch.pk %}"
-     class="tip-top"
-     title="<h5>{{ branch }}</h5>
-            <dl>
-
-            {% if branch.contact %}
-            <dt>Contact</dt><dd>{{ branch.contact }}</dd>
-            {% endif %}
-
-            {% for key, value in branch.data.items %}
-            <dt>{{ key }}</dt><dd>{{ value }}</dd>
-            {% endfor %}
-
-            </dl>
-
-            {% if branch.has_children %}
-            <em>
-            {{ branch.get_children.count }}
-            child{{ branch.get_children.count|pluralize:'ren' }}
-            {% with num_descendants=branch.get_descendants %}
-            ({{ num_descendants|length }} descendant{{ num_descendants|length|pluralize }})
-            {% endwith %}
-            </em>
-            {% endif %}
-
-            ">
+  <a href="{% url edit_url_name branch.pk %}" class="tip-top">
     {{ branch }}
+    <div class="tooltip-text" style="display: none">
+      {% include 'seeddb/fragments/branch_tooltip.html' %}
+    </div>
   </a>
   
   {% if branch.has_children %}
@@ -40,4 +18,5 @@
       {% endfor %}
     </ul>
   {% endif %}
+
 </li>
