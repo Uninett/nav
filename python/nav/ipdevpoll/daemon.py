@@ -62,6 +62,7 @@ class IPDevPollProcess(object):
         else:
             self.setup_scheduling()
 
+        reactor.suggestThreadPoolSize(self.options.threadpoolsize)
         reactor.addSystemEventTrigger("after", "shutdown", self.shutdown)
         reactor.run()
 
@@ -206,6 +207,10 @@ class CommandProcessor(object):
         opt("-c", "--clean", action="store_true", dest="clean",
             help="cleans/purges old job log entries from the database and then "
                  "exits")
+        opt("--threadpoolsize", action="store", dest="threadpoolsize",
+            metavar="COUNT", type="int", default=10,
+            help="the number of database worker threads, and thus db "
+                 "connections, to use")
         return parser
 
     def run(self):
