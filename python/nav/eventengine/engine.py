@@ -218,7 +218,7 @@ class EventEngine(object):
         """Returns True if the event's associated netbox is currently on
         maintenance.
         """
-        return event.netbox.get_unresolved_alerts(
+        return event.netbox and event.netbox.get_unresolved_alerts(
             'maintenanceState').count() > 0
 
 
