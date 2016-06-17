@@ -413,3 +413,9 @@ select[multiple] {
 #jqstooltip {
     box-sizing: content-box;
 }
+
+
+/**
+ * Fix padding for buttons in graphitegraphs
+ */
+.graphitegraph button { margin-bottom: 0; }
