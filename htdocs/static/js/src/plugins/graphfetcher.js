@@ -21,15 +21,21 @@ define([
      *   loaded on page load.
      *
      * NB: Expected icon for indicating expandable is 'fa-chevron-right'
+     * 
+     * config options:
+     * - hideAddGraphButton: Hides the button for adding graph as widget
+     * - linkTarget: if set will wrap a link around image (only valid if graph
+         is an image)
      */
 
-    function GraphFetcher(node, urls) {
+    function GraphFetcher(node, urls, config) {
         this.checkInput(node, urls);
         this.node = node;
         this.graphContainer = this.node.find('.rickshaw-container')[0];
         this.urls = urls.split(';');
         this.lastUrlIndex = -1;
         this.urlIndex = 0;  // Index of this.urls
+        this.config = _.extend({}, config);
 
         this.buttons = {
             'day': 'Day',
@@ -114,7 +120,9 @@ define([
             if (this.graphContainer) {
                 this.appendToggleTrendCheckbox();
             }
-            this.appendAddGraphButton();
+            if (!this.config.hideAddGraphButton) {
+                this.appendAddGraphButton();
+            }
         },
         addButton: function (node, timeframe, text) {
             var that = this;
@@ -175,7 +183,6 @@ define([
             this.selectButton();
         },
         displayGraph: function (url) {
-            //this.spinner.spin(this.wrapper.get(0));
             var self = this;
 
             if (!this.graphContainer) {
@@ -184,13 +191,15 @@ define([
                 image.src = url;
                 image.onload = function () {
                     self.node.find('img').remove();
-                    self.node.append(image);
-                    self.spinner.stop();
+                    self.node.prepend(image);
+                    if (self.config.linkTarget) {
+                        var link = $('<a>').attr('href', self.config.linkTarget);
+                        self.node.find('img').wrap(link);
+                    }
                 };
                 image.onerror = function () {
-                    self.wrapper.find('img').remove();
-                    self.wrapper.append("<span class='alert-box alert'>Error loading image</span>");
-                    self.spinner.stop();
+                    self.node.find('img').remove();
+                    self.node.append("<span class='alert-box alert'>Error loading image</span>");
                 };
             } else {
                 $.get(url, function (data) {
