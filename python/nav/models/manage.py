@@ -1820,6 +1820,10 @@ class IpdevpollJobLog(models.Model):
         runtimes.reverse()
         return runtimes
 
+    def get_absolute_url(self):
+        """Returns the Netbox' URL"""
+        return self.netbox.get_absolute_url()
+
 
 class Netbios(models.Model):
     """Model representing netbios names collected by the netbios tracker"""
