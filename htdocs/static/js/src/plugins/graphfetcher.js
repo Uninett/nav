@@ -1,8 +1,8 @@
 define([
     'plugins/rickshaw_graph',
-    'nav-url-utils',
+    'libs/urijs/URI',
     'libs/spin.min'
-], function (RickshawGraph, Utils) {
+], function (RickshawGraph, URI) {
     /*
      * GraphFetcher
      *
@@ -139,14 +139,14 @@ define([
             button.click(function () {
                 /* Image url is a redirect to graphite. Fetch proxy url and use
                  that as preference for graph widget */
-                var url = Utils.removeURLParameter(self.generatedURL, 'format'),
+                var url = new URI(self.generatedURL).removeQuery('format', ''),
                     headRequest = $.ajax(url, {'type': 'HEAD'});
                 headRequest.done(function (data, status, xhr) {
                     var proxyUrl = xhr.getResponseHeader('X-Where-Am-I');
                     if (proxyUrl) {
                         var request = $.post(NAV.addGraphWidgetUrl,
                             {
-                                'url': Utils.removeURLParameter(proxyUrl, 'format'),
+                                'url': new URI(proxyUrl).removeQuery('format'),
                                 'target': window.location.pathname + window.location.hash
                             });
                         request.done(function () {
@@ -215,28 +215,31 @@ define([
         getUrl: function () {
             var self = this;
             var url = this.urls[this.urlIndex];
+            var uri = new URI(url);
             var addTimeShift = this.graphContainer && this.trends.is(':checked');
-            var generatedURL;
 
             if (url.indexOf('?') >= 0) {
                 // Add/alter timecomponent
                 var interval = '-1' + this.timeframe;
-                generatedURL = Utils.removeURLParameter(url, 'from') + '&' + 'from=' + interval;
+                uri.setQuery({
+                    from: interval,
+                    width: this.node.width()
+                });
 
                 if (addTimeShift) {
-                    var targets = Utils.deSerialize(url).target;
+                    var targets = [].concat(uri.query(true).target);  // target is either list or string
                     targets.forEach(function (target) {
                         var timeshiftCall = 'timeShift(' + target + ',"' + interval + '")';
                         var targetAlias = getSeriesName(target) + ' (' + getTimeDescription(self.timeframe) + ')';
                         var aliasCall = 'alias(' + timeshiftCall + ', "' + targetAlias + '")';
-                        var parameter = 'target=' + aliasCall;
-                        generatedURL = [generatedURL, parameter].join('&');
+                        uri.addQuery('target', aliasCall);
                     });
                 }
             } else {
-                generatedURL = url + '?timeframe=' + this.timeframe;
+                uri.setQuery('timeframe', this.timeframe);
             }
 
+            var generatedURL = uri.toString();
             this.generatedURL = generatedURL;
             return generatedURL;
         },
