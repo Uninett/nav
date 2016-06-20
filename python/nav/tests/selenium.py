@@ -43,7 +43,7 @@ from urlparse import urljoin
 BASE_URL = os.environ.get('TARGETURL', 'http://localhost:8000')
 USERNAME = 'admin'
 PASSWORD = os.environ.get('ADMINPASSWORD', 'admin')
-DEFAULT_WAIT_TIME = 5  # timer for implicit wait in seconds
+DEFAULT_WAIT_TIME = 25  # timer for implicit wait in seconds
 SCREENSHOT_DIRECTORY = '.selenium_screenshots'
 
 
