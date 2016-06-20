@@ -228,12 +228,11 @@ define([
 
                 if (addTimeShift) {
                     var targets = [].concat(uri.query(true).target);  // target is either list or string
-                    targets.forEach(function (target) {
+                    uri.addQuery('target', targets.map(function (target) {
                         var timeshiftCall = 'timeShift(' + target + ',"' + interval + '")';
                         var targetAlias = getSeriesName(target) + ' (' + getTimeDescription(self.timeframe) + ')';
-                        var aliasCall = 'alias(' + timeshiftCall + ', "' + targetAlias + '")';
-                        uri.addQuery('target', aliasCall);
-                    });
+                        return 'alias(' + timeshiftCall + ', "' + targetAlias + '")';
+                    }));
                 }
             } else {
                 uri.setQuery('timeframe', this.timeframe);
