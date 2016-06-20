@@ -1656,7 +1656,7 @@ class Sensor(models.Model):
         ordering = ('name',)
 
     def __unicode__(self):
-        return "Sensor '{}' on {}".format(
+        return u"Sensor '{}' on {}".format(
             self.human_readable or self.internal_name,
             self.netbox)
 
