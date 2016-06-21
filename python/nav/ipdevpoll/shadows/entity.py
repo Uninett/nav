@@ -95,6 +95,12 @@ class EntityManager(DefaultManager):
         missing = (miss for miss in self.missing
                    if miss.device is not None and miss in to_purge)
         for miss in missing:
+            if miss not in graph:
+                self._logger.warning(
+                    "missing entity cannot be found in dependency graph, maybe "
+                    "the plugin that originally collected it didn't run? : "
+                    "%r : %r", miss, graph.nodes())
+                continue
             try:
                 sub = subtree(graph, miss)
             except nx.NetworkXError as err:
@@ -209,6 +215,19 @@ class NetboxEntity(Shadow):
             entities = containers[cls].itervalues()
             return [e for e in entities
                     if e.physical_class == manage.NetboxEntity.CLASS_CHASSIS]
+        else:
+            return []
+
+    @classmethod
+    def get_root_entities(cls, containers):
+        """Returns a list of entities that aren't contained within others
+
+        :type containers: nav.ipdevpoll.storage.ContainerRepository
+        """
+        if cls in containers:
+            entities = containers[cls].itervalues()
+            return [e for e in entities
+                    if e.contained_in is None or e.contained_in == -1]
         else:
             return []
 
