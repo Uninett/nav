@@ -16,10 +16,6 @@
 """Selenium tests for simple searches on the navbar"""
 
 from nav.tests.selenium import SeleniumTest
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
 
 class NavBarSeleniumTest(SeleniumTest):
     """Testrunner for the Status page"""
@@ -37,9 +33,5 @@ class NavBarSeleniumTest(SeleniumTest):
         ipaddr = "192.168.42.42"
         self.query.send_keys(ipaddr)
         self.search_button.click()
-        try:
-            caption = WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.TAG_NAME, "caption")))
-            self.assertIn(ipaddr, caption.text)
-        except TimeoutException:
-            pass
+        caption = self.driver.find_element_by_tag_name('caption')
+        self.assertIn(ipaddr, caption.text)
