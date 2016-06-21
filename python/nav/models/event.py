@@ -341,7 +341,7 @@ class EventQueue(models.Model, EventMixIn):
     def __repr__(self):
         return "<EventQueue: %s>" % u", ".join(
             u"%s=%r" % (attr, getattr(self, attr))
-            for attr in ('event_type_id', 'source_id', 'target_id',
+            for attr in ('id', 'event_type_id', 'source_id', 'target_id',
                          'netbox', 'subid', 'state', 'time'))
 
     def __unicode__(self):

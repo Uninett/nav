@@ -61,6 +61,13 @@ class System(Plugin):
                 self._logger.debug("set pre-existing device software revision")
 
         if not chassis:
+            roots = shadows.NetboxEntity.get_root_entities(self.containers)
+            if roots:
+                self._logger.debug(
+                    "device has root entities, but none are chassis. doing "
+                    "nothing about the software revisions I found")
+                return
+
             device = self.containers.factory(None, shadows.Device)
             if not device.software_version:
                 self._logger.debug(
