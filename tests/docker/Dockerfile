@@ -1,32 +1,28 @@
-FROM mbrekkevold/navbase-debian
+FROM mbrekkevold/navbase-debian:jessie
 
 ENV DISPLAY :99
 ENV ADMINPASSWORD omicronpersei8
 
 ### Installing packages
-RUN echo "deb http://ftp.no.debian.org/debian wheezy-backports main" >> /etc/apt/sources.list
-RUN echo "deb-src http://ftp.no.debian.org/debian wheezy-backports main" >> /etc/apt/sources.list
 RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A040830F7FAC5991
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A040830F7FAC5991 1397BC53640DB551
 
 # TODO: Might not need all the dependencies
 RUN apt-get update && \
     apt-get -y --no-install-recommends build-dep \
-	python-psycopg2 python-lxml librrd-dev python-imaging python-ldap && \
-    apt-get clean
+	python-psycopg2 python-lxml librrd-dev python-imaging python-ldap
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends install \
 	locales mercurial subversion git-core python-virtualenv python-pip \
-	build-essential librrd-dev python-dev autoconf automake libsnmp15 \
-	cron sudo libapache2-mod-wsgi rubygems inotify-tools python-cairo \
-	postgresql-9.1 postgresql-contrib-9.1 postgresql-client \
-	ruby1.8-dev libxml2-dev libxslt1-dev net-tools \
-	postgresql-server-dev-9.1 libpq-dev libwww-perl python-rrdtool \
+	build-essential librrd-dev python-dev autoconf automake libsnmp30 \
+	cron sudo apache2 libapache2-mod-wsgi rubygems inotify-tools python-cairo \
+	postgresql postgresql-contrib postgresql-client \
+	ruby-dev libxml2-dev libxslt1-dev net-tools \
+	postgresql-server-dev-all libpq-dev libwww-perl python-rrdtool \
 	iceweasel xvfb nodejs-legacy curl \
 	python-iso8601 imagemagick x11vnc google-chrome-stable rrdtool cloc \
-	cmake nbtscan python-gammu && \
-    apt-get clean
+	cmake nbtscan python-gammu
 
 RUN gem install --version '3.3.9' sass ; \
     gem install --version '~> 0.9' rb-inotify
