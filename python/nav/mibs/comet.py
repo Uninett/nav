@@ -32,7 +32,7 @@ UNIT_MAP = {
 }
 
 
-class P8541Mib(MibRetriever):
+class Comet(MibRetriever):
     from nav.smidumps.p8541_mib import MIB as mib
 
     def get_module_name(self):
