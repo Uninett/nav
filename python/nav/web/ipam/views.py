@@ -16,6 +16,20 @@
 #
 
 from django.http import HttpResponse
+from django.template import RequestContext
+from django.shortcuts import render_to_response
+
+from .prefix_tree import make_tree
+
+NAVBAR = [('Home', '/'), ('IPAM', None)]
+DEFAULT_VALUES = {'title': "IPAM", 'navpath': NAVBAR}
 
 def index(request):
-    return HttpResponse("testing", content_type="text/plain")
+    ctx = generate_context()
+    return render_to_response("ipam/index.html", ctx, RequestContext(request))
+
+def generate_context():
+    ctx = {}
+    ctx.update(DEFAULT_VALUES)
+    ctx["tree"] = make_tree()
+    return ctx
