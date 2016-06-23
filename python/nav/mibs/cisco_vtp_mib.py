@@ -1,4 +1,20 @@
+#
+# Copyright (C) 2009, 2012, 2013, 2016 UNINETT AS
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+#
 from twisted.internet import defer
+from twisted.internet.defer import returnValue
 
 from nav.bitvector import BitVector
 import mibretriever
@@ -9,26 +25,20 @@ CHARS_IN_1024_BITS = 128
 class CiscoVTPMib(mibretriever.MibRetriever):
     from nav.smidumps.cisco_vtp_mib import MIB as mib
 
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def get_trunk_native_vlans(self):
         """Get a mapping of the native VLANs of trunk ports."""
-        dw = defer.waitForDeferred(
-            self.retrieve_columns((
-                'vlanTrunkPortNativeVlan',
-                'vlanTrunkPortDynamicState',
-            ))
-        )
-        yield dw
-        trunkports = self.translate_result(dw.getResult())
+        trunkports = yield self.retrieve_columns((
+            'vlanTrunkPortNativeVlan',
+            'vlanTrunkPortDynamicState')).addCallback(self.translate_result)
 
-        result = dict(
-            [(index[0], row['vlanTrunkPortNativeVlan'])
-             for index, row in trunkports.items() if
-             row['vlanTrunkPortDynamicState'] in ['on', 'onNoNegotiate']])
-        yield result
+        result = {
+            index[0]: row['vlanTrunkPortNativeVlan']
+            for index, row in trunkports.items()
+            if row['vlanTrunkPortDynamicState'] in ('on', 'onNoNegotiate')}
+        returnValue(result)
 
-
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def get_trunk_enabled_vlans(self, as_bitvector=False):
         """Get a list of enabled VLANs for each trunk port.
 
@@ -48,23 +58,19 @@ class CiscoVTPMib(mibretriever.MibRetriever):
             enabled = BitVector(concatenated_bits)
             return as_bitvector and enabled or enabled.get_set_bits()
 
-        dw = defer.waitForDeferred(
-            self.retrieve_columns((
-                'vlanTrunkPortVlansEnabled',
-                'vlanTrunkPortDynamicState',
-                'vlanTrunkPortVlansEnabled2k',
-                'vlanTrunkPortVlansEnabled3k',
-                'vlanTrunkPortVlansEnabled4k',
-            ))
-        )
-        yield dw
-        trunkports = self.translate_result(dw.getResult())
+        trunkports = yield self.retrieve_columns((
+            'vlanTrunkPortVlansEnabled',
+            'vlanTrunkPortDynamicState',
+            'vlanTrunkPortVlansEnabled2k',
+            'vlanTrunkPortVlansEnabled3k',
+            'vlanTrunkPortVlansEnabled4k',
+        )).addCallback(self.translate_result)
 
-        result = dict(
-            [(index[0], get_vlan_list(row))
-             for index, row in trunkports.items() if
-             row['vlanTrunkPortDynamicState'] in ['on', 'onNoNegotiate']])
-        yield result
+        result = {
+            index[0]: get_vlan_list(row)
+            for index, row in trunkports.items()
+            if row['vlanTrunkPortDynamicState'] in ('on', 'onNoNegotiate')}
+        returnValue(result)
 
     @defer.inlineCallbacks
     def get_ethernet_vlan_states(self):
