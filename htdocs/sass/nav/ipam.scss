@@ -1,0 +1,40 @@
+.scope-tree-item-content {
+  padding: 50px;
+}
+
+.scope-tree-item-title {
+  background: #000;
+  font-weight: bold;
+  border-bottom: 1px solid #ccc;
+
+  .ip {
+    padding: 5px; border: 1px solid #ccc; background: #ffe;
+  }
+
+  .description {
+    font-style: italic;
+  }
+
+  .net-type {
+    padding: 5px;
+    background: red;
+    color: #ffe;
+  }
+
+  .child-count {
+    
+  }
+}
+
+.scope-tree-item {
+  border: 1px solid #ccc;
+}
+
+.scope-tree-item-content {
+  padding: 25px;
+}
+
+.scope-metadata {
+  margin-bottom: 20px;
+}
+
