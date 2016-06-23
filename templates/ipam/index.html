@@ -1,0 +1,61 @@
+{% extends "ipam/base.html" %}
+
+
+{% block base_header_additional_head %}
+<link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/ipam.css">
+<script>require(["src/ipam/ipam"]);</script>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+  <div class="medium-6 columns">
+    <h3>Stats</h3>
+  </div>
+
+  <div class="medium-6 columns">
+    <ul class="tabs" data-tab>
+      <li class="tab-title active">
+        <a href="#ipam-tools-find-subnet">Find available subnet</a>
+      </li>
+      <li class="tab-title">
+        <a href="#ipam-tools-ymse">Something else useful</a>
+    </ul>
+    <div class="tabs-content">
+      <div class="content active" id="ipam-tools-find-subnet">
+        {% include "ipam/includes/find_subnet.html" %}
+      </div>
+      <div class="content" id="ipam-tools-ymse">
+        <p>Ymse</p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="row">
+  <div class="medium-12 columns">
+    <ul class="accordion" data-accordion role="tablist">
+      {% for child in tree.children %}
+      {% include "ipam/includes/tree.html" with node=child %}
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<div class="tabs">
+  <ul>
+    <li><a href="#">Test 1</a></li>
+    <li><a href="#">Test 1</a></li>
+    <li><a href="#">Test 1</a></li>
+    <li><a href="#">Test 1</a></li>
+    <li><a href="#">Test 1</a></li>
+    <li><a href="#">Test 1</a></li>
+  </ul>
+  <div class="tabcontent">
+    wow
+  </div>
+</div>
+
+{% endblock %}

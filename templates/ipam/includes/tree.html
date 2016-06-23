@@ -1,0 +1,35 @@
+<li class="accordion-navigation scope-tree-item" data-prefix-id="{{ node.pk }}" data-json="{{ node.json }}">
+  <a href="#scope-{{ node.pk }}" class="scope-tree-item-title">
+    {% if node.net_type %}
+    <span class="net-type">{{ node.net_type }}</span>
+    {% endif %}
+    <span class="ip">{{ node.ip }}</span>
+    <span class="description">{{ node.description }}</span>
+    {% if node.children %}
+    <span class="child-count">({{ node.length }} children)</span>
+    {% endif %}
+  </a>
+  <div id="scope-{{ node.pk }}" class="content scope-tree-item-content">
+    {% if not node.is_fake %}
+    <a class="button small right" href="{% url "seeddb-prefix-edit" prefix_id=node.pk %}">Edit</a>
+    <div id="scope-graph-{{ node.pk }}">
+      <!-- container for usage graph -->
+    </div>
+    <button
+      class="scope-show-usage"
+      data-prefix="{{ node.ip }}"
+      data-mount-elem="#scope-graph-{{ node.pk }}">Show usage</button>
+    {% endif %}
+    <ul class="scope-metadata">
+      <li><strong>Description:</strong> {{ node.description }}</li>
+      <li><strong>Organization:</strong> {{ node.organization }}</li>
+    </ul>
+  {% if node.children|length %}
+    {% for child in node.children %}
+      <ul class="accordion" data-accordion role="tablist">
+        {% include "ipam/includes/tree.html" with node=child %}
+      </ul>
+    {% endfor %}
+      {% endif %}
+  </div>
+</li>
