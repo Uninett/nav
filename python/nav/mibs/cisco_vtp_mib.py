@@ -3,6 +3,8 @@ from twisted.internet import defer
 from nav.bitvector import BitVector
 import mibretriever
 
+CHARS_IN_1024_BITS = 128
+
 
 class CiscoVTPMib(mibretriever.MibRetriever):
     from nav.smidumps.cisco_vtp_mib import MIB as mib
@@ -36,16 +38,12 @@ class CiscoVTPMib(mibretriever.MibRetriever):
 
         def get_vlan_list(row):
             concatenated_bits = ''
-            # There is no point in concatening more bitstrings if one of them
-            # are empty, that would just produced a skewed result.
             for column in ('vlanTrunkPortVlansEnabled',
                            'vlanTrunkPortVlansEnabled2k',
                            'vlanTrunkPortVlansEnabled3k',
                            'vlanTrunkPortVlansEnabled4k'):
-                if row[column]:
-                    concatenated_bits += row[column]
-                else:
-                    break
+                value = row[column] or ''
+                concatenated_bits += value.ljust(CHARS_IN_1024_BITS, '\x00')
 
             enabled = BitVector(concatenated_bits)
             return as_bitvector and enabled or enabled.get_set_bits()
