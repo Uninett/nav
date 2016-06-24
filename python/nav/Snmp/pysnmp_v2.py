@@ -16,6 +16,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """High level NAV API for PySNMP v2."""
+from __future_ import absolute_import
 import re
 import os
 # Make sure Ubuntu/Debian picks the correct pysnmp API version:
@@ -27,7 +28,7 @@ try:
     v1.RESPONSE
 except:
     v1.RESPONSE = v1.GETRESPONSE
-from errors import *
+from .errors import *
 
 class Snmp(object):
     """Simple class that provides snmpget, snmpwalk and snmpjog(tm)
@@ -89,12 +90,12 @@ class Snmp(object):
         # Encode SNMP request message and try to send it to SNMP agent and
         # receive a response
         try:
-            (answer, src) = self.handle.send_and_receive(
+            (answer, _src) = self.handle.send_and_receive(
                 req.encode(), dst=(self.host, self.port))
-        except role.NoResponse, e:
-            raise TimeOutException(e)
-        except role.NetworkError, n:
-            raise NetworkError(n)
+        except role.NoResponse as err:
+            raise TimeOutException(err)
+        except role.NetworkError as err:
+            raise NetworkError(err)
 
 
         # Decode raw response/answer
@@ -162,7 +163,7 @@ class Snmp(object):
 
         # Try to send query and get response
         try:
-            (answer, src) = self.handle.send_and_receive(
+            (answer, _src) = self.handle.send_and_receive(
                 req.encode(encoded_oids=encoded_oids,
                            encoded_vals=encoded_vals),
                 dst=(self.host, self.port))
@@ -173,8 +174,8 @@ class Snmp(object):
             if rsp['error_status']:
                 raise AgentError, str(snmp.SNMPError(rsp['error_status']))
 
-        except (role.NoResponse, role.NetworkError), why:
-            raise NetworkError, why
+        except (role.NoResponse, role.NetworkError) as err:
+            raise NetworkError(err)
 
     def walk(self, query="1.3.6.1.2.1.1.1.0"):
         """
@@ -211,12 +212,12 @@ class Snmp(object):
             # Encode SNMP request message and try to send it to SNMP agent and
             # receive a response
             try:
-                (answer, src) = self.handle.send_and_receive(
+                (answer, _src) = self.handle.send_and_receive(
                     req.encode(), dst=(self.host, self.port))
-            except role.NoResponse, e:
-                raise TimeOutException(e)
-            except role.NetworkError, n:
-                raise NetworkError(n)
+            except role.NoResponse as err:
+                raise TimeOutException(err)
+            except role.NetworkError as err:
+                raise NetworkError(err)
 
 
             # Decode raw response/answer
@@ -318,12 +319,12 @@ class Snmp(object):
             # Encode SNMP request message and try to send it to SNMP agent and
             # receive a response
             try:
-                (answer, src) = self.handle.send_and_receive(
+                (answer, _src) = self.handle.send_and_receive(
                     req.encode(), dst=(self.host, self.port))
-            except role.NoResponse, e:
-                raise TimeOutException(e)
-            except role.NetworkError, n:
-                raise NetworkError(n)
+            except role.NoResponse as err:
+                raise TimeOutException(err)
+            except role.NetworkError as err:
+                raise NetworkError(err)
 
             # Decode raw response/answer
             rsp.decode(answer)
