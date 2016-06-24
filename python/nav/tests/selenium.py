@@ -39,6 +39,8 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from urlparse import urljoin
+from nav.django.auth import create_session_cookie
+
 
 BASE_URL = os.environ.get('TARGETURL', 'http://localhost:8000')
 USERNAME = 'admin'
@@ -56,7 +58,6 @@ class SeleniumTest(unittest.TestCase):
     def setUp(self):
         """Common tasks to do before each test"""
         self.driver = self.get_driver()
-        self.login(self.driver, USERNAME, PASSWORD)
 
     def tearDown(self):
         """Common tasks to do after each test"""
@@ -89,23 +90,6 @@ class SeleniumTest(unittest.TestCase):
         driver.get(BASE_URL)
         return driver
 
-    def login(self, driver, username, password):
-        """Logs in to NAV"""
-        self.do_login(driver, username, password)
-        try:
-            driver.find_element_by_class_name('logout')
-        except NoSuchElementException:
-            self.tearDown()
-            pytest.skip('Login failed')
-
-    @staticmethod
-    def do_login(driver, username=USERNAME, password=PASSWORD):
-        """Do the moves a login requires"""
-        driver.find_element_by_class_name('login').click()
-        driver.find_element_by_id('id_username').send_keys(username)
-        driver.find_element_by_id('id_password').send_keys(password)
-        driver.find_element_by_css_selector('input[type=submit]').click()
-
     def go_to(self, viewname):
         """Tell the driver to go to the url with the given viewname"""
         self.driver.get(self.get_url(viewname))
@@ -114,6 +98,16 @@ class SeleniumTest(unittest.TestCase):
     def get_url(uri):
         """Get url based on uri"""
         return urljoin(BASE_URL, uri)
+
+
+class LoggedInSeleniumTest(SeleniumTest):
+    """Superclass for Selenium tests to run while logged in as the admin user"""
+    def setUp(self):
+        super(LoggedInSeleniumTest, self).setUp()
+        cookie = create_session_cookie(USERNAME)
+        self.driver.get(self.get_url('404'))
+        self.driver.add_cookie(cookie)
+        self.driver.refresh()
 
 
 def get_screenshot_directory():
