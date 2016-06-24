@@ -5,7 +5,7 @@ umask 0022
 # the mounted /source volume.
 uid=$(stat -c '%u' /source)
 gid=$(stat -c '%g' /source)
-usermod --non-unique --uid "$uid" build
+usermod --uid "$uid" build
 groupmod --non-unique  --gid "$gid" build
 
 
