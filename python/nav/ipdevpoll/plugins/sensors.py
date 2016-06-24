@@ -31,7 +31,7 @@ from nav.mibs.entity_sensor_mib import EntitySensorMib
 from nav.mibs.cisco_entity_sensor_mib import CiscoEntitySensorMib
 
 from nav.mibs.mg_snmp_ups_mib import MgSnmpUpsMib
-from nav.mibs.p8541_mib import P8541Mib
+from nav.mibs.comet import Comet
 from nav.mibs.powernet_mib import PowerNetMib
 from nav.mibs.spagent_mib import SPAgentMib
 from nav.mibs.ups_mib import UpsMib
@@ -90,7 +90,7 @@ class MIBFactory(object):
             elif vendor_id == VENDOR_ID_GEIST_MANUFACTURING_INC:
                 mibs = [GeistMibV3(agent)]
             elif vendor_id == VENDOR_ID_COMET_SYSTEM_SRO:
-                mibs = [P8541Mib(agent)]
+                mibs = [Comet(agent)]
             elif vendor_id == VENDOR_ID_KCP_INC:
                 mibs = [SPAgentMib(agent)]
         if not mibs:
