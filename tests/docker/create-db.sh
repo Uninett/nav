@@ -5,7 +5,7 @@ check_for_postgres() {
     local ver
     if ! which initdb; then
 	echo PostgreSQL commands not found on path, looking for them
-	for ver in 9.1 9.2 9.3; do
+	for ver in 9.1 9.2 9.3 9.4; do
 	    PATH="/usr/lib/postgresql/$ver/bin:$PATH"
 	done
 	export PATH
@@ -53,6 +53,7 @@ bootstrap_postgres_in_ram() {
 
     PGCTL=$(which pg_ctl)
     export PGCTL
+    sudo chown build /var/run/postgresql/
     "$PGCTL" start -w -o '-i'
 
     # Just print out the current PG* environment

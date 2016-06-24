@@ -16,10 +16,10 @@
 # pylint: disable=C0111, R0904
 """Selenium tests for arnold"""
 
-from nav.tests.selenium import SeleniumTest
+from nav.tests.selenium import LoggedInSeleniumTest
 
 
-class ArnoldSeleniumTest(SeleniumTest):
+class ArnoldSeleniumTest(LoggedInSeleniumTest):
     """Testrunner for the Arnold page"""
 
     def test_should_default_to_detained_ports(self):

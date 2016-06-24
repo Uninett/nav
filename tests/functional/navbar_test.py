@@ -15,9 +15,10 @@
 #
 """Selenium tests for simple searches on the navbar"""
 
-from nav.tests.selenium import SeleniumTest
+from nav.tests.selenium import LoggedInSeleniumTest
 
-class NavBarSeleniumTest(SeleniumTest):
+
+class NavBarSeleniumTest(LoggedInSeleniumTest):
     """Testrunner for the Status page"""
 
     def setUp(self):
