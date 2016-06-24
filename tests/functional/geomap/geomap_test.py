@@ -16,11 +16,11 @@
 # pylint: disable=C0111, R0904
 """Selenium tests for geomap"""
 
-from nav.tests.selenium import SeleniumTest
+from nav.tests.selenium import LoggedInSeleniumTest
 from selenium.common.exceptions import NoSuchElementException
 
 
-class GeoMapSeleniumTest(SeleniumTest):
+class GeoMapSeleniumTest(LoggedInSeleniumTest):
     """Testrunner for the GeoMap page"""
 
     def test_map_loaded(self):

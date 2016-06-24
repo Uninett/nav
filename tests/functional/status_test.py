@@ -16,9 +16,9 @@
 """Selenium tests for Status"""
 from time import sleep
 
-from nav.tests.selenium import SeleniumTest
+from nav.tests.selenium import LoggedInSeleniumTest
 
-class StatusSeleniumTest(SeleniumTest):
+class StatusSeleniumTest(LoggedInSeleniumTest):
     """Testrunner for the Status page"""
 
     def setUp(self):
