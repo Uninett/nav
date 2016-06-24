@@ -406,7 +406,7 @@ class SNMPHandler(object):
 
         _logger.debug('base_port: %s, native_vlan: %s, trunk_vlans: %s',
                       base_port, native_vlan, vlans)
-        
+
         vlans = [int(vlan) for vlan in vlans]
 
         for available_vlan in self.get_available_vlans():
