@@ -16,7 +16,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """High level NAV API for PySNMP v2."""
-from __future_ import absolute_import
+from __future__ import absolute_import
 import re
 import os
 # Make sure Ubuntu/Debian picks the correct pysnmp API version:
