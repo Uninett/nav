@@ -26,17 +26,17 @@ from . import config
 
 _logger = logging.getLogger(__name__)
 
-def run_as_multiprocess():
+def run_as_multiprocess(threadpoolsize=None):
     "Sets up a process monitor to run each ipdevpoll job as a subprocess"
     procmon.LineLogger.lineReceived = line_received
     mon = ProcessMonitor()
     jobs = config.get_jobs()
 
     for job in jobs:
-        mon.addProcess(job.name,
-                       [get_process_command(),
-                        '-J', job.name, '-f', '-s', '-P'],
-                       env=os.environ)
+        args = [get_process_command(), '-J', job.name, '-f', '-s', '-P']
+        if threadpoolsize:
+            args.append('--threadpoolsize=%d' % threadpoolsize)
+        mon.addProcess(job.name, args, env=os.environ)
 
     reactor.callWhenRunning(mon.startService)
     return mon

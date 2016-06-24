@@ -58,7 +58,7 @@ run_jstests() {
 }
 
 run_pylint() {
-    "${WORKSPACE}/tests/docker/lint.sh" > "${WORKSPACE}/pylint.txt"
+    time "${WORKSPACE}/tests/docker/lint.sh" > "${WORKSPACE}/pylint.txt"
 }
 
 

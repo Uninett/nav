@@ -11,7 +11,13 @@
     <ul class="hidden">
       {% for error in test.errors %}
       <li style="list-style-type: circle">
-        <small>{{ error }}</small>
+        <small>
+	  {% if error.obj.get_absolute_url %}
+	    <a href="{{ error.obj.get_absolute_url }}">{{ error }}</a>
+	  {% else %}
+	    {{ error }}
+	  {% endif %}
+	</small>
       </li>
       {% endfor %}
     </ul>

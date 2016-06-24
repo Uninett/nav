@@ -1683,7 +1683,7 @@ class Sensor(models.Model):
         ordering = ('name',)
 
     def __unicode__(self):
-        return "Sensor '{}' on {}".format(
+        return u"Sensor '{}' on {}".format(
             self.human_readable or self.internal_name,
             self.netbox)
 
@@ -1846,6 +1846,10 @@ class IpdevpollJobLog(models.Model):
             j.duration] for j in jobs]
         runtimes.reverse()
         return runtimes
+
+    def get_absolute_url(self):
+        """Returns the Netbox' URL"""
+        return self.netbox.get_absolute_url()
 
 
 class Netbios(models.Model):

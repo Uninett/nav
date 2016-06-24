@@ -114,7 +114,8 @@ class IPDevPollProcess(object):
 
     def setup_multiprocess(self):
         from . import control
-        self._procmon = control.run_as_multiprocess()
+        self._procmon = control.run_as_multiprocess(
+            threadpoolsize=self.options.threadpoolsize)
 
     def sighup_handler(self, _signum, _frame):
         """Reopens log files."""
