@@ -34,6 +34,7 @@ UNIT_MAP = {
 
 
 class Comet(MibRetriever):
+    """MibRetriever for Comet Web Sensors"""
     from nav.smidumps.p8652_mib import MIB as mib
 
     def get_module_name(self):
@@ -42,6 +43,9 @@ class Comet(MibRetriever):
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
+        """Discovers and returns all eligible sensors from the Comet MIB on this
+        device.
+        """
         channels = yield self.get_channels()
         bin_inputs = yield self.get_binary_inputs()
         returnValue(channels + bin_inputs)
