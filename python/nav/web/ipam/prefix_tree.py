@@ -37,28 +37,38 @@ def get_prefixes():
 # exposes a clean, non-nested attribute contract (we promise that the field 'x'
 # will exist) etc.
 
-class JsonFacade(object):
-    """Simple Facade pattern utility for serializing to JSON. obj.json_fields is a
-list of the class attributes which you wish to serialize.
+class IpNodeFacade(object):
+    "Utility mixin for nodes with IPy.IP objects in in the 'self.ip' field"
 
-    """
+    JSON_FIELDS = [
+        "pk",
+        "length",
+        "net_type",
+        "cidr",
+        "children_pks",
+        "ip_version",
+        "prefixlen"
+    ]
 
     @property
     def json(self):
-        """Serialize (a subset of) the node. Iterates over the attributes specifies in
-        self.json_fields and adds them to a JSON map
-
-        """
+        "Serialize (a subset of) the node. Exported fields are set in JSON_FIELDS."
         payload = {}
         for field in self.JSON_FIELDS:
-            value = getattr(self, field, None)
-            payload[field] = value if value else None
+            try:
+                value = getattr(self, field, None)
+                payload[field] = value if value else None
+            except AttributeError:
+                pass
         return json.dumps(payload)
 
-class IpNodeFacade(JsonFacade):
-    "Utility mixin for nodes with IPy.IP objects in in the 'self.ip' field"
+    @property
+    def ip_version(self):
+        return self.ip.version()
 
-    JSON_FIELDS = ["pk", "length", "net_type", "cidr", "children_pks"]
+    @property
+    def prefixlen(self):
+        return self.ip.prefixlen()
 
     @property
     def cidr(self):
@@ -88,7 +98,7 @@ class IpNodeFacade(JsonFacade):
         assert isinstance(other, PrefixHeap), "Can only compare with other PrefixHeap elements"
         return self.ip.__cmp__(other.ip)
 
-class PrefixHeap(JsonFacade):
+class PrefixHeap(object):
     def __init__(self, children=None):
         if children is None:
             children = []
