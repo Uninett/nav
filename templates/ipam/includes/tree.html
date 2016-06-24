@@ -1,4 +1,11 @@
-<li class="accordion-navigation scope-tree-item" data-prefix-id="{{ node.pk }}" data-json="{{ node.json }}">
+<li
+  {% if node.is_fake %}
+  class="accordion-navigation scope-tree-item"
+  {% else %}
+  class="accordion-navigation scope-tree-item scope-tree-item-has-stats"
+  {% endif %}
+  data-prefix-id="{{ node.pk }}"
+  data-json="{{ node.json }}">
   <a href="#scope-{{ node.pk }}" class="scope-tree-item-title">
     {% if node.net_type %}
     <span class="net-type">{{ node.net_type }}</span>
@@ -15,10 +22,6 @@
     <div id="scope-graph-{{ node.pk }}">
       <!-- container for usage graph -->
     </div>
-    <button
-      class="scope-show-usage"
-      data-prefix="{{ node.ip }}"
-      data-mount-elem="#scope-graph-{{ node.pk }}">Show usage</button>
     {% endif %}
     <ul class="scope-metadata">
       <li><strong>Description:</strong> {{ node.description }}</li>
