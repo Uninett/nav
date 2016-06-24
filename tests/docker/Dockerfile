@@ -46,6 +46,9 @@ ADD test-requirements.txt /test-requirements.txt
 RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
 RUN pip install whisper carbon graphite-web django-tagging
 
+# Remove these superfluous, and possible conflicting accounts
+RUN for U in systemd-timesync systemd-network systemd-resolve systemd-bus-proxy; do userdel -f $U; done
+
 # This does not make files in source accessible for RUN-commands
 VOLUME ["/source"]
 
