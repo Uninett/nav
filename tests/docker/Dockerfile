@@ -3,6 +3,9 @@ FROM mbrekkevold/navbase-debian:jessie
 ENV DISPLAY :99
 ENV ADMINPASSWORD omicronpersei8
 
+# Remove these superfluous, and possibly conflicting accounts
+RUN for U in systemd-timesync systemd-network systemd-resolve systemd-bus-proxy; do userdel -f $U; done
+
 ### Installing packages
 RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A040830F7FAC5991 1397BC53640DB551
@@ -45,9 +48,6 @@ ADD runtime-requirements.txt /runtime-requirements.txt
 ADD test-requirements.txt /test-requirements.txt
 RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
 RUN pip install whisper carbon graphite-web django-tagging
-
-# Remove these superfluous, and possible conflicting accounts
-RUN for U in systemd-timesync systemd-network systemd-resolve systemd-bus-proxy; do userdel -f $U; done
 
 # This does not make files in source accessible for RUN-commands
 VOLUME ["/source"]
