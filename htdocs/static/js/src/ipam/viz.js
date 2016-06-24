@@ -9,8 +9,7 @@ define(function (require, exports, module) {
   var d3 = require("d3");
   var _ = require("libs/underscore");
   var util = require("src/ipam/util");
-  // TODO: vendor d3tip!!!
-  var d3tip = require("d3_tip");
+  var d3tip = require("d3tip");
 
   // === Tooltip (+ template)
   var tip = d3tip()
@@ -19,6 +18,8 @@ define(function (require, exports, module) {
         .html(function(d) {
           return `<strong>${d.prefix}:</strong> ${d.max_addresses}`;
         });
+
+
 
   // TODO: Consider dropping rows to not draw too much at once (for usability
   // reasons)
@@ -121,6 +122,11 @@ define(function (require, exports, module) {
           .append("g")
           .attr("class", "graph-prefix");
 
+    // Attach tooltip to prefix
+    prefix
+      .on("mouseover", tip.show)
+      .on("mouseout", tip.hide);
+
     // Draw available addresses (main graph)
     var bar = prefix.append("rect")
           .attr("height", yScale.rangeBand())
@@ -137,11 +143,6 @@ define(function (require, exports, module) {
             }
             return "lightsteelblue";
           });
-
-    // Attach tooltip to prefix
-    prefixes.selectAll(".graph-prefix")
-      .on("mouseover", tip.show)
-      .on("mouseout", tip.hide);
 
     function getMaskHeight(d) {
       return d.usage * yScale.rangeBand();

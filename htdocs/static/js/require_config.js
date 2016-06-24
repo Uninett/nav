@@ -12,7 +12,7 @@ var require = {
         "netmap": "src/netmap",
         "status": "src/status2",
         "d3": "libs/d3.min",
-        "d3_tip": "//cdnjs.cloudflare.com/ajax/libs/d3-tip/0.6.7/d3-tip.min",
+        "d3tip": "libs/d3tip.min",
         "nav-url-utils": "src/plugins/nav-url-utils",
         "rickshaw-utils": "src/plugins/rickshaw-utils"
     },
