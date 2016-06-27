@@ -16,7 +16,8 @@ define(function (require, exports, module) {
         .attr('class', 'd3-tip')
         .offset([-10, 0])
         .html(function(d) {
-          return `<strong>${d.prefix}:</strong> ${d.max_addresses}`;
+          var fmt = _.template("<strong><%= prefix %></strong>: <%= addr %>");
+          return fmt({prefix: d.prefix, addr: d.max_addresses});
         });
 
 
@@ -89,14 +90,16 @@ define(function (require, exports, module) {
 
     var colors = d3.scale.category20();
 
+    var viewbox = _.template("0 0 <%= width %> <%= height %>");
+
     var svg;
     if (d3.select(mountElem).select("svg").empty()) {
       // Mount main SVG element
       svg = d3.select(mountElem)
-            .append("svg")
-            .attr("preserveAspectRatio", "xMaxYMin meet")
-            .attr("viewBox", `0 0 ${width} ${height}`)
-            .append("g");
+        .append("svg")
+        .attr("preserveAspectRatio", "xMaxYMin meet")
+        .attr("viewBox", viewbox({width: width, height: height}))
+        .append("g");
     } else {
       console.log("Already drawn. Trying to redraw?");
       svg = d3.select(mountElem).select("svg").select("g");
@@ -113,7 +116,9 @@ define(function (require, exports, module) {
           .enter()
           .append("g")
           .attr("class", "graph-prefixes")
-          .attr("transform", function(d) { return `translate(0, ${yScale(d.prefix)})`; });
+          .attr("transform", function(d) {
+            return util.translate(0, yScale(d.prefix));
+          });
 
     // draw each bar for each prefix this prefix spans
     var prefix = prefixes.selectAll(".graph-prefix")
@@ -137,7 +142,7 @@ define(function (require, exports, module) {
           .attr("x", function(d) { return xScale(d.x1); })
           .attr("width", function(d) { return xScale(d.x0) - xScale(d.x1) - padding; })
           .style("fill", function(d) {
-            if (d.prefix == "available") {
+            if (d.prefix === "available") {
               // TODO: Use some kind of green highlight color?
               return "#000";
             }
@@ -154,7 +159,7 @@ define(function (require, exports, module) {
     prefix.append("rect")
       .attr("height", getMaskHeight)
       .attr("transform", function(d) {
-        return `translate(0, ${yScale.rangeBand() - getMaskHeight(d)})`;
+        return util.translate(0, yScale.rangeBand() - getMaskHeight(d));
       })
       .attr("x", function(d) { return xScale(d.x1); })
       .attr("width", function(d) { return xScale(d.x0) - xScale(d.x1) - padding; })

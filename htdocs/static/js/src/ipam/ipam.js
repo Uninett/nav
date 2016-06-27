@@ -33,7 +33,8 @@ define(function(require, exports, module) {
 
     console.log("Trying to fetch usage data for this scope");
 
-    var targetUrl = `${BASE_URL}&scope=${prefix}`;
+    var targetFmt = _.template("<%= base %>&scope=<%= prefix %>");
+    var targetUrl = targetFmt({ base: BASE_URL, prefix: prefix });
 
     // TODO: Handle pagination
     $.get(targetUrl, function(data) {

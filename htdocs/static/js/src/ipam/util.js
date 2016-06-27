@@ -1,14 +1,21 @@
 // Misc utility scripts
 
-define(function(require, exports, module) {
+define(function (require, exports, module) {
 
   var _ = require("libs/underscore");
 
   // Get the number of available addresses in a prefix (CIDR notation, e.g.
   // '10.0.0.0/8'), given all matching sub-prefixes
   function calculateAvailable(prefixlen, family) {
-    var total_bits = family == 4 ? 32 : 128;
+    var total_bits = family === 4 ? 32 : 128;
     return Math.pow(2, total_bits - prefixlen);
+  }
+
+  // Utility for translate statements, in lack of proper string templates for
+  // ES5 (and any good reasons to transpile from ES6)
+  function translate(x, y) {
+    var fmt = _.template("translate(<%= xOffset %>, <%= yOffset %>)");
+    return fmt({xOffset: x, yOffset: y});
   }
 
   // Remove zero elements and calculate relative steps (spanning [0, 1]) for
@@ -22,7 +29,7 @@ define(function(require, exports, module) {
     var _scaleFn = scaleFn || function(n) { return n; };
     // remove zero rows
     newData = _.reject(newData, function (row) {
-      return row[valueField] == 0;
+      return row[valueField] === 0;
     });
     // calculate steps
     newData = _.map(newData, function (row) {
@@ -42,7 +49,8 @@ define(function(require, exports, module) {
 
   module.exports = {
     "calculateAvailable": calculateAvailable,
-    "normalize": normalize
+    "normalize": normalize,
+    "translate": translate
   };
 
 });
