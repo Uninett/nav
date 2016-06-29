@@ -17,6 +17,7 @@
 """Utility functions for ipdevpoll."""
 
 import logging
+import re
 
 from IPy import IP
 
@@ -26,9 +27,11 @@ from twisted.internet import reactor
 
 from nav.oids import get_enterprise_id
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
+from nav.enterprise.ids import VENDOR_ID_ARUBA_NETWORKS_INC
 
 
 _logger = logging.getLogger(__name__)
+MAX_MAC_ADDRESS_LENGTH = 6
 
 def fire_eventually(result):
     """This returns a Deferred which will fire in a later reactor turn.
@@ -54,9 +57,8 @@ def binary_mac_to_hex(binary_mac):
     padded with leading zeros.
 
     """
-    MAX_LENGTH = 6
     if binary_mac:
-        binary_mac = binary_mac[-6:].rjust(MAX_LENGTH, '\x00')
+        binary_mac = binary_mac[-6:].rjust(MAX_MAC_ADDRESS_LENGTH, '\x00')
         return ":".join("%02x" % ord(x) for x in binary_mac)
 
 def truncate_mac(mac):
@@ -73,12 +75,12 @@ def find_prefix(ip, prefix_list):
     precise prefix the IP matches.
     """
     ret = None
-    for p in prefix_list:
-        sub = IP(p.net_address)
+    for pfx in prefix_list:
+        sub = IP(pfx.net_address)
         if ip in sub:
             # Return the most precise prefix, ie the longest prefix
             if not ret or IP(ret.net_address).prefixlen() < sub.prefixlen():
-                ret = p
+                ret = pfx
     return ret
 
 def is_invalid_utf8(string):
@@ -91,7 +93,7 @@ def is_invalid_utf8(string):
     if isinstance(string, str):
         try:
             string.decode('utf-8')
-        except UnicodeDecodeError, e:
+        except UnicodeDecodeError:
             return True
     return False
 
@@ -124,7 +126,9 @@ def get_multibridgemib(agentproxy):
 
 @defer.inlineCallbacks
 def get_dot1d_instances(agentproxy):
-    """Gets a list of alternative BRIDGE-MIB instances from a Cisco agent.
+    """
+    Gets a list of alternative BRIDGE-MIB instances from a Cisco or Aruba
+    agent.
 
     First
 
@@ -139,10 +143,47 @@ def get_dot1d_instances(agentproxy):
     enterprise_id = yield (Snmpv2Mib(agentproxy).get_sysObjectID().
                            addCallback(get_enterprise_id))
     if enterprise_id == VENDOR_ID_CISCOSYSTEMS:
-        for mibclass in (EntityMib, CiscoVTPMib):
-            mib = mibclass(agentproxy)
-            instances = yield mib.retrieve_alternate_bridge_mibs()
-            if instances:
-                defer.returnValue(instances)
+        mibclasses = [EntityMib, CiscoVTPMib]
+        modifier = lambda x: x
+    elif enterprise_id == VENDOR_ID_ARUBA_NETWORKS_INC:
+        mibclasses = [EntityMib]
+        modifier = _workaround_broken_aruba_alternate_communities
+    else:
+        mibclasses = []
+
+    for mibclass in mibclasses:
+        mib = mibclass(agentproxy)
+        instances = yield mib.retrieve_alternate_bridge_mibs()
+        if instances:
+            defer.returnValue(modifier(instances))
+
     defer.returnValue([])
 
+
+_VLAN_RE = re.compile('^vlan([0-9]+)', re.IGNORECASE)
+
+
+def _workaround_broken_aruba_alternate_communities(instances):
+    """
+    Works around a b0rked alternate bridge mib instance list from Aruba
+    switches.
+
+    Aruba switches tend to return the wrong community for BRIDGE-MIB instances
+    from ENTITY-MIB::entLogicalCommunity - the community is not indexed for
+    the given vlan.
+
+    """
+    output = []
+    for name, community in instances:
+        match = _VLAN_RE.match(name)
+        if match:
+            vlan = match.group(1)
+            index = '@' + vlan
+            if not community.endswith(index):
+                community = community + index
+        output.append((name, community))
+    if output != instances:
+        _logger.debug("worked around potentially defunct Aruba BRIDGE-MIB "
+                      "instance list. original: %r new: %r",
+                      instances, output)
+    return output

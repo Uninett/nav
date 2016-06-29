@@ -1,4 +1,9 @@
-Subject: Link up on {{ netbox.sysname }}: {{ interface }}
-This is an automatically generated message from NAV:
+{% with interface=event.get_subject %}
+Subject: Link UP on {{ interface }}
 
-Box {{ netbox.sysname }} ({{ netbox.ip }}) has regained link on interface {{ interface }} ({{ ifalias }})
+Link status on {{ interface }} ({{interface.ifalias}}) is UP.
+
+{% if interface.to_interface %}Connected to {{ interface.to_interface }} ({{ interface.to_interface.ifalias }})
+{% elif interface.to_netbox %}Connected to {{ interface.to_netbox }}{% endif %}{% if interface.lower_layer.all|length_is:"1" %}{% with stack=interface.lower_layer.all|first %}Part of aggregate interface {{ stack.higher }} ({{ stack.higher.ifalias }}){% endwith %}{% endif %}
+
+{% endwith %}
