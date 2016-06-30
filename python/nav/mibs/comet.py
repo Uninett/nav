@@ -92,6 +92,11 @@ class Comet(MibRetriever):
             alarm_oid = self.nodes[o_alarm].oid
 
             name = yield self.get_next(o_name)
+            value = yield self.get_next(o_value)
+            if value is None:
+                self._logger.info("Ignoring BIN input %s (%s), it has no value",
+                                  binary, name)
+                continue
             self._logger.debug("BIN input %s name: %r", binary, name)
 
             result.append(dict(
