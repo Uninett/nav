@@ -140,13 +140,13 @@ define([
                 /* Image url is a redirect to graphite. Fetch proxy url and use
                  that as preference for graph widget */
                 var url = new URI(self.generatedURL).removeQuery('format', ''),
-                    headRequest = $.ajax(url, {'type': 'HEAD'});
+                    headRequest = $.ajax(url.toString(), {'type': 'HEAD'});
                 headRequest.done(function (data, status, xhr) {
                     var proxyUrl = xhr.getResponseHeader('X-Where-Am-I');
                     if (proxyUrl) {
                         var request = $.post(NAV.addGraphWidgetUrl,
                             {
-                                'url': new URI(proxyUrl).removeQuery('format'),
+                                'url': new URI(proxyUrl).removeQuery('format').toString(),
                                 'target': window.location.pathname + window.location.hash
                             });
                         request.done(function () {
