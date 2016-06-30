@@ -2,6 +2,8 @@
 
 
 {% block base_header_additional_head %}
+<link rel="stylesheet" href="{{ STATIC_URL }}css/nav/timepicker.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"/>
 <link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/ipam.css">
 <script>require(["src/ipam/ipam"]);</script>
 {% endblock %}
@@ -36,11 +38,45 @@
 
 <div class="row">
   <div class="medium-12 columns">
-    <ul class="accordion" data-accordion role="tablist">
-      {% for child in tree.children %}
-      {% include "ipam/includes/tree.html" with node=child %}
-      {% endfor %}
-    </ul>
+    <h2>Prefix tree</h2>
+    <div id="scope-tree">
+      <div class="content">
+      </div>
+      <!-- container for scope tree -->
+    </div>
+    <script>
+     // Pre-rendered tree to be dehydrated (less overhead)
+     PREFIX_TREE = {{ tree_json | safe }};
+
+     // Preordered walk (to simplify searching)
+     PREFIX_TREE_PREORDER = {{ tree_json_walk | safe }};
+    </script>
+    <script type="text/template" id="scope-list">
+      <ul class="accordion scope-tree-children" data-accordion role="tablist">
+      </ul>
+    </script>
+    <script type="text/template" id="scope-tree-node">
+      <a href="#scope-<%= pk %>" class="scope-tree-item-title">
+        <span class="net-type"><%= net_type %></span>
+        <span class="ip"><%= prefix %></span>
+        <span class="description"><%= description %></span>
+      </a>
+      <div id="scope-<%= pk %>" class="content scope-tree-item-content">
+        <a class="button small right" href="<%= edit_url %>">Edit</a>
+        <div id="scope-graph-<%= pk %>">
+          <!-- container for usage graph -->
+        </div>
+        <% if (description && organization) { %>
+        <ul class="scope-metadata">
+          <li><strong>Description:</strong> <%= description %></li>
+          <li><strong>Organization:</strong> <%= organization %></li>
+        </ul>
+        <% } %>
+        <ul class="scope-tree-children accordion" data-accordion role="tablist">
+          <!-- container for any child nodes -->
+        </ul>
+      </div>
+    </script>
   </div>
 </div>
 

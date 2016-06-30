@@ -18,7 +18,9 @@
 from __future__ import unicode_literals
 from IPy import IP
 import json
+import copy
 
+from django.core.urlresolvers import reverse, NoReverseMatch
 from nav.models.manage import Prefix
 
 # this is hilariously expensive
@@ -27,13 +29,13 @@ def get_prefixes():
     types = ["scope"]
     return Prefix.objects.filter(vlan__net_type__in=types)
 
-## prefix code
+## Prefix code
 
 # To maintain our sanity, we need a somewhat decent contract between the view
 # and any controller logic. The solution is to use the Facade pattern, which
 # wraps internal complexities (serialization, nested attributes and so on) and
 # exposes a clean, non-nested attribute contract (we promise that the field 'x'
-# will exist) etc.
+# will exist and be populated with some value) etc.
 
 class PrefixHeap(object):
     "Pseudo-heap ordered topologically by prefixes"
@@ -41,6 +43,41 @@ class PrefixHeap(object):
         if children is None:
             children = []
         self.children = children
+
+    @property
+    def fields(self):
+        payload = {
+            "children": [child.fields for child in self.children]
+        }
+        return payload
+
+    @property
+    def is_leaf(self):
+        return len(self.children) == 0
+
+    @property
+    def json_walk(self):
+        "JSON output of self.walk"
+        return json.dumps(self.walk)
+
+    @property
+    def walk(self):
+        "List of all the nodes (preorder walk)."
+        acc = []
+        q = [self]
+        while q:
+            _node = q.pop()
+            # remove children to avoid duplication
+            node = copy.deepcopy(_node.fields)
+            del node["children"]
+            acc.append(node)
+            if not _node.is_leaf:
+                q.extend(_node.children)
+        return acc
+
+    @property
+    def json(self):
+        return json.dumps(self.fields)
 
     @property
     def children_count(self):
@@ -64,14 +101,17 @@ class IpNodeFacade(PrefixHeap):
     "Utility mixin for nodes with IPy.IP objects in in the 'self.ip' field"
 
     # Class attributes to export to JSON
-    JSON_FIELDS = [
+    FIELDS = [
         "pk",
         "length",
         "net_type",
-        "cidr",
         "children_pks",
         "ip_version",
-        "prefixlen"
+        "edit_url",
+        "prefix",
+        "prefixlen",
+        "organization",
+        "description"
     ]
 
     def __init__(self, ip_addr, pk, net_type):
@@ -81,16 +121,16 @@ class IpNodeFacade(PrefixHeap):
         self.net_type = net_type
 
     @property
-    def json(self):
-        "Serialize (a subset of) the node. See JSON_FIELDS"
+    def fields(self):
         payload = {}
-        for field in self.JSON_FIELDS:
+        for field in self.FIELDS:
             try:
                 value = getattr(self, field, None)
                 payload[field] = value if value else None
             except AttributeError:
                 payload[field] = None
-        return json.dumps(payload)
+        payload["children"] = [child.fields for child in self.children]
+        return payload
 
     @property
     def ip_version(self):
@@ -98,12 +138,19 @@ class IpNodeFacade(PrefixHeap):
         return self.ip.version()
 
     @property
+    def edit_url(self):
+        try:
+            return reverse("seeddb-prefix-edit", kwargs={"prefix_id": self.pk})
+        except NoReverseMatch:
+            return None
+
+    @property
     def prefixlen(self):
         "Return the length of the prefix (e.g. 8 in 10.0.0.0/8)"
         return self.ip.prefixlen()
 
     @property
-    def cidr(self):
+    def prefix(self):
         "Return the prefix (as a string)"
         return str(self.ip)
 
@@ -117,13 +164,23 @@ class IpNodeFacade(PrefixHeap):
     @property
     def length(self):
         "Return number of children (in total, e.g. not shallow)"
-        total = 0
-        for child in self.children:
-            total += child.children_count
-        return total + self.children_count
+        deep_count = sum(child.children_count for child in self.children)
+        return self.children_count + deep_count
+
+    @property
+    def organization(self):
+        return str(getattr(self, "_organization", ""))
+
+    @property
+    def description(self):
+        return getattr(self, "_description", "")
+
+    @property
+    def is_mock_node(self):
+        "Marker propery for declaring the node as fake (templating reasons)"
+        return False
 
     # Comparison utilities
-
     def __contains__(self, other):
         assert isinstance(other, PrefixHeap), \
             "Can only compare with other PrefixHeap elements"
@@ -140,7 +197,7 @@ class FauxNode(IpNodeFacade):
         super(FauxNode, self).__init__(ip_addr, pk, net_type)
 
     @property
-    def is_fake(self):
+    def is_mock_node(self):
         "Marker propery for declaring the node as fake (templating reasons)"
         return True
 
@@ -151,8 +208,8 @@ class PrefixNode(IpNodeFacade):
         pk = prefix.pk
         net_type = str(prefix.vlan.net_type)
         super(PrefixNode, self).__init__(ip_addr, pk, net_type)
-        self.description = prefix.vlan.description
-        self.organization = prefix.vlan.organization
+        self._description = prefix.vlan.description
+        self._organization = prefix.vlan.organization
 
 def make_prefix_heap(initial_children=None):
     "Return a prefix heap of all prefixes"

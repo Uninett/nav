@@ -30,5 +30,7 @@ def index(request):
 def generate_context():
     ctx = {}
     ctx.update(DEFAULT_VALUES)
-    ctx["tree"] = make_tree()
+    tree = make_tree()
+    ctx["tree_json"] = tree.json
+    ctx["tree_json_walk"] = tree.json_walk
     return ctx
