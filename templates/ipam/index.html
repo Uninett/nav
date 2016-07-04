@@ -72,11 +72,18 @@
       </ul>
       </ul>
     </script>
+    <script type="text/template" id="prefix-children">
+      <ul class="accordion prefix-tree-children" data-accordion role="tablist">
+      </ul>
+    </script>
     <script type="text/template" id="prefix-tree-node">
       <a href="#prefix-<%= pk %>" class="prefix-tree-item-title">
         <span class="net-type"><%= net_type %></span>
         <span class="ip"><%= prefix %></span>
         <span class="description"><%= description %></span>
+        <% if (length > 0) { %>
+        (<%= length %> children)
+        <% } %>
         <div class="right prefix-usage-graph">
         </div>
       </a>
@@ -92,9 +99,9 @@
           <li><strong>Organization:</strong> <%= organization %></li>
         </ul>
         <% } %>
-        <ul class="prefix-tree-children accordion" data-accordion role="tablist">
+        <div class="prefix-tree-children-container">
           <!-- container for any child nodes -->
-        </ul>
+        </div>
       </div>
     </script>
   </div>

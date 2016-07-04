@@ -67,67 +67,15 @@ define(function(require, exports, module) {
 
   // == VIEWS
 
-  // Main node view. Recursively renders any children of that node as well.
-  var PrefixNodeView = Marionette.CompositeView.extend({
-    tagName: "li",
-    className: "accordion-navigation prefix-tree-item",
-    template: "#prefix-tree-node",
-
-    // TODO: Add handlers for getting the usage stats?
-    events: {
-      "click .filter": "filter"
+  // Base of tree
+  var RootView = Marionette.LayoutView.extend({
+    regions: {
+      "tree": ".prefix-tree-root"
+      // TODO: own view for control-form?
     },
-
-    initialize: function() {
-      this.collection = this.model.children;
-    },
-
-    // Things to do after initial render
-    onRender: function() {
-      // Mount usage graph
-      if (this.model.get("utilization")) {
-        var utilization = this.model.get("utilization");
-        var usageElem = this.$el.find(".prefix-usage-graph");
-        var template = _.template("<span>Usage: <%= percent %> %</span>");
-        usageElem.html(template({percent: (utilization * 100).toFixed(2)}));
-
-        viz.usageChart({
-          mountElem: usageElem.get(0),
-          width: 100,
-          height: 5,
-          data: [{
-            fill: "lightsteelblue",
-            name: "Used",
-            value: 1.0 - utilization
-          },{
-            fill: "steelblue",
-            name: "Available",
-            value: utilization
-          }]
-        });
-      }
-    },
-
-    // Filter children of node
-    filter: function(child) {
-      return true;
-    },
-
-    // Append to nearest active container, e.g. current parent
-    attachHtml: function(collectionView, childView) {
-      collectionView.$(".prefix-tree-children:first").append(childView.el);
-    }
-
-  });
-
-  // Dumb container for whole tree. Note: this.fetchXhr contains the reference
-  // to the (previous) fetch, which might be used to abort it if needed.
-  var TreeRoot = Marionette.CompositeView.extend({
     template: "#prefix-list",
-    childViewContainer: ".prefix-tree-children",
-    childView: PrefixNodeView,
 
-    events: {
+events: {
       "input .prefix-tree-query": "search",
       "change .prefix-types": "updateTypes"
     },
@@ -216,6 +164,12 @@ define(function(require, exports, module) {
       }
     },
 
+    onShow: function() {
+      this.getRegion("tree").show(new TreeView({
+        collection: this.collection
+      }));
+    },
+
     onRender: function() {
       if (this.isFetching()) {
         return this.flash("alert-box", "Fetching...");
@@ -228,12 +182,73 @@ define(function(require, exports, module) {
       } else {
         return this.resetFlash();
       }
+    }
+
+  });
+
+  var NodeView = Marionette.LayoutView.extend({
+    tagName: "li",
+    className: "accordion-navigation prefix-tree-item",
+    template: "#prefix-tree-node",
+
+    regions: {
+      usage_graph: ".prefix-usage-graph:first",
+      children: ".prefix-tree-children-container"
     },
 
-    filterStuff: function() {
-      // handle filtering, trigger new fetch with reset: true etc
+    onRender: function() {
+      var children = this.model.children;
+      this.getRegion("children").show(new TreeView({
+        collection: children
+      }));
+      var utilization = this.model.get("utilization");
+      this.getRegion("usage_graph").show(new UsageGraph({
+        utilization: utilization
+      }));
+    }
+
+  });
+
+  /* Dumb view for mounting usage graph */
+  var UsageGraph = Marionette.View.extend({
+
+    // mock - for catching dhcp treshold change in parent?
+    triggers: {
+      "click svg": "update:dhcp_treshold"
+    },
+
+    initialize: function(opts) {
+      this.utilization = opts.utilization;
+    },
+
+    render: function() {
+      var usageElem = this.$el.find(".prefix-usage-graph");
+      var template = _.template("<span>Usage: <%= percent %> %</span>");
+      this.$el.html(template({percent: (this.utilization * 100).toFixed(2)}));
+      viz.usageChart({
+        mountElem: this.$el.get(0),
+        width: 100,
+        height: 5,
+        data: [{
+          fill: "lightsteelblue",
+          name: "Used",
+          value: 1.0 - this.utilization
+        },{
+          fill: "steelblue",
+          name: "Available",
+          value: this.utilization
+        }]
+      });
     }
   });
+
+  // Dumb container for prefix nodes, nested or otherwise
+  var TreeView = Marionette.CompositeView.extend({
+    template: "#prefix-children",
+    childView: NodeView,
+    childViewContainer: ".prefix-tree-children"
+  });
+
 
   // == APP LIFECYCLE MANAGEMENT
 
@@ -249,15 +264,10 @@ define(function(require, exports, module) {
   App.on("start", function() {
     console.log("Trying to render prefix tree...");
 
-    var treeView = new TreeRoot({
-      // TODO: Insert any tree state here
-      model: new (Backbone.Model.extend({
-        defaults: {
-          filter: "*"
-        }}))
-    });
-
-    this.main.show(treeView);
+    this.main.show(new RootView({
+      collection: new PrefixNodes(),
+      childView: NodeView
+    }));
 
     console.log("Didn't crash. Great success!");
 
