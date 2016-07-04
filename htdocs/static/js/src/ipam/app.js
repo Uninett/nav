@@ -222,7 +222,7 @@ define(function(require, exports, module) {
       }
       // TODO: show load/fetch messages
       if (this.isEmpty()) {
-        var template = _.template("No results for <strong>'<%- query %>'</strong>");
+        var template = _.template("No results<% if (query) { %> for <strong>'<%- query %>'</strong><% } %>.");
         var searchParams = this.collection.queryParams.search;
         return this.flash("alert-box alert with-icon", template({query: searchParams }));
       } else {
