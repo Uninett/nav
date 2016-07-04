@@ -1,14 +1,31 @@
-.scope-tree-item-content {
+@import "../navsettings";
+
+$ipam-500: #9E9E9E;
+$ipam-700: #616161;
+
+.prefix-tree-item-content {
   padding: 50px;
+  background: $ipam-700;
 }
 
-.scope-tree-item-title {
-  background: #000;
+.prefix-tree-root {
+}
+
+.prefix-tree-item.active {
+  .prefix-tree-item-title {
+    background: lightgrey !important;
+  }
+}
+
+
+.prefix-tree-item-title {
+  //background: $ipam-500 !important;
+  background: #fff !important;
   font-weight: bold;
-  border-bottom: 1px solid #ccc;
 
   .ip {
-    padding: 5px; border: 1px solid #ccc; background: #ffe;
+    padding: 5px; 
+    border: 1px solid #ccc; 
   }
 
   .description {
@@ -17,8 +34,7 @@
 
   .net-type {
     padding: 5px;
-    background: red;
-    color: #ffe;
+    background: #ccc;
   }
 
   .child-count {
@@ -26,15 +42,43 @@
   }
 }
 
-.scope-tree-item {
-  border: 1px solid #ccc;
+.prefix-usage-graph {
+  width: 15%;
+  max-width: 200px;
 }
 
-.scope-tree-item-content {
+.prefix-tree-item {
+  border: 0.5px solid #ccc;
+  border-bottom: 0;
+  &:last-child {
+    border-bottom: 0.5px solid #ccc;
+  }
+  //margin-top: 0.5rem;
+}
+
+.prefix-tree-item-content {
   padding: 25px;
 }
 
-.scope-metadata {
+.prefix-metadata {
   margin-bottom: 20px;
+}
+
+ul.accordion {
+  margin-top: 1rem;
+  margin-left: 0;
+}
+
+.prefix-tree-flash {
+  margin-top: 20px;
+}
+
+// Search panel, forms etc. for prefix tree
+.prefix-tree-control {
+  max-width: 400px;
+}
+
+.prefix-usage-graph {
+  font-size: 0.75em;
 }
 

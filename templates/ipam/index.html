@@ -39,58 +39,64 @@
 <div class="row">
   <div class="medium-12 columns">
     <h2>Prefix tree</h2>
-    <div id="scope-tree">
+    <div id="prefix-tree">
       <div class="content">
       </div>
-      <!-- container for scope tree -->
+      <!-- container for prefix tree -->
     </div>
-    <script>
-     // Pre-rendered tree to be dehydrated (less overhead)
-     PREFIX_TREE = {{ tree_json | safe }};
-
-     // Preordered walk (to simplify searching)
-     PREFIX_TREE_PREORDER = {{ tree_json_walk | safe }};
-    </script>
-    <script type="text/template" id="scope-list">
-      <ul class="accordion scope-tree-children" data-accordion role="tablist">
+    <script type="text/template" id="prefix-list">
+      <form class="prefix-tree-control panel white">
+        <!-- address types to display -->
+        <div class="row">
+          <div class="large-12 columns">
+            <label>Types of addresses</label>
+            <input class="prefix-types" type="checkbox" name="types[]" value="ipv4" checked><label>IPv4</label>
+            <input class="prefix-types" type="checkbox" name="types[]" value="ipv6"" checked><label>IPv6</label>
+            <input class="prefix-types", type="checkbox" name="types[]" value="rfc1918"><label>RFC1918</label>
+          </div>
+        </div>
+        <!-- free text search -->
+        <div class="row">
+          <div class="large-12 columns">
+            <label>Search (in organization ID or VLAN description)
+              <input autofocus name="prefix-search-query" class="prefix-tree-query">
+            </label>
+          </div>
+        </div>
+      </form>
+      <div class="prefix-tree-flash">
+        <!-- container for any messages -->
+      </div>
+      <div class="prefix-tree-root">
+        <ul class="accordion prefix-tree-children" data-accordion role="tablist">
+      </ul>
       </ul>
     </script>
-    <script type="text/template" id="scope-tree-node">
-      <a href="#scope-<%= pk %>" class="scope-tree-item-title">
+    <script type="text/template" id="prefix-tree-node">
+      <a href="#prefix-<%= pk %>" class="prefix-tree-item-title">
         <span class="net-type"><%= net_type %></span>
         <span class="ip"><%= prefix %></span>
         <span class="description"><%= description %></span>
+        <div class="right prefix-usage-graph">
+        </div>
       </a>
-      <div id="scope-<%= pk %>" class="content scope-tree-item-content">
-        <a class="button small right" href="<%= edit_url %>">Edit</a>
-        <div id="scope-graph-<%= pk %>">
+      <div id="prefix-<%= pk %>" class="content prefix-tree-item-content">
+        <% if (edit_url) { %>
+        <a class="button small" href="<%= edit_url %>">Edit</a>
+        <% } %>
+        <div id="prefix-graph-<%= pk %>">
           <!-- container for usage graph -->
         </div>
         <% if (description && organization) { %>
-        <ul class="scope-metadata">
-          <li><strong>Description:</strong> <%= description %></li>
+        <ul class="prefix-metadata">
           <li><strong>Organization:</strong> <%= organization %></li>
         </ul>
         <% } %>
-        <ul class="scope-tree-children accordion" data-accordion role="tablist">
+        <ul class="prefix-tree-children accordion" data-accordion role="tablist">
           <!-- container for any child nodes -->
         </ul>
       </div>
     </script>
-  </div>
-</div>
-
-<div class="tabs">
-  <ul>
-    <li><a href="#">Test 1</a></li>
-    <li><a href="#">Test 1</a></li>
-    <li><a href="#">Test 1</a></li>
-    <li><a href="#">Test 1</a></li>
-    <li><a href="#">Test 1</a></li>
-    <li><a href="#">Test 1</a></li>
-  </ul>
-  <div class="tabcontent">
-    wow
   </div>
 </div>
 
