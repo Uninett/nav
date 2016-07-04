@@ -47,10 +47,36 @@ define(function (require, exports, module) {
     return newData;
   }
 
+
+
+
+  // WIP simple debug logger
+  var debug = {
+    enabled_ns: [],
+
+    mount: function() {
+      window._debug = this;
+    },
+
+    enable: function(namespace) {
+      this.enabled_ns.push(namespace);
+    },
+    new: function(namespace) {
+      var self = this;
+      return function() {
+        var args = Array.prototype.slice.call(arguments);
+        if (self.enabled_ns.indexOf(namespace) > -1) {
+          console.log.apply(console, args);
+        }
+      };
+    }
+  };
+
   module.exports = {
     "calculateAvailable": calculateAvailable,
     "normalize": normalize,
-    "translate": translate
+    "translate": translate,
+    "debug": debug
   };
 
 });

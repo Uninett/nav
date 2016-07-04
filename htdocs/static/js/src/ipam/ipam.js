@@ -72,7 +72,7 @@ define(function(require, exports, module) {
       properData.parts.push(availablePrefix(properData));
       console.log(properData);
 
-      viz({
+      viz.subnetChart({
         mountElem: mountElem,
         data: [properData],
         scaleFn: Math.log2

@@ -21,6 +21,8 @@ define(function (require, exports, module) {
         });
 
 
+  // Simple viewbox template
+  var viewbox = _.template("0 0 <%= width %> <%= height %>");
 
   // TODO: Consider dropping rows to not draw too much at once (for usability
   // reasons)
@@ -89,8 +91,6 @@ define(function (require, exports, module) {
     yScale.domain(_.map(data, function(d) { return d.prefix; }));
 
     var colors = d3.scale.category20();
-
-    var viewbox = _.template("0 0 <%= width %> <%= height %>");
 
     var svg;
     if (d3.select(mountElem).select("svg").empty()) {
@@ -167,5 +167,55 @@ define(function (require, exports, module) {
       .on("mouseover", function(d) { console.log(d); });
   }
 
-  module.exports = subnetChart;
+  // Simple percent vertical bar chart.
+  function usageChart(inOpts) {
+    // parse options
+    var opts = _.extend(DEFAULT_OPTS, inOpts);
+    var mountElem = opts.mountElem;
+    var inData = opts.data;
+    // size options
+    var width = opts.width;
+    var height = opts.height;
+    var margin = opts.margin;
+    var padding = opts.padding;
+
+    // Normalize data based on value field
+    var data = util.normalize(inData, "value", opts.scaleFn);
+
+    // === Drawing settings
+    var xScale = d3.scale.linear().range([width, 0]);
+    var yScale = d3.scale.ordinal().rangeRoundBands([0, height], .1);
+    var colors = d3.scale.category20();
+
+    // === Drawing phase
+    var svg = d3.select(mountElem)
+      .append("svg")
+      .attr("preserveAspectRatio", "xMaxYMin meet")
+      .attr("viewBox", viewbox({width: width, height: height}))
+      .append("g");
+
+    var bars = svg.selectAll(".usage-graph-bar")
+          .data(data)
+          .enter()
+          .append("g")
+          .attr("class", "usage-graph-bar");
+
+    bars.append("rect")
+      .attr("x", function(d) { return xScale(d.x1); })
+      .style("fill", function(d) {
+        if (typeof d.fill === "undefined") {
+          return colors(d.name);
+        }
+        return d.fill;
+      })
+      .attr("height", yScale.rangeBand())
+      .attr("width", function(d) { return xScale(d.x0) - xScale(d.x1); });
+
+    // TODO: add tooltip
+  }
+
+  module.exports = {
+    "subnetChart": subnetChart,
+    "usageChart": usageChart
+  };
 });
