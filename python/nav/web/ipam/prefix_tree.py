@@ -13,7 +13,12 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
-#
+
+"""
+Utility class for creating prefix heaps from Prefix objects in NAV. Also
+contains ad-hoc serializer methods (self.fields) for API purposes.
+
+"""
 
 from __future__ import unicode_literals
 from IPy import IP
@@ -21,21 +26,9 @@ import json
 import copy
 
 from django.core.urlresolvers import reverse, NoReverseMatch
-from nav.models.manage import Prefix
 
-# this is hilariously expensive
-def get_prefixes():
-    "Return all prefixes found in NAV (just scopes for now)"
-    types = ["scope"]
-    return Prefix.objects.filter(vlan__net_type__in=types)
-
-## Prefix code
-
-# To maintain our sanity, we need a somewhat decent contract between the view
-# and any controller logic. The solution is to use the Facade pattern, which
-# wraps internal complexities (serialization, nested attributes and so on) and
-# exposes a clean, non-nested attribute contract (we promise that the field 'x'
-# will exist and be populated with some value) etc.
+# Steal/"reuse" helpers from API
+from nav.web.api.v1.helpers import prefix_collector
 
 class PrefixHeap(object):
     "Pseudo-heap ordered topologically by prefixes"
@@ -46,6 +39,7 @@ class PrefixHeap(object):
 
     @property
     def fields(self):
+        "Return the children of the heap as a dictionary"
         payload = {
             "children": [child.fields for child in self.children]
         }
@@ -53,6 +47,7 @@ class PrefixHeap(object):
 
     @property
     def is_leaf(self):
+        "Whether or not the node has any children"
         return len(self.children) == 0
 
     @property
@@ -64,24 +59,25 @@ class PrefixHeap(object):
     def walk(self):
         "List of all the nodes (preorder walk)."
         acc = []
-        q = [self]
-        while q:
-            _node = q.pop()
+        queue = [self]
+        while queue:
+            _node = queue.pop()
             # remove children to avoid duplication
             node = copy.deepcopy(_node.fields)
             del node["children"]
             acc.append(node)
             if not _node.is_leaf:
-                q.extend(_node.children)
+                queue.extend(_node.children)
         return acc
 
     @property
     def json(self):
+        "Exported fields as a JSON map"
         return json.dumps(self.fields)
 
     @property
     def children_count(self):
-        "Return number of children (shallow)"
+        "Number of children (shallow)"
         return len(self.children)
 
     def add(self, node):
@@ -97,7 +93,35 @@ class PrefixHeap(object):
         self.children.append(node)
         self.children.sort()
 
-class IpNodeFacade(PrefixHeap):
+# To maintain our sanity, we need a somewhat decent contract between the view
+# and any controller logic. The solution is to use the Facade pattern, which
+# wraps internal complexities (serialization, nested attributes and so on) and
+# exposes a clean, non-nested attribute contract (we promise that the field 'x'
+# will exist and be populated with some value) etc.
+
+class IpNode(PrefixHeap):
+    "PrefixHeap node class"
+    def __init__(self, ip_addr):
+        super(IpNode, self).__init__()
+        self._ip = IP(ip_addr)
+
+    @property
+    def ip(self):
+        "Return the IP object of the node"
+        return self._ip
+
+    # Comparison utilities
+    def __contains__(self, other):
+        assert isinstance(other, IpNode), \
+            "Can only compare with other IpNode elements"
+        return other.ip in self.ip
+
+    def __cmp__(self, other):
+        assert isinstance(other, IpNode), \
+            "Can only compare with other IpNode elements"
+        return self.ip.__cmp__(other.ip)
+
+class IpNodeFacade(IpNode):
     "Utility mixin for nodes with IPy.IP objects in in the 'self.ip' field"
 
     # Class attributes to export to JSON
@@ -111,17 +135,40 @@ class IpNodeFacade(PrefixHeap):
         "prefix",
         "prefixlen",
         "organization",
-        "description"
+        "description",
+        "active_addr",
+        "max_addr",
+        "utilization"
     ]
 
     def __init__(self, ip_addr, pk, net_type):
-        super(IpNodeFacade, self).__init__()
-        self.ip = IP(ip_addr)
+        super(IpNodeFacade, self).__init__(ip_addr)
         self.pk = pk
         self.net_type = net_type
 
     @property
+    def max_addr(self):
+        "The max number of addresses in the prefix"
+        return self.ip.len()
+
+    @property
+    def active_addr(self):
+        "The number of active addresses in the prefix"
+        return getattr(self, "_active_addr", None)
+
+    @property
+    def utilization(self):
+        "Usage (in percent) of available addresses"
+        if self.active_addr is not None:
+            return 1.0 * self.active_addr / self.max_addr
+        return None
+
+    @property
     def fields(self):
+        """Return all fields marked for serialization (in self.FIELDS) as a Python
+        dict. Also serializes children, creating a nested object.
+
+        """
         payload = {}
         for field in self.FIELDS:
             try:
@@ -139,6 +186,7 @@ class IpNodeFacade(PrefixHeap):
 
     @property
     def edit_url(self):
+        "URL to edit this node in SeedDB, if applicable"
         try:
             return reverse("seeddb-prefix-edit", kwargs={"prefix_id": self.pk})
         except NoReverseMatch:
@@ -169,27 +217,18 @@ class IpNodeFacade(PrefixHeap):
 
     @property
     def organization(self):
+        "The name of the organization connected to the prefix"
         return str(getattr(self, "_organization", ""))
 
     @property
     def description(self):
+        "The description of the prefix"
         return getattr(self, "_description", "")
 
     @property
     def is_mock_node(self):
-        "Marker propery for declaring the node as fake (templating reasons)"
+        "Marker property for declaring the node as fake (templating reasons)"
         return False
-
-    # Comparison utilities
-    def __contains__(self, other):
-        assert isinstance(other, PrefixHeap), \
-            "Can only compare with other PrefixHeap elements"
-        return other.ip in self.ip
-
-    def __cmp__(self, other):
-        assert isinstance(other, PrefixHeap), \
-            "Can only compare with other PrefixHeap elements"
-        return self.ip.__cmp__(other.ip)
 
 class FauxNode(IpNodeFacade):
     "'Fake' nodes (manual constructor) in a prefix heap"
@@ -204,28 +243,52 @@ class FauxNode(IpNodeFacade):
 class PrefixNode(IpNodeFacade):
     "Wrapper node for Prefix results"
     def __init__(self, prefix):
+        self._prefix = prefix # cache of prefix
         ip_addr = prefix.net_address
         pk = prefix.pk
         net_type = str(prefix.vlan.net_type)
         super(PrefixNode, self).__init__(ip_addr, pk, net_type)
         self._description = prefix.vlan.description
         self._organization = prefix.vlan.organization
+        self._active_addr = prefix_collector.collect_active_ip(self._prefix)
+        # self.usage = UsageResult(prefix, addresses)
 
-def make_prefix_heap(initial_children=None):
-    "Return a prefix heap of all prefixes"
+def make_prefix_heap(prefixes, initial_children=None, ipv4=True, ipv6=True):
+    """Return a prefix heap of all prefixes. Might optionally filter out IPv4 and
+IPv6 as needed
+
+    """
+    def accept(prefix):
+        "Helper function for filtering prefixes by IP family"
+        ip = IP(prefix.net_address)
+        if ipv4 and ip.version() == 4:
+            return True
+        if ipv6 and ip.version() == 6:
+            return True
+        return False
+
     heap = PrefixHeap(initial_children)
-    nodes = [PrefixNode(prefix) for prefix in get_prefixes()]
+    nodes = [PrefixNode(prefix) for prefix in prefixes if accept(prefix)]
     for node in sorted(nodes, reverse=True):
         heap.add(node)
     return heap
 
-def make_tree():
-    "Return a prefix heap initially populated with RFC1918 addresses"
-    rfc_1918 = [
-        FauxNode("10.0.0.0/8", "rfc1918-a", "RFC1918"),
-        FauxNode("172.16.0.0/12", "rfc1918-b", "RFC1918"),
-        FauxNode("192.168.0.0/16", "rfc1918-c", "RFC1918")
-    ]
-    return make_prefix_heap(rfc_1918)
+def make_tree(prefixes, rfc1918=False, ipv4=True, ipv6=True):
+    """Return a prefix heap initially populated with RFC1918 addresses. Accepts
+parameters rfc1918, ipv4 and ipv6 to return addresses of those respective
+families.
+
+    """
+    init = []
+    if rfc1918:
+        ipv4 = True
+        init = [
+            FauxNode("10.0.0.0/8", "rfc1918-a", "RFC1918"),
+            FauxNode("172.16.0.0/12", "rfc1918-b", "RFC1918"),
+            FauxNode("192.168.0.0/16", "rfc1918-c", "RFC1918")
+        ]
+    result = make_prefix_heap(prefixes, init, ipv4=ipv4, ipv6=ipv6)
+    # TODO: Filter for ipv4, ipv6, probably in get_prefixes via queryset
+    return result
 
 

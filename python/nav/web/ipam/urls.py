@@ -14,11 +14,19 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""
+Django URL configuration.
 
-from django.conf.urls import url, patterns
+Exposes a private, read-only API (self/api) for search purposes mostly.
+
+"""
+
+from django.conf.urls import url, patterns, include
 
 from nav.web.ipam.views import index
+from nav.web.ipam.api import router
 
 urlpatterns = patterns('',
-    url(r'^$', index, name="index")
+    url(r'^$', index),
+    url(r'^api', include(router.urls))
 )

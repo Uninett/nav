@@ -18,8 +18,6 @@
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
-from .prefix_tree import make_tree
-
 NAVBAR = [('Home', '/'), ('IPAM', None)]
 DEFAULT_VALUES = {'title': "IPAM", 'navpath': NAVBAR}
 
@@ -30,7 +28,4 @@ def index(request):
 def generate_context():
     ctx = {}
     ctx.update(DEFAULT_VALUES)
-    tree = make_tree()
-    ctx["tree_json"] = tree.json
-    ctx["tree_json_walk"] = tree.json_walk
     return ctx
