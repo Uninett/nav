@@ -2,6 +2,10 @@
 
 define(function (require, exports, module) {
 
+  // Needed for Backbone.Wreqr
+  var Backbone = require("backbone");
+  var Marionette = require("marionette");
+
   var _ = require("libs/underscore");
 
   // Get the number of available addresses in a prefix (CIDR notation, e.g.
@@ -48,35 +52,61 @@ define(function (require, exports, module) {
   }
 
 
+  // == SIMPLE NAMESPACED DEBUGGER (Backbone.Wreqr based)
 
-
-  // WIP simple debug logger
-  var debug = {
-    enabled_ns: [],
-
-    mount: function() {
-      window._debug = this;
-    },
-
-    enable: function(namespace) {
-      this.enabled_ns.push(namespace);
-    },
-    new: function(namespace) {
-      var self = this;
-      return function() {
-        var args = Array.prototype.slice.call(arguments);
-        if (self.enabled_ns.indexOf(namespace) > -1) {
-          console.log.apply(console, args);
-        }
-      };
+  function mountDebugger() {
+    if (typeof window.debugCh === "undefined") {
+      console.log("[DEBUGGER] Mounting debugger");
+      window.debugCh = Backbone.Wreqr.radio.channel("debug");
     }
-  };
+  }
+
+  // Usage: var debug = util.debug("my:name:space) => debug("my message", somedata)
+  function debug(namespace) {
+    mountDebugger();
+    var _namespaces = namespace.split(":");
+    // from models:foo:bar, generate [models:foo:bar, models:foo, models]
+    var namespaces = _.reduce(_.range(1, _namespaces.length), function(acc, idx) {
+      var tmp = _.take(_namespaces, idx);
+      acc.push(tmp.join(":"));
+      return acc;
+    }, [namespace]);
+    // console.log("Registering the following triggers for '" + namespace + "': ", namespaces);
+    return function() {
+      var args = [].slice.call(arguments, 0);
+      // if any parent namespaces, generate triggers for them as well
+      _.each(namespaces, function(ns) {
+        var data = {
+          ns: namespace,
+          args: args
+        };
+        window.debugCh.vent.trigger(ns, data);
+      });
+    };
+  }
+
+  // Debug enabler
+  var debugTmpl = _.template("[<%= namespace %>]");
+  function debugListen(namespace) {
+    mountDebugger();
+    console.log("[DEBUGGER] Listening to '" + namespace + "'");
+    window.debugCh.vent.on(namespace, function(data) {
+      var s = debugTmpl({namespace: data.ns});
+      var body = data.args;
+      if (typeof body[0] === "string") {
+        body = body[0];
+      }
+      var output = body;
+      console.log(s, output);
+    });
+  }
 
   module.exports = {
     "calculateAvailable": calculateAvailable,
     "normalize": normalize,
     "translate": translate,
-    "debug": debug
+    "debug": debug,
+    "debugListen": debugListen
   };
 
 });
