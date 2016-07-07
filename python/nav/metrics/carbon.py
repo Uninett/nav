@@ -129,7 +129,7 @@ def _socktype_from_addr(addr):
 
 def _metric_to_line(metric_tuple):
     path, (timestamp, value) = metric_tuple
-    return str("%s %s %s\n" % (path, value, timestamp))
+    return str("%s %s %s\n" % (path, value, long(timestamp)))
 
 
 def metrics_to_packets(metric_tuples):
