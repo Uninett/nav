@@ -162,8 +162,8 @@ define(function(require, exports, module) {
       }
     },
 
-    onShow: function() {
-      this.getRegion("tree").show(new TreeView({
+    onBeforeShow: function() {
+      this.showChildView("tree", new TreeView({
         collection: this.collection
       }));
     },
@@ -223,18 +223,18 @@ define(function(require, exports, module) {
       console.log("wææææ, treshold changed!");
     },
 
-    onRender: function() {
+    onBeforeShow: function() {
       var children = this.model.children;
-      this.getRegion("children").show(new TreeView({
+      this.showChildView("children", new TreeView({
         collection: children
       }));
       var utilization = this.model.get("utilization");
-      this.getRegion("usage_graph").show(new UsageGraph({
+      this.showChildView("usage_graph", new UsageGraph({
         utilization: utilization
       }));
       // Mount subnet component
       var prefix = this.model.get("prefix");
-      this.getRegion("available_subnets").show(new AvailableSubnetsView({
+      this.showChildView("available_subnets", new AvailableSubnetsView({
         prefix: prefix
       }));
     }
@@ -253,7 +253,7 @@ define(function(require, exports, module) {
       this.utilization = opts.utilization;
     },
 
-    render: function() {
+    onBeforeShow: function() {
       this.debug("Trying to draw usage graph");
       var usageElem = this.$el.find(".prefix-usage-graph");
       var template = _.template("<span>Usage: <%= percent %> %</span>");
