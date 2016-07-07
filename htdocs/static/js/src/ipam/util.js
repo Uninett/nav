@@ -3,9 +3,6 @@
 define(function (require, exports, module) {
 
   // Needed for Backbone.Wreqr
-  var Backbone = require("backbone");
-  var Marionette = require("marionette");
-
   var _ = require("libs/underscore");
 
   // Get the number of available addresses in a prefix (CIDR notation, e.g.
@@ -52,16 +49,53 @@ define(function (require, exports, module) {
   }
 
 
-  // == SIMPLE NAMESPACED DEBUGGER (Backbone.Wreqr based)
+  // == SIMPLE NAMESPACED DEBUGGER LOGGER (Backbone.Wreqr based)
+  //
+  // Supports colon-separated (':') namespaces. Example usage:
+  //
+  //   var util = require("util")
+  //   var debug = util.debug("my:name:space")
+  //   debug("Oh no, something went wrong")
+  //   // listen to something
+  //   util.debugListen("my:name")
+  //
+  // We also provide a magic object, window.IPAM_DEBUG for use in
+  // the console provided by your browser.
+  //
+  //   > window.IPAM_DEBUG.new("my:name:space")
+  //   > window.IPAM_DEBUG.listen("my:name")
+  //   // mapping of each namespace handler to a logging function
+  //   > window.IPAM_DEBUG.namespaces
+  //   > window.IPAM_DEBUG.unlisten("my:name")
+  //   // array of enabled namespaces
+  //   > window.IPAM_DEBUG.enabledNamespaces
 
   function mountDebugger() {
-    if (typeof window.debugCh === "undefined") {
+    if (typeof window.IPAM_DEBUG === "undefined") {
+      window.IPAM_DEBUG = {};
       console.log("[DEBUGGER] Mounting debugger");
-      window.debugCh = Backbone.Wreqr.radio.channel("debug");
+      // log factory
+      window.IPAM_DEBUG.new = debug;
+      // listen to some namespace (and unignore it)
+      window.IPAM_DEBUG.listen = debugListen;
+      // unlisten to some namespace (and ignore it)
+      window.IPAM_DEBUG.unlisten = debugUnlisten;
+      // maps namespaces to logging functions
+      window.IPAM_DEBUG.namespaces = {};
+      // list of ignored namespaces
+      window.IPAM_DEBUG.ignored = [];
+      window.IPAM_DEBUG.trigger = function(data) {
+        if (window.IPAM_DEBUG.namespaces.hasOwnProperty(data.ns)) {
+          if (_.contains(window.IPAM_DEBUG.ignored, data.origin)) {
+            return;
+          }
+          var fn =  window.IPAM_DEBUG.namespaces[data.ns];
+          fn(data);
+        };
+      };
     }
   }
 
-  // Usage: var debug = util.debug("my:name:space) => debug("my message", somedata)
   function debug(namespace) {
     mountDebugger();
     var _namespaces = namespace.split(":");
@@ -71,34 +105,44 @@ define(function (require, exports, module) {
       acc.push(tmp.join(":"));
       return acc;
     }, [namespace]);
-    // console.log("Registering the following triggers for '" + namespace + "': ", namespaces);
     return function() {
-      var args = [].slice.call(arguments, 0);
+      var args = [].slice.call(arguments);
       // if any parent namespaces, generate triggers for them as well
       _.each(namespaces, function(ns) {
         var data = {
-          ns: namespace,
+          ns: ns,
+          origin: namespace,
           args: args
         };
-        window.debugCh.vent.trigger(ns, data);
+        // Avoid triggering for non-enabled namespaces, to save some resources
+        window.IPAM_DEBUG.trigger(data);
       });
     };
   }
 
-  // Debug enabler
   var debugTmpl = _.template("[<%= namespace %>]");
+  function debugLog(data) {
+    var s = debugTmpl({namespace: data.origin});
+    var body = [].slice.call(data.args);
+    var output = [s].concat(body);
+    // Chrome/Safari only, handle in Firefox later on
+    console.log.apply(console, output);
+  }
+
+  // Debug enabler. Should probably be settable in window.DEBUG or something
   function debugListen(namespace) {
     mountDebugger();
-    console.log("[DEBUGGER] Listening to '" + namespace + "'");
-    window.debugCh.vent.on(namespace, function(data) {
-      var s = debugTmpl({namespace: data.ns});
-      var body = data.args;
-      if (typeof body[0] === "string") {
-        body = body[0];
-      }
-      var output = body;
-      console.log(s, output);
+    window.IPAM_DEBUG.namespaces[namespace] = debugLog;
+    // remove from ignored list
+    window.IPAM_DEBUG.ignored = _.reject(window.IPAM_DEBUG.ignored, function(elem) {
+      return elem == namespace;
     });
+  }
+
+  function debugUnlisten(namespace) {
+    mountDebugger();
+    delete window.IPAM_DEBUG.namespaces[namespace];
+    window.IPAM_DEBUG.ignored.push(namespace);
   }
 
   module.exports = {
@@ -106,7 +150,8 @@ define(function (require, exports, module) {
     "normalize": normalize,
     "translate": translate,
     "debug": debug,
-    "debugListen": debugListen
+    "debugListen": debugListen,
+    "debugUnlisten": debugUnlisten
   };
 
 });
