@@ -21,7 +21,8 @@ contains ad-hoc serializer methods (self.fields) for API purposes.
 """
 
 from __future__ import unicode_literals
-from IPy import IP
+# TODO: Remember to update IPy to 0.85 to get IPSet
+from IPy import IP, IPSet
 import json
 import copy
 
@@ -109,6 +110,20 @@ class IpNode(PrefixHeap):
     def ip(self):
         "Return the IP object of the node"
         return self._ip
+
+    # This is hilariously expensive
+    @property
+    def available_subnets(self):
+        "Non-taken (or registered) subnets in this prefix IFF IPv4"
+        if self.ip.version() != 4:
+            return ["As many as you want!"]
+        ips = IPSet([IP(child.ip) for child in self.children])
+        acc = IPSet([self.ip])
+        try:
+            acc.discard(ips)
+        except TypeError:
+            pass
+        return map(str, acc)
 
     # Comparison utilities
     def __contains__(self, other):
@@ -241,8 +256,8 @@ class FauxNode(IpNodeFacade):
         return True
 
 class PrefixNode(IpNodeFacade):
-    "Wrapper node for Prefix results"
-    def __init__(self, prefix):
+    "Wrapper node for Prefix results, with usage results in <starttime, endtime>"
+    def __init__(self, prefix, starttime=None, endtime=None):
         self._prefix = prefix # cache of prefix
         ip_addr = prefix.net_address
         pk = prefix.pk
@@ -250,10 +265,10 @@ class PrefixNode(IpNodeFacade):
         super(PrefixNode, self).__init__(ip_addr, pk, net_type)
         self._description = prefix.vlan.description
         self._organization = prefix.vlan.organization
-        self._active_addr = prefix_collector.collect_active_ip(self._prefix)
+        self._active_addr = prefix_collector.collect_active_ip(self._prefix, starttime, endtime)
         # self.usage = UsageResult(prefix, addresses)
 
-def make_prefix_heap(prefixes, initial_children=None, ipv4=True, ipv6=True):
+def make_prefix_heap(prefixes, initial_children=None, starttime=None, endtime=None, ipv4=True, ipv6=True):
     """Return a prefix heap of all prefixes. Might optionally filter out IPv4 and
 IPv6 as needed
 
@@ -268,12 +283,13 @@ IPv6 as needed
         return False
 
     heap = PrefixHeap(initial_children)
-    nodes = [PrefixNode(prefix) for prefix in prefixes if accept(prefix)]
-    for node in sorted(nodes, reverse=True):
+    nodes = [PrefixNode(prefix, starttime, endtime) for prefix in prefixes if accept(prefix)]
+    for node in sorted(nodes, reverse=False):
         heap.add(node)
     return heap
 
-def make_tree(prefixes, rfc1918=False, ipv4=True, ipv6=True):
+# TODO: Fix argument hell
+def make_tree(prefixes, starttime=None, endtime=None, rfc1918=False, ipv4=True, ipv6=True):
     """Return a prefix heap initially populated with RFC1918 addresses. Accepts
 parameters rfc1918, ipv4 and ipv6 to return addresses of those respective
 families.
@@ -287,7 +303,14 @@ families.
             FauxNode("172.16.0.0/12", "rfc1918-b", "RFC1918"),
             FauxNode("192.168.0.0/16", "rfc1918-c", "RFC1918")
         ]
-    result = make_prefix_heap(prefixes, init, ipv4=ipv4, ipv6=ipv6)
+    opts = {
+        "initial_children": init,
+        "starttime": starttime,
+        "endtime": endtime,
+        "ipv4": ipv4,
+        "ipv6": ipv6
+    }
+    result = make_prefix_heap(prefixes, **opts)
     # TODO: Filter for ipv4, ipv6, probably in get_prefixes via queryset
     return result
 

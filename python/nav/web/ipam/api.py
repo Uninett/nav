@@ -24,12 +24,15 @@ from rest_framework.response import Response
 from rest_framework import viewsets, status, routers
 from django.db.models import Q
 import operator
+import collections
 from copy import copy
+from IPy import IPSet, IP
 
 from .prefix_tree import make_tree
 
 from nav.models.manage import Prefix
 from nav.web.api.v1.serializers import PrefixSerializer
+from nav.web.api.v1.views import get_times
 
 # TODO: Consider moving most of this to web.api namespace, since there's no
 # reason this shouldn't be public
@@ -49,8 +52,7 @@ class PrefixViewSet(viewsets.ViewSet):
     search_fields = ("vlan__description")
 
     def get_queryset(self):
-        types = ["scope", "reserved"]
-        # types = ["scope"]
+        types = self.request.QUERY_PARAMS.getlist("net_type", ["scope"])
         queryset = Prefix.objects.filter(vlan__net_type__in=types)
         # TODO: Do this in a way, way better way
         search = self.request.QUERY_PARAMS.get("search", None)
@@ -70,8 +72,78 @@ class PrefixViewSet(viewsets.ViewSet):
         _types = self.request.QUERY_PARAMS.getlist("type", [])
         _args = {_type: True for _type in _types if _type in DEFAULT_TREE_PARAMS}
         args.update(_args)
-        result = make_tree(prefixes, **args)
+        # handle timespans
+        starttime, endtime = get_times(self.request)
+        result = make_tree(prefixes, starttime, endtime, **args)
         return Response(result.fields["children"], status=status.HTTP_200_OK)
 
+# TODO Everything below is pretty horrible and should be taken out in the woods
+# to be dealt with. Refactor soon.
+
+class PrefixFinderSet(viewsets.ViewSet):
+    serializer = PrefixSerializer
+
+    # TODO Implement search for length?
+    # TODO Filter all IPv6 addresses, as they tend to give us overflow errors
+    def get_queryset(self):
+        queryset = Prefix.objects.all()
+        # filter to get scopes matching base IP address
+        prefix = self.request.QUERY_PARAMS.get("prefix", None)
+        if prefix is not None:
+            queryset = Prefix.objects.within(prefix)
+        # filter for organization. TODO this should really be done in the router
+        organization = self.request.QUERY_PARAMS.get("organization", None)
+        if organization is not None:
+            queryset = queryset.filter(vlan__organization__id__icontains=organization)
+        # only return scopes, reservations, TODO: maybe do this earlier on?
+        queryset.filter(vlan__net_type__in=["scope", "reserved"])
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        prefixes = self.get_queryset()
+        prefix = self.request.QUERY_PARAMS.get("prefix", None)
+        result = []
+        if prefix is not None:
+            base_prefix = prefix
+            used_prefixes = map(addr, prefixes)
+        else:
+            base_prefix = map(addr, prefixes)
+            used_prefixes = map(addr, get_within(prefixes))
+        result = available_subnets(base_prefix, used_prefixes)
+        # filter on size
+        prefix_size = self.request.QUERY_PARAMS.get("prefix_size", None)
+        if prefix_size is not None:
+            prefix_size = int(prefix_size)
+            result = [prefix for prefix in result if prefix.prefixlen() <= prefix_size]
+        payload = {
+            "available_subnets": map(lambda x: x.strNormal(), result)
+        }
+        return Response(payload, status=status.HTTP_200_OK)
+
+def addr(prefix):
+    return prefix.net_address
+
+def get_within(prefixes):
+    "Return all prefixes within 'prefixes'"
+    acc = Prefix.objects.within(prefixes[0].net_address)
+    for prefix in prefixes[1:]:
+        _prefixes = Prefix.objects.within(prefix.net_address)
+        acc = acc | _prefixes
+    return acc
+
+def available_subnets(base_prefixes, used_prefixes):
+    if not isinstance(base_prefixes, list):
+        base_prefixes = [base_prefixes]
+    ips = IPSet([IP(prefix) for prefix in used_prefixes])
+    acc = IPSet([IP(base_prefix) for base_prefix in base_prefixes])
+    if not used_prefixes:
+        return acc
+    acc.discard(ips)
+    # sanity check: only show subnets for IPv6 versions
+    filtered = [ip for ip in acc if ip.version() == 4]
+    # TODO: sort on length of subnets? (large subnets are more attractive?)
+    return sorted(filtered, key=lambda x: -x.prefixlen())
+
 router = routers.SimpleRouter()
+router.register(r"^/find", PrefixFinderSet, base_name="ipam-api-finder")
 router.register(r"^", PrefixViewSet, base_name="ipam-api")
