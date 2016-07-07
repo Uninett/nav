@@ -9,7 +9,8 @@ define(function(require, exports, module) {
       "organization": "",
       "pk": null,
       start: new Date().toISOString(),
-      end: null
+      end: null,
+      hasShownChildren: false
     },
 
     // Check if a node or its children matches a filter TODO: Reconsider this.

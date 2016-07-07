@@ -216,6 +216,11 @@ define(function(require, exports, module) {
       var title = this.$el.find(".prefix-tree-item-title:first");
       content.slideToggle(200);//.toggleClass("prefix-item-open");
       title.toggleClass("prefix-item-open");
+      // deferred rendering of children
+      var hasShown = this.model.get("hasShownChildren");
+      if (!hasShown) {
+        this.showChildren();
+      }
       this.debug("Toggle " + this.model.get("pk"));
     },
 
@@ -223,11 +228,17 @@ define(function(require, exports, module) {
       console.log("wææææ, treshold changed!");
     },
 
-    onBeforeShow: function() {
+    // We defer drawing children to return a shallow tree faster to the user
+    showChildren: function() {
+      this.debug("Rendering children for " + this.model.get("pk"));
       var children = this.model.children;
       this.showChildView("children", new TreeView({
         collection: children
       }));
+      this.model.set("hasShownChildren", true);
+    },
+
+    onBeforeShow: function() {
       var utilization = this.model.get("utilization");
       this.showChildView("usage_graph", new UsageGraph({
         utilization: utilization
