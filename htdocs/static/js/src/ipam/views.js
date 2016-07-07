@@ -217,8 +217,7 @@ define(function(require, exports, module) {
       content.slideToggle(200);//.toggleClass("prefix-item-open");
       title.toggleClass("prefix-item-open");
       // deferred rendering of children
-      var hasShown = this.model.get("hasShownChildren");
-      if (!hasShown) {
+      if (!this.model.hasShownChildren() && this.model.hasChildren()) {
         this.showChildren();
       }
       this.debug("Toggle " + this.model.get("pk"));

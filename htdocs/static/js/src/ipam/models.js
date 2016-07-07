@@ -4,6 +4,7 @@ define(function(require, exports, module) {
   var debug = require("src/ipam/util").debug;
 
   var PrefixNode = Backbone.Model.extend({
+    debug: debug("models:prefixnode"),
     defaults: {
       description: "",
       "organization": "",
@@ -11,6 +12,18 @@ define(function(require, exports, module) {
       start: new Date().toISOString(),
       end: null,
       hasShownChildren: false
+    },
+
+    hasShownChildren: function() {
+      return this.get("hasShownChildren");
+    },
+
+    hasChildren: function() {
+      var children = this.get("children") || this.children.models;
+      if (_.isUndefined(children) || _.isEmpty(children)) {
+        return false;
+      }
+      return true;
     },
 
     // Check if a node or its children matches a filter TODO: Reconsider this.
