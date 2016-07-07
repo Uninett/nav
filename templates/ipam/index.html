@@ -10,99 +10,50 @@
 
 {% block content %}
 
-<div class="row">
-  <div class="medium-6 columns">
-    <h3>Stats</h3>
-  </div>
-
-  <div class="medium-6 columns">
-    <ul class="tabs" data-tab>
-      <li class="tab-title active">
-        <a href="#ipam-tools-find-subnet">Find available subnet</a>
-      </li>
-      <li class="tab-title">
-        <a href="#ipam-tools-ymse">Something else useful</a>
-    </ul>
-    <div class="tabs-content">
-      <div class="content active" id="ipam-tools-find-subnet">
-        {% include "ipam/includes/find_subnet.html" %}
+<div class="ipam">
+    <div class="ipam-sidebar panel white">
+      <div class="row" id="ipam-controls"></div>
+      <div class="row">
+        <button id="mybtn">Reset</button>
       </div>
-      <div class="content" id="ipam-tools-ymse">
-        <p>Ymse</p>
+      <div class="row">
+        <div id="ipam-flash"></div>
       </div>
     </div>
-
-  </div>
-
-</div>
-
-<div class="row">
-  <div class="medium-12 columns">
-    <h2>Prefix tree</h2>
     <div id="prefix-tree">
       <div class="content">
       </div>
       <!-- container for prefix tree -->
     </div>
+    <script type="text/template" id="prefix-control-form">
+      {% include "ipam/includes/tree-form.html" %}
+    </script>
+    <script type="text/template" id="prefix-available-subnets">
+      <% if (hide) { %>
+      <button class="fetch-subnets small btn">Show available subnets</button>
+      <% } else { %>
+      <button class="hide-subnets small btn">Hide subnets</button>
+      <h3>Available subnets</h3>
+      <p><em>(based on reserved prefixes and scopes)</em></p>
+      <% if (available_subnets.length == 0) { %>
+      None available.
+      <% } %>
+      <ul class="subnets">
+        <% _.forEach(available_subnets, function (subnet) { %>
+        <li><strong><%= subnet %></strong>. <a href="#">Create a reservation?</a></li>
+        <% }) %>
+      </ul>
+      <% } %>
+    </script>
     <script type="text/template" id="prefix-list">
-      <form class="prefix-tree-control panel white" onsubmit="return false;">
-        <!-- address types to display -->
-        <div class="row">
-          <div class="large-12 columns">
-            <label>Types of addresses</label>
-            <input class="prefix-types" type="checkbox" name="types[]" value="ipv4" checked><label>IPv4</label>
-            <input class="prefix-types" type="checkbox" name="types[]" value="ipv6"" checked><label>IPv6</label>
-            <input class="prefix-types", type="checkbox" name="types[]" value="rfc1918"><label>RFC1918</label>
-          </div>
-        </div>
-        <!-- free text search -->
-        <div class="row">
-          <div class="large-12 columns">
-            <label>Search (in organization ID or VLAN description)
-              <input autofocus name="prefix-search-query" class="prefix-tree-query">
-            </label>
-          </div>
-        </div>
-      </form>
-      <div class="prefix-tree-flash">
-        <!-- container for any messages -->
-      </div>
-      <div class="prefix-tree-root">
-        <ul class="accordion prefix-tree-children" data-accordion role="tablist">
-      </ul>
-      </ul>
+      {% include "ipam/includes/tree-root.html" %}
     </script>
     <script type="text/template" id="prefix-children">
-      <ul class="accordion prefix-tree-children" data-accordion role="tablist">
+      <ul class="prefix-tree-children">
       </ul>
     </script>
     <script type="text/template" id="prefix-tree-node">
-      <a href="#prefix-<%= pk %>" class="prefix-tree-item-title">
-        <span class="net-type"><%= net_type %></span>
-        <span class="ip"><%= prefix %></span>
-        <span class="description"><%= description %></span>
-        <% if (length > 0) { %>
-        (<%= length %> children)
-        <% } %>
-        <div class="right prefix-usage-graph">
-        </div>
-      </a>
-      <div id="prefix-<%= pk %>" class="content prefix-tree-item-content">
-        <% if (edit_url) { %>
-        <a class="button small" href="<%= edit_url %>">Edit</a>
-        <% } %>
-        <div id="prefix-graph-<%= pk %>">
-          <!-- container for usage graph -->
-        </div>
-        <% if (description && organization) { %>
-        <ul class="prefix-metadata">
-          <li><strong>Organization:</strong> <%= organization %></li>
-        </ul>
-        <% } %>
-        <div class="prefix-tree-children-container">
-          <!-- container for any child nodes -->
-        </div>
-      </div>
+      {% include "ipam/includes/tree-node.html" %}
     </script>
   </div>
 </div>

@@ -1,0 +1,33 @@
+<a href="#prefix-<%= pk %>" class="prefix-tree-item-title">
+  <span class="net-type"><%= net_type %></span>
+  <span class="ip"><%= prefix %></span>
+  <% if (description) { %>
+  <span class="description"><%= description %></span>
+  <% } %>
+  <% if (length > 0) { %>
+  (<%= length %> children)
+  <% } %>
+  <div class="prefix-usage-graph">
+  </div>
+</a>
+<div id="prefix-<%= pk %>" class="content prefix-tree-item-content">
+  <div class="prefix-tree-item-content-data">
+    <% if (edit_url) { %>
+    <a class="button small" href="<%= edit_url %>">Edit</a>
+    <% } %>
+    <div id="prefix-graph-<%= pk %>">
+      <!-- container for usage graph -->
+    </div>
+    <% if (description && organization) { %>
+    <ul class="prefix-metadata">
+      <li><strong>Organization:</strong> <%= organization %></li>
+    </ul>
+    <% } %>
+    <div class="prefix-tree-available-subnets">
+      <!-- container for available subnets within this prefix -->
+    </div>
+  </div>
+  <div class="prefix-tree-children-container">
+    <!-- container for any child nodes -->
+  </div>
+</div>
