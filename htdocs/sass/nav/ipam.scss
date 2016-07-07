@@ -1,40 +1,65 @@
 @import "../navsettings";
 
-$ipam-500: #9E9E9E;
-$ipam-700: #616161;
+// For grid-column, grid-row mixins
+@import "../foundation/components/grid";
 
-.prefix-tree-item-content {
-  padding: 50px;
-  background: $ipam-700;
+$ipam-500: #3F51B5;
+$ipam-200: #9FA8DA;
+$ipam-700: #303F9F;
+$ipam-text-color: #fff;
+
+
+$ipam-500: #607D8B;
+$ipam-200: #CFD8DC;
+$ipam-700: #455A64;
+
+.prefix-tree-item-content-data {
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+  border-bottom: 10px solid $ipam-700;
 }
-
-.prefix-tree-root {
-}
-
-.prefix-tree-item.active {
-  .prefix-tree-item-title {
-    background: lightgrey !important;
-  }
-}
-
 
 .prefix-tree-item-title {
   //background: $ipam-500 !important;
-  background: #fff !important;
+  //background: $ipam-500;
+  //color: $ipam-text-color;
   font-weight: bold;
+  background: #eee;
+
+  a {
+    color: inherit;
+  }
+
+  a:hover, a:visited {
+    color: inherit;
+  }
+
+  &:hover {
+    background: $ipam-500;
+    color: $ipam-text-color;
+  }
 
   .ip {
-    padding: 5px; 
-    border: 1px solid #ccc; 
+  }
+
+  .net-type, .ip, .description {
+    border: 3px solid #ccc;
+    padding: 5px 10px;
+    font-size: 80%;
+    padding: 5px 10px;
+    background: #fff;
+    color: #222;
   }
 
   .description {
-    font-style: italic;
+    //letter-spacing: 2.4px;
   }
 
   .net-type {
-    padding: 5px;
-    background: #ccc;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1.8px;
   }
 
   .child-count {
@@ -42,22 +67,21 @@ $ipam-700: #616161;
   }
 }
 
-.prefix-usage-graph {
-  width: 15%;
-  max-width: 200px;
-}
-
 .prefix-tree-item {
-  border: 0.5px solid #ccc;
+  border: 0.5px solid $ipam-500;
   border-bottom: 0;
   &:last-child {
-    border-bottom: 0.5px solid #ccc;
+    border-bottom: 0.5px solid $ipam-500;
   }
   //margin-top: 0.5rem;
 }
 
 .prefix-tree-item-content {
   padding: 25px;
+  background: $ipam-200 !important;
+  & > & {
+    background: $ipam-700 !important;
+  }
 }
 
 .prefix-metadata {
@@ -75,10 +99,119 @@ ul.accordion {
 
 // Search panel, forms etc. for prefix tree
 .prefix-tree-control {
-  max-width: 400px;
 }
 
 .prefix-usage-graph {
   font-size: 0.75em;
 }
 
+
+// === Own accordion implementation
+
+// main container
+.prefix-tree-children {
+  margin-left: 0;
+  li {
+    margin-left: 0;
+  }
+}
+
+.prefix-tree-item {
+  display: border-box;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+
+  .prefix-tree-item-title {
+    padding: 20px;
+    width: 100%;
+    display: block;
+  }
+}
+
+
+.prefix-tree-query {
+  width: 100%;
+  margin-bottom: 0.5em;
+}
+
+.prefix-tree-item-content {
+  display: none;
+}
+
+.prefix-item-open {
+  &.prefix-tree-item-title {
+    background: $ipam-500;
+    color: $ipam-text-color;
+  }
+  &.prefix-tree-item-content {
+    display: block;
+  }
+}
+
+// == BREAKPOINTS STUFF
+
+.prefix-usage-graph {
+  display: block;
+  margin-top: 20px;
+}
+
+.prefix-tree-item-title span {
+  display: block;
+  margin-bottom: 5px;
+}
+
+
+@media #{$large-up} {
+  .prefix-tree-item-title span {
+    display: inline-block;
+  }
+
+  .prefix-usage-graph {
+    margin: 0;
+    float: right;
+    display: inline-block;
+    max-width: 200px;
+  }
+  
+}
+
+
+// Semantic layout classes
+
+@media #{$large-up} {
+  .ipam {
+  @include grid-row();
+}
+
+.ipam-sidebar {
+  @include grid-column(3);
+  div.row {
+    @include grid-row();
+  }
+}
+
+// flash button, TODO change name to something not stupid
+#mybtn {
+  @include grid-column(12);
+}
+
+#prefix-tree {
+  @include grid-column(9);
+}
+
+.prefix-tree-control {
+
+  &-checkboxes {
+    div { @include grid-column(12, $collapse: true); }
+  }
+
+  &-timespan {
+    div { @include grid-column(6, $collapse: true); }
+  }
+
+  &-search {
+    @include grid-column(6, $collapse: true);
+  }
+}
+}
