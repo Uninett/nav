@@ -69,17 +69,40 @@ define(function(require, exports, module) {
   });
 
   // Control form for tree
-  var ControlView = Marionette.ItemView.extend({
+  var ControlView = Marionette.LayoutView.extend({
+    debug: debug("views:control"),
     template: "#prefix-control-form",
+
+    regions: {
+      "advanced": ".prefix-control-form-advanced"
+    },
+
     events: {
       "input .prefix-tree-query": "updateSearch",
-      "change .search-param": "updateSearch"
+      "change .search-param": "updateSearch",
+      "change .search-flag": "updateSearch",
+      "click .toggleAdvanced": "toggleAdvanced"
+    },
+
+    // Activate advanced form
+    toggleAdvanced: function() {
+      var advancedSearch = this.model.get("advancedSearch");
+      this.debug("Displaying advanced search => " + !advancedSearch);
+      this.model.set("advancedSearch", !advancedSearch);
+      this.render();
+    },
+
+    onRender: function() {
+      var advancedSearch = this.model.get("advancedSearch");
+      if (advancedSearch) {
+        this.showChildView("advanced", new ControlAdvancedView());
+      }
     },
 
     _updateSearch: function() {
       var params = {};
       // handle check boxes
-      var checked = this.$el.find("input.search-param:checked");
+      var checked = this.$el.find("input.search-flag:checked");
       checked.each(function() {
         var elem = $(this);
         var param = elem.attr("name");
@@ -87,11 +110,24 @@ define(function(require, exports, module) {
         param_field.push(elem.val());
         params[param] = param_field;
       });
+
+      // Dynamically collect all inputs marked using".search-param". These
+      // fields are exclusively non-nested, hence no need to collect them into
+      // an array
+      var search_params = this.$el.find("input.search-param");
+      search_params.each(function() {
+        var elem = $(this);
+        var param = elem.attr("name");
+        var value = elem.val();
+        if (!value) {
+          return;
+        }
+        params[param] = value;
+      });
+
       // handle search string
-      params["search"] = this.$el.find(".prefix-tree-query").val();
+      params["search"] = this.$el.find("#prefix-tree-query").val();
       // handle date ranges
-      params["starttime"] = this.$el.find("#usage_start").val();
-      params["endtime"] = this.$el.find("#usage_end").val();
       globalCh.vent.trigger("search:update", params);
     },
 
@@ -99,6 +135,10 @@ define(function(require, exports, module) {
       this.updateSearch = _.throttle(this._updateSearch, 1000);
     }
 
+  });
+
+  var ControlAdvancedView = Marionette.ItemView.extend({
+    template: "#prefix-control-form-advanced"
   });
 
   // Base of tree
