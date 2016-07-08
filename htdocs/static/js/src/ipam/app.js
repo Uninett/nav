@@ -32,7 +32,9 @@ define(function(require, exports, module) {
       childView: Views.NodeView
     }));
 
-    this.controls.show(new Views.ControlView());
+    this.controls.show(new Views.ControlView({
+      model: new Models.Control()
+    }));
 
     debug("Didn't crash. Great success!");
 

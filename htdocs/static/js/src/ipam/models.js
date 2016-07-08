@@ -99,10 +99,24 @@ define(function(require, exports, module) {
     }
   });
 
+  // State/model for control form subview
+  var Control = Backbone.Model.extend({
+    defaults: {
+      advancedSearch: false,
+      queryParams: {
+        type: [],
+        net_type: [],
+        timestart: null,
+        timeend: null
+      }
+    }
+  });
+
   module.exports = {
     "PrefixNodes": PrefixNodes,
     "PrefixNode": PrefixNode,
-    "AvailableSubnets": AvailableSubnets
+    "AvailableSubnets": AvailableSubnets,
+    "Control": Control
   };
 
 });
