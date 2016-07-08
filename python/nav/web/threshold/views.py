@@ -19,7 +19,7 @@ import datetime
 import json
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpRequest
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 
 from nav.metrics.names import raw_metric_query
 from nav.metrics.graphs import get_simple_graph_url, Graph
@@ -80,7 +80,7 @@ def add_threshold(request, metric=None):
 def edit_threshold(request, rule_id):
     """Controller for editing threshold rules"""
 
-    rule = ThresholdRule.objects.get(pk=rule_id)
+    rule = get_object_or_404(ThresholdRule, pk=rule_id)
 
     if request.method == 'POST':
         form = ThresholdForm(request.POST, instance=rule)
@@ -108,7 +108,7 @@ def edit_threshold(request, rule_id):
 def delete_threshold(request, rule_id):
     """Controller for deleting threshold rules"""
     if request.method == 'POST':
-        rule = ThresholdRule.objects.get(pk=rule_id)
+        rule = get_object_or_404(ThresholdRule, pk=rule_id)
         rule.delete()
 
     return redirect('threshold-index')
