@@ -1,35 +1,19 @@
 <form id="prefix-tree-control" class="prefix-tree-control" onsubmit="return false;">
-  <!-- address types to display -->
-  <div class="prefix-tree-control-checkboxes">
-    <div>
-      <label>Types of addresses</label>
-      <input class="search-param" type="checkbox" name="type" value="ipv4" checked><label>IPv4</label>
-      <input class="search-param" type="checkbox" name="type" value="ipv6"" checked><label>IPv6</label>
-      <input class="search-param", type="checkbox" name="type" value="rfc1918"><label>RFC1918</label>
-    </div>
-    <div>
-      <label>Types of prefixes</label>
-      <input class="search-param" type="checkbox" name="net_type" value="scope" checked disabled="disabled""><label>Scope</label>
-      <input class="search-param" type="checkbox" name="net_type" value="lan"><label>LAN</label>
-      <input class="search-param" type="checkbox" name="net_type" value="reserved"><label>Reserved</label>
-    </div>
-  </div>
-  <!-- datetime select -->
-  <div class="prefix-tree-control-timespan">
-    <div>
-      <label>Start time</label>
-      <input class="datetimepicker datetimeinput" id="usage_start" name="starttime" type="text" value="2016-07-05 13:44" />
-    </div>
-    <div>
-      <label>End time</label>
-      <input class="datetimepicker datetimeinput" id="usage_end" name="endtime" type="text" value="2016-07-05 13:44" />
-    </div>
-  </div>
+
   <!-- free text search -->
   <div class="prefix-tree-control-search">
     <label>
       Search (in organization ID or VLAN description)
     </label>
-    <input autofocus name="search" class="search-param prefix-tree-query">
+    <input autofocus name="search" id="prefix-tree-query" class="search-param prefix-tree-query">
+  </div>
+
+  <div>
+    <button class="toggleAdvanced btn small">
+      <%= advancedSearch ? "Hide advanced search" : "Advanced search" %>
+    </button>
+  </div>
+
+  <div class="prefix-control-form-advanced">
   </div>
 </form>

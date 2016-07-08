@@ -11,51 +11,61 @@
 {% block content %}
 
 <div class="ipam">
-    <div class="ipam-sidebar panel white">
+
+  <div class="ipam-sidebar panel white">
+    <div class="sidebar-wrapper">
       <div class="row" id="ipam-controls"></div>
-      <div class="row">
-        <button id="mybtn">Reset</button>
-      </div>
       <div class="row">
         <div id="ipam-flash"></div>
       </div>
     </div>
-    <div id="prefix-tree">
-      <div class="content">
-      </div>
-      <!-- container for prefix tree -->
-    </div>
-    <script type="text/template" id="prefix-control-form">
-      {% include "ipam/includes/tree-form.html" %}
-    </script>
-    <script type="text/template" id="prefix-available-subnets">
-      <% if (hide) { %>
-      <button class="fetch-subnets small btn">Show available subnets</button>
-      <% } else { %>
-      <button class="hide-subnets small btn">Hide subnets</button>
-      <h3>Available subnets</h3>
-      <p><em>(based on reserved prefixes and scopes)</em></p>
-      <% if (available_subnets.length == 0) { %>
-      None available.
-      <% } %>
-      <ul class="subnets">
-        <% _.forEach(available_subnets, function (subnet) { %>
-        <li><strong><%= subnet %></strong>. <a href="#">Create a reservation?</a></li>
-        <% }) %>
-      </ul>
-      <% } %>
-    </script>
-    <script type="text/template" id="prefix-list">
-      {% include "ipam/includes/tree-root.html" %}
-    </script>
-    <script type="text/template" id="prefix-children">
-      <ul class="prefix-tree-children">
-      </ul>
-    </script>
-    <script type="text/template" id="prefix-tree-node">
-      {% include "ipam/includes/tree-node.html" %}
-    </script>
   </div>
+
+  <div id="prefix-tree">
+    <div class="content">
+    </div>
+    <!-- container for prefix tree -->
+  </div>
+
+  <script type="text/template" id="prefix-control-form">
+    {% include "ipam/includes/tree-form.html" %}
+  </script>
+
+  <script type="text/template" id="prefix-control-form-advanced">
+   {% include "ipam/includes/tree-form-advanced.html" %}
+  </script>
+
+  <script type="text/template" id="prefix-available-subnets">
+    <% if (hide) { %>
+    <button class="fetch-subnets small btn">Show available subnets</button>
+    <% } else { %>
+    <button class="hide-subnets small btn">Hide subnets</button>
+    <h3>Available subnets</h3>
+    <p><em>(based on reserved prefixes and scopes)</em></p>
+    <% if (available_subnets.length == 0) { %>
+    None available.
+    <% } %>
+    <ul class="subnets">
+      <% _.forEach(available_subnets, function (subnet) { %>
+      <li><strong><%= subnet %></strong>. <a href="#">Create a reservation?</a></li>
+      <% }) %>
+    </ul>
+    <% } %>
+  </script>
+
+  <script type="text/template" id="prefix-list">
+    {% include "ipam/includes/tree-root.html" %}
+  </script>
+
+  <script type="text/template" id="prefix-children">
+    <ul class="prefix-tree-children">
+    </ul>
+  </script>
+
+  <script type="text/template" id="prefix-tree-node">
+    {% include "ipam/includes/tree-node.html" %}
+  </script>
+
 </div>
 
 {% endblock %}

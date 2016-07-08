@@ -1,0 +1,43 @@
+<!-- address types to display -->
+<div class="prefix-tree-control-checkboxes">
+  <div>
+    <label for="organization">Organization (optional)</label>
+    <input type="text" class="search-param" id="prefix-organization" name="organization">
+  </div>
+
+  <div>
+    <label for="organization">VLAN (number, optional)</label>
+    <input type="number" class="search-param" id="prefix-vlan" name="vlan">
+  </div>
+
+  <div>
+    <label for="organization">Usage (optional)</label>
+    <input type="text" class="search-param" id="prefix-usage" name="usage">
+  </div>
+
+  <div>
+    <label>Address family</label>
+    <input class="search-flag" type="checkbox" name="type" value="ipv4" checked><label>IPv4</label>
+    <input class="search-flag" type="checkbox" name="type" value="ipv6"" checked><label>IPv6</label>
+    <input class="search-flag", type="checkbox" name="type" value="rfc1918"><label>RFC1918</label>
+  </div>
+  <div>
+    <label>Net type</label>
+    <input class="search-flag" type="checkbox" name="net_type" value="scope" checked disabled="disabled""><label>Scope</label>
+    <input class="search-flag" type="checkbox" name="net_type" value="lan"><label>LAN</label>
+    <input class="search-flag" type="checkbox" name="net_type" value="reserved"><label>Reserved</label>
+  </div>
+
+
+  <!-- datetime select -->
+  <div class="prefix-tree-control-timespan">
+    <div>
+      <label>Start time</label>
+      <input class="datetimepicker datetimeinput search-param" id="usage_start" name="starttime" type="text" value="2016-07-05 13:44" />
+    </div>
+    <div>
+      <label>End time</label>
+      <input class="datetimepicker datetimeinput search-param" id="usage_end" name="endtime" type="text" value="2016-07-05 13:44" />
+    </div>
+  </div>
+</div>
