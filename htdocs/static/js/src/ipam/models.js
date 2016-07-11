@@ -1,10 +1,10 @@
 define(function(require, exports, module) {
   var _ = require("libs/underscore");
   var Backbone = require("backbone");
-  var debug = require("src/ipam/util").debug;
+  var debug = require("src/ipam/util").ipam_debug;
 
   var PrefixNode = Backbone.Model.extend({
-    debug: debug("models:prefixnode"),
+    debug: debug.new("models:prefixnode"),
     defaults: {
       description: "",
       "organization": "",
@@ -50,7 +50,7 @@ define(function(require, exports, module) {
 
   // Container for trees (and subtrees)
   var PrefixNodes = Backbone.Collection.extend({
-    debug: debug("models:prefixnodes"),
+    debug: debug.new("models:prefixnodes"),
     model: PrefixNode,
     baseUrl: "ipam/api",
     // Default query params
@@ -73,7 +73,7 @@ define(function(require, exports, module) {
 
   // Calls to available subnets API
   var AvailableSubnets = Backbone.Model.extend({
-    debug: debug("models:availablesubnets"),
+    debug: debug.new("models:availablesubnets"),
     baseUrl: "/ipam/api/find?",
 
     defaults: {

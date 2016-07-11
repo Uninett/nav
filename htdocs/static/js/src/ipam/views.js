@@ -33,11 +33,11 @@ define(function(require, exports, module) {
   };
 
   // Logging factory
-  var debug = require("src/ipam/util").debug;
+  var debug = require("src/ipam/util").ipam_debug;
 
   // Subview for available subnets for the current prefix/scope
   var AvailableSubnetsView = Marionette.ItemView.extend({
-    debug: debug("views:available_subnets"),
+    debug: debug.new("views:available_subnets"),
     template: "#prefix-available-subnets",
     events: {
       "click .fetch-subnets": "fetch",
@@ -54,7 +54,7 @@ define(function(require, exports, module) {
           prefix: opts.prefix
         }
       });
-      debug("Mounted subnet component for " + opts.prefix);
+      this.debug("Mounted subnet component for " + opts.prefix);
     },
 
     hide: function(evt) {
@@ -81,7 +81,7 @@ define(function(require, exports, module) {
 
   // Control form for tree
   var ControlView = Marionette.LayoutView.extend({
-    debug: debug("views:control"),
+    debug: debug.new("views:control"),
     template: "#prefix-control-form",
 
     regions: {
@@ -163,7 +163,7 @@ define(function(require, exports, module) {
 
   // Base of tree
   var RootView = Marionette.LayoutView.extend({
-    debug: debug("views:rootview"),
+    debug: debug.new("views:rootview"),
     regions: {
       "tree": ".prefix-tree-root"
     },
@@ -201,7 +201,7 @@ define(function(require, exports, module) {
 
       // Handle updated params
       globalCh.vent.on("search:update", function(params) {
-        debug("Got new search params", params);
+        this.debug("Got new search params", params);
         self.collection.queryParams = params;
         self.refetch();
       });
@@ -245,7 +245,7 @@ define(function(require, exports, module) {
 
   // TODO: Fetch available subnets, see available_subnets in prefix_tree.py
   var NodeView = Marionette.LayoutView.extend({
-    debug: debug("views:nodeview"),
+    debug: debug.new("views:nodeview"),
     tagName: "li",
     className: "prefix-tree-item",
     template: "#prefix-tree-node",
@@ -312,7 +312,7 @@ define(function(require, exports, module) {
 
   /* Dumb view for mounting usage graph */
   var UsageGraph = Marionette.View.extend({
-    debug: debug("views:usagegraph"),
+    debug: debug.new("views:usagegraph"),
     // mock - for catching dhcp treshold change in parent?
     triggers: {
       "click svg": "update:dhcp_treshold"

@@ -13,7 +13,7 @@ define(function(require, exports, module) {
 
   // == APP SINGLETON
   var App = new Marionette.Application();
-  var debug = util.debug("app");
+  var debug = util.ipam_debug.new("app");
 
   // == APP LIFECYCLE MANAGEMENT
 
@@ -47,8 +47,9 @@ define(function(require, exports, module) {
   });
 
   // Handle flash messages
+  var flash_debug = util.ipam_debug.new("flash");
   App.vent.on("flash", function(klass, msg) {
-    util.debug("flash")("Flashed a message");
+    flash_debug("Flashed a message");
     var template = _.template("<div class='<%= klass %>'><%= content %></div>");
     var content = template({
       klass: klass,
@@ -58,7 +59,7 @@ define(function(require, exports, module) {
   });
 
   App.vent.on("flash:reset", function() {
-    util.debug("flash")("Reset flash");
+    flash_debug("Reset flash");
     $("#ipam-flash").html(null);
   });
 
@@ -68,10 +69,7 @@ define(function(require, exports, module) {
   });
 
   //util.debugListen("available_subnets");
-  util.debugListen("models:prefixnodes");
-  util.debugListen("views");
-  util.debugUnlisten("views:usagegraph");
-  util.debugListen("app");
+  util.ipam_debug.listen("app");
 
   module.exports = App;
 
