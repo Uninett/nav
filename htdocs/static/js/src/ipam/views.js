@@ -201,7 +201,7 @@ define(function(require, exports, module) {
 
       // Handle updated params
       globalCh.vent.on("search:update", function(params) {
-        this.debug("Got new search params", params);
+        self.debug("Got new search params", params);
         self.collection.queryParams = params;
         self.refetch();
       });
