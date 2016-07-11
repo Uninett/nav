@@ -32,8 +32,8 @@ $ipam-700: #455A64;
   }
 
   a:hover, a:visited {
-    color: inherit;
-  }
+             color: inherit;
+           }
 
   &:hover {
     background: $ipam-500;
@@ -181,37 +181,39 @@ ul.accordion {
 
 @media #{$large-up} {
   .ipam {
-  @include grid-row();
-}
-
-.ipam-sidebar {
-  @include grid-column(3);
-  div.row {
     @include grid-row();
   }
-}
 
-// flash button, TODO change name to something not stupid
-#mybtn {
-  @include grid-column(12);
-}
-
-#prefix-tree {
-  @include grid-column(9);
-}
-
-.prefix-tree-control {
-
-  &-checkboxes {
-    div { @include grid-column(12, $collapse: true); }
+  .ipam-sidebar {
+    @include grid-column(3);
+    div.row {
+      @include grid-row();
+    }
   }
 
-  &-timespan {
-    div { @include grid-column(6, $collapse: true); }
+  // flash button, TODO change name to something not stupid
+  #mybtn {
+    @include grid-column(12);
   }
 
-  &-search {
-    @include grid-column(6, $collapse: true);
+  #prefix-tree {
+    @include grid-column(9);
   }
-}
+
+  .prefix-tree-control {
+
+    &-checkboxes {
+      div { @include grid-column(12, $collapse: true); }
+    }
+
+    &-timespan {
+      div { @include grid-column(6, $collapse: true); }
+    }
+
+    &-search {
+      input {
+        @include grid-column(12, $collapse: true);
+      }
+    }
+  }
 }

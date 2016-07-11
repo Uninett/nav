@@ -104,9 +104,9 @@ define(function(require, exports, module) {
     defaults: {
       advancedSearch: false,
       queryParams: {
-        type: [],
+        type: ["ipv4", "ipv6"],
+        net_type: ["scope"],
         search: null,
-        net_type: [],
         timestart: null,
         timeend: null,
         organization: null,

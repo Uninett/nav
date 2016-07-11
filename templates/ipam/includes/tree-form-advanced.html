@@ -20,17 +20,34 @@
 
   <div>
     <label>Address family</label>
-    <input class="search-flag" type="checkbox" name="type" value="ipv4" checked><label>IPv4</label>
-    <input class="search-flag" type="checkbox" name="type" value="ipv6"" checked><label>IPv6</label>
-    <input class="search-flag", type="checkbox" name="type" value="rfc1918"><label>RFC1918</label>
-  </div>
-  <div>
-    <label>Net type</label>
-    <input class="search-flag" type="checkbox" name="net_type" value="scope" checked disabled="disabled""><label>Scope</label>
-    <input class="search-flag" type="checkbox" name="net_type" value="lan"><label>LAN</label>
-    <input class="search-flag" type="checkbox" name="net_type" value="reserved"><label>Reserved</label>
+
+    <input class="search-flag" type="checkbox" name="type" value="ipv4"
+    <%= _.contains(queryParams.type, "ipv4") ? "checked" : null %>>
+    <label for="type">IPv4</label>
+
+    <input class="search-flag" type="checkbox" name="type" value="ipv6"
+    <%= _.contains(queryParams.type, "ipv6") ? "checked" : null %>>
+    <label for="type">IPv6</label>
+
+    <input class="search-flag", type="checkbox" name="type" value="rfc1918"
+    <%= _.contains(queryParams.type, "rfc1918") ? "checked" : null %>>
+    <label for="type">RFC1918</label>
   </div>
 
+  <div>
+    <label for="net_type">Net type</label>
+
+    <input class="search-flag" type="checkbox" name="net_type" value="scope" disabled="disabled" checked>
+    <label>Scope</label>
+
+    <input class="search-flag" type="checkbox" name="net_type" value="lan"
+    <%= _.contains(queryParams.net_type, "lan") ? "checked" : null %>>
+    <label>LAN</label>
+
+    <input class="search-flag" type="checkbox" name="net_type" value="reserved"
+    <%= _.contains(queryParams.net_type, "reserved") ? "checked" : null %>>
+    <label>Reserved</label>
+  </div>
 
   <!-- datetime select -->
   <div class="prefix-tree-control-timespan">
