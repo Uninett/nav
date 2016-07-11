@@ -155,8 +155,9 @@ define(function (require, exports, module) {
 
   // Add namespaces to the list of listenable namespaces
   function registerNamespaces(registered, namespaces) {
-    console.log("[DEBUGGER] Registering namespace(s)", namespaces);
-    registered = _.union(registered, namespaces);
+    var delta = _.difference(namespaces, registered);
+    console.log("[DEBUGGER] Registering namespace(s)", delta);
+    registered = _.union(registered, delta);
     registered.sort();
     return registered;
   };
