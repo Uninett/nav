@@ -2,17 +2,20 @@
 <div class="prefix-tree-control-checkboxes">
   <div>
     <label for="organization">Organization (optional)</label>
-    <input type="text" class="search-param" id="prefix-organization" name="organization">
+    <input type="text" class="search-param" id="prefix-organization"
+      name="organization" value="<%= queryParams.organization %>">
   </div>
 
   <div>
     <label for="organization">VLAN (number, optional)</label>
-    <input type="number" class="search-param" id="prefix-vlan" name="vlan">
+    <input type="number" class="search-param" id="prefix-vlan"
+      name="vlan" value="<%= queryParams.vlan %>">
   </div>
 
   <div>
     <label for="organization">Usage (optional)</label>
-    <input type="text" class="search-param" id="prefix-usage" name="usage">
+    <input type="text" class="search-param" id="prefix-usage"
+      name="usage" value="<%= queryParams.usage %>">
   </div>
 
   <div>
@@ -31,6 +34,7 @@
 
   <!-- datetime select -->
   <div class="prefix-tree-control-timespan">
+    <h4>Usage calculation</h4>
     <div>
       <label>Start time</label>
       <input class="datetimepicker datetimeinput search-param" id="usage_start" name="starttime" type="text" value="2016-07-05 13:44" />

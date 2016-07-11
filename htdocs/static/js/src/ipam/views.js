@@ -94,8 +94,11 @@ define(function(require, exports, module) {
 
     onRender: function() {
       var advancedSearch = this.model.get("advancedSearch");
+      var self = this;
       if (advancedSearch) {
-        this.showChildView("advanced", new ControlAdvancedView());
+        this.showChildView("advanced", new ControlAdvancedView({
+          model: self.model
+        }));
       }
     },
 
@@ -113,7 +116,7 @@ define(function(require, exports, module) {
 
       // Dynamically collect all inputs marked using".search-param". These
       // fields are exclusively non-nested, hence no need to collect them into
-      // an array
+      // an array (unlike checkboxes)
       var search_params = this.$el.find("input.search-param");
       search_params.each(function() {
         var elem = $(this);
@@ -127,7 +130,8 @@ define(function(require, exports, module) {
 
       // handle search string
       params["search"] = this.$el.find("#prefix-tree-query").val();
-      // handle date ranges
+      // update globally
+      this.model.set("queryParams", params);
       globalCh.vent.trigger("search:update", params);
     },
 

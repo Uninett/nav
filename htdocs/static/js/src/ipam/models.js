@@ -105,9 +105,13 @@ define(function(require, exports, module) {
       advancedSearch: false,
       queryParams: {
         type: [],
+        search: null,
         net_type: [],
         timestart: null,
-        timeend: null
+        timeend: null,
+        organization: null,
+        usage: null,
+        vlan: null
       }
     }
   });

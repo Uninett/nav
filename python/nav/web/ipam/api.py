@@ -62,6 +62,15 @@ class PrefixViewSet(viewsets.ViewSet):
                 Q(vlan__organization__id__icontains=search)
             ]
             queryset = queryset.filter(reduce(operator.or_, search_params))
+        # handle organization
+        organization = self.request.QUERY_PARAMS.get("organization", None)
+        if organization is not None:
+            queryset = queryset.filter(vlan__organization__id__icontains=organization)
+        # handle VLAN number
+        vlan_number = self.request.QUERY_PARAMS.get("vlan", None)
+        if vlan_number is not None and vlan_number:
+            vlan_number = int(vlan_number)
+            queryset = queryset.filter(vlan__vlan=vlan_number)
         return queryset
 
     # TODO add serializer
@@ -69,7 +78,7 @@ class PrefixViewSet(viewsets.ViewSet):
         prefixes = self.get_queryset()
         # parse "?type=" args
         args = copy(DEFAULT_TREE_PARAMS)
-        _types = self.request.QUERY_PARAMS.getlist("type", [])
+        _types = self.request.QUERY_PARAMS.getlist("type", ["ipv4"])
         _args = {_type: True for _type in _types if _type in DEFAULT_TREE_PARAMS}
         args.update(_args)
         # handle timespans
