@@ -11,17 +11,28 @@ define(function(require, exports, module) {
   var globalCh = Backbone.Wreqr.radio.channel("global");
   var debugCh = Backbone.Wreqr.radio.channel("debug");
 
-  // Utility function to flash global messages
-  function flash(klass, msg) {
-    globalCh.vent.trigger("flash", klass, msg);
-  }
+  // Utility object for flashing
+  var flash = {
+    call: function(klass, msg) {
+      globalCh.vent.trigger("flash", klass, msg);
+    },
 
-  function _debug(namespace) {
-    return function() {
-      debugCh.vent.trigger("debug", namespace, arguments);
-    };
-  }
+    noResult: function(searchParams) {
+      var tmpl = _.template("No results<% if (query) { %> for <strong>'<%- query %>'</strong><% } %>.");
+      this.call("alert-box alert with-icon", tmpl({query: searchParams}));
+    },
 
+    fetch: function() {
+      var tmpl = _.template("<i class='fa fa-spinner fa-spin'></i> <span>Fetching</span>");
+      this.call("alert-box", tmpl());
+    },
+
+    reset: function() {
+      globalCh.vent.trigger("flash:reset");
+    }
+  };
+
+  // Logging factory
   var debug = require("src/ipam/util").debug;
 
   // Subview for available subnets for the current prefix/scope
@@ -172,7 +183,7 @@ define(function(require, exports, module) {
       }
       // Keep a pointer to the fetch object, for tracking all fetches
       this.xhr = this.collection.fetch({reset: true});
-      flash("alert-box", "Fetching...");
+      flash.fetch();
     },
 
     initialize: function() {
@@ -219,15 +230,14 @@ define(function(require, exports, module) {
 
     onRender: function() {
       if (this.isFetching()) {
-        return flash("alert-box", "Fetching...");
+        flash.fetch();
       }
       // TODO: show load/fetch messages
       if (this.isEmpty()) {
-        var template = _.template("No results<% if (query) { %> for <strong>'<%- query %>'</strong><% } %>.");
         var searchParams = this.collection.queryParams.search;
-        return flash("alert-box alert with-icon", template({query: searchParams }));
+        flash.noResult(searchParams);
       } else {
-        return globalCh.vent.trigger("flash:reset");
+        flash.reset();
       }
     }
 
