@@ -90,6 +90,11 @@ define(function(require, exports, module) {
       this.debug("Displaying advanced search => " + !advancedSearch);
       this.model.set("advancedSearch", !advancedSearch);
       this.render();
+      // make datetimepicker detect forms
+      $(".datetimepicker").datetimepicker({
+        'dateFormat': 'yy-mm-dd',
+        'timeFormat': 'HH:mm'
+      });
     },
 
     onRender: function() {

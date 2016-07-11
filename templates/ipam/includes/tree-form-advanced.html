@@ -54,11 +54,13 @@
     <h4>Usage calculation</h4>
     <div>
       <label>Start time</label>
-      <input class="datetimepicker datetimeinput search-param" id="usage_start" name="starttime" type="text" value="2016-07-05 13:44" />
+      <input class="datetimepicker datetimeinput search-param" id="usage_start" name="starttime"
+        type="text" value="<%= queryParams.timestart %>" />
     </div>
     <div>
       <label>End time</label>
-      <input class="datetimepicker datetimeinput search-param" id="usage_end" name="endtime" type="text" value="2016-07-05 13:44" />
+      <input class="datetimepicker datetimeinput search-param" id="usage_end" name="endtime"
+        type="text" value="<%= queryParams.timeend %>" />
     </div>
   </div>
 </div>
