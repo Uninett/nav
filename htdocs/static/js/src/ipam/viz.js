@@ -190,7 +190,7 @@ define(function (require, exports, module) {
     // === Drawing phase
     var svg = d3.select(mountElem)
       .append("svg")
-      .attr("preserveAspectRatio", "xMaxYMin meet")
+      .attr("preserveAspectRatio", "xMinYMax slice")
       .attr("viewBox", viewbox({width: width, height: height}))
       .append("g");
 

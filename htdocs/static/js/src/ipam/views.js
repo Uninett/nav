@@ -9,7 +9,6 @@ define(function(require, exports, module) {
 
   // Global communication channel with main app
   var globalCh = Backbone.Wreqr.radio.channel("global");
-  var debugCh = Backbone.Wreqr.radio.channel("debug");
 
   // Utility object for flashing
   var flash = {

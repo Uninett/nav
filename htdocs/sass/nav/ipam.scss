@@ -161,6 +161,11 @@ ul.accordion {
   margin-bottom: 5px;
 }
 
+// Avoid usage graph being too tall on small screens
+.prefix-usage-graph svg {
+  max-height: 40px;
+}
+
 
 @media #{$large-up} {
   .prefix-tree-item-title span {
