@@ -53,7 +53,7 @@ define(function (require, exports, module) {
   //
   // Supports colon-separated (':') namespaces. Example usage:
   //
-  //   debug = require("src/ipam/util").Debugger("IPAM_DEBUG");
+  //   debug = require("src/ipam/util").Debugger();
   //   var logger = debug.new("my:name:space")
   //   logger("Oh no, something went wrong")
   //   // listen to something
@@ -63,16 +63,12 @@ define(function (require, exports, module) {
   //   // Stop listening to namespace
   //   debug.unlisten("my:name")
   //
-  // We also provide a magic object, window.IPAM_DEBUG for use in
-  // the console provided by your browser.
+  // If you want to bind to a field in 'window', supply it as an argument to the
+  // constructor:
   //
-  //   > window.IPAM_DEBUG.new("my:name:space")
-  //   > window.IPAM_DEBUG.listen("my:name")
-  //   // mapping of each namespace handler to a logging function
-  //   > window.IPAM_DEBUG.namespaces
-  //   > window.IPAM_DEBUG.unlisten("my:name")
-  //   // array of enabled namespaces
-  //   > window.IPAM_DEBUG.enabledNamespaces
+  //  debug = require("src/ipam/util").Debugger("IPAM_DEBUG")
+  //  // in your JS console etc.
+  //  IPAM_DEBUG.listen("nodes")
 
   function Debugger(name) {
     var debuggr = Object.assign({}, _Debugger);
