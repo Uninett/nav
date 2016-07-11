@@ -156,7 +156,9 @@ define(function (require, exports, module) {
   // Add namespaces to the list of listenable namespaces
   function registerNamespaces(registered, namespaces) {
     console.log("[DEBUGGER] Registering namespace(s)", namespaces);
-    return _.union(registered, namespaces);
+    registered = _.union(registered, namespaces);
+    registered.sort();
+    return registered;
   };
 
   // List all available namespaces
@@ -180,11 +182,13 @@ define(function (require, exports, module) {
   // From 'models:foo:bar', generate [models:foo:bar, models:foo, models]
   function explodeNamespace(namespace) {
     var _namespaces = namespace.split(":");
-    return _.reduce(_.range(1, _namespaces.length), function(acc, idx) {
+    var acc = _.reduce(_.range(1, _namespaces.length), function(acc, idx) {
       var tmp = _.take(_namespaces, idx);
       acc.push(tmp.join(":"));
       return acc;
     }, [namespace]);
+    acc.sort();
+    return acc;
   }
 
   module.exports = {
