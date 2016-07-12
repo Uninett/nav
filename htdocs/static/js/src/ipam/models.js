@@ -131,6 +131,7 @@ define(function(require, exports, module) {
     defaults: {
       advancedSearch: false,
       queryParams: {
+        ip: null,
         type: ["ipv4", "ipv6"],
         net_type: ["scope"],
         search: null,

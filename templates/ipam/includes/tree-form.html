@@ -12,6 +12,13 @@
       value="<%= queryParams.search %>">
   </div>
 
+
+  <div>
+    <label for="organization">IP</label>
+    <input type="text" class="search-param" id="prefix-ip"
+      name="ip" value="<%= queryParams.ip %>">
+  </div>
+
   <div>
     <button class="toggleAdvanced btn small">
       <%= advancedSearch ? "Hide advanced search" : "Advanced search" %>
