@@ -20,9 +20,10 @@ API specific code for the private IPAM API. Exports a router for easy mounting.
 """
 
 
-from rest_framework.response import Response
 from rest_framework import viewsets, status, routers
-from django.db.models import Q
+from rest_framework.response import Response
+from rest_framework.decorators import detail_route
+from django.db.models import Q, query
 import operator
 import collections
 from copy import copy
@@ -33,6 +34,10 @@ from .prefix_tree import make_tree
 from nav.models.manage import Prefix
 from nav.web.api.v1.serializers import PrefixSerializer
 from nav.web.api.v1.views import get_times
+
+
+from nav.web.api.v1.helpers import prefix_collector
+
 
 # TODO: Consider moving most of this to web.api namespace, since there's no
 # reason this shouldn't be public
@@ -47,31 +52,110 @@ DEFAULT_TREE_PARAMS = {
     "ipv4": False
 }
 
+
+# Utility class (builder pattern) to get the Prefixes we want. Applies any
+# filters upon finalize. (We could do this in-place, e.g. replace the queryset
+# each time, but we would then lose all filters upon methods that reset the
+# queryset, e.g. manager methods like 'within').
+class PrefixQuerysetBuilder(object):
+    def __init__(self, queryset=None):
+        if queryset is None:
+            queryset = Prefix.objects.all()
+        self.queryset = queryset
+        self.is_realized = False
+        self.filters = Q()
+
+    def filter(self, *args, **kwargs):
+        q = Q(*args, **kwargs)
+        return this._filter(q)
+
+    def _filter(self, q_object, disjoint=False):
+        if disjoint:
+            self.filters.add(q_object, Q.OR)
+        else:
+            self.filters.add(q_object, Q.AND)
+        return self
+
+    def finalize(self):
+        "Returns the queryset with all filters applied"
+        return self.queryset.filter(self.filters)
+
+    # Filter methods
+    def organization(self, organization):
+        if organization is None:
+            return self
+        q = Q(vlan__organization_id__icontains=organization)
+        return self._filter(q)
+
+    def description(self, description):
+        if description is None:
+            return self
+        q = Q(vlan__description__icontains=description)
+        return self._filter(q)
+
+    def vlan_number(self, vlan_number):
+        if vlan_number is None:
+            return self
+        q = Q(vlan__vlan=vlan_number)
+        return self._filter(q)
+
+    def net_type(self, net_type_or_net_types):
+        if net_type_or_net_types is None:
+            return self
+        types = net_type_or_net_types
+        if not isinstance(types, list):
+            types = [types]
+        q = Q(vlan__net_type__in=types)
+        return self._filter(q)
+
+    def search(self, query):
+        if query is None:
+            return self
+        q = Q()
+        q.add(Q(vlan__description__icontains=query), Q.OR)
+        q.add(Q(vlan__organization__id__icontains=query), Q.OR)
+        return self._filter(q)
+
+    # Mutating methods, e.g. resets the queryset
+    def within(self, prefix):
+        "Sets the queryset to every Prefix within a certain prefix"
+        if prefix is None:
+            return self
+        self.queryset = Prefix.objects.within(prefix)
+        return self
+
 class PrefixViewSet(viewsets.ViewSet):
     serializer = PrefixSerializer
     search_fields = ("vlan__description")
 
     def get_queryset(self):
-        types = self.request.QUERY_PARAMS.getlist("net_type", ["scope"])
-        queryset = Prefix.objects.filter(vlan__net_type__in=types)
-        # TODO: Do this in a way, way better way
+        # Extract filters etc
+        net_types = self.request.QUERY_PARAMS.getlist("net_type", ["scope"])
         search = self.request.QUERY_PARAMS.get("search", None)
-        if search is not None:
-            search_params = [
-                Q(vlan__description__icontains=search),
-                Q(vlan__organization__id__icontains=search)
-            ]
-            queryset = queryset.filter(reduce(operator.or_, search_params))
-        # handle organization
         organization = self.request.QUERY_PARAMS.get("organization", None)
-        if organization is not None:
-            queryset = queryset.filter(vlan__organization__id__icontains=organization)
-        # handle VLAN number
         vlan_number = self.request.QUERY_PARAMS.get("vlan", None)
-        if vlan_number is not None and vlan_number:
-            vlan_number = int(vlan_number)
-            queryset = queryset.filter(vlan__vlan=vlan_number)
-        return queryset
+        # Build queryset
+        queryset = PrefixQuerysetBuilder()
+        queryset.net_type(net_types)
+        queryset.search(search)
+        queryset.organization(organization)
+        queryset.vlan_number(vlan_number)
+        return queryset.finalize()
+
+    @detail_route(methods=["get"])
+    def usage(self, request, *args, **kwargs):
+        pk = kwargs.pop("pk", None)
+        # TODO: error handling
+        prefix = Prefix.objects.get(pk=pk)
+        max_addr = IP(prefix.net_address).len()
+        active_addr = prefix_collector.collect_active_ip(prefix)
+        payload = {
+            "max_addr": max_addr,
+            "active_addr": active_addr,
+            "usage": 1.0 * active_addr / max_addr,
+            "pk": pk
+        }
+        return Response(payload, status=status.HTTP_200_OK)
 
     # TODO add serializer
     def list(self, request, *args, **kwargs):
@@ -95,18 +179,14 @@ class PrefixFinderSet(viewsets.ViewSet):
     # TODO Implement search for length?
     # TODO Filter all IPv6 addresses, as they tend to give us overflow errors
     def get_queryset(self):
-        queryset = Prefix.objects.all()
-        # filter to get scopes matching base IP address
+        # Extract filters
         prefix = self.request.QUERY_PARAMS.get("prefix", None)
-        if prefix is not None:
-            queryset = Prefix.objects.within(prefix)
-        # filter for organization. TODO this should really be done in the router
         organization = self.request.QUERY_PARAMS.get("organization", None)
-        if organization is not None:
-            queryset = queryset.filter(vlan__organization__id__icontains=organization)
-        # only return scopes, reservations, TODO: maybe do this earlier on?
-        queryset.filter(vlan__net_type__in=["scope", "reserved"])
-        return queryset
+        # Build queryset
+        queryset = PrefixQuerysetBuilder().within(prefix)
+        queryset.organization(organization)
+        queryset.net_type(["scope", "reserved"])
+        return queryset.finalize()
 
     def list(self, request, *args, **kwargs):
         prefixes = self.get_queryset()

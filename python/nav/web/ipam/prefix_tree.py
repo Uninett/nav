@@ -28,9 +28,6 @@ import copy
 
 from django.core.urlresolvers import reverse, NoReverseMatch
 
-# Steal/"reuse" helpers from API
-from nav.web.api.v1.helpers import prefix_collector
-
 class PrefixHeap(object):
     "Pseudo-heap ordered topologically by prefixes"
     def __init__(self, children=None):
@@ -150,33 +147,13 @@ class IpNodeFacade(IpNode):
         "prefix",
         "prefixlen",
         "organization",
-        "description",
-        "active_addr",
-        "max_addr",
-        "utilization"
+        "description"
     ]
 
     def __init__(self, ip_addr, pk, net_type):
         super(IpNodeFacade, self).__init__(ip_addr)
         self.pk = pk
         self.net_type = net_type
-
-    @property
-    def max_addr(self):
-        "The max number of addresses in the prefix"
-        return self.ip.len()
-
-    @property
-    def active_addr(self):
-        "The number of active addresses in the prefix"
-        return getattr(self, "_active_addr", None)
-
-    @property
-    def utilization(self):
-        "Usage (in percent) of available addresses"
-        if self.active_addr is not None:
-            return 1.0 * self.active_addr / self.max_addr
-        return None
 
     @property
     def fields(self):
@@ -265,7 +242,6 @@ class PrefixNode(IpNodeFacade):
         super(PrefixNode, self).__init__(ip_addr, pk, net_type)
         self._description = prefix.vlan.description
         self._organization = prefix.vlan.organization
-        self._active_addr = prefix_collector.collect_active_ip(self._prefix, starttime, endtime)
         # self.usage = UsageResult(prefix, addresses)
 
 def make_prefix_heap(prefixes, initial_children=None, starttime=None, endtime=None, ipv4=True, ipv6=True):
