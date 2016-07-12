@@ -84,7 +84,7 @@ class PrefixQuerysetBuilder(object):
     def organization(self, organization):
         if organization is None:
             return self
-        q = Q(vlan__organization_id__icontains=organization)
+        q = Q(vlan__organization__id__icontains=organization)
         return self._filter(q)
 
     def description(self, description):
@@ -121,8 +121,28 @@ class PrefixQuerysetBuilder(object):
         "Sets the queryset to every Prefix within a certain prefix"
         if prefix is None:
             return self
-        self.queryset = Prefix.objects.within(prefix)
+        self.queryset = self.queryset & Prefix.objects.within(prefix)
         return self
+
+    def contains_ip(self, addr):
+        if addr is None:
+            return self
+        self.queryset = self.queryset & Prefix.objects.contains_ip(addr)
+        return self
+
+
+def standard_queryset(request):
+    net_types = self.request.QUERY_PARAMS.getlist("net_type", ["scope"])
+    search = self.request.QUERY_PARAMS.get("search", None)
+    organization = self.request.QUERY_PARAMS.get("organization", None)
+    vlan_number = self.request.QUERY_PARAMS.get("vlan", None)
+    # Build queryset
+    queryset = PrefixQuerysetBuilder()
+    queryset.net_type(net_types)
+    queryset.search(search)
+    queryset.organization(organization)
+    queryset.vlan_number(vlan_number)
+    return queryset.finalize()
 
 class PrefixViewSet(viewsets.ViewSet):
     serializer = PrefixSerializer
@@ -134,12 +154,14 @@ class PrefixViewSet(viewsets.ViewSet):
         search = self.request.QUERY_PARAMS.get("search", None)
         organization = self.request.QUERY_PARAMS.get("organization", None)
         vlan_number = self.request.QUERY_PARAMS.get("vlan", None)
+        ip = self.request.QUERY_PARAMS.get("ip", None)
         # Build queryset
         queryset = PrefixQuerysetBuilder()
         queryset.net_type(net_types)
         queryset.search(search)
         queryset.organization(organization)
         queryset.vlan_number(vlan_number)
+        queryset.contains_ip(ip)
         return queryset.finalize()
 
     @detail_route(methods=["get"])
