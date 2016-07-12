@@ -166,8 +166,17 @@ ul.accordion {
   max-height: 40px;
 }
 
+.ipam-sidebar .sidebar-wrapper {
+  padding: 10px 20px;
+}
+
 
 @media #{$large-up} {
+
+  .ipam-sidebar .sidebar-wrapper {
+    padding: 0;
+  }
+
   .prefix-tree-item-title span {
     display: inline-block;
   }
