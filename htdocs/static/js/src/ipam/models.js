@@ -71,6 +71,33 @@ define(function(require, exports, module) {
     }
   });
 
+  // Calls to the total usage API
+  var Usage = Backbone.Model.extend({
+    debug: debug.new("models:usage"),
+    urlTemplate: _.template("/ipam/api/<%= pk %>/usage"),
+    defaults: {
+      pk: null,
+      usage: 0,
+      queryParams: {}
+    },
+
+    initialize: function() {
+      var self = this;
+      this.url = function() {
+        var queryParams = self.get("queryParams");
+        var pk = self.get("pk");
+        var params = decodeURIComponent($.param(queryParams, true));
+        var baseUrl = self.urlTemplate({ pk: pk });
+        return baseUrl + params;
+      };
+      this.parse = function(resp) {
+        this.debug("Received response from " + this.url(), resp);
+        return resp;
+      };
+    }
+
+  });
+
   // Calls to available subnets API
   var AvailableSubnets = Backbone.Model.extend({
     debug: debug.new("models:availablesubnets"),
@@ -120,7 +147,8 @@ define(function(require, exports, module) {
     "PrefixNodes": PrefixNodes,
     "PrefixNode": PrefixNode,
     "AvailableSubnets": AvailableSubnets,
-    "Control": Control
+    "Control": Control,
+    "Usage": Usage
   };
 
 });

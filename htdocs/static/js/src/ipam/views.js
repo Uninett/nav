@@ -297,7 +297,9 @@ define(function(require, exports, module) {
 
     onBeforeShow: function() {
       var utilization = this.model.get("utilization");
+      var pk = this.model.get("pk");
       this.showChildView("usage_graph", new UsageGraph({
+        model: new Models.Usage({ pk: pk }),
         utilization: utilization
       }));
       // Mount subnet component
@@ -310,6 +312,7 @@ define(function(require, exports, module) {
   });
 
   /* Dumb view for mounting usage graph */
+  // TODO: Add own model for fetching usage directly, avoiding having to render it in the tree?
   var UsageGraph = Marionette.View.extend({
     debug: debug.new("views:usagegraph"),
     // mock - for catching dhcp treshold change in parent?
@@ -318,14 +321,20 @@ define(function(require, exports, module) {
     },
 
     initialize: function(opts) {
-      this.utilization = opts.utilization;
+      // Fetch usage data, then draw
+      this.model.fetch().done(this.draw.bind(this, this));
     },
 
-    onBeforeShow: function() {
-      this.debug("Trying to draw usage graph");
+    draw: function() {
+      // this.debug("Trying to draw usage graph", usage);
+      var usage = this.model.get("usage");
+      // don't draw unless we have some usage
+      if (typeof usage === "undefined") {
+        return;
+      }
       var usageElem = this.$el.find(".prefix-usage-graph");
       var template = _.template("<span>Usage: <%= percent %> %</span>");
-      this.$el.html(template({percent: (this.utilization * 100).toFixed(2)}));
+      this.$el.html(template({percent: (usage * 100).toFixed(2)}));
       viz.usageChart({
         mountElem: this.$el.get(0),
         width: 100,
@@ -333,11 +342,11 @@ define(function(require, exports, module) {
         data: [{
           fill: "lightsteelblue",
           name: "Available",
-          value: 1.0 - this.utilization
+          value: 1.0 - usage
         },{
           fill: "white",
           name: "Used",
-          value: this.utilization
+          value: usage
         }]
       });
     }
