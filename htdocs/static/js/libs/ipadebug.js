@@ -1,23 +1,27 @@
-// == SIMPLE NAMESPACED DEBUGGER LOGGER (Backbone.Wreqr based)
+// == SIMPLE NAMESPACED DEBUGGER LOGGER
 //
 // Supports colon-separated (':') namespaces. Example usage:
 //
-//   debug = require("IPADebugger");
+//   debug = require("ipadebug");
 //   var logger = debug.new("my:name:space")
 //   logger("Oh no, something went wrong")
 //   // listen to something
 //   debug.listen("my:name")
-//   // List all namespaces
+//   // Empty argument lists all registered namespaces
 //   debug.listen()
+//   debug.unlisten()
 //   // Stop listening to namespace
 //   debug.unlisten("my:name")
 //
 // If you want to bind to a field in 'window', supply it as an argument to the
 // constructor:
 //
-//  debug = require("src/IPADebugger")("my::)
-//  // in your JS console etc.
-//  IPAM_DEBUG.listen("nodes")
+//   debug = require("libs/ipadebug")("IPAM_DEBUG")
+//   // in your JS console etc.
+//   IPAM_DEBUG.listen("nodes")
+//
+// Future versions might offer more sophisticated functionality, but for now,
+// this'll do.
 
 
 define(function (require, exports, module) {
