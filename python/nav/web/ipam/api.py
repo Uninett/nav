@@ -53,51 +53,38 @@ DEFAULT_TREE_PARAMS = {
 }
 
 
-# Utility class (builder pattern) to get the Prefixes we want. Applies any
-# filters upon finalize. (We could do this in-place, e.g. replace the queryset
-# each time, but we would then lose all filters upon methods that reset the
-# queryset, e.g. manager methods like 'within').
+# Utility class (builder pattern) to get the Prefixes we want. Returns the
+# resulting queryset when 'finalize' is called.
 class PrefixQuerysetBuilder(object):
     def __init__(self, queryset=None):
         if queryset is None:
             queryset = Prefix.objects.all()
         self.queryset = queryset
         self.is_realized = False
-        self.filters = Q()
 
     def filter(self, *args, **kwargs):
-        q = Q(*args, **kwargs)
-        return this._filter(q)
-
-    def _filter(self, q_object, disjoint=False):
-        if disjoint:
-            self.filters.add(q_object, Q.OR)
-        else:
-            self.filters.add(q_object, Q.AND)
+        self.queryset = self.queryset.filter(*args, **kwargs)
         return self
 
     def finalize(self):
         "Returns the queryset with all filters applied"
-        return self.queryset.filter(self.filters)
+        return self.queryset
 
     # Filter methods
     def organization(self, organization):
         if organization is None:
             return self
-        q = Q(vlan__organization__id__icontains=organization)
-        return self._filter(q)
+        return self.filter(vlan__organization__id__icontains=organization)
 
     def description(self, description):
         if description is None:
             return self
-        q = Q(vlan__description__icontains=description)
-        return self._filter(q)
+        return self.filter(vlan__description__icontains=description)
 
     def vlan_number(self, vlan_number):
         if vlan_number is None:
             return self
-        q = Q(vlan__vlan=vlan_number)
-        return self._filter(q)
+        return self.filter(vlan__vlan=vlan_number)
 
     def net_type(self, net_type_or_net_types):
         if net_type_or_net_types is None:
@@ -105,8 +92,7 @@ class PrefixQuerysetBuilder(object):
         types = net_type_or_net_types
         if not isinstance(types, list):
             types = [types]
-        q = Q(vlan__net_type__in=types)
-        return self._filter(q)
+        return self.filter(vlan__net_type__in=types)
 
     def search(self, query):
         if query is None:
@@ -114,7 +100,7 @@ class PrefixQuerysetBuilder(object):
         q = Q()
         q.add(Q(vlan__description__icontains=query), Q.OR)
         q.add(Q(vlan__organization__id__icontains=query), Q.OR)
-        return self._filter(q)
+        return self.filter(q)
 
     # Mutating methods, e.g. resets the queryset
     def within(self, prefix):
@@ -129,20 +115,6 @@ class PrefixQuerysetBuilder(object):
             return self
         self.queryset = self.queryset & Prefix.objects.contains_ip(addr)
         return self
-
-
-def standard_queryset(request):
-    net_types = self.request.QUERY_PARAMS.getlist("net_type", ["scope"])
-    search = self.request.QUERY_PARAMS.get("search", None)
-    organization = self.request.QUERY_PARAMS.get("organization", None)
-    vlan_number = self.request.QUERY_PARAMS.get("vlan", None)
-    # Build queryset
-    queryset = PrefixQuerysetBuilder()
-    queryset.net_type(net_types)
-    queryset.search(search)
-    queryset.organization(organization)
-    queryset.vlan_number(vlan_number)
-    return queryset.finalize()
 
 class PrefixViewSet(viewsets.ViewSet):
     serializer = PrefixSerializer
