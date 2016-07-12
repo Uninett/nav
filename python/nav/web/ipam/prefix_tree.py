@@ -108,20 +108,6 @@ class IpNode(PrefixHeap):
         "Return the IP object of the node"
         return self._ip
 
-    # This is hilariously expensive
-    @property
-    def available_subnets(self):
-        "Non-taken (or registered) subnets in this prefix IFF IPv4"
-        if self.ip.version() != 4:
-            return ["As many as you want!"]
-        ips = IPSet([IP(child.ip) for child in self.children])
-        acc = IPSet([self.ip])
-        try:
-            acc.discard(ips)
-        except TypeError:
-            pass
-        return map(str, acc)
-
     # Comparison utilities
     def __contains__(self, other):
         assert isinstance(other, IpNode), \
@@ -242,7 +228,6 @@ class PrefixNode(IpNodeFacade):
         super(PrefixNode, self).__init__(ip_addr, pk, net_type)
         self._description = prefix.vlan.description
         self._organization = prefix.vlan.organization
-        # self.usage = UsageResult(prefix, addresses)
 
 def make_prefix_heap(prefixes, initial_children=None, starttime=None, endtime=None, ipv4=True, ipv6=True):
     """Return a prefix heap of all prefixes. Might optionally filter out IPv4 and
