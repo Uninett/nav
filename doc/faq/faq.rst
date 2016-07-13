@@ -19,6 +19,13 @@ For any other vendors, we suggest that you just add your devices to NAV and
 see whether NAV reports what you want it to report. If it doesn't, submit a
 question to the mailing list, nav-users@uninett.no.
 
+Why are there gaps in my graphs?
+--------------------------------
+
+There are multiple possible sources for problems like this. Please read our
+:doc:`guide to debugging choppy graph issues<graph_gaps>`.
+
+
 Why does NAV list my device's uplink as *N/A*?
 ----------------------------------------------
 
