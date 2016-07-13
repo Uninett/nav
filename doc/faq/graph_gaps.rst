@@ -1,9 +1,14 @@
-===============
-Tuning Graphite
-===============
+===================================
+Debugging "gaps in graphs" syndrome
+===================================
 
-Handling gaps in the graphs
-===========================
+This document discusses various causes of missing Graphite data, AKA gappy
+graphs AKA holy graphs. You should verify each issue in the order they are
+listed.
+
+
+UDP packets are being dropped
+=============================
 
 Because NAV sends data to Carbon using UDP, there is no guaranteed data
 reception. This could be solved by using TCP, but with a considerable
