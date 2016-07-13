@@ -1,10 +1,13 @@
 <a href="#prefix-<%= pk %>" class="prefix-tree-item-title">
   <span class="net-type"><%= net_type %></span>
   <span class="ip"><%= prefix %></span>
+  <% if (vlan_number) { %>
+  <span class="vlan_number">VLAN <%= vlan_number %></span>
+  <% } %>
   <% if (description) { %>
   <span class="description"><%= description %></span>
   <% } %>
-  <% if (length > 0) { %>
+    <% if (length > 0) { %>
   (<%= length %> children)
   <% } %>
   <div class="prefix-usage-graph">
@@ -12,6 +15,8 @@
 </a>
 <div id="prefix-<%= pk %>" class="content prefix-tree-item-content">
   <div class="prefix-tree-item-content-data">
+    <button class="button small sort-by-usage">Sort children by usage</button>
+    <button class="button small sort-by-default">Default sort</button>
     <% if (edit_url) { %>
     <a class="button small" href="<%= edit_url %>">Edit</a>
     <% } %>

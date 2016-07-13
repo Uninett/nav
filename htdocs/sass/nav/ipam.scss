@@ -43,7 +43,7 @@ $ipam-700: #455A64;
   .ip {
   }
 
-  .net-type, .ip, .description {
+  .net-type, .ip, .description, .vlan_number {
     border: 3px solid #ccc;
     padding: 5px 10px;
     font-size: 80%;
