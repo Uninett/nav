@@ -27,7 +27,8 @@ not nearly often enough to draw a continuous line between data points.
 
 The :program:`whisper-info` (or :file:`whisper-info.py`) can be used to
 inspect individual ``.wsp`` files to see what resolution their first retention
-archive is configured with. If this isn't 300 seconds (5 minutes) for any
+archive is configured with (this is the ``secondsPerPoint`` value of archive
+number 0). If this isn't 300 seconds (5 minutes) for any
 ``.wsp`` file located under the :file:`ports/` directory of a device, then you
 know these have been created with the wrong schema.
 
