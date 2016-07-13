@@ -70,6 +70,10 @@ define(function(require, exports, module) {
 
   //util.debugListen("available_subnets");
   util.ipam_debug.listen("app");
+  util.ipam_debug.listen("models");
+  util.ipam_debug.listen("views");
+  util.ipam_debug.unlisten("models:usage");
+  util.ipam_debug.unlisten("views:available_subnets");
 
   module.exports = App;
 
