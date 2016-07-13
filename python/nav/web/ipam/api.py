@@ -47,9 +47,7 @@ from nav.web.api.v1.helpers import prefix_collector
 
 # Default types to include in the generated prefix tree
 DEFAULT_TREE_PARAMS = {
-    "rfc1918": False,
-    "ipv6": False,
-    "ipv4": False
+    "net_types": {"ipv4"}
 }
 
 
@@ -154,14 +152,10 @@ class PrefixViewSet(viewsets.ViewSet):
     # TODO add serializer
     def list(self, request, *args, **kwargs):
         prefixes = self.get_queryset()
-        # parse "?type=" args
-        args = copy(DEFAULT_TREE_PARAMS)
-        _types = self.request.QUERY_PARAMS.getlist("type", ["ipv4"])
-        _args = {_type: True for _type in _types if _type in DEFAULT_TREE_PARAMS}
-        args.update(_args)
+        family = self.request.QUERY_PARAMS.getlist("type", ["ipv4"])
         # handle timespans
         starttime, endtime = get_times(self.request)
-        result = make_tree(prefixes, starttime, endtime, **args)
+        result = make_tree(prefixes, interval=[starttime, endtime], family=family)
         return Response(result.fields["children"], status=status.HTTP_200_OK)
 
 # TODO Everything below is pretty horrible and should be taken out in the woods
