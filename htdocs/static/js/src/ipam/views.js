@@ -9,6 +9,7 @@ define(function(require, exports, module) {
 
   // Global communication channel with main app
   var globalCh = Backbone.Wreqr.radio.channel("global");
+  var nodeCh = Backbone.Wreqr.radio.channel("nodes");
 
   // Utility object for flashing
   var flash = {
@@ -248,6 +249,8 @@ define(function(require, exports, module) {
     tagName: "li",
     className: "prefix-tree-item",
     template: "#prefix-tree-node",
+    // function to sort children in view (not in collection!)
+    childrenViewComparator: null,
 
     regions: {
       usage_graph: ".prefix-usage-graph:first",
@@ -256,12 +259,39 @@ define(function(require, exports, module) {
     },
 
     events: {
+      "click .sort-by-usage": "sortByUsage",
+      "click .sort-by-default": "sortByDefault",
       "click a.prefix-tree-item-title": "toggleOpen",
       "touchstart a.prefix-tree-item-title": "toggleOpen"
     },
 
-    childEvents: {
-      'update:dhcp_treshold': "dhcpChange"
+    initialize: function() {
+      var self = this;
+      var pk = this.model.get("pk");
+      this.mailbox = Backbone.Wreqr.radio.channel("node" + pk);
+      // TODO catch updated usage stat from mounted usage_graph
+      this.mailbox.vent.on("update:usage", function(usage) {
+        self.model.set("usage", usage);
+        self.debug("Updated usage of prefix #", pk, "to", usage);
+      });
+    },
+
+    sortByUsage: function(evt) {
+      this.debug("Sorting children by usage");
+      evt.preventDefault();
+      evt.stopPropagation();
+      this.childrenViewComparator = function (model) {
+        return -1.0 * model.get("usage", 0);
+      };
+      this.showChildren();
+    },
+
+    sortByDefault: function(evt) {
+      this.debug("Sorting children by usage");
+      evt.preventDefault();
+      evt.stopPropagation();
+      this.childrenViewComparator = null;
+      this.showChildren();
     },
 
     // Hide/show element
@@ -281,24 +311,28 @@ define(function(require, exports, module) {
       this.debug("Toggle " + this.model.get("pk"));
     },
 
-    dhcpChange: function() {
-      console.log("wææææ, treshold changed!");
-    },
-
     // We defer drawing children to return a shallow tree faster to the user
     showChildren: function() {
-      this.debug("Rendering children for " + this.model.get("pk"));
+      this.debug("Rendering children for", this.model.get("pk"));
+      var self = this;
       var children = this.model.children;
-      this.showChildView("children", new TreeView({
+      var payload = {
         collection: children
-      }));
+      };
+      // Set comparator if any
+      if (this.childrenViewComparator) {
+        payload.viewComparator = this.childrenViewComparator;
+      }
+      this.showChildView("children", new TreeView(payload));
       this.model.set("hasShownChildren", true);
     },
 
     onBeforeShow: function() {
       var utilization = this.model.get("utilization");
       var pk = this.model.get("pk");
+      var mailbox = this.mailbox;
       this.showChildView("usage_graph", new UsageGraph({
+        mailbox: mailbox,
         model: new Models.Usage({ pk: pk }),
         utilization: utilization
       }));
@@ -312,7 +346,6 @@ define(function(require, exports, module) {
   });
 
   /* Dumb view for mounting usage graph */
-  // TODO: Add own model for fetching usage directly, avoiding having to render it in the tree?
   var UsageGraph = Marionette.View.extend({
     debug: debug.new("views:usagegraph"),
     // mock - for catching dhcp treshold change in parent?
@@ -322,12 +355,15 @@ define(function(require, exports, module) {
 
     initialize: function(opts) {
       // Fetch usage data, then draw
-      this.model.fetch().done(this.draw.bind(this, this));
+      this.model.fetch().done(this.onReceive.bind(this, this));
+      this.parent = opts.mailbox.vent;
     },
 
-    draw: function() {
-      // this.debug("Trying to draw usage graph", usage);
+    // TODO: Draw how much of the prefix has been allocated to others
+    onReceive: function() {
       var usage = this.model.get("usage");
+      // Bubble up captured value to parent model
+      this.parent.trigger("update:usage", usage);
       // don't draw unless we have some usage
       if (typeof usage === "undefined") {
         return;

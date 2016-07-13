@@ -6,12 +6,18 @@ define(function(require, exports, module) {
   var PrefixNode = Backbone.Model.extend({
     debug: debug.new("models:prefixnode"),
     defaults: {
+      // plaintext description of VLAN
       description: "",
+      // VLAN organization
       "organization": "",
+      // Primary key (in DB)
       "pk": null,
       start: new Date().toISOString(),
       end: null,
-      hasShownChildren: false
+      // Track whether or not the children have been rendered onto the DOM
+      hasShownChildren: false,
+      // Percentwise usage (active_addr/max_addr),
+      usage: 0.0
     },
 
     hasShownChildren: function() {
