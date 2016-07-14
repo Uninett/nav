@@ -17,6 +17,7 @@
 
 from django.template import RequestContext
 from django.shortcuts import render_to_response
+from nav.models.manage import NetType
 
 NAVBAR = [('Home', '/'), ('IPAM', None)]
 DEFAULT_VALUES = {'title': "IPAM", 'navpath': NAVBAR}
@@ -26,6 +27,8 @@ def index(request):
     return render_to_response("ipam/index.html", ctx, RequestContext(request))
 
 def generate_context():
-    ctx = {}
+    ctx = {
+        "net_types": NetType.objects.exclude(vlan__net_type__in=["scope", "reserved"])
+    }
     ctx.update(DEFAULT_VALUES)
     return ctx
