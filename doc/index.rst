@@ -12,6 +12,8 @@ NAV documentation
 Getting help
 ============
 
+* Check out our :doc:`/faq/faq`.
+
 * Search for information on our `wiki pages`_.
 
 * Post a question on `the nav-users mailing list`_ or search the
