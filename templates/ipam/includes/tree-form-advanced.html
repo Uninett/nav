@@ -40,13 +40,22 @@
     <input class="search-flag" type="checkbox" name="net_type" value="scope" disabled="disabled" checked>
     <label>Scope</label>
 
-    <input class="search-flag" type="checkbox" name="net_type" value="lan"
-    <%= _.contains(queryParams.net_type, "lan") ? "checked" : null %>>
-    <label>LAN</label>
-
     <input class="search-flag" type="checkbox" name="net_type" value="reserved"
     <%= _.contains(queryParams.net_type, "reserved") ? "checked" : null %>>
     <label>Reserved</label>
+
+    {% comment %}
+    yo, templates in your templates. the net_types context attribute is a list
+    of all net types registered in NAV, except scope and reserved, which are
+    given special treatment.
+    {% endcomment %}
+    {% for net_type in net_types %}
+    <input class="search-flag" type="checkbox" name="net_type" value="{{ net_type }}"
+    <%= _.contains(queryParams.net_type, '{{ net_type }}') ? "checked" : null %>>
+    <label>
+      {{ net_type }}
+    </label>
+    {% endfor %}
   </div>
 
   <!-- datetime select -->
