@@ -60,8 +60,9 @@ class PrefixQuerysetBuilder(object):
         self.queryset = queryset
         self.is_realized = False
 
-    def filter(self, *args, **kwargs):
-        self.queryset = self.queryset.filter(*args, **kwargs)
+    def filter(self, origin, *args, **kwargs):
+        if origin is not None:
+            self.queryset = self.queryset.filter(*args, **kwargs)
         return self
 
     def finalize(self):
@@ -69,20 +70,14 @@ class PrefixQuerysetBuilder(object):
         return self.queryset
 
     # Filter methods
-    def organization(self, organization):
-        if organization is None:
-            return self
-        return self.filter(vlan__organization__id__icontains=organization)
+    def organization(self, org):
+        return self.filter(org, vlan__organization__id__icontains=org)
 
-    def description(self, description):
-        if description is None:
-            return self
-        return self.filter(vlan__description__icontains=description)
+    def description(self, descr):
+        return self.filter(descr, vlan__description__icontains=descr)
 
     def vlan_number(self, vlan_number):
-        if vlan_number is None:
-            return self
-        return self.filter(vlan__vlan=vlan_number)
+        return self.filter(vlan_number, vlan__vlan=vlan_number)
 
     def net_type(self, net_type_or_net_types):
         if net_type_or_net_types is None:
@@ -90,15 +85,13 @@ class PrefixQuerysetBuilder(object):
         types = net_type_or_net_types
         if not isinstance(types, list):
             types = [types]
-        return self.filter(vlan__net_type__in=types)
+        return self.filter(types, vlan__net_type__in=types)
 
     def search(self, query):
-        if query is None:
-            return self
         q = Q()
         q.add(Q(vlan__description__icontains=query), Q.OR)
         q.add(Q(vlan__organization__id__icontains=query), Q.OR)
-        return self.filter(q)
+        return self.filter(query, q)
 
     # Mutating methods, e.g. resets the queryset
     def within(self, prefix):
@@ -179,15 +172,8 @@ class PrefixFinderSet(viewsets.ViewSet):
     def list(self, request, *args, **kwargs):
         prefixes = self.get_queryset()
         prefix = self.request.QUERY_PARAMS.get("prefix", None)
-        result = []
-        if prefix is not None:
-            base_prefix = prefix
-            used_prefixes = map(addr, prefixes)
-        else:
-            base_prefix = map(addr, prefixes)
-            used_prefixes = map(addr, get_within(prefixes))
-        result = available_subnets(base_prefix, used_prefixes)
-        # filter on size
+        result = get_available_subnets(prefix, prefixes)
+        # filter on size TODO error handling
         prefix_size = self.request.QUERY_PARAMS.get("prefix_size", None)
         if prefix_size is not None:
             prefix_size = int(prefix_size)
@@ -197,8 +183,12 @@ class PrefixFinderSet(viewsets.ViewSet):
         }
         return Response(payload, status=status.HTTP_200_OK)
 
-def addr(prefix):
-    return prefix.net_address
+def get_available_subnets(base_prefix, other_prefixes):
+    addr = lambda x: x.net_address
+    base, rest = base_prefix, map(addr, other_prefixes)
+    if base_prefix is None:
+        base, rest = rest, map(addr, get_within(other_prefixes))
+    return available_subnets(base, rest)
 
 def get_within(prefixes):
     "Return all prefixes within 'prefixes'"
