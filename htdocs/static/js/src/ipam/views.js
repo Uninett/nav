@@ -249,8 +249,6 @@ define(function(require, exports, module) {
     tagName: "li",
     className: "prefix-tree-item",
     template: "#prefix-tree-node",
-    // function to sort children in view (not in collection!)
-    childrenViewComparator: null,
 
     regions: {
       usage_graph: ".prefix-usage-graph:first",
@@ -259,8 +257,6 @@ define(function(require, exports, module) {
     },
 
     events: {
-      "click .sort-by-usage": "sortByUsage",
-      "click .sort-by-default": "sortByDefault",
       "click a.prefix-tree-item-title": "toggleOpen",
       "touchstart a.prefix-tree-item-title": "toggleOpen"
     },
@@ -268,43 +264,14 @@ define(function(require, exports, module) {
     initialize: function() {
       var self = this;
       var pk = this.model.get("pk");
+      this.debug("Mounted node #", pk);
       this.mailbox = Backbone.Wreqr.radio.channel("node" + pk);
-      // TODO catch updated usage stat from mounted usage_graph
-      this.mailbox.vent.on("update:usage", function(usage) {
+      // Using 'once' here instead of 'one' to avoid attaching multiple
+      // persistent handlers, which leaks memory.
+      this.mailbox.vent.once("update:usage", function(usage) {
         self.model.set("usage", usage);
         self.debug("Updated usage of prefix #", pk, "to", usage);
       });
-    },
-
-    sortByUsage: function(evt) {
-      this.setSortByOrder(evt, function (model) {
-        return -1.0 * model.get("usage", 0);
-      }, "Sorting children by usage");
-    },
-
-    sortByVlan: function(evt) {
-      this.setSortByOrder(evt, function (model) {
-        return -1.0 * model.get("vlan_number", 0);
-      }, "Sorting children by VLAN number");
-    },
-
-    sortByDefault: function(evt) {
-      this.setSortByOrder(evt, null, "Sorting by insertion order");
-    },
-
-    // Utility function to show any children of the prefix node in a different
-    // order than insertion (e.g. the result returned by the API). This allows
-    // us to prevent a different view without proxying the underlying collection
-    // (for example, it is rather cumbersome to cache the original object to
-    // revert to insertion order if desired by the user).
-    setSortByOrder: function(evt, comparator, description) {
-      if (description) {
-        this.debug(description);
-      }
-      evt.preventDefault();
-      evt.stopPropagation();
-      this.childrenViewComparator = comparator;
-      this.showChildren();
     },
 
     // Hide/show element
@@ -334,16 +301,17 @@ define(function(require, exports, module) {
       var payload = {
         collection: children
       };
-      // Set comparator if any
-      if (this.childrenViewComparator) {
-        payload.viewComparator = this.childrenViewComparator;
-      }
-      this.getRegion("children").reset();
       this.showChildView("children", new TreeView(payload));
       this.model.set("hasShownChildren", true);
     },
 
-    onBeforeShow: function() {
+    // Defer drawing usage to speed up rendering
+    onAttach: function() {
+      // Don't get usage for fake nodes, e.g. usually RFC1918. TODO: Maybe
+      // rewrite API to use prefix instead of PK? Seems more sensible.
+      if (this.model.get("is_mock_node", true)) {
+        return;
+      }
       var utilization = this.model.get("utilization");
       var pk = this.model.get("pk");
       var mailbox = this.mailbox;
@@ -352,6 +320,9 @@ define(function(require, exports, module) {
         model: new Models.Usage({ pk: pk }),
         utilization: utilization
       }));
+    },
+
+    onBeforeShow: function() {
       // Mount subnet component
       var prefix = this.model.get("prefix");
       this.showChildView("available_subnets", new AvailableSubnetsView({
@@ -370,6 +341,7 @@ define(function(require, exports, module) {
     },
 
     initialize: function(opts) {
+      this.debug("Mounting usage view.");
       // Fetch usage data, then draw
       this.model.fetch().done(this.onReceive.bind(this, this));
       this.parent = opts.mailbox.vent;
@@ -377,6 +349,7 @@ define(function(require, exports, module) {
 
     // TODO: Draw how much of the prefix has been allocated to others
     onReceive: function() {
+      this.debug("Received usage data");
       var usage = this.model.get("usage");
       // Bubble up captured value to parent model
       this.parent.trigger("update:usage", usage);
@@ -406,9 +379,44 @@ define(function(require, exports, module) {
 
   // Dumb container for prefix nodes, nested or otherwise
   var TreeView = Marionette.CompositeView.extend({
+    debug: debug.new("views:treeview"),
     template: "#prefix-children",
     childView: NodeView,
-    childViewContainer: ".prefix-tree-children"
+    childViewContainer: ".prefix-tree-children",
+
+    events: {
+      "click .sort-by": "onSortBy"
+    },
+
+    // TODO: Find some way to persist this to template or something
+    onSortBy: function(evt) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      var elem = this.$(evt.target);
+      var value = elem.val();
+      console.log(value);
+      if (value === "default") {
+        this.setSortByOrder(null, "Sorting by insertion order");
+      } else {
+        this.setSortByOrder(function (model) {
+          return -1.0 * model.get(value, 0);
+        }, "Sorting children by " + value);
+      }
+    },
+
+    // Utility function to show any children of the prefix node in a different
+    // order than insertion (e.g. the result returned by the API). This allows
+    // us to prevent a different view without proxying the underlying collection
+    // (for example, it is rather cumbersome to cache the original object to
+    // revert to insertion order if desired by the user).
+    setSortByOrder: function(comparator, description) {
+      if (description) {
+        this.debug(description);
+      }
+      this.viewComparator = comparator;
+      this.render();
+    }
+
   });
 
   module.exports = {
