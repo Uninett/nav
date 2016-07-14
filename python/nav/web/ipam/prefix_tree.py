@@ -133,7 +133,8 @@ class IpNodeFacade(IpNode):
         "prefixlen",
         "organization",
         "description",
-        "vlan_number"
+        "vlan_number",
+        "is_mock_node"
     ]
 
     def __init__(self, ip_addr, pk, net_type, sort_fn=None):
