@@ -21,7 +21,6 @@ contains ad-hoc serializer methods (self.fields) for API purposes.
 """
 
 from __future__ import unicode_literals
-# TODO: Remember to update IPy to 0.85 to get IPSet
 from IPy import IP, IPSet
 import json
 import copy
@@ -145,8 +144,8 @@ class IpNodeFacade(IpNode):
 
     @property
     def fields(self):
-        """Return all fields marked for serialization (in self.FIELDS) as a Python
-        dict. Also serializes children, creating a nested object.
+        """Return all fields marked for serialization (in self.FIELDS) as a
+        Python dict. Also serializes children, creating a nested object.
 
         """
         payload = {}
@@ -157,15 +156,16 @@ class IpNodeFacade(IpNode):
             except AttributeError:
                 payload[field] = None
         if self.sort_fn is not None:
-            payload["children"] = sorted([child.fields for child in self.children], key=self.sort_fn)
+            children = [child.fields for child in self.children]
+            payload["children"] = sorted(children, key=self.sort_fn)
         else:
             payload["children"] = [child.fields for child in self.children]
         return payload
 
     @property
     def vlan_number(self):
+        "Return ID number of associated VLAN"
         return getattr(self, "_vlan_number", None)
-        
 
     @property
     def ip_version(self):
@@ -229,8 +229,8 @@ class FauxNode(IpNodeFacade):
         return True
 
 class PrefixNode(IpNodeFacade):
-    "Wrapper node for Prefix results, with usage results in <starttime, endtime>"
-    def __init__(self, prefix, starttime=None, endtime=None, sort_fn=None):
+    "Wrapper node for Prefix results"
+    def __init__(self, prefix, sort_fn=None):
         self._prefix = prefix # cache of prefix
         ip_addr = prefix.net_address
         pk = prefix.pk
@@ -240,9 +240,10 @@ class PrefixNode(IpNodeFacade):
         self._organization = prefix.vlan.organization
         self._vlan_number = prefix.vlan.vlan
 
-def make_prefix_heap(prefixes, initial_children=None, family=None, interval=None, sort_fn=None):
-    """Return a prefix heap of all prefixes. Might optionally filter out IPv4 and
-IPv6 as needed
+def make_prefix_heap(prefixes, initial_children=None, family=None,
+                     sort_fn=None):
+    """Return a prefix heap of all prefixes. Might optionally filter out IPv4
+    and IPv6 as needed
 
     """
     def accept(prefix):
@@ -254,31 +255,26 @@ IPv6 as needed
             return True
         return False
 
-    starttime, endtime = interval
-
     heap = PrefixHeap(initial_children)
-    nodes = [PrefixNode(prefix, starttime, endtime, sort_fn=sort_fn) for prefix in prefixes if accept(prefix)]
+    filtered = (prefix for prefix in prefixes in accept(prefix))
+    nodes = [PrefixNode(prefix, sort_fn=sort_fn) for prefix in filtered]
     for node in sorted(nodes, reverse=False):
         heap.add(node)
     return heap
-
-
 
 SORT_BY = {
     "vlan_number": lambda x: x.vlan_number
 }
 
-# TODO: Fix argument hell
-def make_tree(prefixes, interval=None, family=None, sortBy="ip"):
+def make_tree(prefixes, family=None, sort_by="ip"):
     """Return a prefix heap initially populated with RFC1918 addresses. Accepts
 parameters rfc1918, ipv4 and ipv6 to return addresses of those respective
 families.
 
     """
-    interval = [None, None] if interval else interval
     family = {"ipv4", "ipv6"} if family is None else set(family)
     init = []
-    
+
     # Create fake RFC1918 nodes
     if "rfc1918" in family:
         family.add("ipv4")
@@ -289,12 +285,10 @@ families.
         ]
     opts = {
         "initial_children": init,
-        "interval": interval,
         "family": family,
-        "sort_fn": SORT_BY.get(sortBy, None)
+        "sort_fn": SORT_BY.get(sort_by, None)
     }
     result = make_prefix_heap(prefixes, **opts)
-    # TODO: Filter for ipv4, ipv6, probably in get_prefixes via queryset
     return result
 
 
