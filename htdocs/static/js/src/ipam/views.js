@@ -277,20 +277,33 @@ define(function(require, exports, module) {
     },
 
     sortByUsage: function(evt) {
-      this.debug("Sorting children by usage");
-      evt.preventDefault();
-      evt.stopPropagation();
-      this.childrenViewComparator = function (model) {
+      this.setSortByOrder(evt, function (model) {
         return -1.0 * model.get("usage", 0);
-      };
-      this.showChildren();
+      }, "Sorting children by usage");
+    },
+
+    sortByVlan: function(evt) {
+      this.setSortByOrder(evt, function (model) {
+        return -1.0 * model.get("vlan_number", 0);
+      }, "Sorting children by VLAN number");
     },
 
     sortByDefault: function(evt) {
-      this.debug("Sorting children by usage");
+      this.setSortByOrder(evt, null, "Sorting by insertion order");
+    },
+
+    // Utility function to show any children of the prefix node in a different
+    // order than insertion (e.g. the result returned by the API). This allows
+    // us to prevent a different view without proxying the underlying collection
+    // (for example, it is rather cumbersome to cache the original object to
+    // revert to insertion order if desired by the user).
+    setSortByOrder: function(evt, comparator, description) {
+      if (description) {
+        this.debug(description);
+      }
       evt.preventDefault();
       evt.stopPropagation();
-      this.childrenViewComparator = null;
+      this.childrenViewComparator = comparator;
       this.showChildren();
     },
 
@@ -312,6 +325,8 @@ define(function(require, exports, module) {
     },
 
     // We defer drawing children to return a shallow tree faster to the user
+    // TODO: Look into bug where the debug function is registered multiple times
+    // when sorting. Probably not killing all the child nodes or something
     showChildren: function() {
       this.debug("Rendering children for", this.model.get("pk"));
       var self = this;
@@ -323,6 +338,7 @@ define(function(require, exports, module) {
       if (this.childrenViewComparator) {
         payload.viewComparator = this.childrenViewComparator;
       }
+      this.getRegion("children").reset();
       this.showChildView("children", new TreeView(payload));
       this.model.set("hasShownChildren", true);
     },
