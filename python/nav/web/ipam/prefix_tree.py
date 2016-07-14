@@ -256,7 +256,7 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
         return False
 
     heap = PrefixHeap(initial_children)
-    filtered = (prefix for prefix in prefixes in accept(prefix))
+    filtered = (prefix for prefix in prefixes if accept(prefix))
     nodes = [PrefixNode(prefix, sort_fn=sort_fn) for prefix in filtered]
     for node in sorted(nodes, reverse=False):
         heap.add(node)
