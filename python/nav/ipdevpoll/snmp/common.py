@@ -14,10 +14,17 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 "common AgentProxy mixin"
+import time
+import logging
 from functools import wraps
+
+from twisted.internet import reactor
 from twisted.internet.defer import succeed
+from twisted.internet.task import deferLater
 
 from nav.namedtuple import namedtuple
+
+_logger = logging.getLogger(__name__)
 
 def cache_for_session(func):
     """Decorator for AgentProxyMixIn.getTable to cache responses"""
@@ -38,6 +45,23 @@ def cache_for_session(func):
 def _cache_result(result, cache, key):
     cache[key] = result
     return result
+
+
+def throttled(func):
+    """Decorator for AgentProxyMixIn.getTable to throttle requests"""
+    def _wrapper(*args, **kwargs):
+        self = args[0]
+        last_request = getattr(self, '_last_request')
+        delay = (last_request + self.throttle_delay) - time.time()
+        setattr(self, '_last_request', time.time())
+
+        if delay > 0:
+            _logger.debug("%sss delay due to throttling: %r", delay, self)
+            return deferLater(reactor, delay, func, *args, **kwargs)
+        else:
+            return func(*args, **kwargs)
+
+    return wraps(func)(_wrapper)
 
 # pylint: disable=R0903
 class AgentProxyMixIn(object):
@@ -62,6 +86,8 @@ class AgentProxyMixIn(object):
         else:
             self.snmp_parameters = SNMP_DEFAULTS
         self._result_cache = {}
+        self._last_request = 0
+        self.throttle_delay = self.snmp_parameters.throttle_delay
 
         super(AgentProxyMixIn, self).__init__(*args, **kwargs)
         # If we're mixed in with a pure twistedsnmp AgentProxy, the timeout
@@ -76,11 +102,31 @@ class AgentProxyMixIn(object):
         kwargs['maxRepetitions'] = self.snmp_parameters.max_repetitions
         return super(AgentProxyMixIn, self).getTable(*args, **kwargs)
 
+    # hey, we're mimicking someone else's API here, never mind the bollocks:
+    # pylint: disable=C0111,C0103
+    @throttled
+    def _get(self, *args, **kwargs):
+        return super(AgentProxyMixIn, self)._get(*args, **kwargs)
+
+    # hey, we're mimicking someone else's API here, never mind the bollocks:
+    # pylint: disable=C0111,C0103
+    @throttled
+    def _walk(self, *args, **kwargs):
+        return super(AgentProxyMixIn, self)._walk(*args, **kwargs)
+
+    # hey, we're mimicking someone else's API here, never mind the bollocks:
+    # pylint: disable=C0111,C0103
+    @throttled
+    def _getbulk(self, *args, **kwargs):
+        return super(AgentProxyMixIn, self)._getbulk(*args, **kwargs)
+
+
 # pylint: disable=C0103
 SNMPParameters = namedtuple('SNMPParameters',
-                            'timeout max_repetitions')
+                            'timeout max_repetitions throttle_delay')
 
-SNMP_DEFAULTS = SNMPParameters(timeout=1.5, max_repetitions=50)
+SNMP_DEFAULTS = SNMPParameters(timeout=1.5, max_repetitions=50,
+                               throttle_delay=0)
 
 # pylint: disable=W0212
 def snmp_parameter_factory(host=None):
@@ -95,8 +141,11 @@ def snmp_parameter_factory(host=None):
     from nav.ipdevpoll.config import ipdevpoll_conf as config
     params = SNMP_DEFAULTS._asdict()
 
-    for var, getter in [('max-repetitions', config.getint),
-                      ('timeout', config.getfloat)]:
+    for var, getter in [
+            ('max-repetitions', config.getint),
+            ('timeout', config.getfloat),
+            ('throttle-delay', config.getfloat),
+    ]:
         if config.has_option(section, var):
             key = var.replace('-', '_')
             params[key] = getter(section, var)
