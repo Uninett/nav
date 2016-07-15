@@ -95,6 +95,13 @@ class AgentProxyMixIn(object):
         # method calls.
         self.timeout = self.snmp_parameters.timeout
 
+    def __repr__(self):
+        return "<{module}.{klass}({ip}, ...) at {ident}>".format(
+            module=self.__class__.__module__,
+            klass=self.__class__.__name__,
+            ip=repr(self.ip),
+            ident=id(self))
+
     # hey, we're mimicking someone else's API here, never mind the bollocks:
     # pylint: disable=C0111,C0103
     @cache_for_session
