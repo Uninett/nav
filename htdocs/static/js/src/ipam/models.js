@@ -150,12 +150,19 @@ define(function(require, exports, module) {
     }
   });
 
+  var Tree = Backbone.Model.extend({
+    defaults: {
+      currentComparator: "prefix"
+    }
+  });
+
   module.exports = {
     "PrefixNodes": PrefixNodes,
     "PrefixNode": PrefixNode,
     "AvailableSubnets": AvailableSubnets,
     "Control": Control,
-    "Usage": Usage
+    "Usage": Usage,
+    "Tree": Tree
   };
 
 });

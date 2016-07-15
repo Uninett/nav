@@ -92,7 +92,13 @@ define(function(require, exports, module) {
       "input .prefix-tree-query": "updateSearch",
       "change .search-param": "updateSearch",
       "change .search-flag": "updateSearch",
+      "change .net_types": "updateNetTypes",
       "click .toggleAdvanced": "toggleAdvanced"
+    },
+
+    updateNetTypes: function(evt) {
+      var elem = $(evt.target);
+      console.log(elem.val());
     },
 
     // Activate advanced form
@@ -116,6 +122,8 @@ define(function(require, exports, module) {
           model: self.model
         }));
       }
+      // Detect select2 inputs
+      this.$el.find(".select2").select2();
     },
 
     _updateSearch: function() {
@@ -133,7 +141,7 @@ define(function(require, exports, module) {
       // Dynamically collect all inputs marked using".search-param". These
       // fields are exclusively non-nested, hence no need to collect them into
       // an array (unlike checkboxes)
-      var search_params = this.$el.find("input.search-param");
+      var search_params = this.$el.find(".search-param");
       search_params.each(function() {
         var elem = $(this);
         var param = elem.attr("name");
@@ -224,6 +232,7 @@ define(function(require, exports, module) {
 
     onBeforeShow: function() {
       this.showChildView("tree", new TreeView({
+        model: new Models.Tree(),
         collection: this.collection
       }));
     },
@@ -299,6 +308,7 @@ define(function(require, exports, module) {
       var self = this;
       var children = this.model.children;
       var payload = {
+        model: new Models.Tree(),
         collection: children
       };
       this.showChildView("children", new TreeView(payload));
@@ -383,25 +393,21 @@ define(function(require, exports, module) {
     template: "#prefix-children",
     childView: NodeView,
     childViewContainer: ".prefix-tree-children",
+    reorderOnSort: true,
+
+    // Comparator stuff
+    comparators: {
+      prefix: null,
+      vlan: function(model) {
+        return -1.0 * model.get("vlan-number", 0);
+      },
+      usage: function(model) {
+        return -1.0 * model.get("usage", 0);
+      }
+    },
 
     events: {
       "click .sort-by": "onSortBy"
-    },
-
-    // TODO: Find some way to persist this to template or something
-    onSortBy: function(evt) {
-      evt.preventDefault();
-      evt.stopPropagation();
-      var elem = this.$(evt.target);
-      var value = elem.val();
-      console.log(value);
-      if (value === "default") {
-        this.setSortByOrder(null, "Sorting by insertion order");
-      } else {
-        this.setSortByOrder(function (model) {
-          return -1.0 * model.get(value, 0);
-        }, "Sorting children by " + value);
-      }
     },
 
     // Utility function to show any children of the prefix node in a different
@@ -409,11 +415,14 @@ define(function(require, exports, module) {
     // us to prevent a different view without proxying the underlying collection
     // (for example, it is rather cumbersome to cache the original object to
     // revert to insertion order if desired by the user).
-    setSortByOrder: function(comparator, description) {
-      if (description) {
-        this.debug(description);
-      }
-      this.viewComparator = comparator;
+    onSortBy: function(evt) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      var value = this.$(evt.target).val();
+      this.debug("Ordering children by", value);
+      this.model.set("currentComparator", value);
+      var comparatorFn = this.comparators[value] || null;
+      this.viewComparator = comparatorFn;
       this.render();
     }
 
