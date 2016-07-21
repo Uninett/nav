@@ -103,22 +103,20 @@ class PrefixFinderSet(viewsets.ViewSet):
         prefix = self.request.QUERY_PARAMS.get("prefix", None)
         organization = self.request.QUERY_PARAMS.get("organization", None)
         # Build queryset
-        queryset = PrefixQuerysetBuilder().within(prefix)
+        queryset = PrefixQuerysetBuilder()
         queryset.organization(organization)
         queryset.net_type(["scope", "reserved"])
         return queryset.finalize()
 
     def list(self, request, *args, **kwargs):
         "List all available subnets for a given query"
-        prefixes = self.get_queryset()
         prefix = self.request.QUERY_PARAMS.get("prefix", None)
-        result = get_available_subnets(prefix, prefixes)
+        result = get_available_subnets(prefix)
         # filter on size TODO error handling
         prefix_size = self.request.QUERY_PARAMS.get("prefix_size", None)
         if prefix_size is not None:
             prefix_size = int(prefix_size)
             result = [prefix for prefix in result if prefix.prefixlen() <= prefix_size]
-        # breaking change TODO fix this in view code (assumes a map is returned)
         payload = [p.strNormal() for p in result]
         return Response(payload, status=status.HTTP_200_OK)
 

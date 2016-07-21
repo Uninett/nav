@@ -2,7 +2,6 @@ from nav.models.manage import Prefix
 from django.db.models import Q
 from IPy import IP, IPSet
 
-
 # Utility class (builder pattern) to get the Prefixes we want. Returns the
 # resulting queryset when 'finalize' is called.
 class PrefixQuerysetBuilder(object):
@@ -74,42 +73,25 @@ class PrefixQuerysetBuilder(object):
         self.queryset = self.queryset & Prefix.objects.contains_ip(addr)
         return self
 
-def get_available_subnets(prefix):
-    pass
+# Code finding available subnets
 
-def get_available_subnets(base_prefix, other_prefixes):
-    """Return all available subnets within base_prefixes, or if its not given,
-    returns the available subnets within other_prefixes.
+
+def get_available_subnets(prefix_or_prefixes):
+    """Get available prefixes within a list of CIDR addresses. Returns an
+    iterable IPSet of available addresses.
 
     """
-    addr = lambda x: x.net_address
-    base, rest = base_prefix, get_addresses(other_prefixes)
-    if base_prefix is None:
-        within = get_within(other_prefixes)
-        base, rest = rest, get_addresses(within)
-    return available_subnets(base, rest)
-
-def get_addresses(prefixes):
-    "Return addresses of multiple prefixes"
-    return [prefix.net_address for prefix in prefixes]
-
-def get_within(prefixes):
-    "Return all prefixes within 'prefixes'"
-    acc = Prefix.objects.within(prefixes[0].net_address)
-    for prefix in prefixes[1:]:
-        _prefixes = Prefix.objects.within(prefix.net_address)
-        acc = acc | _prefixes
-    return acc
-
-def available_subnets(base_prefixes, used_prefixes):
-    "Subtracts the netmasks of used_prefixes from base_prefixes"
-    if not isinstance(base_prefixes, list):
-        base_prefixes = [base_prefixes]
-    ips = IPSet([IP(prefix) for prefix in used_prefixes])
-    acc = IPSet([IP(base_prefix) for base_prefix in base_prefixes])
-    if not used_prefixes:
-        return acc
-    acc.discard(ips)
-    # sanity check: only show subnets for IPv6 versions
-    filtered = [ip for ip in acc if ip.version() == 4]
-    return sorted(filtered, key=lambda x: -x.prefixlen())
+    if not isinstance(prefix_or_prefixes, list):
+        prefix_or_prefixes = [prefix_or_prefixes]
+    # prefixes we are scoping our subnet search to
+    base = IPSet()
+    # prefixes in use
+    acc = IPSet()
+    for prefix in prefix_or_prefixes:
+        base.add(IP(prefix))
+        used_prefixes = PrefixQuerysetBuilder().within(prefix).finalize()
+        for used_prefix in used_prefixes:
+            acc.add(IP(used_prefix.net_address))
+    # remove used prefixes
+    base.discard(acc)
+    return base
