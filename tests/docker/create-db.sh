@@ -43,7 +43,7 @@ bootstrap_postgres_in_ram() {
     export PGDATA PGPORT PGHOST PGUSER PGDATABASE PYTHONPATH PGPASSWORD
 
     test -e "$PGDATA" && rm -rf "$PGDATA"
-    initdb -E UTF8
+    initdb -U postgres -E UTF8
 
     # Ensure the cluster will run on our selected port
     sed -i'' -e "s/^#\?port *=.*/port=$PGPORT/" "$PGDATA/postgresql.conf"
@@ -63,13 +63,15 @@ bootstrap_postgres_in_ram() {
 
 
 update_nav_db_conf() {
-
     # Update db config
-    sed -i'' -e "s,^db_nav\s*=\s*nav,db_nav=$PGDATABASE," "$BUILDDIR/etc/db.conf"
-    sed -i'' -e "s/^script_default\s*=\s*nav/script_default=$PGUSER/" "$BUILDDIR/etc/db.conf"
-    sed -i'' -e "s/^userpw_nav\s*=.*/userpw_$PGUSER=$PGPASSWORD/" "$BUILDDIR/etc/db.conf"
-    if [ -n "$PGHOST" ]; then sed -i'' -e "s/^dbhost\s*=\s*localhost/dbhost=$PGHOST/" "$BUILDDIR/etc/db.conf"; fi
-    if [ -n "$PGPORT" ]; then sed -i'' -e "s/^dbport\s*=.*/dbport=$PGPORT/" "$BUILDDIR/etc/db.conf"; fi
+    DBCONF="${BUILDDIR}/etc/db.conf"
+    cat > "$DBCONF" <<EOF
+dbhost=${PGHOST:-localhost}
+dbport=${PGPORT:-5432}
+db_nav=$PGDATABASE
+script_default=$PGUSER
+userpw_${PGUSER}=$PGPASSWORD
+EOF
 }
 
 
