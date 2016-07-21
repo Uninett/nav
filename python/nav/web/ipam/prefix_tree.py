@@ -134,7 +134,8 @@ class IpNodeFacade(IpNode):
         "organization",
         "description",
         "vlan_number",
-        "is_mock_node"
+        "is_mock_node",
+        "last_octet"
     ]
 
     def __init__(self, ip_addr, pk, net_type, sort_fn=None):
@@ -153,7 +154,7 @@ class IpNodeFacade(IpNode):
         for field in self.FIELDS:
             try:
                 value = getattr(self, field, None)
-                payload[field] = value if value else None
+                payload[field] = value
             except AttributeError:
                 payload[field] = None
         if self.sort_fn is not None:
@@ -162,6 +163,11 @@ class IpNodeFacade(IpNode):
         else:
             payload["children"] = [child.fields for child in self.children]
         return payload
+
+    @property
+    def last_octet(self):
+        "Return last octet of address"
+        return self.ip.ip & 0xFF
 
     @property
     def vlan_number(self):
@@ -242,7 +248,7 @@ class PrefixNode(IpNodeFacade):
         self._vlan_number = prefix.vlan.vlan
 
 def make_prefix_heap(prefixes, initial_children=None, family=None,
-                     sort_fn=None):
+                     sort_fn=None, show_available=False):
     """Return a prefix heap of all prefixes. Might optionally filter out IPv4
     and IPv6 as needed
 
@@ -257,17 +263,22 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
         return False
 
     heap = PrefixHeap(initial_children)
-    filtered = (prefix for prefix in prefixes if accept(prefix))
+    filtered = [prefix for prefix in prefixes if accept(prefix)]
     nodes = [PrefixNode(prefix, sort_fn=sort_fn) for prefix in filtered]
     for node in sorted(nodes, reverse=False):
         heap.add(node)
+    # create/show fake nodes
+    if show_available:
+        available = get_available_subnets(filtered)
+        for node in sorted(get_available_subnets(filtered)):
+            heap.add(node)
     return heap
 
 SORT_BY = {
     "vlan_number": lambda x: x.vlan_number
 }
 
-def make_tree(prefixes, family=None, sort_by="ip"):
+def make_tree(prefixes, family=None, show_available=False, sort_by="ip"):
     """Return a prefix heap initially populated with RFC1918 addresses. Accepts
 parameters rfc1918, ipv4 and ipv6 to return addresses of those respective
 families.
@@ -287,7 +298,8 @@ families.
     opts = {
         "initial_children": init,
         "family": family,
-        "sort_fn": SORT_BY.get(sort_by, None)
+        "sort_fn": SORT_BY.get(sort_by, None),
+        "show_available": show_available
     }
     result = make_prefix_heap(prefixes, **opts)
     return result
