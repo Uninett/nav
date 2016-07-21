@@ -65,14 +65,18 @@ run_pylint() {
 # MAIN EXECUTION POINT
 build_nav
 
+run_pylint &
+"${WORKSPACE}/tests/docker/cloc.sh" &
+
 init_db
-start_apache
+(start_apache)  # run in subprocess b/c of call to wait
 start_xvfb
 
 run_pytests
 run_jstests
-run_pylint
-for D in htdocs python; do make -C "$D" clean; done
-"${WORKSPACE}/tests/docker/cloc.sh"
+
+
+echo "Waiting for background tasks to end"
+wait
 
 echo "test.sh done"
