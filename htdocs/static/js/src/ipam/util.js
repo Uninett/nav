@@ -20,29 +20,37 @@ define(function (require, exports, module) {
   }
 
   // Remove zero elements and calculate relative steps (spanning [0, 1]) for
-  // each data element, e.g. normalization. 'valueField' is the field which will
-  // be scaled during this step to calculate the step delta.
-  function normalize(arrayOfObj, valueField, scaleFn) {
+  // each data element, e.g. normalization. 'valueFieldOrFunction' is a function
+  // that takes a data row and returns a numeric or value, or the field which
+  // will be scaled during this step to calculate the step delta. row.delta0
+  // denotes the start of the step, and delta1 denotes the end
+  function normalize(arrayOfObj, valueFieldOrFunction, scaleFn) {
+    var lookup = valueFieldOrFunction;
+    if (!_.isFunction(valueFieldOrFunction)) {
+      lookup = function(row) {
+        return row[valueFieldOrFunction];
+      };
+    }
     // initialize step
-    var x0 = 0;
+    var step = 0;
     var newData = arrayOfObj;
     // parse options
     var _scaleFn = scaleFn || function(n) { return n; };
     // remove zero rows
     newData = _.reject(newData, function (row) {
-      return row[valueField] === 0;
+      return lookup(row) === 0;
     });
     // calculate steps
     newData = _.map(newData, function (row) {
-      row.x0 = x0;
-      x0 += _scaleFn(row[valueField]);
-      row.x1 = x0;
+      row.delta0 = step;
+      step += _scaleFn(lookup(row));
+      row.delta1 = step;
       return row;
     });
     // normalize steps
     newData = _.map(newData, function (row) {
-      row.x0 /= x0;
-      row.x1 /= x0;
+      row.delta0 /= step;
+      row.delta1 /= step;
       return row;
     });
     return newData;

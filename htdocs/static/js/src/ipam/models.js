@@ -17,7 +17,9 @@ define(function(require, exports, module) {
       // Track whether or not the children have been rendered onto the DOM
       hasShownChildren: false,
       // Percentwise usage (active_addr/max_addr),
-      usage: 0.0
+      usage: 0.0,
+      // Percent of prefix allocated to other scopes/reservations
+      allocated: 0.0
     },
 
     hasShownChildren: function() {

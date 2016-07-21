@@ -260,7 +260,7 @@ define(function(require, exports, module) {
     template: "#prefix-tree-node",
 
     regions: {
-      usage_graph: ".prefix-usage-graph:first",
+      usage_graph: ".prefix-graphs:first",
       children: ".prefix-tree-children-container",
       available_subnets: ".prefix-tree-available-subnets:first"
     },
@@ -277,9 +277,10 @@ define(function(require, exports, module) {
       this.mailbox = Backbone.Wreqr.radio.channel("node" + pk);
       // Using 'once' here instead of 'one' to avoid attaching multiple
       // persistent handlers, which leaks memory.
-      this.mailbox.vent.once("update:usage", function(usage) {
-        self.model.set("usage", usage);
-        self.debug("Updated usage of prefix #", pk, "to", usage);
+      this.mailbox.vent.once("update:stats", function(stats) {
+        self.model.set("usage", stats.usage);
+        self.model.set("allocated", stats.allocated);
+        self.debug("Updated stats of prefix #", pk, "to", stats);
       });
     },
 
@@ -343,7 +344,8 @@ define(function(require, exports, module) {
   });
 
   /* Dumb view for mounting usage graph */
-  var UsageGraph = Marionette.View.extend({
+  var UsageGraph = Marionette.ItemView.extend({
+    template: "#prefix-graphs",
     debug: debug.new("views:usagegraph"),
     // mock - for catching dhcp treshold change in parent?
     triggers: {
@@ -361,17 +363,22 @@ define(function(require, exports, module) {
     onReceive: function() {
       this.debug("Received usage data");
       var usage = this.model.get("usage");
+      var allocated = this.model.get("allocated");
       // Bubble up captured value to parent model
-      this.parent.trigger("update:usage", usage);
+      this.parent.trigger("update:stats", {
+        usage: usage,
+        allocated: allocated
+      });
       // don't draw unless we have some usage
-      if (typeof usage === "undefined") {
+      if (typeof usage === "undefined" || typeof allocated === "undefined") {
         return;
       }
-      var usageElem = this.$el.find(".prefix-usage-graph");
-      var template = _.template("<span>Usage: <%= percent %> %</span>");
-      this.$el.html(template({percent: (usage * 100).toFixed(2)}));
+
+      var usageElem = this.$el.find(".usage-graph:first");
+      var usageTmpl = _.template("<span>Usage: <%= percent %> %</span>");
+      usageElem.append(usageTmpl({percent: (usage * 100).toFixed(2)}));
       viz.usageChart({
-        mountElem: this.$el.get(0),
+        mountElem: usageElem.get(0),
         width: 100,
         height: 10,
         data: [{
@@ -382,6 +389,24 @@ define(function(require, exports, module) {
           fill: "white",
           name: "Used",
           value: usage
+        }]
+      });
+
+      var allocationElem = this.$el.find(".allocation-graph:first");
+      var allocationTmpl = _.template("<span>Allocated: <%= percent %> %</span>");
+      allocationElem.append(allocationTmpl({percent: (allocated * 100).toFixed(2)}));
+      viz.usageChart({
+        mountElem: allocationElem.get(0),
+        width: 100,
+        height: 10,
+        data: [{
+          fill: "lightsteelblue",
+          name: "Available",
+          value: 1.0 - allocated
+        },{
+          fill: "white",
+          name: "Allocated",
+          value: allocated
         }]
       });
     }
@@ -403,6 +428,9 @@ define(function(require, exports, module) {
       },
       usage: function(model) {
         return -1.0 * model.get("usage", 0);
+      },
+      allocated: function(model) {
+        return -1.0 * model.get("allocated", 0);
       }
     },
 
