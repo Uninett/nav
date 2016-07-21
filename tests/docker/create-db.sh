@@ -43,7 +43,7 @@ bootstrap_postgres_in_ram() {
     export PGDATA PGPORT PGHOST PGUSER PGDATABASE PYTHONPATH PGPASSWORD
 
     test -e "$PGDATA" && rm -rf "$PGDATA"
-    initdb -E UTF8
+    initdb -U ${PGUSER} -E UTF8
 
     # Ensure the cluster will run on our selected port
     sed -i'' -e "s/^#\?port *=.*/port=$PGPORT/" "$PGDATA/postgresql.conf"
