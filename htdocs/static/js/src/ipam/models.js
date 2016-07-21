@@ -129,7 +129,9 @@ define(function(require, exports, module) {
       this.parse = function(resp) {
         this.debug("Received response from " + this.url(), resp);
         this.set("hide", false);
-        return resp;
+        return {
+          available_subnets: resp
+        };
       };
     }
   });
