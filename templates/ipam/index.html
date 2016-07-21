@@ -53,19 +53,29 @@
     <% } %>
   </script>
 
+  <script type="text/template" id="prefix-graphs">
+    <div class="usage-graph"></div>
+    <div class="allocation-graph"></div>
+  </script>
+
   <script type="text/template" id="prefix-list">
     {% include "ipam/includes/tree-root.html" %}
   </script>
 
   <script type="text/template" id="prefix-children">
     <div class="tree-control">
-      <label>Order by</label>
       <select name="item-order" class="sort-by">
-        <% _.each(["prefix", "vlan", "usage"], function(opt) { %>
-        <% if (opt === currentComparator) { %>
-        <option value="<%= opt %>" selected><%= opt %></option>
+        <% _.each([
+        {name: "prefix (CIDR)", unit: "prefix"},
+        {name: "VLAN number", unit: "vlan"},
+        {name: "usage (%)", unit: "usage"},
+        {name: "allocated (%)", unit: "allocated"}
+        ],
+        function(opt) { %>
+        <% if (opt.unit === currentComparator) { %>
+        <option value="<%= opt.unit %>" selected>Order by <%= opt.name %></option>
         <% } else { %>
-        <option value="<%= opt %>"><%= opt %></option>
+        <option value="<%= opt.unit %>">Order by <%= opt.name %></option>
         <% }}) %>
       </select>
     </div>

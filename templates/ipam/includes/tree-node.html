@@ -10,7 +10,7 @@
     <% if (length > 0) { %>
   (<%= length %> children)
   <% } %>
-  <div class="prefix-usage-graph">
+  <div class="prefix-graphs">
   </div>
 </a>
 <div id="prefix-<%= pk %>" class="content prefix-tree-item-content">
@@ -18,9 +18,6 @@
     <% if (edit_url) { %>
     <a class="button small" href="<%= edit_url %>">Edit</a>
     <% } %>
-    <div id="prefix-graph-<%= pk %>">
-      <!-- container for usage graph -->
-    </div>
     <% if (description && organization) { %>
     <ul class="prefix-metadata">
       <li><strong>Organization:</strong> <%= organization %></li>
