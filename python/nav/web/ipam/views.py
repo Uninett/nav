@@ -26,6 +26,10 @@ def index(request):
     ctx = generate_context()
     return render_to_response("ipam/index.html", ctx, RequestContext(request))
 
+def matrix(request):
+    ctx = {}
+    return render_to_response("ipam/matrix.html", ctx, RequestContext(request))
+
 def generate_context():
     ctx = {
         "net_types": NetType.objects.exclude(vlan__net_type__in=["scope", "reserved"])

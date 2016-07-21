@@ -23,10 +23,11 @@ Exposes a private, read-only API (self/api) for search purposes mostly.
 
 from django.conf.urls import url, patterns, include
 
-from nav.web.ipam.views import index
+from nav.web.ipam.views import index, matrix
 from nav.web.ipam.api import router
 
 urlpatterns = patterns('',
     url(r'^$', index),
+    url(r'^matrix', matrix),
     url(r'^api', include(router.urls))
 )

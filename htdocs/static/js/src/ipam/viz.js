@@ -139,8 +139,8 @@ define(function (require, exports, module) {
             return "#ccc";
           })
           .style("stroke-width", 0.25)
-          .attr("x", function(d) { return xScale(d.x1); })
-          .attr("width", function(d) { return xScale(d.x0) - xScale(d.x1) - padding; })
+          .attr("x", function(d) { return xScale(d.delta1); })
+          .attr("width", function(d) { return xScale(d.delta0) - xScale(d.delta1) - padding; })
           .style("fill", function(d) {
             if (d.prefix === "available") {
               // TODO: Use some kind of green highlight color?
@@ -161,8 +161,8 @@ define(function (require, exports, module) {
       .attr("transform", function(d) {
         return util.translate(0, yScale.rangeBand() - getMaskHeight(d));
       })
-      .attr("x", function(d) { return xScale(d.x1); })
-      .attr("width", function(d) { return xScale(d.x0) - xScale(d.x1) - padding; })
+      .attr("x", function(d) { return xScale(d.delta1); })
+      .attr("width", function(d) { return xScale(d.delta0) - xScale(d.delta1) - padding; })
       .style("fill", "steelblue")
       .on("mouseover", function(d) { console.log(d); });
   }
@@ -201,7 +201,7 @@ define(function (require, exports, module) {
           .attr("class", "usage-graph-bar");
 
     bars.append("rect")
-      .attr("x", function(d) { return xScale(d.x1); })
+      .attr("x", function(d) { return xScale(d.delta1); })
       .style("fill", function(d) {
         if (typeof d.fill === "undefined") {
           return colors(d.name);
@@ -209,13 +209,95 @@ define(function (require, exports, module) {
         return d.fill;
       })
       .attr("height", yScale.rangeBand())
-      .attr("width", function(d) { return xScale(d.x0) - xScale(d.x1); });
+      .attr("width", function(d) { return xScale(d.delta0) - xScale(d.delta1); });
 
     // TODO: add tooltip
   }
 
+
+
+
+  // SUBnet matrix impl
+
+  var IP_BITS = 32;
+  var MATRIX_BITS = 8;
+  function rowSpan(row) {
+    return Math.pow(2, IP_BITS - MATRIX_BITS - row.prefixlen);
+  }
+
+
+  function subnetMatrix(inOpts) {
+    var opts = _.extend(DEFAULT_OPTS, inOpts);
+    var mountElem = opts.mountElem;
+    var inData = opts.data;
+    // size options
+    var width = opts.width;
+    var height = opts.height;
+    var margin = opts.margin;
+    var padding = opts.padding;
+    var bitsInMatrix = 8;
+
+    // todo: calculate height of each element (rowspan), use this to create offset.
+    // width will be proportional to prefixlen (row width = 32 bits for IPv4)
+
+    // Normalize data and calculate steps for height
+    var data = util.normalize(inData, function(row) {
+        return 32 - row.prefixlen;
+    }, opts.scaleFn);
+    console.log(data);
+
+    // Width is based on host octet (assumed  to be last octet)
+    var xScale = d3.scale.linear().range([width, 0]).domain([1, 32]);
+    var xOffset = d3.scale.linear().range([width, 0]).domain([255, 0]);
+
+    // Height is based on number of potential subnets (see rowHeight)
+    var yScale = d3.scale.linear().range([0, height]).domain([0, 1]);
+
+    var colors = d3.scale.category20();
+    colors.domain(_.map(data, function(d){ return d.prefix; }));
+
+
+    // === Drawing phase
+    var svg = d3.select(mountElem)
+          .append("svg")
+          //.attr("preserveAspectRatio", "xMinYMax slice")
+          .attr("viewBox", viewbox({width: width, height: height}))
+          .append("g");
+
+    var subnets = svg.selectAll(".subnets")
+          .data(data)
+          .enter()
+          .append("g")
+          .attr("class", "subnets");
+
+    subnets.append("rect")
+      .attr("x", function (d) {
+        return xOffset(d.last_octet);
+      }).attr("y", function (d) {
+        return yScale(d.delta0);
+      })
+      .style("fill", function(d) {
+        return colors(d.prefix);
+      })
+      .attr("height", function (d) { return yScale(d.delta1 - d.delta0); } )
+      .attr("width", function(d) { return xScale(d.prefixlen); });
+
+    subnets.append("text")
+      .attr("x", function (d) {
+        return xOffset(d.last_octet);
+      }).attr("y", function (d) {
+        var middle = Math.abs((d.delta1 - d.delta0) / 2.0);
+        return yScale(d.delta0 + middle);
+      })
+      .text(function(d) {
+        return d.prefix + ": " + d.description;
+      });
+
+  }
+
   module.exports = {
     "subnetChart": subnetChart,
-    "usageChart": usageChart
+    "usageChart": usageChart,
+    "subnetMatrix": subnetMatrix
   };
 });
