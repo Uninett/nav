@@ -15,24 +15,15 @@
 #
 """Selenium tests for simple searches on the navbar"""
 
-from nav.tests.selenium import LoggedInSeleniumTest
+def test_simple_ip_search_should_return_result(selenium, base_url):
+    """Tests a search for an IP address"""
+    selenium.get('{}/'.format(base_url))
+    query = selenium.find_element_by_id('query')
+    search_button = selenium.find_element_by_css_selector(
+        "input.button[type='submit']")
 
-
-class NavBarSeleniumTest(LoggedInSeleniumTest):
-    """Testrunner for the Status page"""
-
-    def setUp(self):
-        """Setup"""
-        super(NavBarSeleniumTest, self).setUp()
-        self.driver.get(self.get_url('/'))
-        self.query = self.driver.find_element_by_id('query')
-        self.search_button = self.driver.find_element_by_css_selector(
-                "input.button[type='submit']")
-
-    def test_simple_ip_search(self):
-        """Tests a search for an IP address"""
-        ipaddr = "192.168.42.42"
-        self.query.send_keys(ipaddr)
-        self.search_button.click()
-        caption = self.driver.find_element_by_tag_name('caption')
-        self.assertIn(ipaddr, caption.text)
+    ipaddr = "192.168.42.42"
+    query.send_keys(ipaddr)
+    search_button.click()
+    caption = selenium.find_element_by_tag_name('caption')
+    assert ipaddr in caption.text

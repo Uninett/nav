@@ -16,13 +16,6 @@
 # pylint: disable=C0111, R0904
 """Selenium tests for arnold"""
 
-from nav.tests.selenium import LoggedInSeleniumTest
-
-
-class ArnoldSeleniumTest(LoggedInSeleniumTest):
-    """Testrunner for the Arnold page"""
-
-    def test_should_default_to_detained_ports(self):
-        self.driver.get(self.get_url('/arnold/'))
-        title = self.driver.title
-        self.assertTrue('Detentions' in title)
+def test_title_should_contain_detentions(selenium, base_url):
+    selenium.get('{}/arnold/'.format(base_url))
+    assert 'Detentions' in selenium.title

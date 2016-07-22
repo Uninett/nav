@@ -16,17 +16,12 @@
 # pylint: disable=C0111, R0904
 """Selenium tests for geomap"""
 
-from nav.tests.selenium import LoggedInSeleniumTest
 from selenium.common.exceptions import NoSuchElementException
 
-
-class GeoMapSeleniumTest(LoggedInSeleniumTest):
-    """Testrunner for the GeoMap page"""
-
-    def test_map_loaded(self):
-        """Test if map is loaded"""
-        self.driver.get(self.get_url('/geomap/'))
-        try:
-            self.driver.find_element_by_class_name('olMapViewport')
-        except NoSuchElementException:
-            self.fail('GeoMap seems to not have loaded')
+def test_geomap_loaded(selenium, base_url):
+    """Test if map is loaded"""
+    selenium.get('{}/geomap/'.format(base_url))
+    try:
+        selenium.find_element_by_class_name('olMapViewport')
+    except NoSuchElementException:
+        assert False, 'GeoMap seems to not have loaded'

@@ -47,7 +47,13 @@ run_pytests() {
     cd "${WORKSPACE}/tests"
     py.test --junitxml=unit-results.xml --verbose unittests
     py.test --junitxml=integration-results.xml --verbose integration
-    py.test --junitxml=functional-results.xml --verbose functional
+    py.test --junitxml=functional-results.xml \
+	    --verbose \
+	    --driver Firefox \
+	    --base-url "$TARGETURL" \
+	    --sensitive-url "nothing to see here" \
+	    --html functional-report.html \
+	    functional
 
     echo Python tests are done
 }
