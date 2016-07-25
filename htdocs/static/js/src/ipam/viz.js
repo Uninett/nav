@@ -10,6 +10,7 @@ define(function (require, exports, module) {
   var _ = require("libs/underscore");
   var util = require("src/ipam/util");
   var d3tip = require("d3tip");
+  var d3v4 = require("d3v4");
 
   // === Tooltip (+ template)
   var tip = d3tip()
@@ -292,12 +293,86 @@ define(function (require, exports, module) {
       .text(function(d) {
         return d.prefix + ": " + d.description;
       });
-
   }
+
+  var allocationMatrix = function(inOpts) {
+    var opts = _.extend(DEFAULT_OPTS, inOpts);
+    var width = opts.width;
+    var height = opts.height;
+    var mountElem = opts.mountElem;
+    var data = opts.data.children[0];
+
+    var xScale = d3v4.scaleLinear().range([0, width]).domain([0, 256]);
+    var yScale = d3v4.scaleLinear().range([0, height]);
+
+    var getWidth = function(d) {
+      return d.x1 - d.x0;
+    };
+
+    var colors = function (d) {
+      if (d.data.net_type === "available") {
+        return d3.hsl(120, 1, 0.5);
+      }
+      if (d.data.net_type === "empty") {
+        return d3.hsl(0, 0, 1);
+      }
+      return d3.hsl(0, 0, 0.87);
+    };
+
+    // split into hierarchical data
+    var partition = d3v4.partition()
+          .size([width, height]);
+    var root = d3v4.hierarchy(data);
+
+    // Set 
+    root.each(function (node) {
+      if (typeof node.data.prefixlen === "undefined") return;
+      node.value = Math.pow(2, 32 - node.data.prefixlen);
+    });
+    console.log("2222", root);
+    partition(root);
+
+    console.log(root);
+
+    var svg = d3v4.select(mountElem)
+          .append("svg")
+          .attr("class", "matrix")
+          .attr("width", width)
+          .attr("height", height);
+
+    var subnet = svg.selectAll("g")
+          .data(root.descendants())
+          .enter()
+          .append("g")
+          .attr("class", "matrix-subnet")
+          .attr("transform", function(d) { return "translate(" + d.x0 + "," + d.y0 + ")"; })
+          .on("click", function(d) { console.log(d.data); }) ;
+
+    var subnetRect = subnet.append("rect")
+          .attr("class", "matrix-subnet-rect")
+          .attr("width", function(d) { return d.x1 - d.x0; })
+          .attr("height", function(d) { return d.y1 - d.y0; })
+          .attr("fill", colors)
+          .attr("stroke", function(d) { return colors(d).darker(1); });
+
+    var textTreshold = 20;
+    var subnetText = subnet.append("text");
+
+    subnetText.append("tspan")
+      .attr("class", "matrix-subnet-length")
+      .attr("dy", "1em")
+      .text(function(d) {
+        return d.data.prefixlen;
+      });
+
+
+    // TODO: use known example, but put transform/translate on g group according to value of last octet
+  };
 
   module.exports = {
     "subnetChart": subnetChart,
     "usageChart": usageChart,
-    "subnetMatrix": subnetMatrix
+    "subnetMatrix": subnetMatrix,
+    "allocationMatrix": allocationMatrix
   };
 });

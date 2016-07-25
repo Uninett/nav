@@ -57,6 +57,17 @@ define(function(require, exports, module) {
       this.debug("Mounted subnet component for " + opts.prefix);
     },
 
+    onReceive: function() {
+      var target = this.$el.find(".allocation-tree:first").get(0);
+      var data = this.model.get("data");
+      viz.allocationMatrix({
+        data: { prefix: "*", children: data },
+        mountElem: target,
+        width: 1024,
+        height: 200
+      });
+    },
+
     hide: function(evt) {
       evt.preventDefault();
       evt.stopPropagation();
@@ -75,7 +86,7 @@ define(function(require, exports, module) {
       this.debug("Trying to get subnets for " + prefix);
       // cache xhr object
       this.xhr = this.model.fetch({reset: true});
-      this.xhr.done(this.render);
+      this.xhr.done(this.onReceive.bind(this, this));
     }
   });
 
