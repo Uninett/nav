@@ -12,6 +12,7 @@ var require = {
         "netmap": "src/netmap",
         "status": "src/status2",
         "d3": "libs/d3.min",
+        "d3v4": "libs/d3.v4.min",
         "d3tip": "libs/d3tip.min",
         "nav-url-utils": "src/plugins/nav-url-utils",
          "rickshaw-utils": "src/plugins/rickshaw-utils",
