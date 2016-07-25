@@ -83,15 +83,17 @@ def get_available_subnets(prefix_or_prefixes):
     """
     if not isinstance(prefix_or_prefixes, list):
         prefix_or_prefixes = [prefix_or_prefixes]
+    base_prefixes = [str(prefix) for prefix in prefix_or_prefixes]
     # prefixes we are scoping our subnet search to
     base = IPSet()
     # prefixes in use
     acc = IPSet()
-    for prefix in prefix_or_prefixes:
+    for prefix in base_prefixes:
         base.add(IP(prefix))
         used_prefixes = PrefixQuerysetBuilder().within(prefix).finalize()
         for used_prefix in used_prefixes:
             acc.add(IP(used_prefix.net_address))
     # remove used prefixes
     base.discard(acc)
-    return base
+    # filter away original prefixes
+    return sorted([ip for ip in base if str(ip) not in base_prefixes])

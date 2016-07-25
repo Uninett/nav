@@ -26,7 +26,7 @@ from rest_framework.decorators import detail_route
 from django.db.models import Q
 from IPy import IPSet, IP
 
-from .prefix_tree import make_tree
+from .prefix_tree import make_tree, make_tree_from_ip
 
 from nav.models.manage import Prefix
 from nav.web.api.v1.serializers import PrefixSerializer
@@ -45,7 +45,7 @@ class PrefixViewSet(viewsets.ViewSet):
 
     def get_queryset(self):
         # Extract filters etc
-        net_types = self.request.QUERY_PARAMS.getlist("net_type", ["scope"])
+        net_types = self.request.QUERY_PARAMS.getlist("net_type", ["scope", "reserved"])
         search = self.request.QUERY_PARAMS.get("search", None)
         organization = self.request.QUERY_PARAMS.get("organization", None)
         vlan_number = self.request.QUERY_PARAMS.get("vlan", None)
@@ -53,12 +53,12 @@ class PrefixViewSet(viewsets.ViewSet):
         within = self.request.QUERY_PARAMS.get("within", None)
         # Build queryset
         queryset = PrefixQuerysetBuilder()
+        queryset.within(within)
         queryset.net_type(net_types)
         queryset.search(search)
         queryset.organization(organization)
         queryset.vlan_number(vlan_number)
         queryset.contains_ip(ip)
-        queryset.within(within)
         return queryset.finalize()
 
     @detail_route(methods=["get"])
@@ -86,10 +86,11 @@ class PrefixViewSet(viewsets.ViewSet):
         "List a tree-like structure of all prefixes matching the query"
         prefixes = self.get_queryset()
         family = self.request.QUERY_PARAMS.getlist("type", ["ipv4"])
-        # create fake nodes to symbolize fake nodes
-        show_available = self.request.QUERY_PARAMS.get("show_available", False)
-        result = make_tree(prefixes, family=family, show_available=show_available)
-        return Response(result.fields["children"], status=status.HTTP_200_OK)
+        within = self.request.QUERY_PARAMS.get("within", None)
+        show_all = self.request.QUERY_PARAMS.get("show_all", None)
+        result = make_tree(prefixes, root_ip=within, family=family, show_all=show_all)
+        payload = result.fields["children"]
+        return Response(payload, status=status.HTTP_200_OK)
 
 class PrefixFinderSet(viewsets.ViewSet):
     "Utility view for finding available subnets"
@@ -118,6 +119,11 @@ class PrefixFinderSet(viewsets.ViewSet):
             prefix_size = int(prefix_size)
             result = [prefix for prefix in result if prefix.prefixlen() <= prefix_size]
         payload = [p.strNormal() for p in result]
+        payload = {
+            "prefix": prefix,
+            "prefixlen": prefix.split("/")[1],
+            "children": make_tree_from_ip(result).fields["children"]
+        }
         return Response(payload, status=status.HTTP_200_OK)
 
 router = routers.SimpleRouter()

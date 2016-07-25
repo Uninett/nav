@@ -27,6 +27,8 @@ import copy
 
 from django.core.urlresolvers import reverse, NoReverseMatch
 
+from nav.web.ipam.util import get_available_subnets
+
 class PrefixHeap(object):
     "Pseudo-heap ordered topologically by prefixes"
     def __init__(self, children=None):
@@ -55,17 +57,21 @@ class PrefixHeap(object):
     @property
     def walk(self):
         "List of all the nodes (preorder walk)."
-        acc = []
-        queue = [self]
+        queue = []
+        queue.extend(self.children)
         while queue:
             _node = queue.pop()
             # remove children to avoid duplication
-            node = copy.deepcopy(_node.fields)
-            del node["children"]
-            acc.append(node)
             if not _node.is_leaf:
                 queue.extend(_node.children)
-        return acc
+            yield _node
+
+    @property
+    def walk_roots(self):
+        "Walk non-leaf nodes in heap (preorder)"
+        for node in self.walk:
+            if not node.is_leaf:
+                yield node
 
     @property
     def json(self):
@@ -90,6 +96,12 @@ class PrefixHeap(object):
         self.children.append(node)
         self.children.sort()
 
+    def add_many(self, nodes):
+        "Add multiple nodes to heap"
+        for node in nodes:
+            self.add(node)
+
+
 # To maintain our sanity, we need a somewhat decent contract between the view
 # and any controller logic. The solution is to use the Facade pattern, which
 # wraps internal complexities (serialization, nested attributes and so on) and
@@ -106,6 +118,17 @@ class IpNode(PrefixHeap):
     def ip(self):
         "Return the IP object of the node"
         return self._ip
+
+    def not_in_use(self):
+        "Show unused subnets in the CIDR range"
+        base_set = IPSet([self.ip])
+        for child in self.children:
+            base_set.discard(child.ip)
+        return base_set.prefixes
+
+    def in_use(self):
+        "Show allocated *used( subnets in the CIDR range"
+        return IPSet([child.ip for child in self.children])
 
     # Comparison utilities
     def __contains__(self, other):
@@ -135,7 +158,8 @@ class IpNodeFacade(IpNode):
         "description",
         "vlan_number",
         "is_mock_node",
-        "last_octet"
+        "last_octet",
+        "bits"
     ]
 
     def __init__(self, ip_addr, pk, net_type, sort_fn=None):
@@ -143,6 +167,10 @@ class IpNodeFacade(IpNode):
         self.pk = pk
         self.net_type = net_type
         self.sort_fn = sort_fn
+
+    @property
+    def bits(self):
+        return self.ip.ip
 
     @property
     def fields(self):
@@ -248,7 +276,7 @@ class PrefixNode(IpNodeFacade):
         self._vlan_number = prefix.vlan.vlan
 
 def make_prefix_heap(prefixes, initial_children=None, family=None,
-                     sort_fn=None, show_available=False):
+                     sort_fn=None, show_available=False, show_unused=False):
     """Return a prefix heap of all prefixes. Might optionally filter out IPv4
     and IPv6 as needed
 
@@ -267,18 +295,38 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
     nodes = [PrefixNode(prefix, sort_fn=sort_fn) for prefix in filtered]
     for node in sorted(nodes, reverse=False):
         heap.add(node)
-    # create/show fake nodes
+    # Add marker nodes for available ranges/prefixes
     if show_available:
-        available = get_available_subnets(filtered)
-        for node in sorted(get_available_subnets(filtered)):
-            heap.add(node)
+        subnets = (get_available_nodes([child.ip]) for child in heap.walk_roots)
+        for subnet in subnets:
+            heap.add_many(subnet)
+    # Add marker nodes for empty ranges, e.g. ranges not spanned by the
+    # children of a node. This is useful for aligning visualizations and so on.
+    if show_unused:
+        unused_prefixes = (child.not_in_use() for child in heap.walk_roots)
+        for unused_prefix in unused_prefixes:
+            nodes = nodes_from_ips(unused_prefix, type="empty")
+            heap.add_many(nodes)
     return heap
 
 SORT_BY = {
     "vlan_number": lambda x: x.vlan_number
 }
 
-def make_tree(prefixes, family=None, show_available=False, sort_by="ip"):
+def get_available_nodes(ips):
+    """Find available subnets for each IP in 'ips' and return them as
+    FauxNodes.
+
+    """
+    available_nodes = get_available_subnets(ips)
+    return nodes_from_ips(available_nodes, type="available")
+
+def nodes_from_ips(ips, type="empty"):
+    "Turn a list of IPs into FauxNodes"
+    return [FauxNode(ip, ip.strNormal(), type) for ip in ips]
+
+
+def make_tree(prefixes, family=None, root_ip=None, show_all=None, sort_by="ip"):
     """Return a prefix heap initially populated with RFC1918 addresses. Accepts
 parameters rfc1918, ipv4 and ipv6 to return addresses of those respective
 families.
@@ -286,6 +334,9 @@ families.
     """
     family = {"ipv4", "ipv6"} if family is None else set(family)
     init = []
+
+    if root_ip is not None:
+        init.append(FauxNode(root_ip, "root-node", "root-node"))
 
     # Create fake RFC1918 nodes
     if "rfc1918" in family:
@@ -299,9 +350,20 @@ families.
         "initial_children": init,
         "family": family,
         "sort_fn": SORT_BY.get(sort_by, None),
-        "show_available": show_available
+        "show_available": show_all,
+        "show_unused": show_all
     }
     result = make_prefix_heap(prefixes, **opts)
     return result
+
+def make_tree_from_ip(cidr_addresses):
+    "Like make_tree, but for strings of CIDR addresses"
+    heap = PrefixHeap()
+    for addr in cidr_addresses:
+        prefix = FauxNode(addr, "available", "available")
+        heap.add(prefix)
+    return heap
+
+
 
 
