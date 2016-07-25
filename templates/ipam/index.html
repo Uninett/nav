@@ -37,20 +37,12 @@
 
   <script type="text/template" id="prefix-available-subnets">
     <% if (hide) { %>
-    <button class="fetch-subnets small btn">Show available subnets</button>
+    <button class="fetch-subnets small btn">Show allocation tree</button>
     <% } else { %>
-    <button class="hide-subnets small btn">Hide subnets</button>
-    <h3>Available subnets</h3>
-    <p><em>(based on reserved prefixes and scopes)</em></p>
-    <% if (available_subnets.length == 0) { %>
-    None available.
+    <button class="hide-subnets small btn">Hide allocation tree</button>
     <% } %>
-    <ul class="subnets">
-      <% _.forEach(available_subnets, function (subnet) { %>
-      <li><strong><%= subnet %></strong>. <a href="#">Create a reservation?</a></li>
-      <% }) %>
-    </ul>
-    <% } %>
+    <div class="allocation-tree">
+    </div>
   </script>
 
   <script type="text/template" id="prefix-graphs">
