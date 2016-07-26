@@ -109,10 +109,11 @@ define(function(require, exports, module) {
   // Calls to available subnets API
   var AvailableSubnets = Backbone.Model.extend({
     debug: debug.new("models:availablesubnets"),
-    urlTemplate: _.template("/ipam/api/?type=ipv4&within=<%= prefix %>&show_all=True"),
+    urlTemplate: _.template("/ipam/api/?type=ipv4&net_type=all&within=<%= prefix %>&show_all=True"),
 
     defaults: {
-      data: {},
+      raw_data: {},
+      data: [],
       hide: true,
       queryParams: {
         prefix: "10.0.0.0/16"
@@ -128,7 +129,7 @@ define(function(require, exports, module) {
       this.parse = function(resp) {
         this.debug("Received response from " + this.url(), resp);
         this.set("hide", false);
-        return { data: resp };
+        return { raw_data: resp };
       };
     }
   });

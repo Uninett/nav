@@ -5,13 +5,13 @@ define(function(require, exports, module) {
   var Marionette = require("marionette");
 
   var Models = require("src/ipam/models");
-  var viz = require("src/ipam/viz");
+  var Views = require("src/ipam/views/index");
+  var Viz = require("src/ipam/viz");
 
-  // Global communication channel with main app
+  var debug = require("src/ipam/util").ipam_debug;
   var globalCh = Backbone.Wreqr.radio.channel("global");
-  var nodeCh = Backbone.Wreqr.radio.channel("nodes");
 
-  // Utility object for flashing
+
   var flash = {
     call: function(klass, msg) {
       globalCh.vent.trigger("flash", klass, msg);
@@ -31,154 +31,6 @@ define(function(require, exports, module) {
       globalCh.vent.trigger("flash:reset");
     }
   };
-
-  // Logging factory
-  var debug = require("src/ipam/util").ipam_debug;
-
-  // Subview for available subnets for the current prefix/scope
-  var AvailableSubnetsView = Marionette.ItemView.extend({
-    debug: debug.new("views:available_subnets"),
-    template: "#prefix-available-subnets",
-    events: {
-      "click .fetch-subnets": "fetch",
-      "click .hide-subnets": "hide"
-    },
-
-    modelEvents: {
-      "change": "render"
-    },
-
-    initialize: function(opts) {
-      this.model = new Models.AvailableSubnets({
-        queryParams: {
-          prefix: opts.prefix
-        }
-      });
-      this.debug("Mounted subnet component for " + opts.prefix);
-    },
-
-    onReceive: function() {
-      var target = this.$el.find(".allocation-tree:first").get(0);
-      var data = this.model.get("data");
-      viz.allocationMatrix({
-        data: { prefix: "*", children: data },
-        mountElem: target,
-        width: 1024,
-        height: 200
-      });
-    },
-
-    hide: function(evt) {
-      evt.preventDefault();
-      evt.stopPropagation();
-      this.$el.find(".subnets:first").hide();
-      this.model.set("hide", true);
-    },
-
-    fetch: function(evt) {
-      evt.preventDefault();
-      evt.stopPropagation();
-      this.refetch();
-    },
-
-    refetch: function() {
-      var prefix = this.model.get("queryParams").prefix;
-      this.debug("Trying to get subnets for " + prefix);
-      // cache xhr object
-      this.xhr = this.model.fetch({reset: true});
-      this.xhr.done(this.onReceive.bind(this, this));
-    }
-  });
-
-  // Control form for tree
-  var ControlView = Marionette.LayoutView.extend({
-    debug: debug.new("views:control"),
-    template: "#prefix-control-form",
-
-    regions: {
-      "advanced": ".prefix-control-form-advanced"
-    },
-
-    events: {
-      "input .prefix-tree-query": "updateSearch",
-      "change .search-param": "updateSearch",
-      "change .search-flag": "updateSearch",
-      "change .net_types": "updateNetTypes",
-      "click .toggleAdvanced": "toggleAdvanced"
-    },
-
-    updateNetTypes: function(evt) {
-      var elem = $(evt.target);
-      console.log(elem.val());
-    },
-
-    // Activate advanced form
-    toggleAdvanced: function() {
-      var advancedSearch = this.model.get("advancedSearch");
-      this.debug("Displaying advanced search => " + !advancedSearch);
-      this.model.set("advancedSearch", !advancedSearch);
-      this.render();
-      // make datetimepicker detect forms
-      $(".datetimepicker").datetimepicker({
-        'dateFormat': 'yy-mm-dd',
-        'timeFormat': 'HH:mm'
-      });
-    },
-
-    onRender: function() {
-      var advancedSearch = this.model.get("advancedSearch");
-      var self = this;
-      if (advancedSearch) {
-        this.showChildView("advanced", new ControlAdvancedView({
-          model: self.model
-        }));
-      }
-      // Detect select2 inputs
-      this.$el.find(".select2").select2();
-    },
-
-    _updateSearch: function() {
-      var params = {};
-      // handle check boxes
-      var checked = this.$el.find("input.search-flag:checked");
-      checked.each(function() {
-        var elem = $(this);
-        var param = elem.attr("name");
-        var param_field = params[param] || [];
-        param_field.push(elem.val());
-        params[param] = param_field;
-      });
-
-      // Dynamically collect all inputs marked using".search-param". These
-      // fields are exclusively non-nested, hence no need to collect them into
-      // an array (unlike checkboxes)
-      var search_params = this.$el.find(".search-param");
-      search_params.each(function() {
-        var elem = $(this);
-        var param = elem.attr("name");
-        var value = elem.val();
-        if (!value) {
-          return;
-        }
-        params[param] = value;
-      });
-
-      // handle search string
-      params["search"] = this.$el.find("#prefix-tree-query").val();
-      // update globally
-      this.model.set("queryParams", params);
-      globalCh.vent.trigger("search:update", params);
-    },
-
-    initialize: function() {
-      this.updateSearch = _.throttle(this._updateSearch, 1000);
-    }
-
-  });
-
-  var ControlAdvancedView = Marionette.ItemView.extend({
-    template: "#prefix-control-form-advanced"
-  });
 
   // Base of tree
   var RootView = Marionette.LayoutView.extend({
@@ -337,7 +189,7 @@ define(function(require, exports, module) {
       var utilization = this.model.get("utilization");
       var pk = this.model.get("pk");
       var mailbox = this.mailbox;
-      this.showChildView("usage_graph", new UsageGraph({
+      this.showChildView("usage_graph", new Views.UsageGraph({
         mailbox: mailbox,
         model: new Models.Usage({ pk: pk }),
         utilization: utilization
@@ -347,80 +199,11 @@ define(function(require, exports, module) {
     onBeforeShow: function() {
       // Mount subnet component
       var prefix = this.model.get("prefix");
-      this.showChildView("available_subnets", new AvailableSubnetsView({
+      this.showChildView("available_subnets", new Views.SubnetAllocator({
         prefix: prefix
       }));
     }
 
-  });
-
-  /* Dumb view for mounting usage graph */
-  var UsageGraph = Marionette.ItemView.extend({
-    template: "#prefix-graphs",
-    debug: debug.new("views:usagegraph"),
-    // mock - for catching dhcp treshold change in parent?
-    triggers: {
-      "click svg": "update:dhcp_treshold"
-    },
-
-    initialize: function(opts) {
-      this.debug("Mounting usage view.");
-      // Fetch usage data, then draw
-      this.model.fetch().done(this.onReceive.bind(this, this));
-      this.parent = opts.mailbox.vent;
-    },
-
-    // TODO: Draw how much of the prefix has been allocated to others
-    onReceive: function() {
-      this.debug("Received usage data");
-      var usage = this.model.get("usage");
-      var allocated = this.model.get("allocated");
-      // Bubble up captured value to parent model
-      this.parent.trigger("update:stats", {
-        usage: usage,
-        allocated: allocated
-      });
-      // don't draw unless we have some usage
-      if (typeof usage === "undefined" || typeof allocated === "undefined") {
-        return;
-      }
-
-      var usageElem = this.$el.find(".usage-graph:first");
-      var usageTmpl = _.template("<span>Usage: <%= percent %> %</span>");
-      usageElem.append(usageTmpl({percent: (usage * 100).toFixed(2)}));
-      viz.usageChart({
-        mountElem: usageElem.get(0),
-        width: 100,
-        height: 10,
-        data: [{
-          fill: "lightsteelblue",
-          name: "Available",
-          value: 1.0 - usage
-        },{
-          fill: "white",
-          name: "Used",
-          value: usage
-        }]
-      });
-
-      var allocationElem = this.$el.find(".allocation-graph:first");
-      var allocationTmpl = _.template("<span>Allocated: <%= percent %> %</span>");
-      allocationElem.append(allocationTmpl({percent: (allocated * 100).toFixed(2)}));
-      viz.usageChart({
-        mountElem: allocationElem.get(0),
-        width: 100,
-        height: 10,
-        data: [{
-          fill: "lightsteelblue",
-          name: "Available",
-          value: 1.0 - allocated
-        },{
-          fill: "white",
-          name: "Allocated",
-          value: allocated
-        }]
-      });
-    }
   });
 
   // Dumb container for prefix nodes, nested or otherwise
@@ -467,10 +250,7 @@ define(function(require, exports, module) {
 
   });
 
-  module.exports = {
-    "NodeView": NodeView,
-    "ControlView": ControlView,
-    "RootView": RootView
-  };
+  exports.RootView = RootView;
+  exports.NodeView = NodeView;
 
 });

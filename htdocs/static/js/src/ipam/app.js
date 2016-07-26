@@ -7,7 +7,7 @@ define(function(require, exports, module) {
   var Marionette = require("marionette");
 
   var Models = require("src/ipam/models");
-  var Views = require("src/ipam/views");
+  var Views = require("src/ipam/views/index");
 
   var util = require("src/ipam/util");
 

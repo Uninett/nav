@@ -302,7 +302,7 @@ define(function (require, exports, module) {
     var mountElem = opts.mountElem;
     var data = opts.data.children[0];
 
-    var xScale = d3v4.scaleLinear().range([0, width]).domain([0, 256]);
+    var xScale = d3v4.scaleLinear().range([0, width]);
     var yScale = d3v4.scaleLinear().range([0, height]);
 
     var getWidth = function(d) {
@@ -310,18 +310,20 @@ define(function (require, exports, module) {
     };
 
     var colors = function (d) {
+      if (d.data.net_type === "root-node") {
+        return d3.hsl(80, 1, 0.5);
+      }
       if (d.data.net_type === "available") {
         return d3.hsl(120, 1, 0.5);
       }
-      if (d.data.net_type === "empty") {
-        return d3.hsl(0, 0, 1);
+      if (d.data.net_type === "scope") {
+        return d3.hsl(0, 0, 0.87);
       }
-      return d3.hsl(0, 0, 0.87);
+      return d3.hsl(0, 0, 1);
     };
 
     // split into hierarchical data
-    var partition = d3v4.partition()
-          .size([width, height]);
+    var partition = d3v4.partition();
     var root = d3v4.hierarchy(data);
 
     // Set 
@@ -334,36 +336,88 @@ define(function (require, exports, module) {
 
     console.log(root);
 
+    var div = d3v4.select(mountElem)
+          .append("div");
+
     var svg = d3v4.select(mountElem)
           .append("svg")
           .attr("class", "matrix")
           .attr("width", width)
-          .attr("height", height);
+          .attr("height", height)
+          .append("g");
 
     var subnet = svg.selectAll("g")
           .data(root.descendants())
           .enter()
           .append("g")
           .attr("class", "matrix-subnet")
-          .attr("transform", function(d) { return "translate(" + d.x0 + "," + d.y0 + ")"; })
+          .attr("transform", function(d) { return "translate(" + xScale(d.x0) + "," + yScale(d.y0) + ")"; })
           .on("click", function(d) { console.log(d.data); }) ;
 
     var subnetRect = subnet.append("rect")
           .attr("class", "matrix-subnet-rect")
-          .attr("width", function(d) { return d.x1 - d.x0; })
-          .attr("height", function(d) { return d.y1 - d.y0; })
+          .attr("width", function(d) { return xScale(d.x1 - d.x0); })
+          .attr("height", function(d) { return yScale(d.y1 - d.y0); })
           .attr("fill", colors)
-          .attr("stroke", function(d) { return colors(d).darker(1); });
+          .attr("stroke", function(d) { return colors(d).darker(1); })
+          .on("click", zoom);
 
-    var textTreshold = 20;
     var subnetText = subnet.append("text");
 
-    subnetText.append("tspan")
-      .attr("class", "matrix-subnet-length")
-      .attr("dy", "1em")
-      .text(function(d) {
-        return d.data.prefixlen;
-      });
+    var subnetPrefix = subnetText.append("tspan")
+          .attr("class", "matrix-subnet-prefix")
+          .attr("visibility", function(d) {
+            return xScale(getWidth(d)) > 30 ? "visible" : "hidden";
+          })
+          .text(function(d) {
+            var _width = xScale(getWidth(d));
+            if (_width > 100) {
+              return d.data.prefix;
+            } else if (_width > 50) {
+              return "." + d.data.last_octet + "/" + d.data.prefixlen;
+            } else {
+              return null;
+            }
+          });
+
+    // Center text
+    subnetText.selectAll("tspan")
+      .attr("x", function(d) { return 0.5 * (xScale(d.x0 + (d.x1 - d.x0)) - xScale(d.x0)); })
+      .attr("y", function(d) { return 0.5 * (yScale(d.y0 + (d.y1 - d.y0)) - yScale(d.y0)); });
+
+    function zoom(d) {
+      var xMask = 100;
+      xScale.domain([d.x0, d.x0 + (d.x1 - d.x0)]).range([d.x0 ? xMask : 0, width - xMask]);
+      yScale.domain([d.y0, 1]).range([d.y0 ? 20 : 0, height]);
+      subnet.transition()
+        .duration(750)
+        .attr("transform", function(d) { return "translate(" + xScale(d.x0) + "," + yScale(d.y0) + ")"; });
+      subnetRect.transition()
+        .duration(750)
+        .attr("width", function(d) { return xScale(d.x0 + (d.x1 - d.x0)) - xScale(d.x0); })
+        .attr("height", function(d) { return yScale(d.y0 + (d.y1 - d.y0)) - yScale(d.y0); });
+
+      subnetText.selectAll("tspan").transition()
+        .duration(750)
+        .attr("visibility", function(d) {
+          return xScale(d.x0 + (d.x1 - d.x0)) - xScale(d.x0) > 30 ? "visible" : "hidden";
+        })
+        .attr("x", function(d) { return 0.5 * (xScale(d.x0 + (d.x1 - d.x0)) - xScale(d.x0)); })
+        .attr("y", function(d) { return 0.5 * (yScale(d.y0 + (d.y1 - d.y0)) - yScale(d.y0)); })
+        .text(function(d) {
+          var _width = xScale(d.x0 + (d.x1 - d.x0)) - xScale(d.x0);
+          if (_width > 100) {
+            return d.data.prefix;
+          } else if (_width > 50) {
+            return "." + d.data.last_octet + "/" + d.data.prefixlen;
+          } else {
+            return "";
+          }
+        });
+
+      div.html(d.prefix);
+
+    }
 
 
     // TODO: use known example, but put transform/translate on g group according to value of last octet
