@@ -46,6 +46,8 @@ class PrefixViewSet(viewsets.ViewSet):
     def get_queryset(self):
         # Extract filters etc
         net_types = self.request.QUERY_PARAMS.getlist("net_type", ["scope", "reserved"])
+        if "all" in net_types:
+            net_types = None
         search = self.request.QUERY_PARAMS.get("search", None)
         organization = self.request.QUERY_PARAMS.get("organization", None)
         vlan_number = self.request.QUERY_PARAMS.get("vlan", None)
