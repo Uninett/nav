@@ -6,9 +6,9 @@
 // ('.on', '.once'), usually for asynchronous operations like global resets.
 //
 // The purpose of this shim is to make sure somewhat more complex components
-// (typically views) always stay in a sane state. It can also be used to
-// ensure certain events have been fired, without using model variables like
-// 'hasGreetedUserOnce'.
+// (typically views) always have a well-defined, verified state, which
+// simplifies business logic. It can also be used to ensure certain events have
+// been fired, without using model variables like 'hasGreetedUserOnce'.
 //
 // Example usage:
 //
@@ -29,16 +29,24 @@ define(function (require, exports, module) {
 
   var FSM = function(stateMap) {
     var defaultMap = { init: {} };
+    // Maps states to event handlers (state maps), which map events to new states
     this.fsm = Object.assign(defaultMap, stateMap);
+    // By convention, "init" is the default state and always defined
     this.state = "init";
-    // Initialize listeners
+    // Friendly list of all possible states (enum-like), probably useful
     var states = _.keys(this.fsm);
+    this.states = _.reduce(states, function(memo, state) {
+      memo[state.toUpperCase()] = state;
+      return memo;
+    }, {});
+    // Initialize listeners
     this.listeners = _.reduce(states, function(memo, state) {
       memo[state] = [];
       return memo;
     }, {});
     // Freeze fsm to avoid mutation
     Object.freeze(this.fsm);
+    Object.freeze(this.states);
     // Return validation value
     return this.validate();
   };
@@ -48,7 +56,7 @@ define(function (require, exports, module) {
   var noStateTemplate = _.template("FSM error: Trying to move from '<%= currentState %>' to state '<%= state %>', which is not defined");
   FSM.prototype.validate = function() {
     var self = this;
-    _.each(self.fsm, function(state, stateMap) {
+    _.each(self.fsm, function(stateMap, state) {
       var nextStates = _.values(stateMap);
       _.each(nextStates, function(nextState) {
         // Cannot validate functions just now
@@ -61,7 +69,6 @@ define(function (require, exports, module) {
         }
       });
     });
-    return true;
   };
 
   // Notify all listeners of the current state
