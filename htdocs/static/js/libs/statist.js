@@ -18,12 +18,14 @@
 //     })
 //     fsm.state // => "init"
 //     fsm.step("activate") // => "active"
+//     fsm.step(fsm.events.INIT.ACTIVATE) // equivalent
 //     fsm.state // => "active"
 //     fsm.step(null) // not matched, retains "active" state
 //     fsm.on("active", function() { console.log("woho"); }) // called every time active is entered
 //     fsm.once("active", function() { console.log("woho"); }) // called only once
 //     fsm.setstate("undefined") // throws an error
-//
+//     fsm.setState(fsm.states.INIT)
+
 define(function (require, exports, module) {
   var _ = require("libs/underscore");
 
@@ -33,6 +35,15 @@ define(function (require, exports, module) {
     this.fsm = Object.assign(defaultMap, stateMap);
     // By convention, "init" is the default state and always defined
     this.state = "init";
+    // List of all possible actions (enum-like) for each state
+    this.events = _.reduce(this.fsm, function(memo, stateMap, state) {
+      var actions = _.keys(stateMap);
+      memo[state.toUpperCase()] = _.reduce(actions, function(enums, action) {
+        enums[action.toUpperCase()] = action;
+        return enums;
+      }, {});
+      return memo;
+    }, {});
     // Friendly list of all possible states (enum-like), probably useful
     var states = _.keys(this.fsm);
     this.states = _.reduce(states, function(memo, state) {
@@ -47,6 +58,7 @@ define(function (require, exports, module) {
     // Freeze fsm to avoid mutation
     Object.freeze(this.fsm);
     Object.freeze(this.states);
+    Object.freeze(this.events);
     // Return validation value
     return this.validate();
   };
