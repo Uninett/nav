@@ -22,7 +22,7 @@ API specific code for the private IPAM API. Exports a router for easy mounting.
 
 from rest_framework import viewsets, status, routers
 from rest_framework.response import Response
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import detail_route, list_route
 from django.db.models import Q
 from IPy import IPSet, IP
 
@@ -31,11 +31,17 @@ from .prefix_tree import make_tree, make_tree_from_ip
 from nav.models.manage import Prefix
 from nav.web.api.v1.serializers import PrefixSerializer
 from nav.web.api.v1.views import get_times
-
 from nav.web.api.v1.helpers import prefix_collector
+from nav.web.ipam.util import PrefixQuerysetBuilder, get_available_subnets, suggest_range
 
 
-from nav.web.ipam.util import PrefixQuerysetBuilder, get_available_subnets
+from rest_framework import serializers
+#from nav.models.fields import CIDRField
+
+# Inspired by http://blog.karolmajta.com/parsing-query-parameters-in-rest-framework/
+class SuggestParams(serializers.Serializer):
+    prefix = serializers.CharField()
+    n = serializers.IntegerField()
 
 class PrefixViewSet(viewsets.ViewSet):
     "Potpurri view for anything prefix related mostly"
@@ -62,6 +68,17 @@ class PrefixViewSet(viewsets.ViewSet):
         queryset.vlan_number(vlan_number)
         queryset.contains_ip(ip)
         return queryset.finalize()
+
+
+    @list_route(methods=["get"])
+    def suggest(self, request, *args, **kwargs):
+        "Suggests subnets of size=?number_of_hosts for ?prefix"
+        params = SuggestParams(data=request.QUERY_PARAMS)
+        if not params.is_valid():
+            return Response(data=params.errors, status=status.HTTP_400_BAD_REQUEST)
+        params = params.object
+        payload = suggest_range(params["prefix"], params["n"])
+        return Response(payload, status=status.HTTP_200_OK)
 
     @detail_route(methods=["get"])
     def usage(self, request, *args, **kwargs):
