@@ -44,33 +44,25 @@ class PrefixHeap(object):
         }
         return payload
 
-    @property
     def is_leaf(self):
         "Whether or not the node has any children"
         return len(self.children) == 0
 
-    @property
-    def json_walk(self):
-        "JSON output of self.walk"
-        return json.dumps(self.walk)
-
-    @property
     def walk(self):
         "List of all the nodes (preorder walk)."
         queue = []
         queue.extend(self.children)
         while queue:
             _node = queue.pop()
-            # remove children to avoid duplication
-            if not _node.is_leaf:
-                queue.extend(_node.children)
+            if not _node:
+                continue
+            queue.extend(_node.children)
             yield _node
 
-    @property
     def walk_roots(self):
         "Walk non-leaf nodes in heap (preorder)"
-        for node in self.walk:
-            if not node.is_leaf:
+        for node in self.walk():
+            if not node.is_leaf():
                 yield node
 
     @property
@@ -121,6 +113,8 @@ class IpNode(PrefixHeap):
 
     def not_in_use(self):
         "Show unused subnets in the CIDR range"
+        if self.is_leaf():
+            return []
         base_set = IPSet([self.ip])
         for child in self.children:
             base_set.discard(child.ip)
@@ -159,7 +153,9 @@ class IpNodeFacade(IpNode):
         "vlan_number",
         "is_mock_node",
         "last_octet",
-        "bits"
+        "bits",
+        "empty_ranges",
+        "is_reservable"
     ]
 
     def __init__(self, ip_addr, pk, net_type, sort_fn=None):
@@ -167,6 +163,16 @@ class IpNodeFacade(IpNode):
         self.pk = pk
         self.net_type = net_type
         self.sort_fn = sort_fn
+
+    @property
+    def is_reservable(self):
+        "Whether or not the prefix can be reserved in NAV"
+        empty_root_node = self.net_type == "root-node" and self.length == 0
+        return self.net_type == "available" or empty_root_node
+
+    @property
+    def empty_ranges(self):
+        return map(str, self.not_in_use())
 
     @property
     def bits(self):
@@ -297,13 +303,13 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
         heap.add(node)
     # Add marker nodes for available ranges/prefixes
     if show_available:
-        subnets = (get_available_nodes([child.ip]) for child in heap.walk_roots)
+        subnets = (get_available_nodes([child.ip]) for child in heap.walk_roots())
         for subnet in subnets:
             heap.add_many(subnet)
     # Add marker nodes for empty ranges, e.g. ranges not spanned by the
     # children of a node. This is useful for aligning visualizations and so on.
     if show_unused:
-        unused_prefixes = (child.not_in_use() for child in heap.walk_roots)
+        unused_prefixes = (child.not_in_use() for child in heap.walk())
         for unused_prefix in unused_prefixes:
             nodes = nodes_from_ips(unused_prefix, type="empty")
             heap.add_many(nodes)
