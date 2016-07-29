@@ -1,6 +1,8 @@
 from nav.models.manage import Prefix
 from django.db.models import Q
 from IPy import IP, IPSet
+from itertools import islice
+import math
 
 # Utility class (builder pattern) to get the Prefixes we want. Returns the
 # resulting queryset when 'finalize' is called.
@@ -74,8 +76,6 @@ class PrefixQuerysetBuilder(object):
         return self
 
 # Code finding available subnets
-
-
 def get_available_subnets(prefix_or_prefixes):
     """Get available prefixes within a list of CIDR addresses. Returns an
     iterable IPSet of available addresses.
@@ -97,3 +97,33 @@ def get_available_subnets(prefix_or_prefixes):
     base.discard(acc)
     # filter away original prefixes
     return sorted([ip for ip in base if str(ip) not in base_prefixes])
+
+def partition_subnet(n, prefix):
+    "Partition prefix into subnets with room for at at least n hosts"
+    subnet_size = math.ceil(math.log(n, 2))
+    chunk_size = 2 ** subnet_size
+    _iter = iter(IP(prefix))
+    chunk = list(islice(_iter, chunk_size))
+    while chunk:
+        yield IPSet(chunk).prefixes[0]
+        chunk = list(islice(_iter, chunk_size))
+
+def suggest_range(prefix, number_of_hosts):
+    """Partitions prefix into blocks of 'n' hosts. Returns a list of
+    [startAddr, endAddr, prefix]
+
+    """
+    blocks = partition_subnet(number_of_hosts, prefix)
+    acc = {
+        "prefix": prefix,
+        "requested_size": number_of_hosts,
+        "candidates": []
+    }
+    for block in blocks:
+        acc["candidates"].append({
+            "length": block.len(),
+            "prefix": str(block),
+            "start": str(block[-0]),
+            "end": str(block[-1])
+        })
+    return acc
