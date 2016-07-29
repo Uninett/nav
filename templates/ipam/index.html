@@ -35,15 +35,7 @@
    {% include "ipam/includes/tree-form-advanced.html" %}
   </script>
 
-  <script type="text/template" id="prefix-available-subnets">
-    <% if (hide) { %>
-    <button class="fetch-subnets small btn">Show allocation tree</button>
-    <% } else { %>
-    <button class="hide-subnets small btn">Hide allocation tree</button>
-    <% } %>
-    <div class="allocation-tree">
-    </div>
-  </script>
+  {% include "ipam/includes/allocate-subnet.html" %}
 
   <script type="text/template" id="prefix-graphs">
     <div class="usage-graph"></div>

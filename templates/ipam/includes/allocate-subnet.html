@@ -1,0 +1,56 @@
+<script type="text/template" id="prefix-available-subnets">
+  <div class="allocation-tree">
+    <div class="treemap">
+      <!-- container for main tree viz -->
+    </div>
+    <div class="allocation-tree-info region">
+      <!-- container for information about the currently selected node -->
+    </div>
+    <div class="allocation-tree-reservation region">
+    </div>
+  </div>
+</script>
+
+<script type="text/template" id="prefix-allocate-reservation">
+  <form>
+    <label for="Size of network">Number of hosts required (minimum)</label>
+    {% comment %}
+    TODO check for bounds
+    {% endcomment %}
+    <input type="number" class="size-of-network" value="28" />
+    <input type="text" class="prefix-list"></select>
+    <h5>Optional fields</h5>
+    <label for="organization">Description</label>
+    <input type="text" name="description">
+    <label for="organization">Net ident</label>
+    <input type="text" name="description">
+    <label for="organization">VLAN</label>
+    <input type="text" name="description">
+    <label for="organization">Organization</label>
+    <input type="text" name="description">
+    <label for="organization">Usage</label>
+    <input type="text" name="description">
+  </form>
+  <button class="button small send-reservation">Send reservation</button>
+  <button class="button small cancel-reservation">Cancel</button>
+</script>
+
+<script type="text/template" id="prefix-allocate-info">
+  <h4>
+    Currently selected: <strong><%= node.prefix %></strong>
+    <% if (!node.is_mock_node) { %>
+    (<%= node.net_type %>)
+    <a class="button small" href="<%= node.edit_url %>">Edit in SeedDB</a>
+    <% } %>
+  </h4>
+  <ul>
+    <% if (!node.is_mock_node) { %>
+    <li><strong>Description:</strong> <%= node.description || "Nothing" %></li>
+    <li><strong>Organization:</strong> <%= node.organization %></li>
+    <% } %>
+  </ul>
+  <% if (node.is_reservable && state !== "CREATING_RESERVATION") { %>
+  <p>This subnet seems to be available!</p>
+  <button class="reserve-subnet button small">Reserve?</button>
+  <% } %>
+</script>
