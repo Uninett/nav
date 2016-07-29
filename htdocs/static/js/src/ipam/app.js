@@ -6,6 +6,10 @@ define(function(require, exports, module) {
   var Backbone = require("backbone");
   var Marionette = require("marionette");
 
+
+  // Import behaviors
+  require("src/ipam/views/behaviors")();
+
   var Models = require("src/ipam/models");
   var Views = require("src/ipam/views/index");
 
@@ -73,7 +77,7 @@ define(function(require, exports, module) {
   util.ipam_debug.listen("models");
   util.ipam_debug.listen("views");
   util.ipam_debug.unlisten("models:usage");
-  util.ipam_debug.unlisten("views:available_subnets");
+  //util.ipam_debug.unlisten("views:available_subnets");
   util.ipam_debug.unlisten("views:nodeview");
 
   module.exports = App;
