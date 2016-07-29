@@ -57,12 +57,14 @@ define(function (require, exports, module) {
   }
 
   var Debugger = require("libs/ipadebug");
+  var FSM = require("libs/statist");
 
   module.exports = {
     "calculateAvailable": calculateAvailable,
     "normalize": normalize,
     "translate": translate,
-    "ipam_debug": Debugger("IPAM_DEBUG")
+    "ipam_debug": Debugger("IPAM_DEBUG"),
+    "FSM": FSM
   };
 
 });

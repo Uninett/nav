@@ -1,6 +1,5 @@
 define(function(require, exports, module) {
   var _ = require("libs/underscore");
-  var Foundation = require("libs/foundation.min");
   var Backbone = require("backbone");
   var Marionette = require("marionette");
 
@@ -116,8 +115,35 @@ define(function(require, exports, module) {
   });
 
   // TODO: Fetch available subnets, see available_subnets in prefix_tree.py
+  var nodeViewStates = {
+    INIT: {
+      "TOGGLE_OPEN": "OPENING_NODE",
+      "FETCH_STATS": "FETCHING_STATS"
+    },
+    OPENING_NODE: {
+      "OPENED_NODE": "OPEN_NODE"
+    },
+    FETCHING_STATS: {
+      "DONE_FETCHING_STATS": "LOADING_STATS"
+    },
+    LOADING_STATS: {
+      "DONE_LOADING_STATS": "INIT"
+    },
+    OPEN_NODE: {
+      "SHOW_CHILDREN": "SHOWING_CHILDREN",
+      "TOGGLE_OPEN": "CLOSING_NODE"
+    },
+    CLOSING_NODE: {
+      "CLOSED_NODE": "INIT"
+    },
+    "SHOWING_CHILDREN": {
+      "DONE_SHOWING_CHILDREN": "OPEN_NODE",
+      "TOGGLE_OPEN": "CLOSING_NODE"
+    }
+  };
+
+
   var NodeView = Marionette.LayoutView.extend({
-    debug: debug.new("views:nodeview"),
     tagName: "li",
     className: "prefix-tree-item",
     template: "#prefix-tree-node",
@@ -129,54 +155,93 @@ define(function(require, exports, module) {
     },
 
     events: {
-      "click a.prefix-tree-item-title": "toggleOpen",
-      "touchstart a.prefix-tree-item-title": "toggleOpen"
+      "click a.prefix-tree-item-title:first": "toggleOpen",
+      "touchstart a.prefix-tree-item-title:first": "toggleOpen"
+    },
+
+    behaviors: {
+      StateMachine: {
+        states: nodeViewStates,
+        handlers: {
+          "LOADING_STATS": "loadingStats",
+          "SHOWING_CHILDREN": "showingChildren",
+          "OPENING_NODE": "openingNode",
+          "CLOSING_NODE": "closingNode",
+          "OPEN_NODE": "openNode"
+        }
+      }
     },
 
     initialize: function() {
       var self = this;
       var pk = this.model.get("pk");
+      this.debug = debug.new("views:nodeview:" + pk);
       this.debug("Mounted node #", pk);
-      this.mailbox = Backbone.Wreqr.radio.channel("node" + pk);
-      // Using 'once' here instead of 'one' to avoid attaching multiple
-      // persistent handlers, which leaks memory.
-      this.mailbox.vent.once("update:stats", function(stats) {
-        self.model.set("usage", stats.usage);
-        self.model.set("allocated", stats.allocated);
-        self.debug("Updated stats of prefix #", pk, "to", stats);
+      this.fsm.onChange(function(nextState) {
+        self.debug("Moving into state", nextState);
       });
     },
 
-    // Hide/show element
+    openNode: function(self) {
+      self.fsm.step("SHOW_CHILDREN");
+    },
+
+    openingNode: function(self) {
+      self.debug("Opening node", self.model.get("pk"));
+      self.fsm.step("OPENED_NODE");
+      self.toggle();
+    },
+
+    closingNode: function(self) {
+      self.debug("Closing node", self.model.get("pk"));
+      self.fsm.step("CLOSED_NODE");
+      self.toggle();
+    },
+
+    loadingStats: function(self, statMap) {
+      self.model.set("usage", statMap.usage);
+      self.model.set("allocated", statMap.allocated);
+      self.debug("Updated stats of prefix #", self.model.get("pk"), "to", statMap);
+      self.fsm.step("DONE_LOADING_STATS");
+    },
+
     toggleOpen: function(evt) {
-      // avoid bubbling up to parent, as we're dealing with nested views
-      evt.preventDefault();
-      evt.stopPropagation();
+      if (_.isObject(evt)) {
+        evt.preventDefault();
+      }
+      this.fsm.step("TOGGLE_OPEN");
+    },
+
+    // Hide/show element
+    toggle: function() {
       // open content
       var content = this.$el.find(".prefix-tree-item-content:first");
       var title = this.$el.find(".prefix-tree-item-title:first");
       content.slideToggle(200);//.toggleClass("prefix-item-open");
       title.toggleClass("prefix-item-open");
-      // deferred rendering of children
-      if (!this.model.hasShownChildren() && this.model.hasChildren()) {
-        this.showChildren();
-      }
+      // mount subnet treemap
+      var prefix = this.model.get("prefix");
+      this.showChildView("available_subnets", new Views.SubnetAllocator({
+        prefix: prefix
+      }));
       this.debug("Toggle " + this.model.get("pk"));
     },
 
     // We defer drawing children to return a shallow tree faster to the user
     // TODO: Look into bug where the debug function is registered multiple times
     // when sorting. Probably not killing all the child nodes or something
-    showChildren: function() {
-      this.debug("Rendering children for", this.model.get("pk"));
-      var self = this;
-      var children = this.model.children;
+    showingChildren: function(self) {
+      if (!self.model.hasChildren()) {
+        return;
+      }
+      self.debug("Rendering children for", self.model.get("pk"));
+      var children = self.model.children;
       var payload = {
         model: new Models.Tree(),
         collection: children
       };
-      this.showChildView("children", new TreeView(payload));
-      this.model.set("hasShownChildren", true);
+      self.showChildView("children", new TreeView(payload));
+      //self.fsm.step("DONE_SHOWING_CHILDREN");
     },
 
     // Defer drawing usage to speed up rendering
@@ -186,24 +251,15 @@ define(function(require, exports, module) {
       if (this.model.get("is_mock_node", true)) {
         return;
       }
+      var self = this;
       var utilization = this.model.get("utilization");
       var pk = this.model.get("pk");
-      var mailbox = this.mailbox;
       this.showChildView("usage_graph", new Views.UsageGraph({
-        mailbox: mailbox,
+        fsm: self.fsm,
         model: new Models.Usage({ pk: pk }),
         utilization: utilization
       }));
-    },
-
-    onBeforeShow: function() {
-      // Mount subnet component
-      var prefix = this.model.get("prefix");
-      this.showChildView("available_subnets", new Views.SubnetAllocator({
-        prefix: prefix
-      }));
     }
-
   });
 
   // Dumb container for prefix nodes, nested or otherwise

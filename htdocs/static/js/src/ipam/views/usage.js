@@ -19,10 +19,11 @@ define(function(require, exports, module) {
     },
 
     initialize: function(opts) {
+      this.fsm = opts.fsm;
       this.debug("Mounting usage view.");
       // Fetch usage data, then draw
+      this.fsm.step("FETCH_STATS");
       this.model.fetch().done(this.onReceive.bind(this, this));
-      this.parent = opts.mailbox.vent;
     },
 
     // TODO: Draw how much of the prefix has been allocated to others
@@ -31,7 +32,7 @@ define(function(require, exports, module) {
       var usage = this.model.get("usage");
       var allocated = this.model.get("allocated");
       // Bubble up captured value to parent model
-      this.parent.trigger("update:stats", {
+      this.fsm.step("DONE_FETCHING_STATS", {
         usage: usage,
         allocated: allocated
       });

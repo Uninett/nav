@@ -2,6 +2,7 @@ define(function(require, exports, module) {
   var _ = require("libs/underscore");
   var Backbone = require("backbone");
   var debug = require("src/ipam/util").ipam_debug;
+  var FSM = require("src/ipam/util").FSM;
 
   var PrefixNode = Backbone.Model.extend({
     debug: debug.new("models:prefixnode"),
@@ -14,16 +15,10 @@ define(function(require, exports, module) {
       "pk": null,
       start: new Date().toISOString(),
       end: null,
-      // Track whether or not the children have been rendered onto the DOM
-      hasShownChildren: false,
       // Percentwise usage (active_addr/max_addr),
       usage: 0.0,
       // Percent of prefix allocated to other scopes/reservations
       allocated: 0.0
-    },
-
-    hasShownChildren: function() {
-      return this.get("hasShownChildren");
     },
 
     hasChildren: function() {
@@ -112,6 +107,9 @@ define(function(require, exports, module) {
     urlTemplate: _.template("/ipam/api/?type=ipv4&net_type=all&within=<%= prefix %>&show_all=True"),
 
     defaults: {
+      state: "Initial state",
+      // Currently focused node in treemap
+      focused_node: {},
       raw_data: {},
       data: [],
       hide: true,
@@ -119,6 +117,41 @@ define(function(require, exports, module) {
         prefix: "10.0.0.0/16"
       }
     },
+
+    // States (used to create simple FSM)
+    states: {
+      INIT: {
+        SHOW_TREEMAP: "SHOWING_TREEMAP"
+      },
+      SHOWING_TREEMAP: {
+        HIDE: "HIDING_TREEMAP",
+        FOCUS_NODE: "FOCUSED_NODE"
+      },
+      HIDING_TREEMAP: {
+        DONE: "INIT"
+      },
+      CREATING_RESERVATION: {
+        CHOOSE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE"
+      },
+      CHOSEN_RESERVATION_SIZE: {
+        SEND: "SENDING_RESERVATION"
+      },
+      SENDING_RESERVATION: {
+        RESET: "INIT"
+      },
+      HIDING_RESERVATION: {
+        DONE: "FOCUSED_NODE"
+      },
+      FOCUSED_NODE: {
+        RESET: "INIT",
+        RESERVE: "CREATING_RESERVATION",
+        FOCUS_NODE: "FOCUSED_NODE"
+      }
+    },
+
+    //fsm: function() {
+    //  return this.get("fsm");
+    //},
 
     initialize: function() {
       var self = this;
