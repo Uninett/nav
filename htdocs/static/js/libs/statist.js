@@ -54,9 +54,9 @@ define(function (require, exports, module) {
     // List of all possible actions (enum-like) for each state
     this.events = this.getEvents();
     // Friendly list of all possible states (enum-like), probably useful
-    var states = this.getStates();
+    this.states = this.getStates();
     // Initialize listeners
-    this.listeners = _.reduce(states, function(memo, state) {
+    this.listeners = _.reduce(this.states, function(memo, state) {
       memo[state] = [];
       return memo;
     }, {});
@@ -88,10 +88,16 @@ define(function (require, exports, module) {
   };
 
   // Validate the whole stateMap to ensure we are able to reach all possible
-  // states.
+  // states, and that we only reach defined states.
   var noStateTemplate = _.template("FSM error: Trying to move from '<%= currentState %>' to '<%= state %>' (via <%= via %>), which is not defined");
+  var notReachableTemplate = _.template("FSM warning: State '<%= state %>' cannot be reached from any other state");
   FSM.prototype.validate = function() {
     var self = this;
+    // Map of each state we can reach
+    var reachable = _.reduce(_.keys(self.fsm), function(memo, state) {
+      memo[state] = state === "INIT" ? true : false;
+      return memo;
+    }, {});
     _.each(self.fsm, function(stateMap, state) {
       _.each(stateMap, function(nextState, action) {
         // Cannot validate functions just now
@@ -106,8 +112,16 @@ define(function (require, exports, module) {
           });
           throw new Error(s);
         }
+        reachable[nextState] = true;
       });
     });
+    _.each(reachable, function(isReachable, state) {
+      if (!isReachable) {
+        var s = notReachableTemplate({ state: state });
+        console.log(s);
+      }
+    });
+    return true;
   };
 
   // Notify all listeners of the current state
