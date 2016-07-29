@@ -6,6 +6,9 @@
 // ('.on', '.once'), usually for asynchronous operations like global resets.
 // These listeners are passed any event data leading into the desired state.
 //
+// Do note that events that map to null are considered no-ops, and will not be
+// handled in any way. This is to allow for clean override.
+//
 // The purpose of this shim is to make sure somewhat more complex components
 // (typically views) always have a well-defined, verified state, which
 // simplifies business logic. It can also be used to ensure certain events have
@@ -19,13 +22,23 @@
 //     })
 //     fsm.state // => "init"
 //     fsm.step("activate") // => "active"
-//     fsm.step(fsm.events.INIT.ACTIVATE) // equivalent
+//     fsm.step(fsm.events.activate) // equivalent
 //     fsm.state // => "active"
 //     fsm.step(null) // not matched, retains "active" state
 //     fsm.on("active", function() { console.log("woho"); }) // called every time active is entered
 //     fsm.once("active", function() { console.log("woho"); }) // called only once
 //     fsm.setstate("undefined") // throws an error
-//     fsm.setState(fsm.states.INIT)
+//     fsm.setState(fsm.states.init)
+//
+// For mixins and inheritance, we offer two similar function:
+// extends(originalState, mixinOrAnotherState) and mixin(originalState,
+// mixinOrAnotherState). In the former case, any value in originalState will
+// override the one defined in the argument, e.g. it works like typical OOP
+// inheritance. With mixin(), the mixin or state we're extending from will
+// always override any values defined in originalState. Do note that these
+// operations also are validated and subject to the same requirements as
+// defining the map up front, but allows for explicit reuse of components via
+// mixins or simple parent-child inheritance.
 
 define(function (require, exports, module) {
   var _ = require("libs/underscore");
@@ -36,21 +49,12 @@ define(function (require, exports, module) {
     this.fsm = Object.assign(defaultMap, stateMap);
     // By convention, "INIT" is the default state and always defined
     this.state = "INIT";
+    // Trigger for when a new state is entered
+    this.__onChange = [];
     // List of all possible actions (enum-like) for each state
-    this.events = _.reduce(this.fsm, function(memo, stateMap, state) {
-      var actions = _.keys(stateMap);
-      memo[state] = _.reduce(actions, function(enums, action) {
-        enums[action] = action;
-        return enums;
-      }, {});
-      return memo;
-    }, {});
+    this.events = this.getEvents();
     // Friendly list of all possible states (enum-like), probably useful
-    var states = _.keys(this.fsm);
-    this.states = _.reduce(states, function(memo, state) {
-      memo[state] = state;
-      return memo;
-    }, {});
+    var states = this.getStates();
     // Initialize listeners
     this.listeners = _.reduce(states, function(memo, state) {
       memo[state] = [];
@@ -62,6 +66,25 @@ define(function (require, exports, module) {
     Object.freeze(this.events);
     // Return validation value
     return this.validate();
+  };
+
+  // Returns the events the FSM can respond to (enum-like)
+  FSM.prototype.getEvents = function() {
+    return _.reduce(this.fsm, function(memo, stateMap) {
+      _.each(stateMap, function(state, event) {
+        memo[event] = event;
+      });
+      return memo;
+    }, {});
+  };
+
+  // Returns a list of states the FSM can be in (enum-like)
+  FSM.prototype.getStates = function() {
+    var states = _.keys(this.fsm);
+    return _.reduce(states, function(memo, state) {
+      memo[state] = state;
+      return memo;
+    }, {});
   };
 
   // Validate the whole stateMap to ensure we are able to reach all possible
@@ -109,6 +132,10 @@ define(function (require, exports, module) {
       throw new Error(s);
     }
     this.state = nextState;
+    // Call onChange callbacks
+    _.each(self.__onChange, function (callback) {
+      callback(nextState);
+    });
     this.notifyAll(eventData);
     return nextState;
   };
@@ -118,10 +145,15 @@ define(function (require, exports, module) {
     var currentStateMap = this.fsm[this.state];
     // Ignore events for which no next state is defined
     if (!_.has(currentStateMap, event)) {
-      console.log("Warning: Couldn't catch event", event, "looping...");
+      var stack = new Error().stack;
+      console.log("Warning: Couldn't catch event", event, ", therefore ignoring. Current state:", this.state, " Stack:", stack);
       return this.currentState;
     }
     var nextState = currentStateMap[event];
+    // Events that return null should not be handled
+    if (nextState === null) {
+      return this.currentState;
+    }
     return this.setState(nextState, eventData);
   };
 
@@ -149,6 +181,57 @@ define(function (require, exports, module) {
       fn: callback,
       type: "once"
     });
+  };
+
+  // Called whenever the state changes
+  FSM.prototype.onChange = function(callback) {
+    this.__onChange.push(callback);
+  };
+
+  // Make targetState inherit values from an existing state or state map. Does
+  // not override any values already defined in targetStat
+  FSM.prototype.extends = function(targetState, stateOrStateMap) {
+    this.__inherit(targetState, stateOrStateMap, false);
+  };
+
+  // Make targetState inherit values from an existing state or state map. Does
+  // override any values already defined in targetStat
+  FSM.prototype.mixin = function(targetState, stateOrStateMap) {
+    this.__inherit(targetState, stateOrStateMap, true);
+  };
+
+  // Utility function to update an existing state and either make it inherit
+  // from a statemap or be extended by it. See .mixin() and .extends()
+  var missingTemplate = _.template("Trying to extend existing state '<%= state %>', but it doesn't exist.");
+  FSM.prototype.__inherit = function(toExtend, stateOrStateMap, destructiveExtend) {
+    // Check that the state we have defined is defined
+    if (!_.has(this.fsm, toExtend)) {
+      throw new Error(missingTemplate({ state: toExtend }));
+    };
+    // We're trying to inherit from another state
+    if (_.isString(stateOrStateMap)) {
+      if (!_.has(this.fsm, stateOrStateMap)) {
+        throw new Error(missingTemplate({ state: stateOrStateMap }));
+      }
+      stateOrStateMap = this.fsm[stateOrStateMap];
+    }
+    // Temporarily unfreeze FSM
+    this.fsm = Object.assign({}, this.fsm);
+    var originalState = this.fsm[toExtend];
+    if (destructiveExtend) {
+      this.fsm[toExtend] = Object.assign({}, originalState, stateOrStateMap);
+    } else {
+      this.fsm[toExtend] = Object.assign({}, stateOrStateMap, originalState);
+    }
+    // Update public API to reflect any changes, if any
+    this.states = this.getStates();
+    this.events = this.getEvents();
+    // Refreeze
+    Object.freeze(this.fsm);
+    Object.freeze(this.states);
+    Object.freeze(this.events);
+    // Make sure we validate afterwards
+    this.validate();
   };
 
   module.exports = FSM;
