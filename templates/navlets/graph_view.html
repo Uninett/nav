@@ -3,7 +3,7 @@
 {% block navlet-content %}
 
   {% if graph_url %}
-    <div id="graph-container-{{ navlet.navlet_id }}" class="graphitegraph"></div>      
+    <div id="graph-container-{{ navlet.navlet_id }}" class="graphitegraph" data-image-reload></div>
   {% else %}
     <span class="alert-box">Edit the widget to add a graph.</span>
   {% endif %}

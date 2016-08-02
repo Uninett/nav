@@ -102,14 +102,15 @@ define(['libs/spin.min'], function () {
              * Remember to stop refreshing on edit
              */
             var that = this,
-                preferences = this.navlet.preferences,
-                image = this.node.find('img[data-image-reload]'),
-                imageUrl = image.attr('src');
+                preferences = this.navlet.preferences;
 
             if (mode === 'VIEW' && preferences && preferences.refresh_interval) {
                 /* If this is a reload of image only */
                 if (this.navlet.image_reload) {
                     this.refresh = setInterval(function () {
+                        // Find image each time because of async loading
+                        var image = that.node.find('img[data-image-reload], [data-image-reload] img'),
+                            imageUrl = image.attr('src');
                         /* The random part is courtesy IE */
                         var bustPrefix = imageUrl.indexOf('?') > -1 ? '&' : '?',
                             bust = bustPrefix + 'bust=' + Math.random();
