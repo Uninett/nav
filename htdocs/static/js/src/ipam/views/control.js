@@ -73,6 +73,7 @@ define(function(require, exports, module) {
         ip: null,
         search: null
       });
+      self._updateSearch();
     },
 
     advancedSearch: function(self) {
@@ -88,6 +89,12 @@ define(function(require, exports, module) {
         vlan: null,
         description: null
       });
+      self._updateSearch();
+    },
+
+    // Force defaults when control element is mounted on the DOM
+    onAttach: function() {
+      this._updateSearch();
     },
 
     onRender: function() {
