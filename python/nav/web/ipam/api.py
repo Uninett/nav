@@ -41,7 +41,9 @@ from rest_framework import serializers
 # Inspired by http://blog.karolmajta.com/parsing-query-parameters-in-rest-framework/
 class SuggestParams(serializers.Serializer):
     prefix = serializers.CharField()
-    n = serializers.IntegerField()
+    n = serializers.IntegerField(default=10)
+    size = serializers.IntegerField(default=256)
+    offset = serializers.IntegerField(default=0)
 
 class PrefixViewSet(viewsets.ViewSet):
     "Potpurri view for anything prefix related mostly"
@@ -51,13 +53,18 @@ class PrefixViewSet(viewsets.ViewSet):
 
     def get_queryset(self):
         # Extract filters etc
-        net_types = self.request.QUERY_PARAMS.getlist("net_type", ["scope", "reserved"])
+        net_types = self.request.QUERY_PARAMS.getlist("net_type", None)
         if "all" in net_types:
             net_types = None
         search = self.request.QUERY_PARAMS.get("search", None)
+        if search is not None and search:
+            net_types = None
+        ip = self.request.QUERY_PARAMS.get("ip", None)
+        if ip is not None and ip:
+            net_types = None
         organization = self.request.QUERY_PARAMS.get("organization", None)
         vlan_number = self.request.QUERY_PARAMS.get("vlan", None)
-        ip = self.request.QUERY_PARAMS.get("ip", None)
+        description = self.request.QUERY_PARAMS.get("description", None)
         within = self.request.QUERY_PARAMS.get("within", None)
         # Build queryset
         queryset = PrefixQuerysetBuilder()
@@ -77,7 +84,7 @@ class PrefixViewSet(viewsets.ViewSet):
         if not params.is_valid():
             return Response(data=params.errors, status=status.HTTP_400_BAD_REQUEST)
         params = params.object
-        payload = suggest_range(params["prefix"], params["n"])
+        payload = suggest_range(params["prefix"], offset=params["offset"], size=params["size"], n=params["n"])
         return Response(payload, status=status.HTTP_200_OK)
 
     @detail_route(methods=["get"])
@@ -104,7 +111,7 @@ class PrefixViewSet(viewsets.ViewSet):
     def list(self, request, *args, **kwargs):
         "List a tree-like structure of all prefixes matching the query"
         prefixes = self.get_queryset()
-        family = self.request.QUERY_PARAMS.getlist("type", ["ipv4"])
+        family = self.request.QUERY_PARAMS.getlist("type", ["ipv4", "ipv6", "rfc1918"])
         within = self.request.QUERY_PARAMS.get("within", None)
         show_all = self.request.QUERY_PARAMS.get("show_all", None)
         result = make_tree(prefixes, root_ip=within, family=family, show_all=show_all)
