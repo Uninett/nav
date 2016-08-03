@@ -70,9 +70,11 @@ class PrefixQuerysetBuilder(object):
 
     def contains_ip(self, addr):
         "Returns all prefixes containing the given address"
-        if addr is None:
+        try:
+            ip = IP(addr)
+        except ValueError, TypeError:
             return self
-        self.queryset = self.queryset & Prefix.objects.contains_ip(addr)
+        self.queryset = self.queryset & Prefix.objects.contains_ip(ip.strNormal())
         return self
 
 # Code finding available subnets
