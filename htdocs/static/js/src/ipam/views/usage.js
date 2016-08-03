@@ -51,11 +51,11 @@ define(function(require, exports, module) {
           width: 100,
           height: 10,
           data: [{
-            fill: "lightsteelblue",
+            fill: "white",
             name: "Available",
             value: 1.0 - allocated
-          },{
-            fill: "white",
+          }, {
+            fill: "lightsteelblue",
             name: "Allocated",
             value: allocated
           }]
@@ -70,11 +70,11 @@ define(function(require, exports, module) {
         width: 100,
         height: 10,
         data: [{
-          fill: "lightsteelblue",
+          fill: "white",
           name: "Available",
           value: 1.0 - usage
-        },{
-          fill: "white",
+        }, {
+          fill: "lightsteelblue",
           name: "Used",
           value: usage
         }]
