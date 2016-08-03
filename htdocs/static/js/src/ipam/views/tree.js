@@ -173,7 +173,7 @@ define(function(require, exports, module) {
 
     onBeforeDestroy: function() {
       // Remove marker class for open node in tree, so new results (upon
-      // searching/filtering) aren't blurred.
+        // searching/filtering) aren't blurred.
       this.$el.parent().removeClass("prefix-tree-open");
     },
 
@@ -295,8 +295,28 @@ define(function(require, exports, module) {
       }
     },
 
+    initialize: function() {
+      var self = this;
+      this.collection.bind("sync", this.resetSort.bind(this, this));
+    },
+
     events: {
       "click .sort-by": "onSortBy"
+    },
+
+    resetSort: function() {
+      this.model.set("currentComparator", null);
+      this.render();
+    },
+
+    resort: function(self) {
+      if (_.isUndefined(self.model)) {
+        return;
+      }
+      var currentComparator = self.model.get("currentComparator");
+      var comparatorFn = self.comparators[currentComparator] || null;
+      self.viewComparator = comparatorFn;
+      self.render();
     },
 
     // Utility function to show any children of the prefix node in a different
@@ -310,9 +330,7 @@ define(function(require, exports, module) {
       var value = this.$(evt.target).val();
       this.debug("Ordering children by", value);
       this.model.set("currentComparator", value);
-      var comparatorFn = this.comparators[value] || null;
-      this.viewComparator = comparatorFn;
-      this.render();
+      this.resort(this);
     }
 
   });
