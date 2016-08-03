@@ -58,7 +58,8 @@ define(function(require, exports, module) {
     baseUrl: "ipam/api",
     // Default query params
     queryParams: {
-      type: ["ipv4", "ipv6"]
+      type: ["ipv4", "ipv6", "rfc1918"],
+      net_type: ["scope"]
     },
 
     initialize: function(models, args) {
@@ -104,7 +105,7 @@ define(function(require, exports, module) {
   // Calls to available subnets API
   var AvailableSubnets = Backbone.Model.extend({
     debug: debug.new("models:availablesubnets"),
-    urlTemplate: _.template("/ipam/api/?type=ipv4&net_type=all&within=<%= prefix %>&show_all=True"),
+    urlTemplate: _.template("/ipam/api/?net_type=all&within=<%= prefix %>&show_all=True"),
 
     defaults: {
       state: "Initial state",
@@ -117,41 +118,6 @@ define(function(require, exports, module) {
         prefix: "10.0.0.0/16"
       }
     },
-
-    // States (used to create simple FSM)
-    states: {
-      INIT: {
-        SHOW_TREEMAP: "SHOWING_TREEMAP"
-      },
-      SHOWING_TREEMAP: {
-        HIDE: "HIDING_TREEMAP",
-        FOCUS_NODE: "FOCUSED_NODE"
-      },
-      HIDING_TREEMAP: {
-        DONE: "INIT"
-      },
-      CREATING_RESERVATION: {
-        CHOOSE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE"
-      },
-      CHOSEN_RESERVATION_SIZE: {
-        SEND: "SENDING_RESERVATION"
-      },
-      SENDING_RESERVATION: {
-        RESET: "INIT"
-      },
-      HIDING_RESERVATION: {
-        DONE: "FOCUSED_NODE"
-      },
-      FOCUSED_NODE: {
-        RESET: "INIT",
-        RESERVE: "CREATING_RESERVATION",
-        FOCUS_NODE: "FOCUSED_NODE"
-      }
-    },
-
-    //fsm: function() {
-    //  return this.get("fsm");
-    //},
 
     initialize: function() {
       var self = this;
@@ -170,17 +136,19 @@ define(function(require, exports, module) {
   // State/model for control form subview
   var Control = Backbone.Model.extend({
     defaults: {
+      state: "Initial state",
       advancedSearch: false,
       queryParams: {
         ip: null,
-        type: ["ipv4", "ipv6"],
+        type: ["ipv4", "ipv6", "rfc1918"],
         net_type: ["scope"],
         search: null,
         timestart: null,
         timeend: null,
         organization: null,
         usage: null,
-        vlan: null
+        vlan: null,
+        description: null
       }
     }
   });
