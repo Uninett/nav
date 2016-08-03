@@ -130,8 +130,8 @@ def prefix_edit(request, prefix_id=None):
             return HttpResponseRedirect(
                 reverse('seeddb-prefix-edit', args=(prefix.id,)))
     else:
-        prefix_form = PrefixForm(instance=prefix)
-        vlan_form = PrefixVlanForm(instance=vlan)
+        prefix_form = PrefixForm(instance=prefix, initial=request.GET.dict())
+        vlan_form = PrefixVlanForm(instance=vlan, initial=request.GET.dict())
     context = info.template_context
     context.update({
         'object': prefix,
