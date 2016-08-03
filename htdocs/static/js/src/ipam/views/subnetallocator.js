@@ -36,24 +36,8 @@ define(function(require, exports, module) {
       DONE: "INIT"
     },
     CREATING_RESERVATION: {
-      CHOOSE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE",
+      FOCUS_NODE: "HIDING_RESERVATION",
       HIDE: "HIDING_RESERVATION"
-    },
-    CHOSEN_RESERVATION_SIZE: {
-      CHOOSE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE",
-      STORE_RESERVATION_SIZE: "STORED_RESERVATION_SIZE"
-    },
-    STORED_RESERVATION_SIZE: {
-      CHOOSE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE",
-      CHOOSE_SUBNET: "CHOSEN_SUBNET"
-    },
-    CHOSEN_SUBNET: {
-      CHOOSE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE",
-      CHOOSE_SUBNET: "CHOSEN_SUBNET",
-      SEND: "SENDING_RESERVATION"
-    },
-    SENDING_RESERVATION: {
-      RESET: "INIT"
     },
     HIDING_RESERVATION: {
       DONE: "FOCUSED_NODE"
@@ -72,19 +56,6 @@ define(function(require, exports, module) {
     behaviors: {
       StateMachine: {
         states: viewStates,
-        init: function(fsm) {
-          var stateMixin = {
-            HIDE: "HIDING_RESERVATION",
-            HIDE_TREEMAP: "HIDING_TREEMAP",
-            FOCUS_NODE: "HIDING_RESERVATION"
-          };
-          fsm.extends("CREATING_RESERVATION", stateMixin);
-          fsm.extends("CHOSEN_RESERVATION_SIZE", stateMixin);
-          fsm.extends("STORED_RESERVATION_SIZE", stateMixin);
-          fsm.extends("SENDING_RESERVATION", stateMixin);
-          fsm.extends("CHOSEN_SUBNET", stateMixin);
-          return fsm;
-        },
         modelField: "state",
         handlers: {
           "SHOWING_TREEMAP": "showingTreemap",
@@ -200,10 +171,37 @@ define(function(require, exports, module) {
     }
   });
 
-  // TODO: Proper model for Reservation, with reservation data etc
+
+  var reservationStates = {
+    INIT: {
+      CHOOSE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE",
+      STORE_RESERVATION_SIZE: "STORED_RESERVATION_SIZE"
+    },
+    CHOSEN_RESERVATION_SIZE: {
+      CHOOSE_SUBNET: "CHOSEN_SUBNET"
+    },
+    STORED_RESERVATION_SIZE: {
+      CHOOSE_SUBNET: "CHOSEN_SUBNET"
+    },
+    CHOSEN_SUBNET: {
+      CHOOSE_SUBNET: "CHOSEN_SUBNET"
+    }
+  };
+
   var ReservationView = Marionette.LayoutView.extend({
     template: "#prefix-allocate-reservation",
     baseUrl: "/seeddb/prefix/add/?",
+
+    behaviors: {
+      StateMachine: {
+        states: reservationStates,
+        init: function(fsm) {
+          fsm.extends("CHOSEN_SUBNET", "INIT");
+          fsm.extends("STORED_RESERVATION_SIZE", "INIT");
+          return fsm;
+        }
+      }
+    },
 
     events: {
       "change .size-of-network": "onNetworkSizeChange",
@@ -214,7 +212,7 @@ define(function(require, exports, module) {
     },
 
     initialize: function(opts) {
-      this.fsm = opts.fsm;
+      this.parent_fsm = opts.fsm;
       this.node = opts.node;
       this.model = new Backbone.Model(this.node);
       this.model.set("creation_url", null);
@@ -305,8 +303,6 @@ define(function(require, exports, module) {
           }
         }
       });
-      // Update select2 node with stored value from model
-      //selectElem.select2("val", this.model.get("selected_prefix"));
     },
 
     onAttach: function() {
@@ -315,7 +311,7 @@ define(function(require, exports, module) {
     },
 
     cancelReservation: function() {
-      this.fsm.step("HIDE", this.node);
+      this.parent_fsm.step("HIDE", this.node);
     },
 
     // Animate stuff
