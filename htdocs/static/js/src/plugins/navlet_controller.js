@@ -234,7 +234,20 @@ define(['libs/spin.min'], function () {
                         that.renderNavlet('VIEW');
                     });
                     request.fail(function (jqxhr) {
-                        that.displayError('Could not save changes: ' + jqxhr.responseText);
+                        try {
+                            // Result may be json, try to parse it (specific for form errors)
+                            var json = JSON.parse(jqxhr.responseText);
+                            var $ul = $('<ul class="no-bullet">');
+                            for (var field in json) {
+                                var errors = $('<li>').html(field + ': ' + json[field].map(function(x) {
+                                    return x.message;
+                                }).join(', '));
+                                $ul.append(errors);
+                            }
+                            that.displayError($ul);
+                        } catch (e) {
+                            that.displayError('Could not save changes: ' + jqxhr.responseText);
+                        }
                     });
                 });
             }
@@ -277,7 +290,7 @@ define(['libs/spin.min'], function () {
             this.container.trigger('navlet-rendered', [this.node]);
         },
         displayError: function (errorMessage) {
-            this.getOrCreateErrorElement().text(errorMessage);
+            this.getOrCreateErrorElement().html(errorMessage);
         },
         getOrCreateErrorElement: function () {
             /* If error element is already created, return existing element */

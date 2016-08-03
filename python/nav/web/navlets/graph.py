@@ -17,9 +17,25 @@
 
 import urlparse
 from django.http import HttpResponse
-
+from django import forms
 from nav.models.profiles import AccountNavlet
 from . import Navlet, NAVLET_MODE_EDIT, REFRESH_INTERVAL
+
+
+class GraphEditForm(forms.Form):
+    id = forms.IntegerField(widget=forms.HiddenInput)
+    url = forms.CharField(label='URL to image')
+    target = forms.CharField(required=False,
+                             label='Target URL when clicked')
+    refresh_interval = forms.IntegerField(min_value=10,
+        label='Refresh interval in seconds (requires reload of page)')
+    show_controls = forms.BooleanField(required=False,
+                                       label='Show time interval controls')
+
+    def clean_refresh_interval(self):
+        refresh_interval = self.cleaned_data.get('refresh_interval', 600)
+        refresh_interval *= 1000
+        return refresh_interval
 
 
 class GraphWidget(Navlet):
@@ -42,6 +58,8 @@ class GraphWidget(Navlet):
         if self.preferences and 'url' in self.preferences:
             url = self.preferences['url']
             title = self.get_title()
+            show_controls = self.preferences.get('show_controls')
+            context['hide_buttons'] = 'false' if show_controls else 'true'
 
         context['graph_url'] = url
         if title:
@@ -49,24 +67,27 @@ class GraphWidget(Navlet):
 
         if self.mode == NAVLET_MODE_EDIT:
             navlet = AccountNavlet.objects.get(pk=self.navlet_id)
-            context['interval'] = navlet.preferences[REFRESH_INTERVAL] / 1000
+            data = navlet.preferences
+            data['id'] = self.navlet_id
+            data[REFRESH_INTERVAL] = navlet.preferences[REFRESH_INTERVAL] / 1000
+            context['form'] = GraphEditForm(data=data)
         return context
 
     @staticmethod
     def post(request):
         """Display form for adding an url to a chart"""
         account = request.account
-        nid = int(request.POST.get('id'))
-        url = request.POST.get('url')
-        interval = int(request.POST.get('interval')) * 1000
+        form = GraphEditForm(request.POST)
+        if form.is_valid():
+            cleaned_data = form.cleaned_data
+            account_navlet = AccountNavlet.objects.get(pk=cleaned_data['id'], account=account)
+            del cleaned_data['id']
+            account_navlet.preferences = cleaned_data
+            account_navlet.save()
+            return HttpResponse()
+        else:
+            return HttpResponse(form.errors.as_json(), status=400)
 
-        account_navlet = AccountNavlet.objects.get(pk=nid, account=account)
-        account_navlet.preferences['url'] = url
-        account_navlet.preferences['refresh_interval'] = interval
-        account_navlet.preferences['target'] = request.POST.get('target')
-        account_navlet.save()
-
-        return HttpResponse()
 
     def get_title(self):
         if 'title' in self.preferences:

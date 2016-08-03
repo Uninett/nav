@@ -12,6 +12,7 @@
    require(['plugins/graphfetcher'], function(Fetcher) {
        new Fetcher($('#graph-container-{{ navlet.navlet_id }}'), '{{ graph_url|safe }}', {
            hideAddGraphButton: true,
+           hideTimeIntervalButtons: {{ hide_buttons }},
            linkTarget: '{{ navlet.preferences.target }}'
        });
    });

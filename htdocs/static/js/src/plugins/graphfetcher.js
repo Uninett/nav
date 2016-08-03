@@ -21,7 +21,7 @@ define([
      *   loaded on page load.
      *
      * NB: Expected icon for indicating expandable is 'fa-chevron-right'
-     * 
+     *
      * config options:
      * - hideAddGraphButton: Hides the button for adding graph as widget
      * - linkTarget: if set will wrap a link around image (only valid if graph
@@ -62,7 +62,9 @@ define([
 
     GraphFetcher.prototype = {
         init: function () {
-            this.addButtons();
+            if (!this.config.hideTimeIntervalButtons) {
+                this.addButtons();
+            }
             this.loadGraph();
             this.isInitialized = true;
         },
@@ -190,7 +192,7 @@ define([
                 var image = new Image();
                 image.src = url;
                 image.onload = function () {
-                    self.node.find('img').remove();
+                    self.node.find('img, a').remove();
                     self.node.prepend(image);
                     if (self.config.linkTarget) {
                         var link = $('<a>').attr('href', self.config.linkTarget);
