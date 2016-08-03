@@ -102,9 +102,10 @@ class PrefixHeap(object):
 
 class IpNode(PrefixHeap):
     "PrefixHeap node class"
-    def __init__(self, ip_addr):
+    def __init__(self, ip_addr, net_type):
         super(IpNode, self).__init__()
         self._ip = IP(ip_addr)
+        self.net_type = net_type
 
     @property
     def ip(self):
@@ -113,7 +114,7 @@ class IpNode(PrefixHeap):
 
     def not_in_use(self):
         "Show unused subnets in the CIDR range"
-        if self.is_leaf():
+        if self.is_leaf() or self.net_type != "scope":
             return []
         base_set = IPSet([self.ip])
         for child in self.children:
@@ -159,16 +160,16 @@ class IpNodeFacade(IpNode):
     ]
 
     def __init__(self, ip_addr, pk, net_type, sort_fn=None):
-        super(IpNodeFacade, self).__init__(ip_addr)
+        super(IpNodeFacade, self).__init__(ip_addr, net_type)
         self.pk = pk
-        self.net_type = net_type
         self.sort_fn = sort_fn
 
+    # TODO: This logic is faulty, replace root-node in tree generation code or something
     @property
     def is_reservable(self):
         "Whether or not the prefix can be reserved in NAV"
-        empty_root_node = self.net_type == "root-node" and self.length == 0
-        return self.net_type == "available" or empty_root_node
+        empty_scope = self.net_type == "scope" and self.length == 0
+        return self.net_type == "available" or empty_scope
 
     @property
     def empty_ranges(self):
@@ -287,12 +288,19 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
     and IPv6 as needed
 
     """
+    rfc1918 = IPSet([
+        IP("10.0.0.0/8"),
+        IP("172.16.0.0/12"),
+        IP("192.168.0.0/16")
+        ])
     def accept(prefix):
         "Helper function for filtering prefixes by IP family"
         ip = IP(prefix.net_address)
-        if "ipv4" in family and ip.version() == 4:
+        if "ipv4" in family and ip.version() == 4 and ip not in rfc1918:
             return True
         if "ipv6" in family and ip.version() == 6:
+            return True
+        if "rfc1918" in family and ip in rfc1918:
             return True
         return False
 
@@ -303,7 +311,8 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
         heap.add(node)
     # Add marker nodes for available ranges/prefixes
     if show_available:
-        subnets = (get_available_nodes([child.ip]) for child in heap.walk_roots())
+        scopes = (child for child in heap.walk_roots() if child.net_type in ["scope"])
+        subnets = (get_available_nodes([scope.ip]) for scope in scopes)
         for subnet in subnets:
             heap.add_many(subnet)
     # Add marker nodes for empty ranges, e.g. ranges not spanned by the
@@ -335,23 +344,16 @@ def nodes_from_ips(ips, type="empty"):
 def make_tree(prefixes, family=None, root_ip=None, show_all=None, sort_by="ip"):
     """Return a prefix heap initially populated with RFC1918 addresses. Accepts
 parameters rfc1918, ipv4 and ipv6 to return addresses of those respective
-families.
+families. Do note that we distinguish between 'real' IPv4, which is everything
+not part of the RFC1918 ranges.
 
     """
-    family = {"ipv4", "ipv6"} if family is None else set(family)
+    family = {"ipv4", "ipv6", "rfc1918"} if family is None else set(family)
     init = []
 
     if root_ip is not None:
-        init.append(FauxNode(root_ip, "root-node", "root-node"))
+        init.append(FauxNode(root_ip, "scope", "scope"))
 
-    # Create fake RFC1918 nodes
-    if "rfc1918" in family:
-        family.add("ipv4")
-        init = [
-            FauxNode("10.0.0.0/8", "rfc1918-a", "RFC1918"),
-            FauxNode("172.16.0.0/12", "rfc1918-b", "RFC1918"),
-            FauxNode("192.168.0.0/16", "rfc1918-c", "RFC1918")
-        ]
     opts = {
         "initial_children": init,
         "family": family,
@@ -359,8 +361,7 @@ families.
         "show_available": show_all,
         "show_unused": show_all
     }
-    result = make_prefix_heap(prefixes, **opts)
-    return result
+    return make_prefix_heap(prefixes, **opts)
 
 def make_tree_from_ip(cidr_addresses):
     "Like make_tree, but for strings of CIDR addresses"
