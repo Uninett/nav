@@ -23,9 +23,7 @@
     <form class="allocation-tree-reserve-form">
       <label for="Size of network">Number of addresses required (minimum)</label>
       <input type="number" class="size-of-network" value="<%= network_size %>" min="2" />
-      <% if (state === "CHOSEN_RESERVATION_SIZE") { %>
       <button class="button small choose-network-size">Suggest subnets of this size</button>
-      <% } %>
       <% if (state == "STORED_RESERVATION_SIZE" || state == "CHOSEN_SUBNET") { %>
       <input type="text" class="prefix-list" />
       <% } %>
