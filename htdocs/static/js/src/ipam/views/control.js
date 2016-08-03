@@ -45,7 +45,8 @@ define(function(require, exports, module) {
       "change .search-param": "updateSearch",
       "change .search-flag": "updateSearch",
       "change .net_types": "updateNetTypes",
-      "click .toggleAdvanced": "toggleAdvanced"
+      "click .toggleAdvanced": "toggleAdvanced",
+      "keypress .search-param": "forceSearch"
     },
 
     updateNetTypes: function(evt) {
@@ -102,6 +103,13 @@ define(function(require, exports, module) {
       var self = this;
       // Detect select2 inputs
       this.$el.find(".select2").select2();
+    },
+
+    forceSearch: function(evt) {
+      if (evt.which === 13 || !evt.which) {
+        evt.preventDefault();
+        this._updateSearch();
+      }
     },
 
     _updateSearch: function() {
