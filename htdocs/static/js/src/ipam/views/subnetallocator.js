@@ -80,6 +80,7 @@ define(function(require, exports, module) {
           };
           fsm.extends("CREATING_RESERVATION", stateMixin);
           fsm.extends("CHOSEN_RESERVATION_SIZE", stateMixin);
+          fsm.extends("STORED_RESERVATION_SIZE", stateMixin);
           fsm.extends("SENDING_RESERVATION", stateMixin);
           fsm.extends("CHOSEN_SUBNET", stateMixin);
           return fsm;
@@ -205,10 +206,10 @@ define(function(require, exports, module) {
     baseUrl: "/seeddb/prefix/add/?",
 
     events: {
-      "click .choose-network-size": "setNetworkSize",
       "change .size-of-network": "onNetworkSizeChange",
-      "keypress .size-of-network": "setNetworkSizeEnter",
+      "keypress .size-of-network": "onNetworkSizeKeypress",
       "click .cancel-reservation:first": "cancelReservation",
+      "click .choose-network-size": "chooseNetworkSize",
       "select2-selecting .prefix-list": "onSelectPrefix"
     },
 
@@ -217,30 +218,38 @@ define(function(require, exports, module) {
       this.node = opts.node;
       this.model = new Backbone.Model(this.node);
       this.model.set("creation_url", null);
-      //this.fsm.on("CHOSEN_NETWORK_SIZAE")
+      // Since template uses states, rerender on new state
+      this.fsm.onChange(this.render);
     },
 
-    setNetworkSizeEnter: function(evt) {
+    onNetworkSizeKeypress: function(evt) {
       if (evt.which === 13) {
-        this.setNetworkSize(evt);
+        this.onNetworkSizeChange(evt);
+        this.chooseNetworkSize(evt);
       }
     },
 
-    setNetworkSize: function(evt) {
+    chooseNetworkSize: function(evt) {
       evt.preventDefault();
-      this.fsm.step("STORE_RESERVATION_SIZE");
-      this.render();
+      var networkSize = this.model.get("network_size");
+      if (networkSize === '') {
+        return;
+      }
+      this.fsm.step("CHOOSE_RESERVATION_SIZE");
     },
 
     onNetworkSizeChange: function(evt) {
       var sizeOfNetwork = this.$el.find(".size-of-network").val();
-      this.model.set("selected_prefix", null);
       this.model.set("network_size", sizeOfNetwork);
-      this.fsm.step("CHOOSE_RESERVATION_SIZE");
-      this.render();
+      this.model.set("selected_prefix", null);
+      this.fsm.step("STORE_RESERVATION_SIZE");
     },
 
     onSelectPrefix: function(evt) {
+      // Don't handle empty values from user
+      if (!evt.val) {
+        return;
+      }
       var params = {
         "net_address": evt.val,
         "net_type": "reserved"
@@ -248,7 +257,6 @@ define(function(require, exports, module) {
       this.model.set("creation_url", this.baseUrl + decodeURIComponent($.param(params, true)));
       this.model.set("selected_prefix", evt.val);
       this.fsm.step("CHOOSE_SUBNET");
-      this.render();
     },
 
     serializeData: function(opts) {
@@ -457,7 +465,7 @@ define(function(require, exports, module) {
 
   // Maps different types of nodes to different colors
   function colors(d) {
-    if (d.data.is_reservable) {
+    if (d.data.net_type === "available") {
       return d3.hsl(0, 0, 1);
     }
     if (d.depth === 0) {
