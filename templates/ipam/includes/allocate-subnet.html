@@ -1,5 +1,11 @@
 <script type="text/template" id="prefix-available-subnets">
-  <div class="allocation-tree">
+  <div class="allocation-tree panel">
+    <% if (state === "FETCHING_STATS") { %>
+    <div class="prefix-allocate-flash alert-box">
+      <i class="fa fa-spinner fa-spin"></i>
+      Getting data for allocation tree
+    </div>
+    <% } %>
     <div class="treemap">
       <!-- container for main tree viz -->
     </div>
@@ -12,27 +18,25 @@
 </script>
 
 <script type="text/template" id="prefix-allocate-reservation">
-  <form>
-    <label for="Size of network">Number of hosts required (minimum)</label>
-    {% comment %}
-    TODO check for bounds
-    {% endcomment %}
-    <input type="number" class="size-of-network" value="28" />
-    <input type="text" class="prefix-list"></select>
-    <h5>Optional fields</h5>
-    <label for="organization">Description</label>
-    <input type="text" name="description">
-    <label for="organization">Net ident</label>
-    <input type="text" name="description">
-    <label for="organization">VLAN</label>
-    <input type="text" name="description">
-    <label for="organization">Organization</label>
-    <input type="text" name="description">
-    <label for="organization">Usage</label>
-    <input type="text" name="description">
-  </form>
-  <button class="button small send-reservation">Send reservation</button>
-  <button class="button small cancel-reservation">Cancel</button>
+  <div class="panel white">
+    <h5>Creating new reservation</h5>
+    <form class="allocation-tree-reserve-form">
+      <label for="Size of network">Number of addresses required (minimum)</label>
+      <input type="number" class="size-of-network" value="<%= network_size %>" min="2" />
+      <% if (state === "CHOSEN_RESERVATION_SIZE") { %>
+      <button class="button small choose-network-size">Suggest subnets of this size</button>
+      <% } %>
+      <% if (state == "STORED_RESERVATION_SIZE" || state == "CHOSEN_SUBNET") { %>
+      <input type="text" class="prefix-list" />
+      <% } %>
+    </form>
+    <button class="button small cancel-reservation">Cancel</button>
+    <% if (creation_url && selected_prefix) { %>
+    <a href="<%= creation_url %>" class="button small send-reservation" target="_blank">
+      Create reservation for <span class="selected-prefix"><%= selected_prefix %></span>
+    </a>
+    <% } %>
+  </div>
 </script>
 
 <script type="text/template" id="prefix-allocate-info">
@@ -50,7 +54,7 @@
     <% } %>
   </ul>
   <% if (node.is_reservable && state !== "CREATING_RESERVATION") { %>
-  <p>This subnet seems to be available!</p>
-  <button class="reserve-subnet button small">Reserve?</button>
+  <p>This network can be partially or wholly reserved.</p>
+  <button class="reserve-subnet button small">Allocate new subnet within <%= node.prefix %></button>
   <% } %>
 </script>

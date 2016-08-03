@@ -1,6 +1,12 @@
 <!-- address types to display -->
 <div class="prefix-tree-control-checkboxes">
   <div>
+    <label for="organization">Description (optional)</label>
+    <input type="text" class="search-param" id="prefix-vlan"
+      name="description" value="<%= queryParams.description %>">
+  </div>
+
+  <div>
     <label for="organization">Organization (optional)</label>
     <input type="text" class="search-param" id="prefix-organization"
       name="organization" value="<%= queryParams.organization %>">
@@ -23,7 +29,7 @@
 
     <input class="search-flag" type="checkbox" name="type" value="ipv4"
     <%= _.contains(queryParams.type, "ipv4") ? "checked" : null %>>
-    <label for="type">IPv4</label>
+    <label for="type">Real IPv4</label>
 
     <input class="search-flag" type="checkbox" name="type" value="ipv6"
     <%= _.contains(queryParams.type, "ipv6") ? "checked" : null %>>
@@ -31,7 +37,7 @@
 
     <input class="search-flag", type="checkbox" name="type" value="rfc1918"
     <%= _.contains(queryParams.type, "rfc1918") ? "checked" : null %>>
-    <label for="type">RFC1918</label>
+    <label for="type">Private IPV4 (RFC1918)</label>
   </div>
 
   <div>
@@ -52,20 +58,5 @@
       </option>
     {% endfor %}
     </select>
-  </div>
-
-  <!-- datetime select -->
-  <div class="prefix-tree-control-timespan">
-    <h4>Usage calculation</h4>
-    <div>
-      <label>Start time</label>
-      <input class="datetimepicker datetimeinput search-param" id="usage_start" name="starttime"
-        type="text" value="<%= queryParams.timestart %>" />
-    </div>
-    <div>
-      <label>End time</label>
-      <input class="datetimepicker datetimeinput search-param" id="usage_end" name="endtime"
-        type="text" value="<%= queryParams.timeend %>" />
-    </div>
   </div>
 </div>

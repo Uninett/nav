@@ -1,5 +1,7 @@
 <form id="prefix-tree-control" class="prefix-tree-control" onsubmit="return false;">
 
+  <h3><%= state === "ADVANCED_SEARCH" ? "Advanced search" : "Simple search" %></h3>
+  <% if (state === "SIMPLE_SEARCH") { %>
   <!-- free text search -->
   <div class="prefix-tree-control-search">
     <label>
@@ -11,20 +13,22 @@
       class="search-param prefix-tree-query"
       value="<%= queryParams.search %>">
   </div>
-
-
   <div>
     <label for="organization">IP</label>
     <input type="text" class="search-param" id="prefix-ip"
       name="ip" value="<%= queryParams.ip %>">
   </div>
+  <div>
+    <input type="hidden" class="search-param" id="prefix-net-type" name="net_type" value="scope">
+  </div>
+  <% } %>
 
+  <% if (state === "ADVANCED_SEARCH") { %>
+   {% include "ipam/includes/tree-form-advanced.html" %}
+  <% } %>
   <div>
     <button class="toggleAdvanced btn small">
-      <%= advancedSearch ? "Hide advanced search" : "Advanced search" %>
+      Open <%= state === "ADVANCED_SEARCH" ? "simple search" : "advanced search" %>
     </button>
-  </div>
-
-  <div class="prefix-control-form-advanced">
   </div>
 </form>

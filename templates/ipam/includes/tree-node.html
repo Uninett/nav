@@ -1,6 +1,6 @@
 <a href="#prefix-<%= pk %>" class="prefix-tree-item-title">
+  <h3 class="ip"><%= prefix %></h3>
   <span class="net-type"><%= net_type %></span>
-  <span class="ip"><%= prefix %></span>
   <% if (vlan_number) { %>
   <span class="vlan_number">VLAN <%= vlan_number %></span>
   <% } %>
@@ -16,7 +16,7 @@
 <div id="prefix-<%= pk %>" class="content prefix-tree-item-content">
   <div class="prefix-tree-item-content-data">
     <% if (edit_url) { %>
-    <a class="button small" href="<%= edit_url %>">Edit</a>
+    <a class="button small" href="<%= edit_url %>">Edit in SeedDB</a>
     <% } %>
     <% if (description && organization) { %>
     <ul class="prefix-metadata">
