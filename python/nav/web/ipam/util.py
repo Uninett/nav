@@ -72,7 +72,7 @@ class PrefixQuerysetBuilder(object):
         "Returns all prefixes containing the given address"
         try:
             ip = IP(addr)
-        except ValueError, TypeError:
+        except (ValueError, TypeError):
             return self
         self.queryset = self.queryset & Prefix.objects.contains_ip(ip.strNormal())
         return self
