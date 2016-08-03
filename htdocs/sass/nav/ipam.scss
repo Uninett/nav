@@ -13,6 +13,23 @@ $ipam-500: #607D8B;
 $ipam-200: #CFD8DC;
 $ipam-700: #455A64;
 
+
+// Blur all other nodes when a single node is opened
+.prefix-tree-children.prefix-tree-open {
+  .prefix-tree-item.prefix-tree-item-open {
+    opacity: 1.0 !important;
+    .prefix-tree-item {
+      opacity: 1.0;
+    }
+  }
+  .prefix-tree-item {
+    opacity: 0.25;
+  }
+  .prefix-tree-item:hover {
+    opacity: 1.0;
+  }
+}
+
 .prefix-tree-item-content-data {
   padding: 20px;
   background: #fff;
@@ -24,6 +41,9 @@ $ipam-700: #455A64;
 }
 
 .tree-control {
+  select {
+      max-width: 200px;
+  }
   button {
     font-size: 0.8em;
     margin-bottom: 0;
@@ -53,7 +73,7 @@ $ipam-700: #455A64;
   .ip {
   }
 
-  .net-type, .ip, .description, .vlan_number {
+  .net-type, .description, .vlan_number {
     border: 3px solid #ccc;
     padding: 5px 10px;
     font-size: 80%;
@@ -113,6 +133,15 @@ ul.accordion {
 
 .prefix-graphs {
   font-size: 0.750em;
+}
+
+.allocation-tree {
+  allocation-tree-info {
+    margin-top: 20px;
+  }
+  .allocation-tree-reserve-form {
+    max-width: 350px;
+  }
 }
 
 
@@ -205,6 +234,27 @@ ul.accordion {
   }
   
 }
+
+// For allocation tree
+svg.matrix g.matrix-subnet text > tspan {
+  cursor: pointer;
+  text-anchor: middle;
+}
+
+ .axis path {
+  display: none;
+}
+
+.axis line {
+  shape-rendering: crispEdges;
+  stroke: #000;
+}
+
+.axis .minor line {
+  stroke: #777;
+  stroke-dasharray: 2,2;
+}
+
 
 
 // Semantic layout classes
