@@ -9,10 +9,32 @@ define(function(require, exports, module) {
   var debug = require("src/ipam/util").ipam_debug;
   var globalCh = Backbone.Wreqr.radio.channel("global");
 
+  var viewStates = {
+    "SIMPLE_SEARCH": {
+      "WILDCARD_SEARCH": "WILDCARD_SEARCH",
+      "TOGGLE_ADVANCED": "ADVANCED_SEARCH"
+    },
+    "WILDCARD_SEARCH": {},
+    "ADVANCED_SEARCH": {
+      "TOGGLE_ADVANCED": "SIMPLE_SEARCH"
+    }
+  };
+
   // Control form for tree
   module.exports = Marionette.LayoutView.extend({
     debug: debug.new("views:control"),
     template: "#prefix-control-form",
+
+    behaviors: {
+      StateMachine: {
+        states: viewStates,
+        modelField: "state",
+        handlers: {
+          "ADVANCED_SEARCH": "advancedSearch",
+          "SIMPLE_SEARCH": "simpleSearch"
+        }
+      }
+    },
 
     regions: {
       "advanced": ".prefix-control-form-advanced"
@@ -33,9 +55,8 @@ define(function(require, exports, module) {
 
     // Activate advanced form
     toggleAdvanced: function() {
-      var advancedSearch = this.model.get("advancedSearch");
-      this.debug("Displaying advanced search => " + !advancedSearch);
-      this.model.set("advancedSearch", !advancedSearch);
+      this.fsm.step(this.fsm.events.TOGGLE_ADVANCED);
+      this.debug("Toggling advanced search");
       this.render();
       // make datetimepicker detect forms
       $(".datetimepicker").datetimepicker({
@@ -44,14 +65,34 @@ define(function(require, exports, module) {
       });
     },
 
+    simpleSearch: function(self) {
+      // Reset model
+      self.debug("Reset query params");
+      self.model.set("queryParams", {
+        net_type: ["scope"],
+        ip: null,
+        search: null
+      });
+    },
+
+    advancedSearch: function(self) {
+      // Reset model TODO load from localstorage?
+      self.debug("Reset query params");
+      self.model.set("queryParams", {
+        type: ["ipv4", "ipv6", "rfc1918"],
+        net_type: ["scope"],
+        timestart: null,
+        timeend: null,
+        organization: null,
+        usage: null,
+        vlan: null,
+        description: null
+      });
+    },
+
     onRender: function() {
       var advancedSearch = this.model.get("advancedSearch");
       var self = this;
-      if (advancedSearch) {
-        this.showChildView("advanced", new ControlAdvancedView({
-          model: self.model
-        }));
-      }
       // Detect select2 inputs
       this.$el.find(".select2").select2();
     },
@@ -91,6 +132,7 @@ define(function(require, exports, module) {
 
     initialize: function() {
       this.updateSearch = _.throttle(this._updateSearch, 1000);
+      this.fsm.setState("SIMPLE_SEARCH");
     }
 
   });

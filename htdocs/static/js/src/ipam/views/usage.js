@@ -40,6 +40,27 @@ define(function(require, exports, module) {
       if (typeof usage === "undefined" || typeof allocated === "undefined") {
         return;
       }
+      // Don't show allocation stats for things that aren't scopes, as this
+      // makes no sense
+      if (this.model.get("net_type") === "scope") {
+        var allocationElem = this.$el.find(".allocation-graph:first");
+        var allocationTmpl = _.template("<span>Allocated: <%= percent %> %</span>");
+        allocationElem.append(allocationTmpl({percent: (allocated * 100).toFixed(2)}));
+        Viz.usageChart({
+          mountElem: allocationElem.get(0),
+          width: 100,
+          height: 10,
+          data: [{
+            fill: "lightsteelblue",
+            name: "Available",
+            value: 1.0 - allocated
+          },{
+            fill: "white",
+            name: "Allocated",
+            value: allocated
+          }]
+        });
+      }
 
       var usageElem = this.$el.find(".usage-graph:first");
       var usageTmpl = _.template("<span>Usage: <%= percent %> %</span>");
@@ -56,24 +77,6 @@ define(function(require, exports, module) {
           fill: "white",
           name: "Used",
           value: usage
-        }]
-      });
-
-      var allocationElem = this.$el.find(".allocation-graph:first");
-      var allocationTmpl = _.template("<span>Allocated: <%= percent %> %</span>");
-      allocationElem.append(allocationTmpl({percent: (allocated * 100).toFixed(2)}));
-      Viz.usageChart({
-        mountElem: allocationElem.get(0),
-        width: 100,
-        height: 10,
-        data: [{
-          fill: "lightsteelblue",
-          name: "Available",
-          value: 1.0 - allocated
-        },{
-          fill: "white",
-          name: "Allocated",
-          value: allocated
         }]
       });
     }

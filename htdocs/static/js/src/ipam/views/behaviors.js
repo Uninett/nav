@@ -32,7 +32,7 @@ define(function(require, exports, module) {
       }
       var self = this.view;
       // Update model with current state if modelField given
-      if (_.isObject(self.model) && modelField) {
+      if (modelField) {
         fsm.onChange(function (nextState) {
           self.model.set(modelField, nextState);
         });

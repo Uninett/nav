@@ -22,7 +22,11 @@ define(function(require, exports, module) {
 
   var viewStates = {
     INIT: {
+      FETCH_STATS: "FETCHING_STATS",
       SHOW_TREEMAP: "SHOWING_TREEMAP"
+    },
+    FETCHING_STATS: {
+      FETCHING_DONE: "SHOWING_TREEMAP"
     },
     SHOWING_TREEMAP: {
       HIDE: "HIDING_TREEMAP",
@@ -36,6 +40,16 @@ define(function(require, exports, module) {
       HIDE: "HIDING_RESERVATION"
     },
     CHOSEN_RESERVATION_SIZE: {
+      CHOOSE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE",
+      STORE_RESERVATION_SIZE: "STORED_RESERVATION_SIZE"
+    },
+    STORED_RESERVATION_SIZE: {
+      CHOOSE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE",
+      CHOOSE_SUBNET: "CHOSEN_SUBNET"
+    },
+    CHOSEN_SUBNET: {
+      CHOOSE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE",
+      CHOOSE_SUBNET: "CHOSEN_SUBNET",
       SEND: "SENDING_RESERVATION"
     },
     SENDING_RESERVATION: {
@@ -67,6 +81,7 @@ define(function(require, exports, module) {
           fsm.extends("CREATING_RESERVATION", stateMixin);
           fsm.extends("CHOSEN_RESERVATION_SIZE", stateMixin);
           fsm.extends("SENDING_RESERVATION", stateMixin);
+          fsm.extends("CHOSEN_SUBNET", stateMixin);
           return fsm;
         },
         modelField: "state",
@@ -75,7 +90,8 @@ define(function(require, exports, module) {
           "HIDING_TREEMAP": "hidingTreemap",
           "FOCUSED_NODE": "focusedNode",
           "CREATING_RESERVATION": "creatingReservation",
-          "HIDING_RESERVATION": "hideReservation"
+          "HIDING_RESERVATION": "hideReservation",
+          "FETCHING_STATS": "fetchingStats"
         }
       }
     },
@@ -114,6 +130,7 @@ define(function(require, exports, module) {
     },
 
     showingTreemap: function(self) {
+      self.render();
       self.debug("Showing subnet treemap");
       var target = self.$el.find(".allocation-tree:first");
       var treeMap = target.find(".treemap").get(0);
@@ -155,59 +172,119 @@ define(function(require, exports, module) {
       self.fsm.step("DONE", node);
     },
 
+    fetchingStats: function(self) {
+      var prefix = self.model.get("queryParams").prefix;
+      self.debug("Trying to get subnets for " + prefix);
+      // cache xhr object
+      self.xhr = self.model.fetch({reset: true});
+      self.xhr.done(self.onReceive.bind(this, self));
+    },
+
     // STATE MACHINE END
 
-    onReceive: function() {
-      this.fsm.step(this.fsm.events.SHOW_TREEMAP);
+    onBeforeDestroy: function() {
+      // Kill pending fetches upon destroying this component
+      if (!_.isUndefined(this.xhr)) {
+        this.xhr.abort();
+      }
+
+    },
+
+    onReceive: function(self) {
+      self.fsm.step(self.fsm.events.FETCHING_DONE);
     },
 
     fetch: function() {
-      this.refetch();
-    },
-
-    refetch: function() {
-      var prefix = this.model.get("queryParams").prefix;
-      this.debug("Trying to get subnets for " + prefix);
-      // cache xhr object
-      this.xhr = this.model.fetch({reset: true});
-      this.xhr.done(this.onReceive.bind(this, this));
+      this.fsm.step("FETCH_STATS");
     }
   });
 
   // TODO: Proper model for Reservation, with reservation data etc
   var ReservationView = Marionette.LayoutView.extend({
     template: "#prefix-allocate-reservation",
+    baseUrl: "/seeddb/prefix/add/?",
 
     events: {
+      "click .choose-network-size": "setNetworkSize",
+      "change .size-of-network": "onNetworkSizeChange",
+      "keypress .size-of-network": "setNetworkSizeEnter",
       "click .cancel-reservation:first": "cancelReservation",
-      "change .size-of-network:first": "fetchCandidates"
+      "select2-selecting .prefix-list": "onSelectPrefix"
     },
 
     initialize: function(opts) {
       this.fsm = opts.fsm;
       this.node = opts.node;
       this.model = new Backbone.Model(this.node);
+      this.model.set("creation_url", null);
+      //this.fsm.on("CHOSEN_NETWORK_SIZAE")
+    },
+
+    setNetworkSizeEnter: function(evt) {
+      if (evt.which === 13) {
+        this.setNetworkSize(evt);
+      }
+    },
+
+    setNetworkSize: function(evt) {
+      evt.preventDefault();
+      this.fsm.step("STORE_RESERVATION_SIZE");
+      this.render();
+    },
+
+    onNetworkSizeChange: function(evt) {
+      var sizeOfNetwork = this.$el.find(".size-of-network").val();
+      this.model.set("selected_prefix", null);
+      this.model.set("network_size", sizeOfNetwork);
+      this.fsm.step("CHOOSE_RESERVATION_SIZE");
+      this.render();
+    },
+
+    onSelectPrefix: function(evt) {
+      var params = {
+        "net_address": evt.val,
+        "net_type": "reserved"
+      };
+      this.model.set("creation_url", this.baseUrl + decodeURIComponent($.param(params, true)));
+      this.model.set("selected_prefix", evt.val);
+      this.fsm.step("CHOOSE_SUBNET");
+      this.render();
     },
 
     serializeData: function(opts) {
       return {
         node: this.model.toJSON(),
+        creation_url: this.model.get("creation_url"),
+        selected_prefix: this.model.get("selected_prefix"),
+        network_size: this.model.get("network_size"),
         state: this.fsm.state
       };
     },
 
-    // Fetch and mount candidates for new prefix reservation
-    fetchCandidates: function(evt) {
-      var prefix = this.node.prefix;
-      var prefixListElem = this.$el.find(".prefix-list");
-      var sizeOfNetwork = this.$el.find(".size-of-network").val();
-      // TODO handle sizeofnetwork > prefix.length etc
-      var url = "/ipam/api/suggest/?n=" + sizeOfNetwork + "&prefix=" + prefix;
+    onRender: function(self) {
+      // Mount select2 if found
+      var selectElem = self.$el.find(".prefix-list:first");
+      var sizeOfNetwork = self.model.get("network_size");
+      var prefix = self.model.get("prefix");
+      if (!(sizeOfNetwork && prefix)) {
+        return;
+      }
+      var url = "/ipam/api/suggest/?size=" + sizeOfNetwork + "&prefix=" + prefix;
       var optionTemplate = _.template("<%= prefix %> (<%= start%>-<%= end %>)");
-      prefixListElem.select2({
+      var pageSize = 10;
+      selectElem.select2({
+        placeholder: self.model.get("selected_prefix") || "Select a subnet",
         dataType: 'json',
         ajax: {
-          url: url,
+          url: "/ipam/api/suggest/",
+          data: function(term, page) {
+            return {
+              n: pageSize,
+              size: sizeOfNetwork,
+              prefix: prefix,
+              offset: pageSize * (page - 1)
+            };
+          },
           results: function(data) {
             console.log(data);
             var transformed = _.map(data.candidates, function(prefixMap) {
@@ -216,10 +293,12 @@ define(function(require, exports, module) {
                 id: prefixMap.prefix
               };
             });
-            return { results: transformed };
+            return { results: transformed, more: data.more };
           }
         }
       });
+      // Update select2 node with stored value from model
+      //selectElem.select2("val", this.model.get("selected_prefix"));
     },
 
     onAttach: function() {
@@ -378,11 +457,12 @@ define(function(require, exports, module) {
 
   // Maps different types of nodes to different colors
   function colors(d) {
-    if (d.depth === 0) {
-      return d3.hsl(80, 1, 0.5);
+    if (d.data.is_reservable) {
+      return d3.hsl(0, 0, 1);
     }
-    if (d.data.net_type === "available") {
-      return d3.hsl(120, 1, 0.5);
+    if (d.depth === 0) {
+      // 199° 98% 48%
+      return d3.hsl(199, 0.91, 0.64);
     }
     if (d.data.net_type === "scope") {
       return d3.hsl(0, 0, 0.87);

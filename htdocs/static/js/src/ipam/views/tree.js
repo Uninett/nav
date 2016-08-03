@@ -103,7 +103,6 @@ define(function(require, exports, module) {
       if (this.isFetching()) {
         flash.fetch();
       }
-      // TODO: show load/fetch messages
       if (this.isEmpty()) {
         var searchParams = this.collection.queryParams.search;
         flash.noResult(searchParams);
@@ -114,7 +113,7 @@ define(function(require, exports, module) {
 
   });
 
-  // TODO: Fetch available subnets, see available_subnets in prefix_tree.py
+  // TODO: Do blur using global channel or something
   var nodeViewStates = {
     INIT: {
       "TOGGLE_OPEN": "OPENING_NODE",
@@ -172,6 +171,12 @@ define(function(require, exports, module) {
       }
     },
 
+    onBeforeDestroy: function() {
+      // Remove marker class for open node in tree, so new results (upon
+      // searching/filtering) aren't blurred.
+      this.$el.parent().removeClass("prefix-tree-open");
+    },
+
     initialize: function() {
       var self = this;
       var pk = this.model.get("pk");
@@ -190,12 +195,18 @@ define(function(require, exports, module) {
       self.debug("Opening node", self.model.get("pk"));
       self.fsm.step("OPENED_NODE");
       self.toggle();
+      // mark parent tree as having open node
+      self.$el.parent().addClass("prefix-tree-open");
+      self.$el.addClass("prefix-tree-item-open");
     },
 
     closingNode: function(self) {
       self.debug("Closing node", self.model.get("pk"));
       self.fsm.step("CLOSED_NODE");
       self.toggle();
+      // remove transparency classes
+      self.$el.parent().removeClass("prefix-tree-open");
+      self.$el.removeClass("prefix-tree-item-open");
     },
 
     loadingStats: function(self, statMap) {
@@ -241,7 +252,6 @@ define(function(require, exports, module) {
         collection: children
       };
       self.showChildView("children", new TreeView(payload));
-      //self.fsm.step("DONE_SHOWING_CHILDREN");
     },
 
     // Defer drawing usage to speed up rendering
@@ -254,9 +264,10 @@ define(function(require, exports, module) {
       var self = this;
       var utilization = this.model.get("utilization");
       var pk = this.model.get("pk");
+      var net_type = this.model.get("net_type");
       this.showChildView("usage_graph", new Views.UsageGraph({
         fsm: self.fsm,
-        model: new Models.Usage({ pk: pk }),
+        model: new Models.Usage({ pk: pk, net_type: net_type }),
         utilization: utilization
       }));
     }
