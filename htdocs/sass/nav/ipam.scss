@@ -237,11 +237,14 @@ ul.accordion {
 
 // For allocation tree
 svg.matrix g.matrix-subnet text > tspan {
-  cursor: pointer;
   text-anchor: middle;
 }
 
- .axis path {
+svg.matrix g.matrix-subnet {
+  cursor: pointer;
+}
+
+.axis path {
   display: none;
 }
 
