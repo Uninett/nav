@@ -43,7 +43,7 @@ class PrefixQuerysetBuilder(object):
 
     def net_type(self, net_type_or_net_types):
         "Return prefixes only of the given type(s)"
-        if net_type_or_net_types is None:
+        if net_type_or_net_types is None or not net_type_or_net_types:
             return self
         types = net_type_or_net_types
         if not isinstance(types, list):
@@ -98,9 +98,9 @@ def get_available_subnets(prefix_or_prefixes):
     # filter away original prefixes
     return sorted([ip for ip in base if str(ip) not in base_prefixes])
 
-def partition_subnet(n, prefix):
+def partition_subnet(size, prefix):
     "Partition prefix into subnets with room for at at least n hosts"
-    subnet_size = math.ceil(math.log(n, 2))
+    subnet_size = math.ceil(math.log(size, 2))
     chunk_size = 2 ** subnet_size
     _iter = iter(IP(prefix))
     chunk = list(islice(_iter, chunk_size))
@@ -108,22 +108,32 @@ def partition_subnet(n, prefix):
         yield IPSet(chunk).prefixes[0]
         chunk = list(islice(_iter, chunk_size))
 
-def suggest_range(prefix, number_of_hosts):
+def suggest_range(prefix, size=256, offset=0, n=10):
     """Partitions prefix into blocks of 'n' hosts. Returns a list of
     [startAddr, endAddr, prefix]
 
     """
-    blocks = partition_subnet(number_of_hosts, prefix)
     acc = {
         "prefix": prefix,
-        "requested_size": number_of_hosts,
-        "candidates": []
+        "requested_size": size,
+        "candidates": [],
+        "offset": offset,
+        "more": True 
     }
-    for block in blocks:
-        acc["candidates"].append({
-            "length": block.len(),
-            "prefix": str(block),
-            "start": str(block[-0]),
-            "end": str(block[-1])
-        })
+    _blocks = partition_subnet(size, prefix) 
+    try:
+        # drop first #offset blocks
+        for _ in range(offset):
+            next(_blocks)
+        # collect remainder
+        for block in (next(_blocks) for _ in range(n)):
+            acc["candidates"].append({
+                "length": block.len(),
+                "prefix": str(block),
+                "start": str(block[-0]),
+                "end": str(block[-1])
+            })
+    except StopIteration:
+        # done, set "more" flag
+        acc["more"] = False
     return acc
