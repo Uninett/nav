@@ -24,12 +24,12 @@
       <label for="Size of network">Number of addresses required (minimum)</label>
       <input type="number" class="size-of-network" value="<%= network_size %>" min="2" />
       <button class="button small choose-network-size">Suggest subnets of this size</button>
-      <% if (state == "STORED_RESERVATION_SIZE" || state == "CHOSEN_SUBNET") { %>
+      <% if (state === "CHOSEN_RESERVATION_SIZE" || state === "CHOSEN_SUBNET") { %>
       <input type="text" class="prefix-list" />
       <% } %>
     </form>
     <button class="button small cancel-reservation">Cancel</button>
-    <% if (creation_url && selected_prefix) { %>
+    <% if (state === "CHOSEN_SUBNET") { %>
     <a href="<%= creation_url %>" class="button small send-reservation" target="_blank">
       Create reservation for <span class="selected-prefix"><%= selected_prefix %></span>
     </a>
