@@ -55,18 +55,15 @@ define(function(require, exports, module) {
   var PrefixNodes = Backbone.Collection.extend({
     debug: debug.new("models:prefixnodes"),
     model: PrefixNode,
-    baseUrl: "ipam/api",
+    baseUrl: "/ipam/api/?",
     // Default query params
-    queryParams: {
-      type: ["ipv4", "ipv6", "rfc1918"],
-      net_type: ["scope"]
-    },
+    queryParams: null,
 
     initialize: function(models, args) {
       var self = this;
       this.url = function() {
         var params = decodeURIComponent($.param(self.queryParams, true));
-        return "/ipam/api/?" + params;
+        return self.baseUrl + params;
       };
       this.parse = function(resp) {
         this.debug("Received response from " + this.url(), resp);
