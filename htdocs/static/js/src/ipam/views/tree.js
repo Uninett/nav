@@ -51,6 +51,10 @@ define(function(require, exports, module) {
         this.debug("Aborted previous fetch!");
         this.xhr.abort();
       }
+      // Don't fetch if no query params
+      if (!this.collection.queryParams) {
+        return;
+      }
       // Keep a pointer to the fetch object, for tracking all fetches
       this.xhr = this.collection.fetch({reset: true});
       flash.fetch();
@@ -101,13 +105,13 @@ define(function(require, exports, module) {
 
     onRender: function() {
       if (this.isFetching()) {
-        flash.fetch();
+        return flash.fetch();
       }
-      if (this.isEmpty()) {
+      if (this.isEmpty() && this.collection.queryParams) {
         var searchParams = this.collection.queryParams.search;
-        flash.noResult(searchParams);
+        return flash.noResult(searchParams);
       } else {
-        flash.reset();
+        return flash.reset();
       }
     }
 
@@ -194,19 +198,32 @@ define(function(require, exports, module) {
     openingNode: function(self) {
       self.debug("Opening node", self.model.get("pk"));
       self.fsm.step("OPENED_NODE");
-      self.toggle();
       // mark parent tree as having open node
       self.$el.parent().addClass("prefix-tree-open");
       self.$el.addClass("prefix-tree-item-open");
+      // open the node itself
+      var content = self.$el.find(".prefix-tree-item-content:first");
+      var title = self.$el.find(".prefix-tree-item-title:first");
+      content.slideToggle(200);//.toggleClass("prefix-item-open");
+      title.addClass("prefix-item-open");
+      // Mount subnet allocator
+      var prefix = self.model.get("prefix");
+      self.showChildView("available_subnets", new Views.SubnetAllocator({
+        prefix: prefix
+      }));
     },
 
     closingNode: function(self) {
       self.debug("Closing node", self.model.get("pk"));
       self.fsm.step("CLOSED_NODE");
-      self.toggle();
-      // remove transparency classes
+      // TODO replace this with message passing and parent.mode.("hasopenchildren")
       self.$el.parent().removeClass("prefix-tree-open");
       self.$el.removeClass("prefix-tree-item-open");
+      // close the node itself
+      var content = self.$el.find(".prefix-tree-item-content:first");
+      var title = self.$el.find(".prefix-tree-item-title:first");
+      content.slideToggle(200);//.toggleClass("prefix-item-open");
+      title.removeClass("prefix-item-open");
     },
 
     loadingStats: function(self, statMap) {
@@ -221,21 +238,6 @@ define(function(require, exports, module) {
         evt.preventDefault();
       }
       this.fsm.step("TOGGLE_OPEN");
-    },
-
-    // Hide/show element
-    toggle: function() {
-      // open content
-      var content = this.$el.find(".prefix-tree-item-content:first");
-      var title = this.$el.find(".prefix-tree-item-title:first");
-      content.slideToggle(200);//.toggleClass("prefix-item-open");
-      title.toggleClass("prefix-item-open");
-      // mount subnet treemap
-      var prefix = this.model.get("prefix");
-      this.showChildView("available_subnets", new Views.SubnetAllocator({
-        prefix: prefix
-      }));
-      this.debug("Toggle " + this.model.get("pk"));
     },
 
     // We defer drawing children to return a shallow tree faster to the user
