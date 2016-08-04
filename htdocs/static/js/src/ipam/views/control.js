@@ -44,14 +44,23 @@ define(function(require, exports, module) {
       "input .prefix-tree-query": "updateSearch",
       "change .search-param": "updateSearch",
       "change .search-flag": "updateSearch",
-      "change .net_types": "updateNetTypes",
       "click .toggleAdvanced": "toggleAdvanced",
       "keypress .search-param": "forceSearch"
     },
 
-    updateNetTypes: function(evt) {
-      var elem = $(evt.target);
-      console.log(elem.val());
+    // Default parameters for the different kinds of searches
+    simpleSearchDefaults: {
+      net_type: ["scope"],
+      ip: null,
+      search: null
+    },
+    advancedSearchDefaults: {
+      type: ["ipv4", "ipv6", "rfc1918"],
+      net_type: ["scope"],
+      organization: null,
+      usage: null,
+      vlan: null,
+      description: null
     },
 
     // Activate advanced form
@@ -69,33 +78,15 @@ define(function(require, exports, module) {
     simpleSearch: function(self) {
       // Reset model
       self.debug("Reset query params");
-      self.model.set("queryParams", {
-        net_type: ["scope"],
-        ip: null,
-        search: null
-      });
+      self.model.set("queryParams", self.simpleSearchDefaults);
       self._updateSearch();
     },
 
     advancedSearch: function(self) {
       // Reset model TODO load from localstorage?
       self.debug("Reset query params");
-      self.model.set("queryParams", {
-        type: ["ipv4", "ipv6", "rfc1918"],
-        net_type: ["scope"],
-        timestart: null,
-        timeend: null,
-        organization: null,
-        usage: null,
-        vlan: null,
-        description: null
-      });
+      self.model.set("queryParams", self.advancedSearchDefaults);
       self._updateSearch();
-    },
-
-    // Force defaults when control element is mounted on the DOM
-    onAttach: function() {
-      this._updateSearch();
     },
 
     onRender: function() {
@@ -112,7 +103,8 @@ define(function(require, exports, module) {
       }
     },
 
-    _updateSearch: function() {
+    // Parse form and get all parameters for search
+    _getSearch: function() {
       var params = {};
       // handle check boxes
       var checked = this.$el.find("input.search-flag:checked");
@@ -140,14 +132,32 @@ define(function(require, exports, module) {
 
       // handle search string
       params["search"] = this.$el.find("#prefix-tree-query").val();
-      // update globally
-      this.model.set("queryParams", params);
-      globalCh.vent.trigger("search:update", params);
+      return params;
+    },
+
+    // Fires a delayed function that updates the queryParams attribute in the
+    // model given some preconditions. This will in turn trigger a broadcast of
+    // the new search parameters to the whole application.
+    _updateSearch: function() {
+      var self = this;
+      _.delay(function() {
+        var queryParams = self._getSearch();
+        // Don't update parameter if user in middle of writing something
+        if (queryParams["search"] && queryParams["search"].length < 2) {
+          return;
+        }
+        self.model.set("queryParams", queryParams);
+      }, 350);
     },
 
     initialize: function() {
+      // Utility function to update the search as we go
       this.updateSearch = _.throttle(this._updateSearch, 1000);
       this.fsm.setState("SIMPLE_SEARCH");
+      // Broadcast new query parameters to rest of app
+      this.model.bind("change:queryParams", function(model, value) {
+        globalCh.vent.trigger("search:update", value);
+      });
     }
 
   });
