@@ -1,4 +1,4 @@
-// Misc utility scripts
+// Everything that doesn't belong anywhere else
 
 define(function (require, exports, module) {
 
@@ -56,7 +56,9 @@ define(function (require, exports, module) {
     return newData;
   }
 
+  // Export debugger util lib
   var Debugger = require("libs/ipadebug");
+  // Export state machine util lib
   var FSM = require("libs/statist");
 
   module.exports = {

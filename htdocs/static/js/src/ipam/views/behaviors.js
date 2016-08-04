@@ -7,7 +7,8 @@ define(function(require, exports, module) {
 
   var Behaviors = {};
 
-  // Simple mixin to add a state machine to a view.
+  // Simple mixin to add a state machine to a view. See 'subnetallocator.js' for
+  // example usage.
   Behaviors.StateMachine = Marionette.Behavior.extend({
     defaults: {
       // States of the FSM
@@ -51,12 +52,15 @@ define(function(require, exports, module) {
   });
 
 
-  module.exports = function() {
-    // Mount the behaviors
+  // Marionette needs to be told where to find the behaviors. This utility
+  // function takes care of this.
+  function mount() {
     window.Behaviors = Behaviors;
     Marionette.Behaviors.behaviorsLookup = function() {
       return window.Behaviors;
     };
   };
+
+  module.exports = mount;
 
 });

@@ -49,6 +49,7 @@ define(function(require, exports, module) {
     }
   };
 
+  // Main container for subnet allocator.
   var AvailableSubnetsView = Marionette.LayoutView.extend({
     debug: debug,
     template: "#prefix-available-subnets",
@@ -86,10 +87,14 @@ define(function(require, exports, module) {
       this.fsm.onChange(function(nextState) {
         self.debug("Moving into state", nextState);
       });
-      // Start application
+      // Start application by fetching
       this.fetch();
     },
 
+    // STATE MACHINE START
+
+    // When we're focused on a particular node in the tree and displaying some
+    // information about it
     focusedNode: function(self, node) {
       self.debug("Focused on", node);
       self.model.set("focused_node", node);
@@ -101,6 +106,7 @@ define(function(require, exports, module) {
       self.showChildView("nodeInfo", new InfoView(payload));
     },
 
+    // Initial state. The tree has the data it needs to draw itself.
     showingTreemap: function(self) {
       self.render();
       self.debug("Showing subnet treemap");
@@ -127,6 +133,7 @@ define(function(require, exports, module) {
       self.fsm.step(self.fsm.events.DONE);
     },
 
+    // The user is trying to reserve a new prefix for some particular purpose
     creatingReservation: function(self, node) {
       self.debug("Creating reservation for", node);
       var payload = {
@@ -144,6 +151,7 @@ define(function(require, exports, module) {
       self.fsm.step("DONE", node);
     },
 
+    // Loading state, e.g. trying to get some data to display to the user
     fetchingStats: function(self) {
       var prefix = self.model.get("queryParams").prefix;
       self.debug("Trying to get subnets for " + prefix);
@@ -159,7 +167,6 @@ define(function(require, exports, module) {
       if (!_.isUndefined(this.xhr)) {
         this.xhr.abort();
       }
-
     },
 
     onReceive: function(self) {

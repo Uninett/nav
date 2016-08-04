@@ -90,12 +90,11 @@ define(function(require, exports, module) {
     },
 
     onRender: function() {
-      var advancedSearch = this.model.get("advancedSearch");
-      var self = this;
       // Detect select2 inputs
       this.$el.find(".select2").select2();
     },
 
+    // If the user presses enter, update our query params
     forceSearch: function(evt) {
       if (evt.which === 13 || !evt.which) {
         evt.preventDefault();
@@ -160,10 +159,6 @@ define(function(require, exports, module) {
       });
     }
 
-  });
-
-  var ControlAdvancedView = Marionette.ItemView.extend({
-    template: "#prefix-control-form-advanced"
   });
 
 });

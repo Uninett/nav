@@ -9,7 +9,8 @@ define(function(require, exports, module) {
   var debug = require("src/ipam/util").ipam_debug;
   var globalCh = Backbone.Wreqr.radio.channel("global");
 
-  /* Dumb view for mounting usage graph */
+  // Responsible for fetching and display usage/allocation stats. Also
+  // propagates these values to the parent.
   var SubnetAllocator = Marionette.ItemView.extend({
     template: "#prefix-graphs",
     debug: debug.new("views:usagegraph"),
@@ -23,10 +24,18 @@ define(function(require, exports, module) {
       this.debug("Mounting usage view.");
       // Fetch usage data, then draw
       this.fsm.step("FETCH_STATS");
-      this.model.fetch().done(this.onReceive.bind(this, this));
+      this.xhr = this.model.fetch();
+      this.xhr.done(this.onReceive.bind(this, this));
     },
 
-    // TODO: Draw how much of the prefix has been allocated to others
+    onBeforeDestroy: function() {
+      // Kill pending fetches upon destroying this component
+      if (!_.isUndefined(this.xhr)) {
+        this.xhr.abort();
+      }
+    },
+
+    // Handle a successful fetch
     onReceive: function() {
       this.debug("Received usage data");
       var usage = this.model.get("usage");

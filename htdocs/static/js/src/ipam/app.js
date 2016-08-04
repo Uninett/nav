@@ -6,8 +6,7 @@ define(function(require, exports, module) {
   var Backbone = require("backbone");
   var Marionette = require("marionette");
 
-
-  // Import behaviors
+  // Import and mount behaviors, so they are available to the views.
   require("src/ipam/views/behaviors")();
 
   var Models = require("src/ipam/models");
@@ -21,7 +20,7 @@ define(function(require, exports, module) {
 
   // == APP LIFECYCLE MANAGEMENT
 
-  // TODO: Create regions for forms, main statistics (overused/underused networks)
+  // Dynamically mount regions
   App.on("before:start", function() {
     App.addRegions({
       main: "#prefix-tree",
@@ -29,6 +28,7 @@ define(function(require, exports, module) {
     });
   });
 
+  // Instantiate application by fetching a tree and drawing stuff
   App.on("start", function() {
     debug("Trying to render prefix tree...");
     this.main.show(new Views.RootView({
@@ -41,13 +41,6 @@ define(function(require, exports, module) {
     }));
 
     debug("Didn't crash. Great success!");
-
-    // Must be called for Foundation to notice the generated accordions
-    $(document).foundation({
-      accordion: {
-        multi_expand: true
-      }
-    });
   });
 
   // Handle flash messages
