@@ -23,7 +23,6 @@ contains ad-hoc serializer methods (self.fields) for API purposes.
 from __future__ import unicode_literals
 from IPy import IP, IPSet
 import json
-import copy
 
 from django.core.urlresolvers import reverse, NoReverseMatch
 
@@ -164,7 +163,6 @@ class IpNodeFacade(IpNode):
         self.pk = pk
         self.sort_fn = sort_fn
 
-    # TODO: This logic is faulty, replace root-node in tree generation code or something
     @property
     def is_reservable(self):
         "Whether or not the prefix can be reserved in NAV"
@@ -173,10 +171,12 @@ class IpNodeFacade(IpNode):
 
     @property
     def empty_ranges(self):
-        return map(str, self.not_in_use())
+        "Ranges within the node not spanned by its children"
+        return [str(prefix) for prefix in self.not_in_use()]
 
     @property
     def bits(self):
+        "Numeric value of address"
         return self.ip.ip
 
     @property
@@ -299,7 +299,7 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
 
     Returns:
         A prefix heap (tree)
-        
+
     """
     rfc1918 = IPSet([
         IP("10.0.0.0/8"),
@@ -324,7 +324,8 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
         heap.add(node)
     # Add marker nodes for available ranges/prefixes
     if show_available:
-        scopes = (child for child in heap.walk_roots() if child.net_type in ["scope"])
+        scopes = (child for child in heap.walk_roots() if child.net_type in
+                  ["scope"])
         subnets = (get_available_nodes([scope.ip]) for scope in scopes)
         for subnet in subnets:
             heap.add_many(subnet)

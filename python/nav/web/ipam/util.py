@@ -14,6 +14,10 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 
+"""
+API and prefixes related utilities
+"""
+
 from nav.models.manage import Prefix
 from django.db.models import Q
 from IPy import IP, IPSet
@@ -72,10 +76,10 @@ class PrefixQuerysetBuilder(object):
         organization
 
         """
-        q = Q()
-        q.add(Q(vlan__description__icontains=query), Q.OR)
-        q.add(Q(vlan__organization__id__icontains=query), Q.OR)
-        return self.filter(query, q)
+        new_query = Q()
+        new_query.add(Q(vlan__description__icontains=query), Q.OR)
+        new_query.add(Q(vlan__organization__id__icontains=query), Q.OR)
+        return self.filter(query, new_query)
 
     # Mutating methods, e.g. resets the queryset
     def within(self, prefix):
@@ -91,7 +95,8 @@ class PrefixQuerysetBuilder(object):
             ip = IP(addr)
         except (ValueError, TypeError):
             return self
-        self.queryset = self.queryset & Prefix.objects.contains_ip(ip.strNormal())
+        new_query = Prefix.objects.contains_ip(ip.strNormal())
+        self.queryset = self.queryset & new_query
         return self
 
 # Code finding available subnets
@@ -162,9 +167,9 @@ def suggest_range(prefix, size=256, offset=0, n=10):
         "requested_size": size,
         "candidates": [],
         "offset": offset,
-        "more": True 
+        "more": True
     }
-    _blocks = partition_subnet(size, prefix) 
+    _blocks = partition_subnet(size, prefix)
     try:
         # drop first #offset blocks
         for _ in range(offset):

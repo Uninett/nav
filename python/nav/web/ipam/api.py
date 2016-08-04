@@ -23,22 +23,22 @@ API specific code for the private IPAM API. Exports a router for easy mounting.
 from rest_framework import viewsets, status, routers
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
-from django.db.models import Q
-from IPy import IPSet, IP
+from IPy import IP
 
 from .prefix_tree import make_tree, make_tree_from_ip
 
 from nav.models.manage import Prefix
 from nav.web.api.v1.serializers import PrefixSerializer
-from nav.web.api.v1.views import get_times
 from nav.web.api.v1.helpers import prefix_collector
-from nav.web.ipam.util import PrefixQuerysetBuilder, get_available_subnets, suggest_range
+from nav.web.ipam.util import PrefixQuerysetBuilder, get_available_subnets, \
+    suggest_range
 
 
 from rest_framework import serializers
 #from nav.models.fields import CIDRField
 
-# Inspired by http://blog.karolmajta.com/parsing-query-parameters-in-rest-framework/
+# Inspired by
+# http://blog.karolmajta.com/parsing-query-parameters-in-rest-framework/
 class SuggestParams(serializers.Serializer):
     prefix = serializers.CharField()
     n = serializers.IntegerField(default=10)
@@ -68,7 +68,7 @@ class PrefixViewSet(viewsets.ViewSet):
     search_fields = ("vlan__description")
 
     def get_queryset(self):
-        # Extract filters etc
+        "Build queryset for API using filters"
         net_types = self.request.QUERY_PARAMS.getlist("net_type", None)
         if "all" in net_types:
             net_types = None
@@ -98,22 +98,23 @@ class PrefixViewSet(viewsets.ViewSet):
         "Suggests subnets of size=?number_of_hosts for ?prefix"
         params = SuggestParams(data=request.QUERY_PARAMS)
         if not params.is_valid():
-            return Response(data=params.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data=params.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
         params = params.object
-        payload = suggest_range(params["prefix"], offset=params["offset"], size=params["size"], n=params["n"])
+        payload = suggest_range(params["prefix"], offset=params["offset"],
+                                size=params["size"], n=params["n"])
         return Response(payload, status=status.HTTP_200_OK)
 
     @detail_route(methods=["get"])
     def usage(self, request, *args, **kwargs):
         "Return usage for Prefix.pk == pk"
         pk = kwargs.pop("pk", None)
-        # TODO: error handling
         prefix = Prefix.objects.get(pk=pk)
         max_addr = IP(prefix.net_address).len()
         active_addr = prefix_collector.collect_active_ip(prefix)
         # calculate allocated ratio
-        allocated = PrefixQuerysetBuilder().within(prefix.net_address).finalize()
-        allocated = allocated.exclude(vlan__net_type="scope")
+        query = PrefixQuerysetBuilder().within(prefix.net_address)
+        allocated = query.finalize().exclude(vlan__net_type="scope")
         total_allocated = sum(p.get_prefix_size() for p in allocated)
         payload = {
             "max_addr": max_addr,
@@ -127,10 +128,12 @@ class PrefixViewSet(viewsets.ViewSet):
     def list(self, request, *args, **kwargs):
         "List a tree-like structure of all prefixes matching the query"
         prefixes = self.get_queryset()
-        family = self.request.QUERY_PARAMS.getlist("type", ["ipv4", "ipv6", "rfc1918"])
+        family = self.request.QUERY_PARAMS.getlist("type", ["ipv4", "ipv6",
+                                                            "rfc1918"])
         within = self.request.QUERY_PARAMS.get("within", None)
         show_all = self.request.QUERY_PARAMS.get("show_all", None)
-        result = make_tree(prefixes, root_ip=within, family=family, show_all=show_all)
+        result = make_tree(prefixes, root_ip=within, family=family,
+                           show_all=show_all)
         payload = result.fields["children"]
         return Response(payload, status=status.HTTP_200_OK)
 
@@ -169,11 +172,11 @@ class PrefixFinderSet(viewsets.ViewSet):
         """
         prefix = self.request.QUERY_PARAMS.get("prefix", None)
         result = get_available_subnets(prefix)
-        # filter on size TODO error handling
         prefix_size = self.request.QUERY_PARAMS.get("prefix_size", None)
         if prefix_size is not None:
             prefix_size = int(prefix_size)
-            result = [prefix for prefix in result if prefix.prefixlen() <= prefix_size]
+            result = [prefix for prefix in result if prefix.prefixlen() <=
+                      prefix_size]
         payload = [p.strNormal() for p in result]
         payload = {
             "prefix": prefix,
