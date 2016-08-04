@@ -1,4 +1,4 @@
-define(['libs/spin.min'], function () {
+define(['libs/urijs/URI', 'libs/spin.min'], function (URI) {
 
     /*
     * Controller for a specific Navlet
@@ -109,12 +109,12 @@ define(['libs/spin.min'], function () {
                 if (this.navlet.image_reload) {
                     this.refresh = setInterval(function () {
                         // Find image each time because of async loading
-                        var image = that.node.find('img[data-image-reload], [data-image-reload] img'),
-                            imageUrl = image.attr('src');
-                        /* The random part is courtesy IE */
-                        var bustPrefix = imageUrl.indexOf('?') > -1 ? '&' : '?',
-                            bust = bustPrefix + 'bust=' + Math.random();
-                        image.attr('src', imageUrl + bust);
+                        var image = that.node.find('img[data-image-reload], [data-image-reload] img');
+                        if (image.length) {
+                            // Add bust parameter to url to prevent caching
+                            var uri = new URI(image.get(0)).setSearch('bust', Math.random());
+                            image.attr('src', uri.href());
+                        }
                     }, preferences.refresh_interval);
                 } else if (this.navlet.ajax_reload) {
                     this.refresh = setInterval(function () {
