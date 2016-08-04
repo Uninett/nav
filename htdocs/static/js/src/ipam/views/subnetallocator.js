@@ -175,16 +175,17 @@ define(function(require, exports, module) {
   var reservationStates = {
     INIT: {
       CHOOSE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE",
-      STORE_RESERVATION_SIZE: "STORED_RESERVATION_SIZE"
+      STORE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE"
     },
     CHOSEN_RESERVATION_SIZE: {
-      CHOOSE_SUBNET: "CHOSEN_SUBNET"
-    },
-    STORED_RESERVATION_SIZE: {
-      CHOOSE_SUBNET: "CHOSEN_SUBNET"
+      CHOOSE_SUBNET: "CHOSEN_SUBNET",
+      CHOOSE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE",
+      STORE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE"
     },
     CHOSEN_SUBNET: {
-      CHOOSE_SUBNET: "CHOSEN_SUBNET"
+      CHOOSE_SUBNET: "CHOSEN_SUBNET",
+      CHOOSE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE",
+      STORE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE"
     }
   };
 
@@ -194,12 +195,7 @@ define(function(require, exports, module) {
 
     behaviors: {
       StateMachine: {
-        states: reservationStates,
-        init: function(fsm) {
-          fsm.extends("CHOSEN_SUBNET", "INIT");
-          fsm.extends("STORED_RESERVATION_SIZE", "INIT");
-          return fsm;
-        }
+        states: reservationStates
       }
     },
 
@@ -207,8 +203,8 @@ define(function(require, exports, module) {
       "change .size-of-network": "onNetworkSizeChange",
       "keypress .size-of-network": "onNetworkSizeKeypress",
       "click .cancel-reservation:first": "cancelReservation",
-      "click .choose-network-size": "chooseNetworkSize",
-      "select2-selecting .prefix-list": "onSelectPrefix"
+      "select2-selecting .prefix-list": "onSelectPrefix",
+      "click .choose-network-size": "chooseNetworkSize"
     },
 
     initialize: function(opts) {
@@ -218,29 +214,37 @@ define(function(require, exports, module) {
       this.model.set("creation_url", null);
       // Since template uses states, rerender on new state
       this.fsm.onChange(this.render);
+      this.fsm.onChange(function (state) {
+        console.log("RESERVATION went into state", state);
+      });
     },
 
     onNetworkSizeKeypress: function(evt) {
       if (evt.which === 13) {
-        this.onNetworkSizeChange(evt);
         this.chooseNetworkSize(evt);
       }
     },
 
     chooseNetworkSize: function(evt) {
       evt.preventDefault();
+      this.getAndStoreNetworkSize();
       var networkSize = this.model.get("network_size");
-      if (networkSize === '') {
+      if (networkSize === '' || !networkSize) {
         return;
       }
       this.fsm.step("CHOOSE_RESERVATION_SIZE");
     },
 
     onNetworkSizeChange: function(evt) {
+      evt.preventDefault();
+      this.getAndStoreNetworkSize();
+      this.fsm.step("STORE_RESERVATION_SIZE");
+    },
+
+    getAndStoreNetworkSize: function() {
       var sizeOfNetwork = this.$el.find(".size-of-network").val();
       this.model.set("network_size", sizeOfNetwork);
       this.model.set("selected_prefix", null);
-      this.fsm.step("STORE_RESERVATION_SIZE");
     },
 
     onSelectPrefix: function(evt) {
@@ -409,6 +413,7 @@ define(function(require, exports, module) {
           .attr("visibility", function(d) {
             return xScale(getWidth(d)) > 30 ? "visible" : "hidden";
           })
+          .on("click", zoom)
           .text(function(d) {
             var _width = xScale(getWidth(d));
             if (_width > 100) {
