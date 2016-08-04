@@ -46,7 +46,23 @@ class SuggestParams(serializers.Serializer):
     offset = serializers.IntegerField(default=0)
 
 class PrefixViewSet(viewsets.ViewSet):
-    "Potpurri view for anything prefix related mostly"
+    """Potpurri view for anything IPAM needs to function properly.
+
+    Filters
+    -------
+    - net_type: *Only return this type of prefix. Can be used multiple times.*
+    - search: *Match against the description or organization of the VLAN*
+    - ip: *Find all prefixes that contain this IP*
+    - organization: *Match against the VLAN's organization*
+    - vlan: *Match against a certain VLAN number*
+    - description: *Match against the VLAN's description*
+    - within: *Find all prefixes within this range*
+
+    Examples
+    --------
+    ?net_type=scope&organization=NTNU&within=10.0.0.0/8
+
+    """
 
     serializer = PrefixSerializer
     search_fields = ("vlan__description")
@@ -119,12 +135,18 @@ class PrefixViewSet(viewsets.ViewSet):
         return Response(payload, status=status.HTTP_200_OK)
 
 class PrefixFinderSet(viewsets.ViewSet):
-    "Utility view for finding available subnets"
+    """Utility view for finding available subnets. Only returns prefixes that
+    are either scopes or reserved.
+
+    Filters
+    -------
+    - prefix: *Range or prefix to query against (e.g. '10.0.0.0/8')*
+    - organization: *Match against the corresponding VLAN's organization*
+
+    """
 
     serializer = PrefixSerializer
 
-    # TODO Implement search for length?
-    # TODO Filter all IPv6 addresses, as they tend to give us overflow errors
     def get_queryset(self):
         # Extract filters
         prefix = self.request.QUERY_PARAMS.get("prefix", None)
@@ -136,7 +158,15 @@ class PrefixFinderSet(viewsets.ViewSet):
         return queryset.finalize()
 
     def list(self, request, *args, **kwargs):
-        "List all available subnets for a given query"
+        """List all available subnets for the prefixes returned by the initial
+        query.
+
+        Filters
+        -------
+        - prefix: *Range or prefix to query against (e.g. '10.0.0.0/8')*
+        - prefix_size: *The maximum prefix length (mask, e.g. /32)*
+
+        """
         prefix = self.request.QUERY_PARAMS.get("prefix", None)
         result = get_available_subnets(prefix)
         # filter on size TODO error handling

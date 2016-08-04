@@ -1,13 +1,30 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2016 UNINETT AS
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
+
 from nav.models.manage import Prefix
 from django.db.models import Q
 from IPy import IP, IPSet
 from itertools import islice
 import math
 
-# Utility class (builder pattern) to get the Prefixes we want. Returns the
-# resulting queryset when 'finalize' is called.
 class PrefixQuerysetBuilder(object):
-    "Utility class to build queryset(s) for Prefix"
+    """Utility class to build queryset(s) for Prefix. Returns the resulting
+    queryset when finalize() is called.
+
+    """
 
     def __init__(self, queryset=None):
         if queryset is None:
@@ -20,7 +37,7 @@ class PrefixQuerysetBuilder(object):
         'None' origin
 
         """
-        if origin is not None:
+        if origin is not None and origin:
             self.queryset = self.queryset.filter(*args, **kwargs)
         return self
 
@@ -79,9 +96,14 @@ class PrefixQuerysetBuilder(object):
 
 # Code finding available subnets
 def get_available_subnets(prefix_or_prefixes):
-    """Get available prefixes within a list of CIDR addresses. Returns an
-    iterable IPSet of available addresses.
+    """Get available prefixes within a list of CIDR addresses.
 
+    Args:
+        prefix_or_prefixes: a single or a list of prefixes ("10.0.0.0/8") or
+                          IPy.IP objects
+
+    Returns:
+           An iterable IPy.IPSet of available addresses.
     """
     if not isinstance(prefix_or_prefixes, list):
         prefix_or_prefixes = [prefix_or_prefixes]
@@ -113,6 +135,26 @@ def partition_subnet(size, prefix):
 def suggest_range(prefix, size=256, offset=0, n=10):
     """Partitions prefix into blocks of 'n' hosts. Returns a list of
     [startAddr, endAddr, prefix]
+
+    Args:
+        prefix: a string (e.g. "10.0.0.0/8") or IPy.IP object
+        size: the minimum number of addresses in each subnet
+        offset: how many candidates to skip (from start)
+        n: number of results desired
+
+    Returns:
+        A dictionary with information about the original query, as well as a
+        list of candidates (subnets) of the requires size.
+
+        {"prefix": "10.0.32.0/19",
+         "requested_size": 257,
+         "offset": 0,
+         "more": true
+         "candidates": [
+             "10.0.32.0/24",
+             "10.0.33.0/24",
+             ...
+         ]}
 
     """
     acc = {

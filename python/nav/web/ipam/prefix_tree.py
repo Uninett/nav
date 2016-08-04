@@ -285,8 +285,21 @@ class PrefixNode(IpNodeFacade):
 def make_prefix_heap(prefixes, initial_children=None, family=None,
                      sort_fn=None, show_available=False, show_unused=False):
     """Return a prefix heap of all prefixes. Might optionally filter out IPv4
-    and IPv6 as needed
+    and IPv6 as needed.
 
+    Args:
+        prefixes: a queryset for or list of nav.models.manage.Prefix
+        initial_children: a list of IPNode to initialize the root with
+        family: a list of address types to allow (of "ipv4", "ipv6", "rfc1918")
+        sort_fn: function used to sort the children upon serialization
+        show_available: whether or not to create "fake" children for all ranges
+            not spanned by the node's children or found otherwhere in NAV
+        show_unused: like above, but only creates such nodes for prefixes that
+            are in fact found within NAV
+
+    Returns:
+        A prefix heap (tree)
+        
     """
     rfc1918 = IPSet([
         IP("10.0.0.0/8"),
@@ -347,6 +360,18 @@ parameters rfc1918, ipv4 and ipv6 to return addresses of those respective
 families. Do note that we distinguish between 'real' IPv4, which is everything
 not part of the RFC1918 ranges.
 
+    Args:
+        prefixes: a queryset for or list of nav.models.manage.Prefix
+        family: a list of address types to allow (of "ipv4", "ipv6", "rfc1918")
+        root_ip: prefix string or IPy.IP object to use as the root of the tree
+        show_all: whether or not to create fake nodes that fill in available
+            within a parent (e.g. unused subnets) or nodes that are detected
+            within this prefix for NAV, but still not present in the heap
+        sort_by: key to sort the nodes/children by
+
+    Returns:
+        A prefix heap (tree)
+
     """
     family = {"ipv4", "ipv6", "rfc1918"} if family is None else set(family)
     init = []
@@ -364,7 +389,15 @@ not part of the RFC1918 ranges.
     return make_prefix_heap(prefixes, **opts)
 
 def make_tree_from_ip(cidr_addresses):
-    "Like make_tree, but for strings of CIDR addresses"
+    """Like make_tree, but for strings of CIDR addresses
+
+    Args:
+        cidr_addresses: A list of strings of prefixes ("10.0.0.0/8")
+
+    Returns:
+        A prefix heap (or tree).
+
+    """
     heap = PrefixHeap()
     for addr in cidr_addresses:
         prefix = FauxNode(addr, "available", "available")
