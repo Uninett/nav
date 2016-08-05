@@ -27,17 +27,23 @@
   <div>
     <label>Address family</label>
 
-    <input class="search-flag" type="checkbox" name="type" value="ipv4"
-    <%= _.contains(queryParams.type, "ipv4") ? "checked" : null %>>
-    <label for="type">Real IPv4</label>
-
-    <input class="search-flag" type="checkbox" name="type" value="ipv6"
-    <%= _.contains(queryParams.type, "ipv6") ? "checked" : null %>>
-    <label for="type">IPv6</label>
-
-    <input class="search-flag", type="checkbox" name="type" value="rfc1918"
-    <%= _.contains(queryParams.type, "rfc1918") ? "checked" : null %>>
-    <label for="type">Private IPV4 (RFC1918)</label>
+    <form>
+      <label>
+        <input id="prefix-flag-ipv4" class="search-flag" type="checkbox" name="type" value="ipv4"
+        <%= _.contains(queryParams.type, "ipv4") ? "checked" : null %>>
+        Real IPv4
+      </label>
+      <label>
+        <input id="prefix-flag-ipv6" class="search-flag" type="checkbox" name="type" value="ipv6"
+        <%= _.contains(queryParams.type, "ipv6") ? "checked" : null %>>
+        IPv6
+      </label>
+      <label>
+        <input id="prefix-flag-ipv6" class="search-flag", type="checkbox" name="type" value="rfc1918"
+        <%= _.contains(queryParams.type, "rfc1918") ? "checked" : null %>>
+        Private IPV4 (RFC1918)
+      </label>
+    </form>
   </div>
 
   <div>
@@ -56,7 +62,7 @@
       <option value="{{ net_type }}" <%= _.contains(queryParams.net_type, '{{ net_type }}') ? "selected" : null %>>
         {{ net_type }}
       </option>
-    {% endfor %}
+      {% endfor %}
     </select>
   </div>
 </div>
