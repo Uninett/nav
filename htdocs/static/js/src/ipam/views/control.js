@@ -41,10 +41,11 @@ define(function(require, exports, module) {
     },
 
     events: {
-      "input .prefix-tree-query": "updateSearch",
-      "change .search-param": "updateSearch",
-      "change .search-flag": "updateSearch",
+      //"input .prefix-tree-query": "updateSearch",
+      //"change .search-param": "updateSearch",
+      //"change .search-flag": "updateSearch",
       "click .toggleAdvanced": "toggleAdvanced",
+      "click .submit-search": "updateSearch",
       "keypress .search-param": "forceSearch"
     },
 
