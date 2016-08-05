@@ -13,6 +13,9 @@ $ipam-500: #607D8B;
 $ipam-200: #CFD8DC;
 $ipam-700: #455A64;
 
+.toggleAdvanced {
+  font-size: 0.8em;
+}
 
 // Blur all other nodes when a single node is opened
 .prefix-tree-children {

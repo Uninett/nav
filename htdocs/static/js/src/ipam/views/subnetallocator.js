@@ -392,7 +392,7 @@ define(function(require, exports, module) {
     });
     partition(root);
 
-    var svg = d3.select(mountElem)
+    var svg = d3.select(mountElem).select(".viz")
           .append("svg")
           .attr("viewBox", viewbox({width: width, height: height}))
           .attr("class", "matrix")
@@ -436,6 +436,28 @@ define(function(require, exports, module) {
     subnetText.selectAll("tspan")
       .attr("x", function(d) { return 0.5 * (xScale(d.x1) - xScale(d.x0)); })
       .attr("y", function(d) { return 0.5 * (yScale(d.y1) - yScale(d.y0)); });
+
+    // Draw legends
+    var legends = d3.select(mountElem).select(".legends");
+
+    var legend = legends.selectAll(".legends")
+          .data(_.keys(colorMap))
+          .enter()
+          .append("g");
+
+    var legendDot = legend
+          .append("div")
+          .style("display", "inline-block")
+          .style("border", "1px solid #666")
+          .style("width", "30px")
+          .style("height", "10px")
+          .style("margin-right", "5px")
+          .style("background-color", function(d) { return colorMap[d]; });
+
+    var legendText = legend
+          .append("span")
+          .style("margin-right", "10px")
+          .text(function(d) { return d.toString(); });
 
     // Enter + update pattern?
     function zoom(d) {
