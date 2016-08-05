@@ -15,10 +15,15 @@ $ipam-700: #455A64;
 
 
 // Blur all other nodes when a single node is opened
-.prefix-tree-children.prefix-tree-open {
+.prefix-tree-children {
+  .prefix-tree-item {
+    opacity: 1.0;
+  }
+}
+.prefix-tree-children.has_open_nodes {
   .prefix-tree-item.prefix-tree-item-open {
     opacity: 1.0 !important;
-    .prefix-tree-item {
+    .prefix-tree-children > .prefix-tree-item {
       opacity: 1.0;
     }
   }

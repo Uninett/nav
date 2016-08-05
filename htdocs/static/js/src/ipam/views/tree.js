@@ -223,8 +223,8 @@ define(function(require, exports, module) {
       self.debug("Opening node", self.model.get("pk"));
       self.fsm.step("OPENED_NODE");
       // mark parent tree as having open node
-      self.$el.parent().addClass("prefix-tree-open");
       self.$el.addClass("prefix-tree-item-open");
+      self.$el.trigger("open");
       // open the node itself
       var content = self.$el.find(".prefix-tree-item-content:first");
       var title = self.$el.find(".prefix-tree-item-title:first");
@@ -241,8 +241,8 @@ define(function(require, exports, module) {
       self.debug("Closing node", self.model.get("pk"));
       self.fsm.step("CLOSED_NODE");
       // TODO replace this with message passing and parent.mode.("hasopenchildren")
-      self.$el.parent().removeClass("prefix-tree-open");
       self.$el.removeClass("prefix-tree-item-open");
+      self.$el.trigger("close");
       // close the node itself
       var content = self.$el.find(".prefix-tree-item-content:first");
       var title = self.$el.find(".prefix-tree-item-title:first");
@@ -312,6 +312,12 @@ define(function(require, exports, module) {
     childViewContainer: ".prefix-tree-children",
     reorderOnSort: true,
 
+    events: {
+      "open .prefix-tree-item": "incrementOpenNodes",
+      "close .prefix-tree-item": "decrementOpenNodes",
+      "click .sort-by": "onSortBy"
+    },
+
     // Functions used to determine the sorting order of the tree's children.
     comparators: {
       prefix: null,
@@ -332,8 +338,25 @@ define(function(require, exports, module) {
       this.collection.bind("sync", this.resetSort.bind(this, this));
     },
 
-    events: {
-      "click .sort-by": "onSortBy"
+    // Handle open nodes, i.e. blur all non-open nodes if one or more nodes are open
+    incrementOpenNodes: function(evt) {
+      evt.stopPropagation();
+      this.updateOpenNodes(1);
+    },
+    decrementOpenNodes: function(evt) {
+      evt.stopPropagation();
+      this.updateOpenNodes(-1);
+    },
+    updateOpenNodes: function(delta) {
+      var currentCount = this.model.get("open_nodes");
+      var newCount = currentCount + delta;
+      this.model.set("open_nodes", newCount);
+      var childElem = this.$el.find(".prefix-tree-children");
+      if (newCount > 0) {
+        childElem.addClass("has_open_nodes");
+      } else {
+        childElem.removeClass("has_open_nodes");
+      }
     },
 
     // Revert to default order (e.g. order returned by API, where the nodes are

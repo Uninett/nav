@@ -1,4 +1,4 @@
-// MVC for prefix tree, probably forms etc.
+// Main point of entry for the IPAM application itself.
 
 define(function(require, exports, module) {
   var _ = require("libs/underscore");
