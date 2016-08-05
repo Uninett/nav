@@ -57,7 +57,7 @@ define(function(require, exports, module) {
     },
     advancedSearchDefaults: {
       type: ["ipv4", "ipv6", "rfc1918"],
-      net_type: ["scope"],
+      net_type: [],
       organization: null,
       usage: null,
       vlan: null,
@@ -86,8 +86,8 @@ define(function(require, exports, module) {
     advancedSearch: function(self) {
       // Reset model TODO load from localstorage?
       self.debug("Reset query params");
-      self.model.set("queryParams", self.advancedSearchDefaults);
-      self._updateSearch();
+      //self.model.set("queryParams", self.advancedSearchDefaults);
+      //self._updateSearch();
     },
 
     onRender: function() {
