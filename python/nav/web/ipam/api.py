@@ -57,6 +57,7 @@ class PrefixViewSet(viewsets.ViewSet):
     - vlan: *Match against a certain VLAN number*
     - description: *Match against the VLAN's description*
     - within: *Find all prefixes within this range*
+    - usage: *Find all prefixes with this usage description*
 
     Examples
     --------
@@ -82,6 +83,7 @@ class PrefixViewSet(viewsets.ViewSet):
         vlan_number = self.request.QUERY_PARAMS.get("vlan", None)
         description = self.request.QUERY_PARAMS.get("description", None)
         within = self.request.QUERY_PARAMS.get("within", None)
+        usage = self.request.QUERY_PARAMS.get("usage", None)
         # Build queryset
         queryset = PrefixQuerysetBuilder()
         queryset.within(within)
@@ -90,6 +92,7 @@ class PrefixViewSet(viewsets.ViewSet):
         queryset.organization(organization)
         queryset.vlan_number(vlan_number)
         queryset.contains_ip(ip)
+        queryset.usage(usage)
         return queryset.finalize()
 
 

@@ -11,6 +11,8 @@ define(function(require, exports, module) {
       description: "",
       // VLAN organization
       "organization": "",
+      // usage of VLAN
+      "vlan_usage": null,
       // Primary key (in DB)
       "pk": null,
       start: new Date().toISOString(),

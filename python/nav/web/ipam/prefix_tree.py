@@ -281,6 +281,10 @@ class PrefixNode(IpNodeFacade):
         self._description = prefix.vlan.description
         self._organization = prefix.vlan.organization
         self._vlan_number = prefix.vlan.vlan
+        # Export usage field of VLAN
+        if getattr(prefix.vlan, "usage"):
+            self.vlan_usage = prefix.vlan.usage.description
+            self.FIELDS.append("vlan_usage")
 
 def make_prefix_heap(prefixes, initial_children=None, family=None,
                      sort_fn=None, show_available=False, show_unused=False):
