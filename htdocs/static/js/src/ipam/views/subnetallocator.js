@@ -472,18 +472,22 @@ define(function(require, exports, module) {
   };
 
   // Maps different types of nodes to different colors
+  var colorMap = {
+    "available": d3.hsl(0, 0, 1),
+    "reserved": d3.hsl(210, 0.79, 0.46),
+    "scope": d3.hsl(0, 0, 0.87),
+    "other": d3.hsl(0, 0, .5)
+  };
   function colors(d) {
-    if (d.data.net_type === "available") {
-      return d3.hsl(0, 0, 1);
-    }
+    // root node
     if (d.depth === 0) {
       // 199° 98% 48%
       return d3.hsl(199, 0.91, 0.64);
     }
-    if (d.data.net_type === "scope") {
-      return d3.hsl(0, 0, 0.87);
+    if (_.has(colorMap, d.data.net_type)) {
+      return colorMap[d.data.net_type];
     }
-    return d3.hsl(0, 0, .5);
+    return colorMap["other"];
   }
 
   module.exports = AvailableSubnetsView;
