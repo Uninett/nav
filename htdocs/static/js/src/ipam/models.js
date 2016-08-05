@@ -140,7 +140,7 @@ define(function(require, exports, module) {
       queryParams: {
         ip: null,
         type: ["ipv4", "ipv6", "rfc1918"],
-        net_type: ["scope"],
+        net_type: null,
         search: null,
         timestart: null,
         timeend: null,
