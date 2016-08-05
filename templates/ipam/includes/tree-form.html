@@ -1,6 +1,10 @@
 <form id="prefix-tree-control" class="prefix-tree-control" onsubmit="return false;">
 
+  <a class="toggleAdvanced right">
+    Switch to <%= state === "ADVANCED_SEARCH" ? "simple search" : "advanced search" %>
+  </a>
   <h3><%= state === "ADVANCED_SEARCH" ? "Advanced search" : "Simple search" %></h3>
+
   <% if (state === "SIMPLE_SEARCH") { %>
   <!-- free text search -->
   <div class="prefix-tree-control-search">
@@ -23,8 +27,5 @@
   <% } %>
   <div>
     <button class="submit-search btn small">Search</button>
-    <button class="toggleAdvanced btn small">
-      Switch to <%= state === "ADVANCED_SEARCH" ? "simple search" : "advanced search" %>
-    </button>
   </div>
 </form>
