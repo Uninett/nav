@@ -81,6 +81,10 @@ class PrefixQuerysetBuilder(object):
         new_query.add(Q(vlan__organization__id__icontains=query), Q.OR)
         return self.filter(query, new_query)
 
+    def usage(self, usage):
+        "Return prefixes based on their VLAN's usage field"
+        return self.filter(usage, vlan__usage__description__icontains=usage)
+
     # Mutating methods, e.g. resets the queryset
     def within(self, prefix):
         "Sets the queryset to every Prefix within a certain prefix"
