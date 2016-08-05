@@ -53,7 +53,7 @@ define(function(require, exports, module) {
       // makes no sense
       if (this.model.get("net_type") === "scope") {
         var allocationElem = this.$el.find(".allocation-graph:first");
-        var allocationTmpl = _.template("<span>Allocated: <%= percent %> %</span>");
+        var allocationTmpl = _.template("<span title='Ratio of the scope that has been allocated to subnets'>Allocated: <%= percent %> %</span>");
         allocationElem.append(allocationTmpl({percent: (allocated * 100).toFixed(2)}));
         Viz.usageChart({
           mountElem: allocationElem.get(0),
@@ -72,7 +72,7 @@ define(function(require, exports, module) {
       }
 
       var usageElem = this.$el.find(".usage-graph:first");
-      var usageTmpl = _.template("<span>Usage: <%= percent %> %</span>");
+      var usageTmpl = _.template("<span title='Based on current active IP addresses'>Usage: <%= percent %> %</span>");
       usageElem.append(usageTmpl({percent: (usage * 100).toFixed(2)}));
       Viz.usageChart({
         mountElem: usageElem.get(0),
