@@ -1,4 +1,4 @@
-define(['libs/spin'], function (Spinner) {
+define(['libs/spin.min'], function (Spinner) {
 
     /**
      * This plugin is only useful on the SeedDB add/edit netbox form.

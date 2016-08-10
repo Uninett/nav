@@ -1,4 +1,4 @@
-define(['libs/spin.min'], function () {
+define(['libs/spin.min'], function (Spinner) {
 
     /*
     * Controller for a specific Navlet

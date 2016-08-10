@@ -2,7 +2,7 @@ define([
     'plugins/rickshaw_graph',
     'libs/urijs/URI',
     'libs/spin.min'
-], function (RickshawGraph, URI) {
+], function (RickshawGraph, URI, Spinner) {
     /*
      * GraphFetcher
      *
@@ -21,7 +21,7 @@ define([
      *   loaded on page load.
      *
      * NB: Expected icon for indicating expandable is 'fa-chevron-right'
-     * 
+     *
      * config options:
      * - hideAddGraphButton: Hides the button for adding graph as widget
      * - linkTarget: if set will wrap a link around image (only valid if graph
