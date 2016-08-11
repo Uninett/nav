@@ -1,4 +1,6 @@
-define(['libs/d3.v2'], function () {
+define(function (require, exports, module) {
+
+    var d3 = require('d3');
 
     /*
      Gauge implementation in D3. Heavily inspired by JustGage - http://justgage.com/
