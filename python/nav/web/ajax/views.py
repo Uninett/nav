@@ -83,8 +83,8 @@ def get_neighbors(_request, netboxid):
         else:
             nodes.append(create_object_from(interface.to_netbox))
             link_candidates[interface.to_netbox] = {
-                "sourceId": netbox.id,
-                "targetId": to_netbox.id,
+                "source": netbox.id,
+                "target": to_netbox.id,
                 "ifname": [interface.ifname],
                 "to_ifname": [to_interfacename]}
 
@@ -100,8 +100,8 @@ def get_neighbors(_request, netboxid):
             nodes.append(create_unrecognized_object_from(unrecognized))
             unrecognized_nodes.append(unrecognized)
             un_candidates[unrecognized.remote_id] = {
-                "sourceId": netbox.id,
-                "targetId": unrecognized.remote_id,
+                "source": netbox.id,
+                "target": unrecognized.remote_id,
                 "ifname": [unrecognized.interface.ifname],
                 "to_ifname": ""
             }
