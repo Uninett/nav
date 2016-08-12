@@ -14,125 +14,114 @@ $ipam-200: #CFD8DC;
 $ipam-700: #455A64;
 
 .toggleAdvanced {
-  font-size: 0.8em;
+    font-size: 0.8em;
 }
 
 // Blur all other nodes when a single node is opened
 .prefix-tree-children {
-  .prefix-tree-item {
-    opacity: 1.0;
-  }
+    .prefix-tree-item {
+        opacity: 1.0;
+    }
 }
 .prefix-tree-children.has_open_nodes {
-  .prefix-tree-item.prefix-tree-item-open {
-    opacity: 1.0 !important;
-    .prefix-tree-children > .prefix-tree-item {
-      opacity: 1.0;
+    .prefix-tree-item.prefix-tree-item-open {
+        opacity: 1.0 !important;
+        .prefix-tree-children > .prefix-tree-item {
+            opacity: 1.0;
+        }
     }
-  }
-  .prefix-tree-item {
-    opacity: 0.25;
-  }
-  .prefix-tree-item:hover {
-    opacity: 1.0;
-  }
+    .prefix-tree-item {
+        opacity: 0.25;
+    }
+    .prefix-tree-item:hover {
+        opacity: 1.0;
+    }
 }
 
 .prefix-tree-item-content-data {
-  padding: 20px;
-  background: #fff;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
-  border-bottom: 10px solid $ipam-700;
-  & + div {
-    margin-top: 20px;
-  }
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+    border-bottom: 10px solid $ipam-700;
+    & + div {
+        margin-top: 20px;
+    }
 }
 
 .tree-control {
-  select {
-      max-width: 200px;
-  }
-  button {
-    font-size: 0.8em;
-    margin-bottom: 0;
-  }
+    select {
+        max-width: 200px;
+    }
+    button {
+        font-size: 0.8em;
+        margin-bottom: 0;
+    }
 }
 
 .prefix-tree-item-title {
-  //background: $ipam-500 !important;
-  //background: $ipam-500;
-  //color: $ipam-text-color;
-  font-weight: bold;
-  background: #eee;
-
-  a {
-    color: inherit;
-  }
-
-  a:hover, a:visited {
-             color: inherit;
-           }
-
-  &:hover {
-    background: $ipam-500;
-    color: $ipam-text-color;
-  }
-
-  .ip {
-  }
-
-  .net-type, .description, .vlan_number {
-    border: 3px solid #ccc;
-    padding: 5px 10px;
-    font-size: 80%;
-    padding: 5px 10px;
-    background: #fff;
-    color: #222;
-  }
-
-  .description {
-    //letter-spacing: 2.4px;
-  }
-
-  .net-type {
     font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1.8px;
-  }
+    background: #eee;
 
-  .child-count {
-    
-  }
+    a {
+        color: inherit;
+    }
+
+    a:hover, a:visited {
+                 color: inherit;
+             }
+
+    &:hover {
+        background: $ipam-500;
+        color: $ipam-text-color;
+    }
+
+    .ip {
+    }
+
+    .net-type, .description, .vlan_number {
+        border: 3px solid #ccc;
+        padding: 5px 10px;
+        font-size: 80%;
+        padding: 5px 10px;
+        background: #fff;
+        color: #222;
+    }
+
+    .net-type {
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1.8px;
+    }
+
 }
 
 .prefix-tree-item {
-  border: 0.5px solid $ipam-500;
-  border-bottom: 0;
-  &:last-child {
-    border-bottom: 0.5px solid $ipam-500;
-  }
-  //margin-top: 0.5rem;
+    border: 0.5px solid $ipam-500;
+    border-bottom: 0;
+    &:last-child {
+        border-bottom: 0.5px solid $ipam-500;
+    }
 }
 
 .prefix-tree-item-content {
-  padding: 25px;
-  background: $ipam-200 !important;
-  & > & {
-    background: $ipam-700 !important;
-  }
+    padding: 25px;
+    background: $ipam-200 !important;
+    & > & {
+        background: $ipam-700 !important;
+    }
 }
 
 .prefix-metadata {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 ul.accordion {
-  margin-top: 1rem;
-  margin-left: 0;
+    margin-top: 1rem;
+    margin-left: 0;
 }
 
 .prefix-tree-flash {
-  margin-top: 20px;
+    margin-top: 20px;
 }
 
 // Search panel, forms etc. for prefix tree
@@ -140,16 +129,16 @@ ul.accordion {
 }
 
 .prefix-graphs {
-  font-size: 0.750em;
+    font-size: 0.750em;
 }
 
 .allocation-tree {
-  allocation-tree-info {
-    margin-top: 20px;
-  }
-  .allocation-tree-reserve-form {
-    max-width: 350px;
-  }
+    allocation-tree-info {
+        margin-top: 20px;
+    }
+    .allocation-tree-reserve-form {
+        max-width: 350px;
+    }
 }
 
 
@@ -157,113 +146,113 @@ ul.accordion {
 
 // main container
 .prefix-tree-children {
-  margin-left: 0;
-  li {
     margin-left: 0;
-  }
+    li {
+        margin-left: 0;
+    }
 }
 
 .prefix-tree-item {
-  display: border-box;
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
+    display: border-box;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
 
-  .prefix-tree-item-title {
-    padding: 20px;
-    width: 100%;
-    display: block;
-  }
+    .prefix-tree-item-title {
+        padding: 20px;
+        width: 100%;
+        display: block;
+    }
 }
 
 
 .prefix-tree-query {
-  width: 100%;
-  margin-bottom: 0.5em;
+    width: 100%;
+    margin-bottom: 0.5em;
 }
 
 .prefix-tree-item-content {
-  display: none;
+    display: none;
 }
 
 .prefix-item-open {
-  &.prefix-tree-item-title {
-    background: $ipam-500;
-    color: $ipam-text-color;
-  }
-  &.prefix-tree-item-content {
-    display: block;
-  }
+    &.prefix-tree-item-title {
+        background: $ipam-500;
+        color: $ipam-text-color;
+    }
+    &.prefix-tree-item-content {
+        display: block;
+    }
 }
 
 // == BREAKPOINTS STUFF
 
 .prefix-graphs {
-  display: block;
-  margin-top: 20px;
+    display: block;
+    margin-top: 20px;
 }
 
 .prefix-tree-item-title span {
-  display: block;
-  margin-bottom: 5px;
+    display: block;
+    margin-bottom: 5px;
 }
 
 // Avoid usage graph being too tall on small screens
 .prefix-graphs svg {
-  height: 15px;
+    height: 15px;
 }
 
 .ipam-sidebar .sidebar-wrapper {
-  padding: 10px 20px;
+    padding: 10px 20px;
 }
 
 
 @media #{$large-up} {
 
-  .ipam-sidebar .sidebar-wrapper {
-    padding: 0;
-  }
-
-  .prefix-tree-item-title span {
-    display: inline-block;
-  }
-
-  .prefix-graphs {
-    margin: 0;
-    float: right;
-    display: inline-block;
-    .usage-graph, .allocation-graph {
-      display: inline-block;
-      max-width: 150px;
+    .ipam-sidebar .sidebar-wrapper {
+        padding: 0;
     }
-    .usage-graph {
-      margin-right: 10px;
+
+    .prefix-tree-item-title span {
+        display: inline-block;
     }
-  }
-  
+
+    .prefix-graphs {
+        margin: 0;
+        float: right;
+        display: inline-block;
+        .usage-graph, .allocation-graph {
+            display: inline-block;
+            max-width: 150px;
+        }
+        .usage-graph {
+            margin-right: 10px;
+        }
+    }
+
 }
 
 // For allocation tree
 svg.matrix g.matrix-subnet text > tspan {
-  text-anchor: middle;
+    text-anchor: middle;
 }
 
 svg.matrix g.matrix-subnet {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .axis path {
-  display: none;
+    display: none;
 }
 
 .axis line {
-  shape-rendering: crispEdges;
-  stroke: #000;
+    shape-rendering: crispEdges;
+    stroke: #000;
 }
 
 .axis .minor line {
-  stroke: #777;
-  stroke-dasharray: 2,2;
+    stroke: #777;
+    stroke-dasharray: 2,2;
 }
 
 
@@ -271,40 +260,40 @@ svg.matrix g.matrix-subnet {
 // Semantic layout classes
 
 @media #{$large-up} {
-  .ipam {
-    @include grid-row();
-  }
-
-  .ipam-sidebar {
-    @include grid-column(3);
-    div.row {
-      @include grid-row();
-    }
-  }
-
-  // flash button, TODO change name to something not stupid
-  #mybtn {
-    @include grid-column(12);
-  }
-
-  #prefix-tree {
-    @include grid-column(9);
-  }
-
-  .prefix-tree-control {
-
-    &-checkboxes {
-      div { @include grid-column(12, $collapse: true); }
+    .ipam {
+        @include grid-row();
     }
 
-    &-timespan {
-      div { @include grid-column(6, $collapse: true); }
+    .ipam-sidebar {
+        @include grid-column(3);
+        div.row {
+            @include grid-row();
+        }
     }
 
-    &-search {
-      input {
-        @include grid-column(12, $collapse: true);
-      }
+    // flash button, TODO change name to something not stupid
+    #mybtn {
+        @include grid-column(12);
     }
-  }
+
+    #prefix-tree {
+        @include grid-column(9);
+    }
+
+    .prefix-tree-control {
+
+        &-checkboxes {
+            div { @include grid-column(12, $collapse: true); }
+        }
+
+        &-timespan {
+            div { @include grid-column(6, $collapse: true); }
+        }
+
+        &-search {
+            input {
+                @include grid-column(12, $collapse: true);
+            }
+        }
+    }
 }
