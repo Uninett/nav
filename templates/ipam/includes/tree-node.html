@@ -1,17 +1,16 @@
 <a href="#prefix-<%= pk %>" class="prefix-tree-item-title">
+  <div class="prefix-graphs"></div>
   <h3 class="ip"><%= prefix %></h3>
-  <span class="net-type"><%= net_type %></span>
+  <span class="label secondary net-type"><%= net_type %></span>
   <% if (vlan_number) { %>
-  <span class="vlan_number">VLAN <%= vlan_number %></span>
+  <span class="label secondary">VLAN <%= vlan_number %></span>
   <% } %>
   <% if (description) { %>
-  <span class="description"><%= description %></span>
+  <span class="label secondary"><%= description %></span>
   <% } %>
-    <% if (length > 0) { %>
+  <% if (length > 0) { %>
   (<%= length %> children)
   <% } %>
-  <div class="prefix-graphs">
-  </div>
 </a>
 <div id="prefix-<%= pk %>" class="content prefix-tree-item-content">
   <div class="prefix-tree-item-content-data">

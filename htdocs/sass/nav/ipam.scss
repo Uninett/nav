@@ -3,14 +3,12 @@
 // For grid-column, grid-row mixins
 @import "../foundation/components/grid";
 
-$ipam-500: #3F51B5;
-$ipam-200: #9FA8DA;
-$ipam-700: #303F9F;
 $ipam-text-color: #fff;
 
-
-$ipam-500: #607D8B;
 $ipam-200: #CFD8DC;
+$ipam-400: #78909C;
+$ipam-500: #607D8B;
+$ipam-600: #546E7A;
 $ipam-700: #455A64;
 
 .toggleAdvanced {
@@ -59,48 +57,37 @@ $ipam-700: #455A64;
 }
 
 .prefix-tree-item-title {
-    font-weight: bold;
-    background: #eee;
+    background: $ipam-500;
+    color: $ipam-text-color;
 
     a {
         color: inherit;
     }
 
-    a:hover, a:visited {
-                 color: inherit;
-             }
+    a:hover,
+    a:visited {
+        color: inherit;
+    }
 
-    &:hover {
-        background: $ipam-500;
+    &:visited,
+    &:active,
+    &:link {
         color: $ipam-text-color;
     }
 
-    .ip {
-    }
-
-    .net-type, .description, .vlan_number {
-        border: 3px solid #ccc;
-        padding: 5px 10px;
-        font-size: 80%;
-        padding: 5px 10px;
-        background: #fff;
-        color: #222;
+    &:hover {
+        color: $ipam-text-color;
+        background: $ipam-600;
     }
 
     .net-type {
-        font-weight: bold;
         text-transform: uppercase;
-        letter-spacing: 1.8px;
     }
 
 }
 
 .prefix-tree-item {
-    border: 0.5px solid $ipam-500;
-    border-bottom: 0;
-    &:last-child {
-        border-bottom: 0.5px solid $ipam-500;
-    }
+    border-bottom: 1px solid $ipam-600;
 }
 
 .prefix-tree-item-content {
@@ -126,10 +113,6 @@ ul.accordion {
 
 // Search panel, forms etc. for prefix tree
 .prefix-tree-control {
-}
-
-.prefix-graphs {
-    font-size: 0.750em;
 }
 
 .allocation-tree {
@@ -159,12 +142,12 @@ ul.accordion {
     padding: 0;
 
     .prefix-tree-item-title {
-        padding: 20px;
+        h3 { margin: 0; }
+        padding: 10px 20px;
         width: 100%;
         display: block;
     }
 }
-
 
 .prefix-tree-query {
     width: 100%;
@@ -189,12 +172,8 @@ ul.accordion {
 
 .prefix-graphs {
     display: block;
+    font-size: 0.750em;
     margin-top: 20px;
-}
-
-.prefix-tree-item-title span {
-    display: block;
-    margin-bottom: 5px;
 }
 
 // Avoid usage graph being too tall on small screens
