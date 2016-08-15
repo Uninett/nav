@@ -41,9 +41,6 @@ define(function(require, exports, module) {
     },
 
     events: {
-      //"input .prefix-tree-query": "updateSearch",
-      //"change .search-param": "updateSearch",
-      //"change .search-flag": "updateSearch",
       "click .toggleAdvanced": "toggleAdvanced",
       "click .submit-search": "updateSearch",
       "keypress .search-param": "forceSearch"
@@ -69,25 +66,19 @@ define(function(require, exports, module) {
       this.fsm.step(this.fsm.events.TOGGLE_ADVANCED);
       this.debug("Toggling advanced search");
       this.render();
-      // make datetimepicker detect forms
-      $(".datetimepicker").datetimepicker({
-        'dateFormat': 'yy-mm-dd',
-        'timeFormat': 'HH:mm'
-      });
     },
 
     simpleSearch: function(self) {
       // Reset model
       self.debug("Reset query params");
       self.model.set("queryParams", self.simpleSearchDefaults);
-      self._updateSearch();
+      self.doSearch();
     },
 
     advancedSearch: function(self) {
       // Reset model TODO load from localstorage?
       self.debug("Reset query params");
-      //self.model.set("queryParams", self.advancedSearchDefaults);
-      //self._updateSearch();
+      self.model.set("queryParams", self.advancedSearchDefaults);
     },
 
     onRender: function() {
@@ -95,11 +86,11 @@ define(function(require, exports, module) {
       this.$el.find(".select2").select2();
     },
 
-    // If the user presses enter, update our query params
+    // If the user triggers a search by hitting enter
     forceSearch: function(evt) {
       if (evt.which === 13 || !evt.which) {
         evt.preventDefault();
-        this._updateSearch();
+        this.updateSearch();
       }
     },
 
@@ -135,29 +126,18 @@ define(function(require, exports, module) {
       return params;
     },
 
-    // Fires a delayed function that updates the queryParams attribute in the
-    // model given some preconditions. This will in turn trigger a broadcast of
-    // the new search parameters to the whole application.
-    _updateSearch: function() {
-      var self = this;
-      _.delay(function() {
-        var queryParams = self._getSearch();
-        // Don't update parameter if user in middle of writing something
-        if (queryParams["search"] && queryParams["search"].length < 2) {
-          return;
-        }
-        self.model.set("queryParams", queryParams);
-      }, 350);
+    // Update search parameters and execute a search
+    updateSearch: function() {
+      this.model.set("queryParams", this._getSearch());
+      this.doSearch();
+    },
+
+    doSearch: function() {
+      globalCh.vent.trigger("search:update", this.model.get('queryParams'));
     },
 
     initialize: function() {
-      // Utility function to update the search as we go
-      this.updateSearch = _.throttle(this._updateSearch, 1000);
       this.fsm.setState("SIMPLE_SEARCH");
-      // Broadcast new query parameters to rest of app
-      this.model.bind("change:queryParams", function(model, value) {
-        globalCh.vent.trigger("search:update", value);
-      });
     }
 
   });
