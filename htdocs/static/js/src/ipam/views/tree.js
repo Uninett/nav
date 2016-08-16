@@ -269,9 +269,11 @@ define(function(require, exports, module) {
       }
       self.debug("Rendering children for", self.model.get("pk"));
       var children = self.model.children;
+      var model = new Models.Tree();
+      model.set('parent', self.model.get('prefix'));
       var payload = {
-        model: new Models.Tree(),
-        collection: children
+        model: model,
+        collection: children,
       };
       self.showChildView("children", new TreeView(payload));
     },

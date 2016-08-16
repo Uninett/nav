@@ -15,6 +15,12 @@ $ipam-700: #455A64;
     font-size: 0.8em;
 }
 
+/* Style the element that contains every subtree. This means that every tree
+with children are more and more "padded" */
+.prefix-tree-children-container > div {
+    padding: 1.5em;
+}
+
 // Blur all other nodes when a single node is opened
 .prefix-tree-children {
     .prefix-tree-item {
@@ -41,12 +47,14 @@ $ipam-700: #455A64;
     background: #fff;
     box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
     border-bottom: 10px solid $ipam-700;
-    & + div {
-        margin-top: 20px;
-    }
+}
+
+.prefix-children-header {
+    overflow: auto;
 }
 
 .tree-control {
+    float: right;
     select {
         max-width: 200px;
     }
@@ -91,7 +99,6 @@ $ipam-700: #455A64;
 }
 
 .prefix-tree-item-content {
-    padding: 25px;
     background: $ipam-200 !important;
     & > & {
         background: $ipam-700 !important;
