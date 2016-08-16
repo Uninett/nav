@@ -1,27 +1,35 @@
 <!-- address types to display -->
 <div class="prefix-tree-control-checkboxes">
   <div>
-    <label for="description">Description (optional)</label>
-    <input type="text" class="search-param" id="prefix-vlan"
-           name="description" value="<%= queryParams.description %>">
+    <label>
+      VLAN (number, optional)
+      <input type="number" class="search-param" id="prefix-vlan"
+             name="vlan" value="<%= queryParams.vlan %>">
+    </label>
   </div>
 
   <div>
-    <label for="organization">Organization (optional)</label>
-    <input type="text" class="search-param" id="prefix-organization"
-           name="organization" value="<%= queryParams.organization %>">
+    <label>
+      Description (optional)
+      <input type="text" class="search-param" id="prefix-vlan"
+             name="description" value="<%= queryParams.description %>">
+    </label>
   </div>
 
   <div>
-    <label for="vlan">VLAN (number, optional)</label>
-    <input type="number" class="search-param" id="prefix-vlan"
-           name="vlan" value="<%= queryParams.vlan %>">
+    <label>
+      Organization (optional)
+      <input type="text" class="search-param" id="prefix-organization"
+             name="organization" value="<%= queryParams.organization %>">
+    </label>
   </div>
 
   <div>
-    <label for="usage">Usage (optional)</label>
-    <input type="text" class="search-param" id="prefix-usage"
-           name="usage" value="<%= queryParams.usage %>">
+    <label>
+      Usage (optional)
+      <input type="text" class="search-param" id="prefix-usage"
+             name="usage" value="<%= queryParams.usage %>">
+    </label>
   </div>
 
   <div>
