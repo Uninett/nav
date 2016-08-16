@@ -1,61 +1,51 @@
 <!-- address types to display -->
 <div class="prefix-tree-control-checkboxes">
-  <div>
-    <label>
-      VLAN (number, optional)
-      <input type="number" class="search-param" id="prefix-vlan"
-             name="vlan" value="<%= queryParams.vlan %>">
-    </label>
-  </div>
+  <label>
+    VLAN (number, optional)
+    <input type="number" class="search-param" id="prefix-vlan"
+           name="vlan" value="<%= queryParams.vlan %>">
+  </label>
 
-  <div>
-    <label>
-      Description (optional)
-      <input type="text" class="search-param" id="prefix-vlan"
-             name="description" value="<%= queryParams.description %>">
-    </label>
-  </div>
+  <label>
+    Description (optional)
+    <input type="text" class="search-param" id="prefix-vlan"
+           name="description" value="<%= queryParams.description %>">
+  </label>
 
-  <div>
-    <label>
-      Organization (optional)
-      <input type="text" class="search-param" id="prefix-organization"
-             name="organization" value="<%= queryParams.organization %>">
-    </label>
-  </div>
+  <label>
+    Organization (optional)
+    <input type="text" class="search-param" id="prefix-organization"
+           name="organization" value="<%= queryParams.organization %>">
+  </label>
 
-  <div>
-    <label>
-      Usage (optional)
-      <input type="text" class="search-param" id="prefix-usage"
-             name="usage" value="<%= queryParams.usage %>">
-    </label>
-  </div>
+  <label>
+    Usage (optional)
+    <input type="text" class="search-param" id="prefix-usage"
+           name="usage" value="<%= queryParams.usage %>">
+  </label>
 
-  <div>
-    <label>Address family</label>
+  <h5>Address family</h5>
 
-    <form>
-      <label>
-        <input id="prefix-flag-ipv4" class="search-flag" type="checkbox" name="type" value="ipv4"
-        <%= _.contains(queryParams.type, "ipv4") ? "checked" : null %>>
-        Real IPv4
-      </label>
-      <label>
-        <input id="prefix-flag-ipv6" class="search-flag" type="checkbox" name="type" value="ipv6"
-        <%= _.contains(queryParams.type, "ipv6") ? "checked" : null %>>
-        IPv6
-      </label>
-      <label>
-        <input id="prefix-flag-ipv6" class="search-flag", type="checkbox" name="type" value="rfc1918"
-        <%= _.contains(queryParams.type, "rfc1918") ? "checked" : null %>>
-        Private IPV4 (RFC1918)
-      </label>
-    </form>
-  </div>
+  <label>
+    <input id="prefix-flag-ipv4" class="search-flag" type="checkbox" name="type" value="ipv4"
+    <%= _.contains(queryParams.type, "ipv4") ? "checked" : null %>>
+    Real IPv4
+  </label>
 
-  <div>
-    <label for="net_type">Net type</label>
+  <label>
+    <input id="prefix-flag-ipv6" class="search-flag" type="checkbox" name="type" value="ipv6"
+    <%= _.contains(queryParams.type, "ipv6") ? "checked" : null %>>
+    IPv6
+  </label>
+
+  <label>
+    <input id="prefix-flag-ipv6" class="search-flag", type="checkbox" name="type" value="rfc1918"
+    <%= _.contains(queryParams.type, "rfc1918") ? "checked" : null %>>
+    Private IPV4 (RFC1918)
+  </label>
+
+  <label>
+    Net type
     {% comment %}
     yo, templates in your templates. the net_types context attribute is a list
     of all net types registered in NAV, except scope and reserved, which are
@@ -72,5 +62,5 @@
         </option>
       {% endfor %}
     </select>
-  </div>
+  </label>
 </div>
