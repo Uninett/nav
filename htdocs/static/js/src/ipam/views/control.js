@@ -20,6 +20,7 @@ define(function(require, exports, module) {
     }
   };
 
+
   // Control form for tree
   module.exports = Marionette.LayoutView.extend({
     debug: debug.new("views:control"),
@@ -94,41 +95,9 @@ define(function(require, exports, module) {
       }
     },
 
-    // Parse form and get all parameters for search
-    _getSearch: function() {
-      var params = {};
-      // handle check boxes
-      var checked = this.$el.find("input.search-flag:checked");
-      checked.each(function() {
-        var elem = $(this);
-        var param = elem.attr("name");
-        var param_field = params[param] || [];
-        param_field.push(elem.val());
-        params[param] = param_field;
-      });
-
-      // Dynamically collect all inputs marked using".search-param". These
-      // fields are exclusively non-nested, hence no need to collect them into
-      // an array (unlike checkboxes)
-      var search_params = this.$el.find(".search-param");
-      search_params.each(function() {
-        var elem = $(this);
-        var param = elem.attr("name");
-        var value = elem.val();
-        if (!value) {
-          return;
-        }
-        params[param] = value;
-      });
-
-      // handle search string
-      params["search"] = this.$el.find("#prefix-tree-query").val();
-      return params;
-    },
-
     // Update search parameters and execute a search
     updateSearch: function() {
-      this.model.set("queryParams", this._getSearch());
+      this.model.set("queryParams", this.$el.find('form').serializeObject());
       this.doSearch();
     },
 
