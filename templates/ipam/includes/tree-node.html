@@ -21,7 +21,18 @@
     <a class="button small" href="<%= edit_url %>" target="_blank">Edit in SeedDB</a>
     <% } %>
     <% if (net_type === "scope") { %>
-    <a class="button small" href="/report/matrix?scope=<%= prefix %>" target="_blank">Open in Subnet Matrix</a>
+    <a class="button small"
+       href="<%= NAV.urls['report-matrix'] %>?scope=<%= prefix %>"
+       target="_blank">
+      Open in Subnet Matrix
+    </a>
+    <% } %>
+    <% if (net_type === "lan") { %>
+    <a class="button small"
+       href="<%= NAV.urls['machinetracker-ip'] %>?ip_range=<%= prefix %>"
+       target="_blank">
+      Search in Machine Tracker
+    </a>
     <% } %>
     <ul class="prefix-metadata">
       <% if (organization) { %>

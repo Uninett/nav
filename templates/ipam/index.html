@@ -5,6 +5,10 @@
 <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/timepicker.css"/>
 <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"/>
 <link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/ipam.css">
+<script>
+ NAV.urls['machinetracker-ip'] = "{% url 'machinetracker-ip' %}";
+ NAV.urls['report-matrix'] = "{% url 'report-matrix' %}";
+</script>
 <script>require(["src/ipam/ipam"]);</script>
 {% endblock %}
 
