@@ -8,8 +8,11 @@
   <% if (description) { %>
   <span class="label secondary"><%= description %></span>
   <% } %>
-  <% if (length > 0) { %>
+  <% if (length > 1) { %>
   (<%= length %> children)
+  <% } %>
+  <% if (length === 1) { %>
+  (<%= length %> child)
   <% } %>
 </a>
 <div id="prefix-<%= pk %>" class="content prefix-tree-item-content">
