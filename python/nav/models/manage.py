@@ -964,6 +964,8 @@ class Prefix(models.Model):
     id = models.AutoField(db_column='prefixid', primary_key=True)
     net_address = CIDRField(db_column='netaddr', unique=True)
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
+    usages = models.ManyToManyField('Usage', through='PrefixUsage',
+                                    through_fields=('prefix', 'usage'))
 
     class Meta(object):
         db_table = 'prefix'
