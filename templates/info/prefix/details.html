@@ -20,6 +20,23 @@
        });
    });
   </script>
+  <script>
+   $('button.add-more-tags').on('click', function(){
+       $('#add-tag-form').toggle();
+   });
+
+   $('#add-tag-form').submit(function(event){
+       event.preventDefault();
+       var request = $.post("{% url 'prefix-add-tags' prefix.pk %}", $(this).serialize());
+       request.done(function(){
+           console.log('tags saved');
+           var reload = $.get("{% url 'prefix-reload-tags' prefix.pk %}");
+           reload.done(function(data){
+               $('#tags-list').find('dd').html(data);
+           });
+       });
+   });
+  </script>
 {% endblock %}
 
 
@@ -34,17 +51,20 @@
 
       <div class="info-tables panel">
 
+        <button class="tiny right add-more-tags">Add more tags</button>
+
         {# Tags  #}
-        <dl>
+        <dl id="tags-list">
           <dt>Tags:</dt>
           <dd>
-            {% for usage in prefix.usages.all %}
-              <span class="label secondary">{{ usage.description }}</span>
-            {% empty %}
-              No tags
-            {% endfor %}
+            {% include 'info/prefix/frag_tags.html' %}
           </dd>
         </dl>
+
+        <form id="add-tag-form" class="hidden">
+          {{ form }}
+          <input type="submit" class="button small" value="Save tags"/>
+        </form>
 
 
         {# Print gwportprefixes #}

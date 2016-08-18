@@ -15,11 +15,30 @@
 #
 """Controller functions for prefix details page"""
 
+from django import forms
 from django.core.urlresolvers import reverse
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 
 from nav.web import utils
-from nav.models.manage import Prefix
+from nav.models.manage import Prefix, Usage, PrefixUsage
+
+
+class PrefixUsageForm(forms.ModelForm):
+    """Form to select usages/tags for a prefix"""
+    usages = forms.ModelMultipleChoiceField(
+        queryset=Usage.objects.all(), label='Add tags',
+        widget=forms.SelectMultiple(attrs={'class': 'select2'}))
+
+    def __init__(self, *args, **kwargs):
+        super(PrefixUsageForm, self).__init__(*args, **kwargs)
+        self.fields['usages'].help_text = ''
+        if self.instance.pk:
+            self.initial['usages'] = self.instance.usages.all()
+
+    class Meta():
+        model = Prefix
+        fields = ['usages']
 
 
 def index(request):
@@ -30,7 +49,9 @@ def index(request):
 def prefix_details(request, prefix_id):
     """Controller for rendering prefix details"""
     prefix = get_object_or_404(Prefix, pk=prefix_id)
-    return render(request, 'info/prefix/details.html', get_context(prefix))
+    context = get_context(prefix)
+    context['form'] = PrefixUsageForm(instance=prefix)
+    return render(request, 'info/prefix/details.html', context)
 
 
 def get_context(prefix=None):
@@ -43,3 +64,32 @@ def get_context(prefix=None):
         'navpath': navpath,
         'title': utils.create_title(navpath)
     }
+
+
+def prefix_add_tags(request, prefix_id):
+    """Adds usages to a prefix from post data"""
+    if request.method == 'POST':
+        prefix = Prefix.objects.get(pk=prefix_id)
+        existing_usages = {u[0] for u in prefix.usages.values_list()}
+        usages = set(request.POST.getlist('usages'))
+
+        to_remove = list(existing_usages - usages)
+        to_add = list(usages - existing_usages)
+
+        PrefixUsage.objects.filter(prefix=prefix,
+                                   usage__in=to_remove).delete()
+        for usage_key in to_add:
+            usage = Usage.objects.get(pk=usage_key)
+            try:
+                PrefixUsage(prefix=prefix, usage=usage).save()
+            except Exception, err:
+                _logger.debug(err)
+                pass
+
+    return HttpResponse()
+
+
+def prefix_reload_tags(request, prefix_id):
+    """Render the tags fragment"""
+    return render(request, 'info/prefix/frag_tags.html',
+                  { 'prefix': Prefix.objects.get(pk=prefix_id) })
