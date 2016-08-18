@@ -1076,6 +1076,18 @@ class NetType(models.Model):
         return self.id
 
 
+class PrefixUsage(models.Model):
+    """Combines prefixes and usages for tagging of prefixes"""
+    prefix = models.ForeignKey('Prefix', db_column='prefixid')
+    usage = models.ForeignKey('Usage', db_column='usageid')
+
+    class Meta(object):
+        db_table = 'prefix_usage'
+
+    def __unicode__(self):
+        return u"{}:{}".format(self.prefix.net_address, self.usage.id)
+
+
 class Usage(models.Model):
     """From NAV Wiki: The usage table defines the user group (student, staff
     etc). Usage categories are maintained in the edit database tool."""
