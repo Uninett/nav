@@ -1,8 +1,110 @@
 {% extends "info/prefix/base.html" %}
 
 {% block base_header_additional_head %}
+  <style>
+   .table-column { max-width: 500px; }
+  </style>
+
 {% endblock %}
 
 {% block base_content %}
-  <h4>Details for {{ prefix.net_address }}</h4>
+
+  <h3>Details for {{ prefix.net_address }}</h3>
+
+
+  {# left column #}
+  <div class="table-column">
+
+    {# Print gwportprefixes #}
+
+    <table id="gwportprefixinfo" class="listtable full-width">
+      <caption>Router ports</caption>
+
+      <thead>
+        <tr>
+          <th>Netbox</th>
+          <th>Address</th>
+          <th>Interface</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for gwportprefix in prefix.gwportprefix_set.all %}
+          <tr>
+            <td>
+              <a href="{% url 'ipdevinfo-details-by-name' gwportprefix.interface.netbox.sysname %}">
+                {{ gwportprefix.interface.netbox.sysname }}
+              </a>
+            </td>
+            <td>
+              <a href="{% url 'ipdevinfo-details-by-addr' gwportprefix.gw_ip %}">
+                {{ gwportprefix.gw_ip }}
+              </a>
+            </td>
+            <td>
+              <a href="{% url 'ipdevinfo-interface-details' gwportprefix.interface.netbox.sysname gwportprefix.interface.id %}">
+                {{ gwportprefix.interface.ifname }}
+              </a>
+            </td>
+          </tr>
+
+        {% endfor %}
+      </tbody>
+
+    </table>
+
+
+
+    {# Print vlan information #}
+
+    {% with vlan=prefix.vlan %}
+      <table id="vlaninfo" class="vertitable full-width">
+        <caption>Assigned to vlan {{ vlan }}</caption>
+
+        <tbody>
+          <tr>
+            <th>Vlan</th>
+            <td>
+              <a href="{% url 'vlan-details' vlan.pk %}" title="Go to vlan details page">
+                {{ vlan.vlan|default_if_none:"N/A" }}
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <th>Type</th>
+            <td>{{ vlan.net_type|default_if_none:"" }}</td>
+          </tr>
+
+
+          <tr>
+            <th>Organization</th>
+            <td>{{ vlan.organization|default_if_none:"" }}</td>
+          </tr>
+
+
+          <tr>
+            <th>Net Ident</th>
+            <td>{{ vlan.net_ident|default_if_none:"" }}</td>
+          </tr>
+
+          <tr>
+            <th>Description</th>
+            <td>{{ vlan.description|default_if_none:"" }}</td>
+          </tr>
+        </tbody>
+
+      </table>
+
+    {% endwith %}
+
+
+  </div>
+
+
+  {# Right column #}
+  <div class="graph-column">
+
+  </div>
+
+
 {% endblock %}

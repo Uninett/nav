@@ -21,5 +21,5 @@ from django.conf.urls import url, patterns
 urlpatterns = patterns(
     'nav.web.info.prefix.views',
     url(r'^$', 'index', name='prefix-index'),
-    url(r'^(?P<prefixid>)/$', 'prefix_details', name='prefix-details'),
+    url(r'^(?P<prefix_id>\d+)/$', 'prefix_details', name='prefix-details'),
 )

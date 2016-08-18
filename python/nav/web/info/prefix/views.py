@@ -15,15 +15,31 @@
 #
 """Controller functions for prefix details page"""
 
-from django.shortcuts import render
+from django.core.urlresolvers import reverse
+from django.shortcuts import render, get_object_or_404
+
+from nav.web import utils
+from nav.models.manage import Prefix
 
 
 def index(request):
     """Index controller, does not do anything atm"""
-    return render(request, 'info/prefix/base.html')
+    return render(request, 'info/prefix/base.html', get_context())
 
 
-def prefix_details(request, prefixid):
+def prefix_details(request, prefix_id):
     """Controller for rendering prefix details"""
+    prefix = get_object_or_404(Prefix, pk=prefix_id)
+    return render(request, 'info/prefix/details.html', get_context(prefix))
 
-    return render(request, 'info/prefix/details.html')
+
+def get_context(prefix=None):
+    """Returns a object suitable for a breadcrumb"""
+    navpath = [('Home', '/'), ('Prefix Details', reverse('prefix-index'))]
+    if prefix:
+        navpath.append((prefix.net_address,))
+    return {
+        'prefix': prefix,
+        'navpath': navpath,
+        'title': utils.create_title(navpath)
+    }
