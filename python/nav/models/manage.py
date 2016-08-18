@@ -1080,6 +1080,7 @@ class NetType(models.Model):
 
 class PrefixUsage(models.Model):
     """Combines prefixes and usages for tagging of prefixes"""
+    id = models.AutoField(db_column='prefix_usage_id', primary_key=True)
     prefix = models.ForeignKey('Prefix', db_column='prefixid')
     usage = models.ForeignKey('Usage', db_column='usageid')
 
