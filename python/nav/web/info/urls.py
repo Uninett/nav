@@ -22,5 +22,6 @@ urlpatterns = patterns('',
     url(r'^$', index, name="info-search"),
     url(r'^room/', include('nav.web.info.room.urls')),
     url(r'^vlan/', include('nav.web.info.vlan.urls')),
+    url(r'^prefix/', include('nav.web.info.prefix.urls')),
     url(r'^devicegroup/', include('nav.web.info.netboxgroup.urls')),
 )
