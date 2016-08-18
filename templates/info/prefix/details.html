@@ -2,109 +2,145 @@
 
 {% block base_header_additional_head %}
   <style>
-   .table-column { max-width: 500px; }
+   .info-tables { max-width: 500px; }
   </style>
-
+  <link rel="stylesheet" href="/static/css/nav/local_rickshaw.css"/>
 {% endblock %}
+
+
+{# Javascripts that run after DOM loaded #}
+{% block footer_scripts %}
+  <script>
+   require(['plugins/graphfetcher'], function (GraphFetcher) {
+       $(function () {
+           $('.prefixgraph').each(function (index, element) {
+               new GraphFetcher($(element), element.dataset.url);
+           });
+
+       });
+   });
+  </script>
+{% endblock %}
+
 
 {% block base_content %}
 
   <h3>Details for {{ prefix.net_address }}</h3>
 
+  <div class="row">
 
-  {# left column #}
-  <div class="table-column">
+    {# left column #}
+    <div class="large-6 column">
 
-    {# Print gwportprefixes #}
+      <div class="info-tables panel">
 
-    <table id="gwportprefixinfo" class="listtable full-width">
-      <caption>Router ports</caption>
-
-      <thead>
-        <tr>
-          <th>Netbox</th>
-          <th>Address</th>
-          <th>Interface</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {% for gwportprefix in prefix.gwportprefix_set.all %}
-          <tr>
-            <td>
-              <a href="{% url 'ipdevinfo-details-by-name' gwportprefix.interface.netbox.sysname %}">
-                {{ gwportprefix.interface.netbox.sysname }}
-              </a>
-            </td>
-            <td>
-              <a href="{% url 'ipdevinfo-details-by-addr' gwportprefix.gw_ip %}">
-                {{ gwportprefix.gw_ip }}
-              </a>
-            </td>
-            <td>
-              <a href="{% url 'ipdevinfo-interface-details' gwportprefix.interface.netbox.sysname gwportprefix.interface.id %}">
-                {{ gwportprefix.interface.ifname }}
-              </a>
-            </td>
-          </tr>
-
-        {% endfor %}
-      </tbody>
-
-    </table>
+        {# Tags  #}
+        <dl>
+          <dt>Tags:</dt>
+          <dd>
+            {% for usage in prefix.usages.all %}
+              <span class="label secondary">{{ usage.description }}</span>
+            {% empty %}
+              No tags
+            {% endfor %}
+          </dd>
+        </dl>
 
 
+        {# Print gwportprefixes #}
 
-    {# Print vlan information #}
+        <table id="gwportprefixinfo" class="listtable full-width">
+          <caption>Router ports</caption>
 
-    {% with vlan=prefix.vlan %}
-      <table id="vlaninfo" class="vertitable full-width">
-        <caption>Assigned to vlan {{ vlan }}</caption>
+          <thead>
+            <tr>
+              <th>Netbox</th>
+              <th>Address</th>
+              <th>Interface</th>
+            </tr>
+          </thead>
 
-        <tbody>
-          <tr>
-            <th>Vlan</th>
-            <td>
-              <a href="{% url 'vlan-details' vlan.pk %}" title="Go to vlan details page">
-                {{ vlan.vlan|default_if_none:"N/A" }}
-              </a>
-            </td>
-          </tr>
-          <tr>
-            <th>Type</th>
-            <td>{{ vlan.net_type|default_if_none:"" }}</td>
-          </tr>
+          <tbody>
+            {% for gwportprefix in prefix.gwportprefix_set.all %}
+              <tr>
+                <td>
+                  <a href="{% url 'ipdevinfo-details-by-name' gwportprefix.interface.netbox.sysname %}">
+                    {{ gwportprefix.interface.netbox.sysname }}
+                  </a>
+                </td>
+                <td>
+                  <a href="{% url 'ipdevinfo-details-by-addr' gwportprefix.gw_ip %}">
+                    {{ gwportprefix.gw_ip }}
+                  </a>
+                </td>
+                <td>
+                  <a href="{% url 'ipdevinfo-interface-details' gwportprefix.interface.netbox.sysname gwportprefix.interface.id %}">
+                    {{ gwportprefix.interface.ifname }}
+                  </a>
+                </td>
+              </tr>
+
+            {% endfor %}
+          </tbody>
+
+        </table>
 
 
-          <tr>
-            <th>Organization</th>
-            <td>{{ vlan.organization|default_if_none:"" }}</td>
-          </tr>
+
+        {# Print vlan information #}
+
+        {% with vlan=prefix.vlan %}
+          <table id="vlaninfo" class="vertitable full-width">
+            <caption>Assigned to vlan {{ vlan }}</caption>
+
+            <tbody>
+              <tr>
+                <th>Vlan</th>
+                <td>
+                  <a href="{% url 'vlan-details' vlan.pk %}" title="Go to vlan details page">
+                    {{ vlan.vlan|default_if_none:"N/A" }}
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <th>Type</th>
+                <td>{{ vlan.net_type|default_if_none:"" }}</td>
+              </tr>
 
 
-          <tr>
-            <th>Net Ident</th>
-            <td>{{ vlan.net_ident|default_if_none:"" }}</td>
-          </tr>
+              <tr>
+                <th>Organization</th>
+                <td>{{ vlan.organization|default_if_none:"" }}</td>
+              </tr>
 
-          <tr>
-            <th>Description</th>
-            <td>{{ vlan.description|default_if_none:"" }}</td>
-          </tr>
-        </tbody>
 
-      </table>
+              <tr>
+                <th>Net Ident</th>
+                <td>{{ vlan.net_ident|default_if_none:"" }}</td>
+              </tr>
 
-    {% endwith %}
+              <tr>
+                <th>Description</th>
+                <td>{{ vlan.description|default_if_none:"" }}</td>
+              </tr>
+            </tbody>
 
+          </table>
+
+        {% endwith %}
+
+      </div>
+
+    </div> {# end left column #}
+
+
+    {# Right column #}
+    <div class="large-6 column">
+      <div class="prefixgraph graphitegraph" data-url="{{ prefix.get_graph_url }}">
+        <div class="rickshaw-container"></div>
+      </div>
+    </div>
 
   </div>
-
-
-  {# Right column #}
-  <div class="graph-column">
-
-  </div>
-
 
 {% endblock %}
