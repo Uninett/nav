@@ -34,14 +34,15 @@
          $alertBox.hide();
 
          var request = $.post("{% url 'prefix-add-tags' prefix.pk %}", $form.serialize());
-         request.done(function(){
+         request.done(function() {
              var reload = $.get("{% url 'prefix-reload-tags' prefix.pk %}");
              reload.done(function(data){
                  $('#tags-list').find('dd').html(data);
              });
          });
-         request.error(function(response){
-             $alertBox.html(response.responseText).show();
+         request.error(function(response) {
+             console.log(response);
+             $alertBox.html('<strong>Error ' + response.status + ':</strong> ' + response.responseText).show();
          });
      });
     </script>
