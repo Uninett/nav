@@ -62,6 +62,16 @@
 
   <h3>Prefix details for {{ prefix.net_address }}</h3>
 
+  <a href="{% url 'report-prefix-prefix' prefix.pk %}" class="button small">
+    View prefix report
+  </a>
+  {% if prefix.vlan.net_type.edit %}
+    <a href="{% url 'seeddb-prefix-edit' prefix.pk  %}" class="button small">
+      Edit prefix in SeedDb
+    </a>
+  {% endif %}
+
+
   <div class="row">
 
     {# left column #}
