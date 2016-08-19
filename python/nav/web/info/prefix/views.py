@@ -126,7 +126,7 @@ def authorize_user(request):
 ### Controllers
 
 def index(request):
-    """Index controller, does not do anything atm"""
+    """Presents user with search form for prefixes"""
     context = get_context()
     query = request.GET.get('query')
     if query:
