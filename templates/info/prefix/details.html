@@ -20,23 +20,25 @@
        });
    });
   </script>
-  <script>
-   $('button.add-more-tags').on('click', function(){
-       $('#add-tag-form').toggle();
-   });
+  {% if can_edit %}
+    <script>
+     $('button.add-more-tags').on('click', function(){
+         $('#add-tag-form').toggle();
+     });
 
-   $('#add-tag-form').submit(function(event){
-       event.preventDefault();
-       var request = $.post("{% url 'prefix-add-tags' prefix.pk %}", $(this).serialize());
-       request.done(function(){
-           console.log('tags saved');
-           var reload = $.get("{% url 'prefix-reload-tags' prefix.pk %}");
-           reload.done(function(data){
-               $('#tags-list').find('dd').html(data);
-           });
-       });
-   });
-  </script>
+     $('#add-tag-form').submit(function(event){
+         event.preventDefault();
+         var request = $.post("{% url 'prefix-add-tags' prefix.pk %}", $(this).serialize());
+         request.done(function(){
+             console.log('tags saved');
+             var reload = $.get("{% url 'prefix-reload-tags' prefix.pk %}");
+             reload.done(function(data){
+                 $('#tags-list').find('dd').html(data);
+             });
+         });
+     });
+    </script>
+  {% endif %}
 {% endblock %}
 
 
@@ -51,7 +53,9 @@
 
       <div class="info-tables panel">
 
-        <button class="tiny right add-more-tags">Add more tags</button>
+        {% if can_edit %}
+          <button class="tiny right add-more-tags">Add tags</button>
+        {% endif %}
 
         {# Tags  #}
         <dl id="tags-list">
@@ -61,10 +65,12 @@
           </dd>
         </dl>
 
-        <form id="add-tag-form" class="hidden">
-          {{ form }}
-          <input type="submit" class="button small" value="Save tags"/>
-        </form>
+        {% if can_edit %}
+          <form id="add-tag-form" class="hidden">
+            {{ form }}
+            <input type="submit" class="button small" value="Save tags"/>
+          </form>
+        {% endif %}
 
 
         {# Print gwportprefixes #}

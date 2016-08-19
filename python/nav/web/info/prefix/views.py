@@ -84,6 +84,42 @@ class PrefixUsageForm(forms.ModelForm):
         fields = ['usages']
 
 
+### Helpers
+
+def require_prefix_privilege(func):
+    """Decorator for authorizing prefix edit actions"""
+    def wrapper(request, *args, **kwargs):
+        if authorize_user(request):
+            return func(request, *args, **kwargs)
+        else:
+            return HttpResponse("User not authorized to edit prefixes",
+                                status=403)
+
+    return wrapper
+
+
+def get_context(prefix=None):
+    """Returns a object suitable for a breadcrumb"""
+    navpath = [('Home', '/'), ('Prefix Details', reverse('prefix-index'))]
+    if prefix:
+        navpath.append((prefix.net_address,))
+    return {
+        'prefix': prefix,
+        'navpath': navpath,
+        'title': utils.create_title(navpath)
+    }
+
+def get_query_results(query):
+    where_string = "inet '{}' >>= netaddr".format(IP(query))
+    return Prefix.objects.extra(where=[where_string],
+                                order_by=['net_address'])
+
+
+def authorize_user(request):
+    """Find out if this user can edit prefixes"""
+    return request.account.has_perm('web_access', reverse('seeddb-prefix'))
+
+
 ### Controllers
 
 def index(request):
@@ -107,10 +143,13 @@ def prefix_details(request, prefix_id):
     prefix = get_object_or_404(Prefix, pk=prefix_id)
     context = get_context(prefix)
     context['form'] = PrefixUsageForm(instance=prefix)
+    context['can_edit'] = authorize_user(request)
+
     return render(request, 'info/prefix/details.html', context)
 
 
 @require_POST
+@require_prefix_privilege
 def prefix_add_tags(request, prefix_id):
     """Adds usages to a prefix from post data"""
     prefix = Prefix.objects.get(pk=prefix_id)
@@ -137,22 +176,3 @@ def prefix_reload_tags(request, prefix_id):
     """Render the tags fragment"""
     return render(request, 'info/prefix/frag_tags.html',
                   { 'prefix': Prefix.objects.get(pk=prefix_id) })
-
-
-### Helpers
-
-def get_context(prefix=None):
-    """Returns a object suitable for a breadcrumb"""
-    navpath = [('Home', '/'), ('Prefix Details', reverse('prefix-index'))]
-    if prefix:
-        navpath.append((prefix.net_address,))
-    return {
-        'prefix': prefix,
-        'navpath': navpath,
-        'title': utils.create_title(navpath)
-    }
-
-def get_query_results(query):
-    where_string = "inet '{}' >>= netaddr".format(IP(query))
-    return Prefix.objects.extra(where=[where_string],
-                                order_by=['net_address'])
