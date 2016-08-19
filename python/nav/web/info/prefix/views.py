@@ -101,7 +101,7 @@ def require_prefix_privilege(func):
 
 
 def get_context(prefix=None):
-    """Returns a object suitable for a breadcrumb"""
+    """Returns a context for a page with a possible prefix"""
     navpath = [('Home', '/'), ('Prefix Details', reverse('prefix-index'))]
     if prefix:
         navpath.append((prefix.net_address,))
