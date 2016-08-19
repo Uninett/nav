@@ -1103,6 +1103,7 @@ class Usage(models.Model):
     class Meta(object):
         db_table = 'usage'
         verbose_name = 'usage'
+        ordering = ['id']
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)
