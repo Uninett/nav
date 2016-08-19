@@ -19,9 +19,17 @@ from django import forms
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.views.decorators.http import require_POST
 
 from nav.web import utils
 from nav.models.manage import Prefix, Usage, PrefixUsage
+
+
+### Forms
+
+class PrefixSearchForm(forms.Form):
+    """Form for searching for prefixes"""
+    query = forms.CharField(label='Search for prefix')
 
 
 class PrefixUsageForm(forms.ModelForm):
@@ -41,6 +49,8 @@ class PrefixUsageForm(forms.ModelForm):
         fields = ['usages']
 
 
+### Controllers
+
 def index(request):
     """Index controller, does not do anything atm"""
     return render(request, 'info/prefix/base.html', get_context())
@@ -54,6 +64,37 @@ def prefix_details(request, prefix_id):
     return render(request, 'info/prefix/details.html', context)
 
 
+@require_POST
+def prefix_add_tags(request, prefix_id):
+    """Adds usages to a prefix from post data"""
+    prefix = Prefix.objects.get(pk=prefix_id)
+    existing_usages = {u[0] for u in prefix.usages.values_list()}
+    usages = set(request.POST.getlist('usages'))
+
+    to_remove = list(existing_usages - usages)
+    to_add = list(usages - existing_usages)
+
+    PrefixUsage.objects.filter(prefix=prefix,
+                               usage__in=to_remove).delete()
+    for usage_key in to_add:
+        usage = Usage.objects.get(pk=usage_key)
+        try:
+            PrefixUsage(prefix=prefix, usage=usage).save()
+        except Exception, err:
+            _logger.debug(err)
+            pass
+
+    return HttpResponse()
+
+
+def prefix_reload_tags(request, prefix_id):
+    """Render the tags fragment"""
+    return render(request, 'info/prefix/frag_tags.html',
+                  { 'prefix': Prefix.objects.get(pk=prefix_id) })
+
+
+### Helpers
+
 def get_context(prefix=None):
     """Returns a object suitable for a breadcrumb"""
     navpath = [('Home', '/'), ('Prefix Details', reverse('prefix-index'))]
@@ -64,32 +105,3 @@ def get_context(prefix=None):
         'navpath': navpath,
         'title': utils.create_title(navpath)
     }
-
-
-def prefix_add_tags(request, prefix_id):
-    """Adds usages to a prefix from post data"""
-    if request.method == 'POST':
-        prefix = Prefix.objects.get(pk=prefix_id)
-        existing_usages = {u[0] for u in prefix.usages.values_list()}
-        usages = set(request.POST.getlist('usages'))
-
-        to_remove = list(existing_usages - usages)
-        to_add = list(usages - existing_usages)
-
-        PrefixUsage.objects.filter(prefix=prefix,
-                                   usage__in=to_remove).delete()
-        for usage_key in to_add:
-            usage = Usage.objects.get(pk=usage_key)
-            try:
-                PrefixUsage(prefix=prefix, usage=usage).save()
-            except Exception, err:
-                _logger.debug(err)
-                pass
-
-    return HttpResponse()
-
-
-def prefix_reload_tags(request, prefix_id):
-    """Render the tags fragment"""
-    return render(request, 'info/prefix/frag_tags.html',
-                  { 'prefix': Prefix.objects.get(pk=prefix_id) })
