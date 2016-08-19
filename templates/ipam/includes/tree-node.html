@@ -17,7 +17,10 @@
 </a>
 <div id="prefix-<%= pk %>" class="content prefix-tree-item-content">
   <div class="prefix-tree-item-content-data">
-    <% if (edit_url) { %>
+    <a class="button small" href="<%= NAV.urls['prefix-index'] %><%= pk %>" target="_blank">
+      View details
+    </a>
+    <% if (edit_url && ['reserved', 'scope'].indexOf(net_type) >= 0) { %>
     <a class="button small" href="<%= edit_url %>" target="_blank">Edit in SeedDB</a>
     <% } %>
     <% if (net_type === "scope") { %>
