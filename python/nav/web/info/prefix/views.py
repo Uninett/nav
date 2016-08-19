@@ -13,7 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Controller functions for prefix details page"""
+"""Controllers and Forms for prefix details page"""
 
 from django import forms
 from django.core.urlresolvers import reverse
