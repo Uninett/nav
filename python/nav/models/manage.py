@@ -1004,6 +1004,8 @@ class Prefix(models.Model):
             metrics.append(ip_range)
         return get_simple_graph_url(metrics, title=str(self), format='json')
 
+    def get_absolute_url(self):
+        return reverse('prefix-details', args=[self.pk])
 
 class Vlan(models.Model):
     """From NAV Wiki: The vlan table defines the IP broadcast domain / vlan. A

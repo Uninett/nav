@@ -21,6 +21,12 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import Layout, Row, Column, Field
+from nav.web.crispyforms import LabelSubmit
+
+from IPy import IP
+
 from nav.web import utils
 from nav.models.manage import Prefix, Usage, PrefixUsage
 
@@ -29,7 +35,36 @@ from nav.models.manage import Prefix, Usage, PrefixUsage
 
 class PrefixSearchForm(forms.Form):
     """Form for searching for prefixes"""
-    query = forms.CharField(label='Search for prefix')
+    query = forms.CharField(label='Search for prefixes', required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(PrefixSearchForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = 'prefix-index'
+        self.helper.form_method = 'GET'
+        self.helper.form_id = 'prefix-search-form'
+        self.helper.layout = Layout(
+            Row(
+                Column(Field('query', placeholder='a.b.c.d/e'),
+                       css_class='small-9'),
+                Column(LabelSubmit('submit', 'Search', css_class='postfix'),
+                       css_class='small-3'),
+                css_class='collapse'
+            )
+        )
+
+    def clean_query(self):
+        """Make sure it's something we can use"""
+        ip = self.cleaned_data['query']
+        try:
+            ip = IP(ip)
+        except ValueError, error:
+            raise forms.ValidationError(
+                ('%(error)s'),
+                params={'query': ip, 'error': error},
+                code='invalid'
+            )
+        return ip
 
 
 class PrefixUsageForm(forms.ModelForm):
@@ -53,7 +88,18 @@ class PrefixUsageForm(forms.ModelForm):
 
 def index(request):
     """Index controller, does not do anything atm"""
-    return render(request, 'info/prefix/base.html', get_context())
+    context = get_context()
+    query = request.GET.get('query')
+    if query:
+        form = PrefixSearchForm(request.GET)
+        if form.is_valid():
+            context['query'] = form.cleaned_data['query']
+            context['query_results'] = get_query_results(query)
+    else:
+        form = PrefixSearchForm()
+
+    context['form'] = form
+    return render(request, 'info/prefix/base.html', context)
 
 
 def prefix_details(request, prefix_id):
@@ -105,3 +151,8 @@ def get_context(prefix=None):
         'navpath': navpath,
         'title': utils.create_title(navpath)
     }
+
+def get_query_results(query):
+    where_string = "inet '{}' >>= netaddr".format(IP(query))
+    return Prefix.objects.extra(where=[where_string],
+                                order_by=['net_address'])
