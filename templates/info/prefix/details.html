@@ -12,11 +12,8 @@
 {% block footer_scripts %}
   <script>
    require(['plugins/graphfetcher'], function (GraphFetcher) {
-       $(function () {
-           $('.prefixgraph').each(function (index, element) {
-               new GraphFetcher($(element), element.dataset.url);
-           });
-
+       $('.prefixgraph').each(function (index, element) {
+           new GraphFetcher($(element), element.dataset.url);
        });
    });
   </script>
@@ -24,29 +21,38 @@
   {% if can_edit %}
     {# Scripts for adding more tags to the prefix #}
     <script>
-     $('.add-more-tags, .close-tag-interface').on('click', function(){
-         $('#add-tag-form').toggle();
-     });
-
-     $('#add-tag-form').submit(function(event){
-         var $form = $(this);
+     (function(){
+         var $form = $('#add-tag-form');
          var $alertBox = $form.find('.alert-box');
 
-         event.preventDefault();
-         $alertBox.hide();
+         $('.add-more-tags, .close-tag-interface').on('click', function(){
+             $form.toggle();
+             $alertBox.removeClass('alert success').hide();
+         });
 
-         var request = $.post("{% url 'prefix-add-tags' prefix.pk %}", $form.serialize());
-         request.done(function() {
-             var reload = $.get("{% url 'prefix-reload-tags' prefix.pk %}");
-             reload.done(function(data){
-                 $('#tags-list').find('dd').html(data);
+         $('#add-tag-form').submit(function(event){
+             event.preventDefault();
+             $alertBox.removeClass('alert success').hide();
+
+             var request = $.post("{% url 'prefix-add-tags' prefix.pk %}", $form.serialize());
+             request.done(function() {
+                 var reload = $.get("{% url 'prefix-reload-tags' prefix.pk %}");
+                 reload.done(function(data){
+                     $('#tags-list').find('dd').html(data);
+                     $alertBox.addClass('success')
+                              .html('Tags updated')
+                              .show();
+                 });
+             });
+             request.error(function(response) {
+                 console.log(response);
+                 $alertBox.addClass('alert')
+                          .html('<strong>Error ' + response.status + ':</strong> ' + response.responseText)
+                          .show();
              });
          });
-         request.error(function(response) {
-             console.log(response);
-             $alertBox.html('<strong>Error ' + response.status + ':</strong> ' + response.responseText).show();
-         });
-     });
+
+     })();
     </script>
   {% endif %}
 {% endblock %}
