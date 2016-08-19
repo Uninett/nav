@@ -17,6 +17,7 @@
 
 from django import forms
 from django.core.urlresolvers import reverse
+from django.db.utils import DatabaseError
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
@@ -79,7 +80,7 @@ class PrefixUsageForm(forms.ModelForm):
         if self.instance.pk:
             self.initial['usages'] = self.instance.usages.all()
 
-    class Meta():
+    class Meta(object):
         model = Prefix
         fields = ['usages']
 
@@ -89,6 +90,7 @@ class PrefixUsageForm(forms.ModelForm):
 def require_prefix_privilege(func):
     """Decorator for authorizing prefix edit actions"""
     def wrapper(request, *args, **kwargs):
+        """Decorator wrapper"""
         if authorize_user(request):
             return func(request, *args, **kwargs)
         else:
@@ -110,6 +112,7 @@ def get_context(prefix=None):
     }
 
 def get_query_results(query):
+    """Returns the prefixes determined by the query"""
     where_string = "inet '{}' >>= netaddr".format(IP(query))
     return Prefix.objects.extra(where=[where_string],
                                 order_by=['net_address'])
@@ -165,8 +168,7 @@ def prefix_add_tags(request, prefix_id):
         usage = Usage.objects.get(pk=usage_key)
         try:
             PrefixUsage(prefix=prefix, usage=usage).save()
-        except Exception, err:
-            _logger.debug(err)
+        except DatabaseError:
             pass
 
     return HttpResponse()
@@ -175,4 +177,4 @@ def prefix_add_tags(request, prefix_id):
 def prefix_reload_tags(request, prefix_id):
     """Render the tags fragment"""
     return render(request, 'info/prefix/frag_tags.html',
-                  { 'prefix': Prefix.objects.get(pk=prefix_id) })
+                  {'prefix': Prefix.objects.get(pk=prefix_id)})
