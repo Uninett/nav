@@ -24,7 +24,7 @@
   {% if can_edit %}
     {# Scripts for adding more tags to the prefix #}
     <script>
-     $('button.add-more-tags').on('click', function(){
+     $('.add-more-tags, .close-tag-interface').on('click', function(){
          $('#add-tag-form').toggle();
      });
 
@@ -78,7 +78,8 @@
         {% if can_edit %}
           <form id="add-tag-form" class="hidden">
             {{ form }}
-            <input type="submit" class="button small" value="Save tags"/>
+            <input type="submit" class="button tiny" value="Save tags"/>
+            <a class="button tiny secondary close-tag-interface">Close</a>
             <div class="alert-box alert" style="display: none">Test</div>
           </form>
         {% endif %}
