@@ -20,7 +20,9 @@
        });
    });
   </script>
+
   {% if can_edit %}
+    {# Scripts for adding more tags to the prefix #}
     <script>
      $('button.add-more-tags').on('click', function(){
          $('#add-tag-form').toggle();
