@@ -3,28 +3,22 @@
 
 {% block content %}
 
+  <h3>Prefix search</h3>
 
-  <div class="panel">
+  {% crispy form %}
 
-    <h3>Prefix search</h3>
+  {% if form.is_bound and form.is_valid %}
+    <p>
+      {{ query_results|length }} result{{ query_results|pluralize }} for <em>{{ query }}</em>
+    </p>
 
-    {% crispy form %}
-
-    {% if form.is_bound and form.is_valid %}
-      <p>
-        {{ query_results|length }} result{{ query_results|pluralize }} for <em>{{ query }}</em>
-      </p>
-
-      <ul>
-        {% for result in query_results %}
-          <li>
-            <a href="{{ result.get_absolute_url }}" title="View details for this prefix">{{ result }}</a>
-          </li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-
-  </div>
-
+    <ul>
+      {% for result in query_results %}
+        <li>
+          <a href="{{ result.get_absolute_url }}" title="View details for this prefix">{{ result }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
 
 {% endblock %}

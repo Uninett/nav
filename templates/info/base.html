@@ -44,7 +44,9 @@
     </li>
   </ul>
 
-  {% block content %}
+
+  <div class="panel">
+    {% block content %}
 
     <div class="panel">Search for IP devices, interfaces, rooms and vlans. This search is the same as searching in the navbar.</div>
 
@@ -115,6 +117,7 @@
       </div>
     </div>
 
-  {% endblock content %}
+    {% endblock content %}
+  </div>
 
 {% endblock %}
