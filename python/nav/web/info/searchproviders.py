@@ -22,7 +22,7 @@ from django.db.models import Q, Count
 
 from IPy import IP
 
-from nav.models.manage import (Room, Netbox, Interface, Vlan, Prefix,
+from nav.models.manage import (Room, Netbox, Interface, Vlan,
                                UnrecognizedNeighbor, NetboxGroup)
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.views import is_valid_hostname
@@ -178,7 +178,7 @@ class PrefixSearchProvider(SearchProvider):
     def fetch_results(self):
         """Returns the prefixes determined by the query"""
         try:
-            ip = IP(self.query)  # Validate query
+            IP(self.query)  # Validate query
         except ValueError:
             pass
         else:

@@ -21,6 +21,7 @@ from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit
 
 
 class SearchForm(forms.Form):
+    """Form for searching for vlans"""
     query = forms.CharField(max_length=100, label="", required=False)
 
     def __init__(self, *args, **kwargs):
