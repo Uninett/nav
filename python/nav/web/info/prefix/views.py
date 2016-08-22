@@ -88,7 +88,8 @@ def require_prefix_privilege(func):
 
 def get_context(prefix=None):
     """Returns a context for a page with a possible prefix"""
-    navpath = [('Home', '/'), ('Prefix Details', reverse('prefix-index'))]
+    navpath = [('Home', '/'), ('Search', reverse('info-search')),
+               ('Prefix', reverse('prefix-index'))]
     if prefix:
         navpath.append((prefix.net_address,))
     return {
