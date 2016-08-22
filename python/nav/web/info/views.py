@@ -69,6 +69,7 @@ def process_form(form):
                        providers.NetboxSearchProvider(query),
                        providers.InterfaceSearchProvider(query),
                        providers.VlanSearchProvider(query),
+                       providers.PrefixSearchProvider(query),
                        providers.DevicegroupSearchProvider(query),
                        providers.UnrecognizedNeighborSearchProvider(query)]
     providers_with_result = has_results(searchproviders)
