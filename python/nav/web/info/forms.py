@@ -18,7 +18,7 @@
 
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (Layout, Row, Column, Submit, Field)
+from crispy_forms_foundation.layout import Layout, Row, Column, Submit, Field
 
 
 class SearchForm(forms.Form):
@@ -26,21 +26,28 @@ class SearchForm(forms.Form):
     query = forms.CharField(max_length=100, label='', required=False)
 
     def __init__(self, *args, **kwargs):
+        # self.helper = FormHelper('info-search')
+        self.helper = get_formhelper(kwargs.pop('form_action', ''),
+                                     kwargs.pop('placeholder', 'Search'))
         super(SearchForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_action = 'info-search'
-        self.helper.form_method = 'GET'
-        self.helper.layout = Layout(
-            Row(
-                Column(Field('query', placeholder='Search'),
-                       css_class='medium-9'),
-                Column(Submit('submit', 'Search', css_class='postfix'),
-                       css_class='medium-3'),
-                css_class='collapse'
-            )
-        )
 
     def clean_query(self):
         """Remove whitespace from searchterm"""
         return self.cleaned_data['query'].strip()
 
+
+def get_formhelper(form_action, placeholder='Search'):
+    """Create a default form layout for a search form"""
+    helper = FormHelper()
+    helper.form_action = form_action
+    helper.form_method = 'GET'
+    helper.layout = Layout(
+        Row(
+            Column(Field('query', placeholder=placeholder),
+                   css_class='medium-9'),
+            Column(Submit('submit', 'Search', css_class='postfix'),
+                   css_class='medium-3'),
+            css_class='collapse'
+        )
+    )
+    return helper

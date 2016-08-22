@@ -31,7 +31,7 @@ from django.contrib import messages
 from nav.django.utils import get_account
 from nav.models.manage import Room
 from nav.models.roommeta import Image, ROOMIMAGEPATH
-from nav.web.info.room.forms import SearchForm
+from nav.web.info.forms import SearchForm
 from nav.web.info.room.utils import (get_extension, create_hash,
                                      create_image_directory,
                                      get_next_priority, save_image,
@@ -42,6 +42,13 @@ from nav.metrics.data import get_netboxes_availability
 
 CATEGORIES = ("GW", "GSW", "SW", "EDGE")
 _logger = logging.getLogger('nav.web.info.room')
+
+
+class RoomSearchForm(SearchForm):
+    """Searchform for rooms"""
+    def __init__(self, *args, **kwargs):
+        super(RoomSearchForm, self).__init__(
+            *args, form_action='room-search', placeholder='Room', **kwargs)
 
 
 def get_path():
@@ -58,14 +65,14 @@ def search(request):
     titles = navpath
 
     if "query" in request.GET:
-        searchform = SearchForm(request.GET, auto_id=False)
+        searchform = RoomSearchForm(request.GET, auto_id=False)
         if searchform.is_valid():
             titles.append(("Search for %s" % request.GET['query'],))
             rooms = process_searchform(searchform)
             for room in rooms:
                 room.netboxes = filter_netboxes(room)
     else:
-        searchform = SearchForm()
+        searchform = RoomSearchForm()
 
     return render_to_response("info/room/base.html",
                               {"searchform": searchform,

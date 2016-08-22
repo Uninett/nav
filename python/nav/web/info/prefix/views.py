@@ -22,37 +22,23 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column, Field
-from nav.web.crispyforms import LabelSubmit
-
 from IPy import IP
 
 from nav.web import utils
+from ..forms import SearchForm
 from nav.models.manage import Prefix, Usage, PrefixUsage
 
 
 ### Forms
 
-class PrefixSearchForm(forms.Form):
-    """Form for searching for prefixes"""
-    query = forms.CharField(label='Search for prefixes', required=False)
+class PrefixSearchForm(SearchForm):
+    """Searchform for prefixes"""
 
     def __init__(self, *args, **kwargs):
-        super(PrefixSearchForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_action = 'prefix-index'
-        self.helper.form_method = 'GET'
+        super(PrefixSearchForm, self).__init__(
+            *args, form_action='prefix-index', placeholder='a.b.c.d/e',
+            **kwargs)
         self.helper.form_id = 'prefix-search-form'
-        self.helper.layout = Layout(
-            Row(
-                Column(Field('query', placeholder='a.b.c.d/e'),
-                       css_class='small-9'),
-                Column(LabelSubmit('submit', 'Search', css_class='postfix'),
-                       css_class='small-3'),
-                css_class='collapse'
-            )
-        )
 
     def clean_query(self):
         """Make sure it's something we can use"""
