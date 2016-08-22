@@ -26,7 +26,6 @@ class SearchForm(forms.Form):
     query = forms.CharField(max_length=100, label='', required=False)
 
     def __init__(self, *args, **kwargs):
-        # self.helper = FormHelper('info-search')
         self.helper = get_formhelper(kwargs.pop('form_action', ''),
                                      kwargs.pop('placeholder', 'Search'))
         super(SearchForm, self).__init__(*args, **kwargs)
@@ -41,6 +40,7 @@ def get_formhelper(form_action, placeholder='Search'):
     helper = FormHelper()
     helper.form_action = form_action
     helper.form_method = 'GET'
+    helper.form_class = 'search-form'
     helper.layout = Layout(
         Row(
             Column(Field('query', placeholder=placeholder),
