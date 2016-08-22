@@ -5,7 +5,25 @@
   <link rel="stylesheet" href="/static/css/nav/local_rickshaw.css"/>
 {% endblock %}
 
+
+{% block footer_scripts %}
+  <script>
+   require(['plugins/graphfetcher'], function (GraphFetcher) {
+       $('.vlangraph').each(function (index, element) {
+           new GraphFetcher($(element), element.dataset.url);
+       });
+
+       $('.prefixgraph').each(function (index, element) {
+           new GraphFetcher($(element), element.dataset.url);
+       });
+   });
+  </script>
+{% endblock %}
+
+
 {% block vlandetails %}
+
+  <h3>Vlan details</h3>
 
   <div id="tablecontainer">
     {% comment %} Print vlan information {% endcomment %}

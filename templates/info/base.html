@@ -5,7 +5,18 @@
 {% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
-  <script>require(['src/info']);</script>
+  <style>
+   .search-form { max-width: 450px; }
+  </style>
+{% endblock %}
+
+
+{% block footer_scripts %}
+  <script>
+   require(['libs/jquery-ui.min'], function () {
+       $('#searchtabs').tabs().show();
+   });
+  </script>
 {% endblock %}
 
 
