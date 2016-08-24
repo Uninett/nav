@@ -192,12 +192,12 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
         }
     };
 
-    /** Get minimum value of an array of datapoints (y=value), skipping NaNs */
+    /** Get minimum value of an array of datapoints (y=value), skipping NaNs and nulls*/
     function getMinimumValue(datapoints) {
         return Math.min.apply(null, datapoints.map(function (point) {
             return point.y;
         }).filter(function (value) {
-            return !isNaN(value);
+            return value !== null && !isNaN(value);
         }));
     }
 
