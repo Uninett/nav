@@ -70,6 +70,7 @@ from django.template.context import RequestContext
 from django.views.generic.base import TemplateView
 
 from nav.models.profiles import AccountNavlet
+from nav.models.manage import Sensor
 from nav.django.auth import get_sudoer
 from nav.django.utils import get_account
 from nav.web.webfront import get_widget_columns
@@ -384,11 +385,11 @@ def add_user_navlet_graph(request):
 def add_user_navlet_sensor(request):
     """Add a sensor widget with sensor id set"""
     if request.method == 'POST':
-        sensor_id = int(request.REQUEST.get('sensor_id'))
-        if sensor_id:
-            add_navlet(request.account, 'nav.web.navlets.sensor.SensorWidget',
-                       {'sensor_id': sensor_id})
-            return HttpResponse(status=200)
+        sensor = get_object_or_404(
+            Sensor, pk=int(request.REQUEST.get('sensor_id')))
+        add_navlet(request.account, 'nav.web.navlets.sensor.SensorWidget',
+                   {'sensor_id': sensor.pk, 'title': sensor.netbox.sysname})
+        return HttpResponse(status=200)
 
     return HttpResponse(status=400)
 

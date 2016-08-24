@@ -24,6 +24,7 @@ class SensorWidget(Navlet):
 
     title = 'Sensor'
     description = 'Displays a sensor'
+    is_title_editable = True
     can_be_added = False  # Can only be added from the sensors on the
                           # "Environment sensors" tab in room info
 
@@ -33,6 +34,7 @@ class SensorWidget(Navlet):
     def get_context_data(self, *args, **kwargs):
         context = super(SensorWidget, self).get_context_data(*args, **kwargs)
         sensor_id = self.preferences.get('sensor_id')
+        self.title = self.preferences.get('title', SensorWidget.title)
         context['sensor'] = Sensor.objects.get(pk=sensor_id)
 
         return context
