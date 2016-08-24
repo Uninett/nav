@@ -162,6 +162,7 @@ define(['libs/spin.min'], function (Spinner) {
                 var mode = this.getRenderMode() === 'VIEW' ? 'EDIT' : 'VIEW';
 
                 modeSwitch.click(function () {
+                    that.node.trigger('render', [mode]);
                     that.renderNavlet(mode);
                 });
             }
