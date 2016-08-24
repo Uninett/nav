@@ -141,10 +141,9 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
             var graph = new Rickshaw.Graph({
                 element: this.graphNode.get(0),
                 width: 230,
-                height: 150,
+                height: 100,
                 renderer: 'line',
-                max: this.maxValue,
-                min: minimum < 0 ? -25 : 0,
+                min: Math.floor(minimum),
                 series: [{
                     color: 'steelblue',
                     data: [{x: 0, y: 0}], // Data is overridden on update
