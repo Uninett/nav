@@ -1,0 +1,88 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  {% if metric %}
+
+    <div class="alert-box"></div>
+    <small class="alert-update-timestamp right">Last update: <span></span></small>
+
+    <script>
+     (function() {
+         var $navlet = $('[data-id=' + {{ navlet.navlet_id }}+ ']');
+         var $alertBox = $navlet.find('.alert-box');
+         var $timestamp = $navlet.find('.alert-update-timestamp span');
+         var onState = +'{{ on_state }}';
+         var text = {
+             on: '{{ on_message }}',
+             off: '{{ off_message }}',
+             unknown: 'N/A'
+         };
+         var alertType = '{{ alert_type }}';
+
+         update();
+         $navlet.on('refresh', update);  // navlet controller determines when to update
+         $navlet.on('render', function(event, renderType){
+             /* We need to unregister eventlistener, as it will not be removed
+             when going into edit-mode, and thus we will have one for each time
+             you have edited the widget. */
+             if (renderType === 'EDIT') {
+                 $navlet.off('refresh', update);
+             }
+         });
+
+         function update() {
+             var request = $.get('{{ data_url }}');
+
+             request.done(function(data) {
+                 var datapoints = data[0].datapoints.reverse();
+
+                 $alertBox.attr('class', 'alert-box with-icon');
+                 $timestamp.text('N/A');
+
+                 for (var i=0; i<datapoints.length; i++) {
+                     var value = datapoints[i][0];
+                     var epoch = datapoints[i][1];
+                     if (value !== null) {
+                         if (value === onState) {
+                             $alertBox.addClass(alertType).text(text.on);
+                         } else {
+                             $alertBox.addClass('success').text(text.off);
+                         }
+                         $timestamp.text(new Date(epoch * 1000).toLocaleString());
+                         break;
+                     }
+                     if (i >= 3) {
+                         $alertBox.text(text.unknown);
+                     }
+                 }
+             });
+
+             // Very basic error handling
+             request.fail(function(jqXhr, textStatus, errorThrown) {
+                 $alertBox.attr('class', 'alert-box info')
+                          .html(['<strong>Error updating widget:</strong>', jqXhr.status, jqXhr.statusText].join(' '));
+             });
+         }
+     })()
+    </script>
+
+  {% else %}
+
+    {# If we have no metric, we need to ask user to configure widget #}
+    <div class="alert-box info">
+      <a href="javascript:void(0);" class="configure-link">Configure the widget</a> to see alert status.
+    </div>
+
+    <script>
+     (function(){
+         var $navlet = $('[data-id=' + {{ navlet.navlet_id }}+ ']');
+         $navlet.find('.configure-link').click(function() {
+             $navlet.find('.navlet-mode-switch').click();
+         });
+     })();
+    </script>
+
+  {% endif %}
+
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  <p class="alert-box info">
+    This widget periodically fetches a binary value (the value must be either
+    zero or 1) from Graphite. The value is fetched using the given <em>metric</em>.
+
+    If the value is equal to the <em>on state</em> the widget will display a
+    warning or alert. If not it will say that everything is ok.
+  </p>
+
+  <form action="{% url 'get-user-navlet' navlet.navlet_id %}" method="post">
+    {{ form }}
+    <input type="submit" class="button tiny" value="Save">
+  </form>
+
+{% endblock %}
