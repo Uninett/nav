@@ -1,5 +1,11 @@
 @import "../navsettings";
 
+$fullscreen-color: #EEE;
+#navlets:fullscreen { background-color: $fullscreen-color; }
+#navlets:-webkit-full-screen { background-color: $fullscreen-color;}
+#navlets:-moz-full-screen { background-color: $fullscreen-color; }
+#navlets:-ms-fullscreen { background-color: $fullscreen-color; }
+
 #navlets .highlight {
     background-color: #d6d6d6;
     border: 1px solid #aaaaaa;

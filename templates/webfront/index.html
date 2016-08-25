@@ -3,6 +3,7 @@
 {% block base_header_additional_head %}
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/index.css" />
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/navlets.css" />
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/navlets_compact.css" />
   <style>
     #navlet-list input[type='submit'] { margin-bottom: 0; }
     #navlet-list .panel {
@@ -12,7 +13,11 @@
       padding: 0.9rem;
     }
   </style>
-  <script>require(["src/webfront"]);</script>
+  <script>
+   require(["src/webfront"]);
+   NAV.preference_keys = NAV.preference_keys || {};
+   NAV.preference_keys.widget_display_density = '{{ request.account.PREFERENCE_KEY_WIDGET_DISPLAY_DENSITY }}';
+  </script>
 {% endblock %}
 
 
@@ -21,8 +26,29 @@
   {#  Reveal Add widgets modal  #}
   {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
 
-    <div id="widgets-action-add" class="hide-for-small" title="Add widget" data-reveal data-reveal-id="navlet-list">
-      <i class="fa fa-plus"></i>
+    <div id="widgets-actions" class="hide-for-small" >
+      <div id="widgets-action-add" title="Add widget" data-reveal data-reveal-id="navlet-list">
+        <i class="fa fa-plus"></i>
+      </div>
+
+      <div id="widgets-show-fullscreen" title="Show dashboard in fullscreen">
+        <i class="fa fa-arrows-alt"></i>
+      </div>
+
+      <div id="widgets-layout-normal"
+           class="widgets-layout-toggler
+           {% if request.account.preferences.widget_display_density == 'normal' %}hide{% endif %}"
+           title="Use normal layout for dashboard">
+        <i class="fa fa-expand"></i>
+      </div>
+
+      <div id="widgets-layout-compact"
+           class="widgets-layout-toggler
+           {% if request.account.preferences.widget_display_density == 'compact' %}hide{% endif %}"
+           title="Use compact layout for dashboard">
+        <i class="fa fa-compress"></i>
+      </div>
+
     </div>
 
     {% comment %} List of navlets to add {% endcomment %}
@@ -49,6 +75,7 @@
 
   {% comment %} Main container for navlets {% endcomment %}
   <div id="navlets"
+       {% if request.account.preferences.widget_display_density == 'compact' %}class="compact"{% endif %}
        data-list-navlets="{% url 'get-user-navlets' %}"
        data-remove-navlet="{% url 'remove-user-navlet' %}"
        data-save-order-url="{% url 'save-navlet-order' %}"

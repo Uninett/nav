@@ -11,7 +11,7 @@ define(['plugins/navlet_controller'], function (NavletController) {
         '3': 'medium-4',
         '4': 'medium-3'
     };
- 
+
     function NavletsController(node, columns) {
         this.container = node;
         this.numColumns = columns || 2;
@@ -32,6 +32,10 @@ define(['plugins/navlet_controller'], function (NavletController) {
             var $row = $('<div class="row"/>').appendTo(container),
                 classes = "column navletColumn " + columnsMapper[numColumns],
                 columns = [];
+
+            if (this.container.hasClass('compact')) {
+                $row.addClass('collapse');
+            }
 
             for(var i = 0; i < numColumns; i++) {
                 columns.push($('<div>').addClass(classes).appendTo($row));

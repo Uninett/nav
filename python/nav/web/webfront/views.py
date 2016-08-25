@@ -289,3 +289,11 @@ def set_widget_columns(request):
             account.save()
             return HttpResponseRedirect(reverse('webfront-index'))
     return HttpResponseRedirect(reverse('webfront-preferences'))
+
+
+def set_account_preference(request):
+    """Set account preference using url attributes"""
+    account = request.account
+    account.preferences.update(request.GET.dict())
+    account.save()
+    return HttpResponse()

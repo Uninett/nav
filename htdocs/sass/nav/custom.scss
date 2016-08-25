@@ -63,17 +63,27 @@
 }
 
 /* Dashboard control center */
-#widgets-action-add {
-    background-color: $topbar-bg-color;
-    box-shadow: 0px 3px 5px grey;  // Christine allowed this =)
-    padding: 0.5rem 0.6rem 0.4rem 0.7rem;
+
+#widgets-actions {
+    box-shadow: 0px 3px 5px grey;
+    color: white;
     position: absolute;
     right: 0;
     top: 0;
-    i { color: white; }
-    &:hover {
-        background-color: $primary-color;
-        cursor: pointer;
+    width: 40px;
+    div {
+        background-color: $topbar-bg-color;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        &:hover {
+            background-color: $primary-color;
+            cursor: pointer;
+        }
+        &:not(.widgets-layout-toggler) {
+            border-bottom: 1px solid gainsboro;
+        }
     }
 }
 

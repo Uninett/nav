@@ -2,8 +2,9 @@ require([
     'plugins/room_mapper',
     'plugins/navlets_controller',
     'plugins/sensors_controller',
+    'plugins/fullscreen',
     'libs/jquery-ui.min',
-], function (RoomMapper, NavletsController, SensorsController) {
+], function (RoomMapper, NavletsController, SensorsController, fullscreen) {
     'use strict';
 
     var $navletsContainer = $('#navlets');
@@ -31,8 +32,8 @@ require([
             if (node.hasClass('SensorWidget')) {
                 var sensor = new SensorsController(node.find('.room-sensor'));
             }
-            
-            
+
+
         });
 
         /* Add click listener to joyride button */
@@ -52,6 +53,36 @@ require([
         /* Need some way of doing javascript stuff on widgets */
         $navletsContainer.on('click', '.watchdog-tests .label.alert', function (event) {
             $(event.target).closest('li').find('ul').toggle();
+        });
+
+
+        /*
+         * The following listeners are applied to buttons on the right hand side
+         * when on the dashboard
+         */
+
+
+        /* Listnener to show fullscreen */
+        $('#widgets-show-fullscreen').on('click', function() {
+            fullscreen.requestFullscreen($navletsContainer.get(0));
+        });
+
+
+        /* Change display density for widgets and save it */
+        var preferenceData = {};
+        $('#widgets-layout-compact').on('click', function(event) {
+            $navletsContainer.find('> .row').addClass('collapse');
+            $navletsContainer.addClass('compact');
+            preferenceData[NAV.preference_keys.widget_display_density] = 'compact';
+            $('.widgets-layout-toggler').toggleClass('hide');
+            $.get(NAV.urls.set_account_preference, preferenceData);
+        });
+        $('#widgets-layout-normal').on('click', function(event) {
+            $navletsContainer.find('> .row').removeClass('collapse');
+            $navletsContainer.removeClass('compact');
+            preferenceData[NAV.preference_keys.widget_display_density] = 'normal';
+            $('.widgets-layout-toggler').toggleClass('hide');
+            $.get(NAV.urls.set_account_preference, preferenceData);
         });
 
     });

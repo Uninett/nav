@@ -31,4 +31,6 @@ urlpatterns = patterns(
         name='webfront-preferences-changepassword'),
     url(r'^preferences/setcolumns$', 'set_widget_columns',
         name='webfront-preferences-setwidgetcolumns'),
+    url(r'^preferences/set_account_preference$', 'set_account_preference',
+        name='set-account-preference')
 )
