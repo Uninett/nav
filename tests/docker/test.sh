@@ -67,6 +67,17 @@ run_pylint() {
     time "${WORKSPACE}/tests/docker/lint.sh" > "${WORKSPACE}/pylint.txt"
 }
 
+dump_possibly_relevant_apache_accesses() {
+    set +x
+    ACCESSLOG="${BUILDDIR}/var/log/apache2-access.log"
+    if [ -e "$ACCESSLOG" ]; then
+        echo "Potentially relevant 40x errors from Apache logs:"
+	echo "-------------------------------------------------"
+	grep " 40[34] " "$ACCESSLOG"
+	echo "-------------------------------------------------"
+    fi
+}
+
 
 # MAIN EXECUTION POINT
 build_nav
@@ -78,6 +89,7 @@ init_db
 (start_apache)  # run in subprocess b/c of call to wait
 start_xvfb
 
+trap dump_possibly_relevant_apache_accesses EXIT
 run_pytests
 run_jstests
 
