@@ -103,7 +103,7 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
                     }
 
                     self.updateCurrent(last, minimumValue);
-                    self.updateGraph(datapoints, minimumValue);
+                    self.updateGraph(datapoints);
                 }
             });
         },
@@ -129,21 +129,20 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
                 return new CounterDisplay(this.counterTemplate, this.currentNode.prop('id'), 9999, this.unit);
             }
         },
-        updateGraph: function (values, minimum) {
+        updateGraph: function (values) {
             if (!this.graph) {
-                console.log('Creating graph');
-                this.graph = this.createGraph(minimum);
+                this.graph = this.createGraph();
             }
             this.graph.series[0].data = values;
             this.graph.render();
         },
-        createGraph: function (minimum) {
+        createGraph: function () {
             var graph = new Rickshaw.Graph({
                 element: this.graphNode.get(0),
                 width: 230,
                 height: 100,
                 renderer: 'line',
-                min: Math.floor(minimum),
+                min: 'auto',
                 series: [{
                     color: 'steelblue',
                     data: [{x: 0, y: 0}], // Data is overridden on update
