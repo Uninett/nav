@@ -124,12 +124,10 @@ $fullscreen-color: #EEE;
 
 
 .SensorWidget {
-    .navlet-body {
-        overflow: visible;
-    }
-    .room-sensor {
-        margin-left: auto;
-        margin-right: auto;
-    }
     @import "sensors";
+    .room-sensor {
+        display: flex;
+        justify-content: center;
+        width: auto;
+    }
 }
