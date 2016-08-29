@@ -1,6 +1,9 @@
 """Module containing some of the forms used in widgets"""
 
 from django import forms
+from django.db.models import Q
+
+from nav.models.manage import Netbox
 
 
 class AlertWidgetForm(forms.Form):
@@ -21,3 +24,9 @@ class AlertWidgetForm(forms.Form):
     alert_type = forms.ChoiceField(
         label='What to display in "on" state',
         choices=(('alert', 'A red alert'), ('warning', 'An orange warning')))
+
+
+class UpsWidgetForm(forms.Form):
+    """Form for choosing an UPS"""
+    netboxid = forms.ModelChoiceField(queryset=Netbox.objects.filter(
+        Q(sysname__icontains='ups') | Q(groups__in=['UPS'])))

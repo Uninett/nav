@@ -1,0 +1,219 @@
+{% extends 'navlets/base.html' %}
+{% load sensor %}
+
+{% block navlet-content %}
+
+  {% if netbox %}
+
+    <style>
+     .io-display .line {
+         background-color: steelblue;
+         color: white;
+         font-size: small;
+         padding: 0.2em;
+         position: absolute;
+     }
+
+     .horizontal.line {
+         display: flex;
+         justify-content: space-around;
+         top: 50%;
+         transform: translateY(-50%);
+         width: 100%;
+         z-index: 1;
+     }
+
+     .vertical.line {
+         height: 50%;
+         width: 1rem;
+         left: 50%;
+         transform: translate(-50%, 100%);
+         display: flex;
+         justify-content: center;
+         align-items: center;
+     }
+
+     .wrapper {
+         position: relative;
+         display: flex;
+         justify-content: space-between;
+     }
+
+     .battery-wrapper {
+         display: flex;
+         justify-content: center;
+     }
+
+     .io-display .panel {
+         margin-bottom: 0;
+         padding: .5em 1em;
+         z-index: 2;
+     }
+
+     .node > div span:first-child  { font-weight: bold; }
+
+    </style>
+
+    <h4><a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a></h4>
+
+    {# IO display #}
+
+    <div class="io-display">
+
+      <div class="wrapper">
+
+        {# Horizontal line #}
+        <div class="horizontal line">
+          <span class="fa fa-chevron-right"></span>
+          <span class="fa fa-chevron-right"></span>
+          <span class="fa fa-chevron-right"></span>
+          <span class="fa fa-chevron-right"></span>
+          <span class="fa fa-chevron-right"></span>
+          <span class="fa fa-chevron-right"></span>
+          <span class="fa fa-chevron-right"></span>
+        </div>
+
+        <div class="vertical line">
+        </div>
+
+
+        {# Input node #}
+        <div class="input node panel">
+
+          <h5>Input</h5>
+
+          <div>
+            <span>L1:</span>
+            <span data-metric="{{ metrics|get_value:'upsInputVoltage.1' }}"></span>
+            V
+          </div>
+
+          {% if metrics|get_value:'upsInputVoltage.2' %}
+            <div>
+              <span>L2:</span>
+              <span data-metric="{{ metrics|get_value:'upsInputVoltage.2' }}"></span>
+              V
+            </div>
+          {% endif %}
+
+          {% if metrics|get_value:'upsInputVoltage.3' %}
+            <div>
+              <span>L3:</span>
+              <span data-metric="{{ metrics|get_value:'upsInputVoltage.3' }}"></span>
+              V
+            </div>
+          {% endif %}
+        </div>
+
+        {# Output node #}
+        <div class="node output panel">
+          <h5>Output</h5>
+
+          <div>
+            <span>L1:</span>
+            <span data-metric="{{ metrics|get_value:'upsOutputVoltage.1' }}"></span>
+            V
+            <span data-metric="{{ metrics|get_value:'upsOutputPower.1' }}"></span>
+            W
+          </div>
+
+          {% if metrics|get_value:'upsOutputVoltage.2' %}
+            <div>
+              <span>L2:</span>
+              <span data-metric="{{ metrics|get_value:'upsOutputVoltage.2' }}"></span>
+              V
+              <span data-metric="{{ metrics|get_value:'upsOutputPower.2' }}"></span>
+              W
+            </div>
+          {% endif %}
+
+          {% if metrics|get_value:'upsOutputVoltage.3' %}
+            <div>
+              <span>L3:</span>
+              <span data-metric="{{ metrics|get_value:'upsOutputVoltage.3' }}"></span>
+              V
+              <span data-metric="{{ metrics|get_value:'upsOutputPower.3' }}"></span>
+              W
+            </div>
+          {% endif %}
+        </div>
+
+      </div>
+
+      {# Battery node #}
+      <div class="battery-wrapper">
+        <div class="battery node panel">
+          <h5>Battery&nbsp;&nbsp;<i class="fa fa-flash"></i></h5>
+
+          <div>
+            <span title="Battery or internal temperature">Temp:</span>
+            <span data-metric="{{ metrics|get_value:'upsBatteryTemperature' }}"></span>
+            &deg;C
+          </div>
+          <div>
+            <span title="Estimated battery time remaining">Time:</span>
+            <span data-metric="{{ metrics|get_value:'upsEstimatedMinutesRemaining' }}"></span>
+            Min
+          </div>
+        </div>
+      </div>
+
+
+    </div> {# .io-display #}
+
+
+    <script>
+     $(function() {
+         var $navlet = $('[data-id={{ navlet.navlet_id }}]');
+         var sensors = {};
+         $navlet.find('[data-metric]').each(function () {
+             var $node = $(this);
+             sensors[$node.attr('data-metric')] = $node;
+         });
+
+         var metricList = _.keys(sensors);
+
+         update();
+         $navlet.on('refresh', update);
+         $navlet.on('render', function(event, renderType){
+             /* We need to unregister eventlistener, as it will not be removed
+                when going into edit-mode, and thus we will have one for each time
+                you have edited the widget. */
+             if (renderType === 'EDIT') {
+                 $navlet.off('refresh', update);
+             }
+         });
+
+
+         function update() {
+
+             var request = $.post(NAV.graphiteRenderUrl,
+                                  {target: metricList, from: '-5min', format: 'json'});
+             request.done(function(response){
+                 console.log(response);
+                 response.forEach(function(data) {
+                     var datapoints = data.datapoints.reverse();
+                     for (var i=0, l=datapoints.length; i<l; i++) {
+                         if (datapoints[i][0] === null) {
+                             continue;
+                         }
+                         sensors[data.target].html(datapoints[i][0]);
+                         break;
+                     }
+                 });
+             });
+         }
+
+     });
+    </script>
+
+  {% else %}
+
+    <div class="alertbox info">Edit the widget to add UPS</div>
+
+  {% endif %}
+
+
+
+
+{% endblock %}
