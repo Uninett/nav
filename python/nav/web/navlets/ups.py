@@ -31,7 +31,7 @@ class UpsWidget(Navlet):
     is_title_editable = True
     ajax_reload = True
     description = 'Display UPS status'
-    refresh_interval = 5000  # 30 seconds
+    refresh_interval = 30000  # 30 seconds
 
     def get_template_basename(self):
         return 'ups'

@@ -5,77 +5,13 @@
 
   {% if netbox %}
 
-    <style>
-     .io-display .line {
-         background-color: steelblue;
-         color: white;
-         font-size: small;
-         padding: 0.2em;
-         position: absolute;
-     }
-
-     .horizontal.line {
-         display: flex;
-         justify-content: space-around;
-         top: 50%;
-         transform: translateY(-50%);
-         width: 100%;
-         z-index: 1;
-     }
-
-     .vertical.line {
-         height: 50%;
-         width: 1rem;
-         left: 50%;
-         transform: translate(-50%, 100%);
-         display: flex;
-         justify-content: center;
-         align-items: center;
-     }
-
-     .wrapper {
-         position: relative;
-         display: flex;
-         justify-content: space-between;
-     }
-
-     .battery-wrapper {
-         display: flex;
-         justify-content: center;
-     }
-
-     .io-display .panel {
-         margin-bottom: 0;
-         padding: .5em 1em;
-         z-index: 2;
-     }
-
-     .node > div span:first-child  { font-weight: bold; }
-
-    </style>
-
     <h4><a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a></h4>
 
     {# IO display #}
 
     <div class="io-display">
 
-      <div class="wrapper">
-
-        {# Horizontal line #}
-        <div class="horizontal line">
-          <span class="fa fa-chevron-right"></span>
-          <span class="fa fa-chevron-right"></span>
-          <span class="fa fa-chevron-right"></span>
-          <span class="fa fa-chevron-right"></span>
-          <span class="fa fa-chevron-right"></span>
-          <span class="fa fa-chevron-right"></span>
-          <span class="fa fa-chevron-right"></span>
-        </div>
-
-        <div class="vertical line">
-        </div>
-
+      <div class="left-wrapper">
 
         {# Input node #}
         <div class="input node panel">
@@ -104,6 +40,15 @@
             </div>
           {% endif %}
         </div>
+
+
+        {# Vertical line #}
+        <div class="vertical line">
+          <div class="left-box"></div>
+          <div class="middle-box"><i class="fa fa-arrow-down"></i></div>
+          <div class="right-box"></div>
+        </div>
+
 
         {# Output node #}
         <div class="node output panel">
@@ -138,6 +83,10 @@
           {% endif %}
         </div>
 
+      </div>  {# Wrapper #}
+
+      <div class="horizontal line">
+        <i class="fa fa-arrows-h"></i>
       </div>
 
       {# Battery node #}
@@ -186,11 +135,9 @@
 
 
          function update() {
-
              var request = $.post(NAV.graphiteRenderUrl,
                                   {target: metricList, from: '-5min', format: 'json'});
              request.done(function(response){
-                 console.log(response);
                  response.forEach(function(data) {
                      var datapoints = data.datapoints.reverse();
                      for (var i=0, l=datapoints.length; i<l; i++) {

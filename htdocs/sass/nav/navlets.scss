@@ -131,3 +131,59 @@ $fullscreen-color: #EEE;
         width: auto;
     }
 }
+
+
+.UpsWidget {
+     .io-display {
+         position: relative;
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         .panel {
+             margin-bottom: 0;
+             padding: .5em 1em;
+             position: relative;
+             z-index: 2;
+         }
+         .line {
+             background-color: steelblue;
+             color: white;
+         }
+         .left-wrapper {
+             display: flex;
+             flex-direction: column;
+             .vertical.line {
+                 height: 50px;
+                 display: flex;
+             }
+
+             .vertical.line .left-box {
+                 background-color: white;
+                 width: 50%;
+                 z-index: 2;
+             }
+             .vertical.line .middle-box {
+                 width: 1.2rem;
+                 z-index: 2;
+                 display: flex;
+                 justify-content: center;
+                 align-items: center;
+             }
+             .vertical.line .right-box {
+                 background-color: white;
+                 width: 50%;
+             }
+
+         }
+         .horizontal.line {
+             position: absolute;
+             line-height: 1.2rem;
+             width: 100%;
+             text-align: center;
+         }
+         .node > div span:first-child  { font-weight: bold; }
+
+     }
+
+
+}
