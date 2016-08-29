@@ -18,27 +18,14 @@
 
           <h5>Input</h5>
 
-          <div>
-            <span>L1:</span>
-            <span data-metric="{{ metrics|get_value:'upsInputVoltage.1' }}"></span>
-            V
-          </div>
-
-          {% if metrics|get_value:'upsInputVoltage.2' %}
+          {% for input_voltage in input_voltages  %}
             <div>
-              <span>L2:</span>
-              <span data-metric="{{ metrics|get_value:'upsInputVoltage.2' }}"></span>
-              V
+              <span>L{{ forloop.counter }}:</span>
+              <span data-metric="{{ input_voltage.get_metric_name }}"></span>
+              {{ input_voltage.unit_of_measurement }}
             </div>
-          {% endif %}
+          {% endfor %}
 
-          {% if metrics|get_value:'upsInputVoltage.3' %}
-            <div>
-              <span>L3:</span>
-              <span data-metric="{{ metrics|get_value:'upsInputVoltage.3' }}"></span>
-              V
-            </div>
-          {% endif %}
         </div>
 
 
@@ -54,33 +41,18 @@
         <div class="node output panel">
           <h5>Output</h5>
 
-          <div>
-            <span>L1:</span>
-            <span data-metric="{{ metrics|get_value:'upsOutputVoltage.1' }}"></span>
-            V
-            <span data-metric="{{ metrics|get_value:'upsOutputPower.1' }}"></span>
-            W
-          </div>
-
-          {% if metrics|get_value:'upsOutputVoltage.2' %}
+          {% for output_voltage, output_power in output  %}
             <div>
-              <span>L2:</span>
-              <span data-metric="{{ metrics|get_value:'upsOutputVoltage.2' }}"></span>
-              V
-              <span data-metric="{{ metrics|get_value:'upsOutputPower.2' }}"></span>
-              W
+              <span>L{{ forloop.counter }}:</span>
+              <span data-metric="{{ output_voltage.get_metric_name }}"></span>
+              {{ output_voltage.unit_of_measurement }}
+              {% if output_power %}
+                <span data-metric="{{ output_power.get_metric_name }}"></span>
+                {{ output_power.unit_of_measurement }}
+              {% endif %}
             </div>
-          {% endif %}
+          {% endfor %}
 
-          {% if metrics|get_value:'upsOutputVoltage.3' %}
-            <div>
-              <span>L3:</span>
-              <span data-metric="{{ metrics|get_value:'upsOutputVoltage.3' }}"></span>
-              V
-              <span data-metric="{{ metrics|get_value:'upsOutputPower.3' }}"></span>
-              W
-            </div>
-          {% endif %}
         </div>
 
       </div>  {# Wrapper #}
@@ -94,16 +66,31 @@
         <div class="battery node panel">
           <h5>Battery&nbsp;&nbsp;<i class="fa fa-flash"></i></h5>
 
-          <div>
-            <span title="Battery or internal temperature">Temp:</span>
-            <span data-metric="{{ metrics|get_value:'upsBatteryTemperature' }}"></span>
-            &deg;C
-          </div>
-          <div>
-            <span title="Estimated battery time remaining">Time:</span>
-            <span data-metric="{{ metrics|get_value:'upsEstimatedMinutesRemaining' }}"></span>
-            Min
-          </div>
+          {% for temp in temperatures  %}
+            <div>
+              <span title="Battery or internal temperature">Temp ({{ temp.unit_of_measurement }}):</span>
+              <span data-metric="{{ temp.get_metric_name }}"></span>
+            </div>
+          {% endfor %}
+
+          {% for battery_time in battery_times %}
+            <div>
+              <span title="Estimated battery time remaining">
+                Time ({{ battery_time.unit_of_measurement }}):
+              </span>
+              <span data-metric="{{ battery_time.get_metric_name }}"></span>
+            </div>
+          {% endfor %}
+
+          {% for capacity in battery_capacity %}
+            <div>
+              <span title="Estimated battery capacity left">
+                Capacity:
+              </span>
+              <span data-metric="{{ capacity.get_metric_name }}"></span>
+              %
+            </div>
+          {% endfor %}
         </div>
       </div>
 

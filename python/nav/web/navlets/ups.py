@@ -16,6 +16,7 @@
 """Module containing UPSWidget"""
 
 from django.http import HttpResponse
+from django.db.models import Q
 
 from nav.models.profiles import AccountNavlet
 from nav.models.manage import Netbox
@@ -53,8 +54,39 @@ class UpsWidget(Navlet):
                 return context
             netbox = Netbox.objects.get(pk=netboxid)
             context['netbox'] = netbox
-            context['metrics'] = {sensor.internal_name: sensor.get_metric_name()
-                                  for sensor in netbox.sensor_set.all()}
+
+            # Input
+            context['input_voltages'] = netbox.sensor_set.filter(
+                Q(internal_name__contains="InputVoltage") |
+                Q(internal_name__contains="InputLineVoltage")
+            ).filter(precision__isnull=True)
+
+            # Output
+            output_voltages = netbox.sensor_set.filter(
+                Q(internal_name__contains="OutputVoltage") |
+                Q(internal_name__contains="OutputLineVoltage")
+            ).filter(precision__isnull=True)
+            output_power = netbox.sensor_set.filter(
+                internal_name__contains="OutputPower")
+
+            # This is so fucking ugly
+            if len(output_voltages) == len(output_power):
+                context['output'] = zip(output_voltages, output_power)
+            else:
+                context['output'] = zip(output_voltages,
+                                        range(len(output_voltages)))
+
+            # Battery
+            context['battery_times'] = netbox.sensor_set.filter(
+                internal_name='upsEstimatedMinutesRemaining')
+
+            context['battery_capacity'] = netbox.sensor_set.filter(
+                internal_name__in=['upsHighPrecBatteryCapacity',
+                                   'upsEstimatedChargeRemaining'])
+
+            context['temperatures'] = netbox.sensor_set.filter(
+                internal_name__in=['upsHighPrecBatteryTemperature',
+                                   'upsBatteryTemperature'])
 
         return context
 
