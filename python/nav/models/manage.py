@@ -60,6 +60,7 @@ class UpsManager(models.Manager):
     def get_queryset(self):
         """Filter out UPSes"""
         return super(UpsManager, self).get_queryset().filter(
+            category='POWER',
             sensor__internal_name__startswith='ups').distinct()
 
 
