@@ -55,6 +55,8 @@ class UpsWidget(Navlet):
             netbox = Netbox.objects.get(pk=netboxid)
             context['netbox'] = netbox
 
+            # internal names selected from ups-mib and powernet-mib.
+
             # Input
             context['input_voltages'] = netbox.sensor_set.filter(
                 Q(internal_name__contains="InputVoltage") |
@@ -69,16 +71,14 @@ class UpsWidget(Navlet):
             output_power = netbox.sensor_set.filter(
                 internal_name__contains="OutputPower")
 
-            # This is so fucking ugly
-            if len(output_voltages) == len(output_power):
-                context['output'] = zip(output_voltages, output_power)
-            else:
-                context['output'] = zip(output_voltages,
-                                        range(len(output_voltages)))
+            if len(output_voltages) != len(output_power):
+                output_power = [None] * len(output_voltages)
+            context['output'] = zip(output_voltages, output_power)
 
             # Battery
             context['battery_times'] = netbox.sensor_set.filter(
-                internal_name='upsEstimatedMinutesRemaining')
+                internal_name__in=['upsEstimatedMinutesRemaining',
+                                   'upsAdvBatteryRunTimeRemaining'])
 
             context['battery_capacity'] = netbox.sensor_set.filter(
                 internal_name__in=['upsHighPrecBatteryCapacity',
