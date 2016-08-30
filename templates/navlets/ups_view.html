@@ -96,48 +96,12 @@
 
 
     </div> {# .io-display #}
+    <small class="right">Last update: <span class="update-time"></span></small>
 
 
     <script>
-     $(function() {
-         var $navlet = $('[data-id={{ navlet.navlet_id }}]');
-         var sensors = {};
-         $navlet.find('[data-metric]').each(function () {
-             var $node = $(this);
-             sensors[$node.attr('data-metric')] = $node;
-         });
-
-         var metricList = _.keys(sensors);
-
-         update();
-         $navlet.on('refresh', update);
-         $navlet.on('render', function(event, renderType){
-             /* We need to unregister eventlistener, as it will not be removed
-                when going into edit-mode, and thus we will have one for each time
-                you have edited the widget. */
-             if (renderType === 'EDIT') {
-                 $navlet.off('refresh', update);
-             }
-         });
-
-
-         function update() {
-             var request = $.post(NAV.graphiteRenderUrl,
-                                  {target: metricList, from: '-5min', format: 'json'});
-             request.done(function(response){
-                 response.forEach(function(data) {
-                     var datapoints = data.datapoints.reverse();
-                     for (var i=0, l=datapoints.length; i<l; i++) {
-                         if (datapoints[i][0] === null) {
-                             continue;
-                         }
-                         sensors[data.target].html(datapoints[i][0]);
-                         break;
-                     }
-                 });
-             });
-         }
-
+     require(['plugins/navlet_ups'], function(Poller){
+         new Poller($('[data-id={{ navlet.navlet_id }}]'));
      });
     </script>
 
