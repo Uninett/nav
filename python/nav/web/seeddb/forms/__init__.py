@@ -43,7 +43,7 @@ BOX_CHARS = {
 
 def create_hierarchy(klass):
     """Creates a tree structure for select choices
-    
+
     This is used in forms that use Organization and Location fields, and will
     visualize the tree structure of the data.
     """
@@ -76,13 +76,13 @@ def create_choices(element, ancestors, is_last_child=False):
         last = index == num_children - 1
         choices = choices + create_choices(child, child_ancestors,
                                            is_last_child=last)
-        
+
     return choices
-            
+
 
 def tree_pad(string, ancestors, last=False):
     """Pad the string according to ancestors and position
-    
+
     :param ancestors: a list of booleans for each ancestor. The value indicates
                       if this ancestor was the last child
     :param last: indicates if this is the last child
@@ -92,9 +92,9 @@ def tree_pad(string, ancestors, last=False):
     """
     charmap = {
         True: BOX_CHARS['UP_AND_RIGHT'] + BOX_CHARS['SPACE'],  # └
-        False: BOX_CHARS['VERTICAL_AND_RIGHT'] + BOX_CHARS['SPACE']  # ├ 
+        False: BOX_CHARS['VERTICAL_AND_RIGHT'] + BOX_CHARS['SPACE']  # ├
     }
-    
+
     if ancestors:
         string = "".join([get_prefix(ancestors), charmap[last], string])
     return mark_safe(string)
@@ -202,14 +202,17 @@ class LocationForm(forms.ModelForm):
 
     def clean_parent(self):
         """Provide a model as the parent.
-        
+
         This is needed because we use a normal ChoiceField (because of the tree
         structure) that does not provide a model instance when selected.
         """
         parent = self.cleaned_data.get('parent')
         if parent:
             return Location.objects.get(pk=parent)
-        return parent
+        else:
+            # Explicitly return None because no parent is an empty string and
+            # thus we need to return None not the empty string
+            return None
 
 
 class OrganizationFilterForm(forms.Form):
@@ -241,7 +244,7 @@ class OrganizationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(OrganizationForm, self).__init__(*args, **kwargs)
         field = self.fields['parent']
-        field.choices=create_hierarchy(Organization)        
+        field.choices=create_hierarchy(Organization)
 
         if self.instance.id:
             # disallow editing the primary key of existing record
@@ -251,7 +254,7 @@ class OrganizationForm(forms.ModelForm):
 
     def clean_parent(self):
         """Provide a model as the parent.
-        
+
         This is needed because we use a normal ChoiceField (because of the tree
         structure) that does not provide a model instance when selected.
         """
