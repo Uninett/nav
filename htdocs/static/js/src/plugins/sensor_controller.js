@@ -1,8 +1,11 @@
-define([
-    "moment", "plugins/counterdisplay", "plugins/gauge",
-    "libs/rickshaw.min", "libs/handlebars", "libs/jquery"],
-function (moment, CounterDisplay, JohnGauge, Rickshaw)
-{
+define(function(require) {
+
+    var moment = require("moment");
+    var CounterDisplay = require("plugins/counterdisplay");
+    var JohnGauge = require("plugins/gauge");
+    var Rickshaw = require("libs/rickshaw.min");
+    var _handlebars = require("libs/handlebars");
+
     function SensorController($node, templates) {
         this.$node = $node;
         this.url = this.$node.attr('data-url') + '&format=json';
