@@ -76,9 +76,10 @@
           {% for battery_time in battery_times %}
             <div>
               <span title="Estimated battery time remaining">
-                Time ({{ battery_time.unit_of_measurement }}):
+                Time (<span class="unit-of-measurement">{{ battery_time.unit_of_measurement }}</span>):
               </span>
-              <span data-metric="{{ battery_time.get_metric_name }}"></span>
+              <span data-metric="{{ battery_time.get_metric_name }}"
+                    data-uom="{{ battery_time.unit_of_measurement }}"></span>
             </div>
           {% endfor %}
 

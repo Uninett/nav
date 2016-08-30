@@ -42,12 +42,38 @@ define(function(require, exports, module) {
                 var point = _.find(datapoints, function(point){
                     return point[0] !== null;
                 });
+                var $node = self.sensors[data.target];
                 var value = point ? point[0] : 'N/A';
-                self.sensors[data.target].html(value);
+
+                // Convert value if applicable
+                var converted = convertValue($node, value);
+                if (_.isArray(converted)) {
+                    value = converted[0] || 'N/A';
+                    $node.parent().find('.unit-of-measurement').text(converted[1]);
+                }
+                $node.html(value);
             });
             self.$updateTime.html(new Date().toLocaleString());
         });
     };
+
+    /** Convert value based on unit of measurement. Converted values returns as
+     * an array where the first value is the converted value and the second is
+     * the new unit */
+    function convertValue($node, value) {
+        var uom = $node.data('uom');
+        var convert = {
+            Seconds: function() {
+                // Seconds is converted to minutes
+                return [(+value / 60).toFixed(0), 'Minutes'];
+            }
+        };
+        try {
+            return convert[uom]();
+        } catch (e) {
+            return value;
+        }
+    }
 
     module.exports = Poller;
 
