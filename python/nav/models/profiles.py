@@ -1364,6 +1364,20 @@ class AccountTool(models.Model):
         db_table = u'accounttool'
 
 
+class AccountDashboard(models.Model):
+    """Stores dashboards for each user"""
+    name = VarcharField()
+    is_default = models.BooleanField(default=False)
+    account = models.ForeignKey(Account)
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta(object):
+        db_table = 'account_dashboard'
+        ordering = ('name',)
+
+
 class AccountNavlet(models.Model):
     """Store information about a users navlets"""
     navlet = VarcharField()
@@ -1371,6 +1385,7 @@ class AccountNavlet(models.Model):
     account = models.ForeignKey(Account, db_column='account')
     preferences = DictAsJsonField(null=True)
     column = models.IntegerField(db_column='col')
+    dashboard = models.ForeignKey(AccountDashboard, related_name='widgets')
 
     def __unicode__(self):
         return "%s - %s" % (self.navlet, self.account)
