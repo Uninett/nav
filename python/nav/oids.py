@@ -40,6 +40,7 @@ class OID(tuple):
     """
     def __new__(cls, oid):
         if isinstance(oid, basestring):
+            # pylint: disable=W0141  (timeit proves map to be faster here)
             oid = map(int, oid.strip(SEPARATOR).split(SEPARATOR))
         elif isinstance(oid, OID):
             return oid
