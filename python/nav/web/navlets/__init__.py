@@ -69,7 +69,7 @@ from django.shortcuts import redirect, render_to_response, get_object_or_404
 from django.template.context import RequestContext
 from django.views.generic.base import TemplateView
 
-from nav.models.profiles import AccountNavlet
+from nav.models.profiles import AccountNavlet, AccountDashboard
 from nav.models.manage import Sensor
 from nav.django.auth import get_sudoer
 from nav.django.utils import get_account
@@ -171,10 +171,13 @@ def get_navlet_from_name(navletmodule):
         return cls
 
 
-def get_user_navlets(request):
-    """Gets all navlets that this user subscribes to"""
-    account = get_account(request)
-    usernavlets = AccountNavlet.objects.filter(account=account)
+def get_user_navlets(request, dashboard_id=None):
+    """Gets all navlets that this user subscribes to for a given dashboard"""
+    account = request.account
+    kwargs = {'pk': dashboard_id} if dashboard_id else {'is_default': True}
+    dash = AccountDashboard.objects.get(account=account, **kwargs)
+
+    usernavlets = dash.widgets.all()
 
     navlets = []
     for usernavlet in usernavlets:
@@ -230,25 +233,32 @@ def dispatcher(request, navlet_id):
         return view(request)
 
 
-def add_user_navlet(request):
+def add_user_navlet(request, dashboard_id=None):
     """Add a navlet subscription to this user"""
     if request.method == 'POST' and 'navlet' in request.POST:
-        account = get_account(request)
+        account = request.account
+        kwargs = {'pk': dashboard_id} if dashboard_id else {'is_default': True}
+        dash = AccountDashboard.objects.get(account=account, **kwargs)
 
         if can_modify_navlet(account, request):
             navlet_class = request.POST.get('navlet')
-            navlet = add_navlet(account, navlet_class)
+            navlet = add_navlet(account, navlet_class, dashboard=dash)
             return HttpResponse(json.dumps(create_navlet_object(navlet)),
                                 content_type="application/json")
 
     return HttpResponse(status=400)
 
 
-def add_navlet(account, navlet, preferences=None):
+def add_navlet(account, navlet, preferences=None, dashboard=None):
     """Create new accountnavlet based on request data"""
     if preferences is None:
         preferences = {}
-    accountnavlet = AccountNavlet(account=account, navlet=navlet)
+    if dashboard is None:
+        dashboard = AccountDashboard.objects.get(account=account,
+                                                 is_default=True)
+
+    accountnavlet = AccountNavlet(account=account, navlet=navlet,
+                                  dashboard=dashboard)
     accountnavlet.column, accountnavlet.order = find_new_placement(account)
 
     default_preferences = get_default_preferences(
