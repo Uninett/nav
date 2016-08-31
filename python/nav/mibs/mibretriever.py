@@ -348,23 +348,6 @@ class MibRetriever(object):
             if oid.is_a_prefix_of(key):
                 defer.returnValue(value)
 
-    @defer.inlineCallbacks
-    def raw_walk(self, object_name, translate=False):
-        """
-        Performs a raw snmpwalk operation (more or less) on a named object
-        from this MIB.
-
-        :param object_name: The name of the MIB object to walk from
-        :param translate: Whether to translate response values to python objects
-
-        """
-        translator = self.nodes[object_name].to_python
-        oid = str(self.nodes[object_name].oid)
-        result = yield self.agent_proxy.getTable([oid])
-        if oid in result:
-            returnValue({OID(k): translator(v)
-                         for k, v in result[oid].iteritems()})
-
     def retrieve_column(self, column_name):
         """Retrieve the contents of a single MIB table column.
 
