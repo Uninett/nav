@@ -14,6 +14,8 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+from struct import unpack
+import array
 from IPy import IP
 
 from twisted.internet import defer
@@ -28,6 +30,7 @@ IPV6_ID = 2
 
 IP_IN_OCTETS = 'ipIfStatsHCInOctets'
 IP_OUT_OCTETS = 'ipIfStatsHCOutOctets'
+
 
 class IpMib(mibretriever.MibRetriever):
     from nav.smidumps.ip_mib import MIB as mib
@@ -56,35 +59,29 @@ class IpMib(mibretriever.MibRetriever):
         in a separate inet_address_mib module.
 
         """
-        ipv4 = 1
-        ipv6 = 2
-
         addr_type = oid[0]
         addr = oid[1:]
 
-        if addr_type == ipv4:
-            if len(addr) != 4:
-                addr_len, addr = addr[0], addr[1:]
-                if addr_len != 4 or len(addr) != 4:
-                    raise IndexToIpException(
-                        "IPv4 address length is not 4: %r" % (oid,))
-            addr_str = ".".join(str(i) for i in addr)
-
-        elif addr_type == ipv6:
-            if len(addr) != 16:
-                addr_len, addr = addr[0], addr[1:]
-                if addr_len != 16 or len(addr) != 16:
-                    raise IndexToIpException(
-                        "IPv6 address length is not 16: %r" % (oid,))
-            hex_groups = ["%02x%02x" % (addr[i], addr[i+1])
-                          for i in range(0, len(addr), 2)]
-            addr_str = ':'.join(hex_groups)
-
+        if addr_type == IPV4_ID:
+            expected_len = 4
+            converter = oid_to_ipv4
+        elif addr_type == IPV6_ID:
+            expected_len = 16
+            converter = oid_to_ipv6
         else:
             # Unknown address type
             return
 
-        return IP(addr_str)
+        # this mucking about with address lengths are due to the technical
+        # issue described in LP#777821
+        if len(addr) != expected_len:
+            addr_len, addr = addr[0], addr[1:]
+            if addr_len != expected_len or len(addr) != expected_len:
+                raise IndexToIpException(
+                    "IPv%d address length is not %d: %r" % (
+                        4 if addr_type == IPV4_ID else 6, expected_len, oid,))
+
+        return converter(addr)
 
     @classmethod
     def _chop_index(cls, index, entry):
@@ -122,7 +119,6 @@ class IpMib(mibretriever.MibRetriever):
         index = cls._chop_index(index, 'ipAddressEntry')
         ip = cls.inetaddress_to_ip(index)
         return ip
-
 
     @classmethod
     def prefix_index_to_ip(cls, index,
@@ -185,8 +181,7 @@ class IpMib(mibretriever.MibRetriever):
                 ignore_count += 1
                 continue
 
-            ip_address_string = ".".join([str(i) for i in ip_address])
-            ip = IP(ip_address_string)
+            ip = oid_to_ipv4(ip_address)
             mac = self._binary_mac_to_hex(phys_address)
 
             row = (ifindex, ip, mac)
@@ -246,8 +241,7 @@ class IpMib(mibretriever.MibRetriever):
                 ignore_count += 1
                 continue
 
-            ip_address_string = ".".join([str(i) for i in row_index])
-            ip = IP(ip_address_string)
+            ip = oid_to_ipv4(row_index)
             ifindex = row[ifindex_column]
             netmask = row[netmask_column]
             try:
@@ -340,3 +334,34 @@ class IpMib(mibretriever.MibRetriever):
 
 class IndexToIpException(Exception):
     pass
+
+
+####################
+# Helper functions #
+####################
+
+def oid_to_ipv6(oid):
+    """Converts a sequence of 16 numbers to an IPv6 object in the fastest
+    known way.
+
+    :param oid: Any list or tuple of 16 integers
+
+    """
+    if len(oid) != 16:
+        raise ValueError("IPv6 address must be 16 octets, not %d" % len(oid))
+    high, low = unpack("!QQ", array.array("B", oid).tostring())
+    addr = (high << 64) + low
+    return IP(addr)
+
+
+def oid_to_ipv4(oid):
+    """Converts a sequence of 4 numbers to an IPv4 object in the fastest
+    known way.
+
+    :param oid: Any list or tuple of 4 integers.
+
+    """
+    if len(oid) != 4:
+        raise ValueError("IPv4 address must be 4 octets, not %d" % len(oid))
+    addr, = unpack("!I", array.array("B", oid).tostring())
+    return IP(addr)
