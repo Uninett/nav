@@ -84,6 +84,16 @@ def api_root(request):
 
     Which fields can be used for filtering is documented for each endpoint.
 
+    Sorting
+    -------
+    `/api/netbox/?ordering=sysname` for ascending order.
+
+    `/api/netbox/?ordering=-sysname` for descending order.
+
+    `/api/netbox/?ordering=room__location` for ordering on related models.
+
+    Most attributes of the result records can be used as ordering arguments.
+
     [1]: https://nav.uninett.no/doc/latest/howto/using_the_api.html
     """
     return Response(get_endpoints(request))
