@@ -1,3 +1,19 @@
+Version 4.5.3
+(released 01 Sep 2016)
+
+ Bugfixes:
+
+  * LP#1592747 (Cisco chassis serial number decoding report should include
+                modules as well)
+  * LP#1597666 (No data collected on some Comet web probes)
+  * LP#1608869 (graph widget does not update)
+  * LP#1608920 (make graph widget time controls optional)
+  * LP#1619136 (Specifying both starttime and endtime values crashes the arp API
+                endpoint)
+  * LP#1619138 (Searching for IP addresses in the arp API endpoint is horribly
+                inefficient)
+
+
 Version 4.5.2
 (released 30 Jun 2016)
 
