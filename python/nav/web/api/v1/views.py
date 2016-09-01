@@ -298,88 +298,83 @@ class CablingViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-class CamViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
-    """Lists all cam records.
+SQL_OVERLAPS = ("(start_time, end_time) OVERLAPS "
+                "('{}'::TIMESTAMP, '{}'::TIMESTAMP)")
+SQL_BETWEEN = "'{}'::TIMESTAMP BETWEEN start_time AND end_time"
 
-    Filters
-    -------
-    - active: *set this to list only records that has not ended*
-    - starttime: *if set without endtime: lists all active records at that
-      timestamp*
-    - endtime: *must be set with starttime: lists all active records in the
-      period between starttime and endtime*
-    - ifindex
-    - mac
-    - netbox
-    - port
 
-    For timestamp formats see the [iso8601 module
-    doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>
-    """
-    serializer_class = serializers.CamSerializer
-    filter_fields = ('mac', 'netbox', 'ifindex', 'port')
-
+class MachineTrackerViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """Abstract base ViewSet for ARP and CAM tables"""
     def get_queryset(self):
         """Filter on custom parameters"""
-        queryset = manage.Cam.objects.all()
+        queryset = self.model_class.objects.all()
         active = self.request.QUERY_PARAMS.get('active', None)
         starttime, endtime = get_times(self.request)
 
         if active:
             queryset = queryset.filter(end_time=INFINITY)
         elif starttime and not endtime:
-            queryset = queryset.extra(
-                where=["'{}' BETWEEN start_time AND end_time".format(
-                    starttime)])
+            queryset = queryset.extra(where=[SQL_BETWEEN.format(starttime)])
         elif starttime and endtime:
             queryset = queryset.extra(
-                where=["(start_time, end_time) OVERLAPS ('{}', '{}')".format(
-                    starttime, endtime)])
+                where=[SQL_OVERLAPS.format(starttime, endtime)])
 
         return queryset
 
 
-class ArpViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+class CamViewSet(MachineTrackerViewSet):
+    """Lists all cam records.
+
+    Filters
+    -------
+    - `active`: *set this to list only records that has not ended. This will
+      then ignore any start and endtimes set*
+    - `starttime`: *if set without endtime: lists all active records at that
+      timestamp*
+    - `endtime`: *must be set with starttime: lists all active records in the
+      period between starttime and endtime*
+    - `ifindex`
+    - `mac`
+    - `netbox`
+    - `port`
+
+    For timestamp formats, see the [iso8601 module
+    doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>.
+    `end_time` timestamps shown as `"9999-12-31T23:59:59.999"` denote records
+    that are still active.
+
+    """
+    model_class = manage.Cam
+    serializer_class = serializers.CamSerializer
+    filter_fields = ('mac', 'netbox', 'ifindex', 'port')
+
+
+class ArpViewSet(MachineTrackerViewSet):
     """Lists all arp records.
 
     Filters
     -------
 
-    - active: *set this to list only records that has not ended. This will then
-      ignore any start and endtimes set*
-    - starttime: *if set without endtime: lists all active records at that
+    - `active`: *set this to list only records that has not ended. This will
+      then ignore any start and endtimes set*
+    - `starttime`: *if set without endtime: lists all active records at that
       timestamp*
-    - endtime: *must be set with starttime: lists all active records in the
+    - `endtime`: *must be set with starttime: lists all active records in the
       period between starttime and endtime*
-    - ip
-    - mac
-    - netbox
-    - prefix
+    - `ip`
+    - `mac`
+    - `netbox`
+    - `prefix`
 
-    For timestamp formats see the [iso8601 module
-    doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>
+    For timestamp formats, see the [iso8601 module
+    doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>.
+    `end_time` timestamps shown as `"9999-12-31T23:59:59.999"` denote records
+    that are still active.
+
     """
+    model_class = manage.Arp
     serializer_class = serializers.ArpSerializer
     filter_fields = ('ip', 'mac', 'netbox', 'prefix')
-
-    def get_queryset(self):
-        """Filter on custom parameters"""
-        queryset = manage.Arp.objects.all()
-        active = self.request.QUERY_PARAMS.get('active', None)
-        starttime, endtime = get_times(self.request)
-
-        if active:
-            queryset = queryset.filter(end_time=INFINITY)
-        elif starttime and not endtime:
-            queryset = queryset.extra(
-                where=["'{}' BETWEEN start_time AND end_time".format(
-                    starttime)])
-        elif starttime and endtime:
-            queryset = queryset.extra(
-                where=["(start_time, end_time) OVERLAPS ('{}', '{}')".format(
-                    starttime, endtime)])
-
-        return queryset
 
 
 class VlanViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
