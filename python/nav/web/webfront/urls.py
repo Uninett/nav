@@ -22,6 +22,11 @@ urlpatterns = patterns(
     url(r'^$', 'index', name='webfront-index'),
     url(r'^index/login/', 'login', name='webfront-login'),
     url(r'^index/logout/', 'logout', name='webfront-logout'),
+    url(r'^index/set_default_dashboard/$', 'set_default_dashboard',
+        name='set-default-dashboard'),
+    url(r'^index/add_dashboard/$', 'add_dashboard', name='add-dashboard'),
+    url(r'^index/delete_dashboard/$', 'delete_dashboard',
+        name='delete-dashboard'),
     url(r'^about/', 'about', name='webfront-about'),
     url(r'^toolbox/$', 'toolbox', name='webfront-toolbox'),
     url(r'^preferences/$', 'preferences', name='webfront-preferences'),
@@ -32,5 +37,5 @@ urlpatterns = patterns(
     url(r'^preferences/setcolumns$', 'set_widget_columns',
         name='webfront-preferences-setwidgetcolumns'),
     url(r'^preferences/set_account_preference$', 'set_account_preference',
-        name='set-account-preference')
+        name='set-account-preference'),
 )

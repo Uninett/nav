@@ -17,6 +17,9 @@
    require(["src/webfront"]);
    NAV.preference_keys = NAV.preference_keys || {};
    NAV.preference_keys.widget_display_density = '{{ request.account.PREFERENCE_KEY_WIDGET_DISPLAY_DENSITY }}';
+   NAV.urls.set_default_dashboard = "{% url 'set-default-dashboard' %}";
+   NAV.urls.add_dashboard = "{% url 'add-dashboard' %}";
+   NAV.urls.delete_dashboard = "{% url 'delete-dashboard' %}";
   </script>
 {% endblock %}
 
@@ -75,7 +78,15 @@
   {% endif %}
 
 
-  {{ dashboard_form }}
+  <div>
+    {{ dashboard_form }}
+    <button id="button-set-default-dashboard"
+            data-dashboardid="{{ dashboard.pk }}"
+            class="small secondary">
+      Set as default dashboard
+    </button>
+    <button id="button-add-dashboard" class="small secondary">Add dashboard</button>
+  </div>
 
   {% comment %} Main container for navlets {% endcomment %}
   <div id="navlets"

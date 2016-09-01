@@ -23,6 +23,7 @@ from operator import attrgetter
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
+from django.views.decorators.http import require_POST
 from django.views.decorators.debug import (sensitive_variables,
                                            sensitive_post_parameters)
 from django.shortcuts import get_object_or_404, render
@@ -305,3 +306,32 @@ def set_account_preference(request):
     account.preferences.update(request.GET.dict())
     account.save()
     return HttpResponse()
+
+
+@require_POST
+def set_default_dashboard(request):
+    """Set the default dashboard for the user"""
+    did = int(request.POST.get('dashboard_id'))
+    dash = get_object_or_404(AccountDashboard, pk=did)
+    old_default = AccountDashboard.objects.get(account=request.account,
+                                               is_default=True)
+    if dash == old_default:
+        return HttpResponse('Default dashboard was the same as the old default')
+
+    dash.is_default = True
+    dash.save()
+    old_default.is_default = False
+    old_default.save()
+    return HttpResponse('Default dashboard updated')
+
+
+@require_POST
+def add_dashboard(request):
+    """Add a new dashboard to this user"""
+    pass
+
+@require_POST
+def delete_dashboard(request):
+    """Delete this dashboard and all widgets on it"""
+    did = request.POST.get('dashboard_id')
+    pass

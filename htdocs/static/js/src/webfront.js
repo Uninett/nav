@@ -85,6 +85,16 @@ require([
             $.get(NAV.urls.set_account_preference, preferenceData);
         });
 
+
+        /**
+         * The following listeners apply to the dashboard controls, that is
+         * changing dashboards, adding new ones and setting default
+         */
+
+        $('#button-set-default-dashboard').on('click', function(event) {
+            $.post(NAV.urls.set_default_dashboard, {dashboard_id: this.dataset.dashboardid});
+        });
+
     });
 
 });
