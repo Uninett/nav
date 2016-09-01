@@ -48,8 +48,13 @@ MINIMUMPREFIXLENGTH = 4
 
 
 class Iso8601ParseError(exceptions.ParseError):
-    default_detail = 'Wrong format on timestamp. See ' \
-                     'https://pypi.python.org/pypi/iso8601'
+    default_detail = ('Wrong format on timestamp. See '
+                      'https://pypi.python.org/pypi/iso8601')
+
+
+class IPParseError(exceptions.ParseError):
+    default_detail = ('ip field must be a valid IPv4 or IPv6 host address or '
+                      'network prefix')
 
 
 @api_view(('GET',))
@@ -374,7 +379,21 @@ class ArpViewSet(MachineTrackerViewSet):
     """
     model_class = manage.Arp
     serializer_class = serializers.ArpSerializer
-    filter_fields = ('ip', 'mac', 'netbox', 'prefix')
+    filter_fields = ('mac', 'netbox', 'prefix')
+
+    def get_queryset(self):
+        """Customizes handling of the ip address filter"""
+        queryset = super(ArpViewSet, self).get_queryset()
+        ip = self.request.QUERY_PARAMS.get('ip', None)
+        if ip:
+            try:
+                addr = IP(ip)
+            except ValueError:
+                raise IPParseError
+            oper = '=' if addr.len() == 1 else '<<'
+            queryset = queryset.extra(where=["ip {} '{}'".format(oper, addr)])
+
+        return queryset
 
 
 class VlanViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
