@@ -30,11 +30,12 @@ from django.shortcuts import get_object_or_404, render
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.path import sysconfdir
 from nav.django.utils import get_account
-from nav.models.profiles import NavbarLink
+from nav.models.profiles import NavbarLink, AccountDashboard
 from nav.web import ldapauth, auth
 from nav.web.webfront.utils import quick_read, tool_list
-from nav.web.webfront.forms import (
-    LoginForm, NavbarLinkFormSet, ChangePasswordForm, ColumnsForm)
+from nav.web.webfront.forms import (LoginForm, NavbarLinkFormSet,
+                                    ChangePasswordForm, ColumnsForm,
+                                    DashboardForm)
 from nav.web.navlets import list_navlets
 from nav.web.message import new_message, Messages
 from nav.web.webfront import get_widget_columns
@@ -56,6 +57,10 @@ def index(request):
     else:
         welcome = quick_read(WELCOME_REGISTERED_PATH)
 
+    did = request.GET.get('dashboard_id')
+    kwargs = {'dashboard': did} if did else {'is_default': True}
+    dashboard = AccountDashboard.objects.get(account=request.account, **kwargs)
+
     return render(
         request,
         'webfront/index.html',
@@ -63,6 +68,9 @@ def index(request):
             'navpath': [('Home', '/')],
             'date_now': datetime.today(),
             'welcome': welcome,
+            'dashboard': dashboard,
+            'dashboard_form': DashboardForm(account=request.account,
+                                            dashboard=dashboard),
             'navlets': list_navlets(),
             'widget_columns': get_widget_columns(request.account),
             'title': 'Welcome to NAV',

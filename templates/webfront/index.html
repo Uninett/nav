@@ -61,6 +61,7 @@
             <div class="panel">
               <form class="add-user-navlet right" action="{% url 'add-user-navlet' %}" method="post">
                 <input type="hidden" name="navlet" value="{{ navlet.get_class }}">
+                <input type="hidden" name="dashboard" value="{{ dashboard.pk }}">
                 <input type="submit" class="button tiny" value="Add">
               </form>
               <h5>{{ navlet.title }}</h5>
@@ -72,6 +73,9 @@
     </div>
 
   {% endif %}
+
+
+  {{ dashboard_form }}
 
   {% comment %} Main container for navlets {% endcomment %}
   <div id="navlets"
