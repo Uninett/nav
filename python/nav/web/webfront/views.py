@@ -319,15 +319,13 @@ def set_default_dashboard(request, did):
         # No previous default
         old_default = None
 
-    if dash == old_default:
-        return HttpResponse('Default dashboard was the same as the old default')
-
     dash.is_default = True
     dash.save()
     if old_default:
         old_default.is_default = False
         old_default.save()
-    return HttpResponse('Default dashboard updated')
+    return HttpResponse(
+        'Default dashboard set to &laquo;{}&raquo;'.format(dash.name))
 
 
 @require_POST
@@ -337,6 +335,7 @@ def add_dashboard(request):
     dashboard = AccountDashboard(account=request.account, name=name)
     dashboard.save()
     return JsonResponse({'dashboard_id': dashboard.pk})
+
 
 @require_POST
 def delete_dashboard(request, did):
@@ -359,7 +358,8 @@ def rename_dashboard(request, did):
     dash = get_object_or_404(AccountDashboard, pk=did)
     dash.name = request.POST.get('dashboard-name', dash.name)
     dash.save()
-    return HttpResponse('Dashboard renamed')
+    return HttpResponse(
+        'Dashboard renamed to &laquo;{}&raquo;'.format(dash.name))
 
 
 def find_dashboard(account, dashboard_id=None):
