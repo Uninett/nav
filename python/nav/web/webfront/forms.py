@@ -148,7 +148,7 @@ class ColumnsForm(forms.Form):
 class DashboardForm(forms.Form):
     """Form for choosing a dashboard"""
     dashboard = forms.ModelChoiceField(queryset=AccountDashboard.objects.all(),
-                                       empty_label=None)
+                                       empty_label=None, label="")
 
     def __init__(self, *args, **kwargs):
         """"""

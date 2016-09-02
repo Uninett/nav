@@ -73,37 +73,56 @@
     </div>
 
     {# Forms for manipulating dashboard #}
-    <div style="overflow:auto;">
-      <form id="form-choose-dashboard">
-        {{ dashboard_form }}
-      </form>
+    <div id="dashboard-ui-wrapper">
+      <div class="visible-stuff">
+        <a data-dropdown="dropdown-dashboard-forms" class="small button"><i class="fa fa-lg fa-bars"></i></a>
+        <form id="form-choose-dashboard">
+          {{ dashboard_form }}
+        </form>
 
-      <form id="form-set-default-dashboard" method="post" action="{% url 'set-default-dashboard' dashboard.pk %}">
-        <input type="submit" value="Set as default dashboard" class="small button secondary">
-      </form>
+      </div>
 
-      <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}">
-        <input type="submit" class="small button alert" value="Delete dashboard">
-      </form>
+      <div id="dropdown-dashboard-forms" data-dropdown-content class="f-dropdown content medium">
 
-      <form id="form-add-dashboard" method="post" action="{% url 'add-dashboard' %}">
-        <label>
-          Add dashboard
-          <input type="text" name="dashboard-name" placeholder="Dashboard name">
-        </label>
-        <input type="submit" class="small button" value="Add dashboard">
-      </form>
+        <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}" class="right">
+          <input type="submit" class="small button alert" value="Delete dashboard">
+        </form>
 
-      <form id="form-rename-dashboard"
-            method="post"
-            data-dashboard="{{ dashboard.pk }}"
-            action="{% url 'rename-dashboard' dashboard.pk %}" >
-        <label>
-          Rename dashboard
-          <input type="text" name="dashboard-name" placeholder="Dashboard name" value="{{ dashboard.name }}">
-        </label>
-        <input type="submit" class="small button" value="Rename dashboard">
-      </form>
+        <form id="form-set-default-dashboard" method="post" action="{% url 'set-default-dashboard' dashboard.pk %}">
+          <input type="submit" value="Set as default dashboard" class="small button secondary">
+        </form>
+
+        <div class="row">
+
+          <div class="column medium-6">
+            <form id="form-add-dashboard" method="post" action="{% url 'add-dashboard' %}">
+              <label>
+                Add dashboard
+                <input type="text" name="dashboard-name" placeholder="Dashboard name">
+              </label>
+              <input type="submit" class="small button full-width" value="Add dashboard">
+            </form>
+          </div>
+
+          <div class="column medium-6">
+            <form id="form-rename-dashboard"
+                  method="post"
+                  data-dashboard="{{ dashboard.pk }}"
+                  action="{% url 'rename-dashboard' dashboard.pk %}" >
+              <label>
+                Rename dashboard
+                <input type="text" name="dashboard-name" placeholder="Dashboard name" value="{{ dashboard.name }}">
+              </label>
+              <input type="submit" class="small button full-width" value="Rename dashboard">
+            </form>
+          </div>
+
+        </div>
+
+
+
+      </div>
+
     </div>
 
   {% endif %}
