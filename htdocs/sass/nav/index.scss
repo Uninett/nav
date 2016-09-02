@@ -55,8 +55,12 @@ and (max-width : 480px) {
     input, select, .button {
         margin-bottom: 0;
     }
-    #dropdown-dashboard-forms form {
-        margin-bottom: 1em;
+    #dropdown-dashboard-forms {
+        box-shadow: #666 0 5px 10px;
+        border: 5px solid black;
+        form {
+            margin-bottom: 1em;
+        }
     }
 
 }
