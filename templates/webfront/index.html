@@ -74,14 +74,17 @@
 
     {# Forms for manipulating dashboard #}
     <div id="dashboard-ui-wrapper">
+
+      {# Dropdown for selecting dashboard #}
       <div class="visible-stuff">
-        <a data-dropdown="dropdown-dashboard-forms" class="small button"><i class="fa fa-lg fa-bars"></i></a>
+        <a data-dropdown="dropdown-dashboard-forms" class="small button"><i class="fa fa-lg fa-gear"></i></a>
         <form id="form-choose-dashboard">
           {{ dashboard_form }}
         </form>
 
       </div>
 
+      {# Content dropdown for dashboard controls #}
       <div id="dropdown-dashboard-forms" data-dropdown-content class="f-dropdown content medium">
 
         <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}" class="right">
