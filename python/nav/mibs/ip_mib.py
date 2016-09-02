@@ -349,7 +349,10 @@ def oid_to_ipv6(oid):
     """
     if len(oid) != 16:
         raise ValueError("IPv6 address must be 16 octets, not %d" % len(oid))
-    high, low = unpack("!QQ", array.array("B", oid).tostring())
+    try:
+        high, low = unpack("!QQ", array.array("B", oid).tostring())
+    except OverflowError as error:
+        raise ValueError(error)
     addr = (high << 64) + low
     return IP(addr)
 
@@ -363,5 +366,8 @@ def oid_to_ipv4(oid):
     """
     if len(oid) != 4:
         raise ValueError("IPv4 address must be 4 octets, not %d" % len(oid))
-    addr, = unpack("!I", array.array("B", oid).tostring())
+    try:
+        addr, = unpack("!I", array.array("B", oid).tostring())
+    except OverflowError as error:
+        raise ValueError(error)
     return IP(addr)
