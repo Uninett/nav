@@ -17,9 +17,6 @@
    require(["src/webfront"]);
    NAV.preference_keys = NAV.preference_keys || {};
    NAV.preference_keys.widget_display_density = '{{ request.account.PREFERENCE_KEY_WIDGET_DISPLAY_DENSITY }}';
-   NAV.urls.set_default_dashboard = "{% url 'set-default-dashboard' %}";
-   NAV.urls.add_dashboard = "{% url 'add-dashboard' %}";
-   NAV.urls.delete_dashboard = "{% url 'delete-dashboard' %}";
   </script>
 {% endblock %}
 
@@ -75,24 +72,48 @@
       </ul>
     </div>
 
+    {# Forms for manipulating dashboard #}
+    <div style="overflow:auto;">
+      <form id="form-choose-dashboard">
+        {{ dashboard_form }}
+      </form>
+
+      <form id="form-set-default-dashboard" method="post" action="{% url 'set-default-dashboard' dashboard.pk %}">
+        <input type="submit" value="Set as default dashboard" class="small button secondary">
+      </form>
+
+      <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}">
+        <input type="submit" class="small button alert" value="Delete dashboard">
+      </form>
+
+      <form id="form-add-dashboard" method="post" action="{% url 'add-dashboard' %}">
+        <label>
+          Add dashboard
+          <input type="text" name="dashboard-name" placeholder="Dashboard name">
+        </label>
+        <input type="submit" class="small button" value="Add dashboard">
+      </form>
+
+      <form id="form-rename-dashboard"
+            method="post"
+            data-dashboard="{{ dashboard.pk }}"
+            action="{% url 'rename-dashboard' dashboard.pk %}" >
+        <label>
+          Rename dashboard
+          <input type="text" name="dashboard-name" placeholder="Dashboard name" value="{{ dashboard.name }}">
+        </label>
+        <input type="submit" class="small button" value="Rename dashboard">
+      </form>
+    </div>
+
   {% endif %}
 
 
-  <div>
-    {{ dashboard_form }}
-    <button id="button-set-default-dashboard"
-            data-dashboardid="{{ dashboard.pk }}"
-            class="small secondary">
-      Set as default dashboard
-    </button>
-    <button id="button-add-dashboard" class="small secondary">Add dashboard</button>
-    <button id="button-delete-dashboard" class="small alert">Delete dashboard</button>
-  </div>
 
   {% comment %} Main container for navlets {% endcomment %}
   <div id="navlets"
        {% if request.account.preferences.widget_display_density == 'compact' %}class="compact"{% endif %}
-       data-list-navlets="{% url 'get-user-navlets' %}"
+       data-list-navlets="{% url 'get-user-navlets' dashboard.pk %}"
        data-remove-navlet="{% url 'remove-user-navlet' %}"
        data-save-order-url="{% url 'save-navlet-order' %}"
        data-base-template-url="{% url 'navlet-base-template' %}"

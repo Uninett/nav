@@ -91,9 +91,54 @@ require([
          * changing dashboards, adding new ones and setting default
          */
 
-        $('#button-set-default-dashboard').on('click', function(event) {
-            $.post(NAV.urls.set_default_dashboard, {dashboard_id: this.dataset.dashboardid});
+        $('#form-set-default-dashboard').submit(function(event) {
+            var self = this;
+            event.preventDefault();
+            var request = $.post(this.getAttribute('action'));
+            request.done(function(responseText) {
+                $(self).find('[type="submit"]').removeClass('secondary').addClass('success');
+            });
         });
+
+        $('#form-choose-dashboard').on('change', function() {
+            $(this).submit();
+        });
+
+        $('#form-add-dashboard').submit(function(event) {
+            event.preventDefault();
+            var request = $.post(this.getAttribute('action'), $(this).serialize());
+            request.done(function(response) {
+                window.location = '/?dashboard=' + response.dashboard_id;
+            });
+        });
+
+        $('#form-rename-dashboard').submit(function(event) {
+            var $this = $(this);
+            event.preventDefault();
+            var request = $.post(this.getAttribute('action'), $this.serialize());
+            request.done(function(response) {
+                // Alter name in dropdown
+                var $option = $('#form-choose-dashboard').find('select option[value=' + $this.data('dashboard') + ']');
+                $option.text($this.find('input').val());
+            });
+        });
+
+
+        $('#form-delete-dashboard').submit(function(event) {
+            event.preventDefault();
+            var $this = $(this);
+            var doDelete = confirm('Really delete dashboard and all widgets on it?');
+            if (doDelete) {
+                var request = $.post(this.getAttribute('action'), $this.serialize());
+                request.done(function(response) {
+                    window.location = '/';
+                });
+                request.fail(function(response) {
+                    alert(response);
+                });
+            }
+        });
+
 
     });
 

@@ -21,8 +21,9 @@ import json as simplejson
 import logging
 from operator import attrgetter
 
+from django.db.models import Count
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.debug import (sensitive_variables,
                                            sensitive_post_parameters)
@@ -58,9 +59,8 @@ def index(request):
     else:
         welcome = quick_read(WELCOME_REGISTERED_PATH)
 
-    did = request.GET.get('dashboard_id')
-    kwargs = {'dashboard': did} if did else {'is_default': True}
-    dashboard = AccountDashboard.objects.get(account=request.account, **kwargs)
+    did = request.GET.get('dashboard')
+    dashboard = find_dashboard(request.account, did)
 
     return render(
         request,
@@ -71,7 +71,7 @@ def index(request):
             'welcome': welcome,
             'dashboard': dashboard,
             'dashboard_form': DashboardForm(account=request.account,
-                                            dashboard=dashboard),
+                                            initial={'dashboard': dashboard}),
             'navlets': list_navlets(),
             'widget_columns': get_widget_columns(request.account),
             'title': 'Welcome to NAV',
@@ -309,29 +309,71 @@ def set_account_preference(request):
 
 
 @require_POST
-def set_default_dashboard(request):
+def set_default_dashboard(request, did):
     """Set the default dashboard for the user"""
-    did = int(request.POST.get('dashboard_id'))
     dash = get_object_or_404(AccountDashboard, pk=did)
-    old_default = AccountDashboard.objects.get(account=request.account,
-                                               is_default=True)
+    try:
+        old_default = AccountDashboard.objects.get(account=request.account,
+                                                   is_default=True)
+    except AccountDashboard.DoesNotExist:
+        # No previous default
+        old_default = None
+
     if dash == old_default:
         return HttpResponse('Default dashboard was the same as the old default')
 
     dash.is_default = True
     dash.save()
-    old_default.is_default = False
-    old_default.save()
+    if old_default:
+        old_default.is_default = False
+        old_default.save()
     return HttpResponse('Default dashboard updated')
 
 
 @require_POST
 def add_dashboard(request):
     """Add a new dashboard to this user"""
-    pass
+    name = request.POST.get('dashboard-name', 'New dashboard')
+    dashboard = AccountDashboard(account=request.account, name=name)
+    dashboard.save()
+    return JsonResponse({'dashboard_id': dashboard.pk})
 
 @require_POST
-def delete_dashboard(request):
+def delete_dashboard(request, did):
     """Delete this dashboard and all widgets on it"""
-    did = request.POST.get('dashboard_id')
-    pass
+    is_last = AccountDashboard.objects.filter(
+        account=request.account).count() == 1
+    if is_last:
+        return HttpResponse('Can not delete last dashboard', status=400)
+
+    dash = get_object_or_404(AccountDashboard, pk=did,
+                             account=request.account)
+    dash.delete()
+
+    return HttpResponse('Dashboard deleted')
+
+
+@require_POST
+def rename_dashboard(request, did):
+    """Rename this dashboard"""
+    dash = get_object_or_404(AccountDashboard, pk=did)
+    dash.name = request.POST.get('dashboard-name', dash.name)
+    dash.save()
+    return HttpResponse('Dashboard renamed')
+
+
+def find_dashboard(account, dashboard_id=None):
+    """Find a dashboard for this account
+
+    Either find a specific one or the default one. If none of those exist we
+    find the one with the most widgets.
+    """
+    kwargs = {'pk': dashboard_id} if dashboard_id else {'is_default': True}
+    try:
+        dashboard = AccountDashboard.objects.get(account=account, **kwargs)
+    except AccountDashboard.DoesNotExist:
+        # No default dashboard? Find the one with the most widgets
+        dashboard = AccountDashboard.objects.filter(account=account).annotate(
+                Count('widgets')).order_by('-widgets__count')[0]
+
+    return dashboard
