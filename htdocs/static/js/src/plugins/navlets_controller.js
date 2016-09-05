@@ -23,6 +23,8 @@ define(['plugins/navlet_controller'], function (NavletController) {
         this.navletSelector = '.navlet';
         this.sorterSelector = '.navletColumn';
 
+        this.addContentListener();
+
         this.fetchNavlets();
         this.addAddNavletListener();
     }
@@ -42,6 +44,24 @@ define(['plugins/navlet_controller'], function (NavletController) {
             }
             return columns;
         },
+        addContentListener: function() {
+            var self = this;
+            var message = $('<div class="alert-box info">No widgets added to this dashboard</div>');
+            var messageContainer = this.container.find('.navletColumn:first');
+            this.container.on('nav.navlets.fetched', function(event, meta) {
+                if (meta.numNavlets === 0) {
+                    messageContainer.append(message);
+                }
+            });
+            this.container.on('nav.navlet.added', function() {
+                message.detach();
+            });
+            this.container.on('nav.navlet.removed', function() {
+                if (self.container.find('.navlet').length === 0) {
+                    messageContainer.append(message);
+                }
+            });
+        },
         fetchNavlets: function () {
             var that = this,
                 request_config = {
@@ -57,6 +77,7 @@ define(['plugins/navlet_controller'], function (NavletController) {
                     that.addNavlet(data[i]);
                 }
                 that.addNavletOrdering();
+                that.container.trigger('nav.navlets.fetched', {numNavlets: data.length});
             });
         },
         addAddNavletListener: function () {
@@ -76,6 +97,7 @@ define(['plugins/navlet_controller'], function (NavletController) {
         addNavlet: function (data) {
             var column = data.column > this.numColumns ? this.numColumns : data.column;
             new NavletController(this.container, this.columns[column - 1], data);
+            this.container.trigger('nav.navlet.added');
         },
         addNavletOrdering: function () {
             var that = this;

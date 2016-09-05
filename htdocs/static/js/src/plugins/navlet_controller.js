@@ -194,6 +194,7 @@ define(['libs/spin.min'], function (Spinner) {
                             clearInterval(that.refresh);
                         }
                         that.node.remove();
+                        that.container.trigger('nav.navlet.removed');
                         $(modal).foundation('reveal', 'close');
                     });
                 });
