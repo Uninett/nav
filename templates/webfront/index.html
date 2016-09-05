@@ -59,9 +59,8 @@
         {% for navlet in navlets %}
           <li>
             <div class="panel">
-              <form class="add-user-navlet right" action="{% url 'add-user-navlet' %}" method="post">
+              <form class="add-user-navlet right" action="{% url 'add-user-navlet' dashboard.pk %}" method="post">
                 <input type="hidden" name="navlet" value="{{ navlet.get_class }}">
-                <input type="hidden" name="dashboard" value="{{ dashboard.pk }}">
                 <input type="submit" class="button tiny" value="Add">
               </form>
               <h5>{{ navlet.title }}</h5>
