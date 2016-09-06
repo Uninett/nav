@@ -93,6 +93,8 @@ require([
 
         var $dashboardControls = $('#dropdown-dashboard-forms');
         var alertBoxTemplate = '<div class="alert-box">';
+        // Error element for naming the dashboard
+        var errorElement = $('<small class="error">Name the dashboard</small>');
 
         function removeAlertbox() {
             $dashboardControls.find('.alert-box').remove();
@@ -116,6 +118,15 @@ require([
 
         $('#form-add-dashboard').submit(function(event) {
             event.preventDefault();
+
+            // Validate dashboard name
+            errorElement.detach();
+            var nameElement = this.elements["dashboard-name"];
+            if (nameElement.value.length === 0) {
+                errorElement.insertAfter(nameElement);
+                return;
+            }
+
             var request = $.post(this.getAttribute('action'), $(this).serialize());
             request.done(function(response) {
                 window.location = '/?dashboard=' + response.dashboard_id;
