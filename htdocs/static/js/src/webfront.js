@@ -92,23 +92,28 @@ require([
          */
 
         var $dashboardControls = $('#dropdown-dashboard-forms');
-        var alertBoxTemplate = '<div class="alert-box">';
+        var $alertBox = $('<div class="alert-box">');
         // Error element for naming the dashboard
         var errorElement = $('<small class="error">Name the dashboard</small>');
 
         function removeAlertbox() {
-            $dashboardControls.find('.alert-box').remove();
+            $alertBox.detach();
+        }
+
+        function addFeedback(text, klass) {
+            klass = klass ? klass : 'success';
+            $alertBox.attr('class', 'alert-box').addClass(klass).html(text).appendTo($dashboardControls);
         }
 
         $dashboardControls.on('closed', removeAlertbox);
 
         $('#form-set-default-dashboard').submit(function(event) {
+            event.preventDefault();
             removeAlertbox();
             var self = this;
-            event.preventDefault();
             var request = $.post(this.getAttribute('action'));
             request.done(function(responseText) {
-                $(alertBoxTemplate).addClass('success').html(responseText).appendTo($dashboardControls);
+                addFeedback(responseText);
             });
         });
 
@@ -134,15 +139,15 @@ require([
         });
 
         $('#form-rename-dashboard').submit(function(event) {
+            event.preventDefault();
             removeAlertbox();
             var $this = $(this);
-            event.preventDefault();
             var request = $.post(this.getAttribute('action'), $this.serialize());
             request.done(function(responseText) {
                 // Alter name in dropdown
                 var $option = $('#form-choose-dashboard').find('select option[value=' + $this.data('dashboard') + ']');
                 $option.text($this.find('input').val());
-                $(alertBoxTemplate).addClass('success').html(responseText).appendTo($dashboardControls);
+                addFeedback(responseText);
             });
         });
 
@@ -157,7 +162,7 @@ require([
                     window.location = '/';
                 });
                 request.fail(function(response) {
-                    alert(response);
+                    addFeedback(response, 'error');
                 });
             }
         });

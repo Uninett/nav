@@ -86,15 +86,29 @@
       {# Content dropdown for dashboard controls #}
       <div id="dropdown-dashboard-forms" data-dropdown-content class="f-dropdown content medium">
 
-        {% if request.account.accountdashboard_set.count > 1 %}
-          <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}" class="right">
-            <input type="submit" class="small button alert" value="Delete dashboard">
-          </form>
-        {% endif %}
+        <div class="row">
 
-        <form id="form-set-default-dashboard" method="post" action="{% url 'set-default-dashboard' dashboard.pk %}">
-          <input type="submit" value="Set as default dashboard" class="small button secondary">
-        </form>
+          <div class="column medium-6">
+            {% if dashboard.is_default %}
+              <div class="alert-box">Default dashboard</div>
+            {% else %}
+              <form id="form-set-default-dashboard" method="post" action="{% url 'set-default-dashboard' dashboard.pk %}">
+                <input type="submit" value="Set as default dashboard" class="small button secondary">
+              </form>
+            {% endif %}
+          </div>
+
+
+          <div class="column medium-6">
+            {% if request.account.accountdashboard_set.count > 1 %}
+              <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}" class="right">
+                <input type="submit" class="small button alert" value="Delete dashboard">
+              </form>
+            {% endif %}
+          </div>
+
+        </div>
+
 
         <div class="row">
 
