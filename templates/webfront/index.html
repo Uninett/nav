@@ -37,7 +37,8 @@
 
       <div id="widgets-layout-normal"
            class="widgets-layout-toggler
-           {% if request.account.preferences.widget_display_density == 'normal' %}hide{% endif %}"
+           {% if request.account.preferences.widget_display_density == 'normal' %}hide{% endif %}
+           {% if not request.account.preferences.widget_display_density %}hide{% endif %}"
            title="Use normal layout for dashboard">
         <i class="fa fa-expand"></i>
       </div>
