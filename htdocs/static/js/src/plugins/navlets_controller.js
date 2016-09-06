@@ -44,6 +44,8 @@ define(['plugins/navlet_controller'], function (NavletController) {
             }
             return columns;
         },
+
+        /** Displays an infobox when there are no widgets on a dashboard. */
         addContentListener: function() {
             var self = this;
             var message = $('<div class="alert-box info">No widgets added to this dashboard</div>');
@@ -86,7 +88,8 @@ define(['plugins/navlet_controller'], function (NavletController) {
                 event.preventDefault();
                 var request = $.post($(this).attr('action'), $(this).serialize(), 'json');
                 request.done(function (data) {
-                    that.addNavlet(data);
+                    that.addNavlet(data, true);
+                    that.saveOrder(that.findOrder());
                     $('#navlet-list').foundation('reveal', 'close');
                 });
                 request.fail(function () {
@@ -94,9 +97,19 @@ define(['plugins/navlet_controller'], function (NavletController) {
                 });
             });
         },
-        addNavlet: function (data) {
+
+        /**
+         * Spawn a new widget on the existing dashboard.
+         *
+         * Triggers the event 'nav.navlet.added' on the widgets container.
+         *
+         * @param {object} data - metadata about the widget
+         * @param {boolean} forceFirst - Force this widget to be placed in the top left corner.
+         */
+        addNavlet: function (data, forceFirst) {
             var column = data.column > this.numColumns ? this.numColumns : data.column;
-            new NavletController(this.container, this.columns[column - 1], data);
+            column = column < 1 ? 1 : column;
+            new NavletController(this.container, this.columns[column - 1], data, forceFirst);
             this.container.trigger('nav.navlet.added');
         },
         addNavletOrdering: function () {

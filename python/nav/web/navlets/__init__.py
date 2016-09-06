@@ -259,7 +259,7 @@ def add_navlet(account, navlet, preferences=None, dashboard=None):
 
     accountnavlet = AccountNavlet(account=account, navlet=navlet,
                                   dashboard=dashboard)
-    accountnavlet.column, accountnavlet.order = find_new_placement(account)
+    accountnavlet.column, accountnavlet.order = find_new_placement()
 
     default_preferences = get_default_preferences(
         get_navlet_from_name(navlet)) or {}
@@ -280,17 +280,16 @@ def get_default_preferences(navlet):
         return preferences
 
 
-def find_new_placement(account):
-    """Determines the best placement for a new account navlet"""
-    widget_columns = get_widget_columns(account)
+def find_new_placement():
+    """Determines the best placement for a new account navlet
 
-    column_count = Counter({
-        column: account.accountnavlet_set.filter(column=column).count()
-        for column in range(1, widget_columns + 1)})
+    This is now defined to be at the top of the first column as this is the
+    easiest way for the user to find the newly attached widget.
 
-    column, order = column_count.most_common()[-1]
-    order += 1
-    return column, order
+    :return: A tuple of column (integer, 1-indexed) and order (integer,
+             0-indexed)
+    """
+    return 1, 0
 
 
 def can_modify_navlet(account, request):

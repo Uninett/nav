@@ -16,11 +16,12 @@ define(['libs/spin.min'], function (Spinner) {
     *
     */
 
-    var NavletController = function (container, renderNode, navlet) {
+    var NavletController = function (container, renderNode, navlet, forceFirst) {
         this.container = container;    // Navlet container
         this.renderNode = renderNode;  // The column this navlet should render in
         this.navlet = navlet;          // Object containing navlet information
         this.spinner = new Spinner();  // Spinner showing on load
+        this.forceFirst = typeof forceFirst === 'undefined' ? false : true;
         this.node = this.createNode(); // The complete node for this navlet
         this.removeUrl = this.container.attr('data-remove-navlet');           // Url to use to remove a navlet from this user
         this.baseTemplateUrl = this.container.attr('data-base-template-url'); // Url to use to fetch base template for this navlet
@@ -43,7 +44,11 @@ define(['libs/spin.min'], function (Spinner) {
                 $div.addClass('colorblock-navlet');
             }
 
-            this.renderNode.append($div);
+            if (this.forceFirst) {
+                this.renderNode.prepend($div);
+            } else {
+                this.renderNode.append($div);
+            }
             return $div;
         },
         renderNavlet: function (mode) {
