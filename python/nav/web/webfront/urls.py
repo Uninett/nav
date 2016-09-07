@@ -31,6 +31,8 @@ urlpatterns = patterns(
         name='rename-dashboard'),
     url(r'^index/dashboard/delete/(?P<did>\d+)/$', 'delete_dashboard',
         name='delete-dashboard'),
+    url(r'^index/dashboard/columns/(?P<did>\d+)/$', 'save_dashboard_columns',
+        name='save-dashboard-columns'),
 
     url(r'^about/', 'about', name='webfront-about'),
     url(r'^toolbox/$', 'toolbox', name='webfront-toolbox'),

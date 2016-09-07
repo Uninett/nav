@@ -73,7 +73,7 @@ from nav.models.profiles import AccountNavlet, AccountDashboard
 from nav.models.manage import Sensor
 from nav.django.auth import get_sudoer
 from nav.django.utils import get_account
-from nav.web.webfront import get_widget_columns
+from nav.web.webfront import get_widget_columns, find_dashboard
 
 _logger = logging.getLogger(__name__)
 
@@ -192,11 +192,8 @@ def get_navlet_from_name(navletmodule):
 
 def get_user_navlets(request, dashboard_id=None):
     """Gets all navlets that this user subscribes to for a given dashboard"""
-    account = request.account
-    kwargs = {'pk': dashboard_id} if dashboard_id else {'is_default': True}
-    dash = AccountDashboard.objects.get(account=account, **kwargs)
-
-    usernavlets = dash.widgets.all()
+    dashboard = find_dashboard(request.account, dashboard_id)
+    usernavlets = dashboard.widgets.all()
 
     navlets = []
     for usernavlet in usernavlets:
@@ -256,12 +253,11 @@ def add_user_navlet(request, dashboard_id=None):
     """Add a navlet subscription to this user"""
     if request.method == 'POST' and 'navlet' in request.POST:
         account = request.account
-        kwargs = {'pk': dashboard_id} if dashboard_id else {'is_default': True}
-        dash = AccountDashboard.objects.get(account=account, **kwargs)
+        dashboard = find_dashboard(account, dashboard_id=dashboard_id)
 
         if can_modify_navlet(account, request):
             navlet_class = request.POST.get('navlet')
-            navlet = add_navlet(account, navlet_class, dashboard=dash)
+            navlet = add_navlet(account, navlet_class, dashboard=dashboard)
             return HttpResponse(json.dumps(create_navlet_object(navlet)),
                                 content_type="application/json")
 

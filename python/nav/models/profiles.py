@@ -1368,6 +1368,7 @@ class AccountDashboard(models.Model):
     """Stores dashboards for each user"""
     name = VarcharField()
     is_default = models.BooleanField(default=False)
+    num_columns = models.IntegerField(default=3)
     account = models.ForeignKey(Account)
 
     def __unicode__(self):

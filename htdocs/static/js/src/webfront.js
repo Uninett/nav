@@ -111,8 +111,11 @@ require([
 
         $('.column-chooser').click(function() {
             $navletsContainer.empty();
-            new NavletsController($navletsContainer, $(this).data('columns'));
+            var columns = $(this).data('columns');
+            new NavletsController($navletsContainer, columns);
             // Save number of columns
+            var url = $(this).closest('.button-group').data('url');
+            var request = $.post(url, {num_columns: columns});
         });
 
 

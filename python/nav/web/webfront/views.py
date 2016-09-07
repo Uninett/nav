@@ -21,7 +21,6 @@ import json as simplejson
 import logging
 from operator import attrgetter
 
-from django.db.models import Count
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
@@ -40,7 +39,7 @@ from nav.web.webfront.forms import (LoginForm, NavbarLinkFormSet,
                                     DashboardForm)
 from nav.web.navlets import list_navlets
 from nav.web.message import new_message, Messages
-from nav.web.webfront import get_widget_columns
+from nav.web.webfront import get_widget_columns, find_dashboard
 
 _logger = logging.getLogger('nav.web.tools')
 
@@ -362,18 +361,13 @@ def rename_dashboard(request, did):
         'Dashboard renamed to &laquo;{}&raquo;'.format(dash.name))
 
 
-def find_dashboard(account, dashboard_id=None):
-    """Find a dashboard for this account
+@require_POST
+def save_dashboard_columns(request, did):
+    """Save the number of columns for this dashboard"""
 
-    Either find a specific one or the default one. If none of those exist we
-    find the one with the most widgets.
-    """
-    kwargs = {'pk': dashboard_id} if dashboard_id else {'is_default': True}
-    try:
-        dashboard = AccountDashboard.objects.get(account=account, **kwargs)
-    except AccountDashboard.DoesNotExist:
-        # No default dashboard? Find the one with the most widgets
-        dashboard = AccountDashboard.objects.filter(account=account).annotate(
-                Count('widgets')).order_by('-widgets__count')[0]
-
-    return dashboard
+    # Explicit fetch on account to prevent other people to change settings
+    dashboard = get_object_or_404(AccountDashboard, pk=did,
+                                  account=request.account)
+    dashboard.num_columns = request.POST.get('num_columns', 3)
+    dashboard.save()
+    return HttpResponse()
