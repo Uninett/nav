@@ -129,6 +129,25 @@ class Navlet(TemplateView):
         context['navlet'] = self
         return context
 
+    def post(self, request, **kwargs):
+        """Save preferences
+
+        Make sure you're not overriding stuff with the form
+        """
+        navlet = AccountNavlet.objects.get(pk=self.navlet_id,
+                                           account=request.account)
+        form = kwargs.get('form')
+        if not form:
+            return HttpResponse('No form supplied', status=400)
+
+        if form.is_valid():
+            navlet.preferences.update(form.cleaned_data)
+            navlet.save()
+            return HttpResponse()
+        else:
+            return HttpResponse(form.errors, status=400)
+
+
     @classmethod
     def get_class(cls):
         """This string is used to identify the Widget"""

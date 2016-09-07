@@ -15,11 +15,7 @@
 #
 """Module containing SensorWidget"""
 
-from django.http import HttpResponse
-
-
 from nav.metrics.graphs import get_simple_graph_url
-from nav.models.profiles import AccountNavlet
 from . import Navlet, NAVLET_MODE_EDIT
 from .forms import AlertWidgetForm
 
@@ -40,9 +36,8 @@ class AlertWidget(Navlet):
 
     def get_context_data(self, *args, **kwargs):
         context = super(AlertWidget, self).get_context_data(*args, **kwargs)
-        navlet = AccountNavlet.objects.get(pk=self.navlet_id)
-        self.title = navlet.preferences.get('title', 'Alert')
-        metric = navlet.preferences.get('metric')
+        self.title = self.preferences.get('title', 'Alert')
+        metric = self.preferences.get('metric')
 
         if self.mode == NAVLET_MODE_EDIT:
             if metric:
@@ -55,17 +50,10 @@ class AlertWidget(Navlet):
                 return context
             context['data_url'] = get_simple_graph_url(
                 metric, time_frame='10minutes', format='json')
-            context.update(navlet.preferences)
+            context.update(self.preferences)
         return context
 
-    def post(self, request):
+    def post(self, request, **kwargs):
         """Save preferences"""
-        navlet = AccountNavlet.objects.get(pk=self.navlet_id,
-                                           account=request.account)
         form = AlertWidgetForm(request.POST)
-        if form.is_valid():
-            navlet.preferences.update(form.cleaned_data)
-            navlet.save()
-            return HttpResponse()
-        else:
-            return HttpResponse(form.errors, status=400)
+        return super(AlertWidget, self).post(request, form=form)
