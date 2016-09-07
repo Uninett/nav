@@ -32,6 +32,7 @@ define(['libs/spin.min'], function (Spinner) {
     NavletController.prototype = {
         createNode: function () {
             /* Creates the node that the navlet will loaded into */
+            var self = this;
             var $div = $('<div/>');
             $div.attr({
                 'data-id': this.navlet.id,
@@ -48,6 +49,7 @@ define(['libs/spin.min'], function (Spinner) {
                 this.renderNode.prepend($div);
                 $div.on('mouseover', function() {
                     $div.removeClass('mark-new');
+                    self.forceFirst = false;
                 });
             } else {
                 this.renderNode.append($div);
