@@ -13,6 +13,7 @@ define(function(require) {
         this.sensorid = this.$node.attr('data-sensorid');
         this.sensorname = this.$node.attr('data-sensorname');
         this.dashboardUrl = this.$node.attr('data-dashboard_url') || '';
+        this.showGraph = _.contains([true, 'True', 'true', 1, '1', undefined], this.$node.data('showGraph'));
         this.thresholds = this.parseThresholds();
 
         this.displayGauge = true;
@@ -49,7 +50,8 @@ define(function(require) {
             var $html = $(template({
                 legend: this.sensorname,
                 dashboardUrl: this.dashboardUrl,
-                sensorid: this.sensorid
+                sensorid: this.sensorid,
+                showGraph: this.showGraph
             }));
             $html.appendTo(this.$node);
             if (this.displayGauge) {
@@ -106,7 +108,9 @@ define(function(require) {
                     }
 
                     self.updateCurrent(last, minimumValue);
-                    self.updateGraph(datapoints);
+                    if (self.showGraph) {
+                        self.updateGraph(datapoints);
+                    }
                 }
             });
         },

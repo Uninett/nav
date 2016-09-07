@@ -28,3 +28,7 @@ class AlertWidgetForm(forms.Form):
 class UpsWidgetForm(forms.Form):
     """Form for choosing an UPS"""
     netboxid = forms.ModelChoiceField(queryset=Netbox.ups_objects.all())
+
+
+class SensorForm(forms.Form):
+    show_graph = forms.BooleanField(initial=True, required=False)
