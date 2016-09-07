@@ -46,6 +46,9 @@ define(['libs/spin.min'], function (Spinner) {
 
             if (this.forceFirst) {
                 this.renderNode.prepend($div);
+                $div.on('mouseover', function() {
+                    $div.removeClass('mark-new');
+                });
             } else {
                 this.renderNode.append($div);
             }
@@ -79,6 +82,9 @@ define(['libs/spin.min'], function (Spinner) {
         },
         handleSuccessfulRequest: function (html, mode) {
             this.node.html(html);
+            if (this.forceFirst) {
+                this.node.addClass('mark-new');
+            }
             this.applyListeners();
             this.addReloader(mode);
         },

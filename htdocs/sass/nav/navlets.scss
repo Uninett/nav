@@ -25,8 +25,13 @@ $fullscreen-color: #EEE;
     padding: 0.5em 1em 1em 1.2em;
     position: relative;
     min-height: 100px;
+    transition: all .5s ease-out;
     &.outline {
         border: 1px dashed black;
+    }
+    &.mark-new {
+        box-shadow: #666 0px 5px 10px 7px;
+        z-index: 2;
     }
     &.colorblock-navlet {
         background-color: #1570a6;
