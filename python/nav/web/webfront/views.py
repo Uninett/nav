@@ -17,7 +17,6 @@
 
 import os
 from datetime import datetime
-import json as simplejson
 import logging
 from operator import attrgetter
 
