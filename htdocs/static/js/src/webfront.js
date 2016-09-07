@@ -36,6 +36,7 @@ require([
 
         });
 
+
         /* Add click listener to joyride button */
         $navletsContainer.on('click', '#joyrideme', function () {
             var menu = $('.toggle-topbar'),
@@ -106,6 +107,14 @@ require([
         }
 
         $dashboardControls.on('closed', removeAlertbox);
+
+
+        $('.column-chooser').click(function() {
+            $navletsContainer.empty();
+            new NavletsController($navletsContainer, $(this).data('columns'));
+            // Save number of columns
+        });
+
 
         $('#form-set-default-dashboard').submit(function(event) {
             event.preventDefault();
