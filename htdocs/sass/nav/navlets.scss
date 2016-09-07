@@ -25,7 +25,7 @@ $fullscreen-color: #EEE;
     padding: 0.5em 1em 1em 1.2em;
     position: relative;
     min-height: 100px;
-    transition: all .5s ease-out;
+    transition: box-shadow .5s;
     &.outline {
         border: 1px dashed black;
     }
