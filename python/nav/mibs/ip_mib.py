@@ -14,19 +14,13 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-from struct import unpack
-import array
-from IPy import IP
-
 from twisted.internet import defer
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.oids import OID
+from nav.oidparsers import IPV4_ID, IPV6_ID, oid_to_ipv6, oid_to_ipv4
 from nav.ipdevpoll.utils import binary_mac_to_hex
 import mibretriever
-
-IPV4_ID = 1
-IPV6_ID = 2
 
 IP_IN_OCTETS = 'ipIfStatsHCInOctets'
 IP_OUT_OCTETS = 'ipIfStatsHCOutOctets'
@@ -334,40 +328,3 @@ class IpMib(mibretriever.MibRetriever):
 
 class IndexToIpException(Exception):
     pass
-
-
-####################
-# Helper functions #
-####################
-
-def oid_to_ipv6(oid):
-    """Converts a sequence of 16 numbers to an IPv6 object in the fastest
-    known way.
-
-    :param oid: Any list or tuple of 16 integers
-
-    """
-    if len(oid) != 16:
-        raise ValueError("IPv6 address must be 16 octets, not %d" % len(oid))
-    try:
-        high, low = unpack("!QQ", array.array("B", oid).tostring())
-    except OverflowError as error:
-        raise ValueError(error)
-    addr = (high << 64) + low
-    return IP(addr)
-
-
-def oid_to_ipv4(oid):
-    """Converts a sequence of 4 numbers to an IPv4 object in the fastest
-    known way.
-
-    :param oid: Any list or tuple of 4 integers.
-
-    """
-    if len(oid) != 4:
-        raise ValueError("IPv4 address must be 4 octets, not %d" % len(oid))
-    try:
-        addr, = unpack("!I", array.array("B", oid).tostring())
-    except OverflowError as error:
-        raise ValueError(error)
-    return IP(addr)
