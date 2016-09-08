@@ -144,7 +144,7 @@ def delete_unused_prefixes():
     Deletes prefixes that are unassociated with any router port and were not
     manually entered into NAV.
     """
-    holy_vlans = Q(vlan__net_type__in=('scope', 'reserved'))
+    holy_vlans = Q(vlan__net_type__in=('scope', 'reserved', 'static'))
     unused_prefixes = Prefix.objects.filter(
         gwportprefix__isnull=True).exclude(holy_vlans)
 
