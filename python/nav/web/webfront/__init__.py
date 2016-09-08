@@ -1,6 +1,7 @@
 """NAV web common package."""
 
 from django.db.models import Count
+from django.http import HttpResponse, Http404
 
 from nav.models.profiles import AccountDashboard
 
@@ -23,6 +24,8 @@ def find_dashboard(account, dashboard_id=None):
     try:
         dashboard = AccountDashboard.objects.get(account=account, **kwargs)
     except AccountDashboard.DoesNotExist:
+        if dashboard_id:
+            raise Http404
         # No default dashboard? Find the one with the most widgets
         dashboard = AccountDashboard.objects.filter(account=account).annotate(
                 Count('widgets')).order_by('-widgets__count')[0]
