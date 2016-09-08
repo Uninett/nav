@@ -43,10 +43,16 @@ and (max-width : 480px) {
 .right-action-content.f-dropdown {
     border: 7px solid #243640;
     box-shadow: #666 0 5px 10px;
+    z-index: 1000;
     form {
         margin-bottom: 1em;
     }
     input, select, .button {
         margin-bottom: 0;
     }
+}
+
+#form-rename-dashboard {
+    label { overflow: hidden; }
+    input[type=text] { width: 100%; }
 }

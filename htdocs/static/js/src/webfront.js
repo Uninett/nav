@@ -92,7 +92,7 @@ require([
          * changing dashboards, adding new ones and setting default
          */
 
-        var $dashboardControls = $('#dropdown-dashboard-forms');
+        var $dashboardSettingsPanel = $('#dropdown-dashboard-settings');
         var $alertBox = $('<div class="alert-box">');
         // Error element for naming the dashboard
         var errorElement = $('<small class="error">Name the dashboard</small>');
@@ -103,10 +103,10 @@ require([
 
         function addFeedback(text, klass) {
             klass = klass ? klass : 'success';
-            $alertBox.attr('class', 'alert-box').addClass(klass).html(text).appendTo($dashboardControls);
+            $alertBox.attr('class', 'alert-box').addClass(klass).html(text).appendTo($dashboardSettingsPanel);
         }
 
-        $dashboardControls.on('closed', removeAlertbox);
+        $dashboardSettingsPanel.on('closed', removeAlertbox);
 
 
         $('.column-chooser').click(function() {
@@ -150,15 +150,29 @@ require([
             });
         });
 
-        $('#form-rename-dashboard').submit(function(event) {
+        var $formRenameDashboard = $('#form-rename-dashboard');
+        var $dashboardTitle = $dashboardSettingsPanel.find('.dashboard-title');
+        $formRenameDashboard.hide();
+        $dashboardTitle.on('click', function() {
+            $dashboardTitle.hide();
+            $formRenameDashboard.show();
+        });
+
+        $formRenameDashboard.submit(function(event) {
             event.preventDefault();
             removeAlertbox();
-            var $this = $(this);
-            var request = $.post(this.getAttribute('action'), $this.serialize());
+            var self = this;
+            var request = $.post(this.getAttribute('action'), $(this).serialize());
             request.done(function(responseText) {
                 // Alter name in dropdown
-                var $option = $('#form-choose-dashboard').find('select option[value=' + $this.data('dashboard') + ']');
-                $option.text($this.find('input').val());
+                var $option = $('#form-choose-dashboard').find('select option[value=' + self.dataset.dashboard + ']');
+                var newName = self.elements['dashboard-name'].value;
+                $option.text(newName);
+                $dashboardTitle.text(newName);
+
+                $dashboardTitle.show();
+                $formRenameDashboard.hide();
+
                 addFeedback(responseText);
             });
         });

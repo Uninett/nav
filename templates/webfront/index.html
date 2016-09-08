@@ -91,7 +91,17 @@
          data-dropdown-content
          class="f-dropdown content medium right-action-content">
 
-      <h4>{{ dashboard.name }}</h4>
+      <h4 class="dashboard-title">{{ dashboard.name }}</h4>
+
+      <form id="form-rename-dashboard"
+            method="post"
+            data-dashboard="{{ dashboard.pk }}"
+            action="{% url 'rename-dashboard' dashboard.pk %}" >
+        <input type="submit" class="small button right" value="Rename dashboard">
+        <label>
+          <input type="text" name="dashboard-name" placeholder="Dashboard name" value="{{ dashboard.name }}">
+        </label>
+      </form>
 
       <form id="form-choose-dashboard">
         {{ dashboard_form }}
@@ -127,25 +137,6 @@
         <li><a href="#" class="button tiny secondary column-chooser" data-columns="4">Four</a></li>
       </ul>
 
-      <div class="row">
-
-        <div class="column medium-6">
-        </div>
-
-        <div class="column medium-6">
-          <form id="form-rename-dashboard"
-                method="post"
-                data-dashboard="{{ dashboard.pk }}"
-                action="{% url 'rename-dashboard' dashboard.pk %}" >
-            <label>
-              Rename dashboard
-              <input type="text" name="dashboard-name" placeholder="Dashboard name" value="{{ dashboard.name }}">
-            </label>
-            <input type="submit" class="small button full-width" value="Rename dashboard">
-          </form>
-        </div>
-
-      </div>
     </div> {# dropdown dashboard forms #}
 
 
