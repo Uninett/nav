@@ -23,7 +23,7 @@
 
 {% block base_content %}
 
-  {#  Reveal Add widgets modal  #}
+  {# Dashboard and widget actions for logged in users #}
   {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
 
     <div id="widgets-actions" class="hide-for-small" >
@@ -52,12 +52,15 @@
 
       <div id="rightaction-dashboard-config"
            title="Settings for current dashboard"
-           data-dropdown="dropdown-dashboard-forms"
+           data-dropdown="dropdown-dashboard-settings"
            data-options="align:left">
         <i class="fa fa-gear fa-lg"></i>
       </div>
 
-      <div id="rightaction-add-dashboard" title="Add a new dashboard">
+      <div id="rightaction-add-dashboard"
+           title="Add a new dashboard"
+           data-dropdown="dropdown-dashboard-add"
+           data-options="align:left">
         <i class="fa fa-plus-square-o fa-lg"></i>
       </div>
 
@@ -83,76 +86,80 @@
       </ul>
     </div>
 
-    {# Forms for manipulating dashboard - this is displayed as a content dropdown #}
-    <div id="dashboard-ui-wrapper">
+    {# Content dropdown for dashboard settings #}
+    <div id="dropdown-dashboard-settings"
+         data-dropdown-content
+         class="f-dropdown content medium right-action-content">
 
-      {# Content dropdown for dashboard controls #}
-      <div id="dropdown-dashboard-forms" data-dropdown-content class="f-dropdown content medium">
+      <h4>{{ dashboard.name }}</h4>
 
-        <h4>{{ dashboard.name }}</h4>
+      <form id="form-choose-dashboard">
+        {{ dashboard_form }}
+      </form>
 
-        <form id="form-choose-dashboard">
-          {{ dashboard_form }}
-        </form>
+      <div class="row">
 
-        <div class="row">
-
-          <div class="column medium-6">
-            {% if dashboard.is_default %}
-              <div class="alert-box">Default dashboard</div>
-            {% else %}
-              <form id="form-set-default-dashboard" method="post" action="{% url 'set-default-dashboard' dashboard.pk %}">
-                <input type="submit" value="Set as default dashboard" class="small button secondary">
-              </form>
-            {% endif %}
-          </div>
-
-
-          <div class="column medium-6">
-            {% if request.account.accountdashboard_set.count > 1 %}
-              <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}" class="right">
-                <input type="submit" class="small button alert" value="Delete dashboard">
-              </form>
-            {% endif %}
-          </div>
-
+        <div class="column medium-6">
+          {% if dashboard.is_default %}
+            <div class="alert-box">Default dashboard</div>
+          {% else %}
+            <form id="form-set-default-dashboard" method="post" action="{% url 'set-default-dashboard' dashboard.pk %}">
+              <input type="submit" value="Set as default dashboard" class="small button secondary">
+            </form>
+          {% endif %}
         </div>
 
-        <h5>Columns</h5>
-        <ul class="button-group" style="margin-bottom: 1em;" data-url="{% url 'save-dashboard-columns' dashboard.pk %}">
-          <li><a href="#" class="button tiny secondary column-chooser" data-columns="2">Two</a></li>
-          <li><a href="#" class="button tiny secondary column-chooser" data-columns="3">Three</a></li>
-          <li><a href="#" class="button tiny secondary column-chooser" data-columns="4">Four</a></li>
-        </ul>
 
-        <div class="row">
-
-          <div class="column medium-6">
-            <form id="form-add-dashboard" method="post" action="{% url 'add-dashboard' %}">
-              <label>
-                Add dashboard
-                <input type="text" name="dashboard-name" placeholder="Dashboard name">
-              </label>
-              <input type="submit" class="small button full-width" value="Add dashboard">
+        <div class="column medium-6">
+          {% if request.account.accountdashboard_set.count > 1 %}
+            <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}" class="right">
+              <input type="submit" class="small button alert" value="Delete dashboard">
             </form>
-          </div>
-
-          <div class="column medium-6">
-            <form id="form-rename-dashboard"
-                  method="post"
-                  data-dashboard="{{ dashboard.pk }}"
-                  action="{% url 'rename-dashboard' dashboard.pk %}" >
-              <label>
-                Rename dashboard
-                <input type="text" name="dashboard-name" placeholder="Dashboard name" value="{{ dashboard.name }}">
-              </label>
-              <input type="submit" class="small button full-width" value="Rename dashboard">
-            </form>
-          </div>
-
+          {% endif %}
         </div>
-      </div> {# dropdown dashboard forms #}
 
+      </div>
+
+      <h5>Columns</h5>
+      <ul class="button-group" style="margin-bottom: 1em;" data-url="{% url 'save-dashboard-columns' dashboard.pk %}">
+        <li><a href="#" class="button tiny secondary column-chooser" data-columns="2">Two</a></li>
+        <li><a href="#" class="button tiny secondary column-chooser" data-columns="3">Three</a></li>
+        <li><a href="#" class="button tiny secondary column-chooser" data-columns="4">Four</a></li>
+      </ul>
+
+      <div class="row">
+
+        <div class="column medium-6">
+        </div>
+
+        <div class="column medium-6">
+          <form id="form-rename-dashboard"
+                method="post"
+                data-dashboard="{{ dashboard.pk }}"
+                action="{% url 'rename-dashboard' dashboard.pk %}" >
+            <label>
+              Rename dashboard
+              <input type="text" name="dashboard-name" placeholder="Dashboard name" value="{{ dashboard.name }}">
+            </label>
+            <input type="submit" class="small button full-width" value="Rename dashboard">
+          </form>
+        </div>
+
+      </div>
+    </div> {# dropdown dashboard forms #}
+
+
+    {# Content dropdown for adding a new dashboard #}
+    <div id="dropdown-dashboard-add"
+         data-dropdown-content
+         class="f-dropdown content small right-action-content">
+      <form id="form-add-dashboard" method="post" action="{% url 'add-dashboard' %}">
+        <label>
+          Add dashboard
+          <input type="text" name="dashboard-name" placeholder="Dashboard name">
+        </label>
+        <input type="submit" class="small button full-width" value="Add dashboard">
+      </form>
     </div>
 
   {% endif %}
