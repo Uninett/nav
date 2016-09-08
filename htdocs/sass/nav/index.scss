@@ -42,16 +42,6 @@ and (max-width : 480px) {
 
 #dashboard-ui-wrapper {
     max-width: 450px;
-    .visible-stuff {
-        margin-bottom: 1em;
-        .button { float: right; }
-        form {
-            overflow: hidden;
-            input {
-                width: 100%;
-            }
-        }
-    }
     input, select, .button {
         margin-bottom: 0;
     }

@@ -71,6 +71,7 @@
     right: 0;
     top: 0;
     width: 40px;
+    z-index: 1000;
     div {
         background-color: $topbar-bg-color;
         height: 40px;
@@ -81,7 +82,7 @@
             background-color: $primary-color;
             cursor: pointer;
         }
-        &:not(.widgets-layout-toggler) {
+        &:not(:last-child) {
             border-bottom: 1px solid gainsboro;
         }
     }
