@@ -13,7 +13,7 @@ define(function(require) {
         this.sensorid = this.$node.attr('data-sensorid');
         this.sensorname = this.$node.attr('data-sensorname');
         this.dashboardUrl = this.$node.attr('data-dashboard_url') || '';
-        this.showGraph = _.contains([true, 'True', 'true', 1, '1', undefined], this.$node.data('showGraph'));
+        this.showGraph = ! _.contains([false, 'False', 'false', 0, '0'], this.$node.data('showGraph'));
         this.thresholds = this.parseThresholds();
 
         this.displayGauge = true;
