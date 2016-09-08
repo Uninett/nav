@@ -357,7 +357,7 @@ def rename_dashboard(request, did):
     dash.name = request.POST.get('dashboard-name', dash.name)
     dash.save()
     return HttpResponse(
-        'Dashboard renamed to &laquo;{}&raquo;'.format(dash.name))
+        u'Dashboard renamed to &laquo;{}&raquo;'.format(dash.name))
 
 
 @require_POST
