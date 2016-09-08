@@ -71,8 +71,7 @@ def index(request):
             'dashboard_form': DashboardForm(account=request.account,
                                             initial={'dashboard': dashboard}),
             'navlets': list_navlets(),
-            'widget_columns': get_widget_columns(request.account),
-            'title': 'Welcome to NAV',
+            'title': dashboard.name,
         }
     )
 
