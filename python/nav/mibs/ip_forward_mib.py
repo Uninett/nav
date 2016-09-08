@@ -108,6 +108,12 @@ class IpForwardMib(mibretriever.MibRetriever):
                                  if entry]
         returnValue(result)
 
+    def get_cidr_route_column(self, column, index):
+        """Retrieves the value of a specific column for a given route index"""
+        if not column.startswith('inetCidrRoute'):
+            column = 'inetCidrRoute' + column
+        return self.retrieve_column_by_index(column, index)
+
 
 def decode_route_entry(index):
     """Decodes the important bits of an inetCidrRouteTable row index.
