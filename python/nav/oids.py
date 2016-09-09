@@ -38,16 +38,16 @@ class OID(tuple):
       (1, 3, 6)
 
     """
-    def __new__(cls, *args, **_kwargs):
-        arg = args[0]
-        if isinstance(arg, basestring):
-            arg = [int(p) for p in arg.split(SEPARATOR) if p]
-        elif isinstance(arg, OID):
-            return arg
-        return tuple.__new__(cls, arg)
+    def __new__(cls, oid):
+        if isinstance(oid, basestring):
+            # pylint: disable=W0141  (timeit proves map to be faster here)
+            oid = map(int, oid.strip(SEPARATOR).split(SEPARATOR))
+        elif isinstance(oid, OID):
+            return oid
+        return tuple.__new__(cls, oid)
 
     def __str__(self):
-        return SEPARATOR + SEPARATOR.join(str(i) for i in self)
+        return SEPARATOR + SEPARATOR.join([str(i) for i in self])
 
     def __repr__(self):
         return "OID(%s)" % repr(str(self))

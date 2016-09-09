@@ -33,6 +33,7 @@ this to allow asynchronous data retrieval.
 import logging
 import operator
 from twisted.internet import defer, reactor
+from twisted.internet.defer import returnValue
 from twisted.internet.error import TimeoutError
 
 from nav.ipdevpoll import ContextLogger
@@ -495,6 +496,20 @@ class MibRetriever(object):
                 if column in cls.nodes:
                     row[column] = cls.nodes[column].to_python(row[column])
         return result
+
+    @defer.inlineCallbacks
+    def retrieve_column_by_index(self, column, index, translate=True):
+        """Retrieves the value of a specific column for a given row index"""
+        if column not in self.nodes:
+            raise ValueError("No such object in %s: %s",
+                             self.mib['moduleName'], column)
+
+        node = self.nodes[column]
+        oid = node.oid + index
+        result = yield self.agent_proxy._get([oid])
+        for obj, value in result:
+            assert obj == oid
+            returnValue(node.to_python(value))
 
 
 class MultiMibMixIn(MibRetriever):

@@ -1,4 +1,4 @@
-define(['libs/spin.min'], function (Spinner) {
+define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
 
     /*
     * Controller for a specific Navlet
@@ -115,18 +115,19 @@ define(['libs/spin.min'], function (Spinner) {
              * Remember to stop refreshing on edit
              */
             var that = this,
-                preferences = this.navlet.preferences,
-                image = this.node.find('img[data-image-reload]'),
-                imageUrl = image.attr('src');
+                preferences = this.navlet.preferences;
 
             if (mode === 'VIEW' && preferences && preferences.refresh_interval) {
                 /* If this is a reload of image only */
                 if (this.navlet.image_reload) {
                     this.refresh = setInterval(function () {
-                        /* The random part is courtesy IE */
-                        var bustPrefix = imageUrl.indexOf('?') > -1 ? '&' : '?',
-                            bust = bustPrefix + 'bust=' + Math.random();
-                        image.attr('src', imageUrl + bust);
+                        // Find image each time because of async loading
+                        var image = that.node.find('img[data-image-reload], [data-image-reload] img');
+                        if (image.length) {
+                            // Add bust parameter to url to prevent caching
+                            var uri = new URI(image.get(0)).setSearch('bust', Math.random());
+                            image.attr('src', uri.href());
+                        }
                     }, preferences.refresh_interval);
                 } else if (this.navlet.ajax_reload) {
                     this.refresh = setInterval(function () {
@@ -248,7 +249,20 @@ define(['libs/spin.min'], function (Spinner) {
                         that.renderNavlet('VIEW');
                     });
                     request.fail(function (jqxhr) {
-                        that.displayError('Could not save changes: ' + jqxhr.responseText);
+                        try {
+                            // Result may be json, try to parse it (specific for form errors)
+                            var json = JSON.parse(jqxhr.responseText);
+                            var $ul = $('<ul class="no-bullet">');
+                            for (var field in json) {
+                                var errors = $('<li>').html(field + ': ' + json[field].map(function(x) {
+                                    return x.message;
+                                }).join(', '));
+                                $ul.append(errors);
+                            }
+                            that.displayError($ul);
+                        } catch (e) {
+                            that.displayError('Could not save changes: ' + jqxhr.responseText);
+                        }
                     });
                 });
             }
@@ -291,7 +305,7 @@ define(['libs/spin.min'], function (Spinner) {
             this.container.trigger('navlet-rendered', [this.node]);
         },
         displayError: function (errorMessage) {
-            this.getOrCreateErrorElement().text(errorMessage);
+            this.getOrCreateErrorElement().html(errorMessage);
         },
         getOrCreateErrorElement: function () {
             /* If error element is already created, return existing element */
