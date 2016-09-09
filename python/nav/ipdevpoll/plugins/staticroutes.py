@@ -14,6 +14,8 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """ipdevpoll plugin to find and store static routes from routing tables"""
+import ConfigParser
+
 from twisted.internet import defer
 
 from nav.ipdevpoll.shadows import Prefix, Vlan, NetType
@@ -24,8 +26,6 @@ from nav.ipdevpoll import Plugin
 from .prefix import get_ignored_prefixes
 
 WANTED_PROTOCOLS = ("local", "netmgmt")
-# minimum no of seconds between SNMP requests to routing tables:
-THROTTLE_DELAY = 0.01
 
 
 class StaticRoutes(Plugin):
@@ -38,12 +38,13 @@ class StaticRoutes(Plugin):
     def on_plugin_load(cls):
         from nav.ipdevpoll.config import ipdevpoll_conf
         cls.ignored_prefixes = get_ignored_prefixes(ipdevpoll_conf)
+        cls.throttle_delay = get_throttle_delay(ipdevpoll_conf)
 
     @defer.inlineCallbacks
     def handle(self):
         """Initiates throttled collection of routing table"""
         orig_delay = self.agent.throttle_delay
-        self.agent.throttle_delay = THROTTLE_DELAY
+        self.agent.throttle_delay = self.throttle_delay
         try:
             yield self.collect_routes()
         finally:
@@ -114,3 +115,11 @@ class StaticRoutes(Plugin):
             if ignored.matches(dest):
                 return False  # explicitly ignored by config
         return True
+
+
+def get_throttle_delay(config):
+    """Returns a throttle delay value from a ConfigParser instance"""
+    try:
+        return config.getfloat('staticroutes', 'throttle-delay')
+    except ConfigParser.Error:
+        return 0.0
