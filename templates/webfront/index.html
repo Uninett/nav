@@ -26,6 +26,14 @@
   {# Dashboard and widget actions for logged in users #}
   {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
 
+    <div id="widget-drop-targets">
+      {% for dash in dashboards %}
+        <div class="dashboard-drop" data-url="{% url 'moveto-dashboard' dash.pk %}">
+          <h5>{{ dash.name }}</h5>
+        </div>
+      {% endfor %}
+    </div>
+
     <div id="widgets-actions" class="hide-for-small" >
       <div id="widgets-action-add" title="Add widget" data-reveal data-reveal-id="navlet-list">
         <i class="fa fa-plus"></i>

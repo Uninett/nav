@@ -30,8 +30,9 @@ from django.shortcuts import get_object_or_404, render
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.path import sysconfdir
 from nav.django.utils import get_account
-from nav.models.profiles import NavbarLink, AccountDashboard
+from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
 from nav.web import ldapauth, auth
+from nav.web.utils import require_param
 from nav.web.webfront.utils import quick_read, tool_list
 from nav.web.webfront.forms import (LoginForm, NavbarLinkFormSet,
                                     ChangePasswordForm, ColumnsForm,
@@ -70,6 +71,8 @@ def index(request):
             'dashboard': dashboard,
             'dashboard_form': DashboardForm(account=request.account,
                                             initial={'dashboard': dashboard}),
+            'dashboards': AccountDashboard.objects.filter(
+                account=request.account).exclude(id=dashboard.pk),
             'navlets': list_navlets(),
             'title': dashboard.name,
         }
@@ -369,3 +372,16 @@ def save_dashboard_columns(request, did):
     dashboard.num_columns = request.POST.get('num_columns', 3)
     dashboard.save()
     return HttpResponse()
+
+
+@require_POST
+@require_param('widget_id')
+def moveto_dashboard(request, did):
+    """Move a widget to this dashboard"""
+    account = request.account
+    dashboard = get_object_or_404(AccountDashboard, account=account, pk=did)
+    widget = get_object_or_404(AccountNavlet, account=account,
+                      pk=request.POST.get('widget_id'))
+    widget.dashboard = dashboard
+    widget.save()
+    return HttpResponse(u'Widget moved to {}'.format(dashboard))

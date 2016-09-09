@@ -33,6 +33,8 @@ urlpatterns = patterns(
         name='delete-dashboard'),
     url(r'^index/dashboard/columns/(?P<did>\d+)/$', 'save_dashboard_columns',
         name='save-dashboard-columns'),
+    url(r'^index/dashboard/moveto/(?P<did>\d+)/$', 'moveto_dashboard',
+        name='moveto-dashboard'),
 
     url(r'^about/', 'about', name='webfront-about'),
     url(r'^toolbox/$', 'toolbox', name='webfront-toolbox'),

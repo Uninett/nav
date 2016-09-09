@@ -57,6 +57,27 @@ require([
         });
 
 
+        /**
+         * Droppable dashboard targets
+         */
+        $('.dashboard-drop').droppable({
+            activeClass: "drop-active",
+            hoverClass: "drop-hover",
+            tolerance: "pointer",
+            drop: function(event, ui) {
+                console.log(event);
+                console.log(ui);
+                console.log(this);
+
+                $(this).append('<span class="label">'+ ui.draggable.find('.navlet-title').text() +'</span>');
+
+                var request = $.post(this.dataset.url, {'widget_id': ui.draggable.data('id')});
+                request.done(function() {
+                    ui.draggable.fadeOut();
+                });
+            }
+        });
+
         /*
          * The following listeners are applied to buttons on the right hand side
          * when on the dashboard

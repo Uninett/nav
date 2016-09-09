@@ -67,12 +67,14 @@ from django.db.models import Max
 from django.http import HttpResponse
 from django.shortcuts import redirect, render_to_response, get_object_or_404
 from django.template.context import RequestContext
+from django.views.decorators.http import require_POST
 from django.views.generic.base import TemplateView
 
 from nav.models.profiles import AccountNavlet, AccountDashboard
 from nav.models.manage import Sensor
 from nav.django.auth import get_sudoer
 from nav.django.utils import get_account
+from nav.web.utils import require_param
 from nav.web.webfront import get_widget_columns, find_dashboard
 
 _logger = logging.getLogger(__name__)
@@ -435,3 +437,17 @@ def set_navlet_preferences(request):
             return HttpResponse()
 
     return HttpResponse(status=400)
+
+
+@require_POST
+@require_param('dashboard_id')
+def set_navlet_dashboard(request, navlet_id):
+    """Set the dashboard the navlet should appear in"""
+    navlet = get_object_or_404(AccountNavlet, account=request.account,
+                               pk=navlet_id)
+    dashboard = get_object_or_404(AccountDashboard, account=request.account,
+                                  pk=request.POST.get('dashboard_id'))
+    navlet.dashboard = dashboard
+    navlet.save()
+
+    return HttpResponse()
