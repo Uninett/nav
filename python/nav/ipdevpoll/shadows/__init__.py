@@ -241,68 +241,29 @@ class Usage(Shadow):
 class Vlan(Shadow):
     __shadowclass__ = manage.Vlan
 
-    def save(self, containers):
-        prefixes = self._get_my_prefixes(containers)
-        if prefixes:
-            mdl = self.get_existing_model(containers)
-            if mdl:
-                if mdl.net_type_id == 'scope':
-                    self._logger.warning(
-                        "some interface claims to be on a scope prefix, not "
-                        "changing vlan details. attached prefixes: %r",
-                        [pfx.net_address for pfx in prefixes])
-                    for pfx in prefixes:
-                        pfx.vlan = mdl
-                    return
+    def prepare(self, containers):
+        """Prepares this VLAN object for saving.
 
-                if mdl.net_type_id != 'static' and self.net_type.id == 'static':
-                    self._logger.info(
-                        "will not change vlan %r type from %s to static",
-                        self.net_ident, mdl.net_type_id)
-                    return
-
-            if (self.organization and
-                    not self.organization.get_existing_model()):
-                self._logger.warning("ignoring unknown organization id %r",
-                                     self.organization.id)
-                self.organization = None
-
-            if (self.usage and not self.usage.get_existing_model()):
-                self._logger.warning("ignoring unknown usage id %r",
-                                     self.usage.id)
-                self.usage = None
-
-            super(Vlan, self).save(containers)
-        else:
-            self._logger.debug("no associated prefixes, not saving: %r", self)
-
-    def _get_my_prefixes(self, containers):
-        """Get a list of Prefix shadow objects that point to this Vlan."""
-        if Prefix in containers:
-            all_prefixes = containers[Prefix].values()
-            my_prefixes = [prefix for prefix in all_prefixes
-                           if prefix.vlan is self]
-            return my_prefixes
-        else:
-            return []
-
-    def _get_vlan_from_my_prefixes(self, containers):
-        """Find and return an existing vlan any shadow prefix object pointing
-        to this Vlan.
+        The data stored in a VLAN object consists much of what can be found
+        from other objects, such as interfaces and prefixes, so the logic in
+        here can become rather involved.
 
         """
-        my_prefixes = self._get_my_prefixes(containers)
-        for prefix in my_prefixes:
-            live_prefix = prefix.get_existing_model()
-            if live_prefix and live_prefix.vlan_id:
-                # We just care about the first associated prefix we found
-                self._logger.debug(
-                    "_get_vlan_from_my_prefixes: selected prefix "
-                    "%s for possible vlan match for %r (%s), "
-                    "pre-existing is %r",
-                    live_prefix.net_address, self, id(self),
-                    live_prefix.vlan)
-                return live_prefix.vlan
+        if not self.net_type or self.net_type.id == 'unknown':
+            net_type = self._guesstimate_net_type(containers)
+            if net_type:
+                self.net_type = net_type
+
+    def save(self, containers):
+        if (self._has_no_prefixes(containers) or
+                self._revert_vlan_on_type_change_to_scope(containers) or
+                self._is_type_changed_to_static(containers)):
+            return
+
+        self._ignore_unknown_organizations()
+        self._ignore_unknown_usages()
+
+        super(Vlan, self).save(containers)
 
     def get_existing_model(self, containers=None):
         """Finds pre-existing Vlan object using custom logic.
@@ -342,6 +303,72 @@ class Vlan(Shadow):
             if vlan.vlan is None or (vlan.vlan == self.vlan and
                                      not self.net_ident):
                 return vlan
+
+    def _has_no_prefixes(self, containers):
+        prefixes = self._get_my_prefixes(containers)
+        if not prefixes:
+            self._logger.debug("no associated prefixes, not saving: %r", self)
+            return True
+
+    def _revert_vlan_on_type_change_to_scope(self, containers):
+        mdl = self.get_existing_model(containers)
+        if mdl and mdl.net_type_id == 'scope':
+            prefixes = self._get_my_prefixes(containers)
+            self._logger.warning("some interface claims to be on a scope "
+                                 "prefix, not changing vlan details. attached "
+                                 "prefixes: %r",
+                                 [pfx.net_address for pfx in prefixes])
+            for pfx in prefixes:
+                pfx.vlan = mdl
+            return True
+
+    def _is_type_changed_to_static(self, containers):
+        mdl = self.get_existing_model(containers)
+        if mdl.net_type_id != 'static' and self.net_type.id == 'static':
+            self._logger.info("will not change vlan %r type from %s to static",
+                              self.net_ident, mdl.net_type_id)
+            return True
+
+    def _ignore_unknown_organizations(self):
+        if (self.organization and
+                not self.organization.get_existing_model()):
+            self._logger.warning("ignoring unknown organization id %r",
+                                 self.organization.id)
+            self.organization = None
+
+    def _ignore_unknown_usages(self):
+        if self.usage and not self.usage.get_existing_model():
+            self._logger.warning("ignoring unknown usage id %r",
+                                 self.usage.id)
+            self.usage = None
+
+    def _get_my_prefixes(self, containers):
+        """Get a list of Prefix shadow objects that point to this Vlan."""
+        if Prefix in containers:
+            all_prefixes = containers[Prefix].values()
+            my_prefixes = [prefix for prefix in all_prefixes
+                           if prefix.vlan is self]
+            return my_prefixes
+        else:
+            return []
+
+    def _get_vlan_from_my_prefixes(self, containers):
+        """Find and return an existing vlan any shadow prefix object pointing
+        to this Vlan.
+
+        """
+        my_prefixes = self._get_my_prefixes(containers)
+        for prefix in my_prefixes:
+            live_prefix = prefix.get_existing_model()
+            if live_prefix and live_prefix.vlan_id:
+                # We just care about the first associated prefix we found
+                self._logger.debug(
+                    "_get_vlan_from_my_prefixes: selected prefix "
+                    "%s for possible vlan match for %r (%s), "
+                    "pre-existing is %r",
+                    live_prefix.net_address, self, id(self),
+                    live_prefix.vlan)
+                return live_prefix.vlan
 
     def _log_if_multiple_prefixes(self, prefix_containers):
         if len(prefix_containers) > 1:
@@ -410,19 +437,6 @@ class Vlan(Shadow):
             category__id__in=('GW', 'GSW')
         )
         return router_count.distinct().count()
-
-    def prepare(self, containers):
-        """Prepares this VLAN object for saving.
-
-        The data stored in a VLAN object consists much of what can be found
-        from other objects, such as interfaces and prefixes, so the logic in
-        here can becore rather involved.
-
-        """
-        if not self.net_type or self.net_type.id == 'unknown':
-            net_type = self._guesstimate_net_type(containers)
-            if net_type:
-                self.net_type = net_type
 
 
 class GwPortPrefix(Shadow):
