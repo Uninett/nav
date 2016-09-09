@@ -120,6 +120,7 @@ define(['plugins/navlet_controller'], function (NavletController) {
                 forcePlaceholderSize: true,
                 handle: '.navlet-drag-button',
                 placeholder: 'highlight',
+                tolerance: 'pointer',
                 start: function () {
                     that.getNavlets().addClass('outline');
                 },
