@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009-2012 UNINETT AS
+# Copyright (C) 2009-2012, 2016 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -39,8 +39,7 @@ from .swportblocked import SwPortBlocked
 from .cam import Cam
 from .adjacency import AdjacencyCandidate, UnrecognizedNeighbor
 from .entity import NetboxEntity
-
-PREFIX_AUTHORITATIVE_CATEGORIES = ('GW', 'GSW')
+from .prefix import Prefix
 
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
@@ -246,28 +245,34 @@ class Vlan(Shadow):
         prefixes = self._get_my_prefixes(containers)
         if prefixes:
             mdl = self.get_existing_model(containers)
-            if mdl and mdl.net_type_id == 'scope':
-                self._logger.warning(
-                    "some interface claims to be on a scope prefix, not "
-                    "changing vlan details. attached prefixes: %r",
-                    [pfx.net_address for pfx in prefixes])
-                for pfx in prefixes:
-                    pfx.vlan = mdl
-                return
-            else:
-                if (self.organization and
-                        not self.organization.get_existing_model()):
-                    self._logger.warning("ignoring unknown organization id %r",
-                                         self.organization.id)
-                    self.organization = None
+            if mdl:
+                if mdl.net_type_id == 'scope':
+                    self._logger.warning(
+                        "some interface claims to be on a scope prefix, not "
+                        "changing vlan details. attached prefixes: %r",
+                        [pfx.net_address for pfx in prefixes])
+                    for pfx in prefixes:
+                        pfx.vlan = mdl
+                    return
 
-                if (self.usage and
-                        not self.usage.get_existing_model()):
-                    self._logger.warning("ignoring unknown usage id %r",
-                                         self.usage.id)
-                    self.usage = None
+                if mdl.net_type_id != 'static' and self.net_type.id == 'static':
+                    self._logger.info(
+                        "will not change vlan %r type from %s to static",
+                        self.net_ident, mdl.net_type_id)
+                    return
 
-                super(Vlan, self).save(containers)
+            if (self.organization and
+                    not self.organization.get_existing_model()):
+                self._logger.warning("ignoring unknown organization id %r",
+                                     self.organization.id)
+                self.organization = None
+
+            if (self.usage and not self.usage.get_existing_model()):
+                self._logger.warning("ignoring unknown usage id %r",
+                                     self.usage.id)
+                self.usage = None
+
+            super(Vlan, self).save(containers)
         else:
             self._logger.debug("no associated prefixes, not saving: %r", self)
 
@@ -418,21 +423,6 @@ class Vlan(Shadow):
             net_type = self._guesstimate_net_type(containers)
             if net_type:
                 self.net_type = net_type
-
-
-class Prefix(Shadow):
-    __shadowclass__ = manage.Prefix
-    __lookups__ = [('net_address', 'vlan'), 'net_address']
-
-    def save(self, containers):
-        if self.get_existing_model():  # I already exist in the db
-            netbox = containers.get(None, Netbox).get_existing_model()
-            if netbox.category_id not in PREFIX_AUTHORITATIVE_CATEGORIES:
-                self._logger.debug(
-                    "not updating existing prefix %s for box of category %s",
-                    self.net_address, netbox.category_id)
-                return
-        return super(Prefix, self).save(containers)
 
 
 class GwPortPrefix(Shadow):
