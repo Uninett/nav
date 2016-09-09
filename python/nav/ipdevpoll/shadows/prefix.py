@@ -28,23 +28,27 @@ class PrefixManager(DefaultManager):
     def cleanup(self):
         """Cleans up missing static prefixes"""
         if STATIC_ROUTES_SENTINEL not in self.get_managed():
-            return  # no static route cleanup necesary
+            return  # no static route cleanup necessary
 
+        missing = self._get_missing_static_prefixes()
+        if missing:
+            self._logger.info("deleting missing static routes: %s",
+                              ",".join(p.net_address for p in missing))
+            missing.delete()
+
+    def _get_missing_static_prefixes(self):
         netbox = self.containers.get(None, Netbox)
         sysname = netbox.sysname.split('.')[0]
+
         statics = (
             p for p in self.get_managed()
             if p.vlan and p.vlan.net_type and p.vlan.net_type.id == 'static')
-        collected = [str(p.net_address) for p in statics if p.net_address]
+        collected_addrs = [str(p.net_address) for p in statics if p.net_address]
         missing_statics = manage.Prefix.objects.filter(
             vlan__net_type__id='static',
             vlan__net_ident__startswith=sysname,
-        ).exclude(net_address__in=collected)
-
-        if missing_statics:
-            self._logger.info("deleting missing static routes: %s",
-                              ",".join(p.net_address for p in missing_statics))
-            missing_statics.delete()
+        ).exclude(net_address__in=collected_addrs)
+        return missing_statics
 
 
 class Prefix(Shadow):
@@ -54,29 +58,33 @@ class Prefix(Shadow):
     __lookups__ = [('net_address', 'vlan'), 'net_address']
 
     def save(self, containers):
-        if self is STATIC_ROUTES_SENTINEL:
+        if (self is STATIC_ROUTES_SENTINEL or
+                self._is_not_authorized_to_modify_prefix(containers) or
+                self._is_modification_of_existing_prefix_to_static()):
             return
+        else:
+            return super(Prefix, self).save(containers)
 
-        existing = self.get_existing_model()
-        if existing:  # I already exist in the db
+    def _is_not_authorized_to_modify_prefix(self, containers):
+        if self.get_existing_model():
             netbox = containers.get(None, Netbox).get_existing_model()
             if netbox.category_id not in PREFIX_AUTHORITATIVE_CATEGORIES:
-                self._logger.debug(
-                    "not updating existing prefix %s for box of category %s",
-                    self.net_address, netbox.category_id)
-                return
+                self._logger.debug("not updating existing prefix %s for box "
+                                   "of category %s", self.net_address,
+                                   netbox.category_id)
+                return True
 
+    def _is_modification_of_existing_prefix_to_static(self):
+        existing = self.get_existing_model()
+        if existing:
             try:
-                if (self.vlan.net_type.id == 'static' and
-                            existing.vlan.net_type.id != 'static'):
-                    self._logger.info(
-                        "not changing existing prefix %s into static route",
-                        self.net_address)
-                    return
+                if (self.vlan.net_type.id == 'static'
+                        and existing.vlan.net_type.id != 'static'):
+                    self._logger.info("not changing existing prefix %s into "
+                                      "static route", self.net_address)
+                    return True
             except AttributeError:
-                pass  # maybe the proper attrs weren't set, ignore
-
-        return super(Prefix, self).save(containers)
+                return False  # maybe the proper attrs weren't set, ignore
 
     @classmethod
     def add_static_routes_sentinel(cls, containers):
