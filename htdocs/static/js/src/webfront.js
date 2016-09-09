@@ -58,6 +58,40 @@ require([
 
 
         /**
+         * Keyboard navigation to switch dashboards
+         */
+        var dashboardIndex = NAV.dashboards.indexOf(NAV.dashboard_id);
+        var fetchPreviousDashboard = function() {
+            if (dashboardIndex === 0) {
+                dashboardIndex = NAV.dashboards.length;
+            }
+            dashboardIndex -= 1;
+            window.location = '/?dashboard=' + NAV.dashboards[dashboardIndex];
+        };
+        var fetchNextDashboard = function() {
+            dashboardIndex += 1;
+            dashboardIndex = dashboardIndex % NAV.dashboards.length;
+            window.location = '/?dashboard=' + NAV.dashboards[dashboardIndex];
+        };
+
+        // $(document).on('swipeleft', fetchPreviousDashboard);
+        // $(document).on('swiperight', fetchNextDashboard);
+
+        $(document).keydown(function(event) {
+            if (!event.target.form) {
+                switch (event.which) {
+                case 37: // left
+                    fetchPreviousDashboard();
+                    break;
+                case 39: // right
+                    fetchNextDashboard();
+                    break;
+                }
+            }
+        });
+
+
+        /**
          * Droppable dashboard targets
          */
         var $dashboardDrop = $('#widget-drop-targets');

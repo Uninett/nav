@@ -17,6 +17,8 @@
    require(["src/webfront"]);
    NAV.preference_keys = NAV.preference_keys || {};
    NAV.preference_keys.widget_display_density = '{{ request.account.PREFERENCE_KEY_WIDGET_DISPLAY_DENSITY }}';
+   NAV.dashboards = {{ dashboard_ids|safe }};
+   NAV.dashboard_id = {{ dashboard.pk }};
   </script>
 {% endblock %}
 
@@ -36,6 +38,7 @@
         {% endfor %}
       </div>
     </div>
+
 
     <div id="widgets-actions" class="hide-for-small" >
       <div id="widgets-action-add" title="Add widget" data-reveal data-reveal-id="navlet-list">
@@ -114,6 +117,7 @@
         </label>
       </form>
 
+      <small>You can also use the arrow keys (left/right) to switch dashboards.</small>
       <form id="form-choose-dashboard">
         {{ dashboard_form }}
       </form>

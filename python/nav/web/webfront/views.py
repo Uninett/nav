@@ -60,6 +60,7 @@ def index(request):
 
     did = request.GET.get('dashboard')
     dashboard = find_dashboard(request.account, did)
+    dashboards = AccountDashboard.objects.filter(account=request.account)
 
     return render(
         request,
@@ -71,8 +72,8 @@ def index(request):
             'dashboard': dashboard,
             'dashboard_form': DashboardForm(account=request.account,
                                             initial={'dashboard': dashboard}),
-            'dashboards': AccountDashboard.objects.filter(
-                account=request.account).exclude(id=dashboard.pk),
+            'dashboards': dashboards.exclude(id=dashboard.pk),
+            'dashboard_ids': [d.pk for d in dashboards],
             'navlets': list_navlets(),
             'title': dashboard.name,
         }
