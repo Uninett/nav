@@ -13,6 +13,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""A shadow implementation of the nav.manage.Prefix model, and its manager"""
+
 from nav.models import manage
 from nav.ipdevpoll.storage import Shadow, DefaultManager
 from .netbox import Netbox
@@ -22,6 +24,7 @@ PREFIX_AUTHORITATIVE_CATEGORIES = ('GW', 'GSW')
 
 
 class PrefixManager(DefaultManager):
+    """"Manager of Prefix containers"""
     def cleanup(self):
         """Cleans up missing static prefixes"""
         if STATIC_ROUTES_SENTINEL not in self.get_managed():
@@ -45,6 +48,7 @@ class PrefixManager(DefaultManager):
 
 
 class Prefix(Shadow):
+    """A shadow container for nav.model.Prefix data"""
     manager = PrefixManager
     __shadowclass__ = manage.Prefix
     __lookups__ = [('net_address', 'vlan'), 'net_address']
