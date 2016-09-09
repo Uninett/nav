@@ -60,20 +60,40 @@ require([
         /**
          * Droppable dashboard targets
          */
+        var $dashboardDrop = $('#widget-drop-targets');
+        $navletsContainer.on('sortstart', function() {
+            $dashboardDrop.fadeIn();
+        });
+
+        var fadeOutDrop = function() {
+            $dashboardDrop.fadeOut();
+        };
+        $navletsContainer.on('sortstop', fadeOutDrop);
+
         $('.dashboard-drop').droppable({
             activeClass: "drop-active",
             hoverClass: "drop-hover",
             tolerance: "pointer",
             drop: function(event, ui) {
-                console.log(event);
-                console.log(ui);
-                console.log(this);
+                // Stop listening to the widget events because we want to give
+                // the user some time to read the feedback
+                $navletsContainer.off('sortstop');
 
-                $(this).append('<span class="label">'+ ui.draggable.find('.navlet-title').text() +'</span>');
-
+                var label = $('<span class="label">'+ ui.draggable.find('.navlet-title').text() +'</span>').appendTo(this);
                 var request = $.post(this.dataset.url, {'widget_id': ui.draggable.data('id')});
                 request.done(function() {
-                    ui.draggable.fadeOut();
+                    // On successful request make it green and add text to indicate success
+                    label.addClass('success').text(label.text() + ' moved' );
+                    ui.draggable.fadeOut(function() {
+                        $(this).remove();
+                    });
+                    $navletsContainer.on('sortstop', fadeOutDrop);  // Reapply listener
+                    setTimeout(function() {  // Give user time to read feedback
+                        fadeOutDrop();
+                    }, 1000);
+                });
+                request.fail(function() {
+                    label.addClass('alert').text(label.text() + ' move failed' );
                 });
             }
         });

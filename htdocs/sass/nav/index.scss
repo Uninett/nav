@@ -56,3 +56,28 @@ and (max-width : 480px) {
     label { overflow: hidden; }
     input[type=text] { width: 100%; }
 }
+
+
+#widget-drop-targets {
+    background-color: whitesmoke;
+    border: 3px solid #243640;
+    padding: 0 .5em .5em .5em;
+    position: absolute;
+    top: -90px;
+    > div {
+        display: flex;
+    }
+    .dashboard-drop {
+        background-color: white;
+        border: 1px solid #DDDDDD;
+        &:not(:last-child) { margin-right: .5em; }
+        padding: .5em;
+        width: 300px;
+        &.drop-active {
+            background-color: white;
+        }
+        &.drop-hover {
+            background-color: lightsteelblue;
+        }
+    }
+}

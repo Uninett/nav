@@ -26,12 +26,15 @@
   {# Dashboard and widget actions for logged in users #}
   {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
 
-    <div id="widget-drop-targets">
-      {% for dash in dashboards %}
-        <div class="dashboard-drop" data-url="{% url 'moveto-dashboard' dash.pk %}">
-          <h5>{{ dash.name }}</h5>
-        </div>
-      {% endfor %}
+    <div id="widget-drop-targets" style="display: none">
+      <small>Drag widgets to move to other dashboards</small>
+      <div>
+        {% for dash in dashboards %}
+          <div class="dashboard-drop" data-url="{% url 'moveto-dashboard' dash.pk %}">
+            <em>{{ dash.name }}</em>
+          </div>
+        {% endfor %}
+      </div>
     </div>
 
     <div id="widgets-actions" class="hide-for-small" >

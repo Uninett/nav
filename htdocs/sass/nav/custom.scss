@@ -88,26 +88,6 @@
     }
 }
 
-#widget-drop-targets {
-    display: flex;
-    margin-bottom: 1em;
-    .dashboard-drop {
-        background-color: white;
-        border: 1px solid #DDDDDD;
-        margin-right: 1em;
-        padding: .5em;
-        width: 300px;
-        &.drop-active {
-            background-color: lightsteelblue;
-        }
-        &.drop-hover {
-            background-color: steelblue;
-        }
-    }
-}
-
-
-
 
 /* Padding for all pages */
 
