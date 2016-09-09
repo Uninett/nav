@@ -66,12 +66,16 @@ require([
                 dashboardIndex = NAV.dashboards.length;
             }
             dashboardIndex -= 1;
-            window.location = '/?dashboard=' + NAV.dashboards[dashboardIndex];
+            $navletsContainer.css('position', 'relative').animate({'left': '4000px'}, function() {
+                window.location = '/?dashboard=' + NAV.dashboards[dashboardIndex];
+            });
         };
         var fetchNextDashboard = function() {
             dashboardIndex += 1;
             dashboardIndex = dashboardIndex % NAV.dashboards.length;
-            window.location = '/?dashboard=' + NAV.dashboards[dashboardIndex];
+            $navletsContainer.css('position', 'relative').animate({'right': '4000px'}, function() {
+                window.location = '/?dashboard=' + NAV.dashboards[dashboardIndex];
+            });
         };
 
         // $(document).on('swipeleft', fetchPreviousDashboard);
