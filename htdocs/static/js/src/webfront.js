@@ -230,8 +230,8 @@ require([
         });
 
         var $formRenameDashboard = $('#form-rename-dashboard');
-        var $dashboardTitleContainer = $dashboardSettingsPanel.find('.dashboard-title').parent();
-        var $dashboardTitle = $dashboardSettingsPanel.find('.dashboard-title');
+        var $dashboardTitleContainer = $dashboardSettingsPanel.find('.dashboard-title');
+        var $dashboardTitle = $dashboardSettingsPanel.find('span');
         $formRenameDashboard.hide();
         $dashboardTitleContainer.on('click', function() {
             $dashboardTitleContainer.hide();

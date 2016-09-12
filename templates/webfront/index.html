@@ -12,7 +12,9 @@
        margin-bottom: 0;
        padding: 0.9rem;
    }
-
+   #dropdown-dashboard-settings .dashboard-title { cursor: pointer; }
+   #dropdown-dashboard-settings .dashboard-title i { display: none; }
+   #dropdown-dashboard-settings .dashboard-title:hover i { display: inline-block; }
   </style>
   <script>
    require(["src/webfront"]);
@@ -106,8 +108,8 @@
          data-dropdown-content
          class="f-dropdown content medium right-action-content">
 
-      <h4>
-        <span class="dashboard-title">{{ dashboard.name }}</span>
+      <h4 class="dashboard-title">
+        <span>{{ dashboard.name }}</span>
         <i class="fa fa-edit"></i>
       </h4>
 
