@@ -265,6 +265,10 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
                         }
                     });
                 });
+
+                this.node.find('.cancel-button').on('click', function() {
+                    that.getModeSwitch().click();
+                });
             }
         },
         applyTitleListener: function () {
