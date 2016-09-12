@@ -28,7 +28,7 @@
   {# Dashboard and widget actions for logged in users #}
   {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
 
-    <div id="widget-drop-targets" style="display: none">
+    <div id="widget-drop-targets">
       <small>Drag widgets to move to other dashboards</small>
       <div>
         {% for dash in dashboards %}

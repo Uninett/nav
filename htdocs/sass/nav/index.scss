@@ -64,6 +64,7 @@ and (max-width : 480px) {
 #widget-drop-targets {
     background-color: whitesmoke;
     border: 3px solid #243640;
+    display: none;
     padding: 0 .5em .5em .5em;
     position: absolute;
     top: -90px;
