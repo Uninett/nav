@@ -5,13 +5,14 @@
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/navlets.css" />
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/navlets_compact.css" />
   <style>
-    #navlet-list input[type='submit'] { margin-bottom: 0; }
-    #navlet-list .panel {
-      background-color: #dfdfdf;
-      border: 1px solid #ccc;
-      margin-bottom: 0;
-      padding: 0.9rem;
-    }
+   #navlet-list input[type='submit'] { margin-bottom: 0; }
+   #navlet-list .panel {
+       background-color: #dfdfdf;
+       border: 1px solid #ccc;
+       margin-bottom: 0;
+       padding: 0.9rem;
+   }
+
   </style>
   <script>
    require(["src/webfront"]);
@@ -51,15 +52,15 @@
 
       <div id="widgets-layout-normal"
            class="widgets-layout-toggler
-           {% if request.account.preferences.widget_display_density == 'normal' %}hide{% endif %}
-           {% if not request.account.preferences.widget_display_density %}hide{% endif %}"
+                  {% if request.account.preferences.widget_display_density == 'normal' %}hide{% endif %}
+                  {% if not request.account.preferences.widget_display_density %}hide{% endif %}"
            title="Use normal layout for dashboard">
         <i class="fa fa-expand"></i>
       </div>
 
       <div id="widgets-layout-compact"
            class="widgets-layout-toggler
-           {% if request.account.preferences.widget_display_density == 'compact' %}hide{% endif %}"
+                  {% if request.account.preferences.widget_display_density == 'compact' %}hide{% endif %}"
            title="Use compact layout for dashboard">
         <i class="fa fa-compress"></i>
       </div>
