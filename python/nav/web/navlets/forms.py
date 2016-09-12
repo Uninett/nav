@@ -2,19 +2,23 @@
 
 from django import forms
 
-from nav.models.manage import Netbox
+from nav.models.manage import Netbox, Sensor
 
 
 class AlertWidgetForm(forms.Form):
     """Form for the alert widget"""
+
     on_message = forms.CharField(
         label='Message when alert is active',
         initial='The alert is active')
     off_message = forms.CharField(
         label='Message when alert is inactive (ok)',
         initial='No alert')
+    sensor = forms.ChoiceField(
+        choices=(), required=False)
     metric = forms.CharField(
         label='Metric path to fetch value from',
+        required=False,
         widget=forms.TextInput(attrs={'placeholder':'nav.metric.path.value'}))
     on_state = forms.ChoiceField(
         label='When is the alert considered "on"',
@@ -23,6 +27,21 @@ class AlertWidgetForm(forms.Form):
     alert_type = forms.ChoiceField(
         label='What to display in "on" state',
         choices=(('alert', 'A red alert'), ('warning', 'An orange warning')))
+
+    def __init__(self, *args, **kwargs):
+        """Init"""
+        super(AlertWidgetForm, self).__init__(*args, **kwargs)
+        self.fields['sensor'].choices = [('', '----------')] + [
+            (s.pk, str(s))
+             for s in Sensor.objects.filter(unit_of_measurement='boolean')]
+
+    def clean(self):
+        """Make sure either metric name or sensor is specified"""
+        cleaned_data = super(AlertWidgetForm, self).clean()
+        if not (cleaned_data.get('metric') or cleaned_data.get('sensor')):
+            raise forms.ValidationError('Need either metric name or a sensor',
+                                        code='metric-or-sensor-required')
+        return cleaned_data
 
 
 class UpsWidgetForm(forms.Form):

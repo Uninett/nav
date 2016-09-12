@@ -64,7 +64,7 @@ from operator import attrgetter
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db.models import Max
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render_to_response, get_object_or_404
 from django.template.context import RequestContext
 from django.views.decorators.http import require_POST
@@ -147,8 +147,7 @@ class Navlet(TemplateView):
             navlet.save()
             return HttpResponse()
         else:
-            return HttpResponse(form.errors, status=400)
-
+            return JsonResponse(form.errors, status=400)
 
     @classmethod
     def get_class(cls):

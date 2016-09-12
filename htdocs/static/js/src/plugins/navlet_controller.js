@@ -255,7 +255,7 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
                             var $ul = $('<ul class="no-bullet">');
                             for (var field in json) {
                                 var errors = $('<li>').html(field + ': ' + json[field].map(function(x) {
-                                    return x.message;
+                                    return x.message ? x.message : x;
                                 }).join(', '));
                                 $ul.append(errors);
                             }

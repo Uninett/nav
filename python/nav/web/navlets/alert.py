@@ -16,6 +16,7 @@
 """Module containing SensorWidget"""
 
 from nav.metrics.graphs import get_simple_graph_url
+from nav.models.manage import Sensor
 from . import Navlet, NAVLET_MODE_EDIT
 from .forms import AlertWidgetForm
 
@@ -38,6 +39,10 @@ class AlertWidget(Navlet):
         context = super(AlertWidget, self).get_context_data(*args, **kwargs)
         self.title = self.preferences.get('title', 'Alert')
         metric = self.preferences.get('metric')
+        sensorid = int(self.preferences.get('sensor', 0))
+        if not metric and sensorid:
+            metric = Sensor.objects.get(pk=sensorid).get_metric_name()
+            self.preferences['metric'] = metric
 
         if self.mode == NAVLET_MODE_EDIT:
             if metric:
