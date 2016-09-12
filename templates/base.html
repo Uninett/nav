@@ -30,6 +30,9 @@
                 api_prefix_usage_list: "{% url 'api:1:prefix-usage-list' %}",
                 status2_api_alerthistory: "{% url 'api:1:alerthistory-list' %}",
                 set_account_preference: "{% url 'set-account-preference' %}"
+            },
+            setTitle: function(title) {
+                document.title = "NAV - " + title;
             }
         };
     </script>
