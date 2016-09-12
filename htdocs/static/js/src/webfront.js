@@ -128,7 +128,7 @@ require([
                     $navletsContainer.on('sortstop', fadeOutDrop);  // Reapply listener
                     setTimeout(function() {  // Give user time to read feedback
                         fadeOutDrop();
-                    }, 1000);
+                    }, 2000);
                 });
                 request.fail(function() {
                     label.addClass('alert').text(label.text() + ' move failed' );

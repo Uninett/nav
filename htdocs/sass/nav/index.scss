@@ -76,7 +76,7 @@ and (max-width : 480px) {
         border: 1px solid #DDDDDD;
         &:not(:last-child) { margin-right: .5em; }
         padding: .5em;
-        width: 300px;
+        min-width: 300px;
         &.drop-active {
             background-color: white;
         }
