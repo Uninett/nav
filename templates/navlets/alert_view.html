@@ -31,13 +31,25 @@
              }
          });
 
+         function feedBack(text, klass) {
+             $alertBox.attr('class', 'alert-box with-icon');
+             if (klass) {
+                 $alertBox.addClass(klass);
+             }
+             $alertBox.html(text);
+         }
+
          function update() {
              var request = $.get('{{ data_url }}');
 
              request.done(function(data) {
+                 if (data.length === 0) {
+                     feedBack('<strong>Got no data from Graphite</strong> - perhaps the metric name is wrong?');
+                     return;
+                 }
+
                  var datapoints = data[0].datapoints.reverse();
 
-                 $alertBox.attr('class', 'alert-box with-icon');
                  $timestamp.text('N/A');
 
                  for (var i=0; i<datapoints.length; i++) {
@@ -45,23 +57,22 @@
                      var epoch = datapoints[i][1];
                      if (value !== null) {
                          if (value === onState) {
-                             $alertBox.addClass(alertType).text(text.on);
+                             feedBack(text.on, alertType);
                          } else {
-                             $alertBox.addClass('success').text(text.off);
+                             feedBack(text.off, 'success');
                          }
                          $timestamp.text(new Date(epoch * 1000).toLocaleString());
                          break;
                      }
                      if (i >= 3) {
-                         $alertBox.text(text.unknown);
+                         feedBack(text.unknown);
                      }
                  }
              });
 
              // Very basic error handling
              request.fail(function(jqXhr, textStatus, errorThrown) {
-                 $alertBox.attr('class', 'alert-box info')
-                          .html(['<strong>Error updating widget:</strong>', jqXhr.status, jqXhr.statusText].join(' '));
+                 feedBack(['<strong>Error updating widget:</strong>', jqXhr.status, jqXhr.statusText].join(' '));
              });
          }
      })()
