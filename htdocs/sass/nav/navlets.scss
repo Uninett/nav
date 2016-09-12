@@ -6,6 +6,8 @@ $fullscreen-color: #EEE;
 #navlets:-moz-full-screen { background-color: $fullscreen-color; }
 #navlets:-ms-fullscreen { background-color: $fullscreen-color; }
 
+.asteriskField { display: none; }
+
 #navlets .highlight {
     background-color: #d6d6d6;
     border: 1px solid #aaaaaa;
@@ -194,4 +196,8 @@ $fullscreen-color: #EEE;
      }
 
 
+}
+
+.AlertWidget {
+    fieldset { padding: .3em .8em; }
 }

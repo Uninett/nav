@@ -2,6 +2,9 @@
 
 from django import forms
 
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation import layout
+
 from nav.models.manage import Netbox, Sensor
 
 
@@ -34,6 +37,18 @@ class AlertWidgetForm(forms.Form):
         self.fields['sensor'].choices = [('', '----------')] + [
             (s.pk, str(s))
              for s in Sensor.objects.filter(unit_of_measurement='boolean')]
+
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = layout.Layout(
+            'on_message', 'off_message',
+            layout.Fieldset(
+                'Choose sensor or fill in metric',
+                'sensor', 'metric'
+            ),
+            'on_state', 'alert_type'
+        )
+
 
     def clean(self):
         """Make sure either metric name or sensor is specified"""
