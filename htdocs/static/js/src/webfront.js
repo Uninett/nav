@@ -230,10 +230,11 @@ require([
         });
 
         var $formRenameDashboard = $('#form-rename-dashboard');
+        var $dashboardTitleContainer = $dashboardSettingsPanel.find('.dashboard-title').parent();
         var $dashboardTitle = $dashboardSettingsPanel.find('.dashboard-title');
         $formRenameDashboard.hide();
-        $dashboardTitle.on('click', function() {
-            $dashboardTitle.hide();
+        $dashboardTitleContainer.on('click', function() {
+            $dashboardTitleContainer.hide();
             $formRenameDashboard.show();
         });
 
@@ -250,7 +251,7 @@ require([
                 $dashboardTitle.text(newName);
                 NAV.setTitle(newName);
 
-                $dashboardTitle.show();
+                $dashboardTitleContainer.show();
                 $formRenameDashboard.hide();
 
                 addFeedback(responseText);
