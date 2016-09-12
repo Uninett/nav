@@ -248,7 +248,7 @@ require([
                 var newName = self.elements['dashboard-name'].value;
                 $option.text(newName);
                 $dashboardTitle.text(newName);
-                document.title = newName;
+                NAV.setTitle(newName);
 
                 $dashboardTitle.show();
                 $formRenameDashboard.hide();
