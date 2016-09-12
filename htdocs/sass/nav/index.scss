@@ -50,6 +50,9 @@ and (max-width : 480px) {
     input, select, .button {
         margin-bottom: 0;
     }
+    .dashboard-title { cursor: pointer; }
+    .dashboard-title i { display: none; }
+    .dashboard-title:hover i { display: inline-block; }
 }
 
 #form-rename-dashboard {
