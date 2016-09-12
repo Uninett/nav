@@ -144,6 +144,7 @@ $fullscreen-color: #EEE;
          display: flex;
          justify-content: space-between;
          align-items: center;
+         overflow: hidden;
          .panel {
              margin-bottom: 0;
              padding: .5em 1em;
@@ -185,6 +186,9 @@ $fullscreen-color: #EEE;
              line-height: 1.2rem;
              width: 100%;
              text-align: center;
+             top: 50%;
+             left: 50%;
+             transform: translate(-50%, -50%);
          }
 
      }
