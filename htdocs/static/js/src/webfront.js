@@ -136,7 +136,8 @@ require([
             }
         });
 
-        /*
+
+        /**
          * The following listeners are applied to buttons on the right hand side
          * when on the dashboard
          */
