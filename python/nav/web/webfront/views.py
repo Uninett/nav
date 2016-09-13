@@ -17,12 +17,12 @@
 
 import os
 from datetime import datetime
-import json as simplejson
 import logging
 from operator import attrgetter
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
+from django.views.decorators.http import require_POST
 from django.views.decorators.debug import (sensitive_variables,
                                            sensitive_post_parameters)
 from django.shortcuts import get_object_or_404, render
@@ -30,14 +30,16 @@ from django.shortcuts import get_object_or_404, render
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.path import sysconfdir
 from nav.django.utils import get_account
-from nav.models.profiles import NavbarLink
+from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
 from nav.web import ldapauth, auth
+from nav.web.utils import require_param
 from nav.web.webfront.utils import quick_read, tool_list
-from nav.web.webfront.forms import (
-    LoginForm, NavbarLinkFormSet, ChangePasswordForm, ColumnsForm)
+from nav.web.webfront.forms import (LoginForm, NavbarLinkFormSet,
+                                    ChangePasswordForm, ColumnsForm,
+                                    DashboardForm)
 from nav.web.navlets import list_navlets
 from nav.web.message import new_message, Messages
-from nav.web.webfront import get_widget_columns
+from nav.web.webfront import get_widget_columns, find_dashboard
 
 _logger = logging.getLogger('nav.web.tools')
 
@@ -56,6 +58,10 @@ def index(request):
     else:
         welcome = quick_read(WELCOME_REGISTERED_PATH)
 
+    did = request.GET.get('dashboard')
+    dashboard = find_dashboard(request.account, did)
+    dashboards = AccountDashboard.objects.filter(account=request.account)
+
     return render(
         request,
         'webfront/index.html',
@@ -63,9 +69,13 @@ def index(request):
             'navpath': [('Home', '/')],
             'date_now': datetime.today(),
             'welcome': welcome,
+            'dashboard': dashboard,
+            'dashboard_form': DashboardForm(account=request.account,
+                                            initial={'dashboard': dashboard}),
+            'dashboards': dashboards.exclude(id=dashboard.pk),
+            'dashboard_ids': [d.pk for d in dashboards],
             'navlets': list_navlets(),
-            'widget_columns': get_widget_columns(request.account),
-            'title': 'Welcome to NAV',
+            'title': 'NAV - {}'.format(dashboard.name),
         }
     )
 
@@ -289,3 +299,90 @@ def set_widget_columns(request):
             account.save()
             return HttpResponseRedirect(reverse('webfront-index'))
     return HttpResponseRedirect(reverse('webfront-preferences'))
+
+
+def set_account_preference(request):
+    """Set account preference using url attributes"""
+    account = request.account
+    account.preferences.update(request.GET.dict())
+    account.save()
+    return HttpResponse()
+
+
+@require_POST
+def set_default_dashboard(request, did):
+    """Set the default dashboard for the user"""
+    dash = get_object_or_404(AccountDashboard, pk=did)
+    try:
+        old_default = AccountDashboard.objects.get(account=request.account,
+                                                   is_default=True)
+    except AccountDashboard.DoesNotExist:
+        # No previous default
+        old_default = None
+
+    dash.is_default = True
+    dash.save()
+    if old_default:
+        old_default.is_default = False
+        old_default.save()
+    return HttpResponse(
+        'Default dashboard set to &laquo;{}&raquo;'.format(dash.name))
+
+
+@require_POST
+def add_dashboard(request):
+    """Add a new dashboard to this user"""
+    name = request.POST.get('dashboard-name', 'New dashboard')
+    dashboard = AccountDashboard(account=request.account, name=name)
+    dashboard.save()
+    return JsonResponse({'dashboard_id': dashboard.pk})
+
+
+@require_POST
+def delete_dashboard(request, did):
+    """Delete this dashboard and all widgets on it"""
+    is_last = AccountDashboard.objects.filter(
+        account=request.account).count() == 1
+    if is_last:
+        return HttpResponse('Can not delete last dashboard', status=400)
+
+    dash = get_object_or_404(AccountDashboard, pk=did,
+                             account=request.account)
+    dash.delete()
+
+    return HttpResponse('Dashboard deleted')
+
+
+@require_POST
+def rename_dashboard(request, did):
+    """Rename this dashboard"""
+    dash = get_object_or_404(AccountDashboard, pk=did)
+    dash.name = request.POST.get('dashboard-name', dash.name)
+    dash.save()
+    return HttpResponse(
+        u'Dashboard renamed to &laquo;{}&raquo;'.format(dash.name))
+
+
+@require_POST
+def save_dashboard_columns(request, did):
+    """Save the number of columns for this dashboard"""
+
+    # Explicit fetch on account to prevent other people to change settings
+    dashboard = get_object_or_404(AccountDashboard, pk=did,
+                                  account=request.account)
+    dashboard.num_columns = request.POST.get('num_columns', 3)
+    dashboard.save()
+    return HttpResponse()
+
+
+@require_POST
+@require_param('widget_id')
+def moveto_dashboard(request, did):
+    """Move a widget to this dashboard"""
+    account = request.account
+    dashboard = get_object_or_404(AccountDashboard, account=account, pk=did)
+    widget = get_object_or_404(AccountNavlet, account=account,
+                      pk=request.POST.get('widget_id'))
+    widget.dashboard = dashboard
+    widget.save()
+    return HttpResponse(u'Widget moved to {}'.format(dashboard))

@@ -11,7 +11,7 @@ define(['plugins/navlet_controller'], function (NavletController) {
         '3': 'medium-4',
         '4': 'medium-3'
     };
- 
+
     function NavletsController(node, columns) {
         this.container = node;
         this.numColumns = columns || 2;
@@ -23,6 +23,8 @@ define(['plugins/navlet_controller'], function (NavletController) {
         this.navletSelector = '.navlet';
         this.sorterSelector = '.navletColumn';
 
+        this.addContentListener();
+
         this.fetchNavlets();
         this.addAddNavletListener();
     }
@@ -33,10 +35,34 @@ define(['plugins/navlet_controller'], function (NavletController) {
                 classes = "column navletColumn " + columnsMapper[numColumns],
                 columns = [];
 
+            if (this.container.hasClass('compact')) {
+                $row.addClass('collapse');
+            }
+
             for(var i = 0; i < numColumns; i++) {
                 columns.push($('<div>').addClass(classes).appendTo($row));
             }
             return columns;
+        },
+
+        /** Displays an infobox when there are no widgets on a dashboard. */
+        addContentListener: function() {
+            var self = this;
+            var message = $('<div class="alert-box info">No widgets added to this dashboard</div>');
+            var messageContainer = this.container.find('.navletColumn:first');
+            this.container.on('nav.navlets.fetched', function(event, meta) {
+                if (meta.numNavlets === 0) {
+                    messageContainer.append(message);
+                }
+            });
+            this.container.on('nav.navlet.added', function() {
+                message.detach();
+            });
+            this.container.on('nav.navlet.removed', function() {
+                if (self.container.find('.navlet').length === 0) {
+                    messageContainer.append(message);
+                }
+            });
         },
         fetchNavlets: function () {
             var that = this,
@@ -53,6 +79,7 @@ define(['plugins/navlet_controller'], function (NavletController) {
                     that.addNavlet(data[i]);
                 }
                 that.addNavletOrdering();
+                that.container.trigger('nav.navlets.fetched', {numNavlets: data.length});
             });
         },
         addAddNavletListener: function () {
@@ -61,7 +88,8 @@ define(['plugins/navlet_controller'], function (NavletController) {
                 event.preventDefault();
                 var request = $.post($(this).attr('action'), $(this).serialize(), 'json');
                 request.done(function (data) {
-                    that.addNavlet(data);
+                    that.addNavlet(data, true);
+                    that.saveOrder(that.findOrder());
                     $('#navlet-list').foundation('reveal', 'close');
                 });
                 request.fail(function () {
@@ -69,9 +97,20 @@ define(['plugins/navlet_controller'], function (NavletController) {
                 });
             });
         },
-        addNavlet: function (data) {
+
+        /**
+         * Spawn a new widget on the existing dashboard.
+         *
+         * Triggers the event 'nav.navlet.added' on the widgets container.
+         *
+         * @param {object} data - metadata about the widget
+         * @param {boolean} forceFirst - Force this widget to be placed in the top left corner.
+         */
+        addNavlet: function (data, forceFirst) {
             var column = data.column > this.numColumns ? this.numColumns : data.column;
-            new NavletController(this.container, this.columns[column - 1], data);
+            column = column < 1 ? 1 : column;
+            new NavletController(this.container, this.columns[column - 1], data, forceFirst);
+            this.container.trigger('nav.navlet.added');
         },
         addNavletOrdering: function () {
             var that = this;
@@ -81,6 +120,7 @@ define(['plugins/navlet_controller'], function (NavletController) {
                 forcePlaceholderSize: true,
                 handle: '.navlet-drag-button',
                 placeholder: 'highlight',
+                tolerance: 'pointer',
                 start: function () {
                     that.getNavlets().addClass('outline');
                 },

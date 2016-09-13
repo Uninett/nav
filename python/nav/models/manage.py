@@ -55,6 +55,15 @@ import nav.models.event
 ### Netbox-related models
 
 
+class UpsManager(models.Manager):
+    """Manager for finding UPS netboxes"""
+    def get_queryset(self):
+        """Filter out UPSes"""
+        return super(UpsManager, self).get_queryset().filter(
+            category='POWER',
+            sensor__internal_name__startswith='ups').distinct()
+
+
 class Netbox(models.Model):
     """From NAV Wiki: The netbox table is the heart of the heart so to speak,
     the most central table of them all. The netbox tables contains information
@@ -91,6 +100,7 @@ class Netbox(models.Model):
 
     data = hstore.DictionaryField()
     objects = hstore.HStoreManager()
+    ups_objects = UpsManager()
 
     class Meta(object):
         db_table = 'netbox'

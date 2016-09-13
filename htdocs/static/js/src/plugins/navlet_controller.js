@@ -16,11 +16,12 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
     *
     */
 
-    var NavletController = function (container, renderNode, navlet) {
+    var NavletController = function (container, renderNode, navlet, forceFirst) {
         this.container = container;    // Navlet container
         this.renderNode = renderNode;  // The column this navlet should render in
         this.navlet = navlet;          // Object containing navlet information
         this.spinner = new Spinner();  // Spinner showing on load
+        this.forceFirst = typeof forceFirst === 'undefined' ? false : true;
         this.node = this.createNode(); // The complete node for this navlet
         this.removeUrl = this.container.attr('data-remove-navlet');           // Url to use to remove a navlet from this user
         this.baseTemplateUrl = this.container.attr('data-base-template-url'); // Url to use to fetch base template for this navlet
@@ -31,6 +32,7 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
     NavletController.prototype = {
         createNode: function () {
             /* Creates the node that the navlet will loaded into */
+            var self = this;
             var $div = $('<div/>');
             $div.attr({
                 'data-id': this.navlet.id,
@@ -43,7 +45,15 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
                 $div.addClass('colorblock-navlet');
             }
 
-            this.renderNode.append($div);
+            if (this.forceFirst) {
+                this.renderNode.prepend($div);
+                $div.on('mouseover', function() {
+                    $div.removeClass('mark-new');
+                    self.forceFirst = false;
+                });
+            } else {
+                this.renderNode.append($div);
+            }
             return $div;
         },
         renderNavlet: function (mode) {
@@ -74,6 +84,9 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
         },
         handleSuccessfulRequest: function (html, mode) {
             this.node.html(html);
+            if (this.forceFirst) {
+                this.node.addClass('mark-new');
+            }
             this.applyListeners();
             this.addReloader(mode);
         },
@@ -163,6 +176,7 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
                 var mode = this.getRenderMode() === 'VIEW' ? 'EDIT' : 'VIEW';
 
                 modeSwitch.click(function () {
+                    that.node.trigger('render', [mode]);
                     that.renderNavlet(mode);
                 });
             }
@@ -194,6 +208,7 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
                             clearInterval(that.refresh);
                         }
                         that.node.remove();
+                        that.container.trigger('nav.navlet.removed');
                         $(modal).foundation('reveal', 'close');
                     });
                 });
@@ -240,7 +255,7 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
                             var $ul = $('<ul class="no-bullet">');
                             for (var field in json) {
                                 var errors = $('<li>').html(field + ': ' + json[field].map(function(x) {
-                                    return x.message;
+                                    return x.message ? x.message : x;
                                 }).join(', '));
                                 $ul.append(errors);
                             }
@@ -249,6 +264,10 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
                             that.displayError('Could not save changes: ' + jqxhr.responseText);
                         }
                     });
+                });
+
+                this.node.find('.cancel-button').on('click', function() {
+                    that.getModeSwitch().click();
                 });
             }
         },

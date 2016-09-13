@@ -64,15 +64,18 @@ from operator import attrgetter
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db.models import Max
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render_to_response, get_object_or_404
 from django.template.context import RequestContext
+from django.views.decorators.http import require_POST
 from django.views.generic.base import TemplateView
 
-from nav.models.profiles import AccountNavlet
+from nav.models.profiles import AccountNavlet, AccountDashboard
+from nav.models.manage import Sensor
 from nav.django.auth import get_sudoer
 from nav.django.utils import get_account
-from nav.web.webfront import get_widget_columns
+from nav.web.utils import require_param
+from nav.web.webfront import get_widget_columns, find_dashboard
 
 _logger = logging.getLogger(__name__)
 
@@ -128,6 +131,24 @@ class Navlet(TemplateView):
         context['navlet'] = self
         return context
 
+    def post(self, request, **kwargs):
+        """Save preferences
+
+        Make sure you're not overriding stuff with the form
+        """
+        navlet = AccountNavlet.objects.get(pk=self.navlet_id,
+                                           account=request.account)
+        form = kwargs.get('form')
+        if not form:
+            return HttpResponse('No form supplied', status=400)
+
+        if form.is_valid():
+            navlet.preferences.update(form.cleaned_data)
+            navlet.save()
+            return HttpResponse()
+        else:
+            return JsonResponse(form.errors, status=400)
+
     @classmethod
     def get_class(cls):
         """This string is used to identify the Widget"""
@@ -170,10 +191,10 @@ def get_navlet_from_name(navletmodule):
         return cls
 
 
-def get_user_navlets(request):
-    """Gets all navlets that this user subscribes to"""
-    account = get_account(request)
-    usernavlets = AccountNavlet.objects.filter(account=account)
+def get_user_navlets(request, dashboard_id=None):
+    """Gets all navlets that this user subscribes to for a given dashboard"""
+    dashboard = find_dashboard(request.account, dashboard_id)
+    usernavlets = dashboard.widgets.all()
 
     navlets = []
     for usernavlet in usernavlets:
@@ -229,26 +250,32 @@ def dispatcher(request, navlet_id):
         return view(request)
 
 
-def add_user_navlet(request):
+def add_user_navlet(request, dashboard_id=None):
     """Add a navlet subscription to this user"""
     if request.method == 'POST' and 'navlet' in request.POST:
-        account = get_account(request)
+        account = request.account
+        dashboard = find_dashboard(account, dashboard_id=dashboard_id)
 
         if can_modify_navlet(account, request):
             navlet_class = request.POST.get('navlet')
-            navlet = add_navlet(account, navlet_class)
+            navlet = add_navlet(account, navlet_class, dashboard=dashboard)
             return HttpResponse(json.dumps(create_navlet_object(navlet)),
                                 content_type="application/json")
 
     return HttpResponse(status=400)
 
 
-def add_navlet(account, navlet, preferences=None):
+def add_navlet(account, navlet, preferences=None, dashboard=None):
     """Create new accountnavlet based on request data"""
     if preferences is None:
         preferences = {}
-    accountnavlet = AccountNavlet(account=account, navlet=navlet)
-    accountnavlet.column, accountnavlet.order = find_new_placement(account)
+    if dashboard is None:
+        dashboard = AccountDashboard.objects.get(account=account,
+                                                 is_default=True)
+
+    accountnavlet = AccountNavlet(account=account, navlet=navlet,
+                                  dashboard=dashboard)
+    accountnavlet.column, accountnavlet.order = find_new_placement()
 
     default_preferences = get_default_preferences(
         get_navlet_from_name(navlet)) or {}
@@ -269,17 +296,16 @@ def get_default_preferences(navlet):
         return preferences
 
 
-def find_new_placement(account):
-    """Determines the best placement for a new account navlet"""
-    widget_columns = get_widget_columns(account)
+def find_new_placement():
+    """Determines the best placement for a new account navlet
 
-    column_count = Counter({
-        column: account.accountnavlet_set.filter(column=column).count()
-        for column in range(1, widget_columns + 1)})
+    This is now defined to be at the top of the first column as this is the
+    easiest way for the user to find the newly attached widget.
 
-    column, order = column_count.most_common()[-1]
-    order += 1
-    return column, order
+    :return: A tuple of column (integer, 1-indexed) and order (integer,
+             0-indexed)
+    """
+    return 1, 0
 
 
 def can_modify_navlet(account, request):
@@ -384,11 +410,11 @@ def add_user_navlet_graph(request):
 def add_user_navlet_sensor(request):
     """Add a sensor widget with sensor id set"""
     if request.method == 'POST':
-        sensor_id = int(request.REQUEST.get('sensor_id'))
-        if sensor_id:
-            add_navlet(request.account, 'nav.web.navlets.sensor.SensorWidget',
-                       {'sensor_id': sensor_id})
-            return HttpResponse(status=200)
+        sensor = get_object_or_404(
+            Sensor, pk=int(request.REQUEST.get('sensor_id')))
+        add_navlet(request.account, 'nav.web.navlets.sensor.SensorWidget',
+                   {'sensor_id': sensor.pk, 'title': sensor.netbox.sysname})
+        return HttpResponse(status=200)
 
     return HttpResponse(status=400)
 
@@ -410,3 +436,17 @@ def set_navlet_preferences(request):
             return HttpResponse()
 
     return HttpResponse(status=400)
+
+
+@require_POST
+@require_param('dashboard_id')
+def set_navlet_dashboard(request, navlet_id):
+    """Set the dashboard the navlet should appear in"""
+    navlet = get_object_or_404(AccountNavlet, account=request.account,
+                               pk=navlet_id)
+    dashboard = get_object_or_404(AccountDashboard, account=request.account,
+                                  pk=request.POST.get('dashboard_id'))
+    navlet.dashboard = dashboard
+    navlet.save()
+
+    return HttpResponse()

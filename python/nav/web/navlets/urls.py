@@ -15,15 +15,21 @@
 #
 """Module comment"""
 
-from django.conf.urls import patterns, include, url
+from django.conf.urls import patterns, url
 from . import (get_user_navlets, add_user_navlet,
                add_user_navlet_graph, remove_user_navlet, dispatcher,
                save_navlet_order, render_base_template, set_navlet_preferences,
                add_user_navlet_sensor)
 
 urlpatterns = patterns('',
-    url(r'^get-user-navlets/', get_user_navlets, name='get-user-navlets'),
-    url(r'^add-user-navlet/$', add_user_navlet, name='add-user-navlet'),
+    url(r'^get-user-navlets/$', get_user_navlets,
+        name='get-user-navlets'),
+    url(r'^get-user-navlets/(?P<dashboard_id>\d+)/$', get_user_navlets,
+        name='get-user-navlets'),
+    url(r'^add-user-navlet/$', add_user_navlet,
+        name='add-user-navlet'),
+    url(r'^add-user-navlet/(?P<dashboard_id>\d+)/$', add_user_navlet,
+        name='add-user-navlet'),
     url(r'^add-user-navlet/graph/$', add_user_navlet_graph,
         name='add-user-navlet-graph'),
     url(r'^add-user-navlet/sensor/$', add_user_navlet_sensor,

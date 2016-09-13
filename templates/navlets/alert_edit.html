@@ -1,0 +1,36 @@
+{% extends 'navlets/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block navlet-content %}
+
+  <p class="alert-box info">
+    This widget periodically fetches a binary value (the value must be either
+    zero or 1) from Graphite. The value is fetched using the given <em>metric</em>.
+
+    If the value is equal to the <em>on state</em> the widget will display a
+    warning or alert. If not it will say that everything is ok.<br>
+    <strong>Choose either a sensor or write a metric name.</strong>
+  </p>
+
+  <form action="{% url 'get-user-navlet' navlet.navlet_id %}" method="post">
+    {% crispy form %}
+    <input type="submit" class="button tiny" value="Save">
+    <a class="button tiny secondary cancel-button">Cancel</a>
+  </form>
+
+  <script>
+   var $navlet = $('[data-id=' + {{ navlet.navlet_id }}+ ']');
+   $navlet.find("[name=sensor]").select2();  // Add select2 component to sensor dropdown
+
+   /* Reset dropdown when altering metric path */
+   $navlet.find("[name=metric]").on('keydown', function(){
+       $navlet.find("[name=sensor]").select2('val', '');
+   });
+
+   /* Reset metric path when altering dropdown*/
+   $navlet.find("[name=sensor]").on('change', function(){
+       $navlet.find("[name=metric]").val('');
+   });
+  </script>
+
+{% endblock %}

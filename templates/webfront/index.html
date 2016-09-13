@@ -3,26 +3,84 @@
 {% block base_header_additional_head %}
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/index.css" />
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/navlets.css" />
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/navlets_compact.css" />
   <style>
-    #navlet-list input[type='submit'] { margin-bottom: 0; }
-    #navlet-list .panel {
-      background-color: #dfdfdf;
-      border: 1px solid #ccc;
-      margin-bottom: 0;
-      padding: 0.9rem;
-    }
+   #navlet-list input[type='submit'] { margin-bottom: 0; }
+   #navlet-list .panel {
+       background-color: #dfdfdf;
+       border: 1px solid #ccc;
+       margin-bottom: 0;
+       padding: 0.9rem;
+   }
   </style>
-  <script>require(["src/webfront"]);</script>
+  <script>
+   require(["src/webfront"]);
+   NAV.preference_keys = NAV.preference_keys || {};
+   NAV.preference_keys.widget_display_density = '{{ request.account.PREFERENCE_KEY_WIDGET_DISPLAY_DENSITY }}';
+   NAV.dashboards = {{ dashboard_ids|safe }};
+   NAV.dashboard_id = {{ dashboard.pk }};
+  </script>
 {% endblock %}
 
 
 {% block base_content %}
 
-  {#  Reveal Add widgets modal  #}
+  {# Dashboard and widget actions for logged in users #}
   {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
 
-    <div id="widgets-action-add" class="hide-for-small" title="Add widget" data-reveal data-reveal-id="navlet-list">
-      <i class="fa fa-plus"></i>
+
+    {% if dashboards|length > 1 %}
+      <div id="widget-drop-targets">
+        <small>Drag widgets to move to other dashboards</small>
+        <div>
+          {% for dash in dashboards %}
+            <div class="dashboard-drop" data-url="{% url 'moveto-dashboard' dash.pk %}">
+              <em>{{ dash.name }}</em>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+
+    <div id="widgets-actions" class="hide-for-small" >
+      <div id="widgets-action-add" title="Add widget" data-reveal data-reveal-id="navlet-list">
+        <i class="fa fa-plus"></i>
+      </div>
+
+      <div id="widgets-show-fullscreen" title="Show dashboard in fullscreen">
+        <i class="fa fa-arrows-alt"></i>
+      </div>
+
+      <div id="widgets-layout-normal"
+           class="widgets-layout-toggler
+                  {% if request.account.preferences.widget_display_density == 'normal' %}hide{% endif %}
+                  {% if not request.account.preferences.widget_display_density %}hide{% endif %}"
+           title="Use normal layout for dashboard">
+        <i class="fa fa-expand"></i>
+      </div>
+
+      <div id="widgets-layout-compact"
+           class="widgets-layout-toggler
+                  {% if request.account.preferences.widget_display_density == 'compact' %}hide{% endif %}"
+           title="Use compact layout for dashboard">
+        <i class="fa fa-compress"></i>
+      </div>
+
+      <div id="rightaction-dashboard-config"
+           title="Settings for current dashboard"
+           data-dropdown="dropdown-dashboard-settings"
+           data-options="align:left">
+        <i class="fa fa-gear fa-lg"></i>
+      </div>
+
+      <div id="rightaction-add-dashboard"
+           title="Add a new dashboard"
+           data-dropdown="dropdown-dashboard-add"
+           data-options="align:left">
+        <i class="fa fa-plus-square-o fa-lg"></i>
+      </div>
+
     </div>
 
     {% comment %} List of navlets to add {% endcomment %}
@@ -33,7 +91,7 @@
         {% for navlet in navlets %}
           <li>
             <div class="panel">
-              <form class="add-user-navlet right" action="{% url 'add-user-navlet' %}" method="post">
+              <form class="add-user-navlet right" action="{% url 'add-user-navlet' dashboard.pk %}" method="post">
                 <input type="hidden" name="navlet" value="{{ navlet.get_class }}">
                 <input type="submit" class="button tiny" value="Add">
               </form>
@@ -45,15 +103,95 @@
       </ul>
     </div>
 
+    {# Content dropdown for dashboard settings #}
+    <div id="dropdown-dashboard-settings"
+         data-dropdown-content
+         class="f-dropdown content medium right-action-content">
+
+      <h4 class="dashboard-title">
+        <span>{{ dashboard.name }}</span>
+        <i class="fa fa-edit"></i>
+      </h4>
+
+      <form id="form-rename-dashboard"
+            method="post"
+            data-dashboard="{{ dashboard.pk }}"
+            action="{% url 'rename-dashboard' dashboard.pk %}" >
+        <input type="submit" class="small button right" value="Rename dashboard">
+        <label>
+          <input type="text" name="dashboard-name" placeholder="Dashboard name" value="{{ dashboard.name }}">
+        </label>
+      </form>
+
+      <small>You can also use the arrow keys (left/right) to switch dashboards.</small>
+      <form id="form-choose-dashboard">
+        {{ dashboard_form.as_p }}
+      </form>
+
+      <div class="row">
+
+        <div class="column medium-6">
+          {% if dashboard.is_default %}
+            <div class="alert-box">Default dashboard</div>
+          {% else %}
+            <form id="form-set-default-dashboard" method="post" action="{% url 'set-default-dashboard' dashboard.pk %}">
+              <input type="submit" value="Set as default dashboard" class="small button secondary">
+            </form>
+          {% endif %}
+        </div>
+
+
+        <div class="column medium-6">
+          {% if request.account.accountdashboard_set.count > 1 %}
+            <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}" class="right">
+              <input type="submit" class="small button alert" value="Delete dashboard">
+            </form>
+          {% endif %}
+        </div>
+
+      </div>
+
+      <h5>Columns</h5>
+      <ul class="button-group" style="margin-bottom: 1em;" data-url="{% url 'save-dashboard-columns' dashboard.pk %}">
+        <li><a href="#" class="button tiny secondary column-chooser" data-columns="2">Two</a></li>
+        <li><a href="#" class="button tiny secondary column-chooser" data-columns="3">Three</a></li>
+        <li><a href="#" class="button tiny secondary column-chooser" data-columns="4">Four</a></li>
+      </ul>
+
+    </div> {# dropdown dashboard forms #}
+
+
+    {# Content dropdown for adding a new dashboard #}
+    <div id="dropdown-dashboard-add"
+         data-dropdown-content
+         class="f-dropdown content small right-action-content">
+      <form id="form-add-dashboard" method="post" action="{% url 'add-dashboard' %}">
+        <label>
+          Add dashboard
+          <input type="text" name="dashboard-name" placeholder="Dashboard name">
+        </label>
+        <input type="submit" class="small button full-width" value="Add dashboard">
+      </form>
+    </div>
+
   {% endif %}
+
+  <div id="dashboard-header">
+    <a href="#">{{ dashboards.0 }}</a>
+    <i class="fa fa-arrow-left"></i>
+    <h3>{{ dashboard }}</h3>
+    <i class="fa fa-arrow-right"></i>
+    <a href="#">{{ dashboards.1 }}</a>
+  </div>
 
   {% comment %} Main container for navlets {% endcomment %}
   <div id="navlets"
-       data-list-navlets="{% url 'get-user-navlets' %}"
+       {% if request.account.preferences.widget_display_density == 'compact' %}class="compact"{% endif %}
+       data-list-navlets="{% url 'get-user-navlets' dashboard.pk %}"
        data-remove-navlet="{% url 'remove-user-navlet' %}"
        data-save-order-url="{% url 'save-navlet-order' %}"
        data-base-template-url="{% url 'navlet-base-template' %}"
-       data-widget-columns="{{ widget_columns }}"
+       data-widget-columns="{{ dashboard.num_columns }}"
   ></div>
 
   <ul id="joyride_for_desktop" data-joyride class="joyride-list">

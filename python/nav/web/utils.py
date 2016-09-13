@@ -14,8 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Utils for views"""
-import json
-from django.core.serializers.json import DjangoJSONEncoder
+
 from django.http import HttpResponse
 
 
@@ -30,7 +29,24 @@ def create_title(navpath):
 class SubListView(ListView):
     """ Subclass of the generic list ListView to allow extra context """
     extra_context = {}
-    def get_context_data(self,*args, **kwargs):
+    def get_context_data(self, *args, **kwargs):
         context = super(SubListView, self).get_context_data(*args, **kwargs)
         context.update(self.extra_context)
         return context
+
+
+def require_param(parameter):
+    """A decorator for requiring parameters
+
+    Will check both GET and POST querydict for the parameter.
+    """
+    # pylint: disable=missing-docstring
+    def wrap(func):
+        def wrapper(request, *args, **kwargs):
+            if parameter in request.GET or parameter in request.POST:
+                return func(request, *args, **kwargs)
+            else:
+                return HttpResponse("Missing parameter {}".format(parameter),
+                                    status=400)
+        return wrapper
+    return wrap
