@@ -36,7 +36,9 @@ class AlertWidgetForm(forms.Form):
         super(AlertWidgetForm, self).__init__(*args, **kwargs)
         self.fields['sensor'].choices = [('', '----------')] + [
             (s.pk, str(s))
-             for s in Sensor.objects.filter(unit_of_measurement='boolean')]
+             for s in Sensor.objects.filter(
+                     unit_of_measurement='boolean').order_by('human_readable')
+        ]
 
         self.helper = FormHelper()
         self.helper.form_tag = False
