@@ -40,6 +40,12 @@ class StaticRoutes(Plugin):
         cls.ignored_prefixes = get_ignored_prefixes(ipdevpoll_conf)
         cls.throttle_delay = get_throttle_delay(ipdevpoll_conf)
 
+    @classmethod
+    def can_handle(cls, netbox):
+        """This will only be useful on layer 3 devices, i.e. GW/GSW devices."""
+        daddy_says_ok = super(StaticRoutes, cls).can_handle(netbox)
+        return daddy_says_ok and netbox.category.id in ('GW', 'GSW')
+
     @defer.inlineCallbacks
     def handle(self):
         """Initiates throttled collection of routing table"""

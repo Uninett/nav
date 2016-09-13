@@ -327,6 +327,7 @@ class MibRetrieverMaker(type):
 class MibRetriever(object):
     """Base class for functioning MIB retriever classes."""
     mib = None
+    nodes = None
     __metaclass__ = MibRetrieverMaker
     _logger = ContextLogger()
 

@@ -68,7 +68,7 @@ def oid_to_ipv6(oid):
     except OverflowError as error:
         raise ValueError(error)
     addr = (high << 64) + low
-    return IP(addr)
+    return IP(addr, ipversion=6)
 
 
 def oid_to_ipv4(oid):
@@ -84,7 +84,7 @@ def oid_to_ipv4(oid):
         addr, = unpack("!I", array.array("B", oid).tostring())
     except OverflowError as error:
         raise ValueError(error)
-    return IP(addr)
+    return IP(addr, ipversion=4)
 
 #############################################################################
 # Varios OID consumer functions, which can be fed to the consume() function #

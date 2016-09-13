@@ -14,19 +14,22 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""MibRetriever implementation for IP-MIB"""
+from __future__ import absolute_import
 from twisted.internet import defer
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.oids import OID
 from nav.oidparsers import IPV4_ID, IPV6_ID, oid_to_ipv6, oid_to_ipv4
 from nav.ipdevpoll.utils import binary_mac_to_hex
-import mibretriever
+from . import mibretriever
 
 IP_IN_OCTETS = 'ipIfStatsHCInOctets'
 IP_OUT_OCTETS = 'ipIfStatsHCOutOctets'
 
 
 class IpMib(mibretriever.MibRetriever):
+    """MibRetriever implementation for IP-MIB"""
     from nav.smidumps.ip_mib import MIB as mib
 
     @staticmethod
@@ -327,4 +330,5 @@ class IpMib(mibretriever.MibRetriever):
 
 
 class IndexToIpException(Exception):
+    """A collected OID row index could not be converted to an IP address"""
     pass
