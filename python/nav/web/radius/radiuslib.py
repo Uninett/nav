@@ -37,15 +37,14 @@ class HostCache(object):
     def __init__(self):
         self.cache = {}
 
-    def lookupIPAddress(self, ip):
+    def lookup_ip_address(self, ip):
         """
         Perform a reverse DNS lookup for ip.
 
         Uses self.cache to speed up results when the same ip is
         lookup up several times during one session.
 
-        Keyword arguments:
-        ip      - ip address to lookup
+        :param ip: IP address to look up
         """
 
         if ip is None:
@@ -60,15 +59,12 @@ class HostCache(object):
         return self.cache[ip]
 
 
-def makeTimeHumanReadable(seconds):
+def humanize_time(seconds):
     """
     Convert seconds into days, hours, minutes, seconds and make some nice output
 
-    Keyword Arguments:
-    seconds     - the seconds you want converted
-
-    Return:
-    A string in the format dd, hh, mm, ss
+    :param seconds: the seconds you want converted
+    :returns: A string formatted as DD HH MM SS
     """
 
     times = _calc_time(seconds)
@@ -91,12 +87,8 @@ def makeTimeHumanReadable(seconds):
 def _calc_time(seconds):
     """Calculate days/hours/minutes from seconds.
 
-    Keyword arguments:
-    seconds - integer containing the seconds we want calculated
-              (default "tuple")
-
-    Return:
-    Tuple (days, hours, minutes, seconds)
+    :param seconds: integer containing the seconds we want calculated
+    :returns: A tuple of (days, hours, minutes, seconds)
 
     """
     if not seconds:
@@ -123,7 +115,7 @@ def _calc_time(seconds):
     return days, hours, minutes, seconds
 
 
-def makeBytesHumanReadable(number, unit="B"):
+def humanize_bytes(number, unit="B"):
     """
     Translates an integer into a human-readable string. The number will be
     scaled using T/G/M/K prefixes and the specified unit.
@@ -162,14 +154,14 @@ def _scale(number):
     return tera, giga, mega, kilo, number
 
 
-def showStopTime(acctstarttime, acctstoptime, acctsessiontime):
+def calculate_stop_time(acctstarttime, acctstoptime, acctsessiontime):
     """
     Checks if session is still active, and returns an appropriate string.
 
-    Keyword arguments:
-    acctstarttime   - Session start time
-    acctstoptime    - Session stop time
-    acctsessiontime - How long the session has lasted
+    :param acctstarttime: Session start time
+    :param acctstoptime: Session stop time
+    :param acctsessiontime: How long the session has lasted
+
     """
     start_time = str(acctstarttime)
     stop_time = None
@@ -192,18 +184,18 @@ def showStopTime(acctstarttime, acctstoptime, acctsessiontime):
     time_seconds = time.mktime(time_tuple)
 
     # Check if session is still active
-    if stop_time == None:
+    if stop_time is None:
         if (time_seconds + session_time) > (time.time()-ACCT_REAUTH_TIMEOUT):
             stop_time = "Still Active"
         else:
             stop_time = "Timed Out"
     else:
-        stop_time = removeFractions(stop_time)
+        stop_time = remove_fractions(stop_time)
 
     return stop_time
 
 
-def removeFractions(timestamp):
+def remove_fractions(timestamp):
     """
     Removes the fractions of a second part from the timestamps so we don't
     have to display them on the webpage.
