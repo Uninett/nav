@@ -40,6 +40,28 @@ and (max-width : 480px) {
     }
 }
 
+
+/* Dashboard and widget stuff */
+
+#nav-breadcrumbs { margin-bottom: 0; }
+
+#dashboard-header {
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+    h3 {
+        margin-left: 1em;
+        margin-right: 1em;
+    }
+    .fa-arrow-left {
+        margin-left: 1em;
+    }
+    .fa-arrow-right {
+        margin-right: 1em;
+    }
+}
+
 .right-action-content.f-dropdown {
     border: 7px solid #243640;
     box-shadow: #666 0 5px 10px;

@@ -173,7 +173,13 @@
 
   {% endif %}
 
-
+  <div id="dashboard-header">
+    <a href="#">{{ dashboards.0 }}</a>
+    <i class="fa fa-arrow-left"></i>
+    <h3>{{ dashboard }}</h3>
+    <i class="fa fa-arrow-right"></i>
+    <a href="#">{{ dashboards.1 }}</a>
+  </div>
 
   {% comment %} Main container for navlets {% endcomment %}
   <div id="navlets"
