@@ -29,6 +29,7 @@ from nav.mibs.geist_mibv3 import GeistMibV3
 from nav.mibs.cisco_envmon_mib import CiscoEnvMonMib
 from nav.mibs.entity_sensor_mib import EntitySensorMib
 from nav.mibs.cisco_entity_sensor_mib import CiscoEntitySensorMib
+from nav.mibs.eltek_distributed_mib import EltekDistributedMib
 
 from nav.mibs.mg_snmp_ups_mib import MgSnmpUpsMib
 from nav.mibs.comet import Comet
@@ -50,6 +51,7 @@ from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
                                 VENDOR_ID_GEIST_MANUFACTURING_INC,
                                 VENDOR_ID_COMET_SYSTEM_SRO,
                                 VENDOR_ID_KCP_INC,
+                                VENDOR_ID_ELTEK_ENERGY_AS,
                                 )
 
 
@@ -93,6 +95,8 @@ class MIBFactory(object):
                 mibs = [Comet(agent)]
             elif vendor_id == VENDOR_ID_KCP_INC:
                 mibs = [SPAgentMib(agent)]
+            elif vendor_id == VENDOR_ID_ELTEK_ENERGY_AS:
+                mibs = [EltekDistributedMib(agent)]
         if not mibs:
             # And then we just sweep up the remains if we could not
             # find a matching vendor.
