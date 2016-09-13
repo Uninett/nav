@@ -94,7 +94,7 @@ class Prefix(Shadow):
         safely pruned from the db.
 
         """
-        containers[cls]['static'] = STATIC_ROUTES_SENTINEL
+        containers.setdefault(cls, {})['static'] = STATIC_ROUTES_SENTINEL
 
 STATIC_ROUTES_SENTINEL = Prefix()
 
