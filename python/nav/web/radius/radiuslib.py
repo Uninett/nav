@@ -20,16 +20,15 @@
 #
 """Helper functions and classes for radius accounting in NAV"""
 
-from __future__ import division
+from __future__ import division, absolute_import
 from socket import gethostbyaddr, herror, gaierror
 from re import match, sub
 import time
-import urllib
 
-from radius_config import DATEFORMAT_DB, ACCT_REAUTH_TIMEOUT
+from .radius_config import DATEFORMAT_DB, ACCT_REAUTH_TIMEOUT
 
 
-class HostCache:
+class HostCache(object):
     """
     Offers method to look up IP adresses, while caching the
     result to speed up operation.
@@ -54,48 +53,11 @@ class HostCache:
         if ip not in self.cache:
             try:
                 self.cache[ip] = gethostbyaddr(ip)[0]
-            except herror, gaierror:
+            except (herror, gaierror):
                 # if lookup fails, return the input address
                 self.cache[ip] = ip
 
         return self.cache[ip]
-
-
-
-def calcTime(seconds):
-    """Calculate days/hours/minutes from seconds.
-
-    Keyword arguments:
-    seconds - integer containing the seconds we want calculated
-              (default "tuple")
-
-    Return:
-    Tuple (days, hours, minutes, seconds)
-
-    """
-
-    if not seconds: seconds = 0
-
-    days = 0
-    hours = 0
-    minutes = 0
-    remainder = seconds
-
-    # Sometimes (very rare) the acctsessiontime turns out to be in the negative.
-    # Not sure why this happens, but this if at least secures correct output
-    # Need to look into this.
-
-    if seconds >= 0:
-        days = remainder // 86400
-        remainder = remainder % 86400
-        hours = remainder // 3600
-        remainder = remainder % 3600
-        minutes = remainder // 60
-        remainder = remainder % 60
-        seconds = remainder
-
-    return (days, hours, minutes, seconds)
-
 
 
 def makeTimeHumanReadable(seconds):
@@ -109,61 +71,95 @@ def makeTimeHumanReadable(seconds):
     A string in the format dd, hh, mm, ss
     """
 
-    time = calcTime(seconds)
+    times = _calc_time(seconds)
 
     returnvar = ""
     days, hours, minutes, seconds = (0, 1, 2, 3)
 
-    if time[days]:
-        returnvar = "%sd " % time[days]
-    if time[hours]:
-        returnvar += "%sh " % time[hours]
-    if time[minutes]:
-        returnvar += "%sm " % time[minutes]
-    if time[seconds]:
-        returnvar += "%ss " % time[seconds]
+    if times[days]:
+        returnvar = "%sd " % times[days]
+    if times[hours]:
+        returnvar += "%sh " % times[hours]
+    if times[minutes]:
+        returnvar += "%sm " % times[minutes]
+    if times[seconds]:
+        returnvar += "%ss " % times[seconds]
 
     return returnvar
 
 
-
-
-def calcBytes(bytes):
-
-    if bytes == None:
-        bytes = 0
-
-    terraBytes, bytes = divmod(bytes, 1024**4)
-    gigaBytes, bytes = divmod(bytes, 1024**3)
-    megaBytes, bytes = divmod(bytes, 1024**2)
-    kiloBytes, bytes = divmod(bytes, 1024)
-
-    return (terraBytes, gigaBytes, megaBytes, kiloBytes, bytes)
-
-
-def makeBytesHumanReadable(bytes):
-    """
-    Translates an integer representing bytes, into TB/GB/MB/KB values.
+def _calc_time(seconds):
+    """Calculate days/hours/minutes from seconds.
 
     Keyword arguments:
-    bytes       - the number of bytes to convert into more human readable form
-    """
-    data = calcBytes(bytes)
+    seconds - integer containing the seconds we want calculated
+              (default "tuple")
 
-    if data[0] > 0:
-        output = "%i.%2i TB" % (data[0], data[1])
-    elif data[1] > 0:
-        output = "%i.%2i GB" % (data[1], data[2])
-    elif data[2] > 0:
-        output = "%i.%2i MB" % (data[2], data[3])
-    elif data[3] > 0:
-        output = "%i.%2i KB" % (data[3], data[4])
-    elif data[4] > 0:
-        output = "%i B" % data[4]
+    Return:
+    Tuple (days, hours, minutes, seconds)
+
+    """
+    if not seconds:
+        seconds = 0
+
+    days = 0
+    hours = 0
+    minutes = 0
+    remainder = seconds
+
+    # Sometimes (very rare) the acctsessiontime turns out to be in the negative.
+    # Not sure why this happens, but this if at least secures correct output
+    # Need to look into this.
+
+    if seconds >= 0:
+        days = remainder // 86400
+        remainder %= 86400
+        hours = remainder // 3600
+        remainder %= 3600
+        minutes = remainder // 60
+        remainder %= 60
+        seconds = remainder
+
+    return days, hours, minutes, seconds
+
+
+def makeBytesHumanReadable(number, unit="B"):
+    """
+    Translates an integer into a human-readable string. The number will be
+    scaled using T/G/M/K prefixes and the specified unit.
+
+    :param number: The number of bytes to convert into more human readable form.
+    :param unit: The unit suffix to use in the produced string.
+
+    """
+    tera, giga, mega, kilo, number = _scale(number)
+
+    if tera > 0:
+        output = "%i.%2i T%s" % (tera, giga, unit)
+    elif giga > 0:
+        output = "%i.%2i G%s" % (giga, mega, unit)
+    elif mega > 0:
+        output = "%i.%2i M%s" % (mega, kilo, unit)
+    elif kilo > 0:
+        output = "%i.%2i K%s" % (kilo, number, unit)
+    elif number > 0:
+        output = "%i %s" % (number, unit)
     else:
         output = "Unknown"
 
     return output
+
+
+def _scale(number):
+    if number is None:
+        number = 0
+
+    tera, number = divmod(number, 1024 ** 4)
+    giga, number = divmod(number, 1024 ** 3)
+    mega, number = divmod(number, 1024 ** 2)
+    kilo, number = divmod(number, 1024)
+
+    return tera, giga, mega, kilo, number
 
 
 def showStopTime(acctstarttime, acctstoptime, acctsessiontime):
@@ -175,36 +171,36 @@ def showStopTime(acctstarttime, acctstoptime, acctsessiontime):
     acctstoptime    - Session stop time
     acctsessiontime - How long the session has lasted
     """
-    startTime = str(acctstarttime)
-    stopTime = None
-    sessionTime = 0
+    start_time = str(acctstarttime)
+    stop_time = None
+    session_time = 0
 
     if acctstoptime:
-        stopTime = str(acctstoptime)
+        stop_time = str(acctstoptime)
     if acctsessiontime:
-        sessionTime = int(acctsessiontime)
+        session_time = int(acctsessiontime)
 
     # Since time.strptime does not handle fractions of a second,
     # check if our starttime contains fractions before using strptime,
     # and remove them if it does.
-    if match(r'.+\d\.\d+', startTime):
-        startTime = sub(r'\.\d+', '', startTime)
+    if match(r'.+\d\.\d+', start_time):
+        start_time = sub(r'\.\d+', '', start_time)
 
     # Make tuple of the time string
-    timeTuple = time.strptime(startTime, DATEFORMAT_DB)
+    time_tuple = time.strptime(start_time, DATEFORMAT_DB)
     # Convert to seconds since epoch
-    timeSeconds = time.mktime(timeTuple)
+    time_seconds = time.mktime(time_tuple)
 
     # Check if session is still active
-    if stopTime == None:
-        if (timeSeconds + sessionTime) > (time.time()-ACCT_REAUTH_TIMEOUT):
-            stopTime = "Still Active"
+    if stop_time == None:
+        if (time_seconds + session_time) > (time.time()-ACCT_REAUTH_TIMEOUT):
+            stop_time = "Still Active"
         else:
-            stopTime = "Timed Out"
+            stop_time = "Timed Out"
     else:
-        stopTime = removeFractions(stopTime)
+        stop_time = removeFractions(stop_time)
 
-    return stopTime
+    return stop_time
 
 
 def removeFractions(timestamp):
@@ -213,51 +209,11 @@ def removeFractions(timestamp):
     have to display them on the webpage.
     """
 
-    ts = str(timestamp)
+    tstring = str(timestamp)
 
-    if match(r'.+\d\.\d+', ts):
-        formattedTime = sub(r'\.\d+', '', ts)
+    if match(r'.+\d\.\d+', tstring):
+        formatted_time = sub(r'\.\d+', '', tstring)
     else:
-        formattedTime = ts
+        formatted_time = tstring
 
-    return formattedTime
-
-
-def makeSearchURL(page, changeFields, form):
-    """
-    Creates search URL
-
-    Keyword arguments:
-    page                - What we want to place before the "?".
-    changeFields        - Dictionary with key/value pairs that we want to
-                          change in the search.
-    form                - SearchForm object
-    """
-
-    urlValues = {}
-
-    for field in changeFields.keys():
-        urlValues[str(field)] = str(changeFields[field])
-
-    for field in form.__dict__.items():
-        if not str(field[0]) in changeFields.keys():
-            urlValues[str(field[0])] = str(field[1])
-
-    return page + "?" + urllib.urlencode(urlValues) + "&amp;send=Search"
-
-
-def getSortOrder(sortField, currentField, sortOrder):
-    sortOrder = sortOrder.upper()
-
-    # If we click on a link a second time, to change the search order
-    if sortField == currentField:
-        if sortOrder == "ASC":
-            sortOrder = "DESC"
-        else:
-            sortOrder = "ASC"
-    else:
-        # If the link hasn't been clicked, we want to default to
-        # ascending search order.
-        sortOrder = "ASC"
-
-    return sortOrder
+    return formatted_time
