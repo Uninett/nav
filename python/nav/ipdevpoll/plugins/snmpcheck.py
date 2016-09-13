@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011,2012 UNINETT AS
+# Copyright (C) 2011, 2012, 2016 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -22,8 +22,7 @@ from twisted.internet.defer import returnValue
 
 from nav.event2 import EventFactory
 from nav.models.event import AlertHistory
-from nav.ipdevpoll import Plugin, shadows, db
-from nav.ipdevpoll.snmp import AgentProxy
+from nav.ipdevpoll import Plugin, db
 from nav.ipdevpoll.jobs import SuggestedReschedule
 
 from django.db import transaction
@@ -64,54 +63,19 @@ class SnmpCheck(Plugin):
             raise SuggestedReschedule(60)
         else:
             yield self._mark_as_up()
-            self._set_version(is_ok)
 
     @defer.inlineCallbacks
     def _do_check(self):
-        is_ok = yield self._check_version(2)
-        if not is_ok:
-            is_ok = yield self._check_version(1)
-        returnValue(is_ok)
-
-    @defer.inlineCallbacks
-    def _check_version(self, version_number):
-        version = 'v%s' % version_number
-        if self.agent.snmpVersion != version:
-            agent = self._get_alternate_agent(version)
-        else:
-            agent = self.agent
-
-        self._logger.debug("checking SNMP%s availability", version)
+        self._logger.debug("checking SNMP%s availability",
+                           self.agent.snmpVersion)
         try:
-            result = yield agent.walk(SYSTEM_OID)
+            result = yield self.agent.walk(SYSTEM_OID)
         except (defer.TimeoutError, error.TimeoutError):
-            self._logger.debug("SNMP%s timed out", version)
+            self._logger.debug("SNMP%s timed out", self.agent.snmpVersion)
             returnValue(False)
-        finally:
-            if agent is not self.agent:
-                agent.close()
 
         self._logger.debug("SNMP response: %r", result)
-        returnValue(bool(result) and version_number)
-
-    def _get_alternate_agent(self, version):
-        """Create an alternative Agent Proxy for our host.
-
-        Return value is an AgentProxy object created with the same
-        parameters as the controlling job handler's AgentProxy, but
-        with a different SNMP version.
-
-        """
-        old_agent = self.agent
-        agent = AgentProxy(
-            old_agent.ip, old_agent.port,
-            community=old_agent.community,
-            snmpVersion=version)
-        if hasattr(old_agent, 'protocol'):
-            agent.protocol = old_agent.protocol
-
-        agent.open()
-        return agent
+        returnValue(bool(result))
 
     @defer.inlineCallbacks
     def _mark_as_down(self):
@@ -135,12 +99,6 @@ class SnmpCheck(Plugin):
     @transaction.atomic()
     def _dispatch_up_event(self):
         EVENT.end(None, self.netbox.id).save()
-
-    def _set_version(self, version):
-        if version in (1, 2):
-            self._logger.debug("storing snmp_version=%s", version)
-            netbox = self.containers.get(None, shadows.Netbox)
-            netbox.snmp_version = version
 
 
 @transaction.atomic()
