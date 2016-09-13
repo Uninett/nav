@@ -20,10 +20,16 @@
 
   <script>
    var $navlet = $('[data-id=' + {{ navlet.navlet_id }}+ ']');
-   $navlet.find("[name=sensor]").select2();
+   $navlet.find("[name=sensor]").select2();  // Add select2 component to sensor dropdown
 
-   $navlet.find("[name='metric']").on('keydown', function(){
+   /* Reset dropdown when altering metric path */
+   $navlet.find("[name=metric]").on('keydown', function(){
        $navlet.find("[name=sensor]").select2('val', '');
+   });
+
+   /* Reset metric path when altering dropdown*/
+   $navlet.find("[name=sensor]").on('change', function(){
+       $navlet.find("[name=metric]").val('');
    });
   </script>
 
