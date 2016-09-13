@@ -14,10 +14,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Implements a MibRetriever for the CISCO-IETF-IP-MIB."""
+from __future__ import absolute_import
 from twisted.internet import defer
 
-from ip_mib import IpMib
+from .ip_mib import IpMib
 from nav.oids import OID
+
 
 class CiscoIetfIpMib(IpMib):
     """CISCO-IETF-IP-MIB is based on a a draft version of IETF's

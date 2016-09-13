@@ -13,14 +13,15 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""A MibRetriever implementation for IP-FORWARD-MIB"""
+from __future__ import absolute_import
 from collections import defaultdict
 from itertools import chain
 from collections import namedtuple
 
-from twisted.internet import defer
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-import mibretriever
+from . import mibretriever
 from nav.oidparsers import consume
 from nav.oidparsers import InetPrefix, ObjectIdentifier, TypedInetAddress
 
@@ -50,9 +51,10 @@ CidrRouteEntry = namedtuple('CidrRouteEntry', ('index', 'destination', 'policy',
 
 
 class IpForwardMib(mibretriever.MibRetriever):
+    """A MibRetriever implementation for IP-FORWARD-MIB"""
     from nav.smidumps.ip_forward_mib import MIB as mib
 
-    @defer.inlineCallbacks
+    @inlineCallbacks
     def get_routes(self, protocols=None):
         """
         Returns the index of every entry in the routing table that matches any
@@ -76,7 +78,7 @@ class IpForwardMib(mibretriever.MibRetriever):
         else:
             returnValue(dict(by_proto))
 
-    @defer.inlineCallbacks
+    @inlineCallbacks
     def get_decoded_routes(self, protocols=None):
         """
         Returns a CidrRouteEntry tuple from every parseable entry in the routing

@@ -19,16 +19,17 @@ Although IPV6-MIB has been obsoleted by a revised version of IP-MIB,
 some vendors still only provide IPv6 data in this MIB.
 
 """
-
-from IPy import IP
+from __future__ import absolute_import
 
 from twisted.internet import defer
 
 from nav.ipdevpoll.utils import binary_mac_to_hex
-import mibretriever
-import ip_mib
+from . import mibretriever
+from . import ip_mib
+
 
 class Ipv6Mib(mibretriever.MibRetriever):
+    """A MibRetriever for the deprecated IPv6-MIB"""
     from nav.smidumps.ipv6_mib import MIB as mib
 
     @staticmethod
@@ -59,7 +60,6 @@ class Ipv6Mib(mibretriever.MibRetriever):
             converted_oid = (ipv6_type, length) + oid
         return ip_mib.IpMib.inetaddress_to_ip(converted_oid)
 
-
     @defer.deferredGenerator
     def get_ifindex_ip_mac_mappings(self):
         """Retrieve the IPv6->MAC address mappings of this device.
@@ -89,7 +89,6 @@ class Ipv6Mib(mibretriever.MibRetriever):
         self._logger.debug("ip/mac pairs: Got %d rows from %s",
                            len(ipv6_phys_addrs), column)
         yield mappings
-
 
     @defer.deferredGenerator
     def get_interface_addresses(self):

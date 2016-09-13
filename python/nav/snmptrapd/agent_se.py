@@ -15,13 +15,13 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """PySNMP-SE specific trap agent functions."""
-import select
+from __future__ import absolute_import
 import logging
 
 from pysnmp.mapping.udp.role import Agent
 from pysnmp.proto.api import alpha
 
-from trap import SNMPTrap
+from .trap import SNMPTrap
 
 logger = logging.getLogger(__name__)
 

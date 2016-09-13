@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import re
 import time
 import uuid
@@ -5,17 +6,17 @@ from collections import namedtuple
 from socket import gethostbyname_ex, gaierror
 
 from nav.asyncdns import reverse_lookup
-from radius_config import (DATEFORMAT_SEARCH,
-                           LOG_SEARCHRESULTFIELDS,
-                           ACCT_DETAILSFIELDS,
-                           LOG_DETAILFIELDS,
-                           ACCT_TABLE,
-                           LOG_TABLE)
+from .radius_config import (DATEFORMAT_SEARCH,
+                            LOG_SEARCHRESULTFIELDS,
+                            ACCT_DETAILSFIELDS,
+                            LOG_DETAILFIELDS,
+                            ACCT_TABLE,
+                            LOG_TABLE)
 
 from django.db import connection, transaction
 from twisted.names.dns import Message, Query
 
-import radiuslib
+from . import radiuslib
 
 
 def get_named_cursor():

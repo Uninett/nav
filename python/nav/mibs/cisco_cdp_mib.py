@@ -13,7 +13,8 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"CISCO-CDP-MIB handling"
+""""CISCO-CDP-MIB handling"""
+from __future__ import absolute_import
 import socket
 
 from IPy import IP
@@ -22,7 +23,7 @@ from twisted.internet import defer
 from nav.namedtuple import namedtuple
 from nav.mibs import reduce_index
 
-import mibretriever
+from . import mibretriever
 
 ADDRESS_TYPE_IP = 1
 
