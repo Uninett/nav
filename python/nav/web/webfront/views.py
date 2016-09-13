@@ -62,21 +62,34 @@ def index(request):
     dashboard = find_dashboard(request.account, did)
     dashboards = AccountDashboard.objects.filter(account=request.account)
 
+    context = {
+        'navpath': [('Home', '/')],
+        'date_now': datetime.today(),
+        'welcome': welcome,
+        'dashboard': dashboard,
+        'dashboard_form': DashboardForm(account=request.account,
+                                        initial={'dashboard': dashboard}),
+        'dashboards': dashboards.exclude(id=dashboard.pk),
+        'navlets': list_navlets(),
+        'title': u'NAV - {}'.format(dashboard.name),
+    }
+
+    if dashboards.count() > 1:
+        dashboard_ids = [d.pk for d in dashboards]
+        current_index = dashboard_ids.index(dashboard.pk)
+        previous_index = current_index - 1
+        next_index = current_index + 1
+        if current_index == len(dashboard_ids) - 1:
+            next_index = 0
+        context.update({
+            'previous_dashboard': dashboards.get(pk=dashboard_ids[previous_index]),
+            'next_dashboard': dashboards.get(pk=dashboard_ids[next_index])
+        })
+
     return render(
         request,
         'webfront/index.html',
-        {
-            'navpath': [('Home', '/')],
-            'date_now': datetime.today(),
-            'welcome': welcome,
-            'dashboard': dashboard,
-            'dashboard_form': DashboardForm(account=request.account,
-                                            initial={'dashboard': dashboard}),
-            'dashboards': dashboards.exclude(id=dashboard.pk),
-            'dashboard_ids': [d.pk for d in dashboards],
-            'navlets': list_navlets(),
-            'title': u'NAV - {}'.format(dashboard.name),
-        }
+        context
     )
 
 @sensitive_post_parameters('password')

@@ -17,8 +17,6 @@
    require(["src/webfront"]);
    NAV.preference_keys = NAV.preference_keys || {};
    NAV.preference_keys.widget_display_density = '{{ request.account.PREFERENCE_KEY_WIDGET_DISPLAY_DENSITY }}';
-   NAV.dashboards = {{ dashboard_ids|safe }};
-   NAV.dashboard_id = {{ dashboard.pk }};
   </script>
 {% endblock %}
 
@@ -177,11 +175,19 @@
   {% endif %}
 
   <div id="dashboard-header">
-    <a href="#">{{ dashboards.0 }}</a>
-    <i class="fa fa-arrow-left"></i>
+    {% if previous_dashboard %}
+      <a id="link-previous-dashboard" href="{{ previous_dashboard.get_absolute_url }}">
+        {{ previous_dashboard }}
+      </a>
+      <i class="fa fa-arrow-left"></i>
+    {% endif %}
     <h3>{{ dashboard }}</h3>
-    <i class="fa fa-arrow-right"></i>
-    <a href="#">{{ dashboards.1 }}</a>
+    {% if next_dashboard %}
+      <i class="fa fa-arrow-right"></i>
+      <a id="link-next-dashboard" href="{{ next_dashboard.get_absolute_url }}">
+        {{ next_dashboard }}
+      </a>
+    {% endif %}
   </div>
 
   {% comment %} Main container for navlets {% endcomment %}

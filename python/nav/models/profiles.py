@@ -1374,6 +1374,9 @@ class AccountDashboard(models.Model):
     def __unicode__(self):
         return self.name
 
+    def get_absolute_url(self):
+        return reverse('dashboard-index', kwargs={'dashboard_id': self.id})
+
     class Meta(object):
         db_table = 'account_dashboard'
         ordering = ('name',)

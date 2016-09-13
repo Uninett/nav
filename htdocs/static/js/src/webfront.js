@@ -60,21 +60,14 @@ require([
         /**
          * Keyboard navigation to switch dashboards
          */
-        var dashboardIndex = NAV.dashboards.indexOf(NAV.dashboard_id);
         var fetchPreviousDashboard = function() {
-            if (dashboardIndex === 0) {
-                dashboardIndex = NAV.dashboards.length;
-            }
-            dashboardIndex -= 1;
             $navletsContainer.css('position', 'relative').animate({'left': '4000px'}, function() {
-                window.location = '/?dashboard=' + NAV.dashboards[dashboardIndex];
+                window.location = $('#link-previous-dashboard').attr('href');
             });
         };
         var fetchNextDashboard = function() {
-            dashboardIndex += 1;
-            dashboardIndex = dashboardIndex % NAV.dashboards.length;
             $navletsContainer.css('position', 'relative').animate({'right': '4000px'}, function() {
-                window.location = '/?dashboard=' + NAV.dashboards[dashboardIndex];
+                window.location = $('#link-next-dashboard').attr('href');
             });
         };
 
