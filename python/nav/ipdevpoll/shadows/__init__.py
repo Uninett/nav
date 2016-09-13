@@ -324,7 +324,7 @@ class Vlan(Shadow):
 
     def _is_type_changed_to_static(self, containers):
         mdl = self.get_existing_model(containers)
-        if mdl.net_type_id != 'static' and self.net_type.id == 'static':
+        if mdl and mdl.net_type_id != 'static' and self.net_type.id == 'static':
             self._logger.info("will not change vlan %r type from %s to static",
                               self.net_ident, mdl.net_type_id)
             return True
