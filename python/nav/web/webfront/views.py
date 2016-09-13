@@ -75,7 +75,7 @@ def index(request):
             'dashboards': dashboards.exclude(id=dashboard.pk),
             'dashboard_ids': [d.pk for d in dashboards],
             'navlets': list_navlets(),
-            'title': 'NAV - {}'.format(dashboard.name),
+            'title': u'NAV - {}'.format(dashboard.name),
         }
     )
 
