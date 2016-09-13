@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2003-2004 Norwegian University of Science and Technology
-# Copyright 2006-2007 UNINETT AS
+# Copyright (C) 2008-2010, 2012 University of Tromsø
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -19,12 +18,7 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-#
-#
-# Author: Roger Kristiansen <roger.kristiansen@gmail.com>
-#
-# Description: Helper functions and classes for radius accounting in NAV
-
+"""Helper functions and classes for radius accounting in NAV"""
 
 from __future__ import division
 from socket import gethostbyaddr, herror, gaierror
