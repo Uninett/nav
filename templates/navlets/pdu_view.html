@@ -1,0 +1,46 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  {% if room %}
+
+    <table>
+      <tbody>
+        {% for pdu in pdus %}
+          <tr>
+            <td>{{ pdu }}</td>
+            {% for sensor in pdu.sensor_set.all %}
+              <td data-metric="{{ sensor.get_metric_name }}"></td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <script>
+     require(['plugins/navlet_pdu'], function(Pdu) {
+         new Pdu($('[data-id=' + {{ navlet.navlet_id }}+ ']'), '{{ data_url|safe }}');
+     });
+    </script>
+
+  {% else %}
+    <div class="alert-box">
+      <a href="#" class="configure-link">Choose which room</a> to show pdu status for
+    </div>
+
+    <script>
+     (function(){
+         var $navlet = $('[data-id=' + {{ navlet.navlet_id }}+ ']');
+         $navlet.find('.configure-link').click(function() {
+             console.log('clicked');
+             $navlet.find('.navlet-mode-switch').click();
+         });
+     })();
+    </script>
+
+
+  {% endif %}
+
+
+
+{% endblock %}

@@ -179,7 +179,7 @@ class Graph(object):
 
 
 def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
-                         width=480, height=250, **kwargs):
+                         width=480, height=250, magic=True, **kwargs):
     """
     Returns an URL, fetchable by an end user, to render a simple graph,
     given a Graphite metric known to NAV
@@ -191,14 +191,16 @@ def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
     :param title: A caption to print above the graph.
     :param width: The graph width in pixels.
     :param height: The graph height in pixels.
+    :param magic: Use magic targets
     :return: The URL that will generate the requested graph.
 
     """
     if isinstance(metric_paths, basestring):
         metric_paths = [metric_paths]
 
-    graph = Graph(title=title, width=width, height=height,
-                  magic_targets=metric_paths)
+    target_spec = {'magic_targets': metric_paths} if magic else {
+        'targets': metric_paths}
+    graph = Graph(title=title, width=width, height=height, **target_spec)
     graph.set_timeframe(time_frame)
 
     if kwargs:

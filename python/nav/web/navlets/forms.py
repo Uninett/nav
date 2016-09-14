@@ -5,7 +5,7 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation import layout
 
-from nav.models.manage import Netbox, Sensor
+from nav.models.manage import Netbox, Sensor, Room
 
 
 class AlertWidgetForm(forms.Form):
@@ -70,3 +70,14 @@ class UpsWidgetForm(forms.Form):
 class SensorForm(forms.Form):
     """Form for choosing to show graph or not for a sensor widget"""
     show_graph = forms.BooleanField(initial=True, required=False)
+
+
+class RoomForm(forms.Form):
+    """Form for choosing a room"""
+    room_id = forms.ChoiceField(choices=(), label='Room')
+
+    def __init__(self, *args, **kwargs):
+        super(RoomForm, self).__init__(*args, **kwargs)
+        self.fields['room_id'].choices = [('', '----------')] + [
+            (r.pk, str(r)) for r in Room.objects.all()
+        ]

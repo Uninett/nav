@@ -129,6 +129,18 @@ class Navlet(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(Navlet, self).get_context_data(**kwargs)
         context['navlet'] = self
+        if self.mode == NAVLET_MODE_VIEW:
+            context = self.get_context_data_view(context)
+        elif self.mode == NAVLET_MODE_EDIT:
+            context = self.get_context_data_edit(context)
+        return context
+
+    def get_context_data_view(self, context):
+        """Get context for the view mode"""
+        return context
+
+    def get_context_data_edit(self, context):
+        """Get context for the edit mode"""
         return context
 
     def post(self, request, **kwargs):

@@ -170,6 +170,7 @@ NAVLETS = (
     'nav.web.navlets.sensor.SensorWidget',
     'nav.web.navlets.alert.AlertWidget',
     'nav.web.navlets.ups.UpsWidget',
+    'nav.web.navlets.pdu.PduWidget',
 )
 
 CRISPY_TEMPLATE_PACK = 'foundation'
