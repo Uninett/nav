@@ -147,11 +147,12 @@ class Sensors(Plugin):
                 sensors.append(sensors)
         return sensors
 
+####################
+# Helper functions #
+####################
 
-ENCODINGS_TO_TRY = ('utf-8', 'latin-1')  # more should be added
 
-
-def safestring(string):
+def safestring(string, encodings_to_try=('utf-8', 'latin-1')):
     """Tries to safely decode strings retrieved using SNMP.
 
     SNMP does not really define encodings, and will not normally allow
@@ -168,7 +169,7 @@ def safestring(string):
     if isinstance(string, unicode):
         return string
 
-    for encoding in ENCODINGS_TO_TRY:
+    for encoding in encodings_to_try:
         try:
             return string.decode(encoding)
         except UnicodeDecodeError:
