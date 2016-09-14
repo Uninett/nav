@@ -13,11 +13,12 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+from __future__ import absolute_import
 from twisted.internet import defer
 from twisted.internet.defer import returnValue
 
 from nav.bitvector import BitVector
-import mibretriever
+from . import mibretriever
 
 CHARS_IN_1024_BITS = 128
 

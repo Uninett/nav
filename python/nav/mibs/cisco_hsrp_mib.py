@@ -13,11 +13,12 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"CISCO-HSRP-MIB handling"
+"""CISCO-HSRP-MIB handling"""
+from __future__ import absolute_import
 
 from IPy import IP
 from twisted.internet import defer
-import mibretriever
+from . import mibretriever
 
 class CiscoHSRPMib(mibretriever.MibRetriever):
     """A MibRetriever for handling CISCO-HSRP-MIB"""

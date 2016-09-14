@@ -28,7 +28,6 @@ instance created.
 import os
 import sys
 import re
-from debug import debug
 
 try:
     # this module exists in a properly installed enviroment

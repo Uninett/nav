@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import re
 import time
 import uuid
@@ -5,17 +6,17 @@ from collections import namedtuple
 from socket import gethostbyname_ex, gaierror
 
 from nav.asyncdns import reverse_lookup
-from radius_config import (DATEFORMAT_SEARCH,
-                           LOG_SEARCHRESULTFIELDS,
-                           ACCT_DETAILSFIELDS,
-                           LOG_DETAILFIELDS,
-                           ACCT_TABLE,
-                           LOG_TABLE)
+from .radius_config import (DATEFORMAT_SEARCH,
+                            LOG_SEARCHRESULTFIELDS,
+                            ACCT_DETAILSFIELDS,
+                            LOG_DETAILFIELDS,
+                            ACCT_TABLE,
+                            LOG_TABLE)
 
 from django.db import connection, transaction
 from twisted.names.dns import Message, Query
 
-import radiuslib
+from . import radiuslib
 
 
 def get_named_cursor():
@@ -496,10 +497,10 @@ class AcctSearchQuery(SQLQuery):
         if self.nasdns and row[5]:
             self.ips_to_lookup.add(row[5])
 
-        acctstarttime = radiuslib.removeFractions(
+        acctstarttime = radiuslib.remove_fractions(
             row[7])
 
-        acctstoptime = radiuslib.showStopTime(
+        acctstoptime = radiuslib.calculate_stop_time(
             row[7],
             row[8],
             row[9])
@@ -560,26 +561,26 @@ class AcctDetailQuery(SQLQuery):
             field = fields['nasipaddress']
             fields['nasipaddress'] = '%s (%s)' % (
                 field,
-                self._host_cache.lookupIPAddress(field))
+                self._host_cache.lookup_ip_address(field))
         if 'framedipaddress' in fields:
             field = fields['framedipaddress']
             fields['framedipaddress'] = '%s (%s)' % (
                 field,
-                self._host_cache.lookupIPAddress(field))
+                self._host_cache.lookup_ip_address(field))
         if 'acctstoptime' in fields:
             start = fields['acctstarttime']
             stop = fields['acctstoptime']
             session = fields['acctsessiontime']
-            fields['acctstoptime'] = radiuslib.showStopTime(
+            fields['acctstoptime'] = radiuslib.calculate_stop_time(
                 start, stop, session)
         if 'acctsessiontime' in fields:
-            fields['acctsessiontime'] = radiuslib.makeTimeHumanReadable(
+            fields['acctsessiontime'] = radiuslib.humanize_time(
                 fields['acctsessiontime'])
         if 'acctoutputoctets' in fields:
-            fields['acctoutputoctets'] = radiuslib.makeBytesHumanReadable(
+            fields['acctoutputoctets'] = radiuslib.humanize_bytes(
                 fields['acctoutputoctets'])
         if 'acctinputoctets' in fields:
-            fields['acctinputoctets'] = radiuslib.makeBytesHumanReadable(
+            fields['acctinputoctets'] = radiuslib.humanize_bytes(
                 fields['acctinputoctets'])
 
         # dict does not preserve order so we cant use dict.values()

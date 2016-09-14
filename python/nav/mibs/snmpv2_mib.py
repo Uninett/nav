@@ -13,16 +13,18 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"Implements a MibRetriever for the SNMPV2-MIB"
-
+"""Implements a MibRetriever for the SNMPV2-MIB"""
+from __future__ import absolute_import
 import time
 
 from twisted.internet import defer
 
 from nav.oids import OID
-import mibretriever
+from . import mibretriever
+
 
 class Snmpv2Mib(mibretriever.MibRetriever):
+    """A MibRetriever for SNMPv2-MIB"""
     from nav.smidumps.snmpv2_mib import MIB as mib
 
     @defer.inlineCallbacks

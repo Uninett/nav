@@ -18,9 +18,10 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
+from __future__ import absolute_import
 import os
 import importlib
-from debug import debug
+from .debug import debug
 
 HANDLER_PATTERN = "Checker.py"
 CHECKER_DIR = os.path.join(os.path.dirname(__file__), "checker")
