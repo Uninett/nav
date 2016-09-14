@@ -27,6 +27,24 @@
   {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
 
 
+    {# Dashboard header and navigation #}
+    <div id="dashboard-header">
+      {% if previous_dashboard %}
+        <a id="link-previous-dashboard" href="{{ previous_dashboard.get_absolute_url }}">
+          {{ previous_dashboard }}
+        </a>
+        <i class="fa fa-arrow-left"></i>
+      {% endif %}
+      <h3>{{ dashboard }}</h3>
+      {% if next_dashboard %}
+        <i class="fa fa-arrow-right"></i>
+        <a id="link-next-dashboard" href="{{ next_dashboard.get_absolute_url }}">
+          {{ next_dashboard }}
+        </a>
+      {% endif %}
+    </div>
+
+
     {% if dashboards|length > 1 %}
       <div id="widget-drop-targets">
         <small>Drag widgets to move to other dashboards</small>
@@ -174,22 +192,6 @@
 
   {% endif %}
 
-  <div id="dashboard-header">
-    {% if previous_dashboard %}
-      <a id="link-previous-dashboard" href="{{ previous_dashboard.get_absolute_url }}">
-        {{ previous_dashboard }}
-      </a>
-      <i class="fa fa-arrow-left"></i>
-    {% endif %}
-    <h3>{{ dashboard }}</h3>
-    {% if next_dashboard %}
-      <i class="fa fa-arrow-right"></i>
-      <a id="link-next-dashboard" href="{{ next_dashboard.get_absolute_url }}">
-        {{ next_dashboard }}
-      </a>
-    {% endif %}
-  </div>
-
   {% comment %} Main container for navlets {% endcomment %}
   <div id="navlets"
        {% if request.account.preferences.widget_display_density == 'compact' %}class="compact"{% endif %}
@@ -198,7 +200,7 @@
        data-save-order-url="{% url 'save-navlet-order' %}"
        data-base-template-url="{% url 'navlet-base-template' %}"
        data-widget-columns="{{ dashboard.num_columns }}"
-  ></div>
+       ></div>
 
   <ul id="joyride_for_desktop" data-joyride class="joyride-list">
     <li data-text="Next" data-id="joyrideme">
