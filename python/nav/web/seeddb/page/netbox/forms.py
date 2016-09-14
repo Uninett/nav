@@ -40,7 +40,8 @@ class NetboxModelForm(forms.ModelForm):
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
     sysname = forms.CharField(required=False)
-    snmp_version = forms.IntegerField(required=False)
+    snmp_version = forms.IntegerField(required=False, initial=2,
+                                      min_value=1, max_value=2)
     organization = forms.ChoiceField(choices=create_hierarchy(Organization))
 
     class Meta(object):
@@ -74,16 +75,17 @@ class NetboxModelForm(forms.ModelForm):
                              'room', 'category', 'organization'),
                     css_class=css_class),
                 Column(
-                    Fieldset('SNMP communities',
+                    Fieldset('SNMP ',
                              Row(
-                                 Column('read_only', css_class='medium-6'),
-                                 Column('read_write', css_class='medium-6')
+                                 Column('read_only', css_class='medium-4'),
+                                 Column('read_write', css_class='medium-4'),
+                                 Column('snmp_version', css_class='medium-4')
                              ),
                              NavButton('check_connectivity',
                                        'Check connectivity',
                                        css_class='check_connectivity')),
                     Fieldset('Collected info',
-                             Div('sysname', 'snmp_version', 'type',
+                             Div('sysname', 'type',
                                  css_class='hide',
                                  css_id='real_collected_fields')),
                     css_class=css_class),

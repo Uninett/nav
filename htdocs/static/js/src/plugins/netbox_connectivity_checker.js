@@ -28,13 +28,11 @@ define(['libs/spin.min'], function (Spinner) {
          * ones the form posts.
          */
         var fakeSysnameNode = $('<label>Sysname<input type="text" disabled></label>'),
-            fakeSnmpVersionNode = $('<label>Snmp version<input type="text" disabled></label>'),
             fakeTypeNode = $('<label>Type<input type="text" disabled></label>'),
             realSysnameNode = $('#id_sysname'),
-            realSnmpVersionNode = $('#id_snmp_version'),
             realTypeNode = $('#id_type');
 
-        $('#real_collected_fields').after(fakeSysnameNode, fakeSnmpVersionNode, fakeTypeNode);
+        $('#real_collected_fields').after(fakeSysnameNode, fakeTypeNode);
 
         setDefaultValues();
 
@@ -42,7 +40,8 @@ define(['libs/spin.min'], function (Spinner) {
             hideAlertBoxes();
             var ip_address = $('#id_ip').val().trim(),
                 read_community = $('#id_read_only').val(),
-                read_write_community = $('#id_read_write').val();
+                read_write_community = $('#id_read_write').val(),
+                snmp_version = $('#id_snmp_version').val();
 
             if (!(ip_address && read_community)) {
                 var message = "We need an IP-address and a read community to talk to the device.";
@@ -59,7 +58,7 @@ define(['libs/spin.min'], function (Spinner) {
             var checkHostname = ipchecker.getAddresses();
             checkHostname.done(function () {
                 if (ipchecker.isSingleAddress) {
-                    checkConnectivity(ip_address, read_community, read_write_community);
+                    checkConnectivity(ip_address, read_community, read_write_community, snmp_version);
                 } else {
                     onStop();
                 }
@@ -67,12 +66,13 @@ define(['libs/spin.min'], function (Spinner) {
 
         });
 
-        function checkConnectivity(ip_address, read_community, read_write_community) {
+        function checkConnectivity(ip_address, read_community, read_write_community, snmp_version) {
             console.log('Checking connectivity');
             var request = $.getJSON(NAV.urls.get_readonly, {
                 'ip_address': ip_address,
                 'read_community': read_community,
-                'read_write_community': read_write_community
+                'read_write_community': read_write_community,
+                'snmp_version': snmp_version
             });
             request.done(onSuccess);
             request.error(onError);
@@ -97,15 +97,12 @@ define(['libs/spin.min'], function (Spinner) {
 
         function setDefaultValues() {
             fakeSysnameNode.find('input').val(realSysnameNode.val());
-            fakeSnmpVersionNode.find('input').val(realSnmpVersionNode.val());
             fakeTypeNode.find('input').val(realTypeNode.find('option:selected').html());
         }
 
         function setNewValues(data) {
             realSysnameNode.val(data.sysname);
             fakeSysnameNode.find('input').val(data.sysname);
-            realSnmpVersionNode.val(data.snmp_version);
-            fakeSnmpVersionNode.find('input').val(data.snmp_version);
             realTypeNode.val(data.netbox_type);
             fakeTypeNode.find('input').val(realTypeNode.find('option:selected').html());
             $('#id_serial').val(data.serial);
@@ -127,14 +124,14 @@ define(['libs/spin.min'], function (Spinner) {
         }
 
         function onSuccess(data) {
-            if (data.snmp_version) {
+            if (data.snmp_read_test) {
                 reportSuccess(readAlertBox, 'Read test was successful');
                 if (data.snmp_write_test) {
                     reportWriteTest(data.snmp_write_test);
                 }
                 setNewValues(data);
             } else {
-                reportError(readAlertBox, 'Read test failed. Is the community string correct?');
+                reportError(readAlertBox, 'Read test failed. Verify the community string or try another SNMP version');
             }
 
         }
