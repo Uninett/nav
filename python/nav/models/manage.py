@@ -733,7 +733,10 @@ class Room(models.Model):
         ordering = ('id',)
 
     def __unicode__(self):
-        return u'%s (%s)' % (self.id, self.description)
+        if self.description:
+            return u'%s (%s)' % (self.id, self.description)
+        else:
+            return u'%s' % (self.id)
 
 
 class TreeMixin(object):
