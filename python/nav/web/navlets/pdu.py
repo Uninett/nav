@@ -19,16 +19,16 @@ from django.db.models import Q
 from nav.metrics.graphs import get_simple_graph_url
 from nav.models.manage import Room
 from . import Navlet, NAVLET_MODE_EDIT
-from .forms import RoomForm
+from .forms import PduWidgetForm
 
 class PduWidget(Navlet):
     """Widget for displaying pdu overview for a room"""
 
-    title = 'PDU status'
+    title = 'PDU load'
     is_editable = True
     is_title_editable = True
     ajax_reload = True
-    description = 'Display PDU status for a room'
+    description = 'Display PDU load for a room'
     refresh_interval = 30000  # 30 seconds
 
     def get_template_basename(self):
@@ -36,7 +36,7 @@ class PduWidget(Navlet):
 
     def get_context_data_edit(self, context):
         roomid = self.preferences.get('room_id')
-        context['form'] = RoomForm(self.preferences) if roomid else RoomForm()
+        context['form'] = PduWidgetForm(self.preferences) if roomid else PduWidgetForm()
         return context
 
     def get_context_data_view(self, context):
@@ -57,5 +57,5 @@ class PduWidget(Navlet):
 
     def post(self, request, **kwargs):
         """Save preferences"""
-        form = RoomForm(request.POST)
+        form = PduWidgetForm(request.POST)
         return super(PduWidget, self).post(request, form=form)

@@ -2,6 +2,12 @@
 
 {% block navlet-content %}
 
+  <div class="alert-box">
+    For the thresholds, specify at least the max value (or threshold) for the
+    banks. You can also specify further thresholds by separating the values with
+    a comma.
+  </div>
+
   <form action="{% url 'get-user-navlet' navlet.navlet_id %}" method="post">
     {{ form }}
     <input type="submit" class="button tiny" value="Save">

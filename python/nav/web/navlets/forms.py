@@ -1,6 +1,7 @@
 """Module containing some of the forms used in widgets"""
 
 from django import forms
+from django.db.models import Q
 
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation import layout
@@ -72,12 +73,16 @@ class SensorForm(forms.Form):
     show_graph = forms.BooleanField(initial=True, required=False)
 
 
-class RoomForm(forms.Form):
+class PduWidgetForm(forms.Form):
     """Form for choosing a room"""
     room_id = forms.ChoiceField(choices=(), label='Room')
+    load_thresholds = forms.CharField(label='Thresholds (comma separated, max 3)')
 
     def __init__(self, *args, **kwargs):
-        super(RoomForm, self).__init__(*args, **kwargs)
+        super(PduWidgetForm, self).__init__(*args, **kwargs)
+
         self.fields['room_id'].choices = [('', '----------')] + [
-            (r.pk, str(r)) for r in Room.objects.all()
+            (r.pk, str(r)) for r in Room.objects.filter(
+                Q(netbox__sysname__startswith='pdu') |
+                Q(netbox__groups__in=['pdu'])).distinct('id')
         ]
