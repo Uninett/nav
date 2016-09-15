@@ -75,3 +75,29 @@
         padding: 0;
     }
 }
+
+
+/* Choices in form of radiobuttons. Use as is or if crispy forms wrap in div and
+give this class  */
+.choice-radio-button {
+    ul {
+        margin-left: 0;
+        margin-bottom: 1rem;
+        list-style-type: none;
+        display: flex;
+        li {
+            margin: .5rem 1rem .5rem 0;
+            &:last-child {
+                margin-right: 0;
+            }
+            label {
+                display: flex;
+                align-items: center;
+                input {
+                    margin: 0 .2em 0 0;
+                }
+            }
+        }
+    }
+
+}

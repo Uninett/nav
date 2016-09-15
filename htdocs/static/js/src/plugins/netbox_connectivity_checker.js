@@ -41,7 +41,7 @@ define(['libs/spin.min'], function (Spinner) {
             var ip_address = $('#id_ip').val().trim(),
                 read_community = $('#id_read_only').val(),
                 read_write_community = $('#id_read_write').val(),
-                snmp_version = $('#id_snmp_version').val();
+                snmp_version = $('[name=snmp_version]:checked').val();
 
             if (!(ip_address && read_community)) {
                 var message = "We need an IP-address and a read community to talk to the device.";
