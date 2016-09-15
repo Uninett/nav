@@ -46,7 +46,7 @@ define(function(require, exports, module) {
                 var load = point[0];
 
                 // Recalculate thresholds for the total column
-                var thresholds = strEndsWith(data.target, '1')
+                var thresholds = isTotal(data.target)
                         ? self.thresholds.map(function(t) { return t*2; }) : self.thresholds;
 
                 $el.sparkline([null, load].concat(thresholds), self.config);
@@ -70,13 +70,14 @@ define(function(require, exports, module) {
             performanceColor: '#333333',
             rangeColors: rangeColors.reverse(),
             tooltipFormatter: function(data) {
-                if (strEndsWith(data.$el.data('metric'), 1)) {
-                    return "Total load " + data.values[1] + " (max: " + data.max + ")";
-                } else {
-                    return "Load " + data.values[1] + " (max: " + data.max + ")";
-                }
+                var prefix = isTotal(data.$el.data('metric')) ? 'Total load' : 'Load';
+                return prefix + ' ' + data.values[1] + " (thresholds: " + data.values.slice(2).reverse() + ")";
             }
         };
+    }
+
+    function isTotal(metric) {
+        return strEndsWith(metric, 1);
     }
 
 
