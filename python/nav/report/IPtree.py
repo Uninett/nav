@@ -21,10 +21,9 @@ from copy import deepcopy
 from nav import db
 from nav.report.IPtools import getMask, sort_nets_by_prefixlength, andIpMask
 
-tree = None
 
-def buildTree(start_net, end_net=None, bits_in_matrix=0,
-              add_missing_nets=False):
+def build_tree(start_net, end_net=None, bits_in_matrix=0,
+               add_missing_nets=False):
     """Builds a tree from start_net to (and included) end_net.
 
     Arguments:
@@ -49,7 +48,7 @@ def buildTree(start_net, end_net=None, bits_in_matrix=0,
     """
 
     result = {start_net:{}}
-    subnets = getSubnets(start_net)
+    subnets = get_subnets(start_net)
     sorted_subnets = sort_nets_by_prefixlength(subnets)
 
     #TODO: Reimplement this to respect that the list is allready sorted,
@@ -67,18 +66,20 @@ def buildTree(start_net, end_net=None, bits_in_matrix=0,
 
     #build the tree
     for ip in sorted_subnets:
-        insertIntoTree(result, ip)
+        _insert_into_tree(result, ip)
 
     return result
 
-def insertIntoTree(tree, ip):
+
+def _insert_into_tree(tree, ip):
     for ip_item in tree:
         if ip_item.overlaps(ip):
-            insertIntoTree(tree[ip_item], ip)
+            _insert_into_tree(tree[ip_item], ip)
             return
     tree[ip] = {}
 
-def getSubnets(network, min_length=None):
+
+def get_subnets(network, min_length=None):
     """Retrieves all the subnets of the argument ``network''.
 
     Arguments:
@@ -107,99 +108,88 @@ def getSubnets(network, min_length=None):
     db_result = db_cursor.fetchall()
     return [IP(i[0]) for i in db_result]
 
-def removeSubnetsWithPrefixLength(tree, prefixlen):
+
+def remove_subnets_with_prefixlength(tree, prefixlen):
     """Generates a new tree from tree, but without subnets with
     prefix length >= prefixlen."""
 
-    def deleteSubnets(tree, limit):
-        oldTree = deepcopy(tree)
-        for ip in oldTree.keys():
+    def _delete_subnets(tree, limit):
+        old_tree = deepcopy(tree)
+        for ip in old_tree.keys():
             if ip.prefixlen() >= limit:
                 del tree[ip]
         for ip in tree.keys():
-            deleteSubnets(tree[ip], limit)
-    treeNets = deepcopy(tree)
-    deleteSubnets(treeNets, prefixlen)
-    return treeNets
+            _delete_subnets(tree[ip], limit)
+    tree_nets = deepcopy(tree)
+    _delete_subnets(tree_nets, prefixlen)
+    return tree_nets
 
-def getSubtree(tree, ip):
+
+def get_subtree(tree, ip):
     """Returns the subtree identified by the arguments ``ip''.
     None if not found."""
 
-    def searchTree(tree, goal):
+    def search_tree(tree, goal):
         """DFS in tree for goal."""
         for node in tree.keys():
             if node == goal:
                 return tree[node]
             else:
-                result = searchTree(tree[node], goal)
+                result = search_tree(tree[node], goal)
                 if result is not None:
                     return result
-    return searchTree(tree, ip)
+    return search_tree(tree, ip)
 
-def search(tree, ip):
-    tree = getSubtree(tree, ip)
-    if tree is None:
-        return False
-    else:
-        return True
 
-def isLeafNode(node):
+def _is_leaf_node(node):
     if len(node.keys()) == 0:
         return True
     else:
         return False
 
-def getMaxLeaf(tree, maximum_prefix_length=128):
+
+def get_max_leaf(tree, max_prefix_length=128):
     """Returns the leaf node with highest prefix length.
     If several found; returns the first hit."""
 
-    def dfs(tree, max):
+    def _dfs(tree, maxval):
         for node in tree.keys():
-            if isLeafNode(tree[node]):
-                if (node.prefixlen() > max.prefixlen() and
-                    node.prefixlen() <= maximum_prefix_length
-                    ):
-                    max = node
+            if _is_leaf_node(tree[node]):
+                if maxval.prefixlen() < node.prefixlen() <= max_prefix_length:
+                    maxval = node
             else:
-                result = dfs(tree[node], max)
-                if (result.prefixlen() > max.prefixlen() and
-                    result.prefixlen() <= maximum_prefix_length
-                    ):
-                    max = result
-        return max
+                result = _dfs(tree[node], maxval)
+                if maxval.prefixlen() < result.prefixlen() <= max_prefix_length:
+                    maxval = result
+        return maxval
 
     root = tree.keys()[0]
-    return dfs(tree, root)
+    return _dfs(tree, root)
 
-def printTree(tree, depth=0):
-    def printT(tree, depth):
-        for net in tree:
-            print 3*depth*" " + str(net)
-            printT(tree[net], depth+1)
-    printT(tree, depth)
 
-def extractSubtreesWithPrefixLength(tree, prefixlen):
+def extract_subtrees_with_prefix_length(tree, prefixlen):
     """Returns a map of subtrees with length prefixlen. Generated from
     tree"""
-    keys = extractSubnetsWithPrefixLength(tree, prefixlen)
-    map = {}
+    keys = extract_subnets_with_prefix_length(tree, prefixlen)
+    result = {}
     for key in keys:
-        map[key] = getSubtree(tree, key)
-    return map
+        result[key] = get_subtree(tree, key)
+    return result
 
-def extractSubnetsWithPrefixLength(tree, prefixlen):
+
+def extract_subnets_with_prefix_length(tree, prefixlen):
     """Returns a list of subtrees with length prefix lehgth.
 
-    Note: Use extractSubtreesWithPrefixLength if you want the trees
-        and not the IPs."""
+    Note: Use extract_subtrees_with_prefix_length if you want the trees
+    and not the IPs.
 
-    def iterator(tree, prefixlen, acc):
+    """
+    def _iterator(tree, prefixlen, acc):
         for net in tree.keys():
             if net.prefixlen() == prefixlen:
                 acc.append(net)
             if net.prefixlen() < prefixlen:
-                iterator(tree[net], prefixlen, acc)
+                _iterator(tree[net], prefixlen, acc)
     acc = []
-    iterator(tree, prefixlen, acc)
+    _iterator(tree, prefixlen, acc)
     return acc
