@@ -42,16 +42,18 @@ class PduWidget(Navlet):
     def get_context_data_view(self, context):
         roomid = self.preferences.get('room_id')
 
-        if roomid:
-            room = Room.objects.get(pk=roomid)
-            pdus = room.netbox_set.filter(category='POWER').filter(
-                Q(sysname__startswith='pdu-') |
-                Q(groups__in=['pdu'])).select_related('sensor')
-            metrics = [s.get_metric_name() for pdu in pdus for s in pdu.sensor_set.all()]
-            context['pdus'] = pdus
-            context['data_url'] = get_simple_graph_url(
-                metrics, time_frame='5 minutes', format='json', magic=False)
-            context['room'] = room
+        if not roomid:
+            return context
+
+        room = Room.objects.get(pk=roomid)
+        pdus = room.netbox_set.filter(category='POWER').filter(
+            Q(sysname__startswith='pdu-') |
+            Q(groups__in=['pdu'])).select_related('sensor')
+        metrics = [s.get_metric_name() for pdu in pdus for s in pdu.sensor_set.all()]
+        context['pdus'] = pdus
+        context['data_url'] = get_simple_graph_url(
+            metrics, time_frame='5 minutes', format='json', magic=False)
+        context['room'] = room
 
         return context
 
