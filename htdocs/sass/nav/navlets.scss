@@ -149,9 +149,10 @@ $fullscreen-color: #EEE;
          overflow: hidden;
          .panel {
              margin-bottom: 0;
-             padding: .5em 1em;
+             padding: .4rem .6rem;
              position: relative;
              z-index: 2;
+             .marklow { background-color: lightcoral; }
          }
          .line {
              background-color: steelblue;

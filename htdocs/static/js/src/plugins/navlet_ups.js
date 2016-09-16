@@ -51,6 +51,12 @@ define(function(require, exports, module) {
                     value = converted[0] || 'N/A';
                     $node.parent().find('.unit-of-measurement').text(converted[1]);
                 }
+
+                // If value is less than 200 and it is a voltage (indicated in template), mark it
+                if (value < 200) {
+                    $node.closest('.ups-voltage-indicator').addClass('marklow');
+                }
+
                 $node.html(value);
             });
             self.$updateTime.html(new Date().toLocaleString());

@@ -19,7 +19,7 @@
           <h5>Input</h5>
 
           {% for input_voltage in input_voltages  %}
-            <div>
+            <div class="ups-voltage-indicator">
               <span>L{{ forloop.counter }}:</span>
               <span data-metric="{{ input_voltage.get_metric_name }}"></span>
               {{ input_voltage.unit_of_measurement }}
@@ -42,7 +42,7 @@
           <h5>Output</h5>
 
           {% for output_voltage, output_power in output  %}
-            <div>
+            <div class="ups-voltage-indicator">
               <span>L{{ forloop.counter }}:</span>
               <span data-metric="{{ output_voltage.get_metric_name }}"></span>
               {{ output_voltage.unit_of_measurement }}
