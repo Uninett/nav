@@ -17,6 +17,7 @@
 
 from django.db.models import Q
 from django.core.urlresolvers import reverse
+from nav.natsort import natcmp
 from nav.metrics.graphs import get_simple_graph_url
 from nav.models.manage import Room
 from . import Navlet, NAVLET_MODE_EDIT
@@ -50,8 +51,9 @@ class PduWidget(Navlet):
         pdus = room.netbox_set.filter(category='POWER').filter(
             Q(sysname__startswith='pdu-') |
             Q(groups__in=['pdu'])).select_related('sensor')
+        sorted_pdus = sorted(pdus, cmp=natcmp, key=lambda x: x.sysname)
         metrics = [s.get_metric_name() for pdu in pdus for s in pdu.sensor_set.all()]
-        context['pdus'] = pdus
+        context['pdus'] = sorted_pdus
         context['metrics'] = metrics
         context['data_url'] = reverse('graphite-render')
         context['room'] = room
