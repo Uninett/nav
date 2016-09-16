@@ -229,7 +229,7 @@ require([
         $formRenameDashboard.hide();
         $dashboardTitleContainer.on('click', function() {
             $dashboardTitleContainer.hide();
-            $formRenameDashboard.show();
+            $formRenameDashboard.show().find('input').select();
         });
 
         $formRenameDashboard.submit(function(event) {
@@ -238,12 +238,20 @@ require([
             var self = this;
             var request = $.post(this.getAttribute('action'), $(this).serialize());
             request.done(function(responseText) {
+                var newName = self.elements['dashboard-name'].value;
+
                 // Alter name in dropdown
                 var $option = $('#form-choose-dashboard').find('select option[value=' + self.dataset.dashboard + ']');
-                var newName = self.elements['dashboard-name'].value;
                 $option.text(newName);
+
+                // Alter name in settings panel
                 $dashboardTitle.text(newName);
+
+                // Alter name in tab title
                 NAV.setTitle(newName);
+
+                // Alter name in dashboard heading
+                $('#dashboard-header').find('.heading').html(newName);
 
                 $dashboardTitleContainer.show();
                 $formRenameDashboard.hide();
