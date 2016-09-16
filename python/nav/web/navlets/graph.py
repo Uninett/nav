@@ -16,14 +16,12 @@
 """Widget for displaying a chart"""
 
 import urlparse
-from django.http import HttpResponse
 from django import forms
-from nav.models.profiles import AccountNavlet
-from . import Navlet, NAVLET_MODE_EDIT, REFRESH_INTERVAL
+from . import Navlet, REFRESH_INTERVAL
 
 
 class GraphEditForm(forms.Form):
-    id = forms.IntegerField(widget=forms.HiddenInput)
+    """Form for editing a graph widget"""
     url = forms.CharField(label='URL to image')
     target = forms.CharField(required=False,
                              label='Target URL when clicked')
@@ -33,6 +31,7 @@ class GraphEditForm(forms.Form):
                                        label='Show time interval controls')
 
     def clean_refresh_interval(self):
+        """Convert refresh interval"""
         refresh_interval = self.cleaned_data.get('refresh_interval', 600)
         refresh_interval *= 1000
         return refresh_interval
@@ -51,52 +50,44 @@ class GraphWidget(Navlet):
     def get_template_basename(self):
         return 'graph'
 
-    def get_context_data(self, **kwargs):
-        context = super(GraphWidget, self).get_context_data(**kwargs)
-
-        url = title = None
-        if self.preferences and 'url' in self.preferences:
-            url = self.preferences['url']
-            title = self.get_title()
-            show_controls = self.preferences.get('show_controls')
-            context['hide_buttons'] = 'false' if show_controls else 'true'
-
-        context['graph_url'] = url
-        if title:
-            self.title = title
-
-        if self.mode == NAVLET_MODE_EDIT:
-            navlet = AccountNavlet.objects.get(pk=self.navlet_id)
-            data = navlet.preferences
-            data['id'] = self.navlet_id
-            data[REFRESH_INTERVAL] = navlet.preferences[REFRESH_INTERVAL] / 1000
-            context['form'] = GraphEditForm(data=data)
+    def get_context_data_view(self, context):
+        self.title = self.get_title()
+        show_controls = self.preferences.get('show_controls')
+        context['hide_buttons'] = 'false' if show_controls else 'true'
+        context['graph_url'] = self.preferences.get('url')
         return context
 
-    @staticmethod
-    def post(request):
-        """Display form for adding an url to a chart"""
-        account = request.account
-        form = GraphEditForm(request.POST)
-        if form.is_valid():
-            cleaned_data = form.cleaned_data
-            account_navlet = AccountNavlet.objects.get(pk=cleaned_data['id'], account=account)
-            del cleaned_data['id']
-            account_navlet.preferences = cleaned_data
-            account_navlet.save()
-            return HttpResponse()
+    def get_context_data_edit(self, context):
+        if self.preferences.get('url'):
+            self.preferences[REFRESH_INTERVAL] = self.preferences[
+                REFRESH_INTERVAL] / 1000
+            context['form'] = GraphEditForm(self.preferences)
         else:
-            return HttpResponse(form.errors.as_json(), status=400)
+            context['form'] = GraphEditForm(
+                initial={REFRESH_INTERVAL: GraphWidget.refresh_interval / 1000})
+        return context
 
+    def post(self, request):
+        """Display form for adding an url to a chart"""
+        form = GraphEditForm(request.POST)
+        return super(GraphWidget, self).post(request, form=form)
 
     def get_title(self):
+        """Fetch the title for this widget"""
         if 'title' in self.preferences:
             return self.preferences['title']
-        else:
-            return self.get_title_from_url(self.preferences['url'])
+
+        url_title = self.get_title_from_url(self.preferences.get('url'))
+        if url_title:
+            return url_title
+
+        return GraphWidget.title
 
     @staticmethod
     def get_title_from_url(url):
+        """Get title from url"""
+        if not url:
+            return
         parsed_url = urlparse.urlparse(url)
         query = urlparse.parse_qs(parsed_url.query)
         if 'title' in query:
