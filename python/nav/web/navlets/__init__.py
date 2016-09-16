@@ -101,7 +101,8 @@ class Navlet(TemplateView):
     # to and do your own reload.
     ajax_reload = False
     preferences = {}  # See DEFAULT PREFERENCES for adding default values here
-    navlet_id = None
+    navlet_id = None  # deprecated, use account_navlet for the db object
+    account_navlet = None  # The database object
     highlight = None
 
     @property
@@ -148,15 +149,13 @@ class Navlet(TemplateView):
 
         Make sure you're not overriding stuff with the form
         """
-        navlet = AccountNavlet.objects.get(pk=self.navlet_id,
-                                           account=request.account)
         form = kwargs.get('form')
         if not form:
             return HttpResponse('No form supplied', status=400)
 
         if form.is_valid():
-            navlet.preferences.update(form.cleaned_data)
-            navlet.save()
+            self.account_navlet.preferences.update(form.cleaned_data)
+            self.account_navlet.save()
             return HttpResponse()
         else:
             return JsonResponse(form.errors, status=400)
@@ -258,7 +257,8 @@ def dispatcher(request, navlet_id):
         if not cls:
             cls = get_navlet_from_name(ERROR_WIDGET)
         view = cls.as_view(preferences=account_navlet.preferences,
-                           navlet_id=navlet_id)
+                           navlet_id=navlet_id,
+                           account_navlet=account_navlet)
         return view(request)
 
 
