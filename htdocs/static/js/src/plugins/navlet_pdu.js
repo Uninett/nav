@@ -7,13 +7,14 @@ define(function(require, exports, module) {
      * Based solely on the totally insane assumption that we have three banks
      * and that the first is the sum of the two following.
      */
-    function PduController($navlet, dataUrl) {
+    function PduController($navlet, dataUrl, metrics) {
         this.$navlet = $navlet;
         this.feedBack = this.$navlet.find('.alert-box.alert');
         this.timestamp = this.$navlet.find('.alert-update-timestamp span');
         this.dataUrl = dataUrl;
         this.thresholds = getThresholds(this.$navlet.find('.pdu-load-status').data('load-thresholds'));
         this.config = getConfig(this.thresholds.length);
+        this.parameters = getParameters(metrics);
 
         this.update();
         $navlet.on('refresh', this.update.bind(this));  // navlet controller determines when to update
@@ -31,7 +32,7 @@ define(function(require, exports, module) {
         this.feedBack.hide();
         var self = this;
 
-        var request = $.get(this.dataUrl, function(response) {
+        var request = $.post(this.dataUrl, this.parameters, function(response) {
             _.each(response, function(data) {
                 var $el = self.$navlet.find('[data-metric="' + data.target + '"]');
 
@@ -59,6 +60,7 @@ define(function(require, exports, module) {
     };
 
 
+    /** Constructs config for the sparkline */
     function getConfig(numThresholds) {
         //                  green      yellow     red
         var rangeColors = ['#A5D6A7', '#FFEE58', '#EF9A9A'];
@@ -76,6 +78,8 @@ define(function(require, exports, module) {
         };
     }
 
+    /** Returns if the metric is the 'total'-metric, the metric that displays
+     * the sum of the others */
     function isTotal(metric) {
         return strEndsWith(metric, 1);
     }
@@ -94,6 +98,17 @@ define(function(require, exports, module) {
         }
         return threshold.length === 0 ? [] :
             threshold.split(',').map(function(t) {return +t;});
+    }
+
+    /**
+     * Constructs the parameters for the data request
+     */
+    function getParameters(metrics) {
+        return {
+            from: '-5min',
+            format: 'json',
+            target: metrics
+        };
     }
 
     module.exports = PduController;

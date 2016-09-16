@@ -16,6 +16,7 @@
 """Module containing PDUWidget"""
 
 from django.db.models import Q
+from django.core.urlresolvers import reverse
 from nav.metrics.graphs import get_simple_graph_url
 from nav.models.manage import Room
 from . import Navlet, NAVLET_MODE_EDIT
@@ -51,8 +52,8 @@ class PduWidget(Navlet):
             Q(groups__in=['pdu'])).select_related('sensor')
         metrics = [s.get_metric_name() for pdu in pdus for s in pdu.sensor_set.all()]
         context['pdus'] = pdus
-        context['data_url'] = get_simple_graph_url(
-            metrics, time_frame='5 minutes', format='json', magic=False)
+        context['metrics'] = metrics
+        context['data_url'] = reverse('graphite-render')
         context['room'] = room
 
         return context

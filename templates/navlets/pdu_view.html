@@ -32,10 +32,14 @@
     </table>
     <small class="alert-update-timestamp right">Last update: <span></span></small>
 
-
     <script>
+
+
      require(['plugins/navlet_pdu'], function(Pdu) {
-         new Pdu($('[data-id=' + {{ navlet.navlet_id }}+ ']'), '{{ data_url|safe }}');
+         new Pdu($('[data-id=' + {{ navlet.navlet_id }}+ ']'),
+                 '{{ data_url|safe }}',
+                 {{ metrics|safe }}
+         );
      });
     </script>
 
