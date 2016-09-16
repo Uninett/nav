@@ -160,9 +160,13 @@ class RoomFilterForm(forms.Form):
 
 class RoomForm(forms.ModelForm):
     """Form for editing/adding rooms"""
-    location = forms.ChoiceField(choices=create_hierarchy(Location))
+    location = forms.ChoiceField(choices=())
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(RoomForm, self).__init__(*args, **kwargs)
+        self.fields['location'].choices = create_hierarchy(Location)
 
     class Meta(object):
         model = Room
