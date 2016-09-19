@@ -6,7 +6,7 @@
 
     <div class="accordion">
       {% for room in rooms %}
-        <h3>
+        <h3 data-roomid="{{ room.pk }}">
           {{ room }}
           <small class="label radius">3</small>
         </h3>
@@ -28,6 +28,41 @@
       {% endfor %}
     </div>
 
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui.css">
+    <script>
+      require(['libs/jquery-ui.min'], function () {
+        var $navlet = $('[data-id={{ navlet.navlet_id }}]');
+
+        $navlet.find('.accordion').accordion({
+          active: getActiveHeaderIndex(),
+          collapsible: true,
+          heightStyle: 'content',
+          activate: function (event, ui) {
+            if (ui.newHeader.length) {
+              $navlet.data('active-header', ui.newHeader.data('roomid'));
+            } else {
+              $navlet.data('active-header', null);
+            }
+          }
+        });
+
+        function getActiveHeaderIndex() {
+          var activeHeader = $navlet.data('active-header');
+          var active = false;
+          if (activeHeader) {
+            $navlet.find('.accordion h3').each(function (index, element) {
+              if ($(element).data('roomid') === activeHeader) {
+                active = index;
+              }
+            });
+          }
+          return active;
+        }
+
+      });
+    </script>
+
+
   {% else %}
     <div class="alert-box success with-icon">No alerts in any rooms</div>
   {% endif %}
@@ -35,17 +70,5 @@
   <small class="right">
     Last update: <span class="last-update">{{ last_update }}</span>
   </small>
-
-
-  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui.css">
-  <script>
-    require(['libs/jquery-ui.min'], function(){
-      $('[data-id={{ navlet.navlet_id }}]').find('.accordion').accordion({
-        active: false,
-        collapsible: true,
-        heightStyle: 'content'
-     });
-   });
-  </script>
 
 {% endblock %}
