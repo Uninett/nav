@@ -175,7 +175,7 @@ def c_restart(query_list):
 
 def c_status(query_list):
     checkroot()
-    action_iterator(query_list, "isUp", "Up", "Down")
+    action_iterator(query_list, "is_up", "Up", "Down")
 
 def c_version(query_list):
     from nav import buildconf
