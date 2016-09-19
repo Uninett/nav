@@ -202,3 +202,32 @@ $fullscreen-color: #EEE;
 .AlertWidget {
     fieldset { padding: .3em .8em; }
 }
+
+.RoomStatus {
+    // Override the jquery ui css styles
+    .ui-accordion {
+        a { color: $primary-color; }
+        .ui-accordion-header {
+            background: $secondary-color;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            .label {
+                background-color: grey;
+                color: white;
+                margin-bottom: 0;
+            }
+        }
+        .ui-accordion-content {
+            border-radius: 0;
+            padding: 1rem;
+            ul {
+                margin-bottom: 0;
+                li {
+                    font-size: 80%;
+                }
+            }
+        }
+    }
+}

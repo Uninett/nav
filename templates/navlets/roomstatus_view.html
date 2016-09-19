@@ -1,0 +1,51 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  {% if rooms %}
+
+    <div class="accordion">
+      {% for room in rooms %}
+        <h3>
+          {{ room }}
+          <small class="label radius">3</small>
+        </h3>
+        <div>
+          Alerts in
+          <a href="{% url 'devicehistory-view-room' room.pk %}">{{ room.pk }}</a>
+
+          <ul>
+            {% for alert in room.alerts %}
+              <li>
+                {{ alert.start_time }} &ndash;
+                <a href="{{ alert.netbox.get_absolute_url }}">
+                  {{ alert.sms_message.message }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="alert-box success with-icon">No alerts in any rooms</div>
+  {% endif %}
+
+  <small class="right">
+    Last update: <span class="last-update">{{ last_update }}</span>
+  </small>
+
+
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui.css">
+  <script>
+    require(['libs/jquery-ui.min'], function(){
+      $('[data-id={{ navlet.navlet_id }}]').find('.accordion').accordion({
+        active: false,
+        collapsible: true,
+        heightStyle: 'content'
+     });
+   });
+  </script>
+
+{% endblock %}

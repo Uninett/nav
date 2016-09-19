@@ -171,6 +171,7 @@ NAVLETS = (
     'nav.web.navlets.alert.AlertWidget',
     'nav.web.navlets.ups.UpsWidget',
     'nav.web.navlets.pdu.PduWidget',
+    'nav.web.navlets.roomstatus.RoomStatus',
 )
 
 CRISPY_TEMPLATE_PACK = 'foundation'
