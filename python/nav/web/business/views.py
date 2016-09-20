@@ -1,17 +1,17 @@
 """Controllers for business tool"""
 
 from collections import defaultdict
-from operator import attrgetter
 from datetime import datetime
+from operator import attrgetter
 
 from django.core.urlresolvers import reverse
 from django.views.generic import TemplateView
 
-from nav.web.utils import create_title
-from nav.web.business import utils
+from nav.metrics.data import get_netboxes_availability
 from nav.models.event import AlertHistory
 from nav.models.manage import Interface
-from nav.metrics.data import get_netboxes_availability
+from nav.web.business import utils
+from nav.web.utils import create_title
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -82,7 +82,7 @@ class AvailabilityReportView(BusinessView):
 
         # Create availability records for each subject
         return [utils.create_record(subject, alerts, start, end)
-            for subject, alerts in self.grouped_alerts.items()]
+                for subject, alerts in self.grouped_alerts.items()]
 
     @staticmethod
     def group_alerts(alerts):
@@ -118,6 +118,7 @@ class DeviceAvailabilityReport(AvailabilityReportView):
             context['display_packet_loss'] = True
 
         return context
+
 
 class LinkAvailabilityReport(AvailabilityReportView):
     """Availability for links"""

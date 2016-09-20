@@ -2,11 +2,11 @@
 
 {% block content %}
 
-  <a href="{% url business-index %}">Back to report index</a>
+  <a href="{% url 'business-index' %}">Back to report index</a>
 
   <section id="report-content" class="panel white">
     {% block report-content %}
-      
+
     {% endblock %}
   </section>
 

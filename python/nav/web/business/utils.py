@@ -34,7 +34,7 @@ def get_months(number_of_months=12):
     """
     now = datetime.now()
     month = datetime(now.year, now.month, 1)
-    months = []
+    months = [month]
     for _ in range(number_of_months):
         month = (month - timedelta(days=1)).replace(day=1)
         months.append(month)
@@ -46,10 +46,8 @@ def compute_downtime(alerts, start, end):
     """Computes the total downtime for the given alerts"""
     downtime = timedelta()
     for alert in alerts:
-        start_inside_interval = (alert.start_time >= start and
-                                 alert.start_time <= end)
-        end_inside_interval = (alert.end_time >= start and
-                               alert.end_time <= end)
+        start_inside_interval = start <= alert.start_time <= end
+        end_inside_interval = start <= alert.end_time <= end
 
         if start_inside_interval or end_inside_interval:
             # I want one liners dammit! :p
