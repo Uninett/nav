@@ -1,22 +1,22 @@
-"""Time and date related tags and filters"""
-# pylint: disable=C0103, W0702
-
+"""Template filters and tags for helping with dates and datetimes"""
+# pylint: disable=W0702,C0103
 from django import template
 from nav.django.settings import DATETIME_FORMAT, SHORT_TIME_FORMAT
 from django.template.defaultfilters import date, time
+from datetime import timedelta
 
 register = template.Library()
 
 
 @register.filter
 def default_datetime(value):
+    """Returns the date as represented by the default datetime format"""
     try:
         v = date(value, DATETIME_FORMAT)
     except:
         return value
 
     return v
-
 
 @register.filter
 def short_time_format(value):
@@ -28,3 +28,12 @@ def short_time_format(value):
         return time(value, SHORT_TIME_FORMAT)
     except:
         return value
+
+@register.filter
+def remove_microseconds(delta):
+    """Removes microseconds from timedelta"""
+    try:
+        return delta - timedelta(microseconds=delta.microseconds)
+    except:
+        return delta
+

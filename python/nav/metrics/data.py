@@ -92,6 +92,13 @@ def get_metric_data(target, start="-5min", end="now"):
     base = CONFIG.get("graphiteweb", "base")
     url = urljoin(base, "/render/")
 
+    # What does Graphite accept of formats? Lets check if the parameters are
+    # datetime objects and try to force a format then
+    if isinstance(start, datetime):
+        start = start.strftime('%H:%M%Y%m%d')
+    if isinstance(end, datetime):
+        end = end.strftime('%H:%M%Y%m%d')
+
     query = {
         'target': target,
         'from': start,
@@ -135,7 +142,8 @@ METRIC_PATH_LOOKUP = {
 
 
 def get_netboxes_availability(netboxes, data_sources=DEFAULT_DATA_SOURCES,
-                              time_frames=DEFAULT_TIME_FRAMES):
+                              time_frames=DEFAULT_TIME_FRAMES,
+                              start_time=None, end_time=None):
     """Calculates and returns an availability data structure for a list of
     netboxes.
 
@@ -163,6 +171,37 @@ def get_netboxes_availability(netboxes, data_sources=DEFAULT_DATA_SOURCES,
                 'data_source': data_source_id,
             }
 
+    if start_time:
+        populate_for_interval(result, targets, netboxes, start_time, end_time)
+    else:
+        populate_for_time_frame(result, targets, netboxes, time_frames)
+
+    return result
+
+
+def populate_for_interval(result, targets, netboxes, start_time, end_time):
+    """Populate results based on a time interval"""
+    avg = get_metric_average(targets, start=start_time, end=end_time)
+
+    for netbox in netboxes:
+        root = result[netbox.id]
+
+        # Availability
+        if 'availability' in root:
+            pktloss = avg.get(root['availability']['data_source'])
+            if pktloss is not None:
+                pktloss = 100 - (pktloss * 100)
+            root['availability'] = pktloss
+
+        # Response time
+        if 'response_time' in root:
+            root['response_time'] = avg.get(
+                root['response_time']['data_source'])
+
+
+
+def populate_for_time_frame(result, targets, netboxes, time_frames):
+    """Populate results based on a list of time frames"""
     for time_frame in time_frames:
         avg = get_metric_average(targets, start="-1%s" % time_frame)
 
@@ -180,5 +219,3 @@ def get_netboxes_availability(netboxes, data_sources=DEFAULT_DATA_SOURCES,
             if 'response_time' in root:
                 root['response_time'][time_frame] = avg.get(
                     root['response_time']['data_source'])
-
-    return result
