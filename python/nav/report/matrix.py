@@ -67,7 +67,7 @@ class Matrix(object):
         self.start_net = start_net
         self.end_net = end_net
         self.bits_in_matrix = bits_in_matrix
-        self.tree = IPtree.buildTree(
+        self.tree = IPtree.build_tree(
             start_net,
             end_net,
             bits_in_matrix=bits_in_matrix,
@@ -91,19 +91,19 @@ class Matrix(object):
         Returns True if argument ``net'' has too many small subnets for the
         matrix.
         """
-        for net in IPtree.getSubtree(self.tree, net):
+        for net in IPtree.get_subtree(self.tree, net):
             if net.prefixlen() > self.end_net.prefixlen():
                 return True
         return False
 
     def extract_matrix_nets(self):
         """These should be shown as horizontal rows in the matrix."""
-        return IPtree.extractSubtreesWithPrefixLength(
+        return IPtree.extract_subtrees_with_prefix_length(
             self.tree, self.end_net.prefixlen()-self.bits_in_matrix)
 
     def extract_tree_nets(self):
         """These should be listed vertically in the leftmost column."""
-        return IPtree.removeSubnetsWithPrefixLength(
+        return IPtree.remove_subnets_with_prefixlength(
             self.tree, self.end_net.prefixlen()-self.bits_in_matrix+1)
 
     def _colspan(self, ip):
