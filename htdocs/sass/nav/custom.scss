@@ -344,6 +344,14 @@ form label .fa {
     overflow: auto;
 }
 
+/*
+ * Make sure the arrow in select boxes does not overflow the text.
+ * 21 px refers to the size of the background-image that Foundation uses.
+ */
+select {
+    padding-right: 21px;
+}
+
 /* Reveal modal should always be as high as possible */
 //.reveal-modal {
 //    top: 0px;
