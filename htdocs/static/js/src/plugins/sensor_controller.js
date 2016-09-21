@@ -20,7 +20,7 @@ define(function(require) {
         if (this.unit.toLowerCase() === 'percent' || this.unit.substr(0, 1) === '%') {
             this.maxValue = 100;  // Max value for graphs and gauges
             this.sensorsymbol = '%';
-        } else if (this.unit.toLowerCase() === 'celsius') {
+        } else if (['celsius', 'degrees'].indexOf(this.unit.toLowerCase()) >= 0) {
             this.maxValue = 50;  // Max value for graphs and gauges
             this.sensorsymbol = '\u00B0';
         } else {
