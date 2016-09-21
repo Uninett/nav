@@ -52,7 +52,6 @@ class AlertWidgetForm(forms.Form):
             'on_state', 'alert_type'
         )
 
-
     def clean(self):
         """Make sure either metric name or sensor is specified"""
         cleaned_data = super(AlertWidgetForm, self).clean()
@@ -76,7 +75,7 @@ class SensorForm(forms.Form):
 class PduWidgetForm(forms.Form):
     """Form for choosing a room"""
     room_id = forms.ChoiceField(choices=(), label='Room')
-    load_thresholds = forms.CharField(label='Thresholds (comma separated, max 3)')
+    limits = forms.CharField(label='Limits (in amperes)')
 
     def __init__(self, *args, **kwargs):
         super(PduWidgetForm, self).__init__(*args, **kwargs)

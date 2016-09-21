@@ -15,13 +15,14 @@
 #
 """Module containing PDUWidget"""
 
-from django.db.models import Q
 from django.core.urlresolvers import reverse
-from nav.natsort import natcmp
-from nav.metrics.graphs import get_simple_graph_url
+from django.db.models import Q
+
 from nav.models.manage import Room
-from . import Navlet, NAVLET_MODE_EDIT
+from nav.natsort import natcmp
+from . import Navlet
 from .forms import PduWidgetForm
+
 
 class PduWidget(Navlet):
     """Widget for displaying pdu overview for a room"""
@@ -38,7 +39,8 @@ class PduWidget(Navlet):
 
     def get_context_data_edit(self, context):
         roomid = self.preferences.get('room_id')
-        context['form'] = PduWidgetForm(self.preferences) if roomid else PduWidgetForm()
+        context['form'] = (PduWidgetForm(self.preferences)
+                           if roomid else PduWidgetForm())
         return context
 
     def get_context_data_view(self, context):
@@ -52,7 +54,8 @@ class PduWidget(Navlet):
             Q(sysname__startswith='pdu-') |
             Q(groups__in=['pdu'])).select_related('sensor')
         sorted_pdus = sorted(pdus, cmp=natcmp, key=lambda x: x.sysname)
-        metrics = [s.get_metric_name() for pdu in pdus for s in pdu.sensor_set.all()]
+        metrics = [s.get_metric_name() for pdu in pdus
+                   for s in pdu.sensor_set.all()]
         context['pdus'] = sorted_pdus
         context['metrics'] = metrics
         context['data_url'] = reverse('graphite-render')

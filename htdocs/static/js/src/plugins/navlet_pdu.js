@@ -12,8 +12,8 @@ define(function(require, exports, module) {
         this.feedBack = this.$navlet.find('.alert-box.alert');
         this.timestamp = this.$navlet.find('.alert-update-timestamp span');
         this.dataUrl = dataUrl;
-        this.thresholds = getThresholds(this.$navlet.find('.pdu-load-status').data('load-thresholds'));
-        this.config = getConfig(this.thresholds.length);
+        this.limits = getLimits(this.$navlet.find('.pdu-load-status').data('limits'));
+        this.config = getConfig(this.limits.length);
         this.parameters = getParameters(metrics);
 
         this.update();
@@ -46,11 +46,11 @@ define(function(require, exports, module) {
                 }
                 var load = point[0];
 
-                // Recalculate thresholds for the total column
-                var thresholds = isTotal(data.target)
-                        ? self.thresholds.map(function(t) { return t*2; }) : self.thresholds;
+                // Recalculate limits for the total column
+                var limits = isTotal(data.target)
+                        ? self.limits.map(function(t) { return t*2; }) : self.limits;
 
-                $el.sparkline([null, load].concat(thresholds), self.config);
+                $el.sparkline([null, load].concat(limits), self.config);
             });
             self.timestamp.text(new Date().toLocaleString());
         });
@@ -61,11 +61,11 @@ define(function(require, exports, module) {
 
 
     /** Constructs config for the sparkline */
-    function getConfig(numThresholds) {
+    function getConfig(numLimits) {
         //                  green      yellow     red
         var rangeColors = ['#A5D6A7', '#FFEE58', '#EF9A9A'];
         // The splice is necessary because of the way sparklines.js applies the colors.
-        rangeColors = rangeColors.splice(0, numThresholds);
+        rangeColors = rangeColors.splice(0, numLimits);
 
         return {
             type: 'bullet',
@@ -73,7 +73,7 @@ define(function(require, exports, module) {
             rangeColors: rangeColors.reverse(),
             tooltipFormatter: function(data) {
                 var prefix = isTotal(data.$el.data('metric')) ? 'Total load' : 'Load';
-                return prefix + ' ' + data.values[1] + " (thresholds: " + data.values.slice(2).reverse() + ")";
+                return prefix + ' ' + data.values[1] + " (limits: " + data.values.slice(2).reverse() + ")";
             }
         };
     }
@@ -86,18 +86,18 @@ define(function(require, exports, module) {
 
 
     function strEndsWith(str, suffix) {
-        return str.match(suffix+"$")==suffix;
+        return str.match(suffix+"$") == suffix;
     }
 
     /**
-     * @param {string} threshold - comma separated string with numeric thresholds
+     * @param {string} limit - comma separated string with numeric thresholds
      */
-    function getThresholds(threshold) {
-        if (typeof threshold === 'number') {
-            return [threshold];  // single threshold
+    function getLimits(limit) {
+        if (typeof limit === 'number') {
+            return [limit];  // single limit
         }
-        return threshold.length === 0 ? [] :
-            threshold.split(',').map(function(t) {return +t;});
+        return limit.length === 0 ? [] :
+            limit.split(',').map(function(t) {return +t;});
     }
 
     /**

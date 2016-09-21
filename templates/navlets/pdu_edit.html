@@ -3,9 +3,8 @@
 {% block navlet-content %}
 
   <div class="alert-box">
-    For the thresholds, specify at least the max value (or threshold) for the
-    banks. You can also specify further thresholds by separating the values with
-    a comma.
+    Limits are visual thresholds. We need at least one to indicate max value.
+    More can be added to create visual thresholds in different colors.
   </div>
 
   <form action="{% url 'get-user-navlet' navlet.navlet_id %}" method="post">
