@@ -4,21 +4,27 @@
 
   {% if rooms %}
 
+    <h3>Rooms with active alerts</h3>
+
     <div class="accordion">
       {% for room in rooms %}
         <h3 data-roomid="{{ room.pk }}">
           {{ room }}
-          <small class="label radius">3</small>
+          <small class="label radius">{{ room.alerts|length }}</small>
         </h3>
         <div>
-          Alerts in
-          <a href="{% url 'devicehistory-view-room' room.pk %}">{{ room.pk }}</a>
+          <a href="{% url 'devicehistory-view-room' room.pk %}"
+             title="Go to device history for this room">Alerts</a>
+          in
+          <a href="{% url 'room-info' room.pk %}"
+             title="Go to room info for this room">{{ room.pk }}</a>
 
           <ul>
             {% for alert in room.alerts %}
               <li>
                 {{ alert.start_time }} &ndash;
-                <a href="{{ alert.netbox.get_absolute_url }}">
+                <a href="{{ alert.netbox.get_absolute_url }}"
+                   title="Go to device info for this device">
                   {{ alert.sms_message.message }}
                 </a>
               </li>

@@ -208,7 +208,8 @@ $fullscreen-color: #EEE;
     .ui-accordion {
         a { color: $primary-color; }
         .ui-accordion-header {
-            background: $secondary-color;
+            background: $alert-box-bg;
+            border-color: $alert-box-border;
             border-radius: 0;
             display: flex;
             align-items: center;
