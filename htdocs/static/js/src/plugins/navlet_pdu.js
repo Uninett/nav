@@ -47,8 +47,9 @@ define(function(require, exports, module) {
                 var load = point[0];
 
                 // Recalculate limits for the total column
-                var limits = isTotal(data.target)
-                        ? self.limits.map(function(t) { return t*2; }) : self.limits;
+                var limits = isTotal(data.target) ?
+                    self.limits.map(function (t) { return t * 2; }) :
+                    self.limits;
 
                 $el.sparkline([null, load].concat(limits), self.config);
             });
