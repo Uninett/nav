@@ -12,7 +12,7 @@ define(function(require, exports, module) {
         this.feedBack = this.$navlet.find('.alert-box.alert');
         this.timestamp = this.$navlet.find('.alert-update-timestamp span');
         this.dataUrl = dataUrl;
-        this.limits = getLimits(this.$navlet.find('.pdu-load-status').data('limits'));
+        this.limits = getLimits(this.$navlet.find('.pdu-load-status').data('limits')).sort().reverse();
         this.config = getConfig(this.limits.length);
         this.parameters = getParameters(metrics);
 
@@ -91,6 +91,7 @@ define(function(require, exports, module) {
 
     /**
      * @param {string} limit - comma separated string with numeric thresholds
+     * @returns {Array.<integer>} An array of integer limits
      */
     function getLimits(limit) {
         if (typeof limit === 'number') {
