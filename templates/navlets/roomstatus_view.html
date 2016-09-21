@@ -4,8 +4,6 @@
 
   {% if rooms %}
 
-    <h3>Rooms with active alerts</h3>
-
     <div class="accordion">
       {% for room in rooms %}
         <h3 data-roomid="{{ room.pk }}">
