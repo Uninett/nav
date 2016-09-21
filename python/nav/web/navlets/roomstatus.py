@@ -38,7 +38,8 @@ class RoomStatus(Navlet):
             netbox__alerthistory__end_time__gte=INFINITY).distinct('id')
         for room in rooms:
             room.alerts = AlertHistory.objects.filter(
-                netbox__room=room).order_by('start_time')
+                netbox__room=room,
+                end_time__gte=INFINITY).order_by('start_time')
             for alert in room.alerts:
                 alert.sms_message = alert.messages.get(type='sms')
 

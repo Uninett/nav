@@ -8,7 +8,10 @@
       {% for room in rooms %}
         <h3 data-roomid="{{ room.pk }}">
           {{ room }}
-          <small class="label radius">{{ room.alerts|length }}</small>
+          <small class="label radius alert"
+                 title="{{ room.alerts|length }} alerts in {{ room.pk }}">
+            {{ room.alerts|length }}
+          </small>
         </h3>
         <div>
           <a href="{% url 'devicehistory-view-room' room.pk %}"
