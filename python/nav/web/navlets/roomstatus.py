@@ -26,8 +26,8 @@ from . import Navlet
 class RoomStatus(Navlet):
     """Widget displaying status for rooms"""
 
-    title = 'Room status'
-    description = 'Displays status for each room'
+    title = 'Rooms with active alerts'
+    description = 'Displays a list of rooms with active alerts'
     refresh_interval = 30000  # 30 seconds
 
     def get_template_basename(self):
