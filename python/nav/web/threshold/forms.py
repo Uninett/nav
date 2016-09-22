@@ -15,14 +15,17 @@
 #
 """Forms for threshold app"""
 
-from django import forms
+import re
+
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Fieldset, Submit, Row,
                                             Column)
-from nav.web.crispyforms import HelpField
+from django import forms
+
 from nav.metrics.thresholds import ThresholdEvaluator, InvalidExpressionError
 from nav.models.thresholds import ThresholdRule
 from nav.util import parse_interval
+from nav.web.crispyforms import HelpField
 
 
 class ThresholdForm(forms.ModelForm):
@@ -67,6 +70,13 @@ class ThresholdForm(forms.ModelForm):
             )
         )
 
+    def clean(self):
+        cleaned_data = super(ThresholdForm, self).clean()
+        period = cleaned_data.get('period')
+        if not period and is_interface(cleaned_data['target']):
+            cleaned_data['period'] = parse_interval('15m')
+        return cleaned_data
+
     def clean_period(self):
         """Verify that period is correctly formatted"""
         period = self.cleaned_data['period']
@@ -110,3 +120,8 @@ def validate_expression(expression, form):
         evaluator.evaluate(expression)
     except InvalidExpressionError:
         raise forms.ValidationError('Invalid threshold expression')
+
+
+def is_interface(metric):
+    """Returns true if this metric is an interface counter"""
+    return re.match(r'nav\.devices\..*\.ports\..*', metric)
