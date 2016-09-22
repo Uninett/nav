@@ -24,12 +24,12 @@ another, you should consider these points:
 
 * Do you run NAV's PostgreSQL server on the same host as NAV itself? If so,
   you should perform a full dump of the PostgreSQL cluster using
-  :program:`pg_dumpall` and load this onto the target host. 
+  :program:`pg_dumpall` and load this onto the target host.
 
   If you are an advanced PostgreSQL, you could utilize database replication or
   other strategies to minimize downtime.
 
-* Do you run your Carbon (Graphite) backend on the same host as NAV? If so,
+* Do you run your Carbon (Graphite) back-end on the same host as NAV? If so,
   you should copy all your Whisper files (where Graphite stores its time
   series data) to the target host, using your preferred combination of
   :program:`rsync`/:program:`scp`/:program:`tar`.
