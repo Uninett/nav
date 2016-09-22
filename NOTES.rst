@@ -28,6 +28,9 @@ Dependency changes
 NAV now requires the :mod:`markdown` Python library, to ensure proper
 rendering of documentation in the browseable API.
 
+The :mod:`IPy` Python library is now required to be at least version *0.81*.
+
+
 
 NAV 4.5
 ========
