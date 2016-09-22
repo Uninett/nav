@@ -5,12 +5,48 @@
 This how-to explores two methods of migrating data from one NAV installation
 to another, depending on your specific needs.
 
-.. note:: This guide does not cover data stored outside of NAV's PostgreSQL
-          database, such as time-series data in RRD files or log files.
+.. note:: This guide does not cover in detail data stored outside of NAV's
+          PostgreSQL database, such as time-series data in Graphite, log
+          files, or configuration files.
+
+***************************
+What data should I migrate?
+***************************
+
+If you want to migrate your entire NAV installation from one server to
+another, you should consider these points:
+
+* Uploaded resources, such as room images, are stored in the file system, in
+  the :file:`uploads/` directory under NAV's ``localstatedir`` (on Debian,
+  this is typically :file:`/var/lib/nav/uploads/`). This directory structure
+  can easily be copied to the target host, using your preferred combination of
+  :program:`rsync`/:program:`scp`/:program:`tar`.
+
+* Do you run NAV's PostgreSQL server on the same host as NAV itself? If so,
+  you should perform a full dump of the PostgreSQL cluster using
+  :program:`pg_dumpall` and load this onto the target host. 
+
+  If you are an advanced PostgreSQL, you could utilize database replication or
+  other strategies to minimize downtime.
+
+* Do you run your Carbon (Graphite) backend on the same host as NAV? If so,
+  you should copy all your Whisper files (where Graphite stores its time
+  series data) to the target host, using your preferred combination of
+  :program:`rsync`/:program:`scp`/:program:`tar`.
+
+* Don't forget your configuration files! Not only NAV's configuration files,
+  but also PostgreSQL and Graphite, if you are migrating those as well.
+
+
+If you want to migrate only parts of the data, you should read on.
 
 *******************
 Migrating seed data
 *******************
+
+If you wish to discard your NAV history and establish a new NAV server to
+monitor the same set of devices as your old NAV server, migrating your NAV's
+seed data should be enough.
 
 Seed data are the data you can enter through the Seed DB tool, consisting
 mostly of data NAV needs to start monitoring your network. These do not
