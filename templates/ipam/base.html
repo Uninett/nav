@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load tools %}
+
+{% block base_content %}
+
+  {% with tool=current_user_data.tools|get_tool:'IPAM' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
+  {% block content %}
+
+  {% endblock %}
+
+{% endblock %}

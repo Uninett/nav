@@ -1,0 +1,55 @@
+<a href="#prefix-<%= pk %>" class="prefix-tree-item-title">
+  <div class="prefix-graphs"></div>
+  <h3 class="ip"><%= prefix %></h3>
+  <span class="label secondary net-type"><%= net_type %></span>
+  <% if (vlan_number) { %>
+  <span class="label secondary">VLAN <%= vlan_number %></span>
+  <% } %>
+  <% if (description) { %>
+  <span class="label secondary"><%= description %></span>
+  <% } %>
+  <% if (length > 1) { %>
+  (<%= length %> children)
+  <% } %>
+  <% if (length === 1) { %>
+  (<%= length %> child)
+  <% } %>
+</a>
+<div id="prefix-<%= pk %>" class="content prefix-tree-item-content">
+  <div class="prefix-tree-item-content-data">
+    <a class="button small" href="<%= NAV.urls['prefix-index'] %><%= pk %>" target="_blank">
+      View details
+    </a>
+    <% if (edit_url && ['reserved', 'scope'].indexOf(net_type) >= 0) { %>
+    <a class="button small" href="<%= edit_url %>" target="_blank">Edit in SeedDB</a>
+    <% } %>
+    <% if (net_type === "scope") { %>
+    <a class="button small"
+       href="<%= NAV.urls['report-matrix'] %>?scope=<%= prefix %>"
+       target="_blank">
+      Open in Subnet Matrix
+    </a>
+    <% } %>
+    <% if (net_type === "lan") { %>
+    <a class="button small"
+       href="<%= NAV.urls['machinetracker-ip'] %>?ip_range=<%= prefix %>"
+       target="_blank">
+      Search in Machine Tracker
+    </a>
+    <% } %>
+    <ul class="prefix-metadata">
+      <% if (organization) { %>
+      <li><strong>Organization:</strong> <%= organization %></li>
+      <% } %>
+      <% if (vlan_usage) { %>
+      <li><strong>Usage:</strong> <%= vlan_usage %></li>
+      <% } %>
+    </ul>
+    <div class="prefix-tree-available-subnets">
+      <!-- container for available subnets within this prefix -->
+    </div>
+  </div>
+  <div class="prefix-tree-children-container">
+    <!-- container for any child nodes -->
+  </div>
+</div>

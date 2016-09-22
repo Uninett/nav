@@ -1,0 +1,5 @@
+{% for usage in prefix.usages.all %}
+  <span class="label secondary">{{ usage.description }}</span>
+{% empty %}
+  No tags
+{% endfor %}

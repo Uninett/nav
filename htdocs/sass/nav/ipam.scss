@@ -1,0 +1,285 @@
+@import "../navsettings";
+
+// For grid-column, grid-row mixins
+@import "../foundation/components/grid";
+
+$ipam-text-color: #fff;
+
+$ipam-200: #CFD8DC;
+$ipam-400: #78909C;
+$ipam-500: #607D8B;
+$ipam-600: #546E7A;
+$ipam-700: #455A64;
+
+.toggleAdvanced {
+    font-size: 0.8em;
+}
+
+/* Style the element that contains every subtree. This means that every tree
+with children are more and more "padded" */
+.prefix-tree-children-container > div {
+    padding: 1.5em;
+}
+
+// Blur all other nodes when a single node is opened
+.prefix-tree-children {
+    .prefix-tree-item {
+        opacity: 1.0;
+    }
+}
+.prefix-tree-children.has_open_nodes {
+    .prefix-tree-item.prefix-tree-item-open {
+        opacity: 1.0 !important;
+        .prefix-tree-children > .prefix-tree-item {
+            opacity: 1.0;
+        }
+    }
+    .prefix-tree-item {
+        opacity: 0.25;
+    }
+    .prefix-tree-item:hover {
+        opacity: 1.0;
+    }
+}
+
+.prefix-tree-item-content-data {
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+    border-bottom: 10px solid $ipam-700;
+}
+
+.prefix-children-header {
+    overflow: auto;
+}
+
+.tree-control {
+    float: right;
+    select {
+        max-width: 200px;
+    }
+    button {
+        font-size: 0.8em;
+        margin-bottom: 0;
+    }
+}
+
+.prefix-tree-item-title {
+    background: $ipam-500;
+    color: $ipam-text-color;
+
+    a {
+        color: inherit;
+    }
+
+    a:hover,
+    a:visited {
+        color: inherit;
+    }
+
+    &:visited,
+    &:active,
+    &:link {
+        color: $ipam-text-color;
+    }
+
+    &:hover {
+        color: $ipam-text-color;
+        background: $ipam-600;
+    }
+
+    .net-type {
+        text-transform: uppercase;
+    }
+
+}
+
+.prefix-tree-item {
+    border-bottom: 1px solid $ipam-600;
+}
+
+.prefix-tree-item-content {
+    background: $ipam-200 !important;
+    & > & {
+        background: $ipam-700 !important;
+    }
+}
+
+.prefix-metadata {
+    margin-bottom: 20px;
+}
+
+ul.accordion {
+    margin-top: 1rem;
+    margin-left: 0;
+}
+
+.prefix-tree-flash {
+    margin-top: 20px;
+}
+
+// Search panel, forms etc. for prefix tree
+.prefix-tree-control {
+}
+
+.allocation-tree {
+    allocation-tree-info {
+        margin-top: 20px;
+    }
+    .allocation-tree-reserve-form {
+        max-width: 350px;
+    }
+}
+
+
+// === Own accordion implementation
+
+// main container
+.prefix-tree-children {
+    margin-left: 0;
+    li {
+        margin-left: 0;
+    }
+}
+
+.prefix-tree-item {
+    display: border-box;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+
+    .prefix-tree-item-title {
+        h3 { margin: 0; }
+        padding: 10px 20px;
+        width: 100%;
+        display: block;
+    }
+}
+
+.prefix-tree-query {
+    width: 100%;
+    margin-bottom: 0.5em;
+}
+
+.prefix-tree-item-content {
+    display: none;
+}
+
+.prefix-item-open {
+    &.prefix-tree-item-title {
+        background: $ipam-500;
+        color: $ipam-text-color;
+    }
+    &.prefix-tree-item-content {
+        display: block;
+    }
+}
+
+// == BREAKPOINTS STUFF
+
+.prefix-graphs {
+    display: block;
+    font-size: 0.750em;
+    margin-top: 20px;
+}
+
+// Avoid usage graph being too tall on small screens
+.prefix-graphs svg {
+    height: 15px;
+}
+
+.ipam-sidebar .sidebar-wrapper {
+    padding: 10px 20px;
+}
+
+
+@media #{$large-up} {
+
+    .ipam-sidebar .sidebar-wrapper {
+        padding: 0;
+    }
+
+    .prefix-tree-item-title span {
+        display: inline-block;
+    }
+
+    .prefix-graphs {
+        margin: 0;
+        float: right;
+        display: inline-block;
+        .usage-graph, .allocation-graph {
+            display: inline-block;
+            max-width: 150px;
+        }
+        .usage-graph {
+            margin-right: 10px;
+        }
+    }
+
+}
+
+// For allocation tree
+svg.matrix g.matrix-subnet text > tspan {
+    text-anchor: middle;
+}
+
+svg.matrix g.matrix-subnet {
+    cursor: pointer;
+}
+
+.axis path {
+    display: none;
+}
+
+.axis line {
+    shape-rendering: crispEdges;
+    stroke: #000;
+}
+
+.axis .minor line {
+    stroke: #777;
+    stroke-dasharray: 2,2;
+}
+
+
+
+// Semantic layout classes
+
+@media #{$large-up} {
+    .ipam {
+        @include grid-row();
+    }
+
+    .ipam-sidebar {
+        @include grid-column(3);
+        div.row {
+            @include grid-row();
+        }
+    }
+
+    // flash button, TODO change name to something not stupid
+    #mybtn {
+        @include grid-column(12);
+    }
+
+    #prefix-tree {
+        @include grid-column(9);
+    }
+
+    .prefix-tree-control {
+
+        &-checkboxes {
+            div { @include grid-column(12, $collapse: true); }
+        }
+
+        &-timespan {
+            div { @include grid-column(6, $collapse: true); }
+        }
+
+        &-search {
+            input {
+                @include grid-column(12, $collapse: true);
+            }
+        }
+    }
+}

@@ -1004,6 +1004,8 @@ class Prefix(models.Model):
     id = models.AutoField(db_column='prefixid', primary_key=True)
     net_address = CIDRField(db_column='netaddr', unique=True)
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
+    usages = models.ManyToManyField('Usage', through='PrefixUsage',
+                                    through_fields=('prefix', 'usage'))
 
     class Meta(object):
         db_table = 'prefix'
@@ -1042,6 +1044,8 @@ class Prefix(models.Model):
             metrics.append(ip_range)
         return get_simple_graph_url(metrics, title=str(self), format='json')
 
+    def get_absolute_url(self):
+        return reverse('prefix-details', args=[self.pk])
 
 class Vlan(models.Model):
     """From NAV Wiki: The vlan table defines the IP broadcast domain / vlan. A
@@ -1116,6 +1120,19 @@ class NetType(models.Model):
         return self.id
 
 
+class PrefixUsage(models.Model):
+    """Combines prefixes and usages for tagging of prefixes"""
+    id = models.AutoField(db_column='prefix_usage_id', primary_key=True)
+    prefix = models.ForeignKey('Prefix', db_column='prefixid')
+    usage = models.ForeignKey('Usage', db_column='usageid')
+
+    class Meta(object):
+        db_table = 'prefix_usage'
+
+    def __unicode__(self):
+        return u"{}:{}".format(self.prefix.net_address, self.usage.id)
+
+
 class Usage(models.Model):
     """From NAV Wiki: The usage table defines the user group (student, staff
     etc). Usage categories are maintained in the edit database tool."""
@@ -1126,6 +1143,7 @@ class Usage(models.Model):
     class Meta(object):
         db_table = 'usage'
         verbose_name = 'usage'
+        ordering = ['id']
 
     def __unicode__(self):
         return u'%s (%s)' % (self.id, self.description)

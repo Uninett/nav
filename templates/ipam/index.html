@@ -1,0 +1,87 @@
+{% extends "ipam/base.html" %}
+
+
+{% block base_header_additional_head %}
+<link rel="stylesheet" href="{{ STATIC_URL }}css/nav/timepicker.css"/>
+<link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"/>
+<link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/ipam.css">
+<script>
+ NAV.urls['machinetracker-ip'] = "{% url 'machinetracker-ip' %}";
+ NAV.urls['report-matrix'] = "{% url 'report-matrix' %}";
+ NAV.urls['prefix-index'] = "{% url 'prefix-index' %}";
+</script>
+<script>require(["src/ipam/ipam"]);</script>
+{% endblock %}
+
+{% block content %}
+
+<div class="ipam">
+
+  <div class="ipam-sidebar panel white">
+    <div class="sidebar-wrapper">
+      <div class="row" id="ipam-controls"></div>
+      <div class="row">
+        <div id="ipam-flash"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="prefix-tree">
+    <div class="content">
+    </div>
+    <!-- container for prefix tree -->
+  </div>
+
+  <script type="text/template" id="prefix-control-form">
+    {% include "ipam/includes/tree-form.html" %}
+  </script>
+
+  <script type="text/template" id="prefix-control-form-advanced">
+   {% include "ipam/includes/tree-form-advanced.html" %}
+  </script>
+
+  {% include "ipam/includes/allocate-subnet.html" %}
+
+  <script type="text/template" id="prefix-graphs">
+    <div class="allocation-graph"></div>
+    <div class="usage-graph"></div>
+  </script>
+
+  <script type="text/template" id="prefix-list">
+    {% include "ipam/includes/tree-root.html" %}
+  </script>
+
+  <script type="text/template" id="prefix-children">
+
+    <div class="prefix-children-header">
+      <div class="tree-control">
+        <select name="item-order" class="sort-by">
+          <% _.each([
+          {name: "prefix (CIDR)", unit: "prefix"},
+          {name: "VLAN number", unit: "vlan"},
+          {name: "usage (%)", unit: "usage"},
+          {name: "allocated (%)", unit: "allocated"}
+          ],
+          function(opt) { %>
+          <% if (opt.unit === currentComparator) { %>
+          <option value="<%= opt.unit %>" selected>Order by <%= opt.name %></option>
+          <% } else { %>
+          <option value="<%= opt.unit %>">Order by <%= opt.name %></option>
+          <% }}) %>
+        </select>
+      </div>
+      <% if (parent) { %>
+      <h3>Children of <%= parent %></h3>
+      <% } %>
+    </div>
+
+    <ul class="prefix-tree-children"></ul>
+  </script>
+
+  <script type="text/template" id="prefix-tree-node">
+    {% include "ipam/includes/tree-node.html" %}
+  </script>
+
+</div>
+
+{% endblock %}
