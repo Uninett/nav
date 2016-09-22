@@ -7,6 +7,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         $dataElement = $inputElement.parents('.dataelement'),
         metric = $dataElement.attr('data-metric'),
         $metricGraph = $('.metricGraph'),
+        fetching = false,
         spinner = new Spinner();
 
     $(function () {
@@ -62,6 +63,11 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
     }
 
     function displayMetricInfo(metric) {
+        if (fetching) {
+            return;
+        }
+        fetching = true;
+        $metricGraph.empty();
         startSpinner();
         var image = new Image();
         var url = $dataElement.attr('data-renderurl') + '?metric=' + metric;
@@ -72,15 +78,16 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         image.onload = function () {
             stopSpinner();
             $(image).appendTo($metricGraph);
+            fetching = false;
         };
         image.onerror = function () {
             stopSpinner();
             $metricGraph.append('<span class="alert-box alert">Error loading graph</span>');
+            fetching = false;
         };
     }
 
     function startSpinner() {
-        $metricGraph.empty();
         $metricGraph.addClass('spinContainer');
         spinner.spin($metricGraph.get(0));  // Remember that spin does not accept jquery objects
     }
