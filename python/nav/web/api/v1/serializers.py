@@ -20,8 +20,21 @@ from nav.models import manage, cabling
 from rest_framework import serializers
 
 
+class EntitySerializer(serializers.ModelSerializer):
+    """Serializer for netboxentities"""
+    serial = serializers.CharField(source='device')
+
+    class Meta(object):
+        model = manage.NetboxEntity
+        fields = ('id', 'name', 'descr', 'serial', 'vendor_type',
+                  'hardware_revision', 'firmware_revision', 'software_revision',
+                  'mfg_name', 'model_name', 'fru', 'mfg_date')
+
+
 class NetboxSerializer(serializers.ModelSerializer):
     """Serializer for the netbox model"""
+    chassis = EntitySerializer(source='get_chassis', many=True)
+
     class Meta(object):
         model = manage.Netbox
         depth = 1
