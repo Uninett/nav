@@ -10,13 +10,8 @@ define(function(require, exports, module) {
   var globalCh = Backbone.Wreqr.radio.channel("global");
 
   var viewStates = {
-    "SIMPLE_SEARCH": {
-      "WILDCARD_SEARCH": "WILDCARD_SEARCH",
-      "TOGGLE_ADVANCED": "ADVANCED_SEARCH"
-    },
-    "WILDCARD_SEARCH": {},
-    "ADVANCED_SEARCH": {
-      "TOGGLE_ADVANCED": "SIMPLE_SEARCH"
+    "SEARCH": {
+      "RESET": "SEARCH"
     }
   };
 
@@ -31,8 +26,7 @@ define(function(require, exports, module) {
         states: viewStates,
         modelField: "state",
         handlers: {
-          "ADVANCED_SEARCH": "advancedSearch",
-          "SIMPLE_SEARCH": "simpleSearch"
+          "SEARCH": "advancedSearch"
         }
       }
     },
@@ -42,7 +36,6 @@ define(function(require, exports, module) {
     },
 
     events: {
-      "click .toggleAdvanced": "toggleAdvanced",
       "click .submit-search": "updateSearch",
       "click .submit-reset": "resetSearch",
       "keypress .search-param": "forceSearch"
@@ -56,31 +49,18 @@ define(function(require, exports, module) {
     },
     advancedSearchDefaults: {
       type: ["ipv4", "ipv6", "rfc1918"],
-      net_type: [],
+      net_type: ["scope"],
       organization: null,
       usage: null,
       vlan: null,
       description: null
     },
 
-    // Activate advanced form
-    toggleAdvanced: function() {
-      this.fsm.step(this.fsm.events.TOGGLE_ADVANCED);
-      this.debug("Toggling advanced search");
-      this.render();
-    },
-
-    simpleSearch: function(self) {
-      // Reset model
-      self.debug("Reset query params");
-      self.model.set("queryParams", self.simpleSearchDefaults);
-      self.doSearch();
-    },
-
     advancedSearch: function(self) {
       // Reset model TODO load from localstorage?
       self.debug("Reset query params");
       self.model.set("queryParams", self.advancedSearchDefaults);
+      self.doSearch();
     },
 
     onRender: function() {
@@ -112,7 +92,7 @@ define(function(require, exports, module) {
     },
 
     initialize: function() {
-      this.fsm.setState("SIMPLE_SEARCH");
+      this.fsm.setState("SEARCH");
     }
 
   });
