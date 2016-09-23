@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 {% load tools %}
 
-{% block base_header_additional_head %}
-  <script>require(['src/threshold']);</script>
+{% block footer_scripts %}
+  <script>
+    require(['libs/jquery.tablesorter.min'], function () {
+      $('#thresholdrules').tablesorter();
+    });
+  </script>
 {% endblock %}
 
 {% block base_content %}
@@ -13,7 +17,7 @@
   {% if rules %}
     <a href="{% url 'threshold-add' %}" class="button small">Add rule</a>
 
-    <table id="thresholdrules" class="listtable">
+    <table id="thresholdrules" class="listtable tablesorter">
       <caption>Existing threshold rules</caption>
       <thead>
       <tr>
