@@ -44,6 +44,7 @@ define(function(require, exports, module) {
     events: {
       "click .toggleAdvanced": "toggleAdvanced",
       "click .submit-search": "updateSearch",
+      "click .submit-reset": "resetSearch",
       "keypress .search-param": "forceSearch"
     },
 
@@ -99,6 +100,11 @@ define(function(require, exports, module) {
     updateSearch: function() {
       this.model.set("queryParams", this.$el.find('form').serializeObject());
       this.doSearch();
+    },
+
+    resetSearch: function() {
+      // I am a simple man. I click "reset", and reload the page
+      location.reload();
     },
 
     doSearch: function() {
