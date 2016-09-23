@@ -3,63 +3,59 @@
 {% load silent_include %}
 
 {% block base_header_additional_head %}
-    <link href="{{ STATIC_URL }}css/nav/info_room.css"  rel="stylesheet">
-    <script>require(["src/info_room"]);</script>
-    {% try_to_include 'info/room/header_extras.html' %}
+  {{ block.super }}
+  <link href="{{ STATIC_URL }}css/nav/info_room.css"  rel="stylesheet">
+  <script>require(["src/info_room"]);</script>
+  {% try_to_include 'info/room/header_extras.html' %}
 {% endblock %}
 
 {% block content %}
-    <h4>Room search</h4>
+  {% block roominfo %}
 
-    {% block roominfo %}
+    <h3>Room search</h3>
+    {% crispy searchform %}
 
-        <div class="row">
-            <div class="medium-6 column">
-                {% crispy searchform %}
-            </div>
-        </div>
+    {% if searchform.is_bound %}
 
-        {% if searchform.is_bound %}
-            {% if rooms %}
-                <table class="listtable">
-                    <caption>{{ rooms|length }} result{{ rooms|pluralize:",s" }}
-                        for "{{ searchform.data.query }}"
-                    </caption>
+      {% if rooms %}
+        <table class="listtable">
+          <caption>{{ rooms|length }} result{{ rooms|pluralize:",s" }}
+            for "{{ searchform.data.query }}"
+          </caption>
 
-                    <thead>
-                    <tr>
-                        <th>Room</th>
-                        <th>Description</th>
-                        <th>#Netboxes</th>
-                    </tr>
-                    </thead>
+          <thead>
+            <tr>
+              <th>Room</th>
+              <th>Description</th>
+              <th>#Netboxes</th>
+            </tr>
+          </thead>
 
-                    <tbody>
-                    {% for room in rooms %}
-                        <tr>
-                            <td>
-                                <a href="{% url 'room-info' room.id %}">{{ room.id }}</a>
-                            </td>
-                            <td>
-                                {{ room.description }}
-                            </td>
-                            <td>
-                                {{ room.netboxes.count }}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p class="messages">No room found</p>
-            {% endif %}
+          <tbody>
+            {% for room in rooms %}
+              <tr>
+                <td>
+                  <a href="{% url 'room-info' room.id %}">{{ room.id }}</a>
+                </td>
+                <td>
+                  {{ room.description }}
+                </td>
+                <td>
+                  {{ room.netboxes.count }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="messages">No room found</p>
+      {% endif %}
 
-        {% endif %}
+    {% endif %}  {# bound check #}
 
-        <div id="mapcontainer" class="mapwrapper smallmap"></div>
-        <div id="coordinates"></div>
+    <div id="mapcontainer" class="mapwrapper smallmap"></div>
+    <div id="coordinates"></div>
 
-    {% endblock %}
+  {% endblock %}
 
 {% endblock %}
-

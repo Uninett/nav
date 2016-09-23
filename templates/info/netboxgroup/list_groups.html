@@ -1,59 +1,66 @@
 {% extends "info/netboxgroup/base.html" %}
 {% load crispy_forms_tags %}
 
+{% block base_header_additional_head %}
+  {{ block.super }}
+  <style>
+   #device-groups-table .netboxgroup {
+       max-height: 10em;
+       overflow: auto;
+   }
+  </style>
+{% endblock %}
+
+
+
 {% block content %}
 
-    <h4>Device Group search</h4>
+  <h3>Device Group search</h3>
+  {% crispy searchform %}
 
-    <div class="row">
-        <div class="medium-6 column">
-            {% crispy searchform %}
-        </div>
-    </div>
+  <table id="device-groups-table" class="listtable">
+    <caption>Device Groups</caption>
 
-    <table class="listtable">
-        <caption>Device Groups</caption>
+    <thead>
+      <tr>
+        <th>Group</th>
+        <th>Description</th>
+        <th>Devices</th>
+        <th>&nbsp;</th>
+      </tr>
+    </thead>
 
-        <thead>
+    <tbody>
+      {% for netboxgroup in netboxgroups %}
         <tr>
-            <th>Group</th>
-            <th>Description</th>
-            <th>Devices</th>
-            <th>&nbsp;</th>
+          <td>
+            <a href="{% url 'netbox-group-detail' netboxgroup.pk %}">{{ netboxgroup.pk }}</a>
+          </td>
+          <td>{{ netboxgroup.description }}</td>
+          <td>
+            <ul class="netboxgroup inside">
+              {% with netboxgroup.netbox_set.all as netboxes %}
+                {% if netboxes %}
+                  {% for netbox in netboxes %}
+                    <li>
+                      <a href="{% url 'ipdevinfo-details-by-name' netbox.sysname %}">
+                        {{ netbox.sysname }}
+                      </a>
+                    </li>
+                  {% endfor %}
+                {% else %}
+                  <li>No devices in this group</li>
+                {% endif %}
+              {% endwith %}
+            </ul>
+          </td>
+          <td>
+            <a href="{% url 'netbox-group-edit' netboxgroup.pk %}">Edit</a>
+          </td>
         </tr>
-        </thead>
+      {% endfor %}
+    </tbody>
 
-        <tbody>
-        {% for netboxgroup in netboxgroups %}
-            <tr>
-                <td>
-                    <a href="{% url 'netbox-group-detail' netboxgroup.pk %}">{{ netboxgroup.pk }}</a>
-                </td>
-                <td>{{ netboxgroup.description }}</td>
-                <td>
-                    <ul class="netboxgroup inside">
-                        {% with netboxgroup.netbox_set.all as netboxes %}
-                            {% if netboxes %}
-                                {% for netbox in netboxes %}
-                                    <li>
-                                        <a href="{% url 'ipdevinfo-details-by-name' netbox.sysname %}">
-                                            {{ netbox.sysname }}
-                                        </a>
-                                    </li>
-                                {% endfor %}
-                            {% else %}
-                                <li>No devices in this group</li>
-                            {% endif %}
-                        {% endwith %}
-                    </ul>
-                </td>
-                <td>
-                    <a href="{% url 'netbox-group-edit' netboxgroup.pk %}">Edit</a>
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-
-    </table>
+  </table>
 
 {% endblock %}

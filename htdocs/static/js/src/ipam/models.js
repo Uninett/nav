@@ -155,7 +155,8 @@ define(function(require, exports, module) {
   var Tree = Backbone.Model.extend({
     defaults: {
       open_nodes: 0,
-      currentComparator: "prefix"
+      currentComparator: "prefix",
+      parent: null
     }
   });
 

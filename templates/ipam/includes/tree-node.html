@@ -1,25 +1,41 @@
 <a href="#prefix-<%= pk %>" class="prefix-tree-item-title">
+  <div class="prefix-graphs"></div>
   <h3 class="ip"><%= prefix %></h3>
-  <span class="net-type"><%= net_type %></span>
+  <span class="label secondary net-type"><%= net_type %></span>
   <% if (vlan_number) { %>
-  <span class="vlan_number">VLAN <%= vlan_number %></span>
+  <span class="label secondary">VLAN <%= vlan_number %></span>
   <% } %>
   <% if (description) { %>
-  <span class="description"><%= description %></span>
+  <span class="label secondary"><%= description %></span>
   <% } %>
-    <% if (length > 0) { %>
+  <% if (length > 1) { %>
   (<%= length %> children)
   <% } %>
-  <div class="prefix-graphs">
-  </div>
+  <% if (length === 1) { %>
+  (<%= length %> child)
+  <% } %>
 </a>
 <div id="prefix-<%= pk %>" class="content prefix-tree-item-content">
   <div class="prefix-tree-item-content-data">
-    <% if (edit_url) { %>
+    <a class="button small" href="<%= NAV.urls['prefix-index'] %><%= pk %>" target="_blank">
+      View details
+    </a>
+    <% if (edit_url && ['reserved', 'scope'].indexOf(net_type) >= 0) { %>
     <a class="button small" href="<%= edit_url %>" target="_blank">Edit in SeedDB</a>
     <% } %>
     <% if (net_type === "scope") { %>
-    <a class="button small" href="/report/matrix?scope=<%= prefix %>" target="_blank">Open in Subnet Matrix</a>
+    <a class="button small"
+       href="<%= NAV.urls['report-matrix'] %>?scope=<%= prefix %>"
+       target="_blank">
+      Open in Subnet Matrix
+    </a>
+    <% } %>
+    <% if (net_type === "lan") { %>
+    <a class="button small"
+       href="<%= NAV.urls['machinetracker-ip'] %>?ip_range=<%= prefix %>"
+       target="_blank">
+      Search in Machine Tracker
+    </a>
     <% } %>
     <ul class="prefix-metadata">
       <% if (organization) { %>

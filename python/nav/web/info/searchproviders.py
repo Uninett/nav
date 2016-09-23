@@ -20,10 +20,13 @@ from collections import namedtuple
 from django.core.urlresolvers import reverse
 from django.db.models import Q, Count
 
+from IPy import IP
+
 from nav.models.manage import (Room, Netbox, Interface, Vlan,
                                UnrecognizedNeighbor, NetboxGroup)
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.views import is_valid_hostname
+from nav.web.info.prefix.views import get_query_results as get_prefix_results
 
 
 SearchResult = namedtuple("SearchResult", ['href', 'inst'])
@@ -164,6 +167,24 @@ class VlanSearchProvider(SearchProvider):
                 reverse('vlan-details', kwargs={'vlanid': result.id}),
                 result)
             )
+
+
+class PrefixSearchProvider(SearchProvider):
+    """Searchprovider for prefixes"""
+    name = "Prefix"
+    headers = [('Prefix', 'net_address'), ('Vlan', 'vlan')]
+    link = 'Prefix'
+
+    def fetch_results(self):
+        """Returns the prefixes determined by the query"""
+        try:
+            IP(self.query)  # Validate query
+        except ValueError:
+            pass
+        else:
+            self.results = [SearchResult(p.get_absolute_url(), p)
+                            for p in get_prefix_results(self.query)]
+
 
 
 class UnrecognizedNeighborSearchProvider(SearchProvider):

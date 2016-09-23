@@ -26,15 +26,23 @@ from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template.context import RequestContext
 from django.http import HttpResponse
 
+from ..forms import SearchForm
 from nav.models.manage import Prefix, Vlan
 from nav.web.utils import create_title
-from nav.web.info.vlan.forms import SearchForm
 from nav.metrics.graphs import get_simple_graph_url
 from nav.metrics.names import join_series
 from nav.metrics.templates import metric_path_for_prefix
 
 LOGGER = logging.getLogger('nav.web.info.vlan')
 ADDRESS_RESERVED_SPACE = 18
+
+
+class VlanSearchForm(SearchForm):
+    """Searchform for vlans"""
+
+    def __init__(self, *args, **kwargs):
+        super(VlanSearchForm, self).__init__(
+            *args, form_action='vlan-index', placeholder='Vlan', **kwargs)
 
 
 def get_path(extra=None):
@@ -51,12 +59,12 @@ def index(request):
 
     navpath = get_path()
     if "query" in request.GET:
-        searchform = SearchForm(request.GET)
+        searchform = VlanSearchForm(request.GET)
         if searchform.is_valid():
             navpath = get_path([('Search for "%s"' % request.GET['query'], )])
             vlans = process_searchform(searchform)
     else:
-        searchform = SearchForm()
+        searchform = VlanSearchForm()
 
     LOGGER.debug(vlans)
 

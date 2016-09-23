@@ -93,6 +93,7 @@ class PrefixViewSet(viewsets.ViewSet):
         queryset.vlan_number(vlan_number)
         queryset.contains_ip(ip)
         queryset.usage(usage)
+        queryset.description(description)
         return queryset.finalize()
 
 

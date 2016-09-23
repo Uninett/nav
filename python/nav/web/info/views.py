@@ -17,14 +17,12 @@
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render_to_response
 from django.template import RequestContext
 
 from nav.web.info.forms import SearchForm
 from nav.web.info import searchproviders as providers
 from nav.web.utils import create_title
-
-from random import choice
 
 
 def get_path():
@@ -69,6 +67,7 @@ def process_form(form):
                        providers.NetboxSearchProvider(query),
                        providers.InterfaceSearchProvider(query),
                        providers.VlanSearchProvider(query),
+                       providers.PrefixSearchProvider(query),
                        providers.DevicegroupSearchProvider(query),
                        providers.UnrecognizedNeighborSearchProvider(query)]
     providers_with_result = has_results(searchproviders)

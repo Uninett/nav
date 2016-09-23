@@ -5,6 +5,11 @@
 <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/timepicker.css"/>
 <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"/>
 <link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/ipam.css">
+<script>
+ NAV.urls['machinetracker-ip'] = "{% url 'machinetracker-ip' %}";
+ NAV.urls['report-matrix'] = "{% url 'report-matrix' %}";
+ NAV.urls['prefix-index'] = "{% url 'prefix-index' %}";
+</script>
 <script>require(["src/ipam/ipam"]);</script>
 {% endblock %}
 
@@ -44,24 +49,30 @@
   </script>
 
   <script type="text/template" id="prefix-children">
-    <div class="tree-control">
-      <select name="item-order" class="sort-by">
-        <% _.each([
-        {name: "prefix (CIDR)", unit: "prefix"},
-        {name: "VLAN number", unit: "vlan"},
-        {name: "usage (%)", unit: "usage"},
-        {name: "allocated (%)", unit: "allocated"}
-        ],
-        function(opt) { %>
-        <% if (opt.unit === currentComparator) { %>
-        <option value="<%= opt.unit %>" selected>Order by <%= opt.name %></option>
-        <% } else { %>
-        <option value="<%= opt.unit %>">Order by <%= opt.name %></option>
-        <% }}) %>
-      </select>
+
+    <div class="prefix-children-header">
+      <div class="tree-control">
+        <select name="item-order" class="sort-by">
+          <% _.each([
+          {name: "prefix (CIDR)", unit: "prefix"},
+          {name: "VLAN number", unit: "vlan"},
+          {name: "usage (%)", unit: "usage"},
+          {name: "allocated (%)", unit: "allocated"}
+          ],
+          function(opt) { %>
+          <% if (opt.unit === currentComparator) { %>
+          <option value="<%= opt.unit %>" selected>Order by <%= opt.name %></option>
+          <% } else { %>
+          <option value="<%= opt.unit %>">Order by <%= opt.name %></option>
+          <% }}) %>
+        </select>
+      </div>
+      <% if (parent) { %>
+      <h3>Children of <%= parent %></h3>
+      <% } %>
     </div>
-    <ul class="prefix-tree-children">
-    </ul>
+
+    <ul class="prefix-tree-children"></ul>
   </script>
 
   <script type="text/template" id="prefix-tree-node">

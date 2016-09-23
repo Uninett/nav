@@ -75,10 +75,6 @@ define([
                 serie.name = [parts[parts.length - 2], parts[parts.length - 1]].join('.');
             }
 
-            console.log("key: " + serie.key);
-            console.log("name: " + serie.name);
-
-
         });
 
         new Rickshaw.Graph.Axis.Time({
