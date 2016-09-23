@@ -353,6 +353,7 @@ define(function(require, exports, module) {
       var currentCount = this.model.get("open_nodes");
       var newCount = currentCount + delta;
       this.model.set("open_nodes", newCount);
+      this.debug("Current open nodes", newCount);
       var childElem = this.$el.find(".prefix-tree-children");
       if (newCount > 0) {
         childElem.addClass("has_open_nodes");
@@ -373,6 +374,8 @@ define(function(require, exports, module) {
       if (_.isUndefined(self.model)) {
         return;
       }
+      // all nodes will be closed, so reset counter
+      self.model.set("open_nodes", 0);
       var currentComparator = self.model.get("currentComparator");
       var comparatorFn = self.comparators[currentComparator] || null;
       self.viewComparator = comparatorFn;
