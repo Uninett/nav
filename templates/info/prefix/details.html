@@ -1,0 +1,200 @@
+{% extends "info/prefix/base.html" %}
+
+{% block base_header_additional_head %}
+  <style>
+   .info-tables { max-width: 500px; }
+  </style>
+  <link rel="stylesheet" href="/static/css/nav/local_rickshaw.css"/>
+{% endblock %}
+
+
+{# Javascripts that run after DOM loaded #}
+{% block footer_scripts %}
+  <script>
+   require(['plugins/graphfetcher'], function (GraphFetcher) {
+       $('.prefixgraph').each(function (index, element) {
+           new GraphFetcher($(element), element.dataset.url);
+       });
+   });
+  </script>
+
+  {% if can_edit %}
+    {# Scripts for adding more tags to the prefix #}
+    <script>
+     (function(){
+         var $form = $('#add-tag-form');
+         var $alertBox = $form.find('.alert-box');
+
+         $('.add-more-tags, .close-tag-interface').on('click', function(){
+             $form.toggle();
+             $alertBox.removeClass('alert success').hide();
+         });
+
+         $('#add-tag-form').submit(function(event){
+             event.preventDefault();
+             $alertBox.removeClass('alert success').hide();
+
+             var request = $.post("{% url 'prefix-add-tags' prefix.pk %}", $form.serialize());
+             request.done(function() {
+                 var reload = $.get("{% url 'prefix-reload-tags' prefix.pk %}");
+                 reload.done(function(data){
+                     $('#tags-list').find('dd').html(data);
+                     $alertBox.addClass('success')
+                              .html('Tags updated')
+                              .show();
+                 });
+             });
+             request.error(function(response) {
+                 console.log(response);
+                 $alertBox.addClass('alert')
+                          .html('<strong>Error ' + response.status + ':</strong> ' + response.responseText)
+                          .show();
+             });
+         });
+
+     })();
+    </script>
+  {% endif %}
+{% endblock %}
+
+
+{% block base_content %}
+
+  <h3>Prefix details for {{ prefix.net_address }}</h3>
+
+  <a href="{% url 'report-prefix-prefix' prefix.pk %}" class="button small">
+    View prefix report
+  </a>
+  {% if prefix.vlan.net_type.edit %}
+    <a href="{% url 'seeddb-prefix-edit' prefix.pk  %}" class="button small">
+      Edit prefix in SeedDb
+    </a>
+  {% endif %}
+
+
+  <div class="row">
+
+    {# left column #}
+    <div class="large-6 column">
+
+      <div class="info-tables panel">
+
+        {% if can_edit %}
+          <button class="tiny right add-more-tags">Add tags</button>
+        {% endif %}
+
+        {# Tags  #}
+        <dl id="tags-list">
+          <dt>Tags:</dt>
+          <dd>
+            {% include 'info/prefix/frag_tags.html' %}
+          </dd>
+        </dl>
+
+        {% if can_edit %}
+          <form id="add-tag-form" class="hidden">
+            {{ form }}
+            <input type="submit" class="button tiny" value="Save tags"/>
+            <a class="button tiny secondary close-tag-interface">Close</a>
+            <div class="alert-box alert" style="display: none">Test</div>
+          </form>
+        {% endif %}
+
+
+        {# Print gwportprefixes #}
+
+        <table id="gwportprefixinfo" class="listtable full-width">
+          <caption>Router ports</caption>
+
+          <thead>
+            <tr>
+              <th>Netbox</th>
+              <th>Address</th>
+              <th>Interface</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for gwportprefix in prefix.gwportprefix_set.all %}
+              <tr>
+                <td>
+                  <a href="{% url 'ipdevinfo-details-by-name' gwportprefix.interface.netbox.sysname %}">
+                    {{ gwportprefix.interface.netbox.sysname }}
+                  </a>
+                </td>
+                <td>
+                  <a href="{% url 'ipdevinfo-details-by-addr' gwportprefix.gw_ip %}">
+                    {{ gwportprefix.gw_ip }}
+                  </a>
+                </td>
+                <td>
+                  <a href="{% url 'ipdevinfo-interface-details' gwportprefix.interface.netbox.sysname gwportprefix.interface.id %}">
+                    {{ gwportprefix.interface.ifname }}
+                  </a>
+                </td>
+              </tr>
+
+            {% endfor %}
+          </tbody>
+
+        </table>
+
+
+
+        {# Print vlan information #}
+
+        {% with vlan=prefix.vlan %}
+          <table id="vlaninfo" class="vertitable full-width">
+            <caption>Assigned to vlan {{ vlan }}</caption>
+
+            <tbody>
+              <tr>
+                <th>Vlan</th>
+                <td>
+                  <a href="{% url 'vlan-details' vlan.pk %}" title="Go to vlan details page">
+                    {{ vlan.vlan|default_if_none:"N/A" }}
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <th>Type</th>
+                <td>{{ vlan.net_type|default_if_none:"" }}</td>
+              </tr>
+
+
+              <tr>
+                <th>Organization</th>
+                <td>{{ vlan.organization|default_if_none:"" }}</td>
+              </tr>
+
+
+              <tr>
+                <th>Net Ident</th>
+                <td>{{ vlan.net_ident|default_if_none:"" }}</td>
+              </tr>
+
+              <tr>
+                <th>Description</th>
+                <td>{{ vlan.description|default_if_none:"" }}</td>
+              </tr>
+            </tbody>
+
+          </table>
+
+        {% endwith %}
+
+      </div>
+
+    </div> {# end left column #}
+
+
+    {# Right column #}
+    <div class="large-6 column">
+      <div class="prefixgraph graphitegraph" data-url="{{ prefix.get_graph_url }}">
+        <div class="rickshaw-container"></div>
+      </div>
+    </div>
+
+  </div>
+
+{% endblock %}

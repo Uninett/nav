@@ -19,11 +19,20 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 
-from nav.web.info.netboxgroup.forms import NetboxGroupForm
+from ..forms import SearchForm
 from nav.web.info.views import get_path
 from nav.web.utils import create_title
 from nav.models.manage import NetboxGroup, Netbox, NetboxCategory
 from nav.metrics.data import get_netboxes_availability
+
+
+class NetboxGroupForm(SearchForm):
+    """Form for searching for netbox groups"""
+
+    def __init__(self, *args, **kwargs):
+        super(NetboxGroupForm, self).__init__(
+            *args, form_action='netbox-group', placeholder='Device group',
+            **kwargs)
 
 
 def get_netboxgroup_path(other=None):

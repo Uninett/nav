@@ -32,8 +32,12 @@ class ThresholdForm(forms.ModelForm):
     """Form for creating a threshold rule"""
     period = forms.CharField(
         max_length=200, required=False,
-        help_text="Inspection interval when calculating values. For "
-                  "interface counters this should be set to 15 minutes (15m)")
+        help_text="The threshold monitor will calculate an average value from "
+                  "the data points that span this time interval. You should "
+                  "ensure that the metric has at least two data points in this "
+                  "interval. For interface counters, the recommended minimum "
+                  "value is 15 minutes ('15m'). If omitted, the period "
+                  "defaults to 5 minutes.")
 
     def __init__(self, *args, **kwargs):
         super(ThresholdForm, self).__init__(*args, **kwargs)

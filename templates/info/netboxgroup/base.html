@@ -1,9 +1,9 @@
 {% extends "info/base.html" %}
 
 {% block base_header_additional_head %}
-    <script>require(['src/info_netboxgroup']);</script>
+  {{ block.super }}
+  <script>require(['src/info_netboxgroup']);</script>
 {% endblock %}
-
 
 {% block content %}
 {% endblock %}
