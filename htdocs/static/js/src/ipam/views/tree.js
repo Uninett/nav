@@ -273,7 +273,7 @@ define(function(require, exports, module) {
       model.set('parent', self.model.get('prefix'));
       var payload = {
         model: model,
-        collection: children,
+        collection: children
       };
       self.showChildView("children", new TreeView(payload));
     },
@@ -361,11 +361,16 @@ define(function(require, exports, module) {
         childElem.removeClass("has_open_nodes");
       }
     },
+    resetOpenNodes: function() {
+      this.debug("Resetting number of open nodes to 0");
+      this.model.set("open_nodes", 0);
+    },
 
     // Revert to default order (e.g. order returned by API, where the nodes are
     // sorted by their prefixes).
     resetSort: function() {
       this.model.set("currentComparator", null);
+      this.resetOpenNodes();
       this.render();
     },
 
@@ -375,7 +380,7 @@ define(function(require, exports, module) {
         return;
       }
       // all nodes will be closed, so reset counter
-      self.model.set("open_nodes", 0);
+      self.resetOpenNodes();
       var currentComparator = self.model.get("currentComparator");
       var comparatorFn = self.comparators[currentComparator] || null;
       self.viewComparator = comparatorFn;
