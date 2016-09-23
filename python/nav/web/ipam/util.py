@@ -52,7 +52,7 @@ class PrefixQuerysetBuilder(object):
     # Filter methods
     def organization(self, org):
         "Fuzzy match prefix on VLAN organization"
-        return self.filter(org, vlan__organization__id__icontains=org)
+        return self.filter(org, vlan__organization__id=org)
 
     def description(self, descr):
         "Fuzzy match prefix on VLAN description"
@@ -83,7 +83,7 @@ class PrefixQuerysetBuilder(object):
 
     def usage(self, usage):
         "Return prefixes based on their VLAN's usage field"
-        return self.filter(usage, vlan__usage__description__icontains=usage)
+        return self.filter(usage, vlan__usage__id=usage)
 
     # Mutating methods, e.g. resets the queryset
     def within(self, prefix):

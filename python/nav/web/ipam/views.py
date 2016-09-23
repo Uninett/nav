@@ -17,7 +17,7 @@
 
 from django.template import RequestContext
 from django.shortcuts import render_to_response
-from nav.models.manage import NetType
+from nav.models.manage import NetType, Organization, Usage
 
 NAVBAR = [('Home', '/'), ('IPAM', None)]
 DEFAULT_VALUES = {'title': "IPAM", 'navpath': NAVBAR}
@@ -32,7 +32,9 @@ def matrix(request):
 
 def generate_context():
     ctx = {
-        "net_types": NetType.objects.exclude(vlan__net_type__in=["scope", "reserved"])
+        "net_types": NetType.objects.exclude(vlan__net_type__in=["scope", "reserved"]),
+        "organizations": Organization.objects.all,
+        "usages": Usage.objects.all 
     }
     ctx.update(DEFAULT_VALUES)
     return ctx

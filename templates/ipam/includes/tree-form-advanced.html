@@ -14,14 +14,24 @@
 
   <label>
     Organization (optional)
-    <input type="text" class="search-param" id="prefix-organization"
-      name="organization" value="<%= queryParams.organization %>">
+    <select class="select2 search-param" name="organization" multiple="multiple">
+    {% for organization in organizations %}
+      <option value="{{ organization.id }}" <%= _.contains(queryParams.organization, '{{ organization.id }}') ? "selected" : null %>>
+        {{ organization }}
+      </option>
+      {% endfor %}
+    </select>
   </label>
 
   <label>
     Usage (optional)
-    <input type="text" class="search-param" id="prefix-usage"
-      name="usage" value="<%= queryParams.usage %>">
+    <select class="select2 search-param" name="usage" multiple="multiple">
+      {% for usage in usages %}
+      <option value="{{ usage.id }}" <%= _.contains(queryParams.usage, '{{ usage.id }}') ? "selected" : null %>>
+        {{ usage }}
+      </option>
+      {% endfor %}
+    </select>
   </label>
 
   <h5>Address family</h5>
