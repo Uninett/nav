@@ -135,6 +135,11 @@ ul.accordion {
   margin-top: 20px;
 }
 
+// Main flash msg container for the app
+#ipam-flash {
+  max-width: 350px;
+}
+
 // Search panel, forms etc. for prefix tree
 .prefix-tree-control {
 }
