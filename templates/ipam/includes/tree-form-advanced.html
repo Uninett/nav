@@ -31,7 +31,7 @@
       <label>
         <input id="prefix-flag-ipv4" class="search-flag" type="checkbox" name="type" value="ipv4"
         <%= _.contains(queryParams.type, "ipv4") ? "checked" : null %>>
-        Real IPv4
+        Public IPv4
       </label>
       <label>
         <input id="prefix-flag-ipv6" class="search-flag" type="checkbox" name="type" value="ipv6"
@@ -41,7 +41,7 @@
       <label>
         <input id="prefix-flag-ipv6" class="search-flag", type="checkbox" name="type" value="rfc1918"
         <%= _.contains(queryParams.type, "rfc1918") ? "checked" : null %>>
-        Private IPV4 (RFC1918)
+        Private IPv4 (RFC1918)
       </label>
     </form>
   </div>
