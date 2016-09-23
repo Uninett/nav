@@ -323,7 +323,7 @@ define(function(require, exports, module) {
     events: {
       "open .prefix-tree-item": "incrementOpenNodes",
       "close .prefix-tree-item": "decrementOpenNodes",
-      "click .sort-by": "onSortBy"
+      "change .sort-by": "onSortBy"
     },
 
     // Functions used to determine the sorting order of the tree's children.
