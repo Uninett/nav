@@ -63,6 +63,12 @@ define(function(require, exports, module) {
       }
       // Keep a pointer to the fetch object, for tracking all fetches
       this.xhr = this.collection.fetch({reset: true});
+      // Hide children while fetching
+      this.tree.$el.hide();
+      var self = this;
+      this.xhr.done(function (){
+        self.tree.$el.show();
+      });
       flash.fetch();
     },
 
