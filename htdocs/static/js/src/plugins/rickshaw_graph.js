@@ -29,7 +29,7 @@ define([
 
         // Throttle resize
         var timer = null;
-        window.addEventListener('resize', function () {
+        $(window).on('resize', function () {
             if (!timer) {
                 timer = setTimeout(function () {
                     RickshawUtils.resizeGraph(graph);
