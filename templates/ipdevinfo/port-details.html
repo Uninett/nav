@@ -67,15 +67,15 @@
     <div id="port-details-infotables">
       <div class="row">
 
-        <div class="column medium-4">
+        <div class="column large-4">
           {% include 'ipdevinfo/port-details-main-frag.html' %}
         </div>
 
-        <div class="column medium-4">
+        <div class="column large-4">
           {% include 'ipdevinfo/port-details-vlan-frag.html' %}
         </div>
 
-        <div class="column medium-4">
+        <div class="column large-4">
           {% include 'ipdevinfo/port-details-neighbors-frag.html' %}
           {% include 'ipdevinfo/port-details-stacking-frag.html' %}
         </div>
@@ -88,7 +88,7 @@
     <div id="port-details-activity-graphs">
       <h3>Activity graphs</h3>
 
-      <ul class="medium-block-grid-2 nav-metrics-container">
+      <ul class="large-block-grid-2 nav-metrics-container">
 
         {% for url in port.combined_data_urls %}
 
