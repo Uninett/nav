@@ -46,7 +46,8 @@ define(function (require, exports, module) {
   var FSM = function(stateMap) {
     var defaultMap = { INIT: {} };
     // Maps states to event handlers (state maps), which map events to new states
-    this.fsm = Object.assign(defaultMap, stateMap);
+    this.fsm = defaultMap;
+    _.extend(this.fsm, stateMap);
     // By convention, "INIT" is the default state and always defined
     this.state = "INIT";
     // Trigger for when a new state is entered
@@ -230,13 +231,17 @@ define(function (require, exports, module) {
       stateOrStateMap = this.fsm[stateOrStateMap];
     }
     // Temporarily unfreeze FSM
-    this.fsm = Object.assign({}, this.fsm);
+    var tmp = {};
+    _.extend(tmp, this.fsm);
+    this.fsm = tmp;
     var originalState = this.fsm[toExtend];
+    var newState = {};
     if (destructiveExtend) {
-      this.fsm[toExtend] = Object.assign({}, originalState, stateOrStateMap);
+      _.extend(newState, originalState, stateOrStateMap);
     } else {
-      this.fsm[toExtend] = Object.assign({}, stateOrStateMap, originalState);
+      _.extend(newState, stateOrStateMap, originalState);
     }
+    this.fsm[toExtend] = newState;
     // Update public API to reflect any changes, if any
     this.states = this.getStates();
     this.events = this.getEvents();

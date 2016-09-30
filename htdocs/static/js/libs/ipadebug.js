@@ -29,7 +29,8 @@ define(function (require, exports, module) {
   var _ = require("libs/underscore");
 
   function Debugger(name) {
-    var debuggr = Object.assign({}, _Debugger);
+    var debuggr = {};
+    _.extend(debuggr, _Debugger);
     if (name !== null) {
       helpString(name);
       window[name] = debuggr;
