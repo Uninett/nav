@@ -530,7 +530,11 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
         else:
             queryset = manage.Prefix.objects.all()
 
-        return queryset
+        # Filter prefixes that is smaller than minimum prefix length
+        results = [p for p in queryset
+                   if IP(p.net_address).len() >= MINIMUMPREFIXLENGTH]
+
+        return results
 
     def list(self, request, *args, **kwargs):
         """Delivers a list of usage objects as a response
@@ -542,14 +546,10 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
         Also we need to run the prefix collector after paging to avoid
         unnecessary usage calculations
         """
-        self.object_list = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(self.object_list)
-
+        page = self.paginate_queryset(self.filter_queryset(self.get_queryset()))
         starttime, endtime = get_times(self.request)
-        prefixes = prefix_collector.fetch_usages([
-            p for p in page.object_list
-            if IP(p.net_address).len() >= MINIMUMPREFIXLENGTH],
-            starttime, endtime)
+        prefixes = prefix_collector.fetch_usages(
+            page.object_list, starttime, endtime)
 
         if page is not None:
             page.object_list = prefixes
