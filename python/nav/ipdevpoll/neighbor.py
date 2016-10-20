@@ -143,8 +143,8 @@ class Neighbor(object):
                 self._netbox_query(Q(interface__gwportprefix__gw_ip=ip)))
 
     ID_PATTERN = re.compile(r'(.*\()?(?P<sysname>[^\)]+)\)?')
-    @classmethod
-    def _netbox_from_sysname(cls, sysname):
+
+    def _netbox_from_sysname(self, sysname):
         """Tries to find a Netbox from NAV's database based on a sysname string.
 
         The sysname string is interpreted in various ways that have been seen
@@ -156,7 +156,7 @@ class Neighbor(object):
                   corresponding netbox was found.
 
         """
-        match = cls.ID_PATTERN.search(sysname)
+        match = self.ID_PATTERN.search(sysname)
         sysname = match.group('sysname')
         assert sysname
         try:
@@ -169,10 +169,9 @@ class Neighbor(object):
         if not is_fqdn:
             query = query | Q(sysname__istartswith=sysname + '.')
 
-        return cls._netbox_query(query)
+        return self._netbox_query(query)
 
-    @staticmethod
-    def _netbox_query(query):
+    def _netbox_query(self, query):
         """Runs a Django get()-query on the Netbox model, based on query.
 
         :param query: A Q object usable in a Netbox query.
@@ -184,6 +183,10 @@ class Neighbor(object):
         try:
             netbox = manage.Netbox.objects.values('id', 'sysname').get(query)
         except manage.Netbox.DoesNotExist:
+            return None
+        except manage.Netbox.MultipleObjectsReturned:
+            self._logger.info("found multiple matching neighbors on remote, "
+                              "cannot decide: %s", query)
             return None
         return shadows.Netbox(**netbox)
 
@@ -281,11 +284,10 @@ class LLDPNeighbor(Neighbor):
 
         return netbox
 
-    @classmethod
-    def _netbox_from_mac(cls, mac):
+    def _netbox_from_mac(self, mac):
         mac_map = get_netbox_macs()
         if mac in mac_map:
-            return cls._netbox_query(Q(id=mac_map[mac]))
+            return self._netbox_query(Q(id=mac_map[mac]))
 
     def _identify_interface(self):
         portid = self.record.port_id
