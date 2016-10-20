@@ -21,6 +21,7 @@ object", in the sense that access to member attributes will not result in
 database I/O.
 
 """
+from collections import defaultdict
 import IPy
 
 from django.db.models import Q
@@ -105,6 +106,36 @@ class Module(Shadow):
     __shadowclass__ = manage.Module
     __lookups__ = [('netbox', 'device'), ('netbox', 'name')]
     event = EventFactory('ipdevpoll', 'eventEngine', 'moduleState')
+
+    @classmethod
+    def prepare_for_save(cls, containers):
+        cls._resolve_actual_duplicate_names(containers)
+        return super(Module, cls).prepare_for_save(containers)
+
+    @classmethod
+    def _resolve_actual_duplicate_names(cls, containers):
+        """Attempts to resolve an issue where multiple collected modules are
+        reported as having the same name, by adding the module's serial number
+        to its name before it's stored into the db.
+
+        This may happen in some devices, but is not supported by NAV's data
+        model.
+
+        """
+        if cls not in containers:
+            return
+
+        by_name = defaultdict(list)
+        for module in containers[cls].values():
+            by_name[module.name].append(module)
+        duped = [name for name in by_name if len(by_name[name]) > 1]
+        for name in duped:
+            cls._logger.warning("Device reports %d modules by the name %r",
+                                len(by_name[name]), name)
+            for module in by_name[name]:
+                serial = module.device.serial if module.device else None
+                if serial:
+                    module.name = '{} ({})'.format(name, serial)
 
     def prepare(self, containers):
         self._fix_binary_garbage()

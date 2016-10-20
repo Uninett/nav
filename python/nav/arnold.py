@@ -32,6 +32,7 @@ from collections import namedtuple
 from smtplib import SMTPException
 
 import nav.Snmp
+from nav.Snmp.errors import AgentError
 import nav.bitvector
 import nav.buildconf
 from nav import logs
@@ -433,7 +434,7 @@ def change_port_status(action, identity):
             agent.set(query, 'i', 1)
             LOGGER.info('Setting ifadminstatus up on interface %s',
                         identity.interface)
-    except nav.Snmp.AgentError, why:
+    except AgentError as why:
         LOGGER.error("Error when executing snmpquery: %s", why)
         raise ChangePortStatusError(why)
 

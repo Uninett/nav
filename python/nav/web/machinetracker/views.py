@@ -407,7 +407,7 @@ def get_netbios_query(separator=', '):
     """
     return """SELECT array_to_string(array_agg(DISTINCT name),'%s')
               FROM netbios
-              WHERE arp.ip=netbios.ip
+              WHERE arp.ip=netbios.ip AND family(arp.ip) = 4
               AND (arp.start_time, arp.end_time)
                    OVERLAPS (netbios.start_time,
                              netbios.end_time)""" % separator
