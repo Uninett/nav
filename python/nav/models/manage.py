@@ -1599,6 +1599,17 @@ class InterfaceStack(models.Model):
         db_table = u'interface_stack'
 
 
+class InterfaceAggregate(models.Model):
+    """Interface aggregation relationships"""
+    aggregator = models.ForeignKey(Interface, db_column='aggregator',
+                                   related_name='aggregator')
+    interface = models.ForeignKey(Interface, db_column='interface',
+                                  related_name='aggregated')
+
+    class Meta(object):
+        db_table = u'interface_aggregate'
+
+
 class IanaIftype(models.Model):
     """IANA-registered iftype values"""
     iftype = models.IntegerField(primary_key=True)
