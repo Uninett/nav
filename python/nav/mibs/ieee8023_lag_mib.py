@@ -14,8 +14,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """"A MibRetriever to retrieve IEEE 802.3ad info from the IEEE8023-LAG-MIB"""
+from collections import defaultdict
 from twisted.internet.defer import inlineCallbacks, returnValue
-
 from nav.mibs import mibretriever, reduce_index
 
 
@@ -48,3 +48,27 @@ class IEEE8023LagMib(mibretriever.MibRetriever):
             'dot3adAggPortAttachedAggID').addCallback(reduce_index)
         returnValue({port: aggregator for port, aggregator in result.items()
                      if aggregator != 0})
+
+    @inlineCallbacks
+    def retrieve_aggregations_by_operational_key(self):
+        """
+        Retrieves a dict where the keys are the ifIndexes of aggregators,
+        and the values are lists of ifIndexes of aggregation ports with the
+        corresponding operational key (regardless of their current status).
+
+        :returns: { aggregation_ifindex: aggregator_ifindex, ... }
+        """
+        aggregators = yield self.retrieve_column(
+            'dot3adAggActorOperKey').addCallback(reduce_index)
+        aggregations = yield self.retrieve_column(
+            'dot3adAggPortActorOperKey').addCallback(reduce_index)
+
+        by_opervalue = defaultdict(list)
+        for ifindex, opervalue in aggregations.items():
+            by_opervalue[opervalue].append(ifindex)
+
+        result = {ifindex: by_opervalue[opervalue]
+                  for ifindex, opervalue in aggregators.items()
+                  if opervalue in by_opervalue}
+
+        returnValue(result)
