@@ -1,0 +1,32 @@
+{% with port.get_aggregator as aggregator %}{% with port.get_bundled_interfaces as bundled %}
+  {% if aggregator or bundled %}
+    <table class="listtable align-top">
+      <caption>Link aggregation</caption>
+
+      {% if aggregator %}
+        <tr>
+          <th>Part of aggregate</th>
+          <td>
+              <a href="{{ aggregator.get_absolute_url }}">{{ aggregator.ifname }}</a>
+          </td>
+        </tr>
+      {% endif %}
+
+      {% if bundled %}
+        <tr>
+          <th>Aggregates</th>
+          <td>
+            <ul class="inside">
+              {% for other_port in bundled %}
+                <li>
+                  <a href="{{ other_port.get_absolute_url }}">{{ other_port.ifname }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+          </td>
+        </tr>
+      {% endif %}
+
+    </table>
+  {% endif %}
+{% endwith %}{% endwith %}
