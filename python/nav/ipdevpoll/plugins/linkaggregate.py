@@ -33,19 +33,20 @@ class LinkAggregate(Plugin):
     @inlineCallbacks
     def handle(self):
         self._logger.debug("Collecting link aggregations")
-        result = yield self.lagmib.retrieve_selected_aggregators()
+        result = yield self.lagmib.retrieve_aggregations_by_operational_key()
         aggregates = yield self._convert_to_interfaces(result)
         self._log_aggregates(aggregates)
         self._create_aggregate_containers(aggregates)
 
     @inlineCallbacks
     def _convert_to_interfaces(self, aggregatedict):
-        aggregates = []
-        for if_idx, aggregator_idx in aggregatedict.items():
-            interface = yield self._get_interface(if_idx)
+        result = []
+        for aggregator_idx, aggregates in aggregatedict.items():
             aggregator = yield self._get_interface(aggregator_idx)
-            aggregates.append((interface, aggregator))
-        returnValue(aggregates)
+            for if_idx in aggregates:
+                interface = yield self._get_interface(if_idx)
+                result.append((interface, aggregator))
+        returnValue(result)
 
     @inlineCallbacks
     def _get_interface(self, ifindex):
