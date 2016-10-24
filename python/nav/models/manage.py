@@ -1563,6 +1563,10 @@ class Interface(models.Model):
         """Returns True if interface is administratively up"""
         return self.ifadminstatus == self.ADM_UP
 
+    def is_oper_up(self):
+        """Returns True if interface is operationally up"""
+        return self.ifoperstatus == self.OPER_UP
+
     def below_me(self):
         """Returns interfaces stacked with this one on a layer below"""
         return Interface.objects.filter(lower_layer__higher=self)

@@ -19,7 +19,9 @@
             <ul class="inside">
               {% for other_port in bundled %}
                 <li>
-                  <a href="{{ other_port.get_absolute_url }}">{{ other_port.ifname }}</a>
+                  <a href="{{ other_port.get_absolute_url }}">
+                      {% if other_port.is_oper_up %}{{ other_port.ifname }}{% else %}<del>{{ other_port.ifname }}</del>{% endif %}
+                  </a>
                 </li>
               {% endfor %}
             </ul>
