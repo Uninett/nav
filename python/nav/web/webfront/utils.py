@@ -31,13 +31,15 @@ _logger = logging.getLogger('nav.web.tools.utils')
 
 class Tool(object):
     """Class representing a tool"""
-    def __init__(self, name, uri, icon, description, priority=0, display=True):
+    def __init__(self, name, uri, icon, description, priority=0, display=True,
+                 doclink=None):
         self.name = name
         self.uri = uri
         self.icon = icon
         self.description = description
         self.priority = int(priority)
         self.display = display
+        self.doclink = doclink
 
     def __unicode__(self):
         return self.name
