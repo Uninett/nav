@@ -49,6 +49,20 @@ ADD test-requirements.txt /test-requirements.txt
 RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
 RUN pip install whisper carbon graphite-web django-tagging
 
+# Install geckodriver to properly run Selenium tests in Firefox versions>=47
+RUN cd /tmp && \
+    wget https://github.com/mozilla/geckodriver/releases/download/v0.11.1/geckodriver-v0.11.1-linux64.tar.gz && \
+    tar xvzf geckodriver-v0.11.1-linux64.tar.gz && \
+    mv geckodriver /usr/local/bin/
+
+# Install chromedriver to properly run Selenium tests in Chrome, if need be
+RUN cd /tmp && \
+    apt-get update && \
+    apt-get -y --no-install-recommends install unzip && \
+    wget http://chromedriver.storage.googleapis.com/2.24/chromedriver_linux64.zip && \
+    unzip chromedriver_linux64.zip && \
+    mv chromedriver /usr/local/bin/
+
 # This does not make files in source accessible for RUN-commands
 VOLUME ["/source"]
 

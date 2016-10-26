@@ -14,6 +14,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Selenium tests for simple searches on the navbar"""
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 def test_simple_ip_search_should_return_result(selenium, base_url):
     """Tests a search for an IP address"""
@@ -25,5 +28,10 @@ def test_simple_ip_search_should_return_result(selenium, base_url):
     ipaddr = "192.168.42.42"
     query.send_keys(ipaddr)
     search_button.click()
+
+    caption = WebDriverWait(selenium, 15).until(
+        EC.text_to_be_present_in_element((By.TAG_NAME, "caption"), ipaddr)
+    )
+
     caption = selenium.find_element_by_tag_name('caption')
     assert ipaddr in caption.text

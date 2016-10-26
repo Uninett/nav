@@ -62,8 +62,6 @@ def get_base_context(additional_paths=None, form=None):
         navpath += additional_paths
     form = form if form else SearchForm()
     return {
-        'header': {'name': 'PortAdmin',
-                   'description': 'Configure interfaces on ip devices'},
         'navpath': navpath,
         'title': create_title(navpath),
         'form': form
