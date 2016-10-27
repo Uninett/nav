@@ -1586,6 +1586,15 @@ class Interface(models.Model):
         """Returns the interfaces that are bundled on this interface"""
         return Interface.objects.filter(bundled__aggregator=self)
 
+    def is_degraded(self):
+        """
+        Returns True if this aggregator has been degraded, False if it has
+        not, None if this interface is not a known aggregator.
+        """
+        aggregates = self.get_bundled_interfaces()
+        if aggregates:
+            return any(not agg.is_oper_up() for agg in aggregates)
+
     def get_sorted_vlans(self):
         """Returns a queryset of sorted swportvlans"""
         return self.swportvlan_set.select_related('vlan').order_by(
