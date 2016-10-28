@@ -20,7 +20,7 @@ from operator import itemgetter
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
-                                            HTML, Div)
+                                            HTML, Div, Fieldset)
 
 from . import STATELESS_THRESHOLD
 from nav.models.event import EventType, AlertType
@@ -88,34 +88,40 @@ class StatusPanelForm(forms.Form):
             required=False
         )
 
-        column_class = 'medium-3'
+        self.fields['status_filters'] = forms.MultipleChoiceField(
+            choices=[(t, forms.forms.pretty_name(t))
+                     for t, f in self.fields.items()
+                     if isinstance(f, forms.MultipleChoiceField)],
+            required=False,
+            label='Choose fields to filter status by'
+        )
+
+        column_class = 'medium-6'
         self.helper = FormHelper()
         self.helper.form_id = 'status-form'
         self.helper.form_action = ''
         self.helper.form_method = 'POST'
         self.helper.layout = Layout(
             Row(
-                Column(Field('event_type', css_class='select2'),
-                       Field('not_event_type', css_class='select2'),
-                       css_class=column_class),
-                Column(Field('alert_type', css_class='select2'),
-                       Field('not_alert_type', css_class='select2'),
-                       css_class=column_class),
-                Column(Field('category', css_class='select2'),
-                       Field('not_category', css_class='select2'),
-                       css_class=column_class),
-                Column(Field('organization', css_class='select2'),
-                       Field('not_organization', css_class='select2'),
-                       css_class=column_class),
-            ),
-            Row(
-                Column(Field('device_group', css_class='select2'),
-                       Field('not_device_group', css_class='select2'),
-                       css_class=column_class),
+                Column(
+                    Field('status_filters', css_class='select2'),
+                    Fieldset(
+                        'Status filters',
+                        Field('alert_type', css_class='select2'),
+                        Field('category', css_class='select2'),
+                        Field('device_group', css_class='select2'),
+                        Field('event_type', css_class='select2'),
+                        Field('organization', css_class='select2'),
+                        Field('not_alert_type', css_class='select2'),
+                        Field('not_category', css_class='select2'),
+                        Field('not_device_group', css_class='select2'),
+                        Field('not_event_type', css_class='select2'),
+                        Field('not_organization', css_class='select2'),
+                        css_class='field_list'),
+                    css_class=column_class),
                 Column('stateless', 'stateless_threshold',
+                       'acknowledged', 'on_maintenance',
                        css_class=column_class),
-                Column('acknowledged', 'on_maintenance',
-                       css_class='medium-3 end')
             ),
             HTML('<hr>'),
 
