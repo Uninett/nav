@@ -19,6 +19,7 @@ from . import alert_serializers
 from rest_framework import filters
 
 from nav import natsort
+from nav.models.manage import Location
 
 
 class NaturalIfnameFilter(filters.BaseFilterBackend):
@@ -52,6 +53,7 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
         'category': 'netbox__category',
         'alert_type': 'alert_type__name',
         'device_group': 'netbox__groups__id',
+        'location': 'netbox__room__location',
     }
 
     MULTIVALUE_EXCLUDES = {
@@ -60,18 +62,25 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
         'not_category': 'netbox__category',
         'not_alert_type': 'alert_type__name',
         'not_device_group': 'netbox__groups__id',
+        'not_location': 'netbox__room__location',
     }
 
     def filter_queryset(self, request, queryset, view):
         for arg, field in self.MULTIVALUE_FILTERS.items():
             values = request.QUERY_PARAMS.getlist(arg, None)
             if values:
+                # Locations are hierarchial - must include descendants
+                if arg == 'location':
+                    values = get_descendants(values)
                 filtr = field + '__in'
                 queryset = queryset.filter(**{filtr: values})
 
         for arg, field in self.MULTIVALUE_EXCLUDES.items():
             values = request.QUERY_PARAMS.getlist(arg, None)
             if values:
+                # Locations are hierarchial - must include descendants
+                if arg == 'not_location':
+                    values = get_descendants(values)
                 filtr = field + '__in'
                 queryset = queryset.exclude(**{filtr: values})
 
@@ -89,3 +98,18 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
             queryset = [i for i in queryset if not is_on_maintenance(i)]
 
         return queryset
+
+
+def get_descendants(parents):
+    """Returns a list of all descendants for the parents including themselves"""
+    locations = []
+    for parent in parents:
+        try:
+            location = Location.objects.get(pk=parent)
+        except Location.DoesNotExist:
+            pass
+        else:
+            locations.extend([l.pk for l in
+                              location.get_descendants(include_self=True)])
+
+    return list(set(locations))

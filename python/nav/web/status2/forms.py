@@ -24,7 +24,7 @@ from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
 
 from . import STATELESS_THRESHOLD
 from nav.models.event import EventType, AlertType
-from nav.models.manage import Organization, Category, NetboxGroup
+from nav.models.manage import Organization, Category, NetboxGroup, Location
 from nav.web.crispyforms import NumberField
 
 
@@ -67,6 +67,11 @@ class StatusPanelForm(forms.Form):
             required=False
         )
 
+        self.fields['location'] = forms.MultipleChoiceField(
+            choices=get_locations(),
+            required=False
+        )
+
         self.fields['not_event_type'] = forms.MultipleChoiceField(
             choices=get_event_types(),
             required=False
@@ -84,7 +89,11 @@ class StatusPanelForm(forms.Form):
             required=False
         )
         self.fields['not_device_group'] = forms.MultipleChoiceField(
-            choices=get_device_groups(),
+            choices=get_locations(),
+            required=False
+        )
+        self.fields['not_location'] = forms.MultipleChoiceField(
+            choices=get_locations(),
             required=False
         )
 
@@ -111,11 +120,13 @@ class StatusPanelForm(forms.Form):
                         Field('category', css_class='select2'),
                         Field('device_group', css_class='select2'),
                         Field('event_type', css_class='select2'),
+                        Field('location', css_class='select2'),
                         Field('organization', css_class='select2'),
                         Field('not_alert_type', css_class='select2'),
                         Field('not_category', css_class='select2'),
                         Field('not_device_group', css_class='select2'),
                         Field('not_event_type', css_class='select2'),
+                        Field('not_location', css_class='select2'),
                         Field('not_organization', css_class='select2'),
                         css_class='field_list'),
                     css_class=column_class),
@@ -225,3 +236,8 @@ def get_organizations():
 def get_device_groups():
     """Get all device groups formatted as choices"""
     return [(n.id, n.id) for n in NetboxGroup.objects.all()]
+
+
+def get_locations():
+    """Gets all locations formatted as choices"""
+    return [(l.id, l.id) for l in Location.objects.all()]
