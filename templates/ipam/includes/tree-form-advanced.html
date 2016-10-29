@@ -43,15 +43,15 @@
   </label>
 
   <label>
-    <input id="prefix-flag-ipv6" class="search-flag" type="checkbox" name="type" value="ipv6"
-    <%= _.contains(queryParams.type, "ipv6") ? "checked" : null %>>
-    IPv6
-  </label>
-
-  <label>
     <input id="prefix-flag-ipv6" class="search-flag", type="checkbox" name="type" value="rfc1918"
     <%= _.contains(queryParams.type, "rfc1918") ? "checked" : null %>>
     Private IPv4 (RFC1918)
+  </label>
+
+  <label>
+    <input id="prefix-flag-ipv6" class="search-flag" type="checkbox" name="type" value="ipv6"
+    <%= _.contains(queryParams.type, "ipv6") ? "checked" : null %>>
+    IPv6
   </label>
 
   <label>
