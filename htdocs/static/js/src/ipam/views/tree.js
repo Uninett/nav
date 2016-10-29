@@ -330,7 +330,7 @@ define(function(require, exports, module) {
     comparators: {
       prefix: null,
       vlan: function(model) {
-        return -1.0 * model.get("vlan-number", 0);
+        return -1.0 * model.get("vlan_number", 0);
       },
       usage: function(model) {
         return -1.0 * model.get("usage", 0);
