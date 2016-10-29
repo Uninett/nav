@@ -72,7 +72,7 @@ define(function(require, exports, module) {
       }
 
       var usageElem = this.$el.find(".usage-graph:first");
-      var usageTmpl = _.template("<span title='Based on current active IP addresses'>Usage: <%= percent %> %</span>");
+      var usageTmpl = _.template("<span title='Based on current active IP addresses'>Current usage: <%= percent %> %</span>");
       usageElem.append(usageTmpl({percent: (usage * 100).toFixed(2)}));
       Viz.usageChart({
         mountElem: usageElem.get(0),
