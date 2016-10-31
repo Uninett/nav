@@ -191,6 +191,12 @@ class StatusWidgetForm(StatusPanelForm):
                        css_class=column_class),
             ),
             Row(
+                Column(Field('location', css_class='select2'),
+                       css_class=column_class),
+                Column(Field('not_location', css_class='select2'),
+                       css_class=column_class),
+            ),
+            Row(
                 Column('stateless', 'stateless_threshold',
                        css_class=column_class),
                 Column('acknowledged', 'on_maintenance',
