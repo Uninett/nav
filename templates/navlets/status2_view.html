@@ -1,4 +1,5 @@
 {% extends 'navlets/base.html' %}
+{% load info %}
 
 {% block navlet-content %}
 
@@ -14,6 +15,9 @@
           <th>Subject</th>
           <th>Type</th>
           <th>Start time</th>
+          {% for key, value in extra_columns %}
+            <th>{{ value }}</th>
+          {% endfor %}
         </tr>
       </thead>
 
@@ -34,6 +38,11 @@
               {{ result.formatted_time }}
               {% if not result.end_time %}<i class="fa fa-warning" title="Stateless" style="color: #FF8F00"></i>{% endif %}
             </td>
+              {% for key, value in extra_columns %}
+                <td>
+                {{ result.netbox_object|get_attr:key }}
+                </td>
+              {% endfor %}
           </tr>
         {% endfor %}
 

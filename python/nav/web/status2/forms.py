@@ -152,6 +152,9 @@ class StatusWidgetForm(StatusPanelForm):
     This form is used in the status widget and is more suitable for a smaller
     screen size.
     """
+    extra_columns = forms.MultipleChoiceField(
+        required=False,
+        choices=(('room.location', 'Location'), ('room', 'Room')))
 
     def __init__(self, *args, **kwargs):
         super(StatusWidgetForm, self).__init__(*args, **kwargs)
@@ -199,7 +202,7 @@ class StatusWidgetForm(StatusPanelForm):
             Row(
                 Column('stateless', 'stateless_threshold',
                        css_class=column_class),
-                Column('acknowledged', 'on_maintenance',
+                Column('acknowledged', 'on_maintenance', 'extra_columns',
                        css_class=column_class)
             ),
             Submit('submit', 'Save')
