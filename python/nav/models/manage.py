@@ -772,7 +772,7 @@ class Location(models.Model, TreeMixin):
                           max_length=30, primary_key=True)
     parent = models.ForeignKey('self', db_column='parent',
                                blank=True, null=True)
-    description = VarcharField(db_column='descr')
+    description = VarcharField(db_column='descr', blank=True)
     data = hstore.DictionaryField()
     objects = hstore.HStoreManager()
 
@@ -781,7 +781,10 @@ class Location(models.Model, TreeMixin):
         verbose_name = 'location'
 
     def __unicode__(self):
-        return u'%s (%s)' % (self.id, self.description)
+        if self.description:
+            return u'{} ({})'.format(self.id, self.description)
+        else:
+            return u'{}'.format(self.id)
 
 
 class Organization(models.Model, TreeMixin):
