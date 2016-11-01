@@ -47,7 +47,7 @@ class BulkImporter(object):
             row = self.parser.next()
             row = self._decode_as_utf8(row)
             objects = self._create_objects_from_row(row)
-        except BulkParseError, error:
+        except BulkParseError as error:
             objects = error
         return self.parser.line_num, objects
 
