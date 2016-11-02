@@ -180,7 +180,11 @@ class LocationImporter(BulkImporter):
     """Creates objects from the location bulk format"""
     def _create_objects_from_row(self, row):
         raise_if_exists(Location, id=row['locationid'])
-        location = Location(id=row['locationid'],
+        if row['parent']:
+            parent = get_object_or_fail(Location, id=row['parent'])
+        else:
+            parent = None
+        location = Location(id=row['locationid'], parent=parent,
                             description=row['descr'])
         return [location]
 
