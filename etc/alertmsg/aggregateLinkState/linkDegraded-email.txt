@@ -1,0 +1,12 @@
+{% with interface=event.get_subject %}
+Subject: Degraded aggregate link: {{ interface }}
+
+The aggregated link {{ interface }} ({{interface.ifalias}}) is DEGRADED (at {{ time }})
+
+{% if interface.to_interface %}Connected to {{ interface.to_interface }} ({{ interface.to_interface.ifalias }})
+{% elif interface.to_netbox %}Connected to {{ interface.to_netbox }}{% endif %}
+
+Aggregated interfaces: {% for aggregate in interface.get_bundled_interfaces %}
+{{ aggregate.ifname }}{% if not aggregate.is_oper_up %} (Down){% endif %}{% endfor %}
+
+{% endwith %}
