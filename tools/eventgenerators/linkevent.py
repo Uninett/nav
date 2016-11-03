@@ -39,7 +39,7 @@ def main():
     for sysname, ifname in args.interfaces:
         for interface in Interface.objects.filter(
             netbox__sysname__icontains=sysname,
-            ifname__icontains=ifname
+            ifname=ifname
         ):
             send_event(interface, args.event, send=args.dry_run)
 

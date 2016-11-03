@@ -1566,6 +1566,10 @@ class Interface(models.Model):
         """Returns True if interface is administratively up"""
         return self.ifadminstatus == self.ADM_UP
 
+    def is_oper_up(self):
+        """Returns True if interface is operationally up"""
+        return self.ifoperstatus == self.OPER_UP
+
     def below_me(self):
         """Returns interfaces stacked with this one on a layer below"""
         return Interface.objects.filter(lower_layer__higher=self)
@@ -1573,6 +1577,26 @@ class Interface(models.Model):
     def above_me(self):
         """Returns interfaces stacked with this one on a layer above"""
         return Interface.objects.filter(higher_layer__lower=self)
+
+    def get_aggregator(self):
+        """Returns the interface that is selected as an aggregator for me"""
+        try:
+            return Interface.objects.get(aggregators__interface=self)
+        except Interface.DoesNotExist:
+            return
+
+    def get_bundled_interfaces(self):
+        """Returns the interfaces that are bundled on this interface"""
+        return Interface.objects.filter(bundled__aggregator=self)
+
+    def is_degraded(self):
+        """
+        Returns True if this aggregator has been degraded, False if it has
+        not, None if this interface is not a known aggregator.
+        """
+        aggregates = self.get_bundled_interfaces()
+        if aggregates:
+            return any(not agg.is_oper_up() for agg in aggregates)
 
     def get_sorted_vlans(self):
         """Returns a queryset of sorted swportvlans"""
@@ -1600,6 +1624,17 @@ class InterfaceStack(models.Model):
 
     class Meta(object):
         db_table = u'interface_stack'
+
+
+class InterfaceAggregate(models.Model):
+    """Interface aggregation relationships"""
+    aggregator = models.ForeignKey(Interface, db_column='aggregator',
+                                   related_name='aggregators')
+    interface = models.ForeignKey(Interface, db_column='interface',
+                                  related_name='bundled')
+
+    class Meta(object):
+        db_table = u'interface_aggregate'
 
 
 class IanaIftype(models.Model):

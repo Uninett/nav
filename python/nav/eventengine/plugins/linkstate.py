@@ -19,6 +19,7 @@ from nav.config import ConfigurationError
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.plugins import delayedstate
 from nav.models.manage import Interface, Netbox
+from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 
 
 class LinkStateHandler(delayedstate.DelayedStateHandler):
@@ -43,6 +44,10 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
         """Returns the link partner of the target interface"""
         return self.get_target().to_netbox
 
+    def _handle_end(self):
+        self._post_event_if_aggregate_restored()  # always verify aggregates
+        return super(LinkStateHandler, self)._handle_end()
+
     def _set_internal_state_down(self):
         self._set_ifoperstatus(Interface.OPER_DOWN)
 
@@ -64,6 +69,7 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
         return alert
 
     def _get_down_alert(self):
+        self._post_event_if_aggregate_degraded()  # always verify aggregates
         alert = AlertGenerator(self.event)
         alert.alert_type = "linkDown"
 
@@ -114,6 +120,45 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
         vlans = ifc.swportvlan_set.values('vlan__vlan')
         vlans = set([row['vlan__vlan'] for row in vlans])
         return vlans
+
+    #
+    # Methods to handle aggregateLinkState event posting if this interface is
+    # part of an aggregate
+    #
+
+    def _post_event_if_aggregate_degraded(self):
+        if self.get_target().get_aggregator():
+            self._logger.info(
+                "down event for %s, posting linkDegraded event for %s",
+                self.get_target(), self.get_target().get_aggregator())
+            return self._get_aggregate_link_event(start=True)
+
+    def _post_event_if_aggregate_restored(self):
+        if self.get_target().get_aggregator():
+            self._logger.info(
+                "up event for %s, posting linkRestored event for %s",
+                self.get_target(), self.get_target().get_aggregator())
+            return self._get_aggregate_link_event(start=False)
+
+    def _get_aggregate_link_event(self, start):
+        target = self.get_target()
+        aggregator = target.get_aggregator()
+        event = Event()
+        event.source_id = event.target_id = 'eventEngine'
+        event.netbox_id = aggregator.netbox_id
+        event.subid = aggregator.id
+        event.event_type_id = 'aggregateLinkState'
+        event.state = event.STATE_START if start else event.STATE_END
+        event.save()
+
+        EventVar(event_queue=event, variable='alerttype',
+                 value='linkDegraded' if start else 'linkRestored').save()
+        EventVar(event_queue=event, variable='aggregate',
+                 value=target.id).save()
+        EventVar(event_queue=event, variable='aggregate_ifname',
+                 value=target.ifname).save()
+        EventVar(event_queue=event, variable='aggregate_ifalias',
+                 value=target.ifalias or '').save()
 
 
 class LinkStateConfiguration(object):
