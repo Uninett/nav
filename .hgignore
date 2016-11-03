@@ -15,7 +15,10 @@ npm-debug.log
 cloc.xml
 pylint.txt
 tests/*-results.xml
-htdocs/static/js/javascript-*.xml
+tests/assets/*
+tests/geckodriver.log
+tests/functional-report.html
+htdocs/static/js/**/javascript-*.xml
 tools/virtual-appliance/nav-virtual-appliance.tar*
 
 # Generated doc and build dirs
