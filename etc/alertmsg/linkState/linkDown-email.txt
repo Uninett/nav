@@ -4,6 +4,6 @@ Subject: Link down on {{ interface }}
 Link status on {{ interface }} ({{interface.ifalias}}) is DOWN.
 
 {% if interface.to_interface %}Connected to {{ interface.to_interface }} ({{ interface.to_interface.ifalias }})
-{% elif interface.to_netbox %}Connected to {{ interface.to_netbox }}{% endif %}{% if interface.lower_layer.all|length_is:"1" %}{% with stack=interface.lower_layer.all|first %}Part of aggregate interface {{ stack.higher }} ({{ stack.higher.ifalias }}){% endwith %}{% endif %}
+{% elif interface.to_netbox %}Connected to {{ interface.to_netbox }}{% endif %}{% if interface.get_aggregator %}{% with aggregator=interface.get_aggregator %}Part of aggregate interface {{ aggregator.ifname }} ({{ aggregator.ifalias }}){% endwith %}{% endif %}
 
 {% endwith %}
