@@ -14,15 +14,14 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 # pylint: disable=C0111, R0904
-"""Selenium tests for arnold"""
+"""Selenium tests for geomap"""
 
-from nav.tests.selenium import SeleniumTest
+from selenium.common.exceptions import NoSuchElementException
 
-
-class ArnoldSeleniumTest(SeleniumTest):
-    """Testrunner for the Arnold page"""
-
-    def test_should_default_to_detained_ports(self):
-        self.driver.get(self.get_url('/arnold/'))
-        title = self.driver.title
-        self.assertTrue('Detentions' in title)
+def test_geomap_loaded(selenium, base_url):
+    """Test if map is loaded"""
+    selenium.get('{}/geomap/'.format(base_url))
+    try:
+        selenium.find_element_by_class_name('olMapViewport')
+    except NoSuchElementException:
+        assert False, 'GeoMap seems to not have loaded'

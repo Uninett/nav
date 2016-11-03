@@ -15,33 +15,31 @@
 #
 """Selenium tests for Status"""
 from time import sleep
+import pytest
 
-from nav.tests.selenium import SeleniumTest
 
-class StatusSeleniumTest(SeleniumTest):
-    """Testrunner for the Status page"""
+@pytest.fixture()
+def statuspage(selenium, base_url):
+    selenium.get('{}/status/'.format(base_url))
+    panel = selenium.find_element_by_id('status-panel')
+    filter_toggle = selenium.find_element_by_class_name('toggle-panel')
+    return panel, filter_toggle
 
-    def setUp(self):
-        """Setup"""
-        super(StatusSeleniumTest, self).setUp()
-        self.driver.get(self.get_url('/status/'))
-        self.panel = self.driver.find_element_by_id('status-panel')
-        self.filter_toggle = self.driver.find_element_by_class_name('toggle-panel')
+def test_panel_should_toggle_when_clicked(statuspage):
+    """Test if panel toggles when clicked"""
+    panel, filter_toggle = statuspage
+    initial_state = panel.is_displayed()
+    filter_toggle.click()
+    assert initial_state != panel.is_displayed(), 'Clicking filter_toggle did not do anything'
 
-    def test_panel_toggle(self):
-        """Test if panel toggles when clicked"""
-        initial_state = self.panel.is_displayed()
-        self.filter_toggle.click()
-        self.assertTrue(initial_state != self.panel.is_displayed(),
-                        'Clicking filter_toggle did not do anything')
+def test_remember_last_panel_state(selenium, statuspage):
+    """Test if the panel stays in the same state after page refresh"""
+    panel, filter_toggle = statuspage
+    assert not panel.is_displayed()
 
-    def test_remember_last_panel_state(self):
-        """Test if the panel stays in the same state after page refresh"""
-        assert self.panel.is_displayed() == False
-        self.filter_toggle.click()
-        sleep(1)
-        self.driver.refresh()
-        # We need to fetch panel element again after a refresh
-        self.panel = self.driver.find_element_by_id('status-panel')
-        self.assertTrue(self.panel.is_displayed(),
-                        'Panel did not stay in same state after page refresh')
+    filter_toggle.click()
+    sleep(1)
+    selenium.refresh()
+    # We need to fetch panel element again after a refresh
+    panel = selenium.find_element_by_id('status-panel')
+    assert panel.is_displayed(), 'Panel did not stay in same state after page refresh'

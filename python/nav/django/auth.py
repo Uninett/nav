@@ -23,6 +23,9 @@ from nav.django.utils import is_admin, get_account
 
 from django.http import (HttpResponseForbidden, HttpResponseRedirect,
                          HttpResponse)
+from django.contrib.sessions.backends.db import SessionStore
+from django.conf import settings
+
 
 _logger = getLogger(__name__)
 
@@ -146,3 +149,24 @@ class SudoNotAdminError(Exception):
 
     def __unicode__(self):
         return self.msg
+
+
+def create_session_cookie(username):
+    """Creates an active session for username and returns the resulting
+    session cookie.
+
+    This is useful to fake login sessions during testing.
+
+    """
+    user = Account.objects.get(login=username)
+    session = SessionStore()
+    session[ACCOUNT_ID_VAR] = user.id
+    session.save()
+
+    cookie = {
+        'name': settings.SESSION_COOKIE_NAME,
+        'value': session.session_key,
+        'secure': False,
+        'path': '/',
+    }
+    return cookie
