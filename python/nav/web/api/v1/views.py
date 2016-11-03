@@ -596,7 +596,7 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """
 
     filter_backends = (AlertHistoryFilterBackend,)
-    queryset = event.AlertHistory.objects.none()
+    model = event.AlertHistory
     serializer_class = alert_serializers.AlertHistorySerializer
 
     def get_queryset(self):
@@ -615,6 +615,9 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         stateless = Q(start_time__gte=threshold) & Q(end_time__isnull=True)
         return event.AlertHistory.objects.filter(
             stateless | UNRESOLVED).select_related()
+
+    def get_object(self, queryset=None):
+        return super(AlertHistoryViewSet, self).get_object(self.model)
 
 
 def get_or_create_token(request):
