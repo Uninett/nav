@@ -17,9 +17,7 @@ from .cabling import *
 from .event import *
 from .logger import *
 from .msgmaint import *
-from .oid import *
 from .profiles import *
 from .roommeta import *
-from .rrd import *
 from .service import *
 from .thresholds import *

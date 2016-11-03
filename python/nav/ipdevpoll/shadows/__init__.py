@@ -26,7 +26,7 @@ import IPy
 
 from django.db.models import Q
 
-from nav.models import manage, oid
+from nav.models import manage
 from nav.event2 import EventFactory
 
 from nav.ipdevpoll.storage import MetaShadow, Shadow
