@@ -69,8 +69,8 @@ class JuniperDot1q(dot1q.Dot1q):
             try:
                 return jnx_vlan_map[ident]
             except KeyError:
-                self._logger.warning("cannot map juniper vlan %s to a tag, "
-                                     "using raw value", ident)
+                self._logger.info("cannot map juniper vlan %s to a tag, using "
+                                  "raw value", ident)
                 return ident
 
         new_egress = {_remap(key): value for key, value in egress.items()}
