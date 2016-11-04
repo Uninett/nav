@@ -105,7 +105,8 @@ class PrefixQuerysetBuilder(object):
 
 # Code finding available subnets
 def get_available_subnets(prefix_or_prefixes):
-    """Get available prefixes within a list of CIDR addresses.
+    """Get available prefixes within a list of CIDR addresses, based on
+    prefixes found in NAV.
 
     Args:
         prefix_or_prefixes: a single or a list of prefixes ("10.0.0.0/8") or
@@ -113,23 +114,41 @@ def get_available_subnets(prefix_or_prefixes):
 
     Returns:
            An iterable IPy.IPSet of available addresses.
+
+    """
+    base_prefixes = [str(prefix) for prefix in prefix_or_prefixes]
+    all_used_prefixes = []
+    for prefix in base_prefixes:
+        # Query NAV to get prefixes within the current base prefix
+        used_prefixes = PrefixQuerysetBuilder().within(prefix).finalize()
+        for used_prefix in used_prefixes:
+            all_used_prefixes.append(used_prefix.net_address)
+    return _get_available_subnets(prefix_or_prefixes, all_used_prefixes)
+
+def _get_available_subnets(prefix_or_prefixes, used_prefixes):
+    """Get available prefixes within a list of CIDR addresses, based on what
+    prefixes are in use. E.g. this is `get_available_subnets`, but with
+    explicit dependency injection.
+
+    Args:
+        prefix_or_prefixes: a single or a list of prefixes ("10.0.0.0/8") or
+                          IPy.IP objects
+        used_prefixes: prefixes that are in use
+        
+
+    Returns:
+           An iterable IPy.IPSet of available addresses within prefix_or_prefixes
+
     """
     if not isinstance(prefix_or_prefixes, list):
         prefix_or_prefixes = [prefix_or_prefixes]
     base_prefixes = [str(prefix) for prefix in prefix_or_prefixes]
-    # prefixes we are scoping our subnet search to
-    base = IPSet()
-    # prefixes in use
-    acc = IPSet()
-    for prefix in base_prefixes:
-        base.add(IP(prefix))
-        used_prefixes = PrefixQuerysetBuilder().within(prefix).finalize()
-        for used_prefix in used_prefixes:
-            acc.add(IP(used_prefix.net_address))
+    acc = IPSet([IP(prefix) for prefix in prefix_or_prefixes])
+    used_prefixes = IPSet([IP(used) for used in used_prefixes])
     # remove used prefixes
-    base.discard(acc)
+    acc.discard(used_prefixes)
     # filter away original prefixes
-    return sorted([ip for ip in base if str(ip) not in base_prefixes])
+    return sorted([ip for ip in acc if str(ip) not in base_prefixes])
 
 def partition_subnet(size, prefix):
     "Partition prefix into subnets with room for at at least n hosts"
