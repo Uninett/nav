@@ -1,4 +1,4 @@
-#
+# -*- coding: utf-8 -*-#
 # Copyright (C) 2014 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
@@ -18,6 +18,7 @@
 
 from django import forms
 from django_hstore.forms import DictionaryField
+from django.utils.safestring import mark_safe
 
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column,
@@ -27,6 +28,92 @@ from nav.web.crispyforms import LabelSubmit
 from nav.models.manage import (Location, Room, Organization, NetboxType,
                                Vendor, NetboxGroup, Category, Netbox)
 from nav.models.cabling import Cabling
+
+import logging
+_logger = logging.getLogger(__name__)
+
+
+BOX_CHARS = {
+    'SPACE': '&nbsp;',
+    'VERTICAL': '&#9474;',  # │
+    'UP_AND_RIGHT': '&#9492;',  # └
+    'VERTICAL_AND_RIGHT': '&#9500;' # ├
+}
+
+
+def create_hierarchy(klass):
+    """Creates a tree structure for select choices
+
+    This is used in forms that use Organization and Location fields, and will
+    visualize the tree structure of the data.
+    """
+    roots = klass.objects.filter(parent__isnull=True).order_by('id')
+    choices = [('', '---------')]
+    for index, root in enumerate(roots):
+        is_last_root = index == roots.count() - 1
+        ancestors = []
+        choices = choices + create_choices(root, ancestors, is_last_root)
+    return choices
+
+
+def create_choices(element, ancestors, is_last_child=False):
+    """Recursively create a choice for the element and its children
+
+    :param element: a model instance using the TreeMixin
+    :param ancestors: list of booleans for each ancestor, indicating if that
+                      ancestor was the last child
+    :param is_last_child: indicates if this is the last child
+
+    :returns: a list of tuples meant to be used as choices in a form select. The
+              string element is padded to indicate placement in a tree-structure
+    """
+    choices = [(element.pk,
+                tree_pad(unicode(element.pk), ancestors, last=is_last_child))]
+    child_ancestors = ancestors + [is_last_child]
+    children = element.get_children()
+    num_children = children.count()
+    for index, child in enumerate(children):
+        last = index == num_children - 1
+        choices = choices + create_choices(child, child_ancestors,
+                                           is_last_child=last)
+
+    return choices
+
+
+def tree_pad(string, ancestors, last=False):
+    """Pad the string according to ancestors and position
+
+    :param ancestors: a list of booleans for each ancestor. The value indicates
+                      if this ancestor was the last child
+    :param last: indicates if this is the last child
+
+    :returns: a string (marked safe) representing an option in a dropdown,
+              drawing it's part of the tree-structure
+    """
+    charmap = {
+        True: BOX_CHARS['UP_AND_RIGHT'] + BOX_CHARS['SPACE'],  # └
+        False: BOX_CHARS['VERTICAL_AND_RIGHT'] + BOX_CHARS['SPACE']  # ├
+    }
+
+    if ancestors:
+        string = "".join([get_prefix(ancestors), charmap[last], string])
+    return mark_safe(string)
+
+
+def get_prefix(ancestors):
+    """Adds characters based on ancestor last child status"""
+    charmap = {
+        True: 2 * BOX_CHARS['SPACE'],  # double space
+        False: BOX_CHARS['VERTICAL'] + BOX_CHARS['SPACE']  # │
+    }
+    return "".join([charmap[x] for x in ancestors[1:]])
+
+
+def cut_branch(field, klass, pk):
+    """Filter choices for a field based on descendants of an instance"""
+    descendants = klass.objects.get(pk=pk).get_descendants(include_self=True)
+    descendant_ids = [d.pk for d in descendants]
+    return [c for c in field.choices if c[0] not in descendant_ids]
 
 
 def get_formhelper():
@@ -73,13 +160,21 @@ class RoomFilterForm(forms.Form):
 
 class RoomForm(forms.ModelForm):
     """Form for editing/adding rooms"""
-    location = forms.ModelChoiceField(queryset=Location.objects.order_by('id'))
+    location = forms.ChoiceField(choices=())
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(RoomForm, self).__init__(*args, **kwargs)
+        self.fields['location'].choices = create_hierarchy(Location)
 
     class Meta(object):
         model = Room
         fields = '__all__'
+
+    def clean_location(self):
+        data = self.cleaned_data.get('location')
+        return Location.objects.get(pk=data)
 
 
 class RoomMoveForm(forms.Form):
@@ -90,17 +185,38 @@ class RoomMoveForm(forms.Form):
 
 class LocationForm(forms.ModelForm):
     """Form for editing and adding a location"""
+    parent = forms.ChoiceField(required=False)
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
 
     class Meta(object):
         model = Location
-        fields = '__all__'
+        fields = ('parent', 'id', 'description', 'data')
 
     def __init__(self, *args, **kwargs):
         super(LocationForm, self).__init__(*args, **kwargs)
-        if kwargs.get('instance'):
+        field = self.fields['parent']
+        field.choices = create_hierarchy(Location)
+
+        if self.instance.id:
+            # disallow editing the primary key of existing record
             del self.fields['id']
+            # remove self and all descendants from list of selectable parents
+            field.choices = cut_branch(field, Location, self.instance.id)
+
+    def clean_parent(self):
+        """Provide a model as the parent.
+
+        This is needed because we use a normal ChoiceField (because of the tree
+        structure) that does not provide a model instance when selected.
+        """
+        parent = self.cleaned_data.get('parent')
+        if parent:
+            return Location.objects.get(pk=parent)
+        else:
+            # Explicitly return None because no parent is an empty string and
+            # thus we need to return None not the empty string
+            return None
 
 
 class OrganizationFilterForm(forms.Form):
@@ -121,9 +237,7 @@ class OrganizationFilterForm(forms.Form):
 
 class OrganizationForm(forms.ModelForm):
     """Form for editing an organization"""
-    parent = forms.ModelChoiceField(
-        queryset=Organization.objects.order_by('id'),
-        required=False)
+    parent = forms.ChoiceField(required=False)
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
 
@@ -133,13 +247,25 @@ class OrganizationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(OrganizationForm, self).__init__(*args, **kwargs)
-        if kwargs.get('instance'):
+        field = self.fields['parent']
+        field.choices=create_hierarchy(Organization)
+
+        if self.instance.id:
             # disallow editing the primary key of existing record
             del self.fields['id']
-            # remove self from list of selectable parents
-            parent = self.fields['parent']
-            parent.queryset = parent.queryset.exclude(
-                id=kwargs['instance'].id)
+            # remove self and all descendants from list of selectable parents
+            field.choices = cut_branch(field, Organization, self.instance.id)
+
+    def clean_parent(self):
+        """Provide a model as the parent.
+
+        This is needed because we use a normal ChoiceField (because of the tree
+        structure) that does not provide a model instance when selected.
+        """
+        parent = self.cleaned_data.get('parent')
+        if parent:
+            return Organization.objects.get(pk=parent)
+        return parent
 
 
 class OrganizationMoveForm(forms.Form):

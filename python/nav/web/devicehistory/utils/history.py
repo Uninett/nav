@@ -71,11 +71,11 @@ def fetch_history(selection, form):
         return type_filter
 
     def make_selection_filter(and_mode=False):
-        dicts = ({'%s__in' % (arg if arg != 'netbox' else 'id'): selection[arg]}
+        dicts = {'%s__in' % (arg if arg != 'netbox' else 'id'): selection[arg]
                  for arg in ('netbox', 'room', 'room__location', 'organization',
                              'category', 'module')
-                 if selection[arg])
-        filters = [Q(**d) for d in dicts]
+                 if selection[arg]}
+        filters = [Q(**dicts)]
 
         combinator = lambda x, y: (x & y) if and_mode else (x | y)
         return reduce(combinator, filters) if filters else None
@@ -203,3 +203,21 @@ def _get_data_to_search_terms(selection, key_string, model):
         return ["All %s selected." % unicode(model._meta.verbose_name_plural)]
     else:
         return model.objects.filter(id__in=selection[key_string])
+
+
+def add_descendants(parents):
+    """Add all descendants of the parents
+
+    :param parents: A list of Location keys
+    :type parents: list<string>
+    :returns: A list of unique Location keys with all descendants added
+    """
+    locations = parents
+    for location_key in parents:
+        try:
+            location = Location.objects.get(pk=location_key)
+        except Location.DoesNotExist:
+            pass
+        else:
+            locations.extend([l.pk for l in location.get_descendants()])
+    return list(set(locations))

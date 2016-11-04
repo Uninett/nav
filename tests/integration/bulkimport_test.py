@@ -120,7 +120,18 @@ class TestNetboxImporter(DjangoTransactionTestCase):
 
 class TestLocationImporter(DjangoTransactionTestCase):
     def test_import(self):
-        data = "somewhere:Over the rainbow"
+        data = "somewhere::Over the rainbow"
+        parser = LocationBulkParser(data)
+        importer = LocationImporter(parser)
+        _line_num, objects = importer.next()
+
+        self.assertTrue(len(objects) == 1, repr(objects))
+        self.assertTrue(isinstance(objects[0], manage.Location))
+        self.assertEquals(objects[0].id, 'somewhere')
+
+    def test_import_no_description(self):
+        """Description field was previously mandatory, not optional"""
+        data = "somewhere"
         parser = LocationBulkParser(data)
         importer = LocationImporter(parser)
         _line_num, objects = importer.next()
@@ -130,7 +141,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
         self.assertEquals(objects[0].id, 'somewhere')
 
     def test_imported_objects_can_be_saved(self):
-        data = "somewhere:Over the rainbow"
+        data = "somewhere::Over the rainbow"
         parser = LocationBulkParser(data)
         importer = LocationImporter(parser)
         _line_num, objects = importer.next()
@@ -144,12 +155,38 @@ class TestLocationImporter(DjangoTransactionTestCase):
         _loc = manage.Location.objects.get_or_create(
             id='somewhere', description='original somewhere')
 
-        data = "somewhere:Over the rainbow"
+        data = "somewhere::Over the rainbow"
         parser = LocationBulkParser(data)
         importer = LocationImporter(parser)
         _line_num, objects = importer.next()
 
         self.assertTrue(isinstance(objects, AlreadyExists))
+
+    def test_location_can_have_parent(self):
+        parent, _created = manage.Location.objects.get_or_create(
+            id='somewhere', description='original somewhere')
+
+        data = "otherplace:somewhere:descr"
+        parser = LocationBulkParser(data)
+        importer = LocationImporter(parser)
+        _line_num, objects = importer.next()
+        self.assertEquals(len(objects), 1)
+        self.assertEquals(objects[0].pk, 'otherplace')
+        self.assertEquals(objects[0].parent, parent)
+        self.assertEquals(objects[0].description, 'descr')
+
+    def test_location_nodescr_can_have_parent(self):
+        parent, _created = manage.Location.objects.get_or_create(
+            id='somewhere', description='original somewhere')
+
+        data = "otherplace:somewhere"
+        parser = LocationBulkParser(data)
+        importer = LocationImporter(parser)
+        _line_num, objects = importer.next()
+        self.assertEquals(len(objects), 1)
+        self.assertEquals(objects[0].pk, 'otherplace')
+        self.assertEquals(objects[0].parent, parent)
+        self.assertFalse(objects[0].description)
 
 
 class TestPrefixImporter(DjangoTransactionTestCase):

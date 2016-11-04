@@ -22,6 +22,21 @@ urlpatterns = patterns(
     url(r'^$', 'index', name='webfront-index'),
     url(r'^index/login/', 'login', name='webfront-login'),
     url(r'^index/logout/', 'logout', name='webfront-logout'),
+
+    # Dashboard
+    url(r'^\?dashboard=(?P<dashboard_id>\d+)', 'index', name='dashboard-index'),
+    url(r'^index/dashboard/add/$', 'add_dashboard', name='add-dashboard'),
+    url(r'^index/dashboard/set_default/(?P<did>\d+)/$', 'set_default_dashboard',
+        name='set-default-dashboard'),
+    url(r'^index/dashboard/rename/(?P<did>\d+)/$', 'rename_dashboard',
+        name='rename-dashboard'),
+    url(r'^index/dashboard/delete/(?P<did>\d+)/$', 'delete_dashboard',
+        name='delete-dashboard'),
+    url(r'^index/dashboard/columns/(?P<did>\d+)/$', 'save_dashboard_columns',
+        name='save-dashboard-columns'),
+    url(r'^index/dashboard/moveto/(?P<did>\d+)/$', 'moveto_dashboard',
+        name='moveto-dashboard'),
+
     url(r'^about/', 'about', name='webfront-about'),
     url(r'^toolbox/$', 'toolbox', name='webfront-toolbox'),
     url(r'^preferences/$', 'preferences', name='webfront-preferences'),
@@ -31,4 +46,6 @@ urlpatterns = patterns(
         name='webfront-preferences-changepassword'),
     url(r'^preferences/setcolumns$', 'set_widget_columns',
         name='webfront-preferences-setwidgetcolumns'),
+    url(r'^preferences/set_account_preference$', 'set_account_preference',
+        name='set-account-preference'),
 )

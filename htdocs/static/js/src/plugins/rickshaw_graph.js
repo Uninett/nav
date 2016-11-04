@@ -1,10 +1,10 @@
 define([
     'libs/rickshaw.min',
     'libs-amd/text!resources/rickshawgraph/graphtemplate.hbs',
-    'nav-url-utils',
+    'libs/urijs/URI',
     'rickshaw-utils',
     'libs/handlebars'
-], function (Rickshaw, Template, Utils, RickshawUtils) {
+], function (Rickshaw, Template, URI, RickshawUtils) {
 
     var template = Handlebars.compile(Template);
     var resizeTimeout = 250;  // resize throttled at resizeTimeout ms
@@ -29,7 +29,7 @@ define([
 
         // Throttle resize
         var timer = null;
-        window.addEventListener('resize', function () {
+        $(window).on('resize', function () {
             if (!timer) {
                 timer = setTimeout(function () {
                     RickshawUtils.resizeGraph(graph);
@@ -58,7 +58,7 @@ define([
     /** Add all utility stuff to the graph */
     function addUtility(container, graph, url) {
         var $element = $(graph.element);
-        var urlParams = Utils.deSerialize(url);
+        var urlParams = URI.parseQuery(url);
 
         graph.setRenderer('multi');
         graph.series.forEach(function (serie) {
@@ -134,12 +134,12 @@ define([
     function updateMeta(container, params) {
         var $container = $(container);
         // Try to set title
-        if (!$container.data('title') && params.title && params.title.length > 0) {
-            $container.find('.rickshaw-title').html(params.title[0]);
+        if (!$container.data('title') && params.title) {
+            $container.find('.rickshaw-title').html(params.title);
         }
         // Try to set units on y-axis
-        if (!$container.data('unit') && params.vtitle && params.vtitle.length > 0) {
-            $container.find('.rickshaw-y-axis-term').html(params.vtitle[0]);
+        if (!$container.data('unit') && params.vtitle) {
+            $container.find('.rickshaw-y-axis-term').html(params.vtitle);
         }
         return params;
     }
@@ -185,7 +185,7 @@ define([
         },
 
         formatter: function (series, x, actualY, something, formattedY) {
-            var unit = 'vtitle' in this.urlparams ? this.urlparams.vtitle[0] : '';
+            var unit = 'vtitle' in this.urlparams ? this.urlparams.vtitle : '';
             // If the formatted y-value contains a symbol, we do not want a spacer value
             var spacer = isNaN(+formattedY) ? '' : ' ';
             var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>',
@@ -211,12 +211,12 @@ define([
                 var actualY = series.scale ? series.scale.invert(point.value.y) : point.value.y;
 
                 // Each line describes a target
-                var line = hoverElements.lines[point.name];
+                var line = hoverElements.lines[series.key];
                 line.innerHTML = this.formatter(series, point.value.x, actualY, point.formattedXValue, point.formattedYValue, point);
                 container.appendChild(line);
 
                 // Place dots - remember that they are not part of container
-                var dot = hoverElements.dots[point.name];
+                var dot = hoverElements.dots[series.key];
                 dot.style.top = this.graph.y(point.value.y0 + point.value.y) + 'px';
                 dot.classList.add('active');
                 this.element.appendChild(dot);

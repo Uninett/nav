@@ -22,7 +22,7 @@ from django.forms.models import (BaseModelFormSet, BaseFormSet,
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column,
                                             Field, HTML, Submit)
-from nav.models.profiles import NavbarLink, Account
+from nav.models.profiles import NavbarLink, Account, AccountDashboard
 from nav.web.crispyforms import LabelSubmit, CheckBox, NavSubmit
 
 
@@ -143,3 +143,16 @@ class ColumnsForm(forms.Form):
                 NavSubmit('submit', 'Save')
             )
         )
+
+
+class DashboardForm(forms.Form):
+    """Form for choosing a dashboard"""
+    dashboard = forms.ModelChoiceField(queryset=AccountDashboard.objects.all(),
+                                       empty_label=None, label="")
+
+    def __init__(self, *args, **kwargs):
+        """"""
+        account = kwargs.pop('account')
+        super(DashboardForm, self).__init__(*args, **kwargs)
+        self.fields['dashboard'].queryset = AccountDashboard.objects.filter(
+            account=account)

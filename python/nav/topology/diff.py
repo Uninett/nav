@@ -14,11 +14,13 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Diff stored and current topology"""
+from __future__ import absolute_import
 
-from analyze import AdjacencyReducer, build_candidate_graph_from_db
-from analyze import Box, Port
+from .analyze import AdjacencyReducer, build_candidate_graph_from_db
+from .analyze import Box, Port
 
 from nav.models.manage import Interface
+
 
 def printdiffs():
     """Test a live reduction and output a comparison of the stored topology

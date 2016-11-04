@@ -8,8 +8,8 @@ Currently active contributors/maintainers
 -----------------------------------------
 
 * John-Magne Bredal <john.m.bredal at uninett.no>
-  Joined in 2000, and is instrumental in anything related to Cricket,
-  end user detentions (Arnold) and the web front end in general.
+  Joined in 2000, and is instrumental in anything related to end user
+  detentions (Arnold), the web interface and the API.
 
 * Morten Brekkevold (formerly Vold) <morten.brekkevold at uninett.no>
   Joined in 2002 to make NAV useable outside of NTNU.  Has been
@@ -25,6 +25,9 @@ Other contributors and previous maintainers
   around a network, and has been a NAV mentor for all these years -
   producing documentation and offering keen insight into the problem
   domain.
+
+* Emil Henry Flakk <emilhf at stud.ntnu.no>
+  Wrote the IPAM tool introduced in NAV 4.6.
 
 * Pär Stolpe <par at stolpe.se>
   Contributed more flexible LDAP authentication for Microsoft AD servers.

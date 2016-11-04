@@ -1,8 +1,11 @@
-define([
-    "moment", "plugins/counterdisplay", "plugins/gauge",
-    "libs/rickshaw.min", "libs/handlebars", "libs/jquery"],
-function (moment, CounterDisplay, JohnGauge, Rickshaw)
-{
+define(function(require) {
+
+    var moment = require("moment");
+    var CounterDisplay = require("plugins/counterdisplay");
+    var JohnGauge = require("plugins/gauge");
+    var Rickshaw = require("libs/rickshaw.min");
+    var _handlebars = require("libs/handlebars");
+
     function SensorController($node, templates) {
         this.$node = $node;
         this.url = this.$node.attr('data-url') + '&format=json';
@@ -10,13 +13,14 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
         this.sensorid = this.$node.attr('data-sensorid');
         this.sensorname = this.$node.attr('data-sensorname');
         this.dashboardUrl = this.$node.attr('data-dashboard_url') || '';
+        this.showGraph = ! _.contains([false, 'False', 'false', 0, '0'], this.$node.data('showGraph'));
         this.thresholds = this.parseThresholds();
 
         this.displayGauge = true;
         if (this.unit.toLowerCase() === 'percent' || this.unit.substr(0, 1) === '%') {
             this.maxValue = 100;  // Max value for graphs and gauges
             this.sensorsymbol = '%';
-        } else if (this.unit.toLowerCase() === 'celsius') {
+        } else if (['celsius', 'degrees'].indexOf(this.unit.toLowerCase()) >= 0) {
             this.maxValue = 50;  // Max value for graphs and gauges
             this.sensorsymbol = '\u00B0';
         } else {
@@ -46,7 +50,8 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
             var $html = $(template({
                 legend: this.sensorname,
                 dashboardUrl: this.dashboardUrl,
-                sensorid: this.sensorid
+                sensorid: this.sensorid,
+                showGraph: this.showGraph
             }));
             $html.appendTo(this.$node);
             if (this.displayGauge) {
@@ -103,7 +108,9 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
                     }
 
                     self.updateCurrent(last, minimumValue);
-                    self.updateGraph(datapoints, minimumValue);
+                    if (self.showGraph) {
+                        self.updateGraph(datapoints);
+                    }
                 }
             });
         },
@@ -129,22 +136,20 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
                 return new CounterDisplay(this.counterTemplate, this.currentNode.prop('id'), 9999, this.unit);
             }
         },
-        updateGraph: function (values, minimum) {
+        updateGraph: function (values) {
             if (!this.graph) {
-                console.log('Creating graph');
-                this.graph = this.createGraph(minimum);
+                this.graph = this.createGraph();
             }
             this.graph.series[0].data = values;
             this.graph.render();
         },
-        createGraph: function (minimum) {
+        createGraph: function () {
             var graph = new Rickshaw.Graph({
                 element: this.graphNode.get(0),
                 width: 230,
-                height: 150,
+                height: 100,
                 renderer: 'line',
-                max: this.maxValue,
-                min: minimum < 0 ? -25 : 0,
+                min: 'auto',
                 series: [{
                     color: 'steelblue',
                     data: [{x: 0, y: 0}], // Data is overridden on update
@@ -192,12 +197,12 @@ function (moment, CounterDisplay, JohnGauge, Rickshaw)
         }
     };
 
-    /** Get minimum value of an array of datapoints (y=value), skipping NaNs */
+    /** Get minimum value of an array of datapoints (y=value), skipping NaNs and nulls*/
     function getMinimumValue(datapoints) {
         return Math.min.apply(null, datapoints.map(function (point) {
             return point.y;
         }).filter(function (value) {
-            return !isNaN(value);
+            return value !== null && !isNaN(value);
         }));
     }
 

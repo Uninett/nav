@@ -399,6 +399,29 @@ class InterfaceStack(Shadow):
         deleteable.delete()
 
 
+class InterfaceAggregate(Shadow):
+    __shadowclass__ = manage.InterfaceAggregate
+    __lookups__ = [('aggregator', 'interface')]
+
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        """Delete from database the aggregator/interface combinations from this
+        device that weren't found in the collected set.
+
+        """
+        collected_aggregates = containers[cls].values()
+        aggregate_primary_keys = set(s.id for s in collected_aggregates)
+        collected_ifc_ids = set(
+            ifc.id for ifc in containers[Interface].values() if ifc.id)
+
+        existing = (Q(aggregator__in=collected_ifc_ids)
+                    | Q(interface__in=collected_ifc_ids))
+        obsolete = existing & ~Q(id__in=aggregate_primary_keys)
+
+        deleteable = manage.InterfaceAggregate.objects.filter(obsolete)
+        deleteable.delete()
+
+
 def mapby(items, *attrs):
     """Maps items by attributes"""
     keyfunc = operator.attrgetter(*attrs)

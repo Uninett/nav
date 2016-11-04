@@ -16,7 +16,8 @@
 #
 """MIB parsing and MIB-aware data retrieval."""
 
-import mibretriever
+from __future__ import absolute_import
+from . import mibretriever
 
 modules = mibretriever.MibRetrieverMaker.modules
 

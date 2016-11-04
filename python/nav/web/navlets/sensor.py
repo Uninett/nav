@@ -16,7 +16,8 @@
 """Widget for displaying a sensor"""
 
 from nav.models.manage import Sensor
-from . import Navlet
+from . import Navlet, NAVLET_MODE_EDIT
+from .forms import SensorForm
 
 
 class SensorWidget(Navlet):
@@ -24,6 +25,8 @@ class SensorWidget(Navlet):
 
     title = 'Sensor'
     description = 'Displays a sensor'
+    is_editable = True
+    is_title_editable = True
     can_be_added = False  # Can only be added from the sensors on the
                           # "Environment sensors" tab in room info
 
@@ -33,6 +36,19 @@ class SensorWidget(Navlet):
     def get_context_data(self, *args, **kwargs):
         context = super(SensorWidget, self).get_context_data(*args, **kwargs)
         sensor_id = self.preferences.get('sensor_id')
+
+        if self.mode == NAVLET_MODE_EDIT:
+            if 'show_graph' in self.preferences:
+                context['form'] = SensorForm(self.preferences)
+            else:
+                context['form'] = SensorForm()
+
+        self.title = self.preferences.get('title', SensorWidget.title)
         context['sensor'] = Sensor.objects.get(pk=sensor_id)
 
         return context
+
+    def post(self, request, **kwargs):
+        """Save preferences"""
+        form = SensorForm(request.POST)
+        return super(SensorWidget, self).post(request, form=form)

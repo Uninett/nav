@@ -30,6 +30,7 @@ from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
 
 
 _logger = logging.getLogger("nav.portadmin.snmputils")
+CHARS_IN_1024_BITS = 128
 
 # TODO: Fix get_vlans as it does not return all vlans, see get_available_vlans
 
@@ -405,7 +406,7 @@ class SNMPHandler(object):
 
         _logger.debug('base_port: %s, native_vlan: %s, trunk_vlans: %s',
                       base_port, native_vlan, vlans)
-        
+
         vlans = [int(vlan) for vlan in vlans]
 
         for available_vlan in self.get_available_vlans():
@@ -609,19 +610,16 @@ class Cisco(SNMPHandler):
         ifindex = interface.ifindex
         native_vlan = self._query_netbox(self.TRUNKPORTNATIVEVLAN, ifindex)
 
-        octetstrings = ""
-        for oid in [self.TRUNKPORTVLANSENABLED,
-                    self.TRUNKPORTVLANSENABLED2K,
-                    self.TRUNKPORTVLANSENABLED3K,
-                    self.TRUNKPORTVLANSENABLED4K]:
-            octetstring = self._query_netbox(oid, ifindex)
-            if octetstring:
-                octetstrings += octetstring
-            else:
-                break
+        blocks = [
+            self._query_netbox(oid, ifindex) or ''
+            for oid in (self.TRUNKPORTVLANSENABLED,
+                        self.TRUNKPORTVLANSENABLED2K,
+                        self.TRUNKPORTVLANSENABLED3K,
+                        self.TRUNKPORTVLANSENABLED4K)]
+        bitstring = "".join(value.ljust(CHARS_IN_1024_BITS, '\x00')
+                            for value in blocks)
 
-        bitvector = BitVector(octetstrings)
-
+        bitvector = BitVector(bitstring)
         return native_vlan, bitvector.get_set_bits()
 
     def set_access(self, interface, access_vlan):

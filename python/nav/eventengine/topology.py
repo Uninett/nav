@@ -68,6 +68,14 @@ def get_path_to_netbox(netbox):
         netbox.add_to_graph(graph)
     except AttributeError:
         pass
+
+    # first, see if any path exists
+    if not _path_exists(graph, netbox, router):
+        _logger.warning("cannot find a path between %s and %s on VLAN %s",
+                        netbox, router, prefix.vlan)
+        return True
+
+    # now, remove nodes that are down and see if a path still exists
     strip_down_nodes_from_graph(graph, keep=netbox)
 
     if netbox not in graph or router not in graph:
@@ -89,6 +97,14 @@ def get_path_to_netbox(netbox):
     else:
         _logger.debug("path to %s: %r", netbox, path)
     return path
+
+
+def _path_exists(graph, source, target):
+    try:
+        path = networkx.shortest_path(graph, source, target)
+    except NetworkXException:
+        path = []
+    return bool(path)
 
 
 def get_graph_for_vlan(vlan):

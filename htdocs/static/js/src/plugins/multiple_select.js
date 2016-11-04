@@ -50,7 +50,7 @@ define(['libs/jquery.tinysort'], function () {
         }
     }
 
-   MultipleSelect.prototype = {
+    MultipleSelect.prototype = {
         findOptions: function () {
             this.findChoiceOptions();
             this.findInitialOptions();
@@ -85,17 +85,22 @@ define(['libs/jquery.tinysort'], function () {
                 console.error("Could not find parent of " + $node);
             }
         },
+        compareElements: function(a, b) {
+            return a.innerHTML.toLowerCase().localeCompare(b.innerHTML.toLowerCase());
+        },
         sortInitial: function () {
             this.findInitialOptions();
-            this.initial.tsort();
+            this.initial.sort(this.compareElements);
+            this.initial.detach().appendTo(this.initialNode);
         },
         sortChoices: function () {
             this.findChoiceOptions();
-            this.choices.tsort();
+            this.choices.sort(this.compareElements);
+            this.choices.detach().appendTo(this.choiceNode);
         },
         addSubmitHandler: function () {
             /* Selects all elements in the initial node so that it is
-               sent in the post request */
+             sent in the post request */
             var self = this;
             this.form.submit(function () {
                 self.initialNode.find('option').prop('selected', true);

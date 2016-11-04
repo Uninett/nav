@@ -6,7 +6,7 @@ require([
     "libs/jquery",
     "libs/jquery-ui.min",
     "libs/datatables.min"
-], function (TableUtil, TabNavigation, JUIHelpers) {
+], function (TableUtil, TabNavigation, JUIHelpers, Spinner) {
 
     var mainTabsSelector = '#loggerinfotabs';
 

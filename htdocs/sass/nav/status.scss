@@ -1,4 +1,6 @@
 
+#status-panel { max-width: 830px; }
+
 table.expandable {
     /* Prevent the default alteration of row color */
     tr.even, tr.alt, tr:nth-of-type(even) {

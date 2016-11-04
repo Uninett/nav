@@ -1,1 +1,3 @@
-Link down on {{ netbox.sysname }}, {{ interface }} ({{ ifalias }})
+{% with interface=event.get_subject %}
+Link DOWN on {{ interface }} ({{ interface.ifalias }})
+{% endwith %}

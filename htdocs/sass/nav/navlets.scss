@@ -1,5 +1,13 @@
 @import "../navsettings";
 
+$fullscreen-color: #EEE;
+#navlets:fullscreen { background-color: $fullscreen-color; }
+#navlets:-webkit-full-screen { background-color: $fullscreen-color;}
+#navlets:-moz-full-screen { background-color: $fullscreen-color; }
+#navlets:-ms-fullscreen { background-color: $fullscreen-color; }
+
+.asteriskField { display: none; }
+
 #navlets .highlight {
     background-color: #d6d6d6;
     border: 1px solid #aaaaaa;
@@ -19,8 +27,13 @@
     padding: 0.5em 1em 1em 1.2em;
     position: relative;
     min-height: 100px;
+    transition: box-shadow .5s;
     &.outline {
         border: 1px dashed black;
+    }
+    &.mark-new {
+        box-shadow: #666 0px 5px 10px 7px;
+        z-index: 2;
     }
     &.colorblock-navlet {
         background-color: #1570a6;
@@ -40,7 +53,7 @@
         }
     }
     .navlet-body {
-        max-height: 50vh;
+        max-height: 90vh;
         overflow: auto;
     }
     .navlet-action-group {
@@ -118,12 +131,102 @@
 
 
 .SensorWidget {
-    .navlet-body {
-        overflow: visible;
-    }
-    .room-sensor {
-        margin-left: auto;
-        margin-right: auto;
-    }
     @import "sensors";
+    .room-sensor {
+        display: flex;
+        justify-content: center;
+        width: auto;
+    }
+}
+
+
+.UpsWidget {
+     .io-display {
+         position: relative;
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         overflow: hidden;
+         .panel {
+             margin-bottom: 0;
+             padding: .4rem .6rem;
+             position: relative;
+             z-index: 2;
+             .marklow { background-color: lightcoral; }
+         }
+         .line {
+             background-color: steelblue;
+             color: white;
+         }
+         .left-wrapper {
+             display: flex;
+             flex-direction: column;
+             .vertical.line {
+                 height: 50px;
+                 display: flex;
+             }
+
+             .vertical.line .left-box {
+                 background-color: white;
+                 width: 50%;
+                 z-index: 2;
+             }
+             .vertical.line .middle-box {
+                 width: 1.2rem;
+                 z-index: 2;
+                 display: flex;
+                 justify-content: center;
+                 align-items: center;
+             }
+             .vertical.line .right-box {
+                 background-color: white;
+                 width: 50%;
+             }
+
+         }
+         .horizontal.line {
+             position: absolute;
+             line-height: 1.2rem;
+             width: 100%;
+             text-align: center;
+             top: 50%;
+             left: 50%;
+             transform: translate(-50%, -50%);
+         }
+
+     }
+
+
+}
+
+.AlertWidget {
+    fieldset { padding: .3em .8em; }
+}
+
+.RoomStatus {
+    // Override the jquery ui css styles
+    .ui-accordion {
+        a { color: $primary-color; }
+        .ui-accordion-header {
+            background: $alert-box-bg;
+            border-color: $alert-box-border;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            .label {
+                margin-bottom: 0;
+            }
+        }
+        .ui-accordion-content {
+            border-radius: 0;
+            padding: 1rem;
+            ul {
+                margin-bottom: 0;
+                li {
+                    font-size: 80%;
+                }
+            }
+        }
+    }
 }

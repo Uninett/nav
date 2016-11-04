@@ -12,6 +12,8 @@ NAV documentation
 Getting help
 ============
 
+* Check out our :doc:`/faq/faq`.
+
 * Search for information on our `wiki pages`_.
 
 * Post a question on `the nav-users mailing list`_ or search the
@@ -40,7 +42,7 @@ See also :doc:`the release notes <release-notes>` for this version (|version|).
 
 * **Howto guides:**
   :doc:`Troubleshooting topology problems <howto/debugging-topology>` |
-  :doc:`howto/tuning_graphite` |
+  :doc:`faq/graph_gaps` |
   :doc:`Migrating data between NAV installations <howto/migrate-data>` |
   :doc:`howto/migrate-rrd-to-graphite`
 

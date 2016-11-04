@@ -23,6 +23,7 @@ from django.test.client import RequestFactory
 
 from nav.django.settings import DATETIME_FORMAT
 from nav.models.profiles import AccountNavlet, Account
+from nav.models.manage import Netbox
 from nav.web.status2.forms import StatusWidgetForm
 from nav.web.api.v1.views import AlertHistoryViewSet
 from . import Navlet, NAVLET_MODE_EDIT, NAVLET_MODE_VIEW
@@ -55,6 +56,8 @@ class Status2Widget(Navlet):
         elif self.mode == NAVLET_MODE_VIEW:
             results = self.do_query(status_filter)
             self.add_formatted_time(results)
+            self.add_netbox(results)
+            context['extra_columns'] = self.find_extra_columns(status_filter)
             context['results'] = sorted(
                 results, key=itemgetter('start_time'), reverse=True)
         context['last_updated'] = datetime.now()
@@ -74,6 +77,25 @@ class Status2Widget(Navlet):
         """Adds formatted time to all results"""
         for result in results:
             result['formatted_time'] = self.format_time(result['start_time'])
+
+    @staticmethod
+    def add_netbox(results):
+        """Adds the netbox object to the result objects"""
+        for result in results:
+            try:
+                netbox = Netbox.objects.select_related(
+                    'room', 'room__location').get(pk=int(result['netbox']))
+            except Netbox.DoesNotExist:
+                pass
+            else:
+                result['netbox_object'] = netbox
+
+    @staticmethod
+    def find_extra_columns(status_filter):
+        """Finds the chosen extra columns and returns them in a list"""
+        column_choices = StatusWidgetForm().fields.get('extra_columns').choices
+        chosen_columns = QueryDict(status_filter).getlist('extra_columns')
+        return [(k, v) for k, v in column_choices if k in chosen_columns]
 
     @staticmethod
     def format_time(timestamp):

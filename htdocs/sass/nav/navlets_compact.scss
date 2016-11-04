@@ -1,0 +1,26 @@
+#navlets.compact {
+    font-size: 90%;
+    .navlet {
+        margin-bottom: 0;
+        padding: 0.5em 0 0.5em;
+
+        .navlet-header {
+            margin-bottom: 0;
+        }
+
+        .navlet-body {
+            .alert-box { margin-bottom: 0; }
+
+            // Font size adjustments
+            ul { font-size: inherit; }
+            table {
+                td, th, caption { font-size: inherit; }
+            }
+            h1, h2, h3, h4, h5 {
+                font-size: initial;
+            }
+        }
+
+    }
+
+}

@@ -23,7 +23,7 @@ import socket
 from socket import error as SocketError
 from django.core.urlresolvers import reverse
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.db import transaction
 from django.contrib import messages
@@ -83,27 +83,26 @@ def get_read_only_variables(request):
     ip_address = request.GET.get('ip_address')
     read_community = request.GET.get('read_community')
     write_community = request.GET.get('read_write_community')
+    snmp_version = request.GET.get('snmp_version')
+    if snmp_version == '2':
+        snmp_version = '2c'
 
-    snmp_version = get_snmp_version(ip_address, read_community)
     sysname = get_sysname(ip_address)
 
-    netbox_type = snmp_write_test = None
-    if snmp_version:
-        netbox_type = get_type_id(ip_address, read_community, snmp_version)
-        if write_community:
-            snmp_write_test = test_snmp_write(ip_address, write_community)
-
     data = {
-        'snmp_version': '2' if snmp_version == '2c' else snmp_version,
         'sysname': sysname,
-        'netbox_type': netbox_type,
-        'snmp_write_test': snmp_write_test
+        'netbox_type': get_type_id(ip_address, read_community, snmp_version),
+        'snmp_read_test': check_snmp_version(ip_address, read_community, snmp_version),
+        'snmp_write_test': snmp_write_test(ip_address, write_community, snmp_version)
     }
-    return HttpResponse(json.dumps(data))
+    return JsonResponse(data)
 
 
-def test_snmp_write(ip, community):
+def snmp_write_test(ip, community, snmp_version):
     """Test that snmp write works"""
+    if not community:
+        return False
+
     testresult = {
         'error_message': '',
         'custom_error': '',
@@ -114,14 +113,9 @@ def test_snmp_write(ip, community):
     syslocation = '1.3.6.1.2.1.1.6.0'
     value = ''
     try:
-        try:
-            snmp = Snmp(ip, community, '2c')
-            value = snmp.get(syslocation)
-            snmp.set(syslocation, 's', value)
-        except TimeOutException:
-            snmp = Snmp(ip, community, '1')
-            value = snmp.get(syslocation)
-            snmp.set(syslocation, 's', value)
+        snmp = Snmp(ip, community, snmp_version)
+        value = snmp.get(syslocation)
+        snmp.set(syslocation, 's', value)
     except SnmpError, error:
         try:
             value.decode('ascii')
@@ -137,12 +131,6 @@ def test_snmp_write(ip, community):
     return testresult
 
 
-def get_snmp_version(ip, community):
-    """Gets the snmp version supported by a device"""
-    return (check_snmp_version(ip, community, '2c') or
-            check_snmp_version(ip, community, '1'))
-
-
 def check_snmp_version(ip, community, version):
     """Check if version of snmp is supported by device"""
     sysobjectid = '1.3.6.1.2.1.1.2.0'
@@ -150,9 +138,9 @@ def check_snmp_version(ip, community, version):
         snmp = Snmp(ip, community, version)
         snmp.get(sysobjectid)
     except Exception:  # pylint: disable=W0703
-        return None
+        return False
     else:
-        return version
+        return True
 
 
 def get_sysname(ip_address):

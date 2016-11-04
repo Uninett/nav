@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2008-2011 UNINETT AS
+# Copyright (C) 2008-2011, 2016 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,113 +15,74 @@
 #
 """ipdevpoll plugin to collect sensor data.
 
-This plugin uses MibRetriever implementations for various IETF and proprietary
-MIBs to discover and store information about physical environmental sensors
+This plugin can use any MibRetriever class that provides the get_all_sensors()
+method to discover and store information about physical environmental sensors
 available for readout on a device.
 
+Which MibRetriever classes to use for each type of device is configured
+in the [sensors] and [sensors:vendormibs] sections of ipdevpoll.conf.
+
 """
+import importlib
+import logging
+import os
+import re
+from collections import defaultdict
 
 from twisted.internet import defer
 
-from nav.mibs.itw_mib import ItWatchDogsMib
-from nav.mibs.itw_mibv3 import ItWatchDogsMibV3
-from nav.mibs.geist_mibv3 import GeistMibV3
-from nav.mibs.cisco_envmon_mib import CiscoEnvMonMib
-from nav.mibs.entity_sensor_mib import EntitySensorMib
-from nav.mibs.cisco_entity_sensor_mib import CiscoEntitySensorMib
-
-from nav.mibs.mg_snmp_ups_mib import MgSnmpUpsMib
-from nav.mibs.p8541_mib import P8541Mib
-from nav.mibs.powernet_mib import PowerNetMib
-from nav.mibs.spagent_mib import SPAgentMib
-from nav.mibs.ups_mib import UpsMib
-from nav.mibs.xups_mib import XupsMib
-
+from nav.config import ConfigurationError
+from nav.mibs import mibretriever
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
+from nav.enterprise import ids
 
-from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
-                                VENDOR_ID_HEWLETT_PACKARD,
-                                VENDOR_ID_AMERICAN_POWER_CONVERSION_CORP,
-                                VENDOR_ID_EMERSON_COMPUTER_POWER,
-                                VENDOR_ID_EATON_CORPORATION,
-                                VENDOR_ID_MERLIN_GERIN,
-                                VENDOR_ID_IT_WATCHDOGS_INC,
-                                VENDOR_ID_GEIST_MANUFACTURING_INC,
-                                VENDOR_ID_COMET_SYSTEM_SRO,
-                                VENDOR_ID_KCP_INC,
-                                )
-
-
-class MIBFactory(object):
-    """Factory class for producing MibRetriever instances depending on Netbox
-    vendors and models.
-    """
-    @classmethod
-    def get_instance(cls, netbox, agent):
-        """Returns a list of MibRetriever instances based on Netbox vendors and
-        models.
-        """
-        vendor_id = None
-        mibs = None
-        if netbox.type:
-            vendor_id = netbox.type.get_enterprise_id()
-        if vendor_id:
-            # Allocate vendor-specific mibs if we know the vendor
-            # FIXME: This is horrible, we need a better mechanism.
-            if vendor_id == VENDOR_ID_CISCOSYSTEMS:
-                # Some cisco-boxes may use standard-mib
-                mibs = [EntitySensorMib(agent),
-                        CiscoEntitySensorMib(agent),
-                        CiscoEnvMonMib(agent)]
-            elif vendor_id == VENDOR_ID_HEWLETT_PACKARD:
-                mibs = [EntitySensorMib(agent)]
-            elif vendor_id == VENDOR_ID_AMERICAN_POWER_CONVERSION_CORP:
-                mibs = [PowerNetMib(agent)]
-            elif vendor_id == VENDOR_ID_EMERSON_COMPUTER_POWER:
-                mibs = [UpsMib(agent)]
-            elif vendor_id == VENDOR_ID_EATON_CORPORATION:
-                mibs = [XupsMib(agent)]
-            elif vendor_id == VENDOR_ID_MERLIN_GERIN:
-                mibs = [MgSnmpUpsMib(agent)]
-            elif vendor_id == VENDOR_ID_IT_WATCHDOGS_INC:
-                # Try with the most recent first
-                mibs = [ItWatchDogsMibV3(agent), ItWatchDogsMib(agent)]
-            elif vendor_id == VENDOR_ID_GEIST_MANUFACTURING_INC:
-                mibs = [GeistMibV3(agent)]
-            elif vendor_id == VENDOR_ID_COMET_SYSTEM_SRO:
-                mibs = [P8541Mib(agent)]
-            elif vendor_id == VENDOR_ID_KCP_INC:
-                mibs = [SPAgentMib(agent)]
-        if not mibs:
-            # And then we just sweep up the remains if we could not
-            # find a matching vendor.
-            mibs = [EntitySensorMib(agent), UpsMib(agent)]
-        return mibs
+_logger = logging.getLogger(__name__)
 
 
 class Sensors(Plugin):
     """Plugin to detect environmental sensors in netboxes"""
+    @classmethod
+    def on_plugin_load(cls):
+        from nav.ipdevpoll.config import ipdevpoll_conf
+        loadmodules(ipdevpoll_conf)
+        cls.mib_map = get_mib_map(ipdevpoll_conf)
 
     @defer.inlineCallbacks
     def handle(self):
         """Collects sensors and feed them in to persistent store."""
-        self._logger.debug('Collection sensors data')
-        mibs = MIBFactory.get_instance(self.netbox, self.agent)
+        mibs = self.mibfactory()
+        self._logger.debug("Discovering sensors sensors using: %r",
+                           [type(m).__name__ for m in mibs])
         for mib in mibs:
             all_sensors = yield mib.get_all_sensors()
             if len(all_sensors) > 0:
                 # Store and jump out on the first MIB that give
                 # any results
+                self._logger.debug("Found %d sensors from %s",
+                                   len(all_sensors), type(mib).__name__)
                 self._store_sensors(all_sensors)
                 break
+
+    def mibfactory(self):
+        """
+        Returns a list of MibRetriever instances, as configured in
+        ipdevpoll.conf, to use for retrieving sensors from this netbox.
+
+        """
+        vendor_id = None
+        if self.netbox.type:
+            vendor_id = self.netbox.type.get_enterprise_id()
+        if not vendor_id:
+            vendor_id = '*'
+        mibs = [cls(self.agent) for cls in self.mib_map.get(vendor_id, ())]
+        return mibs
 
     def _store_sensors(self, result):
         """Stores sensor records in the current job's container dictionary, so
         that they may be persisted to the database.
 
         """
-        self._logger.debug('Found %d sensors', len(result))
         sensors = []
         for row in result:
             oid = row.get('oid', None)
@@ -143,11 +104,84 @@ class Sensors(Plugin):
                 sensors.append(sensors)
         return sensors
 
+####################
+# Helper functions #
+####################
 
-ENCODINGS_TO_TRY = ('utf-8', 'latin-1')  # more should be added
+
+def loadmodules(config):
+    """:type config: ConfigParser.ConfigParser"""
+    names = _get_space_separated_list(config, 'sensors', 'loadmodules')
+    names = list(_expand_module_names(names))
+    _logger.debug("importing modules: %s", names)
+    for name in names:
+        importlib.import_module(name)
 
 
-def safestring(string):
+def get_mib_map(config):
+    """:type config: ConfigParser.ConfigParser"""
+    candidate_classes = {k: v for k, v in
+                         mibretriever.MibRetrieverMaker.modules.items()
+                         if hasattr(v, 'get_all_sensors')}
+    _logger.debug("sensor candidate classes: %r", candidate_classes)
+    candidate_classes.update({cls.__name__: cls
+                              for cls in candidate_classes.values()})
+
+    mib_map = defaultdict(list)
+    for opt in config.options('sensors:vendormibs'):
+        names = _get_space_separated_list(config, 'sensors:vendormibs', opt)
+        enterprise = _translate_enterprise_id(opt)
+        if not enterprise:
+            raise ConfigurationError("Unknown enterprise value: %s", opt)
+
+        for mib in names:
+            if mib not in candidate_classes:
+                raise ConfigurationError("No known MIB implementation with "
+                                         "sensor support: %s", mib)
+            cls = candidate_classes[mib]
+            mib_map[enterprise].append(cls)
+
+    return dict(mib_map)
+
+
+def _translate_enterprise_id(name):
+    if not name or name == '*':
+        return name
+    if name.isdigit():
+        return int(name)
+
+    for lookup in (name.upper(), 'VENDOR_ID_' + name.upper()):
+        if hasattr(ids, lookup):
+            return getattr(ids, lookup)
+
+
+def _expand_module_names(names):
+    for name in names:
+        items = name.split('.')
+        if items[-1] == '*':
+            for subname in _find_submodules('.'.join(items[:-1])):
+                yield subname
+        else:
+            yield name
+
+
+def _find_submodules(name):
+    package = importlib.import_module(name)
+    directory = os.path.dirname(package.__file__)
+    pyfiles = (n for n in os.listdir(directory)
+               if (n.endswith('.py') or n.endswith('.pyc')) and
+               not n[0] in '_.')
+    names = (os.path.splitext(n)[0] for n in pyfiles)
+    return ["{}.{}".format(name, n) for n in names]
+
+
+def _get_space_separated_list(config, section, option):
+    raw_string = config.get(section, option, '').strip()
+    items = re.split(r"\s+", raw_string)
+    return [item for item in items if item]
+
+
+def safestring(string, encodings_to_try=('utf-8', 'latin-1')):
     """Tries to safely decode strings retrieved using SNMP.
 
     SNMP does not really define encodings, and will not normally allow
@@ -164,7 +198,7 @@ def safestring(string):
     if isinstance(string, unicode):
         return string
 
-    for encoding in ENCODINGS_TO_TRY:
+    for encoding in encodings_to_try:
         try:
             return string.decode(encoding)
         except UnicodeDecodeError:

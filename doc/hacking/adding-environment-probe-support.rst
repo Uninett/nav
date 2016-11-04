@@ -43,8 +43,8 @@ Course of action
    :program:`smidump` program.
 3. A MibRetriever class to detect and report the relevant sensors to NAV using
    this MIB must be written.
-4. The new MibRetriever class must be queried by the :program:`ipdevpoll`
-   ``sensors`` plugin.
+4. The :program:`ipdevpoll` ``sensors`` plugin must be configured to use the
+   new MibRetriever class for the appropriate devices.
 
 Dumping the MIB
 ===============
@@ -316,59 +316,48 @@ case a single-item tuple corresponding to the temperature sensor slot number).
 names.
 
 Expanding these code examples to include all the sensor types provided by the
-SPAGENT-MIB is left as an excercise to the reader.
+``SPAGENT-MIB`` is left as an excercise to the reader.
 
 
 Have the sensors plugin use our new MibRetriever
 ------------------------------------------------
 
-.. NOTE:: For the time being, the :py:mod:`nav.ipdevpoll.plugins.sensors`
-          plugin code must be modified directly to use new MibRetriever
-          classes, such as the one from the samples above. It would be prudent
-          to rewrite the plugin to use configuration options to discover which
-          MibRetriever classes to use.
-
-The ``sensors`` plugin employs the
-:py:class:`nav.ipdevpoll.plugins.sensors.MIBFactory` class to decide which
-MibRetriever classes to use for discovering sensors on a device. This factory
-class largely decides on a list of MIBs to query based on the type of the
-device under query (derived from the *enterprise number* in the device's
-``sysObjectID`` value).
+The ``sensors`` plugin employs the configuration sections ``sensors`` and
+``sensors:vendormibs`` from :file:`ipdevpoll.conf` to decide which
+MibRetriever classes to use for discovering sensors on a device. The plugins
+decides on a list of MIBs to query based on the type of the device under query
+(derived from the *enterprise number* in the device's ``sysObjectID`` value).
 
 AKCP's enterprise number is 3854 (`as assigned by IANA
 <http://www.iana.org/assignments/enterprise-numbers/enterprise-numbers>`_), so
-we will use that to select our MibRetriever in the ``MIBFactory``. This diff
-shows how you might modify the code for this:
+we will use that to select our MibRetriever in the ipdevpoll config.
 
-.. code-block:: diff
+.. code-block:: ini
 
-   --- a/python/nav/ipdevpoll/plugins/sensors.py
-   +++ b/python/nav/ipdevpoll/plugins/sensors.py
-   @@ -30,6 +30,7 @@
-    from nav.mibs.mg_snmp_ups_mib import MgSnmpUpsMib
-    from nav.mibs.p8541_mib import P8541Mib
-    from nav.mibs.powernet_mib import PowerNetMib
-   +from nav.mibs.spagent_mib import SPAgentMib
-    from nav.mibs.ups_mib import UpsMib
-    from nav.mibs.xups_mib import XupsMib
+    [sensors:vendormibs]
+    3854 = SPAgentMib
 
-   @@ -50,6 +51,7 @@
-    VENDOR_ITWATCHDOGS = 17373
-    # Comet
-    VENDOR_COMET = 22626
-   +VENDOR_AKCP = 3854
+Alternatively, if you want a potentially more readable vendormibs section:
 
+.. code-block:: ini
 
-    class MIBFactory(object):
-   @@ -86,6 +88,8 @@
-		    mibs = [ItWatchDogsMibV3(agent), ItWatchDogsMib(agent)]
-		elif vendor_id == VENDOR_COMET:
-		    mibs = [P8541Mib(agent)]
-   +            elif vendor_id == VENDOR_AKCP:
-   +                mibs = [SPAgentMib(agent)]
-	    if not mibs:
-		# And then we just sweep up the remains if we could not
-		# find a matching vendor.
+    [sensors:vendormibs]
+    KCP_INC = SPAGENT-MIB
+
+Both versions will work equally well. The latter works because
+``VENDOR_ID_KCP_INC`` is a registered constant mapped to AKCP's enterprise
+number in the :py:mod:`nav.enterprise.ids` module, and our ``SPAgentMib``
+MibRetriever has been mapped to the ``SPAGENT-MIB`` module by importing the
+smidump in its class definition.
+
+If you implemented your MibRetriever outside of the NAV package tree, say in
+the module :py:mod:`mynav.akcp`, you can modify the ``loadmodules`` option:
+
+.. code-block:: ini
+
+    [sensors]
+    loadmodules = nav.mibs.* mynav.akcp
+
 
 The ``sensors`` plugin runs as part of :program:`ipdevpoll`'s ``inventory``
 job, normally every 6 hours. With these changes, adding an AKCP sensorProbe in

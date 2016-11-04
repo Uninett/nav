@@ -3,11 +3,24 @@
 {% block navlet-content %}
 
   {% if graph_url %}
-    <a href="{% if navlet.preferences.target %}{{ navlet.preferences.target }}{% else %}{{ graph_url }}{% endif %}">
-        <img src="{{ graph_url }}" alt="Graph" data-image-reload>
-    </a>
+    <div id="graph-container-{{ navlet.navlet_id }}" class="graphitegraph" data-image-reload></div>
+    &nbsp;
+    <script>
+     try {
+         require(['plugins/graphfetcher'], function(Fetcher) {
+             new Fetcher($('#graph-container-{{ navlet.navlet_id }}'), '{{ graph_url|safe }}', {
+                 hideAddGraphButton: true,
+                 hideTimeIntervalButtons: {{ hide_buttons }},
+                 linkTarget: '{{ navlet.preferences.target }}'
+             });
+         });
+     } catch (e) {
+         console.error(e);
+     }
+    </script>
   {% else %}
     <span class="alert-box">Edit the widget to add a graph.</span>
   {% endif %}
+
 
 {% endblock %}

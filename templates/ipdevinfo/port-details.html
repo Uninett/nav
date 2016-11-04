@@ -1,20 +1,42 @@
 {% extends "ipdevinfo/base.html" %}
 
+{% block footer_scripts %}
+  <script>
+    require(["libs/jquery-ui.min"], function () {
+      var tabs = $('#port-details-tabs').tabs({
+        activate: function (event, ui) {
+          // Resize graphs when tab is shown
+          if (ui.newPanel.selector === "#port-details-activity-graphs") {
+            $(window).trigger('resize');
+          }
+        }
+      });
+      tabs.removeClass('notvisible').show();
+    });
+  </script>
+{% endblock %}
+
 {% block content %}
 
-  <p><a href="{% url 'ipdevinfo-details-by-name' port.netbox.sysname %}">Back to {{ port.netbox.sysname }}</a></p>
+  <p>
+    <a href="{% url 'ipdevinfo-details-by-name' port.netbox.sysname %}">
+      Back to {{ port.netbox.sysname }}
+    </a>
+  </p>
 
   {% if port.baseport %}
     <div class="row">
       <div class="small-12 column">
         <ul class="button-group">
           <li>
-            <a href="{% url 'machinetracker-swport' port.netbox.sysname port.ifname %}" class="button small">
+            <a href="{% url 'machinetracker-swport' port.netbox.sysname port.ifname %}"
+               class="button small">
               Track MAC behind port
             </a>
           </li>
           <li>
-            <a href="{% url 'portadmin-interface' port.id %}" class="button small">
+            <a href="{% url 'portadmin-interface' port.id %}"
+               class="button small">
               Configure port
             </a>
           </li>
@@ -25,47 +47,71 @@
 
   {% if detention %}
     <div class="alert-box alert">
-      This interface is detained in <a href="{% url 'arnold-details' detention.id %}" title="Link to detention">Arnold</a>
+      This interface is detained in
+      <a href="{% url 'arnold-details' detention.id %}"
+         title="Link to detention">Arnold</a>
     </div>
   {% endif %}
 
-  <div class="row">
 
-    <div class="column medium-4">
-      {% include 'ipdevinfo/port-details-main-frag.html' %}
+  <div id="port-details-tabs" class="notvisible">
+
+    <ul>
+      <li><a href="#port-details-infotables">Details</a></li>
+      <li><a href="#port-details-activity-graphs">Activity graphs</a></li>
+      <li><a href="#port-details-metrics-list">Metric list</a></li>
+    </ul>
+
+
+    {# Information tables #}
+    <div id="port-details-infotables">
+      <div class="row">
+
+        <div class="column large-4">
+          {% include 'ipdevinfo/port-details-main-frag.html' %}
+        </div>
+
+        <div class="column large-4">
+          {% include 'ipdevinfo/port-details-vlan-frag.html' %}
+        </div>
+
+        <div class="column large-4">
+          {% include 'ipdevinfo/port-details-neighbors-frag.html' %}
+          {% include 'ipdevinfo/port-details-aggregate-frag.html' %}
+          {% include 'ipdevinfo/port-details-stacking-frag.html' %}
+        </div>
+
+      </div>
     </div>
 
-    <div class="column medium-4">
-      {% include 'ipdevinfo/port-details-vlan-frag.html' %}
+
+    {# Activity graphs #}
+    <div id="port-details-activity-graphs">
+      <h3>Activity graphs</h3>
+
+      <ul class="large-block-grid-2 nav-metrics-container">
+
+        {% for url in port.combined_data_urls %}
+
+          <li>
+            <div class="graphitegraph" data-url="{{ url }}">
+              <div class="rickshaw-container"></div>
+            </div>
+          </li>
+
+        {% endfor %}
+
+      </ul>
     </div>
 
-    <div class="column medium-4">
-      {% include 'ipdevinfo/port-details-neighbors-frag.html' %}
-      {% include 'ipdevinfo/port-details-stacking-frag.html' %}
+
+    {# List of metrics for this port #}
+    <div id="port-details-metrics-list">
+      <h3>Metrics</h3>
+      {% include 'ipdevinfo/port-details-metrics-frag.html' %}
     </div>
+
 
   </div>
-
-  <h3>Activity graphs</h3>
-
-  <ul class="medium-block-grid-2 nav-metrics-container">
-
-    {% for url in port.combined_data_urls  %}
-
-    <li>
-      <div class="graphitegraph"
-           data-url="{{ url }}">
-        <div class="rickshaw-container">
-        </div>
-      </div>
-    </li>
-
-    {% endfor %}
-
-  </ul>
-
-  <h3>Metrics</h3>
-  {% include 'ipdevinfo/port-details-metrics-frag.html' %}
-
 
 {% endblock %}

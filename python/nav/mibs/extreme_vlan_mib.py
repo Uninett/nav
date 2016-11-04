@@ -14,10 +14,11 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Implements an EXTREME-VLAN-MIB MibRetriever"""
-
-import mibretriever
+from __future__ import absolute_import
+from . import mibretriever
 from nav.mibs.qbridge_mib import PortList
 from nav.mibs import reduce_index
+
 
 class ExtremeVlanMib(mibretriever.MibRetriever):
     """Gets data from the EXTREME-VLAN-MIB"""
@@ -46,9 +47,11 @@ class ExtremeVlanMib(mibretriever.MibRetriever):
         df = self.retrieve_column('extremeVlanIfVlanId')
         return df.addCallback(reduce_index)
 
+
 def _strip_slot_numbers_from_index(table):
     return dict((if_index, row)
                 for (if_index, slot_number), row in table.items())
+
 
 def _convert_columns_to_portlists(table):
     return dict((key,

@@ -81,6 +81,7 @@ class Account(models.Model):
     PREFERENCE_KEY_STATUS = 'status-preferences'
     PREFERENCE_KEY_WIDGET_COLUMNS = 'widget_columns'
     PREFERENCE_KEY_REPORT_PAGE_SIZE = 'report_page_size'
+    PREFERENCE_KEY_WIDGET_DISPLAY_DENSITY = 'widget_display_density'
 
     # FIXME get this from setting.
     MIN_PASSWD_LENGTH = 8
@@ -1363,6 +1364,24 @@ class AccountTool(models.Model):
         db_table = u'accounttool'
 
 
+class AccountDashboard(models.Model):
+    """Stores dashboards for each user"""
+    name = VarcharField()
+    is_default = models.BooleanField(default=False)
+    num_columns = models.IntegerField(default=3)
+    account = models.ForeignKey(Account)
+
+    def __unicode__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('dashboard-index', kwargs={'dashboard_id': self.id})
+
+    class Meta(object):
+        db_table = 'account_dashboard'
+        ordering = ('name',)
+
+
 class AccountNavlet(models.Model):
     """Store information about a users navlets"""
     navlet = VarcharField()
@@ -1370,6 +1389,7 @@ class AccountNavlet(models.Model):
     account = models.ForeignKey(Account, db_column='account')
     preferences = DictAsJsonField(null=True)
     column = models.IntegerField(db_column='col')
+    dashboard = models.ForeignKey(AccountDashboard, related_name='widgets')
 
     def __unicode__(self):
         return "%s - %s" % (self.navlet, self.account)

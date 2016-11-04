@@ -28,6 +28,7 @@ from nav.models.manage import Room, Category, Organization, Netbox
 from nav.models.manage import NetboxInfo
 from nav.web.seeddb.utils.edit import (resolve_ip_and_sysname, does_ip_exist,
                                        does_sysname_exist)
+from nav.web.seeddb.forms import create_hierarchy
 
 _logger = logging.getLogger(__name__)
 
@@ -39,7 +40,9 @@ class NetboxModelForm(forms.ModelForm):
     data = DictionaryField(widget=forms.Textarea(), label='Attributes',
                            required=False)
     sysname = forms.CharField(required=False)
-    snmp_version = forms.IntegerField(required=False)
+    snmp_version = forms.ChoiceField(choices=[('1', '1'), ('2', '2c')],
+                                     widget=forms.RadioSelect, initial='2')
+    organization = forms.ChoiceField(choices=create_hierarchy(Organization))
 
     class Meta(object):
         model = Netbox
@@ -72,16 +75,19 @@ class NetboxModelForm(forms.ModelForm):
                              'room', 'category', 'organization'),
                     css_class=css_class),
                 Column(
-                    Fieldset('SNMP communities',
+                    Fieldset('SNMP ',
                              Row(
-                                 Column('read_only', css_class='medium-6'),
-                                 Column('read_write', css_class='medium-6')
+                                 Column('read_only', css_class='medium-4'),
+                                 Column('read_write', css_class='medium-4'),
+                                 Column(
+                                     Div('snmp_version', css_class='choice-radio-button'),
+                                     css_class='medium-4')
                              ),
                              NavButton('check_connectivity',
                                        'Check connectivity',
                                        css_class='check_connectivity')),
                     Fieldset('Collected info',
-                             Div('sysname', 'snmp_version', 'type',
+                             Div('sysname', 'type',
                                  css_class='hide',
                                  css_id='real_collected_fields')),
                     css_class=css_class),
@@ -118,6 +124,10 @@ class NetboxModelForm(forms.ModelForm):
         if not snmp_version:
             snmp_version = 1
         return snmp_version
+
+    def clean_organization(self):
+        data = self.cleaned_data.get('organization')
+        return Organization.objects.get(pk=data)
 
     def clean(self):
         """Make sure that categories that require communities has that"""

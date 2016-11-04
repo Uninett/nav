@@ -97,17 +97,51 @@ define([
             console.log('Initializing panel view');
             // This is not the "correct" way of doing this.
             this.alertBox = $('#status-page-fetch-alert');
+            this.fieldList = this.$el.find('.field_list > div');
+            this.presentFilters();
             this.fetchData();
             this.updateRefreshInterval();
             this.listenTo(this.collection, 'reset', this.updateRefreshInterval);
         },
 
         events: {
+            'change #id_status_filters': 'toggleFilters',
             'change form': 'fetchData',
             'submit form': 'preventSubmit'
         },
 
+        /**
+         * When the page loads hide all filters then display all filters that
+         * the user has selected options in
+         */
+        presentFilters: function () {
+            this.fieldList.hide();
+            var selectedOptions = this.fieldList.find('[selected]');
+            selectedOptions.closest('.ctrlHolder').show();
+            var filtersWithValue = $.map(selectedOptions.closest('select'), function (element) {
+                return element.name;
+            });
+            $('#id_status_filters').select2('val', filtersWithValue);
+        },
+
         /* Event driven methods */
+        /**
+         * Toggle filters based on the user selecting and deselecting filters.
+         * When removing a filter also unselect the selected options from that
+         * filter.
+         */
+        toggleFilters: function (event) {
+            event.stopPropagation();
+            if ('added' in event) {
+                this.$el.find('#id_' + event.added.id).closest('.ctrlHolder').show();
+            }
+            if ('removed' in event) {
+                var removed = this.$el.find('#id_' + event.removed.id);
+                removed.closest('.ctrlHolder').hide();
+                removed.select2('val', '');  // Unselect all options
+            }
+        },
+
         fetchData: function () {
             /* TODO: Inform user that we are trying to fetch data */
             var self = this;
@@ -305,7 +339,7 @@ define([
             } else {
                 self.give_error_feedback('None of the subjects are modules or chassis');
             }
-            
+
         }
 
     });

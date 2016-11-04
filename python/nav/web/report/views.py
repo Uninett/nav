@@ -38,7 +38,7 @@ from django.db import connection
 
 from nav.models.manage import Prefix
 
-from nav.report.IPtree import getMaxLeaf, buildTree
+from nav.report.IPtree import get_max_leaf, build_tree
 from nav.report.generator import Generator, ReportList
 from nav.report.matrixIPv4 import MatrixIPv4
 from nav.report.matrixIPv6 import MatrixIPv6
@@ -215,13 +215,13 @@ def group_scopes(scopes):
 
 def create_matrix(scope, show_unused):
     """Creates a matrix for the given scope"""
-    tree = buildTree(scope)
+    tree = build_tree(scope)
     if scope.version() == 6:
         if scope.prefixlen() < 60:
             end_net = IP(scope.net().strNormal() + '/64')
             matrix = MatrixIPv6(scope, end_net=end_net)
         else:
-            end_net = getMaxLeaf(tree)
+            end_net = get_max_leaf(tree)
             matrix = MatrixIPv6(scope, end_net=end_net)
     elif scope.version() == 4:
         if scope.prefixlen() < 24:
@@ -229,7 +229,7 @@ def create_matrix(scope, show_unused):
             matrix = MatrixIPv4(scope, show_unused, end_net=end_net,
                                 bits_in_matrix=6)
         else:
-            max_leaf = getMaxLeaf(tree)
+            max_leaf = get_max_leaf(tree)
             bits_in_matrix = max_leaf.prefixlen() - scope.prefixlen()
             matrix = MatrixIPv4(scope, show_unused, end_net=max_leaf,
                 bits_in_matrix=bits_in_matrix)

@@ -1,4 +1,4 @@
-require(['libs/spin.min', 'libs/jquery-ui.min'], function () {
+require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
 
     /**
      * Helper object to manipulate the modal and give feedback

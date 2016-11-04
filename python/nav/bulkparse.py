@@ -172,8 +172,8 @@ class UsageBulkParser(BulkParser):
 
 class LocationBulkParser(BulkParser):
     """Parses the location bulk format"""
-    format = ('locationid', 'descr')
-    required = 2
+    format = ('locationid', 'parent', 'descr')
+    required = 1
 
 
 class OrgBulkParser(BulkParser):

@@ -1,8 +1,8 @@
 define([
     'plugins/rickshaw_graph',
-    'nav-url-utils',
+    'libs/urijs/URI',
     'libs/spin.min'
-], function (RickshawGraph, Utils) {
+], function (RickshawGraph, URI, Spinner) {
     /*
      * GraphFetcher
      *
@@ -21,15 +21,21 @@ define([
      *   loaded on page load.
      *
      * NB: Expected icon for indicating expandable is 'fa-chevron-right'
+     *
+     * config options:
+     * - hideAddGraphButton: Hides the button for adding graph as widget
+     * - linkTarget: if set will wrap a link around image (only valid if graph
+         is an image)
      */
 
-    function GraphFetcher(node, urls) {
+    function GraphFetcher(node, urls, config) {
         this.checkInput(node, urls);
         this.node = node;
         this.graphContainer = this.node.find('.rickshaw-container')[0];
         this.urls = urls.split(';');
         this.lastUrlIndex = -1;
         this.urlIndex = 0;  // Index of this.urls
+        this.config = _.extend({}, config);
 
         this.buttons = {
             'day': 'Day',
@@ -56,7 +62,9 @@ define([
 
     GraphFetcher.prototype = {
         init: function () {
-            this.addButtons();
+            if (!this.config.hideTimeIntervalButtons) {
+                this.addButtons();
+            }
             this.loadGraph();
             this.isInitialized = true;
         },
@@ -114,7 +122,9 @@ define([
             if (this.graphContainer) {
                 this.appendToggleTrendCheckbox();
             }
-            this.appendAddGraphButton();
+            if (!this.config.hideAddGraphButton) {
+                this.appendAddGraphButton();
+            }
         },
         addButton: function (node, timeframe, text) {
             var that = this;
@@ -131,14 +141,14 @@ define([
             button.click(function () {
                 /* Image url is a redirect to graphite. Fetch proxy url and use
                  that as preference for graph widget */
-                var url = Utils.removeURLParameter(self.generatedURL, 'format'),
-                    headRequest = $.ajax(url, {'type': 'HEAD'});
+                var url = new URI(self.generatedURL).removeQuery('format', ''),
+                    headRequest = $.ajax(url.toString(), {'type': 'HEAD'});
                 headRequest.done(function (data, status, xhr) {
                     var proxyUrl = xhr.getResponseHeader('X-Where-Am-I');
                     if (proxyUrl) {
                         var request = $.post(NAV.addGraphWidgetUrl,
                             {
-                                'url': Utils.removeURLParameter(proxyUrl, 'format'),
+                                'url': new URI(proxyUrl).removeQuery('format').toString(),
                                 'target': window.location.pathname + window.location.hash
                             });
                         request.done(function () {
@@ -175,7 +185,6 @@ define([
             this.selectButton();
         },
         displayGraph: function (url) {
-            //this.spinner.spin(this.wrapper.get(0));
             var self = this;
 
             if (!this.graphContainer) {
@@ -183,14 +192,16 @@ define([
                 var image = new Image();
                 image.src = url;
                 image.onload = function () {
-                    self.node.find('img').remove();
-                    self.node.append(image);
-                    self.spinner.stop();
+                    self.node.find('img, a').remove();
+                    self.node.prepend(image);
+                    if (self.config.linkTarget) {
+                        var link = $('<a>').attr('href', self.config.linkTarget);
+                        self.node.find('img').wrap(link);
+                    }
                 };
                 image.onerror = function () {
-                    self.wrapper.find('img').remove();
-                    self.wrapper.append("<span class='alert-box alert'>Error loading image</span>");
-                    self.spinner.stop();
+                    self.node.find('img').remove();
+                    self.node.append("<span class='alert-box alert'>Error loading image</span>");
                 };
             } else {
                 $.get(url, function (data) {
@@ -206,28 +217,30 @@ define([
         getUrl: function () {
             var self = this;
             var url = this.urls[this.urlIndex];
+            var uri = new URI(url);
             var addTimeShift = this.graphContainer && this.trends.is(':checked');
-            var generatedURL;
 
             if (url.indexOf('?') >= 0) {
                 // Add/alter timecomponent
                 var interval = '-1' + this.timeframe;
-                generatedURL = Utils.removeURLParameter(url, 'from') + '&' + 'from=' + interval;
+                uri.setQuery({
+                    from: interval,
+                    width: this.node.width()
+                });
 
                 if (addTimeShift) {
-                    var targets = Utils.deSerialize(url).target;
-                    targets.forEach(function (target) {
+                    var targets = [].concat(uri.query(true).target);  // target is either list or string
+                    uri.addQuery('target', targets.map(function (target) {
                         var timeshiftCall = 'timeShift(' + target + ',"' + interval + '")';
                         var targetAlias = getSeriesName(target) + ' (' + getTimeDescription(self.timeframe) + ')';
-                        var aliasCall = 'alias(' + timeshiftCall + ', "' + targetAlias + '")';
-                        var parameter = 'target=' + aliasCall;
-                        generatedURL = [generatedURL, parameter].join('&');
-                    });
+                        return 'alias(' + timeshiftCall + ', "' + targetAlias + '")';
+                    }));
                 }
             } else {
-                generatedURL = url + '?timeframe=' + this.timeframe;
+                uri.setQuery('timeframe', this.timeframe);
             }
 
+            var generatedURL = uri.toString();
             this.generatedURL = generatedURL;
             return generatedURL;
         },

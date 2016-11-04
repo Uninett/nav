@@ -1,0 +1,118 @@
+{% extends 'navlets/base.html' %}
+{% load sensor %}
+
+{% block navlet-content %}
+
+  {% if netbox %}
+
+    <h4><a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a></h4>
+
+    {# IO display #}
+
+    <div class="io-display">
+
+      <div class="left-wrapper">
+
+        {# Input node #}
+        <div class="input node panel">
+
+          <h5>Input</h5>
+
+          {% for input_voltage in input_voltages  %}
+            <div class="ups-voltage-indicator">
+              <span>L{{ forloop.counter }}:</span>
+              <span data-metric="{{ input_voltage.get_metric_name }}"></span>
+              {{ input_voltage.unit_of_measurement }}
+            </div>
+          {% endfor %}
+
+        </div>
+
+
+        {# Vertical line #}
+        <div class="vertical line">
+          <div class="left-box"></div>
+          <div class="middle-box"><i class="fa fa-arrow-down"></i></div>
+          <div class="right-box"></div>
+        </div>
+
+
+        {# Output node #}
+        <div class="node output panel">
+          <h5>Output</h5>
+
+          {% for output_voltage, output_power in output  %}
+            <div class="ups-voltage-indicator">
+              <span>L{{ forloop.counter }}:</span>
+              <span data-metric="{{ output_voltage.get_metric_name }}"></span>
+              {{ output_voltage.unit_of_measurement }}
+              {% if output_power %}
+                <span data-metric="{{ output_power.get_metric_name }}"></span>
+                {{ output_power.unit_of_measurement }}
+              {% endif %}
+            </div>
+          {% endfor %}
+
+        </div>
+
+      </div>  {# Wrapper #}
+
+      <div class="horizontal line">
+        <i class="fa fa-arrows-h"></i>
+      </div>
+
+      {# Battery node #}
+      <div class="battery-wrapper">
+        <div class="battery node panel">
+          <h5>Battery&nbsp;&nbsp;<i class="fa fa-flash"></i></h5>
+
+          {% for temp in temperatures  %}
+            <div>
+              <span title="Battery or internal temperature">Temp ({{ temp.unit_of_measurement }}):</span>
+              <span data-metric="{{ temp.get_metric_name }}"></span>
+            </div>
+          {% endfor %}
+
+          {% for battery_time in battery_times %}
+            <div>
+              <span title="Estimated battery time remaining">
+                Time (<span class="unit-of-measurement">{{ battery_time.unit_of_measurement }}</span>):
+              </span>
+              <span data-metric="{{ battery_time.get_metric_name }}"
+                    data-uom="{{ battery_time.unit_of_measurement }}"></span>
+            </div>
+          {% endfor %}
+
+          {% for capacity in battery_capacity %}
+            <div>
+              <span title="Estimated battery capacity left">
+                Capacity:
+              </span>
+              <span data-metric="{{ capacity.get_metric_name }}"></span>
+              %
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+
+    </div> {# .io-display #}
+    <small class="right">Last update: <span class="update-time"></span></small>
+
+
+    <script>
+     require(['plugins/navlet_ups'], function(Poller){
+         new Poller($('[data-id={{ navlet.navlet_id }}]'));
+     });
+    </script>
+
+  {% else %}
+
+    <div class="alertbox info">Edit the widget to add UPS</div>
+
+  {% endif %}
+
+
+
+
+{% endblock %}

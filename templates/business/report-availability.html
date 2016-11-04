@@ -1,0 +1,125 @@
+{% extends 'business/report.html' %}
+{% load info %}
+{% load date_and_time %}
+
+
+{% block report-content %}
+
+  <h3>{{ report.report_name }}</h3>
+
+  <p>
+    {{ report.description  }}
+  </p>
+
+
+  {# Form for choosing period #}
+  <div>
+    I want a report for
+    <form id="report-form" class="inline-form">
+      <select name="report-month">
+        {% for month in months %}
+          {{ start }}
+          {{ month }}
+          <option value="{{ month.year }}-{{ month.month }}"
+                  {% if start == month %}selected{% endif %}
+                  >
+            {{ month|date:'F Y' }}
+          </option>
+        {% endfor %}
+      </select>
+      <input type="submit" class="button small" value="Fetch report">
+    </form>
+  </div>
+
+
+  {# Display records #}
+  {% if 'report-month' in request.GET %}
+
+    <table id="record-table" class="listtable expandable">
+      <caption>
+        Availability report for {{ start|date:'F Y' }}
+      </caption>
+
+      {# Table header #}
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Incidents</th>
+          <th>Downtime</th>
+          <th>Availability</th>
+          {% if display_packet_loss %}
+            <th>Packet loss</th>
+          {% endif %}
+        </tr>
+      </thead>
+
+      {# Table body #}
+      <tbody>
+
+        {% for record in records %}
+          {# Main information row #}
+          <tr class="record-row">
+            <td>
+              {% if record.subject %}
+                <a href="{{ record.subject.get_absolute_url }}">
+                  {{ record.subject }}
+                </a>
+              {% else %}
+                <em>N/A</em>
+              {% endif %}
+            </td>
+            <td>
+              {{ record.incidents|length }}
+              <a href="javascript:void(0);" class="toggle-incident pull-right">
+                Show
+              </a>
+            </td>
+            <td>{{ record.downtime }}</td>
+            <td>
+              {{ record.availability|floatformat:"-3" }}%
+            </td>
+            <td>
+              {% if display_packet_loss and record.subject %}
+                {{ record.subject.packetloss|floatformat:"-3" }}%
+              {% endif %}
+            </td>
+          </tr>
+
+          {# Hidden incidents row #}
+          <tr class="hidden incident-row">
+            <td colspan="10">
+              <div>
+                <b>{{ record.incidents|length }} incident{{ record.incidents|pluralize }}</b>
+                <ul>
+                  {% for incident in record.incidents %}
+                    <li>
+                      <em>{{ incident.alert_type.name }}</em> &mdash;
+                      {{ incident.start_time }} -
+                      {% if incident.end_time|is_max_timestamp %}
+                        Incident has not ended
+                      {% else %}
+                        {{ incident.end_time }}
+                      {% endif %}
+                      &mdash;
+                      Total downtime: {{ incident.get_downtime|remove_microseconds }}
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </td>
+          </tr>
+
+        {% empty %}
+          <tr>
+            <td colspan="5">
+              No downtime in {{ start|date:'F Y' }}
+            </td>
+          </tr>
+        {% endfor %} {# End listing of records #}
+      </tbody>
+
+    </table>
+
+  {% endif %}
+
+{% endblock %}

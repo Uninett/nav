@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load tools %}
+
+
+{% block base_header_additional_head %}
+  <script>require(['src/business']);</script>
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/business.css">
+{% endblock %}
+
+
+{% block base_content %}
+
+
+  {% with tool=current_user_data.tools|get_tool:'Business reports' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
+
+  {% block content %}
+    <h3>Available reports</h3>
+    <ul id="report-list" class="small-block-grid-2 medium-block-grid-3 large-block-grid-4">
+      {% for report in available_reports %}
+        <li>
+          {% include 'business/frag-report-card.html' %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endblock %}
+
+
+{% endblock %}

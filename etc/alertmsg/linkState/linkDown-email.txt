@@ -1,4 +1,9 @@
-Subject: Link down on {{ netbox.sysname }}: {{ interface }}
-This is an automatically generated message from NAV:
+{% with interface=event.get_subject %}
+Subject: Link down on {{ interface }}
 
-Box {{ netbox.sysname }} ({{ netbox.ip }}) has lost link on interface {{ interface }} ({{ ifalias }})
+Link status on {{ interface }} ({{interface.ifalias}}) is DOWN.
+
+{% if interface.to_interface %}Connected to {{ interface.to_interface }} ({{ interface.to_interface.ifalias }})
+{% elif interface.to_netbox %}Connected to {{ interface.to_netbox }}{% endif %}{% if interface.get_aggregator %}{% with aggregator=interface.get_aggregator %}Part of aggregate interface {{ aggregator.ifname }} ({{ aggregator.ifalias }}){% endwith %}{% endif %}
+
+{% endwith %}

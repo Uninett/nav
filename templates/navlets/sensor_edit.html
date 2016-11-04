@@ -1,0 +1,14 @@
+{% extends 'navlets/base.html' %}
+{% load thresholds %}
+
+{% block navlet-content %}
+
+  <form action="{% url 'get-user-navlet' navlet.navlet_id %}" method="post" class="panel">
+    <label>
+      {{ form.show_graph }}
+      {{ form.show_graph.label }}
+    </label>
+    <input type="submit" class="button small" value="Save preferences">
+  </form>
+
+{% endblock %}

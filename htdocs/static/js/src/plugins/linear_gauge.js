@@ -1,4 +1,6 @@
-define(['libs/d3.v2'], function () {
+define(function (require, exports, module) {
+
+    var d3 = require('d3');
 
     /* Draw a vertical gauge that animates value changes */
 
@@ -153,4 +155,3 @@ define(['libs/d3.v2'], function () {
     return LinearGauge;
 
 });
-

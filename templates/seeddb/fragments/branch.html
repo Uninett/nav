@@ -1,0 +1,22 @@
+<li class="branch" data-orgid="{{ branch.pk }}">
+  {% if branch.has_children %}
+    <i class="fa fa-toggle-down"></i>
+  {% endif %}
+  <a href="{% url edit_url_name branch.pk %}" class="tip-top">
+    {{ branch }}
+    <div class="tooltip-text" style="display: none">
+      {% include 'seeddb/fragments/branch_tooltip.html' %}
+    </div>
+  </a>
+  
+  {% if branch.has_children %}
+    <ul class="child">
+      {% for child in branch.get_children %}
+        {% with branch=child %}
+          {% include 'seeddb/fragments/branch.html' %}
+        {% endwith %}
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+</li>

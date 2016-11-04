@@ -48,8 +48,13 @@ MINIMUMPREFIXLENGTH = 4
 
 
 class Iso8601ParseError(exceptions.ParseError):
-    default_detail = 'Wrong format on timestamp. See ' \
-                     'https://pypi.python.org/pypi/iso8601'
+    default_detail = ('Wrong format on timestamp. See '
+                      'https://pypi.python.org/pypi/iso8601')
+
+
+class IPParseError(exceptions.ParseError):
+    default_detail = ('ip field must be a valid IPv4 or IPv6 host address or '
+                      'network prefix')
 
 
 @api_view(('GET',))
@@ -78,6 +83,16 @@ def api_root(request):
     `/api/netbox/?category=GSW`
 
     Which fields can be used for filtering is documented for each endpoint.
+
+    Sorting
+    -------
+    `/api/netbox/?ordering=sysname` for ascending order.
+
+    `/api/netbox/?ordering=-sysname` for descending order.
+
+    `/api/netbox/?ordering=room__location` for ordering on related models.
+
+    Most attributes of the result records can be used as ordering arguments.
 
     [1]: https://nav.uninett.no/doc/latest/howto/using_the_api.html
     """
@@ -298,86 +313,95 @@ class CablingViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-class CamViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
-    """Lists all cam records.
+SQL_OVERLAPS = ("(start_time, end_time) OVERLAPS "
+                "('{}'::TIMESTAMP, '{}'::TIMESTAMP)")
+SQL_BETWEEN = "'{}'::TIMESTAMP BETWEEN start_time AND end_time"
 
-    Filters
-    -------
-    - active: *set this to list only records that has not ended*
-    - starttime: *if set without endtime: lists all active records at that
-      timestamp*
-    - endtime: *must be set with starttime: lists all active records in the
-      period between starttime and endtime*
-    - ifindex
-    - mac
-    - netbox
-    - port
 
-    For timestamp formats see the [iso8601 module
-    doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>
-    """
-    serializer_class = serializers.CamSerializer
-    filter_fields = ('mac', 'netbox', 'ifindex', 'port')
-
+class MachineTrackerViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """Abstract base ViewSet for ARP and CAM tables"""
     def get_queryset(self):
         """Filter on custom parameters"""
-        queryset = manage.Cam.objects.all()
+        queryset = self.model_class.objects.all()
         active = self.request.QUERY_PARAMS.get('active', None)
         starttime, endtime = get_times(self.request)
 
         if active:
             queryset = queryset.filter(end_time=INFINITY)
         elif starttime and not endtime:
-            queryset = queryset.extra(
-                where=["'{}' BETWEEN start_time AND end_time".format(
-                    starttime)])
+            queryset = queryset.extra(where=[SQL_BETWEEN.format(starttime)])
         elif starttime and endtime:
             queryset = queryset.extra(
-                where=["(start_time, end_time) OVERLAPS ('{}', '{}')".format(
-                    starttime, endtime)])
+                where=[SQL_OVERLAPS.format(starttime, endtime)])
 
         return queryset
 
 
-class ArpViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+class CamViewSet(MachineTrackerViewSet):
+    """Lists all cam records.
+
+    Filters
+    -------
+    - `active`: *set this to list only records that has not ended. This will
+      then ignore any start and endtimes set*
+    - `starttime`: *if set without endtime: lists all active records at that
+      timestamp*
+    - `endtime`: *must be set with starttime: lists all active records in the
+      period between starttime and endtime*
+    - `ifindex`
+    - `mac`
+    - `netbox`
+    - `port`
+
+    For timestamp formats, see the [iso8601 module
+    doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>.
+    `end_time` timestamps shown as `"9999-12-31T23:59:59.999"` denote records
+    that are still active.
+
+    """
+    model_class = manage.Cam
+    serializer_class = serializers.CamSerializer
+    filter_fields = ('mac', 'netbox', 'ifindex', 'port')
+
+
+class ArpViewSet(MachineTrackerViewSet):
     """Lists all arp records.
 
     Filters
     -------
 
-    - active: *set this to list only records that has not ended. This will then
-      ignore any start and endtimes set*
-    - starttime: *if set without endtime: lists all active records at that
+    - `active`: *set this to list only records that has not ended. This will
+      then ignore any start and endtimes set*
+    - `starttime`: *if set without endtime: lists all active records at that
       timestamp*
-    - endtime: *must be set with starttime: lists all active records in the
+    - `endtime`: *must be set with starttime: lists all active records in the
       period between starttime and endtime*
-    - ip
-    - mac
-    - netbox
-    - prefix
+    - `ip`
+    - `mac`
+    - `netbox`
+    - `prefix`
 
-    For timestamp formats see the [iso8601 module
-    doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>
+    For timestamp formats, see the [iso8601 module
+    doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>.
+    `end_time` timestamps shown as `"9999-12-31T23:59:59.999"` denote records
+    that are still active.
+
     """
+    model_class = manage.Arp
     serializer_class = serializers.ArpSerializer
-    filter_fields = ('ip', 'mac', 'netbox', 'prefix')
+    filter_fields = ('mac', 'netbox', 'prefix')
 
     def get_queryset(self):
-        """Filter on custom parameters"""
-        queryset = manage.Arp.objects.all()
-        active = self.request.QUERY_PARAMS.get('active', None)
-        starttime, endtime = get_times(self.request)
-
-        if active:
-            queryset = queryset.filter(end_time=INFINITY)
-        elif starttime and not endtime:
-            queryset = queryset.extra(
-                where=["'{}' BETWEEN start_time AND end_time".format(
-                    starttime)])
-        elif starttime and endtime:
-            queryset = queryset.extra(
-                where=["(start_time, end_time) OVERLAPS ('{}', '{}')".format(
-                    starttime, endtime)])
+        """Customizes handling of the ip address filter"""
+        queryset = super(ArpViewSet, self).get_queryset()
+        ip = self.request.QUERY_PARAMS.get('ip', None)
+        if ip:
+            try:
+                addr = IP(ip)
+            except ValueError:
+                raise IPParseError
+            oper = '=' if addr.len() == 1 else '<<'
+            queryset = queryset.extra(where=["ip {} '{}'".format(oper, addr)])
 
         return queryset
 
@@ -506,7 +530,11 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
         else:
             queryset = manage.Prefix.objects.all()
 
-        return queryset
+        # Filter prefixes that is smaller than minimum prefix length
+        results = [p for p in queryset
+                   if IP(p.net_address).len() >= MINIMUMPREFIXLENGTH]
+
+        return results
 
     def list(self, request, *args, **kwargs):
         """Delivers a list of usage objects as a response
@@ -518,14 +546,10 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
         Also we need to run the prefix collector after paging to avoid
         unnecessary usage calculations
         """
-        self.object_list = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(self.object_list)
-
+        page = self.paginate_queryset(self.filter_queryset(self.get_queryset()))
         starttime, endtime = get_times(self.request)
-        prefixes = prefix_collector.fetch_usages([
-            p for p in page.object_list
-            if IP(p.net_address).len() >= MINIMUMPREFIXLENGTH],
-            starttime, endtime)
+        prefixes = prefix_collector.fetch_usages(
+            page.object_list, starttime, endtime)
 
         if page is not None:
             page.object_list = prefixes

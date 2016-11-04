@@ -6,7 +6,6 @@ require([
     'plugins/netbox_connectivity_checker',
     'plugins/ip_chooser',
     'plugins/seeddb_map',
-    'libs/spin',
     'libs/modernizr'],
 function (datatables, CheckboxSelector, QuickSelect, FormFuck, connectivityChecker, IpChooser, seedDBRoomMap) {
 
@@ -60,6 +59,8 @@ function (datatables, CheckboxSelector, QuickSelect, FormFuck, connectivityCheck
 
         activateIpDeviceFormPlugins();
         addConfirmLeavePage();
+
+        addParentSelect2();
     }
 
 
@@ -143,7 +144,7 @@ function (datatables, CheckboxSelector, QuickSelect, FormFuck, connectivityCheck
         }
     }
 
-        
+
     function activateIpDeviceFormPlugins() {
         // The connectivity checker
         var $form = $('#seeddb-netbox-form'),
@@ -223,6 +224,14 @@ function (datatables, CheckboxSelector, QuickSelect, FormFuck, connectivityCheck
                     };
                 }
             }
+        });
+    }
+
+
+    /** Add Select2 to parent fields. They demand extra styling and thus special treatment */
+    function addParentSelect2() {
+        $('#id_parent').select2({
+            dropdownCssClass: 'parent-element'
         });
     }
 

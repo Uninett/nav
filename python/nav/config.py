@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Utility functions for NAV configuration file parsing."""
+from __future__ import absolute_import
 from StringIO import StringIO
 import logging
 
@@ -22,8 +23,7 @@ import os
 import sys
 import ConfigParser
 
-import buildconf
-import nav.buildconf
+from . import buildconf
 from nav.errors import GeneralException
 
 _logger = logging.getLogger(__name__)
@@ -120,7 +120,7 @@ class NAVConfigParser(ConfigParser.ConfigParser):
 
     def read_all(self):
         """Reads all config files in DEFAULT_CONFIG_FILES"""
-        filenames = [os.path.join(nav.buildconf.sysconfdir, configfile)
+        filenames = [os.path.join(buildconf.sysconfdir, configfile)
                      for configfile in self.DEFAULT_CONFIG_FILES]
         filenames.extend(os.path.join('.', configfile)
                          for configfile in self.DEFAULT_CONFIG_FILES)

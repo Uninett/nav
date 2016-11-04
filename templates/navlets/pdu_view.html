@@ -1,0 +1,66 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  {% if room %}
+
+    <div class="alert-box alert" style="display: none"></div>
+
+    <table class="pdu-load-status listtable"
+           data-limits="{{ navlet.preferences.limits }}" >
+      <caption>PDU load in {{ room }}</caption>
+      <thead>
+        <tr>
+          <th>&nbsp;</th>
+          <th>Total</th>
+          <th>Bank 1</th>
+          <th>Bank 2</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pdu in pdus %}
+          <tr>
+            <td>
+              <a href="{{ pdu.get_absolute_url }}">{{ pdu }}</a>
+            </td>
+            {% for sensor in pdu.sensor_set.all %}
+              <td data-metric="{{ sensor.get_metric_name }}"></td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <small class="alert-update-timestamp right">Last update: <span></span></small>
+
+    <script>
+
+
+     require(['plugins/navlet_pdu'], function(Pdu) {
+         new Pdu($('[data-id=' + {{ navlet.navlet_id }}+ ']'),
+                 '{{ data_url|safe }}',
+                 {{ metrics|safe }}
+         );
+     });
+    </script>
+
+  {% else %}
+    <div class="alert-box">
+      <a href="#" class="configure-link">Choose which room</a> to show pdu status for
+    </div>
+
+    <script>
+     (function(){
+         var $navlet = $('[data-id=' + {{ navlet.navlet_id }}+ ']');
+         $navlet.find('.configure-link').click(function() {
+             console.log('clicked');
+             $navlet.find('.navlet-mode-switch').click();
+         });
+     })();
+    </script>
+
+
+  {% endif %}
+
+
+
+{% endblock %}

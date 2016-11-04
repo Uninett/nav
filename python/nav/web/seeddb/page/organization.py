@@ -15,6 +15,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from django.shortcuts import render
+
 from ..forms import (OrganizationFilterForm, OrganizationForm,
                      OrganizationMoveForm)
 
@@ -32,11 +34,13 @@ from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 
 
+
 class OrganizationInfo(SeeddbInfo):
-    active = {'organization': True}
-    caption = 'Organizations'
+    active_page = 'organization'
+    active = {active_page: True}
+    caption = "{}s".format(active_page.capitalize())
+    _title = caption
     tab_template = 'seeddb/tabs_generic.html'
-    _title = 'Organizations'
     verbose_name = Organization._meta.verbose_name
     _navpath = [('Organizations', reverse_lazy('seeddb-organization'))]
     delete_url = reverse_lazy('seeddb-organization')
@@ -54,13 +58,12 @@ def organization(request):
 
 def organization_list(request):
     info = OrganizationInfo()
-    query = Organization.objects.all()
-    filter_form = OrganizationFilterForm(request.GET)
-    value_list = (
-        'id', 'parent', 'description', 'data')
-    return render_list(request, query, value_list, 'seeddb-organization-edit',
-                       filter_form=filter_form,
-                       extra_context=info.template_context)
+    context = info.template_context
+    context.update({
+        'roots': Organization.objects.filter(parent=None).order_by('id'),
+        'edit_url_name': 'seeddb-organization-edit'
+    })
+    return render(request, 'seeddb/list_tree.html', context)
 
 
 def organization_move(request):

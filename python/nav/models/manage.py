@@ -45,7 +45,6 @@ from nav.metrics.templates import (
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
-from nav.models.rrd import RrdDataSource
 from django_hstore import hstore
 import nav.models.event
 
@@ -53,6 +52,15 @@ import nav.models.event
 
 #######################################################################
 ### Netbox-related models
+
+
+class UpsManager(models.Manager):
+    """Manager for finding UPS netboxes"""
+    def get_queryset(self):
+        """Filter out UPSes"""
+        return super(UpsManager, self).get_queryset().filter(
+            category='POWER',
+            sensor__internal_name__startswith='ups').distinct()
 
 
 class Netbox(models.Model):
@@ -91,6 +99,7 @@ class Netbox(models.Model):
 
     data = hstore.DictionaryField()
     objects = hstore.HStoreManager()
+    ups_objects = UpsManager()
 
     class Meta(object):
         db_table = 'netbox'
@@ -277,15 +286,6 @@ class Netbox(models.Model):
             return self.sysname[:-len(settings.DOMAIN_SUFFIX)]
         else:
             return self.sysname
-
-    def get_rrd_data_sources(self):
-        """Returns all relevant RRD data sources"""
-        return RrdDataSource.objects.filter(rrd_file__netbox=self
-            ).exclude(
-                Q(rrd_file__subsystem__name__in=('pping', 'serviceping')) |
-                Q(rrd_file__key__isnull=False,
-                    rrd_file__key__in=('swport', 'gwport', 'interface'))
-            ).order_by('description')
 
     def is_on_maintenance(self):
         """Returns True if this netbox is currently on maintenance"""
@@ -723,16 +723,46 @@ class Room(models.Model):
         ordering = ('id',)
 
     def __unicode__(self):
-        return u'%s (%s)' % (self.id, self.description)
+        if self.description:
+            return u'%s (%s)' % (self.id, self.description)
+        else:
+            return u'%s' % (self.id)
 
 
-class Location(models.Model):
-    """From NAV Wiki: The location table defines a group of rooms; i.e. a
-    campus."""
+class TreeMixin(object):
+    """A mixin that provides methods for models that use parenting hierarchy"""
+    def num_ancestors(self):
+        """The number of ancestors, how deep am I?"""
+        if self.parent:
+            return 1 + self.parent.num_ancestors()
+        return 0
+
+    def has_children(self):
+        """Returns true if this instance has children"""
+        return self.get_children().exists()
+
+    def get_children(self):
+        """Gets all children"""
+        return self.__class__.objects.filter(parent=self)
+
+    def get_descendants(self, include_self=False):
+        """Gets all descendants of this instance"""
+        descendants = []
+        if include_self:
+            descendants.append(self)
+        for child in self.get_children():
+            descendants.extend(child.get_descendants(include_self=True))
+        return descendants
+
+
+class Location(models.Model, TreeMixin):
+    """The location table defines a group of rooms; i.e. a campus."""
 
     id = models.CharField(db_column='locationid',
                           max_length=30, primary_key=True)
-    description = VarcharField(db_column='descr')
+    parent = models.ForeignKey('self', db_column='parent',
+                               blank=True, null=True)
+    description = VarcharField(db_column='descr', blank=True)
     data = hstore.DictionaryField()
     objects = hstore.HStoreManager()
 
@@ -741,10 +771,13 @@ class Location(models.Model):
         verbose_name = 'location'
 
     def __unicode__(self):
-        return u'%s (%s)' % (self.id, self.description)
+        if self.description:
+            return u'{} ({})'.format(self.id, self.description)
+        else:
+            return u'{}'.format(self.id)
 
 
-class Organization(models.Model):
+class Organization(models.Model, TreeMixin):
     """From NAV Wiki: The org table defines an organization which is in charge
     of a given netbox and is the user of a given prefix."""
 
@@ -1455,12 +1488,6 @@ class Interface(models.Model):
 
         return self.time_since_activity_cache[interval]
 
-    def get_rrd_data_sources(self):
-        """Returns all relevant RRD data sources"""
-        return RrdDataSource.objects.filter(
-                rrd_file__key='interface', rrd_file__value=str(self.id)
-            ).order_by('description')
-
     def get_port_metrics(self):
         """Gets a list of available Graphite metrics related to this Interface.
 
@@ -1523,6 +1550,10 @@ class Interface(models.Model):
         """Returns True if interface is administratively up"""
         return self.ifadminstatus == self.ADM_UP
 
+    def is_oper_up(self):
+        """Returns True if interface is operationally up"""
+        return self.ifoperstatus == self.OPER_UP
+
     def below_me(self):
         """Returns interfaces stacked with this one on a layer below"""
         return Interface.objects.filter(lower_layer__higher=self)
@@ -1530,6 +1561,26 @@ class Interface(models.Model):
     def above_me(self):
         """Returns interfaces stacked with this one on a layer above"""
         return Interface.objects.filter(higher_layer__lower=self)
+
+    def get_aggregator(self):
+        """Returns the interface that is selected as an aggregator for me"""
+        try:
+            return Interface.objects.get(aggregators__interface=self)
+        except Interface.DoesNotExist:
+            return
+
+    def get_bundled_interfaces(self):
+        """Returns the interfaces that are bundled on this interface"""
+        return Interface.objects.filter(bundled__aggregator=self)
+
+    def is_degraded(self):
+        """
+        Returns True if this aggregator has been degraded, False if it has
+        not, None if this interface is not a known aggregator.
+        """
+        aggregates = self.get_bundled_interfaces()
+        if aggregates:
+            return any(not agg.is_oper_up() for agg in aggregates)
 
     def get_sorted_vlans(self):
         """Returns a queryset of sorted swportvlans"""
@@ -1557,6 +1608,17 @@ class InterfaceStack(models.Model):
 
     class Meta(object):
         db_table = u'interface_stack'
+
+
+class InterfaceAggregate(models.Model):
+    """Interface aggregation relationships"""
+    aggregator = models.ForeignKey(Interface, db_column='aggregator',
+                                   related_name='aggregators')
+    interface = models.ForeignKey(Interface, db_column='interface',
+                                  related_name='bundled')
+
+    class Meta(object):
+        db_table = u'interface_aggregate'
 
 
 class IanaIftype(models.Model):
@@ -1674,7 +1736,7 @@ class Sensor(models.Model):
         ordering = ('name',)
 
     def __unicode__(self):
-        return "Sensor '{}' on {}".format(
+        return u"Sensor '{}' on {}".format(
             self.human_readable or self.internal_name,
             self.netbox)
 
@@ -1837,6 +1899,10 @@ class IpdevpollJobLog(models.Model):
             j.duration] for j in jobs]
         runtimes.reverse()
         return runtimes
+
+    def get_absolute_url(self):
+        """Returns the Netbox' URL"""
+        return self.netbox.get_absolute_url()
 
 
 class Netbios(models.Model):

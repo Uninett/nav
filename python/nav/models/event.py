@@ -227,6 +227,7 @@ class EventMixIn(object):
     # various event types, in lieu of a more generic mechanism
     SUBID_MAP = {
         'linkState': 'Interface',
+        'aggregateLinkState': 'Interface',
         'moduleState': 'Module',
         'serviceState': 'Service',
         'psuState': 'PowerSupplyOrFan',

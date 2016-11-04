@@ -1,4 +1,4 @@
-define(['libs/spin.min'], function () {
+define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
 
     /*
     * Controller for a specific Navlet
@@ -16,11 +16,12 @@ define(['libs/spin.min'], function () {
     *
     */
 
-    var NavletController = function (container, renderNode, navlet) {
+    var NavletController = function (container, renderNode, navlet, forceFirst) {
         this.container = container;    // Navlet container
         this.renderNode = renderNode;  // The column this navlet should render in
         this.navlet = navlet;          // Object containing navlet information
         this.spinner = new Spinner();  // Spinner showing on load
+        this.forceFirst = typeof forceFirst === 'undefined' ? false : true;
         this.node = this.createNode(); // The complete node for this navlet
         this.removeUrl = this.container.attr('data-remove-navlet');           // Url to use to remove a navlet from this user
         this.baseTemplateUrl = this.container.attr('data-base-template-url'); // Url to use to fetch base template for this navlet
@@ -31,6 +32,7 @@ define(['libs/spin.min'], function () {
     NavletController.prototype = {
         createNode: function () {
             /* Creates the node that the navlet will loaded into */
+            var self = this;
             var $div = $('<div/>');
             $div.attr({
                 'data-id': this.navlet.id,
@@ -43,7 +45,15 @@ define(['libs/spin.min'], function () {
                 $div.addClass('colorblock-navlet');
             }
 
-            this.renderNode.append($div);
+            if (this.forceFirst) {
+                this.renderNode.prepend($div);
+                $div.on('mouseover', function() {
+                    $div.removeClass('mark-new');
+                    self.forceFirst = false;
+                });
+            } else {
+                this.renderNode.append($div);
+            }
             return $div;
         },
         renderNavlet: function (mode) {
@@ -74,6 +84,9 @@ define(['libs/spin.min'], function () {
         },
         handleSuccessfulRequest: function (html, mode) {
             this.node.html(html);
+            if (this.forceFirst) {
+                this.node.addClass('mark-new');
+            }
             this.applyListeners();
             this.addReloader(mode);
         },
@@ -102,18 +115,19 @@ define(['libs/spin.min'], function () {
              * Remember to stop refreshing on edit
              */
             var that = this,
-                preferences = this.navlet.preferences,
-                image = this.node.find('img[data-image-reload]'),
-                imageUrl = image.attr('src');
+                preferences = this.navlet.preferences;
 
             if (mode === 'VIEW' && preferences && preferences.refresh_interval) {
                 /* If this is a reload of image only */
                 if (this.navlet.image_reload) {
                     this.refresh = setInterval(function () {
-                        /* The random part is courtesy IE */
-                        var bustPrefix = imageUrl.indexOf('?') > -1 ? '&' : '?',
-                            bust = bustPrefix + 'bust=' + Math.random();
-                        image.attr('src', imageUrl + bust);
+                        // Find image each time because of async loading
+                        var image = that.node.find('img[data-image-reload], [data-image-reload] img');
+                        if (image.length) {
+                            // Add bust parameter to url to prevent caching
+                            var uri = new URI(image.get(0)).setSearch('bust', Math.random());
+                            image.attr('src', uri.href());
+                        }
                     }, preferences.refresh_interval);
                 } else if (this.navlet.ajax_reload) {
                     this.refresh = setInterval(function () {
@@ -162,6 +176,7 @@ define(['libs/spin.min'], function () {
                 var mode = this.getRenderMode() === 'VIEW' ? 'EDIT' : 'VIEW';
 
                 modeSwitch.click(function () {
+                    that.node.trigger('render', [mode]);
                     that.renderNavlet(mode);
                 });
             }
@@ -193,6 +208,7 @@ define(['libs/spin.min'], function () {
                             clearInterval(that.refresh);
                         }
                         that.node.remove();
+                        that.container.trigger('nav.navlet.removed');
                         $(modal).foundation('reveal', 'close');
                     });
                 });
@@ -233,8 +249,25 @@ define(['libs/spin.min'], function () {
                         that.renderNavlet('VIEW');
                     });
                     request.fail(function (jqxhr) {
-                        that.displayError('Could not save changes: ' + jqxhr.responseText);
+                        try {
+                            // Result may be json, try to parse it (specific for form errors)
+                            var json = JSON.parse(jqxhr.responseText);
+                            var $ul = $('<ul class="no-bullet">');
+                            for (var field in json) {
+                                var errors = $('<li>').html(field + ': ' + json[field].map(function(x) {
+                                    return x.message ? x.message : x;
+                                }).join(', '));
+                                $ul.append(errors);
+                            }
+                            that.displayError($ul);
+                        } catch (e) {
+                            that.displayError('Could not save changes: ' + jqxhr.responseText);
+                        }
                     });
+                });
+
+                this.node.find('.cancel-button').on('click', function() {
+                    that.getModeSwitch().click();
                 });
             }
         },
@@ -276,7 +309,7 @@ define(['libs/spin.min'], function () {
             this.container.trigger('navlet-rendered', [this.node]);
         },
         displayError: function (errorMessage) {
-            this.getOrCreateErrorElement().text(errorMessage);
+            this.getOrCreateErrorElement().html(errorMessage);
         },
         getOrCreateErrorElement: function () {
             /* If error element is already created, return existing element */

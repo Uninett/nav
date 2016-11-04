@@ -39,3 +39,68 @@ and (max-width : 480px) {
         display: none;
     }
 }
+
+
+/* Dashboard and widget stuff */
+
+#dashboard-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .heading {
+        margin-left: 1rem;
+        margin-right: 1rem;
+    }
+    .fa-arrow-left {
+        margin-left: 1rem;
+    }
+    .fa-arrow-right {
+        margin-right: 1rem;
+    }
+}
+
+.right-action-content.f-dropdown {
+    border: 7px solid #243640;
+    box-shadow: #666 0 5px 10px;
+    z-index: 1000;
+    form {
+        margin-bottom: 1em;
+    }
+    input, select, .button {
+        margin-bottom: 0;
+    }
+    .dashboard-title { cursor: pointer; }
+    .dashboard-title i { display: none; }
+    .dashboard-title:hover i { display: inline-block; }
+}
+
+#form-rename-dashboard {
+    label { overflow: hidden; }
+    input[type=text] { width: 100%; }
+}
+
+
+#widget-drop-targets {
+    background-color: whitesmoke;
+    border: 3px solid #243640;
+    display: none;
+    padding: 0 .5em .5em .5em;
+    position: absolute;
+    top: -90px;
+    > div {
+        display: flex;
+    }
+    .dashboard-drop {
+        background-color: white;
+        border: 1px solid #DDDDDD;
+        &:not(:last-child) { margin-right: .5em; }
+        padding: .5em;
+        min-width: 300px;
+        &.drop-active {
+            background-color: white;
+        }
+        &.drop-hover {
+            background-color: lightsteelblue;
+        }
+    }
+}

@@ -1,4 +1,5 @@
 name=Port Admin
 uri=/portadmin/
 icon=/static/images/toolbox/portadmin.svg
-description=Change vlan and interface description on interfaces.
+description=Configure interfaces on ip devices.
+doclink=/doc/reference/portadmin.html

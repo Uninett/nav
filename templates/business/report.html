@@ -1,0 +1,14 @@
+{% extends 'business/base.html' %}
+
+{% block content %}
+
+  <a href="{% url 'business-index' %}">Back to report index</a>
+
+  <section id="report-content" class="panel white">
+    {% block report-content %}
+
+    {% endblock %}
+  </section>
+
+
+{% endblock %}

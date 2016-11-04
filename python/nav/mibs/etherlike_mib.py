@@ -15,11 +15,13 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Implements a EtherLike-MIB MibRetriever and associated functionality."""
-
+from __future__ import absolute_import
 from twisted.internet import defer
-import mibretriever
+from . import mibretriever
+
 
 class EtherLikeMib(mibretriever.MibRetriever):
+    """MibRetriever for EtherLike-MIB"""
     from nav.smidumps.etherlike_mib import MIB as mib
 
     @defer.deferredGenerator

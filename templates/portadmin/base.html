@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+{% load tools %}
 
 {% block base_header_additional_head %}
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/portadmin.css"/>
@@ -8,7 +9,7 @@
 
 {% block base_content %}
 
-  {% with header as tool %}
+  {% with tool=current_user_data.tools|get_tool:'Port Admin' %}
     {% include 'nav_header.html' %}
   {% endwith %}
 

@@ -1,4 +1,4 @@
-define(['libs/spin', 'plugins/fullscreen'],
+define(['libs/spin.min', 'plugins/fullscreen'],
 function(Spinner, fullscreen) {
 
     var mapSelector = "map",

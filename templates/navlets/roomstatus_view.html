@@ -1,0 +1,81 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  {% if rooms %}
+
+    <div class="accordion">
+      {% for room in rooms %}
+        <h3 data-roomid="{{ room.pk }}">
+          {{ room }}
+          <small class="label radius alert"
+                 title="{{ room.alerts|length }} alerts in {{ room.pk }}">
+            {{ room.alerts|length }}
+          </small>
+        </h3>
+        <div>
+          <a href="{% url 'devicehistory-view-room' room.pk %}"
+             title="Go to device history for this room">Alerts</a>
+          in
+          <a href="{% url 'room-info' room.pk %}"
+             title="Go to room info for this room">{{ room.pk }}</a>
+
+          <ul>
+            {% for alert in room.alerts %}
+              <li>
+                {{ alert.start_time }} &ndash;
+                <a href="{{ alert.netbox.get_absolute_url }}"
+                   title="Go to device info for this device">
+                  {{ alert.sms_message.message }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endfor %}
+    </div>
+
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui.css">
+    <script>
+      require(['libs/jquery-ui.min'], function () {
+        var $navlet = $('[data-id={{ navlet.navlet_id }}]');
+
+        $navlet.find('.accordion').accordion({
+          active: getActiveHeaderIndex(),
+          collapsible: true,
+          heightStyle: 'content',
+          activate: function (event, ui) {
+            if (ui.newHeader.length) {
+              $navlet.data('active-header', ui.newHeader.data('roomid'));
+            } else {
+              $navlet.data('active-header', null);
+            }
+          }
+        });
+
+        function getActiveHeaderIndex() {
+          var activeHeader = $navlet.data('active-header');
+          var active = false;
+          if (activeHeader) {
+            $navlet.find('.accordion h3').each(function (index, element) {
+              if ($(element).data('roomid') === activeHeader) {
+                active = index;
+              }
+            });
+          }
+          return active;
+        }
+
+      });
+    </script>
+
+
+  {% else %}
+    <div class="alert-box success with-icon">No alerts in any rooms</div>
+  {% endif %}
+
+  <small class="right">
+    Last update: <span class="last-update">{{ last_update }}</span>
+  </small>
+
+{% endblock %}

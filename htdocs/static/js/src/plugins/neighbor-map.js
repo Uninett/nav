@@ -1,4 +1,7 @@
-define(["libs/d3.v2"], function () {
+define(function (require, exports, module) {
+
+    var d3 = require('d3v4');
+    var _ = require('libs/underscore');
 
     function NeighborMap(node) {
         this.motherNode = d3.select(node);  // Use this for selecting prior to svg
@@ -27,6 +30,13 @@ define(["libs/d3.v2"], function () {
             'UNRECOGNIZED': imagePath + '/unrecognized.png'
         };
 
+        this.selectors = {
+            nodes: '.node',
+            links: 'line.link',
+            linkLabelFromCenter: '.linkLabelFromCenter',
+            linkLabelToCenter: '.linkLabelToCenter'
+        };
+
         this.unrecognized = 'UNRECOGNIZED';
 
         this.unrecognizedToggler = d3.select('#unrecognized');
@@ -36,110 +46,86 @@ define(["libs/d3.v2"], function () {
     }
 
     NeighborMap.prototype = {
+        /** Create svg element */
         initialize: function () {
-            /* Create svg element and define force algorithm */
-            this.createSvg();
-            this.defineForceAlgorithm();
-            console.log('Init done');
-        },
-        createSvg: function () {
             this.svg = this.motherNode.append("svg")
                 .attr("width", this.width)
                 .attr("height", this.height)
                 .style("border", '1px solid black');
         },
-        defineForceAlgorithm: function () {
-            this.force = d3.layout.force()
-                .charge(-500)
-                .friction(0.7)
-                .linkDistance(this.linkDistance)
-                .size([this.width, this.height]);
-        },
+
         activatePanel: function () {
-            var that = this;
-            this.unrecognizedToggler.on('change', function () {
-                that.render();
-            });
+            this.unrecognizedToggler.on('change', this.render.bind(this));
         },
+
+        /** Fetch neighbourhood data for this netbox */
         fetchData: function () {
-            /* Fetch neighbourhood data for this netbox */
-            var that = this;
+            var self = this;
             d3.json('/ajax/open/neighbormap/' + this.netboxid, function (json) {
                 if (json) {
-                    that.data = json;
-                    that.render();
+                    // Filter duplicates
+                    json.nodes = _.uniq(json.nodes, function(node) { return node.netboxid; });
+
+                    self.data = json;
+                    self.render();
                 }
             });
         },
-        render: function () {
-            /* Create and display all objects and svg elements */
-            var that = this,
-                data = this.data;
 
-            this.updateNodes(data.nodes);
-            this.updateLinks(data.links);
+        /** Indicates if this node is the special focusnode */
+        isFocusNode: function(node) {
+            return node.netboxid === this.netboxid;
+        },
+
+        /** Create and display all objects and svg elements */
+        render: function () {
+            var data = this.data;
 
             if (!this.unrecognizedToggler.property('checked')) {
-                data = this.filterUncategorized();
+                data = this.filterUncategorized(data);
             }
 
-            this.force.nodes(data.nodes).links(data.links).start();
+            this.setCenterNode(data.nodes);
             this.createSvgLinks(data.links);
             this.createLinkLabels(data.links);
             this.createSvgNodes(data.nodes);
+            this.createSimulation(data);
+        },
 
-            this.force.on('tick', function () {
-                that.tick.call(that);
+        /** Filter out unrecognized nodes based on checkbox */
+        filterUncategorized: function (data) {
+            var self = this;
+
+            var nodeLookup = {};  // Temporary lookup for nodes
+            data.nodes.forEach(function(node) {
+                nodeLookup[node.netboxid] = node;
             });
-        },
-        updateNodes: function (nodes) {
-            /* Update all datanodes and a hash used when creating the links */
-            var i, l, node;
 
-            this.nodeHash = {};
-            for (i = 0, l = nodes.length; i < l; i++) {
-                node = nodes[i];
-                if (node.netboxid === this.netboxid) {
-                    node.fixed = true;  // Fix the main node
-                }
-                node.x = node.x || this.width / 2;
-                node.y = node.y || this.height / 2;
-                this.nodeHash[node.netboxid] = node;
-            }
-            return nodes;
+            return {
+                'nodes': data.nodes.filter(function(node) {
+                    return node.category !== self.unrecognized;
+                }),
+                'links': data.links.filter(function(link) {
+                    if (link.target.category) {
+                        return link.target.category !== self.unrecognized;
+                    } else {
+                        return nodeLookup[link.target].category !== self.unrecognized;
+                    }
+                })
+            };
         },
-        updateLinks: function (links) {
-            /* Set source and target for all links based on node hash */
-            var i, l, link;
-            for (i = 0, l = links.length; i < l; i++) {
-                link = links[i];
-                link.source = this.nodeHash[link.sourceId];
-                link.target = this.nodeHash[link.targetId];
-            }
-            return links;
+
+        /** Sets the node to be in the center */
+        setCenterNode: function(nodes) {
+            var centerNode = _.find(nodes, this.isFocusNode.bind(this));
+            centerNode.fx = this.width / 2;
+            centerNode.fy = this.height / 2;
         },
-        filterUncategorized: function () {
-            var data = this.data,
-                node,
-                link,
-                nodes = [],
-                links = [];
-            for (node in data.nodes) {
-                if (data.nodes.hasOwnProperty(node) && data.nodes[node].category !== this.unrecognized) {
-                    nodes.push(data.nodes[node]);
-                }
-            }
-            for (link in data.links) {
-                if (data.links.hasOwnProperty(link) && data.links[link].target.category !== this.unrecognized) {
-                    links.push(data.links[link]);
-                }
-            }
-            return {'nodes': nodes, 'links': links};
-        },
+
+        /** Create all the visible links between the nodes */
         createSvgLinks: function (dataLinks) {
-            /* Create all the visible links between the nodes */
-            this.svgLinks = this.svg.selectAll('.link').data(dataLinks);
-            this.svgLinks
+            var svgLinks = this.svg.selectAll(this.selectors.links).data(dataLinks);
+            var svgLinksEnter = svgLinks
                 .enter()
                 .append('line')
                 .attr('class', 'link')
@@ -151,14 +137,18 @@ define(["libs/d3.v2"], function () {
                     return strokeWidth;
                 })
                 .style('stroke', '#ddd');
-            this.svgLinks.exit().remove();
-
+            svgLinks.exit().remove();
+            this.svgLinks = svgLinks.merge(svgLinksEnter);
         },
+
+        /** Create the link labels, in this case interface names */
         createLinkLabels: function (dataLinks) {
-            /* Create the link labels, in this case interface names */
             var svgLinkLabelFromCenter, svgLinkLabelToCenter;
 
-            svgLinkLabelFromCenter = this.svg.selectAll('.linkLabelFromCenter').data(dataLinks);
+            svgLinkLabelFromCenter = this.svg
+                .selectAll(this.selectors.linkLabelFromCenter)
+                .data(dataLinks);
+
             svgLinkLabelFromCenter
                 .enter()
                 .append('g')
@@ -171,7 +161,10 @@ define(["libs/d3.v2"], function () {
                 });
             svgLinkLabelFromCenter.exit().remove();
 
-            svgLinkLabelToCenter = this.svg.selectAll('.linkLabelToCenter').data(dataLinks);
+            svgLinkLabelToCenter = this.svg
+                .selectAll(this.selectors.linkLabelToCenter)
+                .data(dataLinks);
+
             svgLinkLabelToCenter
                 .enter()
                 .append('g')
@@ -184,39 +177,52 @@ define(["libs/d3.v2"], function () {
                 });
             svgLinkLabelToCenter.exit().remove();
 
-            this.svgLinkLabelFromCenter = svgLinkLabelFromCenter;
-            this.svgLinkLabelToCenter = svgLinkLabelToCenter;
+            this.svgLinkLabelFromCenter = this.svg.selectAll(this.selectors.linkLabelFromCenter);
+            this.svgLinkLabelToCenter = this.svg.selectAll(this.selectors.linkLabelToCenter);
         },
+
+        /** Create all the visible nodes */
         createSvgNodes: function (dataNodes) {
-            /* Create all the visible nodes */
-            var that = this,
-                svgNodes = this.svg.selectAll('.node')
+            var self = this,
+                svgNodes = this.svg.selectAll(this.selectors.nodes)
                     .data(dataNodes, function (node) {
                         return node.netboxid;
                     }),
                 newNodes = svgNodes
                     .enter()
                     .append('g')
-                    .attr('class', function (node) {
-                        return node.netboxid === that.netboxid ? node.category + ' node main' : node.category + ' node';
-                    })
-                    .call(this.force.drag);
+                    .attr('class', 'node');
 
             svgNodes.exit().remove();
 
-            svgNodes.order();  // Reorder nodes to make sure new lines does not overwrite old nodes
-
-            // Prevent dragging on main node
-            this.svg.select('.node.main').on('mousedown.drag', null);
+            this.svgNodes = svgNodes.merge(newNodes);
+            // Reorder nodes to make sure new lines does not overwrite old nodes
+            this.svgNodes.order();
 
             this.appendImagesToNodes(newNodes);
             this.appendTextToNodes(newNodes);
             this.appendClickListeners(newNodes);
-            this.svgNodes = svgNodes;
         },
+
+        createSimulation: function(data) {
+            var simulation = d3.forceSimulation(data.nodes)
+                    .force('aversion', d3.forceCollide(50))
+                    .force('links', d3.forceLink(data.links)
+                           .distance(this.linkDistance)
+                           .id(function(d) {return d.netboxid;}));
+
+            if (data.nodes.length > 2) {
+                simulation.force('center', d3.forceCenter(this.width / 2, this.height / 2));
+            }
+
+            simulation.on('tick', this.tick.bind(this));
+
+            this.addDrag(simulation);
+        },
+
+        /** Update all positions for each tick of the force algorithm */
         tick: function () {
-            /* Update all positions for each tick of the force algorithm */
-            var that = this;
+            var self = this;
 
             this.svgLinks
                 .attr('x1', function (link) { return link.source.x; })
@@ -225,27 +231,24 @@ define(["libs/d3.v2"], function () {
                 .attr('y2', function (link) { return link.target.y; });
 
             this.svgLinkLabelFromCenter.attr('transform', function (link) {
-                return that.calculateLinePoint(link.source, link.target, that.getLabelDistance(link));
+                return self.calculateLinePoint(link.source, link.target, self.getLabelDistance(link));
             });
 
             this.svgLinkLabelToCenter.attr('transform', function (link) {
-                return that.calculateLinePoint(link.target, link.source, 50);
+                return self.calculateLinePoint(link.target, link.source, 50);
             });
-
-            this.svgNodes
-                .attr('cx', function (node) { return node.x; })
-                .attr('cy', function (node) { return node.y; });
 
             this.svgNodes.attr("transform", function (node) {
                 return "translate(" + node.x + "," + node.y + ")";
             });
         },
+
+        /** Append the correct images to the nodes */
         appendImagesToNodes: function (svgNodes) {
-            /* Append the correct images to the nodes */
-            var that = this;
+            var self = this;
             svgNodes.append('image')
                 .attr('xlink:href', function (node) {
-                    return that.nodeImages[node.category];
+                    return self.nodeImages[node.category];
                 })
                 .attr("x", -16)
                 .attr("y", -16)
@@ -253,28 +256,33 @@ define(["libs/d3.v2"], function () {
                 .attr('height', 32)
                 .style('cursor', 'pointer');
         },
+
+        /** Append correct text to the nodes */
         appendTextToNodes: function (svgNodes) {
-            /* Append correct text to the nodes */
             svgNodes.append("text")
                 .attr("dx", -16)
                 .attr("dy", 25)
+                .attr("text-anchor", "middle")
                 .text(function (node) {
                     return node.name;
                 });
         },
+
+        /** Go to other page when node is clicked */
         appendClickListeners: function (svgNodes) {
-            var that = this;
+            var self = this;
             svgNodes.on('click', function (node) {
-                if (node.category !== that.unrecognized) {
+                if (node.category !== self.unrecognized) {
                     location.href = '/ipdevinfo/' + node.sysname + '/#!neighbors';
                 }
             });
         },
+
+        /**
+         * Given source and target coords - calculate a point along the line
+         * between source and target with length 'distance' from the source
+         */
         calculateLinePoint: function (source, target, distance) {
-            /*
-             Given source and target coords - calculate a point along the line
-             between source and target with length 'distance' from the source
-             */
             var m, x, y,
                 x0 = source.x,
                 x1 = target.x,
@@ -294,6 +302,38 @@ define(["libs/d3.v2"], function () {
             var baseDistance = 70,
                 ifnameBasedDistance = baseDistance * (1 + (link.ifname.length - 1) * 0.3);
             return ifnameBasedDistance < this.linkDistance ? ifnameBasedDistance : this.linkDistance;
+        },
+
+        /** Add drag behaviour to nodes */
+        addDrag: function(simulation) {
+            function dragStarted(d) {
+                if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragging(d) {
+                d.fx = d3.event.x;
+                d.fy = d3.event.y;
+            }
+
+            function dragEnded(d) {
+                if (!d3.event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+
+            var self = this;
+            this.svgNodes.call(
+                d3.drag()
+                    .filter(function(node) {
+                        // Set focus node to not be draggable
+                        return !self.isFocusNode(node);
+                    })
+                    .on('start', dragStarted)
+                    .on('drag', dragging)
+                    .on('end', dragEnded)
+            );
         }
     };
 
