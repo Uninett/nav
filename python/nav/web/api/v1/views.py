@@ -17,17 +17,20 @@
 
 from IPy import IP
 from django.http import HttpResponse
+from django.template import loader, RequestContext, TemplateDoesNotExist
 from django.db.models import Q
 from django.db.models.related import RelatedObject
 from django.db.models.fields import FieldDoesNotExist
 from datetime import datetime, timedelta
 import iso8601
+from django.http.response import Http404
 
 from provider.utils import long_token
 from rest_framework import status, filters, viewsets, exceptions
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.reverse import reverse_lazy
-from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
+from rest_framework.renderers import (JSONRenderer, BrowsableAPIRenderer,
+                                      TemplateHTMLRenderer)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
@@ -584,6 +587,38 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
         return Response(serializer.data)
 
 
+class AlertFragmentRenderer(TemplateHTMLRenderer):
+    """Renders a html fragment for an alert
+
+    To use this you specify mime-type 'text/navfragment' in the accept header
+    Does not work for list views
+    """
+    media_type = 'text/navfragment'
+
+    def resolve_template(self, template_names):
+        """We most probably do not have all templates defined"""
+        try:
+            return loader.select_template(template_names)
+        except TemplateDoesNotExist:
+            raise Http404('Fragment template does not exist')
+
+    def resolve_context(self, data, request, _response):
+        """Populate the context used for rendering the template
+
+        :type request: rest_framework.request.Request
+        :type _response: rest_framework.request.Response
+        :param dict data: A dict object containing the serialized alert
+        """
+        _logger.debug(data)
+        _logger.debug(request)
+
+        if data.get('subject_type') == 'Netbox':
+            data.update({
+                'netbox': manage.Netbox.objects.get(sysname=data.get('subject'))
+            })
+        return RequestContext(request, data)
+
+
 class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Lists all alerts.
 
@@ -593,11 +628,20 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     - stateless_threshold: *hours back in time to fetch stateless alerts*
 
     Example: `?stateless=1&stateless_threshold=1000`
+
+    By setting the mime-type to `text/navfragment` you will get a
+    html-representation of the alert suitable for including in web-pages.
+    This only works on _retrieve_ operations, not _list_ operations.
     """
 
     filter_backends = (AlertHistoryFilterBackend,)
     model = event.AlertHistory
     serializer_class = alert_serializers.AlertHistorySerializer
+
+    def get_renderers(self):
+        if self.action == 'retrieve':
+            self.renderer_classes += (AlertFragmentRenderer,)
+        return super(AlertHistoryViewSet, self).get_renderers()
 
     def get_queryset(self):
         """Gets an AlertHistory QuerySet"""
@@ -618,6 +662,12 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_object(self, queryset=None):
         return super(AlertHistoryViewSet, self).get_object(self.model)
+
+    def get_template_names(self):
+        """Get the template name based on the alerthist object"""
+        alert = self.get_object()
+        return ['fragments/alerts/{}/{}.html'.format(
+            alert.event_type, alert.alert_type.name)]
 
 
 def get_or_create_token(request):
