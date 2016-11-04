@@ -479,7 +479,7 @@ define(function(require, exports, module) {
 
     // Add a context which we can mount our brush and axis on
     var context = svg.append("g")
-          .attr("transform", `translate(0, ${height + BRUSH_BOX_PADDING})`)
+          .attr("transform", "translate(0, " + (height + BRUSH_BOX_PADDING) + ")")
           .attr("class", "context");
 
     // Construct brush behavior
