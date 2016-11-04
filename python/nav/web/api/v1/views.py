@@ -609,9 +609,6 @@ class AlertFragmentRenderer(TemplateHTMLRenderer):
         :type _response: rest_framework.request.Response
         :param dict data: A dict object containing the serialized alert
         """
-        _logger.debug(data)
-        _logger.debug(request)
-
         if data.get('subject_type') == 'Netbox':
             data.update({
                 'netbox': manage.Netbox.objects.get(sysname=data.get('subject'))
