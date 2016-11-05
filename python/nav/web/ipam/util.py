@@ -116,6 +116,8 @@ def get_available_subnets(prefix_or_prefixes):
            An iterable IPy.IPSet of available addresses.
 
     """
+    if not isinstance(prefix_or_prefixes, list):
+        prefix_or_prefixes = [prefix_or_prefixes]
     base_prefixes = [str(prefix) for prefix in prefix_or_prefixes]
     all_used_prefixes = []
     for prefix in base_prefixes:
