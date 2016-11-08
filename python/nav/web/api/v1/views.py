@@ -671,8 +671,11 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     def get_template_names(self):
         """Get the template name based on the alerthist object"""
         alert = self.get_object()
-        return ['alertmsg/{}/{}.html'.format(
-            alert.event_type, alert.alert_type.name)]
+        return [
+            'alertmsg/{a.event_type}/{a.alert_type.name}.html'.format(a=alert),
+            'alertmsg/{a.event_type}/base.html'.format(a=alert),
+            'alertmsg/base.html'
+        ]
 
 
 def get_or_create_token(request):
