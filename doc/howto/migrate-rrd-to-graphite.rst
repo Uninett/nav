@@ -6,9 +6,14 @@ When upgrading from NAV 3 to NAV 4, you may want to keep historic traffic
 graphs and other time-series data collected into RRD files by NAV 3 and
 Cricket.
 
-NAV 4 comes with a utility for converting NAV 3 RRD files into Whisper_ files
+NAV 4.0 through 4.5 comes with a utility for converting NAV 3 RRD files into Whisper_ files
 (Whisper_ is the data format used by Graphite). This how-to documents usage of
 the utility and limitations of the conversion process.
+
+
+.. warning:: You cannot upgrade directly from NAV 3 to 4.6 and keep your RRD
+             data. You will either have make a decision to lose your old RRD
+             data, or perform an intermediary upgrade via an NAV 4 version.
 
 
 *****
