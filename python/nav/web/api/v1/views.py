@@ -598,13 +598,6 @@ class AlertFragmentRenderer(TemplateHTMLRenderer):
     """
     media_type = 'text/x-navfragment'
 
-    def resolve_template(self, template_names):
-        """We most probably do not have all templates defined"""
-        try:
-            return loader.select_template(template_names)
-        except TemplateDoesNotExist:
-            raise Http404('Fragment template does not exist')
-
     def resolve_context(self, data, request, _response):
         """Populate the context used for rendering the template
 
