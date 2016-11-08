@@ -593,7 +593,7 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
 class AlertFragmentRenderer(TemplateHTMLRenderer):
     """Renders a html fragment for an alert
 
-    To use this you specify mime-type 'text/navfragment' in the accept header
+    To use this you specify mime-type 'text/x-navfragment' in the accept header
     Does not work for list views
     """
     media_type = 'text/x-navfragment'
