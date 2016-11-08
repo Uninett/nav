@@ -477,7 +477,18 @@ define([
         },
 
         render: function () {
-            this.$el.html(this.template(this.model.attributes));
+            var self = this;
+            var url = NAV.urls.alert_endpoint + this.model.get('id');
+            var request = $.ajax(url, {
+                headers: { accept: 'text/x-navfragment' }
+            });
+            var context = self.model.attributes;
+            request.done(function (response) {
+                context = _.extend(self.model.attributes, { 'fragment': response });
+            });
+            request.always(function () {
+                self.$el.html(self.template(context));
+            });
         },
 
         unRender: function (model, collection) {
