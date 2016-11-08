@@ -49,6 +49,9 @@ from nav.web.status2 import STATELESS_THRESHOLD
 EXPIRE_DELTA = timedelta(days=365)
 MINIMUMPREFIXLENGTH = 4
 
+import logging
+_logger = logging.getLogger(__name__)
+
 
 class Iso8601ParseError(exceptions.ParseError):
     default_detail = ('Wrong format on timestamp. See '
@@ -593,7 +596,7 @@ class AlertFragmentRenderer(TemplateHTMLRenderer):
     To use this you specify mime-type 'text/navfragment' in the accept header
     Does not work for list views
     """
-    media_type = 'text/navfragment'
+    media_type = 'text/x-navfragment'
 
     def resolve_template(self, template_names):
         """We most probably do not have all templates defined"""
@@ -607,11 +610,16 @@ class AlertFragmentRenderer(TemplateHTMLRenderer):
 
         :type request: rest_framework.request.Request
         :type _response: rest_framework.request.Response
-        :param dict data: A dict object containing the serialized alert
+        :param dict data: The serialized alert
         """
-        if data.get('subject_type') == 'Netbox':
+        # Put the alert object in the context
+        data['alert'] = event.AlertHistory.objects.get(pk=data['id'])
+
+        netboxid = data.get('netbox')
+        if netboxid:
+            # Replace netbox (the netboxid) with netbox (the object)
             data.update({
-                'netbox': manage.Netbox.objects.get(sysname=data.get('subject'))
+                'netbox': manage.Netbox.objects.get(pk=netboxid)
             })
         return RequestContext(request, data)
 
@@ -663,7 +671,7 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     def get_template_names(self):
         """Get the template name based on the alerthist object"""
         alert = self.get_object()
-        return ['fragments/alerts/{}/{}.html'.format(
+        return ['alertmsg/{}/{}.html'.format(
             alert.event_type, alert.alert_type.name)]
 
 
