@@ -45,7 +45,6 @@ from nav.metrics.templates import (
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
-from nav.models.rrd import RrdDataSource
 from django_hstore import hstore
 import nav.models.event
 
@@ -287,15 +286,6 @@ class Netbox(models.Model):
             return self.sysname[:-len(settings.DOMAIN_SUFFIX)]
         else:
             return self.sysname
-
-    def get_rrd_data_sources(self):
-        """Returns all relevant RRD data sources"""
-        return RrdDataSource.objects.filter(rrd_file__netbox=self
-            ).exclude(
-                Q(rrd_file__subsystem__name__in=('pping', 'serviceping')) |
-                Q(rrd_file__key__isnull=False,
-                    rrd_file__key__in=('swport', 'gwport', 'interface'))
-            ).order_by('description')
 
     def is_on_maintenance(self):
         """Returns True if this netbox is currently on maintenance"""
@@ -1497,12 +1487,6 @@ class Interface(models.Model):
                 dt.datetime.now() - last_cam_entry_end_time
 
         return self.time_since_activity_cache[interval]
-
-    def get_rrd_data_sources(self):
-        """Returns all relevant RRD data sources"""
-        return RrdDataSource.objects.filter(
-                rrd_file__key='interface', rrd_file__value=str(self.id)
-            ).order_by('description')
 
     def get_port_metrics(self):
         """Gets a list of available Graphite metrics related to this Interface.
