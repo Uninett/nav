@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2014 UNINETT AS
+# Copyright (C) 2014, 2016 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,18 +17,17 @@
 """
 A command line interface to list and filter IP devices monitored by NAV
 """
-from optparse import OptionParser
+import argparse
 from nav.models.manage import Netbox
 import django
 
 
 def main():
     """Main program"""
-    (options, args) = parse_args()
+    args = parse_args()
     django.setup()
-    if args:
-        filtr = ' '.join(args)
-        qs = eval('Netbox.objects.' + filtr)
+    if args.filter:
+        qs = eval('Netbox.objects.' + args.filter)
     else:
         qs = Netbox.objects.all()
 
@@ -37,15 +36,17 @@ def main():
 
 
 def parse_args():
-    """Builds an OptionParser and returns parsed program arguments"""
-    parser = OptionParser(
+    """Builds an ArgumentParser and returns parsed program arguments"""
+    parser = argparse.ArgumentParser(
         description=
         "Lists and filters IP devices monitored by NAV",
-        usage="%prog [filter]",
-        epilog="The filter expression must be a method call applicable to the "
-               "Django-based Netbox model's manager class. Example: "
-               "\"filter(category__id='GSW')\"",
+        usage="%(prog)s [filter]",
     )
+    parser.add_argument('filter', nargs='?',
+                        help="The filter expression must be a method call "
+                             "applicable to the Django-based Netbox model's "
+                             "manager class. Example: "
+                             "\"filter(category__id='GSW')\"")
     return parser.parse_args()
 
 
