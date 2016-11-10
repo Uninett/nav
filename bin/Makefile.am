@@ -7,6 +7,7 @@ bin_SCRIPTS = $(wildcard *.py) $(wildcard *.sh) \
               naventity \
               navoidverify \
               navpgdump \
+              navsnmp \
               navstats \
               navsyncdb \
               navtopology \
