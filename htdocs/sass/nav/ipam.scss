@@ -54,8 +54,8 @@ with children are more and more "padded" */
 }
 
 .tree-control {
-    float: right;
     select {
+      float: right;
         max-width: 200px;
     }
     button {

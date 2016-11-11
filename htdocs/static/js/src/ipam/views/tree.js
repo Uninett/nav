@@ -323,7 +323,8 @@ define(function(require, exports, module) {
     events: {
       "open .prefix-tree-item": "incrementOpenNodes",
       "close .prefix-tree-item": "decrementOpenNodes",
-      "change .sort-by": "onSortBy"
+      "change .sort-by": "onSortBy",
+      "click .close-all": "resetOpenNodes"
     },
 
     // Functions used to determine the sorting order of the tree's children.
@@ -369,6 +370,9 @@ define(function(require, exports, module) {
     },
     resetOpenNodes: function() {
       this.debug("Resetting number of open nodes to 0");
+      // close all open nodes via hard reset, just to be safe
+      this.render();
+      // update model
       this.model.set("open_nodes", 0);
     },
 
