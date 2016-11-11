@@ -83,7 +83,7 @@ define(function(require, exports, module) {
 
     // Add containers/rects for each node in the prefix tree
     var subnet = svg.selectAll("g")
-          .data(_.rest(root.descendants()))
+          .data(root.descendants())
           .enter()
           .append("g")
           .attr("transform", function(d) { return "translate(" + xScale(d.x0) + "," + yScale(d.y0) + ")"; })
