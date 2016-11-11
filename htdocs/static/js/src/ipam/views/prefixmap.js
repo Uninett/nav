@@ -55,9 +55,35 @@ define(function(require, exports, module) {
           .attr("class", "matrix")
           .append("g");
 
+
+    // Draw static top node, e.g. not enhanced by zoom
+    var rootElem = _.first(root.descendants());
+    var rootNode = svg.selectAll("g")
+          .data([rootElem])
+          .enter()
+          .append("g")
+          .attr("transform", "translate(" + xScale(rootElem.x0) + "," + yScale(rootElem.y0) + ")")
+          .attr("class", "matrix-subnet-root");
+    rootNode.append("rect")
+      .attr("class", "matrix-subnet-root-rect")
+      .attr("fill", colors)
+      .attr("stroke", colors(rootElem).darker(1))
+      .attr("width", xScale(rootElem.x1) - xScale(rootElem.x0))
+      .attr("height", yScale(rootElem.y1) - yScale(rootElem.y0));
+    rootNode
+      .append("text")
+      .attr("visibility", "visible")
+      .attr("x", 0.5 * (xScale(rootElem.x1) - xScale(rootElem.x0)))
+      .attr("y", 0.5 * (yScale(rootElem.y1) - yScale(rootElem.y0)))
+      .attr("class", "matrix-subnet-root-prefix")
+      .append("tspan")
+      .text(rootElem.data.prefix)
+      .attr("x", 0.5 * (xScale(rootElem.x1) - xScale(rootElem.x0)))
+      .attr("y", 0.5 * (yScale(rootElem.y1) - yScale(rootElem.y0)));
+
     // Add containers/rects for each node in the prefix tree
     var subnet = svg.selectAll("g")
-          .data(root.descendants())
+          .data(_.rest(root.descendants()))
           .enter()
           .append("g")
           .attr("transform", function(d) { return "translate(" + xScale(d.x0) + "," + yScale(d.y0) + ")"; })
@@ -100,13 +126,20 @@ define(function(require, exports, module) {
 
     // Calculates the appropriate dimensions of all nodes depending on the domain of the xScale
     function calculateNodes() {
+      // Only calculate bottom nodes
       subnet.transition()
         .duration(750)
-        .attr("transform", function(d) { return "translate(" + xScale(d.x0) + "," + yScale(d.y0) + ")"; });
+        .attr("transform", function(d) {
+          return "translate(" + xScale(d.x0) + "," + yScale(d.y0) + ")";
+        });
       subnetRect.transition()
         .duration(750)
-        .attr("width", function(d) { return xScale(d.x1) - xScale(d.x0); })
-        .attr("height", function(d) { return yScale(d.y1) - yScale(d.y0); });
+        .attr("width", function(d) {
+          return xScale(d.x1) - xScale(d.x0);
+        })
+        .attr("height", function(d) {
+          return yScale(d.y1) - yScale(d.y0);
+        });
     }
 
     // Calculate what (if any) text should be shown for each prefix. TODO:
@@ -124,7 +157,7 @@ define(function(require, exports, module) {
           if (_width > 100) {
             return d.data.prefix;
           } else if (_width > 50) {
-            return "." + d.data.last_octet + "/" + d.data.prefixlen;
+            return "/" + d.data.prefixlen;
           } else {
             return "";
           }
@@ -193,10 +226,10 @@ define(function(require, exports, module) {
 
   // Maps different types of nodes to different colors
   var colorMap = {
-    "available": d3.hsl(0, 0, 1),
+    "used": d3.hsl(0, 0, .5),
     "reserved": d3.hsl(210, 0.79, 0.46),
-    "scope": d3.hsl(0, 0, 0.87),
-    "other": d3.hsl(0, 0, .5)
+    "available": d3.hsl(0, 0, 1),
+    "scope": d3.hsl(0, 0, 0.87)
   };
   // Map a node type to its particular color.
   function colors(d) {
@@ -207,7 +240,7 @@ define(function(require, exports, module) {
     if (_.has(colorMap, d.data.net_type)) {
       return colorMap[d.data.net_type];
     }
-    return colorMap["other"];
+    return colorMap["used"];
   }
 
   module.exports = PrefixMap;

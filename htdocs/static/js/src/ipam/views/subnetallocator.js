@@ -363,7 +363,6 @@ define(function(require, exports, module) {
 
   // This is where the hard part starts: The viz of the network layout. TODO:
   // Consider moving this into a separate file.
-  
 
   module.exports = AvailableSubnetsView;
 
