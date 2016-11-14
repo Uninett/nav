@@ -10,13 +10,16 @@
   {% endif %}
 
   <script>
-   require(['plugins/graphfetcher'], function(Fetcher) {
-       new Fetcher($('#graph-container-{{ navlet.navlet_id }}'), '{{ graph_url|safe }}', {
-           hideAddGraphButton: true,
-           hideTimeIntervalButtons: {{ hide_buttons }},
-           linkTarget: '{{ navlet.preferences.target }}'
-       });
-   });
+    require(['plugins/graphfetcher'], function (Fetcher) {
+      var graphNode = $('#graph-container-{{ navlet.navlet_id }}');
+      if (graphNode.length) {
+        new Fetcher(graphNode, '{{ graph_url|safe }}', {
+          hideAddGraphButton: true,
+          hideTimeIntervalButtons: {{ hide_buttons }},
+          linkTarget: '{{ navlet.preferences.target }}'
+        });
+      }
+    });
   </script>
 
 {% endblock %}
