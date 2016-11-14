@@ -53,13 +53,13 @@ class GraphWidget(Navlet):
 
     def get_context_data(self, **kwargs):
         context = super(GraphWidget, self).get_context_data(**kwargs)
+        show_controls = self.preferences.get('show_controls')
+        context['hide_buttons'] = 'false' if show_controls else 'true'
 
         url = title = None
         if self.preferences and 'url' in self.preferences:
             url = self.preferences['url']
             title = self.get_title()
-            show_controls = self.preferences.get('show_controls')
-            context['hide_buttons'] = 'false' if show_controls else 'true'
 
         context['graph_url'] = url
         if title:
