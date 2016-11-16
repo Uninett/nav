@@ -43,6 +43,7 @@ class PatchInfo(SeeddbInfo):
     """Class for storing meta information related to patches in SeedDB"""
     active = {'patch': True}
     active_page = 'patch'
+    documentation_url = '/doc/reference/cabling_and_patch.html'
     caption = 'Patch'
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'Patch'

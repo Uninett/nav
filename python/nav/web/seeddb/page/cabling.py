@@ -35,6 +35,7 @@ class CablingInfo(SeeddbInfo):
     active = {'cabling': True}
     caption = 'Cabling'
     active_page = 'cabling'
+    documentation_url = '/doc/reference/cabling_and_patch.html'
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'Cabling'
     verbose_name = Cabling._meta.verbose_name
