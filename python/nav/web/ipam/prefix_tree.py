@@ -144,6 +144,7 @@ class IpNodeFacade(IpNode):
         "length",
         "net_type",
         "children_pks",
+        "net_ident",
         "ip_version",
         "edit_url",
         "prefix",
@@ -173,6 +174,12 @@ class IpNodeFacade(IpNode):
     def empty_ranges(self):
         "Ranges within the node not spanned by its children"
         return [str(prefix) for prefix in self.not_in_use()]
+
+    @property
+    def net_ident(self):
+        "The identity of the associated VLAN/network"
+        ident = getattr(self, "_net_ident", None)
+        return ident if ident else None
 
     @property
     def bits(self):
@@ -281,6 +288,7 @@ class PrefixNode(IpNodeFacade):
         self._description = prefix.vlan.description
         self._organization = prefix.vlan.organization
         self._vlan_number = prefix.vlan.vlan
+        self._net_ident = prefix.vlan.net_ident
         # Export usage field of VLAN
         if getattr(prefix.vlan, "usage"):
             self.vlan_usage = prefix.vlan.usage.description
