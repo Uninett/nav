@@ -1,19 +1,23 @@
 <a href="#prefix-<%= pk %>" class="prefix-tree-item-title">
   <div class="prefix-graphs"></div>
-  <h3 class="ip"><%= prefix %></h3>
-  <span class="label secondary net-type"><%= net_type %></span>
+  <h3 class="ip">
+    <%= prefix %>
+    <span class="number-of-children">
+    <% if (length > 1) { %>
+    (<%= length %> children)
+    <% } %>
+    <% if (length === 1) { %>
+    (<%= length %> child)
+      <% } %>
+    </span>
+  </h3>
   <% if (vlan_number) { %>
-  <span class="label secondary">VLAN <%= vlan_number %></span>
+  <span class="vlan"><strong>VLAN <%= vlan_number %>:</strong> </span>
   <% } %>
-  <% if (description) { %>
-  <span class="label secondary"><%= description %></span>
+  <% if (net_ident) { %>
+  <span class="net_ident"><%= net_ident %></span> &mdash;
   <% } %>
-  <% if (length > 1) { %>
-  (<%= length %> children)
-  <% } %>
-  <% if (length === 1) { %>
-  (<%= length %> child)
-  <% } %>
+  <span class="net-type"><%= net_type %></span>
 </a>
 <div id="prefix-<%= pk %>" class="content prefix-tree-item-content">
   <div class="prefix-tree-item-content-data">
@@ -40,6 +44,9 @@
     <ul class="prefix-metadata">
       <% if (organization) { %>
       <li><strong>Organization:</strong> <%= organization %></li>
+      <% } %>
+      <% if (description) { %>
+      <li><strong>Description</strong> <%= description %></li>
       <% } %>
       <% if (vlan_usage) { %>
       <li><strong>Usage:</strong> <%= vlan_usage %></li>
