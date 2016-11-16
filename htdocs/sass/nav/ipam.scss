@@ -88,10 +88,19 @@ with children are more and more "padded" */
         background: $ipam-600;
     }
 
-    .number-of-children {
-      font-size: 60%;
-      color: #cce;
+    .ip {
+      display: flex;
+      align-items: center;
+      span.number-of-children {
+        font-size: 60%;
+        color: #333;
+        background: #90A4AE;
+        margin-left: 0.5em;
+        margin-bottom: 0;
+      }
     }
+
+    
 
 }
 

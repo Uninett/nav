@@ -2,14 +2,11 @@
   <div class="prefix-graphs"></div>
   <h3 class="ip">
     <%= prefix %>
-    <span class="number-of-children">
-    <% if (length > 1) { %>
-    (<%= length %> children)
-    <% } %>
-    <% if (length === 1) { %>
-    (<%= length %> child)
-      <% } %>
+    <% if (length >= 1) { %>
+    <span title="<%= length %> children" class="number-of-children label round">
+    <%= length %>
     </span>
+    <% } %>
   </h3>
   <% if (vlan_number) { %>
   <span class="vlan"><strong>VLAN <%= vlan_number %>:</strong> </span>
