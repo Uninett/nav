@@ -35,6 +35,7 @@ class PrefixQuerysetBuilder(object):
             queryset = Prefix.objects.all()
         self.queryset = queryset
         self.is_realized = False
+        self.post_hooks = [lambda x: x]
 
     def filter(self, origin, *args, **kwargs):
         """Works like queryset.filter, but returns self and short-circuits on
@@ -47,12 +48,36 @@ class PrefixQuerysetBuilder(object):
 
     def finalize(self):
         "Returns the queryset with all filters applied"
+        # Apply post-hooks before returning final result
+        _queryset = self.post_hooks([1])
+        for fn in self.post_hooks:
+            _queryset = fn(self.queryset)
         return self.queryset
 
     # Filter methods
     def organization(self, org):
         "Fuzzy match prefix on VLAN organization"
         return self.filter(org, vlan__organization__id=org)
+
+    def filter_full_prefixes(self):
+        """Remove /32 (or /128) prefixes from the queryset. Often useful to
+        reduce noise, as these are of little or no value to most network
+        planning operations.
+
+        Returns:
+            A lazy iterator of all filtered prefixes
+
+        """
+        def _filter_full_prefixes(q):
+            for prefix in q:
+                ip = IP(prefix.net_address)
+                if ip.version() == 4 and ip.prefixlen() < 32:
+                    yield prefix
+                if ip.version() == 6 and ip.prefixlen() < 128:
+                    yield prefix
+        self.post_hooks.append(_filter_full_prefixes)
+        return self
+            
 
     def description(self, descr):
         "Fuzzy match prefix on VLAN description"

@@ -94,6 +94,7 @@ class PrefixViewSet(viewsets.ViewSet):
         queryset.contains_ip(ip)
         queryset.usage(usage)
         queryset.description(description)
+        queryset.filter_full_prefixes()
         return queryset.finalize()
 
 
