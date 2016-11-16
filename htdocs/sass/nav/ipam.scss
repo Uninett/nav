@@ -88,8 +88,9 @@ with children are more and more "padded" */
         background: $ipam-600;
     }
 
-    .net-type {
-        text-transform: uppercase;
+    .number-of-children {
+      font-size: 60%;
+      color: #cce;
     }
 
 }
@@ -116,6 +117,19 @@ ul.accordion {
 
 .prefix-tree-flash {
     margin-top: 20px;
+}
+
+// Container for tooltips when hovering a node in the prefix map/allocator
+div.prefix-tooltip {
+  position: absolute;
+  text-align: center;
+  padding: 10px;
+  font: 12px sans-serif;
+  background: #222;
+  color: #f0f0f0;
+  border: 0px;
+  border-radius: 8px;
+  pointer-events: none;
 }
 
 // Main flash msg container for the app

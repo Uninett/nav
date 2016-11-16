@@ -55,6 +55,10 @@ define(function(require, exports, module) {
           .attr("class", "matrix")
           .append("g");
 
+    // Container for tooltip on nodes
+    var div = d3.select("body").append("div")
+          .attr("class", "prefix-tooltip")
+          .style("opacity", 0);
 
     // Draw static top node, e.g. not enhanced by zoom
     var rootElem = _.first(root.descendants());
@@ -94,6 +98,19 @@ define(function(require, exports, module) {
           .attr("stroke", function(d) { return colors(d).darker(1); })
           .on("click", function(d) {
             selectNodeCallback(d.data);
+          })
+          .on("mouseover", function(d) {
+            div.transition()
+              .duration(200)
+              .style("opacity", .9);
+            div.html(d.data.prefix)
+              .style("left", (d3.event.pageX) + "px")
+              .style("top", (d3.event.pageY - 28) + "px");
+          })
+          .on("mouseout", function(d) {
+            div.transition()
+              .duration(500)
+              .style("opacity", 0);
           });
     calculateNodes();
 
