@@ -51,6 +51,7 @@ class SeeddbInfo(object):
     back_url = None
     add_url = None
     bulk_url = None
+    documentation_url = None
 
     @property
     def title(self):
@@ -68,6 +69,7 @@ class SeeddbInfo(object):
         return {
             'active': self.active,
             'active_page': self.active_page,
+            'documentation_url': self.documentation_url,
             'title': self.title,
             'verbose_name': self.verbose_name,
             'caption': self.caption,

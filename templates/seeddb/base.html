@@ -80,6 +80,14 @@
                   {% include tab_template %}
                 </ul>
                 <h3>{% block heading %}{{ caption }}{% endblock %}</h3>
+                {% if documentation_url %}
+                  <a href="{{ documentation_url }}" target="_blank" class="documentation-subheader"
+                     title="View documentation (opens in another window)">
+                    <i class="fa fa-question-circle"></i>
+                    Documentation
+                  </a>
+                {% endif %}
+
               </div>
             </div>
           {% endif %}

@@ -408,6 +408,16 @@ select[multiple] {
 }
 
 
+/* Used for adding link to documentation from subheaders. For instance used in
+ * Cabling and Patch-pages in SeedDB
+ */
+.documentation-subheader {
+    font-size: .8rem;
+    line-height: 2em;
+    position: relative;
+    top: -1rem;
+}
+
 
 /**
  * Fullscreen styles
