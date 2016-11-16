@@ -49,9 +49,8 @@ class PrefixQuerysetBuilder(object):
     def finalize(self):
         "Returns the queryset with all filters applied"
         # Apply post-hooks before returning final result
-        _queryset = self.post_hooks([1])
         for fn in self.post_hooks:
-            _queryset = fn(self.queryset)
+            self.queryset = fn(self.queryset)
         return self.queryset
 
     # Filter methods
@@ -73,8 +72,10 @@ class PrefixQuerysetBuilder(object):
                 ip = IP(prefix.net_address)
                 if ip.version() == 4 and ip.prefixlen() < 32:
                     yield prefix
+                    continue
                 if ip.version() == 6 and ip.prefixlen() < 128:
                     yield prefix
+                    continue
         self.post_hooks.append(_filter_full_prefixes)
         return self
             
