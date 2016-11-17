@@ -605,6 +605,10 @@ class AlertFragmentRenderer(TemplateHTMLRenderer):
         :type _response: rest_framework.request.Response
         :param dict data: The serialized alert
         """
+
+        if not 'id' in data:
+            return RequestContext(request, data)
+
         # Put the alert object in the context
         data['alert'] = event.AlertHistory.objects.get(pk=data['id'])
 
