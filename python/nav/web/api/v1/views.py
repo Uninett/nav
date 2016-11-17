@@ -593,10 +593,10 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
 class AlertFragmentRenderer(TemplateHTMLRenderer):
     """Renders a html fragment for an alert
 
-    To use this you specify mime-type 'text/x-navfragment' in the accept header
+    To use this you specify mime-type 'text/x-nav-html' in the accept header
     Does not work for list views
     """
-    media_type = 'text/x-navfragment'
+    media_type = 'text/x-nav-html'
 
     def resolve_context(self, data, request, _response):
         """Populate the context used for rendering the template
@@ -631,9 +631,14 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     Example: `?stateless=1&stateless_threshold=1000`
 
-    By setting the mime-type to `text/navfragment` you will get a
-    html-representation of the alert suitable for including in web-pages.
-    This only works on _retrieve_ operations, not _list_ operations.
+    Headers
+    -------
+    By setting the mime-type to `text/x-nav-html` you will get a
+    html-representation of the alert suitable for including in web-pages. This
+    only works on _retrieve_ operations, not _list_ operations.
+
+    If the response is an empty string, this means that a template for that
+    alert does not exist.
     """
 
     filter_backends = (AlertHistoryFilterBackend,)
