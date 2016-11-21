@@ -11,6 +11,7 @@ bin_SCRIPTS = $(wildcard *.py) $(wildcard *.sh) \
               navstats \
               navsyncdb \
               navtopology \
+              navuser \
               thresholdmon
 
 check:
