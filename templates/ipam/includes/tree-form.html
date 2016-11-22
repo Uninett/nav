@@ -1,9 +1,11 @@
 <form id="prefix-tree-control" class="prefix-tree-control" onsubmit="return false;">
 
-  <a class="toggleAdvanced right">
-    Switch to <%= state === "ADVANCED_SEARCH" ? "simple search" : "advanced search" %>
-  </a>
-  <h3><%= state === "ADVANCED_SEARCH" ? "Advanced search" : "Simple search" %></h3>
+  <h3>Search</h3>
+
+  <div>
+    <button class="submit-search btn small">Search</button>
+    <button class="submit-reset btn small">Reset</button>
+  </div>
 
   <% if (state === "SIMPLE_SEARCH") { %>
   <!-- free text search -->
@@ -22,10 +24,9 @@
   </div>
   <% } %>
 
-  <% if (state === "ADVANCED_SEARCH") { %>
-   {% include "ipam/includes/tree-form-advanced.html" %}
-  <% } %>
+  {% include "ipam/includes/tree-form-advanced.html" %}
   <div>
     <button class="submit-search btn small">Search</button>
+    <button class="submit-reset btn small">Reset</button>
   </div>
 </form>

@@ -63,6 +63,12 @@ define(function(require, exports, module) {
       }
       // Keep a pointer to the fetch object, for tracking all fetches
       this.xhr = this.collection.fetch({reset: true});
+      // Hide children while fetching
+      this.tree.$el.hide();
+      var self = this;
+      this.xhr.done(function (){
+        self.tree.$el.show();
+      });
       flash.fetch();
     },
 
@@ -273,7 +279,7 @@ define(function(require, exports, module) {
       model.set('parent', self.model.get('prefix'));
       var payload = {
         model: model,
-        collection: children,
+        collection: children
       };
       self.showChildView("children", new TreeView(payload));
     },
@@ -317,14 +323,15 @@ define(function(require, exports, module) {
     events: {
       "open .prefix-tree-item": "incrementOpenNodes",
       "close .prefix-tree-item": "decrementOpenNodes",
-      "click .sort-by": "onSortBy"
+      "change .sort-by": "onSortBy",
+      "click .close-all": "resetOpenNodes"
     },
 
     // Functions used to determine the sorting order of the tree's children.
     comparators: {
       prefix: null,
       vlan: function(model) {
-        return -1.0 * model.get("vlan-number", 0);
+        return -1.0 * model.get("vlan_number", 0);
       },
       usage: function(model) {
         return -1.0 * model.get("usage", 0);
@@ -353,6 +360,7 @@ define(function(require, exports, module) {
       var currentCount = this.model.get("open_nodes");
       var newCount = currentCount + delta;
       this.model.set("open_nodes", newCount);
+      this.debug("Current open nodes", newCount);
       var childElem = this.$el.find(".prefix-tree-children");
       if (newCount > 0) {
         childElem.addClass("has_open_nodes");
@@ -360,11 +368,19 @@ define(function(require, exports, module) {
         childElem.removeClass("has_open_nodes");
       }
     },
+    resetOpenNodes: function() {
+      this.debug("Resetting number of open nodes to 0");
+      // close all open nodes via hard reset, just to be safe
+      this.render();
+      // update model
+      this.model.set("open_nodes", 0);
+    },
 
     // Revert to default order (e.g. order returned by API, where the nodes are
     // sorted by their prefixes).
     resetSort: function() {
       this.model.set("currentComparator", null);
+      this.resetOpenNodes();
       this.render();
     },
 
@@ -373,6 +389,8 @@ define(function(require, exports, module) {
       if (_.isUndefined(self.model)) {
         return;
       }
+      // all nodes will be closed, so reset counter
+      self.resetOpenNodes();
       var currentComparator = self.model.get("currentComparator");
       var comparatorFn = self.comparators[currentComparator] || null;
       self.viewComparator = comparatorFn;

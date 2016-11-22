@@ -35,6 +35,7 @@ class PrefixQuerysetBuilder(object):
             queryset = Prefix.objects.all()
         self.queryset = queryset
         self.is_realized = False
+        self.post_hooks = [lambda x: x]
 
     def filter(self, origin, *args, **kwargs):
         """Works like queryset.filter, but returns self and short-circuits on
@@ -47,12 +48,37 @@ class PrefixQuerysetBuilder(object):
 
     def finalize(self):
         "Returns the queryset with all filters applied"
+        # Apply post-hooks before returning final result
+        for fn in self.post_hooks:
+            self.queryset = fn(self.queryset)
         return self.queryset
 
     # Filter methods
     def organization(self, org):
         "Fuzzy match prefix on VLAN organization"
-        return self.filter(org, vlan__organization__id__icontains=org)
+        return self.filter(org, vlan__organization__id=org)
+
+    def filter_full_prefixes(self):
+        """Remove /32 (or /128) prefixes from the queryset. Often useful to
+        reduce noise, as these are of little or no value to most network
+        planning operations.
+
+        Returns:
+            A lazy iterator of all filtered prefixes
+
+        """
+        def _filter_full_prefixes(q):
+            for prefix in q:
+                ip = IP(prefix.net_address)
+                if ip.version() == 4 and ip.prefixlen() < 32:
+                    yield prefix
+                    continue
+                if ip.version() == 6 and ip.prefixlen() < 128:
+                    yield prefix
+                    continue
+        self.post_hooks.append(_filter_full_prefixes)
+        return self
+            
 
     def description(self, descr):
         "Fuzzy match prefix on VLAN description"
@@ -83,7 +109,7 @@ class PrefixQuerysetBuilder(object):
 
     def usage(self, usage):
         "Return prefixes based on their VLAN's usage field"
-        return self.filter(usage, vlan__usage__description__icontains=usage)
+        return self.filter(usage, vlan__usage__id=usage)
 
     # Mutating methods, e.g. resets the queryset
     def within(self, prefix):
@@ -105,7 +131,8 @@ class PrefixQuerysetBuilder(object):
 
 # Code finding available subnets
 def get_available_subnets(prefix_or_prefixes):
-    """Get available prefixes within a list of CIDR addresses.
+    """Get available prefixes within a list of CIDR addresses, based on
+    prefixes found in NAV.
 
     Args:
         prefix_or_prefixes: a single or a list of prefixes ("10.0.0.0/8") or
@@ -113,23 +140,43 @@ def get_available_subnets(prefix_or_prefixes):
 
     Returns:
            An iterable IPy.IPSet of available addresses.
+
     """
     if not isinstance(prefix_or_prefixes, list):
         prefix_or_prefixes = [prefix_or_prefixes]
     base_prefixes = [str(prefix) for prefix in prefix_or_prefixes]
-    # prefixes we are scoping our subnet search to
-    base = IPSet()
-    # prefixes in use
-    acc = IPSet()
+    all_used_prefixes = []
     for prefix in base_prefixes:
-        base.add(IP(prefix))
+        # Query NAV to get prefixes within the current base prefix
         used_prefixes = PrefixQuerysetBuilder().within(prefix).finalize()
         for used_prefix in used_prefixes:
-            acc.add(IP(used_prefix.net_address))
+            all_used_prefixes.append(used_prefix.net_address)
+    return _get_available_subnets(prefix_or_prefixes, all_used_prefixes)
+
+def _get_available_subnets(prefix_or_prefixes, used_prefixes):
+    """Get available prefixes within a list of CIDR addresses, based on what
+    prefixes are in use. E.g. this is `get_available_subnets`, but with
+    explicit dependency injection.
+
+    Args:
+        prefix_or_prefixes: a single or a list of prefixes ("10.0.0.0/8") or
+                          IPy.IP objects
+        used_prefixes: prefixes that are in use
+        
+
+    Returns:
+           An iterable IPy.IPSet of available addresses within prefix_or_prefixes
+
+    """
+    if not isinstance(prefix_or_prefixes, list):
+        prefix_or_prefixes = [prefix_or_prefixes]
+    base_prefixes = [str(prefix) for prefix in prefix_or_prefixes]
+    acc = IPSet([IP(prefix) for prefix in prefix_or_prefixes])
+    used_prefixes = IPSet([IP(used) for used in used_prefixes])
     # remove used prefixes
-    base.discard(acc)
+    acc.discard(used_prefixes)
     # filter away original prefixes
-    return sorted([ip for ip in base if str(ip) not in base_prefixes])
+    return sorted([ip for ip in acc if str(ip) not in base_prefixes])
 
 def partition_subnet(size, prefix):
     "Partition prefix into subnets with room for at at least n hosts"

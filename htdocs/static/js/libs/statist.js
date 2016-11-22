@@ -1,3 +1,20 @@
+//
+// Copyright (C) 2016 UNINETT AS
+//
+// This file is part of Network Administration Visualized (NAV).
+//
+// NAV is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 2 as published by
+// the Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+// more details.  You should have received a copy of the GNU General Public
+// License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+//
+// == STATIST, A SIMPLE FSM LIBRARY
+//
 // Simple FSM shim. It simply maps states to state maps, which in turn map
 // events to the next state. The next state might also be a function, which is
 // called (and passed any event data) and returns the next state. The state map
@@ -46,7 +63,8 @@ define(function (require, exports, module) {
   var FSM = function(stateMap) {
     var defaultMap = { INIT: {} };
     // Maps states to event handlers (state maps), which map events to new states
-    this.fsm = Object.assign(defaultMap, stateMap);
+    this.fsm = defaultMap;
+    _.extend(this.fsm, stateMap);
     // By convention, "INIT" is the default state and always defined
     this.state = "INIT";
     // Trigger for when a new state is entered
@@ -230,13 +248,17 @@ define(function (require, exports, module) {
       stateOrStateMap = this.fsm[stateOrStateMap];
     }
     // Temporarily unfreeze FSM
-    this.fsm = Object.assign({}, this.fsm);
+    var tmp = {};
+    _.extend(tmp, this.fsm);
+    this.fsm = tmp;
     var originalState = this.fsm[toExtend];
+    var newState = {};
     if (destructiveExtend) {
-      this.fsm[toExtend] = Object.assign({}, originalState, stateOrStateMap);
+      _.extend(newState, originalState, stateOrStateMap);
     } else {
-      this.fsm[toExtend] = Object.assign({}, stateOrStateMap, originalState);
+      _.extend(newState, stateOrStateMap, originalState);
     }
+    this.fsm[toExtend] = newState;
     // Update public API to reflect any changes, if any
     this.states = this.getStates();
     this.events = this.getEvents();

@@ -12,14 +12,12 @@ define(function(require, exports, module) {
   var Backbone = require("backbone");
   var Marionette = require("marionette");
   var Foundation = require("libs/foundation.min");
-  var d3 = require("d3v4");
   var debug = require("src/ipam/util").ipam_debug.new("views:available_subnets");
 
   var Models = require("src/ipam/models");
+  var PrefixMap = require("src/ipam/views/prefixmap");
 
   // For simplicity reasons, use a state singleton
-
-
   var viewStates = {
     INIT: {
       FETCH_STATS: "FETCHING_STATS",
@@ -117,12 +115,12 @@ define(function(require, exports, module) {
         self.fsm.step("FOCUS_NODE", __node);
       };
       // Signal state change, do stuff
-      AllocationTreemap({
+      PrefixMap({
         data: { prefix: "*", children: data },
-        treemapElem: treeMap,
+        mountElem: treeMap,
         width: 1024,
         height: 200,
-        notify: notify
+        selectNodeCallBack: notify
       });
     },
 
@@ -362,155 +360,9 @@ define(function(require, exports, module) {
 
   });
 
-  var viewbox = _.template("0 0 <%= width %> <%= height %>");
 
-  // todo: handle case of tree height = 0, e.g. no subnets (meaning we should be
-  // able to partition the prefix)
-
-  var AllocationTreemap = function(opts) {
-    var width = opts.width;
-    var height = opts.height;
-    var mountElem = opts.treemapElem;
-    var data = opts.data.children[0];
-    // callback fn
-    var notify = opts.notify;
-
-    var xScale = d3.scaleLinear().range([0, width]);
-    var yScale = d3.scaleLinear().range([0, height]);
-
-    var getWidth = function(d) {
-      return d.x1 - d.x0;
-    };
-
-    // split into hierarchical data
-    var partition = d3.partition();
-    var root = d3.hierarchy(data);
-
-    root.each(function (node) {
-      if (typeof node.data.prefixlen === "undefined") return;
-      node.value = Math.pow(2, 32 - node.data.prefixlen);
-    });
-    partition(root);
-
-    var svg = d3.select(mountElem).select(".viz")
-          .append("svg")
-          .attr("viewBox", viewbox({width: width, height: height}))
-          .attr("class", "matrix")
-          .append("g");
-
-    var subnet = svg.selectAll("g")
-          .data(root.descendants())
-          .enter()
-          .append("g")
-          .attr("class", "matrix-subnet")
-          .attr("transform", function(d) { return "translate(" + xScale(d.x0) + "," + yScale(d.y0) + ")"; });
-
-    var subnetRect = subnet.append("rect")
-          .attr("class", "matrix-subnet-rect")
-          .attr("width", function(d) { return xScale(d.x1 - d.x0); })
-          .attr("height", function(d) { return yScale(d.y1 - d.y0); })
-          .attr("fill", colors)
-          .attr("stroke", function(d) { return colors(d).darker(1); })
-          .on("click", zoom);
-
-    var subnetText = subnet.append("text");
-
-    var subnetPrefix = subnetText.append("tspan")
-          .attr("class", "matrix-subnet-prefix")
-          .attr("visibility", function(d) {
-            return xScale(getWidth(d)) > 30 ? "visible" : "hidden";
-          })
-          .on("click", zoom)
-          .text(function(d) {
-            var _width = xScale(getWidth(d));
-            if (_width > 100) {
-              return d.data.prefix;
-            } else if (_width > 50) {
-              return "." + d.data.last_octet + "/" + d.data.prefixlen;
-            } else {
-              return null;
-            }
-          });
-
-    // Center text
-    subnetText.selectAll("tspan")
-      .attr("x", function(d) { return 0.5 * (xScale(d.x1) - xScale(d.x0)); })
-      .attr("y", function(d) { return 0.5 * (yScale(d.y1) - yScale(d.y0)); });
-
-    // Draw legends
-    var legends = d3.select(mountElem).select(".legends");
-
-    var legend = legends.selectAll(".legends")
-          .data(_.keys(colorMap))
-          .enter()
-          .append("g");
-
-    var legendDot = legend
-          .append("div")
-          .style("display", "inline-block")
-          .style("border", "1px solid #666")
-          .style("width", "30px")
-          .style("height", "10px")
-          .style("margin-right", "5px")
-          .style("background-color", function(d) { return colorMap[d]; });
-
-    var legendText = legend
-          .append("span")
-          .style("margin-right", "10px")
-          .text(function(d) { return d.toString(); });
-
-    // Enter + update pattern?
-    function zoom(d) {
-      notify(d.data);
-      var xMask = 100;
-      xScale.domain([d.x0, d.x0 + (d.x1 - d.x0)]).range([d.x0 ? xMask : 0, width - xMask]);
-      yScale.domain([d.y0, 1]).range([d.y0 ? 20 : 0, height]);
-      subnet.transition()
-        .duration(750)
-        .attr("transform", function(d) { return "translate(" + xScale(d.x0) + "," + yScale(d.y0) + ")"; });
-      subnetRect.transition()
-        .duration(750)
-        .attr("width", function(d) { return xScale(d.x1) - xScale(d.x0); })
-        .attr("height", function(d) { return yScale(d.y1) - yScale(d.y0); });
-
-      subnetText.selectAll("tspan").transition()
-        .duration(750)
-        .attr("visibility", function(d) {
-          return xScale(d.x0 + (d.x1 - d.x0)) - xScale(d.x0) > 30 ? "visible" : "hidden";
-        })
-        .attr("x", function(d) { return 0.5 * (xScale(d.x1) - xScale(d.x0)); })
-        .attr("y", function(d) { return 0.5 * (yScale(d.y1) - yScale(d.y0)); })
-        .text(function(d) {
-          var _width = xScale(d.x1) - xScale(d.x0);
-          if (_width > 100) {
-            return d.data.prefix;
-          } else if (_width > 50) {
-            return "." + d.data.last_octet + "/" + d.data.prefixlen;
-          } else {
-            return "";
-          }
-        });
-    }
-  };
-
-  // Maps different types of nodes to different colors
-  var colorMap = {
-    "available": d3.hsl(0, 0, 1),
-    "reserved": d3.hsl(210, 0.79, 0.46),
-    "scope": d3.hsl(0, 0, 0.87),
-    "other": d3.hsl(0, 0, .5)
-  };
-  function colors(d) {
-    // root node
-    if (d.depth === 0) {
-      // 199° 98% 48%
-      return d3.hsl(199, 0.91, 0.64);
-    }
-    if (_.has(colorMap, d.data.net_type)) {
-      return colorMap[d.data.net_type];
-    }
-    return colorMap["other"];
-  }
+  // This is where the hard part starts: The viz of the network layout. TODO:
+  // Consider moving this into a separate file.
 
   module.exports = AvailableSubnetsView;
 

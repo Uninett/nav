@@ -1,3 +1,18 @@
+//
+// Copyright (C) 2016 UNINETT AS
+//
+// This file is part of Network Administration Visualized (NAV).
+//
+// NAV is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License version 2 as published by
+// the Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+// more details.  You should have received a copy of the GNU General Public
+// License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+//
 // == SIMPLE NAMESPACED DEBUGGER LOGGER
 //
 // Supports colon-separated (':') namespaces. Example usage:
@@ -29,7 +44,8 @@ define(function (require, exports, module) {
   var _ = require("libs/underscore");
 
   function Debugger(name) {
-    var debuggr = Object.assign({}, _Debugger);
+    var debuggr = {};
+    _.extend(debuggr, _Debugger);
     if (name !== null) {
       helpString(name);
       window[name] = debuggr;

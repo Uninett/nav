@@ -54,8 +54,8 @@ with children are more and more "padded" */
 }
 
 .tree-control {
-    float: right;
     select {
+      float: right;
         max-width: 200px;
     }
     button {
@@ -88,9 +88,19 @@ with children are more and more "padded" */
         background: $ipam-600;
     }
 
-    .net-type {
-        text-transform: uppercase;
+    .ip {
+      display: flex;
+      align-items: center;
+      span.number-of-children {
+        font-size: 60%;
+        color: #333;
+        background: #90A4AE;
+        margin-left: 0.5em;
+        margin-bottom: 0;
+      }
     }
+
+    
 
 }
 
@@ -116,6 +126,24 @@ ul.accordion {
 
 .prefix-tree-flash {
     margin-top: 20px;
+}
+
+// Container for tooltips when hovering a node in the prefix map/allocator
+div.prefix-tooltip {
+  position: absolute;
+  text-align: center;
+  padding: 10px;
+  font: 12px sans-serif;
+  background: #222;
+  color: #f0f0f0;
+  border: 0px;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+// Main flash msg container for the app
+#ipam-flash {
+  max-width: 350px;
 }
 
 // Search panel, forms etc. for prefix tree
