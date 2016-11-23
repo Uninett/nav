@@ -192,13 +192,24 @@ require([
         });
 
 
-        $('#form-set-default-dashboard').submit(function(event) {
+        var defaultDashboardContainer = $('#default-dashboard-container'),
+            setDefaultDashboardForm = $('#form-set-default-dashboard'),
+            isDefaultDashboardAlert = defaultDashboardContainer.find('.alert-box');
+
+        if (defaultDashboardContainer.data('is-default-dashboard')) {
+            setDefaultDashboardForm.hide();
+        } else {
+            isDefaultDashboardAlert.hide();
+        }
+
+        setDefaultDashboardForm.submit(function(event) {
             event.preventDefault();
             removeAlertbox();
-            var self = this;
             var request = $.post(this.getAttribute('action'));
             request.done(function(responseText) {
                 addFeedback(responseText);
+                setDefaultDashboardForm.hide();
+                isDefaultDashboardAlert.show();
             });
         });
 

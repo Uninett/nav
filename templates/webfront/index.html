@@ -138,13 +138,15 @@
       <div class="row">
 
         <div class="column medium-6">
-          {% if dashboard.is_default %}
-            <div class="alert-box">Default dashboard</div>
-          {% else %}
-            <form id="form-set-default-dashboard" method="post" action="{% url 'set-default-dashboard' dashboard.pk %}">
-              <input type="submit" value="Set as default dashboard" class="small button secondary">
+          <div id="default-dashboard-container"
+               data-is-default-dashboard="{{ dashboard.is_default|yesno:'1,0' }}">
+            <div class="alert-box">This is the default dashboard</div>
+            <form id="form-set-default-dashboard" method="post"
+                  action="{% url 'set-default-dashboard' dashboard.pk %}">
+              <input type="submit" value="Set as default dashboard"
+                     class="small button secondary">
             </form>
-          {% endif %}
+          </div>
         </div>
 
 
