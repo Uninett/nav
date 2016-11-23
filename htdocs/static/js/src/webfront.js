@@ -176,7 +176,7 @@ require([
 
         function addFeedback(text, klass) {
             klass = klass ? klass : 'success';
-            $alertBox.attr('class', 'alert-box').addClass(klass).html(text).appendTo($dashboardSettingsPanel);
+            $alertBox.attr('class', 'alert-box').addClass(klass).text(text).appendTo($dashboardSettingsPanel);
         }
 
         $dashboardSettingsPanel.on('closed', removeAlertbox);
@@ -224,14 +224,6 @@ require([
         });
 
         var $formRenameDashboard = $('#form-rename-dashboard');
-        var $dashboardTitleContainer = $dashboardSettingsPanel.find('.dashboard-title');
-        var $dashboardTitle = $dashboardSettingsPanel.find('span');
-        $formRenameDashboard.hide();
-        $dashboardTitleContainer.on('click', function() {
-            $dashboardTitleContainer.hide();
-            $formRenameDashboard.show().find('input').select();
-        });
-
         $formRenameDashboard.submit(function(event) {
             event.preventDefault();
             removeAlertbox();
@@ -240,17 +232,11 @@ require([
             request.done(function(responseText) {
                 var newName = self.elements['dashboard-name'].value;
 
-                // Alter name in settings panel
-                $dashboardTitle.text(newName);
-
                 // Alter name in tab title
                 NAV.setTitle(newName);
 
                 // Alter name in dashboard heading
-                $('#dashboard-header').find('.heading').html(newName);
-
-                $dashboardTitleContainer.show();
-                $formRenameDashboard.hide();
+                $('#dashboard-header').find('.heading').text(newName);
 
                 addFeedback(responseText);
             });

@@ -1,4 +1,4 @@
-"""Navbar (tools, preferences) and login related controllers"""
+# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2009-2011 UNINETT AS
 #
@@ -14,6 +14,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Navbar (tools, preferences) and login related controllers"""
+
 
 import os
 from datetime import datetime
@@ -335,7 +337,7 @@ def set_default_dashboard(request, did):
         old_default.is_default = False
         old_default.save()
     return HttpResponse(
-        u'Default dashboard set to &laquo;{}&raquo;'.format(dash.name))
+        u'Default dashboard set to «{}»'.format(dash.name))
 
 
 @require_POST
@@ -369,7 +371,7 @@ def rename_dashboard(request, did):
     dash.name = request.POST.get('dashboard-name', dash.name)
     dash.save()
     return HttpResponse(
-        u'Dashboard renamed to &laquo;{}&raquo;'.format(dash.name))
+        u'Dashboard renamed to «{}»'.format(dash.name))
 
 
 @require_POST
