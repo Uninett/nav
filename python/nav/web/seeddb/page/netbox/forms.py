@@ -119,10 +119,10 @@ class NetboxModelForm(forms.ModelForm):
         return sysname
 
     def clean_snmp_version(self):
-        """Set default snmp_version 1"""
-        snmp_version = self.cleaned_data.get('snmp_version', 1)
+        """Set default snmp_version 2"""
+        snmp_version = self.cleaned_data.get('snmp_version', 2)
         if not snmp_version:
-            snmp_version = 1
+            snmp_version = 2
         return snmp_version
 
     def clean_organization(self):
