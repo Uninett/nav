@@ -26,8 +26,18 @@ def find_dashboard(account, dashboard_id=None):
     except AccountDashboard.DoesNotExist:
         if dashboard_id:
             raise Http404
+
+        # Do we have a dashboard at all?
+        dashboards = AccountDashboard.objects.filter(account=account)
+        if dashboards.count() == 0:
+            raise Http404
+
         # No default dashboard? Find the one with the most widgets
-        dashboard = AccountDashboard.objects.filter(account=account).annotate(
-                Count('widgets')).order_by('-widgets__count')[0]
+        dashboard = dashboards.annotate(
+            Count('widgets')).order_by('-widgets__count')[0]
+    except AccountDashboard.MultipleObjectsReturned:
+        # Grab the first one
+        dashboard = AccountDashboard.objects.filter(account=account,
+                                                    **kwargs)[0]
 
     return dashboard
