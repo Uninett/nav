@@ -41,7 +41,8 @@ class RoomStatus(Navlet):
                 netbox__room=room,
                 end_time__gte=INFINITY).order_by('start_time')
             for alert in room.alerts:
-                alert.sms_message = alert.messages.get(type='sms')
+                alert.sms_message = alert.messages.get(type='sms',
+                                                       language='en')
 
         context['rooms'] = rooms
         context['last_update'] = datetime.now()
