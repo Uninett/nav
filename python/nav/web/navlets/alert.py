@@ -36,10 +36,15 @@ class AlertWidget(Navlet):
         return 'alert'
 
     def get_context_data(self, *args, **kwargs):
-        context = super(AlertWidget, self).get_context_data(*args, **kwargs)
+        context = super(AlertWidget, self).get_context_data(**kwargs)
         self.title = self.preferences.get('title', 'Alert')
         metric = self.preferences.get('metric')
-        sensorid = int(self.preferences.get('sensor', 0))
+
+        try:
+            sensorid = int(self.preferences.get('sensor', 0))
+        except ValueError:
+            sensorid = None
+
         if not metric and sensorid:
             metric = Sensor.objects.get(pk=sensorid).get_metric_name()
             self.preferences['metric'] = metric
