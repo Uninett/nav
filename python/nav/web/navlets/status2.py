@@ -85,7 +85,7 @@ class Status2Widget(Navlet):
             try:
                 netbox = Netbox.objects.select_related(
                     'room', 'room__location').get(pk=int(result['netbox']))
-            except Netbox.DoesNotExist:
+            except (Netbox.DoesNotExist, TypeError):
                 pass
             else:
                 result['netbox_object'] = netbox
