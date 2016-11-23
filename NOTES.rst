@@ -155,6 +155,9 @@ sub-hierarchy of locations, as will filtering on locations in the status tool.
 
 Location hierarchies are not yet respected by alert profiles and the Netmap.
 
+Please note that the bulk import format for locations has changed to include
+the parent location as the second field. Both the ``parent`` and the
+``description`` fields are now optional.
 
 Business reports
 ----------------
