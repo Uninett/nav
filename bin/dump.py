@@ -111,19 +111,21 @@ class Handlers(object):
 
     @staticmethod
     def location():
-        header("#locationid:descr")
+        header("#locationid[:parent:descr]")
         for location in manage.Location.objects.all():
-            line = [location.id, location.description]
+            line = [location.id, location.parent_id or '', location.description]
             lineout(line)
 
     @staticmethod
     def room():
-        header("#roomid[:locationid:descr:opt1:opt2:opt3:opt4:position]")
+        header("# roomid[:locationid:descr:position:attr=value:...]")
         for room in manage.Room.objects.all():
             line = [room.id, room.location.id if room.location else "",
                     room.description or ""]
             if room.position:
                 line.append("(%s, %s)" % room.position)
+            elif room.data:
+                line.append('')
             line.extend(['%s=%s' % x for x in room.data.items()])
             lineout(line)
 

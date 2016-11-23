@@ -31,6 +31,178 @@ rendering of documentation in the browseable API.
 The :mod:`IPy` Python library is now required to be at least version *0.81*.
 
 
+IPAM (IP Address Management)
+----------------------------
+
+This release introduces the IP Address Management tool, sponsored by the
+Norwegian University of Science and Technology (NTNU).
+
+Inspired by the already existing Subnet Matrix tool (reachable from NAV's
+Report tool), IPAM was developed to assist in IP address management tasks,
+using NAV's existing IP address prefix registry.
+
+NTNU has, like many other higher education institutions in Norway have lately,
+been merged with several other institutions, vastly increasing the number of
+assigned IP address blocks to manage.
+
+Whereas the Subnet Matrix can visualize a single network scope at a time, IPAM
+was built to visualize multiple scopes interactively, and to allow for the
+visualization of nested scopes. The tool includes search and filtering
+capabilities, including functions to search for unallocated subnets of
+specificed sizes and mark them as reserved (via SeedDB).
+
+
+Static routes
+-------------
+
+Along with the IPAM tool, comes the new opt-in ipdevpoll plugin
+`staticroutes`. This plugin re-implements the static routes plugin from
+:program:`getDeviceData` (the pre NAV 3.6 collector), providing you with the
+option of a more complete IP prefix registry.
+
+If you wish to automatically collect statically configured routes from your
+routers into NAV's prefix registry, you can add this plugin to you inventory
+job - or, since your static route configuration isn't likely to change very
+often, configure a separate ipdevpoll job with a much larger interval (e.g. 24
+hours).
+
+Collecting a router's entire routing table via SNMP can be taxing for some
+routers, which is why this plugin is not enabled by default. The plugin can
+also be configured to throttle the rate at which it sends SNMP requests to
+routers.
+
+
+Prefix information page and usage tags
+--------------------------------------
+
+A new per-prefix information page has been added, complementing the VLAN
+information page.
+
+As before, NAV will automatically collect the usage category of VLANs/subnets
+based on the NTNU router port description convention, if this is employed.
+Now, prefixes can be tagged with additional usage categories manually, through
+the new prefix information page.
+
+Valid usage categories are, as before, editable through SeedDB
+
+
+Link aggregation support
+------------------------
+
+Information about any type of aggregated link discoverable through the
+``IEEE8023-LAG-MIB`` (LACP) will collected and stored in NAV.
+
+A new event type, ``aggregateLinkState``, with the accompanying
+``linkDegraded`` and ``linkRestored`` alerts has been introduced. If link is
+lost on a interface known to be part of such an aggregate will cause NAV to
+generate a ``linkDegraded`` alert for the aggregated interface.
+
+Aggregation status of ports is also displayed in each port's details page.
+
+
+Multi- and fullscreen dashboards
+--------------------------------
+
+Users can now have multiple named dashboards. A default dashboard can be
+selected, which will be the first dashboard loaded when browsing the NAV front
+page. Any "add graph to dashboard"-type button in NAV will add widgets your
+default dashboard, but widgets can easily be moved between dashboards.
+
+A new "Compact dashboard" mode removes the unnecessary spacing between widgets
+when selected, while a new fullscreen mode takes your dashboard and browser
+into full screen mode, removing the header and footer elements of the web
+page.
+
+The number of columns on each dashboard can now be set individually using the
+dashboard menu to the right.
+
+
+New dashboard widgets
+---------------------
+
+New dashboard widgets are introduced:
+
+Alert
+  This (possibly poorly named) widget can monitor binary sensor values or
+  arbitrary Graphite metrics of a an otherwise boolean nature, to be used as
+  an alert indicator. UNINETT's use-case for this is showing the status of the
+  server room physical security system on the NOC screens.
+
+PDU load
+  A very specific plugin to display the power load status of APC power
+  distribution units (these are the only PDU units currently known to be
+  supported by NAV) on a room-by-room basis. UNINETT's use-case for this is
+  planning rack placements based on power consumption.
+
+UPS status
+  A graphical widget to display the inputs, outputs and status of any
+  NAV-supported UPS.
+
+Rooms with active alerts
+  A version of the status widget that aggregates and summarizes alerts by
+  room.
+
+
+Hierarchical locations
+----------------------
+
+Hierarchies of locations can now be defined. SeedDB will now present locations
+as a tree of entries, and parent locations can be selected from a dropdown
+when adding a new location.
+
+Selecting a location for a maintenance task, will implicitly include its full
+sub-hierarchy of locations, as will filtering on locations in the status tool.
+
+Location hierarchies are not yet respected by alert profiles and the Netmap.
+
+Please note that the bulk import format for locations has changed to include
+the parent location as the second field. Both the ``parent`` and the
+``description`` fields are now optional.
+
+Business reports
+----------------
+
+A new "Business reports" tool was added. This tool is meant for more complex
+reports than the pure SQL tabular reports NAV already sports. Each report must
+be implemented as Python code.
+
+Currently, two reports are implemented: A monthly device availability report
+(with selectable months), and a monthly link availability report (with
+selectable months). Both reports are based on NAV's alert history.
+
+
+Juniper EX switch series workaround
+-----------------------------------
+
+If you have Juniper EX switches, you may be interested in the new
+``juniperdot1q`` :program:`ipdevpoll` plugin, as a replacement for the regular
+``dot1q`` plugin.
+
+Juniper's implementation of ``Q-BRIDGE-MIB`` (the main MIB module used to
+retrieve information about 802.1Q VLAN configuration) has multiple bugs,
+several of which Juniper will not admit are bugs. The main issue for any NMS
+using this MIB to get VLAN information is that parts of their implementation
+uses opaque, internal VLAN IDs instead of public VLAN tags.
+
+You may already have seen that the VLANs NAV has discovered on your EX
+switches seem wrong. This is due to that implementation bug. The
+``juniperdot1q`` plugin will use a Juniper proprietary MIB, if supported by
+the device, to translate internal VLAN ids to public VLAN tags.
+
+This functionality was implemented as a separate plugin, due to the pernicious
+nature of the Juniper bugs. If you wish to test the plugin, simple replace the
+reference to the ``dot1q`` plugin with ``juniperdot1q`` in the
+:file:`ipdevpoll.conf` section ``[job_inventory]``.
+
+
+navusers command line
+---------------------
+
+A new command line program, :program:`navusers`, has been introduced. This
+program provides some simple means of manipulating NAV (web) accounts from the
+command line, which can be useful from a configuration management perspective.
+
+
 
 NAV 4.5
 ========
