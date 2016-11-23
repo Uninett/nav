@@ -32,7 +32,10 @@
 .alert-box {
     @include alert;
 
-    a { color: #014265; }  // Add darker link color for higher contrast.
+    a {
+        color: #014265;  // Add darker link color for higher contrast.
+        text-decoration: underline;  // Make links visible in alert-boxes
+    }
 
     .close { @include alert-close; }
 
