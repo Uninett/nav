@@ -35,8 +35,7 @@ from nav.web import ldapauth, auth
 from nav.web.utils import require_param
 from nav.web.webfront.utils import quick_read, tool_list
 from nav.web.webfront.forms import (LoginForm, NavbarLinkFormSet,
-                                    ChangePasswordForm, ColumnsForm,
-                                    DashboardForm)
+                                    ChangePasswordForm, ColumnsForm)
 from nav.web.navlets import list_navlets
 from nav.web.message import new_message, Messages
 from nav.web.webfront import get_widget_columns, find_dashboard
@@ -50,7 +49,7 @@ WELCOME_REGISTERED_PATH = os.path.join(WEBCONF_DIR_PATH,
 NAV_LINKS_PATH = os.path.join(WEBCONF_DIR_PATH, "nav-links.conf")
 
 
-def index(request):
+def index(request, did=None):
     """Controller for main page."""
     # Read files that will be displayed on front page
     if request.account.is_default_account():
@@ -58,7 +57,6 @@ def index(request):
     else:
         welcome = quick_read(WELCOME_REGISTERED_PATH)
 
-    did = request.GET.get('dashboard')
     dashboard = find_dashboard(request.account, did)
     dashboards = AccountDashboard.objects.filter(account=request.account)
 
@@ -67,8 +65,6 @@ def index(request):
         'date_now': datetime.today(),
         'welcome': welcome,
         'dashboard': dashboard,
-        'dashboard_form': DashboardForm(account=request.account,
-                                        initial={'dashboard': dashboard}),
         'dashboards': dashboards.exclude(id=dashboard.pk),
         'navlets': list_navlets(),
         'title': u'NAV - {}'.format(dashboard.name),

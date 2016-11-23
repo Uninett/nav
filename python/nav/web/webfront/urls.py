@@ -24,7 +24,7 @@ urlpatterns = patterns(
     url(r'^index/logout/', 'logout', name='webfront-logout'),
 
     # Dashboard
-    url(r'^\?dashboard=(?P<dashboard_id>\d+)', 'index', name='dashboard-index'),
+    url(r'^index/dashboard/(?P<did>\d+)', 'index', name='dashboard-index-id'),
     url(r'^index/dashboard/add/$', 'add_dashboard', name='add-dashboard'),
     url(r'^index/dashboard/set_default/(?P<did>\d+)/$', 'set_default_dashboard',
         name='set-default-dashboard'),
@@ -36,6 +36,7 @@ urlpatterns = patterns(
         name='save-dashboard-columns'),
     url(r'^index/dashboard/moveto/(?P<did>\d+)/$', 'moveto_dashboard',
         name='moveto-dashboard'),
+    url(r'^index/dashboard/', 'index', name='dashboard-index'),
 
     url(r'^about/', 'about', name='webfront-about'),
     url(r'^toolbox/$', 'toolbox', name='webfront-toolbox'),

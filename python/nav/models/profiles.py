@@ -1386,7 +1386,7 @@ class AccountDashboard(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('dashboard-index', kwargs={'dashboard_id': self.id})
+        return reverse('dashboard-index-id', kwargs={'did': self.id})
 
     class Meta(object):
         db_table = 'account_dashboard'

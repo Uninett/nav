@@ -17,6 +17,7 @@
    require(["src/webfront"]);
    NAV.preference_keys = NAV.preference_keys || {};
    NAV.preference_keys.widget_display_density = '{{ request.account.PREFERENCE_KEY_WIDGET_DISPLAY_DENSITY }}';
+  NAV.urls.dashboard_index = "{% url 'dashboard-index' %}";
   </script>
 {% endblock %}
 
@@ -137,11 +138,6 @@
         <label>
           <input type="text" name="dashboard-name" placeholder="Dashboard name" value="{{ dashboard.name }}">
         </label>
-      </form>
-
-      <small>You can also use the arrow keys (left/right) to switch dashboards.</small>
-      <form id="form-choose-dashboard">
-        {{ dashboard_form.as_p }}
       </form>
 
       <div class="row">

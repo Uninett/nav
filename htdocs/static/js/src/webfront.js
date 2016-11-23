@@ -219,7 +219,7 @@ require([
 
             var request = $.post(this.getAttribute('action'), $(this).serialize());
             request.done(function(response) {
-                window.location = '/?dashboard=' + response.dashboard_id;
+                window.location = NAV.urls.dashboard_index + response.dashboard_id;
             });
         });
 
@@ -239,10 +239,6 @@ require([
             var request = $.post(this.getAttribute('action'), $(this).serialize());
             request.done(function(responseText) {
                 var newName = self.elements['dashboard-name'].value;
-
-                // Alter name in dropdown
-                var $option = $('#form-choose-dashboard').find('select option[value=' + self.dataset.dashboard + ']');
-                $option.text(newName);
 
                 // Alter name in settings panel
                 $dashboardTitle.text(newName);
