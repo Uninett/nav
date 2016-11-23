@@ -335,7 +335,7 @@ def set_default_dashboard(request, did):
         old_default.is_default = False
         old_default.save()
     return HttpResponse(
-        'Default dashboard set to &laquo;{}&raquo;'.format(dash.name))
+        u'Default dashboard set to &laquo;{}&raquo;'.format(dash.name))
 
 
 @require_POST
