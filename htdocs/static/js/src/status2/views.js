@@ -139,6 +139,9 @@ define([
                 var removed = this.$el.find('#id_' + event.removed.id);
                 removed.closest('.ctrlHolder').hide();
                 removed.select2('val', '');  // Unselect all options
+                // Unselecting does not trigger the change-event that again
+                // triggers fetching data, so we have to do it ourself
+                this.fetchData();
             }
         },
 
