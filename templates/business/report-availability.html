@@ -47,9 +47,6 @@
           <th>Incidents</th>
           <th>Downtime</th>
           <th>Availability</th>
-          {% if display_packet_loss %}
-            <th>Packet loss</th>
-          {% endif %}
         </tr>
       </thead>
 
@@ -78,16 +75,11 @@
             <td>
               {{ record.availability|floatformat:"-3" }}%
             </td>
-            <td>
-              {% if display_packet_loss and record.subject %}
-                {{ record.subject.packetloss|floatformat:"-3" }}%
-              {% endif %}
-            </td>
           </tr>
 
           {# Hidden incidents row #}
           <tr class="hidden incident-row">
-            <td colspan="10">
+            <td colspan="4">
               <div>
                 <b>{{ record.incidents|length }} incident{{ record.incidents|pluralize }}</b>
                 <ul>
@@ -111,7 +103,7 @@
 
         {% empty %}
           <tr>
-            <td colspan="5">
+            <td colspan="4">
               No downtime in {{ start|date:'F Y' }}
             </td>
           </tr>

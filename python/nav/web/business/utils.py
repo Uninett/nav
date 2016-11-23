@@ -81,11 +81,3 @@ def create_record(subject, alerts, start, end):
     downtime = downtime - timedelta(microseconds=downtime.microseconds)
 
     return AvailabilityRecord(subject, alerts, downtime, availability)
-
-
-def add_packetloss(records, availabilities):
-    """Add packetloss to subjects"""
-    for record in records:
-        if record.subject:
-            loss = availabilities[record.subject.pk]['availability']
-            record.subject.packetloss = 100.0 - loss
