@@ -799,7 +799,10 @@ class Organization(models.Model, TreeMixin):
         ordering = ['id']
 
     def __unicode__(self):
-        return u'%s (%s)' % (self.id, self.description)
+        if self.description:
+            return u'{o.id} ({o.description})'.format(o=self)
+        else:
+            return u'{o.id}'.format(o=self)
 
     def extract_emails(self):
         """Naively extract email addresses from the contact string"""
