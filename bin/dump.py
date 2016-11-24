@@ -113,7 +113,8 @@ class Handlers(object):
     def location():
         header("#locationid[:parent:descr]")
         for location in manage.Location.objects.all():
-            line = [location.id, location.parent_id or '', location.description]
+            line = [location.id, location.parent_id or '',
+                    location.description or '']
             lineout(line)
 
     @staticmethod
