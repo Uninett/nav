@@ -75,7 +75,8 @@ class SensorForm(forms.Form):
 class PduWidgetForm(forms.Form):
     """Form for choosing a room"""
     room_id = forms.ChoiceField(choices=(), label='Room')
-    limits = forms.CharField(label='Limits (in amperes)')
+    limits = forms.IntegerField(
+        label='Max allowed load in amperes, per bank/circuit')
 
     def __init__(self, *args, **kwargs):
         super(PduWidgetForm, self).__init__(*args, **kwargs)
