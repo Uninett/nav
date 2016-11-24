@@ -26,6 +26,7 @@
     </ol>
   </div>
 
+  {% if has_registered_scopes %}
   <div class="ipam-sidebar panel white">
     <div class="sidebar-wrapper">
       <div class="row" id="ipam-controls"></div>
@@ -37,6 +38,13 @@
     </div>
     <!-- container for prefix tree -->
   </div>
+  {% else %}
+  <p class="alert-box secondary">
+    The NAV-database does not contain any network scopes.
+    <a href="{% url 'seeddb-prefix-edit' %}">Seed the database</a>
+    and return here to see the subnet matrix.
+  </p>
+  {% endif %}
 
   <script type="text/template" id="prefix-control-form">
     {% include "ipam/includes/tree-form.html" %}
