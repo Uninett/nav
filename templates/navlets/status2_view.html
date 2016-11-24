@@ -40,7 +40,13 @@
             </td>
               {% for key, value in extra_columns %}
                 <td>
-                {{ result.netbox_object|get_attr:key }}
+                    {% with result.netbox_object|get_attr:key as column %}
+                        {% if column.get_absolute_url %}
+                            <a href="{{ column.get_absolute_url }}">{{ column }}</a>
+                        {% else %}
+                            {{ column }}
+                        {% endif %}
+                    {% endwith %}
                 </td>
               {% endfor %}
           </tr>
