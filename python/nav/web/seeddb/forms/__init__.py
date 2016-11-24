@@ -265,7 +265,10 @@ class OrganizationForm(forms.ModelForm):
         parent = self.cleaned_data.get('parent')
         if parent:
             return Organization.objects.get(pk=parent)
-        return parent
+        else:
+            # Explicitly return None because no parent is an empty string and
+            # thus we need to return None, not the empty string
+            return None
 
 
 class OrganizationMoveForm(forms.Form):
