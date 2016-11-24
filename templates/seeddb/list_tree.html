@@ -17,7 +17,7 @@
 {% block footer_scripts %}
   {{ block.super }}
   <script>
-   $('.tree-list').on('click', 'i.fa', function(event) {
+   $('.tree-list').on('click', '.branch > i.fa', function(event) {
        $(event.target).toggleClass('fa-toggle-right fa-toggle-down').nextAll('.child').slideToggle();
    });
 
@@ -33,7 +33,7 @@
   </script>
   <script>
    require(['plugins/delegate_tooltip'], function(tooltip) {
-       tooltip(document.querySelector('.tree-list'), '.branch > a');
+       tooltip(document.querySelector('.tree-list'), '.branch > a i');
    });
   </script>
 {% endblock %}

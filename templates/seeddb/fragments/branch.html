@@ -2,13 +2,15 @@
   {% if branch.has_children %}
     <i class="fa fa-toggle-down"></i>
   {% endif %}
-  <a href="{% url edit_url_name branch.pk %}" class="tip-top">
+  <a href="{% url edit_url_name branch.pk %}">
     {{ branch }}
-    <div class="tooltip-text" style="display: none">
-      {% include 'seeddb/fragments/branch_tooltip.html' %}
-    </div>
+    <i class="fa fa-question-circle-o">
+      <div class="tooltip-text" style="display: none">
+        {% include 'seeddb/fragments/branch_tooltip.html' %}
+      </div>
+    </i>
   </a>
-  
+
   {% if branch.has_children %}
     <ul class="child">
       {% for child in branch.get_children %}
