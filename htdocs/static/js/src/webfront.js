@@ -189,6 +189,9 @@ require([
             // Save number of columns
             var url = $(this).closest('.button-group').data('url');
             var request = $.post(url, {num_columns: columns});
+            request.done(function () {
+                $navletsContainer.data('widget-columns', columns);
+            });
         });
 
 
