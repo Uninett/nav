@@ -728,6 +728,9 @@ class Room(models.Model):
         else:
             return u'%s' % (self.id)
 
+    def get_absolute_url(self):
+        return reverse('room-info', kwargs={'roomid': self.pk})
+
 
 class TreeMixin(object):
     """A mixin that provides methods for models that use parenting hierarchy"""
