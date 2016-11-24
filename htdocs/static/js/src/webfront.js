@@ -213,10 +213,6 @@ require([
             });
         });
 
-        $('#form-choose-dashboard').on('change', function() {
-            $(this).submit();
-        });
-
         $('#form-add-dashboard').submit(function(event) {
             event.preventDefault();
 
