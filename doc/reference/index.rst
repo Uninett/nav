@@ -13,6 +13,7 @@ This section contains reference material for end-users.
    arnold
    cabling_and_patch
    geomap
+   ipam
    ipdevpoll
    ldap
    mailin
