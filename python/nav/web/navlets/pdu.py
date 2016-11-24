@@ -51,11 +51,12 @@ class PduWidget(Navlet):
 
         room = Room.objects.get(pk=roomid)
         pdus = room.netbox_set.filter(category='POWER').filter(
-            Q(sysname__startswith='pdu-') |
-            Q(groups__in=['pdu'])).select_related('sensor')
+            sensor__internal_name__startswith='rPDULoadStatusLoad'
+        ).select_related('sensor').distinct()
         sorted_pdus = sorted(pdus, cmp=natcmp, key=lambda x: x.sysname)
         metrics = [s.get_metric_name() for pdu in pdus
-                   for s in pdu.sensor_set.all()]
+                   for s in pdu.sensor_set.filter(
+                       internal_name__startswith='rPDULoadStatusLoad')]
         context['pdus'] = sorted_pdus
         context['metrics'] = metrics
         context['data_url'] = reverse('graphite-render')

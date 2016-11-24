@@ -82,6 +82,7 @@ class PduWidgetForm(forms.Form):
 
         self.fields['room_id'].choices = [('', '----------')] + [
             (r.pk, str(r)) for r in Room.objects.filter(
-                Q(netbox__sysname__startswith='pdu') |
-                Q(netbox__groups__in=['pdu'])).distinct('id')
+                netbox__category='POWER',
+                netbox__sensor__internal_name__startswith='rPDULoadStatusLoad'
+            ).distinct('id')
         ]
