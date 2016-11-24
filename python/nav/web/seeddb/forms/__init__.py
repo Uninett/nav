@@ -248,7 +248,7 @@ class OrganizationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(OrganizationForm, self).__init__(*args, **kwargs)
         field = self.fields['parent']
-        field.choices=create_hierarchy(Organization)
+        field.choices = create_hierarchy(Organization)
 
         if self.instance.id:
             # disallow editing the primary key of existing record
