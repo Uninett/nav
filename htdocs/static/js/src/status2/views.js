@@ -483,7 +483,7 @@ define([
             var self = this;
             var url = NAV.urls.alert_endpoint + this.model.get('id');
             var request = $.ajax(url, {
-                headers: { accept: 'text/x-navfragment' }
+                headers: { accept: 'text/x-nav-html' }
             });
             var context = self.model.attributes;
             request.done(function (response) {
