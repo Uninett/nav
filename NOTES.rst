@@ -90,11 +90,11 @@ Link aggregation support
 ------------------------
 
 Information about any type of aggregated link discoverable through the
-``IEEE8023-LAG-MIB`` (LACP) will collected and stored in NAV.
+``IEEE8023-LAG-MIB`` (LACP) is collected and stored in NAV.
 
 A new event type, ``aggregateLinkState``, with the accompanying
 ``linkDegraded`` and ``linkRestored`` alerts has been introduced. If link is
-lost on a interface known to be part of such an aggregate will cause NAV to
+lost on an interface known to be part of such an aggregate it will cause NAV to
 generate a ``linkDegraded`` alert for the aggregated interface.
 
 Aggregation status of ports is also displayed in each port's details page.
@@ -105,16 +105,16 @@ Multi- and fullscreen dashboards
 
 Users can now have multiple named dashboards. A default dashboard can be
 selected, which will be the first dashboard loaded when browsing the NAV front
-page. Any "add graph to dashboard"-type button in NAV will add widgets your
-default dashboard, but widgets can easily be moved between dashboards.
+page. Any "add graph to dashboard"-type button in NAV will add widgets to your
+default dashboard, and widgets can easily be moved between dashboards.
 
-A new "Compact dashboard" mode removes the unnecessary spacing between widgets
-when selected, while a new fullscreen mode takes your dashboard and browser
-into full screen mode, removing the header and footer elements of the web
-page.
+A new "Compact dashboard" mode maximizes space by scaling down the content and
+removing the spacing between widgets, while a new fullscreen mode takes your
+dashboard and browser into full screen mode using the browser fullscreen API.
 
-The number of columns on each dashboard can now be set individually using the
-dashboard menu to the right.
+Each dashboard is individually configured using the dashboard menu to the
+right. This enables you for instance to have different number of columns for
+each dashboard.
 
 
 New dashboard widgets
@@ -123,10 +123,10 @@ New dashboard widgets
 New dashboard widgets are introduced:
 
 Alert
-  This (possibly poorly named) widget can monitor binary sensor values or
-  arbitrary Graphite metrics of a an otherwise boolean nature, to be used as
-  an alert indicator. UNINETT's use-case for this is showing the status of the
-  server room physical security system on the NOC screens.
+  This widget can monitor binary sensor values or arbitrary Graphite metrics
+  of a an otherwise boolean nature, to be used as an alert indicator. UNINETT's
+  use-case for this is showing the status of the server room physical security
+  system on the NOC screens.
 
 PDU load
   A very specific plugin to display the power load status of APC power
@@ -155,9 +155,10 @@ sub-hierarchy of locations, as will filtering on locations in the status tool.
 
 Location hierarchies are not yet respected by alert profiles and the Netmap.
 
-Please note that the bulk import format for locations has changed to include
-the parent location as the second field. Both the ``parent`` and the
-``description`` fields are now optional.
+Please note that the bulk import format for locations has changed to include the
+parent location as the second field. Both the ``parent`` and the ``description``
+fields are now optional. This makes it consistent with how organizations are
+imported.
 
 Business reports
 ----------------
