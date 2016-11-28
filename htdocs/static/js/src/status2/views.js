@@ -1,13 +1,12 @@
 define([
     'status/collections',
     'libs-amd/text!resources/status2/event_template.hbs',
-    'libs-amd/text!resources/status2/event_info_template.hbs',
     'moment',
     'status/handlebars-helpers',
     'libs/backbone',
     'libs/backbone-eventbroker',
-    'libs/handlebars',
-], function (Collections, EventTemplate, EventInfoTemplate, moment) {
+    'libs/handlebars'
+], function (Collections, EventTemplate, moment) {
 
     // This collection contains all the event-models that are to be cleared/acknowledged etc.
     var alertsToChange = new Collections.ChangeCollection();
@@ -464,15 +463,12 @@ define([
     });
 
 
-    var compiledEventInfoTemplate = Handlebars.compile(EventInfoTemplate);
     var EventInfoView = Backbone.View.extend({
         tagName: 'tr',
 
         attributes: {
             class: 'expanded hidden'
         },
-
-        template: compiledEventInfoTemplate,
 
         initialize: function () {
             this.listenTo(this.model, 'remove', this.unRender);
@@ -485,12 +481,8 @@ define([
             var request = $.ajax(url, {
                 headers: { accept: 'text/x-nav-html' }
             });
-            var context = self.model.attributes;
-            request.done(function (response) {
-                context = _.extend(self.model.attributes, { 'fragment': response });
-            });
-            request.always(function () {
-                self.$el.html(self.template(context));
+            request.always(function (response) {
+                self.$el.html(response);
             });
         },
 

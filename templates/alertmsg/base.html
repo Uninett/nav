@@ -1,2 +1,54 @@
-{% block content %}
-{% endblock %}
+<td colspan="7">
+  <div class="row">
+
+    {# Left content, 50% width #}
+    <div class="medium-6 column">
+      {% block left-content %}
+      {% endblock %}
+    </div>
+
+    {# Middle content, 25% width #}
+    <div class="medium-3 column">
+      {% block middle-content %}
+        {{ alert.alert_type.description }}
+        {% if alert.acknowledgement %}
+          <p>
+            Acknowledged by {{ acknowledgement.account.name }}
+            ({{ acknowledgement.date }})
+            {% if acknowledgement.comment %}
+              {{ acknowledgement.comment_html }}
+            {% endif %}
+          </p>
+        {% endif %}
+
+        {% if netbox.is_on_maintenance %}
+          <p>{{ netbox }} is on maintenance</p>
+        {% endif %}
+      {% endblock %}
+    </div>
+
+    {# Right content, 25% width #}
+    <div class="medium-3 column">
+      {% block right-content %}
+        <ul>
+          <li>
+            <a href="{{ event_history_url }}"
+               title="See history for {{ event_type.id }}">
+              History for {{ event_type.id }}
+            </a>
+          </li>
+
+          {% if netbox %}
+            <li>
+              <a href="{% url 'devicehistory-view-netbox' netbox.pk %}"
+                 title="See history for {{ netbox }}">
+                History for {{ netbox }}
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      {% endblock %}
+    </div>
+
+  </div>
+</td>
