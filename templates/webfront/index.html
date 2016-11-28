@@ -36,7 +36,10 @@
         </a>
         <i class="fa fa-arrow-left"></i>
       {% endif %}
-      <h3 class="heading">{{ dashboard }}</h3>
+      <h3 class="heading">{{ dashboard }}
+        <i class="fa fa-star {% if not dashboard.is_default %}hidden{% endif %}"
+           title="This is the default dashboard &mdash; it will be loaded when you log in. To change default, change to another dashboard and set it as default in the dashboard settings."></i>
+      </h3>
       {% if next_dashboard %}
         <i class="fa fa-arrow-right"></i>
         <a id="link-next-dashboard" href="{{ next_dashboard.get_absolute_url }}">

@@ -213,6 +213,7 @@ require([
                 addFeedback(responseText);
                 setDefaultDashboardForm.hide();
                 isDefaultDashboardAlert.show();
+                $('#dashboard-header').find('.heading .fa').removeClass('hidden');
             });
         });
 

@@ -50,6 +50,9 @@ and (max-width : 480px) {
     .heading {
         margin-left: 1rem;
         margin-right: 1rem;
+        .fa {
+            color: grey;
+        }
     }
     .fa-arrow-left {
         margin-left: 1rem;
