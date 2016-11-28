@@ -481,9 +481,14 @@ define([
             var request = $.ajax(url, {
                 headers: { accept: 'text/x-nav-html' }
             });
-            request.always(function (response) {
-                self.$el.html(response);
+            var $cell = $('<td colspan="7"></td>');
+            request.done(function (response) {
+                $cell.html(response);
             });
+            request.error(function () {
+                $cell.html('<div class="alert-box alert">Error fetching status details</div>');
+            });
+            self.$el.html($cell);
         },
 
         unRender: function (model, collection) {
