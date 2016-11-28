@@ -633,7 +633,7 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     Headers
     -------
-    By setting the mime-type to `text/x-nav-html` you will get a
+    By setting the _Accept_ header field to `text/x-nav-html` you will get a
     html-representation of the alert suitable for including in web-pages. This
     only works on _retrieve_ operations, not _list_ operations.
 
