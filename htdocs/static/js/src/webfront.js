@@ -247,7 +247,7 @@ require([
                 NAV.setTitle(newName);
 
                 // Alter name in dashboard heading
-                $('#dashboard-header').find('.heading').text(newName);
+                $('#dashboard-header').find('.heading span').text(newName);
 
                 addFeedback(responseText);
             });

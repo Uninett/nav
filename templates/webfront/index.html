@@ -36,7 +36,8 @@
         </a>
         <i class="fa fa-arrow-left"></i>
       {% endif %}
-      <h3 class="heading">{{ dashboard }}
+      <h3 class="heading">
+        <span>{{ dashboard }}</span>
         <i class="fa fa-star {% if not dashboard.is_default %}hidden{% endif %}"
            title="This is the default dashboard &mdash; it will be loaded when you log in. To change default, change to another dashboard and set it as default in the dashboard settings."></i>
       </h3>
