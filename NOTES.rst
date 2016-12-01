@@ -197,10 +197,10 @@ reference to the ``dot1q`` plugin with ``juniperdot1q`` in the
 :file:`ipdevpoll.conf` section ``[job_inventory]``.
 
 
-navusers command line
----------------------
+navuser command line
+--------------------
 
-A new command line program, :program:`navusers`, has been introduced. This
+A new command line program, :program:`navuser`, has been introduced. This
 program provides some simple means of manipulating NAV (web) accounts from the
 command line, which can be useful from a configuration management perspective.
 
