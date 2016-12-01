@@ -108,13 +108,14 @@ selected, which will be the first dashboard loaded when browsing the NAV front
 page. Any "add graph to dashboard"-type button in NAV will add widgets to your
 default dashboard, and widgets can easily be moved between dashboards.
 
-A new "Compact dashboard" mode maximizes space by scaling down the content and
-removing the spacing between widgets, while a new fullscreen mode takes your
-dashboard and browser into full screen mode using the browser fullscreen API.
+A new "Compact dashboard" mode maximizes your screen real estate, by scaling
+down the content and removing the spacing between widgets, while a new
+fullscreen mode takes your dashboard and browser into full screen mode, using
+the browser fullscreen API.
 
 Each dashboard is individually configured using the dashboard menu to the
-right. This enables you for instance to have different number of columns for
-each dashboard.
+right. This enables you, for instance, to have a different number of columns
+for each dashboard.
 
 
 New dashboard widgets
