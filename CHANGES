@@ -1,3 +1,35 @@
+Version 4.6.0
+(released 01 Dec 2016)
+
+ User-visible features and improvements:
+
+  * LP#1248086 (alert on loss of redundancy in an aggregated (portchannel) link)
+  * LP#1531850 (more flexible system for location of equipment)
+  * LP#1634874 (choose columns in status widget)
+  * LP#1646405 (Improve functions for IP Address Management [IPAM])
+  * LP#1646408 (prefix details page)
+  * LP#1646411 (Collect and store static routes)
+  * LP#1646413 (Work around buggy Q-BRIDGE-MIB implementation in Juniper EX
+                switches)
+  * LP#1646416 (Add a command line program to manipulate NAV users)
+
+  Please read the release notes for more information about the new features.
+
+ Bugfixes:
+
+  * LP#1626856 (ipdevpoll inventory job crashes if a device reports multiple
+                modules with the same name)
+  * LP#1629823 (prefix usage api endpoint lists empty results)
+  * LP#1630506 (Arnold detention crashes when switch reports SNMP agent error)
+  * LP#1634903 (LLDP topology bug when two devices share the same initial
+                sysname)
+  * LP#1638568 (Incomplete topology information causes eventengine to post
+                boxShadow alerts instead of boxDown alerts)
+  * LP#1640714 (Erroneous interpretation of LLDP-MIB port numbers may cause
+                wrong topology to be detected)
+  * LP#1641522 (Chart Widget unresponsive)
+
+
 Version 4.5.3
 (released 01 Sep 2016)
 
