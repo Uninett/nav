@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012 UNINETT AS
+# Copyright (C) 2012, 2016 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -13,18 +13,20 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"LLDP-MIB handling"
+""""LLDP-MIB handling"""
 import socket
 
 from IPy import IP
-from twisted.internet import defer
+from twisted.internet.defer import inlineCallbacks, returnValue
 
+from nav.mibs.if_mib import IfMib
 from nav.namedtuple import namedtuple
-from nav.mibs import mibretriever
-from nav.ipdevpoll.utils import get_multibridgemib, binary_mac_to_hex
+from nav.mibs import mibretriever, reduce_index
+from nav.ipdevpoll.utils import binary_mac_to_hex
+
 
 class LLDPMib(mibretriever.MibRetriever):
-    "A MibRetriever for handling LLDP-MIB"
+    """A MibRetriever for handling LLDP-MIB"""
     from nav.smidumps.lldp_mib import MIB as mib
 
     def get_remote_last_change(self):
@@ -34,18 +36,17 @@ class LLDPMib(mibretriever.MibRetriever):
         """
         return self.get_next('lldpStatsRemTablesLastChangeTime')
 
-    @defer.inlineCallbacks
+    @inlineCallbacks
     def get_remote_table(self):
-        "Returns the contents of the lldpRemTable"
+        """Returns the contents of the lldpRemTable"""
         table = yield self._retrieve_rem_table()
         if table:
-            baseports = yield self._get_baseport_map()
+            rows = yield self._translate_port_numbers(table)
+            result = [self._remote_entry_to_neighbor(row) for row in rows]
         else:
-            baseports = {}
+            result = []
 
-        result = [self._rem_entry_to_neighbor(row, baseports)
-                  for row in table.values()]
-        defer.returnValue(result)
+        returnValue(result)
 
     def _retrieve_rem_table(self):
         return self.retrieve_columns([
@@ -57,31 +58,78 @@ class LLDPMib(mibretriever.MibRetriever):
                 'lldpRemSysName',
                 ]).addCallback(self.translate_result)
 
-    @defer.inlineCallbacks
-    def _get_baseport_map(self):
-        bridge = yield get_multibridgemib(self.agent_proxy)
-        baseports = yield bridge.get_baseport_ifindex_map()
-        defer.returnValue(baseports)
-
     @staticmethod
-    def _rem_entry_to_neighbor(row, baseports):
-        _timemark, local_portnum, _index = row[0]
-
-        # according to LLDP-MIB, lldpPortNumber is a baseport number on 802.1d
-        # and 802.1q devices, otherwise it is an InterfaceIndex. The baseport
-        # map is only found on 1D and 1Q devices, so we remap the
-        # lldpPortNumber to an InterfaceIndex if we got an actual baseport map
-        if local_portnum in baseports:
-            local_portnum = baseports[local_portnum]
+    def _remote_entry_to_neighbor(row):
+        ifindex = row[0]
 
         chassis_id = IdSubtypes.get(row['lldpRemChassisIdSubtype'],
                                     row['lldpRemChassisId'])
         port_id = IdSubtypes.get(row['lldpRemPortIdSubtype'],
                                  row['lldpRemPortId'])
 
-        return LLDPNeighbor(local_portnum, chassis_id, port_id,
+        return LLDPNeighbor(ifindex, chassis_id, port_id,
                             row['lldpRemPortDesc'],
                             row['lldpRemSysName'])
+
+    @inlineCallbacks
+    def _translate_port_numbers(self, remote_table):
+        """
+        Translates local port number references to ifIndexes in lldpRemTable
+        result, if necessary.
+
+        Ideally, we want all port references to be ifIndexes, but some devices'
+        LLDP-MIB implementations will use dot1dBasePort references or something
+        altogether different. In our experience, ifIndex is most common,
+        dot1dBasePort is the second most common, while we really haven't seen
+        anything else used at this point.
+
+        """
+        remotes = remote_table.values()
+        local_ports = yield self._retrieve_local_ports()
+        idtypes = set(type(port) for port in local_ports.values())
+        if idtypes:
+            self._logger.debug("local port id types in use: %s",
+                               [t.__name__ for t in idtypes])
+        translation_necessary = IdSubtypes.interfaceName in idtypes
+
+        lookup = {}
+        if translation_necessary:
+            self._logger.debug("translation of local port numbers is necessary")
+            by_name = yield self._make_interface_lookup_dict()
+            for local_portnum, port in local_ports.items():
+                ifindex = by_name.get(port, None)
+                if ifindex:
+                    self._logger.debug(
+                        "translating local port num %s via %r to ifindex %s",
+                        local_portnum, port, ifindex)
+                    lookup[local_portnum] = ifindex
+
+        for remote in remotes:
+            _timemark, local_portnum, _index = remote[0]
+            remote[0] = lookup.get(local_portnum, local_portnum)
+
+        returnValue(remotes)
+
+    @inlineCallbacks
+    def _retrieve_local_ports(self):
+        ports = yield self.retrieve_columns([
+            'lldpLocPortIdSubtype',
+            'lldpLocPortId',
+        ]).addCallback(self.translate_result).addCallback(reduce_index)
+        result = {index: IdSubtypes.get(row['lldpLocPortIdSubtype'],
+                                        row['lldpLocPortId'])
+                  for index, row in ports.items()}
+        returnValue(result)
+
+    @inlineCallbacks
+    def _make_interface_lookup_dict(self):
+        ifmib = IfMib(self.agent_proxy)
+        ifnames = yield ifmib.get_ifnames()
+        lookup = {}
+        for ifindex, (ifname, ifdescr) in ifnames.items():
+            lookup[ifdescr] = ifindex
+            lookup[ifname] = ifindex
+        returnValue(lookup)
 
 # pylint: disable=C0103
 LLDPNeighbor = namedtuple("LLDPNeighbor",
@@ -92,11 +140,13 @@ LLDPNeighbor = namedtuple("LLDPNeighbor",
 # chassis and port identifiers that may be used in the lldpRemTable.
 #
 
+
 # pylint: disable=C0111,C0103,R0904,R0903
 class IdType(str):
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__,
                            str(self))
+
 
 class MacAddress(IdType):
     def __new__(cls, *args, **_kwargs):
@@ -106,6 +156,7 @@ class MacAddress(IdType):
         elif isinstance(arg, cls):
             return arg
         return IdType.__new__(cls, arg)
+
 
 class NetworkAddress(IdType):
     IPV4 = 1
@@ -130,6 +181,7 @@ class NetworkAddress(IdType):
         elif arg and isinstance(arg, cls):
             return arg
         return IdType.__new__(cls, arg)
+
 
 # pylint: disable=C0111,C0103,R0904,R0903
 class IdSubtypes(object):
