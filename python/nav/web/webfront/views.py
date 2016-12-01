@@ -146,7 +146,8 @@ def do_login(request):
                     return HttpResponseRedirect(origin)
             else:
                 _logger.info("failed login: %r", username)
-                errors.append('Username or password is incorrect.')
+                errors.append('Username or password is incorrect, or the '
+                              'account is locked.')
 
     # Something went wrong. Display login page with errors.
     return render(

@@ -54,8 +54,14 @@ def authenticate(username, password):
                 # We're authenticated now
                 auth = True
 
-    if (account and account.ext_sync == 'ldap' and
-        ldapauth.available and not auth):
+    if account and account.locked:
+        logger.info("Locked user %s tried to log in", account.login)
+
+    if (account and
+            account.ext_sync == 'ldap' and
+            ldapauth.available and
+            not auth and
+            not account.locked):
         try:
             auth = ldapauth.authenticate(username, password)
         except ldapauth.NoAnswerError:
