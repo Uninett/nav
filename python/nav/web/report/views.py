@@ -329,27 +329,18 @@ def make_report(request, report_name, export_delimiter, query_dict,
     gen = Generator()
     # Caching. Checks if cache exists for this user, that the cached report is
     # the one requested and that config files are unchanged.
-    if cache.get(cache_name) and cache.get(cache_name)[0] == uri_strip:
-        report_cache = cache.get(cache_name)
+    report_cache = cache.get(cache_name)
+    if report_cache and report_cache[0] == uri_strip:
         dbresult_cache = report_cache[7]
         config_cache = report_cache[6]
-        if not config_cache or not dbresult_cache or not report_cache:
-            # Might happen if last report was N/A or invalid request, config
-            # then ends up being None.
-            (report, contents, neg, operator, adv,
-             result_time) = _fetch_data_from_db()
-        else:
-            (report, contents, neg, operator, adv) = (
-                gen.make_report(report_name, None, None, query_dict,
-                                config_cache, dbresult_cache))
-            result_time = cache.get(cache_name)[8]
+        (report, contents, neg, operator, adv) = (
+            gen.make_report(report_name, None, None, query_dict,
+                            config_cache, dbresult_cache))
+        result_time = cache.get(cache_name)[8]
 
     else:  # Report not in cache, fetch data from DB
         (report, contents, neg, operator, adv,
          result_time) = _fetch_data_from_db()
-
-    if cache.get(cache_name) and not report:
-        raise RuntimeWarning("Found cache entry, but no report. Ooops, panic!")
 
     if export_delimiter:
         return generate_export(report, report_name, export_delimiter)
