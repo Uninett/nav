@@ -292,23 +292,14 @@ def make_report(request, report_name, export_delimiter, query_dict,
                              for x, y in query_dict.iteritems()
                              if x != 'page_number'])
 
-    query_dict_no_meta = query_dict.copy()
-    # Deleting meta variables from uri to help identifying if the report
-    # asked for is in the cache or not.
+    # Deleting meta variables and empty values from uri to help verifying
+    # that the requested report is in the cache
     meta_to_delete = ['offset', 'limit', 'export', 'exportcsv', 'page_number',
                       'page_size']
-    for meta in meta_to_delete:
-        if meta in query_dict_no_meta:
-            del query_dict_no_meta[meta]
+    uri_strip = {key: value
+                 for key, value in query_dict.items()
+                 if key not in meta_to_delete and value != ""}
 
-    helper_remove = dict((key, query_dict_no_meta[key])
-                         for key in query_dict_no_meta)
-    for key, val in helper_remove.items():
-        if val == "":
-            del query_dict_no_meta[key]
-
-    uri_strip = dict((key, query_dict_no_meta[key])
-                     for key in query_dict_no_meta)
     mtime_config = (os.stat(CONFIG_FILE_PACKAGE).st_mtime +
                     os.stat(CONFIG_FILE_LOCAL).st_mtime)
     cache_name = 'report_%s__%s%s' % (request.account.login,
