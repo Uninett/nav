@@ -62,7 +62,8 @@ require([
          */
         // Find available dashboards
         var $dashboardNavigator = $('#dashboard-nav');
-        var dashboards = $.map($dashboardNavigator.find('[data-dashboard]'), function(element) {
+        var $dashboardButtons = $dashboardNavigator.find('[data-dashboard]');
+        var dashboards = $.map($dashboardButtons, function(element) {
             return $(element).data('dashboard');
         });
         var current = $dashboardNavigator.find('.current a').data('dashboard');
@@ -71,13 +72,13 @@ require([
         var fetchPreviousDashboard = function() {
             var previousId = dashboards[currentIndex === 0 ? dashboards.length - 1 : currentIndex - 1];
             $navletsContainer.css('position', 'relative').animate({'left': '4000px'}, function() {
-                window.location = $dashboardNavigator.find('[data-dashboard="' + previousId + '"]').attr('href');
+                window.location = $dashboardButtons.filter('[data-dashboard="' + previousId + '"]').attr('href');
             });
         };
         var fetchNextDashboard = function() {
             var nextId = dashboards[currentIndex === dashboards.length - 1 ? 0 : currentIndex + 1];
             $navletsContainer.css('position', 'relative').animate({'right': '4000px'}, function() {
-                window.location = $dashboardNavigator.find('[data-dashboard="' + nextId + '"]').attr('href');
+                window.location = $dashboardButtons.filter('[data-dashboard="' + nextId + '"]').attr('href');
             });
         };
 
