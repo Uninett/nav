@@ -221,7 +221,8 @@ require([
                 addFeedback(responseText);
                 setDefaultDashboardForm.hide();
                 isDefaultDashboardAlert.show();
-                $('#dashboard-header').find('.heading .fa').removeClass('hidden');
+                $dashboardNavigator.find('.fa-star').addClass('hidden');
+                $dashboardNavigator.find('.current .fa-star').removeClass('hidden');
             });
         });
 
