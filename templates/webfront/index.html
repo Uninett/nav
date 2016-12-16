@@ -57,6 +57,7 @@
     {% endcomment %}
 
 
+    {% comment %}
     {% if dashboards|length > 0 %}
       <div id="widget-drop-targets">
         <small>Drag widgets to move to other dashboards</small>
@@ -69,7 +70,7 @@
         </div>
       </div>
     {% endif %}
-
+    {% endcomment %}
 
     <div id="widgets-actions" class="hide-for-small" >
       <div id="widgets-action-add" title="Add widget" data-reveal data-reveal-id="navlet-list">
@@ -203,6 +204,7 @@
         <a href="{{ d.get_absolute_url }}"
            title="Go to dashboard «{{ d.name }}»"
            data-dashboard="{{ d.pk }}"
+           data-url="{% url 'moveto-dashboard' d.pk %}"
            >
           {{ d.name }}
           <i class="fa fa-star {% if not d.is_default %}hidden{% endif %}"
