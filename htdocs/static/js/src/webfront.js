@@ -109,7 +109,9 @@ require([
         };
         $navletsContainer.on('sortstop', fadeOutDrop);
 
-        $dashboardButtons.droppable({
+        $dashboardButtons.not(function() {
+            return $(this).closest('li').hasClass('current');
+        }).droppable({
             activeClass: "drop-active",
             hoverClass: "drop-hover",
             tolerance: "pointer",
