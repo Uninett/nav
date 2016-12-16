@@ -60,19 +60,26 @@ require([
         /**
          * Keyboard navigation to switch dashboards
          */
+        // Find available dashboards
+        var $dashboardNavigator = $('#dashboard-nav');
+        var dashboards = $.map($dashboardNavigator.find('[data-dashboard]'), function(element) {
+            return $(element).data('dashboard');
+        });
+        var current = $dashboardNavigator.find('.current a').data('dashboard');
+        var currentIndex = dashboards.indexOf(current);
+
         var fetchPreviousDashboard = function() {
+            var previousId = dashboards[currentIndex === 0 ? dashboards.length - 1 : currentIndex - 1];
             $navletsContainer.css('position', 'relative').animate({'left': '4000px'}, function() {
-                window.location = $('#link-previous-dashboard').attr('href');
+                window.location = $dashboardNavigator.find('[data-dashboard="' + previousId + '"]').attr('href');
             });
         };
         var fetchNextDashboard = function() {
+            var nextId = dashboards[currentIndex === dashboards.length - 1 ? 0 : currentIndex + 1];
             $navletsContainer.css('position', 'relative').animate({'right': '4000px'}, function() {
-                window.location = $('#link-next-dashboard').attr('href');
+                window.location = $dashboardNavigator.find('[data-dashboard="' + nextId + '"]').attr('href');
             });
         };
-
-        // $(document).on('swipeleft', fetchPreviousDashboard);
-        // $(document).on('swiperight', fetchNextDashboard);
 
         $(document).keydown(function(event) {
             if (!event.target.form) {

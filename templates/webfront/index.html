@@ -196,11 +196,14 @@
 
   {% endif %}
 
-  <ul class="pagination">
+  <ul id="dashboard-nav" class="pagination">
     <li class="unavailable"><a href="">Dashboards:</a></li>
     {% for d in dashboards %}
       <li {% if d.pk == dashboard.pk %}class="current"{% endif %}>
-        <a href="{{ d.get_absolute_url }}" title="Go to dashboard «{{ d.name }}»">
+        <a href="{{ d.get_absolute_url }}"
+           title="Go to dashboard «{{ d.name }}»"
+           data-dashboard="{{ d.pk }}"
+           >
           {{ d.name }}
           <i class="fa fa-star {% if not d.is_default %}hidden{% endif %}"
              title="This is the default dashboard &mdash; it will be loaded when you log in. To change default, change to another dashboard and set it as default in the dashboard settings."></i>
