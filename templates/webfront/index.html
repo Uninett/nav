@@ -173,7 +173,7 @@
            data-dashboard="{{ d.pk }}"
            data-url="{% url 'moveto-dashboard' d.pk %}"
            >
-          {{ d.name }}
+          <span>{{ d.name }}</span>
           <i class="fa fa-star {% if not d.is_default %}hidden{% endif %}"
              title="This is the default dashboard &mdash; it will be loaded when you log in. To change default, change to another dashboard and set it as default in the dashboard settings."></i>
         </a>

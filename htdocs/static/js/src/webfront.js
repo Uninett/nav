@@ -264,8 +264,8 @@ require([
                 // Alter name in tab title
                 NAV.setTitle(newName);
 
-                // Alter name in dashboard heading
-                $('#dashboard-header').find('.heading span').text(newName);
+                // Alter name in dashboard navigation
+                $('#dashboard-nav').find('.current a span').text(newName);
 
                 feedback.addFeedback(responseText);
             });
