@@ -17,7 +17,7 @@ $fullscreen-color: #EEE;
 /* Is a column is empty, make sure it has some size to be visible */
 .navletColumn {
     min-width: 20px;
-    min-height: 20px;
+    min-height: 100px;
 }
 
 .navlet {
