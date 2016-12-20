@@ -77,7 +77,7 @@ class Netbox(Shadow):
                         type.
 
         """
-        type_ = new_type.convert_to_model()
+        type_ = new_type.convert_to_model() if new_type else None
         if type_:
             type_.save()
 
