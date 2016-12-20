@@ -8,6 +8,7 @@ require([
     'use strict';
 
     var $navletsContainer = $('#navlets');
+    var $dashboardNavigator = $('#dashboard-nav');
 
     function createRoomMap(mapwrapper, room_map) {
         $.getJSON('/ajax/open/roommapper/rooms/', function (data) {
@@ -18,107 +19,73 @@ require([
         });
     }
 
-    $(function () {
-        var numColumns = $navletsContainer.data('widget-columns');
-        var controller = new NavletsController($navletsContainer, numColumns);
-        controller.container.on('navlet-rendered', function (event, node) {
-            var mapwrapper = node.find('.mapwrapper');
-            var room_map = mapwrapper.find('#room_map');
-            if (room_map.length > 0) {
-                createRoomMap(mapwrapper, room_map);
-            }
 
-
-            if (node.hasClass('SensorWidget')) {
-                var sensor = new SensorsController(node.find('.room-sensor'));
-            }
-
-
-        });
-
-
-        /* Add click listener to joyride button */
-        $navletsContainer.on('click', '#joyrideme', function () {
-            var menu = $('.toggle-topbar'),
-                is_small_screen = menu.is(':visible');
-
-            if (is_small_screen) {
-                $('#joyride_for_desktop').remove();
-            } else {
-                $('#joyride_for_mobile').remove();
-            }
-
-            $(document).foundation('joyride', 'start');
-        });
-
-        /* Need some way of doing javascript stuff on widgets */
-        $navletsContainer.on('click', '.watchdog-tests .label.alert', function (event) {
-            $(event.target).closest('li').find('ul').toggle();
-        });
-
-
-        /**
-         * Keyboard navigation to switch dashboards
-         */
+    /**
+     * Keyboard navigation to switch dashboards
+     */
+    function addDashboardKeyNavigation() {
         // Find available dashboards
-        var $dashboardNavigator = $('#dashboard-nav');
         var $dashboardButtons = $dashboardNavigator.find('[data-dashboard]');
-        var dashboards = $.map($dashboardButtons, function(element) {
+        var dashboards = $.map($dashboardButtons, function (element) {
             return $(element).data('dashboard');
         });
         var current = $dashboardNavigator.find('.current a').data('dashboard');
         var currentIndex = dashboards.indexOf(current);
 
-        var fetchPreviousDashboard = function() {
+        var fetchPreviousDashboard = function () {
             var previousId = dashboards[currentIndex === 0 ? dashboards.length - 1 : currentIndex - 1];
-            $navletsContainer.css('position', 'relative').animate({'left': '4000px'}, function() {
+            $navletsContainer.css('position', 'relative').animate({'left': '4000px'}, function () {
                 window.location = $dashboardButtons.filter('[data-dashboard="' + previousId + '"]').attr('href');
             });
         };
-        var fetchNextDashboard = function() {
+        var fetchNextDashboard = function () {
             var nextId = dashboards[currentIndex === dashboards.length - 1 ? 0 : currentIndex + 1];
-            $navletsContainer.css('position', 'relative').animate({'right': '4000px'}, function() {
+            $navletsContainer.css('position', 'relative').animate({'right': '4000px'}, function () {
                 window.location = $dashboardButtons.filter('[data-dashboard="' + nextId + '"]').attr('href');
             });
         };
 
-        $(document).keydown(function(event) {
+        $(document).keydown(function (event) {
             if (!event.target.form) {
                 switch (event.which) {
-                case 37: // left
-                    fetchPreviousDashboard();
-                    break;
-                case 39: // right
-                    fetchNextDashboard();
-                    break;
+                    case 37: // left
+                        fetchPreviousDashboard();
+                        break;
+                    case 39: // right
+                        fetchNextDashboard();
+                        break;
                 }
             }
         });
 
+    }
 
-        /**
-         * Droppable dashboard targets
-         */
-        $dashboardButtons.not(function() {
+
+    /**
+     * Droppable dashboard targets
+     */
+    function addDroppableDashboardTargets() {
+        var $dashboardButtons = $dashboardNavigator.find('[data-dashboard]');
+        $dashboardButtons.not(function () {
             return $(this).closest('li').hasClass('current');
         }).droppable({
             activeClass: "drop-active",
             hoverClass: "drop-hover",
             tolerance: "pointer",
-            drop: function(event, ui) {
+            drop: function (event, ui) {
                 removeDropIndicator(event);
                 var request = $.post(this.dataset.url, {'widget_id': ui.draggable.data('id')});
-                request.done(function() {
+                request.done(function () {
                     // On successful request make it green and add text to indicate success
                     indicateSuccessMove(event, ui);
-                    ui.draggable.fadeOut(function() {
+                    ui.draggable.fadeOut(function () {
                         $(this).remove();
                     });
-                    setTimeout(function() {
+                    setTimeout(function () {
                         removeDropIndicator(event);
                     }, 2000);
                 });
-                request.fail(function() {
+                request.fail(function () {
                     indicateFailedMove(event, ui);
                 });
             },
@@ -163,43 +130,10 @@ require([
             getDropFeedback(event).addClass('alert').html(text).removeClass('hidden');
         }
 
+    }
 
 
-        /**
-         * The following listeners are applied to buttons on the right hand side
-         * when on the dashboard
-         */
-
-
-        /* Listnener to show fullscreen */
-        $('#widgets-show-fullscreen').on('click', function() {
-            fullscreen.requestFullscreen($navletsContainer.get(0));
-        });
-
-
-        /* Change display density for widgets and save it */
-        var preferenceData = {};
-        $('#widgets-layout-compact').on('click', function(event) {
-            $navletsContainer.find('> .row').addClass('collapse');
-            $navletsContainer.addClass('compact');
-            preferenceData[NAV.preference_keys.widget_display_density] = 'compact';
-            $('.widgets-layout-toggler').toggleClass('hide');
-            $.get(NAV.urls.set_account_preference, preferenceData);
-        });
-        $('#widgets-layout-normal').on('click', function(event) {
-            $navletsContainer.find('> .row').removeClass('collapse');
-            $navletsContainer.removeClass('compact');
-            preferenceData[NAV.preference_keys.widget_display_density] = 'normal';
-            $('.widgets-layout-toggler').toggleClass('hide');
-            $.get(NAV.urls.set_account_preference, preferenceData);
-        });
-
-
-        /**
-         * The following listeners apply to the dashboard controls, that is
-         * changing dashboards, adding new ones and setting default
-         */
-
+    function createFeedbackElements() {
         var $dashboardSettingsPanel = $('#dropdown-dashboard-settings');
         var $alertBox = $('<div class="alert-box">');
         // Error element for naming the dashboard
@@ -216,8 +150,45 @@ require([
 
         $dashboardSettingsPanel.on('closed', removeAlertbox);
 
+        return {
+            removeAlertbox: removeAlertbox,
+            addFeedback: addFeedback,
+            errorElement: errorElement
+        };
+    }
 
-        $('.column-chooser').click(function() {
+
+    /** Listnener to show fullscreen */
+    function addFullscreenListener() {
+        $('#widgets-show-fullscreen').on('click', function () {
+            fullscreen.requestFullscreen($navletsContainer.get(0));
+        });
+    }
+
+
+    /** Change display density for widgets and save it */
+    function addDisplayDensityListener() {
+        var preferenceData = {};
+        $('#widgets-layout-compact').on('click', function (event) {
+            $navletsContainer.find('> .row').addClass('collapse');
+            $navletsContainer.addClass('compact');
+            preferenceData[NAV.preference_keys.widget_display_density] = 'compact';
+            $('.widgets-layout-toggler').toggleClass('hide');
+            $.get(NAV.urls.set_account_preference, preferenceData);
+        });
+        $('#widgets-layout-normal').on('click', function (event) {
+            $navletsContainer.find('> .row').removeClass('collapse');
+            $navletsContainer.removeClass('compact');
+            preferenceData[NAV.preference_keys.widget_display_density] = 'normal';
+            $('.widgets-layout-toggler').toggleClass('hide');
+            $.get(NAV.urls.set_account_preference, preferenceData);
+        });
+    }
+
+
+    /** Change number of columns */
+    function addColumnListener() {
+        $('.column-chooser').click(function () {
             $navletsContainer.empty();
             var columns = $(this).data('columns');
             new NavletsController($navletsContainer, columns);
@@ -228,8 +199,11 @@ require([
                 $navletsContainer.data('widget-columns', columns);
             });
         });
+    }
 
 
+    /** Functions for handling setting of default dashboard */
+    function addDefaultDashboardListener(feedback) {
         var defaultDashboardContainer = $('#default-dashboard-container'),
             setDefaultDashboardForm = $('#form-set-default-dashboard'),
             isDefaultDashboardAlert = defaultDashboardContainer.find('.alert-box');
@@ -240,43 +214,51 @@ require([
             isDefaultDashboardAlert.hide();
         }
 
-        setDefaultDashboardForm.submit(function(event) {
+        setDefaultDashboardForm.submit(function (event) {
             event.preventDefault();
-            removeAlertbox();
+            feedback.removeAlertbox();
             var request = $.post(this.getAttribute('action'));
-            request.done(function(responseText) {
-                addFeedback(responseText);
+            request.done(function (responseText) {
+                feedback.addFeedback(responseText);
                 setDefaultDashboardForm.hide();
                 isDefaultDashboardAlert.show();
                 $dashboardNavigator.find('.fa-star').addClass('hidden');
                 $dashboardNavigator.find('.current .fa-star').removeClass('hidden');
             });
         });
+    }
 
-        $('#form-add-dashboard').submit(function(event) {
+
+    /** Functions for creating a new dashboard */
+    function addCreateDashboardListener(feedback) {
+        $('#form-add-dashboard').submit(function (event) {
             event.preventDefault();
 
             // Validate dashboard name
-            errorElement.detach();
+            feedback.errorElement.detach();
             var nameElement = this.elements["dashboard-name"];
             if (nameElement.value.length === 0) {
-                errorElement.insertAfter(nameElement);
+                feedback.errorElement.insertAfter(nameElement);
                 return;
             }
 
             var request = $.post(this.getAttribute('action'), $(this).serialize());
-            request.done(function(response) {
+            request.done(function (response) {
                 window.location = NAV.urls.dashboard_index + response.dashboard_id;
             });
         });
+    }
 
+
+    /** Functions for renaming a dashboard */
+    function addRenameDashboardListener(feedback) {
         var $formRenameDashboard = $('#form-rename-dashboard');
-        $formRenameDashboard.submit(function(event) {
+        $formRenameDashboard.submit(function (event) {
             event.preventDefault();
-            removeAlertbox();
+            feedback.removeAlertbox();
             var self = this;
             var request = $.post(this.getAttribute('action'), $(this).serialize());
-            request.done(function(responseText) {
+            request.done(function (responseText) {
                 var newName = self.elements['dashboard-name'].value;
 
                 // Alter name in tab title
@@ -285,25 +267,98 @@ require([
                 // Alter name in dashboard heading
                 $('#dashboard-header').find('.heading span').text(newName);
 
-                addFeedback(responseText);
+                feedback.addFeedback(responseText);
             });
         });
+    }
 
 
-        $('#form-delete-dashboard').submit(function(event) {
+    /** Functions for deleting a dashboard */
+    function addDeleteDashboardListener(feedback) {
+        $('#form-delete-dashboard').submit(function (event) {
             event.preventDefault();
             var $this = $(this);
             var doDelete = confirm('Really delete dashboard and all widgets on it?');
             if (doDelete) {
                 var request = $.post(this.getAttribute('action'), $this.serialize());
-                request.done(function(response) {
+                request.done(function (response) {
                     window.location = '/';
                 });
-                request.fail(function(response) {
-                    addFeedback(response, 'error');
+                request.fail(function (response) {
+                    feedback.addFeedback(response, 'error');
                 });
             }
         });
+    }
+
+
+    /**
+     * Load runner - runs on page load
+     */
+    $(function () {
+        var numColumns = $navletsContainer.data('widget-columns');
+        var controller = new NavletsController($navletsContainer, numColumns);
+        controller.container.on('navlet-rendered', function (event, node) {
+            var mapwrapper = node.find('.mapwrapper');
+            var room_map = mapwrapper.find('#room_map');
+            if (room_map.length > 0) {
+                createRoomMap(mapwrapper, room_map);
+            }
+
+
+            if (node.hasClass('SensorWidget')) {
+                var sensor = new SensorsController(node.find('.room-sensor'));
+            }
+
+
+        });
+
+
+        /* Add click listener to joyride button */
+        $navletsContainer.on('click', '#joyrideme', function () {
+            var menu = $('.toggle-topbar'),
+                is_small_screen = menu.is(':visible');
+
+            if (is_small_screen) {
+                $('#joyride_for_desktop').remove();
+            } else {
+                $('#joyride_for_mobile').remove();
+            }
+
+            $(document).foundation('joyride', 'start');
+        });
+
+        /* Need some way of doing javascript stuff on widgets */
+        $navletsContainer.on('click', '.watchdog-tests .label.alert', function (event) {
+            $(event.target).closest('li').find('ul').toggle();
+        });
+
+
+        /**
+         * DASHBOARD related stuff
+         */
+
+        addDashboardKeyNavigation();
+        addDroppableDashboardTargets();
+
+        /**
+         * The following listeners are applied to buttons on the right hand side
+         * when on the dashboard
+         */
+        addFullscreenListener();
+        addDisplayDensityListener();
+
+        /**
+         * The following listeners apply to the dashboard controls, that is
+         * changing dashboards, adding new ones and setting default
+         */
+
+        var feedback = createFeedbackElements();
+        addColumnListener();
+        addDefaultDashboardListener(feedback);
+        addCreateDashboardListener(feedback);
+        addRenameDashboardListener(feedback);
+        addDeleteDashboardListener(feedback);
 
     });
 
