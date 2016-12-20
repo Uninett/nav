@@ -66,6 +66,8 @@ require([
      */
     function addDroppableDashboardTargets() {
         var $dashboardButtons = $dashboardNavigator.find('[data-dashboard]');
+        var timeoutId = 0;  // When dragging the widget between droptargets,
+                            // we don't want to fade in and out all the time
         $dashboardButtons.not(function () {
             return $(this).closest('li').hasClass('current');
         }).droppable({
@@ -92,9 +94,14 @@ require([
             over: function (event, ui) {
                 // Tell the user he can drop the widget
                 indicateDrop(event, ui);
+                clearInterval(timeoutId);
+                ui.draggable.fadeTo('medium', 0.5);
             },
             out: function (event, ui) {
                 removeDropIndicator(event);
+                timeoutId = setInterval(function () {
+                    ui.draggable.fadeTo('medium', 1);
+                }, 500);
             }
         });
 
