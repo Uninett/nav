@@ -106,25 +106,63 @@ require([
             hoverClass: "drop-hover",
             tolerance: "pointer",
             drop: function(event, ui) {
-                var label = $('<span class="label">'+ ui.draggable.find('.navlet-title').text() +'</span>').appendTo(this);
+                removeDropIndicator(event);
                 var request = $.post(this.dataset.url, {'widget_id': ui.draggable.data('id')});
                 request.done(function() {
                     // On successful request make it green and add text to indicate success
-                    label.addClass('success').text("«" + label.text() + '» moved' );
+                    indicateSuccessMove(event, ui);
                     ui.draggable.fadeOut(function() {
                         $(this).remove();
                     });
                     setTimeout(function() {
-                        label.fadeOut(function() {
-                            this.remove();
-                        });
+                        removeDropIndicator(event);
                     }, 2000);
                 });
                 request.fail(function() {
-                    label.addClass('alert').text(label.text() + ' move failed' );
+                    indicateFailedMove(event, ui);
                 });
+            },
+            over: function (event, ui) {
+                // Tell the user he can drop the widget
+                indicateDrop(event, ui);
+            },
+            out: function (event, ui) {
+                removeDropIndicator(event);
             }
         });
+
+        /* Returns the feedback element for this droptarget */
+        function getDropFeedback(event) {
+            return $(event.target).prev();
+        }
+
+        function getWidgetTitle(ui) {
+            return ui.draggable.find('.navlet-title').text();
+        }
+
+        function getDashboardName(event) {
+            return getDropFeedback(event).data('dashboardname');
+        }
+
+        function indicateDrop(event, ui) {
+            var text = 'Move «' + getWidgetTitle(ui) + '» to «' + getDashboardName(event) + '»';
+            getDropFeedback(event).addClass('warning').html(text).removeClass('hidden');
+        }
+
+        function removeDropIndicator(event) {
+            getDropFeedback(event).addClass('hidden').removeClass('alert warning success');
+        }
+
+        function indicateSuccessMove(event, ui) {
+            var text = '«' + getWidgetTitle(ui) + '» moved to «' + getDashboardName(event) + '»';
+            getDropFeedback(event).addClass('success').html(text).removeClass('hidden');
+        }
+
+        function indicateFailedMove(event, ui) {
+            var text = 'Failed to move «' + getWidgetTitle(ui) + '»';
+            getDropFeedback(event).addClass('alert').html(text).removeClass('hidden');
+        }
+
 
 
         /**

@@ -15,6 +15,7 @@
    /* Light adaption of pagination styles */
    ul.pagination li { background-color: gainsboro; }
    ul.pagination li a.drop-active { border: 1px dashed black; }
+   ul.pagination li .alert-box { position: absolute; top: -4em }
    ul.pagination li.unavailable { background-color: initial; }
    ul.pagination li.unavailable a { color: grey; }
 
@@ -198,10 +199,15 @@
 
   {% endif %}
 
+
+  {# Buttons for selecting dashboards #}
   <ul id="dashboard-nav" class="pagination">
     <li class="unavailable"><a href="">Dashboards:</a></li>
     {% for d in dashboards %}
       <li {% if d.pk == dashboard.pk %}class="current"{% endif %}>
+        {% if d.pk != dashboard.pk %}
+          <div class="alert-box hidden" data-dashboardname="{{ d.name }}"></div>
+        {% endif %}
         <a href="{{ d.get_absolute_url }}"
            title="Go to dashboard «{{ d.name }}»"
            data-dashboard="{{ d.pk }}"
