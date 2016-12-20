@@ -95,12 +95,12 @@ require([
                 // Tell the user he can drop the widget
                 indicateDrop(event, ui);
                 clearInterval(timeoutId);
-                ui.draggable.fadeTo('medium', 0.5);
+                ui.draggable.fadeTo('fast', 0.5);
             },
             out: function (event, ui) {
                 removeDropIndicator(event);
                 timeoutId = setInterval(function () {
-                    ui.draggable.fadeTo('medium', 1);
+                    ui.draggable.fadeTo('fast', 1);
                 }, 500);
             }
         });
