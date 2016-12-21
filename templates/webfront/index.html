@@ -157,29 +157,29 @@
       </form>
     </div>
 
+    {# Buttons for selecting dashboards #}
+    <ul id="dashboard-nav" class="pagination">
+      <li class="unavailable"><a href="">Dashboards:</a></li>
+      {% for d in dashboards %}
+        <li {% if d.pk == dashboard.pk %}class="current"{% endif %}>
+          {% if d.pk != dashboard.pk %}
+            <div class="alert-box hidden" data-dashboardname="{{ d.name }}"></div>
+          {% endif %}
+          <a href="{{ d.get_absolute_url }}"
+             title="Go to dashboard «{{ d.name }}»"
+             data-dashboard="{{ d.pk }}"
+             data-url="{% url 'moveto-dashboard' d.pk %}"
+          >
+            <span>{{ d.name }}</span>
+            <i class="fa fa-star {% if not d.is_default %}hidden{% endif %}"
+               title="This is the default dashboard &mdash; it will be loaded when you log in. To change default, change to another dashboard and set it as default in the dashboard settings."></i>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+
   {% endif %}
 
-
-  {# Buttons for selecting dashboards #}
-  <ul id="dashboard-nav" class="pagination">
-    <li class="unavailable"><a href="">Dashboards:</a></li>
-    {% for d in dashboards %}
-      <li {% if d.pk == dashboard.pk %}class="current"{% endif %}>
-        {% if d.pk != dashboard.pk %}
-          <div class="alert-box hidden" data-dashboardname="{{ d.name }}"></div>
-        {% endif %}
-        <a href="{{ d.get_absolute_url }}"
-           title="Go to dashboard «{{ d.name }}»"
-           data-dashboard="{{ d.pk }}"
-           data-url="{% url 'moveto-dashboard' d.pk %}"
-           >
-          <span>{{ d.name }}</span>
-          <i class="fa fa-star {% if not d.is_default %}hidden{% endif %}"
-             title="This is the default dashboard &mdash; it will be loaded when you log in. To change default, change to another dashboard and set it as default in the dashboard settings."></i>
-        </a>
-      </li>
-    {% endfor %}
-  </ul>
 
   {% comment %} Main container for navlets {% endcomment %}
   <div id="navlets"
@@ -191,6 +191,8 @@
        data-widget-columns="{{ dashboard.num_columns }}"
        ></div>
 
+
+  {# Joyrides for mobile and desktop #}
   <ul id="joyride_for_desktop" data-joyride class="joyride-list">
     <li data-text="Next" data-id="joyrideme">
       <p>Welcome to NAV!</p>
