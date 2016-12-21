@@ -42,7 +42,6 @@ class NetboxModelForm(forms.ModelForm):
     sysname = forms.CharField(required=False)
     snmp_version = forms.ChoiceField(choices=[('1', '1'), ('2', '2c')],
                                      widget=forms.RadioSelect, initial='2')
-    organization = forms.ChoiceField(choices=create_hierarchy(Organization))
 
     class Meta(object):
         model = Netbox
@@ -52,6 +51,7 @@ class NetboxModelForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(NetboxModelForm, self).__init__(*args, **kwargs)
+        self.fields['organization'].choices = create_hierarchy(Organization)
 
         if self.instance.pk:
             try:
