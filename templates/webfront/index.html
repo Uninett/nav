@@ -65,13 +65,6 @@
         <i class="fa fa-gear fa-lg"></i>
       </div>
 
-      <div id="rightaction-add-dashboard"
-           title="Add a new dashboard"
-           data-dropdown="dropdown-dashboard-add"
-           data-options="align:left">
-        <i class="fa fa-plus-square-o fa-lg"></i>
-      </div>
-
     </div>
 
     {% comment %} List of navlets to add {% endcomment %}
@@ -176,7 +169,12 @@
           </a>
         </li>
       {% endfor %}
-      <li><a href="" title="Add new dashboard"><i class="fa fa-plus"></i></a></li>
+      <li>
+        <a href=""
+           title="Add new dashboard"
+           data-dropdown="dropdown-dashboard-add">
+          <i class="fa fa-plus"></i></a>
+      </li>
     </ul>
 
   {% endif %}
