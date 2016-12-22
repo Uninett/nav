@@ -125,10 +125,6 @@ class NetboxModelForm(forms.ModelForm):
             snmp_version = 2
         return snmp_version
 
-    def clean_organization(self):
-        data = self.cleaned_data.get('organization')
-        return Organization.objects.get(pk=data)
-
     def clean(self):
         """Make sure that categories that require communities has that"""
         cleaned_data = self.cleaned_data
