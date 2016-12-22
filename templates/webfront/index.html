@@ -13,6 +13,7 @@
        padding: 0.9rem;
    }
    /* Light adaption of pagination styles */
+   ul.pagination { overflow: auto; }
    ul.pagination li { background-color: gainsboro; }
    ul.pagination li a.drop-active { border: 1px dashed black; }
    ul.pagination li .alert-box { position: absolute; top: -4em }
@@ -24,7 +25,7 @@
    require(["src/webfront"]);
    NAV.preference_keys = NAV.preference_keys || {};
    NAV.preference_keys.widget_display_density = '{{ request.account.PREFERENCE_KEY_WIDGET_DISPLAY_DENSITY }}';
-  NAV.urls.dashboard_index = "{% url 'dashboard-index' %}";
+   NAV.urls.dashboard_index = "{% url 'dashboard-index' %}";
   </script>
 {% endblock %}
 
@@ -161,8 +162,7 @@
           <a href="{{ d.get_absolute_url }}"
              title="Go to dashboard «{{ d.name }}»"
              data-dashboard="{{ d.pk }}"
-             data-url="{% url 'moveto-dashboard' d.pk %}"
-          >
+             data-url="{% url 'moveto-dashboard' d.pk %}">
             <span>{{ d.name }}</span>
             <i class="fa fa-star {% if not d.is_default %}hidden{% endif %}"
                title="This is the default dashboard &mdash; it will be loaded when you log in. To change default, change to another dashboard and set it as default in the dashboard settings."></i>
