@@ -55,12 +55,15 @@ class Message(models.Model):
 class MaintenanceTaskManager(models.Manager):
     """Custom manager for MaintenanceTask objects"""
     def current(self, relative_to=None):
-        """
-        Retrieves tasks whose time window matches the current time.
+        """Retrieves current maintenancen tasks
+
+        Those are tasks whose time window matches the current time and that are
+        not cancelled
         """
         now = relative_to or datetime.now()
-        return self.get_queryset().filter(start_time__lte=now,
-                                          end_time__gte=now)
+        return self.get_queryset().exclude(
+            state=MaintenanceTask.STATE_CANCELED).filter(
+                start_time__lte=now, end_time__gte=now)
 
     def past(self, relative_to=None):
         """Retrieves past maintenance tasks"""
@@ -111,7 +114,7 @@ class MaintenanceTask(models.Model):
         Help function to represent a task with desc, start and end.
         """
         return u'%s (%s - %s)' % (
-            self.description, 
+            self.description,
             self.start_time,
             ('No end time' if self.is_endless() else self.end_time))
 
