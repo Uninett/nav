@@ -221,8 +221,16 @@ define([
             var addTimeShift = this.graphContainer && this.trends.is(':checked');
 
             if (url.indexOf('?') >= 0) {
-                // Add/alter timecomponent
-                var interval = '-1' + this.timeframe;
+                // If we have timeframe buttons use those for interval
+                // If we don't have buttons use 'from'-parameter
+                // If we have neither use default timeframe
+                var interval;
+                if (this.config.hideTimeIntervalButtons && uri.hasQuery('from')) {
+                    interval = uri.query(true).from;
+                } else {
+                    interval = '-1' + this.timeframe;
+                }
+
                 uri.setQuery({
                     from: interval,
                     width: this.node.width()
