@@ -28,6 +28,10 @@ class UpsWidgetForm(forms.Form):
                                       label='Choose UPS')
 
     def clean_netboxid(self):
+        """Cheat and return the netboxid instead of the object
+
+        This is done because the result is serialized
+        """
         netbox = self.cleaned_data.get('netboxid')
         return netbox.pk
 
