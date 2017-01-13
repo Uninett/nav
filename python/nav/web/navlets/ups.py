@@ -17,6 +17,7 @@
 
 from django import forms
 from django.db.models import Q
+from urlparse import urlparse
 
 from nav.models.manage import Netbox
 from . import Navlet
@@ -26,6 +27,8 @@ class UpsWidgetForm(forms.Form):
     """Form for choosing an UPS"""
     netboxid = forms.ModelChoiceField(queryset=Netbox.ups_objects.all(),
                                       label='Choose UPS')
+    external_link = forms.CharField(
+        required=False, label='External link (must start with http)')
 
     def clean_netboxid(self):
         """Cheat and return the netboxid instead of the object
@@ -34,6 +37,13 @@ class UpsWidgetForm(forms.Form):
         """
         netbox = self.cleaned_data.get('netboxid')
         return netbox.pk
+
+    def clean_external_link(self):
+        link = self.cleaned_data.get('external_link')
+        if link and not urlparse(link).scheme.startswith('http'):
+            raise forms.ValidationError(
+                'Link needs to start with http or https')
+        return link
 
 
 class UpsWidget(Navlet):
