@@ -15,13 +15,21 @@
 #
 """Module containing UPSWidget"""
 
-from django.http import HttpResponse
+from django import forms
 from django.db.models import Q
 
-from nav.models.profiles import AccountNavlet
 from nav.models.manage import Netbox
-from . import Navlet, NAVLET_MODE_EDIT
-from .forms import UpsWidgetForm
+from . import Navlet
+
+
+class UpsWidgetForm(forms.Form):
+    """Form for choosing an UPS"""
+    netboxid = forms.ModelChoiceField(queryset=Netbox.ups_objects.all(),
+                                      label='Choose UPS')
+
+    def clean_netboxid(self):
+        netbox = self.cleaned_data.get('netboxid')
+        return netbox.pk
 
 
 class UpsWidget(Navlet):
@@ -37,68 +45,59 @@ class UpsWidget(Navlet):
     def get_template_basename(self):
         return 'ups'
 
-    def get_context_data(self, *args, **kwargs):
-        context = super(UpsWidget, self).get_context_data(*args, **kwargs)
-        navlet = AccountNavlet.objects.get(pk=self.navlet_id)
-        self.title = navlet.preferences.get('title', 'UPS status')
-
-        netboxid = navlet.preferences.get('netboxid')
-        if self.mode == NAVLET_MODE_EDIT:
-            if netboxid:
-                form = UpsWidgetForm(self.preferences)
-            else:
-                form = UpsWidgetForm()
-            context['form'] = form
+    def get_context_data_edit(self, context):
+        netboxid = self.preferences.get('netboxid')
+        if netboxid:
+            form = UpsWidgetForm(self.preferences)
         else:
-            if not netboxid:
-                return context
-            netbox = Netbox.objects.get(pk=netboxid)
-            context['netbox'] = netbox
+            form = UpsWidgetForm()
+        context['form'] = form
+        return context
 
-            # internal names selected from ups-mib and powernet-mib.
+    def get_context_data_view(self, context):
+        netboxid = self.preferences.get('netboxid')
+        if not netboxid:
+            return context
 
-            # Input
-            context['input_voltages'] = netbox.sensor_set.filter(
-                Q(internal_name__contains="InputVoltage") |
-                Q(internal_name__contains="InputLineVoltage")
-            ).filter(precision__isnull=True)
+        netbox = Netbox.objects.get(pk=netboxid)
+        context['netbox'] = netbox
 
-            # Output
-            output_voltages = netbox.sensor_set.filter(
-                Q(internal_name__contains="OutputVoltage") |
-                Q(internal_name__contains="OutputLineVoltage")
-            ).filter(precision__isnull=True)
-            output_power = netbox.sensor_set.filter(
-                internal_name__contains="OutputPower")
+        # internal names selected from ups-mib and powernet-mib.
 
-            if len(output_voltages) != len(output_power):
-                output_power = [None] * len(output_voltages)
-            context['output'] = zip(output_voltages, output_power)
+        # Input
+        context['input_voltages'] = netbox.sensor_set.filter(
+            Q(internal_name__contains="InputVoltage") |
+            Q(internal_name__contains="InputLineVoltage")
+        ).filter(precision__isnull=True)
 
-            # Battery
-            context['battery_times'] = netbox.sensor_set.filter(
-                internal_name__in=['upsEstimatedMinutesRemaining',
-                                   'upsAdvBatteryRunTimeRemaining'])
+        # Output
+        output_voltages = netbox.sensor_set.filter(
+            Q(internal_name__contains="OutputVoltage") |
+            Q(internal_name__contains="OutputLineVoltage")
+        ).filter(precision__isnull=True)
+        output_power = netbox.sensor_set.filter(
+            internal_name__contains="OutputPower")
 
-            context['battery_capacity'] = netbox.sensor_set.filter(
-                internal_name__in=['upsHighPrecBatteryCapacity',
-                                   'upsEstimatedChargeRemaining'])
+        if len(output_voltages) != len(output_power):
+            output_power = [None] * len(output_voltages)
+        context['output'] = zip(output_voltages, output_power)
 
-            context['temperatures'] = netbox.sensor_set.filter(
-                internal_name__in=['upsHighPrecBatteryTemperature',
-                                   'upsBatteryTemperature'])
+        # Battery
+        context['battery_times'] = netbox.sensor_set.filter(
+            internal_name__in=['upsEstimatedMinutesRemaining',
+                               'upsAdvBatteryRunTimeRemaining'])
+
+        context['battery_capacity'] = netbox.sensor_set.filter(
+            internal_name__in=['upsHighPrecBatteryCapacity',
+                               'upsEstimatedChargeRemaining'])
+
+        context['temperatures'] = netbox.sensor_set.filter(
+            internal_name__in=['upsHighPrecBatteryTemperature',
+                               'upsBatteryTemperature'])
 
         return context
 
-    def post(self, request):
+    def post(self, request, **kwargs):
         """Save preferences"""
-        navlet = AccountNavlet.objects.get(pk=self.navlet_id,
-                                           account=request.account)
-        form = UpsWidgetForm(request.POST)
-        if form.is_valid():
-            netboxid = form.cleaned_data['netboxid'].pk
-            navlet.preferences['netboxid'] = netboxid
-            navlet.save()
-            return HttpResponse()
-        else:
-            return HttpResponse(form.errors, status=400)
+        return super(UpsWidget, self).post(
+            request, form=UpsWidgetForm(request.POST))
