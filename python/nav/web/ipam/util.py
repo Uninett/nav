@@ -220,7 +220,13 @@ def suggest_range(prefix, size=256, offset=0, n=10):
         "offset": offset,
         "more": True
     }
-    _blocks = partition_subnet(size, prefix)
+    # Fast path: size > size of network, so just return the original prefix
+    _prefix = IP(prefix)
+    if size >= _prefix.len():
+        _blocks = iter([_prefix])
+    # Somewhat slow path
+    else:
+        _blocks = partition_subnet(size, prefix)
     try:
         # drop first #offset blocks
         for _ in range(offset):
