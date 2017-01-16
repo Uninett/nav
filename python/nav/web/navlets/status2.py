@@ -18,7 +18,7 @@ import json
 from datetime import datetime
 from operator import itemgetter
 
-from django.http import HttpResponse, QueryDict
+from django.http import HttpResponse, QueryDict, JsonResponse
 from django.test.client import RequestFactory
 
 from nav.django.settings import DATETIME_FORMAT
@@ -41,27 +41,26 @@ class Status2Widget(Navlet):
     def get_template_basename(self):
         return "status2"
 
-    def get_context_data(self, **kwargs):
-        context = super(Status2Widget, self).get_context_data(**kwargs)
-        navlet = AccountNavlet.objects.get(pk=self.navlet_id)
-        status_filter = navlet.preferences.get('status_filter')
-        self.title = navlet.preferences.get('title', 'Status')
-
-        if self.mode == NAVLET_MODE_EDIT:
-            if status_filter:
-                context['form'] = StatusWidgetForm(QueryDict(status_filter))
-            else:
-                context['form'] = StatusWidgetForm()
-            context['interval'] = self.preferences['refresh_interval'] / 1000
-        elif self.mode == NAVLET_MODE_VIEW:
-            results = self.do_query(status_filter)
-            self.add_formatted_time(results)
-            self.add_netbox(results)
-            context['extra_columns'] = self.find_extra_columns(status_filter)
-            context['results'] = sorted(
-                results, key=itemgetter('start_time'), reverse=True)
+    def get_context_data_view(self, context):
+        self.title = self.preferences.get('title', self.title)
+        status_filter = self.preferences.get('status_filter')
+        results = self.do_query(status_filter)
+        self.add_formatted_time(results)
+        self.add_netbox(results)
+        context['extra_columns'] = self.find_extra_columns(status_filter)
+        context['results'] = sorted(
+            results, key=itemgetter('start_time'), reverse=True)
         context['last_updated'] = datetime.now()
+        return context
 
+    def get_context_data_edit(self, context):
+        self.title = self.preferences.get('title', self.title)
+        status_filter = self.preferences.get('status_filter')
+        if status_filter:
+            context['form'] = StatusWidgetForm(QueryDict(status_filter))
+        else:
+            context['form'] = StatusWidgetForm()
+        context['interval'] = self.preferences['refresh_interval'] / 1000
         return context
 
     def do_query(self, query_string):
@@ -110,21 +109,16 @@ class Status2Widget(Navlet):
 
     def post(self, request):
         """Save navlet options on post"""
-        try:
-            navlet = AccountNavlet.objects.get(pk=self.navlet_id,
-                                               account=request.account)
-        except AccountNavlet.DoesNotExist:
-            return HttpResponse(status=404)
+        navlet = self.account_navlet
+        form = StatusWidgetForm(request.POST)
+        if form.is_valid():
+            navlet.preferences['status_filter'] = request.POST.urlencode()
+            try:
+                navlet.preferences['refresh_interval'] = int(
+                    request.POST['interval']) * 1000
+            except Exception:
+                pass
+            navlet.save()
+            return HttpResponse(json.dumps(self.preferences))
         else:
-            form = StatusWidgetForm(request.POST)
-            if form.is_valid():
-                navlet.preferences['status_filter'] = request.POST.urlencode()
-                try:
-                    navlet.preferences['refresh_interval'] = int(
-                        request.POST['interval']) * 1000
-                except Exception:
-                    pass
-                navlet.save()
-                return HttpResponse(json.dumps(navlet.preferences))
-            else:
-                return HttpResponse(400)
+            return JsonResponse(form.errors, status=400)
