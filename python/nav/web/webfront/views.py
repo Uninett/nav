@@ -67,7 +67,7 @@ def index(request, did=None):
         'date_now': datetime.today(),
         'welcome': welcome,
         'dashboard': dashboard,
-        'dashboards': dashboards.exclude(id=dashboard.pk),
+        'dashboards': dashboards,
         'navlets': list_navlets(),
         'title': u'NAV - {}'.format(dashboard.name),
     }
