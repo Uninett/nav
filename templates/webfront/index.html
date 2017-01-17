@@ -12,12 +12,20 @@
        margin-bottom: 0;
        padding: 0.9rem;
    }
+   /* Light adaption of pagination styles */
+   ul.pagination { overflow: auto; }
+   ul.pagination li { background-color: gainsboro; }
+   ul.pagination li a.drop-active { border: 1px dashed black; }
+   ul.pagination li .alert-box { position: absolute; top: -4em }
+   ul.pagination li.unavailable { background-color: initial; }
+   ul.pagination li.unavailable a { color: grey; }
+
   </style>
   <script>
    require(["src/webfront"]);
    NAV.preference_keys = NAV.preference_keys || {};
    NAV.preference_keys.widget_display_density = '{{ request.account.PREFERENCE_KEY_WIDGET_DISPLAY_DENSITY }}';
-  NAV.urls.dashboard_index = "{% url 'dashboard-index' %}";
+   NAV.urls.dashboard_index = "{% url 'dashboard-index' %}";
   </script>
 {% endblock %}
 
@@ -26,43 +34,6 @@
 
   {# Dashboard and widget actions for logged in users #}
   {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
-
-
-    {# Dashboard header and navigation #}
-    <div id="dashboard-header">
-      {% if previous_dashboard %}
-        <a id="link-previous-dashboard" href="{{ previous_dashboard.get_absolute_url }}">
-          {{ previous_dashboard }}
-        </a>
-        <i class="fa fa-arrow-left"></i>
-      {% endif %}
-      <h3 class="heading">
-        <span>{{ dashboard }}</span>
-        <i class="fa fa-star {% if not dashboard.is_default %}hidden{% endif %}"
-           title="This is the default dashboard &mdash; it will be loaded when you log in. To change default, change to another dashboard and set it as default in the dashboard settings."></i>
-      </h3>
-      {% if next_dashboard %}
-        <i class="fa fa-arrow-right"></i>
-        <a id="link-next-dashboard" href="{{ next_dashboard.get_absolute_url }}">
-          {{ next_dashboard }}
-        </a>
-      {% endif %}
-    </div>
-
-
-    {% if dashboards|length > 0 %}
-      <div id="widget-drop-targets">
-        <small>Drag widgets to move to other dashboards</small>
-        <div>
-          {% for dash in dashboards %}
-            <div class="dashboard-drop" data-url="{% url 'moveto-dashboard' dash.pk %}">
-              <em>{{ dash.name }}</em>
-            </div>
-          {% endfor %}
-        </div>
-      </div>
-    {% endif %}
-
 
     <div id="widgets-actions" class="hide-for-small" >
       <div id="widgets-action-add" title="Add widget" data-reveal data-reveal-id="navlet-list">
@@ -93,13 +64,6 @@
            data-dropdown="dropdown-dashboard-settings"
            data-options="align:left">
         <i class="fa fa-gear fa-lg"></i>
-      </div>
-
-      <div id="rightaction-add-dashboard"
-           title="Add a new dashboard"
-           data-dropdown="dropdown-dashboard-add"
-           data-options="align:left">
-        <i class="fa fa-plus-square-o fa-lg"></i>
       </div>
 
     </div>
@@ -187,7 +151,34 @@
       </form>
     </div>
 
+    {# Buttons for selecting dashboards #}
+    <ul id="dashboard-nav" class="pagination">
+      <li class="unavailable"><a href="">Dashboards:</a></li>
+      {% for d in dashboards %}
+        <li {% if d.pk == dashboard.pk %}class="current"{% endif %}>
+          {% if d.pk != dashboard.pk %}
+            <div class="alert-box hidden" data-dashboardname="{{ d.name }}"></div>
+          {% endif %}
+          <a href="{{ d.get_absolute_url }}"
+             title="Go to dashboard «{{ d.name }}»"
+             data-dashboard="{{ d.pk }}"
+             data-url="{% url 'moveto-dashboard' d.pk %}">
+            <span>{{ d.name }}</span>
+            <i class="fa fa-star {% if not d.is_default %}hidden{% endif %}"
+               title="This is the default dashboard &mdash; it will be loaded when you log in. To change default, change to another dashboard and set it as default in the dashboard settings."></i>
+          </a>
+        </li>
+      {% endfor %}
+      <li>
+        <a href=""
+           title="Add new dashboard"
+           data-dropdown="dropdown-dashboard-add">
+          <i class="fa fa-plus"></i></a>
+      </li>
+    </ul>
+
   {% endif %}
+
 
   {% comment %} Main container for navlets {% endcomment %}
   <div id="navlets"
@@ -199,6 +190,8 @@
        data-widget-columns="{{ dashboard.num_columns }}"
        ></div>
 
+
+  {# Joyrides for mobile and desktop #}
   <ul id="joyride_for_desktop" data-joyride class="joyride-list">
     <li data-text="Next" data-id="joyrideme">
       <p>Welcome to NAV!</p>

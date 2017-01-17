@@ -13,12 +13,11 @@ nobase_webroot_DATA = $(wildcard images/*/*.gif \
 				 static/js/resources/libs/*.js \
 				 static/js/src/*.js   \
 				 static/js/src/*/*.js   \
+				 static/js/src/*/*/*.js   \
+				 static/js/src/*/*/*/*.js   \
 				 static/js/dt_plugins/*.js \
 				 static/js/geomap/*.js \
 				 static/js/geomap/*/*.js   \
-				 static/js/src/netmap/*/*.js \
-				 static/js/src/netmap/*/*/*.js \
-				 static/js/src/netmap/*/*/*/*.js \
 				 static/js/src/netmap/templates/*.html \
 				 static/js/src/netmap/templates/*/*.html \
 				 static/css/*.css \

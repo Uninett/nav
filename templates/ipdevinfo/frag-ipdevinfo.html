@@ -87,6 +87,14 @@
                   <li>
                     {% firstof chass.name chass.model chass.device.serial 'N/A' %}
                     (serial: {{ chass.device.serial|default:"N/A" }},
+                    {% if chass.model_name %}
+                      model:
+                      <span data-tooltip
+                            class="has-tip"
+                            title="{{ chass.descr }}">
+                        {{ chass.model_name }}
+                      </span>,
+                    {% endif %}
                     software: {{ chass.get_software_revision|default:"N/A" }})
                     {% if chass.gone_since %}
                       <span class="label alert"

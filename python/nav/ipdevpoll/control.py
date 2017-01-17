@@ -29,6 +29,7 @@ _logger = logging.getLogger(__name__)
 def run_as_multiprocess(threadpoolsize=None):
     "Sets up a process monitor to run each ipdevpoll job as a subprocess"
     procmon.LineLogger.lineReceived = line_received
+    procmon.LineLogger.MAX_LENGTH = 2**16  # allow pretty long log lines
     mon = ProcessMonitor()
     jobs = config.get_jobs()
 

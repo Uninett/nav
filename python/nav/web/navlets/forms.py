@@ -61,12 +61,6 @@ class AlertWidgetForm(forms.Form):
         return cleaned_data
 
 
-class UpsWidgetForm(forms.Form):
-    """Form for choosing an UPS"""
-    netboxid = forms.ModelChoiceField(queryset=Netbox.ups_objects.all(),
-                                      label='Choose UPS')
-
-
 class SensorForm(forms.Form):
     """Form for choosing to show graph or not for a sensor widget"""
     show_graph = forms.BooleanField(initial=True, required=False)

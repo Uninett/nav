@@ -26,6 +26,7 @@
     </ol>
   </div>
 
+  {% if has_registered_scopes %}
   <div class="ipam-sidebar panel white">
     <div class="sidebar-wrapper">
       <div class="row" id="ipam-controls"></div>
@@ -43,7 +44,7 @@
   </script>
 
   <script type="text/template" id="prefix-control-form-advanced">
-   {% include "ipam/includes/tree-form-advanced.html" %}
+    {% include "ipam/includes/tree-form-advanced.html" %}
   </script>
 
   {% include "ipam/includes/allocate-subnet.html" %}
@@ -89,6 +90,15 @@
     {% include "ipam/includes/tree-node.html" %}
   </script>
 
+  {% else %}
+
+  <p class="alert-box secondary">
+    The NAV-database does not contain any network scopes.
+    Please <a href="{% url 'seeddb-prefix-edit' %}">seed the database</a>
+    and return here to use the IPAM.
+  </p>
+
+  {% endif %}
 </div>
 
 {% endblock %}

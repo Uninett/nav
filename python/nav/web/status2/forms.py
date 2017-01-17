@@ -154,7 +154,9 @@ class StatusWidgetForm(StatusPanelForm):
     """
     extra_columns = forms.MultipleChoiceField(
         required=False,
-        choices=(('room.location', 'Location'), ('room', 'Room')))
+        choices=(('room.location', 'Location'), ('room', 'Room'),
+                 ('organization', 'Organization'))
+    )
 
     def __init__(self, *args, **kwargs):
         super(StatusWidgetForm, self).__init__(*args, **kwargs)

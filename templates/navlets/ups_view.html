@@ -5,7 +5,12 @@
 
   {% if netbox %}
 
-    <h4><a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a></h4>
+    <h4>
+      <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a>
+      {% if navlet.preferences.external_link %}
+        (<a rel="nofollow" href="{{ navlet.preferences.external_link }}">external link</a>)
+      {% endif %}
+    </h4>
 
     {# IO display #}
 

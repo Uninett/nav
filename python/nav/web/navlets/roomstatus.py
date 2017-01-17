@@ -16,34 +16,51 @@
 """Module containing RoomStatus"""
 
 from datetime import datetime
+from django import forms
+from collections import defaultdict
+from itertools import groupby
+from operator import attrgetter
 
 from nav.models.event import AlertHistory
 from nav.models.fields import INFINITY
 from nav.models.manage import Room
 from . import Navlet
 
+from nav.web.navlets.status2 import Status2Widget
 
-class RoomStatus(Navlet):
+
+class RoomStatus(Status2Widget):
     """Widget displaying status for rooms"""
 
     title = 'Rooms with active alerts'
     description = 'Displays a list of rooms with active alerts'
     refresh_interval = 30000  # 30 seconds
+    is_title_editable = False
 
     def get_template_basename(self):
         return 'roomstatus'
 
     def get_context_data_view(self, context):
-        rooms = Room.objects.filter(
-            netbox__alerthistory__end_time__gte=INFINITY).distinct('id')
-        for room in rooms:
-            room.alerts = AlertHistory.objects.filter(
-                netbox__room=room,
-                end_time__gte=INFINITY).order_by('start_time')
+        context = super(RoomStatus, self).get_context_data_view(context)
+        assert 'results' in context
+
+        result_ids = [r.get('id') for r in context['results']]
+        alerts = AlertHistory.objects.filter(
+            pk__in=result_ids).exclude(netbox__isnull=True).order_by(
+            'netbox__room')
+        rooms = []
+        for room, alertlist in groupby(alerts, attrgetter('netbox.room')):
+            room.alerts = sorted(alertlist, key=attrgetter('start_time'))
             for alert in room.alerts:
                 alert.sms_message = alert.messages.get(type='sms',
                                                        language='en')
+            rooms.append(room)
 
         context['rooms'] = rooms
         context['last_update'] = datetime.now()
+        return context
+
+    def get_context_data_edit(self, context):
+        context = super(RoomStatus, self).get_context_data_edit(context)
+        context['form'].fields['extra_columns'].widget = forms.MultipleHiddenInput()
         return context
