@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [[ ! -x "/source/autogen.sh" ]]; then
   echo NAV source code does not appear to be mounted at /source
   exit 1
