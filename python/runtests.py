@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+from __future__ import print_function
+
+
 sources = """
 eNrMvW2b20iSIDZ3flkvfXe7a9/ad17fGUOtFkA3i6pSa3Z6ec2e6+mWZrTbLemRSju9rq6HDZKo
 KkyRAAWAqqqZHT/+Hf7iL/7oz/45/gn+DY63fEWCZPXL3mmmJQLIjMyMjIyMiIyM+N//+R/e/SR5
@@ -2048,7 +2051,7 @@ class DictImporter(object):
         return None
 
     def load_module(self, fullname):
-        # print "load_module:",  fullname
+        # print("load_module:",  fullname)
         from types import ModuleType
         try:
             s = self.sources[fullname]

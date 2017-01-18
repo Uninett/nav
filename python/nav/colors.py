@@ -14,6 +14,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Simple tools for terminal color support"""
+
+from __future__ import print_function
+
 import sys
 from functools import wraps
 import curses
@@ -42,7 +45,7 @@ def colorize(color):
 
     @colorize(COLOR_YELLOW):
     def hello_world():
-        print "Hello world!"
+        print("Hello world!")
 
     """
     def _colorize(func):

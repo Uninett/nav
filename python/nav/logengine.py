@@ -42,6 +42,8 @@ files, one of which this program will have exclusive access to.
 ## TODO: Possible future enhancement is the ability to tail a log file
 ## continually, instead of reading and truncating as a cron job.
 
+from __future__ import print_function
+
 import re
 import fcntl
 import sys
@@ -248,7 +250,7 @@ def verify_singleton(quiet=False):
         if quiet:
             sys.exit(0)
         else:
-            print >> sys.stderr, "logengine is already running (%d)" % err.pid
+            print("logengine is already running (%d)" % err.pid, file=sys.stderr)
             sys.exit(1)
 
     daemon.writepidfile(pidfile)

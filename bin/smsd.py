@@ -42,6 +42,8 @@ Usage: smsd [-h] [-c] [-d sec] [-f factor] [-m maxdelay] [-l limit] [-a action] 
 
 """
 
+from __future__ import print_function
+
 import getopt
 import logging
 import logging.handlers
@@ -85,8 +87,8 @@ def main(args):
         opts, args = getopt.getopt(args, 'hcd:f:m:l:a:t:T:u:',
          ['help', 'cancel', 'delay=', 'test=', 'TEST=', 'uid='])
     except getopt.GetoptError, error:
-        print >> sys.stderr, "%s\nTry `%s --help' for more information." % (
-            error, sys.argv[0])
+        print("%s\nTry `%s --help' for more information." % (
+            error, sys.argv[0]), file=sys.stderr)
         sys.exit(1)
     for opt, val in opts:
         if opt in ('-h', '--help'):
@@ -458,9 +460,8 @@ def loginitfile(loglevel, filename):
         logger.addHandler(filehandler)
         return True
     except IOError, error:
-        print >> sys.stderr, \
-            "Failed creating file loghandler. Daemon mode disabled. (%s)" \
-            % error
+        print("Failed creating file loghandler. Daemon mode disabled. (%s)" \
+            % error, file=sys.stderr)
         return False
 
 
@@ -477,9 +478,8 @@ def loginitstderr(loglevel):
         logger.addHandler(stderrhandler)
         return True
     except IOError, error:
-        print >> sys.stderr, \
-            "Failed creating stderr loghandler. Daemon mode disabled. (%s)" \
-            % error
+        print("Failed creating stderr loghandler. Daemon mode disabled. (%s)" \
+            % error, file=sys.stderr)
         return False
 
 
@@ -506,16 +506,15 @@ def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
         logger.addHandler(mailhandler)
         return True
     except Exception, error:
-        print >> sys.stderr, \
-            "Failed creating SMTP loghandler. Daemon mode disabled. (%s)" \
-            % error
+        print("Failed creating SMTP loghandler. Daemon mode disabled. (%s)" \
+            % error, file=sys.stderr)
         return False
 
 
 def usage():
     """Print a usage screen to stderr."""
 
-    print >> sys.stderr, __doc__
+    print(__doc__, file=sys.stderr)
 
 ### BEGIN
 if __name__ == '__main__':

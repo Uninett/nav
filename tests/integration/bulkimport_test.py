@@ -2,6 +2,8 @@
 
 # pylint: disable=W0614, C0111, W0401
 
+from __future__ import print_function
+
 from unittest import TestCase
 
 from nav.models import manage
@@ -114,7 +116,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
 
         for obj in objects:
             reset_object_foreignkeys(obj)
-            print repr(obj)
+            print(repr(obj))
             obj.save()
 
 
@@ -148,7 +150,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
 
         for obj in objects:
             reset_object_foreignkeys(obj)
-            print repr(obj)
+            print(repr(obj))
             obj.save()
 
     def test_duplicate_locations_should_give_error(self):

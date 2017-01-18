@@ -14,6 +14,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Diff stored and current topology"""
+
+from __future__ import print_function
 from __future__ import absolute_import
 
 from .analyze import AdjacencyReducer, build_candidate_graph_from_db
@@ -85,7 +87,7 @@ def printdiffs():
                   else '')))
 
     output.sort()
-    print '\n'.join(output)
+    print('\n'.join(output))
 
 if __name__ == '__main__':
     printdiffs()

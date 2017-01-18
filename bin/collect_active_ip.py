@@ -17,6 +17,8 @@
 #
 """A wrapper for prefix_ip_collector"""
 
+from __future__ import print_function
+
 import ConfigParser
 from optparse import OptionParser
 import logging
@@ -47,7 +49,7 @@ def exit_if_already_running():
         nav.daemon.justme(PIDFILE)
         nav.daemon.writepidfile(PIDFILE)
     except nav.daemon.DaemonError, error:
-        print error
+        print(error)
         sys.exit(1)
 
 

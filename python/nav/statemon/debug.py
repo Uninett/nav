@@ -25,6 +25,9 @@
 """
 Module for writing debug messages.
 """
+
+from __future__ import print_function
+
 import time
 import sys
 import inspect
@@ -54,7 +57,7 @@ def debug(msg, level=5):
         stack = "%s:%s:%s" % (file, func, line)
         # msg = "[%s %-25s %-8s] %s" % (now, stack, loglevels[level], msg)
         msg = "[%s] %s [%s] %s" % (now, stack, loglevels[level], msg)
-        print msg
+        print(msg)
         if not sys.stdout.isatty():
             sys.stdout.flush()
 

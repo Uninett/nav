@@ -9,6 +9,9 @@ This code is covered by the standard Python License.
     Base functionality. Request and Response classes, that sort of thing.
 """
 # pylint: disable=C,W,R,E
+
+from __future__ import print_function
+
 import socket, string, types, time
 import Type,Class,Opcode
 import asyncore
@@ -119,16 +122,16 @@ class DnsRequest:
 #            while 1:
 #                header = f.read(2)
 #                if len(header) < 2:
-#                    print '========== EOF =========='
+#                    print('========== EOF ==========')
 #                    break
 #                count = Lib.unpack16bit(header)
 #                if not count:
-#                    print '========== ZERO COUNT =========='
+#                    print('========== ZERO COUNT ==========')
 #                    break
-#                print '========== NEXT =========='
+#                print('========== NEXT ==========')
 #                reply = f.read(count)
 #                if len(reply) != count:
-#                    print '*** Incomplete reply ***'
+#                    print('*** Incomplete reply ***')
 #                    break
 #                u = Lib.Munpacker(reply)
 #                Lib.dumpM(u)
@@ -155,7 +158,7 @@ class DnsRequest:
         else:
             qtype=self.args['qtype']
         if not self.args.has_key('name'):
-            print self.args
+            print(self.args)
             raise DNSError,'nothing to lookup'
         qname = self.args['name']
         qclass = self.args.get('qclass','IN')
@@ -166,9 +169,9 @@ class DnsRequest:
         else:
             raise DNSError,'unknown query class'
         if qtype == Type.AXFR:
-            print 'Query type AXFR, protocol forced to TCP'
+            print('Query type AXFR, protocol forced to TCP')
             protocol = 'tcp'
-        #print 'QTYPE %d(%s)' % (qtype, Type.typestr(qtype))
+        #print('QTYPE %d(%s)' % (qtype, Type.typestr(qtype)))
         m = Lib.Mpacker()
         # jesus. keywords and default args would be good. TODO.
         m.addHeader(0,

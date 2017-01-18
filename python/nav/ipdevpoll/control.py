@@ -15,6 +15,8 @@
 #
 "Process control for multi-process invocation of ipdevpoll"
 
+from __future__ import print_function
+
 import os
 import sys
 import logging
@@ -53,7 +55,7 @@ def line_received(_, line):
     will be logged the ipdevpoll way.
 
     """
-    print >> sys.stderr, line
+    print(line, file=sys.stderr)
 
 class ProcessMonitor(procmon.ProcessMonitor):
     "A ProcessMonitor variant that properly logs dead children"

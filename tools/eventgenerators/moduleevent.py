@@ -17,6 +17,8 @@
 #
 "Script to simulate up/down module events from moduleMon"
 
+from __future__ import print_function
+
 import sys
 from nav import db
 
@@ -33,8 +35,8 @@ def handler(cursor, boxlist, state):
 
 def main():
     if (len(sys.argv) <= 2):
-        print "Not enough arguments (%d), <match spec> <up|down>" % (
-            len(sys.argv),)
+        print("Not enough arguments (%d), <match spec> <up|down>" % (
+            len(sys.argv),))
         sys.exit(0)
 
     connection = db.getConnection('getDeviceData','manage')
@@ -65,12 +67,12 @@ def main():
     elif sys.argv[-1].startswith("d"):
         state = "s"
     else:
-        print "Unknown state: " + sys.argv[-1]
+        print("Unknown state: " + sys.argv[-1])
         sys.exit(0)
 
 
     updown = "up" if (state=="e") else "down"
-    print "Modules going %s: %r" % (updown, sysnames)
+    print("Modules going %s: %r" % (updown, sysnames))
     handler(cursor, netboxes, state)
     connection.commit()
 

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import ConfigParser
 import pytest
 from unittest import TestCase
@@ -47,11 +49,11 @@ class SnmptrapdSignalTest(TestCase):
 
     def setUp(self):
         def second_alarm(*_):
-            print "Second ALRM signal received"
+            print("Second ALRM signal received")
             raise self.TestIsOk()
 
         def first_alarm(*_):
-            print "First ALRM signal received"
+            print("First ALRM signal received")
             signal.signal(signal.SIGALRM, second_alarm)
             signal.alarm(1)
 

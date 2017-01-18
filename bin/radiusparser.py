@@ -33,6 +33,8 @@ server.  It has been written to not require any NAV libraries.
 It will require psycopg, a PostgreSQL driver for Python.
 """
 
+from __future__ import print_function
+
 import psycopg2
 import sys
 import os
@@ -61,7 +63,7 @@ def main(args):
         connection = psycopg2.connect("host=%s port=%s dbname=%s user=%s "
                                      "password=%s" % db_params)
     except psycopg2.OperationalError, e:
-        print "An error occured while connecting to the database:\n\n\'%s\'" % (str(e)[:-1])
+        print("An error occured while connecting to the database:\n\n\'%s\'" % (str(e)[:-1]))
         sys.exit(1)
 
     connection.set_isolation_level(0)
@@ -92,7 +94,7 @@ def main(args):
             try:
                 row = Row(parse_line(line))
             except AttributeError, e:
-                print "AttributeError: " + line
+                print("AttributeError: " + line)
                 
 
             # We want to look for octals in the messages
@@ -152,7 +154,7 @@ def main(args):
                         f.flush()
 
     except KeyboardInterrupt:
-        print "Interrupted by user..."
+        print("Interrupted by user...")
    
     database.close()
     sys.exit()
@@ -455,6 +457,6 @@ if __name__ == '__main__':
     if pid_running():
         sys.exit(1)
     else:
-        print "Running instance of script not found. Starting..."
+        print("Running instance of script not found. Starting...")
    
     main(sys.argv[1:])

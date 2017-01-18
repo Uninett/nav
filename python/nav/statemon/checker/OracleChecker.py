@@ -15,6 +15,8 @@
 #
 """Oracle database service checker"""
 
+from __future__ import print_function
+
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 import cx_Oracle
@@ -74,7 +76,7 @@ class OracleChecker(AbstractChecker):
                           "COMMUNITY=TCP)(PROTOCOL=TCP)(Host=%s)(Port=%s)))("
                           "CONNECT_DATA=(SID=%s)(GLOBAL_NAME=%s)))") % (
             user, passwd, ip, port, sid, sid)
-        print "Connecting with: %s" % connect_string
+        print("Connecting with: %s" % connect_string)
         try:
             connection = cx_Oracle.connect(connect_string)
             cursor = connection.cursor()

@@ -20,6 +20,9 @@ This will create fake events and insert them into the database. Use for
 testing purposes only.
 
 """
+
+from __future__ import print_function
+
 import sys
 from optparse import OptionParser
 
@@ -86,9 +89,9 @@ def print_services():
     """Print services used for subid"""
     services = Service.objects.all()
     string_format = "%3s - %s"
-    print string_format % ("ID", "Service")
+    print(string_format % ("ID", "Service"))
     for service in services:
-        print string_format % (service.id, service)
+        print(string_format % (service.id, service))
 
 
 if __name__ == '__main__':

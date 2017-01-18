@@ -15,6 +15,8 @@
 #
 """NAV network topology detection program"""
 
+from __future__ import print_function
+
 from optparse import OptionParser
 from functools import wraps
 import inspect
@@ -167,7 +169,7 @@ def verify_singleton():
     try:
         daemon.justme(PIDFILE_PATH)
     except daemon.AlreadyRunningError, error:
-        print >> sys.stderr, "navtopology is already running (%d)" % error.pid
+        print("navtopology is already running (%d)" % error.pid, file=sys.stderr)
         sys.exit(1)
 
     daemon.writepidfile(PIDFILE_PATH)

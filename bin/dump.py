@@ -20,6 +20,8 @@
 # pylint: disable=C0111
 """Dumps core information from NAV to textfiles importable by editDB."""
 
+from __future__ import print_function
+
 import sys
 sys._stdout = sys.stdout
 from nav.models import manage
@@ -42,14 +44,14 @@ def fail(resultcode, msg):
 def header(definition):
     """Output the header definition, possibly with replaced separators"""
     definition = definition.replace(":", SEPARATOR)
-    print definition
+    print(definition)
 
 
 def lineout(line):
     """Output line, remove any : in strings"""
     newline = (u'"%s"' % column if SEPARATOR in column else column
                for column in line)
-    print SEPARATOR.join(newline).encode('utf-8')
+    print(SEPARATOR.join(newline).encode('utf-8'))
 
 
 class Handlers(object):
@@ -227,7 +229,7 @@ def main():
                 continue
             filename = key + ".txt"
             sys.stdout = sys._stdout
-            print "Dumping " + filename
+            print("Dumping " + filename)
             try:
                 # We're lazy and are using print all the way
                 sys.stdout = open(filename, "w")

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import unittest
 from nav.netmap import topology
 from nav.netmap.topology import build_netmap_layer2_graph
@@ -80,7 +82,7 @@ class Layer3MultiGraphToUndirectTests(TopologyLayer3TestCase):
         self.assertEqual(7, len(self.nav_graph.edges()))
 
     def test_nodes_length_of_netmap_graph_is_reduced_properly(self):
-        print self.netmap_graph.nodes()
+        print(self.netmap_graph.nodes())
         self.assertEqual(7, len(self.netmap_graph.nodes()))
 
     def test_edges_length_of_netmap_graph_is_reduced_properly(self):

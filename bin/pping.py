@@ -20,6 +20,8 @@
 Pings multiple hosts in parallel
 """
 
+from __future__ import print_function
+
 import os
 import sys
 import signal
@@ -196,7 +198,7 @@ class pinger:
 
 
 def help():
-    print """Paralell pinger for NAV (Network Administration Visualized).
+    print(("""Paralell pinger for NAV (Network Administration Visualized).
 
     Usage: %s [OPTIONS]
     -h  --help      Displays this message
@@ -204,7 +206,7 @@ def help():
     -v  --version   Display version and exit
 
     Written by Stian Søiland and Magnus Nordseth, 2002
-    """  % os.path.basename(sys.argv[0])
+    """  % os.path.basename(sys.argv[0])))
 
 def start(nofork):
     """
@@ -252,14 +254,14 @@ if __name__=="__main__":
             elif opt in ("-n","--nofork"):
                 nofork=1
             elif opt in ("-v","--version"):
-                print __version__
+                print(__version__)
                 sys.exit(0)
 
     except (getopt.error):
         help()
         sys.exit(2)
     if os.getuid() != 0:
-        print "Must be started as root"
+        print("Must be started as root")
         sys.exit(1)
     sock = megaping.make_sockets()
     setUser()

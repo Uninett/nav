@@ -21,6 +21,8 @@ testing purposes only.
 
 """
 
+from __future__ import print_function
+
 import sys
 from nav.models.event import EventQueue as Event, Subsystem, EventType
 from nav.models.manage import Netbox
@@ -29,7 +31,7 @@ from nav.models.manage import Netbox
 def main():
     """Main controller"""
     if len(sys.argv) <= 2:
-        print "Need netbox and eventstate"
+        print("Need netbox and eventstate")
         sys.exit()
 
     netboxarg = sys.argv[1]
@@ -42,11 +44,11 @@ def main():
     try:
         netbox = Netbox.objects.get(sysname__icontains=netboxarg)
     except Netbox.DoesNotExist:
-        print "No netbox found"
+        print("No netbox found")
         sys.exit()
 
     if eventstate[0] not in ['u', 'd']:
-        print "Specify [u]p or [d]own event"
+        print("Specify [u]p or [d]own event")
         sys.exit()
 
     source = Subsystem.objects.get(pk='thresholdMon')

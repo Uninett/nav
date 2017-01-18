@@ -16,6 +16,8 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import os
 import re
 import sys
@@ -167,9 +169,9 @@ def main():
                         events = [events]
 
                     if options.test:
-                        print 'Would have posted these events:'
+                        print('Would have posted these events:')
                         for event in events:
-                            print event
+                            print(event)
                     else:
                         for event in events:
                             event.post()

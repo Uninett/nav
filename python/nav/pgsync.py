@@ -15,6 +15,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Program to synchronize NAV database schema changes"""
+
+from __future__ import print_function
+
 import sys
 import os
 import re
@@ -113,7 +116,7 @@ def create_database():
     if not user_exists(nav_opts.user):
         create_user(nav_opts.user, nav_opts.password)
 
-    print "Creating database %s owned by %s" % (nav_opts.dbname, nav_opts.user)
+    print("Creating database %s owned by %s" % (nav_opts.dbname, nav_opts.user))
     trap_and_die(subprocess.CalledProcessError,
                  "Failed creating database %s" % nav_opts.dbname,
                  check_call, ["createdb",
@@ -128,7 +131,7 @@ def drop_database():
     postgres_opts = ConnectionParameters.for_postgres_user()
     postgres_opts.export(os.environ)
 
-    print "Dropping database %s" % nav_opts.dbname
+    print("Dropping database %s" % nav_opts.dbname)
     trap_and_die(subprocess.CalledProcessError,
                  "Failed to drop database %s" % nav_opts.dbname,
                  check_call, ["dropdb", nav_opts.dbname])
@@ -140,7 +143,7 @@ def restore_from_dump(filename):
     postgres_opts.export(os.environ)
     nav_opts = ConnectionParameters.from_config()
 
-    print "Restoring database %s from file %s" % (nav_opts.dbname, filename)
+    print("Restoring database %s from file %s" % (nav_opts.dbname, filename))
     trap_and_die(
         subprocess.CalledProcessError,
         "Failed to restore database %s from file %s" % (nav_opts.dbname,
@@ -175,7 +178,7 @@ def create_user(username, password):
     set.
 
     """
-    print "Creating database user %s" % username
+    print("Creating database user %s" % username)
     trap_and_die(subprocess.CalledProcessError,
                  "Failed creating user %s" % username,
                  check_call,
@@ -253,7 +256,7 @@ def trap_and_die(exception, message, func, *args, **kwargs):
 
 def die(errormsg, exit_code=1):
     """Print errormsg to stderr and terminates process with exit_code"""
-    print >> sys.stderr, errormsg
+    print(errormsg, file=sys.stderr)
     sys.exit(exit_code)
 
 
@@ -299,7 +302,7 @@ class Synchronizer(object):
         self.verify_hstore_extension()
 
         if self.is_empty_database():
-            print "Your database appears empty"
+            print("Your database appears empty")
             self.install_baseline()
 
         self.apply_changes()
@@ -319,8 +322,8 @@ class Synchronizer(object):
 
         if add_schemas:
             schemas.extend(add_schemas)
-            print ("Adding namespaces to %s search_path: %s" %
-                   (self.connect_options.dbname, ", ".join(add_schemas)))
+            print(("Adding namespaces to %s search_path: %s" %
+                   (self.connect_options.dbname, ", ".join(add_schemas))))
             sql = ('ALTER DATABASE "%s" SET search_path TO %s' %
                    (self.connect_options.dbname, ", ".join(add_schemas)))
             self.cursor.execute(sql)
@@ -337,8 +340,8 @@ class Synchronizer(object):
                           if wanted not in namespaces]
 
         if add_namespaces:
-            print ("Adding namespaces to database %s: %s" %
-                   (self.connect_options.dbname, ", ".join(add_namespaces)))
+            print(("Adding namespaces to database %s: %s" %
+                   (self.connect_options.dbname, ", ".join(add_namespaces))))
             for namespace in add_namespaces:
                 self.cursor.execute("CREATE SCHEMA %s" % namespace)
         self.connection.commit()
@@ -380,8 +383,8 @@ class Synchronizer(object):
         if count > 0:
             return
 
-        print "Creating hstore extension in database {0}".format(
-            self.connect_options.dbname)
+        print("Creating hstore extension in database {0}".format(
+            self.connect_options.dbname))
 
         trap_and_die(subprocess.CalledProcessError,
                      "Failed to install the hstore extension, maybe you need "
@@ -392,7 +395,7 @@ class Synchronizer(object):
 
     def install_baseline(self):
         """Installs the baseline NAV schema"""
-        print "Installing baseline schema"
+        print("Installing baseline schema")
         baseline_dir = os.path.join(self.sql_dir, 'baseline')
         for schema in self.schemas:
             namespace = schema[0]
@@ -416,33 +419,33 @@ class Synchronizer(object):
 
         if old_versions:
             if self.apply_out_of_order_changes:
-                print "Applying outstanding schema changes out of order"
+                print("Applying outstanding schema changes out of order")
                 self.apply_versions(old_versions)
             else:
-                print "\n".join(wrap(
+                print("\n".join(wrap(
                         "There are outstanding schema changes older than the "
                         "newest applied one.  The ordering of schema changes "
                         "may be significant, so I'm not applying these changes "
-                        "unless you force me with the -o option:"))
-                print
+                        "unless you force me with the -o option:")))
+                print()
                 self.print_script_list(old_versions)
                 if new_versions:
-                    print "\nOutstanding new schema changes:\n"
+                    print("\nOutstanding new schema changes:\n")
                     self.print_script_list(new_versions)
                 sys.exit(2)
 
         if new_versions:
-            print "Applying outstanding schema changes"
+            print("Applying outstanding schema changes")
             self.apply_versions(new_versions)
 
         if not old_versions and not new_versions:
-            print "No outstanding schema changes."
+            print("No outstanding schema changes.")
 
     def print_script_list(self, versions):
         """Prints a list of found change scripts based on a list of versions"""
         available = self.finder.as_dict()
         for version in versions:
-            print available.get(version, version)
+            print(available.get(version, version))
 
     def apply_versions(self, versions):
         """Applies the change scripts for a list of versions"""
