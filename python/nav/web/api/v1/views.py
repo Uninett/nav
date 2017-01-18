@@ -219,10 +219,11 @@ class UnrecognizedNeighborViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     Filters
     -------
     - netbox
+    - source
     """
     queryset = manage.UnrecognizedNeighbor.objects.all()
     serializer_class = serializers.UnrecognizedNeighborSerializer
-    filter_fields = ('netbox',)
+    filter_fields = ('netbox', 'source')
 
 
 class NetboxViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
