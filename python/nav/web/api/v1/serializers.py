@@ -81,6 +81,12 @@ class ArpSerializer(serializers.ModelSerializer):
         model = manage.Arp
 
 
+class UnrecognizedNeighborSerializer(serializers.ModelSerializer):
+    """Serializer for the arp model"""
+    class Meta(object):
+        model = manage.UnrecognizedNeighbor
+
+
 class RoomSerializer(serializers.ModelSerializer):
     """Serializer for the room model"""
     @staticmethod

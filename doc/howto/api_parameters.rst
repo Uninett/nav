@@ -150,3 +150,11 @@ on each prefix. If no time interval is specified, fetches the current status
   - ``end_time=<iso8601>`` - set end time
 
 
+api/unrecognized-neighbors/[<id>]
+---------------
+
+Provide access to NAVs unrecognized neighbor data.
+
+:Search: None
+
+:Filters: netbox

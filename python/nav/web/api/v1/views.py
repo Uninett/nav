@@ -129,6 +129,7 @@ def get_endpoints(request=None, version=1):
         'room': reverse_lazy('{}room-list'.format(prefix), **kwargs),
         'servicehandler': reverse_lazy('{}servicehandler-list'.format(prefix),
                                        **kwargs),
+        'unrecognized_neighbor': reverse_lazy('{}unrecognized-neighbor-list'.format(prefix), **kwargs),
         'vlan': reverse_lazy('{}vlan-list'.format(prefix), **kwargs),
     }
 
@@ -210,6 +211,18 @@ class RoomViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     queryset = manage.Room.objects.all()
     serializer_class = serializers.RoomSerializer
     filter_fields = ('location', 'description')
+
+
+class UnrecognizedNeighborViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """Lists unrecognized neighbors.
+
+    Filters
+    -------
+    - netbox
+    """
+    queryset = manage.UnrecognizedNeighbor.objects.all()
+    serializer_class = serializers.UnrecognizedNeighborSerializer
+    filter_fields = ('netbox',)
 
 
 class NetboxViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
