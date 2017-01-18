@@ -16,8 +16,9 @@
 """"handling of CISCO-VLAN-IFTABLE-RELATIONSHIP-MIB"""
 from __future__ import absolute_import
 
+from collections import namedtuple
+
 from twisted.internet import defer
-from nav.namedtuple import namedtuple
 
 from . import mibretriever
 
