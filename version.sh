@@ -1,15 +1,15 @@
 #!/bin/sh
 # Update the package version number
-HG=`which hg`
+GIT=`which git`
 VERSION=$1
 M4FILE=version.m4
 
-inhgrepo() {
-  test -e .hg && test -x "$HG"
+ingitrepo() {
+  test -e .git && test -x "$GIT"
 }
 
 do_describe() {
-  PYTHONPATH=tools ${HG} --config extensions.hgdescribe=tools/hgdescribe describe --single-tag --limit 9999
+  ${GIT} describe --tags
 }
 
 get_version() {
@@ -22,7 +22,7 @@ EOF
   fi
 }
 
-if test -z "$VERSION" && inhgrepo; then
+if test -z "$VERSION" && ingitrepo; then
   VERSION=`do_describe`
 fi
 
