@@ -216,6 +216,10 @@ class RoomViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 class UnrecognizedNeighborViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Lists unrecognized neighbors.
 
+    Search
+    ------
+    Searches in *remote_name*
+
     Filters
     -------
     - netbox
@@ -224,6 +228,7 @@ class UnrecognizedNeighborViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     queryset = manage.UnrecognizedNeighbor.objects.all()
     serializer_class = serializers.UnrecognizedNeighborSerializer
     filter_fields = ('netbox', 'source')
+    search_fields = ('remote_name', )
 
 
 class NetboxViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):

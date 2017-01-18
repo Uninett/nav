@@ -155,6 +155,6 @@ api/unrecognized-neighbors/[<id>]
 
 Provide access to NAVs unrecognized neighbor data.
 
-:Search: None
+:Search: remote_name
 
 :Filters: netbox, source
