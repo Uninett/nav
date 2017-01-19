@@ -28,7 +28,7 @@ import os
 import logging
 import signal
 import time
-from optparse import OptionParser
+import argparse
 
 from twisted.internet import reactor
 from twisted.internet.defer import maybeDeferred, setDebugging
@@ -44,11 +44,31 @@ from . import plugins
 from nav.ipdevpoll import ContextFormatter, schedule, db
 
 
+class NetboxAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        if not values:
+            parser.error("%s argument must be non-empty" % option_string)
+        matches = manage.Netbox.objects.filter(
+            Q(sysname__startswith=values) | Q(ip=values)
+        ).select_related('type', 'type__vendor').order_by('sysname')
+        if len(matches) == 1:
+            namespace.netbox = matches[0]
+            namespace.foreground = True
+            namespace.logstderr = True
+            return
+        elif len(matches) > 1:
+            print("matched more than one netbox:")
+            print('\n'.join("%s (%s)" % (n.sysname, n.ip) for n in matches))
+        else:
+            print("no netboxes match %r" % values)
+
+        sys.exit(1)
+
+
 class IPDevPollProcess(object):
     """Main IPDevPoll process setup"""
-    def __init__(self, options, args):
+    def __init__(self, options):
         self.options = options
-        self.args = args
         self._logger = logging.getLogger('nav.ipdevpoll')
         self._shutdown_start_time = 0
         self._procmon = None
@@ -161,13 +181,17 @@ class CommandProcessor(object):
         nav.buildconf.localstatedir, 'run', 'ipdevpolld.pid')
 
     def __init__(self):
-        (self.options, self.args) = self.parse_options()
+        self.options = self.parse_options()
         self._logger = None
 
     def parse_options(self):
         """Parses the command line options"""
         parser = self.make_option_parser()
-        (options, args) = parser.parse_args()
+        options = parser.parse_args()
+        if options.list_jobs:
+            self._list_jobs()
+        if options.list_plugins:
+            self._list_plugins()
         if options.logstderr and not options.foreground:
             parser.error('-s is only valid if running in foreground')
         if options.netbox and not options.onlyjob:
@@ -177,28 +201,26 @@ class CommandProcessor(object):
         if options.capture_vars:
             setDebugging(True)
 
-        return options, args
+        return options
 
     def make_option_parser(self):
         """Sets up and returns a command line option parser."""
-        parser = OptionParser(
+        parser = argparse.ArgumentParser(
             version="NAV " + buildconf.VERSION,
             epilog="This program runs SNMP polling jobs for IP devices "
             "monitored by NAV")
-        opt = parser.add_option
+        opt = parser.add_argument
         opt("-f", "--foreground", action="store_true", dest="foreground",
             help="run in foreground instead of daemonizing")
         opt("-s", "--log-stderr", action="store_true", dest="logstderr",
             help="log to stderr instead of log file")
-        opt("-j", "--list-jobs", action="callback", callback=self._list_jobs,
+        opt("-j", "--list-jobs", action="store_true",
             help="print a list of configured jobs and exit")
-        opt("-p", "--list-plugins", action="callback",
-            callback=self._list_plugins,
+        opt("-p", "--list-plugins", action="store_true",
             help="load and print a list of configured plugins")
         opt("-J", action="store", dest="onlyjob", choices=self._joblist(),
             metavar="JOBNAME", help="run only JOBNAME in this process")
-        opt("-n", "--netbox", action="callback", nargs=1, type="string",
-            callback=self._find_netbox, metavar="NETBOX",
+        opt("-n", "--netbox", action=NetboxAction, metavar="NETBOX",
             help="Run JOBNAME once for NETBOX. Also implies -f and -s options.")
         opt("-m", "--multiprocess", action="store_true", dest="multiprocess",
             help="Run ipdevpoll in a multiprocess setup")
@@ -211,7 +233,7 @@ class CommandProcessor(object):
             help="cleans/purges old job log entries from the database and then "
                  "exits")
         opt("--threadpoolsize", action="store", dest="threadpoolsize",
-            metavar="COUNT", type="int", default=10,
+            metavar="COUNT", type=int, default=10,
             help="the number of database worker threads, and thus db "
                  "connections, to use")
         return parser
@@ -290,7 +312,7 @@ class CommandProcessor(object):
 
     def start_ipdevpoll(self):
         """Creates an ipdevpoll process and runs it"""
-        process = IPDevPollProcess(self.options, self.args)
+        process = IPDevPollProcess(self.options)
         process.run()
 
     @staticmethod
@@ -311,26 +333,6 @@ class CommandProcessor(object):
         plugins.import_plugins()
         print('\n'.join(sorted(plugins.plugin_registry.keys())))
         sys.exit()
-
-    @staticmethod
-    def _find_netbox(_option, opt, value, parser):
-        if not value:
-            parser.error("%s argument must be non-empty" % opt)
-        matches = manage.Netbox.objects.filter(
-            Q(sysname__startswith=value) | Q(ip=value)
-        ).select_related('type', 'type__vendor').order_by('sysname')
-        if len(matches) == 1:
-            parser.values.netbox = matches[0]
-            parser.values.foreground = True
-            parser.values.logstderr = True
-            return
-        elif len(matches) > 1:
-            print("matched more than one netbox:")
-            print('\n'.join("%s (%s)" % (n.sysname, n.ip) for n in matches))
-        else:
-            print("no netboxes match %r" % value)
-
-        sys.exit(1)
 
 
 def main():
