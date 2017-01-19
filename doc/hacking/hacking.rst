@@ -378,7 +378,6 @@ Another option for a simple patch is to attach it to a GitHub_ issue report.
 .. _Buster.JS: http://busterjs.org/
 .. _the Buster documentation: http://docs.busterjs.org/en/latest/#user-s-guide
 .. _Node.js: http://nodejs.org/
-.. _nav-mirror: https://bitbucket.org/mbrekkevold/nav-mirror/
 .. _Jenkins: http://jenkins-ci.org/
 .. _pylint: http://www.pylint.org/
 .. _Karma: https://github.com/karma-runner/karma-mocha
