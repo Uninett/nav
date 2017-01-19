@@ -29,12 +29,10 @@ shell:
 	docker run -u $(runas) -t -i --privileged -v $(top_srcdir):/source $(name) /bin/bash
 
 runtime-requirements.txt: $(top_srcdir)/requirements.txt
-	cp $< $@
-	"$(mkfile_dir)/touchme.sh" "$(top_srcdir)/requirements.txt" runtime-requirements.txt
+	cp -a $< $@
 
 test-requirements.txt: $(top_srcdir)/tests/requirements.txt
-	cp $< $@
-	"$(mkfile_dir)/touchme.sh" "$(top_srcdir)/tests/requirements.txt" test-requirements.txt
+	cp -a $< $@
 
 name:
 	echo Image name: $(name)
