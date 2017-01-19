@@ -7,8 +7,8 @@ set -e
 
 # Always default to using system site packages in virtualenv
 test -z "$USE_SYSTEM_PACKAGES" && USE_SYSTEM_PACKAGES=1
-HGROOT=$(hg root)
-WORKDIR=${1:-${HGROOT:-$PWD}}
+GITROOT=$(git rev-parse --show-toplevel)
+WORKDIR=${1:-${GITROOT:-$PWD}}
 
 BUILDDIR="$WORKDIR/build"
 VIRTENV="$WORKDIR/.env"
