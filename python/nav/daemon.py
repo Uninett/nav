@@ -393,6 +393,7 @@ def safesleep(delay):
 
     See http://www.tummy.com/journals/entries/jafo_20070110_154659
     and https://bugs.launchpad.net/nav/+bug/352316
+    and https://github.com/UNINETT/nav/issues/462
 
     """
     try:

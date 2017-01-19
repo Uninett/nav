@@ -1,6 +1,6 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 top_srcdir := $(mkfile_dir)../..
-name := navtest:$(shell hg parent --template '{node|short}')
+name := navtest:$(shell git describe --tags)
 uname := $(shell uname)
 ifeq ($(uname), Darwin)
  runas := build
