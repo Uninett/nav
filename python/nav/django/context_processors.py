@@ -34,7 +34,6 @@ from nav.metrics import CONFIG
 WEBCONF_DIR_PATH = os.path.join(sysconfdir, "webfront")
 CONTACT_INFORMATION_PATH = os.path.join(WEBCONF_DIR_PATH,
                                         "contact-information.txt")
-EXTERNAL_LINKS_PATH = os.path.join(WEBCONF_DIR_PATH, "external-links.txt")
 
 
 def debug(_request):
@@ -97,7 +96,6 @@ def nav_version(_request):
 
 def footer_info(_request):
     return {
-        'external_links': quick_read(EXTERNAL_LINKS_PATH),
         'contact_information': quick_read(CONTACT_INFORMATION_PATH)
     }
 
