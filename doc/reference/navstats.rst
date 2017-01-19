@@ -24,7 +24,8 @@ enables him to extract data as he wishes - either as a graph directly in NAV or
 to other external tools.
 
 The original request and final proposal is available on `Launchpad
-<https://bugs.launchpad.net/nav/+bug/1321249>`_.
+<https://bugs.launchpad.net/nav/+bug/1321249>`_ and
+`GitHub <https://github.com/UNINETT/nav/issues/1187>`_.
 
 Usage
 =====
