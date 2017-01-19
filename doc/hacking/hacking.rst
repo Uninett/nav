@@ -21,7 +21,7 @@ While UNINETT and NTNU are still the main contributors to NAV,
 developing NAV to support the needs of the Norwegian higher education
 community, contributions from third parties is highly appreciated.
 
-We communicate mainly through mailing lists, Launchpad_, and the ``#nav`` IRC
+We communicate mainly through mailing lists, GitHub_, and the ``#nav`` IRC
 channel on *FreeNode*. At times, UNINETT also arranges workshops and
 gatherings for its customers: Norwegian universities, university colleges and
 research institutions.
@@ -34,8 +34,7 @@ Go to https://nav.uninett.no/ and
   particular is for discussing NAV development.  So far, this is a
   low traffic list. We can only hope this will change ;-)
 * Get a copy of the latest development sources by cloning the
-  Mercurial repository at https://nav.uninett.no/hg/default/.
-  Most new development takes place on this branch.
+  Git-repository at GitHub_.
 * Take a look at the `project reports from previous development projects at
   NTNU <https://nav.uninett.no/wiki/navprojects>`_ (NAVMe, NAVMore, tigaNAV
   and others) - design specifications and other useful bits of historic NAV
@@ -84,9 +83,6 @@ user interface.
 
 If you wish to contribute something really useful that doesn't use Python,
 we may consider including it in the :file:`contrib/` directory.
-
-If **YOU** are willing to invest in porting some of the existing Java
-code to Python, then you will be celebrated as a NAV hero!
 
 
 Coding style
@@ -259,38 +255,8 @@ this to the database.
 Version Control
 ===============
 
-NAV uses Mercurial_ for distributed version control. The official repository
-is located at https://nav.uninett.no/hg/default .
-
-Trunk / master / default / what-have-you
-----------------------------------------
-
-New, bleeding edge development occurs on the ``default`` branch.
-
-Feature branches
-----------------
-
-The official source code repository is mirrored on Bitbucket_. If you go to
-the nav-mirror_ repository, you can fork it there and use Bitbucket to submit
-pull requests for us to review.
-
-Stable
-------
-
-Once we are nearing a new series release of NAV (such as 4.2 or 4.3), a new
-named *series* branch is created from the *default* branch (This branch is
-named 4.3.x in the case of the 4.3 series of NAV).
-
-Once this branch is stabilized, the first version is tagged and released.
-After this point, we accept only bug fixes in this branch. Further point
-releases in this series are tagged on this branch, and all changes are
-merged back onto the ``default`` branch.
-
-When someone writes a patch for a bug, this should usually be committed to
-the latest active series branch which is affected by the bug. Once a new
-series is released, we do not usually maintain the older series branches.
-We may push bug fixes to these branches, but we are unlikely to create a
-new point release from it.
+NAV uses Git_ for distributed version control. The official repository
+is located at GitHub_ . Fork that and submit pull-requests for review.
 
 
 Push access
@@ -394,22 +360,20 @@ please take the time to discuss your change proposals on the
 **nav-dev** mailing list.  This will increase the chances of having
 your patches accepted.
 
-Base your patches on the relevant Mercurial branches. If you are submitting
+Base your patches on the relevant Git branches. If you are submitting
 a patch for an issue that affects the latest stable series, base your patch
 on that series branch (``<major>.<minor>.x``). If you are submitting
 patches containing new features, base them on the ``default`` branch.
 
-The best way to submit your patches is to use Bitbucket_: Fork our
-nav-mirror_ repository there and create a pull request for us to review.
+The best way to submit your patches is to use GitHub_: Fork our repository there
+and create a pull request for us to review.
 
-Another option for a simple patch is to attach it to a Launchpad_ bug
-report.
+Another option for a simple patch is to attach it to a GitHub_ issue report.
 
 
-.. _Launchpad: https://launchpad.net/nav
+.. _GitHub: https://github.com/UNINETT/nav
 .. _RequireJS: http://requirejs.org/
-.. _Mercurial: http://www.selenic.com/mercurial/
-.. _Bitbucket: https://bitbucket.org/
+.. _Git: https://git-scm.com/
 .. _pytest: http://pytest.org/
 .. _Buster.JS: http://busterjs.org/
 .. _the Buster documentation: http://docs.busterjs.org/en/latest/#user-s-guide
