@@ -43,6 +43,7 @@ from nav.ipdevpoll.utils import log_unhandled_failure
 
 _logger = logging.getLogger(__name__)
 
+
 class NetboxJobScheduler(object):
     """Netbox job schedule handler.
 
@@ -142,7 +143,6 @@ class NetboxJobScheduler(object):
 
         deferred.addCallback(self._unregister_handler)
 
-
     def is_running(self):
         return self.job_handler is not None
 
@@ -224,7 +224,6 @@ class NetboxJobScheduler(object):
         else:
             self._next_call = reactor.callLater(delay, self.run_job)
 
-
     def _log_unhandled_error(self, failure):
         if not failure.check(db.ResetDBConnectionError):
             log_unhandled_failure(self._logger,
@@ -294,10 +293,11 @@ class NetboxJobScheduler(object):
             self.job_queues[self.job.name] = []
         return self.job_queues[self.job.name]
 
+
 class JobScheduler(object):
     active_schedulers = set()
     job_logging_loop = None
-    netbox_reload_interval = 2*60.0 # seconds
+    netbox_reload_interval = 2*60.0  # seconds
     netbox_reload_loop = None
     _logger = ipdevpoll.ContextLogger()
 
