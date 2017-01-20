@@ -4,6 +4,9 @@ Checklist for releasing a new NAV version
 
 .. highlight:: sh
 
+.. warning:: This checklist is currently under review, as NAV has moved from
+             Mercurial/Launchpad to Git/GitHub.
+
 CI status check
 ---------------
 

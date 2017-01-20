@@ -2,8 +2,12 @@
  Network Administration Visualized release notes
 =================================================
 
-Please report bugs at https://bugs.launchpad.net/nav/+filebug . To browse
-existing bug reports, go to https://bugs.launchpad.net/nav .
+Please report bugs at https://github.com/uninett/nav/issues/new . To browse
+existing bug reports, go to https://github.com/uninett/nav/issues .
+
+To see an overview of upcoming release milestones and the issues they resolve,
+please go to https://github.com/uninett/nav/milestones .
+
 
 Known problems
 ==============
@@ -18,9 +22,6 @@ patch has been submitted upstream, but not yet accepted into a new release.
 
 NAV 4.6
 ========
-
-To see the overview of scheduled features and reported bugs on the 4.6 series
-of NAV, please go to https://launchpad.net/nav/4.6 .
 
 Dependency changes
 ------------------
