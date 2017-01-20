@@ -15,6 +15,9 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Unit tests for the dispatcher module."""
+
+from __future__ import print_function
+
 import types
 import unittest
 from nav.smsd import dispatcher
@@ -56,7 +59,7 @@ class DispatcherHandlerTest(unittest.TestCase):
 
 class FakeDispatcherHandler(dispatcher.DispatcherHandler):
     def importbyname(self, name):
-        print "import by name: %r" % name
+        print("import by name: %r" % name)
         fakemodule = types.ModuleType('fakedispatcher')
         fakemodule.FakeDispatcher = FakeDispatcher
         return fakemodule
@@ -67,7 +70,7 @@ class FakeDispatcher(object):
         pass
 
     def sendsms(self, phone, msgs):
-        print "got phone %r and msgs %r" % (phone, msgs)
+        print("got phone %r and msgs %r" % (phone, msgs))
         if phone == 'failure':
             raise dispatcher.DispatcherError('FakeDispatcher failed')
         elif phone == 'unhandled':

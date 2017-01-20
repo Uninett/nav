@@ -17,6 +17,9 @@
 """
 A command line interface to list and filter IP devices monitored by NAV
 """
+
+from __future__ import print_function
+
 import argparse
 from nav.models.manage import Netbox
 import django
@@ -32,7 +35,7 @@ def main():
         qs = Netbox.objects.all()
 
     for netbox in qs.order_by('sysname').values_list('sysname', flat=1):
-        print netbox
+        print(netbox)
 
 
 def parse_args():

@@ -21,6 +21,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from __future__ import print_function
+
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -80,4 +82,4 @@ if __name__ == '__main__':
         ])
     ])
 
-    print draw_tree(root)
+    print(draw_tree(root))

@@ -19,6 +19,8 @@
           License analog to the current Python license
 """
 
+from __future__ import print_function
+
 import string, re
 import _winreg
 
@@ -102,14 +104,14 @@ def RegistryResolve():
                 break
         _winreg.CloseKey(y)
     except EnvironmentError:
-        #print "Key Interfaces not found, just do nothing"
+        #print("Key Interfaces not found, just do nothing")
         pass
 #
     _winreg.CloseKey(x)
     return nameservers
 
 if __name__=="__main__":
-    print "Name servers:",RegistryResolve()
+    print("Name servers:",RegistryResolve())
 
 #
 # $Log: win32dns.py,v $

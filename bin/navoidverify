@@ -20,6 +20,8 @@ A command line program to verify support for SNMP subtrees in sets of
 NAV-monitored devices.
 """
 
+from __future__ import print_function
+
 import sys
 from itertools import cycle
 from argparse import ArgumentParser
@@ -69,7 +71,7 @@ def verify(netbox, oid):
         result = result.items()
     for key, _value in result:
         if oid.is_a_prefix_of(key):
-            print netbox.sysname
+            print(netbox.sysname)
             defer.returnValue(True)
     defer.returnValue(False)
 

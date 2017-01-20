@@ -17,6 +17,9 @@
 """
 Contains ldap authentication functionality for NAV web.
 """
+
+from __future__ import print_function
+
 import sys
 import logging
 import ConfigParser
@@ -347,18 +350,18 @@ def __test():
     logging.basicConfig()
     logging.getLogger('').setLevel(logging.DEBUG)
 
-    print "Username: ",
+    print("Username: ", end=' ')
     uid = sys.stdin.readline().strip()
     password = getpass('Password: ')
 
     user = authenticate(uid, password)
 
     if user:
-        print "User was authenticated."
-        print "User's username is %s" % user.username
-        print "User's full name is %s" % user.get_real_name()
+        print("User was authenticated.")
+        print("User's username is %s" % user.username)
+        print("User's full name is %s" % user.get_real_name())
     else:
-        print "User was not authenticated"
+        print("User was not authenticated")
 
 if __name__ == '__main__':
     __test()

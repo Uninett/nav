@@ -16,11 +16,11 @@
 """"CISCO-CDP-MIB handling"""
 from __future__ import absolute_import
 import socket
+from collections import namedtuple
 
 from IPy import IP
 from twisted.internet import defer
 
-from nav.namedtuple import namedtuple
 from nav.mibs import reduce_index
 
 from . import mibretriever

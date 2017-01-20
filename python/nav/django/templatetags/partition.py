@@ -19,6 +19,8 @@ A common use-case is for splitting a list into a table with columns::
     </table>
 """
 
+from __future__ import print_function
+
 from django.template import Library
 
 register = Library()
@@ -119,7 +121,7 @@ def columns(thelist, n):
 
         >>> from pprint import pprint
         >>> for i in range(7, 11):
-        ...     print '%sx%s:' % (i, 3)
+        ...     print('%sx%s:' % (i, 3))
         ...     pprint(columns(range(i), 3), width=20)
         7x3:
         [[0, 3, 6],

@@ -17,12 +17,11 @@
 import time
 import logging
 from functools import wraps
+from collections import namedtuple
 
 from twisted.internet import reactor
 from twisted.internet.defer import succeed
 from twisted.internet.task import deferLater
-
-from nav.namedtuple import namedtuple
 
 _logger = logging.getLogger(__name__)
 

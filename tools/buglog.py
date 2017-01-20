@@ -30,6 +30,8 @@ If you aren't sure that all bug report references can be found in the
 commit log messages' summary line, add the -v option to hg log.
 """
 
+from __future__ import print_function
+
 import urllib2
 import re
 import sys
@@ -88,7 +90,7 @@ def filter_bugids(matches):
 
 def main(args):
     if sys.stdin.isatty():
-        print __doc__,
+        print(__doc__, end=' ')
         sys.exit(0)
 
     bug_ids = set()
@@ -96,7 +98,7 @@ def main(args):
         bug_ids.add(bug_id)
 
     for bug_id in sorted(bug_ids):
-        print bugfix_format(bug_id)
+        print(bugfix_format(bug_id))
 
 if __name__ == '__main__':
     main(sys.argv[1:])

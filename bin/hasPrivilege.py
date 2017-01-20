@@ -21,6 +21,9 @@
 This script determines whether a NAV user has been granted a specific
 privilege.
 """
+
+from __future__ import print_function
+
 import sys
 import getopt
 
@@ -35,7 +38,7 @@ def main(args):
             sys.exit()
 
     if len(args) < 3:
-        print >> sys.stderr, "Not enough parameters, see help screen."
+        print("Not enough parameters, see help screen.", file=sys.stderr)
         sys.exit(10)
 
     (user, privilege, target) = args[:3]
@@ -44,8 +47,8 @@ def main(args):
     try:
         account = Account.objects.get(login=user)
     except Exception, error:
-        print >> sys.stderr, "Could not find user '%s'" % user
-        print >> sys.stderr, "Error was: %s" % error
+        print("Could not find user '%s'" % user, file=sys.stderr)
+        print("Error was: %s" % error, file=sys.stderr)
         sys.exit(10)
         
     # Make use of the privilege system to discover whether the user
@@ -53,7 +56,7 @@ def main(args):
     try:
         answer = account.has_perm(privilege, target)
     except Exception, error:
-        print >> sys.stderr, "There was an error when asking for the privilege"
+        print("There was an error when asking for the privilege", file=sys.stderr)
         sys.exit(10)
 
     if answer:
@@ -62,7 +65,7 @@ def main(args):
         sys.exit(1)
     
 def usage():
-    print >> sys.stderr, """Determine whether a NAV user has been granted a specific privilege.
+    print("""Determine whether a NAV user has been granted a specific privilege.
 Mostly for internal NAV usage.
 
 Usage:  hasPrivilege.py subject action target
@@ -78,7 +81,7 @@ Exit codes:
   return code will be > 1.
 
 Example: hasPrivilege.py admin web_access /useradmin/index
-"""
+""", file=sys.stderr)
 
 ##############################
 # main execution begins here #

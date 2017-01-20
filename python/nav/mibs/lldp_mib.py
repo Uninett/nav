@@ -15,12 +15,12 @@
 #
 """"LLDP-MIB handling"""
 import socket
+from collections import namedtuple
 
 from IPy import IP
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.mibs.if_mib import IfMib
-from nav.namedtuple import namedtuple
 from nav.mibs import mibretriever, reduce_index
 from nav.ipdevpoll.utils import binary_mac_to_hex
 

@@ -31,6 +31,7 @@ Always uses the last interface the ip was seen on whether the ip is active
 there or not.
 
 """
+from __future__ import print_function
 
 import getpass
 import logging
@@ -80,9 +81,9 @@ def main(options):
 def print_detention_profiles():
     """Print all existing detention profiles"""
     output_format = "%-5s %-5s %s"
-    print output_format % ("ID", "Act", "Title")
+    print(output_format % ("ID", "Act", "Title"))
     for profile in DetentionProfile.objects.all():
-        print output_format % (profile.id, profile.active, profile.name)
+        print(output_format % (profile.id, profile.active, profile.name))
 
 
 def verify_options(options):

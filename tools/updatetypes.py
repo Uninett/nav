@@ -20,6 +20,9 @@ Typically, this is used by the upstream authors to create an SQL script that
 will bring the type data of users' installations up-to-date.  The script will
 access a NAV database by way of the standard db.conf configuration file.
 """
+
+from __future__ import print_function
+
 import sys
 import nav.db
 
@@ -43,11 +46,11 @@ def main(args):
     cursor = conn.cursor()
     cursor.execute(selectsql)
     if cursor.rowcount > 0:
-        print "BEGIN;\n"
+        print("BEGIN;\n")
         for row in cursor.fetchall():
             values = [escape(v) for v in row]
-            print updatesql % tuple(values)
-        print "\nCOMMIT;"
+            print(updatesql % tuple(values))
+        print("\nCOMMIT;")
 
     conn.close()
     

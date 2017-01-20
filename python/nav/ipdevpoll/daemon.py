@@ -20,6 +20,8 @@ This is the daemon program that runs the IP device poller.
 
 """
 
+from __future__ import print_function
+
 import sys
 from twisted.python.failure import Failure
 import os
@@ -302,13 +304,13 @@ class CommandProcessor(object):
     def _list_jobs(*_args, **_kwargs):
         from nav.ipdevpoll.config import get_jobs
         jobs = sorted(job.name for job in get_jobs())
-        print '\n'.join(jobs)
+        print('\n'.join(jobs))
         sys.exit()
 
     @staticmethod
     def _list_plugins(*_args, **_kwargs):
         plugins.import_plugins()
-        print '\n'.join(sorted(plugins.plugin_registry.keys()))
+        print('\n'.join(sorted(plugins.plugin_registry.keys())))
         sys.exit()
 
     @staticmethod
@@ -324,10 +326,10 @@ class CommandProcessor(object):
             parser.values.logstderr = True
             return
         elif len(matches) > 1:
-            print "matched more than one netbox:"
-            print '\n'.join("%s (%s)" % (n.sysname, n.ip) for n in matches)
+            print("matched more than one netbox:")
+            print('\n'.join("%s (%s)" % (n.sysname, n.ip) for n in matches))
         else:
-            print "no netboxes match %r" % value
+            print("no netboxes match %r" % value)
 
         sys.exit(1)
 

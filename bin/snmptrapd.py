@@ -17,6 +17,8 @@
 #
 """NAV daemon to receive and act upon SNMP traps."""
 
+from __future__ import print_function
+
 import os
 import re
 import socket
@@ -83,7 +85,7 @@ def main():
     try:
         daemon.justme(pidfile)
     except daemon.DaemonError, why:
-        print why
+        print(why)
         sys.exit(-1)
 
     # Create SNMP agent object
@@ -96,7 +98,7 @@ def main():
         if os.geteuid() == 0:
             daemon.switchuser(runninguser)
     except daemon.DaemonError, why:
-        print why
+        print(why)
         server.close()
         sys.exit(-1)
 
@@ -258,9 +260,8 @@ def loginitfile(logfile, traplogfile, loglevel):
 
         return True
     except IOError, error:
-        print >> sys.stderr, \
-         "Failed creating file loghandler. Daemon mode disabled. (%s)" \
-         % error
+        print("Failed creating file loghandler. Daemon mode disabled. (%s)" \
+         % error, file=sys.stderr)
         return False
 
 

@@ -22,6 +22,9 @@ eventengine and sends put alerts to users based on user defined profiles.
 
 Usage: alertengine [--test] [--loglevel=DEBUG|INFO|WARN|CRITICAL]
 """
+
+from __future__ import print_function
+
 # FIXME missing detailed usage
 
 import getopt
@@ -60,8 +63,8 @@ def main(args):
     try:
         opts, args = getopt.getopt(args, 'ht', ['help', 'test', 'loglevel='])
     except getopt.GetoptError, e:
-        print >> sys.stderr, "%s\nTry `%s --help' for more information." % \
-            (e, sys.argv[0])
+        print("%s\nTry `%s --help' for more information." % \
+            (e, sys.argv[0]), file=sys.stderr)
         sys.exit(1)
 
     opttest = False
@@ -214,9 +217,8 @@ def loginitfile(loglevel, filename):
         logger.addHandler(filehandler)
         return True
     except IOError, error:
-        print >> sys.stderr, \
-         "Failed creating file loghandler. Daemon mode disabled. (%s)" \
-         % error
+        print("Failed creating file loghandler. Daemon mode disabled. (%s)" \
+         % error, file=sys.stderr)
         return False
 
 def loginitstderr(loglevel):
@@ -232,9 +234,8 @@ def loginitstderr(loglevel):
         logger.addHandler(stderrhandler)
         return True
     except IOError, error:
-        print >> sys.stderr, \
-         "Failed creating stderr loghandler. Daemon mode disabled. (%s)" \
-         % error
+        print("Failed creating stderr loghandler. Daemon mode disabled. (%s)" \
+         % error, file=sys.stderr)
         return False
 
 def loguninitstderr():
@@ -259,14 +260,13 @@ def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
         logger.addHandler(mailhandler)
         return True
     except Exception, error:
-        print >> sys.stderr, \
-         "Failed creating SMTP loghandler. Daemon mode disabled. (%s)" \
-         % error
+        print("Failed creating SMTP loghandler. Daemon mode disabled. (%s)" \
+         % error, file=sys.stderr)
         return False
 
 def usage():
     """Print a usage screen to stderr."""
-    print >> sys.stderr, __doc__
+    print(__doc__, file=sys.stderr)
 
 def setdelay(sec):
     """Set delay (in seconds) between queue checks."""

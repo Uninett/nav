@@ -52,6 +52,9 @@ Available options are:
   --radiuslog   -- Delete from radius error log table
 
 """
+
+from __future__ import print_function
+
 __id__ = "$Id: navclean.py 2875 2004-07-14 09:51:24Z mortenv $"
 
 import sys
@@ -74,7 +77,7 @@ def main(args):
     try:
         opts, args = getopt.getopt(args, 'hqfe:E:', ['help', 'arp', 'cam', 'radiusacct', 'radiuslog'])
     except getopt.GetoptError, error:
-        print >> sys.stderr, error
+        print(error, file=sys.stderr)
         usage()
         sys.exit(1)
 
@@ -124,12 +127,12 @@ def main(args):
         try:
             cursor.execute(sql)
             if not quiet:
-                print "%s contains %s expired records." % (table, cursor.rowcount)
+                print("%s contains %s expired records." % (table, cursor.rowcount))
             sumtotal += cursor.rowcount
 
         except psycopg2.ProgrammingError, e:
-            print >> sys.stderr, "The PostgreSQL backend produced a ProgrammingError.\n" + \
-                  "Most likely, your expiry specification is invalid: %s" % expiry;
+            print("The PostgreSQL backend produced a ProgrammingError.\n" + \
+                  "Most likely, your expiry specification is invalid: %s" % expiry, file=sys.stderr);
             cx.rollback()
             sys.exit(1)
 
@@ -141,16 +144,16 @@ def main(args):
         cx.commit()
 
         if not quiet and sumtotal > 0:
-            print "Expired ARP/CAM/Radius Acccounting records deleted."
+            print("Expired ARP/CAM/Radius Acccounting records deleted.")
 
-    if not quiet and sumtotal == 0: print "None deleted."
+    if not quiet and sumtotal == 0: print("None deleted.")
 
     cx.close()
 
 
 def usage():
     """ Print a usage screen to stderr."""
-    print >> sys.stderr, __doc__
+    print(__doc__, file=sys.stderr)
 
 ##############
 # begin here #

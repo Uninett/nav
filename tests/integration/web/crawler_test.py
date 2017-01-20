@@ -7,6 +7,9 @@ pages that report Content-type html are stored an validated by tidy in an
 additional test.
 
 """
+
+from __future__ import print_function
+
 from lxml.html import fromstring
 import os
 import pytest
@@ -85,18 +88,18 @@ def handle_http_error(func):
         try:
             return func(*args, **kwargs)
         except urllib2.HTTPError, error:
-            print fmt % ('HttpError', funcinfo, time.time() - starttime)
-            print "%s :" % error.url
-            print "-" * (len(error.url)+2)
+            print(fmt % ('HttpError', funcinfo, time.time() - starttime))
+            print("%s :" % error.url)
+            print("-" * (len(error.url)+2))
             return failure, error.url, error.code, error
         except urllib2.URLError, error:
-            print fmt % ('URLError', funcinfo, time.time() - starttime)
+            print(fmt % ('URLError', funcinfo, time.time() - starttime))
             return urlerror, error
 
     return _decorator
 
 def failure(url, code, error):
-    print error.fp.read()
+    print(error.fp.read())
     assert code == 200
 
 def success(url):

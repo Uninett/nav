@@ -16,6 +16,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 "Script to simulate snmpAgentState events from ipdevpoll"
+
+from __future__ import print_function
+
 import os
 import nav
 import sys
@@ -37,7 +40,7 @@ def handler(nblist, state):
 
 
 if (len(sys.argv) <= 2):
-    print "Not enough arguments (%d), <match spec> <up|down>" % len(sys.argv)
+    print("Not enough arguments (%d), <match spec> <up|down>" % len(sys.argv))
     sys.exit(0)
 
 nb = []
@@ -77,13 +80,13 @@ for ii in range(1, len(sys.argv)-1):
 if sys.argv[len(sys.argv)-1].startswith("u"): state = "e"
 elif sys.argv[len(sys.argv)-1].startswith("d"): state = "s"
 else:
-    print "Unknown state: " + sys.argv[len(sys.argv)-1]
+    print("Unknown state: " + sys.argv[len(sys.argv)-1])
     sys.exit(0)
 
 
 if (state=="e"): updown = "up"
 else: updown="down"
-print "SNMP agents going %s on: %r" % (updown, sysnames)
+print("SNMP agents going %s on: %r" % (updown, sysnames))
 handler(nb, state)
 connection.commit()
 
