@@ -25,7 +25,7 @@ from math import ceil
 
 from twisted.python.failure import Failure
 from twisted.internet import task, reactor
-from twisted.internet.defer import Deferred, maybeDeferred
+from twisted.internet.defer import Deferred
 from twisted.internet.task import LoopingCall
 
 from nav import ipdevpoll
@@ -57,17 +57,23 @@ class NetboxJobScheduler(object):
                                                     'max_concurrent_jobs')
     _logger = ipdevpoll.ContextLogger()
 
-    def __init__(self, job, netbox):
+    def __init__(self, job, netbox, pool):
         self.job = job
         self.netbox = netbox
+        self.pool = pool
         self._log_context = dict(job=job.name, sysname=netbox.sysname)
         self._logger.debug("initializing %r job scheduling for %s",
                            job.name, netbox.sysname)
         self.cancelled = False
-        self.job_handler = None
         self._deferred = Deferred()
         self._next_call = None
         self._last_job_started_at = 0
+        self.running = False
+        self._start_time = None
+
+    def get_current_runtime(self):
+        """Returns time elapsed since the start of the job as a timedelta."""
+        return datetime.datetime.now() - self._start_time
 
     def start(self):
         """Start polling schedule."""
@@ -99,8 +105,7 @@ class NetboxJobScheduler(object):
         self._deferred.callback(self)
 
     def cancel_running_job(self):
-        if self.job_handler:
-            self.job_handler.cancel()
+        pass  # TODO
 
     def run_job(self, dummy=None):
         if self.is_running():
@@ -123,19 +128,18 @@ class NetboxJobScheduler(object):
 
         # We're ok to start a polling run.
         try:
-            job_handler = JobHandler(self.job.name, self.netbox.id,
-                                     plugins=self.job.plugins,
-                                     interval=self.job.interval)
+            self._start_time = datetime.datetime.now()
+            deferred = self.pool.perform_task(self.job.name, self.netbox.id,
+                                              plugins=self.job.plugins,
+                                              interval=self.job.interval)
         except Exception:
             self._log_unhandled_error(Failure())
             self.reschedule(60)
             return
 
-        self.job_handler = job_handler
         self.count_job()
         self._last_job_started_at = time.time()
 
-        deferred = maybeDeferred(job_handler.run)
         deferred.addErrback(self._adjust_intensity_on_snmperror)
         deferred.addCallbacks(self._reschedule_on_success,
                               self._reschedule_on_failure)
@@ -144,7 +148,7 @@ class NetboxJobScheduler(object):
         deferred.addCallback(self._unregister_handler)
 
     def is_running(self):
-        return self.job_handler is not None
+        return self.running
 
     @classmethod
     def _adjust_intensity_on_snmperror(cls, failure):
@@ -239,8 +243,7 @@ class NetboxJobScheduler(object):
 
     def _unregister_handler(self, result):
         """Remove a JobHandler from internal data structures."""
-        if self.job_handler:
-            self.job_handler = None
+        if self.running:
             self.uncount_job()
             self.unqueue_next_job()
             self.unqueue_next_global_job()
@@ -250,11 +253,13 @@ class NetboxJobScheduler(object):
         current_count = self.__class__.job_counters.get(self.job.name, 0)
         current_count += 1
         self.__class__.job_counters[self.job.name] = current_count
+        self.running = True
 
     def uncount_job(self):
         current_count = self.__class__.job_counters.get(self.job.name, 0)
         current_count -= 1
         self.__class__.job_counters[self.job.name] = max(current_count, 0)
+        self.running = False
 
     def get_job_count(self):
         return self.__class__.job_counters.get(self.job.name, 0)
@@ -308,19 +313,20 @@ class JobScheduler(object):
     netbox_reload_loop = None
     _logger = ipdevpoll.ContextLogger()
 
-    def __init__(self, job):
+    def __init__(self, job, pool):
         """Initializes a job schedule from the job descriptor."""
         self._log_context = dict(job=job.name)
         self.job = job
+        self.pool = pool
         self.netboxes = NetboxLoader()
         self.active_netboxes = {}
 
         self.active_schedulers.add(self)
 
     @classmethod
-    def initialize_from_config_and_run(cls, onlyjob=None):
+    def initialize_from_config_and_run(cls, pool, onlyjob=None):
         descriptors = config.get_jobs()
-        schedulers = [JobScheduler(d) for d in descriptors
+        schedulers = [JobScheduler(d, pool) for d in descriptors
                       if not onlyjob or (d.name == onlyjob)]
         for scheduler in schedulers:
             scheduler.run()
@@ -394,7 +400,7 @@ class JobScheduler(object):
 
     def add_netbox_scheduler(self, netbox_id):
         netbox = self.netboxes[netbox_id]
-        scheduler = NetboxJobScheduler(self.job, netbox)
+        scheduler = NetboxJobScheduler(self.job, netbox, self.pool)
         self.active_netboxes[netbox_id] = scheduler
         return scheduler.start()
 
@@ -414,7 +420,7 @@ class JobScheduler(object):
         """
         jobs = [(netbox_scheduler.netbox.sysname,
                  netbox_scheduler.job.name,
-                 netbox_scheduler.job_handler.get_current_runtime())
+                 netbox_scheduler.get_current_runtime())
                 for scheduler in cls.active_schedulers
                 for netbox_scheduler in scheduler.active_netboxes.values()
                 if netbox_scheduler.is_running()]

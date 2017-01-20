@@ -40,7 +40,7 @@ import nav.logs
 from nav.models import manage
 from django.db.models import Q
 
-from . import plugins
+from . import plugins, pool
 from nav.ipdevpoll import ContextFormatter, schedule, db
 
 
@@ -71,7 +71,6 @@ class IPDevPollProcess(object):
         self.options = options
         self._logger = logging.getLogger('nav.ipdevpoll')
         self._shutdown_start_time = 0
-        self._procmon = None
 
     def run(self):
         """Loads plugins, and initiates polling schedules."""
@@ -81,6 +80,8 @@ class IPDevPollProcess(object):
             self.setup_single_job()
         elif self.options.multiprocess:
             self.setup_multiprocess()
+        elif self.options.worker:
+            self.setup_worker()
         else:
             self.setup_scheduling()
 
@@ -103,10 +104,23 @@ class IPDevPollProcess(object):
         # logging.basicConfig().  If imported before our own loginit, this
         # causes us to have two StreamHandlers on the root logger, duplicating
         # every log statement.
+        self._logger.info("Starting scheduling in single process")
         from .schedule import JobScheduler
         plugins.import_plugins()
+        self.work_pool = pool.InlinePool()
         reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run,
-                                self.options.onlyjob)
+                                self.work_pool, self.options.onlyjob)
+
+    def setup_worker(self):
+        "Sets up a worker process"
+        # NOTE: This is locally imported because it will in turn import
+        # twistedsnmp. Twistedsnmp is stupid enough to call
+        # logging.basicConfig().  If imported before our own loginit, this
+        # causes us to have two StreamHandlers on the root logger, duplicating
+        # every log statement.
+        self._logger.info("Starting worker process")
+        plugins.import_plugins()
+        reactor.callWhenRunning(pool.initialize_worker)
 
     def setup_single_job(self):
         "Sets up a single job run with exit when done"
@@ -136,9 +150,12 @@ class IPDevPollProcess(object):
         reactor.callWhenRunning(_run_job)
 
     def setup_multiprocess(self):
-        from . import control
-        self._procmon = control.run_as_multiprocess(
-            threadpoolsize=self.options.threadpoolsize)
+        self._logger.info("Starting multi-process setup")
+        from .schedule import JobScheduler
+        plugins.import_plugins()
+        self.work_pool = pool.WorkerPool(4)
+        reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run,
+                                self.work_pool, self.options.onlyjob)
 
     def sighup_handler(self, _signum, _frame):
         """Reopens log files."""
@@ -154,8 +171,6 @@ class IPDevPollProcess(object):
         """Cleanly shuts down logging system and the reactor."""
         self._logger.warn("%s received: Shutting down", signame(signum))
         self._shutdown_start_time = time.time()
-        if self._procmon:
-            reactor.callFromThread(self._procmon.stopService)
         reactor.callFromThread(reactor.stop)
 
     def sigusr1_handler(self, _signum, _frame):
@@ -237,6 +252,8 @@ class CommandProcessor(object):
             metavar="COUNT", type=int, default=10,
             help="the number of database worker threads, and thus db "
                  "connections, to use")
+        opt("--worker", action="store_true",
+            help="Used internally when lauching worker processes")
         return parser
 
     def run(self):
