@@ -25,7 +25,7 @@ from math import ceil
 
 from twisted.python.failure import Failure
 from twisted.internet import task, reactor
-from twisted.internet.defer import Deferred, maybeDeferred, inlineCallbacks
+from twisted.internet.defer import Deferred, maybeDeferred
 from twisted.internet.task import LoopingCall
 
 from nav import ipdevpoll
@@ -36,7 +36,6 @@ from .dataloader import NetboxLoader
 from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_prefix_for_ipdevpoll_job
-from nav.models import manage
 from nav.tableformat import SimpleTableFormatter
 
 from nav.ipdevpoll.utils import log_unhandled_failure
@@ -125,7 +124,8 @@ class NetboxJobScheduler(object):
         # We're ok to start a polling run.
         try:
             job_handler = JobHandler(self.job.name, self.netbox,
-                                     plugins=self.job.plugins)
+                                     plugins=self.job.plugins,
+                                     interval=self.job.interval)
         except Exception:
             self._log_unhandled_error(Failure())
             self.reschedule(60)
@@ -167,8 +167,7 @@ class NetboxJobScheduler(object):
             self._log_finished_job(True)
         else:
             self._logger.debug("job did nothing")
-        log_job_externally(self.job_handler, True if result else None,
-                           self.job.interval)
+        update_counters(self.job_handler, True if result else None)
         return result
 
     def _reschedule_on_failure(self, failure):
@@ -180,7 +179,7 @@ class NetboxJobScheduler(object):
             delay = min(self.job.interval, randint(5*60, 10*60))
         self.reschedule(delay)
         self._log_finished_job(False)
-        log_job_externally(self.job_handler, False, self.job.interval)
+        update_counters(self.job_handler, False)
         failure.trap(AbortedJobError)
 
     def _log_finished_job(self, success=True):
@@ -425,46 +424,13 @@ class JobScheduler(object):
                        JobHandler.get_instance_count())
 
 
-# pylint: disable=W0703
-@inlineCallbacks
-def log_job_externally(job_handler, success=True, interval=None):
-    """Logs a job to the database"""
-    duration = job_handler.get_current_runtime()
-    duration_in_seconds = (duration.days * 86400 +
-                           duration.seconds +
-                           duration.microseconds / 1e6)
-    timestamp = time.time()
-
-    def _create_record(timestamp):
-        log = manage.IpdevpollJobLog(
-            netbox_id=job_handler.netbox.id,
-            job_name=job_handler.name,
-            end_time=datetime.datetime.fromtimestamp(timestamp),
-            duration=duration_in_seconds,
-            success=success,
-            interval=interval
-        )
-        log.save()
-
-    def _log_to_graphite():
-        prefix = metric_prefix_for_ipdevpoll_job(job_handler.netbox.sysname,
-                                                 job_handler.name)
-        runtime_path = prefix + ".runtime"
-        runtime = (runtime_path, (timestamp, duration_in_seconds))
-        send_metrics([runtime])
-
-        counter_path = (
-            prefix + (".success-count" if success else ".failure-count"))
-        _COUNTERS.increment(counter_path)
-        _COUNTERS.start()
-
-    _log_to_graphite()
-    try:
-        yield db.run_in_thread(_create_record, timestamp)
-    except db.ResetDBConnectionError:
-        pass  # this is being logged all over the place at the moment
-    except Exception as error:
-        _logger.warning("failed to log job to database: %s", error)
+def update_counters(job_handler, success):
+    prefix = metric_prefix_for_ipdevpoll_job(job_handler.netbox.sysname,
+                                             job_handler.name)
+    counter_path = (
+        prefix + (".success-count" if success else ".failure-count"))
+    _COUNTERS.increment(counter_path)
+    _COUNTERS.start()
 
 
 class CounterFlusher(defaultdict):

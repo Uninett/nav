@@ -29,6 +29,9 @@ from nav.ipdevpoll import ContextLogger
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
 from nav.ipdevpoll.snmp.common import SnmpError
 from . import storage, shadows
+from nav.metrics.carbon import send_metrics
+from nav.metrics.templates import metric_prefix_for_ipdevpoll_job
+from nav.models import manage
 from nav.util import splitby
 from .plugins import plugin_registry
 from nav.ipdevpoll import db
@@ -76,10 +79,11 @@ class JobHandler(object):
     _timing_logger = ContextLogger(suffix='timings')
     _start_time = datetime.datetime.min
 
-    def __init__(self, name, netbox, plugins=None):
+    def __init__(self, name, netbox, plugins=None, interval=None):
         self.name = name
         self.netbox = netbox
         self.cancelled = threading.Event()
+        self.interval = interval
 
         self.plugins = plugins or []
         self._logger.debug("Job %r initialized with plugins: %r",
@@ -296,12 +300,21 @@ class JobHandler(object):
             reactor.removeSystemEventTrigger(shutdown_trigger_id)
             return result
 
+        def log_externally_success(result):
+            self._log_job_externally(True if result else None)
+            return result
+
+        def log_externally_failure(result):
+            self._log_job_externally(False)
+            return result
+
         # The action begins here
         df = self._iterate_plugins(plugins)
         df.addErrback(plugin_failure)
         df.addCallback(save)
         df.addErrback(log_abort)
         df.addBoth(cleanup)
+        df.addCallbacks(log_externally_success, log_externally_failure)
         yield df
         defer.returnValue(True)
 
@@ -475,3 +488,39 @@ class JobHandler(object):
 
         """
         return len([o for o in gc.get_objects() if isinstance(o, cls)])
+
+    # pylint: disable=W0703
+    @defer.inlineCallbacks
+    def _log_job_externally(self, success=True):
+        """Logs a job to the database"""
+        duration = self.get_current_runtime()
+        duration_in_seconds = (duration.days * 86400 +
+                               duration.seconds +
+                               duration.microseconds / 1e6)
+        timestamp = time.time()
+
+        def _create_record(timestamp):
+            log = manage.IpdevpollJobLog(
+                netbox_id=self.netbox.id,
+                job_name=self.name,
+                end_time=datetime.datetime.fromtimestamp(timestamp),
+                duration=duration_in_seconds,
+                success=success,
+                interval=self.interval
+            )
+            log.save()
+
+        def _log_to_graphite():
+            prefix = metric_prefix_for_ipdevpoll_job(self.netbox.sysname,
+                                                     self.name)
+            runtime_path = prefix + ".runtime"
+            runtime = (runtime_path, (timestamp, duration_in_seconds))
+            send_metrics([runtime])
+
+        _log_to_graphite()
+        try:
+            yield db.run_in_thread(_create_record, timestamp)
+        except db.ResetDBConnectionError:
+            pass  # this is being logged all over the place at the moment
+        except Exception as error:
+            _logger.warning("failed to log job to database: %s", error)

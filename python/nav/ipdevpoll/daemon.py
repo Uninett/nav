@@ -119,7 +119,8 @@ class IPDevPollProcess(object):
             self._log_context = dict(job=job.name,
                                      sysname=self.options.netbox.sysname)
             job_handler = JobHandler(job.name, self.options.netbox,
-                                     plugins=job.plugins)
+                                     plugins=job.plugins,
+                                     interval=job.interval)
             deferred = maybeDeferred(job_handler.run)
             deferred.addBoth(_log_job, job_handler, interval=job.interval)
             deferred.addBoth(lambda x: reactor.stop())
