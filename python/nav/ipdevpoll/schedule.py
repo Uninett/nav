@@ -123,7 +123,7 @@ class NetboxJobScheduler(object):
 
         # We're ok to start a polling run.
         try:
-            job_handler = JobHandler(self.job.name, self.netbox,
+            job_handler = JobHandler(self.job.name, self.netbox.id,
                                      plugins=self.job.plugins,
                                      interval=self.job.interval)
         except Exception:

@@ -28,7 +28,7 @@ from twisted.internet.error import TimeoutError
 from nav.ipdevpoll import ContextLogger
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
 from nav.ipdevpoll.snmp.common import SnmpError
-from . import storage, shadows
+from . import storage, shadows, dataloader
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_prefix_for_ipdevpoll_job
 from nav.models import manage
@@ -81,7 +81,8 @@ class JobHandler(object):
 
     def __init__(self, name, netbox, plugins=None, interval=None):
         self.name = name
-        self.netbox = netbox
+        self.netbox_id = netbox
+        self.netbox = None
         self.cancelled = threading.Event()
         self.interval = interval
 
@@ -90,10 +91,6 @@ class JobHandler(object):
                            self.name, self.plugins)
         self.containers = storage.ContainerRepository()
         self.storage_queue = []
-
-        # Initialize netbox in container
-        nb = self._container_factory(shadows.Netbox, key=None,
-                                     id=netbox.id, sysname=netbox.sysname)
 
         self.agent = None
 
@@ -240,6 +237,12 @@ class JobHandler(object):
                   plugins ran).
 
         """
+        self.netbox = yield dataloader.load_netbox(self.netbox_id)
+        # Initialize netbox in container
+        nb = self._container_factory(shadows.Netbox, key=None,
+                                     id=self.netbox.id,
+                                     sysname=self.netbox.sysname)
+
         self._create_agentproxy()
         plugins = yield self._find_plugins()
         self._reset_timers()
