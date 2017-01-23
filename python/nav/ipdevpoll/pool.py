@@ -79,6 +79,7 @@ class ProcessAMP(amp.AMP):
     def __init__(self, is_worker, **kwargs):
         super(ProcessAMP, self).__init__(**kwargs)
         self.is_worker = is_worker
+        self.lost_handler = None
 
     def makeConnection(self, transport):
         if not hasattr(transport, 'getPeer'):
@@ -93,7 +94,8 @@ class ProcessAMP(amp.AMP):
             if reactor.running:
                 reactor.stop()
         else:
-            self._logger.info("Connection lost {}\n".format(reason))
+            if self.lost_handler:
+                self.lost_handler(self, reason)
 
 
 class InlinePool(object):
@@ -122,6 +124,14 @@ class WorkerPool(object):
         for i in range(self.target_count):
             self._spawn_worker()
 
+    def _worker_died(self, worker, reason):
+        self._logger.warning("Lost worker {worker} with {tasks} "
+                             "active tasks".format(
+                                 worker=worker,
+                                 tasks=self.activeTasks.get(worker, 0)))
+        del self.activeTasks[worker]
+        self._spawn_worker()
+
     @inlineCallbacks
     def _spawn_worker(self):
         args = [control.get_process_command(), '--worker', '-f', '-s', '-P']
@@ -133,6 +143,7 @@ class WorkerPool(object):
         factory.protocol = lambda: ProcessAMP(is_worker=False,
                                               locator=TaskHandler())
         worker = yield endpoint.connect(factory)
+        worker.lost_handler = self._worker_died
         self.activeTasks[worker] = 0
 
     @inlineCallbacks
