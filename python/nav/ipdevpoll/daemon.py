@@ -153,7 +153,7 @@ class IPDevPollProcess(object):
         self._logger.info("Starting multi-process setup")
         from .schedule import JobScheduler
         plugins.import_plugins()
-        self.work_pool = pool.WorkerPool(4)
+        self.work_pool = pool.WorkerPool(4, self.options.threadpoolsize)
         reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run,
                                 self.work_pool, self.options.onlyjob)
 

@@ -112,20 +112,21 @@ class WorkerPool(object):
 
     _logger = ContextLogger()
 
-    def __init__(self, workers):
+    def __init__(self, workers, threadpoolsize=None):
         twisted.internet.endpoints.log = HackLog
         self.activeTasks = dict()
         self.maxTasks = defaultdict(int)
         self.totalTasks = defaultdict(int)
         self.target_count = workers
+        self.threadpoolsize = threadpoolsize
         for i in range(self.target_count):
             self._spawn_worker()
 
     @inlineCallbacks
-    def _spawn_worker(self, threadpoolsize=None):
+    def _spawn_worker(self):
         args = [control.get_process_command(), '--worker', '-f', '-s', '-P']
-        if threadpoolsize:
-            args.append('--threadpoolsize=%d' % threadpoolsize)
+        if self.threadpoolsize:
+            args.append('--threadpoolsize=%d' % self.threadpoolsize)
         endpoint = ProcessEndpoint(reactor, control.get_process_command(),
                                    args, os.environ)
         factory = protocol.Factory()
