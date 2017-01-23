@@ -159,6 +159,14 @@ class NetboxJobScheduler(object):
                 cls.global_intensity = new_limit
         return failure
 
+    def _update_counters(self, success):
+        prefix = metric_prefix_for_ipdevpoll_job(self.netbox.sysname,
+                                                 self.job.name)
+        counter_path = (
+            prefix + (".success-count" if success else ".failure-count"))
+        _COUNTERS.increment(counter_path)
+        _COUNTERS.start()
+
     def _reschedule_on_success(self, result):
         """Reschedules the next normal run of this job."""
         delay = max(0, self.job.interval - self.get_runtime())
@@ -167,7 +175,7 @@ class NetboxJobScheduler(object):
             self._log_finished_job(True)
         else:
             self._logger.debug("job did nothing")
-        update_counters(self.job_handler, True if result else None)
+        self._update_counters(True if result else None)
         return result
 
     def _reschedule_on_failure(self, failure):
@@ -179,7 +187,7 @@ class NetboxJobScheduler(object):
             delay = min(self.job.interval, randint(5*60, 10*60))
         self.reschedule(delay)
         self._log_finished_job(False)
-        update_counters(self.job_handler, False)
+        self._update_counters(False)
         failure.trap(AbortedJobError)
 
     def _log_finished_job(self, success=True):
@@ -422,15 +430,6 @@ class JobScheduler(object):
             logger.log(level,
                        "no active jobs (%d JobHandlers)",
                        JobHandler.get_instance_count())
-
-
-def update_counters(job_handler, success):
-    prefix = metric_prefix_for_ipdevpoll_job(job_handler.netbox.sysname,
-                                             job_handler.name)
-    counter_path = (
-        prefix + (".success-count" if success else ".failure-count"))
-    _COUNTERS.increment(counter_path)
-    _COUNTERS.start()
 
 
 class CounterFlusher(defaultdict):
