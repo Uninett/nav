@@ -41,8 +41,8 @@ developing, something many browsers love to do! See `the RequireJS
 documentation on using urlArgs <http://requirejs.org/docs/api.html#config-urlArgs>`_
 for details.
 
-The :file:`htdocs/js/require_config.dev.js` is in the global Mercurial ignore
-list (file:`.hgignore`).
+The :file:`htdocs/js/require_config.dev.js` is in the global Git ignore
+list (file:`.gitignore`).
 
 
 Javascript testing

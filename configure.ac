@@ -23,7 +23,7 @@ if test -z "$SASS"; then
 fi
 AC_PATH_PROG(SED, sed)
 AC_PATH_PROG(GREP, grep)
-AC_PATH_PROG(HG, hg)
+AC_PATH_PROG(GIT, git)
 
 AC_SUBST(nav_user)
 AC_SUBST(webrootdir)
