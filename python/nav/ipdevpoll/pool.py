@@ -31,7 +31,7 @@ from . import control, jobs
 
 def initialize_worker():
     factory = protocol.Factory()
-    factory.protocol = lambda: ProcessAMP(locator=TaskHandler())
+    factory.protocol = lambda: ProcessAMP(is_worker=True, locator=TaskHandler())
     StandardIOEndpoint(reactor).listen(factory)
 
 
@@ -74,12 +74,26 @@ class TaskHandler(amp.CommandLocator):
 class ProcessAMP(amp.AMP):
     """Modify AMP protocol to allow running over process pipes"""
 
+    _logger = ContextLogger()
+
+    def __init__(self, is_worker, **kwargs):
+        super(ProcessAMP, self).__init__(**kwargs)
+        self.is_worker = is_worker
+
     def makeConnection(self, transport):
         if not hasattr(transport, 'getPeer'):
             setattr(transport, 'getPeer', lambda: "peer")
         if not hasattr(transport, 'getHost'):
             setattr(transport, 'getHost', lambda: "host")
         super(ProcessAMP, self).makeConnection(transport)
+
+    def connectionLost(self, reason):
+        super(ProcessAMP, self).connectionLost(reason)
+        if self.is_worker:
+            if reactor.running:
+                reactor.stop()
+        else:
+            self._logger.info("Connection lost {}\n".format(reason))
 
 
 class InlinePool(object):
@@ -115,7 +129,8 @@ class WorkerPool(object):
         endpoint = ProcessEndpoint(reactor, control.get_process_command(),
                                    args, os.environ)
         factory = protocol.Factory()
-        factory.protocol = lambda: ProcessAMP(locator=TaskHandler())
+        factory.protocol = lambda: ProcessAMP(is_worker=False,
+                                              locator=TaskHandler())
         worker = yield endpoint.connect(factory)
         self.activeTasks[worker] = 0
 
