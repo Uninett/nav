@@ -18,6 +18,6 @@ Minimum requirements for a CI server
 A CI server to run the full NAV test suite needs only these things:
 
 * Some CI software, e.g. Jenkins
-* Mercurial (to check out NAV's source code)
+* Git (to check out NAV's source code)
 * Docker >= 1.0
 * make

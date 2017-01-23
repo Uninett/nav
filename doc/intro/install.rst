@@ -82,7 +82,7 @@ To build and install NAV::
   make
   make install
 
-.. NOTE:: If you obtained your copy of NAV directly from a Mercurial
+.. NOTE:: If you obtained your copy of NAV directly from a Git
           repository, you may need to run ``./autogen.sh`` first.
 
 If you wish to configure NAV to run from a different location than the default
