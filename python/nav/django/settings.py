@@ -76,7 +76,8 @@ STATICFILES_FINDERS = (
 
 # Templates
 TEMPLATE_DIRS = (
-    nav.path.djangotmpldir,
+    os.path.join(nav.path.sysconfdir, 'templates'),
+    nav.path.djangotmpldir
 )
 
 # Context processors

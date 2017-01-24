@@ -43,6 +43,7 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      should_check_access_rights,
                                      mark_detained_interfaces,
                                      read_config, is_cisco,
+                                     add_dot1x_info,
                                      is_restart_interface_enabled,
                                      is_write_mem_enabled)
 from nav.Snmp.errors import SnmpError, TimeOutException
@@ -184,6 +185,8 @@ def populate_infodict(request, netbox, interfaces):
             else:
                 set_voice_vlan_attribute(voice_vlan, interfaces)
         mark_detained_interfaces(interfaces)
+        if is_dot1x_enabled:
+            add_dot1x_info(interfaces, fac)
     except TimeOutException:
         readonly = True
         messages.error(request, "Timeout when contacting %s. Values displayed "
@@ -214,6 +217,19 @@ def populate_infodict(request, netbox, interfaces):
                       'readonly': readonly,
                       'aliastemplate': aliastemplate})
     return info_dict
+
+
+def is_dot1x_enabled(config):
+    """Checks of dot1x config option is true"""
+    section = 'general'
+    option = 'enabledot1x'
+    try:
+        return (config.has_option(section, option) and
+                config.getboolean(section, option))
+    except ValueError:
+        pass
+
+    return False
 
 
 def is_cisco_voice_enabled(config):
