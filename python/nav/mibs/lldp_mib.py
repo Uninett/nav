@@ -16,7 +16,7 @@
 """"LLDP-MIB handling"""
 import socket
 
-from IPy import IP
+from nav.ip import IP
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.mibs.if_mib import IfMib
