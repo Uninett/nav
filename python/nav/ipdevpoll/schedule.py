@@ -70,6 +70,7 @@ class NetboxJobScheduler(object):
         self._last_job_started_at = 0
         self.running = False
         self._start_time = None
+        self._current_task = None
 
     def get_current_runtime(self):
         """Returns time elapsed since the start of the job as a timedelta."""
@@ -105,7 +106,9 @@ class NetboxJobScheduler(object):
         self._deferred.callback(self)
 
     def cancel_running_job(self):
-        pass  # TODO
+        if self._current_task:
+            self._logger.debug('Cancelling running task')
+            self.pool.cancel(self._current_task)
 
     def run_job(self, dummy=None):
         if self.is_running():
@@ -132,6 +135,7 @@ class NetboxJobScheduler(object):
             deferred = self.pool.perform_task(self.job.name, self.netbox.id,
                                               plugins=self.job.plugins,
                                               interval=self.job.interval)
+            self._current_task = deferred
         except Exception:
             self._log_unhandled_error(Failure())
             self.reschedule(60)
@@ -260,6 +264,7 @@ class NetboxJobScheduler(object):
         current_count -= 1
         self.__class__.job_counters[self.job.name] = max(current_count, 0)
         self.running = False
+        self._current_task = None
 
     def get_job_count(self):
         return self.__class__.job_counters.get(self.job.name, 0)
