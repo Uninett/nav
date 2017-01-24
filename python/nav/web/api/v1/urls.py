@@ -33,6 +33,7 @@ router.register(r'arp', views.ArpViewSet, base_name='arp')
 router.register(r'servicehandler', views.ServiceHandlerViewSet,
                 base_name='servicehandler')
 router.register(r'alert', views.AlertHistoryViewSet)
+router.register(r'unrecognized-neighbor', views.UnrecognizedNeighborViewSet, base_name='unrecognized-neighbor')
 
 urlpatterns = patterns(
     "",

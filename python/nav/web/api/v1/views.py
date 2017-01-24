@@ -15,15 +15,15 @@
 # pylint: disable=R0903, R0901, R0904
 """Views for the NAV API"""
 
+import logging
 from IPy import IP
 from django.http import HttpResponse
-from django.template import loader, RequestContext, TemplateDoesNotExist
+from django.template import RequestContext
 from django.db.models import Q
 from django.db.models.related import RelatedObject
 from django.db.models.fields import FieldDoesNotExist
 from datetime import datetime, timedelta
 import iso8601
-from django.http.response import Http404
 
 from provider.utils import long_token
 from rest_framework import status, filters, viewsets, exceptions
@@ -49,7 +49,6 @@ from nav.web.status2 import STATELESS_THRESHOLD
 EXPIRE_DELTA = timedelta(days=365)
 MINIMUMPREFIXLENGTH = 4
 
-import logging
 _logger = logging.getLogger(__name__)
 
 
@@ -119,17 +118,18 @@ def get_endpoints(request=None, version=1):
         'cabling': reverse_lazy('{}cabling-list'.format(prefix), **kwargs),
         'cam': reverse_lazy('{}cam-list'.format(prefix), **kwargs),
         'interface': reverse_lazy('{}interface-list'.format(prefix),
-                             **kwargs),
+                                  **kwargs),
         'netbox': reverse_lazy('{}netbox-list'.format(prefix), **kwargs),
         'patch': reverse_lazy('{}patch-list'.format(prefix), **kwargs),
         'prefix': reverse_lazy('{}prefix-list'.format(prefix), **kwargs),
         'prefix_routed': reverse_lazy('{}prefix-routed-list'.format(prefix),
-                                 **kwargs),
+                                      **kwargs),
         'prefix_usage': reverse_lazy('{}prefix-usage-list'.format(prefix),
-                                **kwargs),
+                                     **kwargs),
         'room': reverse_lazy('{}room-list'.format(prefix), **kwargs),
         'servicehandler': reverse_lazy('{}servicehandler-list'.format(prefix),
-                                  **kwargs),
+                                       **kwargs),
+        'unrecognized_neighbor': reverse_lazy('{}unrecognized-neighbor-list'.format(prefix), **kwargs),
         'vlan': reverse_lazy('{}vlan-list'.format(prefix), **kwargs),
     }
 
@@ -211,6 +211,24 @@ class RoomViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     queryset = manage.Room.objects.all()
     serializer_class = serializers.RoomSerializer
     filter_fields = ('location', 'description')
+
+
+class UnrecognizedNeighborViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """Lists unrecognized neighbors.
+
+    Search
+    ------
+    Searches in *remote_name*
+
+    Filters
+    -------
+    - netbox
+    - source
+    """
+    queryset = manage.UnrecognizedNeighbor.objects.all()
+    serializer_class = serializers.UnrecognizedNeighborSerializer
+    filter_fields = ('netbox', 'source')
+    search_fields = ('remote_name', )
 
 
 class NetboxViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
