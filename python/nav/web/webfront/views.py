@@ -395,7 +395,7 @@ def moveto_dashboard(request, did):
     account = request.account
     dashboard = get_object_or_404(AccountDashboard, account=account, pk=did)
     widget = get_object_or_404(AccountNavlet, account=account,
-                      pk=request.POST.get('widget_id'))
+                               pk=request.POST.get('widget_id'))
     widget.dashboard = dashboard
     widget.save()
     return HttpResponse(u'Widget moved to {}'.format(dashboard))
