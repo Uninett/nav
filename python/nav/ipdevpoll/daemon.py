@@ -72,6 +72,7 @@ class IPDevPollProcess(object):
         self.options = options
         self._logger = logging.getLogger('nav.ipdevpoll')
         self._shutdown_start_time = 0
+        self.job_loggers = []
 
     def run(self):
         """Loads plugins, and initiates polling schedules."""
@@ -112,6 +113,11 @@ class IPDevPollProcess(object):
         reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run,
                                 self.work_pool, self.options.onlyjob)
 
+        def log_scheduler_jobs():
+            JobScheduler.log_active_jobs(logging.INFO)
+
+        self.job_loggers.append(log_scheduler_jobs)
+
     def setup_worker(self):
         "Sets up a worker process"
         # NOTE: This is locally imported because it will in turn import
@@ -121,7 +127,12 @@ class IPDevPollProcess(object):
         # every log statement.
         self._logger.info("Starting worker process")
         plugins.import_plugins()
-        reactor.callWhenRunning(pool.initialize_worker)
+
+        def init():
+            handler = pool.initialize_worker()
+            self.job_loggers.append(handler.log_tasks)
+
+        reactor.callWhenRunning(init)
 
     def setup_single_job(self):
         "Sets up a single job run with exit when done"
@@ -159,6 +170,12 @@ class IPDevPollProcess(object):
         reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run,
                                 self.work_pool, self.options.onlyjob)
 
+        def log_scheduler_jobs():
+            JobScheduler.log_active_jobs(logging.INFO)
+
+        self.job_loggers.append(log_scheduler_jobs)
+        self.job_loggers.append(self.work_pool.log_summary)
+
     def sighup_handler(self, _signum, _frame):
         """Reopens log files."""
         self._logger.info("SIGHUP received; reopening log files")
@@ -178,8 +195,8 @@ class IPDevPollProcess(object):
     def sigusr1_handler(self, _signum, _frame):
         "Log list of active jobs on SIGUSR1"
         self._logger.info("SIGUSR1 received: Logging active jobs")
-        from nav.ipdevpoll.schedule import JobScheduler
-        JobScheduler.log_active_jobs(logging.INFO)
+        for logger in self.job_loggers:
+            logger()
 
     def shutdown(self):
         """Initiates a shutdown sequence"""

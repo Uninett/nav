@@ -30,9 +30,11 @@ from . import control, jobs
 
 
 def initialize_worker():
+    handler = TaskHandler()
     factory = protocol.Factory()
-    factory.protocol = lambda: ProcessAMP(is_worker=True, locator=TaskHandler())
+    factory.protocol = lambda: ProcessAMP(is_worker=True, locator=handler)
     StandardIOEndpoint(reactor).listen(factory)
+    return handler
 
 
 class Cancel(amp.Command):
@@ -95,6 +97,15 @@ class TaskHandler(amp.CommandLocator):
         if serial in self.tasks:
             self.tasks[serial].cancel()
         return {}
+
+    def log_tasks(self):
+        self._logger.info("Got {tasks} active tasks".format(
+            tasks=len(self.tasks)))
+        for job in self.tasks.values():
+            self._logger.info("{job} {netbox} {plugins}".format(
+                job=job.name,
+                netbox=job.netbox,
+                plugins=", ".join(job.plugins)))
 
 
 class ProcessAMP(amp.AMP):
