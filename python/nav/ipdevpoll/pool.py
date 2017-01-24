@@ -116,9 +116,9 @@ class WorkerPool(object):
 
     def __init__(self, workers, threadpoolsize=None):
         twisted.internet.endpoints.log = HackLog
-        self.activeTasks = dict()
-        self.maxTasks = defaultdict(int)
-        self.totalTasks = defaultdict(int)
+        self.active_tasks = dict()
+        self.max_tasks = defaultdict(int)
+        self.total_tasks = defaultdict(int)
         self.target_count = workers
         self.threadpoolsize = threadpoolsize
         for i in range(self.target_count):
@@ -128,8 +128,8 @@ class WorkerPool(object):
         self._logger.warning("Lost worker {worker} with {tasks} "
                              "active tasks".format(
                                  worker=worker,
-                                 tasks=self.activeTasks.get(worker, 0)))
-        del self.activeTasks[worker]
+                                 tasks=self.active_tasks.get(worker, 0)))
+        del self.active_tasks[worker]
         self._spawn_worker()
 
     @inlineCallbacks
@@ -144,22 +144,22 @@ class WorkerPool(object):
                                               locator=TaskHandler())
         worker = yield endpoint.connect(factory)
         worker.lost_handler = self._worker_died
-        self.activeTasks[worker] = 0
+        self.active_tasks[worker] = 0
 
     @inlineCallbacks
     def _execute(self, task, **kwargs):
-        worker = min(self.activeTasks, key=lambda x: self.activeTasks[x])
-        self.activeTasks[worker] += 1
-        self.totalTasks[worker] += 1
-        self.maxTasks[worker] = max(self.activeTasks[worker],
-                                    self.maxTasks[worker])
+        worker = min(self.active_tasks, key=lambda x: self.active_tasks[x])
+        self.active_tasks[worker] += 1
+        self.total_tasks[worker] += 1
+        self.max_tasks[worker] = max(self.active_tasks[worker],
+                                     self.max_tasks[worker])
         try:
             result = yield worker.callRemote(task, **kwargs)
         except:
             self._logger.exception("Unhandled exception")
             return
         finally:
-            self.activeTasks[worker] -= 1
+            self.active_tasks[worker] -= 1
         returnValue(result)
 
     def perform_task(self, job, netbox, plugins=None, interval=None):
@@ -168,14 +168,14 @@ class WorkerPool(object):
 
     def log_summary(self):
         self._logger.info("{active} out of {target} workers running".format(
-            active=len(self.activeTasks),
+            active=len(self.active_tasks),
             target=self.target_count))
-        for i, worker in enumerate(self.activeTasks):
+        for i, worker in enumerate(self.active_tasks):
             self._logger.info(" - {i}: active {active}"
                               " max {max} total {total}".format(
-                                  i=i, active=self.activeTasks[worker],
-                                  max=self.maxTasks[worker],
-                                  total=self.totalTasks[worker]))
+                                  i=i, active=self.active_tasks[worker],
+                                  max=self.max_tasks[worker],
+                                  total=self.total_tasks[worker]))
 
 
 class HackLog(object):
