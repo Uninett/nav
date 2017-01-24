@@ -19,6 +19,7 @@
 
 import os
 from datetime import datetime
+import json
 import logging
 from operator import attrgetter
 
@@ -28,6 +29,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.debug import (sensitive_variables,
                                            sensitive_post_parameters)
 from django.shortcuts import get_object_or_404, render
+from django.utils.http import urlquote
 
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.path import sysconfdir
@@ -89,6 +91,17 @@ def index(request, did=None):
         'webfront/index.html',
         context
     )
+
+
+def export_dashboard(request, did):
+    """Export dashboard as JSON."""
+    dashboard = get_object_or_404(AccountDashboard, pk=did,
+                                  account=request.account)
+
+    response = JsonResponse(dashboard.to_json_dict())
+    response['Content-Disposition'] = 'attachment; filename={name}.json'.format(
+        name=urlquote(dashboard.name))
+    return response
 
 
 @sensitive_post_parameters('password')

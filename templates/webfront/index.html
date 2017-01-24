@@ -91,7 +91,7 @@
     {# Content dropdown for dashboard settings #}
     <div id="dropdown-dashboard-settings"
          data-dropdown-content
-         class="f-dropdown content medium right-action-content">
+         class="f-dropdown content large right-action-content">
 
       <form id="form-rename-dashboard"
             method="post"
@@ -105,25 +105,35 @@
 
       <div class="row">
 
-        <div class="column medium-6">
+        <div class="column medium-4">
           <div id="default-dashboard-container"
                data-is-default-dashboard="{{ dashboard.is_default|yesno:'1,0' }}">
             <div class="alert-box">This is the default dashboard</div>
             <form id="form-set-default-dashboard" method="post"
                   action="{% url 'set-default-dashboard' dashboard.pk %}">
               <input type="submit" value="Set as default dashboard"
-                     class="small button secondary">
+                     class="small button secondary expand">
             </form>
           </div>
         </div>
 
+        <div class="column medium-4">
+          <a href="{% url 'export-dashboard' dashboard.pk %}" class="small button expand">Export dashboard
+          </a><br/>
+          <small data-tooltip
+                 class="has-tip"
+                 title="Download this dashboards definition into a file that can later be imported by pressing the + next to the tab list">
+              what's this?
+          </small>
+        </div>
 
-        <div class="column medium-6">
+        <div class="column medium-4">
           {% if request.account.accountdashboard_set.count > 1 %}
-            <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}" class="right">
-              <input type="submit" class="small button alert" value="Delete dashboard">
+            <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}">
+              <input type="submit" class="small button alert expand" value="Delete dashboard">
             </form>
-          {% endif %}
+            {% endif %}
+
         </div>
 
       </div>

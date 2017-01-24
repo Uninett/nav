@@ -36,6 +36,8 @@ urlpatterns = patterns(
         name='save-dashboard-columns'),
     url(r'^index/dashboard/moveto/(?P<did>\d+)/$', 'moveto_dashboard',
         name='moveto-dashboard'),
+    url(r'^index/dashboard/export/(?P<did>\d+)$', 'export_dashboard',
+        name='export-dashboard'),
     url(r'^index/dashboard/', 'index', name='dashboard-index'),
 
     url(r'^about/', 'about', name='webfront-about'),

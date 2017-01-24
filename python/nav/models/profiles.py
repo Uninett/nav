@@ -1384,6 +1384,18 @@ class AccountDashboard(models.Model):
     def get_absolute_url(self):
         return reverse('dashboard-index-id', kwargs={'did': self.id})
 
+    def to_json_dict(self):
+        data = {
+            'name': self.name,
+            'num_columns': self.num_columns,
+            'account': self.account_id,
+            'widgets': [],
+            'version': 1,
+        }
+        for widget in self.widgets.all():
+            data['widgets'].append(widget.to_json_dict())
+        return data
+
     class Meta(object):
         db_table = 'account_dashboard'
         ordering = ('name',)
@@ -1400,6 +1412,14 @@ class AccountNavlet(models.Model):
 
     def __unicode__(self):
         return "%s - %s" % (self.navlet, self.account)
+
+    def to_json_dict(self):
+        return {
+            'navlet': self.navlet,
+            'preferences': self.preferences,
+            'column': self.column,
+            'order': self.order,
+        }
 
     class Meta(object):
         db_table = 'account_navlet'
