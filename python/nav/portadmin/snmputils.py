@@ -83,6 +83,12 @@ class SNMPHandler(object):
     # List of all ports on a vlan as a hexstring (including native vlan)
     VLAN_EGRESS_PORTS = QBRIDGENODES['dot1qVlanStaticEgressPorts']['oid']
 
+    # dot1x
+
+    # dot1xPaeSystemAuthControl: The administrative enable/ disable state for
+    # Port Access Control in a System.
+    dot1xPaeSystemAuthControl = '1.0.8802.1.1.1.1.1.1.0'
+
     netbox = None
 
     def __init__(self, netbox, **kwargs):
@@ -488,6 +494,19 @@ class SNMPHandler(object):
             vlans = [FantasyVlan(vlan=interface.vlan)]
         return vlans
 
+    def is_dot1x_enabled(self, interfaces):
+        """Explicitly returns None as we do not know"""
+        return None
+
+    def get_dot1x_enabled(self):
+        """"""
+        return {}
+
+    def is_port_access_control_enabled(self):
+        """Returns state of port access control"""
+        handle = self._get_read_only_handle()
+        return int(handle.get(self.dot1xPaeSystemAuthControl)) == 1
+
 
 class Cisco(SNMPHandler):
     """A specialized class for handling ports in CISCO switches."""
@@ -697,8 +716,27 @@ class Cisco(SNMPHandler):
 
 class HP(SNMPHandler):
     """A specialized class for handling ports in HP switches."""
+
+    # From HP-DOT1X-EXTENSIONS-MIB
+    # hpicfDot1xPaePortAuth return INTEGER { true(1), false(2) }
+    dot1xPortAuth = '1.3.6.1.4.1.11.2.14.11.5.1.25.1.1.1.1.1'
+
     def __init__(self, netbox, **kwargs):
         super(HP, self).__init__(netbox, **kwargs)
+
+    def is_dot1x_enabled(self, interface):
+        """Returns True or False based on state of dot1x"""
+        return int(self._query_netbox(
+            self.dot1xPortAuth, interface.ifindex)) == 1
+
+    def get_dot1x_enabled_interfaces(self):
+        """Fetches a dict mapping ifindex to enabled state
+
+        :returns: dict[ifindex, is_enabled]
+        :rtype: dict[int, bool]
+        """
+        return {self._get_last_number(oid):state==1
+                for oid,state in self._bulkwalk(self.dot1xPortAuth)}
 
 
 class SNMPFactory(object):

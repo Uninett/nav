@@ -323,6 +323,25 @@ def mark_detained_interfaces(interfaces):
         if interface.identity_set.filter(status='quarantined').count() > 0:
             interface.detained = True
 
+
+def add_dot1x_info(interfaces, handler=None):
+    """Add information about dot1x state for interfaces"""
+    if not handler:
+        handler = SNMPFactory.get_instance(netbox)
+
+    # Skip if port access control is not enabled (and thus not dot1x)
+    if not handler.is_port_access_control_enabled():
+        return
+
+    dot1x_states = handler.get_dot1x_enabled_interfaces()
+    if not dot1x_states:
+        # Empty result
+        return
+
+    for interface in interfaces:
+        interface.dot1xenabled = dot1x_states.get(interface.ifindex)
+
+
 def is_cisco(netbox):
     """Returns true if netbox is of vendor cisco
     :type netbox: manage.Netbox
