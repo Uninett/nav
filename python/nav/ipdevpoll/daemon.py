@@ -26,6 +26,7 @@ import sys
 from twisted.python.failure import Failure
 import os
 import logging
+from multiprocessing import cpu_count
 import signal
 import time
 import argparse
@@ -79,7 +80,7 @@ class IPDevPollProcess(object):
         if self.options.netbox:
             self.setup_single_job()
         elif self.options.multiprocess:
-            self.setup_multiprocess()
+            self.setup_multiprocess(self.options.multiprocess)
         elif self.options.worker:
             self.setup_worker()
         else:
@@ -149,11 +150,12 @@ class IPDevPollProcess(object):
                           self.options.onlyjob, self.options.netbox)
         reactor.callWhenRunning(_run_job)
 
-    def setup_multiprocess(self):
+    def setup_multiprocess(self, process_count):
         self._logger.info("Starting multi-process setup")
         from .schedule import JobScheduler
         plugins.import_plugins()
-        self.work_pool = pool.WorkerPool(4, self.options.threadpoolsize)
+        self.work_pool = pool.WorkerPool(process_count,
+                                         self.options.threadpoolsize)
         reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run,
                                 self.work_pool, self.options.onlyjob)
 
@@ -216,6 +218,8 @@ class CommandProcessor(object):
             options.pidlog = True
         if options.capture_vars:
             setDebugging(True)
+        if options.multiprocess and options.multiprocess < 2:
+            parser.error('--multiprocess requires at least 2 workers')
 
         return options
 
@@ -238,8 +242,10 @@ class CommandProcessor(object):
             metavar="JOBNAME", help="run only JOBNAME in this process")
         opt("-n", "--netbox", action=NetboxAction, metavar="NETBOX",
             help="Run JOBNAME once for NETBOX. Also implies -f and -s options.")
-        opt("-m", "--multiprocess", action="store_true", dest="multiprocess",
-            help="Run ipdevpoll in a multiprocess setup")
+        opt("-m", "--multiprocess", type=int, dest="multiprocess",
+            nargs='?', const=cpu_count(), metavar='WORKERS',
+            help="Run ipdevpoll in a multiprocess setup. If WORKERS is not set "
+            "it will default to number of cpus in the system")
         opt("-P", "--pidlog", action="store_true", dest="pidlog",
             help="Include process ID in every log line")
         opt("--capture-vars", action="store_true", dest="capture_vars",
