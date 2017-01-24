@@ -329,9 +329,6 @@ def add_dot1x_info(interfaces, handler=None):
     if not handler:
         handler = SNMPFactory.get_instance(netbox)
 
-    for interface in interfaces:
-        interface.dot1xenabled = True
-
     # Skip if port access control is not enabled (and thus not dot1x)
     if not handler.is_port_access_control_enabled():
         return
