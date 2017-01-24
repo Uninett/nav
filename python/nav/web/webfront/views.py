@@ -325,7 +325,7 @@ def set_account_preference(request):
 @require_POST
 def set_default_dashboard(request, did):
     """Set the default dashboard for the user"""
-    dash = get_object_or_404(AccountDashboard, pk=did)
+    dash = get_object_or_404(AccountDashboard, pk=did, account=request.account)
     try:
         old_default = AccountDashboard.objects.get(account=request.account,
                                                    is_default=True)
@@ -369,7 +369,8 @@ def delete_dashboard(request, did):
 @require_POST
 def rename_dashboard(request, did):
     """Rename this dashboard"""
-    dash = get_object_or_404(AccountDashboard, pk=did)
+    dash = get_object_or_404(AccountDashboard, pk=did,
+                             account=request.account)
     dash.name = request.POST.get('dashboard-name', dash.name)
     dash.save()
     return HttpResponse(
