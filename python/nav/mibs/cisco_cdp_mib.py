@@ -17,7 +17,7 @@
 from __future__ import absolute_import
 import socket
 
-from IPy import IP
+from nav.ip import IP
 from twisted.internet import defer
 
 from nav.namedtuple import namedtuple
