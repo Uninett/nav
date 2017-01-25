@@ -55,8 +55,6 @@ RUN apt-get update \
        less \
        nbtscan
 
-RUN pip install whisper carbon graphite-web==0.9.14 django-tagging==0.3.4 pytz ipython
-
 RUN gem install --version '3.3.9' sass ;\
     gem install --version '~> 0.9' rb-inotify
 
@@ -77,6 +75,8 @@ ADD tools/docker/supervisord.conf /etc/supervisor/conf.d/nav.conf
 ADD requirements.txt /
 ADD tests/requirements.txt /test-requirements.txt
 RUN pip install -r /requirements.txt ; pip install -r /test-requirements.txt
+
+RUN pip install whisper carbon graphite-web==0.9.14 django-tagging==0.3.4 pytz
 
 ADD etc/graphite /opt/graphite/conf
 ADD tools/docker/carbon.conf /opt/graphite/conf/
