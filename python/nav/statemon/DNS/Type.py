@@ -1,4 +1,4 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 """
  $Id: Type.py,v 1.1 2003/03/26 16:03:58 magnun Exp $
 
@@ -71,7 +71,7 @@ def typestr(type):
 # added identifying header to top of each file
 #
 # Revision 1.3  2001/07/19 07:38:28  anthony
-# added type code for SRV. From Michael Ströder.
+# added type code for SRV. From Michael StrÃ¶der.
 #
 # Revision 1.2  2001/07/19 06:57:07  anthony
 # cvs keywords added
