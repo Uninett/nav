@@ -17,7 +17,6 @@
 
 import socket
 import imaplib
-from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import  Event
@@ -32,9 +31,7 @@ class IMAPConnection(imaplib.IMAP4):
 
     # pylint: disable=W0222
     def open(self, host, port):
-        self.sock = socket.socket(socktype_from_addr(host), socket.SOCK_STREAM)
-        self.sock.settimeout(self.timeout)
-        self.sock.connect((host, port))
+        self.sock = socket.create_connection((host, port), self.timeout)
         self.file = self.sock.makefile("rb")
 
 class ImapChecker(AbstractChecker):

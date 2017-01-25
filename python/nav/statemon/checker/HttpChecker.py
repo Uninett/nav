@@ -15,7 +15,6 @@
 #
 """HTTP Service Checker"""
 from nav import buildconf
-from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.event import Event
 from nav.statemon.abstractchecker import AbstractChecker
@@ -32,10 +31,8 @@ class HTTPConnection(httplib.HTTPConnection):
         self.connect()
 
     def connect(self):
-        self.sock = socket.socket(socktype_from_addr(self.host),
-                                  socket.SOCK_STREAM)
-        self.sock.settimeout(self.timeout)
-        self.sock.connect((self.host, self.port))
+        self.sock = socket.create_connection((self.host, self.port),
+                                             self.timeout)
 
 
 class HttpChecker(AbstractChecker):
