@@ -425,6 +425,8 @@ def get_interface_counter_graph_url(interface, timeframe='day', kind='Octets',
     titlemap = dict(octets=u'Traffic on {shortname}:{ifname} {ifalias}',
                     errors=u'Errors on {shortname}:{ifname} {ifalias}',
                     ucastpkts=u'Unicast packets on {shortname}:{ifname}',
+                    multicastpkts=u'Multicast packets on {shortname}:{ifname}',
+                    broadcastpkts=u'Broadcast packets on {shortname}:{ifname}',
                     discards=u'Discarded packets on {shortname}:{ifname}')
     title = titlemap.get(kind.lower(), u'{ifname}').format(
         ifname=interface.ifname,

@@ -44,7 +44,7 @@ from nav.web.ipdevinfo import utils
 from .host_information import get_host_info
 
 NAVPATH = [('Home', '/'), ('IP Device Info', '/ipdevinfo')]
-COUNTER_TYPES = ('Octets', 'UcastPkts', 'Errors', 'Discards')
+COUNTER_TYPES = ('Octets', 'UcastPkts', 'Errors', 'Discards', 'MulticastPkts', 'BroadcastPkts')
 
 
 _logger = logging.getLogger('nav.web.ipdevinfo')
@@ -538,7 +538,7 @@ def port_counter_graph(request, interfaceid, kind='Octets'):
 
     Redirects to the created url if successful
     """
-    if kind not in ('Octets', 'Errors', 'UcastPkts', 'Discards'):
+    if kind not in ('Octets', 'Errors', 'UcastPkts', 'Discards', 'MulticastPkts', 'BroadcastPkts'):
         raise Http404
 
     timeframe = request.GET.get('timeframe', 'day')

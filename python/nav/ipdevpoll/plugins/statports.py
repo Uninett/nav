@@ -27,11 +27,19 @@ from nav.mibs.ip_mib import IpMib
 OCTET_COUNTERS = (
     "ifInOctets",
     "ifOutOctets",
+    "ifInBroadcastPkts",
+    "ifOutBroadcastPkts",
+    "ifInMulticastPkts",
+    "ifOutMulticastPkts",
 )
 
 HC_OCTET_COUNTERS = (
     "ifHCInOctets",
     "ifHCOutOctets",
+    "ifHCInBroadcastPkts",
+    "ifHCOutBroadcastPkts",
+    "ifHCInMulticastPkts",
+    "ifHCOutMulticastPkts",
 )
 
 OTHER_COUNTERS = (
