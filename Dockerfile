@@ -11,14 +11,11 @@
 # be immediately live in the web interface.
 #
 # The NAV web interface is exposed through Apache/WSGI on port 80.
-# The graphite web interface is exposed through Apache/WSGI on port 8000.
 #
 # REQUIREMENT: For the users inside the container to be able to access the
 # source code mounted at /source, the directory and its files on the host must
 # be world-readable!
 # 
-# TODO: Possibly split this into separate containers for PostgreSQL, Graphite
-# and NAV.
 #
 FROM mbrekkevold/navbase-debian:jessie
 
@@ -47,7 +44,6 @@ RUN apt-get update \
        libapache2-mod-wsgi \
        rubygems \
        inotify-tools \
-       python-cairo \
        postgresql-client \
        vim \
        less \
@@ -56,8 +52,7 @@ RUN apt-get update \
 RUN gem install --version '3.3.9' sass ;\
     gem install --version '~> 0.9' rb-inotify
 
-RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav ;\
-    adduser --system --group --no-create-home --home=/opt/graphite --shell=/bin/bash graphite
+RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav
 
 RUN echo "import sys\nsys.path.append('/source/python')" > /etc/python2.7/sitecustomize.py
 
@@ -74,23 +69,14 @@ ADD requirements.txt /
 ADD tests/requirements.txt /test-requirements.txt
 RUN pip install -r /requirements.txt ; pip install -r /test-requirements.txt
 
-RUN pip install whisper carbon graphite-web==0.9.14 django-tagging==0.3.4 pytz
-
-ADD etc/graphite /opt/graphite/conf
-ADD tools/docker/carbon.conf /opt/graphite/conf/
-RUN cp /opt/graphite/conf/graphite.wsgi.example /opt/graphite/conf/graphite.wsgi ;\
-    chown -R graphite:graphite /opt/graphite ;\
-    sudo -u graphite python /opt/graphite/webapp/graphite/manage.py syncdb --noinput
-RUN echo "TIME_ZONE = 'Europe/Oslo'" > /opt/graphite/webapp/graphite/local_settings.py
-
 ADD tools/docker/nav-apache-site.conf /etc/apache2/sites-available/nav-site.conf
 RUN a2dissite 000-default; a2ensite nav-site
 
 ADD tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
 VOLUME ["/source"]
-ENV    PYTHONPATH /source/python:/opt/graphite/webapp
+ENV    PYTHONPATH /source/python
 ENV    PATH /source/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin
 RUN    echo "PATH=$PATH" > /etc/profile.d/navpath.sh
-EXPOSE 80 8000
+EXPOSE 80
 CMD    ["/source/tools/docker/run.sh"]

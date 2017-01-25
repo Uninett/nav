@@ -3,9 +3,15 @@ services:
   nav:
     build: .
     ports:
-     - "80:80"
-     - "8000:8000"
+      - "80:80"
     volumes:
-     - .:/source
+      - .:/source
   postgres:
     image: "postgres:9.4"
+  graphite:
+    build: ./tools/docker/graphite
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./etc/graphite/storage-schemas.conf:/opt/graphite/conf/storage-schemas.conf
+      - ./etc/graphite/storage-aggregation.conf:/opt/graphite/conf/storage-aggregation.conf

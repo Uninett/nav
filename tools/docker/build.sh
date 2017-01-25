@@ -32,6 +32,8 @@ if [[ ! -d "/etc/nav" ]]; then
     sed -e 's/dbhost=.*/dbhost=postgres/g' -i db.conf  # Set nav as db password.
     sed -e 's/userpw_nav=.*/userpw_nav=nav/g' -i db.conf  # Set nav as db password.
 
+    cp /source/tools/docker/graphite.conf /etc/nav/graphite.conf
+
     cd /source
     make installdirs-local
     chown -R nav:nav /etc/nav
