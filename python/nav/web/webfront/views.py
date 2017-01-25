@@ -24,7 +24,8 @@ import logging
 from operator import attrgetter
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
+from django.http import (HttpResponseForbidden, HttpResponseRedirect,
+                         HttpResponse, JsonResponse)
 from django.views.decorators.http import require_POST
 from django.views.decorators.debug import (sensitive_variables,
                                            sensitive_post_parameters)
@@ -40,7 +41,7 @@ from nav.web.utils import require_param
 from nav.web.webfront.utils import quick_read, tool_list
 from nav.web.webfront.forms import (LoginForm, NavbarLinkFormSet,
                                     ChangePasswordForm, ColumnsForm)
-from nav.web.navlets import list_navlets
+from nav.web.navlets import list_navlets, can_modify_navlet
 from nav.web.message import new_message, Messages
 from nav.web.webfront import get_widget_columns, find_dashboard
 
@@ -102,6 +103,73 @@ def export_dashboard(request, did):
     response['Content-Disposition'] = 'attachment; filename={name}.json'.format(
         name=urlquote(dashboard.name))
     return response
+
+
+dashboard_fields = {
+    'name': unicode,
+    'num_columns': int,
+    'widgets': list,
+    'version': int,
+}
+
+widget_fields = {
+    'navlet': unicode,
+    'column': int,
+    'preferences': dict,
+    'order': int,
+}
+
+
+@require_POST
+def import_dashboard(request):
+    """Receive an uploaded dashboard file and store in database"""
+    if not can_modify_navlet(request.account, request):
+        return HttpResponseForbidden()
+    response = {}
+    if 'file' in request.FILES:
+        try:
+            data = json.load(request.FILES['file'])
+            if not isinstance(data, dict):
+                raise ValueError()
+            for field, dtype in dashboard_fields.items():
+                if field not in data:
+                    raise ValueError()
+                if not isinstance(data[field], dtype):
+                    raise ValueError()
+            dashboard = AccountDashboard(account=request.account,
+                                         name=data['name'])
+            dashboard.num_columns = data['num_columns']
+            widgets = []
+            for widget in data['widgets']:
+                if not isinstance(widget, dict):
+                    raise ValueError()
+                for field, dtype in widget_fields.items():
+                    if field not in widget:
+                        raise ValueError()
+                    if not isinstance(widget[field], dtype):
+                        raise ValueError()
+                    if widget['column'] > dashboard.num_columns:
+                        raise ValueError()
+                widget = {k: v for k, v in widget.items()
+                          if k in widget_fields}
+                widgets.append(widget)
+            dashboard.save()
+            for widget in widgets:
+                dashboard.widgets.create(account=request.account,
+                                         **widget)
+            dashboard.save()
+            response['location'] = reverse('dashboard-index-id',
+                                           args=(dashboard.id,))
+        except ValueError:
+            _logger.exception('Failed to parse dashboard file for import')
+            return JsonResponse({
+                'error': "File is not a valid dashboard file",
+            }, status=400)
+    else:
+        return JsonResponse({
+            'error': "You need to provide a file",
+        }, status=400)
+    return JsonResponse(response)
 
 
 @sensitive_post_parameters('password')

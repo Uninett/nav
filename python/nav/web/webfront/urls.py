@@ -38,6 +38,8 @@ urlpatterns = patterns(
         name='moveto-dashboard'),
     url(r'^index/dashboard/export/(?P<did>\d+)$', 'export_dashboard',
         name='export-dashboard'),
+    url(r'^index/dashboard/import$', 'import_dashboard',
+        name='import-dashboard'),
     url(r'^index/dashboard/', 'index', name='dashboard-index'),
 
     url(r'^about/', 'about', name='webfront-about'),
