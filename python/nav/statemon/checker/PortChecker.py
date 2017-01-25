@@ -16,7 +16,6 @@
 """Simple TCP port service checker"""
 import select
 import socket
-from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import  Event
@@ -34,10 +33,7 @@ class PortChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=23, **kwargs)
 
     def execute(self):
-        sock = socket.socket(socktype_from_addr(self.ip),
-                             socket.SOCK_STREAM)
-        sock.settimeout(self.timeout)
-        sock.connect(self.get_address())
+        sock = socket.create_connection(self.get_address(), self.timeout)
         sockfile = sock.makefile('r')
         _readable, __w, __x = select.select([sock], [], [], self.timeout)
         if _readable:
