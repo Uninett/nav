@@ -48,8 +48,6 @@ RUN apt-get update \
        rubygems \
        inotify-tools \
        python-cairo \
-       postgresql \
-       postgresql-contrib \
        postgresql-client \
        vim \
        less \

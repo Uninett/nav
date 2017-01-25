@@ -9,8 +9,6 @@ mydir=$(dirname $0)
 mkdir -p /var/run/apache2
 rm -f /var/run/apache2/*.pid
 
-# Start postgresql, update the schema
-pg_ctlcluster 9.4 main start
 "$mydir/syncdb.sh" || exit
 
 # Start supervisor to control the rest of the runtime

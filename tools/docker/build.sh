@@ -29,6 +29,7 @@ if [[ ! -d "/etc/nav" ]]; then
     make install
     cd /etc/nav
     sed -e 's/^#\s*\(DJANGO_DEBUG.*\)$/\1/' -i nav.conf  # Enable django debug.
+    sed -e 's/dbhost=.*/dbhost=postgres/g' -i db.conf  # Set nav as db password.
     sed -e 's/userpw_nav=.*/userpw_nav=nav/g' -i db.conf  # Set nav as db password.
 
     cd /source

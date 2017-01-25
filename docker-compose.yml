@@ -1,0 +1,11 @@
+version: '2'
+services:
+  nav:
+    build: .
+    ports:
+     - "80:80"
+     - "8000:8000"
+    volumes:
+     - .:/source
+  postgres:
+    image: "postgres:9.4"
