@@ -16,7 +16,7 @@
 """Retrieval and calculations on raw numbers from Graphite metrics"""
 
 from datetime import datetime
-import json as simplejson
+import json
 from urllib import urlencode
 import urllib2
 from urlparse import urljoin
@@ -111,9 +111,9 @@ def get_metric_data(target, start="-5min", end="now"):
     req = urllib2.Request(url, data=query)
     try:
         response = urllib2.urlopen(req)
-        json = simplejson.load(response)
-        _logger.debug("get_metric_data: returning %d results", len(json))
-        return json
+        json_data = json.load(response)
+        _logger.debug("get_metric_data: returning %d results", len(json_data))
+        return json_data
     except urllib2.HTTPError as err:
         _logger.error("Got a 500 error from graphite-web when fetching %s"
                       "with data %s", err.url, query)

@@ -18,7 +18,7 @@
 import logging
 from django.core.urlresolvers import reverse
 from django.db.models.aggregates import Count
-import json as simplejson
+import json
 import os
 import datetime
 from ConfigParser import ConfigParser
@@ -178,7 +178,7 @@ def _build_context(request):
         'bookmark': "{0}?{1}".format(reverse(index), strip_query_args),
         'aggregates': aggregates,
         'timestamp': datetime.datetime.now().strftime(DATEFORMAT),
-        'domain_strip': simplejson.dumps(DOMAIN_SUFFICES),
+        'domain_strip': json.dumps(DOMAIN_SUFFICES),
         'navpath': nav_path,
         'title': create_title(nav_path)
     })

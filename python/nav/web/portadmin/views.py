@@ -16,12 +16,11 @@
 #
 """View controller for PortAdmin"""
 import ConfigParser
-import simplejson
 import logging
 
 from operator import or_ as OR
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext, Context
 from django.shortcuts import render, render_to_response, get_object_or_404
 from django.contrib import messages
@@ -476,11 +475,9 @@ def response_based_on_result(result):
 
     """
     if result['messages']:
-        return HttpResponse(simplejson.dumps(result), status=500,
-                            content_type="application/json")
+        return JsonResponse(result, status=500)
     else:
-        return HttpResponse(simplejson.dumps(result),
-                            content_type="application/json")
+        return JsonResponse(result)
 
 
 def render_trunk_edit(request, interfaceid):
