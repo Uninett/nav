@@ -37,6 +37,7 @@ class IMAPConnection(imaplib.IMAP4):
         self.sock.connect((host, port))
         self.file = self.sock.makefile("rb")
 
+
 class ImapChecker(AbstractChecker):
     """
     Valid arguments:

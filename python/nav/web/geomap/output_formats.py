@@ -29,6 +29,7 @@ from nav.web.geomap.utils import *
 
 # GeoJSON:
 
+
 def make_geojson(featurelist):
     """Create the GeoJSON representation of a list of features.
 
@@ -115,6 +116,7 @@ _formats = {
     'kml': (make_kml, 'application/vnd.google-earth.kml+xml')
     };
 
+
 def format_data(format, featurelist):
     """Format features in featurelist to a string.
 
@@ -129,6 +131,7 @@ def format_data(format, featurelist):
         raise Exception('unknown format %s' % format)
     formatter = _formats[format][0]
     return formatter(featurelist)
+
 
 def format_mime_type(format):
     """Returns the MIME type for the specified format."""

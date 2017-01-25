@@ -28,6 +28,7 @@ The buffer holds n items. When the the buffer is full and a new item is
 added, the first item is removed.
 """
 
+
 class CircBuf:
     def __init__(self, size=10, *_args, **_kwargs):
         self._size = size

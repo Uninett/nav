@@ -25,6 +25,7 @@ from .trap import SNMPTrap
 
 logger = logging.getLogger(__name__)
 
+
 class TrapListener:
     def __init__(self, iface):
         """Initializes a TrapListener.
@@ -152,6 +153,7 @@ def transform(pdu):
         generic_type = str(generic.get())
 
     return snmp_trap_oid, generic_type
+
 
 def oid_to_str(oid):
     """Converts an OID object/tuplet to a dotted string representation.

@@ -39,6 +39,7 @@ STATE_CHOICES = (
     (STATE_END, 'end'),
 )
 
+
 class Subsystem(models.Model):
     """From NAV Wiki: Defines the subsystems that post or receives an event."""
 
@@ -53,6 +54,7 @@ class Subsystem(models.Model):
 
 #######################################################################
 ### Event system
+
 
 class VariableMapBase(object):
     """Descriptor for simplified dict-like access to the variable map tables
@@ -136,6 +138,7 @@ class VariableMap(VariableMapBase):
                     'value': value,
                     })
                 variable.save()
+
 
 class StateVariableMap(VariableMapBase):
     """Descriptor for simplified dict-like access to the AlertHistory
@@ -359,6 +362,7 @@ class EventQueue(models.Model, EventMixIn):
             assert self.pk
             self.varmap = self.varmap
 
+
 class EventType(models.Model):
     """From NAV Wiki: Defines event types."""
 
@@ -380,6 +384,7 @@ class EventType(models.Model):
     def __unicode__(self):
         return self.id
 
+
 class EventQueueVar(models.Model):
     """From NAV Wiki: Defines additional (key,value) tuples that follow
     events."""
@@ -398,6 +403,7 @@ class EventQueueVar(models.Model):
 
 #######################################################################
 ### Alert system
+
 
 class AlertQueue(models.Model, EventMixIn):
     """From NAV Wiki: The alert queue. Additional data in alertqvar and
@@ -445,6 +451,7 @@ class AlertQueue(models.Model, EventMixIn):
             assert self.pk
             self.varmap = self.varmap
 
+
 class AlertType(models.Model):
     """From NAV Wiki: Defines the alert types. An event type may have many alert
     types."""
@@ -460,6 +467,7 @@ class AlertType(models.Model):
 
     def __unicode__(self):
         return u'%s, of event type %s' % (self.name, self.event_type)
+
 
 class AlertQueueMessage(models.Model):
     """From NAV Wiki: Event engine will, based on alertmsg.conf, preformat the
@@ -480,6 +488,7 @@ class AlertQueueMessage(models.Model):
 
     def __unicode__(self):
         return u'%s message in language %s' % (self.type, self.language)
+
 
 class AlertQueueVariable(models.Model):
     """From NAV Wiki: Defines additional (key,value) tuples that follow alert.
@@ -604,6 +613,7 @@ class AlertHistory(models.Model, EventMixIn):
             assert self.pk
             self.varmap = self.varmap
 
+
 class AlertHistoryMessage(models.Model):
     """From NAV Wiki: To have a history of the formatted messages too, they are
     stored in alerthistmsg."""
@@ -628,6 +638,7 @@ class AlertHistoryMessage(models.Model):
 
     def __unicode__(self):
         return u'%s message in language %s' % (self.type, self.language)
+
 
 class AlertHistoryVariable(models.Model):
     """From NAV Wiki: Defines additional (key,value) tuples that follow the

@@ -34,6 +34,7 @@ from nav.ipdevpoll.timestamps import TimestampChecker
 
 INFO_VAR_NAME = 'modules'
 
+
 class Modules(Plugin):
     """Plugin to collect module data from devices"""
 

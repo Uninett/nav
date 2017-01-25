@@ -238,6 +238,7 @@ def account_organization_remove(request, account_id, org_id):
                                             args=[account.id]),
                         }, UserAdminContext(request))
 
+
 def account_group_remove(request, account_id, group_id, caller='account'):
     """Controller for removing a group from an account
 

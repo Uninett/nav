@@ -37,6 +37,7 @@ from nav.web.ipam.util import PrefixQuerysetBuilder, get_available_subnets, \
 from rest_framework import serializers
 #from nav.models.fields import CIDRField
 
+
 # Inspired by
 # http://blog.karolmajta.com/parsing-query-parameters-in-rest-framework/
 class SuggestParams(serializers.Serializer):
@@ -44,6 +45,7 @@ class SuggestParams(serializers.Serializer):
     n = serializers.IntegerField(default=10)
     size = serializers.IntegerField(default=256)
     offset = serializers.IntegerField(default=0)
+
 
 class PrefixViewSet(viewsets.ViewSet):
     """Potpurri view for anything IPAM needs to function properly.
@@ -141,6 +143,7 @@ class PrefixViewSet(viewsets.ViewSet):
                            show_all=show_all)
         payload = result.fields["children"]
         return Response(payload, status=status.HTTP_200_OK)
+
 
 class PrefixFinderSet(viewsets.ViewSet):
     """Utility view for finding available subnets. Only returns prefixes that

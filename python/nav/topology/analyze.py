@@ -50,12 +50,14 @@ _logger = logging.getLogger(__name__)
 
 # Data classes
 
+
 class Box(int):
     """A Netbox' netboxid value"""
     name = None
 
     def __str__(self):
         return self.name or super(Box, self).__str__()
+
 
 class Port(tuple):
     """An Interface's (netboxid, interfaceid) values"""
@@ -226,6 +228,7 @@ class AdjacencyAnalyzer(object):
                   self.graph.out_degree(n) == 0]
         return result
 
+
 class AdjacencyReducer(AdjacencyAnalyzer):
     """Adjacency candidate graph reducer"""
 
@@ -281,6 +284,7 @@ class AdjacencyReducer(AdjacencyAnalyzer):
 
 # Graph builder functions
 
+
 def build_candidate_graph_from_db():
     """Builds and returns a DiGraph conforming to the requirements of an
     AdjacencyAnalyzer, based on data found in the adjacency_candidate database
@@ -318,6 +322,7 @@ def build_candidate_graph_from_db():
 
 CDP = 'cdp'
 LLDP = 'lldp'
+
 
 def _filter_by_source(all_candidates):
     """Filters candidates from list based on their source.

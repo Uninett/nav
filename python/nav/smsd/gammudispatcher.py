@@ -32,6 +32,7 @@ except ImportError, error:
     raise PermanentDispatcherError, \
           'python-gammu not installed or misconfigured.'
 
+
 class GammuDispatcher(Dispatcher):
     """The smsd dispatcher for Gammu."""
 
@@ -104,6 +105,7 @@ class GammuDispatcher(Dispatcher):
             result = False
 
         return (sms, sent, ignored, result, smsid)
+
 
 def decode_sms_to_unicode(sms):
     if isinstance(sms, unicode):

@@ -25,6 +25,7 @@ from twisted.internet.task import deferLater
 
 _logger = logging.getLogger(__name__)
 
+
 def cache_for_session(func):
     """Decorator for AgentProxyMixIn.getTable to cache responses"""
     def _wrapper(*args, **kwargs):
@@ -40,6 +41,7 @@ def cache_for_session(func):
             return succeed(cache[key])
 
     return wraps(func)(_wrapper)
+
 
 def _cache_result(result, cache, key):
     cache[key] = result
@@ -61,6 +63,7 @@ def throttled(func):
             return func(*args, **kwargs)
 
     return wraps(func)(_wrapper)
+
 
 # pylint: disable=R0903
 class AgentProxyMixIn(object):
@@ -134,6 +137,7 @@ SNMPParameters = namedtuple('SNMPParameters',
 SNMP_DEFAULTS = SNMPParameters(timeout=1.5, max_repetitions=50,
                                throttle_delay=0)
 
+
 # pylint: disable=W0212
 def snmp_parameter_factory(host=None):
     """Returns specific SNMP parameters for `host`, or default values from
@@ -157,6 +161,7 @@ def snmp_parameter_factory(host=None):
             params[key] = getter(section, var)
 
     return SNMPParameters(**params)
+
 
 class SnmpError(Exception):
     pass

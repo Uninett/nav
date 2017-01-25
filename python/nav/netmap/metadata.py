@@ -27,9 +27,11 @@ from nav.web.netmap.common import get_status_image_link
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class NetmapException(GeneralException):
     """Generic Netmap Exception"""
     pass
+
 
 class GraphException(NetmapException):
     """Graph Exception
@@ -38,6 +40,7 @@ class GraphException(NetmapException):
      from nav.topology or the metadata contains known errors.
     """
     pass
+
 
 # Ignore too few methods in class
 # pylint: disable=R0903

@@ -19,6 +19,7 @@ from django.conf import settings
 
 from nav.web.ipdevinfo.forms import SearchForm
 
+
 def search_form_processor(request):
     """Add populated search form to context"""
     context_extras = {}

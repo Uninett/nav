@@ -49,6 +49,7 @@ COUNTER_TYPES = ('Octets', 'UcastPkts', 'Errors', 'Discards')
 
 _logger = logging.getLogger('nav.web.ipdevinfo')
 
+
 def find_netboxes(errors, query):
     """Find netboxes based on query parameter
 

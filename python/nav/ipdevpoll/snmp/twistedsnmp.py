@@ -26,6 +26,7 @@ from twistedsnmp import snmpprotocol, agentproxy
 
 from . import common
 
+
 class AgentProxy(common.AgentProxyMixIn, agentproxy.AgentProxy):
     """TwistedSNMP AgentProxy derivative to add API compatibility
     with pynetsnmp's AgentProxy's open/close methods.

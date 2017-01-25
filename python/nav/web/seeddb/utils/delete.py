@@ -27,6 +27,7 @@ from django.http import HttpResponseRedirect
 
 from nav.web.message import new_message, Messages
 
+
 def render_delete(request, model, redirect, whitelist=None, extra_context=None):
     """Handles input and rendering of general delete page.
     """
@@ -79,6 +80,7 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None):
     return render_to_response('seeddb/delete.html',
         extra_context, RequestContext(request))
 
+
 def dependencies(queryset, whitelist):
     """Looks up related objects for the provided queryset.
     Only looks up models provided in the whitelist.
@@ -109,6 +111,7 @@ def dependencies(queryset, whitelist):
             related_objects[attr].append(obj)
 
     return related_objects
+
 
 @transaction.atomic()
 def qs_delete(queryset):

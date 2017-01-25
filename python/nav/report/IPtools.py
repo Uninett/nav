@@ -21,7 +21,9 @@ import math
 import logging
 _logger = logging.getLogger(__name__)
 
+
 class UnknownIpVersionError(Exception): pass
+
 
 def sort_nets_by_address(list):
     """Sorts a list of IPy.IP instances on hexlets/octets based on
@@ -46,6 +48,7 @@ def sort_nets_by_address(list):
     decorate.sort()
     return [i[-1] for i in decorate]
 
+
 def sort_nets_by_prefixlength(nets):
     """Sorts a list with IPy.IP instances on prefix length."""
     nets.sort(key=lambda x: x.prefixlen())
@@ -66,6 +69,7 @@ def netDiff(net1, net2):
     else:
         return _ipv6_net_diff(net1, net2)
 
+
 def _ipv4_net_diff(net1, net2):
     if net1 > net2:
         (net1, net2) = (net2, net1)
@@ -73,6 +77,7 @@ def _ipv4_net_diff(net1, net2):
     net_prefix_len = int(float(net1.prefixlen())/8+0.5)*8
     return [IP("/".join([str(net), str(net1.prefixlen())]))
             for net in range(net1.int(), net2.int(), 256**octets_to_the_right)]
+
 
 #this may be slow!
 def _ipv6_net_diff(net1, net2):
@@ -84,6 +89,7 @@ def _ipv6_net_diff(net1, net2):
             for net in
             range(net1.int(), net2.int(), int(math.pow(2, 16))**host_hexlets)]
 
+
 def isIntermediateNets(net1, net2):
     if net1.version() != net2.version():
         raise NotEqualVersionError
@@ -91,6 +97,7 @@ def isIntermediateNets(net1, net2):
         raise NotImplementedError
     else:
         return isIntermediateNetsIpv6(net1, net2)
+
 
 def isIntermediateNetsIpv6(net1, net2):
     """Returns True if there are nets with the same prefixlength between net1
@@ -128,6 +135,7 @@ def isIntermediateNetsIpv6(net1, net2):
     else:
         return False
 
+
 def compress_light(ip):
     """Compress the ip address without removing any hexlets."""
     netaddr = None
@@ -142,6 +150,7 @@ def compress_light(ip):
         netaddr = ":".join([netaddr, "0"])
 
     return netaddr
+
 
 def getLastbitsIpMap(ip_list):
     """Returns a mapping between the last nybble and
@@ -168,9 +177,11 @@ def getLastbitsIpMap(ip_list):
     else:
         raise UnknownIpVersionError, str(version)
 
+
 def _ipv4_getLastbitsMap(ip_list):
     return dict(zip([i.net().strNormal()[i.net().strNormal().rfind('.')+1:]
                      for i in ip_list], ip_list))
+
 
 def _ipv6_getNybblesMap(ip_list):
     """Finds the column where the IPs in the list should be displayed"""
@@ -178,6 +189,7 @@ def _ipv6_getNybblesMap(ip_list):
     return dict(
         zip([i.net().strFullsize().replace(':', '')[nybble_index]
              for i in ip_list], ip_list))
+
 
 def andIpMask(ip, mask):
     """Logical AND between ip and mask.
@@ -193,6 +205,7 @@ def andIpMask(ip, mask):
     else:
         raise UnknownIpVersionError, str(ip.version())
 
+
 def _ipv6_andIpMask(ip, mask):
     ip_split = ip.net().strFullsize().split(":")
     mask_split = mask.net().strFullsize().split(":")
@@ -202,6 +215,7 @@ def _ipv6_andIpMask(ip, mask):
         andOp = hexAnd(ip_split[i], mask_split[i])
         supernet = ":".join([supernet, andOp])
     return IP("/".join([supernet[1:], str(mask.prefixlen())]))
+
 
 def _ipv4_andIpMask(ip, mask):
     ip_split = ip.net().strNormal().split(".")
@@ -213,6 +227,7 @@ def _ipv4_andIpMask(ip, mask):
         supernet = ".".join([supernet, str(andOp)])
     return IP("/".join([supernet[1:], str(mask.prefixlen())]))
 
+
 def hexAnd(hex1, hex2):
     """Logic AND for two hex number.
 
@@ -222,6 +237,7 @@ def hexAnd(hex1, hex2):
     dec2 = int(hex2, 16)
     result = dec1 & dec2
     return "%x" % result
+
 
 def getMask(ip_version, bit_count):
     """Generates a network mask with prefix length = bit_count.
@@ -233,6 +249,7 @@ def getMask(ip_version, bit_count):
         return _ipv4_getMask(bit_count)
     else:
         raise UnknownIpVersionError, str(ip_version)
+
 
 def _ipv6_getMask(bit_count):
     result = None
@@ -255,6 +272,7 @@ def _ipv6_getMask(bit_count):
         result = "".join([result, "::"])
     return IP("/".join([result, str(bit_count)]))
 
+
 def _ipv4_getMask(bit_count):
     ip_builder = ""
     temp = 0
@@ -268,6 +286,7 @@ def _ipv4_getMask(bit_count):
     for i in range(0, 4-len(ip_builder.split("."))):
         ip_builder = ".".join([ip_builder, "0"])
     return IP("/".join([ip_builder, str(bit_count)]))
+
 
 def getLastSubnet(network, last_network_prefix_len=None):
     """
@@ -287,9 +306,11 @@ def getLastSubnet(network, last_network_prefix_len=None):
     return IP(''.join([network.net().strNormal(), "/",
                        str(last_network_prefix_len)]))
 
+
 def get_next_subnet(net):
     """Returns the next subnet of the same size as net"""
     return IP(net.int() + net.len()).make_net(net.prefixlen())
+
 
 def create_subnet_range(net, prefixlen):
     """Creates all subnets of the given size inside the net"""

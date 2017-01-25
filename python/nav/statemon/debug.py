@@ -45,9 +45,12 @@ loglevels = {
 }
 
 debuglevel = 5
+
+
 def setDebugLevel(level):
     global debuglevel
     debuglevel = level
+
 
 def debug(msg, level=5):
     if level <= debuglevel:
@@ -60,4 +63,3 @@ def debug(msg, level=5):
         print(msg)
         if not sys.stdout.isatty():
             sys.stdout.flush()
-

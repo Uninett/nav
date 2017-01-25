@@ -35,6 +35,7 @@ INFINITY = datetime.datetime.max
 
 # pylint: disable=C0111
 
+
 class InterfaceManager(DefaultManager):
     _found_existing_map = {}
     _db_ifcs = []
@@ -254,6 +255,7 @@ class InterfaceManager(DefaultManager):
         else:
             return link_filter
 
+
 # pylint is unable to see which members are created dynamically by metaclass:
 # pylint: disable=W0201,E0203
 class Interface(Shadow):
@@ -427,6 +429,7 @@ def mapby(items, *attrs):
     keyfunc = operator.attrgetter(*attrs)
     groupgen = groupby(items, keyfunc)
     return dict((k, list(v)) for k, v in groupgen)
+
 
 def ifnames(ifcs):
     """Returns a loggable string of interface names from a list of Interface

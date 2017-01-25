@@ -26,6 +26,7 @@ from nav.models import manage
 
 INFO_KEY_NAME = 'poll_times'
 
+
 class TimestampChecker(object):
     """Generic handling of SNMP time stamp checking.
 

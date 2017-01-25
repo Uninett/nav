@@ -16,6 +16,7 @@
 """Trap related data structures."""
 import string
 
+
 class SNMPTrap:
     """Generic trap-class"""
 

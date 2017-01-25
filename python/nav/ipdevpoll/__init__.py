@@ -22,6 +22,7 @@ Packages:
 """
 from .log import ContextLogger, ContextFormatter
 
+
 class Plugin(object):
 
     """Abstract class providing common functionality for all polling plugins.

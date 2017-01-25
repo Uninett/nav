@@ -38,6 +38,7 @@ _enterprise_map = {value: constant
 class InvalidResponseError(Exception):
     pass
 
+
 class TypeOid(Plugin):
     def handle(self):
         """Collects sysObjectID and looks for type changes."""

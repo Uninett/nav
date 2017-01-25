@@ -26,6 +26,7 @@ from .trap import SNMPTrap
 
 logger = logging.getLogger(__name__)
 
+
 class TrapListener:
     def __init__(self, iface):
         """Initializes a TrapListener.

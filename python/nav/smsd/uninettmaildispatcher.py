@@ -27,6 +27,7 @@ import smtplib
 import socket
 from nav.smsd.dispatcher import *
 
+
 class UninettMailDispatcher(Dispatcher):
     """The smsd dispatcher for UNINETT's mail-to-SMS gateway."""
 

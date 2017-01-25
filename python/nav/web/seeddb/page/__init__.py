@@ -20,6 +20,7 @@ from django.template import RequestContext
 
 from nav.web.seeddb.constants import TITLE_DEFAULT
 
+
 def index(request):
     """Index page. Nothing particularly interesting going on."""
     return render_to_response(
@@ -32,6 +33,7 @@ def index(request):
         RequestContext(request)
     )
 
+
 def not_implemented(*_args, **_kwargs):
     """Simple method used with the view_switcher.
 
@@ -39,6 +41,7 @@ def not_implemented(*_args, **_kwargs):
     function is never called.
     """
     raise NotImplementedError()
+
 
 def view_switcher(request, list_view=None, move_view=None, delete_view=None):
     """Selects appropriate view depending on POST data.

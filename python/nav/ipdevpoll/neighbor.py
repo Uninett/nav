@@ -42,6 +42,7 @@ HSRP_MAC_PREFIXES = ('00:00:0c:07:ac',)
 VRRP_MAC_PREFIXES = ('00:00:5e:00:01', '00:00:5e:00:02') # RFC5798
 IGNORED_MAC_PREFIXES = HSRP_MAC_PREFIXES + VRRP_MAC_PREFIXES
 
+
 @synchronized(threading.Lock())
 @cachedfor(timedelta(minutes=5))
 def get_netbox_macs():
@@ -52,6 +53,7 @@ def get_netbox_macs():
     """
     return _get_netbox_macs()
 
+
 def _get_netbox_macs():
     """Actual implementation of get_netbox_macs()"""
     from django.db import connection
@@ -61,17 +63,20 @@ def _get_netbox_macs():
                        if not _mac_is_ignored(mac))
     return netbox_macs
 
+
 def _mac_is_ignored(mac):
     for ignored in IGNORED_MAC_PREFIXES:
         if mac.lower().startswith(ignored.lower()):
             return True
     return False
 
+
 @synchronized(threading.Lock())
 @cachedfor(timedelta(minutes=10))
 def get_netbox_catids():
     """Returns a dict of {netboxid: catid} pairs of NAV-monitored devices"""
     return _get_netbox_catids()
+
 
 def _get_netbox_catids():
     """Actual implementation of get_netbox_catids()"""
@@ -80,6 +85,7 @@ def _get_netbox_catids():
     return catids
 
 INVALID_IPS = ('None', '0.0.0.0',)
+
 
 # pylint: disable=R0903
 class Neighbor(object):
@@ -244,6 +250,7 @@ class Neighbor(object):
                 ).format(myclass=self.__class__.__name__,
                          **vars(self))
 
+
 class CDPNeighbor(Neighbor):
     "Parses a CDP tuple from nav.mibs.cisco_cdp_mib to identify a neighbor"
 
@@ -326,6 +333,7 @@ class LLDPNeighbor(Neighbor):
             return
         return self._interface_query(Q(gwportprefix__gw_ip=ip))
 
+
 def filter_duplicate_neighbors(nborlist):
     """Filters out duplicate neighbors on a port.
 
@@ -346,6 +354,8 @@ def filter_duplicate_neighbors(nborlist):
             yield group[0]
 
 IFTYPE_L2VLAN = 135
+
+
 def _reduce_to_single_neighbor(nborlist):
     target_boxes = set(nbor.netbox.id for nbor in nborlist)
     same_netbox = len(target_boxes) == 1
@@ -363,6 +373,8 @@ def _reduce_to_single_neighbor(nborlist):
     return nborlist[0]
 
 SUBIF_PATTERN = re.compile(r'(?P<basename>.*)\.(?P<subname>[0-9]+)$')
+
+
 def _get_parent_interface(ifc):
     # NAV doesn't yet store data from ifStackTable in the database, so we can
     # only guess at the parent interface based on naming conventions (used by

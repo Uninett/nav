@@ -33,6 +33,7 @@ DEFAULT_VALUES = {'title': "MacWatch", 'navpath': NAVBAR}
 
 logger = logging.getLogger("nav.web.macwatch")
 
+
 def do_list(request, messages=None):
     account = get_account(request)
     macwatches = MacWatch.objects.all()
@@ -44,9 +45,11 @@ def do_list(request, messages=None):
                 info_dict,
                 RequestContext(request))
 
+
 def list_watch(request):
     """ Render current macwatches and option to add new one. """
     return do_list(request)
+
 
 def add_macwatch(request):
     """ Display form for adding of mac address to watch. """
@@ -79,6 +82,7 @@ def add_macwatch(request):
                     'macwatch/addmacwatch.html',
                     info_dict,
                     RequestContext(request))
+
 
 def delete_macwatch(request, macwatchid):
     """ Delete tuple for mac address watch """
@@ -143,6 +147,7 @@ def edit_macwatch(request, macwatchid):
                     'macwatch/editmacwatch.html',
                     info_dict,
                     RequestContext(request))
+
 
 def populate_info_dict(account, macwatches=None, messages=None):
     info_dict = {'account': account}

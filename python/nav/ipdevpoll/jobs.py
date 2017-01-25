@@ -38,6 +38,7 @@ from .snmp.common import snmp_parameter_factory
 _logger = logging.getLogger(__name__)
 ports = cycle([snmpprotocol.port() for i in range(50)])
 
+
 class AbortedJobError(Exception):
     """Signals an aborted collection job."""
     def __init__(self, msg, cause=None):
@@ -58,6 +59,7 @@ class SuggestedReschedule(AbortedJobError):
         self.delay = delay
         super(SuggestedReschedule, self).__init__(
             "Job was suggested rescheduled in %d seconds" % self.delay)
+
 
 class JobHandler(object):
 

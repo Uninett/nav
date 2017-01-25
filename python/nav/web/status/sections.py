@@ -47,6 +47,7 @@ LINK_STATE = 'linkState'
 SNMP_STATE = 'snmpAgentState'
 PSU_STATE = 'psuState'
 
+
 def get_section_model(section_type):
     """Dispatch table"""
     dtable = {
@@ -117,6 +118,7 @@ def get_user_sections(account):
         sections.append(section)
 
     return sections
+
 
 class _Section(object):
     '''Base class for sections.
@@ -199,6 +201,7 @@ class _Section(object):
         data = cls.form_data(status_prefs)
         return form_model(data)
 
+
 class NetboxSection(_Section):
     columns = [
         'Sysname',
@@ -272,6 +275,7 @@ class NetboxSection(_Section):
             states.append('boxShadow')
 
         return states
+
 
 class NetboxMaintenanceSection(_Section):
     columns = [
@@ -357,6 +361,7 @@ class NetboxMaintenanceSection(_Section):
         for h in history:
             ret[h['netbox']] = h
         return ret
+
 
 class ServiceSection(_Section):
     columns = [
@@ -464,6 +469,7 @@ class ServiceSection(_Section):
                 url += "&netbox=%s" % n['id']
         return url
 
+
 class ServiceMaintenanceSection(ServiceSection):
     devicehistory_type = 'e_maintenanceState'
 
@@ -536,6 +542,7 @@ class ServiceMaintenanceSection(ServiceSection):
             }
             history.append(row)
         self.history = history
+
 
 class ModuleSection(_Section):
     columns = [
@@ -817,6 +824,7 @@ class SNMPAgentSection(_Section):
             }
             history.append(row)
         self.history = history
+
 
 class PSUSection(_Section):
     columns = [

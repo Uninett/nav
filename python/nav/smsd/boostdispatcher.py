@@ -34,6 +34,7 @@ except ImportError, ie:
     raise DispatcherError, \
      'SOAPpy not installed or misconfigured.'
 
+
 class BoostDispatcher(Dispatcher):
     """The smsd dispatcher for Boost Communications' External Sender."""
 

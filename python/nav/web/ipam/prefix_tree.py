@@ -28,6 +28,7 @@ from django.core.urlresolvers import reverse, NoReverseMatch
 
 from nav.web.ipam.util import get_available_subnets
 
+
 class PrefixHeap(object):
     "Pseudo-heap ordered topologically by prefixes"
     def __init__(self, children=None):
@@ -134,6 +135,7 @@ class IpNode(PrefixHeap):
         assert isinstance(other, IpNode), \
             "Can only compare with other IpNode elements"
         return self.ip.__cmp__(other.ip)
+
 
 class IpNodeFacade(IpNode):
     "Utility mixin for nodes with IPy.IP objects in in the 'self.ip' field"
@@ -267,6 +269,7 @@ class IpNodeFacade(IpNode):
         "Marker property for declaring the node as fake (templating reasons)"
         return False
 
+
 class FauxNode(IpNodeFacade):
     "'Fake' nodes (manual constructor) in a prefix heap"
     def __init__(self, ip_addr, pk, net_type):
@@ -276,6 +279,7 @@ class FauxNode(IpNodeFacade):
     def is_mock_node(self):
         "Marker propery for declaring the node as fake (templating reasons)"
         return True
+
 
 class PrefixNode(IpNodeFacade):
     "Wrapper node for Prefix results"
@@ -293,6 +297,7 @@ class PrefixNode(IpNodeFacade):
         if getattr(prefix.vlan, "usage"):
             self.vlan_usage = prefix.vlan.usage.description
             self.FIELDS.append("vlan_usage")
+
 
 def make_prefix_heap(prefixes, initial_children=None, family=None,
                      sort_fn=None, show_available=False, show_unused=False):
@@ -354,6 +359,7 @@ SORT_BY = {
     "vlan_number": lambda x: x.vlan_number
 }
 
+
 def get_available_nodes(ips):
     """Find available subnets for each IP in 'ips' and return them as
     FauxNodes.
@@ -361,6 +367,7 @@ def get_available_nodes(ips):
     """
     available_nodes = get_available_subnets(ips)
     return nodes_from_ips(available_nodes, type="available")
+
 
 def nodes_from_ips(ips, type="empty"):
     "Turn a list of IPs into FauxNodes"
@@ -400,6 +407,7 @@ not part of the RFC1918 ranges.
         "show_unused": show_all
     }
     return make_prefix_heap(prefixes, **opts)
+
 
 def make_tree_from_ip(cidr_addresses):
     """Like make_tree, but for strings of CIDR addresses

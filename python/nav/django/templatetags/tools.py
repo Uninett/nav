@@ -18,6 +18,7 @@
 from django import template
 register = template.Library()
 
+
 @register.filter
 def get_tool(tool_list, tool_name):
     """Return the tool with the given name"""

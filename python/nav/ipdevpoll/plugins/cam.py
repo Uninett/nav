@@ -28,6 +28,7 @@ from nav.ipdevpoll import shadows
 from nav.ipdevpoll import utils
 from nav.ipdevpoll.neighbor import get_netbox_macs
 
+
 class Cam(Plugin):
     """Collects switches' forwarding tables and port STP states.
 

@@ -25,11 +25,13 @@ from pysnmp.mapping.udp import error as snmperror
 from pysnmp.mapping.udp.role import Manager
 from pysnmp.proto.api import alpha
 
+
 def oid_to_str(oid):
     """Converts an OID object/tuplet to a dotted string representation."""
     if not isinstance(oid, basestring):
         oid = "." + ".".join(str(i) for i in oid)
     return oid
+
 
 class Snmp(object):
     """Simple class that provides snmpget, snmpwalk and snmpjog(tm)

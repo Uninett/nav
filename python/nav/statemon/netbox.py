@@ -22,6 +22,8 @@
 # $Id: $
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
+
+
 class Netbox:
     """
     Class representing a NAV netbox

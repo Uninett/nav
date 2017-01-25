@@ -50,6 +50,7 @@ def hostname(ip):
     _cached_hostname[addr] = dns[0]
     return dns[0]
 
+
 @transaction.atomic()
 def get_prefix_info(addr):
     """Returns the smallest prefix from the NAVdb that an IP address fits into.

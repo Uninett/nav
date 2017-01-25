@@ -20,6 +20,7 @@ from nav.ipdevpoll.storage import Shadow, DefaultManager
 
 from .netbox import Netbox
 
+
 class SwPortBlockedManager(DefaultManager):
     "Manages SwPortBlocked entries"
 

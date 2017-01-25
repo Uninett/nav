@@ -26,6 +26,7 @@ from nav.event import Event
 
 _logger = logging.getLogger('nav.snmptrapd.linkupdown')
 
+
 def handleTrap(trap, config=None):
     """Handles LINKUP/LINKDOWN traps, discarding anything else"""
 
@@ -55,6 +56,7 @@ def handleTrap(trap, config=None):
                      ifname, ifalias, trap.agent, 'down' if down else 'up')
     return success
 
+
 def get_ifindex_from_trap(trap, config):
     """Gets the interface index from the trap's varbinds"""
     port_oid = config.get('linkupdown', 'portOID')
@@ -62,6 +64,7 @@ def get_ifindex_from_trap(trap, config):
         if key.find(port_oid) >= 0:
             return value
     return ""
+
 
 def find_corresponding_netbox(ipaddr):
     """Find a netboxid corresponding to the given ip address"""
@@ -77,6 +80,7 @@ def find_corresponding_netbox(ipaddr):
         _logger.exception("Unexpected error when querying database")
     finally:
         _logger.debug("Query was: %s", cursor.query)
+
 
 def get_interface_details(netboxid, ifindex):
     """Get interfaceid, deviceid, modulename, ifname, ifalias for interface"""
@@ -102,6 +106,7 @@ def get_interface_details(netboxid, ifindex):
                           ifindex, netboxid)
 
     return (None, None, None, None, None)
+
 
 def post_link_event(down, netboxid, deviceid, interfaceid, modulename, ifname,
                     ifalias):

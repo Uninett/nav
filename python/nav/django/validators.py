@@ -16,6 +16,7 @@
 
 from decimal import Decimal, InvalidOperation
 
+
 def is_valid_point_string(point_string):
     if len(point_string.split(',')) == 2:
         if point_string.startswith('(') and point_string.endswith(')'):

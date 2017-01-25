@@ -37,6 +37,7 @@ except ImportError:
     # fallback to current dir++
     CONFIGFILEPATH = ['/usr/local/nav/local/etc/conf/', '.']
 
+
 class Conf(dict):
     def __init__(self, *_args, **_kwargs):
         dict.__init__(self)
@@ -64,10 +65,12 @@ class Conf(dict):
             else:
                 self[key.strip()] = value.strip()
 
+
 def dbconf(*args, **kwargs):
     if _dbconf._instance is None:
         _dbconf._instance = _dbconf(*args, **kwargs)
     return _dbconf._instance
+
 
 class _dbconf(Conf):
     _instance = None
@@ -76,6 +79,7 @@ class _dbconf(Conf):
         # Valid configoptions must be specified in this list
         self.validoptions = []
         Conf.__init__(self, *args, **kwargs)
+
 
 class _serviceconf(Conf):
     _instance = None
@@ -89,6 +93,7 @@ def serviceconf(*args, **kwargs):
     if _serviceconf._instance is None:
         _serviceconf._instance = _serviceconf(*args, **kwargs)
     return _serviceconf._instance
+
 
 class _pingconf(Conf):
     _instance = None

@@ -27,6 +27,7 @@ from nav.smsd.dispatcher import *
 
 logger = logging.getLogger(__name__)
 
+
 class DebugDispatcher(Dispatcher):
     """Debug dispatcher for smsd."""
     RESULT_PERMANENT = 'permanent'

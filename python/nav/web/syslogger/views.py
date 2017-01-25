@@ -61,6 +61,7 @@ def _strip_empty_arguments(request):
         del query[key]
     return query
 
+
 def _build_context(request):
     nav_path = [('Home', '/'), ('Syslogger', reverse('logger_index'))]
     results = []
@@ -204,6 +205,7 @@ def index(request):
     return render_to_response('syslogger/index.html',
         _build_context(request),
         RequestContext(request))
+
 
 def group_search(request):
     if not request.is_ajax():

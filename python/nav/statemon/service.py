@@ -27,6 +27,8 @@
 Module representing a NAV service
 """
 import string
+
+
 class Service:
     def __init__(self, sysname, handler, args, id=''):
         self.sysname = sysname

@@ -18,6 +18,7 @@ from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.plugins import delayedstate
 from nav.models.manage import Netbox
 
+
 class BoxStateHandler(delayedstate.DelayedStateHandler):
     """Accepts boxState events"""
     handled_types = ('boxState',)

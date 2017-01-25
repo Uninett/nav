@@ -4,6 +4,7 @@ import re
 
 register = template.Library()
 
+
 @register.filter
 def shorten_ifname(ifname):
     """Shorten ifname and indicate shortening with ellipsis"""
@@ -11,6 +12,7 @@ def shorten_ifname(ifname):
     if matchobject:
         return "...".join(matchobject.groups())
     return ifname
+
 
 @register.filter
 def add_zwsp(value, separator="|"):

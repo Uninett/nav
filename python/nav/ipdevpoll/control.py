@@ -28,6 +28,7 @@ from . import config
 
 _logger = logging.getLogger(__name__)
 
+
 def run_as_multiprocess(threadpoolsize=None):
     "Sets up a process monitor to run each ipdevpoll job as a subprocess"
     procmon.LineLogger.lineReceived = line_received
@@ -44,9 +45,11 @@ def run_as_multiprocess(threadpoolsize=None):
     reactor.callWhenRunning(mon.startService)
     return mon
 
+
 def get_process_command():
     "Tries to return the path to the current executable"
     return sys.argv[0]
+
 
 def line_received(_, line):
     """Prints line to stderr.
@@ -56,6 +59,7 @@ def line_received(_, line):
 
     """
     print(line, file=sys.stderr)
+
 
 class ProcessMonitor(procmon.ProcessMonitor):
     "A ProcessMonitor variant that properly logs dead children"

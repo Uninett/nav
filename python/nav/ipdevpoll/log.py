@@ -22,6 +22,7 @@ from itertools import islice
 
 from nav.loggeradapter import LoggerAdapter
 
+
 class ContextFormatter(Formatter):
     """A log formatter that will add context data if available in the record.
 
@@ -57,6 +58,7 @@ class ContextFormatter(Formatter):
     def _strip_logger_prefix(self, record):
         if record.name.startswith(self.prefix):
             record.name = record.name[len(self.prefix):]
+
 
 # pylint: disable=R0903
 class ContextLogger(object):
@@ -132,10 +134,12 @@ class ContextLogger(object):
 # Utility functions for inspecting the call stack for logging contexts
 #
 
+
 def _context_search(frame, maxdepth=10):
     """Attempts to extract a logging context from the current stack"""
     frames = islice(_stack_iter(frame), maxdepth)
     return _first_true(_get_context_from_frame(f) for f in frames)
+
 
 def _stack_iter(frame):
     "Iterates backwards through stack frames, starting with the one below frame"
@@ -146,6 +150,7 @@ def _stack_iter(frame):
     finally:
         del frame
 
+
 def _first_true(sequence):
     """Returns the first element from sequence that evaluates to a true value,
     or None if no such element was found.
@@ -154,6 +159,7 @@ def _first_true(sequence):
     for elem in sequence:
         if elem:
             return elem
+
 
 def _get_context_from_frame(frame):
     "Returns a logging context from a stack frame, if found"

@@ -21,6 +21,7 @@ from nav import toposort
 from nav import ipdevpoll
 from django.db import transaction
 
+
 class MetaShadow(type):
     """Metaclass for building storage container classes.
 
@@ -55,6 +56,7 @@ class MetaShadow(type):
 
         setattr(mcs, '_logger', ipdevpoll.ContextLogger())
         MetaShadow.shadowed_classes[shadowclass] = mcs
+
 
 class DefaultManager(object):
     """The default storage manager used by all shadow classes.
@@ -98,6 +100,7 @@ class DefaultManager(object):
         return "%s(%r, %r(...))" % (self.__class__.__name__,
                                     self.cls,
                                     self.containers.__class__.__name__)
+
 
 class Shadow(object):
     """Base class to shadow Django model classes.
@@ -514,6 +517,7 @@ class Shadow(object):
         return [a for a in self.get_touched()
                 if _is_different(a)]
 
+
 def shadowify(model):
     """Return a properly shadowed version of a Django model object.
 
@@ -527,11 +531,13 @@ def shadowify(model):
         model = new_cls(model)
     return model
 
+
 def shadowify_queryset(queryset):
     """Run a Django queryset and transform results to shadow containers."""
     result = list(queryset)
     new_list = [shadowify(obj) for obj in result]
     return new_list
+
 
 @transaction.atomic()
 def shadowify_queryset_and_commit(queryset):
@@ -540,6 +546,7 @@ def shadowify_queryset_and_commit(queryset):
 
     """
     return shadowify_queryset(queryset)
+
 
 class ContainerRepository(dict):
     """A repository of container objects.

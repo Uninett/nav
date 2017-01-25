@@ -31,6 +31,7 @@ from nav.ipdevpoll import Plugin, shadows
 
 _resolvers = cycle([client.Resolver('/etc/resolv.conf') for i in range(3)])
 
+
 class DnsName(Plugin):
     """Performs reverse DNS lookup on netbox IP address"""
 

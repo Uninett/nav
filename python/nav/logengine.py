@@ -468,6 +468,7 @@ def logengine(config, options):
     # Make sure it all sticks
     connection.commit()
 
+
 def swallow_all_but_db_exceptions(func):
     def _swallow(*args, **kwargs):
         try:
@@ -477,6 +478,7 @@ def swallow_all_but_db_exceptions(func):
         except Exception:
             _logger.exception("Unhandled exception occurred, ignoring.")
     return _swallow
+
 
 def parse_options():
     """Parse and return options supplied on command line."""

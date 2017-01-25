@@ -23,6 +23,7 @@ from django.db.models.fields import FieldDoesNotExist
 
 from nav.models.profiles import Account, AccountGroup
 
+
 def get_request_body(request):
     """ Function for retrieving the request body
     https://docs.djangoproject.com/en/dev/ref/request-response/#django.http.HttpRequest.body

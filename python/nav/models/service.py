@@ -26,6 +26,7 @@ from nav.metrics.templates import (
 from nav.models.manage import Netbox
 from nav.models.fields import VarcharField
 
+
 class Service(models.Model):
     """From NAV Wiki: The service table defines the services on a netbox that
     serviceMon monitors."""

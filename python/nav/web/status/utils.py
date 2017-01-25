@@ -23,6 +23,7 @@ from nav.web.status.forms import NetboxMaintenanceForm, ServiceForm
 from nav.web.status.forms import ServiceMaintenanceForm, ModuleForm
 from nav.web.status.forms import ThresholdForm
 
+
 def extract_post(post):
     '''Some browser don't support buttons with names and values, so we have to
     use input type="submit" instead.
@@ -43,6 +44,7 @@ def extract_post(post):
             post[key] = value
     return post
 
+
 @transaction.atomic()
 def order_status_preferences(account):
     prefs = StatusPreference.objects.filter(
@@ -59,6 +61,7 @@ def order_status_preferences(account):
         return prev_position
     else:
         return 0
+
 
 @transaction.atomic()
 def make_default_preferences(account):

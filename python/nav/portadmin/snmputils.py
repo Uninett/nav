@@ -714,6 +714,7 @@ class Cisco(SNMPHandler):
         state = int(self._query_netbox(self.TRUNKPORTSTATE, interface.ifindex))
         return state in [1, 5]
 
+
 class HP(SNMPHandler):
     """A specialized class for handling ports in HP switches."""
 

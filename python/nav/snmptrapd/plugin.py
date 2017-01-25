@@ -26,6 +26,7 @@ class ModuleLoadError(GeneralException):
     """Failed to load module"""
     pass
 
+
 def load_handler_modules(modules):
     """
     Loads handlermodules

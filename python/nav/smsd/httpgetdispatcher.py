@@ -31,6 +31,7 @@ import urllib
 import urllib2
 from nav.smsd.dispatcher import *
 
+
 class HttpGetDispatcher(Dispatcher):
     """The smsd dispatcher for posting via a HTTP server."""
 
@@ -85,6 +86,7 @@ class HttpGetDispatcher(Dispatcher):
         self.logger.debug('HttpGetDispatcher response: %s, %s, %s, %s, %s',
                           sms, sent, ignored, result, smsid)
         return (sms, sent, ignored, result, smsid)
+
 
 class HttpGetError(urllib2.HTTPError):
     def __init__(self, url, code, msg, hdrs, fp):

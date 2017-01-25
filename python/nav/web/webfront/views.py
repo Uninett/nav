@@ -90,6 +90,7 @@ def index(request, did=None):
         context
     )
 
+
 @sensitive_post_parameters('password')
 def login(request):
     """Controller for the login page"""

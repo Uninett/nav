@@ -27,6 +27,7 @@ from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import get_multibridgemib
 
+
 class Bridge(Plugin):
     "Finds interfaces in L2/switchport mode"
 

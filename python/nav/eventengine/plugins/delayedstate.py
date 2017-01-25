@@ -20,6 +20,7 @@ from nav.eventengine.topology import netbox_appears_reachable
 from nav.models.manage import Netbox
 from nav.eventengine.plugin import EventHandler
 
+
 class DelayedStateHandler(EventHandler):
     """A plugin that wants to delay down alerts while waiting a possible
     quick resolve should be able to subclass this.

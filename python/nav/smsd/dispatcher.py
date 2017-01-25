@@ -20,11 +20,14 @@ import logging
 import sys
 import time
 
+
 class DispatcherError(Exception):
     """Base class for all exceptions raised by dispatchers."""
 
+
 class PermanentDispatcherError(DispatcherError):
     """Thrown for permanent errors in dispatchers."""
+
 
 class DispatcherHandler(object):
     """
@@ -161,6 +164,7 @@ class DispatcherHandler(object):
 
         # Still running? All dispatchers failed!
         raise DispatcherError, "All dispatchers failed to send SMS."
+
 
 class Dispatcher(object):
     """The SMS dispatcher mother class."""

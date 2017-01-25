@@ -21,6 +21,7 @@ from django.core.urlresolvers import reverse
 
 from nav.models.msgmaint import Message
 
+
 class ActiveMessagesFeed(Feed):
     """
     Generates a RSS feed of the active messages in NAV.

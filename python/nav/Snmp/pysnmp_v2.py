@@ -30,6 +30,7 @@ except:
     v1.RESPONSE = v1.GETRESPONSE
 from .errors import *
 
+
 class Snmp(object):
     """Simple class that provides snmpget, snmpwalk and snmpjog(tm)
     functionality.  Snmpget returns the result as one string.

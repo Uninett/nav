@@ -23,6 +23,7 @@ from django.core import exceptions
 from nav.util import is_valid_cidr
 from nav.django import validators, widgets
 
+
 class CIDRField(forms.CharField):
     """CIDR address text field with validation"""
 

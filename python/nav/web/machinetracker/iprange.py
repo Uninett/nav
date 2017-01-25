@@ -2,6 +2,7 @@ from IPy import IP
 from nav import util
 from nav.web.machinetracker.utils import get_prefix_info
 
+
 class MachinetrackerIPRange(util.IPRange):
 
     @classmethod
