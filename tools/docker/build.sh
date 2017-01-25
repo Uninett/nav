@@ -11,8 +11,11 @@ fi
 # the mounted /source volume.
 uid=$(stat -c '%u' /source)
 gid=$(stat -c '%g' /source)
-usermod --uid "$uid" nav
-groupmod --gid "$gid" nav
+# stuff appears like it's owned by root on OSX host, but is still accessible
+if [ "$uid" -ne 0 ]; then
+    usermod --uid "$uid" nav
+    groupmod --gid "$gid" nav
+fi
 
 cd /source
 sudo -u nav ./autogen.sh
