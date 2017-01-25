@@ -51,7 +51,6 @@ RUN apt-get update \
        postgresql \
        postgresql-contrib \
        postgresql-client \
-       openssh-server \
        vim \
        less \
        nbtscan
@@ -91,11 +90,9 @@ RUN a2dissite 000-default; a2ensite nav-site
 
 ADD tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
-RUN echo "root:password" | chpasswd
-
 VOLUME ["/source"]
 ENV    PYTHONPATH /source/python:/opt/graphite/webapp
 ENV    PATH /source/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin
 RUN    echo "PATH=$PATH" > /etc/profile.d/navpath.sh
-EXPOSE 22 80 8000
+EXPOSE 80 8000
 CMD    ["/source/tools/docker/run.sh"]
