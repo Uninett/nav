@@ -498,7 +498,7 @@ class SNMPHandler(object):
         """Explicitly returns None as we do not know"""
         return None
 
-    def get_dot1x_enabled(self):
+    def get_dot1x_enabled_interfaces(self):
         """"""
         return {}
 

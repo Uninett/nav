@@ -3,9 +3,9 @@
     {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
       <ul class="navlet-action-group button-group">
         <li>
-          <a href="javascript:void(0);" class="navlet-drag-button right">
+          <span class="navlet-drag-button right">
             <i class="fa fa-arrows" title="Drag to move widgets to where you want them"></i>
-          </a>
+          </span>
         </li>
 {% comment %} Leave this uncommented in case we want it back.
         <li>
