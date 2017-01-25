@@ -46,7 +46,8 @@ require([
         };
 
         $(document).keydown(function (event) {
-            if (!event.target.form) {
+            var ignoreEvent = event.target.form || event.target.nodeName === 'INPUT';
+            if (!ignoreEvent) {
                 switch (event.which) {
                     case 37: // left
                         fetchPreviousDashboard();
