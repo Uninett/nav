@@ -16,9 +16,8 @@
 # pylint: disable=E1101
 """Status navlet"""
 
-import simplejson
 from datetime import datetime
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
 from nav.django.utils import get_account
 from nav.models.manage import Netbox
@@ -93,4 +92,4 @@ class StatusNavlet(Navlet):
         else:
             navlet.preferences[REFRESH_INTERVAL] = interval
             navlet.save()
-            return HttpResponse(simplejson.dumps(navlet.preferences))
+            return JsonResponse(navlet.preferences)
