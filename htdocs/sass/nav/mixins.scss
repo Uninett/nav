@@ -1,0 +1,14 @@
+/* Generally useful mixins */
+
+
+// Add drag cursor to element (with active state transition)
+@mixin drag-cursor {
+    cursor: grab;
+    cursor: -webkit-grab;
+    cursor: -moz-grab;
+    &:active {
+        cursor: grabbing;
+        cursor: -webkit-grabbing;
+        cursor: -moz-grabbing;
+    }
+}

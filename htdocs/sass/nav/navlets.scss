@@ -1,4 +1,5 @@
 @import "../navsettings";
+@import "mixins";
 
 $fullscreen-color: #EEE;
 #navlets:fullscreen { background-color: $fullscreen-color; }
@@ -47,6 +48,9 @@ $fullscreen-color: #EEE;
     }
     .navlet-header {
         margin-bottom: 1em;
+        .navlet-drag-button i {
+            @include drag-cursor;
+        }
         .deprecated-warning {
             margin-bottom: auto;
             margin-top: 1.25rem;
