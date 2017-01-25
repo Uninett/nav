@@ -8,7 +8,6 @@ mydir=$(dirname $0)
 
 mkdir -p /var/run/apache2
 rm -f /var/run/apache2/*.pid
-mkdir -p /var/run/sshd
 
 # Start postgresql, update the schema
 pg_ctlcluster 9.4 main start
