@@ -42,7 +42,10 @@ from nav.snmptrapd import agent
 configfile = nav.buildconf.sysconfdir + "/snmptrapd.conf"
 traplogfile = nav.buildconf.localstatedir + "/log/snmptraps.log"
 logfile = nav.buildconf.localstatedir + "/log/snmptrapd.log"
-
+logger = None
+traplogger = None
+handlermodules = None
+config = None
 
 DEFAULT_PORT = 162
 DEFAULT_ADDRESSES = (
@@ -93,7 +96,7 @@ def main():
     server.open()
 
     # We have bound to a port and can safely drop privileges
-    runninguser = config.get('snmptrapd','user')
+    runninguser = config.get('snmptrapd', 'user')
     try:
         if os.geteuid() == 0:
             daemon.switchuser(runninguser)
@@ -101,7 +104,6 @@ def main():
         print(why)
         server.close()
         sys.exit(-1)
-
 
     # logger and traplogger logs to two different files. We want a
     # complete log of received traps in one place, and an activity log
@@ -121,7 +123,7 @@ def main():
         try:
             loglevel = int(loglevel)
         except ValueError:
-            #default to loglevel INFO
+            # default to loglevel INFO
             loglevel = 20
 
         # Initialize deamonlogger
@@ -149,9 +151,9 @@ def main():
     # Load handlermodules
     try:
         logger.debug('Trying to load handlermodules')
-        handlermodules = load_handler_modules(config.get('snmptrapd','handlermodules').split(','))
+        handlermodules = load_handler_modules(config.get('snmptrapd', 'handlermodules').split(','))
     except ModuleLoadError, why:
-        logger.error("Could not load handlermodules %s" %why)
+        logger.error("Could not load handlermodules %s" % why)
         sys.exit(1)
 
     addresses_text = ", ".join(address_to_string(*addr) for addr in addresses)
@@ -192,7 +194,7 @@ def main():
     else:
         # Start listening and exit cleanly if interrupted.
         try:
-            logger.info ("Listening on %s", addresses_text)
+            logger.info("Listening on %s", addresses_text)
             server.listen(opts.community, trapHandler)
         except KeyboardInterrupt, why:
             logger.error("Received keyboardinterrupt, exiting.")
@@ -250,7 +252,7 @@ def loginitfile(logfile, traplogfile, loglevel):
         logger = logging.getLogger()
         logger.addHandler(filehandler)
         logger.setLevel(loglevel)
-        #logger.setLevel(loglevel)
+        # logger.setLevel(loglevel)
 
         filehandler = logging.FileHandler(traplogfile, 'a')
         filehandler.setFormatter(fileformatter)
@@ -260,12 +262,9 @@ def loginitfile(logfile, traplogfile, loglevel):
 
         return True
     except IOError, error:
-        print("Failed creating file loghandler. Daemon mode disabled. (%s)" \
-         % error, file=sys.stderr)
+        print("Failed creating file loghandler. Daemon mode disabled. (%s)"
+              % error, file=sys.stderr)
         return False
-
-
-
 
 
 def trapHandler(trap):
@@ -275,21 +274,21 @@ def trapHandler(trap):
     connection = getConnection('default')
 
     for mod in handlermodules:
-        logger.debug("Giving trap to %s" %str(mod))
+        logger.debug("Giving trap to %s" % str(mod))
         try:
             accepted = mod.handleTrap(trap, config=config)
-            logger.debug ("Module %s %s trap", mod.__name__,
-                          accepted and 'accepted' or 'ignored',)
+            logger.debug("Module %s %s trap", mod.__name__,
+                         accepted and 'accepted' or 'ignored',)
         except Exception, why:
             logger.exception("Error when handling trap with %s: %s"
-                             %(mod.__name__, why))
+                             % (mod.__name__, why))
         # Assuming that the handler used the same connection as this
         # function, we rollback any uncommitted changes.  This is to
         # avoid idling in transactions.
         connection.rollback()
 
 
-def verifySubsystem ():
+def verifySubsystem():
     """Verify that subsystem exists, if not insert it into database"""
     db = getConnection('default')
     c = db.cursor()
@@ -313,4 +312,3 @@ def signal_handler(signum, _):
 
 if __name__ == '__main__':
     main()
-

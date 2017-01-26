@@ -27,7 +27,6 @@ import sys
 import signal
 import getopt
 import time
-import pwd
 
 import nav.daemon
 from nav.daemon import safesleep as sleep
@@ -40,25 +39,26 @@ from nav.statemon import debug
 from nav.statemon.event import Event
 from nav.statemon.netbox import Netbox
 
+
 class pinger:
     def __init__(self, **kwargs):
         signal.signal(signal.SIGHUP, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
-        self.config=config.pingconf()
-        debug.setDebugLevel(int(self.config.get("debuglevel",5)))
-        debug.debug("Setting debuglevel=%s "% self.config.get("debuglevel",5))
-        self._isrunning=1
-        self._looptime=int(self.config.get("checkinterval",60))
-        debug.debug("Setting checkinterval=%i" %self._looptime)
-        self._debuglevel=0
-        self.db=db.db()
-        sock = kwargs.get("socket",None)
-        self.pinger=megaping.MegaPing(sock)
-        self._nrping = int(self.config.get("nrping" ,3))
+        self.config = config.pingconf()
+        debug.setDebugLevel(int(self.config.get("debuglevel", 5)))
+        debug.debug("Setting debuglevel=%s " % self.config.get("debuglevel", 5))
+        self._isrunning = 1
+        self._looptime = int(self.config.get("checkinterval", 60))
+        debug.debug("Setting checkinterval=%i" % self._looptime)
+        self._debuglevel = 0
+        self.db = db.db()
+        sock = kwargs.get("socket", None)
+        self.pinger = megaping.MegaPing(sock)
+        self._nrping = int(self.config.get("nrping", 3))
         # To keep status...
-        self.netboxmap = {} # hash netboxid -> netbox
-        self.down = []      # list of netboxids down
-        self.replies = {}      # hash netboxid -> circbuf
+        self.netboxmap = {}  # hash netboxid -> netbox
+        self.down = []       # list of netboxids down
+        self.replies = {}    # hash netboxid -> circbuf
         self.ipToNetboxid = {}
 
     def updateHostList(self):
@@ -66,7 +66,7 @@ class pinger:
         Fetches all netboxes from the NAVdb, and updates
         internal data structures.
         """
-        debug.debug("Getting hosts from database...",7)
+        debug.debug("Getting hosts from database...", 7)
         hosts = self.db.hosts_to_ping()
         netboxmap = {}
         self.ipToNetboxid = {}
@@ -85,20 +85,20 @@ class pinger:
                     buf = self.replies[netbox.netboxid]
                     # This genious line marks all-down for the whole buf
                     map(buf.push, [-1]*len(buf))
-            netboxmap[netbox.netboxid]=netbox
+            netboxmap[netbox.netboxid] = netbox
             self.ipToNetboxid[netbox.ip] = netbox.netboxid
         # Update netboxmap
         self.netboxmap = netboxmap
         debug.debug("We now got %i hosts in our list to ping" %
                     len(self.netboxmap), 7)
-        #then update our pinger object
+        # then update our pinger object
         self.pinger.set_hosts(self.ipToNetboxid.keys())
 
     def generateEvents(self):
         """
         Report state changes to event engine.
         """
-        debug.debug("Checks which hosts didn't answer",7)
+        debug.debug("Checks which hosts didn't answer", 7)
         answers = self.pinger.results()
         for ip, rtt in answers:
             # rtt = round trip time (-1 => host didn't reply)
@@ -119,14 +119,14 @@ class pinger:
             if replies[:self._nrping] == [-1]*self._nrping:
                 downNow.append(netboxid)
 
-        debug.debug("No answer from %i hosts" %len(downNow),7)
+        debug.debug("No answer from %i hosts" % len(downNow), 7)
         # Detect state changes since last run
         reportDown = filter(lambda x: x not in self.down, downNow)
         reportUp = filter(lambda x: x not in downNow, self.down)
         self.down = downNow
 
         # Reporting netboxes as down
-        debug.debug("Starts reporting %i hosts as down" % len(reportDown),7)
+        debug.debug("Starts reporting %i hosts as down" % len(reportDown), 7)
         for netboxid in reportDown:
             netbox = self.netboxmap[netboxid]
             newEvent = Event(None,
@@ -139,7 +139,7 @@ class pinger:
             self.db.new_event(newEvent)
             debug.debug("%s marked as down." % netbox)
         # Reporting netboxes as up
-        debug.debug("Starts reporting %i hosts as up" % len(reportUp),7)
+        debug.debug("Starts reporting %i hosts as up" % len(reportUp), 7)
         for netboxid in reportUp:
             try:
                 netbox = self.netboxmap[netboxid]
@@ -154,7 +154,7 @@ class pinger:
                              Event.UP
                              )
             self.db.new_event(newEvent)
-            debug.debug( "%s marked as up." % netbox)
+            debug.debug("%s marked as up." % netbox)
 
     def main(self):
         """
@@ -162,39 +162,36 @@ class pinger:
         """
         self.db.start()
         while self._isrunning:
-            start=time.time()
             debug.debug("Starts pinging....", 7)
             self.updateHostList()
-            elapsedtime=self.pinger.ping()
+            elapsedtime = self.pinger.ping()
             self.generateEvents()
             debug.debug("%i hosts checked in %03.3f secs. %i hosts "
                         "currently marked as down." %
                         (len(self.netboxmap), elapsedtime, len(self.down)))
-            wait=self._looptime-elapsedtime
+            wait = self._looptime-elapsedtime
             if wait > 0:
-                debug.debug("Sleeping %03.3f secs" % wait,6)
+                debug.debug("Sleeping %03.3f secs" % wait, 6)
             else:
-                wait=abs(self._looptime + wait)
+                wait = abs(self._looptime + wait)
                 debug.debug("Check lasted longer than looptime. "
-                            "Delaying next check for %03.3f secs" % wait,2)
+                            "Delaying next check for %03.3f secs" % wait, 2)
             sleep(wait)
 
     def signalhandler(self, signum, frame):
         if signum == signal.SIGTERM:
-            debug.debug("Caught SIGTERM. Exiting.",1)
+            debug.debug("Caught SIGTERM. Exiting.", 1)
             sys.exit(0)
         elif signum == signal.SIGHUP:
             # reopen the logfile
             logfile_path = self.config.get("logfile", "pping.log")
             debug.debug("Caught SIGHUP. Reopening logfile...")
-            logfile = file(logfile_path,'a')
+            logfile = file(logfile_path, 'a')
             nav.daemon.redirect_std_fds(stdout=logfile, stderr=logfile)
 
             debug.debug("Reopened logfile: %s" % logfile_path)
         else:
-            debug.debug( "Caught %s. Resuming operation." % (signum),2)
-
-
+            debug.debug("Caught %s. Resuming operation." % (signum), 2)
 
 
 def help():
@@ -206,7 +203,8 @@ def help():
     -v  --version   Display version and exit
 
     Written by Stian Søiland and Magnus Nordseth, 2002
-    """  % os.path.basename(sys.argv[0])))
+    """ % os.path.basename(sys.argv[0])))
+
 
 def start(nofork):
     """
@@ -214,7 +212,7 @@ def start(nofork):
     a daemon.
     """
     conf = config.pingconf()
-    pidfilename = conf.get("pidfile","/usr/local/nav/var/run/pping.pid")
+    pidfilename = conf.get("pidfile", "/usr/local/nav/var/run/pping.pid")
 
     # Already running?
     try:
@@ -228,11 +226,11 @@ def start(nofork):
         sys.exit(1)
 
     if not nofork:
-        logfile_path = conf.get("logfile","pping.log")
-        logfile = file(logfile_path,"a")
+        logfile_path = conf.get("logfile", "pping.log")
+        logfile = file(logfile_path, "a")
         nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
 
-    myPinger=pinger(socket=sock)
+    myPinger = pinger(socket=sock)
     myPinger.main()
 
 
@@ -241,19 +239,20 @@ def setUser():
     username = conf.get("user", "nobody")
     nav.daemon.switchuser(username)
 
-if __name__=="__main__":
-    nofork=0
+
+if __name__ == "__main__":
+    nofork = 0
     try:
         opts, args = getopt.getopt(sys.argv[1:],
                                    "hnv",
-                                   ["help","nofork", "version"])
+                                   ["help", "nofork", "version"])
         for opt, val in opts:
-            if opt in ("-h","--help"):
+            if opt in ("-h", "--help"):
                 help()
                 sys.exit(0)
-            elif opt in ("-n","--nofork"):
-                nofork=1
-            elif opt in ("-v","--version"):
+            elif opt in ("-n", "--nofork"):
+                nofork = 1
+            elif opt in ("-v", "--version"):
                 print(__version__)
                 sys.exit(0)
 

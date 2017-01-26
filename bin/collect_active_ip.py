@@ -19,7 +19,6 @@
 
 from __future__ import print_function
 
-import ConfigParser
 from optparse import OptionParser
 import logging
 import time
@@ -29,7 +28,7 @@ from os.path import join
 import nav.daemon
 from nav import logs
 from nav.activeipcollector import manager
-from nav.path import localstatedir, sysconfdir
+from nav.path import localstatedir
 
 PIDFILE = join(localstatedir, 'run', 'collect_active_ip.pid')
 LOGFILE = join(localstatedir, 'log', 'collect_active_ip.log')

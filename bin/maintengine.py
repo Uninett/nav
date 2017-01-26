@@ -38,7 +38,7 @@ def main():
     logger.debug('------------------------------------------------------------')
     try:
         check_devices_on_maintenance()
-    except Exception as error:
+    except Exception:
         logger.exception("An unhandled exception occurred:")
     logger.debug('Finished in %.3fs' % (time.clock() - before))
     logger.debug('------------------------------------------------------------')

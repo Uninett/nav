@@ -97,12 +97,10 @@ class Handlers(object):
             line = [netboxgroup.id, netboxgroup.description]
             lineout(line)
 
-
     @staticmethod
     def device_group():
         """Netbox group is a deprecated term, support the new term"""
         Handlers.netboxgroup()
-
 
     @staticmethod
     def usage():

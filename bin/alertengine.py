@@ -32,7 +32,6 @@ import logging
 import logging.handlers
 import os
 import os.path
-import pwd
 import signal
 import socket
 import sys
@@ -56,15 +55,18 @@ configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 logfile = os.path.join(nav.path.localstatedir, 'log', 'alertengine.log')
 pidfile = os.path.join(nav.path.localstatedir, 'run', 'alertengine.pid')
 
+logger = None
+
 ### MAIN FUNCTION
+
 
 def main(args):
     # Get command line arguments
     try:
         opts, args = getopt.getopt(args, 'ht', ['help', 'test', 'loglevel='])
     except getopt.GetoptError, e:
-        print("%s\nTry `%s --help' for more information." % \
-            (e, sys.argv[0]), file=sys.stderr)
+        print("%s\nTry `%s --help' for more information." %
+              (e, sys.argv[0]), file=sys.stderr)
         sys.exit(1)
 
     opttest = False
@@ -91,7 +93,6 @@ def main(args):
             'DEFAULT_FROM_EMAIL'],
     }
 
-
     # Read config file
     config = nav.config.getconfig(configfile, defaults)
 
@@ -107,7 +108,7 @@ def main(args):
     # Initialize logger
     global logger
     logger = logging.getLogger('nav.alertengine')
-    logger.setLevel(1) # Let all info through to the root node
+    logger.setLevel(1)  # Let all info through to the root node
     loginitstderr(loglevel)
 
     # Switch user to $NAV_USER (navcron) (only works if we're root)
@@ -204,6 +205,7 @@ def signalhandler(signum, _):
         logger.warning('SIGTERM received: Shutting down')
         sys.exit(0)
 
+
 def loginitfile(loglevel, filename):
     """Initalize the logging handler for logfile."""
 
@@ -217,9 +219,10 @@ def loginitfile(loglevel, filename):
         logger.addHandler(filehandler)
         return True
     except IOError, error:
-        print("Failed creating file loghandler. Daemon mode disabled. (%s)" \
-         % error, file=sys.stderr)
+        print("Failed creating file loghandler. Daemon mode disabled. (%s)"
+              % error, file=sys.stderr)
         return False
+
 
 def loginitstderr(loglevel):
     """Initalize the logging handler for stderr."""
@@ -234,9 +237,10 @@ def loginitstderr(loglevel):
         logger.addHandler(stderrhandler)
         return True
     except IOError, error:
-        print("Failed creating stderr loghandler. Daemon mode disabled. (%s)" \
-         % error, file=sys.stderr)
+        print("Failed creating stderr loghandler. Daemon mode disabled. (%s)"
+              % error, file=sys.stderr)
         return False
+
 
 def loguninitstderr():
     """Remove the stderr StreamHandler from the root logger."""
@@ -244,6 +248,7 @@ def loguninitstderr():
         if isinstance(hdlr, logging.StreamHandler) and hdlr.stream is sys.stderr:
             logging.root.removeHandler(hdlr)
             return True
+
 
 def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
     """Initalize the logging handler for SMTP."""
@@ -260,13 +265,15 @@ def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
         logger.addHandler(mailhandler)
         return True
     except Exception, error:
-        print("Failed creating SMTP loghandler. Daemon mode disabled. (%s)" \
-         % error, file=sys.stderr)
+        print("Failed creating SMTP loghandler. Daemon mode disabled. (%s)"
+              % error, file=sys.stderr)
         return False
+
 
 def usage():
     """Print a usage screen to stderr."""
     print(__doc__, file=sys.stderr)
+
 
 def setdelay(sec):
     """Set delay (in seconds) between queue checks."""

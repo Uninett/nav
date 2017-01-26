@@ -25,12 +25,10 @@ host. Useful for testing or debugging individual servicemon plugins.
 
 from __future__ import print_function
 
-import os
 import argparse
 import IPy
 
 from nav.statemon import debug
-from nav.statemon import abstractchecker
 from nav.statemon import checkermap
 
 
@@ -64,7 +62,7 @@ def parse_args():
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--debuglevel', '-d', metavar='LEVEL', type=int,
-                        choices=range(1,8), default=7, help='Debug level')
+                        choices=range(1, 8), default=7, help='Debug level')
     parser.add_argument('ip', metavar='IP', type=IPy.IP,
                         help='IP address of host to check')
     parser.add_argument('sysname', metavar='SYSNAME',

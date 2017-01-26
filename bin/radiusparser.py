@@ -46,22 +46,23 @@ import datetime
 
 # Configuration settings.
 # Update these for your setup.
-dbhost    = ""    # Hostname where the nav-database runs
-dbport    = 5432  # Port the PostgreSQL database listens to
-dbname    = "nav" # Name of the NAV database
-dbuser    = "nav" # Username for the nav-database, usually 'nav'
-dbpasswd  = ""    # Password for nav-user
+dbhost = ""      # Hostname where the nav-database runs
+dbport = 5432    # Port the PostgreSQL database listens to
+dbname = "nav"   # Name of the NAV database
+dbuser = "nav"   # Username for the nav-database, usually 'nav'
+dbpasswd = ""    # Password for nav-user
 db_radiuslog_table = "radiuslog"
 
-radius_logfile = "" # Location of the freeradius-logfile to parse
-my_logfile = "./radiusparser.log" # Location of this program's debug log file
+radius_logfile = ""  # Location of the freeradius-logfile to parse
+my_logfile = "./radiusparser.log"  # Location of this program's debug log file
+
 
 def main(args):
 
     try:
         db_params = (dbhost, dbport, dbname, dbuser, dbpasswd)
         connection = psycopg2.connect("host=%s port=%s dbname=%s user=%s "
-                                     "password=%s" % db_params)
+                                      "password=%s" % db_params)
     except psycopg2.OperationalError, e:
         print("An error occured while connecting to the database:\n\n\'%s\'" % (str(e)[:-1]))
         sys.exit(1)
@@ -73,7 +74,6 @@ def main(args):
     t = Tail(radius_logfile, only_new=True)
     t.nextline()
 
-
     # DEBUG-related
     type = 0
     message = 0
@@ -83,11 +83,10 @@ def main(args):
     port = 0
 
     try:
-      
         # Open DEBUG Logfile.
         f = file(my_logfile, 'w+')
         f.write("\n\n\n\n****************** Script restarted *****************\n")
-       
+
         for line in t:
 
             # Check if the line is parseable
@@ -95,20 +94,18 @@ def main(args):
                 row = Row(parse_line(line))
             except AttributeError, e:
                 print("AttributeError: " + line)
-                
 
             # We want to look for octals in the messages
             p = re.compile(r'(\\\d\d\d)')
-            
+
             # Then parse the octals, this is a workaround since
             # Freeradius encodes non-ascii characters with UTF8
-            # in octals and we need to let python evaluate them 
+            # in octals and we need to let python evaluate them
             # before they are chucked into the DB
             if p.search(row.message):
                 row.message = parse_octals(row.message)
                 row.client = parse_octals(row.client)
                 row.user = parse_octals(row.user)
-            
 
             # Logging to find out what the maximum length of the db fields
             # need to be
@@ -136,9 +133,8 @@ def main(args):
             if len(row.port) > port:
                 port = len(row.port)
                 f.write("port:    %s\n" % str(port))
-           
-            f.flush()
 
+            f.flush()
 
             # Don't insert successful logins in the database
             if row.message != "rlm_eap_mschapv2: Issuing Challenge":
@@ -155,23 +151,23 @@ def main(args):
 
     except KeyboardInterrupt:
         print("Interrupted by user...")
-   
+
     database.close()
     sys.exit()
 
 
-
 # Parses octals from the freeradius-server
 def parse_octals(line):
-    
+
     def suboct(match):
         return eval("'" + match.group(1) + "'")
         # Consider: eval(func,{"__builtins__":None},{})
         # Maybe Not necessary here
-    
+
     ret = re.sub(r'(\\\d\d\d)', suboct, line)
 
     return ret
+
 
 def pid_running(pidfile="/tmp/radiusparser_po.pid"):
     """
@@ -180,19 +176,18 @@ def pid_running(pidfile="/tmp/radiusparser_po.pid"):
 
     try:
         # Read pid from pidfile
-        pf  = file(pidfile,'r')
+        pf = file(pidfile, 'r')
         pid = int(pf.read().strip())
         pf.close()
     except (IOError, ValueError):
         # If reading the pidfile failed
         pid = None
 
-
     try:
         # Check if PID exists. If os.kill() throws exeption, it doesn't.
         # If everything is OK, we let the previous instance run, and exit this
         # one.
-        os.kill(pid,0)
+        os.kill(pid, 0)
         return True
 
     except (OSError, TypeError):
@@ -203,12 +198,11 @@ def pid_running(pidfile="/tmp/radiusparser_po.pid"):
         return False
 
 
-
 ##############################################################################
 # The Tail Class is written by Jon More, and is Copyright (C) 2005 by The
 # Trustees of the University of Pennsylvania
 ##############################################################################
-__license__ = 'Python Software Foundation License' # Grabbed from code.activestate.com
+__license__ = 'Python Software Foundation License'  # Grabbed from code.activestate.com
 
 
 from os import stat
@@ -216,13 +210,14 @@ from os.path import abspath
 from stat import ST_SIZE
 from time import sleep, time
 
+
 class Tail(object):
     """The Tail monitor object."""
-   
-    def __init__(self, path, only_new = False,
-                 min_sleep = 1,
-                 sleep_interval = 1,
-                 max_sleep = 60):
+
+    def __init__(self, path, only_new=False,
+                 min_sleep=1,
+                 sleep_interval=1,
+                 max_sleep=60):
         """Initialize a tail monitor.
              path: filename to open
              only_new: By default, the tail monitor will start reading from
@@ -247,7 +242,7 @@ class Tail(object):
 
         # remember path to file in case I need to reopen
         self.path = abspath(path)
-        self.f = open(self.path,"r")
+        self.f = open(self.path, "r")
         self.min_sleep = min_sleep * 1.0
         self.sleep_interval = sleep_interval * 1.0
         self.max_sleep = max_sleep * 1.0
@@ -280,8 +275,10 @@ class Tail(object):
                 purge_idx = i
             else:
                 tot_n += i_n
-                if i_start < tot_start: tot_start = i_start
-                if i_stop > tot_stop: tot_stop = i_stop
+                if i_start < tot_start:
+                    tot_start = i_start
+                if i_stop > tot_stop:
+                    tot_stop = i_stop
         if purge_idx >= 0:
             # clean the old records out of the window (slide the window)
             self.window = self.window[purge_idx+1:]
@@ -338,7 +335,7 @@ class Tail(object):
         line = self._dequeue()
         if line:
             return line
-       
+
         # ok, we are out of cache; let's get some lines from the file
         if self._fill_cache() > 0:
             # got some
@@ -396,17 +393,17 @@ def parse_line(line):
     """
     Parse a line in the radius error log
     """
-    
+
     # Try to parse this as an authentication line
     # (the common case by far)
     m = auth_pattern.search(line)
     if m:
         return m
     else:
-        #We want to ignore some freeradius sql-errors as well
+        # We want to ignore some freeradius sql-errors as well
         m = ignore_rlmsql.search(line)
         if m:
-            #unknown.append(line)
+            # unknown.append(line)
             return None
         # I guess it's some other type of line,
         # try to parse that.
@@ -418,7 +415,7 @@ def parse_line(line):
         else:
             # No, this is something else entirely,
             # let's just skip it for now.
-            #unknown.append(line)
+            # unknown.append(line)
             return None
 
 
@@ -439,14 +436,12 @@ class Row:
     def __str__(self):
         return str(self.m.groupdict())
 
+
 def iter_lines(file):
     for line in file:
         m = parse_line(line)
         if m:
             yield Row(m)
-
-
-
 
 ###########
 # Start   #
@@ -458,5 +453,5 @@ if __name__ == '__main__':
         sys.exit(1)
     else:
         print("Running instance of script not found. Starting...")
-   
+
     main(sys.argv[1:])
