@@ -138,7 +138,6 @@ class Dot1q(Plugin):
 
         return trunkports
 
-
     def _store_trunkports(self, trunkports):
         for port, vlans in trunkports.items():
             self._set_trunkport(port, vlans)

@@ -45,17 +45,6 @@ Templates
 
 """
 
-NAVLET_MODE_VIEW = 'VIEW'
-NAVLET_MODE_EDIT = 'EDIT'
-
-NAVLET_COLUMN_1 = 1
-NAVLET_COLUMN_2 = 2
-
-REFRESH_INTERVAL = 'refresh_interval'
-# These class members will be automatically added to preferences if they exist
-DEFAULT_PREFERENCES = [REFRESH_INTERVAL]
-ERROR_WIDGET = 'nav.web.navlets.error.ErrorWidget'
-
 import logging
 import json
 from collections import namedtuple, Counter
@@ -76,6 +65,17 @@ from nav.django.auth import get_sudoer
 from nav.django.utils import get_account
 from nav.web.utils import require_param
 from nav.web.webfront import get_widget_columns, find_dashboard
+
+NAVLET_MODE_VIEW = 'VIEW'
+NAVLET_MODE_EDIT = 'EDIT'
+
+NAVLET_COLUMN_1 = 1
+NAVLET_COLUMN_2 = 2
+
+REFRESH_INTERVAL = 'refresh_interval'
+# These class members will be automatically added to preferences if they exist
+DEFAULT_PREFERENCES = [REFRESH_INTERVAL]
+ERROR_WIDGET = 'nav.web.navlets.error.ErrorWidget'
 
 _logger = logging.getLogger(__name__)
 

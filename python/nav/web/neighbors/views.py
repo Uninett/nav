@@ -72,5 +72,3 @@ def set_ignored_state(request):
         return HttpResponse(response)
 
     return HttpResponse("Wrong request method", status=400)
-
-

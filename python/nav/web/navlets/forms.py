@@ -23,7 +23,7 @@ class AlertWidgetForm(forms.Form):
     metric = forms.CharField(
         label='Metric path to fetch value from',
         required=False,
-        widget=forms.TextInput(attrs={'placeholder':'nav.metric.path.value'}))
+        widget=forms.TextInput(attrs={'placeholder': 'nav.metric.path.value'}))
     on_state = forms.ChoiceField(
         label='When is the alert considered "on"',
         choices=(('1', 'When the value is 1'),

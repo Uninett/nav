@@ -76,6 +76,7 @@ _ellipsoid = [
 #Defense Mapping Agency. 1987b. DMA Technical Report: Supplement to Department of Defense World Geodetic System
 #1984 Technical Report. Part I and II. Washington, DC: Defense Mapping Agency
 
+
 def ll_to_utm(reference_ellipsoid, lat, lon, zone = None):
     """converts lat/long to UTM coords.  Equations from USGS Bulletin 1532
     East Longitudes are positive, West longitudes are negative.
@@ -176,6 +177,7 @@ def _utm_letter_designator(lat):
     elif -64 > lat >= -72: return 'D'
     elif -72 > lat >= -80: return 'C'
     else: return 'Z'    # if the Latitude is outside the UTM limits
+
 
 def utm_to_ll(reference_ellipsoid, northing, easting, zone):
     """converts UTM coords to lat/long.  Equations from USGS Bulletin 1532

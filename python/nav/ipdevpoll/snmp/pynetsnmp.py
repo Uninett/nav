@@ -26,6 +26,7 @@ from pynetsnmp.twistedsnmp import snmpprotocol
 
 from . import common
 
+
 def pynetsnmp_limits_results():
     """Returns True if the available pynetsnmp version limits the number of
     results of getTable operations.

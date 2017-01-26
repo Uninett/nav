@@ -199,7 +199,6 @@ def populate_for_interval(result, targets, netboxes, start_time, end_time):
                 root['response_time']['data_source'])
 
 
-
 def populate_for_time_frame(result, targets, netboxes, time_frames):
     """Populate results based on a list of time frames"""
     for time_frame in time_frames:

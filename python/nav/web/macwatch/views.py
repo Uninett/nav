@@ -33,6 +33,7 @@ DEFAULT_VALUES = {'title': "MacWatch", 'navpath': NAVBAR}
 
 logger = logging.getLogger("nav.web.macwatch")
 
+
 def do_list(request, messages=None):
     account = get_account(request)
     macwatches = MacWatch.objects.all()
@@ -44,9 +45,11 @@ def do_list(request, messages=None):
                 info_dict,
                 RequestContext(request))
 
+
 def list_watch(request):
     """ Render current macwatches and option to add new one. """
     return do_list(request)
+
 
 def add_macwatch(request):
     """ Display form for adding of mac address to watch. """
@@ -64,7 +67,7 @@ def add_macwatch(request):
             m.save()
             return HttpResponseRedirect('/macwatch/')
         else:
-            messages = ['Illegal input-data',]
+            messages = ['Illegal input-data']
             info_dict = populate_info_dict(account, messages=messages)
             info_dict['form'] = macwatchform
             return render_to_response(
@@ -80,6 +83,7 @@ def add_macwatch(request):
                     info_dict,
                     RequestContext(request))
 
+
 def delete_macwatch(request, macwatchid):
     """ Delete tuple for mac address watch """
 
@@ -91,7 +95,7 @@ def delete_macwatch(request, macwatchid):
         try:
             m = MacWatch.objects.get(id=macwatchid)
         except Exception, e:
-            messages = [e,]
+            messages = [e]
             return do_list(request, messages)
 
         if request.method == 'POST':
@@ -100,7 +104,7 @@ def delete_macwatch(request, macwatchid):
                     m.delete()
                     return HttpResponseRedirect('/macwatch/')
                 except Exception, e:
-                    messages = [e,]
+                    messages = [e]
                     return do_list(request, messages)
             else:
                 return HttpResponseRedirect('/macwatch/')
@@ -143,6 +147,7 @@ def edit_macwatch(request, macwatchid):
                     'macwatch/editmacwatch.html',
                     info_dict,
                     RequestContext(request))
+
 
 def populate_info_dict(account, macwatches=None, messages=None):
     info_dict = {'account': account}

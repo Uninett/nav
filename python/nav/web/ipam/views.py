@@ -22,13 +22,16 @@ from nav.models.manage import NetType, Organization, Usage, Prefix
 NAVBAR = [('Home', '/'), ('IPAM', None)]
 DEFAULT_VALUES = {'title': "IPAM", 'navpath': NAVBAR}
 
+
 def index(request):
     ctx = generate_context()
     return render_to_response("ipam/index.html", ctx, RequestContext(request))
 
+
 def matrix(request):
     ctx = {}
     return render_to_response("ipam/matrix.html", ctx, RequestContext(request))
+
 
 def generate_context():
     scopes = Prefix.objects.filter(vlan__net_type='scope')

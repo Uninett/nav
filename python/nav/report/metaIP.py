@@ -89,4 +89,6 @@ class MetaIP:
             self.prefixid = metainfo["prefixid"]
             self.nettype = metainfo["nettype"]
 
-class UnexpectedRowCountError(Exception): pass
+
+class UnexpectedRowCountError(Exception):
+    pass

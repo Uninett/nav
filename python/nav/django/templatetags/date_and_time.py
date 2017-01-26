@@ -18,6 +18,7 @@ def default_datetime(value):
 
     return v
 
+
 @register.filter
 def short_time_format(value):
     """Returns the value formatted as a short time format
@@ -29,6 +30,7 @@ def short_time_format(value):
     except:
         return value
 
+
 @register.filter
 def remove_microseconds(delta):
     """Removes microseconds from timedelta"""
@@ -36,4 +38,3 @@ def remove_microseconds(delta):
         return delta - timedelta(microseconds=delta.microseconds)
     except:
         return delta
-

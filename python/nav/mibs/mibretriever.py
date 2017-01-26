@@ -476,7 +476,6 @@ class MibRetriever(object):
 
             return formatted_result
 
-
         deferred = self.agent_proxy.getTable([str(table.table.oid)])
         deferred.addCallback(resultFormatter)
         return deferred
@@ -546,7 +545,6 @@ class MultiMibMixIn(MibRetriever):
         super(MultiMibMixIn, self).__init__(agent_proxy)
         self._base_agent = agent_proxy
         self.instances = instances
-
 
     @defer.inlineCallbacks
     def _multiquery(self, method, *args, **kwargs):

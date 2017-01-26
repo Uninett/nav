@@ -334,7 +334,7 @@ class lazy_dict(object):
         if isinstance(key, list):
             real_key = key[0]
             if isinstance(val, dict):
-                if val.has_key('value'):
+                if 'value' in val:
                     val = val['value']
                 else:
                     self.unevaluated.add(real_key)

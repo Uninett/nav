@@ -28,6 +28,7 @@ from nav.ipdevpoll.timestamps import TimestampChecker
 INFO_VAR_NAME = 'lldp'
 SOURCE = 'lldp'
 
+
 class LLDP(Plugin):
     """Collects devices' table of remote LLDP devices.
 

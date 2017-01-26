@@ -23,7 +23,6 @@ from nav.models.fields import (VarcharField, LegacyGenericForeignKey,
 from nav.models import manage, service
 
 
-
 class Message(models.Model):
     """From NAV Wiki: The table contains the messages registered
     in the messages tool. Each message has a timeframe for when

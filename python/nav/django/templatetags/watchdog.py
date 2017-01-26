@@ -16,9 +16,9 @@
 """Template tags and filters for watchdog templates"""
 
 from django import template
-register = template.Library()
-
 from nav.watchdog.tests import STATUS_UNKNOWN, STATUS_NOT_OK, STATUS_OK
+
+register = template.Library()
 
 
 @register.filter

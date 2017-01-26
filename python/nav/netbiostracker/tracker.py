@@ -70,6 +70,7 @@ def get_addresses_to_scan(exclude_list=None):
         where=['family(ip)=4']).distinct('ip').values_list('ip', flat=True)
     return [str(ip) for ip in addresses if not _is_excluded(ip)]
 
+
 @timed
 def scan(addresses):
     """Scan a list of ip-addresses for netbios names"""

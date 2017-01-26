@@ -33,6 +33,7 @@ from nav.models.profiles import Filter, FilterGroup, FilterGroupContent, \
 ADMINGROUP = 1
 CONFIGDIR = 'alertprofiles/'
 
+
 def account_owns_filters(account, *filters):
     """
     Verifies that account has access to edit/remove filters and/or filter
@@ -62,6 +63,7 @@ def account_owns_filters(account, *filters):
                 else:
                     return False
 
+
 def resolve_account_admin_and_owner(request):
     """Primarily used before saving filters and filter groups.
     Gets account, checks if user is admin, and sets owner to a appropriate
@@ -75,6 +77,7 @@ def resolve_account_admin_and_owner(request):
         owner = account
 
     return (account, admin, owner)
+
 
 @transaction.atomic()
 def order_filter_group_content(filter_group):
@@ -102,6 +105,7 @@ def order_filter_group_content(filter_group):
     else:
         return 0
 
+
 def read_time_period_templates():
     templates = {}
     template_dir = os.path.join(nav.path.sysconfdir, CONFIGDIR)
@@ -115,6 +119,7 @@ def read_time_period_templates():
             templates[key] = config
 
     return templates
+
 
 def alert_subscriptions_table(periods):
     weekday_subscriptions = []

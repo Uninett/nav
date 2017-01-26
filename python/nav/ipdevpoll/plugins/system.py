@@ -31,6 +31,7 @@ PATTERNS = [
     re.compile(r" (?P<version>[A-Z]+\.[0-9]+\.[0-9]+)"),
     ]
 
+
 class System(Plugin):
     """Collects sysDescr and parses a software version from it"""
 

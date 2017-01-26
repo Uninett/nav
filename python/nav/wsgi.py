@@ -21,6 +21,7 @@ import logging
 import nav.logs
 import nav.models  # This MUST be here to avoid a strange deadlock in Django
 
+
 def loginit():
     """Initialize a logging setup for the NAV web interface.
 

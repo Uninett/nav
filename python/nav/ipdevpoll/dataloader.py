@@ -40,6 +40,7 @@ from . import storage
 from nav.ipdevpoll.db import django_debug_cleanup, run_in_thread
 import django.db
 
+
 class NetboxLoader(dict):
     """Loads netboxes from the database, synchronously or asynchronously.
 

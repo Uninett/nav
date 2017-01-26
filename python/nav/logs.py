@@ -124,6 +124,7 @@ def reset_log_levels(level=logging.WARNING):
         if hasattr(logger, 'setLevel'):
             logger.setLevel(logging.NOTSET)
 
+
 def reopen_log_files():
     """
     Function to iterate over all FileHandlers in the logger hierarchy, close
@@ -146,6 +147,7 @@ def reopen_log_files():
                     mylog.debug("Reopened " + hdl.baseFilename)
         except AttributeError:
             continue
+
 
 def get_logfile_from_logger(logger=logging.root):
     """Return the file object of the first FileHandler of a given logger.

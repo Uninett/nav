@@ -36,7 +36,7 @@ def get_checkers():
 def get_descriptions(checker_names):
     """Returns metadata about the checkers"""
     checker_modules = get_checker_modules_as_dict()
-    return {c:get_description(c, checker_modules) for c in checker_names}
+    return {c: get_description(c, checker_modules) for c in checker_names}
 
 
 def get_description(checker_name, checkers=None):

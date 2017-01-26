@@ -22,6 +22,7 @@ from nav.ipdevpoll.shadows import GwPortPrefix
 from nav.mibs.vrrp_mib import VRRPMib
 from nav.mibs.cisco_hsrp_mib import CiscoHSRPMib
 
+
 class VirtualRouter(Plugin):
     """ipdevpoll plugin to collect Virtual Router addresses from VRRP and
     HSRP routers.
@@ -60,7 +61,6 @@ class VirtualRouter(Plugin):
                     mibs.append(mib.mib['moduleName'])
 
             self.update_containers_with(virtual_addrs, mibs)
-
 
     def gwportprefixes_found(self):
         if GwPortPrefix not in self.containers:

@@ -33,6 +33,7 @@ LOGFILE = os.path.join(
     buildconf.localstatedir, 'log', 'eventengine.log')
 _logger = logging.getLogger(__name__)
 
+
 def main():
     "main execution entry"
     options, _args = parse_options()
@@ -42,11 +43,13 @@ def main():
         daemonize()
     start_engine()
 
+
 def parse_options():
     "Parses the program's command line options"
     parser = make_option_parser()
     options, args = parser.parse_args()
     return options, args
+
 
 def make_option_parser():
     "Makes an OptionParser instance for the program"
@@ -60,6 +63,7 @@ def make_option_parser():
         help="run in foreground instead of daemonizing")
 
     return parser
+
 
 def initialize_logging(options=None):
     "Initializes logging"
@@ -81,6 +85,7 @@ def initialize_logging(options=None):
         nav.daemon.redirect_std_fds(
             stderr=nav.logs.get_logfile_from_logger())
 
+
 def exit_if_already_running():
     "Exits the process if another eventengine process is already running"
     try:
@@ -88,6 +93,7 @@ def exit_if_already_running():
     except nav.daemon.DaemonError, error:
         _logger.error(error)
         sys.exit(1)
+
 
 def daemonize():
     "Daemonizes the program"

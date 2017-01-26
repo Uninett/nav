@@ -142,4 +142,3 @@ class CacheableObject(object):
 class CacheError(Exception):
     """Generic error during an ObjectCache operation"""
     pass
-

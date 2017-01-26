@@ -253,7 +253,7 @@ class MegaPing:
 
         # Ping each host
         for host in hosts:
-            if self._requests.has_key(host):
+            if host in self._requests:
                 debug("Duplicate host %s ignored" % host, 6)
                 continue
 

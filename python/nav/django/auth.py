@@ -37,6 +37,7 @@ SUDOER_ID_VAR = 'sudoer'
 # out what's going on, we'll hardcode this here.
 LOGIN_URL = '/index/login/'
 
+
 class AuthenticationMiddleware(object):
     def process_request(self, request):
         session = request.session

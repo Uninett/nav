@@ -119,8 +119,6 @@ def check_alerts(debug=False):
     gc.collect()
 
 
-
-
 @transaction.atomic()
 def handle_new_alerts(new_alerts):
     """Handles new alerts on the queue"""

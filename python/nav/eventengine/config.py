@@ -18,6 +18,7 @@ from nav.config import NAVConfigParser
 from nav.util import parse_interval
 from ConfigParser import NoSectionError, NoOptionError
 
+
 class EventEngineConfig(NAVConfigParser):
     DEFAULT_CONFIG_FILES = ('eventengine.conf',)
     DEFAULT_CONFIG = """

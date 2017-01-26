@@ -23,9 +23,11 @@ daemon, in order to test various aspects of the SMS daemon.
 """
 
 import logging
-from nav.smsd.dispatcher import *
+from nav.smsd.dispatcher import (Dispatcher, DispatcherError,
+                                 PermanentDispatcherError)
 
 logger = logging.getLogger(__name__)
+
 
 class DebugDispatcher(Dispatcher):
     """Debug dispatcher for smsd."""
@@ -54,7 +56,6 @@ class DebugDispatcher(Dispatcher):
         else:
             self.result = self.result.lower()
 
-
     def sendsms(self, phone, msgs):
         """Log SMS message and report pre-configured result."""
 
@@ -78,4 +79,3 @@ class DebugDispatcher(Dispatcher):
                 "Failed permanently, because I was configured to.")
 
         return (sms, sent_count, ignored_count, result, smsid)
-

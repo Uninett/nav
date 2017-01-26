@@ -1,4 +1,3 @@
-# -*- coding: ISO8859-1 -*-
 #
 # Copyright 2003 Norwegian University of Science and Technology
 #
@@ -34,20 +33,23 @@ import inspect
 import os.path
 
 loglevels = {
-    0:'Emergency',
-    1:'Alert ',
-    2:'Critical',
-    3:'Error',
-    4:'Warning',
-    5:'Notice',
-    6:'Info',
-    7:'Debug'
+    0: 'Emergency',
+    1: 'Alert ',
+    2: 'Critical',
+    3: 'Error',
+    4: 'Warning',
+    5: 'Notice',
+    6: 'Info',
+    7: 'Debug'
 }
 
 debuglevel = 5
+
+
 def setDebugLevel(level):
     global debuglevel
     debuglevel = level
+
 
 def debug(msg, level=5):
     if level <= debuglevel:
@@ -60,4 +62,3 @@ def debug(msg, level=5):
         print(msg)
         if not sys.stdout.isatty():
             sys.stdout.flush()
-

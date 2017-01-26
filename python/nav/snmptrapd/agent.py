@@ -25,4 +25,3 @@ elif BACKEND == 'pynetsnmp':
     from .agent_pynetsnmp import *
 else:
     raise ImportError("No supported SNMP backend was found")
-

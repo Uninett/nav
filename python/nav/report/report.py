@@ -487,4 +487,3 @@ def unicode_utf8(thing):
         return thing.decode('utf-8')
     elif thing is not None:
         return unicode(thing)
-

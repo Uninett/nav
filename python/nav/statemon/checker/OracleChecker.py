@@ -21,6 +21,7 @@ from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 import cx_Oracle
 
+
 class OracleChecker(AbstractChecker):
     """
 

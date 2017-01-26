@@ -233,7 +233,6 @@ class CommandProcessor(object):
         else:
             self._logger.info("--- Starting ipdevpolld ---")
 
-
         if not self.options.foreground:
             self.exit_if_already_running()
             self.daemonize()

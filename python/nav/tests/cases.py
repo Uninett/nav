@@ -72,4 +72,3 @@ class DjangoTransactionTestCase(django.test.TestCase):
                 if os.path.exists(filename):
                     result.append(filename)
         return result
-

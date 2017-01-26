@@ -42,6 +42,7 @@ PIDFILE_PATH = os.path.join(buildconf.localstatedir, 'run', 'navtopology.pid')
 
 _logger = logging.getLogger(__name__)
 
+
 def main():
     """Program entry point"""
     parser = make_option_parser()
@@ -62,6 +63,7 @@ def main():
         delete_unused_prefixes()
         delete_unused_vlans()
 
+
 def make_option_parser():
     """Sets up and returns a command line option parser."""
     parser = OptionParser(
@@ -78,6 +80,7 @@ def make_option_parser():
                       metavar="vlan[,...]",
                       help="Only analyze the VLANs included in this list")
     return parser
+
 
 def init_logging():
     """Initializes logging for this program"""
@@ -97,6 +100,7 @@ def init_logging():
     import nav.logs
     nav.logs.set_log_config()
 
+
 def with_exception_logging(func):
     """Decorates a function to log unhandled exceptions"""
     def _decorator(*args, **kwargs):
@@ -113,6 +117,7 @@ def with_exception_logging(func):
 
     return wraps(func)(_decorator)
 
+
 @with_exception_logging
 def do_layer2_detection():
     """Detect and update layer 2 topology"""
@@ -120,6 +125,7 @@ def do_layer2_detection():
     reducer.reduce()
     links = reducer.get_single_edges_from_ports()
     update_layer2_topology(links)
+
 
 @with_exception_logging
 def do_vlan_detection(vlans):
@@ -132,6 +138,7 @@ def do_vlan_detection(vlans):
     update = VlanTopologyUpdater(ifc_vlan_map)
     update()
 
+
 @with_exception_logging
 def delete_unused_vlans():
     """Deletes vlans unassociated with prefixes or switch ports"""
@@ -139,6 +146,7 @@ def delete_unused_vlans():
     if unused:
         _logger.info("deleting unused vlans: %r", unused)
         unused.delete()
+
 
 @with_exception_logging
 def delete_unused_prefixes():

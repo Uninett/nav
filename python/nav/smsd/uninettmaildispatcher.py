@@ -25,7 +25,8 @@ import os
 import pwd
 import smtplib
 import socket
-from nav.smsd.dispatcher import *
+from nav.smsd.dispatcher import Dispatcher, DispatcherError
+
 
 class UninettMailDispatcher(Dispatcher):
     """The smsd dispatcher for UNINETT's mail-to-SMS gateway."""
@@ -41,7 +42,7 @@ class UninettMailDispatcher(Dispatcher):
             # Mail adress for gateway
             self.mailaddr = config['mailaddr']
         except KeyError, error:
-            raise DispatcherError, "Config option not found: %s" % error
+            raise DispatcherError("Config option not found: %s" % error)
 
     def sendsms(self, phone, msgs):
         """
@@ -78,7 +79,7 @@ class UninettMailDispatcher(Dispatcher):
             result = server.sendmail(sender, self.mailaddr, message)
             server.quit()
         except smtplib.SMTPException, error:
-            raise DispatcherError, "SMTP error: %s" % error
+            raise DispatcherError("SMTP error: %s" % error)
 
         if len(result) == 0:
             # No errors
@@ -89,4 +90,3 @@ class UninettMailDispatcher(Dispatcher):
         smsid = 0
 
         return (sms, sent, ignored, result, smsid)
-

@@ -16,6 +16,7 @@
 """Trap related data structures."""
 import string
 
+
 class SNMPTrap:
     """Generic trap-class"""
 
@@ -35,7 +36,6 @@ class SNMPTrap:
             if not val.strip(string.printable) == '':
                 val = ':'.join(["%02x" % ord(c) for c in val])
                 self.varbinds[key] = val
-
 
     def __str__(self):
         text = self.trapText()
@@ -60,4 +60,3 @@ class SNMPTrap:
             text = text + "%s -> %s\n" % (key, val)
 
         return text
-

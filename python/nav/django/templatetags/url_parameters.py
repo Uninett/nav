@@ -19,6 +19,7 @@ from django.utils.encoding import force_unicode
 
 register = template.Library()
 
+
 class UrlNode(template.Node):
     def __init__(self, params):
         self.get = template.Variable('request.GET')
@@ -38,11 +39,13 @@ class UrlNode(template.Node):
         get = self._get_GET(context)
         return "?" + "&amp;".join([('%s=%s' % (k, get[k])) for k in get])
 
+
 class InputNode(UrlNode):
     def render(self, context):
         get = self._get_GET(context)
         str = u'<input type="hidden" name="%s" value="%s" />'
         return u'\n'.join([str % (k, get[k]) for k in get])
+
 
 def _get_url_params(token):
     raw_params = token.split_contents()
@@ -57,6 +60,7 @@ def _get_url_params(token):
         params.append((raw_params[index],
                        template.Variable(raw_params[index + 1])))
     return params
+
 
 @register.tag
 def url_parameters(_parser, token):
@@ -84,6 +88,7 @@ def url_parameters(_parser, token):
     """
     params = _get_url_params(token)
     return UrlNode(params)
+
 
 @register.tag
 def form_parameters(_parser, token):

@@ -27,5 +27,3 @@ class GettingStartedWidget(Navlet):
 
     def get_template_basename(self):
         return 'getting_started'
-
-

@@ -82,4 +82,3 @@ def netboxtype_bulk(request):
         request, NetboxTypeBulkParser, NetboxTypeImporter,
         'seeddb-type',
         extra_context=info.template_context)
-

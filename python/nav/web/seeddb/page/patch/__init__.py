@@ -153,6 +153,7 @@ def patch_bulk(request):
         'seeddb-patch',
         extra_context=info.template_context)
 
+
 def load_cell(request):
     """Renders patches for an interface"""
     interface = Interface.objects.get(pk=request.GET.get('interfaceid'))

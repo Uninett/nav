@@ -28,6 +28,7 @@ from nav.ipdevpoll import shadows
 from nav.ipdevpoll import utils
 from nav.ipdevpoll.neighbor import get_netbox_macs
 
+
 class Cam(Plugin):
     """Collects switches' forwarding tables and port STP states.
 
@@ -198,7 +199,6 @@ class Cam(Plugin):
         candidate.netbox = self.netbox
         return candidate
 
-
     #
     # STP blocking related methods
     #
@@ -232,6 +232,7 @@ class Cam(Plugin):
                            ifc_count, vlan_count, blocking)
 
     VLAN_PATTERN = re.compile('(vlan)?(?P<vlan>[0-9]+)', re.IGNORECASE)
+
     def _store_blocking_ports(self, blocking):
         for ifindex, vlan in blocking:
             if vlan:

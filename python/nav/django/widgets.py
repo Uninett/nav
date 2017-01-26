@@ -17,6 +17,7 @@
 
 from django import forms
 
+
 class PointInput(forms.TextInput):
     def render(self, name, value, *args, **kwargs):
         if value and isinstance(value, tuple):

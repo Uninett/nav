@@ -18,6 +18,7 @@
 
 from re import search
 
+
 class ColorConfig:
 
     def __init__(self, path):

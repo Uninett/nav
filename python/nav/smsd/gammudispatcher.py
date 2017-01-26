@@ -24,13 +24,15 @@ Depends on python-gammu.
 
 """
 
-from nav.smsd.dispatcher import *
+from nav.smsd.dispatcher import (Dispatcher, PermanentDispatcherError,
+                                 DispatcherError)
 
 try:
     import gammu
 except ImportError, error:
-    raise PermanentDispatcherError, \
-          'python-gammu not installed or misconfigured.'
+    raise PermanentDispatcherError(
+          'python-gammu not installed or misconfigured.')
+
 
 class GammuDispatcher(Dispatcher):
     """The smsd dispatcher for Gammu."""
@@ -69,7 +71,7 @@ class GammuDispatcher(Dispatcher):
             # Typically ~root/.gammurc or ~$NAV_USER/.gammurc
             sm.ReadConfig()
         except IOError, error:
-            raise PermanentDispatcherError, error
+            raise PermanentDispatcherError(error)
 
         try:
             # Fails if e.g. phone is not connected
@@ -77,10 +79,11 @@ class GammuDispatcher(Dispatcher):
             # for complete list of errors fetched here
             sm.Init()
         except gammu.GSMError, error:
-            raise PermanentDispatcherError, \
+            raise PermanentDispatcherError(
                   "GSM %s error %d: %s" % (error[0]['Where'],
                                            error[0]['Code'],
                                            error[0]['Text'])
+            )
 
         message = {
             'Text': sms,
@@ -94,9 +97,9 @@ class GammuDispatcher(Dispatcher):
             # - Sony Ericsson K310, USB cable, Gammu 1.06.00, python-gammu 0.13
             smsid = sm.SendSMS(message)
         except gammu.GSMError, error:
-            raise DispatcherError, "GSM %s error %d: %s" % (error[0]['Where'],
-                                                            error[0]['Code'],
-                                                            error[0]['Text'])
+            raise DispatcherError("GSM %s error %d: %s" % (error[0]['Where'],
+                                                           error[0]['Code'],
+                                                           error[0]['Text']))
 
         if isinstance(smsid, (int, long)):
             result = True
@@ -104,6 +107,7 @@ class GammuDispatcher(Dispatcher):
             result = False
 
         return (sms, sent, ignored, result, smsid)
+
 
 def decode_sms_to_unicode(sms):
     if isinstance(sms, unicode):

@@ -118,6 +118,7 @@ class TrapListener(object):
                         varbind_dict)
         self._client_callback(trap)
 
+
 def value_to_str(value):
     """Converts a value from a varbind to a string, as that is what the
     SNMPTrap API expects :-P
@@ -201,6 +202,7 @@ IPADDR_SIZE = 4
 IP6ADDR_SIZE = 16
 IPADDR_OFFSET = 4
 IP6ADDR_OFFSET = 8
+
 
 def get_transport_addr(pdu):
     """Retrieves the IP source address from the PDU's reference to an opaque

@@ -35,6 +35,7 @@ INFINITY = datetime.datetime.max
 
 # pylint: disable=C0111
 
+
 class InterfaceManager(DefaultManager):
     _found_existing_map = {}
     _db_ifcs = []
@@ -96,7 +97,6 @@ class InterfaceManager(DefaultManager):
             (ifc.id, ifc) for ifc in self._db_ifcs
             if (ifc not in self._found_existing_map.values()
                 and not ifc.gone_since))
-
 
     def _find_existing_for(self, snmp_ifc):
         result = None
@@ -215,6 +215,7 @@ class InterfaceManager(DefaultManager):
         is associated with a module known to still be up.
         """
         deadline = datetime.datetime.now() - MISSING_THRESHOLD
+
         def is_dead(ifc):
             return (ifc.gone_since and ifc.gone_since < deadline
                     and (not ifc.module or ifc.module.up == 'y'))
@@ -253,6 +254,7 @@ class InterfaceManager(DefaultManager):
             return default
         else:
             return link_filter
+
 
 # pylint is unable to see which members are created dynamically by metaclass:
 # pylint: disable=W0201,E0203
@@ -427,6 +429,7 @@ def mapby(items, *attrs):
     keyfunc = operator.attrgetter(*attrs)
     groupgen = groupby(items, keyfunc)
     return dict((k, list(v)) for k, v in groupgen)
+
 
 def ifnames(ifcs):
     """Returns a loggable string of interface names from a list of Interface

@@ -109,4 +109,3 @@ class BitVector(object):
         # This is hopelessly ineffective, but it does the job
         bits = [i for i in range(len(self)) if self[i]]
         return bits
-

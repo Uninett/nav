@@ -27,6 +27,7 @@ from . import mibretriever
 
 ADDRESS_TYPE_IP = 1
 
+
 class CiscoCDPMib(mibretriever.MibRetriever):
     "A MibRetriever for handling CISCO-CDP-MIB"
     from nav.smidumps.cisco_cdp_mib import MIB as mib

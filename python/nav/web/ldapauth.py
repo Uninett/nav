@@ -105,10 +105,10 @@ def open_ldap():
         except ldap.PROTOCOL_ERROR:
             _logger.error('LDAP server %s does not support the STARTTLS '
                           'extension.  Aborting.', server)
-            raise NoStartTlsError, server
+            raise NoStartTlsError(server)
         except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR):
             _logger.exception("LDAP server is down")
-            raise NoAnswerError, server
+            raise NoAnswerError(server)
     else:
         scheme = encryption == 'ssl' and 'ldaps' or 'ldap'
         uri = '%s://%s:%s' % (scheme, server, port)
@@ -202,7 +202,6 @@ class LDAPUser(object):
                                    suffix,
                                    password.encode(encoding))
 
-
     def get_user_dn(self):
         """
         Given a user id (login name), return a fully qualified DN to
@@ -294,7 +293,7 @@ class LDAPUser(object):
         objects, the latter should work for posixGroup objects.
         """
         encoding = _config.get('ldap', 'encoding')
-        group_search = _config.get('ldap','group_search')
+        group_search = _config.get('ldap', 'group_search')
         user_dn = self.get_user_dn().encode(encoding)
         # Match groupOfNames/groupOfUniqueNames objects
         try:

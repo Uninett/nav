@@ -110,4 +110,3 @@ class LdapChecker(AbstractChecker):
         if addr.version() == 6:
             ip = '[%s]' % ip
         return ip, port
-

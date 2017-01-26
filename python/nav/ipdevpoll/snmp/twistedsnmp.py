@@ -26,6 +26,7 @@ from twistedsnmp import snmpprotocol, agentproxy
 
 from . import common
 
+
 class AgentProxy(common.AgentProxyMixIn, agentproxy.AgentProxy):
     """TwistedSNMP AgentProxy derivative to add API compatibility
     with pynetsnmp's AgentProxy's open/close methods.
@@ -69,4 +70,3 @@ class AgentProxy(common.AgentProxyMixIn, agentproxy.AgentProxy):
                                   key, df, oids, timeout, retry_count)
         self.protocol.requests[key] = df, timer
         return df
-

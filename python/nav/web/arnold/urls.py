@@ -72,4 +72,3 @@ urlpatterns = patterns('',
    url(r"^addquarantinevlan/edit/(?P<qid>\d+)$", render_quarantine_vlans,
        name="arnold-quarantinevlans-edit"),
 )
-

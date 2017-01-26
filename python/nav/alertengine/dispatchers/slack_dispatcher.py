@@ -5,6 +5,7 @@ import urllib2
 
 from nav.alertengine.dispatchers import Dispatcher
 
+
 class Slack(Dispatcher):
     """Dispatch messages to Slack"""
     def __init__(self, *args, **kwargs):

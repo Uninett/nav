@@ -157,6 +157,7 @@ def handleTrap(trap, config=None):
 
     return False
 
+
 def format_batterytime(timeunit, format):
     if isinstance(timeunit, int):
         seconds = timeunit
@@ -166,6 +167,7 @@ def format_batterytime(timeunit, format):
         if 'TIMETICKS' == format:
             seconds = timeunit / 100
         return "%sh:%sm" %(int(seconds / 60 / 60), (seconds/60) % 60)
+
 
 # This function is a nice to run to make sure the event and alerttypes
 # exist in the database if you post events for alerting.
@@ -203,6 +205,7 @@ def verifyEventtype():
             c.execute(q)
 
     db.commit()
+
 
 def initialize():
     """Initialize method for snmpdtrap daemon so it can initialize plugin

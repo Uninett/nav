@@ -161,5 +161,3 @@ def _add_descriptions(objects, queryset):
     for obj in objects:
         model = queryset.get(pk=obj['pk'])
         obj['description'] = getattr(model, 'description', '')
-
-

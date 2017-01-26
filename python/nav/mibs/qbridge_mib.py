@@ -19,6 +19,7 @@ from twisted.internet import defer
 import nav.bitvector
 from nav.mibs import mibretriever, reduce_index
 
+
 class QBridgeMib(mibretriever.MibRetriever):
     from nav.smidumps.qbridge_mib import MIB as mib
 
@@ -68,7 +69,6 @@ class QBridgeMib(mibretriever.MibRetriever):
         df.addCallback(reduce_index)
         return df.addCallback(convert_data_to_portlist)
 
-
     def get_vlan_static_untagged_ports(self):
         """Retrieves, for each VLAN, a list of ports that are configured to
         transmit untagged frames for the VLAN.
@@ -99,6 +99,7 @@ class QBridgeMib(mibretriever.MibRetriever):
             result.append((mac, port))
         defer.returnValue(result)
 
+
 def filter_newest_current_entries(dot1qvlancurrenttable):
     """Filters a result from the dot1qVlanCurrentTable, removing the
     TimeFilter element of the table index and returning only the newest entry
@@ -109,9 +110,11 @@ def filter_newest_current_entries(dot1qvlancurrenttable):
                 for (time_index, vlan_index), data
                 in sorted(dot1qvlancurrenttable.items()))
 
+
 def convert_data_to_portlist(result):
     return dict((key, PortList(data))
                  for key, data in result.items())
+
 
 class PortList(str):
     """Represent an octet string, as defined by the PortList syntax of
