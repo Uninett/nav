@@ -107,6 +107,3 @@ def pingconf(*args, **kwargs):
     if _pingconf._instance is None:
         _pingconf._instance = _pingconf(*args, **kwargs)
     return _pingconf._instance
-
-
-

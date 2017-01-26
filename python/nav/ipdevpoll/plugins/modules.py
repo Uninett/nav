@@ -169,4 +169,3 @@ class Modules(Plugin):
 
         self._logger.debug("alias mapping: %r", mapping)
         return mapping
-

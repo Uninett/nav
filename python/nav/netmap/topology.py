@@ -239,5 +239,3 @@ def _attach_node_positions(graph, node_set):
             else:
                 metadata['metadata'] = {'position': node_meta_dict[0]}
     return graph
-
-

@@ -136,6 +136,3 @@ def format_mime_type(format):
     if not format in _formats:
         raise Exception('unknown format %s' % format)
     return _formats[format][1]
-
-
-

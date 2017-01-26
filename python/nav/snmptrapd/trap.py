@@ -60,4 +60,3 @@ class SNMPTrap:
             text = text + "%s -> %s\n" % (key, val)
 
         return text
-

@@ -70,4 +70,3 @@ class AgentProxy(common.AgentProxyMixIn, agentproxy.AgentProxy):
                                   key, df, oids, timeout, retry_count)
         self.protocol.requests[key] = df, timer
         return df
-

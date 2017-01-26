@@ -79,4 +79,3 @@ class LoggerGroupSearchForm(forms.Form):
                 ),
             ),
         )
-

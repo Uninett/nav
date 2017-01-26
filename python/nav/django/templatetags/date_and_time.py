@@ -38,4 +38,3 @@ def remove_microseconds(delta):
         return delta - timedelta(microseconds=delta.microseconds)
     except:
         return delta
-

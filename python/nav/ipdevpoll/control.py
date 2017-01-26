@@ -68,4 +68,3 @@ class ProcessMonitor(procmon.ProcessMonitor):
     def connectionLost(self, name):
         _logger.warning("Subprocess %s died, restart will be tried", name)
         return procmon.ProcessMonitor.connectionLost(self, name)
-

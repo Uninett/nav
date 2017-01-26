@@ -31,4 +31,3 @@ class UnsupportedSnmpVersionError(SnmpError):
 
 class NoSuchObjectError(SnmpError):
     """SNMP agent did not know of this object"""
-

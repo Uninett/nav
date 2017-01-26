@@ -102,4 +102,3 @@ class BoostDispatcher(Dispatcher):
         smsid = 0
 
         return (sms, sent, ignored, result, smsid)
-

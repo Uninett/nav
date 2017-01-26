@@ -424,7 +424,3 @@ def make_tree_from_ip(cidr_addresses):
         prefix = FauxNode(addr, "available", "available")
         heap.add(prefix)
     return heap
-
-
-
-

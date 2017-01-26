@@ -90,4 +90,3 @@ class UninettMailDispatcher(Dispatcher):
         smsid = 0
 
         return (sms, sent, ignored, result, smsid)
-

@@ -52,6 +52,3 @@ class ActiveMessagesFeed(Feed):
 
     def item_link(self, item):
         return reverse('messages-view', args=[item.pk])
-
-
-

@@ -97,5 +97,3 @@ class Interface(object):
     @classmethod
     def get_absolute_url(cls):
         return None
-
-

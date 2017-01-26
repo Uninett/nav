@@ -102,4 +102,3 @@ class DnsName(Plugin):
                 netbox.sysname = new_name
 
         return new_name
-

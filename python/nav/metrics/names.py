@@ -144,4 +144,3 @@ def raw_metric_query(query):
             response.close()
         except NameError:
             pass
-

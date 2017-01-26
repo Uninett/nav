@@ -485,4 +485,3 @@ def edge_metadata_layer2(nx_edge, source, target, vlans_by_interface, traffic):
     edge.target.vlans = set(target_vlans) - set(source_vlans)
     edge.vlans = set(source_vlans) | set(target_vlans)
     return edge
-

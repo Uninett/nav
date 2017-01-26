@@ -14,6 +14,3 @@ class MachinetrackerIPRange(util.IPRange):
             prefix_cidr = prefix_address.split("/")
             return prefix_cidr[1]
         return '24'
-
-
-

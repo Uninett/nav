@@ -169,4 +169,3 @@ class MatrixIPv4(Matrix):
             colspan=self.num_columns,
             color=self._get_color('large'),
             content='Too many small nets')
-

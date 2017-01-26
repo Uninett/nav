@@ -54,4 +54,3 @@ class NumberInput(forms.TextInput):
 class NumberField(forms.IntegerField):
     """Input field with type set to number"""
     widget = NumberInput
-

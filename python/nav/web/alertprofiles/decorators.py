@@ -55,4 +55,3 @@ def requires_post(redirect='alertprofiles-overview', required_args=None):
         return wraps(func)(_handler)
 
     return _decorator
-

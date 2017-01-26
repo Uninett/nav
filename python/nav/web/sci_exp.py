@@ -64,5 +64,3 @@ def printe(number):
     import sci_exp
     a = sci_exp.sciShort(number)
     return '%0.3f%s' % a
-
-

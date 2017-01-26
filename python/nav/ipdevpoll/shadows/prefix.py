@@ -97,4 +97,3 @@ class Prefix(Shadow):
         containers.setdefault(cls, {})['static'] = STATIC_ROUTES_SENTINEL
 
 STATIC_ROUTES_SENTINEL = Prefix()
-

@@ -78,4 +78,3 @@ class DebugDispatcher(Dispatcher):
                 "Failed permanently, because I was configured to.")
 
         return (sms, sent_count, ignored_count, result, smsid)
-

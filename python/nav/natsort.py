@@ -73,5 +73,3 @@ def decorated_sort(l):
     deco.sort()
     new_list = [element for _, _, element in deco]
     return new_list
-
-

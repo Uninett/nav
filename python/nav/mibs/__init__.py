@@ -40,4 +40,3 @@ def reduce_index(result):
             key = key[0]
             result[key] = value
     return result
-

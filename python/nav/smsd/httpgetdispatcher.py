@@ -98,4 +98,3 @@ class HttpGetError(urllib2.HTTPError):
 
     def __str__(self):
         return 'HTTP error: <%s>: %s (%s).' % (self.url, self.msg, self.code)
-

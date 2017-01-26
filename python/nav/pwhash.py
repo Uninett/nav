@@ -130,4 +130,3 @@ class InvalidHashStringError(errors.GeneralException):
 
 class UnknownHashMethodError(errors.GeneralException):
     """Unknown hash method"""
-

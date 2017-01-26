@@ -100,4 +100,3 @@ class MultiBridgeMib(BridgeMib, mibretriever.MultiMibMixIn):
 
         method = super(MultiBridgeMib, self).get_stp_port_states
         return self._multiquery(method, integrator=_integrator)
-

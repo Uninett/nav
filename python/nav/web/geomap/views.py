@@ -245,4 +245,3 @@ def _attach_cpu_load(graph, time_interval={'start': '-10min', 'end': 'now'}):
     needs_cpu_data = {netbox['real_sysname']: netbox for netbox in netboxes}
 
     get_cached_multiple_cpu_load(needs_cpu_data, time_interval)
-
