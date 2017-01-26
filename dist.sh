@@ -1,14 +1,13 @@
-#!/bin/sh
+#!/bin/sh -e
 
 # Simple shell script to create a tarball source distribution of NAV
 
 USAGE="dist.sh [-r revision]
 
-Invokation with no arguments will create a tarball from the tip of the
+Invokation with no arguments will create a tarball from the HEAD of the
 current repository."
 
-REVISION=tip
-DIST_SANDBOX=.dist_sandbox
+REVISION=$(git describe)
 
 # Parse arguments
 ARG_PREV=""
@@ -40,39 +39,33 @@ done
 DIST_NAME="nav-$REVISION"
 TARBALL="${DIST_NAME}.tar.gz"
 
-if [ -e $DIST_SANDBOX ]; then
-    echo "Sandbox directory already exists: $DIST_SANDBOX"
-    echo "Please remove it."
-    exit 1
-fi
 if [ -f $TARBALL ]; then
     echo "Tarball already exists: $TARBALL"
     echo "Please remove it."
     exit 1
 fi
 
-mkdir $DIST_SANDBOX && cd $DIST_SANDBOX || exit 1
-
 echo "Exporting archive of NAV revision $REVISION ..." 
-hg archive -r $REVISION -X '.hg*' $DIST_NAME
-if [ $? -eq 0 ]; then
-    # Generate the ./configure script before creating the tarball
-    ( cd .. && ./autogen.sh )
-    cp ../version.m4 $DIST_NAME
-    ( cd $DIST_NAME && ./autogen.sh )
+if git archive --format=tar --prefix="$DIST_NAME/" "$REVISION" | tar x; then
+    # Do the magic dance required to get a few generated files into the
+    # archive
+    ./autogen.sh
+    cp version.m4 "$DIST_NAME/"
+    ( cd "$DIST_NAME" && ./autogen.sh )
 
     echo "Creating tarball ($TARBALL) ..."
-    tar czf $TARBALL $DIST_NAME
+    tar czf "$TARBALL" "$DIST_NAME"
 
+    rm -rf "$DIST_NAME"
+    
     echo "md5sum:"
-    md5sum $TARBALL
+    md5sum "$TARBALL"
     echo "sha1sum:"
-    sha1sum $TARBALL
+    sha1sum "$TARBALL"
 
-    mv $TARBALL ..
-    cd ..
-    echo "Removing sandbox directory ..."
-    rm -rf $DIST_SANDBOX
-
-    echo "All done.  Enjoy your tarball."
+    echo "Please sign the tarball"
+    gpg --armor --detach-sign "$TARBALL"
+    
+    echo "All done.  Enjoy your tarball:."
+    ls -la "$TARBALL"*
 fi
