@@ -14,89 +14,131 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Extract Launchpad bug report references from input.
+"""Extract Launchpad bug and GitHub issue titles from input.
 
-This program scans its input, assumed to be Mercurial change log
-messages, extracts what seems to be Launchpad bug ids, retrieves the
-titles of these bug ids from Launchpad and prints a set of details
-suitable for inclusion NAV's CHANGES file.
+This program scans its input, assumed to be Git change log messages, extracts
+what seems to be Launchpad bug IDs and GitHub issue IDs, retrieves the titles
+of these bug IDs and prints a set of details suitable for inclusion NAV's
+CHANGES file.
 
-To use, simply pipe the output of your desired hg log command through
-this program.  Example:
+To use, simply pipe the output of your desired git log command through this
+program. Example:
 
   hg log -l50 | buglog.py
 
 If you aren't sure that all bug report references can be found in the
 commit log messages' summary line, add the -v option to hg log.
-"""
 
+"""
+from __future__ import print_function
 import urllib2
 import re
 import sys
 import textwrap
+import json
 
 BUG_URL = 'https://launchpad.net/bugs/{bug_id}/+text'
+ISSUE_URL = 'https://github.com/UNINETT/nav/issues/{bug_id}'
 COMMITLOG_PATTERN = re.compile(r'((bug)?fix for|fix(es|ed)?|close(s|d)?):? '
-                               r'+(lp)? *# *(?P<bug_id>[0-9]{6,})', re.I)
+                               r'+(?P<lp>lp)? *# *(?P<bug_id>[0-9]+)', re.I)
 
-def get_bug_details(bug_id):
-    """Retrieve text detail of a launchpad bug report.
+class Bug(object):
+    prefix = ""
 
-    bug_id -- The Launchpad bug id.
+    def __init__(self, number):
+        self.number = number
+        self._title = None
 
-    Returns a list of strings detailing the bug.
-    """
-    url = BUG_URL.format(bug_id=bug_id)
-    info = urllib2.urlopen(url)
-    return info.readlines()
+    def __str__(self):
+        """Return bugfix details formatted for NAV's CHANGES file."""
+        lead_in = "  * {}#{:<7} (".format(self.prefix, self.number)
+        indent = " " * len(lead_in)
+        line = "{}{})".format(lead_in, self.title)
 
-def get_bug_title(bug_id):
-    """Retrieve the title of a launchpad bug report."""
-    for line in get_bug_details(bug_id):
-        if line.startswith('title:'):
-            title = line.split(':', 1)[1]
-            return title.strip()
+        return '\n'.join(
+            textwrap.wrap(line, width=80, subsequent_indent=indent))
 
-def bugfix_format(bug_id):
-    """Return bugfix details formatted for NAV's CHANGES file."""
-    title = get_bug_title(bug_id)
-    lead_in = "  * LP#{:<7} (".format(bug_id)
-    indent = " " * len(lead_in)
-    line = "{}{})".format(lead_in, title)
+    def __hash__(self):
+        return hash(self.prefix + str(self.number))
 
-    return '\n'.join(textwrap.wrap(line, width=80, subsequent_indent=indent))
+    def __cmp__(self, other):
+        return cmp(self.number, other.number)
+
+
+class LaunchpadBug(Bug):
+    prefix = "LP"
+
+    @property
+    def title(self):
+        """Retrieve the title of a Launchpad bug report."""
+        if not self._title:
+            for line in self._get_details():
+                if line.startswith('title:'):
+                    title = line.split(':', 1)[1]
+                    self._title = title.strip()
+        return self._title
+
+    def _get_details(self):
+        """Returns a list of strings detailing the bug"""
+        url = BUG_URL.format(bug_id=self.number)
+        info = urllib2.urlopen(url)
+        return info.readlines()
+
+class GithubIssue(Bug):
+    prefix = "GH"
+
+    @property
+    def title(self):
+        details = self._get_details()
+        return details.get('title', 'N/A')
+
+    def _get_details(self):
+        """Returns a JSON structure detailing the bug"""
+        url = ISSUE_URL.format(bug_id=self.number)
+        req = urllib2.Request(url, headers={
+            'Accept': 'application/json'
+        })
+        data = urllib2.urlopen(req).read()
+        return json.loads(data)
+
 
 def filter_log(file):
-    """Filter hg log output.
+    """Filter VCS log output.
 
-    Returns a generator.  For each line of the input file that looks
-    like a reference to a Launchpad bug report, yields a tuple
-    consisting of the line itself and a regexp Match object.  The
-    match object will contain a named group called 'bug_id', which
-    contains the bug report id number.
+    Returns a generator. For each line of the input file that looks like a
+    reference to a Launchpad bug report or GitHub issue, yields a tuple
+    consisting of the line itself and a regexp Match object. The match object
+    will contain a named group called 'bug_id', which contains the bug report
+    id number.
 
       file -- An open file or other file-like/iterable object.
+
     """
     for line in file:
         match = COMMITLOG_PATTERN.search(line)
         if match:
             yield (line, match)
 
-def filter_bugids(matches):
+def filter_bugs(matches):
     for line, match in matches:
-        yield int(match.group('bug_id'))
+        bug_id = int(match.group('bug_id'))
+        if match.group('lp'):
+            yield LaunchpadBug(bug_id)
+        else:
+            yield GithubIssue(bug_id)
+
 
 def main(args):
     if sys.stdin.isatty():
-        print __doc__,
+        print(__doc__)
         sys.exit(0)
 
-    bug_ids = set()
-    for bug_id in filter_bugids(filter_log(sys.stdin)):
-        bug_ids.add(bug_id)
+    bugs = set()
+    for bug in filter_bugs(filter_log(sys.stdin)):
+        bugs.add(bug)
 
-    for bug_id in sorted(bug_ids):
-        print bugfix_format(bug_id)
+    for bug in sorted(bugs):
+        print(bug)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
