@@ -2,7 +2,6 @@
 # tools/vagrant-provision.sh
 
 psycopg2==2.4.5  # requires libpq to build
-Django==1.7.1
 IPy==0.81
 twisted>=12,<15
 networkx>=1.7,<1.8
