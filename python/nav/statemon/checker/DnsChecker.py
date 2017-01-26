@@ -17,7 +17,7 @@
 
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
-from nav.statemon import DNS
+import DNS
 
 
 class DnsChecker(AbstractChecker):
