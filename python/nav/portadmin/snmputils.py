@@ -581,7 +581,7 @@ class Cisco(SNMPHandler):
 
     def get_cisco_voice_vlans(self):
         """Returns a dict of ifIndex:vmVoiceVlanId entries"""
-        return {int(x):y for x, y in self._jog(self.voice_vlan_oid)}
+        return {int(x): y for x, y in self._jog(self.voice_vlan_oid)}
 
     def set_cisco_voice_vlan(self, interface, voice_vlan):
         """Set a voice vlan using Cisco specific oid"""
@@ -735,8 +735,8 @@ class HP(SNMPHandler):
         :returns: dict[ifindex, is_enabled]
         :rtype: dict[int, bool]
         """
-        return {self._get_last_number(oid):state==1
-                for oid,state in self._bulkwalk(self.dot1xPortAuth)}
+        return {self._get_last_number(oid): state == 1
+                for oid, state in self._bulkwalk(self.dot1xPortAuth)}
 
 
 class SNMPFactory(object):

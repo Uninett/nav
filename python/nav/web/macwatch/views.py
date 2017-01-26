@@ -67,7 +67,7 @@ def add_macwatch(request):
             m.save()
             return HttpResponseRedirect('/macwatch/')
         else:
-            messages = ['Illegal input-data',]
+            messages = ['Illegal input-data']
             info_dict = populate_info_dict(account, messages=messages)
             info_dict['form'] = macwatchform
             return render_to_response(
@@ -95,7 +95,7 @@ def delete_macwatch(request, macwatchid):
         try:
             m = MacWatch.objects.get(id=macwatchid)
         except Exception, e:
-            messages = [e,]
+            messages = [e]
             return do_list(request, messages)
 
         if request.method == 'POST':
@@ -104,7 +104,7 @@ def delete_macwatch(request, macwatchid):
                     m.delete()
                     return HttpResponseRedirect('/macwatch/')
                 except Exception, e:
-                    messages = [e,]
+                    messages = [e]
                     return do_list(request, messages)
             else:
                 return HttpResponseRedirect('/macwatch/')

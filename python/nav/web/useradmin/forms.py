@@ -257,7 +257,7 @@ class TokenForm(forms.ModelForm):
     def clean_endpoints(self):
         """Convert endpoints from list to dictionary"""
         endpoints = self.cleaned_data.get('endpoints')
-        return {x:str(self.available_endpoints.get(x)) for x in endpoints}
+        return {x: str(self.available_endpoints.get(x)) for x in endpoints}
 
     class Meta(object):
         model = APIToken

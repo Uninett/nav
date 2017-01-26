@@ -293,7 +293,7 @@ class LDAPUser(object):
         objects, the latter should work for posixGroup objects.
         """
         encoding = _config.get('ldap', 'encoding')
-        group_search = _config.get('ldap','group_search')
+        group_search = _config.get('ldap', 'group_search')
         user_dn = self.get_user_dn().encode(encoding)
         # Match groupOfNames/groupOfUniqueNames objects
         try:
