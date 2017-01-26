@@ -18,6 +18,7 @@
 from __future__ import absolute_import
 import select
 import logging
+import sys
 
 from pysnmp import asn1, v1, v2c
 from pysnmp import role
