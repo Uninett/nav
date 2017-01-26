@@ -324,10 +324,8 @@ def mark_detained_interfaces(interfaces):
             interface.detained = True
 
 
-def add_dot1x_info(interfaces, handler=None):
+def add_dot1x_info(interfaces, handler):
     """Add information about dot1x state for interfaces"""
-    if not handler:
-        handler = SNMPFactory.get_instance(netbox)
 
     # Skip if port access control is not enabled (and thus not dot1x)
     if not handler.is_port_access_control_enabled():
