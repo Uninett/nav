@@ -55,6 +55,7 @@ class Node(object):
             self.metadata = nx_node_metadata['metadata']
         else:
             self.metadata = None
+
     def __repr__(self):
         return "netmap.Node(metadata={0!r})".format(self.metadata)
 

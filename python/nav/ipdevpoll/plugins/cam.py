@@ -232,6 +232,7 @@ class Cam(Plugin):
                            ifc_count, vlan_count, blocking)
 
     VLAN_PATTERN = re.compile('(vlan)?(?P<vlan>[0-9]+)', re.IGNORECASE)
+
     def _store_blocking_ports(self, blocking):
         for ifindex, vlan in blocking:
             if vlan:

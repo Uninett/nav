@@ -290,6 +290,7 @@ class JobHandler(object):
         # pylint: disable=E1101
         shutdown_trigger_id = reactor.addSystemEventTrigger(
             "before", "shutdown", self.cancel)
+
         def cleanup(result):
             self._destroy_agentproxy()
             reactor.removeSystemEventTrigger(shutdown_trigger_id)

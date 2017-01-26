@@ -215,6 +215,7 @@ class InterfaceManager(DefaultManager):
         is associated with a module known to still be up.
         """
         deadline = datetime.datetime.now() - MISSING_THRESHOLD
+
         def is_dead(ifc):
             return (ifc.gone_since and ifc.gone_since < deadline
                     and (not ifc.module or ifc.module.up == 'y'))

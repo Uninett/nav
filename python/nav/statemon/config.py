@@ -74,6 +74,7 @@ def dbconf(*args, **kwargs):
 
 class _dbconf(Conf):
     _instance = None
+
     def __init__(self, *args, **kwargs):
         self._file = kwargs.get('configfile', 'db.conf')
         # Valid configoptions must be specified in this list
@@ -83,6 +84,7 @@ class _dbconf(Conf):
 
 class _serviceconf(Conf):
     _instance = None
+
     def __init__(self, *args, **kwargs):
         self._file = kwargs.get('configfile', 'servicemon.conf')
         self.validoptions = []
@@ -97,6 +99,7 @@ def serviceconf(*args, **kwargs):
 
 class _pingconf(Conf):
     _instance = None
+
     def __init__(self, *args, **kwargs):
         self._file = kwargs.get('configfile', 'pping.conf')
         self.validoptions = []

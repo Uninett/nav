@@ -39,6 +39,7 @@ class CircBuf:
 
     def __len__(self):
         return self._size
+
     def __getslice__(self, i, j):
         return self._data[i:j]
 

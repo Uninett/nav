@@ -49,6 +49,7 @@ class Service:
                 self.args.__str__().__hash__()
         value = value % 2**31
         return int(value)
+
     def __repr__(self):
         strargs = string.join(map(lambda x: x+'='+self.args[x], self.args))
         return "%-20s %-10s %s" % (self.sysname, self.handler, strargs)

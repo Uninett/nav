@@ -188,6 +188,7 @@ class Snmp(object):
 
     NON_REPEATERS = 0
     MAX_REPETITIONS = 15
+
     def bulkwalk(self, query="1.3.6.1.2.1.1.1.0", strip_prefix=False):
         """Performs an SNMP walk on the host, using GETBULK requests.
 

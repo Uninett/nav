@@ -49,6 +49,7 @@ class EntityMib(mibretriever.MibRetriever):
         """
         # Define this locally to avoid external overhead
         bridge_mib_oid = OID('.1.3.6.1.2.1.17')
+
         def bridge_mib_filter(result):
             def _is_bridge_mib_instance_with_valid_community(row):
                 return (row['entLogicalType']

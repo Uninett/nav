@@ -323,6 +323,7 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
         IP("172.16.0.0/12"),
         IP("192.168.0.0/16")
         ])
+
     def accept(prefix):
         "Helper function for filtering prefixes by IP family"
         ip = IP(prefix.net_address)
