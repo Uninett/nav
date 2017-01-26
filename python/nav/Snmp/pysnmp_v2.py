@@ -138,14 +138,22 @@ class Snmp(object):
             raise UnsupportedSnmpVersionError(self.version)
 
         # Translate type to fit asn1 library
-        if type == 'i': type = 'INTEGER'
-        if type == 'u': type = 'UNSIGNED32'
-        if type == 't': type = 'TIMETICKS'
-        if type == 'a': type = 'IPADDRESS'
-        if type == 'o': type = 'OBJECTID'
-        if type == 's': type = 'OCTETSTRING'
-        if type == 'U': type = 'COUNTER64'
-        if type == 'x': type = 'OCTETSTRING'
+        if type == 'i':
+            type = 'INTEGER'
+        if type == 'u':
+            type = 'UNSIGNED32'
+        if type == 't':
+            type = 'TIMETICKS'
+        if type == 'a':
+            type = 'IPADDRESS'
+        if type == 'o':
+            type = 'OBJECTID'
+        if type == 's':
+            type = 'OCTETSTRING'
+        if type == 'U':
+            type = 'COUNTER64'
+        if type == 'x':
+            type = 'OCTETSTRING'
 
         # Make request and responsehandler
         req = snmp.SETREQUEST()

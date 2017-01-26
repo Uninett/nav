@@ -88,7 +88,8 @@ def write_json(obj):
                                    zip(map(write_json, obj.keys()),
                                        map(write_json, obj.values())))) + '}'
     if isinstance(obj, bool):
-        if obj: return 'true'
+        if obj:
+            return 'true'
         return 'false'
     if isinstance(obj, basestring):
         return '"%s"' % reduce(lambda s, esc: s.replace(esc[0], esc[1]),

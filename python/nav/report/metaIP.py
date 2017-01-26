@@ -90,4 +90,5 @@ class MetaIP:
             self.nettype = metainfo["nettype"]
 
 
-class UnexpectedRowCountError(Exception): pass
+class UnexpectedRowCountError(Exception):
+    pass

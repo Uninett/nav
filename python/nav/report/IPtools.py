@@ -22,7 +22,8 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-class UnknownIpVersionError(Exception): pass
+class UnknownIpVersionError(Exception):
+    pass
 
 
 def sort_nets_by_address(list):
