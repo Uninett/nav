@@ -233,7 +233,7 @@ def _attach_node_positions(graph, node_set):
 
         # Attached position meta data if map view has meta data on node in graph
         if node_meta_dict:
-            if metadata.has_key('metadata'):
+            if 'metadata' in metadata:
                 # has vlan meta data, need to just update position data
                 metadata['metadata'].update({'position': node_meta_dict[0]})
             else:

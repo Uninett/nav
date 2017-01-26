@@ -159,7 +159,7 @@ def group_history_and_messages(history, messages, group_by=None):
         a.extra_messages = {}
         for m in messages:
             if a.id == m['alert_history']:
-                if not a.extra_messages.has_key(m['state']):
+                if m['state'] not in a.extra_messages:
                     a.extra_messages[m['state']] = {
                         'sms': None,
                         'email': None,
@@ -172,7 +172,7 @@ def group_history_and_messages(history, messages, group_by=None):
         except AttributeError:
             key = None
 
-        if not grouped_history.has_key(key):
+        if key not in grouped_history:
             grouped_history[key] = []
         grouped_history[key].append(a)
     return grouped_history

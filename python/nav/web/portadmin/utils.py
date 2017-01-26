@@ -71,13 +71,13 @@ def update_interfaces_with_snmpdata(interfaces, ifalias, vlans, operstatus,
     Update the interfaces with data gathered via snmp.
     """
     for interface in interfaces:
-        if ifalias.has_key(interface.ifindex):
+        if interface.ifindex in ifalias:
             interface.ifalias = ifalias[interface.ifindex]
-        if vlans.has_key(interface.ifindex):
+        if interface.ifindex in vlans:
             interface.vlan = vlans[interface.ifindex]
-        if operstatus.has_key(interface.ifindex):
+        if interface.ifindex in operstatus:
             interface.ifoperstatus = operstatus[interface.ifindex]
-        if adminstatus.has_key(interface.ifindex):
+        if interface.ifindex in adminstatus:
             interface.ifadminstatus = adminstatus[interface.ifindex]
 
 
