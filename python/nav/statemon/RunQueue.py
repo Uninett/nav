@@ -23,10 +23,11 @@ This module provides a threadpool and fair scheduling.
 """
 from __future__ import absolute_import
 
+from collections import deque
 import sys
 import time
 import threading
-from . import DEQueue, config, prioqueunique
+from . import config, prioqueunique
 from .debug import debug
 
 
@@ -103,7 +104,7 @@ class _RunQueue(object):
         self._controller = kwargs.get('controller', self)
         self.workers = []
         self.unused_thread_name = []
-        self.queue = DEQueue.DEQueue()
+        self.queue = deque()
         self.prioq = prioqueunique.prioque()
         self.lock = threading.RLock()
         self.await_work = threading.Condition(self.lock)
@@ -126,7 +127,7 @@ class _RunQueue(object):
             pri, obj = runnable
             self.prioq.put(pri, obj)
         else:
-            self.queue.put(runnable)
+            self.queue.append(runnable)
 
         # This is quite dirty, but I really need to know how many
         # threads are waiting for checkers.
@@ -182,7 +183,7 @@ class _RunQueue(object):
             # Check if we have unpriority checkers
             # to execute
             if len(self.queue) > 0:
-                r = self.queue.get()
+                r = self.queue.popleft()
                 self.lock.release()
                 return r
             # Wait to execute priority checker, break if new checkers arrive
