@@ -50,11 +50,11 @@ Updating changelog and release notes
   the milestone, and vice versa.  Any differences need to be
   resolved manually.
 
-* Once the CHANGES file has been properly updated, commit it, tag the new
+* Once the CHANGES file has been properly updated, commit it, tag and sign the new
   release and push changes back to the official repository::
 
     git commit -m 'Update changelog for the upcoming X.Y.Z release'
-    git tag X.Y.Z
+    git tag -as X.Y.Z
     git push --tags
 
 
@@ -65,7 +65,8 @@ Rolling and uploading a new distribution tarball
 
     ./dist.sh
 
-* Upload the tarball and the detached signature to the GitHub release page.
+* Draft a new release for the new tag at GitHub. Upload the tarball and the
+  detached signature to the GitHub release page.
 
 Announcing the release
 ----------------------
