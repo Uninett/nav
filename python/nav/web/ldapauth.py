@@ -105,10 +105,10 @@ def open_ldap():
         except ldap.PROTOCOL_ERROR:
             _logger.error('LDAP server %s does not support the STARTTLS '
                           'extension.  Aborting.', server)
-            raise NoStartTlsError, server
+            raise NoStartTlsError(server)
         except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR):
             _logger.exception("LDAP server is down")
-            raise NoAnswerError, server
+            raise NoAnswerError(server)
     else:
         scheme = encryption == 'ssl' and 'ldaps' or 'ldap'
         uri = '%s://%s:%s' % (scheme, server, port)

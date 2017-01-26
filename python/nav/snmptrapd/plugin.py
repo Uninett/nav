@@ -55,6 +55,6 @@ def load_handler_modules(modules):
             handlermodules.append(mod)
         except Exception, why:
             _LOGGER.exception("Module %s did not compile - %s", name, why)
-            raise ModuleLoadError, why
+            raise ModuleLoadError(why)
 
     return handlermodules

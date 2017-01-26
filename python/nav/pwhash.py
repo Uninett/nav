@@ -74,7 +74,7 @@ class Hash(object):
         password -- Password to hash
         """
         if method not in KNOWN_METHODS:
-            raise UnknownHashMethodError, method
+            raise UnknownHashMethodError(method)
         self.method = method
         if not salt:
             self.salt = generate_salt()
@@ -107,11 +107,11 @@ class Hash(object):
         """Set the hash directly from a previously stored hash string."""
         match = self._hashmatch.match(hash)
         if not match:
-            raise InvalidHashStringError, hash
+            raise InvalidHashStringError(hash)
         else:
             method = match.group(1)
             if method not in KNOWN_METHODS:
-                raise UnknownHashMethodError, method
+                raise UnknownHashMethodError(method)
             else:
                 self.method = method
             self.salt = match.group(2)

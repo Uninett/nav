@@ -46,7 +46,7 @@ class HttpGetDispatcher(Dispatcher):
             # Remote address for gateway
             self.url = config['url']
         except KeyError, error:
-            raise DispatcherError, "Config option not found: %s" % error
+            raise DispatcherError("Config option not found: %s" % error)
 
     def sendsms(self, phone, msgs):
         """

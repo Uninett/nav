@@ -92,7 +92,7 @@ def _ipv6_net_diff(net1, net2):
 
 def isIntermediateNets(net1, net2):
     if net1.version() != net2.version():
-        raise NotEqualVersionError
+        raise NotEqualVersionError()
     if net1.version() == 4:
         raise NotImplementedError
     else:
@@ -175,7 +175,7 @@ def getLastbitsIpMap(ip_list):
     elif version == 4:
         return _ipv4_getLastbitsMap(ip_list)
     else:
-        raise UnknownIpVersionError, str(version)
+        raise UnknownIpVersionError(str(version))
 
 
 def _ipv4_getLastbitsMap(ip_list):
@@ -203,7 +203,7 @@ def andIpMask(ip, mask):
     elif ip.version() == 4:
         return _ipv4_andIpMask(ip, mask)
     else:
-        raise UnknownIpVersionError, str(ip.version())
+        raise UnknownIpVersionError(str(ip.version()))
 
 
 def _ipv6_andIpMask(ip, mask):
@@ -248,7 +248,7 @@ def getMask(ip_version, bit_count):
     elif ip_version == 4:
         return _ipv4_getMask(bit_count)
     else:
-        raise UnknownIpVersionError, str(ip_version)
+        raise UnknownIpVersionError(str(ip_version))
 
 
 def _ipv6_getMask(bit_count):

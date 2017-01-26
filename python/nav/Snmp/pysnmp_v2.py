@@ -170,7 +170,7 @@ class Snmp(object):
             rsp.decode(answer)
 
             if rsp['error_status']:
-                raise AgentError, str(snmp.SNMPError(rsp['error_status']))
+                raise AgentError(str(snmp.SNMPError(rsp['error_status'])))
 
         except (role.NoResponse, role.NetworkError) as err:
             raise NetworkError(err)
