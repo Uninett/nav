@@ -55,7 +55,6 @@ class DebugDispatcher(Dispatcher):
         else:
             self.result = self.result.lower()
 
-
     def sendsms(self, phone, msgs):
         """Log SMS message and report pre-configured result."""
 

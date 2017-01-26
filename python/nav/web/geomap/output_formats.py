@@ -99,15 +99,12 @@ def write_json(obj):
         return 'null'
     return '"ERROR: unrecognized type ' + str(type(obj)) + '"'
 
-
-
 # KML
+
 
 def make_kml(featurelist):
     return render_to_string('geomap/geomap-data-kml.xml',
                             {'features': featurelist})
-
-
 
 # General
 

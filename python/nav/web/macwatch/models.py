@@ -68,7 +68,6 @@ class MacWatch(models.Model):
             ret_addr += self.MAC_ADDR_DELIM_CHAR + mac_addr[-1]
         return ret_addr
 
-
     def get_mac_addr(self):
         """Get the current mac-address.  If the stored
         mac-address is a prefix (i.e. only a partial mac-address)

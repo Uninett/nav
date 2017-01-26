@@ -107,7 +107,6 @@ class ServicePropertyForm(forms.Form):
         self.helper.form_tag = False
 
 
-
 def service_edit(request, service_id=None):
     """Controller for editing services"""
     service = None

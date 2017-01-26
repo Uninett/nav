@@ -127,7 +127,6 @@ class Service(models.Model):
     description = property(get_handler_description)
 
 
-
 class ServiceProperty(models.Model):
     """From NAV Wiki: Each service may have an additional set of attributes.
     They are defined here."""

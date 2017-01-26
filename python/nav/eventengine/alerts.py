@@ -179,7 +179,6 @@ class AlertGenerator(dict):
             return
 
 
-
 ###
 ### Alert message template processing
 ###

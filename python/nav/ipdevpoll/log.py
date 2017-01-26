@@ -91,7 +91,6 @@ class ContextLogger(object):
         self.suffix = suffix
         self.context_vars = context_vars
 
-
     def __get__(self, obj, owner=None):
         target = owner if obj is None else obj
         if hasattr(target, self.log_attr):
@@ -172,4 +171,3 @@ def _get_context_from_frame(frame):
         logger = getattr(obj, '_logger')
         if hasattr(logger, 'extra'):
             return logger.extra
-

@@ -99,7 +99,6 @@ class PrefixViewSet(viewsets.ViewSet):
         queryset.filter_full_prefixes()
         return queryset.finalize()
 
-
     @list_route(methods=["get"])
     def suggest(self, request, *args, **kwargs):
         "Suggests subnets of size=?number_of_hosts for ?prefix"

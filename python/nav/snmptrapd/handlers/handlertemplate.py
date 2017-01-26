@@ -48,7 +48,6 @@ def handleTrap(trap, config=None):
     # config may be fetched like this
     variable = config.get('template','variable')
 
-
     if doSomething:
 
         # Events are posted like this. For more information about the

@@ -37,7 +37,6 @@ class SNMPTrap:
                 val = ':'.join(["%02x" % ord(c) for c in val])
                 self.varbinds[key] = val
 
-
     def __str__(self):
         text = self.trapText()
         return text

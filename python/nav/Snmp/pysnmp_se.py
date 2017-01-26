@@ -118,7 +118,6 @@ class Snmp(object):
             realvalue = value.get()
         return realvalue
 
-
     def set(self, query, type, value):
         """Does snmpset query on the host.
 

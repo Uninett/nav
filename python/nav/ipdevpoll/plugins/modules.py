@@ -149,7 +149,6 @@ class Modules(Plugin):
             self._logger.debug("module/ifindex mapping: %r",
                               module_ifindex_map)
 
-
     def _process_entities(self, result):
         """Process the list of collected entities."""
         # be able to look up all entities using entPhysicalIndex
@@ -157,7 +156,6 @@ class Modules(Plugin):
 
         module_containers = self._process_modules(entities)
         self._process_ports(entities, module_containers)
-
 
     def _process_alias_mapping(self, alias_mapping):
         mapping = {}

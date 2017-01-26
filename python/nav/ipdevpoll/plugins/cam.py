@@ -199,7 +199,6 @@ class Cam(Plugin):
         candidate.netbox = self.netbox
         return candidate
 
-
     #
     # STP blocking related methods
     #

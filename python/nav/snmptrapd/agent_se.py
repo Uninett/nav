@@ -94,7 +94,6 @@ class TrapListener:
                         varbind_dict)
         return trap
 
-
     def listen(self, _community, callback):
         """Listens for and dispatches incoming traps to callback.
 

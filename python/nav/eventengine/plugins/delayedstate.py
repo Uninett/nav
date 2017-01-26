@@ -46,7 +46,6 @@ class DelayedStateHandler(EventHandler):
             if new_value:
                 setattr(self, wait_var, new_value)
 
-
     def handle(self):
         event = self.event
         if event.state == event.STATE_START:

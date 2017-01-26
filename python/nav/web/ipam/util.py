@@ -79,7 +79,6 @@ class PrefixQuerysetBuilder(object):
                     continue
         self.post_hooks.append(_filter_full_prefixes)
         return self
-            
 
     def description(self, descr):
         "Fuzzy match prefix on VLAN description"

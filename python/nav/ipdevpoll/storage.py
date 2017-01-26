@@ -501,7 +501,6 @@ class Shadow(object):
             myself.update(**update)
             self._touched.clear()
 
-
     def get_diff_attrs(self, other):
         """Returns a list of the names of the touched attributes on self whose
         values are are different from the corresponding attributes on other.

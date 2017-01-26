@@ -273,7 +273,6 @@ def create_time_periods(request, profile):
                 period.save()
 
 
-
 @requires_post('alertprofiles-profile')
 def profile_save(request):
     """Saves profile data"""

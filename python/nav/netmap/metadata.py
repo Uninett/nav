@@ -81,7 +81,6 @@ class Node(object):
                                     self.metadata['vlans']]
                     })
 
-
         if isinstance(self.node, stubs.Netbox):
             json.update({
                 'id': str(self.node.id),
@@ -457,7 +456,6 @@ def edge_metadata_layer3(nx_edge, source, target, traffic):
     edge = Edge((nx_edge), source, target, traffic)
     return edge
 
-
     #return metadata
 
 
@@ -478,7 +476,6 @@ def edge_metadata_layer2(nx_edge, source, target, vlans_by_interface, traffic):
     source_vlans = target_vlans = []
     if vlans_by_interface and source in vlans_by_interface:
         source_vlans = tuple(vlans_by_interface.get(source))
-
 
     if vlans_by_interface and target in vlans_by_interface:
         target_vlans = tuple(vlans_by_interface.get(target))

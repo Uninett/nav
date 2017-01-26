@@ -267,7 +267,6 @@ class SNMPHandler(object):
         self.set_if_up(if_index)
         _logger.debug('Interface set administratively up')
 
-
     def write_mem(self):
         """ Do a write memory on netbox if available"""
         pass

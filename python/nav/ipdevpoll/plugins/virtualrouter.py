@@ -62,7 +62,6 @@ class VirtualRouter(Plugin):
 
             self.update_containers_with(virtual_addrs, mibs)
 
-
     def gwportprefixes_found(self):
         if GwPortPrefix not in self.containers:
             self._logger.debug("there are no collected GwPortPrefixes to "

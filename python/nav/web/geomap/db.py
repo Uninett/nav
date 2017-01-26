@@ -123,8 +123,6 @@ def get_data(db_cursor, bounds, time_interval=None):
         ORDER BY sysname,remote_sysname, netaddr ASC, speed DESC
     """
 
-
-
     layer_2_query_1 = """
 SELECT DISTINCT ON (interface_swport.interfaceid)
 interface_gwport.interfaceid AS remote_gwportid,

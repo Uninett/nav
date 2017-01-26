@@ -217,7 +217,6 @@ class NetboxSection(_Section):
     def form_class():
         return NetboxForm
 
-
     def fetch_history(self):
         maintenance = self._maintenance()
         alert_types = self._alerttype()

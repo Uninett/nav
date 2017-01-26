@@ -69,7 +69,6 @@ class QBridgeMib(mibretriever.MibRetriever):
         df.addCallback(reduce_index)
         return df.addCallback(convert_data_to_portlist)
 
-
     def get_vlan_static_untagged_ports(self):
         """Retrieves, for each VLAN, a list of ports that are configured to
         transmit untagged frames for the VLAN.

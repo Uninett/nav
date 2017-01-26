@@ -202,7 +202,6 @@ class LDAPUser(object):
                                    suffix,
                                    password.encode(encoding))
 
-
     def get_user_dn(self):
         """
         Given a user id (login name), return a fully qualified DN to

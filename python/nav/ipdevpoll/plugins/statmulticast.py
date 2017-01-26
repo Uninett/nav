@@ -38,7 +38,6 @@ class StatMulticast(Plugin):
         if vendor == VENDOR_ID_HEWLETT_PACKARD:
             yield self._collect_hp_multicast()
 
-
     @defer.inlineCallbacks
     def _collect_hp_multicast(self):
         timestamp = time.time()

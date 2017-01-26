@@ -132,7 +132,6 @@ class MacAddress(object):
                     self._addr, self.DEFAULT_DELIM,
                     DELIMS_AND_STEPS[self.DEFAULT_DELIM]))
 
-
     def __lt__(self, other):
         return self._compare(other, lambda s, o: s < o)
 

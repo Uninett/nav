@@ -59,7 +59,6 @@ class TypeOid(Plugin):
         if self.sysobjectid[0] == '.':
             self.sysobjectid = self.sysobjectid[1:]
 
-
         self._logger.debug("sysObjectID is %s", self.sysobjectid)
 
         df = self._get_type_from_db()

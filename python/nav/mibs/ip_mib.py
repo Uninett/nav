@@ -216,7 +216,6 @@ class IpMib(mibretriever.MibRetriever):
 
         returnValue(mappings_new | mappings_deprecated)
 
-
     @defer.deferredGenerator
     def _get_interface_ipv4_addresses(self,
                                       ifindex_column='ipAdEntIfIndex',

@@ -90,7 +90,6 @@ class AdjacencyAnalyzer(object):
         ports_and_degree.sort()
         return [port for _degree, port in ports_and_degree]
 
-
     def find_return_path(self, edge):
         """Find a return path starting along edge from a port node.
 
@@ -316,7 +315,6 @@ def build_candidate_graph_from_db():
 
         graph.add_edge(port, dest_node)
         graph.add_edge(netbox, port)
-
 
     return graph
 

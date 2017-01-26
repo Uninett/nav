@@ -107,7 +107,6 @@ class TrapListener:
             version = str(req['version'] + 1)
             src = src[0]
 
-
             # Create trap object, let callback decide what to do with it.
             trap = SNMPTrap(str(src), agent or str(src), type, genericType,
                             snmpTrapOID, uptime, community, version, varbinds)

@@ -59,7 +59,6 @@ class Snmp(object):
         self.handle = role.manager()
         self.handle.timeout = float(timeout)
 
-
     def get(self, query="1.3.6.1.2.1.1.1.0"):
         """
         Does snmpget query on the host.
@@ -98,7 +97,6 @@ class Snmp(object):
         except role.NetworkError as err:
             raise NetworkError(err)
 
-
         # Decode raw response/answer
         rsp.decode(answer)
 
@@ -110,7 +108,6 @@ class Snmp(object):
 
         # Return the value as a proper Python type:
         return rsp_value()
-
 
     def set(self, query, type, value):
         """
@@ -219,7 +216,6 @@ class Snmp(object):
                 raise TimeOutException(err)
             except role.NetworkError as err:
                 raise NetworkError(err)
-
 
             # Decode raw response/answer
             rsp.decode(answer)

@@ -44,7 +44,6 @@ class MatrixIPv4(Matrix):
             for net in nets
         ]
 
-
     def _write_subnets(self, net, nets):
         """Create a subnet structure
 
@@ -147,11 +146,9 @@ class MatrixIPv4(Matrix):
                                        self.end_net,
                                        self.bits_in_matrix)
 
-
     @staticmethod
     def _get_content(nybble, ip):
         return ".{}/{}".format(nybble, ip.prefixlen())
-
 
     @staticmethod
     def _netlink(ip, append_term_and_prefix=False):
