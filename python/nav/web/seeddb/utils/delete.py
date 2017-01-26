@@ -17,7 +17,6 @@
 """Functions for deleting objects from seeddb.
 """
 import logging
-LOGGER = logging.getLogger(__name__)
 
 from django.db import connection, transaction, IntegrityError
 from django.core.urlresolvers import reverse
@@ -26,6 +25,8 @@ from django.template import RequestContext
 from django.http import HttpResponseRedirect
 
 from nav.web.message import new_message, Messages
+
+LOGGER = logging.getLogger(__name__)
 
 
 def render_delete(request, model, redirect, whitelist=None, extra_context=None):

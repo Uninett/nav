@@ -1,7 +1,7 @@
 from django import template
-register = template.Library()
-
 from nav.models.manage import SwPortVlan
+
+register = template.Library()
 
 DIRECTIONS = dict((v, k) for k, v in SwPortVlan.DIRECTION_CHOICES)
 

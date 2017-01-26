@@ -17,6 +17,8 @@
 """Util functions for the PortAdmin"""
 import re
 import ConfigParser
+import logging
+
 import django.template
 
 from django.template.loaders.filesystem import Loader
@@ -30,7 +32,6 @@ from os.path import join
 
 CONFIGFILE = join(sysconfdir, "portadmin", "portadmin.conf")
 
-import logging
 _logger = logging.getLogger("nav.web.portadmin")
 
 
