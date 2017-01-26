@@ -29,7 +29,7 @@ Oslo, but could be useful for other similar solutions.
 
 import urllib
 import urllib2
-from nav.smsd.dispatcher import *
+from nav.smsd.dispatcher import Dispatcher, DispatcherError
 
 
 class HttpGetDispatcher(Dispatcher):

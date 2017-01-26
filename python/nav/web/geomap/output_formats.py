@@ -25,7 +25,11 @@ http://code.google.com/apis/kml/
 
 from django.template.loader import render_to_string
 
-from nav.web.geomap.utils import *
+from nav.web.geomap.utils import (
+    union_dict,
+    lazy_dict,
+    numeric,
+)
 
 # GeoJSON:
 

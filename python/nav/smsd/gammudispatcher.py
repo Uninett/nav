@@ -24,7 +24,8 @@ Depends on python-gammu.
 
 """
 
-from nav.smsd.dispatcher import *
+from nav.smsd.dispatcher import (Dispatcher, PermanentDispatcherError,
+                                 DispatcherError)
 
 try:
     import gammu

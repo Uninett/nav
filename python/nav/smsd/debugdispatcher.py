@@ -23,7 +23,8 @@ daemon, in order to test various aspects of the SMS daemon.
 """
 
 import logging
-from nav.smsd.dispatcher import *
+from nav.smsd.dispatcher import (Dispatcher, DispatcherError,
+                                 PermanentDispatcherError)
 
 logger = logging.getLogger(__name__)
 

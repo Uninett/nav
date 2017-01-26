@@ -25,7 +25,7 @@ import os
 import pwd
 import smtplib
 import socket
-from nav.smsd.dispatcher import *
+from nav.smsd.dispatcher import Dispatcher, DispatcherError
 
 
 class UninettMailDispatcher(Dispatcher):

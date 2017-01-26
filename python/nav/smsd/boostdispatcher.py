@@ -26,7 +26,7 @@ Depends on SOAPpy/python-soappy.
 
 """
 
-from nav.smsd.dispatcher import *
+from nav.smsd.dispatcher import Dispatcher, DispatcherError
 
 try:
     from SOAPpy import SOAPProxy
