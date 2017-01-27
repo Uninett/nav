@@ -16,7 +16,7 @@
 """Room map navlet"""
 
 from nav.web.navlets import Navlet
-from nav.web.info.room.forms import SearchForm
+from nav.web.info.room.views import SearchForm
 from django.core.urlresolvers import reverse
 
 
