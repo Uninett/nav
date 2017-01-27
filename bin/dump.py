@@ -190,17 +190,7 @@ class Handlers(object):
 
 
 def main():
-    try:
-        # Available from Python 2.3
-        from optparse import OptionParser
-    except ImportError:
-        try:
-            from optik import OptionParser
-        except ImportError:
-            fail(1, "optik 1.4.1 or Python 2.3 or later needed "
-                    "for command line) usage.\n"
-                    "Download optik from "
-                    "http://optik.sourceforge.net/ or upgrade Python.")
+    from optparse import OptionParser
     usage = "usage: %prog [options]\n" \
             "Dumps NAV database to importable files."
     parser = OptionParser(usage=usage)
