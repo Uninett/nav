@@ -308,7 +308,7 @@ def signal_handler(signum, _):
         daemon.redirect_std_fds(stderr=nav.logs.get_logfile_from_logger())
         logger.info("Log files reopened.")
     elif signum == signal.SIGTERM:
-        logger.warn('SIGTERM received: Shutting down.')
+        logger.warning('SIGTERM received: Shutting down.')
         sys.exit(0)
 
 if __name__ == '__main__':

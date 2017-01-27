@@ -131,7 +131,7 @@ class IPDevPollProcess(object):
 
     def sigterm_handler(self, signum, _frame):
         """Cleanly shuts down logging system and the reactor."""
-        self._logger.warn("%s received: Shutting down", signame(signum))
+        self._logger.warning("%s received: Shutting down", signame(signum))
         self._shutdown_start_time = time.time()
         if self._procmon:
             reactor.callFromThread(self._procmon.stopService)
@@ -151,8 +151,8 @@ class IPDevPollProcess(object):
     def _log_shutdown_time(self):
         if self._shutdown_start_time > 0:
             sequence_time = time.time() - self._shutdown_start_time
-            self._logger.warn("Shutdown sequence completed in %.02f seconds",
-                              sequence_time)
+            self._logger.warning("Shutdown sequence completed in %.02f seconds",
+                                 sequence_time)
 
 
 class CommandProcessor(object):

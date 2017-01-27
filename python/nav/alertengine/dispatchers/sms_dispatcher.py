@@ -48,8 +48,8 @@ class Sms(Dispatcher):
                               'message to sms queue for user %s at %s',
                               alert.id, address.account, address.address)
         else:
-            _logger.warn('alert %d: %s does not have SMS privileges',
-                         alert.id, address.account)
+            _logger.warning('alert %d: %s does not have SMS privileges',
+                            alert.id, address.account)
 
     def get_fallback_message(self, alert, language, message_type):
         try:

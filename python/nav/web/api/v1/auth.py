@@ -40,13 +40,13 @@ class APIAuthentication(TokenAuthentication):
         try:
             token = APIToken.objects.get(token=key)
         except APIToken.DoesNotExist:
-            _logger.warn(
+            _logger.warning(
                 'API authentication attempted with non-existing token "%s"',
                 key)
             raise AuthenticationFailed
         else:
             if token.is_expired():
-                _logger.warn(
+                _logger.warning(
                     'API authentication attempted with expired token "%s"', key)
                 raise AuthenticationFailed
             return None, token
@@ -69,8 +69,8 @@ class APIPermission(BasePermission):
         :type request: rest_framework.request.Request
         """
         if request.method not in ALLOWED_METHODS:
-            _logger.warn('API access with forbidden method - %s',
-                         request.method)
+            _logger.warning('API access with forbidden method - %s',
+                            request.method)
             return False
 
         # If user is logged in, it is authorized
@@ -86,7 +86,7 @@ class APIPermission(BasePermission):
                 token.save()
                 return True
             else:
-                _logger.warn(
+                _logger.warning(
                     'Token %s not permitted to access endpoint %s',
                     token, request.path)
 

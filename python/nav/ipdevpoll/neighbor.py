@@ -138,8 +138,8 @@ class Neighbor(object):
         try:
             ip = unicode(IP(ip))
         except ValueError:
-            self._logger.warn("Invalid IP (%s) in neighbor record: %r",
-                              ip, self.record)
+            self._logger.warning("Invalid IP (%s) in neighbor record: %r",
+                                 ip, self.record)
             return
 
         assert ip
@@ -211,8 +211,8 @@ class Neighbor(object):
             return
 
         if is_invalid_utf8(name):
-            self._logger.warn("cannot search database for malformed "
-                              "neighboring port name %r", name)
+            self._logger.warning("cannot search database for malformed "
+                                 "neighboring port name %r", name)
             return
 
         queries = [Q(ifdescr=name), Q(ifname=name), Q(ifalias=name)]

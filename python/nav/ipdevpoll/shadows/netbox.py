@@ -82,8 +82,8 @@ class Netbox(Shadow):
             type_.save()
 
         netbox = manage.Netbox.objects.get(id=netbox_id)
-        cls._logger.warn("Removing stored inventory info for %s",
-                         netbox.sysname)
+        cls._logger.warning("Removing stored inventory info for %s",
+                            netbox.sysname)
         netbox.type = type_
         netbox.up_to_date = False
 
