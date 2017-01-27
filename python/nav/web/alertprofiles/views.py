@@ -74,6 +74,7 @@ _ = lambda a: a
 
 PAGINATE_BY = 25
 
+
 def overview(request):
     """The Alert Profiles overview / index page"""
     account = get_account(request)
@@ -270,7 +271,6 @@ def create_time_periods(request, profile):
                 period = TimePeriod(profile=profile, start=start_time,
                                     valid_during=valid_during)
                 period.save()
-
 
 
 @requires_post('alertprofiles-profile')

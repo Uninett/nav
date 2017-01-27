@@ -11,4 +11,3 @@ urlpatterns = patterns('',
     url('^link_availability/$', views.LinkAvailabilityReport.as_view(),
         name='business-report-link-availability')
 )
-

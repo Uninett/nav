@@ -20,4 +20,3 @@ class Plugin(nav.mailin.Plugin):
         event['body'] = body
 
         return event
-

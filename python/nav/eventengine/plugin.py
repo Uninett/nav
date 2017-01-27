@@ -19,9 +19,11 @@ from __future__ import absolute_import
 import os
 import logging
 
+
 class UnsupportedEvent(ValueError):
     "Event of unsupported type was passed to a handler"
     pass
+
 
 class EventHandler(object):
     "Base class for event handlers"
@@ -78,6 +80,7 @@ def _load_all_modules_in_package(package_name):
     for name in modnames:
         __import__(name, fromlist=['*'])
 
+
 def _find_package_modules(package_name):
     extensions = ('.py', '.pyc')
     package = __import__(package_name, fromlist=['*'])
@@ -86,6 +89,7 @@ def _find_package_modules(package_name):
              if not f.startswith('.') and not f.startswith('_'))
     modnames = set(name for name, ext in files if ext in extensions)
     return list(modnames)
+
 
 def _get_recursive_subclasses(cls, subclasses=None):
     if subclasses is None:

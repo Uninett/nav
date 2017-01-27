@@ -50,6 +50,7 @@ from .netbox import Netbox
 
 MAX_MISS_COUNT = 3
 
+
 class AdjacencyManager(DefaultManager):
     "Manages AdjacencyCandidate records"
 
@@ -141,6 +142,7 @@ class AdjacencyCandidate(Shadow):
         candidate.source = source
         return candidate
 
+
 def candidate_key(cand):
     "return a (hopefully) unique dict key for a candidate object"
     # all this getattr yaking is trying to reduce the number of db fetches
@@ -199,6 +201,7 @@ class UnrecognizedNeighborManager(DefaultManager):
                                len(deleteable), deleteable)
             manage.UnrecognizedNeighbor.objects.filter(
                 id__in=[d.id for d in deleteable]).delete()
+
 
 # pylint: disable=C0111,W0201,E0203
 class UnrecognizedNeighbor(Shadow):

@@ -29,6 +29,7 @@ from nav.models.profiles import AccountTool
 
 _logger = logging.getLogger('nav.web.tools.utils')
 
+
 class Tool(object):
     """Class representing a tool"""
     def __init__(self, name, uri, icon, description, priority=0, display=True,
@@ -62,6 +63,7 @@ def quick_read(filename):
     except IOError:
         return None
 
+
 def current_messages():
     """Finds current messages"""
     return Message.objects.filter(
@@ -69,6 +71,7 @@ def current_messages():
         publish_end__gt=datetime.today().isoformat(' '),
         replaced_by__isnull=True
     )
+
 
 def boxes_down():
     """Finds boxes that are down and not currently on maintenance"""
@@ -85,6 +88,7 @@ def boxes_down():
         event_type='boxState'
     ).exclude(netbox__in=on_maintenance).order_by('-start_time')
     return _boxes_down
+
 
 def tool_list(account):
     """Get the list of tools existing in the tool directories"""

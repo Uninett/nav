@@ -27,9 +27,11 @@ from nav.web.netmap.common import get_status_image_link
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class NetmapException(GeneralException):
     """Generic Netmap Exception"""
     pass
+
 
 class GraphException(NetmapException):
     """Graph Exception
@@ -38,6 +40,7 @@ class GraphException(NetmapException):
      from nav.topology or the metadata contains known errors.
     """
     pass
+
 
 # Ignore too few methods in class
 # pylint: disable=R0903
@@ -52,6 +55,7 @@ class Node(object):
             self.metadata = nx_node_metadata['metadata']
         else:
             self.metadata = None
+
     def __repr__(self):
         return "netmap.Node(metadata={0!r})".format(self.metadata)
 
@@ -77,7 +81,6 @@ class Node(object):
                         'd_vlans': [vlan_to_json(swpv.vlan) for _, swpv in
                                     self.metadata['vlans']]
                     })
-
 
         if isinstance(self.node, stubs.Netbox):
             json.update({
@@ -454,7 +457,6 @@ def edge_metadata_layer3(nx_edge, source, target, traffic):
     edge = Edge((nx_edge), source, target, traffic)
     return edge
 
-
     #return metadata
 
 
@@ -476,7 +478,6 @@ def edge_metadata_layer2(nx_edge, source, target, vlans_by_interface, traffic):
     if vlans_by_interface and source in vlans_by_interface:
         source_vlans = tuple(vlans_by_interface.get(source))
 
-
     if vlans_by_interface and target in vlans_by_interface:
         target_vlans = tuple(vlans_by_interface.get(target))
 
@@ -485,4 +486,3 @@ def edge_metadata_layer2(nx_edge, source, target, vlans_by_interface, traffic):
     edge.target.vlans = set(target_vlans) - set(source_vlans)
     edge.vlans = set(source_vlans) | set(target_vlans)
     return edge
-

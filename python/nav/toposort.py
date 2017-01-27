@@ -16,6 +16,7 @@
 #
 """Functions for topological sorting of graph nodes."""
 
+
 def build_graph(objects, dependency_calculator):
     """Return a graph representation of the objects list.
 
@@ -46,7 +47,6 @@ def build_graph(objects, dependency_calculator):
             if other_obj not in graph:
                 graph[other_obj] = []
     return graph
-
 
 
 def topological_sort(graph):

@@ -22,6 +22,7 @@ from nav.web.message import new_message, Messages
 
 _ = lambda a: a
 
+
 def requires_post(redirect='alertprofiles-overview', required_args=None):
     """Decorates a view function to require a POST request.
 
@@ -54,4 +55,3 @@ def requires_post(redirect='alertprofiles-overview', required_args=None):
         return wraps(func)(_handler)
 
     return _decorator
-

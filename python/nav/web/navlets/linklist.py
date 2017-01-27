@@ -36,4 +36,3 @@ class LinkListNavlet(Navlet):
 
     def get_template_basename(self):
         return "linklist"
-

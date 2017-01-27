@@ -18,6 +18,7 @@
 
 from nav.models.event import AlertType
 
+
 def get_event_and_alert_types():
     alert_types = AlertType.objects.select_related(
         'event_type'

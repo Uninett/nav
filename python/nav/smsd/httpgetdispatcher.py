@@ -29,7 +29,8 @@ Oslo, but could be useful for other similar solutions.
 
 import urllib
 import urllib2
-from nav.smsd.dispatcher import *
+from nav.smsd.dispatcher import Dispatcher, DispatcherError
+
 
 class HttpGetDispatcher(Dispatcher):
     """The smsd dispatcher for posting via a HTTP server."""
@@ -45,7 +46,7 @@ class HttpGetDispatcher(Dispatcher):
             # Remote address for gateway
             self.url = config['url']
         except KeyError, error:
-            raise DispatcherError, "Config option not found: %s" % error
+            raise DispatcherError("Config option not found: %s" % error)
 
     def sendsms(self, phone, msgs):
         """
@@ -86,6 +87,7 @@ class HttpGetDispatcher(Dispatcher):
                           sms, sent, ignored, result, smsid)
         return (sms, sent, ignored, result, smsid)
 
+
 class HttpGetError(urllib2.HTTPError):
     def __init__(self, url, code, msg, hdrs, fp):
         self.url = url
@@ -96,4 +98,3 @@ class HttpGetError(urllib2.HTTPError):
 
     def __str__(self):
         return 'HTTP error: <%s>: %s (%s).' % (self.url, self.msg, self.code)
-

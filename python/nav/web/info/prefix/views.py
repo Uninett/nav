@@ -98,6 +98,7 @@ def get_context(prefix=None):
         'title': utils.create_title(navpath)
     }
 
+
 def get_query_results(query):
     """Returns the prefixes determined by the query"""
     where_string = "inet '{}' >>= netaddr".format(IP(query))

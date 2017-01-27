@@ -1,4 +1,3 @@
-# -*- coding: ISO8859-1 -*-
 #
 # Copyright 2002 Norwegian University of Science and Technology
 #
@@ -22,6 +21,8 @@
 # $Id: $
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
+
+
 class Event:
     """
     Class representing a NAV Event
@@ -30,6 +31,7 @@ class Event:
     DOWN = 'DOWN'
     boxState = 'boxState'
     serviceState = 'serviceState'
+
     def __init__(self, serviceid, netboxid, deviceid,
                  eventtype, source, status, info='', version=''):
         self.serviceid = serviceid

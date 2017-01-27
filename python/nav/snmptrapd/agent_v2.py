@@ -18,6 +18,7 @@
 from __future__ import absolute_import
 import select
 import logging
+import sys
 
 from pysnmp import asn1, v1, v2c
 from pysnmp import role
@@ -25,6 +26,7 @@ from pysnmp import role
 from .trap import SNMPTrap
 
 logger = logging.getLogger(__name__)
+
 
 class TrapListener:
     def __init__(self, iface):
@@ -105,7 +107,6 @@ class TrapListener:
             community = req['community']
             version = str(req['version'] + 1)
             src = src[0]
-
 
             # Create trap object, let callback decide what to do with it.
             trap = SNMPTrap(str(src), agent or str(src), type, genericType,

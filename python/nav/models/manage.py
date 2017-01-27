@@ -49,7 +49,6 @@ from django_hstore import hstore
 import nav.models.event
 
 
-
 #######################################################################
 ### Netbox-related models
 
@@ -965,6 +964,7 @@ class GwPortPrefix(models.Model):
     def __unicode__(self):
         return self.gw_ip
 
+
 class PrefixManager(models.Manager):
     def contains_ip(self, ipaddr):
         """Gets all prefixes that contain the given IP address,
@@ -1045,6 +1045,7 @@ class Prefix(models.Model):
 
     def get_absolute_url(self):
         return reverse('prefix-details', args=[self.pk])
+
 
 class Vlan(models.Model):
     """From NAV Wiki: The vlan table defines the IP broadcast domain / vlan. A

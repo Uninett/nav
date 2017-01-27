@@ -29,6 +29,7 @@ import array
 
 ICMP_MINLEN = 8
 
+
 class Packet(object):
     """An ICMP packet"""
     packet_slice = slice(0, None)
@@ -102,6 +103,7 @@ class Packet(object):
                         if k.startswith('ICMP_'))
         return type_map.get(type_, str(type_))
 
+
 class PacketV4(Packet):
     """An ICMPv4 packet"""
     ICMP_ECHO_REPLY = 0
@@ -145,6 +147,7 @@ class PacketV6(Packet):
     def __init__(self, packet=None, verify=False):
         super(PacketV6, self).__init__(packet, False)
 
+
 def inet_checksum(packet):
     """Calculates the checksum of a (ICMP) packet.
 
@@ -172,4 +175,3 @@ def inet_checksum(packet):
     sum_ = sum_ + (sum_ >> 16)
 
     return (~sum_) & 0xffff # return ones complement
-

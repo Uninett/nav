@@ -42,12 +42,11 @@ def handleTrap(trap, config=None):
     """
 
     # Use the trap-object to access trap-variables and do stuff.
-    if trap.genericType in ['LINKUP','LINKDOWN']:
+    if trap.genericType in ['LINKUP', 'LINKDOWN']:
         logger.debug ("This is a linkState trap")
 
     # config may be fetched like this
-    variable = config.get('template','variable')
-
+    variable = config.get('template', 'variable')
 
     if doSomething:
 

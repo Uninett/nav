@@ -38,6 +38,7 @@ import re
 
 _split_pattern = re.compile(r'(\d+|\D+)')
 
+
 def split(string):
     """Split a string into digit- and non-digit components."""
     def intcast(n):
@@ -48,14 +49,17 @@ def split(string):
 
     return [intcast(x) for x in _split_pattern.findall(string)]
 
+
 def natcmp(a, b):
     """Replacement for cmp, performing natural comparison between a
     and b."""
     return cmp(split(a), split(b))
 
+
 def inatcmp(a, b):
     """Case insensitive version of natcmp."""
     return natcmp(a.lower(), b.lower())
+
 
 def decorated_sort(l):
     """
@@ -69,5 +73,3 @@ def decorated_sort(l):
     deco.sort()
     new_list = [element for _, _, element in deco]
     return new_list
-
-

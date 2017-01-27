@@ -38,6 +38,7 @@ TRAFFIC_META = {
     'kb': 1000
 } # pylint: disable=C0103
 
+
 def convert_bits_to_si(bits):
     """ SI Units, http://en.wikipedia.org/wiki/SI_prefix
     """
@@ -99,6 +100,7 @@ def get_traffic_rgb(percent):
     return int(rgb[0]), int(rgb[1]), int(rgb[2])
 
 GRADIENT_MAP_INTENSITY = 2.0
+
 
 def traffic_gradient_map():
     """Traffic load gradient map from green, yellow and red."""

@@ -152,7 +152,7 @@ This makes sure your not using cached resources in your browser when
 developing, something browsers love to do! See `config-urlArgs
 <http://requirejs.org/docs/api.html#config-urlArgs>`_ in the RequireJS
 documentation for details. :file:`require_config.dev.js` is listed in the
-repository :file:`.hgignore` file.
+repository :file:`.gitignore` file.
 
 
 
@@ -363,9 +363,9 @@ your patches accepted.
 Base your patches on the relevant Git branches. If you are submitting
 a patch for an issue that affects the latest stable series, base your patch
 on that series branch (``<major>.<minor>.x``). If you are submitting
-patches containing new features, base them on the ``default`` branch.
+patches containing new features, base them on the ``master`` branch.
 
-The best way to submit your patches is to use GitHub_: Fork our repository there
+The **best way** to submit your patches is to use GitHub_: Fork our repository there
 and create a pull request for us to review.
 
 Another option for a simple patch is to attach it to a GitHub_ issue report.

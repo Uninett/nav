@@ -22,6 +22,7 @@ from nav.models.manage import Interface, Netbox
 from django.db import transaction
 from django.db.models import Q
 
+
 @transaction.atomic()
 def update_layer2_topology(links):
     """Updates the layer 2 topology in the NAV database.
@@ -34,6 +35,7 @@ def update_layer2_topology(links):
 
     touched_ifc_ids = [source[1] for source, _dest in links]
     _clear_topology_for_nontouched(touched_ifc_ids)
+
 
 def _update_interface_topology(source_node, dest_node):
     """Updates topology information for the source_node Interface.
@@ -58,6 +60,7 @@ def _update_interface_topology(source_node, dest_node):
 
     ifc = ifc.exclude(**kwargs)
     ifc.update(**kwargs)
+
 
 def _clear_topology_for_nontouched(touched_ifc_ids):
     """Clears topology information for all interfaces that are administratively

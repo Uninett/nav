@@ -9,6 +9,7 @@ from nav.models.logger import Priority, LoggerCategory, Origin, LogMessageType
 
 DATEFORMAT = ("%Y-%m-%d %H:%M",)
 
+
 def choice_values(model, field_name):
     """
     Generates a choice_values list to be used with ChoiceField etc.
@@ -78,4 +79,3 @@ class LoggerGroupSearchForm(forms.Form):
                 ),
             ),
         )
-

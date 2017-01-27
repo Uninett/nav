@@ -28,8 +28,10 @@ from nav.ipdevpoll import Plugin
 _logger = logging.getLogger(__name__)
 plugin_registry = {}
 
+
 class PluginImportError(GeneralException):
     """Failed to import plugin"""
+
 
 def import_plugins():
     """Import all configured plugins into the plugin registry."""

@@ -37,6 +37,7 @@ except ImportError:
     # fallback to current dir++
     CONFIGFILEPATH = ['/usr/local/nav/local/etc/conf/', '.']
 
+
 class Conf(dict):
     def __init__(self, *_args, **_kwargs):
         dict.__init__(self)
@@ -64,21 +65,26 @@ class Conf(dict):
             else:
                 self[key.strip()] = value.strip()
 
+
 def dbconf(*args, **kwargs):
     if _dbconf._instance is None:
         _dbconf._instance = _dbconf(*args, **kwargs)
     return _dbconf._instance
 
+
 class _dbconf(Conf):
     _instance = None
+
     def __init__(self, *args, **kwargs):
         self._file = kwargs.get('configfile', 'db.conf')
         # Valid configoptions must be specified in this list
         self.validoptions = []
         Conf.__init__(self, *args, **kwargs)
 
+
 class _serviceconf(Conf):
     _instance = None
+
     def __init__(self, *args, **kwargs):
         self._file = kwargs.get('configfile', 'servicemon.conf')
         self.validoptions = []
@@ -90,8 +96,10 @@ def serviceconf(*args, **kwargs):
         _serviceconf._instance = _serviceconf(*args, **kwargs)
     return _serviceconf._instance
 
+
 class _pingconf(Conf):
     _instance = None
+
     def __init__(self, *args, **kwargs):
         self._file = kwargs.get('configfile', 'pping.conf')
         self.validoptions = []
@@ -102,6 +110,3 @@ def pingconf(*args, **kwargs):
     if _pingconf._instance is None:
         _pingconf._instance = _pingconf(*args, **kwargs)
     return _pingconf._instance
-
-
-

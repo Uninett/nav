@@ -20,6 +20,7 @@ from IPy import IP
 from twisted.internet import defer
 from . import mibretriever
 
+
 class CiscoHSRPMib(mibretriever.MibRetriever):
     """A MibRetriever for handling CISCO-HSRP-MIB"""
     from nav.smidumps.cisco_hsrp_mib import MIB as mib

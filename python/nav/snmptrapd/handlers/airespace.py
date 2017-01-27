@@ -69,7 +69,6 @@ def handleTrap(trap, config=None):
         state = 's'
         alerttype = 'apDown'
 
-
     e = Event(source=source, target=target, subid=subid,
               eventtypeid=eventtypeid, state=state)
     e['alerttype'] = alerttype

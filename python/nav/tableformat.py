@@ -15,6 +15,7 @@
 #
 """Formatting of table data to readable text."""
 
+
 class SimpleTableFormatter(object):
     def __init__(self, data):
         """Initializes the table formatter with data.

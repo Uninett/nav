@@ -38,6 +38,7 @@ _enterprise_map = {value: constant
 class InvalidResponseError(Exception):
     pass
 
+
 class TypeOid(Plugin):
     def handle(self):
         """Collects sysObjectID and looks for type changes."""
@@ -57,7 +58,6 @@ class TypeOid(Plugin):
         # ObjectIDs in the database are stored without the preceding dot.
         if self.sysobjectid[0] == '.':
             self.sysobjectid = self.sysobjectid[1:]
-
 
         self._logger.debug("sysObjectID is %s", self.sysobjectid)
 

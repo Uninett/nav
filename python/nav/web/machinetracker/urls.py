@@ -80,4 +80,3 @@ urlpatterns = patterns('',
          r'&port=(?P<port_interface>[^&]+)&days=7$',
          switch_do_search, name='machinetracker-swport'),
 )
-

@@ -26,6 +26,7 @@ from nav.ipdevpoll.timestamps import TimestampChecker
 INFO_VAR_NAME = 'cdp'
 SOURCE = 'cdp'
 
+
 class CDP(Plugin):
     """Finds neighboring devices from a device's CDP cache.
 

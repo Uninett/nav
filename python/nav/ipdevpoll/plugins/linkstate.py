@@ -23,6 +23,7 @@ from nav.models.manage import Interface
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
+
 class LinkState(Plugin):
 
     def handle(self):

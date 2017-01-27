@@ -35,6 +35,7 @@ SNMPERR_MAP = dict(
 
 __all__ = ['Snmp', 'OID', 'SNMPERR_MAP', 'snmp_api_errstring']
 
+
 class Snmp(object):
     """Provides simple, synchronouse snmpget, snmpwalk and snmpjog(tm)
     operations using pynetsnmp (NetSNMP).
@@ -187,6 +188,7 @@ class Snmp(object):
 
     NON_REPEATERS = 0
     MAX_REPETITIONS = 15
+
     def bulkwalk(self, query="1.3.6.1.2.1.1.1.0", strip_prefix=False):
         """Performs an SNMP walk on the host, using GETBULK requests.
 
@@ -227,6 +229,7 @@ class Snmp(object):
                 result.append((str(current_oid)[1:], value))
 
         return result
+
 
 class _MySnmpSession(Session):
     """An extension of netsnmp.Session to provide multiple synchronous
@@ -302,6 +305,8 @@ class _MySnmpSession(Session):
 ##
 
 CONVERTER_MAP = {}
+
+
 def converts(asn_type):
     """Decorator to register a function as a converter of a Python value to a
     specific ASN data type.
@@ -312,20 +317,24 @@ def converts(asn_type):
         return func
     return _register
 
+
 @converts(netsnmp.ASN_INTEGER)
 def asn_integer(value):
     value = c_int(value)
     return byref(value), sizeof(value)
+
 
 @converts(netsnmp.ASN_UNSIGNED)
 def asn_unsigned(value):
     value = c_uint(value)
     return byref(value), sizeof(value)
 
+
 @converts(netsnmp.ASN_TIMETICKS)
 def asn_timeticks(value):
     value = c_ulong(value)
     return byref(value), sizeof(value)
+
 
 @converts(netsnmp.ASN_IPADDRESS)
 def asn_ipaddress(value):
@@ -333,15 +342,18 @@ def asn_ipaddress(value):
     value = c_ulong(ipaddr.int())
     return byref(value), sizeof(value)
 
+
 @converts(netsnmp.ASN_OBJECT_ID)
 def asn_object_id(value):
     value = mkoid(OID(value))
     return byref(value), sizeof(value)
 
+
 @converts(netsnmp.ASN_OCTET_STR)
 def asn_octet_str(value):
     string = c_char_p(value)
     return string, len(value)
+
 
 @converts(netsnmp.ASN_COUNTER64)
 def asn_counter64(value):
@@ -353,15 +365,18 @@ _charptr = POINTER(c_char)
 netsnmp.lib.snmp_api_errstring.restype = _charptr
 netsnmp.lib.snmp_errstring.restype = _charptr
 
+
 def snmp_api_errstring(err_code):
     """Converts an SNMP API error code to an error string"""
     buf = netsnmp.lib.snmp_api_errstring(err_code)
     return cast(buf, c_char_p).value
 
+
 def snmp_errstring(err_status):
     """Converts an SNMP protocol error status to an error string"""
     buf = netsnmp.lib.snmp_errstring(err_status)
     return cast(buf, c_char_p).value
+
 
 def _raise_on_error(err_code):
     """Raises an appropriate NAV exception for a non-null SNMP err_code value.

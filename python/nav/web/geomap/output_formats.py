@@ -25,9 +25,14 @@ http://code.google.com/apis/kml/
 
 from django.template.loader import render_to_string
 
-from nav.web.geomap.utils import *
+from nav.web.geomap.utils import (
+    union_dict,
+    lazy_dict,
+    numeric,
+)
 
 # GeoJSON:
+
 
 def make_geojson(featurelist):
     """Create the GeoJSON representation of a list of features.
@@ -87,7 +92,8 @@ def write_json(obj):
                                    zip(map(write_json, obj.keys()),
                                        map(write_json, obj.values())))) + '}'
     if isinstance(obj, bool):
-        if obj: return 'true'
+        if obj:
+            return 'true'
         return 'false'
     if isinstance(obj, basestring):
         return '"%s"' % reduce(lambda s, esc: s.replace(esc[0], esc[1]),
@@ -98,22 +104,20 @@ def write_json(obj):
         return 'null'
     return '"ERROR: unrecognized type ' + str(type(obj)) + '"'
 
-
-
 # KML
+
 
 def make_kml(featurelist):
     return render_to_string('geomap/geomap-data-kml.xml',
                             {'features': featurelist})
-
-
 
 # General
 
 _formats = {
     'geojson': (make_geojson, 'application/json'),
     'kml': (make_kml, 'application/vnd.google-earth.kml+xml')
-    };
+    }
+
 
 def format_data(format, featurelist):
     """Format features in featurelist to a string.
@@ -130,11 +134,9 @@ def format_data(format, featurelist):
     formatter = _formats[format][0]
     return formatter(featurelist)
 
+
 def format_mime_type(format):
     """Returns the MIME type for the specified format."""
     if not format in _formats:
         raise Exception('unknown format %s' % format)
     return _formats[format][1]
-
-
-

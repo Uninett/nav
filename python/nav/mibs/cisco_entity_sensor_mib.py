@@ -58,6 +58,7 @@ DATA_SCALE = {
     17: 'yotta',
 }
 
+
 class CiscoEntitySensorMib(mibretriever.MibRetriever):
     """This MIB should collect all present sensors from Cisco NEXUS boxes."""
     from nav.smidumps.cisco_entity_sensor_mib import MIB as mib

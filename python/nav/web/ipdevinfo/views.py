@@ -49,6 +49,7 @@ COUNTER_TYPES = ('Octets', 'UcastPkts', 'Errors', 'Discards')
 
 _logger = logging.getLogger('nav.web.ipdevinfo')
 
+
 def find_netboxes(errors, query):
     """Find netboxes based on query parameter
 
@@ -509,13 +510,11 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
     except Identity.DoesNotExist:
         detention = None
 
-
     # Add urls to Graphite to the relevant objects
     port.combined_data_urls = create_combined_urls(port, COUNTER_TYPES)
     for metric in port_metrics:
         metric['graphite_data_url'] = Graph(
             magic_targets=[metric['id']], format='json')
-
 
     return render_to_response(
         'ipdevinfo/port-details.html',

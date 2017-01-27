@@ -17,6 +17,8 @@
 """Util functions for the PortAdmin"""
 import re
 import ConfigParser
+import logging
+
 import django.template
 
 from django.template.loaders.filesystem import Loader
@@ -30,7 +32,6 @@ from os.path import join
 
 CONFIGFILE = join(sysconfdir, "portadmin", "portadmin.conf")
 
-import logging
 _logger = logging.getLogger("nav.web.portadmin")
 
 
@@ -71,13 +72,13 @@ def update_interfaces_with_snmpdata(interfaces, ifalias, vlans, operstatus,
     Update the interfaces with data gathered via snmp.
     """
     for interface in interfaces:
-        if ifalias.has_key(interface.ifindex):
+        if interface.ifindex in ifalias:
             interface.ifalias = ifalias[interface.ifindex]
-        if vlans.has_key(interface.ifindex):
+        if interface.ifindex in vlans:
             interface.vlan = vlans[interface.ifindex]
-        if operstatus.has_key(interface.ifindex):
+        if interface.ifindex in operstatus:
             interface.ifoperstatus = operstatus[interface.ifindex]
-        if adminstatus.has_key(interface.ifindex):
+        if interface.ifindex in adminstatus:
             interface.ifadminstatus = adminstatus[interface.ifindex]
 
 
@@ -324,10 +325,8 @@ def mark_detained_interfaces(interfaces):
             interface.detained = True
 
 
-def add_dot1x_info(interfaces, handler=None):
+def add_dot1x_info(interfaces, handler):
     """Add information about dot1x state for interfaces"""
-    if not handler:
-        handler = SNMPFactory.get_instance(netbox)
 
     # Skip if port access control is not enabled (and thus not dot1x)
     if not handler.is_port_access_control_enabled():

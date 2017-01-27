@@ -46,6 +46,7 @@ NTNU_ELINK_PATTERN = re.compile(r"""
     (?P<vlan>\d+) )? )?
     """, re.X | re.I)
 
+
 def parse_ntnu_convention(sysname, ifalias):
     """Parses router port description, using NTNU conventions.
 

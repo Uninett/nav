@@ -34,7 +34,6 @@ from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 
 
-
 class OrganizationInfo(SeeddbInfo):
     active_page = 'organization'
     active = {active_page: True}

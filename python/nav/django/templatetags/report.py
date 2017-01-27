@@ -18,7 +18,3 @@ def escapeslash(value):
 
 
 get_item.is_safe = True
-
-
-
-

@@ -89,7 +89,6 @@ class CiscoVlan(Plugin):
             if not interface.baseport:
                 interface.baseport = -ifindex
 
-
     def _store_trunk_ports(self, native_vlans, enabled_vlans):
         """Store the set of enabled vlans for each trunk port."""
         for ifindex, vector in enabled_vlans.items():

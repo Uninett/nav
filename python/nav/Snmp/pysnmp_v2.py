@@ -30,6 +30,7 @@ except:
     v1.RESPONSE = v1.GETRESPONSE
 from .errors import *
 
+
 class Snmp(object):
     """Simple class that provides snmpget, snmpwalk and snmpjog(tm)
     functionality.  Snmpget returns the result as one string.
@@ -57,7 +58,6 @@ class Snmp(object):
 
         self.handle = role.manager()
         self.handle.timeout = float(timeout)
-
 
     def get(self, query="1.3.6.1.2.1.1.1.0"):
         """
@@ -97,7 +97,6 @@ class Snmp(object):
         except role.NetworkError as err:
             raise NetworkError(err)
 
-
         # Decode raw response/answer
         rsp.decode(answer)
 
@@ -109,7 +108,6 @@ class Snmp(object):
 
         # Return the value as a proper Python type:
         return rsp_value()
-
 
     def set(self, query, type, value):
         """
@@ -140,14 +138,22 @@ class Snmp(object):
             raise UnsupportedSnmpVersionError(self.version)
 
         # Translate type to fit asn1 library
-        if type == 'i': type = 'INTEGER'
-        if type == 'u': type = 'UNSIGNED32'
-        if type == 't': type = 'TIMETICKS'
-        if type == 'a': type = 'IPADDRESS'
-        if type == 'o': type = 'OBJECTID'
-        if type == 's': type = 'OCTETSTRING'
-        if type == 'U': type = 'COUNTER64'
-        if type == 'x': type = 'OCTETSTRING'
+        if type == 'i':
+            type = 'INTEGER'
+        if type == 'u':
+            type = 'UNSIGNED32'
+        if type == 't':
+            type = 'TIMETICKS'
+        if type == 'a':
+            type = 'IPADDRESS'
+        if type == 'o':
+            type = 'OBJECTID'
+        if type == 's':
+            type = 'OCTETSTRING'
+        if type == 'U':
+            type = 'COUNTER64'
+        if type == 'x':
+            type = 'OCTETSTRING'
 
         # Make request and responsehandler
         req = snmp.SETREQUEST()
@@ -172,7 +178,7 @@ class Snmp(object):
             rsp.decode(answer)
 
             if rsp['error_status']:
-                raise AgentError, str(snmp.SNMPError(rsp['error_status']))
+                raise AgentError(str(snmp.SNMPError(rsp['error_status'])))
 
         except (role.NoResponse, role.NetworkError) as err:
             raise NetworkError(err)
@@ -218,7 +224,6 @@ class Snmp(object):
                 raise TimeOutException(err)
             except role.NetworkError as err:
                 raise NetworkError(err)
-
 
             # Decode raw response/answer
             rsp.decode(answer)

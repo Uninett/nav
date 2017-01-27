@@ -21,6 +21,7 @@ from . import mibretriever
 
 modules = mibretriever.MibRetrieverMaker.modules
 
+
 def reduce_index(result):
     """Reduce a MIB table result dictionary's keys.
 
@@ -39,4 +40,3 @@ def reduce_index(result):
             key = key[0]
             result[key] = value
     return result
-

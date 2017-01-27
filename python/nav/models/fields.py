@@ -44,6 +44,7 @@ class DateTimeInfinityField(models.DateTimeField):
                 value, connection=connection, prepared=prepared)
         return connection.ops.value_to_db_datetime(value)
 
+
 class VarcharField(models.TextField):
     def db_type(self, connection=None):
         return 'varchar'
@@ -151,6 +152,7 @@ class PointField(models.CharField):
         defaults = {'form_class': navforms.PointField}
         defaults.update(kwargs)
         return super(PointField, self).formfield(**defaults)
+
 
 # this interfaces with Django model protocols, which generates unnecessary
 # pylint violations:

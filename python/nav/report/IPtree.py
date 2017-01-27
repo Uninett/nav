@@ -47,7 +47,7 @@ def build_tree(start_net, end_net=None, bits_in_matrix=0,
             defaults to False
     """
 
-    result = {start_net:{}}
+    result = {start_net: {}}
     subnets = get_subnets(start_net)
     sorted_subnets = sort_nets_by_prefixlength(subnets)
 

@@ -196,7 +196,7 @@ class Account(models.Model):
         """
         # FIXME If password is old style NAV MD5, shouldn't we update the
         # password in the database to be new style password?
-        if len(self.password.strip()) > 0 and not self.password.startswith('!'):
+        if not self.locked:
             stored_hash = nav.pwhash.Hash()
             try:
                 stored_hash.set_hash(self.password)

@@ -34,6 +34,7 @@ ALERT_TEMPLATE_DIR = os.path.join(buildconf.sysconfdir, 'alertmsg')
 _logger = logging.getLogger(__name__)
 _template_logger = logging.getLogger(__name__ + '.template')
 
+
 class AlertGenerator(dict):
     def __init__(self, event):
         super(AlertGenerator, self).__init__()
@@ -178,7 +179,6 @@ class AlertGenerator(dict):
             return
 
 
-
 ###
 ### Alert message template processing
 ###
@@ -190,11 +190,13 @@ TEMPLATE_PATTERN = re.compile(r"^(?P<alert_type>\w+)-"
 
 DEFAULT_LANGUAGE = "en"
 
+
 def ensure_alert_templates_are_available():
     """Inserts the ALERT_TEMPLATE_DIR into Django's TEMPLATE_DIRS list"""
     from django.conf import settings
     if ALERT_TEMPLATE_DIR not in settings.TEMPLATE_DIRS:
         settings.TEMPLATE_DIRS += (ALERT_TEMPLATE_DIR,)
+
 
 def render_templates(alert):
     """Renders and returns message template based on the parameters of `alert`.

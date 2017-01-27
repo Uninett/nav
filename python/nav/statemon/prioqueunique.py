@@ -37,15 +37,24 @@ import operator
 minprio = min
 maxprio = max
 sumprio = operator.add
+
+
 def oldprio(x, y): return x
+
+
 def newprio(x, y): return y
 
 # these functions determine whether the first
 # or second argument should be preferred.
 # one of them is passed to parameter "first"
 #when the queue is created
+
+
 def smallerfirst(x, y): return x < y
+
+
 def largerfirst(x, y): return y < x
+
 
 class prioque:
     def __init__(self, before=smallerfirst, newprio=None):

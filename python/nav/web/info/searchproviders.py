@@ -186,7 +186,6 @@ class PrefixSearchProvider(SearchProvider):
                             for p in get_prefix_results(self.query)]
 
 
-
 class UnrecognizedNeighborSearchProvider(SearchProvider):
     """Search provider for Unrecognized neighbor entries"""
     name = u"Unrecognized neighbors"

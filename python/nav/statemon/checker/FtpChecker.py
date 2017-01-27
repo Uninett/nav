@@ -57,6 +57,7 @@ class FtpChecker(AbstractChecker):
         else:
             return Event.DOWN, output.split('\n')[0]
 
+
 # pylint: disable=R0913,W0221,R0904
 class FTP(ftplib.FTP):
     """Customized FTP protocol interface"""

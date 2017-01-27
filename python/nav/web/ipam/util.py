@@ -24,6 +24,7 @@ from IPy import IP, IPSet
 from itertools import islice
 import math
 
+
 class PrefixQuerysetBuilder(object):
     """Utility class to build queryset(s) for Prefix. Returns the resulting
     queryset when finalize() is called.
@@ -78,7 +79,6 @@ class PrefixQuerysetBuilder(object):
                     continue
         self.post_hooks.append(_filter_full_prefixes)
         return self
-            
 
     def description(self, descr):
         "Fuzzy match prefix on VLAN description"
@@ -129,6 +129,7 @@ class PrefixQuerysetBuilder(object):
         self.queryset = self.queryset & new_query
         return self
 
+
 # Code finding available subnets
 def get_available_subnets(prefix_or_prefixes):
     """Get available prefixes within a list of CIDR addresses, based on
@@ -152,6 +153,7 @@ def get_available_subnets(prefix_or_prefixes):
         for used_prefix in used_prefixes:
             all_used_prefixes.append(used_prefix.net_address)
     return _get_available_subnets(prefix_or_prefixes, all_used_prefixes)
+
 
 def _get_available_subnets(prefix_or_prefixes, used_prefixes):
     """Get available prefixes within a list of CIDR addresses, based on what
@@ -178,6 +180,7 @@ def _get_available_subnets(prefix_or_prefixes, used_prefixes):
     # filter away original prefixes
     return sorted([ip for ip in acc if str(ip) not in base_prefixes])
 
+
 def partition_subnet(size, prefix):
     "Partition prefix into subnets with room for at at least n hosts"
     subnet_size = math.ceil(math.log(size, 2))
@@ -187,6 +190,7 @@ def partition_subnet(size, prefix):
     while chunk:
         yield IPSet(chunk).prefixes[0]
         chunk = list(islice(_iter, chunk_size))
+
 
 def suggest_range(prefix, size=256, offset=0, n=10):
     """Partitions prefix into blocks of 'n' hosts. Returns a list of

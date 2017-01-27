@@ -17,6 +17,7 @@
 """
 from nav.mibs.ups_mib import UpsMib
 
+
 class XupsMib(UpsMib):
     """ A custom class for retrieving sensors from EATON UPSes."""
     from nav.smidumps.xups_mib import MIB as mib

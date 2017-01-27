@@ -38,4 +38,3 @@ class Image(models.Model):
     image_exists = property(_check_image_existance)
     thumb_exists = property(_check_thumb_existance)
     is_readable = property(_check_readable)
-

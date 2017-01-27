@@ -129,4 +129,3 @@ def InetPrefix(iterator):
                          TypedInetAddress, InetAddressPrefixLength)
     if addr:
         return addr.make_net(mask)
-

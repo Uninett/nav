@@ -121,6 +121,7 @@ def resolve_ip_and_sysname(name):
         sysname = unicode(ip_addr)
     return (ip_addr, sysname)
 
+
 def does_ip_exist(ip_addr, netbox_id=None):
     """Checks if the given IP already exist in database.
 
@@ -139,6 +140,7 @@ def does_ip_exist(ip_addr, netbox_id=None):
     else:
         ip_qs = Netbox.objects.filter(ip=unicode(ip_addr))
     return ip_qs.count() > 0
+
 
 def does_sysname_exist(sysname, netbox_id=None):
     """Checks if given sysname exists in database.

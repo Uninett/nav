@@ -223,7 +223,6 @@ class EventEngine(object):
         return event.netbox and event.netbox.get_unresolved_alerts(
             'maintenanceState').count() > 0
 
-
     @transaction.atomic()
     def handle_event(self, event):
         "Handles a single event"

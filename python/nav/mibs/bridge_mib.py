@@ -67,6 +67,7 @@ class BridgeMib(mibretriever.MibRetriever):
 
     __get_stp_port_states = get_stp_port_states
 
+
 class MultiBridgeMib(BridgeMib, mibretriever.MultiMibMixIn):
     def get_baseport_ifindex_map(self):
         method = super(MultiBridgeMib, self).get_baseport_ifindex_map
@@ -99,4 +100,3 @@ class MultiBridgeMib(BridgeMib, mibretriever.MultiMibMixIn):
 
         method = super(MultiBridgeMib, self).get_stp_port_states
         return self._multiquery(method, integrator=_integrator)
-

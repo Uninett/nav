@@ -144,6 +144,7 @@ def strip_down_nodes_from_graph(graph, keep=None):
     graph.remove_nodes_from(removable)
     return len(removable)
 
+
 def strip_down_links_from_graph(graph):
     """Strips all edges (links) from graph where any of the involved
     interfaces are down.

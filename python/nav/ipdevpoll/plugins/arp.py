@@ -96,7 +96,6 @@ class Arp(Plugin):
 
         yield self._process_data(mappings)
 
-
     @defer.inlineCallbacks
     def _process_data(self, mappings):
         """Process collected mapping data.
@@ -128,7 +127,6 @@ class Arp(Plugin):
         self._expire_arp_records(open_mappings[mapping]
                                  for mapping in expireable_mappings)
 
-
     @defer.inlineCallbacks
     def _load_existing_mappings(self):
         """Load the existing ARP records for this box from the db.
@@ -150,7 +148,6 @@ class Arp(Plugin):
         open_mappings = dict(((IP(arp['ip']), arp['mac']), arp['id'])
                              for arp in open_arp_records)
         defer.returnValue(open_mappings)
-
 
     @classmethod
     def _update_prefix_cache(cls):
@@ -198,7 +195,6 @@ class Arp(Plugin):
             arp.start_time = timestamp
             arp.end_time = infinity
 
-
     def _expire_arp_records(self, arp_ids):
         """Create containers to force expiry of a set of Arp records.
 
@@ -213,7 +209,6 @@ class Arp(Plugin):
             arp = self.containers.factory(arp_id, shadows.Arp)
             arp.id = arp_id
             arp.end_time = timestamp
-
 
     def _find_largest_matching_prefix(self, ip):
         """Find the largest prefix that ip is part of.

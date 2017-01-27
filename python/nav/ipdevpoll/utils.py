@@ -33,6 +33,7 @@ from nav.enterprise.ids import VENDOR_ID_ARUBA_NETWORKS_INC
 _logger = logging.getLogger(__name__)
 MAX_MAC_ADDRESS_LENGTH = 6
 
+
 def fire_eventually(result):
     """This returns a Deferred which will fire in a later reactor turn.
 
@@ -49,6 +50,7 @@ def fire_eventually(result):
     reactor.callLater(0, deferred.callback, result)
     return deferred
 
+
 def binary_mac_to_hex(binary_mac):
     """Converts a binary string MAC address to hex string.
 
@@ -61,6 +63,7 @@ def binary_mac_to_hex(binary_mac):
         binary_mac = binary_mac[-6:].rjust(MAX_MAC_ADDRESS_LENGTH, '\x00')
         return ":".join("%02x" % ord(x) for x in binary_mac)
 
+
 def truncate_mac(mac):
     """Takes a MAC address on the form xx:xx:xx... of any length and returns
     the first 6 parts.
@@ -69,6 +72,7 @@ def truncate_mac(mac):
     if len(parts) > 6:
         mac = ':'.join(parts[:6])
     return mac
+
 
 def find_prefix(ip, prefix_list):
     """Takes an IPy.IP object and a list of manage.Prefix and returns the most
@@ -82,6 +86,7 @@ def find_prefix(ip, prefix_list):
             if not ret or IP(ret.net_address).prefixlen() < sub.prefixlen():
                 ret = pfx
     return ret
+
 
 def is_invalid_utf8(string):
     """Returns True if string is invalid UTF-8.
@@ -114,6 +119,7 @@ def log_unhandled_failure(logger, failure, msg, *args, **kwargs):
 
     logger.error(msg + "\n%s", *args, **kwargs)
 
+
 @defer.inlineCallbacks
 def get_multibridgemib(agentproxy):
     """Returns a MultiBridgeMib retriever pre-populated with instances from
@@ -123,6 +129,7 @@ def get_multibridgemib(agentproxy):
     from nav.mibs.bridge_mib import MultiBridgeMib
     instances = yield get_dot1d_instances(agentproxy)
     defer.returnValue(MultiBridgeMib(agentproxy, instances))
+
 
 @defer.inlineCallbacks
 def get_dot1d_instances(agentproxy):

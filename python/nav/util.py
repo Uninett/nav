@@ -358,6 +358,7 @@ class cachedfor(object):
 
     def __call__(self, func):
         self.func = func
+
         @wraps(func)
         def _wrapper():
             age = datetime.datetime.now() - self.updated

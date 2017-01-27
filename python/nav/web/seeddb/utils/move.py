@@ -28,6 +28,7 @@ STEP_CHANGEVALUES = 0 # Dropdown boxes with new values
 STEP_CONFIRM = 1 # What the objects will look like afterwards
 STEP_SAVE = 2 # Update the objects
 
+
 def move(request, model, form_model, redirect, title_attr='id',
          extra_context=None):
 
@@ -121,6 +122,7 @@ def move(request, model, form_model, redirect, title_attr='id',
 
     return render_to_response('seeddb/move.html',
         extra_context, RequestContext(request))
+
 
 def _parse_value_differences(values, data, title_attr, fields):
     """Creates a data structure describing the before/after values of a

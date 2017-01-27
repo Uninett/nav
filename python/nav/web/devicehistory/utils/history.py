@@ -51,6 +51,7 @@ GROUPINGS = {
     'datetime': DATE_GROUPING,
 }
 
+
 def get_selected_types(selected_type):
     selected_types = {'event': None, 'alert': None}
     if selected_type and selected_type.find('_') != -1:
@@ -58,6 +59,7 @@ def get_selected_types(selected_type):
         kind = 'event' if kind == 'e' else 'alert'
         selected_types[kind] = name
     return selected_types
+
 
 def fetch_history(selection, form):
     def type_query_filter(selected_types):
@@ -134,12 +136,14 @@ def fetch_history(selection, form):
 
     return history
 
+
 def get_page(paginator, page):
     try:
         history = paginator.page(page)
     except InvalidPage:
         history = paginator.page(paginator.num_pages)
     return history
+
 
 def get_messages_for_history(alert_history):
     msgs = AlertHistoryMessage.objects.filter(
@@ -148,13 +152,14 @@ def get_messages_for_history(alert_history):
     ).values('alert_history', 'message', 'type', 'state')
     return msgs
 
+
 def group_history_and_messages(history, messages, group_by=None):
     grouped_history = SortedDict()
     for a in history:
         a.extra_messages = {}
         for m in messages:
             if a.id == m['alert_history']:
-                if not a.extra_messages.has_key(m['state']):
+                if m['state'] not in a.extra_messages:
                     a.extra_messages[m['state']] = {
                         'sms': None,
                         'email': None,
@@ -167,10 +172,11 @@ def group_history_and_messages(history, messages, group_by=None):
         except AttributeError:
             key = None
 
-        if not grouped_history.has_key(key):
+        if key not in grouped_history:
             grouped_history[key] = []
         grouped_history[key].append(a)
     return grouped_history
+
 
 def describe_search_params(selection):
     data = {}
@@ -189,6 +195,7 @@ def describe_search_params(selection):
         data['netbox'] = ["All netboxes selected."]
 
     return data
+
 
 def _get_data_to_search_terms(selection, key_string, model):
     """Creates a human-readable list of things that were selected by the

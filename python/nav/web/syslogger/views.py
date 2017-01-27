@@ -61,6 +61,7 @@ def _strip_empty_arguments(request):
         del query[key]
     return query
 
+
 def _build_context(request):
     nav_path = [('Home', '/'), ('Syslogger', reverse('logger_index'))]
     results = []
@@ -88,7 +89,6 @@ def _build_context(request):
                 message_type_mnemonic = form.cleaned_data['mnemonic']
                 if not isinstance(form.cleaned_data['mnemonic'], list):
                     message_type_mnemonic = [form.cleaned_data['mnemonic']]
-
 
                 results = results.filter(
                     type__mnemonic__in=message_type_mnemonic)
@@ -152,7 +152,6 @@ def _build_context(request):
                 form.data = form.data.copy() # mutable QueryDict, yes please
                 form.data['show_log'] = value
 
-
             if form.cleaned_data.get('show_log', None):
                 show_log = bool(form.cleaned_data['show_log'])
                 _update_show_log_context(show_log, results)
@@ -205,12 +204,12 @@ def index(request):
         _build_context(request),
         RequestContext(request))
 
+
 def group_search(request):
     if not request.is_ajax():
         return HttpResponseRedirect(
             reverse(index) + '?' + request.GET.urlencode())
     return handle_search(request, LoggerGroupSearchForm, reverse(group_search))
-
 
 
 def exceptions_response(request):

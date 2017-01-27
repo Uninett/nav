@@ -20,11 +20,14 @@ import logging
 import sys
 import time
 
+
 class DispatcherError(Exception):
     """Base class for all exceptions raised by dispatchers."""
 
+
 class PermanentDispatcherError(DispatcherError):
     """Thrown for permanent errors in dispatchers."""
+
 
 class DispatcherHandler(object):
     """
@@ -79,9 +82,9 @@ class DispatcherHandler(object):
 
         # Fail if no dispatchers are available
         if len(self.dispatchers) == 0:
-            raise PermanentDispatcherError, \
-                  "No dispatchers available. None configured " + \
-                  "or all dispatchers failed permanently."
+            raise PermanentDispatcherError(
+                  "No dispatchers available. None configured "
+                  "or all dispatchers failed permanently.")
 
     def importbyname(self, name):
         """Imports Python module given by name.
@@ -155,12 +158,13 @@ class DispatcherHandler(object):
 
         # Still running? All dispatchers failed permanently.
         if len(self.dispatchers) == 0:
-            raise PermanentDispatcherError, \
-                  "No dispatchers available. None configured " + \
-                  "or all dispatchers failed permanently."
+            raise PermanentDispatcherError(
+                  "No dispatchers available. None configured "
+                  "or all dispatchers failed permanently.")
 
         # Still running? All dispatchers failed!
-        raise DispatcherError, "All dispatchers failed to send SMS."
+        raise DispatcherError("All dispatchers failed to send SMS.")
+
 
 class Dispatcher(object):
     """The SMS dispatcher mother class."""
@@ -266,4 +270,4 @@ class Dispatcher(object):
                     otherwise.
 
         """
-        raise NotImplementedError
+        raise NotImplementedError()

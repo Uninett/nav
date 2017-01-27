@@ -26,13 +26,14 @@ Depends on SOAPpy/python-soappy.
 
 """
 
-from nav.smsd.dispatcher import *
+from nav.smsd.dispatcher import Dispatcher, DispatcherError
 
 try:
     from SOAPpy import SOAPProxy
 except ImportError, ie:
-    raise DispatcherError, \
-     'SOAPpy not installed or misconfigured.'
+    raise DispatcherError(
+     'SOAPpy not installed or misconfigured.')
+
 
 class BoostDispatcher(Dispatcher):
     """The smsd dispatcher for Boost Communications' External Sender."""
@@ -54,13 +55,13 @@ class BoostDispatcher(Dispatcher):
             # Our phonenumber
             self.sender = config['sender']
         except KeyError, error:
-            raise DispatcherError, "Config option not found: %s" % error
+            raise DispatcherError("Config option not found: %s" % error)
 
         # Initiate connector to Boost
         try:
             self.service = SOAPProxy(self.url)
         except Exception, error:
-            raise DispatcherError, "Failed to initialize SOAPProxy: %s" % error
+            raise DispatcherError("Failed to initialize SOAPProxy: %s" % error)
 
     def sendsms(self, phone, msgs):
         """
@@ -101,4 +102,3 @@ class BoostDispatcher(Dispatcher):
         smsid = 0
 
         return (sms, sent, ignored, result, smsid)
-

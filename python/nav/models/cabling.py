@@ -21,6 +21,7 @@ from django.db import models
 from nav.models.manage import Room, Interface
 from nav.models.fields import VarcharField
 
+
 class Cabling(models.Model):
     """From NAV Wiki: The cabling table documents the cabling from the wiring
     closet's jack number to the end user's room number."""

@@ -65,6 +65,7 @@ NavbarLinkFormSet = modelformset_factory(
     NavbarLink, exclude=('account',),
     form=NavbarlinkForm, extra=2, can_delete=1)
 
+
 class ChangePasswordForm(forms.Form):
     """Form for changing password for an account"""
     old_password = forms.CharField(label='Old password',
