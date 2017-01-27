@@ -19,7 +19,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 
 from nav.models.manage import Room
-from nav.natsort import natcmp
+import nav.natsort
 from . import Navlet
 from .forms import PduWidgetForm
 
@@ -53,7 +53,7 @@ class PduWidget(Navlet):
         pdus = room.netbox_set.filter(category='POWER').filter(
             sensor__internal_name__startswith='rPDULoadStatusLoad'
         ).select_related('sensor').distinct()
-        sorted_pdus = sorted(pdus, cmp=natcmp, key=lambda x: x.sysname)
+        sorted_pdus = sorted(pdus, key=lambda x: nav.natsort.split(x.sysname))
         metrics = [s.get_metric_name() for pdu in pdus
                    for s in pdu.sensor_set.filter(
                        internal_name__startswith='rPDULoadStatusLoad')]
