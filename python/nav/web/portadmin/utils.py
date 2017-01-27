@@ -22,6 +22,7 @@ import logging
 import django.template
 
 from django.template.loaders.filesystem import Loader
+from nav.django.utils import is_admin
 from nav.models.profiles import AccountGroup
 from nav.path import sysconfdir
 from nav.portadmin.snmputils import SNMPFactory, FantasyVlan
@@ -99,7 +100,7 @@ def find_allowed_vlans_for_user_on_netbox(account, netbox, factory=None):
     netbox_vlans = find_vlans_on_netbox(netbox, factory=factory)
 
     if is_vlan_authorization_enabled():
-        if is_administrator(account):
+        if is_admin(account):
             allowed_vlans = netbox_vlans
         else:
             all_allowed_vlans = find_allowed_vlans_for_user(account)
@@ -244,14 +245,6 @@ def find_vlans_in_org(org):
             x.vlan]
 
 
-def is_administrator(account):
-    """Check if this account is an administrator account"""
-    groups = account.get_groups()
-    if AccountGroup.ADMIN_GROUP in groups:
-        return True
-    return False
-
-
 def check_format_on_ifalias(ifalias):
     """Verify that format on ifalias is correct if it is defined in config"""
     section = "ifaliasformat"
@@ -309,7 +302,7 @@ def filter_vlans(target_vlans, old_vlans, allowed_vlans):
 def should_check_access_rights(account):
     """Return boolean indicating that this user is restricted"""
     return (is_vlan_authorization_enabled() and
-            not is_administrator(account))
+            not is_admin(account))
 
 
 def mark_detained_interfaces(interfaces):
