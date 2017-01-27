@@ -26,11 +26,7 @@ import re
 # To stay compatible with both python 2.4 and 2.6:
 from django.views.decorators.debug import sensitive_variables
 
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import md5
-
+from hashlib import md5
 
 from django.db import models, transaction
 from django_hstore import hstore
