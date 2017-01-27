@@ -59,8 +59,8 @@ class AuthorizationMiddleware(object):
                       or
                       account.has_perm('web_access', request.get_full_path()))
         if not authorized:
-            _logger.warn("User %s denied access to %s",
-                         account.login, request.get_full_path())
+            _logger.warning("User %s denied access to %s",
+                            account.login, request.get_full_path())
             return self.redirect_to_login(request)
         else:
             if not account.is_default_account():

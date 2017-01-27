@@ -146,7 +146,7 @@ class Module(Shadow):
         """Fixes string attributes that appear as binary garbage."""
 
         if utils.is_invalid_utf8(self.model):
-            self._logger.warn("Invalid value for model: %r", self.model)
+            self._logger.warning("Invalid value for model: %r", self.model)
             self.model = repr(self.model)
 
     def _fix_missing_name(self):
@@ -243,8 +243,8 @@ class Device(Shadow):
                      'serial'):
             value = getattr(self, attr)
             if utils.is_invalid_utf8(value):
-                self._logger.warn("Invalid value for %s: %r",
-                                  attr, value)
+                self._logger.warning("Invalid value for %s: %r",
+                                     attr, value)
                 setattr(self, attr, repr(value))
         self.clear_cached_objects()
 

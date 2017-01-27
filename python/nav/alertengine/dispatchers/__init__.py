@@ -33,7 +33,8 @@ examples.
 """
 
 import logging
-from django.forms import EmailField, ValidationError
+from django.core.validators import validate_email
+from django.forms import ValidationError
 
 from nav.models.event import AlertQueueMessage
 
@@ -97,10 +98,8 @@ class FatalDispatcherException(DispatcherException):
 
 def is_valid_email(address):
     """Validates a string as an e-mail address"""
-    # FIXME In Django 1.2 we can use validators
-    field = EmailField()
     try:
-        field.clean(address)
+        validate_email(address)
     except ValidationError:
         return False
     return True
