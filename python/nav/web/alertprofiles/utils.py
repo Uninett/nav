@@ -17,9 +17,7 @@
 """Utility methods for Alert Profiles"""
 
 import dircache
-# md5 is deprecated in python 2.5.
-# If one wish to bump python requirement to 2.5, one can s/md5 as //
-import md5 as hashlib
+import hashlib
 import os
 
 from django.db import transaction
