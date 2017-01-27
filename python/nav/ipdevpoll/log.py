@@ -20,8 +20,6 @@ from logging import Formatter
 import inspect
 from itertools import islice
 
-from nav.loggeradapter import LoggerAdapter
-
 
 class ContextFormatter(Formatter):
     """A log formatter that will add context data if available in the record.
@@ -107,7 +105,7 @@ class ContextLogger(object):
                 extra = _context_search(inspect.currentframe())
 
             if extra:
-                logger = LoggerAdapter(logger, extra)
+                logger = logging.LoggerAdapter(logger, extra)
 
         setattr(target, self.log_attr, logger)
         return logger
