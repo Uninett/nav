@@ -12,6 +12,8 @@ if [ ! -x /source/bin/navsyncdb ]; then
 fi
 nav stop
 supervisorctl stop apache2
-sudo -u postgres /source/bin/navsyncdb --drop-database --create --restore -
+export PGHOST=postgres
+export PGUSER=postgres
+/source/bin/navsyncdb --drop-database --create --restore -
 supervisorctl start apache2
 echo "NOT starting NAV after db restore, please do it manually!"

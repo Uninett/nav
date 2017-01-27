@@ -22,6 +22,7 @@ import datetime as dt
 import IPy
 import math
 import re
+import logging
 import json
 
 from django.conf import settings
@@ -48,6 +49,8 @@ from nav.models.fields import CIDRField
 from django_hstore import hstore
 import nav.models.event
 
+
+_logger = logging.getLogger(__name__)
 
 #######################################################################
 ### Netbox-related models
@@ -651,11 +654,14 @@ class Module(models.Model):
 
         :returns: Either a NetboxEntity object or None.
         """
-        try:
-            return NetboxEntity.objects.get(netbox=self.netbox,
-                                            device=self.device)
-        except NetboxEntity.DoesNotExist:
-            return None
+        entities = NetboxEntity.objects.filter(netbox=self.netbox,
+                                               device=self.device)
+        if entities:
+            if len(entities) > 1:
+                _logger.info("Module.get_entity(): %s weirdly appears to have "
+                             "duplicate entities, returning just one", self)
+            return entities[0]
+
 
     def get_chassis(self):
         """
