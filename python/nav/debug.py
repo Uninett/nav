@@ -57,7 +57,7 @@ def log_stacktrace(logger, stacktrace):
     :param stacktrace: An output from the inspect.trace() function.
 
     """
-    if logger.getEffectiveLevel() > logging.DEBUG:
+    if not logger.isEnabledFor(logging.DEBUG):
         # don't waste time here if DEBUG logging isn't activated
         return
 

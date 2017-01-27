@@ -112,7 +112,7 @@ def log_unhandled_failure(logger, failure, msg, *args, **kwargs):
 
     """
     detail = 'default'
-    if logger.getEffectiveLevel() <= logging.DEBUG:
+    if logger.isEnabledFor(logging.DEBUG):
         detail = 'verbose'
     traceback = failure.getTraceback(detail=detail)
     args = args + (traceback,)
