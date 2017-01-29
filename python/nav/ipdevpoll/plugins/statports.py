@@ -24,7 +24,7 @@ from nav.mibs.if_mib import IfMib
 from nav.mibs.ip_mib import IpMib
 
 
-OCTET_COUNTERS = (
+NON_HC_COUNTERS = (
     "ifInOctets",
     "ifOutOctets",
     "ifInBroadcastPkts",
@@ -33,7 +33,7 @@ OCTET_COUNTERS = (
     "ifOutMulticastPkts",
 )
 
-HC_OCTET_COUNTERS = (
+HC_COUNTERS = (
     "ifHCInOctets",
     "ifHCOutOctets",
     "ifHCInBroadcastPkts",
@@ -59,7 +59,7 @@ IP_COUNTERS = (
     IF_OUT_OCTETS_IPV6,
 )
 
-USED_COUNTERS = OCTET_COUNTERS + HC_OCTET_COUNTERS + OTHER_COUNTERS
+USED_COUNTERS = NON_HC_COUNTERS + HC_COUNTERS + OTHER_COUNTERS
 LOGGED_COUNTERS = USED_COUNTERS + IP_COUNTERS
 
 
@@ -122,7 +122,7 @@ def use_hc_counters(row):
     Replaces octet counter values with high capacity counter values, if present
     """
     result = False
-    for hc, nonhc in zip(HC_OCTET_COUNTERS, OCTET_COUNTERS):
+    for hc, nonhc in zip(HC_COUNTERS, NON_HC_COUNTERS):
         if row.get(hc, None) is not None:
             result = True
             row[nonhc] = row[hc]
