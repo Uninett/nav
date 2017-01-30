@@ -193,10 +193,7 @@ class RoomImporter(BulkImporter):
     """Creates objects from the room bulk format"""
     def _create_objects_from_row(self, row):
         raise_if_exists(Room, id=row['roomid'])
-        if row['locationid']:
-            location = get_object_or_fail(Location, id=row['locationid'])
-        else:
-            location = None
+        location = get_object_or_fail(Location, id=row['locationid'])
         attributes = dict([attr.split('=', 1) for attr in row.get('attr', [])])
         room = Room(id=row['roomid'], location=location,
                     description=row['descr'], data=attributes)
@@ -387,4 +384,3 @@ def reset_object_foreignkeys(obj):
         value = getattr(obj, field.name)
         if value:
             setattr(obj, field.name, value)
-

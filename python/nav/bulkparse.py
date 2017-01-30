@@ -213,7 +213,7 @@ class RoomBulkParser(BulkParser):
     """Parses the room bulk format"""
     format = ('roomid', 'locationid', 'descr', 'position')
     restkey = 'attr'
-    required = 1
+    required = 2
 
 
 class ServiceBulkParser(BulkParser):
