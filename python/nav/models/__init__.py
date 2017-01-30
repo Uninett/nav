@@ -15,6 +15,8 @@
 #
 """Django ORM wrapper for the NAV manage database"""
 
+default_app_config = 'nav.models.apps.NavModelsConfig'
+
 import os
 import sys
 import django

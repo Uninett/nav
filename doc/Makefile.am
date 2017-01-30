@@ -103,3 +103,7 @@ doctest:
 
 buildloop:
 	while inotifywait -e modify -e move -e create -r --exclude \# . ../NOTES.rst; do sleep 1; $(MAKE); done
+
+pyclean:
+	find . -name __pycache__ -exec rm -rf '{}' +
+	find . -name '*.pyc' -exec rm '{}' +
