@@ -74,10 +74,8 @@ urlpatterns = patterns('nav.web.netmap.views',
         NetmapGraph.as_view(),
         name='netmap-graph-view',
     ),
-    # TODO: Add location argument
     url(r'^traffic/layer(?P<layer>[2|3])/(?P<locationId>[\w]+)/$',
         never_cache(TrafficView.as_view()),
         name='netmap-traffic-data-view',
     ),
-
 )

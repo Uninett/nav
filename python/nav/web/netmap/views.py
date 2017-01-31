@@ -102,7 +102,13 @@ class TrafficView(views.APIView):
         layer = int(kwargs.pop('layer', 2))
         # TODO: should probably use id
         locationId = kwargs.pop('locationId')
-        traffic = get_layer3_traffic(locationId) if layer is 3 else get_layer2_traffic(locationId)
+        # check for invalidation flag (GET parameter)
+        invalidation_flag = _request.GET.get("invalidate", None)
+        shouldInvalidate = True if invalidation_flag is not None else False
+        if layer == 3:
+            traffic = get_layer3_traffic(locationId, shouldInvalidate)
+        else:
+            traffic = get_layer2_traffic(locationId, shouldInvalidate)
         return Response(traffic)
 
 

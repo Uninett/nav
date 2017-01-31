@@ -18,9 +18,13 @@ define([
             nodeCollection: new Collections.NodeCollection(),
             linkCollection: new Collections.LinkCollection(),
             vlanCollection: new Collections.VlanCollection(),
+            // Determines what locations we fetch traffic data for, as this is a
+            // somewhat expensive operation.
+            locations: [],
             filter_categories: [
-                {name: 'GSW', checked: true},
-                {name: 'GW', checked: true},
+            // temp deactivating to avoid overhead
+                {name: 'GSW', checked: false},
+                {name: 'GW', checked: false},
                 {name: 'SW', checked: true},
                 {name: 'OTHER', checked: true},
                 {name: 'WLAN', checked: true},
@@ -83,19 +87,34 @@ define([
         /**
          * Load traffic data from the server. This is a HUGE bottleneck
          * and is therefore done asynchronously after page load.
+         *
+         * @param shouldInvalidate - whether or not to flush the traffic cache
          */
-        loadTraffic: function () {
+        loadTraffic: function (shouldInvalidate) {
             var self = this;
+
+            if (shouldInvalidate === undefined) {
+                shouldInvalidate = false;
+            }
+
             this.set('loadingTraffic', true);
             console.log('Start fetching traffic data');
-            $.getJSON('traffic/layer' + this.get('layer') + '/')
-                .done(function (data) {
-                    self.trafficSuccess.call(self, data);
-                })
-                .fail(this.trafficError)
-                .always(function() {
-                    self.set('loadingTraffic', false);
-                });
+            // TODO: Iterate over each locationId in netmapView.location_room_filter
+            var locations = this.get('locations');
+            var layer = this.get('layer');
+            // construct suffix for invalidation, if any
+            var flags = shouldInvalidate ? "?invalidate" : "";
+            _.each(locations, function(location) {
+                console.log("Getting layer", layer, "traffic for", location);
+                $.getJSON('traffic/layer' + layer + '/' + location + flags)
+                    .done(function (data) {
+                        self.trafficSuccess.call(self, data);
+                    })
+                    .fail(this.trafficError)
+                    .always(function() {
+                        self.set('loadingTraffic', false);
+                    });
+            });
         },
 
         trafficSuccess: function (data) {

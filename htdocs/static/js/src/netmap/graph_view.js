@@ -319,6 +319,8 @@ define([
             nodes = filterNodesByCategories(nodes, categories);
             links = filterLinksByCategories(links, categories);
             if (this.netmapView.filterStrings.length) {
+                // Make sure graph model is aware of our locations
+                this.model.set("locations", this.netmapView.filterStrings);
                 nodes = filterNodesByRoomsOrLocations(nodes, this.netmapView.filterStrings);
                 links = filterLinksByRoomsOrLocations(links, this.netmapView.filterStrings);
             }
@@ -482,15 +484,21 @@ define([
         refresh: function () {
 
             if (this.netmapView.refreshTrafficOnly) {
-                this.model.loadTraffic();
+                // TODO: invalidate traffic cache
+                this.model.loadTraffic(true);
             } else {
-                this.fetchGraphModel();
+                // TODO: invalidate graph cache
+                this.fetchGraphModel(true);
             }
         },
 
-        fetchGraphModel: function () {
+        fetchGraphModel: function (shouldInvalidate) {
 
             var self = this;
+
+            if (shouldInvalidate === undefined) {
+                shouldInvalidate = false;
+            }
 
             this.loadingGraphIndicator.show();
             this.graphInfoView.reset();
@@ -498,7 +506,7 @@ define([
             var jqxhr = this.model.fetch({
                 success: function () {
                     self.update();
-                    self.model.loadTraffic();
+                    self.model.loadTraffic(shouldInvalidate);
                 },
                 error: function () { // TODO: Use alert message instead
                     alert('Error loading graph, please try to reload the page');
@@ -520,7 +528,6 @@ define([
         updateNetmapView: function (view) {
 
             this.netmapView = view;
-
             this.model.set('viewId', this.netmapView.id);
             this.model.set('layer', this.netmapView.get('topology'));
 
@@ -559,6 +566,7 @@ define([
 
             this.netmapView.filterStrings = _.without(
                 this.netmapView.filterStrings, filter);
+            this.model.set("locations", this.netmapView.filterStrings);
             this.update();
         },
 
@@ -802,7 +810,6 @@ define([
      * @param filters
      */
     function filterNodesByRoomsOrLocations(nodes, filters) {
-
         return _.filter(nodes, function (node) {
             return _.some(filters, function (filter) {
                 return filter === node.roomid || filter === node.locationid;
