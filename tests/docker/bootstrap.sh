@@ -9,7 +9,9 @@ if [ "$EUID" -eq "0" ]; then
     usermod --uid "$uid" build
     groupmod --non-unique  --gid "$gid" build
     # init a temporary, writable local state directory for NAV
-    mkdir /var/run/nav ; chown build /var/run/nav
+    mkdir -p /var/run/nav
+    mkdir -p /source/build/var/log
+    chown build /var/run/nav /source/build /source/build/var /source/build/var/log
 fi
 
 
