@@ -41,6 +41,12 @@ from nav.ipdevpoll.db import django_debug_cleanup, run_in_thread
 import django.db
 
 
+def load_netbox(netbox_id):
+    related = ('room__location', 'type__vendor',
+               'category', 'organization')
+    return manage.Netbox.objects.select_related(*related).get(id=netbox_id)
+
+
 class NetboxLoader(dict):
     """Loads netboxes from the database, synchronously or asynchronously.
 

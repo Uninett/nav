@@ -60,7 +60,7 @@ class SnmpCheck(Plugin):
 
         if not is_ok:
             yield self._mark_as_down()
-            raise SuggestedReschedule(60)
+            raise SuggestedReschedule(delay=60)
         else:
             yield self._mark_as_up()
 
