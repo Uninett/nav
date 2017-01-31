@@ -46,7 +46,10 @@ driver and the ``python-ldap`` module), or you may opt to use your OS' package
 manager to install these dependencies. The current requirements are as
 follows:
 
-.. literalinclude:: ../../requirements.txt
+.. literalinclude:: ../../requirements/django.txt
+   :language: text
+
+.. literalinclude:: ../../requirements/base.txt
    :language: text
 
 .. note:: The :mod:`pynetsnmp` module is preferred over :mod:`twistedsnmp` for
