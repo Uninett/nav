@@ -484,21 +484,15 @@ define([
         refresh: function () {
 
             if (this.netmapView.refreshTrafficOnly) {
-                // TODO: invalidate traffic cache
-                this.model.loadTraffic(true);
+                this.model.loadTraffic();
             } else {
-                // TODO: invalidate graph cache
-                this.fetchGraphModel(true);
+                this.fetchGraphModel();
             }
         },
 
-        fetchGraphModel: function (shouldInvalidate) {
+        fetchGraphModel: function () {
 
             var self = this;
-
-            if (shouldInvalidate === undefined) {
-                shouldInvalidate = false;
-            }
 
             this.loadingGraphIndicator.show();
             this.graphInfoView.reset();
@@ -506,7 +500,7 @@ define([
             var jqxhr = this.model.fetch({
                 success: function () {
                     self.update();
-                    self.model.loadTraffic(shouldInvalidate);
+                    self.model.loadTraffic();
                 },
                 error: function () { // TODO: Use alert message instead
                     alert('Error loading graph, please try to reload the page');

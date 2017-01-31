@@ -87,26 +87,18 @@ define([
         /**
          * Load traffic data from the server. This is a HUGE bottleneck
          * and is therefore done asynchronously after page load.
-         *
-         * @param shouldInvalidate - whether or not to flush the traffic cache
          */
-        loadTraffic: function (shouldInvalidate) {
+        loadTraffic: function () {
             var self = this;
-
-            if (shouldInvalidate === undefined) {
-                shouldInvalidate = false;
-            }
 
             this.set('loadingTraffic', true);
             console.log('Start fetching traffic data');
             // TODO: Iterate over each locationId in netmapView.location_room_filter
             var locations = this.get('locations');
             var layer = this.get('layer');
-            // construct suffix for invalidation, if any
-            var flags = shouldInvalidate ? "?invalidate" : "";
             _.each(locations, function(location) {
                 console.log("Getting layer", layer, "traffic for", location);
-                $.getJSON('traffic/layer' + layer + '/' + location + flags)
+                $.getJSON('traffic/layer' + layer + '/' + location)
                     .done(function (data) {
                         self.trafficSuccess.call(self, data);
                     })

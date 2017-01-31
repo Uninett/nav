@@ -42,9 +42,13 @@ from .common import get_traffic_rgb
 import logging
 _logger = logging.getLogger(__name__)
 
-# TODO: Make adjustable in NAV settings
-CACHE_TIMEOUT = 25*60 # 25 minutes
-TRAFFIC_CACHE_TIMEOUT = 10*60 # 10 minutes
+# TODO: This cache should be shared by all of NAV?
+# TODO: This cache should be invalidated only when the topology is changed, which
+# is somewhat rare
+CACHE_TIMEOUT = 60*60
+
+# Data is collected every 5 minutes by NAV
+TRAFFIC_CACHE_TIMEOUT = 5*60
 
 
 def get_topology_graph(layer=2, load_traffic=False, view=None):
@@ -155,16 +159,13 @@ def get_traffic_interfaces(edges, interfaces):
     return storage.values()
 
 
-def get_layer2_traffic(locationId, shouldInvalidate=False):
+def get_layer2_traffic(locationId):
     """Fetches traffic data for layer 2"""
     # Cache model: Index traffic by location
     cache_key = _cache_key("traffic", "locationId", "layer 2")
-    if not shouldInvalidate:
-        cached = cache.get(cache_key)
-        if cached is not None:
-            return cached
-    else:
-        cache.delete(cache_key)
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
 
     start = datetime.now()
 
@@ -215,18 +216,14 @@ def get_layer2_traffic(locationId, shouldInvalidate=False):
     cache.set(cache_key, traffic, TRAFFIC_CACHE_TIMEOUT)
     return traffic
 
-def get_layer3_traffic(locationId, shouldInvalidate=False):
+def get_layer3_traffic(locationId):
     """Fetches traffic data for layer 3"""
 
     # Cache model: Index traffic by location
     cache_key = _cache_key("traffic", "locationId", "layer 3")
-
-    if not shouldInvalidate:
-        cached = cache.get(cache_key)
-        if cached is not None:
-            return cached
-    else:
-        cache.delete(cache_key)
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
 
     # Sanity check: Does the room exist?
     location = Location.objects.get(id=locationId)
