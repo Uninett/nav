@@ -65,6 +65,7 @@ RUN echo "import sys\nsys.path.append('/source/python')" > /etc/python2.7/sitecu
 
 ADD tools/docker/supervisord.conf /etc/supervisor/conf.d/nav.conf
 
+COPY requirements/ /requirements
 ADD requirements.txt /
 ADD tests/requirements.txt /test-requirements.txt
 RUN pip install -r /requirements.txt ; pip install -r /test-requirements.txt

@@ -28,8 +28,8 @@ lint: build
 shell:
 	docker run -u $(runas) -t -i --privileged -v $(top_srcdir):/source $(name) /bin/bash
 
-runtime-requirements.txt: $(top_srcdir)/requirements.txt
-	cp -a $< $@
+runtime-requirements.txt: $(top_srcdir)/requirements/*
+	cat $^ > $@
 
 test-requirements.txt: $(top_srcdir)/tests/requirements.txt
 	cp -a $< $@
@@ -39,3 +39,5 @@ name:
 
 clean:
 	rm -f runtime-requirements.txt test-requirements.txt
+	find . -name '*.pyc' -exec rm -rf '{}' +
+	find . -name __pycache__ -exec rmdir '{}' +
