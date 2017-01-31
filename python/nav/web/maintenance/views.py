@@ -121,7 +121,7 @@ def active(request):
                 netbox_id = maint_components[0].value
                 try:
                     netbox = Netbox.objects.get(pk=int(netbox_id))
-                except Exception, get_ex:
+                except Exception as get_ex:
                     logger.error('Get netbox %s failed; Exception = %s',
                                  netbox_id, get_ex.message)
                     continue

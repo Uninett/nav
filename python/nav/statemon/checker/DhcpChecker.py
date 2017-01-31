@@ -63,7 +63,7 @@ class DhcpChecker(AbstractChecker):
 
             if proc.returncode != 0:
                 return Event.DOWN, repr(stderr.strip())
-        except IOError, msg:
+        except IOError as msg:
             return Event.DOWN, 'Could not run dhcping: %s' % msg
 
         return Event.UP, 'OK'

@@ -53,7 +53,7 @@ def load_handler_modules(modules):
                 pass # Silently ignore if module has no initialize method
 
             handlermodules.append(mod)
-        except Exception, why:
+        except Exception as why:
             _LOGGER.exception("Module %s did not compile - %s", name, why)
             raise ModuleLoadError(why)
 

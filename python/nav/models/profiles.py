@@ -355,21 +355,21 @@ class AlertAddress(models.Model):
                 alert.id, self.type, self.address,
                 subscription.get_type_display(), subscription.id)
 
-        except FatalDispatcherException, error:
+        except FatalDispatcherException as error:
             logger.error(
                 '%s raised a FatalDispatcherException indicating that the '
                 'alert never will be sent: %s',
                 self.type, error)
             raise
 
-        except DispatcherException, error:
+        except DispatcherException as error:
             logger.error(
                 '%s raised a DispatcherException indicating that an alert '
                 'could not be sent at this time: %s',
                 self.type, error)
             return False
 
-        except Exception, error:
+        except Exception as error:
             logger.exception(
                 'Unhandled error from %s (the handler has been blacklisted)',
                 self.type)

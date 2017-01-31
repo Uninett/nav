@@ -105,7 +105,7 @@ class EventEngine(object):
         if conn:
             try:
                 select.select([conn], [], [], delay)
-            except select.error, err:
+            except select.error as err:
                 if err.args[0] != errno.EINTR:
                     raise
             try:

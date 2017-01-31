@@ -561,7 +561,7 @@ def parse_nonblock_file(filename):
     # Open nonblocklist, parse it.
     try:
         handle = open(filename)
-    except IOError, why:
+    except IOError as why:
         raise FileError(why)
 
     for line in handle.readlines():

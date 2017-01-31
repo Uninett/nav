@@ -236,7 +236,7 @@ def get_source_address_for(dest):
     sock = socket.socket(family, socket.SOCK_DGRAM)
     try:
         sock.connect(sockaddr)
-    except socket.error, err:
+    except socket.error as err:
         _logger.warning("Error when getting NAV's source address for "
                         "connecting to %(dest)s: %(err)s", locals())
         return

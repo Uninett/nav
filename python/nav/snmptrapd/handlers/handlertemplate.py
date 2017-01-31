@@ -64,7 +64,7 @@ def handleTrap(trap, config=None):
 
         try:
             e.post()
-        except nav.errors.GeneralException, why:
+        except nav.errors.GeneralException as why:
             logger.error(why)
             return False
 

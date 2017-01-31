@@ -51,7 +51,7 @@ def create_list(exceptions):
     for element in [x.strip() for x in exceptions.splitlines() if x]:
         try:
             address = IP(element)
-        except ValueError, error:
+        except ValueError as error:
             _logger.error('Skipping exception %s: %s', element, error)
             continue
         else:

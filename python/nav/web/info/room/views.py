@@ -147,7 +147,7 @@ def upload_image(request, roomid):
                 handle_image(image, room, uploader=account)
                 messages.success(
                     request, 'Image &laquo;%s&raquo; uploaded' % image.name)
-            except IOError, e:
+            except IOError as e:
                 _logger.error(e)
                 messages.error(request, 'Image &laquo;%s&raquo; not saved - '
                                         'perhaps unsupported type' % image.name)
@@ -208,7 +208,7 @@ def delete_image(request):
             try:
                 _logger.debug('Deleting file %s', filepath)
                 os.unlink(join(filepath, image.name))
-            except OSError, error:
+            except OSError as error:
                 # If the file is not found, then this is ok, otherwise not ok
                 if error.errno != 2:
                     return HttpResponse(status=500)

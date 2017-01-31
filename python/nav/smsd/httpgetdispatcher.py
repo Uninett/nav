@@ -45,7 +45,7 @@ class HttpGetDispatcher(Dispatcher):
         try:
             # Remote address for gateway
             self.url = config['url']
-        except KeyError, error:
+        except KeyError as error:
             raise DispatcherError("Config option not found: %s" % error)
 
     def sendsms(self, phone, msgs):
@@ -78,7 +78,7 @@ class HttpGetDispatcher(Dispatcher):
         try:
             urllib2.urlopen(url)
             result = True
-        except HttpGetError, e:
+        except HttpGetError as e:
             self.logger.error('%s', e)
             result = False
 

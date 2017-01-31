@@ -114,7 +114,7 @@ def _add_filter(_option, _opt, value, parser):
     try:
         table, where = value.split("=", 1)
         parser.values.filters[table.strip()] = where.strip()
-    except ValueError, err:
+    except ValueError as err:
         parser.error("invalid filter %r: %s" % (value, err))
 
 

@@ -30,7 +30,7 @@ from nav.smsd.dispatcher import Dispatcher, DispatcherError
 
 try:
     from SOAPpy import SOAPProxy
-except ImportError, ie:
+except ImportError as ie:
     raise DispatcherError(
      'SOAPpy not installed or misconfigured.')
 
@@ -54,13 +54,13 @@ class BoostDispatcher(Dispatcher):
             self.password = config['password']
             # Our phonenumber
             self.sender = config['sender']
-        except KeyError, error:
+        except KeyError as error:
             raise DispatcherError("Config option not found: %s" % error)
 
         # Initiate connector to Boost
         try:
             self.service = SOAPProxy(self.url)
-        except Exception, error:
+        except Exception as error:
             raise DispatcherError("Failed to initialize SOAPProxy: %s" % error)
 
     def sendsms(self, phone, msgs):
@@ -92,7 +92,7 @@ class BoostDispatcher(Dispatcher):
                         phone,
                         sms)
             self.logger.debug("BoostDispatcher result: %s", result)
-        except Exception, error:
+        except Exception as error:
             self.logger.exception(error)
 
         if result:

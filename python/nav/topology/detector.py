@@ -176,7 +176,7 @@ def verify_singleton():
 
     try:
         daemon.justme(PIDFILE_PATH)
-    except daemon.AlreadyRunningError, error:
+    except daemon.AlreadyRunningError as error:
         print("navtopology is already running (%d)" % error.pid, file=sys.stderr)
         sys.exit(1)
 

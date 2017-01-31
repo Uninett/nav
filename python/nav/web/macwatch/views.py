@@ -94,7 +94,7 @@ def delete_macwatch(request, macwatchid):
         macwatchid = int(macwatchid)
         try:
             m = MacWatch.objects.get(id=macwatchid)
-        except Exception, e:
+        except Exception as e:
             messages = [e]
             return do_list(request, messages)
 
@@ -103,7 +103,7 @@ def delete_macwatch(request, macwatchid):
                 try:
                     m.delete()
                     return HttpResponseRedirect('/macwatch/')
-                except Exception, e:
+                except Exception as e:
                     messages = [e]
                     return do_list(request, messages)
             else:

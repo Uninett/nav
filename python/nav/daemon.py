@@ -211,7 +211,7 @@ def justme(pidfile):
             # Remove pidfile and assume we're alone
             try:
                 os.remove(pidfile)
-            except OSError, error:
+            except OSError as error:
                 _logger.debug("Unable to remove empty pidfile: %s", error)
                 raise PidFileWriteError(pidfile, error)
             return True
@@ -246,7 +246,7 @@ def writepidfile(pidfile):
     pid = os.getpid()
     try:
         pid_fd = file(pidfile, 'w+')
-    except IOError, error:
+    except IOError as error:
         _logger.debug('Cannot open pidfile %s for writing. Exiting. (%s)',
                       pidfile, error)
         raise PidFileWriteError(pidfile, error)
@@ -318,7 +318,7 @@ def daemonize(pidfile, stdin=None, stdout=None, stderr=None):
             # We're the first parent. Exit!
             _logger.debug("First parent exiting. Second has pid %d.", pid)
             sys.exit(0)
-    except OSError, error:
+    except OSError as error:
         _logger.debug("Fork #1 failed. (%s)", error)
         raise ForkError(1, error)
 
@@ -335,7 +335,7 @@ def daemonize(pidfile, stdin=None, stdout=None, stderr=None):
             # We're the second parent. Exit!
             _logger.debug("Second parent exiting. Daemon has pid %d.", pid)
             sys.exit(0)
-    except OSError, error:
+    except OSError as error:
         _logger.exception("Fork #2 failed. (%s)", error)
         raise ForkError(2, error)
 
@@ -373,7 +373,7 @@ def daemonexit(pidfile):
 
     try:
         os.remove(pidfile)
-    except Exception, error:
+    except Exception as error:
         _logger.debug("Can't remove pidfile (%s). (%s)", pidfile, error)
         if error.errno != errno.ENOENT:
             raise PidFileWriteError(pidfile, error)
@@ -398,7 +398,7 @@ def safesleep(delay):
     """
     try:
         time.sleep(delay)
-    except IOError, error:
+    except IOError as error:
         if error.errno == 514:
             _logger.exception("Ignoring possible Linux kernel bug in "
                               "time.sleep(): IOError=514. See LP#352316")

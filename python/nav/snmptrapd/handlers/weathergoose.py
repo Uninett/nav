@@ -128,7 +128,7 @@ class WeatherGoose1(object):
         # Post event on eventqueue
         try:
             e.post()
-        except Exception, e:
+        except Exception as e:
             logger.error(e)
             return False
 
@@ -245,7 +245,7 @@ def initialize_eventdb():
     """Populates the database with eventtype and alerttype information"""
     try:
         nav.event.create_type_hierarchy(_get_event_hierarchy())
-    except Exception, e:
+    except Exception as e:
         logger.error(e)
         return False
 

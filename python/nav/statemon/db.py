@@ -193,7 +193,7 @@ class _DB(threading.Thread):
             debug("Throwing away update...", 2)
             if commit:
                 self.db.rollback()
-        except Exception, err:
+        except Exception as err:
             debug("Could not execute statement: "
                   "%s" % cursor.query if cursor else statement, 2)
             debug(str(err))

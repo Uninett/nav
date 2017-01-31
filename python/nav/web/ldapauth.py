@@ -58,7 +58,7 @@ _config.read(join(sysconfdir, 'webfront', 'webfront.conf'))
 # pylint: disable=C0103
 try:
     import ldap
-except ImportError, err:
+except ImportError as err:
     available = 0
     ldap = None
     _logger.warning("Python LDAP module is not available (%s) ", err)
@@ -137,7 +137,7 @@ def authenticate(login, password):
         _logger.warning("Server %s reported invalid credentials for user %s",
                         server, login)
         return False
-    except ldap.TIMEOUT, error:
+    except ldap.TIMEOUT as error:
         _logger.error("Timed out waiting for LDAP bind operation")
         raise TimeoutError(error)
     except ldap.LDAPError:
@@ -309,7 +309,7 @@ class LDAPUser(object):
                                             filterstr)
                 _logger.debug("posixGroup results: %s", result)
             return len(result) > 0
-        except ldap.TIMEOUT, error:
+        except ldap.TIMEOUT as error:
             _logger.error("Timed out while veryfing group memberships")
             raise TimeoutError(error)
 

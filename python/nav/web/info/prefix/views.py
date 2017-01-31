@@ -45,7 +45,7 @@ class PrefixSearchForm(SearchForm):
         ip = self.cleaned_data['query']
         try:
             ip = IP(ip)
-        except ValueError, error:
+        except ValueError as error:
             raise forms.ValidationError(
                 ('%(error)s'),
                 params={'query': ip, 'error': error},

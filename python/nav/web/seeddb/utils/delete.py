@@ -57,13 +57,13 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None):
     if request.POST.get('confirm'):
         try:
             qs_delete(objects)
-        except IntegrityError, ex:
+        except IntegrityError as ex:
             # We can't delete.
             # Some of the objects we want to delete is referenced by another
             # table without any ON DELETE rules.
             msg = "Integrity failed: %s" % ex
             new_message(request, msg, Messages.ERROR)
-        except Exception, ex:
+        except Exception as ex:
             # Something else went wrong
             LOGGER.exception("Unhandled exception during delete: %r", request)
             msg = "Error: %s" % ex

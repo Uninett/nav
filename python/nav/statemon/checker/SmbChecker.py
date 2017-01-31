@@ -73,7 +73,7 @@ class SmbChecker(AbstractChecker):
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
             proc.wait()
-        except IOError, msg:
+        except IOError as msg:
             return Event.DOWN, 'could not run smbclient: %s' % msg
 
         output = proc.stdout.read()

@@ -90,7 +90,7 @@ def exit_if_already_running():
     "Exits the process if another eventengine process is already running"
     try:
         nav.daemon.justme(PIDFILE)
-    except nav.daemon.DaemonError, error:
+    except nav.daemon.DaemonError as error:
         _logger.error(error)
         sys.exit(1)
 
@@ -100,7 +100,7 @@ def daemonize():
     try:
         nav.daemon.daemonize(PIDFILE,
                              stderr=nav.logs.get_logfile_from_logger())
-    except nav.daemon.DaemonError, error:
+    except nav.daemon.DaemonError as error:
         _logger.fatal(error)
         sys.exit(1)
     install_signal_handlers()
