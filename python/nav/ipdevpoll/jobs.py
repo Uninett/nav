@@ -58,10 +58,11 @@ class SuggestedReschedule(AbortedJobError):
     later time, without necessarily logging it as a job failure.
 
     """
-    def __init__(self, delay=60):
+    def __init__(self, msg=None, cause=None, delay=60):
         self.delay = delay
         super(SuggestedReschedule, self).__init__(
-            "Job was suggested rescheduled in %d seconds" % self.delay)
+            msg="Job was suggested rescheduled in %d seconds" % self.delay,
+            cause=cause)
 
 
 class JobHandler(object):
