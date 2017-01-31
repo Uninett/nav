@@ -88,7 +88,7 @@ class MatrixIPv4(Matrix):
                         num_extra_rows = self._add_large_subnet(
                             large_subnets.pop(index), matrix_row)
                         extra_rows = self._get_extra_rows(num_extra_rows,
-                                                             subnets)
+                                                          subnets)
                     else:
                         matrix_row.append(self._create_empty_cell())
                 else:
