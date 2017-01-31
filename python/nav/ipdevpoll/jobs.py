@@ -28,7 +28,10 @@ from twisted.internet.error import TimeoutError
 from nav.ipdevpoll import ContextLogger
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
 from nav.ipdevpoll.snmp.common import SnmpError
-from . import storage, shadows
+from . import storage, shadows, dataloader
+from nav.metrics.carbon import send_metrics
+from nav.metrics.templates import metric_prefix_for_ipdevpoll_job
+from nav.models import manage
 from nav.util import splitby
 from .plugins import plugin_registry
 from nav.ipdevpoll import db
@@ -76,20 +79,17 @@ class JobHandler(object):
     _timing_logger = ContextLogger(suffix='timings')
     _start_time = datetime.datetime.min
 
-    def __init__(self, name, netbox, plugins=None):
+    def __init__(self, name, netbox, plugins=None, interval=None):
         self.name = name
-        self.netbox = netbox
+        self.netbox_id = netbox
+        self.netbox = None
         self.cancelled = threading.Event()
+        self.interval = interval
 
         self.plugins = plugins or []
-        self._logger.debug("Job %r initialized with plugins: %r",
-                           self.name, self.plugins)
+        self._log_context = {}
         self.containers = storage.ContainerRepository()
         self.storage_queue = []
-
-        # Initialize netbox in container
-        nb = self.container_factory(shadows.Netbox, key=None,
-                                    id=netbox.id, sysname=netbox.sysname)
 
         self.agent = None
 
@@ -129,7 +129,7 @@ class JobHandler(object):
         self.agent = None
 
     @defer.inlineCallbacks
-    def find_plugins(self):
+    def _find_plugins(self):
         """Populate the internal plugin list with plugin class instances."""
         from nav.ipdevpoll.config import ipdevpoll_conf
 
@@ -209,7 +209,7 @@ class JobHandler(object):
             return failure
 
         def next_plugin(result=None):
-            self.raise_if_cancelled()
+            self._raise_if_cancelled()
             try:
                 plugin_instance = plugins.next()
             except StopIteration:
@@ -236,8 +236,18 @@ class JobHandler(object):
                   plugins ran).
 
         """
+        self.netbox = yield dataloader.load_netbox(self.netbox_id)
+        self._log_context.update(dict(job=self.name,
+                                      sysname=self.netbox.sysname))
+        self._logger.debug("Job %r started with plugins: %r",
+                           self.name, self.plugins)
+        # Initialize netbox in container
+        nb = self._container_factory(shadows.Netbox, key=None,
+                                     id=self.netbox.id,
+                                     sysname=self.netbox.sysname)
+
         self._create_agentproxy()
-        plugins = yield self.find_plugins()
+        plugins = yield self._find_plugins()
         self._reset_timers()
         if not plugins:
             self._destroy_agentproxy()
@@ -281,7 +291,7 @@ class JobHandler(object):
             if self.cancelled.isSet():
                 return wrap_up_job(result)
 
-            df = self.save_container()
+            df = self._save_container()
             df.addErrback(save_failure)
             df.addCallback(wrap_up_job)
             return df
@@ -296,12 +306,21 @@ class JobHandler(object):
             reactor.removeSystemEventTrigger(shutdown_trigger_id)
             return result
 
+        def log_externally_success(result):
+            self._log_job_externally(True if result else None)
+            return result
+
+        def log_externally_failure(result):
+            self._log_job_externally(False)
+            return result
+
         # The action begins here
         df = self._iterate_plugins(plugins)
         df.addErrback(plugin_failure)
         df.addCallback(save)
         df.addErrback(log_abort)
         df.addBoth(cleanup)
+        df.addCallbacks(log_externally_success, log_externally_failure)
         yield df
         defer.returnValue(True)
 
@@ -359,7 +378,7 @@ class JobHandler(object):
         """Returns time elapsed since the start of the job as a timedelta."""
         return datetime.datetime.now() - self._start_time
 
-    def save_container(self):
+    def _save_container(self):
         """
         Parses the container and finds a sane storage order. We do this
         so we get ForeignKeys stored before the objects that are using them
@@ -369,31 +388,31 @@ class JobHandler(object):
         def complete_save_cycle():
             # Traverse all the classes in the container repository and
             # generate the storage queue
-            self.populate_storage_queue()
+            self._populate_storage_queue()
             # Prepare all shadow objects for storage.
-            self.prepare_containers_for_save()
+            self._prepare_containers_for_save()
             # Actually save to the database
-            result = self.perform_save()
-            self.log_timed_result(result, "Storing to database complete")
+            result = self._perform_save()
+            self._log_timed_result(result, "Storing to database complete")
             # Do cleanup for the known container classes.
-            self.cleanup_containers_after_save()
+            self._cleanup_containers_after_save()
 
         df = db.run_in_thread(complete_save_cycle)
         return df
 
-    def prepare_containers_for_save(self):
+    def _prepare_containers_for_save(self):
         """Runs every queued manager's prepare routine"""
         for manager in self.storage_queue:
-            self.raise_if_cancelled()
+            self._raise_if_cancelled()
             manager.prepare()
 
-    def cleanup_containers_after_save(self):
+    def _cleanup_containers_after_save(self):
         """Runs every queued manager's cleanup routine"""
         self._logger.debug("Running cleanup routines for %d managers",
                            len(self.storage_queue), self.storage_queue)
         try:
             for manager in self.storage_queue:
-                self.raise_if_cancelled()
+                self._raise_if_cancelled()
                 manager.cleanup()
         except AbortedJobError:
             raise
@@ -407,17 +426,17 @@ class JobHandler(object):
                                    django.db.connection.queries[-1])
             raise
 
-    def log_timed_result(self, res, msg):
+    def _log_timed_result(self, res, msg):
         self._logger.debug(msg + " (%0.3f ms)" % res)
 
-    def perform_save(self):
+    def _perform_save(self):
         start_time = time.time()
         manager = None
         try:
             self._log_containers("containers before save")
 
             for manager in self.storage_queue:
-                self.raise_if_cancelled()
+                self._raise_if_cancelled()
                 manager.save()
 
             end_time = time.time()
@@ -446,7 +465,7 @@ class JobHandler(object):
                   prefix and "%s: " % prefix,
                   pprint.pformat(dict(self.containers)))
 
-    def populate_storage_queue(self):
+    def _populate_storage_queue(self):
         """Naive population of the storage queue.
 
         Assuming there are no inter-dependencies between instances of a single
@@ -459,11 +478,11 @@ class JobHandler(object):
             manager = shadow_class.manager(shadow_class, self.containers)
             self.storage_queue.append(manager)
 
-    def container_factory(self, container_class, key, *args, **kwargs):
+    def _container_factory(self, container_class, key, *args, **kwargs):
         """Container factory function"""
         return self.containers.factory(key, container_class, *args, **kwargs)
 
-    def raise_if_cancelled(self):
+    def _raise_if_cancelled(self):
         """Raises an AbortedJobError if the current job is cancelled"""
         if self.cancelled.isSet():
             raise AbortedJobError("Job was already cancelled")
@@ -475,3 +494,39 @@ class JobHandler(object):
 
         """
         return len([o for o in gc.get_objects() if isinstance(o, cls)])
+
+    # pylint: disable=W0703
+    @defer.inlineCallbacks
+    def _log_job_externally(self, success=True):
+        """Logs a job to the database"""
+        duration = self.get_current_runtime()
+        duration_in_seconds = (duration.days * 86400 +
+                               duration.seconds +
+                               duration.microseconds / 1e6)
+        timestamp = time.time()
+
+        def _create_record(timestamp):
+            log = manage.IpdevpollJobLog(
+                netbox_id=self.netbox.id,
+                job_name=self.name,
+                end_time=datetime.datetime.fromtimestamp(timestamp),
+                duration=duration_in_seconds,
+                success=success,
+                interval=self.interval
+            )
+            log.save()
+
+        def _log_to_graphite():
+            prefix = metric_prefix_for_ipdevpoll_job(self.netbox.sysname,
+                                                     self.name)
+            runtime_path = prefix + ".runtime"
+            runtime = (runtime_path, (timestamp, duration_in_seconds))
+            send_metrics([runtime])
+
+        _log_to_graphite()
+        try:
+            yield db.run_in_thread(_create_record, timestamp)
+        except db.ResetDBConnectionError:
+            pass  # this is being logged all over the place at the moment
+        except Exception as error:
+            _logger.warning("failed to log job to database: %s", error)

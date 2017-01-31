@@ -83,8 +83,8 @@ def import_plugin(config, alias):
 def get_plugin_from_module(module_):
     """Tries to find a Plugin subclass in module_ and returns it"""
     def _predicate(thing):
-        return (inspect.isclass(thing) and issubclass(thing, Plugin)
-                and inspect.getmodule(thing) == module_)
+        return (inspect.isclass(thing) and issubclass(thing, Plugin) and
+                inspect.getmodule(thing) == module_)
 
     members = inspect.getmembers(module_, _predicate)
     if members:
