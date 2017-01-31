@@ -49,7 +49,7 @@ except ImportError:
         try:
             version.verifyVersionRequirement(3, 4, 3)
             BACKEND = 'se'
-        except Exception, e:
+        except Exception as e:
             # Accept any exception, it will be from the verifyVersionRequirement
             # function (pysnmp.error.PySnmpVersionError)
             # For easier unit testing we accept any exception for this code line

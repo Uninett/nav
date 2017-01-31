@@ -135,7 +135,7 @@ class NetboxModelForm(forms.ModelForm):
         if ip:
             try:
                 self._check_existing_ip(ip)
-            except IPExistsException, ex:
+            except IPExistsException as ex:
                 self._errors['ip'] = self.error_class(ex.message)
                 del cleaned_data['ip']
 

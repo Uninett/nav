@@ -41,7 +41,7 @@ class UninettMailDispatcher(Dispatcher):
         try:
             # Mail adress for gateway
             self.mailaddr = config['mailaddr']
-        except KeyError, error:
+        except KeyError as error:
             raise DispatcherError("Config option not found: %s" % error)
 
     def sendsms(self, phone, msgs):
@@ -78,7 +78,7 @@ class UninettMailDispatcher(Dispatcher):
             server = smtplib.SMTP('localhost')
             result = server.sendmail(sender, self.mailaddr, message)
             server.quit()
-        except smtplib.SMTPException, error:
+        except smtplib.SMTPException as error:
             raise DispatcherError("SMTP error: %s" % error)
 
         if len(result) == 0:

@@ -91,9 +91,9 @@ class Snmp(object):
             self.handle.send(
                 req.berEncode(), dst=(self.host, self.port))
             (answer, _src) = self.handle.receive()
-        except snmperror.NoResponseError, err:
+        except snmperror.NoResponseError as err:
             raise TimeOutException(err)
-        except snmperror.NetworkError, err:
+        except snmperror.NetworkError as err:
             raise NetworkError(err)
 
         # Decode raw response/answer
@@ -172,9 +172,9 @@ class Snmp(object):
             self.handle.send(
                 req.berEncode(), dst=(self.host, self.port))
             (answer, _src) = self.handle.receive()
-        except snmperror.NoResponseError, err:
+        except snmperror.NoResponseError as err:
             raise TimeOutException(err)
-        except snmperror.NetworkError, err:
+        except snmperror.NetworkError as err:
             raise NetworkError(err)
 
         # Decode raw response/answer
@@ -216,9 +216,9 @@ class Snmp(object):
                 self.handle.send(
                     req.berEncode(), dst=(self.host, self.port))
                 (answer, _src) = self.handle.receive()
-            except snmperror.NoResponseError, err:
+            except snmperror.NoResponseError as err:
                 raise TimeOutException(err)
-            except snmperror.NetworkError, err:
+            except snmperror.NetworkError as err:
                 raise NetworkError(err)
 
             # Decode raw response/answer
@@ -328,9 +328,9 @@ class Snmp(object):
                 self.handle.send(
                     req.berEncode(), dst=(self.host, self.port))
                 (answer, _src) = self.handle.receive()
-            except snmperror.NoResponseError, err:
+            except snmperror.NoResponseError as err:
                 raise TimeOutException(err)
-            except snmperror.NetworkError, err:
+            except snmperror.NetworkError as err:
                 raise NetworkError(err)
 
             # Decode raw response/answer

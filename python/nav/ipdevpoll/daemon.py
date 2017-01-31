@@ -338,7 +338,7 @@ class CommandProcessor(object):
         """Exits the process if another ipdevpoll daemon is already running"""
         try:
             nav.daemon.justme(self.pidfile)
-        except nav.daemon.DaemonError, error:
+        except nav.daemon.DaemonError as error:
             self._logger.error(error)
             sys.exit(1)
 
@@ -347,7 +347,7 @@ class CommandProcessor(object):
         try:
             nav.daemon.daemonize(self.pidfile,
                                  stderr=nav.logs.get_logfile_from_logger())
-        except nav.daemon.DaemonError, error:
+        except nav.daemon.DaemonError as error:
             self._logger.error(error)
             sys.exit(1)
 

@@ -116,7 +116,7 @@ def snmp_write_test(ip, community, snmp_version):
         snmp = Snmp(ip, community, snmp_version)
         value = snmp.get(syslocation)
         snmp.set(syslocation, 's', value)
-    except SnmpError, error:
+    except SnmpError as error:
         try:
             value.decode('ascii')
         except UnicodeDecodeError:
@@ -222,9 +222,9 @@ def get_address_info(request):
                                    key=lambda item:
                                    socket.inet_pton(item[0], item[4][0]))
             addresses = [x[4][0] for x in sorted_tuples]
-        except socket.error, error:
+        except socket.error as error:
             context = {'error': str(error)}
-        except UnicodeError, error:
+        except UnicodeError as error:
             context = {'error': str(error)}
         else:
             context = {

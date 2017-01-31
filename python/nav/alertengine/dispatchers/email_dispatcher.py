@@ -54,7 +54,7 @@ class Email(Dispatcher):
                 _logger.debug('alert %d: In testing mode, would have sent '
                               'email to %s', alert.id, address.address)
 
-        except SMTPException, err:
+        except SMTPException as err:
             msg = 'Could not send email: %s" ' % err
             if (isinstance(err, SMTPRecipientsRefused) or
                 (hasattr(err, "smtp_code") and

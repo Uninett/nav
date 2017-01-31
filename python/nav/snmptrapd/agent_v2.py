@@ -53,7 +53,7 @@ class TrapListener:
             # Receive a request message
             try:
                 (question, src) = self._agent.receive()
-            except select.error, why:
+            except select.error as why:
                 # resume loop if a signal interrupted the receive operation
                 if why.args[0] == 4: # error 4 = system call interrupted
                     continue
@@ -75,7 +75,7 @@ class TrapListener:
                 vals = map(lambda x: x[0](), map(asn1.decode,
                                                  req['encoded_vals']))
 
-            except Exception, why:
+            except Exception as why:
                 # We must not die because of any malformed packets; log
                 # and ignore any exception
                 logger.exception("Exception while decoding snmp trap packet "

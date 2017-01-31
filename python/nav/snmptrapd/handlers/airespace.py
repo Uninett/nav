@@ -79,7 +79,7 @@ def handleTrap(trap, config=None):
 
     try:
         e.post()
-    except Exception, e:
+    except Exception as e:
         logger.error(e)
         return False
 

@@ -268,7 +268,7 @@ class MegaPing:
                     self._sock4.sendto(packet, (host.ip, 0))
                 else:
                     self._sock6.sendto(packet, (host.ip, 0, 0, 0))
-            except Exception, error:
+            except Exception as error:
                 debug("Failed to ping %s [%s]" % (host.ip, error), 5)
 
             sleep(self._delay)
@@ -321,7 +321,7 @@ class MegaPing:
         packet_class = PacketV6 if is_ipv6 else PacketV4
         try:
             pong = packet_class(raw_pong)
-        except Exception, error:
+        except Exception as error:
             debug("could not disassemble packet from %r: %s" % (
                     sender, error), 2)
             return

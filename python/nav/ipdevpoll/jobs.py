@@ -112,7 +112,7 @@ class JobHandler(object):
         )
         try:
             self.agent.open()
-        except SnmpError, error:
+        except SnmpError as error:
             self.agent.close()
             session_count = self.agent.count_open_sessions()
             job_count = self.get_instance_count()
@@ -167,7 +167,7 @@ class JobHandler(object):
                                                        self.netbox)
             except db.ResetDBConnectionError:
                 raise
-            except Exception, err:
+            except Exception:
                 self._logger.exception(
                     "Unhandled exception from can_handle(): %r", cls)
                 can_handle = False

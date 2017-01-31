@@ -57,7 +57,7 @@ def main():
     sync = Synchronizer(sql_dir, options.apply_out_of_order_changes)
     try:
         sync.connect()
-    except psycopg2.OperationalError, err:
+    except psycopg2.OperationalError as err:
         die(err)
 
     sync.synchronize()
@@ -220,7 +220,7 @@ def handle_missing_binaries(func):
     def _decorator(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except OSError, err:
+        except OSError as err:
             program = args[0][0]
             if err.errno in messages:
                 die("%s: %s" % (messages[err.errno], program))
@@ -506,7 +506,7 @@ class Synchronizer(object):
         print_color("%-20s " % (filename + ":"), COLOR_CYAN, newline=False)
         try:
             self.cursor.execute(sql)
-        except (psycopg2.DataError, psycopg2.ProgrammingError), err:
+        except (psycopg2.DataError, psycopg2.ProgrammingError) as err:
             print_color(str(err) or type(err).__name__, COLOR_RED)
             sys.exit(2)
         else:

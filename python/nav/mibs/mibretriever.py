@@ -234,7 +234,7 @@ class MibRetrieverMaker(type):
     def __init__(cls, name, bases, dct):
         try:
             mib = dct['mib']
-        except KeyError, error:
+        except KeyError:
             try:
                 mib = bases[0].mib
             except AttributeError:

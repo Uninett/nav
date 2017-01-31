@@ -29,7 +29,7 @@ from nav.smsd.dispatcher import (Dispatcher, PermanentDispatcherError,
 
 try:
     import gammu
-except ImportError, error:
+except ImportError as error:
     raise PermanentDispatcherError(
           'python-gammu not installed or misconfigured.')
 
@@ -70,7 +70,7 @@ class GammuDispatcher(Dispatcher):
         try:
             # Typically ~root/.gammurc or ~$NAV_USER/.gammurc
             sm.ReadConfig()
-        except IOError, error:
+        except IOError as error:
             raise PermanentDispatcherError(error)
 
         try:
@@ -78,7 +78,7 @@ class GammuDispatcher(Dispatcher):
             # See http://www.gammu.org/wiki/index.php?title=Gammu:Error_Codes
             # for complete list of errors fetched here
             sm.Init()
-        except gammu.GSMError, error:
+        except gammu.GSMError as error:
             raise PermanentDispatcherError(
                   "GSM %s error %d: %s" % (error[0]['Where'],
                                            error[0]['Code'],
@@ -96,7 +96,7 @@ class GammuDispatcher(Dispatcher):
             # - Nokia 6610, Tekram IRmate 410U and Gammu 1.07.00
             # - Sony Ericsson K310, USB cable, Gammu 1.06.00, python-gammu 0.13
             smsid = sm.SendSMS(message)
-        except gammu.GSMError, error:
+        except gammu.GSMError as error:
             raise DispatcherError("GSM %s error %d: %s" % (error[0]['Where'],
                                                            error[0]['Code'],
                                                            error[0]['Text']))
