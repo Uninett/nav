@@ -96,10 +96,13 @@ class TrafficView(views.APIView):
 
     renderer_classes = (JSONRenderer,)
 
+    # TODO: add location filter
     def get(self, _request, *args, **kwargs):
         """Controller for GET-requests for Traffic data"""
         layer = int(kwargs.pop('layer', 2))
-        traffic = get_layer3_traffic() if layer is 3 else get_layer2_traffic()
+        # TODO: should probably use id
+        locationId = kwargs.pop('locationId')
+        traffic = get_layer3_traffic(locationId) if layer is 3 else get_layer2_traffic(locationId)
         return Response(traffic)
 
 
