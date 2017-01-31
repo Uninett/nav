@@ -315,11 +315,13 @@ def get_next_subnet(net):
 
 def create_subnet_range(net, prefixlen):
     """Creates all subnets of the given size inside the net"""
-    assert prefixlen > net.prefixlen(), '{} <= than {}'.format(net, prefixlen)
+    assert prefixlen >= net.prefixlen(), '{} < than {}'.format(net, prefixlen)
+    # Return self as the net cannot be divided further
+    if net.prefixlen() == prefixlen:
+        return [net]
     subnet = IP("{}/{}" .format(net.net().strNormal(), prefixlen))
     subnet_range = []
     while net.overlaps(subnet):
         subnet_range.append(subnet)
         subnet = get_next_subnet(subnet)
-
     return subnet_range
