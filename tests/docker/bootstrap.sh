@@ -8,6 +8,8 @@ if [ "$EUID" -eq "0" ]; then
     gid=$(stat -c '%g' /source)
     usermod --uid "$uid" build
     groupmod --non-unique  --gid "$gid" build
+    # init a temporary, writable local state directory for NAV
+    mkdir /var/run/nav ; chown build /var/run/nav
 fi
 
 
