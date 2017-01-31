@@ -11,7 +11,7 @@ if [ "$EUID" -eq "0" ]; then
     # init a temporary, writable local state directory for NAV
     mkdir -p /var/run/nav
     mkdir -p /source/build/var/log
-    chown build /var/run/nav /source/build/var/log
+    chown build /var/run/nav /source/build /source/build/var /source/build/var/log
 fi
 
 
