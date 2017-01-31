@@ -5,7 +5,7 @@ build_nav() {
 
     echo "Building and installing NAV..."
     ./autogen.sh
-    ./configure --prefix "${BUILDDIR}" NAV_USER=build
+    ./configure --prefix "${BUILDDIR}" --localstatedir=/var/run/nav NAV_USER=build
     make
     make install
     cat > "${BUILDDIR}/etc/logging.conf" <<EOF
