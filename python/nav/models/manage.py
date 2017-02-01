@@ -1655,6 +1655,29 @@ class RoutingProtocolAttribute(models.Model):
         db_table = u'rproto_attr'
 
 
+class GatewayPeerSession(models.Model):
+    """Gateway protocol session decriptor"""
+    PROTOCOL_BGP = 1
+    PROTOCOL_OSPF = 2
+    PROTOCOL_ISIS = 3
+
+    PROTOCOL_CHOICES = (
+        (PROTOCOL_BGP, 'BGP'),
+        (PROTOCOL_OSPF, 'OSPF'),
+        (PROTOCOL_ISIS, 'IS-IS'),
+    )
+
+    id = models.AutoField(primary_key=True, db_column='peersessionid')
+    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    protocol = models.IntegerField(choices=PROTOCOL_CHOICES)
+    peer = models.IPAddressField()
+    state = VarcharField()
+    adminstatus = VarcharField()
+
+    class Meta(object):
+        db_table = u'peersession'
+
+
 class Sensor(models.Model):
     """
     This table contains meta-data about available sensors in
