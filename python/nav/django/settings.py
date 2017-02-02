@@ -153,7 +153,6 @@ DJANGO_HSTORE_GLOBAL_REGISTER = False
 
 NAVLETS = (
     'nav.web.navlets.machinetracker.MachineTrackerNavlet',
-    'nav.web.navlets.status.StatusNavlet',
     'nav.web.navlets.error.ErrorWidget',
     'nav.web.navlets.vlangraph.VlanGraphNavlet',
     'nav.web.navlets.portadmin.PortadminNavlet',
