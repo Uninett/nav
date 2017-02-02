@@ -917,7 +917,6 @@ class MatchField(models.Model):
     NETBOXINFO = 'netboxinfo'
     ORGANIZATION = 'org'
     PREFIX = 'prefix'
-    PRODUCT = 'product'
     ROOM = 'room'
     SERVICE = 'service'
     INTERFACE = 'interface'
@@ -942,7 +941,6 @@ class MatchField(models.Model):
         (NETBOXINFO, _('netbox info')),
         (ORGANIZATION, _('organization')),
         (PREFIX, _('prefix')),
-        (PRODUCT, _('product')),
         (ROOM, _('room')),
         (SERVICE, _('service')),
         (INTERFACE, _('Interface')),
@@ -969,13 +967,12 @@ class MatchField(models.Model):
         NETBOXINFO:   'netbox__info',
         ORGANIZATION: 'netbox__organization',
         PREFIX:       'netbox__prefix',
-        PRODUCT:      'netbox__device__product',
         ROOM:         'netbox__room',
         SERVICE:      'netbox__service',
         INTERFACE:    'netbox__connected_to_interface',
         TYPE:         'netbox__type',
         USAGE:        'netbox__organization__vlan__usage',
-        VENDOR:       'netbox__device__product__vendor',
+        VENDOR:       'netbox__type__vendor',
         VLAN:         'netbox__organization__vlan',
         ALERT:        '',  # Checks alert object itself
         ALERTTYPE:    'alert_type',
