@@ -31,9 +31,8 @@ define([
             'netmap:zoomToExtent': 'zoomToExtent',
             'netmap:resetTransparency': 'resetTransparency',
             'netmap:resetZoom': 'resetZoom',
-            'netmap:unfixNodes': 'unfixNodes',
             'netmap:fixNodes': 'fixNodes',
-            'netmap:toggleForce': 'toggleForce'
+            'netmap:unfixNodes': 'unfixNodes'
         },
 
         initialize: function () {
@@ -47,7 +46,6 @@ define([
                 .linkDistance(250)
                 .size([this.w, this.h]);
 
-            this.forceEnabled = true;
             this.nodes = this.force.nodes();
             this.links = this.force.links();
             this.isLoadingForTheFirstTime = true;
@@ -360,9 +358,6 @@ define([
             this.updateNodesAndLinks();
             this.transformGraph();
             this.render();
-
-            this.force.start();
-            this.forceEnabled = true;
         },
 
         render: function () {
@@ -649,24 +644,12 @@ define([
             _.each(this.nodes, function (node) {
                 node.fixed = false;
             });
-            if (this.forceEnabled) {
-                this.force.resume();
-            }
         },
 
         fixNodes: function () {
             _.each(this.nodes, function (node) {
                 node.fixed = true;
             });
-        },
-
-        toggleForce: function (statusOn) {
-            if (statusOn) {
-                this.force.stop();
-            } else {
-                this.force.resume();
-            }
-            this.forceEnabled = !this.forceEnabled;
         },
 
         /**
@@ -755,9 +738,6 @@ define([
 
         dragEnd: function (node, self) {
             d3.select(this).select('circle').remove();
-            if (self.forceEnabled) {
-                self.force.resume();
-            }
         },
 
         zoomCallback: function () {

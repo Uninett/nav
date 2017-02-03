@@ -147,20 +147,6 @@ define([
             Backbone.EventBroker.trigger('netmap:fixNodes');
         },
 
-        fireToggleForce: function (e) {
-
-            var targetElem = this.$(e.currentTarget);
-            var statusOn = targetElem.data('status') === 'on';
-            if (statusOn) {
-                targetElem.data('status', 'off');
-                targetElem.html('Start animation <i class="fa fa-play"></i>');
-            } else { // off
-                targetElem.data('status', 'on');
-                targetElem.html('Stop animation <i class="fa fa-stop"></i>');
-            }
-            Backbone.EventBroker.trigger('netmap:toggleForce', statusOn);
-        },
-
         /**
          * Triggers when the topology layer is changed. Updates the
          * view and fires an event to the graph model
