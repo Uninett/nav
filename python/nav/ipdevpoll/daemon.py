@@ -35,6 +35,7 @@ from twisted.internet import reactor
 from twisted.internet.defer import maybeDeferred, setDebugging
 
 from nav import buildconf
+from nav.util import is_valid_ip
 import nav.daemon
 from nav.daemon import signame
 import nav.logs
@@ -49,9 +50,14 @@ class NetboxAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         if not values:
             parser.error("%s argument must be non-empty" % option_string)
-        matches = manage.Netbox.objects.filter(
-            Q(sysname__startswith=values) | Q(ip=values)
-        ).select_related('type', 'type__vendor').order_by('sysname')
+
+        search_base = manage.Netbox.objects.select_related(
+            'type', 'type__vendor').order_by('sysname')
+        if is_valid_ip(values, use_socket_lib=True):
+            matches = search_base.filter(ip=values)
+        else:
+            matches = search_base.filter(sysname__startswith=values)
+
         if len(matches) == 1:
             namespace.netbox = matches[0]
             namespace.foreground = True
