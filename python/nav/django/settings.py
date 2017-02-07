@@ -47,6 +47,7 @@ MANAGERS = ADMINS
 
 # Database / ORM configuration
 try:
+    _appname = os.path.basename(sys.argv[0])
     _host, _port, _name, _user, _password = get_connection_parameters('django')
     DATABASES = {
         'default': {
@@ -57,6 +58,10 @@ try:
             'USER': _user,
             'PASSWORD': _password,
             'CONN_MAX_AGE': 300,  # 5 minutes
+            'OPTIONS': {
+                'application_name': _appname or 'NAV',
+            }
+
         }
     }
 except IOError:
