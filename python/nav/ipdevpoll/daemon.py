@@ -32,6 +32,7 @@ from twisted.internet import reactor
 from twisted.internet.defer import maybeDeferred, setDebugging
 
 from nav import buildconf
+from nav.util import is_valid_ip
 import nav.daemon
 from nav.daemon import signame
 import nav.logs
@@ -315,9 +316,14 @@ class CommandProcessor(object):
     def _find_netbox(_option, opt, value, parser):
         if not value:
             parser.error("%s argument must be non-empty" % opt)
-        matches = manage.Netbox.objects.filter(
-            Q(sysname__startswith=value) | Q(ip=value)
-        ).select_related('type', 'type__vendor').order_by('sysname')
+
+        search_base = manage.Netbox.objects.select_related(
+            'type', 'type__vendor').order_by('sysname')
+        if is_valid_ip(value, use_socket_lib=True):
+            matches = search_base.filter(ip=value)
+        else:
+            matches = search_base.filter(sysname__startswith=value)
+
         if len(matches) == 1:
             parser.values.netbox = matches[0]
             parser.values.foreground = True
