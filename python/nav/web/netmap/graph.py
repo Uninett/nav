@@ -33,7 +33,7 @@ from nav.netmap.topology import (
     _get_vlans_map_layer3,
 )
 from nav.topology import vlan
-from nav.models.manage import Interface, Prefix, GwPortPrefix, Location
+from nav.models.manage import Interface, Prefix, GwPortPrefix, Location, Room
 from nav.netmap.traffic import get_traffic_data, get_traffic_for
 from django.core.cache import cache
 
@@ -159,7 +159,7 @@ def get_traffic_interfaces(edges, interfaces):
     return storage.values()
 
 
-def get_layer2_traffic(locationId):
+def get_layer2_traffic(locationOrRoomId):
     """Fetches traffic data for layer 2"""
     # Cache model: Index traffic by location
     cache_key = _cache_key("traffic", "locationId", "layer 2")
@@ -169,8 +169,13 @@ def get_layer2_traffic(locationId):
 
     start = datetime.now()
 
+    # TODO: Handle missing
+    room = Room.objects.filter(id=locationOrRoomId)
+    if room.exists():
+        location = Room.objects.get(id=locationOrRoomId)
+    else:
+        location = Location.objects.get(id=locationOrRoomId)
     # Sanity check: Does the room exist?
-    location = Location.objects.get(id=locationId)
     # Fetch interfaces for devices in that room
     interfaces = Interface.objects.filter(
         to_netbox__isnull=False,
@@ -216,7 +221,7 @@ def get_layer2_traffic(locationId):
     cache.set(cache_key, traffic, TRAFFIC_CACHE_TIMEOUT)
     return traffic
 
-def get_layer3_traffic(locationId):
+def get_layer3_traffic(locationOrRoomId):
     """Fetches traffic data for layer 3"""
 
     # Cache model: Index traffic by location
@@ -226,7 +231,11 @@ def get_layer3_traffic(locationId):
         return cached
 
     # Sanity check: Does the room exist?
-    location = Location.objects.get(id=locationId)
+    room = Room.objects.filter(id=locationOrRoomId)
+    if room.exists():
+        location = Room.objects.get(id=locationOrRoomId)
+    else:
+        location = Location.objects.get(id=locationOrRoomId)
 
     prefixes = Prefix.objects.filter(
         vlan__net_type__in=('link', 'elink', 'core')
