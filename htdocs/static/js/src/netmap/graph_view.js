@@ -69,6 +69,10 @@ define([
             this.bindEvents();
             this.initializeNetmapView();
             this.fetchGraphModel();
+
+            // We're using force to distribute the nodes to make them more readable
+            this.force.start();
+
         },
 
 
@@ -311,17 +315,14 @@ define([
                     return category.checked;
             }), 'name');
 
+            this.model.set("locations", this.netmapView.filterStrings);
             var nodes = this.model.get('nodeCollection').getGraphObjects();
             var links = this.model.get('linkCollection').getGraphObjects();
 
             nodes = filterNodesByCategories(nodes, categories);
             links = filterLinksByCategories(links, categories);
-            if (this.netmapView.filterStrings.length) {
-                // Make sure graph model is aware of our locations
-                this.model.set("locations", this.netmapView.filterStrings);
-                nodes = filterNodesByRoomsOrLocations(nodes, this.netmapView.filterStrings);
-                links = filterLinksByRoomsOrLocations(links, this.netmapView.filterStrings);
-            }
+            nodes = filterNodesByRoomsOrLocations(nodes, this.netmapView.filterStrings);
+            links = filterLinksByRoomsOrLocations(links, this.netmapView.filterStrings);
 
             this.graphInfoView.setVlans(this.model.get('vlanCollection'));
 
@@ -358,6 +359,8 @@ define([
             this.updateNodesAndLinks();
             this.transformGraph();
             this.render();
+            // Make sure the rendered nodes are evenly distributed
+            this.force.start();
         },
 
         render: function () {
@@ -478,7 +481,7 @@ define([
 
         refresh: function () {
 
-            if (this.netmapView.refreshTrafficOnly) {
+            if (this.netmapView.refreshTrafficOnly && this.model.get("locations").length) {
                 this.model.loadTraffic();
             } else {
                 this.fetchGraphModel();
@@ -555,7 +558,6 @@ define([
 
             this.netmapView.filterStrings = _.without(
                 this.netmapView.filterStrings, filter);
-            this.model.set("locations", this.netmapView.filterStrings);
             this.update();
         },
 
@@ -644,6 +646,7 @@ define([
             _.each(this.nodes, function (node) {
                 node.fixed = false;
             });
+            this.force.resume();
         },
 
         fixNodes: function () {

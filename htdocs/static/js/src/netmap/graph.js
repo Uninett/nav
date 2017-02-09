@@ -96,6 +96,12 @@ define([
             // TODO: Iterate over each locationId in netmapView.location_room_filter
             var locations = this.get('locations');
             var layer = this.get('layer');
+            // If no locations are defined, this is a noop
+            if (!locations.length) {
+                console.log('No data to fetch, skipping');
+                this.set('loadingTraffic', false);
+                return;
+            }
             _.each(locations, function(location) {
                 console.log("Getting layer", layer, "traffic for", location);
                 $.getJSON('traffic/layer' + layer + '/' + location)
