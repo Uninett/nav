@@ -1677,6 +1677,15 @@ class GatewayPeerSession(models.Model):
     class Meta(object):
         db_table = u'peersession'
 
+    def __repr__(self):
+        return ("<GatewayPeerSession: protocol={protocol} netbox={netbox}"
+                " peer={peer} state={state} adminstatus={adminstatus}>").format(
+            protocol=self.get_protocol_display(),
+            netbox=self.netbox,
+            peer=self.peer,
+            state=self.state,
+            adminstatus=self.adminstatus)
+
 
 class Sensor(models.Model):
     """
