@@ -11,7 +11,9 @@ CREATE TABLE peersession (
   CONSTRAINT peersession_netboxid_fkey
              FOREIGN KEY (netboxid)
              REFERENCES netbox (netboxid)
-             ON UPDATE CASCADE ON DELETE CASCADE
+             ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT peersession_uniq
+             UNIQUE (netboxid, protocol, peer)
 
 );
 
