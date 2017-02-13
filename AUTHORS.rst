@@ -17,6 +17,18 @@ Currently active contributors/maintainers
   project's opinionated know-it-all, working as the current project
   lead, after taking over for Vidar Faltinsen.
 
+* Hanne Moa <hanne.moa at uninett.no>
+  Joined in 2017. An experienced Python developer, still learning the NAV
+  ropes :-)
+
+* Sigmund Augdal <sigmund.augdal at uninett.no>
+  Joined in 2017. An experienced Python developer, still learning the NAV
+  ropes :-)
+
+* Emil Henry Flakk <emilhf at stud.ntnu.no>
+  Wrote the IPAM tool introduced in NAV 4.6, and continues to work on
+  Netmap/Geomap fixes, among other things.
+
 
 Other contributors and previous maintainers
 -------------------------------------------
@@ -25,9 +37,6 @@ Other contributors and previous maintainers
   around a network, and has been a NAV mentor for all these years -
   producing documentation and offering keen insight into the problem
   domain.
-
-* Emil Henry Flakk <emilhf at stud.ntnu.no>
-  Wrote the IPAM tool introduced in NAV 4.6.
 
 * Pär Stolpe <par at stolpe.se>
   Contributed more flexible LDAP authentication for Microsoft AD servers.
