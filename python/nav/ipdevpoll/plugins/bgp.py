@@ -18,6 +18,8 @@ from twisted.internet import defer
 
 from nav.ipdevpoll import Plugin
 from nav.mibs.bgp4_mib import BGP4Mib
+from nav.ipdevpoll.shadows import GatewayPeerSession, Netbox
+from nav.models import manage
 
 
 class BGP(Plugin):
@@ -35,3 +37,17 @@ class BGP(Plugin):
         data = yield mib.get_bgp_peer_states()
         for peer in data.values():
             self._logger.debug("bgp peer: %r", peer)
+            self._make_gwpeer(peer)
+
+    def _make_gwpeer(self, bgp_peer_state):
+        netbox = self.containers.factory(None, Netbox)
+
+        key = ('bgp', str(bgp_peer_state.peer))
+        session = self.containers.factory(key, GatewayPeerSession)
+        session.netbox = self.netbox
+        session.protocol = manage.GatewayPeerSession.PROTOCOL_BGP
+        session.peer = bgp_peer_state.peer
+        session.state = bgp_peer_state.state
+        session.adminstatus = bgp_peer_state.adminstatus
+
+        return session
