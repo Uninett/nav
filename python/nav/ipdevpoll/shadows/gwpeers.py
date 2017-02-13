@@ -28,12 +28,15 @@ class GatewayPeerSessionManager(DefaultManager):
     def __init__(self, *args, **kwargs):
         super(GatewayPeerSessionManager, self).__init__(*args, **kwargs)
         self.netbox = self.containers.get(None, Netbox)
+        self._sessions_to_keep = set()
+        self._sessions_to_remove = set()
 
     def prepare(self):
         for session in self.get_managed():
             session.peer = str(session.peer)
         self._load_existing_sessions()
         self._map_known_sessions()
+        self._map_unknown_sessions()
 
     def _load_existing_sessions(self):
         sessions = manage.GatewayPeerSession.objects
@@ -46,6 +49,18 @@ class GatewayPeerSessionManager(DefaultManager):
             key = (session.protocol, str(session.peer))
             if key in self._map:
                 session.set_existing_model(self._map[key])
+                self._sessions_to_keep.add(self._map[key])
+
+    def _map_unknown_sessions(self):
+        previous_sessions = set(self._map.values())
+        self._sessions_to_remove = previous_sessions - self._sessions_to_keep
+
+    def cleanup(self):
+        if self._sessions_to_remove:
+            self._logger.info("Removing these peering sessions, that seem to "
+                              "have disappeared: %r", self._sessions_to_remove)
+            for session in self._sessions_to_remove:
+                session.delete()
 
 
 class GatewayPeerSession(Shadow):
