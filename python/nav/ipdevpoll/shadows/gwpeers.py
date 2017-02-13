@@ -51,12 +51,14 @@ class GatewayPeerSessionManager(DefaultManager):
 class GatewayPeerSession(Shadow):
     """A GatewayPeerSession shadow class"""
     __shadowclass__ = manage.GatewayPeerSession
+    _protocol_map = dict(manage.GatewayPeerSession.PROTOCOL_CHOICES)
     manager = GatewayPeerSessionManager
 
     def save(self, containers):
         model = self.get_existing_model(containers)
         if model:
             if model.state != self.state:
+                proto = self._protocol_map.get(self.protocol, None)
                 self._logger.info("%s STATE CHANGE DETECTED: %s -> %s",
-                                  self.protocol, model.state, self.state)
+                                  proto, model.state, self.state)
         return super(GatewayPeerSession, self).save(containers)
