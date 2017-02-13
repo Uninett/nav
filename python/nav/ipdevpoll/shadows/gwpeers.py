@@ -19,12 +19,39 @@ from __future__ import absolute_import
 
 from nav.ipdevpoll.storage import Shadow, DefaultManager
 from nav.models import manage
+from .netbox import Netbox
+
+
+class GatewayPeerSessionManager(DefaultManager):
+    _map = None
+
+    def __init__(self, *args, **kwargs):
+        super(GatewayPeerSessionManager, self).__init__(*args, **kwargs)
+        self.netbox = self.containers.get(None, Netbox)
+
+    def prepare(self):
+        for session in self.get_managed():
+            session.peer = str(session.peer)
+        self._load_existing_sessions()
+        self._map_known_sessions()
+
+    def _load_existing_sessions(self):
+        sessions = manage.GatewayPeerSession.objects
+        sessions = sessions.filter(netbox=self.netbox.id)
+        self._map = {(sess.protocol, str(sess.peer)): sess
+                     for sess in sessions}
+
+    def _map_known_sessions(self):
+        for session in self.get_managed():
+            key = (session.protocol, str(session.peer))
+            if key in self._map:
+                session.set_existing_model(self._map[key])
 
 
 class GatewayPeerSession(Shadow):
     """A GatewayPeerSession shadow class"""
     __shadowclass__ = manage.GatewayPeerSession
-    __lookups__ = [('netbox', 'protocol', 'peer')]
+    manager = GatewayPeerSessionManager
 
     def save(self, containers):
         model = self.get_existing_model(containers)
