@@ -314,15 +314,7 @@ class CommandProcessor(object):
         """Initializes ipdevpoll logging for the current process."""
         formatter = ContextFormatter(self.options.pidlog)
 
-        # First initialize logging to stderr.
-        stderr_handler = logging.StreamHandler(sys.stderr)
-        stderr_handler.setFormatter(formatter)
-
-        root_logger = logging.getLogger('')
-        root_logger.addHandler(stderr_handler)
-
-        nav.logs.set_log_config()
-
+        logfile_name = None
         if not stderr_only:
             # Now try to load config and output logs to the configured file
             # instead.
@@ -332,11 +324,14 @@ class CommandProcessor(object):
                 logfile_name = os.path.join(nav.buildconf.localstatedir,
                                             'log', logfile_name)
 
-            file_handler = logging.FileHandler(logfile_name, 'a')
-            file_handler.setFormatter(formatter)
+        nav.logs.init_generic_logging(
+            logfile=logfile_name,
+            stderr=True,
+            formatter=formatter,
+            read_config=True,
+        )
 
-            root_logger.addHandler(file_handler)
-            root_logger.removeHandler(stderr_handler)
+        if not stderr_only:
             nav.daemon.redirect_std_fds(
                 stderr=nav.logs.get_logfile_from_logger())
 

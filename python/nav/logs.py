@@ -173,7 +173,7 @@ def get_logfile_from_logger(logger=logging.root):
             return handler.stream
 
 
-def init_stderr_logging(formatter=None):
+def init_stderr_logging(formatter=None, rootlogger=''):
     """Initializes logging to stderr.
 
     Log levels are read from logging.conf, the root logger's format is set to
@@ -186,5 +186,39 @@ def init_stderr_logging(formatter=None):
     handler = logging.StreamHandler(sys.stderr)
     formatter = formatter or DEFAULT_LOG_FORMATTER
     handler.setFormatter(formatter)
-    root = logging.getLogger('')
+    root = logging.getLogger(rootlogger)
     root.addHandler(handler)
+
+
+def init_generic_logging(logfile=None, stderr=True, stdout=False,
+                         formatter=None, read_config=False, rootlogger='',
+                         stderr_level=None):
+    """Setup logging
+
+    Attempts to cover all the possible existing ways of setting up logging"""
+
+    root = logging.getLogger(rootlogger)
+
+    if stderr or (stdout and sys.stdout.isatty()):
+        tty = sys.stderr if stderr else sys.stdout
+        tty_handler = logging.StreamHandler(tty)
+        formatter = formatter or logging.Formatter(logging.BASIC_FORMAT)
+        tty_handler.setFormatter(formatter)
+        if stderr and stderr_level:
+            tty_handler.setLevel(stderr_level)
+        root.addHandler(tty_handler)
+
+    if logfile:
+        try:
+            filehandler = logging.FileHandler(logfile)
+        except IOError as err:
+            pass
+        else:
+            formatter = formatter or DEFAULT_LOG_FORMATTER
+            filehandler.setFormatter(formatter)
+            root.addHandler(filehandler)
+
+    if read_config:
+        set_log_config()
+    else:
+        set_log_levels()

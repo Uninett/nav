@@ -24,6 +24,7 @@ from optparse import OptionParser
 from collections import defaultdict
 
 from nav import buildconf
+from nav.logs import init_generic_logging
 from nav.models.fields import INFINITY
 from nav.models.manage import Netbox, Interface, Sensor
 from nav.models.thresholds import ThresholdRule
@@ -44,7 +45,12 @@ def main():
     parser = make_option_parser()
     (_options, _args) = parser.parse_args()
 
-    init_logging()
+    init_generic_logging(
+        logfile=LOGFILE_PATH,
+        stderr=False,
+        stdout=True,
+        read_config=True,
+    )
     django.setup()
     scan()
 
@@ -57,25 +63,6 @@ def make_option_parser():
                      "to configured threshold rules.")
     )
     return parser
-
-
-def init_logging():
-    """Initializes logging for this program"""
-    formatter = logging.Formatter(
-        "%(asctime)s [%(levelname)s %(name)s] %(message)s")
-    handler = logging.FileHandler(LOGFILE_PATH, 'a')
-    handler.setFormatter(formatter)
-
-    root = logging.getLogger('')
-    root.addHandler(handler)
-
-    if sys.stdout.isatty():
-        stdout_handler = logging.StreamHandler(sys.stdout)
-        stdout_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
-        root.addHandler(stdout_handler)
-
-    import nav.logs
-    nav.logs.set_log_config()
 
 
 def scan():

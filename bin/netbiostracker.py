@@ -22,7 +22,7 @@ from os.path import join
 from nav.netbiostracker import tracker
 from nav.netbiostracker.config import NetbiosTrackerConfig
 from nav.path import localstatedir
-from nav.logs import set_log_levels
+from nav.logs import init_generic_logging
 import django
 
 _logger = logging.getLogger('netbiostracker')
@@ -31,7 +31,8 @@ LOGFILE = 'netbiostracker.log'
 
 def main():
     """Main controller"""
-    init_logger(join(localstatedir, 'log', LOGFILE))
+    init_generic_logging(logfile=join(localstatedir, 'log', LOGFILE),
+                         stderr=False)
     django.setup()
     config = NetbiosTrackerConfig()
 
@@ -47,17 +48,6 @@ def main():
                  len(addresses), len(parsed_results), time.time() - start)
     _logger.info('Netbiostracker done')
 
-
-def init_logger(logfile):
-    """Create logger for this process"""
-    set_log_levels()
-
-    filehandler = logging.FileHandler(logfile)
-    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] '
-                                  '[%(name)s] %(message)s')
-    filehandler.setFormatter(formatter)
-    root = logging.getLogger('')
-    root.addHandler(filehandler)
 
 if __name__ == '__main__':
     main()
