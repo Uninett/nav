@@ -425,7 +425,8 @@ class ArpViewSet(MachineTrackerViewSet):
             except ValueError:
                 raise IPParseError
             oper = '=' if addr.len() == 1 else '<<'
-            queryset = queryset.extra(where=["ip {} '{}'".format(oper, addr)])
+            expr = "arp.ip {} '{}'".format(oper, addr)
+            queryset = queryset.extra(where=[expr])
 
         return queryset
 
