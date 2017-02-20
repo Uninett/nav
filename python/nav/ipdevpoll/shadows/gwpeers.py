@@ -72,8 +72,12 @@ class GatewayPeerSession(Shadow):
     def save(self, containers):
         model = self.get_existing_model(containers)
         if model:
+            proto = self._protocol_map.get(self.protocol, None)
             if model.state != self.state:
-                proto = self._protocol_map.get(self.protocol, None)
                 self._logger.info("%s STATE CHANGE DETECTED: %s -> %s",
                                   proto, model.state, self.state)
+            if model.adminstatus != self.adminstatus:
+                self._logger.info("%s ADMINSTATUS CHANGE DETECTED: %s -> %s",
+                                  proto, model.adminstatus, self.adminstatus)
+
         return super(GatewayPeerSession, self).save(containers)
