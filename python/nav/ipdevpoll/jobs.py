@@ -507,6 +507,12 @@ class JobHandler(object):
         timestamp = time.time()
 
         def _create_record(timestamp):
+            netbox = manage.Netbox.objects.get(id=self.netbox.id)
+            if netbox.deleted_at:
+                _logger.info("Not logging job to db; delete of this IP device"
+                             " was requested at %s", netbox.deleted_at)
+                return
+
             log = manage.IpdevpollJobLog(
                 netbox_id=self.netbox.id,
                 job_name=self.name,
