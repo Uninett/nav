@@ -17,6 +17,7 @@
 
 from datetime import datetime
 from collections import defaultdict
+from functools import partial
 
 from nav.netmap.metadata import (
     node_to_json_layer2,
@@ -35,21 +36,12 @@ from nav.netmap.topology import (
 from nav.topology import vlan
 from nav.models.manage import Interface, Prefix, GwPortPrefix, Location, Room
 from nav.netmap.traffic import get_traffic_data, get_traffic_for
-from django.core.cache import cache
 
 from .common import get_traffic_rgb
+from .cache import cache_traffic, cache_topology
 
 import logging
 _logger = logging.getLogger(__name__)
-
-# TODO: This cache should be shared by all of NAV?
-# TODO: This cache should be invalidated only when the topology is changed, which
-# is somewhat rare
-CACHE_TIMEOUT = 60*60
-
-# Data is collected every 5 minutes by NAV
-TRAFFIC_CACHE_TIMEOUT = 5*60
-
 
 def get_topology_graph(layer=2, load_traffic=False, view=None):
     """Builds and returns topology graph for the given layer"""
@@ -59,13 +51,8 @@ def get_topology_graph(layer=2, load_traffic=False, view=None):
         return _json_layer3(load_traffic, view)
 
 
+@partial(cache_topology, "layer 2")
 def _json_layer2(load_traffic=False, view=None):
-    cache_key = _cache_key("topology", "layer2")
-    cached = cache.get(cache_key)
-    # Catch hit
-    if cached is not None:
-        return cached
-
     topology_without_metadata = vlan.build_layer2_graph(
         (
             'to_interface__netbox',
@@ -90,19 +77,10 @@ def _json_layer2(load_traffic=False, view=None):
         'links': [edge_to_json_layer2((node_a, node_b), nx_metadata) for
                   node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
     }
-    # add to cache
-    cache.set(cache_key, result, CACHE_TIMEOUT)
     return result
 
-
+@partial(cache_topology, "layer 3")
 def _json_layer3(load_traffic=False, view=None):
-    cache_key = _cache_key("topology", "layer3")
-    cached = cache.get(cache_key)
-    # Catch hit
-    if cached is not None:
-        return cached
-
-
     topology_without_metadata = vlan.build_layer3_graph(
         ('prefix__vlan__net_type', 'gwportprefix__prefix__vlan__net_type',)
     )
@@ -117,7 +95,6 @@ def _json_layer3(load_traffic=False, view=None):
         'links': [edge_to_json_layer3((node_a, node_b), nx_metadata) for
                   node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
     }
-    cache.set(cache_key, result, CACHE_TIMEOUT)
     return result
 
 
@@ -159,22 +136,17 @@ def get_traffic_interfaces(edges, interfaces):
     return storage.values()
 
 
-def get_layer2_traffic(locationOrRoomId):
+@partial(cache_traffic, "layer 2")
+def get_layer2_traffic(location_or_room_id):
     """Fetches traffic data for layer 2"""
-    # Cache model: Index traffic by location
-    cache_key = _cache_key("traffic", "locationId", "layer 2")
-    cached = cache.get(cache_key)
-    if cached is not None:
-        return cached
-
     start = datetime.now()
 
-    # TODO: Handle missing
-    room = Room.objects.filter(id=locationOrRoomId)
+    # TODO: Handle missing?
+    room = Room.objects.filter(id=location_or_room_id)
     if room.exists():
-        location = Room.objects.get(id=locationOrRoomId)
+        location = Room.objects.get(id=location_or_room_id)
     else:
-        location = Location.objects.get(id=locationOrRoomId)
+        location = Location.objects.get(id=location_or_room_id)
     # Sanity check: Does the room exist?
     # Fetch interfaces for devices in that room
     interfaces = Interface.objects.filter(
@@ -218,24 +190,19 @@ def get_layer2_traffic(locationOrRoomId):
         })
 
     _logger.debug('Time used: %s', datetime.now() - start)
-    cache.set(cache_key, traffic, TRAFFIC_CACHE_TIMEOUT)
     return traffic
 
-def get_layer3_traffic(locationOrRoomId):
+
+@partial(cache_traffic, "layer 3")
+def get_layer3_traffic(location_or_room_id):
     """Fetches traffic data for layer 3"""
 
-    # Cache model: Index traffic by location
-    cache_key = _cache_key("traffic", "locationId", "layer 3")
-    cached = cache.get(cache_key)
-    if cached is not None:
-        return cached
-
     # Sanity check: Does the room exist?
-    room = Room.objects.filter(id=locationOrRoomId)
+    room = Room.objects.filter(id=location_or_room_id)
     if room.exists():
-        location = Room.objects.get(id=locationOrRoomId)
+        location = Room.objects.get(id=location_or_room_id)
     else:
-        location = Location.objects.get(id=locationOrRoomId)
+        location = Location.objects.get(id=location_or_room_id)
 
     prefixes = Prefix.objects.filter(
         vlan__net_type__in=('link', 'elink', 'core')
@@ -286,22 +253,4 @@ def get_layer3_traffic(locationOrRoomId):
                 (interface, to_interface,)
             ).to_json()
         })
-
-    cache.set(cache_key, traffic, TRAFFIC_CACHE_TIMEOUT)
-
     return traffic
-
-# TODO: Consider using a proper slug generator for this
-def _cache_key(*args):
-    """Construct a namespace cache key for storing/retrieving memory-cached data
-
-    :param args: The elements which, when joined, set the index of the data
-
-    Example:
-
-    _cache_key("topology", "layer 3")
-    => netmap:topology:layer3
-
-    """
-    args = (str(a).replace(' ', '-') for a in args)
-    return 'netmap:' + ':'.join(args)
