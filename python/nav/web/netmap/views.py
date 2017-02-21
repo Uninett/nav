@@ -101,11 +101,11 @@ class TrafficView(views.APIView):
         """Controller for GET-requests for Traffic data"""
         layer = int(kwargs.pop('layer', 2))
         # TODO: should probably use id
-        locationId = kwargs.pop('locationId')
+        roomid = kwargs.pop('roomid')
         if layer == 3:
-            traffic = get_layer3_traffic(locationId)
+            traffic = get_layer3_traffic(roomid)
         else:
-            traffic = get_layer2_traffic(locationId)
+            traffic = get_layer2_traffic(roomid)
         return Response(traffic)
 
 
