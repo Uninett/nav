@@ -36,7 +36,11 @@ class BGP(Plugin):
         mib = BGP4Mib(self.agent)
         data = yield mib.get_bgp_peer_states()
         for peer in data.values():
-            self._logger.debug("bgp peer: %r", peer)
+            if str(peer.peer) == '0.0.0.0':
+                self._logger.debug("ignoring buggy bgp entry: %r", peer)
+                continue  # ignore buggy entries
+            else:
+                self._logger.debug("bgp peer: %r", peer)
             self._make_gwpeer(peer)
 
     def _make_gwpeer(self, bgp_peer_state):
