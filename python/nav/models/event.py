@@ -236,6 +236,7 @@ class EventMixIn(object):
         'psuState': 'PowerSupplyOrFan',
         'fanState': 'PowerSupplyOrFan',
         'chassisState': 'NetboxEntity',
+        'bgpState': 'GatewayPeerSession',
     }
 
     def get_subject(self):
