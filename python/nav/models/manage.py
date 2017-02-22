@@ -1686,6 +1686,11 @@ class GatewayPeerSession(models.Model):
             state=self.state,
             adminstatus=self.adminstatus)
 
+    def __str__(self):
+        tmpl = "{netbox} {proto} session with {peer}"
+        return tmpl.format(netbox=self.netbox,
+                           proto=self.get_protocol_display(), peer=self.peer)
+
 
 class Sensor(models.Model):
     """
