@@ -3,19 +3,19 @@
   {# Left content, 50% width #}
   <div class="medium-6 column">
     {% block left-content %}
+      {{ alert.alert_type.description }}
     {% endblock %}
   </div>
 
   {# Middle content, 25% width #}
   <div class="medium-3 column">
     {% block middle-content %}
-      {{ alert.alert_type.description }}
       {% if alert.acknowledgement %}
         <p>
           Acknowledged by {{ acknowledgement.account.name }}
           ({{ acknowledgement.date }})
           {% if acknowledgement.comment %}
-            {{ acknowledgement.comment_html }}
+            :<br/>{{ acknowledgement.comment_html }}
           {% endif %}
         </p>
       {% endif %}
