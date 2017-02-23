@@ -44,12 +44,12 @@ class BGP(Plugin):
 
         self._logger.debug("Collect BGP peers from %s", mib.mib['moduleName'])
         data = yield mib.get_bgp_peer_states()
+        if data:
+            self._logger.debug("found %d bgp peers", len(data))
         for peer in data.values():
             if str(peer.peer) == '0.0.0.0':
                 self._logger.debug("ignoring buggy bgp entry: %r", peer)
                 continue  # ignore buggy entries
-            else:
-                self._logger.debug("bgp peer: %r", peer)
             self._make_gwpeer(peer)
 
     def _make_gwpeer(self, bgp_peer_state):
