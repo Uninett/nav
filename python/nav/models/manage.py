@@ -1677,6 +1677,17 @@ class GatewayPeerSession(models.Model):
     class Meta(object):
         db_table = u'peersession'
 
+    def get_peer_as_netbox(self):
+        """If the peer of this partner is a known Netbox, it is returned"""
+        expr = Q(ip=self.peer) | Q(interface__gwportprefix__gw_ip=self.peer)
+        netboxes = Netbox.objects.filter(expr)
+        if netboxes:
+            return netboxes[0]
+
+    def get_peer_display(self):
+        peer = self.get_peer_as_netbox()
+        return "{} ({})".format(peer, self.peer) if peer else str(self.peer)
+
     def __repr__(self):
         return ("<GatewayPeerSession: protocol={protocol} netbox={netbox}"
                 " peer={peer} state={state} adminstatus={adminstatus}>").format(
@@ -1689,7 +1700,8 @@ class GatewayPeerSession(models.Model):
     def __str__(self):
         tmpl = "{netbox} {proto} session with {peer}"
         return tmpl.format(netbox=self.netbox,
-                           proto=self.get_protocol_display(), peer=self.peer)
+                           proto=self.get_protocol_display(),
+                           peer=self.get_peer_display())
 
 
 class Sensor(models.Model):
