@@ -14,10 +14,11 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """BGP peer state monitor plugin for ipdevpoll"""
-from twisted.internet import defer
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.ipdevpoll import Plugin
 from nav.mibs.bgp4_mib import BGP4Mib
+from nav.mibs.bgp4_v2_mib_juniper import BGP4V2JuniperMib
 from nav.ipdevpoll.shadows import GatewayPeerSession, Netbox
 from nav.models import manage
 
@@ -31,9 +32,15 @@ class BGP(Plugin):
         daddy_says_ok = super(BGP, cls).can_handle(netbox)
         return daddy_says_ok and netbox.category.id in ('GW', 'GSW')
 
-    @defer.inlineCallbacks
+    @inlineCallbacks
     def handle(self):
-        mib = BGP4Mib(self.agent)
+        mib = yield self._get_supported_mib()
+
+        if not mib:
+            self._logger.debug("No BGP MIBs are supported")
+            returnValue(None)
+
+        self._logger.debug("Collect BGP peers from %s", mib.mib['moduleName'])
         data = yield mib.get_bgp_peer_states()
         for peer in data.values():
             if str(peer.peer) == '0.0.0.0':
@@ -55,3 +62,11 @@ class BGP(Plugin):
         session.adminstatus = bgp_peer_state.adminstatus
 
         return session
+
+    @inlineCallbacks
+    def _get_supported_mib(self):
+        for mibclass in (BGP4V2JuniperMib, BGP4Mib):
+            mib = mibclass(self.agent)
+            support = yield mib.is_supported()
+            if support:
+                returnValue(mib)
