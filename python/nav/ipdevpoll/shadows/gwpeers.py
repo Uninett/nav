@@ -99,7 +99,7 @@ class GatewayPeerSession(Shadow):
             return
 
         if model.adminstatus != self.adminstatus:
-            new_alert = self.adminstatus == 'stop'
+            new_alert = self.adminstatus in ('stop', 'halted')
             self._make_bgpstate_event(start=new_alert, is_adminstatus=True)
             return
 
