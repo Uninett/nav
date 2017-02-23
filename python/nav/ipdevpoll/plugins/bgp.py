@@ -17,10 +17,12 @@
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.ipdevpoll import Plugin
-from nav.mibs.bgp4_mib import BGP4Mib
-from nav.mibs.bgp4_v2_mib_juniper import BGP4V2JuniperMib
 from nav.ipdevpoll.shadows import GatewayPeerSession, Netbox
 from nav.models import manage
+
+from nav.mibs.bgp4_mib import BGP4Mib
+from nav.mibs.bgp4_v2_mib_juniper import BGP4V2JuniperMib
+from nav.mibs.cisco_bgp4_mib import CiscoBGP4Mib
 
 
 class BGP(Plugin):
@@ -65,7 +67,7 @@ class BGP(Plugin):
 
     @inlineCallbacks
     def _get_supported_mib(self):
-        for mibclass in (BGP4V2JuniperMib, BGP4Mib):
+        for mibclass in (BGP4V2JuniperMib, CiscoBGP4Mib, BGP4Mib):
             mib = mibclass(self.agent)
             support = yield mib.is_supported()
             if support:
