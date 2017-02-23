@@ -29,7 +29,9 @@ BgpPeerState = namedtuple('BgpPeerState', 'peer state adminstatus')
 class BGP4Mib(mibretriever.MibRetriever):
     """MibRetriever implementation for BGP4-MIB"""
     from nav.smidumps.bgp4_mib import MIB as mib
-    ROOT = 'bgp'
+    SUPPORTED_ROOT = 'bgp'
+    PEERSTATE_COLUMN = 'bgpPeerState'
+    ADMINSTATUS_COLUMN = 'bgpPeerAdminStatus'
 
     @defer.inlineCallbacks
     def is_supported(self):
@@ -38,7 +40,7 @@ class BGP4Mib(mibretriever.MibRetriever):
         :returns: A Deferred containing a boolean result.
 
         """
-        reply = yield self.get_next(self.ROOT)
+        reply = yield self.get_next(self.SUPPORTED_ROOT)
         returnValue(bool(reply))
 
     @defer.inlineCallbacks
@@ -50,10 +52,16 @@ class BGP4Mib(mibretriever.MibRetriever):
 
         """
         states = yield self.retrieve_columns(
-            ['bgpPeerState', 'bgpPeerAdminStatus']
+            [self.PEERSTATE_COLUMN, self.ADMINSTATUS_COLUMN]
         ).addCallback(self.translate_result)
-        result = {oid_to_ipv4(key): BgpPeerState(oid_to_ipv4(key),
-                                                 row['bgpPeerState'],
-                                                 row['bgpPeerAdminStatus'])
+        result = {self._bgp_row_to_remote_ip(key):
+                  BgpPeerState(self._bgp_row_to_remote_ip(key),
+                               row[self.PEERSTATE_COLUMN],
+                               row[self.ADMINSTATUS_COLUMN])
                   for key, row in states.iteritems()}
+        self._logger.debug("Found BGP peers: %r", result)
         returnValue(result)
+
+    @staticmethod
+    def _bgp_row_to_remote_ip(row_index):
+        return oid_to_ipv4(row_index)

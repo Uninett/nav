@@ -17,38 +17,21 @@
 """Implements a BGP4-V2-MIB-JUNIPER MibRetriever w/associated functionality."""
 
 from __future__ import absolute_import
-from twisted.internet import defer
-from twisted.internet.defer import returnValue
 
 from nav.oidparsers import consume, TypedFixedInetAddress, Unsigned32
-from .bgp4_mib import BGP4Mib, BgpPeerState
+from .bgp4_mib import BGP4Mib
 
 
 class BGP4V2JuniperMib(BGP4Mib):
     """MibRetriever implementation for BGP4-V2-MIB-JUNIPER"""
     from nav.smidumps.bgp4_v2_mib_juniper import MIB as mib
-    ROOT = 'jnxBgpM2'
+    SUPPORTED_ROOT = 'jnxBgpM2'
+    PEERSTATE_COLUMN = 'jnxBgpM2PeerState'
+    ADMINSTATUS_COLUMN = 'jnxBgpM2PeerStatus'
 
-    @defer.inlineCallbacks
-    def get_bgp_peer_states(self):
-        """Collects the table of BGP peering sessions.
-
-        :returns: A Deferred whose positive result is a list of BgpPeerState
-                  namedtuples.
-
-        """
-        states = yield self.retrieve_columns(
-            ['jnxBgpM2PeerState', 'jnxBgpM2PeerStatus']
-        ).addCallback(self.translate_result)
-        result = {_get_remote_ip_address(key):
-                  BgpPeerState(_get_remote_ip_address(key),
-                               row['jnxBgpM2PeerState'],
-                               row['jnxBgpM2PeerStatus'])
-                  for key, row in states.iteritems()}
-        returnValue(result)
-
-
-def _get_remote_ip_address(oid):
-    _routing_instance, _local_addr, remote_addr = consume(oid,
-        Unsigned32, TypedFixedInetAddress, TypedFixedInetAddress)
-    return remote_addr
+    @staticmethod
+    def _bgp_row_to_remote_ip(row_index):
+        _routing_instance, _local_addr, remote_addr = consume(
+            row_index,
+            Unsigned32, TypedFixedInetAddress, TypedFixedInetAddress)
+        return remote_addr
