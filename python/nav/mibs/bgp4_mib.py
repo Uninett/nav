@@ -27,12 +27,17 @@ BgpPeerState = namedtuple('BgpPeerState', 'peer state adminstatus')
 
 
 class BGP4Mib(mibretriever.MibRetriever):
-    """MibRetriever implementation for BRIDGE-MIB"""
+    """MibRetriever implementation for BGP4-MIB"""
     from nav.smidumps.bgp4_mib import MIB as mib
 
     @defer.inlineCallbacks
     def get_bgp_peer_states(self):
-        """TODO: Write a proper docstring"""
+        """Collects the table of BGP peering sessions.
+
+        :returns: A Deferred whose positive result is a list of BgpPeerState
+                  namedtuples.
+
+        """
         states = yield self.retrieve_columns(
             ['bgpPeerState', 'bgpPeerAdminStatus']
         ).addCallback(self.translate_result)
