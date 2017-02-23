@@ -1,0 +1,8 @@
+{% with session=event.get_subject %}
+Subject: {{ netbox }} BGP session with {{ session.get_peer_display }} is administratively DOWN
+
+{{ netbox }} BGP session with {{ session.get_peer_display }} administrative status transitioned away from running to halted.
+
+Detected at {{ time }}.
+
+{% endwith %}
