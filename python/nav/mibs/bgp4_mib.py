@@ -29,6 +29,17 @@ BgpPeerState = namedtuple('BgpPeerState', 'peer state adminstatus')
 class BGP4Mib(mibretriever.MibRetriever):
     """MibRetriever implementation for BGP4-MIB"""
     from nav.smidumps.bgp4_mib import MIB as mib
+    ROOT = 'bgp'
+
+    @defer.inlineCallbacks
+    def is_supported(self):
+        """Verifies whether any part of this MIB is supported by this device.
+
+        :returns: A Deferred containing a boolean result.
+
+        """
+        reply = yield self.get_next(self.ROOT)
+        returnValue(bool(reply))
 
     @defer.inlineCallbacks
     def get_bgp_peer_states(self):
