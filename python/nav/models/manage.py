@@ -1680,7 +1680,11 @@ class GatewayPeerSession(models.Model):
         db_table = u'peersession'
 
     def get_peer_as_netbox(self):
-        """If the peer of this partner is a known Netbox, it is returned"""
+        """If the peer of this partner is a known Netbox, it is returned.
+
+        :rtype: Netbox
+
+        """
         expr = Q(ip=self.peer) | Q(interface__gwportprefix__gw_ip=self.peer)
         netboxes = Netbox.objects.filter(expr)
         if netboxes:
