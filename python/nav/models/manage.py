@@ -99,6 +99,8 @@ class Netbox(models.Model):
     up_to_date = models.BooleanField(db_column='uptodate', default=False)
     discovered = models.DateTimeField(auto_now_add=True)
 
+    deleted_at = models.DateTimeField(blank=True, null=True, default=None)
+
     data = hstore.DictionaryField()
     objects = hstore.HStoreManager()
     ups_objects = UpsManager()

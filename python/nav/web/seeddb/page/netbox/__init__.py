@@ -15,6 +15,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Controllers for the netbox part of seedDB"""
+import datetime
+from django.db import transaction
+
 from nav.models.manage import Category, Room, Organization, Netbox
 from nav.bulkparse import NetboxBulkParser
 from nav.bulkimport import NetboxImporter
@@ -77,7 +80,17 @@ def netbox_delete(request):
     info = NetboxInfo()
     return render_delete(request, Netbox, 'seeddb-netbox',
                          whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context)
+                         extra_context=info.template_context,
+                         pre_delete_operation=netbox_pre_deletion_mark)
+
+
+@transaction.atomic
+def netbox_pre_deletion_mark(queryset):
+    """Marks all netboxes in a queryset as undergoing deletion.
+
+    :type queryset: django.db.models.QuerySet
+    """
+    queryset.update(deleted_at=datetime.datetime.now(), up_to_date=False)
 
 
 def netbox_move(request):
