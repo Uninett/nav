@@ -53,9 +53,9 @@ class AlertGenerator(dict):
         self.update(event.varmap)
         self.history_vars = {}
 
-        if 'alert_type' in self:
-            self.alert_type = self['alert_type']
-            del self['alert_type']
+        if 'alerttype' in self:
+            self.alert_type = self['alerttype']
+            del self['alerttype']
         else:
             self.alert_type = None
 
