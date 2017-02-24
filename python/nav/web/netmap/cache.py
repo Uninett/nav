@@ -27,32 +27,36 @@ CACHE_TIMEOUT = 60*60
 TRAFFIC_CACHE_TIMEOUT = 5*60
 
 # Cache model: Index traffic by location, then by traffic layer
-def cache_traffic(layer, func):
+def cache_traffic(layer):
     "Utility wrapper to cache get_traffic functions for layer 2/3"
-    @wraps(func)
-    def get_traffic(location_or_room_id):
-        cache_key = _cache_key("traffic", location_or_room_id, layer)
-        cached = cache.get(cache_key)
-        if cached is not None:
-            return cached
-        result = func(location_or_room_id)
-        cache.set(cache_key, result, TRAFFIC_CACHE_TIMEOUT)
-        return result
-    return get_traffic
+    def _decorator(func):
+        @wraps(func)
+        def get_traffic(location_or_room_id):
+            cache_key = _cache_key("traffic", location_or_room_id, layer)
+            cached = cache.get(cache_key)
+            if cached is not None:
+                return cached
+            result = func(location_or_room_id)
+            cache.set(cache_key, result, TRAFFIC_CACHE_TIMEOUT)
+            return result
+        return get_traffic
+    return _decorator
 
 # Cache model: Index by topology layer
-def cache_topology(layer, func):
+def cache_topology(layer):
     "Utility decorator to cache the topology graph of Netmap"
-    @wraps(func)
-    def get_traffic(*args, **kwargs):
-        cache_key = _cache_key("topology", layer)
-        cached = cache.get(cache_key)
-        if cached is not None:
-            return cached
-        result = func(*args, **kwargs)
-        cache.set(cache_key, result, CACHE_TIMEOUT)
-        return result
-    return get_traffic
+    def _decorator(func):
+        @wraps(func)
+        def get_traffic(*args, **kwargs):
+            cache_key = _cache_key("topology", layer)
+            cached = cache.get(cache_key)
+            if cached is not None:
+                return cached
+            result = func(*args, **kwargs)
+            cache.set(cache_key, result, CACHE_TIMEOUT)
+            return result
+        return get_traffic
+    return _decorator
 
 # TODO: Consider using a proper slug generator for this
 def _cache_key(*args):

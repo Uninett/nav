@@ -51,7 +51,7 @@ def get_topology_graph(layer=2, load_traffic=False, view=None):
         return _json_layer3(load_traffic, view)
 
 
-@partial(cache_topology, "layer 2")
+@cache_topology("layer 2")
 def _json_layer2(load_traffic=False, view=None):
     topology_without_metadata = vlan.build_layer2_graph(
         (
@@ -79,7 +79,7 @@ def _json_layer2(load_traffic=False, view=None):
     }
     return result
 
-@partial(cache_topology, "layer 3")
+@cache_topology("layer 3")
 def _json_layer3(load_traffic=False, view=None):
     topology_without_metadata = vlan.build_layer3_graph(
         ('prefix__vlan__net_type', 'gwportprefix__prefix__vlan__net_type',)
@@ -136,7 +136,7 @@ def get_traffic_interfaces(edges, interfaces):
     return storage.values()
 
 
-@partial(cache_traffic, "layer 2")
+@cache_traffic("layer 2")
 def get_layer2_traffic(location_or_room_id):
     """Fetches traffic data for layer 2"""
     start = datetime.now()
@@ -193,7 +193,7 @@ def get_layer2_traffic(location_or_room_id):
     return traffic
 
 
-@partial(cache_traffic, "layer 3")
+@cache_traffic("layer 3")
 def get_layer3_traffic(location_or_room_id):
     """Fetches traffic data for layer 3"""
 
