@@ -5,6 +5,8 @@ CREATE TABLE peersession (
   peer INET NOT NULL,
   state VARCHAR,
   adminstatus VARCHAR,
+  local_as INTEGER,
+  remote_as INTEGER,
   last_state_change TIMESTAMP NOT NULL DEFAULT NOW(),
 
   CONSTRAINT peersession_pkey PRIMARY KEY (peersessionid),

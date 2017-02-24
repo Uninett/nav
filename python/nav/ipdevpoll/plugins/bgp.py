@@ -62,6 +62,8 @@ class BGP(Plugin):
         session.peer = bgp_peer_state.peer
         session.state = bgp_peer_state.state
         session.adminstatus = bgp_peer_state.adminstatus
+        session.local_as = bgp_peer_state.local_as
+        session.remote_as = bgp_peer_state.remote_as
 
         return session
 
