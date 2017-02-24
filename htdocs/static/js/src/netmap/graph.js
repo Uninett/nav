@@ -106,7 +106,7 @@ define([
                 console.log("Getting layer", layer, "traffic for", location);
                 $.getJSON('traffic/layer' + layer + '/' + location)
                     .done(function (data) {
-                        self.trafficSuccess.call(self, data);
+                        self.trafficSuccess.call(self, location, data);
                     })
                     .fail(this.trafficError)
                     .always(function() {
@@ -115,8 +115,8 @@ define([
             });
         },
 
-        trafficSuccess: function (data) {
-            console.log('Traffic data received, processing.');
+        trafficSuccess: function (location, data) {
+            console.log('Traffic data received for', location, '- processing.');
             var links = this.get('linkCollection');
 
             // Extend the link-objects with traffic data

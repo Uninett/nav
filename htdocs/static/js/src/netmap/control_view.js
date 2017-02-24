@@ -488,6 +488,19 @@ define([
             this.resetRefreshControls();
         },
 
+        fireToggleForce: function (e) {
+            var targetElem = this.$(e.currentTarget);
+            var statusOn = targetElem.data('status') === 'on';
+            if (statusOn) {
+                targetElem.data('status', 'off');
+                targetElem.html('Start animation <i class="fa fa-play"></i>');
+            } else { // off
+                targetElem.data('status', 'on');
+                targetElem.html('Stop animation <i class="fa fa-stop"></i>');
+            }
+            Backbone.EventBroker.trigger('netmap:toggleForce', statusOn);
+        },
+
         setCategoriesForCurrentView: function () {
 
             var newCategories = this.currentView.get('categories');

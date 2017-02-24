@@ -44,6 +44,8 @@ from .graph import (
     get_layer2_traffic,
     get_layer3_traffic,
 )
+from .cache import update_cached_node_positions, cache_exists
+
 # Ignore linting errors from DRF class hierarchy
 # pylint: disable=R0901,R0904
 
@@ -265,7 +267,8 @@ class NodePositionUpdate(generics.UpdateAPIView):
 
         viewid = kwargs.pop('viewid')
         data = request.DATA.get('data', [])
-
+        # nodes to be updated in the topology cache
+        cache_updates = []
         for d in data:
             defaults = {
                 'x': int(d['x']),
@@ -280,7 +283,18 @@ class NodePositionUpdate(generics.UpdateAPIView):
                 obj.x = defaults['x']
                 obj.y = defaults['y']
                 obj.save()
-        return Response()
+            cache_updates.append({
+                "id": str(obj.netbox.id),
+                "x": defaults["x"],
+                "y": defaults["y"],
+                "new_node": created
+            })
+        # Invalidate cached position
+        if cache_exists("topology", "layer 2"):
+            update_cached_node_positions("layer 2", cache_updates)
+        if cache_exists("topology", "layer 3"):
+            update_cached_node_positions("layer 3", cache_updates)
+        return Response(status=200)
 
 
 class NetmapGraph(views.APIView):

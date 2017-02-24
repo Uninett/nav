@@ -32,7 +32,8 @@ define([
             'netmap:resetTransparency': 'resetTransparency',
             'netmap:resetZoom': 'resetZoom',
             'netmap:fixNodes': 'fixNodes',
-            'netmap:unfixNodes': 'unfixNodes'
+            'netmap:unfixNodes': 'unfixNodes',
+            'netmap:toggleForce': 'toggleForce'
         },
 
         initialize: function () {
@@ -46,6 +47,7 @@ define([
                 .linkDistance(250)
                 .size([this.w, this.h]);
 
+            this.forceEnabled = false;
             this.nodes = this.force.nodes();
             this.links = this.force.links();
             this.isLoadingForTheFirstTime = true;
@@ -54,6 +56,8 @@ define([
 
             this.model = new Graph();
             this.netmapView = this.options.netmapView;
+
+            this.model.set("locations", this.netmapView.filterStrings);
 
             // Indicators
             this.indicatorHolder = this.createIndicatorHolder();
@@ -69,10 +73,6 @@ define([
             this.bindEvents();
             this.initializeNetmapView();
             this.fetchGraphModel();
-
-            // We're using force to distribute the nodes to make them more readable
-            this.force.start();
-
         },
 
 
@@ -315,14 +315,15 @@ define([
                     return category.checked;
             }), 'name');
 
-            this.model.set("locations", this.netmapView.filterStrings);
             var nodes = this.model.get('nodeCollection').getGraphObjects();
             var links = this.model.get('linkCollection').getGraphObjects();
-
             nodes = filterNodesByCategories(nodes, categories);
             links = filterLinksByCategories(links, categories);
-            nodes = filterNodesByRoomsOrLocations(nodes, this.netmapView.filterStrings);
-            links = filterLinksByRoomsOrLocations(links, this.netmapView.filterStrings);
+            if (this.netmapView.filterStrings.length) {
+                this.model.set("locations", this.netmapView.filterStrings);
+                nodes = filterNodesByRoomsOrLocations(nodes, this.netmapView.filterStrings);
+                links = filterLinksByRoomsOrLocations(links, this.netmapView.filterStrings);
+            }
 
             this.graphInfoView.setVlans(this.model.get('vlanCollection'));
 
@@ -360,6 +361,7 @@ define([
             this.transformGraph();
             this.render();
             // Make sure the rendered nodes are evenly distributed
+            this.forceEnabled = true;
             this.force.start();
         },
 
@@ -481,7 +483,7 @@ define([
 
         refresh: function () {
 
-            if (this.netmapView.refreshTrafficOnly && this.model.get("locations").length) {
+            if (this.netmapView.refreshTrafficOnly.get("locations").length) {
                 this.model.loadTraffic();
             } else {
                 this.fetchGraphModel();
@@ -522,6 +524,7 @@ define([
             this.netmapView = view;
             this.model.set('viewId', this.netmapView.id);
             this.model.set('layer', this.netmapView.get('topology'));
+            this.model.set("locations", this.netmapView.filterStrings);
 
             var zoomParts = this.getTranslationsAndScale();
             this.netmapView.baseZoom = zoomParts;
@@ -546,6 +549,15 @@ define([
             }).checked = checked;
 
             this.update();
+        },
+
+        toggleForce: function (statusOn) {
+            if (statusOn) {
+                this.force.stop();
+            } else {
+                this.force.resume();
+            }
+            this.forceEnabled = !this.forceEnabled;
         },
 
         addFilterString: function (filter) {
@@ -581,6 +593,8 @@ define([
 
             if (dirtyNodes.length) {
 
+                console.log("Saving dirty nodes", dirtyNodes);
+
                 var nodePositions = new Models.NodePositions().set({
                     'data': dirtyNodes,
                     'viewid': this.netmapView.id
@@ -589,7 +603,7 @@ define([
                 nodePositions.save(nodePositions.get('data'), {
                     success: function () { console.log('nodepositions saved'); },
                     error: function (model, resp, opt) {
-                        console.log(resp.responseText);
+                        console.log("Failed", resp.responseText);
                     }
                 });
             }
@@ -646,10 +660,14 @@ define([
             _.each(this.nodes, function (node) {
                 node.fixed = false;
             });
-            this.force.resume();
+            if (this.forceEnabled) {
+                console.log("resume force");
+                this.force.resume();
+            }
         },
 
         fixNodes: function () {
+            console.log("Fixing nodes");
             _.each(this.nodes, function (node) {
                 node.fixed = true;
             });
@@ -731,6 +749,7 @@ define([
         },
 
         dragMove: function(node, self) {
+            console.log("æææ, moving", node);
             node.px += d3.event.dx;
             node.py += d3.event.dy;
             node.x += d3.event.dx;
@@ -741,6 +760,9 @@ define([
 
         dragEnd: function (node, self) {
             d3.select(this).select('circle').remove();
+            if (self.forceEnabled) {
+                self.force.resume();
+            }
         },
 
         zoomCallback: function () {

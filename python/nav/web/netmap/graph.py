@@ -135,7 +135,6 @@ def get_traffic_interfaces(edges, interfaces):
 
     return storage.values()
 
-
 @cache_traffic("layer 2")
 def get_layer2_traffic(location_or_room_id):
     """Fetches traffic data for layer 2"""
@@ -191,7 +190,6 @@ def get_layer2_traffic(location_or_room_id):
 
     _logger.debug('Time used: %s', datetime.now() - start)
     return traffic
-
 
 @cache_traffic("layer 3")
 def get_layer3_traffic(location_or_room_id):

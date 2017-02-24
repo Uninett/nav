@@ -26,6 +26,10 @@ CACHE_TIMEOUT = 60*60
 # Data is collected every 5 minutes by NAV
 TRAFFIC_CACHE_TIMEOUT = 5*60
 
+def cache_exists(*args):
+    key = _cache_key(*args)
+    return cache.get(key) is not None
+
 # Cache model: Index traffic by location, then by traffic layer
 def cache_traffic(layer):
     "Utility wrapper to cache get_traffic functions for layer 2/3"
@@ -57,6 +61,31 @@ def cache_topology(layer):
             return result
         return get_traffic
     return _decorator
+
+# Update all nodes at once to save a couple of hundred/thousand cache lookups
+def update_cached_node_positions(layer, updated_nodes):
+    cache_key = _cache_key("topology", layer)
+    to_update = cache.get(cache_key)
+    nodes = to_update["nodes"]
+    for node in updated_nodes:
+        # If the node is new, it is easier just to make an early exit and
+        # rebuild the whole topology
+        if node["new_node"]:
+            return invalidate_topology_cache(layer)
+        # Otherwise, don't update nodes not cached in the topology
+        if node["id"] not in to_update["nodes"]:
+            continue
+        diff = {
+            "x": node["x"],
+            "y": node["y"]
+        }
+        to_update["nodes"][node["id"]]["position"].update(diff)
+    cache.set(cache_key, to_update, CACHE_TIMEOUT)
+
+def invalidate_topology_cache(layer):
+    "Resets the topology cache, prompting NAV to rebuild it"
+    cache_key = _cache_key("topology", layer);
+    cache.delete(cache_key)
 
 # TODO: Consider using a proper slug generator for this
 def _cache_key(*args):
