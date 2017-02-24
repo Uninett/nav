@@ -28,6 +28,9 @@ class BGP4V2JuniperMib(BGP4Mib):
     SUPPORTED_ROOT = 'jnxBgpM2'
     PEERSTATE_COLUMN = 'jnxBgpM2PeerState'
     ADMINSTATUS_COLUMN = 'jnxBgpM2PeerStatus'
+    LOCAL_AS_COLUMN = 'jnxBgpM2PeerLocalAs'
+    REMOTE_AS_COLUMN = 'jnxBgpM2PeerRemoteAs'
+    GLOBAL_LOCAL_AS = 'jnxBgpM2LocalAs'
 
     @staticmethod
     def _bgp_row_to_remote_ip(row_index):

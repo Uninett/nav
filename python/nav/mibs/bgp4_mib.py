@@ -16,6 +16,8 @@
 """Implements a BGP4-MIB MibRetriever and associated functionality."""
 
 from __future__ import absolute_import
+from pprint import pformat
+import logging
 from twisted.internet import defer
 from twisted.internet.defer import returnValue
 
@@ -23,7 +25,8 @@ from collections import namedtuple
 from nav.oidparsers import oid_to_ipv4
 from . import mibretriever
 
-BgpPeerState = namedtuple('BgpPeerState', 'peer state adminstatus')
+BgpPeerState = namedtuple('BgpPeerState',
+                          'peer state adminstatus local_as remote_as')
 
 
 class BGP4Mib(mibretriever.MibRetriever):
@@ -32,6 +35,9 @@ class BGP4Mib(mibretriever.MibRetriever):
     SUPPORTED_ROOT = 'bgp'
     PEERSTATE_COLUMN = 'bgpPeerState'
     ADMINSTATUS_COLUMN = 'bgpPeerAdminStatus'
+    LOCAL_AS_COLUMN = None
+    REMOTE_AS_COLUMN = 'bgpPeerRemoteAs'
+    GLOBAL_LOCAL_AS = 'bgpLocalAs'
 
     @defer.inlineCallbacks
     def is_supported(self):
@@ -51,15 +57,30 @@ class BGP4Mib(mibretriever.MibRetriever):
                   namedtuples.
 
         """
-        states = yield self.retrieve_columns(
-            [self.PEERSTATE_COLUMN, self.ADMINSTATUS_COLUMN]
-        ).addCallback(self.translate_result)
+        if self.LOCAL_AS_COLUMN:
+            columns = (self.PEERSTATE_COLUMN, self.ADMINSTATUS_COLUMN,
+                       self.LOCAL_AS_COLUMN, self.REMOTE_AS_COLUMN)
+            local_as = None
+        else:
+            columns = (self.PEERSTATE_COLUMN, self.ADMINSTATUS_COLUMN,
+                       self.REMOTE_AS_COLUMN)
+            local_as = yield self.get_next(self.GLOBAL_LOCAL_AS)
+            self._logger.debug("local AS number: %r", local_as)
+
+        rows = yield self.retrieve_columns(columns).addCallback(
+            self.translate_result)
         result = {self._bgp_row_to_remote_ip(key):
                   BgpPeerState(self._bgp_row_to_remote_ip(key),
                                row[self.PEERSTATE_COLUMN],
-                               row[self.ADMINSTATUS_COLUMN])
-                  for key, row in states.iteritems()}
-        self._logger.debug("Found BGP peers: %r", result)
+                               row[self.ADMINSTATUS_COLUMN],
+                               (row[self.LOCAL_AS_COLUMN]
+                                if self.LOCAL_AS_COLUMN else local_as),
+                               row[self.REMOTE_AS_COLUMN],
+                               )
+                  for key, row in rows.iteritems()}
+
+        if self._logger.isEnabledFor(logging.DEBUG):
+            self._logger.debug("Found BGP peers:\n%s", pformat(result))
         returnValue(result)
 
     @staticmethod

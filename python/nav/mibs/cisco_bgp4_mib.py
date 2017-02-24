@@ -28,6 +28,9 @@ class CiscoBGP4Mib(BGP4Mib):
     SUPPORTED_ROOT = 'cbgpPeer2Table'
     PEERSTATE_COLUMN = 'cbgpPeer2State'
     ADMINSTATUS_COLUMN = 'cbgpPeer2AdminStatus'
+    LOCAL_AS_COLUMN = 'cbgpPeer2LocalAs'
+    REMOTE_AS_COLUMN = 'cbgpPeer2RemoteAs'
+    LOCAL_AS_OBJECT = 'cbgpLocalAs'
 
     @staticmethod
     def _bgp_row_to_remote_ip(row_index):
