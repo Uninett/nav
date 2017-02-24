@@ -33,6 +33,7 @@ EVENT = EventFactory(source='ipdevpoll', target='eventEngine',
 
 
 class GatewayPeerSessionManager(DefaultManager):
+    """Manager for GatewayPeerSession objects"""
     _map = None
 
     def __init__(self, *args, **kwargs):

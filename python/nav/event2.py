@@ -76,7 +76,7 @@ class EventFactory(object):
         return event
 
     def start(self, device=None, netbox=None, subid='', varmap=None,
-              alert_type = None):
+              alert_type=None):
         """Creates and returns a start event"""
         event = self.base(device, netbox, subid, varmap,
                           alert_type or self.start_type)
@@ -86,7 +86,8 @@ class EventFactory(object):
     def end(self, device=None, netbox=None, subid='', varmap=None,
             alert_type=None):
         """Creates and returns an end event"""
-        event = self.base(device, netbox, subid, varmap, self.end_type)
+        event = self.base(device, netbox, subid, varmap,
+                          alert_type or self.end_type)
         event.state = event.STATE_END
         return event
 

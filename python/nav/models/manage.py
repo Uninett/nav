@@ -1693,6 +1693,11 @@ class GatewayPeerSession(models.Model):
             return netboxes[0]
 
     def get_peer_display(self):
+        """Returns a display name for the peer.
+
+        Will access the database to see if the peer is a known Netbox.
+
+        """
         peer = self.get_peer_as_netbox()
         return "{} ({})".format(peer, self.peer) if peer else str(self.peer)
 
