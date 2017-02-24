@@ -32,6 +32,8 @@ moduleDown.alert = 4m
 linkDown.alert = 4m
 
 snmpAgentDown.alert = 4m
+
+bgpDown.alert = 1m
 """
 
     def get_timeout_for(self, option):
