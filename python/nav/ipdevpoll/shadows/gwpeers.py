@@ -93,6 +93,9 @@ class GatewayPeerSession(Shadow):
         non-established states.
 
         """
+        if not should_alert_on_ibgp() and self.is_ibgp():
+            return  # GTFO
+
         self._log_all_state_changes(containers)
         model = self.get_existing_model(containers)
         if not model:
@@ -165,3 +168,17 @@ class GatewayPeerSession(Shadow):
             return "{} ({})".format(self.peer, peername)
         else:
             return self.peer
+
+    def is_ibgp(self):
+        """Returns True if this is an iBGP session"""
+        return self.local_as == self.remote_as
+
+
+def should_alert_on_ibgp():
+    """Returns the value of the IBGP alert option of ipdevpoll config"""
+    from nav.ipdevpoll.config import ipdevpoll_conf as conf
+    default = True
+    alert_ibgp = (conf.getboolean('bgp', 'alert_ibgp')
+                  if conf.has_option('bgp', 'alert_ibgp')
+                  else default)
+    return alert_ibgp

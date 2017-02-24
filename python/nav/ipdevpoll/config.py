@@ -47,6 +47,9 @@ ignored = <<=127.0.0.0/8, <<=fe80::/16, =128.0.0.0/2
 [linkstate]
 filter = topology
 
+[bgp]
+alert_ibgp = yes
+
 [sensors]
 loadmodules = nav.mibs.*
 
