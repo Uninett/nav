@@ -165,7 +165,7 @@ class Worker(object):
     def __init__(self, pool, threadpoolsize):
         self.active_tasks = 0
         self.total_tasks = 0
-        self.max_tasks = 0
+        self.max_concurrent_tasks = 0
         self.pool = pool
         self.threadpoolsize = threadpoolsize
 
@@ -193,7 +193,8 @@ class Worker(object):
     def execute(self, serial, task, **kwargs):
         self.active_tasks += 1
         self.total_tasks += 1
-        self.max_tasks = max(self.active_tasks, self.max_tasks)
+        self.max_concurrent_tasks = max(self.active_tasks,
+                                        self.max_concurrent_tasks)
         return self.process.callRemote(task, serial=serial, **kwargs)
 
     def cancel(self, serial):
@@ -260,7 +261,7 @@ class WorkerPool(object):
             self._logger.info(" - active {active}"
                               " max {max} total {total}".format(
                                   active=worker.active_tasks,
-                                  max=worker.max_tasks,
+                                  max=worker.max_concurrent_tasks,
                                   total=worker.total_tasks))
 
 
