@@ -15,13 +15,12 @@
 #
 """Handle sending jobs to worker processes."""
 from __future__ import print_function
-from collections import defaultdict
 import os
 import sys
 
 from twisted.protocols import amp
 from twisted.internet import reactor, protocol
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.internet.endpoints import ProcessEndpoint, StandardIOEndpoint
 import twisted.internet.endpoints
 
@@ -157,34 +156,21 @@ class InlinePool(object):
             self.active_tasks[deferred].cancel()
 
 
-class WorkerPool(object):
-    """This class represent a pool of worker processes to which tasks can
-    be scheduled"""
+class Worker(object):
+    """This class holds information about one worker process as seen from
+    the worker pool"""
 
     _logger = ContextLogger()
 
-    def __init__(self, workers, threadpoolsize=None):
-        twisted.internet.endpoints.log = HackLog
-        self.active_tasks = dict()
-        self.max_tasks = defaultdict(int)
-        self.total_tasks = defaultdict(int)
-        self.target_count = workers
+    def __init__(self, pool, threadpoolsize):
+        self.active_tasks = 0
+        self.total_tasks = 0
+        self.max_tasks = 0
+        self.pool = pool
         self.threadpoolsize = threadpoolsize
-        for i in range(self.target_count):
-            self._spawn_worker()
-        self.serial = 0
-        self.tasks = dict()
-
-    def _worker_died(self, worker, reason):
-        self._logger.warning("Lost worker {worker} with {tasks} "
-                             "active tasks".format(
-                                 worker=worker,
-                                 tasks=self.active_tasks.get(worker, 0)))
-        del self.active_tasks[worker]
-        self._spawn_worker()
 
     @inlineCallbacks
-    def _spawn_worker(self):
+    def start(self):
         args = [control.get_process_command(), '--worker', '-f', '-s', '-P']
         if self.threadpoolsize:
             args.append('--threadpoolsize=%d' % self.threadpoolsize)
@@ -193,24 +179,62 @@ class WorkerPool(object):
         factory = protocol.Factory()
         factory.protocol = lambda: ProcessAMP(is_worker=False,
                                               locator=TaskHandler())
-        worker = yield endpoint.connect(factory)
-        worker.lost_handler = self._worker_died
-        self.active_tasks[worker] = 0
+        self.process = yield endpoint.connect(factory)
+        self.process.lost_handler = self._worker_died
+        returnValue(self)
+
+    def _worker_died(self, worker, reason):
+        self._logger.warning("Lost worker {worker} with {tasks} "
+                             "active tasks".format(
+                                 worker=worker,
+                                 tasks=self.active_tasks))
+        self.pool.worker_died(self)
+
+    def execute(self, serial, task, **kwargs):
+        self.active_tasks += 1
+        self.total_tasks += 1
+        self.max_tasks = max(self.active_tasks, self.max_tasks)
+        return self.process.callRemote(task, serial=serial, **kwargs)
+
+    def cancel(self, serial):
+        return self.process.callRemote(Cancel, serial=serial)
+
+
+class WorkerPool(object):
+    """This class represent a pool of worker processes to which tasks can
+    be scheduled"""
+
+    _logger = ContextLogger()
+
+    def __init__(self, workers, threadpoolsize=None):
+        twisted.internet.endpoints.log = HackLog
+        self.workers = set()
+        self.target_count = workers
+        self.threadpoolsize = threadpoolsize
+        for i in range(self.target_count):
+            self._spawn_worker()
+        self.serial = 0
+        self.tasks = dict()
+
+    def worker_died(self, worker):
+        self.workers.remove(worker)
+        self._spawn_worker()
+
+    @inlineCallbacks
+    def _spawn_worker(self):
+        worker = yield Worker(self, self.threadpoolsize).start()
+        self.workers.add(worker)
 
     def _cleanup(self, result, deferred):
         serial, worker = self.tasks[deferred]
         del self.tasks[deferred]
-        self.active_tasks[worker] -= 1
+        worker.active_tasks -= 1
         return result
 
     def _execute(self, task, **kwargs):
-        worker = min(self.active_tasks, key=lambda x: self.active_tasks[x])
+        worker = min(self.workers, key=lambda x: x.active_tasks)
         self.serial += 1
-        self.active_tasks[worker] += 1
-        self.total_tasks[worker] += 1
-        self.max_tasks[worker] = max(self.active_tasks[worker],
-                                     self.max_tasks[worker])
-        deferred = worker.callRemote(task, serial=self.serial, **kwargs)
+        deferred = worker.execute(self.serial, task, **kwargs)
         self.tasks[deferred] = (self.serial, worker)
         deferred.addBoth(self._cleanup, deferred)
         return deferred
@@ -220,7 +244,7 @@ class WorkerPool(object):
             self._logger.debug("Cancelling job that isn't known")
             return
         serial, worker = self.tasks[deferred]
-        return worker.callRemote(Cancel, serial=serial)
+        return worker.cancel(serial)
 
     def perform_task(self, job, netbox, plugins=None, interval=None):
         deferred = self._execute(Task, job=job, netbox=netbox,
@@ -230,14 +254,14 @@ class WorkerPool(object):
 
     def log_summary(self):
         self._logger.info("{active} out of {target} workers running".format(
-            active=len(self.active_tasks),
+            active=len(self.workers),
             target=self.target_count))
-        for i, worker in enumerate(self.active_tasks):
-            self._logger.info(" - {i}: active {active}"
+        for worker in self.workers:
+            self._logger.info(" - active {active}"
                               " max {max} total {total}".format(
-                                  i=i, active=self.active_tasks[worker],
-                                  max=self.max_tasks[worker],
-                                  total=self.total_tasks[worker]))
+                                  active=worker.active_tasks,
+                                  max=worker.max_tasks,
+                                  total=worker.total_tasks))
 
 
 class HackLog(object):
