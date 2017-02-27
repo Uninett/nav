@@ -44,6 +44,12 @@ class Cancel(amp.Command):
     response = []
 
 
+class Shutdown(amp.Command):
+    """Represent a shutdown message for sending to workers"""
+    arguments = []
+    response = []
+
+
 class Task(amp.Command):
     """Represent a task for sending to a worker"""
     arguments = [
@@ -69,10 +75,13 @@ class TaskHandler(amp.CommandLocator):
     def __init__(self):
         super(TaskHandler, self).__init__()
         self.tasks = dict()
+        self.done = False
 
     def task_done(self, result, serial):
         if serial in self.tasks:
             del self.tasks[serial]
+        if self.done and not self.tasks:
+            reactor.callLater(3, reactor.stop)
         return result
 
     @Task.responder
@@ -95,6 +104,11 @@ class TaskHandler(amp.CommandLocator):
     def cancel(self, serial):
         if serial in self.tasks:
             self.tasks[serial].cancel()
+        return {}
+
+    @Shutdown.responder
+    def shutdown(self):
+        self.done = True
         return {}
 
     def log_tasks(self):
@@ -162,12 +176,13 @@ class Worker(object):
 
     _logger = ContextLogger()
 
-    def __init__(self, pool, threadpoolsize):
+    def __init__(self, pool, threadpoolsize, max_tasks):
         self.active_tasks = 0
         self.total_tasks = 0
         self.max_concurrent_tasks = 0
         self.pool = pool
         self.threadpoolsize = threadpoolsize
+        self.max_tasks = max_tasks
 
     @inlineCallbacks
     def start(self):
@@ -183,11 +198,23 @@ class Worker(object):
         self.process.lost_handler = self._worker_died
         returnValue(self)
 
+    def done(self):
+        return self.max_tasks and (self.total_tasks >= self.max_tasks)
+
     def _worker_died(self, worker, reason):
-        self._logger.warning("Lost worker {worker} with {tasks} "
-                             "active tasks".format(
-                                 worker=worker,
-                                 tasks=self.active_tasks))
+        if not self.done():
+            self._logger.warning("Lost worker {worker} with {tasks} "
+                                 "active tasks".format(
+                                     worker=worker,
+                                     tasks=self.active_tasks))
+        elif self.active_tasks:
+            self._logger.warning("Worker {worker} exited with {tasks} "
+                                 "active tasks".format(
+                                     worker=worker,
+                                     tasks=self.active_tasks))
+        else:
+            self._logger.debug("Worker {worker} exited normally"
+                               .format(worker=worker))
         self.pool.worker_died(self)
 
     def execute(self, serial, task, **kwargs):
@@ -195,7 +222,10 @@ class Worker(object):
         self.total_tasks += 1
         self.max_concurrent_tasks = max(self.active_tasks,
                                         self.max_concurrent_tasks)
-        return self.process.callRemote(task, serial=serial, **kwargs)
+        deferred = self.process.callRemote(task, serial=serial, **kwargs)
+        if self.done():
+            self.process.callRemote(Shutdown)
+        return deferred
 
     def cancel(self, serial):
         return self.process.callRemote(Cancel, serial=serial)
@@ -207,10 +237,11 @@ class WorkerPool(object):
 
     _logger = ContextLogger()
 
-    def __init__(self, workers, threadpoolsize=None):
+    def __init__(self, workers, max_tasks, threadpoolsize=None):
         twisted.internet.endpoints.log = HackLog
         self.workers = set()
         self.target_count = workers
+        self.max_tasks = max_tasks
         self.threadpoolsize = threadpoolsize
         for i in range(self.target_count):
             self._spawn_worker()
@@ -219,11 +250,12 @@ class WorkerPool(object):
 
     def worker_died(self, worker):
         self.workers.remove(worker)
-        self._spawn_worker()
+        if not worker.done():
+            self._spawn_worker()
 
     @inlineCallbacks
     def _spawn_worker(self):
-        worker = yield Worker(self, self.threadpoolsize).start()
+        worker = yield Worker(self, self.threadpoolsize, self.max_tasks).start()
         self.workers.add(worker)
 
     def _cleanup(self, result, deferred):
@@ -233,9 +265,14 @@ class WorkerPool(object):
         return result
 
     def _execute(self, task, **kwargs):
-        worker = min(self.workers, key=lambda x: x.active_tasks)
+        ready_workers = [w for w in self.workers if not w.done()]
+        if not ready_workers:
+            raise RuntimeError("No ready workers")
+        worker = min(ready_workers, key=lambda x: x.active_tasks)
         self.serial += 1
         deferred = worker.execute(self.serial, task, **kwargs)
+        if worker.done():
+            self._spawn_worker()
         self.tasks[deferred] = (self.serial, worker)
         deferred.addBoth(self._cleanup, deferred)
         return deferred
@@ -258,8 +295,9 @@ class WorkerPool(object):
             active=len(self.workers),
             target=self.target_count))
         for worker in self.workers:
-            self._logger.info(" - active {active}"
+            self._logger.info(" - ready {ready} active {active}"
                               " max {max} total {total}".format(
+                                  ready=not worker.done(),
                                   active=worker.active_tasks,
                                   max=worker.max_concurrent_tasks,
                                   total=worker.total_tasks))

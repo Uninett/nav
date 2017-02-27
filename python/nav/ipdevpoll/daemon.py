@@ -88,7 +88,8 @@ class IPDevPollProcess(object):
         if self.options.netbox:
             self.setup_single_job()
         elif self.options.multiprocess:
-            self.setup_multiprocess(self.options.multiprocess)
+            self.setup_multiprocess(self.options.multiprocess,
+                                    self.options.max_tasks)
         elif self.options.worker:
             self.setup_worker()
         else:
@@ -174,11 +175,12 @@ class IPDevPollProcess(object):
                           self.options.onlyjob, self.options.netbox)
         reactor.callWhenRunning(_run_job)
 
-    def setup_multiprocess(self, process_count):
+    def setup_multiprocess(self, process_count, max_tasks):
         self._logger.info("Starting multi-process setup")
         from .schedule import JobScheduler
         plugins.import_plugins()
         self.work_pool = pool.WorkerPool(process_count,
+                                         max_tasks,
                                          self.options.threadpoolsize)
         reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run,
                                 self.work_pool, self.options.onlyjob)
@@ -287,6 +289,9 @@ class CommandProcessor(object):
             nargs='?', const=cpu_count(), metavar='WORKERS',
             help="Run ipdevpoll in a multiprocess setup. If WORKERS is not set "
             "it will default to number of cpus in the system")
+        opt("-T", "--max-tasks-per-worker", type=int, dest="max_tasks",
+            metavar="TASKS", help="Restart worker processes after performing "
+            "TASKS tasks. (Default: Don't restart)")
         opt("-P", "--pidlog", action="store_true", dest="pidlog",
             help="Include process ID in every log line")
         opt("--capture-vars", action="store_true", dest="capture_vars",
