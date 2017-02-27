@@ -417,6 +417,12 @@ class JobScheduler(object):
         del self.active_netboxes[netbox_id]
 
     @classmethod
+    def reload(cls):
+        """Reload netboxes for all jobs"""
+        for scheduler in cls.active_schedulers:
+            scheduler._reload_netboxes()
+
+    @classmethod
     def log_active_jobs(cls, level=logging.DEBUG):
         """Debug logs a list of running job handlers.
 

@@ -79,6 +79,7 @@ class IPDevPollProcess(object):
         self._logger = logging.getLogger('nav.ipdevpoll')
         self._shutdown_start_time = 0
         self.job_loggers = []
+        self.reloaders = []
 
     def run(self):
         """Loads plugins, and initiates polling schedules."""
@@ -104,6 +105,7 @@ class IPDevPollProcess(object):
         signal.signal(signal.SIGTERM, self.sigterm_handler)
         signal.signal(signal.SIGINT, self.sigterm_handler)
         signal.signal(signal.SIGUSR1, self.sigusr1_handler)
+        signal.signal(signal.SIGUSR2, self.sigusr2_handler)
 
     def setup_scheduling(self):
         "Sets up regular job scheduling according to config"
@@ -123,6 +125,11 @@ class IPDevPollProcess(object):
             JobScheduler.log_active_jobs(logging.INFO)
 
         self.job_loggers.append(log_scheduler_jobs)
+
+        def reload_netboxes():
+            JobScheduler.reload()
+
+        self.reloaders.append(reload_netboxes)
 
     def setup_worker(self):
         "Sets up a worker process"
@@ -182,6 +189,11 @@ class IPDevPollProcess(object):
         self.job_loggers.append(log_scheduler_jobs)
         self.job_loggers.append(self.work_pool.log_summary)
 
+        def reload_netboxes():
+            JobScheduler.reload()
+
+        self.reloaders.append(reload_netboxes)
+
     def sighup_handler(self, _signum, _frame):
         """Reopens log files."""
         self._logger.info("SIGHUP received; reopening log files")
@@ -203,6 +215,12 @@ class IPDevPollProcess(object):
         self._logger.info("SIGUSR1 received: Logging active jobs")
         for logger in self.job_loggers:
             logger()
+
+    def sigusr2_handler(self, _signum, _frame):
+        "Reload boxes from database"
+        self._logger.info("SIGUSR2 received: Reloading netboxes")
+        for reloader in self.reloaders:
+            reloader()
 
     def shutdown(self):
         """Initiates a shutdown sequence"""
