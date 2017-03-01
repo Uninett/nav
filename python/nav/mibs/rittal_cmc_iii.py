@@ -68,6 +68,7 @@ class RittalCMCIIIMib(MibRetriever):
 
     @defer.inlineCallbacks
     def get_sensors(self, devices):
+        dev_names = {oid: dev['cmcIIIDevName'] for oid, dev in devices.items()}
         sensors = yield self.retrieve_columns(SENSOR_COLUMNS)
         sensors = self.translate_result(sensors)
         result = []
@@ -97,7 +98,9 @@ class RittalCMCIIIMib(MibRetriever):
                 scale=scale,
                 description=name,
                 name=name,
-                internal_name='var{}'.format(oid),
+                internal_name='{dev}_{var}'.format(
+                    dev=dev_names[oid[:-1]],
+                    var=name),
                 mib=self.get_module_name(),
             )
             result.append(sensor)
