@@ -27,7 +27,11 @@ DEGREES_FAHRENHEIT = "\xb0F"
 UNIT_MAP = {
     DEGREES_CELSIUS: "Celsius",
     DEGREES_FAHRENHEIT: "Fahrenheit",
-    'mA': 'ampere',
+    'mA': 'Amperes',
+    'W': 'Watts',
+    'V': 'VoltsDC',
+    's': 'Seconds',
+    'l/min': 'litres/minute',
 }
 
 UNIT_SCALE = {
