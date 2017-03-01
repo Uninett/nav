@@ -112,7 +112,7 @@ class Sensors(Plugin):
 def loadmodules(config):
     """:type config: ConfigParser.ConfigParser"""
     names = _get_space_separated_list(config, 'sensors', 'loadmodules')
-    names = list(_expand_module_names(names))
+    names = sorted(list(_expand_module_names(names)))
     _logger.debug("importing modules: %s", names)
     for name in names:
         importlib.import_module(name)
