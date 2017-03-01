@@ -15,6 +15,7 @@
 #
 """A class for getting sensor readings from Rittal CMC III devices"""
 
+from collections import defaultdict
 import math
 
 from twisted.internet import defer
@@ -42,6 +43,11 @@ SENSOR_COLUMNS = [
     'cmcIIIVarValueStr',
 ]
 
+IGNORED_STATUSES = {
+    'n.a.',
+    'Inactive',
+}
+
 
 class RittalCMCIIIMib(MibRetriever):
     """MibRetriever for Rittal CMC III devices"""
@@ -62,6 +68,7 @@ class RittalCMCIIIMib(MibRetriever):
     @defer.inlineCallbacks
     def get_devices(self):
         devices = yield self.retrieve_columns(['cmcIIIDevName',
+                                               'cmcIIIDevAlias',
                                                'cmcIIIDevNumberOfVars'])
         devices = self.translate_result(devices)
         returnValue(devices)
@@ -69,39 +76,61 @@ class RittalCMCIIIMib(MibRetriever):
     @defer.inlineCallbacks
     def get_sensors(self, devices):
         dev_names = {oid: dev['cmcIIIDevName'] for oid, dev in devices.items()}
+        dev_aliases = {oid: dev['cmcIIIDevAlias']
+                       for oid, dev in devices.items()}
         sensors = yield self.retrieve_columns(SENSOR_COLUMNS)
         sensors = self.translate_result(sensors)
         result = []
+        mapping = defaultdict(dict)
         for oid, values in sensors.items():
-            if values['cmcIIIVarType'] != 'value':
-                continue
-            if values['cmcIIIVarDatatype'] != 'int':
-                self._logger.warning("Found sensor %s with datatype %s",
-                                     values['cmcIIIVarName'],
-                                     values['cmcIIIVarDatatype'])
-                continue
-            raw_unit = values['cmcIIIVarUnit']
-            scale = UNIT_SCALE.get(raw_unit, None)
-            unit = UNIT_MAP.get(raw_unit, raw_unit)
             name = values['cmcIIIVarName']
-            raw_precision = values['cmcIIIVarScale']
-            if raw_precision < 0:
-                precision = math.log10(-raw_precision)
-            elif raw_precision == 0:
-                precision = 0
-            else:
-                precision = -math.log10(raw_precision)
-            sensor = dict(
-                oid=str(self.nodes['cmcIIIVarValueInt'].oid + oid),
-                unit_of_measurement=unit,
-                precision=precision,
-                scale=scale,
-                description=name,
-                name=name,
-                internal_name='{dev}_{var}'.format(
-                    dev=dev_names[oid[:-1]],
-                    var=name),
-                mib=self.get_module_name(),
-            )
-            result.append(sensor)
+            name_parts = name.split(".")
+            suffix = name_parts[-1]
+            sensor = ".".join(name_parts[:-1])
+            mapping[sensor][suffix] = values
+        for sname, data in mapping.items():
+            description = data.get('DescName', {}).get('cmcIIIVarValueStr',
+                                                       sname)
+            status = data.get('Status', {}).get('cmcIIIVarValueStr', 'OK')
+            if status in IGNORED_STATUSES:
+                self._logger.debug('Ignoring sensor %s due to status %s',
+                                   sname, status)
+                continue
+            for var_name, values in data.items():
+                oid = values[0]
+                if values['cmcIIIVarType'] != 'value':
+                    continue
+                if values['cmcIIIVarDatatype'] != 'int':
+                    self._logger.warning("Found sensor %s with datatype %s",
+                                         values['cmcIIIVarName'],
+                                         values['cmcIIIVarDatatype'])
+                    continue
+                raw_unit = values['cmcIIIVarUnit']
+                scale = UNIT_SCALE.get(raw_unit, None)
+                unit = UNIT_MAP.get(raw_unit, raw_unit)
+                name = values['cmcIIIVarName']
+                raw_precision = values['cmcIIIVarScale']
+                if raw_precision < 0:
+                    precision = math.log10(-raw_precision)
+                elif raw_precision == 0:
+                    precision = 0
+                else:
+                    precision = -math.log10(raw_precision)
+                var_descr = '{}: {}'.format(dev_aliases[oid[:-1]],
+                                            description)
+                if var_name != 'Value':
+                    var_descr += " {}".format(var_name)
+                sensor = dict(
+                    oid=str(self.nodes['cmcIIIVarValueInt'].oid + oid),
+                    unit_of_measurement=unit,
+                    precision=precision,
+                    scale=scale,
+                    description=var_descr,
+                    name=name,
+                    internal_name='{dev}_{var}'.format(
+                        dev=dev_names[oid[:-1]],
+                        var=name),
+                    mib=self.get_module_name(),
+                )
+                result.append(sensor)
         returnValue(result)
