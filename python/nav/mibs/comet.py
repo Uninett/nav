@@ -63,6 +63,8 @@ class Comet(MibRetriever):
 
             name = yield self.get_next(o_name)
             unit = yield self.get_next(o_unit)
+            if not name and not unit:
+                continue
             unit = UNIT_MAP.get(unit, unit)
             self._logger.debug("channel %s name/unit: %r/%r",
                                channel, name, unit)
