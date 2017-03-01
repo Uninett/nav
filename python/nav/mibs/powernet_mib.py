@@ -20,6 +20,7 @@ from nav.mibs.ups_mib import UpsMib
 
 R_PDU_LOAD_STATUS_LOAD = 'rPDULoadStatusLoad'
 R_PDU_LOAD_STATUS_BANK_NUMBER = 'rPDULoadStatusBankNumber'
+R_PDU_LOAD_STATUS_PHASE_NUMBER = 'rPDULoadStatusPhaseNumber'
 
 U_VOLT = dict(u_o_m='Volt')
 U_DECIVOLT = dict(u_o_m='Volt', precision=1)
@@ -93,6 +94,7 @@ class PowerNetMib(UpsMib):
     @defer.inlineCallbacks
     def _get_pdu_bank_load_sensors(self):
         banks = yield self.retrieve_columns([R_PDU_LOAD_STATUS_LOAD,
+                                             R_PDU_LOAD_STATUS_PHASE_NUMBER,
                                              R_PDU_LOAD_STATUS_BANK_NUMBER])
         banks = reduce_index(banks)
         if banks:
@@ -104,7 +106,11 @@ class PowerNetMib(UpsMib):
             oid = str(column.oid + str(index))
 
             bank_number = row.get(R_PDU_LOAD_STATUS_BANK_NUMBER, None)
-            name = "PDU Bank %s" % bank_number
+            phase_number = row.get(R_PDU_LOAD_STATUS_PHASE_NUMBER, None)
+            if bank_number != 0:
+                name = "PDU Bank %s" % bank_number
+            else:
+                name = "PDU Phase %s" % phase_number
 
             result.append(dict(
                 oid=oid,
