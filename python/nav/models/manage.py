@@ -1657,6 +1657,66 @@ class RoutingProtocolAttribute(models.Model):
         db_table = u'rproto_attr'
 
 
+class GatewayPeerSession(models.Model):
+    """Gateway protocol session decriptor"""
+    PROTOCOL_BGP = 1
+    PROTOCOL_OSPF = 2
+    PROTOCOL_ISIS = 3
+
+    PROTOCOL_CHOICES = (
+        (PROTOCOL_BGP, 'BGP'),
+        (PROTOCOL_OSPF, 'OSPF'),
+        (PROTOCOL_ISIS, 'IS-IS'),
+    )
+
+    id = models.AutoField(primary_key=True, db_column='peersessionid')
+    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    protocol = models.IntegerField(choices=PROTOCOL_CHOICES)
+    peer = models.IPAddressField()
+    state = VarcharField()
+    local_as = models.IntegerField(null=True)
+    remote_as = models.IntegerField(null=True)
+    adminstatus = VarcharField()
+
+    class Meta(object):
+        db_table = u'peersession'
+
+    def get_peer_as_netbox(self):
+        """If the peer of this partner is a known Netbox, it is returned.
+
+        :rtype: Netbox
+
+        """
+        expr = Q(ip=self.peer) | Q(interface__gwportprefix__gw_ip=self.peer)
+        netboxes = Netbox.objects.filter(expr)
+        if netboxes:
+            return netboxes[0]
+
+    def get_peer_display(self):
+        """Returns a display name for the peer.
+
+        Will access the database to see if the peer is a known Netbox.
+
+        """
+        peer = self.get_peer_as_netbox()
+        return "{} ({})".format(peer, self.peer) if peer else str(self.peer)
+
+    def __repr__(self):
+        return ("<GatewayPeerSession: protocol={protocol} netbox={netbox}"
+                " peer={peer} state={state} adminstatus={adminstatus}>").format(
+            protocol=self.get_protocol_display(),
+            netbox=self.netbox,
+            peer=self.peer,
+            state=self.state,
+            adminstatus=self.adminstatus)
+
+    def __str__(self):
+        tmpl = "{netbox} {proto} session with {peer}"
+        return tmpl.format(netbox=self.netbox,
+                           proto=self.get_protocol_display(),
+                           peer=self.get_peer_display())
+
+
 class Sensor(models.Model):
     """
     This table contains meta-data about available sensors in

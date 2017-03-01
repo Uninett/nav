@@ -22,6 +22,7 @@ as defined by PEP-8, because their names are derived directly from SNMP MIB
 objects. Pylint messages about this are therefore disabled in this file.
 
 """
+from functools import partial
 from struct import unpack
 import array
 from IPy import IP
@@ -97,14 +98,17 @@ def Unsigned32(iterator):
     return iterator.next()
 
 
-def String(iterator):
+def String(iterator, length=None):
     """Consume a string of a length specified by the next iteration"""
-    length = iterator.next()
+    if length is None:
+        length = iterator.next()
     return OID(islice(iterator, length))
 
 ObjectIdentifier = String
 InetAddressType = Unsigned32
 InetAddress = String
+InetAddressIPv4 = partial(String, length=4)
+InetAddressIPv6 = partial(String, length=16)
 InetAddressPrefixLength = Unsigned32
 
 
@@ -118,6 +122,22 @@ def TypedInetAddress(iterator):
         return oid_to_ipv4(addr)
     elif addr_type == IPV6_ID:
         return oid_to_ipv6(addr)
+
+
+def TypedFixedInetAddress(iterator):
+    """
+    Consumes and parses a InetAddressType.InetAddress combo, where there is
+    no length specifier in the InetAddress string, into an IPy.IP host address.
+    """
+    addr_type = iterator.next()
+    if addr_type == IPV4_ID:
+        addr, = consume(iterator, InetAddressIPv4)
+        return oid_to_ipv4(addr)
+    elif addr_type == IPV6_ID:
+        addr, = consume(iterator, InetAddressIPv6)
+        return oid_to_ipv6(addr)
+    else:
+        raise ValueError("unsupported address type %s", addr_type)
 
 
 def InetPrefix(iterator):

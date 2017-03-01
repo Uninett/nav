@@ -39,7 +39,8 @@ class EventFactory(object):
         self.start_type = start_type
         self.end_type = end_type
 
-    def base(self, device, netbox, subid='', varmap=None, alert_type=None):
+    def base(self, device=None, netbox=None, subid='', varmap=None,
+             alert_type=None):
         """Creates and returns an event base template
 
         :param device: A nav.models.manage.Device object or primary key.
@@ -74,20 +75,26 @@ class EventFactory(object):
 
         return event
 
-    def start(self, device, netbox, subid='', varmap=None):
+    def start(self, device=None, netbox=None, subid='', varmap=None,
+              alert_type=None):
         """Creates and returns a start event"""
-        event = self.base(device, netbox, subid, varmap, self.start_type)
+        event = self.base(device, netbox, subid, varmap,
+                          alert_type or self.start_type)
         event.state = event.STATE_START
         return event
 
-    def end(self, device, netbox, subid='', varmap=None):
+    def end(self, device=None, netbox=None, subid='', varmap=None,
+            alert_type=None):
         """Creates and returns an end event"""
-        event = self.base(device, netbox, subid, varmap, self.start_type)
+        event = self.base(device, netbox, subid, varmap,
+                          alert_type or self.end_type)
         event.state = event.STATE_END
         return event
 
-    def notify(self, device, netbox, subid='', varmap=None):
+    def notify(self, device=None, netbox=None, subid='', varmap=None,
+               alert_type=None):
         """Creates and returns a stateless event"""
-        event = self.base(device, netbox, subid, varmap, self.start_type)
+        event = self.base(device, netbox, subid, varmap,
+                          alert_type or self.start_type)
         event.event_type = event.STATE_STATELESS
         return event

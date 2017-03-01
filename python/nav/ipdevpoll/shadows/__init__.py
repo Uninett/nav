@@ -41,6 +41,7 @@ from .cam import Cam
 from .adjacency import AdjacencyCandidate, UnrecognizedNeighbor
 from .entity import NetboxEntity
 from .prefix import Prefix
+from .gwpeers import GatewayPeerSession
 
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
