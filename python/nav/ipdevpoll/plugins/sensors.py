@@ -73,9 +73,9 @@ class Sensors(Plugin):
         vendor_id = None
         if self.netbox.type:
             vendor_id = self.netbox.type.get_enterprise_id()
-        if not vendor_id:
-            vendor_id = '*'
-        mibs = [cls(self.agent) for cls in self.mib_map.get(vendor_id, ())]
+
+        classes = self.mib_map.get(vendor_id, ()) or self.mib_map.get('*', ())
+        mibs = [cls(self.agent) for cls in classes]
         return mibs
 
     def _store_sensors(self, result):
