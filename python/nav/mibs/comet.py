@@ -63,6 +63,8 @@ class Comet(MibRetriever):
 
             name = yield self.get_next(o_name)
             unit = yield self.get_next(o_unit)
+            if not name and not unit:
+                continue
             unit = UNIT_MAP.get(unit, unit)
             self._logger.debug("channel %s name/unit: %r/%r",
                                channel, name, unit)
@@ -117,6 +119,48 @@ class Comet(MibRetriever):
                 description="%s alarm" % name,
                 name="BIN %s Alarm" % binary,
                 internal_name="bin%sAlarm" % binary,
+                mib=self.get_module_name(),
+            ))
+        returnValue(result)
+
+
+class CometMS(MibRetriever):
+    """MibRetriever for Comet Web Sensors"""
+    from nav.smidumps.cometms_mib import MIB as mib
+
+    def get_module_name(self):
+        """Returns the MIB module name"""
+        return self.mib.get('moduleName', None)
+
+    @defer.inlineCallbacks
+    def get_all_sensors(self):
+        """Discovers and returns all eligible sensors from the Comet MIB on this
+        device.
+        """
+        channels = yield self.get_channels()
+        returnValue(channels)
+
+    @defer.inlineCallbacks
+    def get_channels(self):
+        """Returns the temperature sensor channels for this probe."""
+        value_oid = self.nodes['channelInt100'].oid
+
+        result = []
+        channels = yield self.retrieve_table('chTable')
+        channels = self.translate_result(channels)
+        for index, row in channels.items():
+            self._logger.info("Got channel {}: {}".format(index, row))
+            unit = row['channelUnit']
+            unit = UNIT_MAP.get(unit, unit)
+            name = row['channelName']
+            result.append(dict(
+                oid=str(value_oid + index),
+                unit_of_measurement=unit,
+                precision=2,
+                scale=None,
+                description=name,
+                name=name,
+                internal_name="channel%s" % index,
                 mib=self.get_module_name(),
             ))
         returnValue(result)
