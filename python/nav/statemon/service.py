@@ -16,12 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# $Id: $
-# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
-#          Erik Gorset     <erikgors@itea.ntnu.no>
-#
 """
 Module representing a NAV service
 """
