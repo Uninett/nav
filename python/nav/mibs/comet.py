@@ -53,7 +53,7 @@ class Comet(MibRetriever):
     @defer.inlineCallbacks
     def get_channels(self):
         """Returns the temperature sensor channels for this probe."""
-        self._logger.info("collecting Comet channels")
+        self._logger.debug("collecting Comet channels")
         result = []
         for channel in range(1, 5):
             o_name = "ch%dName" % channel
@@ -84,7 +84,7 @@ class Comet(MibRetriever):
     @defer.inlineCallbacks
     def get_binary_inputs(self):
         """Returns the binary inputs of this probe, also their alarm status"""
-        self._logger.info("collecting Comet binary sensors")
+        self._logger.debug("collecting Comet binary sensors")
         result = []
         for binary in range(1, 4):
             o_name = "bin%dName" % binary
@@ -96,8 +96,8 @@ class Comet(MibRetriever):
             name = yield self.get_next(o_name)
             value = yield self.get_next(o_value)
             if value is None:
-                self._logger.info("Ignoring BIN input %s (%s), it has no value",
-                                  binary, name)
+                self._logger.debug("Ignoring BIN input %s (%s), it has no value",
+                                   binary, name)
                 continue
             self._logger.debug("BIN input %s name: %r", binary, name)
 
@@ -149,7 +149,7 @@ class CometMS(MibRetriever):
         channels = yield self.retrieve_table('chTable')
         channels = self.translate_result(channels)
         for index, row in channels.items():
-            self._logger.info("Got channel {}: {}".format(index, row))
+            self._logger.debug("Got channel {}: {}".format(index, row))
             unit = row['channelUnit']
             unit = UNIT_MAP.get(unit, unit)
             name = row['channelName']
