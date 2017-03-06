@@ -10,16 +10,28 @@ require([
         }));
     }
 
+    function getMetric($element) {
+        var element = $element[0];
+        var obj = {};
+        obj[element.dataset.metric] = element.id;
+        return obj;
+    }
+
+    function getValue(result) {
+        var datapoints = result.datapoints;
+        var point = _.find(datapoints.reverse(), function (datapoint) {
+            return datapoint[0] != null;
+        });
+
+        return point[0] ? point[0] : 'N/A';
+    }
+
     function updateSensors(results, metricMap) {
         _.each(results, function (result) {
-            var datapoints = result.datapoints;
-            var point = _.find(datapoints.reverse(), function (datapoint) {
-                return datapoint[0] != null;
-            });
-
-            var value = point[0] ? point[0].toFixed(2) : 'N/A';
+            var value = getValue(result);
             var element = metricMap[result.target];
             var $element = $(document.getElementById(element));
+
             $element.find('.sparkline').sparkline([null, value, 50], {
                 type: 'bullet',
                 performanceColor: 'lightsteelblue',
@@ -37,21 +49,17 @@ require([
 
     function updatePDUS(results, metricMap) {
         _.each(results, function (result) {
-            var datapoints = result.datapoints;
-            var point = _.find(datapoints.reverse(), function (datapoint) {
-                return datapoint[0] != null;
-            });
-
-            var value = point[0] != null ? point[0] : 'N/A';
+            var value = getValue(result);
             var elementId = metricMap[result.target];
-            var element = document.getElementById(elementId);
+            var $element = $(document.getElementById(elementId));
+            var gaugeElement = $element.find('.pdu-gauge')[0];
 
-            if ($.data(element, 'gauge')) {
-                $.data(element, 'gauge').update(value);
+            if ($.data(gaugeElement, 'gauge')) {
+                $.data(gaugeElement, 'gauge').update(value);
             } else {
-                var gauge = new LinearGauge({nodeId: elementId, precision: 2, color: 'lightsteelblue'});
+                var gauge = new LinearGauge({nodeId: gaugeElement.id, precision: 2, color: 'lightsteelblue'});
                 gauge.update(value);
-                $.data(element, 'gauge', gauge);
+                $.data(gaugeElement, 'gauge', gauge);
             }
 
         });
@@ -74,7 +82,7 @@ require([
         });
 
         request.fail(function () {
-            // alert('Error on data request')
+            console.log("Error on data request");
         });
     }
 
@@ -93,7 +101,6 @@ require([
 
     //  Run on page load
     $(function () {
-
 
         /**
          * Stuff for adding and removing sensors
@@ -146,6 +153,12 @@ require([
                 });
                 request.done(function (data) {
                     $.data($sensorModal, 'clickedButton').siblings('.sensors').append(data);
+                    var thisIsPDU = $(data).find('.pdu-gauge').length;
+                    if (thisIsPDU) {
+                        getData(getMetric($(data)), updatePDUS);
+                    } else {
+                        getData(getMetric($(data)), updateSensors);
+                    }
                     $modal.foundation('reveal', 'close');
                 })
             })
