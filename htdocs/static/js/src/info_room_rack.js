@@ -4,13 +4,13 @@ require([
     'libs/jquery.sparkline'
 ], function (LinearGauge, symbol) {
 
-    function getMetrics(selector) {
-        return _.object($(selector + ' [data-metric]').map(function () {
+    function getMetrics($element) {
+        return _.object($element.find('[data-metric]').map(function () {
             return [[this.dataset.metric, this.id]];
         }));
     }
 
-    function updateDisplay(results, metricMap) {
+    function updateSensors(results, metricMap) {
         _.each(results, function (result) {
             var datapoints = result.datapoints;
             var point = _.find(datapoints.reverse(), function (datapoint) {
@@ -35,8 +35,7 @@ require([
     }
 
 
-    function updatePDUData(results, metricMap) {
-        console.log("Updating pdudata");
+    function updatePDUS(results, metricMap) {
         _.each(results, function (result) {
             var datapoints = result.datapoints;
             var point = _.find(datapoints.reverse(), function (datapoint) {
@@ -79,12 +78,28 @@ require([
         });
     }
 
+    function updateRack($rack) {
+        console.log("updating rack %s", $rack.data('rackid'));
+        getData(getMetrics($rack.find('.rack-center')), updateSensors);
+        getData(getMetrics($rack.find('.rack-pdu')), updatePDUS);
+    }
+
+    function updateRacks() {
+        $('.rack').each(function () {
+            updateRack($(this));
+        });
+    }
+
+
     //  Run on page load
     $(function () {
 
+
+        /**
+         * Stuff for adding and removing sensors
+         */
         var $sensorModal = $('#sensormodal');
         $('button').on('click', function () {
-            console.log(this);
             $.data($sensorModal, 'clickedButton', $(this));
             var column = $(this).closest('.rack-column').data('column');
 
@@ -137,15 +152,8 @@ require([
         });
 
 
-        getData(getMetrics('.rack-center'), updateDisplay);
-        setInterval(function () {
-            getData(getMetrics('.rack-center'), updateDisplay);
-        }, 5000);
-
-        getData(getMetrics('.rack-pdu'), updatePDUData);
-        setInterval(function () {
-            getData(getMetrics('.rack-pdu'), updatePDUData);
-        }, 5000);
+        updateRacks();
+        setInterval(updateRacks, 60000);
 
     });
 
