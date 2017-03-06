@@ -14,6 +14,8 @@ define(function (require, exports, module) {
         this.refreshInterval = 60;  // In seconds
         this.precision = config.precision || null;  // Number of decimals for value
         this.threshold = config.threshold || null;
+        this.color = config.color;  // Set a single color instead of using the gradient
+        this.fill = config.color ? this.color : 'url(#' + this.nodeId + 'gradient)';
 
         this.container = d3.select('#' + this.nodeId).append('svg')
             .attr('width', this.width).attr('height', this.height)
@@ -36,7 +38,7 @@ define(function (require, exports, module) {
                 return self.y(d);
             }).attr('width', this.width).attr('height', function (d) {
                 return self.height - self.y(d);
-            }).attr('fill', 'url(#' + self.nodeId + 'gradient)');
+            }).attr('fill', this.fill);
 
         // Draw value on bar
         this.barText = groupEnter.append('text')
@@ -121,7 +123,7 @@ define(function (require, exports, module) {
                 this.bar.attr('fill', 'red');
                 this.thresholdPassed = true;
             } else if (this.thresholdPassed && data < this.threshold) {
-                this.bar.attr('fill', 'url(#' + self.nodeId + 'gradient)');
+                this.bar.attr('fill', self.fill);
             }
 
             // Update and transition value
