@@ -25,10 +25,11 @@ require([
             $element.find('.sparkline').sparkline([null, value, 50], {
                 type: 'bullet',
                 performanceColor: 'lightsteelblue',
-                rangeColors: ['#eee'],
+                rangeColors: ['#fff'],
+                width: '100%',
                 tooltipFormatter: function (data) {
-                    console.log(data);
-                    return data.values[1].toFixed(2);
+                    // return data.values[1].toFixed(2);
+                    return ""
                 }
             });
             $element.find('.textvalue').html(value + symbol($element.data('unit')));

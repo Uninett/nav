@@ -1,5 +1,6 @@
 <div id="racksensor-{{ racksensor.pk }}"
      class="rack-sensor"
+     title="{{ racksensor.sensor }}"
      data-metric="{{ racksensor.sensor.get_metric_name }}"
      data-unit="{{ racksensor.sensor.unit_of_measurement }}">
   <small>{{ racksensor.sensor.human_readable }}</small>

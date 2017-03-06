@@ -11,10 +11,11 @@
     border: 2px solid #aaaaaa;
     display: flex;
     height: 400px;
-    width: 200px;
+    width: 250px;
     .rack-pdu {
         height: 100%;
-        width: 40px;
+        width: 60px;
+        text-align: center;
     }
     .rack-center {
         border-left: 1px solid #aaaaaa;
@@ -27,5 +28,5 @@
 .rack-sensor {
     border-bottom: 1px solid #aaaaaa;
     //background-color: white;
-    padding-left: .3rem;
+    padding: 0 .3rem;
 }
