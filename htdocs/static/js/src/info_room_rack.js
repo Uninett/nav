@@ -4,12 +4,84 @@ require([
     'libs/jquery.sparkline'
 ], function (LinearGauge, symbol) {
 
+    /**
+     * Opens modal (with remote url) with content for adding sensors when
+     * button is clicked
+     */
+    function addOpenSensorModalListener($sensorModal) {
+        $('.rack button').on('click', function () {
+            $.data($sensorModal, 'clickedButton', $(this));
+            var column = $(this).closest('.rack-column').data('column');
+
+            $sensorModal.foundation('reveal', 'open', {
+                url: NAV.urls.render_add_sensor,
+                method: 'post',
+                data: {
+                    rackid: $(this).closest('.rack').data('rackid'),
+                    column: column,
+                    is_pdu: column != '1'
+                }
+            });
+        });
+    }
+
+
+    /**
+     * Applies listeners when modal for adding sensors is loaded
+     * - form submit
+     * - cancel click
+     * - select2 component
+     */
+    function addSensorModalListeners($sensorModal) {
+        $(document).on('opened', '#sensormodal', function () {
+            $sensorModal.find('.sensordropdown').select2();
+            $sensorModal.find('.cancelbutton').on('click', function (event) {
+                event.preventDefault();
+                $sensorModal.foundation('reveal', 'close');
+            });
+
+            var $form = $sensorModal.find('form');
+            $form.submit(function (event) {
+                event.preventDefault();
+                var request = $.post($form.attr('action'), $form.serialize());
+                request.fail(function () {
+                    console.log("Failed to post form");
+                });
+                request.done(function (data) {
+                    $.data($sensorModal, 'clickedButton').siblings('.sensors').append(data);
+                    updateSingleSensor($(data));
+                    $sensorModal.foundation('reveal', 'close');
+                })
+            })
+        });
+    }
+
+
+    /**
+     * Updates a single sensor element
+     */
+    function updateSingleSensor($sensor) {
+        var thisIsPDU = $sensor.find('.pdu-gauge').length;
+        if (thisIsPDU) {
+            getData(getMetric($sensor), updatePDUS);
+        } else {
+            getData(getMetric($sensor), updateSensors);
+        }
+s    }
+
+
+    /**
+     * Creates mapping between metric and element id for all data-metric elements
+     */
     function getMetrics($element) {
         return _.object($element.find('[data-metric]').map(function () {
             return [[this.dataset.metric, this.id]];
         }));
     }
 
+    /**
+     * Creates mapping between metric and element id for a single element
+     */
     function getMetric($element) {
         var element = $element[0];
         var obj = {};
@@ -17,6 +89,9 @@ require([
         return obj;
     }
 
+    /**
+     * Gets the correct single value from the datapoints returned from Graphite
+     */
     function getValue(result) {
         var datapoints = result.datapoints;
         var point = _.find(datapoints.reverse(), function (datapoint) {
@@ -26,6 +101,10 @@ require([
         return point[0] ? point[0] : 'N/A';
     }
 
+    /**
+     * Updates all sensors in the metricMap. They must not be PDU-sensors
+     * because these are visualized with a bullet-sparkline
+     */
     function updateSensors(results, metricMap) {
         _.each(results, function (result) {
             var value = getValue(result);
@@ -47,6 +126,10 @@ require([
     }
 
 
+    /**
+     * Updates all PDU-sensors in the metricMap. They must not be normal sensors
+     * because PDU-sensors are visualized with a LinearGauge
+     */
     function updatePDUS(results, metricMap) {
         _.each(results, function (result) {
             var value = getValue(result);
@@ -65,7 +148,9 @@ require([
         });
     }
 
-
+    /**
+     * Fetches data for all metrics in the metricmap and runs updatefunc
+     */
     function getData(metricMap, updateFunc) {
         var url = '/graphite/render';
         var request = $.getJSON(url,
@@ -86,12 +171,18 @@ require([
         });
     }
 
+    /**
+     * Updates a single rack
+     */
     function updateRack($rack) {
         console.log("updating rack %s", $rack.data('rackid'));
         getData(getMetrics($rack.find('.rack-center')), updateSensors);
         getData(getMetrics($rack.find('.rack-pdu')), updatePDUS);
     }
 
+    /**
+     * Updates all racks
+     */
     function updateRacks() {
         $('.rack').each(function () {
             updateRack($(this));
@@ -99,31 +190,11 @@ require([
     }
 
 
-    //  Run on page load
-    $(function () {
-
-        /**
-         * Stuff for adding and removing sensors
-         */
-        var $sensorModal = $('#sensormodal');
-        $('button').on('click', function () {
-            $.data($sensorModal, 'clickedButton', $(this));
-            var column = $(this).closest('.rack-column').data('column');
-
-            $sensorModal.foundation('reveal', 'open', {
-                url: NAV.urls.render_add_sensor,
-                method: 'post',
-                data: {
-                    rackid: $(this).closest('.rack').data('rackid'),
-                    column: column,
-                    is_pdu: column != '1'
-                }
-            });
-
-        });
-
+    /**
+     * Listener for removing sensors
+     */
+    function addSensorRemoveListener() {
         $('#racks').on('click', '.fa-remove', function () {
-            console.log(this);
             var rackSensor = $(this).closest('.rack-sensor');
             var request = $.post(NAV.urls.remove_sensor, {
                 racksensorid: rackSensor.data('racksensorid')
@@ -132,39 +203,20 @@ require([
                 rackSensor.remove();
             })
         });
+    }
 
+    /**
+     * Runs on page load. Setup page
+     */
+    $(function () {
 
-        $(document).on('opened', '#sensormodal', function () {
-            var $modal = $('#sensormodal');
+        // Add all listeners
+        var $sensorModal = $('#sensormodal');
+        addOpenSensorModalListener($sensorModal);
+        addSensorModalListeners($sensorModal);
+        addSensorRemoveListener();
 
-            console.log("Modal was opened");
-            $modal.find('.sensordropdown').select2();
-            $modal.find('.cancelbutton').on('click', function (event) {
-                event.preventDefault();
-                $modal.foundation('reveal', 'close');
-            });
-
-            var $form = $modal.find('form');
-            $form.submit(function (event) {
-                event.preventDefault();
-                var request = $.post($form.attr('action'), $form.serialize());
-                request.fail(function () {
-                    console.log("Failed to post form");
-                });
-                request.done(function (data) {
-                    $.data($sensorModal, 'clickedButton').siblings('.sensors').append(data);
-                    var thisIsPDU = $(data).find('.pdu-gauge').length;
-                    if (thisIsPDU) {
-                        getData(getMetric($(data)), updatePDUS);
-                    } else {
-                        getData(getMetric($(data)), updateSensors);
-                    }
-                    $modal.foundation('reveal', 'close');
-                })
-            })
-        });
-
-
+        // Start updating racks with data
         updateRacks();
         setInterval(updateRacks, 60000);
 
