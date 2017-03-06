@@ -26,9 +26,12 @@
         height: 100%;
         flex: 1;
         .rack-sensor {
-            border-bottom: 1px solid #aaaaaa;
             padding: 0 .3rem;
+            &:not(:last-child) {
+                border-bottom: 1px solid #aaaaaa;
+            }
         }
+
     }
 
     .rack-sensor {
