@@ -8,31 +8,40 @@
 
 .rack-body {
     background-color: gainsboro;
-    border: 2px solid #aaaaaa;
+    border: 1px solid #aaaaaa;
     display: flex;
-    height: 400px;
     width: 250px;
+
+    button {
+        margin: 0.5rem 0;
+    }
+
     .rack-pdu {
         height: 100%;
         width: 60px;
-        //text-align: center;
+        text-align: center;
     }
+
     .rack-center {
-        border-left: 1px solid #aaaaaa;
-        border-right: 1px solid #aaaaaa;
         height: 100%;
         flex: 1;
+        .rack-sensor {
+            border-bottom: 1px solid #aaaaaa;
+            padding: 0 .3rem;
+        }
+    }
+
+    .rack-sensor {
+        .fa {
+            display: none;
+        }
+        .heading {
+            font-size: 0.9rem;
+        }
+        .heading:hover .fa {
+            display: inline;
+        }
+
     }
 }
 
-.rack-sensor {
-    border-bottom: 1px solid #aaaaaa;
-    //background-color: white;
-    padding: 0 .3rem;
-    .fa {
-        display: none;
-    }
-    .heading:hover .fa {
-        display: inline;
-    }
-}

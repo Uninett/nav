@@ -4,10 +4,10 @@
      data-metric="{{ racksensor.sensor.get_metric_name }}"
      data-racksensorid="{{ racksensor.pk }}"
      data-unit="{{ racksensor.sensor.unit_of_measurement }}">
-  <h6 class="heading">
+  <div class="heading">
     <span class="right"><i class="fa fa-remove" title="Remove sensor"></i></span>
     {{ racksensor.sensor.human_readable }}
-  </h6>
+  </div>
   <div class="sparkline"></div>
   <small class="textvalue"></small>
   <small>{{ racksensor.sensor.unit_of_measurement }}</small>

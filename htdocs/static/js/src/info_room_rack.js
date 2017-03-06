@@ -43,7 +43,7 @@ require([
                 return datapoint[0] != null;
             });
 
-            var value = point[0] ? point[0] : 'N/A';
+            var value = point[0] != null ? point[0] : 'N/A';
             var elementId = metricMap[result.target];
             var element = document.getElementById(elementId);
 

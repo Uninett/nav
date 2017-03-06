@@ -1,4 +1,10 @@
-<div id="racksensor-{{ racksensor.pk }}"
+<div class="rack-sensor"
      title="{{ racksensor.sensor }}"
-     data-metric="{{ racksensor.sensor.get_metric_name }}">
+     data-racksensorid="{{ racksensor.pk }}">
+  <div class="heading">
+    PDU<i class="fa fa-remove"></i>
+  </div>
+  <div id="racksensor-{{ racksensor.pk }}"
+       class="pdu-sensor"
+       data-metric="{{ racksensor.sensor.get_metric_name }}"></div>
 </div>
