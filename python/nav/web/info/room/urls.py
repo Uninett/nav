@@ -22,7 +22,7 @@ from nav.web.info.room.views import (search, roominfo, render_netboxes,
                                      update_priority, create_csv,
                                      render_sensors, render_deviceinfo,
                                      render_racks, render_add_sensor,
-                                     save_sensor)
+                                     save_sensor, remove_sensor)
 
 urlpatterns = patterns('',
     url(r'^$', search, name='room-search'),
@@ -40,6 +40,8 @@ urlpatterns = patterns('',
     url(r'^(?P<roomid>.+)/sensors/', render_sensors, name='room-info-sensors'),
     url(r'^(?P<roomid>.+)/racks/add_sensor', render_add_sensor,
         name='room-info-racks-add-sensor'),
+    url(r'^(?P<roomid>.+)/racks/remove_sensor', remove_sensor,
+        name='room-info-racks-remove-sensor'),
     url(r'^(?P<roomid>.+)/racks/save_sensor', save_sensor,
         name='room-info-racks-save-sensor'),
     url(r'^(?P<roomid>.+)/racks/', render_racks, name='room-info-racks'),

@@ -3,6 +3,7 @@
   <script>
     require(["src/info_room_rack"]);
     NAV.urls.render_add_sensor = "{% url 'room-info-racks-add-sensor' room.pk %}"
+    NAV.urls.remove_sensor = "{% url 'room-info-racks-remove-sensor' room.pk %}"
   </script>
 {% endblock %}
 
@@ -31,7 +32,7 @@
               {% include 'info/room/fragment_rackpdusensor.html' %}
             {% endfor %}
           </div>
-          <button class="tiny full-width"><i clasS="fa fa-plus"></i></button>
+          <button class="tiny full-width" title="Add PDU"><i clasS="fa fa-plus"></i></button>
         </div>
 
         <div class="rack-center rack-column" data-column="1">

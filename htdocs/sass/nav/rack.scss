@@ -15,7 +15,7 @@
     .rack-pdu {
         height: 100%;
         width: 60px;
-        text-align: center;
+        //text-align: center;
     }
     .rack-center {
         border-left: 1px solid #aaaaaa;
@@ -29,4 +29,10 @@
     border-bottom: 1px solid #aaaaaa;
     //background-color: white;
     padding: 0 .3rem;
+    .fa {
+        display: none;
+    }
+    .heading:hover .fa {
+        display: inline;
+    }
 }

@@ -17,9 +17,7 @@ require([
                 return datapoint[0] != null;
             });
 
-            var value = point[0] ? point[0] : 'N/A';
-            value = value.toFixed(2);
-
+            var value = point[0] ? point[0].toFixed(2) : 'N/A';
             var element = metricMap[result.target];
             var $element = $(document.getElementById(element));
             $element.find('.sparkline').sparkline([null, value, 50], {
@@ -101,6 +99,18 @@ require([
             });
 
         });
+
+        $('#racks').on('click', '.fa-remove', function () {
+            console.log(this);
+            var rackSensor = $(this).closest('.rack-sensor');
+            var request = $.post(NAV.urls.remove_sensor, {
+                racksensorid: rackSensor.data('racksensorid')
+            });
+            request.done(function () {
+                rackSensor.remove();
+            })
+        });
+
 
         $(document).on('opened', '#sensormodal', function () {
             var $modal = $('#sensormodal');

@@ -388,3 +388,19 @@ def save_sensor(request, roomid):
     except (ValueError, IntegrityError) as error:
         return HttpResponse(error, status=500)
 
+
+def remove_sensor(request, roomid):
+    """Remove a sensor from a room"""
+    room = get_object_or_404(Room, pk=roomid)
+    racksensor = get_object_or_404(RackSensor,
+                                   pk=request.POST.get('racksensorid'))
+    try:
+        racksensor.delete()
+        return HttpResponse()
+    except:
+        return HttpResponse(status=500)
+
+
+
+
+
