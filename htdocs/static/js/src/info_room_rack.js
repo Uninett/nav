@@ -98,7 +98,7 @@ s    }
             return datapoint[0] != null;
         });
 
-        return point[0] ? point[0] : 'N/A';
+        return point[0] ? point[0] : null;
     }
 
     /**
