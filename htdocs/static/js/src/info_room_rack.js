@@ -24,7 +24,8 @@ require([
             var $element = $(document.getElementById(element));
             $element.find('.sparkline').sparkline([null, value, 50], {
                 type: 'bullet',
-                performanceColor: '#333333',
+                performanceColor: 'lightsteelblue',
+                rangeColors: ['#eee'],
                 tooltipFormatter: function (data) {
                     console.log(data);
                     return data.values[1].toFixed(2);
@@ -50,7 +51,7 @@ require([
             if ($.data(element, 'gauge')) {
                 $.data(element, 'gauge').update(value);
             } else {
-                var gauge = new LinearGauge({nodeId: elementId, precision: 2});
+                var gauge = new LinearGauge({nodeId: elementId, precision: 2, color: 'lightsteelblue'});
                 gauge.update(value);
                 $.data(element, 'gauge', gauge);
             }
