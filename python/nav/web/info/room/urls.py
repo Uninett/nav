@@ -20,7 +20,9 @@ from django.conf.urls import url, patterns
 from nav.web.info.room.views import (search, roominfo, render_netboxes,
                                      upload_image, update_title, delete_image,
                                      update_priority, create_csv,
-                                     render_sensors, render_deviceinfo)
+                                     render_sensors, render_deviceinfo,
+                                     render_racks, render_add_sensor,
+                                     save_sensor)
 
 urlpatterns = patterns('',
     url(r'^$', search, name='room-search'),
@@ -36,6 +38,11 @@ urlpatterns = patterns('',
         name='room-info-update-priority'),
     url(r'^(?P<roomid>.+)/upload/', upload_image, name='room-info-upload'),
     url(r'^(?P<roomid>.+)/sensors/', render_sensors, name='room-info-sensors'),
+    url(r'^(?P<roomid>.+)/racks/add_sensor', render_add_sensor,
+        name='room-info-racks-add-sensor'),
+    url(r'^(?P<roomid>.+)/racks/save_sensor', save_sensor,
+        name='room-info-racks-save-sensor'),
+    url(r'^(?P<roomid>.+)/racks/', render_racks, name='room-info-racks'),
     url(r'^(?P<roomid>.+)/$', roominfo, name='room-info'),
     url(r'^csv-download$', create_csv, name='room-csv'),
 

@@ -1,0 +1,57 @@
+{% block base_header_additional_head %}
+  <link href="{{ STATIC_URL }}css/nav/rack.css" rel="stylesheet">
+  <script>
+    require(["src/info_room_rack"]);
+    NAV.urls.render_add_sensor = "{% url 'room-info-racks-add-sensor' room.pk %}"
+  </script>
+{% endblock %}
+
+<h3>Racks in {{ room.pk }}</h3>
+
+{% if not racks %}
+  <p class="alert-box">There are no racks in this room.</p>
+{% endif %}
+
+<button class="small inline">Add a rack</button>
+
+
+{# Modal for adding new sensor #}
+<div id="sensormodal" class="reveal-modal tiny" data-reveal role="dialog"></div>
+
+
+<div id="racks">
+  {% for rack in racks %}
+
+    <div class="rack" data-rackid="{{ rack.pk }}">
+      <h4>Rack {{ rack.rackname }}</h4>
+      <div class="rack-body">
+        <div class="rack-left rack-column rack-pdu" data-column="0">
+          <div class="sensors">
+            {% for racksensor in rack.sensors_left %}
+              {% include 'info/room/fragment_rackpdusensor.html' %}
+            {% endfor %}
+          </div>
+          <button class="tiny full-width"><i clasS="fa fa-plus"></i></button>
+        </div>
+
+        <div class="rack-center rack-column" data-column="1">
+          <div class="sensors">
+            {% for racksensor in rack.sensors_center %}
+              {% include 'info/room/fragment_racksensor.html' %}
+            {% endfor %}
+          </div>
+          <button class="tiny full-width">Add new sensor</button>
+        </div>
+
+        <div class="rack-right rack-column rack-pdu" data-column="2">
+          {% for racksensor in rack.sensors_right %}
+            <div id="racksensor-{{ racksensor.pk }}"
+                 class="rack-sensor"
+                 data-metric="{{ racksensor.sensor.get_metric_name }}">
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>

@@ -19,8 +19,10 @@ import datetime
 import logging
 import os
 import csv
+
 from os.path import join
 from django.core.urlresolvers import reverse
+from django.db import IntegrityError
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import (render_to_response, redirect, get_object_or_404,
@@ -29,8 +31,10 @@ from django.template import RequestContext
 from django.contrib import messages
 
 from nav.django.utils import get_account
-from nav.models.manage import Room
+
+from nav.models.manage import Room, Sensor
 from nav.models.roommeta import Image, ROOMIMAGEPATH
+from nav.models.rack import Rack, RackSensor
 from nav.web.info.forms import SearchForm
 from nav.web.info.room.utils import (get_extension, create_hash,
                                      create_image_directory,
@@ -299,3 +303,88 @@ def render_sensors(request, roomid):
                             for x in netboxes])
 
     })
+
+
+def render_racks(request, roomid):
+    """Gets the racks for this room"""
+    room = get_object_or_404(Room, pk=roomid)
+    pdusensors = Sensor.objects.filter(
+        netbox__room=room,
+        netbox__category='POWER',
+        internal_name__startswith='rPDULoadStatusLoad'
+    ).select_related('netbox')
+
+    sensors = Sensor.objects.filter(
+        netbox__room=room).exclude(pk__in=pdusensors).select_related('netbox')
+
+    context = {
+        'room': room,
+        'racks': room.rack_set.all(),
+        'pdus': pdusensors,
+        'sensors': sensors
+    }
+    return render(request, 'info/room/roominfo_racks.html', context)
+
+
+def render_add_sensor(request, roomid):
+    rackid = request.POST.get('rackid')
+    column = request.POST.get('column')
+    is_pdu = request.POST.get('is_pdu') == 'true'
+
+    room = get_object_or_404(Room, pk=roomid)
+    rack = get_object_or_404(Rack, pk=rackid)
+
+    # Filter away already added sensors
+    sensors = Sensor.objects.exclude(racksensor__rack__room=room)
+
+    # Sensors that can be choosen for the pdu columns
+    pdusensors = sensors.filter(
+        netbox__room=room,
+        netbox__category='POWER',
+        internal_name__startswith='rPDULoadStatusLoad'
+    ).select_related('netbox').order_by('netbox__sysname', 'human_readable')
+
+    filteredsensors = pdusensors
+
+    if not is_pdu:
+        # All other sensors
+        othersensors = sensors.filter(
+            netbox__room=room).exclude(
+            pk__in=pdusensors).select_related(
+            'netbox').order_by('netbox__sysname', 'human_readable')
+
+        filteredsensors = othersensors
+
+    return render(request, 'info/room/fragment_add_sensor.html', {
+        'room': room,
+        'rack': rack,
+        'sensors': filteredsensors,
+        'column': column
+    })
+
+
+def save_sensor(request, roomid):
+    rackid = request.POST.get('rackid')
+    column = request.POST.get('column')
+    sensorid = request.POST.get('sensorid')
+
+    room = get_object_or_404(Room, pk=roomid)
+    sensor = get_object_or_404(Sensor, pk=sensorid)
+    rack = get_object_or_404(Rack, pk=rackid)
+    column = int(column)
+
+    try:
+        racksensor = RackSensor(rack=rack, sensor=sensor, col=column, row=4)
+        racksensor.save()
+        if column == 1:
+            return render(request, 'info/room/fragment_racksensor.html', {
+                'racksensor': racksensor
+            })
+        else:
+            return render(request, 'info/room/fragment_rackpdusensor.html', {
+                'racksensor': racksensor
+            })
+
+    except (ValueError, IntegrityError) as error:
+        return HttpResponse(error, status=500)
+

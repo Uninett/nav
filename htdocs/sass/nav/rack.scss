@@ -1,0 +1,31 @@
+#racks {
+    display: flex;
+}
+
+.rack {
+    margin-right: 1em;
+}
+
+.rack-body {
+    background-color: gainsboro;
+    border: 2px solid #aaaaaa;
+    display: flex;
+    height: 400px;
+    width: 200px;
+    .rack-pdu {
+        height: 100%;
+        width: 40px;
+    }
+    .rack-center {
+        border-left: 1px solid #aaaaaa;
+        border-right: 1px solid #aaaaaa;
+        height: 100%;
+        flex: 1;
+    }
+}
+
+.rack-sensor {
+    border-bottom: 1px solid #aaaaaa;
+    //background-color: white;
+    padding-left: .3rem;
+}

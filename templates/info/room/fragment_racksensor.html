@@ -1,0 +1,9 @@
+<div id="racksensor-{{ racksensor.pk }}"
+     class="rack-sensor"
+     data-metric="{{ racksensor.sensor.get_metric_name }}"
+     data-unit="{{ racksensor.sensor.unit_of_measurement }}">
+  <small>{{ racksensor.sensor.human_readable }}</small>
+  <div class="sparkline"></div>
+  <small class="textvalue"></small>
+  <small>{{ racksensor.sensor.unit_of_measurement }}</small>
+</div>
