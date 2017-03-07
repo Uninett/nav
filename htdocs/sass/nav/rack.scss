@@ -8,6 +8,15 @@ $pdu-width: 60px;
 .rack {
     margin-right: 1em;
     width: 250px;
+    h4 {
+        .remove-rack {
+            display: none;
+            cursor: pointer;
+        }
+        &:hover .remove-rack {
+            display: inline;
+        }
+    }
 }
 
 .rack-body {
@@ -36,6 +45,7 @@ $pdu-width: 60px;
     .rack-sensor {
         .fa {
             display: none;
+            cursor: pointer;
         }
         .heading {
             font-size: 0.9rem;
