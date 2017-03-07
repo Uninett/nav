@@ -218,7 +218,7 @@ require([
      * Listener for removing sensors
      */
     function addSensorRemoveListener() {
-        $('#racks').on('click', '.fa-remove', function () {
+        $('#racks').on('click', '.remove-sensor', function () {
             var rackSensor = $(this).closest('.rack-sensor');
             var request = $.post(NAV.urls.remove_sensor, {
                 racksensorid: rackSensor.data('racksensorid')
@@ -226,6 +226,25 @@ require([
             request.done(function () {
                 rackSensor.remove();
             })
+        });
+    }
+
+
+    /**
+     * Listener for removing racks
+     */
+    function addRackRemoveListener() {
+        $('#racks').on('click', '.remove-rack', function () {
+            var yes = confirm('Really remove this rack?');
+            if (yes) {
+                var rack = $(this).closest('.rack');
+                var request = $.post(NAV.urls.remove_rack, {
+                    rackid: rack.data('rackid')
+                });
+                request.done(function () {
+                    rack.remove();
+                })
+            }
         });
     }
 
@@ -259,7 +278,10 @@ require([
         var $sensorModal = $('#sensormodal');
         addOpenSensorModalListener($sensorModal);
         addSensorModalListeners($sensorModal);
+
+        addRackRemoveListener();
         addSensorRemoveListener();
+
         $(document).foundation();  // Make sure add rack modal opens
         addRackModalListener('#rackmodal');
 

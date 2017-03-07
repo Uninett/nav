@@ -5,7 +5,7 @@
      data-racksensorid="{{ racksensor.pk }}">
   <div class="heading">
     <a href="{{ racksensor.sensor.netbox.get_absolute_url }}">PDU</a>
-    <i class="fa fa-remove"></i>
+    <i class="fa fa-remove remove-sensor"></i>
   </div>
   <div id="sensor-{{ racksensor.sensor.pk }}" class="pdu-gauge"></div>
 </div>

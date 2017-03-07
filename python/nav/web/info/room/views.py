@@ -313,6 +313,13 @@ def add_rack(request, roomid):
     return render(request, 'info/room/fragment_rack.html', {'rack': rack})
 
 
+def remove_rack(request, roomid):
+    """Adds a new rack to a room"""
+    rack = get_object_or_404(Rack, pk=request.POST.get('rackid'))
+    rack.delete()
+    return HttpResponse()
+
+
 def render_racks(request, roomid):
     """Gets the racks for this room"""
     room = get_object_or_404(Room, pk=roomid)

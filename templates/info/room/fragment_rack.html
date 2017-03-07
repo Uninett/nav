@@ -1,5 +1,8 @@
 <div class="rack" data-rackid="{{ rack.pk }}">
-  <h4>Rack {{ rack.rackname }}</h4>
+  <h4>
+    <span class="right"><i class="fa fa-remove remove-rack" title="Remove rack"></i></span>
+    Rack {{ rack.rackname }}
+  </h4>
 
   {# Body contains the sensors #}
   <div class="rack-body">
