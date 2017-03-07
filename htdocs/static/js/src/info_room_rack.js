@@ -75,6 +75,7 @@ require([
             });
             request.done(function (html) {
                 $('#add-rack-button-container').before(html);
+                toggleEditEmptyRack();
                 $rackModal.foundation('reveal', 'close');
             });
         });
@@ -251,20 +252,22 @@ require([
     }
 
 
-    function toggleEditMode() {
+    function addEditModeListener() {
         // Add listener for toggling editmode
-        $('.edit-rack').on('click', function() {
+        $('#racks').on('click', '.edit-rack', function() {
             $(this).closest('.rack').toggleClass('editmode');
         });
+    }
 
-        // Toggle editmode on for empty racks
+
+    // Toggle editmode on for empty racks
+    function toggleEditEmptyRack() {
         $('.rack').each(function () {
             var $rack = $(this);
             if (!$rack.find('.rack-sensor').length) {
                 $rack.addClass('editmode');
             }
         });
-
     }
 
 
@@ -274,7 +277,8 @@ require([
     $(function () {
 
         // Add listener to edit-button, toggle edit-mode for empty racks
-        toggleEditMode();
+        addEditModeListener();
+        toggleEditEmptyRack();
 
         // Add all listeners
         var $sensorModal = $('#sensormodal');
