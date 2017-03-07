@@ -1,0 +1,33 @@
+<div class="rack" data-rackid="{{ rack.pk }}">
+  <h4>Rack {{ rack.rackname }}</h4>
+  <div class="rack-body">
+    <div class="rack-left rack-column rack-pdu" data-column="0">
+      <button class="tiny" title="Add PDU sensor"><i clasS="fa fa-plus"></i>
+      </button>
+      <div class="sensors">
+        {% for racksensor in rack.sensors_left %}
+          {% include 'info/room/fragment_rackpdusensor.html' %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="rack-center rack-column" data-column="1">
+      <button class="tiny full-width">Add sensor</button>
+      <div class="sensors">
+        {% for racksensor in rack.sensors_center %}
+          {% include 'info/room/fragment_racksensor.html' %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="rack-right rack-column rack-pdu" data-column="2">
+      <button class="tiny" title="Add PDU sensor"><i clasS="fa fa-plus"></i>
+      </button>
+      <div class="sensors">
+        {% for racksensor in rack.sensors_right %}
+          {% include 'info/room/fragment_rackpdusensor.html' %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>

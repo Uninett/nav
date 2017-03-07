@@ -1,5 +1,6 @@
-#racks {
+#racks-container {
     display: flex;
+    flex-wrap: wrap;
 }
 
 .rack {
