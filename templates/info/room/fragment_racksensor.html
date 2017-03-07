@@ -6,7 +6,9 @@
      data-unit="{{ racksensor.sensor.unit_of_measurement }}">
   <div class="heading">
     <span class="right"><i class="fa fa-remove" title="Remove sensor"></i></span>
-    {{ racksensor.sensor.human_readable }}
+    <a href="{{ racksensor.sensor.netbox.get_absolute_url }}">
+      {{ racksensor.sensor.human_readable }}
+    </a>
   </div>
   <div class="sparkline"></div>
   <small class="textvalue"></small>
