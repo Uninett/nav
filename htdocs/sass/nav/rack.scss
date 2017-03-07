@@ -5,6 +5,7 @@
 
 .rack {
     margin-right: 1em;
+    form { overflow: auto; display: none; }
 
     .fa {
         &.fa-edit, &.fa-remove {
@@ -16,6 +17,7 @@
     &.editmode {
         .fa { display: inline; }
         .rack-column > button { display: block; margin: 0; }
+        form { display: block; }
     }
 
 }

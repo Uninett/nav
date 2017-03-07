@@ -320,6 +320,15 @@ def remove_rack(request, roomid):
     return HttpResponse()
 
 
+def rename_rack(request, roomid, rackid):
+    """Renames a rack"""
+    rack = get_object_or_404(Rack, pk=rackid)
+    newname = request.POST.get('rackname')
+    rack.rackname = newname
+    rack.save()
+    return HttpResponse(newname)
+
+
 def render_racks(request, roomid):
     """Gets the racks for this room"""
     room = get_object_or_404(Room, pk=roomid)
@@ -334,7 +343,7 @@ def render_racks(request, roomid):
 
     context = {
         'room': room,
-        'racks': room.rack_set.all(),
+        'racks': room.rack_set.all().order_by('rackname'),
         'pdus': pdusensors,
         'sensors': sensors
     }
@@ -415,8 +424,3 @@ def remove_sensor(request, roomid):
         return HttpResponse()
     except:
         return HttpResponse(status=500)
-
-
-
-
-

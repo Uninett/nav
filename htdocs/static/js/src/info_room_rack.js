@@ -271,6 +271,20 @@ require([
     }
 
 
+    function addRenameRackListener() {
+        $('.rename-rack-form').submit(function(event) {
+            event.preventDefault();
+            var $form = $(this);
+            var request = $.post($form.attr('action'), $form.serialize());
+            request.fail(function () {
+                console.log("Failed to rename rack");
+            });
+            request.done(function (name) {
+                $form.siblings('.rack-heading').find('.rackname').text(name);
+            });
+        });
+    }
+
     /**
      * Runs on page load. Setup page
      */
@@ -290,6 +304,8 @@ require([
 
         $(document).foundation();  // Make sure add rack modal opens
         addRackModalListener('#rackmodal');
+
+        addRenameRackListener();
 
         // Start updating racks with data
         updateRacks();

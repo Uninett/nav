@@ -1,9 +1,21 @@
 <div class="rack" data-rackid="{{ rack.pk }}">
   <h5 class="rack-heading">
     <span class="right"><i class="fa fa-edit edit-rack" title="Toggle edit mode for the rack"></i></span>
-    <span class="rackname">Rack {{ rack.rackname }}</span>
+    <span class="rackname">{{ rack.rackname|default:"&nbsp;" }}</span>
     <i class="fa fa-remove remove-rack" title="Remove rack"></i>
   </h5>
+
+  <form action="{% url 'room-info-racks-rename-rack' room.pk rack.pk %}"
+        method="post"
+        class="rename-rack-form">
+    <label>
+      Rack name
+    </label>
+    <input type="submit" value="Save name" class="button small right">
+    <div style="overflow: hidden;">
+      <input type="text" name="rackname" value="{{ rack.rackname }}">
+    </div>
+  </form>
 
   {# Body contains the sensors #}
   <div class="rack-body">
