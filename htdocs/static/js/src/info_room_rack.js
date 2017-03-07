@@ -11,7 +11,7 @@ require([
     function addOpenSensorModalListener($sensorModal) {
         $('.rack button').on('click', function () {
             $.data($sensorModal, 'clickedButton', $(this));
-            var column = $(this).closest('.rack-column').data('column');
+            var column = $(this).data('column');
 
             $sensorModal.foundation('reveal', 'open', {
                 url: NAV.urls.render_add_sensor,
@@ -48,7 +48,10 @@ require([
                     console.log("Failed to post form");
                 });
                 request.done(function (data) {
-                    $.data($sensorModal, 'clickedButton').siblings('.sensors').append(data);
+                    var button = $.data($sensorModal, 'clickedButton'),
+                        column = button.data('column'),
+                        rack = button.closest('.rack');
+                    $(rack.find('.sensors').get(column)).append(data);
                     updateSingleSensor($(data));
                     $sensorModal.foundation('reveal', 'close');
                 })
@@ -197,8 +200,8 @@ require([
      */
     function updateRack($rack) {
         console.log("updating rack %s", $rack.data('rackid'));
-        getData(getMetrics($rack.find('.rack-center')), updateSensors);
-        getData(getMetrics($rack.find('.rack-pdu')), updatePDUS);
+        getData(getMetrics($rack.find('.rack-body .rack-center')), updateSensors);
+        getData(getMetrics($rack.find('.rack-body .rack-pdu')), updatePDUS);
     }
 
     /**
@@ -226,10 +229,31 @@ require([
         });
     }
 
+
+    function hideButtons() {
+        $('.rack').each(function () {
+            var $rack = $(this),
+                $rack_footer = $rack.find('.rack-footer');
+
+            if ($rack.find('.rack-sensor').length) {
+                $rack_footer.hide();
+                $rack.on('mouseover', function () {
+                    $rack_footer.show('fast');
+                });
+                $rack.on('mouseleave', function () {
+                    $rack_footer.hide('fast');
+                })
+            }
+        });
+    }
+
     /**
      * Runs on page load. Setup page
      */
     $(function () {
+
+        // Hide buttons if there are sensors in the rack
+        hideButtons();
 
         // Add all listeners
         var $sensorModal = $('#sensormodal');
