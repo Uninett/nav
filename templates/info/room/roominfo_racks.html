@@ -16,7 +16,7 @@
 
 
 {# Modal for adding new rack #}
-<div id="rackmodal" class="reveal-modal tiny" data-reveal role="dialog">
+<div id="rackmodal" class="reveal-modal small" data-reveal role="dialog">
   <h3>Add new rack</h3>
   <form action="{% url 'room-info-racks-add-rack' room.pk %}" method="post">
     <input type="hidden" name="roomid" value="{{ room.pk }}">
@@ -30,7 +30,7 @@
 
 
 {# Modal for adding new sensor #}
-<div id="sensormodal" class="reveal-modal tiny" data-reveal role="dialog"></div>
+<div id="sensormodal" class="reveal-modal small" data-reveal role="dialog"></div>
 
 
 <div id="racks-container">
