@@ -6,7 +6,12 @@
 .rack {
     margin-right: 1em;
 
-    .edit-rack { cursor: pointer; }
+    .fa {
+        &.fa-edit, &.fa-remove {
+          cursor: pointer;
+        }
+        &.remove-rack { display: none; }
+    }
 
     &.editmode {
         .fa { display: inline; }
