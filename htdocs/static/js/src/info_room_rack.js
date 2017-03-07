@@ -54,8 +54,8 @@ require([
                     $(rack.find('.sensors').get(column)).append(data);
                     updateSingleSensor($(data));
                     $sensorModal.foundation('reveal', 'close');
-                })
-            })
+                });
+            });
         });
     }
 
@@ -76,8 +76,8 @@ require([
             request.done(function (html) {
                 $('#add-rack-button-container').before(html);
                 $rackModal.foundation('reveal', 'close');
-            })
-        })
+            });
+        });
     }
 
 
@@ -146,7 +146,7 @@ require([
                 }
             });
             $element.find('.textvalue').html(value + symbol($element.data('unit')));
-        })
+        });
     }
 
 
@@ -225,7 +225,7 @@ require([
             });
             request.done(function () {
                 rackSensor.remove();
-            })
+            });
         });
     }
 
@@ -243,7 +243,7 @@ require([
                 });
                 request.done(function () {
                     rack.remove();
-                })
+                });
             }
         });
     }
@@ -261,7 +261,7 @@ require([
                 });
                 $rack.on('mouseleave', function () {
                     $rack_footer.hide('fast');
-                })
+                });
             }
         });
     }
