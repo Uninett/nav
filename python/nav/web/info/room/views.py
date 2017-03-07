@@ -366,6 +366,7 @@ def render_add_sensor(request, roomid):
     return render(request, 'info/room/fragment_add_sensor.html', {
         'room': room,
         'rack': rack,
+        'sensortype': 'pdu sensor' if is_pdu else 'sensor',
         'sensors': filteredsensors,
         'column': column
     })

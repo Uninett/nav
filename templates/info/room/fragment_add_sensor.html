@@ -1,8 +1,8 @@
-<h4>Add sensor to rack {{ rack.rackname }}</h4>
+<h4>Add {{ sensortype }} to rack {{ rack.rackname }}</h4>
 
 <form method="post" action="{% url 'room-info-racks-save-sensor' room.pk %}">
   <label>
-    Choose sensor
+    Choose {{ sensortype }}
     <select class="sensordropdown" name="sensorid">
       <option value="">----------</option>
       {% for sensor in sensors %}
