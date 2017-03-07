@@ -1,52 +1,38 @@
 <div class="rack" data-rackid="{{ rack.pk }}">
-  <h4>
-    <span class="right"><i class="fa fa-remove remove-rack" title="Remove rack"></i></span>
+  <h5 class="rack-heading">
+    <span class="right"><i class="fa fa-edit edit-rack" title="Toggle edit mode for the rack"></i></span>
     Rack {{ rack.rackname }}
-  </h4>
+  </h5>
 
   {# Body contains the sensors #}
   <div class="rack-body">
 
-    <div class="rack-left rack-pdu">
+    <div class="rack-left rack-pdu rack-column">
       <div class="sensors">
         {% for racksensor in rack.sensors_left %}
           {% include 'info/room/fragment_rackpdusensor.html' %}
         {% endfor %}
       </div>
-    </div>
-
-    <div class="rack-center">
-      <div class="sensors">
-        {% for racksensor in rack.sensors_center %}
-          {% include 'info/room/fragment_racksensor.html' %}
-        {% endfor %}
-      </div>
-    </div>
-
-    <div class="rack-right rack-pdu">
-      <div class="sensors">
-        {% for racksensor in rack.sensors_right %}
-          {% include 'info/room/fragment_rackpdusensor.html' %}
-        {% endfor %}
-      </div>
-    </div>
-
-  </div>
-
-  {# Footer for holding the buttons #}
-  <div class="rack-footer">
-
-    <div class="rack-pdu">
       <button class="tiny" title="Add PDU sensor to left column" data-column="0">
         <i class="fa fa-plus"></i>
       </button>
     </div>
 
-    <div class="rack-center">
+    <div class="rack-center rack-column">
+      <div class="sensors">
+        {% for racksensor in rack.sensors_center %}
+          {% include 'info/room/fragment_racksensor.html' %}
+        {% endfor %}
+      </div>
       <button class="tiny full-width" title="Add sensor to middle column" data-column="1">Add sensor</button>
     </div>
 
-    <div class="rack-pdu">
+    <div class="rack-right rack-pdu rack-column">
+      <div class="sensors">
+        {% for racksensor in rack.sensors_right %}
+          {% include 'info/room/fragment_rackpdusensor.html' %}
+        {% endfor %}
+      </div>
       <button class="tiny" title="Add PDU sensor to right column" data-column="2">
         <i class="fa fa-plus"></i>
       </button>

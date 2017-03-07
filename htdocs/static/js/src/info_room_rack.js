@@ -193,6 +193,8 @@ require([
         request.fail(function () {
             console.log("Error on data request");
         });
+
+
     }
 
     /**
@@ -249,30 +251,30 @@ require([
     }
 
 
-    function hideButtons() {
-        $('.rack').each(function () {
-            var $rack = $(this),
-                $rack_footer = $rack.find('.rack-footer');
+    function toggleEditMode() {
+        // Add listener for toggling editmode
+        $('.edit-rack').on('click', function() {
+            $(this).closest('.rack').toggleClass('editmode');
+        });
 
-            if ($rack.find('.rack-sensor').length) {
-                $rack_footer.hide();
-                $rack.on('mouseover', function () {
-                    $rack_footer.show('fast');
-                });
-                $rack.on('mouseleave', function () {
-                    $rack_footer.hide('fast');
-                });
+        // Toggle editmode on for empty racks
+        $('.rack').each(function () {
+            var $rack = $(this);
+            if (!$rack.find('.rack-sensor').length) {
+                $rack.addClass('editmode');
             }
         });
+
     }
+
 
     /**
      * Runs on page load. Setup page
      */
     $(function () {
 
-        // Hide buttons if there are sensors in the rack
-        hideButtons();
+        // Add listener to edit-button, toggle edit-mode for empty racks
+        toggleEditMode();
 
         // Add all listeners
         var $sensorModal = $('#sensormodal');
