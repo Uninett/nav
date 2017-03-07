@@ -7,7 +7,7 @@ $pdu-width: 60px;
 
 .rack {
     margin-right: 1em;
-    width: 250px;
+    /* width: 250px; */
     h4 {
         .remove-rack {
             display: none;
@@ -26,13 +26,17 @@ $pdu-width: 60px;
 
     .rack-pdu {
         height: 100%;
-        width: $pdu-width;
+        /* width: $pdu-width; */
         text-align: center;
+        .rack-sensor {
+            margin: 0 .4rem;
+        }
     }
 
     .rack-center {
         height: 100%;
-        flex: 1;
+        /* flex: 1; */
+        max-width: 130px;
         .rack-sensor {
             padding: .3rem;
             &:not(:last-child) {
@@ -75,4 +79,3 @@ $pdu-width: 60px;
         flex: 1;
     }
 }
-
