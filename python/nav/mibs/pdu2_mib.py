@@ -58,7 +58,7 @@ SENSOR_COLUMNS = [
 ]
 
 
-class PDU2(MibRetriever):
+class PDU2Mib(MibRetriever):
     """MibRetriever for Raritan PDU2"""
     from nav.smidumps.pdu2_mib import MIB as mib
 
