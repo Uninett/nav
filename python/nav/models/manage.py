@@ -1925,7 +1925,7 @@ class PowerSupplyOrFan(models.Model):
     def get_absolute_url(self):
         """Returns a canonical URL to view fan/psu status"""
         base = self.netbox.get_absolute_url()
-        return base + "#!powerfans"
+        return base + "#!sensors"
 
 
 class UnrecognizedNeighbor(models.Model):

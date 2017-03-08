@@ -1,0 +1,37 @@
+{% load report %}
+<thead>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Threshold</th>
+        <th>Value</th>
+        <th>Unit</th>
+    </tr>
+</thead>
+
+<tbody>
+{% for sensor in sensors %}
+    <tr>
+        <td>{{ sensor.name }}</td>
+        <td>{{ sensor.human_readable }}</td>
+        <td>
+            {% with sensor_metrics|get_item:sensor.id as metric %}
+            {% if metric.thresholds %}
+            {% for rule in metric.thresholds %}
+            <strong>
+                <a href="{% url 'threshold-edit' rule.id %}"
+                   {% if rule.description %}title="{{ rule.description }}"{% endif %}>
+                    {{ rule.alert }}
+                </a>
+            </strong>{% if not forloop.last %},{% endif %}
+            {% endfor %}
+            {% else %}
+            &ndash;
+            {% endif %}
+            {% endwith %}
+        </td>
+        <td class="sensor-value" data-metric="{{sensor.get_metric_name}}"</td>
+        <td>{{sensor.data_scale|default:''}}{{sensor.unit_of_measurement}}</td>
+    </tr>
+{% endfor %}
+</tbody>

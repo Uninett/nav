@@ -38,7 +38,51 @@ require([
 
 
         addSparkLinesToJobs();
+        loadSensorValues();
     });
+
+    function loadSensorValues() {
+        var metricMap = {};
+        $('.sensor-value').each(function(i, element) {
+            metricMap[$(element).data('metric')] = element;
+        });
+        getSensorData(metricMap, function(data, metricMap) {
+            $.each(data, function(i, metricData) {
+                var target = metricData.target;
+                var datapoints = metricData.datapoints;
+                for (var i = datapoints.length - 1; i >= 0; i--) {
+                    var value = datapoints[i][0];
+                    console.log(value);
+                    if (value !== null) {
+                        $(metricMap[target]).html(value);
+                        break;
+                    }
+                }
+            });
+            console.log(data);
+        });
+    }
+
+    function getSensorData(metricMap, updateFunc) {
+        var url = NAV.graphiteRenderUrl;
+        var request = $.getJSON(url,
+            {
+                target: _.keys(metricMap),
+                format: 'json',
+                from: '-5min',
+                until: 'now'
+            }
+        );
+
+        request.done(function (data) {
+            updateFunc(data, metricMap);
+        });
+
+        request.fail(function () {
+            console.log("Error on data request");
+        });
+
+    }
 
     function addModuleTabs() {
         var tabconfig = {

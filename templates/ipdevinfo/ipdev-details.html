@@ -49,7 +49,7 @@
         <li data-mark-as-error="{{ alert_info.has_unresolved_alerts }}">
           <a href="#alerts">Recent alerts</a>
         </li>
-        <li><a href="#powerfans">Power and fans</a></li>
+        <li><a href="#sensors">Sensors</a></li>
         <li><a href="#services">Services</a></li>
         <li>
           <a href="{% url 'ipdevinfo-hostinfo' netbox.sysname %}">
@@ -68,7 +68,7 @@
       {% include "ipdevinfo/frag-port-metrics.html" %}
       {% include "ipdevinfo/frag-sysmetrics.html" %}
       {% include "ipdevinfo/frag-alerts.html" %}
-      {% include "ipdevinfo/frag-powerfans.html" %}
+      {% include "ipdevinfo/frag-sensors.html" %}
       {% include "ipdevinfo/frag-services.html" %}
 
     {% else %}

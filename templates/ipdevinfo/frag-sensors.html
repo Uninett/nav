@@ -1,4 +1,4 @@
-<div id="powerfans" class="multitable">
+<div id="sensors" class="multitable">
 
     {% with netbox.get_powersupplies as psus %}
         {% if psus|length %}
@@ -23,4 +23,14 @@
         {% endif %}
     {% endwith %}
 
+    {% with netbox.sensor_set.all as sensors %}
+        {% if sensors|length %}
+            <table class="vertitable">
+                <caption>Sensors</caption>
+                {% include "ipdevinfo/frag-sensortable.html" %}
+            </table>
+        {% else %}
+            <span class="alert-box info">No sensors found.</span>
+        {% endif %}
+    {% endwith %}
 </div>

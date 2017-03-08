@@ -285,6 +285,12 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         except GraphiteUnreachableError:
             graphite_error = True
 
+    sensor_metric_ids = {sensor.get_metric_name(): sensor for sensor
+                         in netbox.sensor_set.all()}
+    sensor_metrics = {}
+    for metric in system_metrics:
+        if metric['id'] in sensor_metric_ids:
+            sensor_metrics[sensor_metric_ids[metric['id']].id] = metric
     # Display info about current and scheduled maintenance tasks
     # related to this device
     current_tasks = MaintenanceTask.objects.current()
@@ -323,6 +329,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'graphite_error': graphite_error,
             'current_maintenance_tasks': relevant_current_tasks,
             'future_maintenance_tasks': relevant_future_tasks,
+            'sensor_metrics': sensor_metrics,
         },
         context_instance=RequestContext(request,
                                         processors=[search_form_processor]))
