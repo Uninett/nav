@@ -11,6 +11,7 @@
         &.fa-edit, &.fa-remove {
           cursor: pointer;
         }
+        &.fa-arrows { cursor: grab; }
         &.remove-rack, &.edit-rack { display: none; }
     }
 
@@ -19,6 +20,9 @@
         .rack-column > button { display: block; margin: 0; }
         form { display: block; }
     }
+
+    .ui-sortable-helper { background-color: white; border: 1px solid black; }
+    .ui-sortable-placeholder { background-color: yellow; border: 1px solid black; }
 
 }
 

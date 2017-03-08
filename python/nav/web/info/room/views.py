@@ -417,6 +417,16 @@ def save_sensor(request, roomid):
         return HttpResponse(error, status=500)
 
 
+def save_sensor_order(request, roomid):
+    """Saves the sensor order for the given racksensors"""
+    for index, racksensorid in enumerate(request.POST.getlist('racksensor[]')):
+        racksensor = RackSensor.objects.get(pk=racksensorid)
+        racksensor.row = index
+        racksensor.save()
+
+    return HttpResponse()
+
+
 def remove_sensor(request, roomid):
     """Remove a sensor from a room"""
     room = get_object_or_404(Room, pk=roomid)

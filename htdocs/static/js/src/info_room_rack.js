@@ -5,6 +5,19 @@ require([
 ], function (LinearGauge, symbol) {
 
     /**
+     * TODO:
+     * - How to set min and max values for the different sensors
+     * - Naming - is it really racks?
+     */
+
+
+    var unitMapping = {
+        'celsius': 'celsius'
+    };
+
+
+
+    /**
      * Opens modal (with remote url) with content for adding sensors when
      * button is clicked
      */
@@ -126,6 +139,7 @@ require([
         return point[0] ? point[0] : null;
     }
 
+
     /**
      * Updates all sensors in the metricMap. They must not be PDU-sensors
      * because these are visualized with a bullet-sparkline
@@ -135,18 +149,23 @@ require([
             var value = getValue(result);
             var element = metricMap[result.target];
             var $element = $(document.getElementById(element));
+            var unit = $element.data('unit').toLowerCase();
+            var unitIsKnown = _.has(unitMapping, unit);
+            $element.find('.textvalue').html(value + symbol(unit));
 
-            $element.find('.sparkline').sparkline([null, value, 50], {
-                type: 'bullet',
-                performanceColor: 'lightsteelblue',
-                rangeColors: ['#fff'],
-                width: '100%',
-                tooltipFormatter: function (data) {
-                    // return data.values[1].toFixed(2);
-                    return ""
-                }
-            });
-            $element.find('.textvalue').html(value + symbol($element.data('unit')));
+            if (unitIsKnown) {
+                // Create sparkline if unit is known only
+                $element.find('.sparkline').sparkline([null, value, 50], {
+                    type: 'bullet',
+                    performanceColor: 'lightsteelblue',
+                    rangeColors: ['#fff'],
+                    width: '100%',
+                    tooltipFormatter: function (data) {
+                        // return data.values[1].toFixed(2);
+                        return "";
+                    }
+                });
+            }
         });
     }
 
@@ -294,6 +313,24 @@ require([
         });
     }
 
+
+    function addSensorSort() {
+        $('.rack').find('.rack-column .sensors').each(function() {
+            console.log(this);
+            $(this).sortable({
+                tolerance: 'pointer',
+                handle: '.fa-arrows',
+                forcePlaceholderSize: true,
+                placeholder: 'highlight',
+                update: function(event, ui) {
+                    var serialized = $(this).sortable('serialize');
+                    var request = $.post(NAV.urls.save_sensor_order, serialized);
+                }
+            });
+        });
+    }
+
+
     /**
      * Runs on page load. Setup page
      */
@@ -315,6 +352,8 @@ require([
         addRackModalListener('#rackmodal');
 
         addRenameRackListener();
+
+        addSensorSort();
 
         // Start updating racks with data
         updateRacks();
