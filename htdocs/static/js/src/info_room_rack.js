@@ -9,7 +9,7 @@ require([
      * button is clicked
      */
     function addOpenSensorModalListener($sensorModal) {
-        $('.rack button').on('click', function () {
+        $('#racks').on('click', '.rack button', function () {
             $.data($sensorModal, 'clickedButton', $(this));
             var column = $(this).data('column');
 
@@ -177,10 +177,12 @@ require([
      * Fetches data for all metrics in the metricmap and runs updatefunc
      */
     function getData(metricMap, updateFunc) {
+        var targets = _.keys(metricMap);
+        if (!targets.length) { return; }
         var url = '/graphite/render';
         var request = $.getJSON(url,
             {
-                target: _.keys(metricMap),
+                target: targets,
                 format: 'json',
                 from: '-5min',
                 until: 'now'
@@ -254,7 +256,7 @@ require([
 
     function addEditModeListener() {
         // Toggle edit icon on mouseover/out
-        $('.rack').on('mouseover', function() {
+        $('#racks').on('mouseover', '.rack', function() {
             $(this).find('.edit-rack').show();
         }).on('mouseout', function() {
             $(this).find('.edit-rack').hide();
@@ -279,7 +281,7 @@ require([
 
 
     function addRenameRackListener() {
-        $('.rename-rack-form').submit(function(event) {
+        $('#racks').on('submit', '.rename-rack-form', function(event) {
             event.preventDefault();
             var $form = $(this);
             var request = $.post($form.attr('action'), $form.serialize());
