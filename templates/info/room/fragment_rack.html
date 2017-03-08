@@ -1,23 +1,21 @@
 <div class="rack" data-rackid="{{ rack.pk }}">
   <h5 class="rack-heading">
     <span class="right">
-      <!-- <i class="fa fa-remove remove-rack" title="Remove rack"></i> -->
       <small>
         <a href="javascript:void(0);"
            class="edit-rack"
            data-original-text="Edit rack"
            title="Toggle edit mode for the rack">Edit rack</a>
       </small>
-      <!-- <i class="fa fa-edit edit-rack" title="Toggle edit mode for the rack"></i> -->
     </span>
     <span class="rackname">{{ rack.rackname|default:"&nbsp;" }}</span>
   </h5>
 
-  <button class="remove-rack tiny alert">Remove rack</button>
+  <button class="remove-rack tiny alert block-when-edit">Remove rack</button>
 
   <form action="{% url 'room-info-racks-rename-rack' room.pk rack.pk %}"
         method="post"
-        class="rename-rack-form">
+        class="rename-rack-form block-when-edit">
     <label>
       Change rack name
     </label>
@@ -36,7 +34,9 @@
           {% include 'info/room/fragment_rackpdusensor.html' %}
         {% endfor %}
       </div>
-      <button class="tiny" title="Add PDU sensor to left column" data-column="0">
+      <button class="tiny block-when-edit"
+              title="Add PDU sensor to left column"
+              data-column="0">
         <i class="fa fa-plus"></i>
       </button>
     </div>
@@ -47,7 +47,9 @@
           {% include 'info/room/fragment_racksensor.html' %}
         {% endfor %}
       </div>
-      <button class="tiny full-width" title="Add sensor to middle column" data-column="1">Add sensor</button>
+      <button class="tiny full-width block-when-edit"
+              title="Add sensor to middle column"
+              data-column="1">Add sensor</button>
     </div>
 
     <div class="rack-right rack-pdu rack-column">
@@ -56,7 +58,9 @@
           {% include 'info/room/fragment_rackpdusensor.html' %}
         {% endfor %}
       </div>
-      <button class="tiny" title="Add PDU sensor to right column" data-column="2">
+      <button class="tiny block-when-edit"
+              title="Add PDU sensor to right column"
+              data-column="2">
         <i class="fa fa-plus"></i>
       </button>
     </div>

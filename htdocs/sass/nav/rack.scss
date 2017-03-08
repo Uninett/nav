@@ -7,28 +7,27 @@
     margin-right: 1em;
     form.rename-rack-form {
         overflow: auto;
-        display: none;
         input {
             margin-bottom: 0;
         }
     }
 
+    /* Edit-mode stuff*/
+    .block-when-edit { display: none; }
+    .inline-when-edit { display: none; }
+    &.editmode {
+        .block-when-edit { display: block; }
+        .inline-when-edit { display: inline; }
+    }
+
     .fa {
-        &.fa-edit, &.fa-remove {
-          cursor: pointer;
-        }
+        &.fa-edit, &.fa-remove { cursor: pointer; }
         &.fa-arrows { cursor: grab; }
     }
 
-    .remove-rack { display: none; margin-bottom: 0; }
+    button { margin-bottom: 0; }
 
-    &.editmode {
-        .fa { display: inline; }
-        .rack-column > button { display: block; margin: 0; }
-        form { display: block; }
-        .remove-rack { display: block; }
-    }
-
+    /* Sortable */
     .ui-sortable-helper { background-color: white; border: 1px solid black; }
     .ui-sortable-placeholder { background-color: yellow; border: 1px solid black; }
 
@@ -44,9 +43,6 @@
     display: flex;
 
     padding: .3rem;
-
-    .fa { display: none; }
-    .rack-column > button { display: none; }
 
     .rack-pdu {
         height: 100%;
