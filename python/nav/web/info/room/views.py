@@ -310,7 +310,10 @@ def add_rack(request, roomid):
     room = get_object_or_404(Room, pk=roomid)
     rack = Rack(room=room, rackname=request.POST.get('rackname'))
     rack.save()
-    return render(request, 'info/room/fragment_rack.html', {'rack': rack})
+    return render(request, 'info/room/fragment_rack.html', {
+        'rack': rack,
+        'room': room
+    })
 
 
 def remove_rack(request, roomid):
