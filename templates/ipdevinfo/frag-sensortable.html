@@ -28,6 +28,11 @@
             {% else %}
             &ndash;
             {% endif %}
+            <a href="{% url 'threshold-add' sensor.get_metric_name %}"
+               title="Add a new threshold rule for this metric"
+               class="tiny button secondary">
+                +
+            </a>
             {% endwith %}
         </td>
         <td class="sensor-value" data-metric="{{sensor.get_metric_name}}"</td>
