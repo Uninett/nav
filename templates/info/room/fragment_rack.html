@@ -1,17 +1,25 @@
 <div class="rack" data-rackid="{{ rack.pk }}">
   <h5 class="rack-heading">
     <span class="right">
-      <i class="fa fa-remove remove-rack" title="Remove rack"></i>
-      <i class="fa fa-edit edit-rack" title="Toggle edit mode for the rack"></i>
+      <!-- <i class="fa fa-remove remove-rack" title="Remove rack"></i> -->
+      <small>
+        <a href="javascript:void(0);"
+           class="edit-rack"
+           data-original-text="Edit rack"
+           title="Toggle edit mode for the rack">Edit rack</a>
+      </small>
+      <!-- <i class="fa fa-edit edit-rack" title="Toggle edit mode for the rack"></i> -->
     </span>
     <span class="rackname">{{ rack.rackname|default:"&nbsp;" }}</span>
   </h5>
+
+  <button class="remove-rack tiny alert">Remove rack</button>
 
   <form action="{% url 'room-info-racks-rename-rack' room.pk rack.pk %}"
         method="post"
         class="rename-rack-form">
     <label>
-      Rack name
+      Change rack name
     </label>
     <input type="submit" value="Save name" class="button small right">
     <div style="overflow: hidden;">

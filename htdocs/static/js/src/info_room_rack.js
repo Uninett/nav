@@ -22,7 +22,7 @@ require([
      * button is clicked
      */
     function addOpenSensorModalListener($sensorModal) {
-        $('#racks').on('click', '.rack button', function () {
+        $('#racks').on('click', '.rack-column button', function () {
             $.data($sensorModal, 'clickedButton', $(this));
             var column = $(this).data('column');
 
@@ -258,7 +258,8 @@ require([
      * Listener for removing racks
      */
     function addRackRemoveListener() {
-        $('#racks').on('click', '.remove-rack', function () {
+        $('#racks').on('click', '.remove-rack', function (event) {
+            // event.preventDefault();
             var yes = confirm('Really remove this rack?');
             if (yes) {
                 var rack = $(this).closest('.rack');
@@ -274,16 +275,16 @@ require([
 
 
     function addEditModeListener() {
-        // Toggle edit icon on mouseover/out
-        $('#racks').on('mouseover', '.rack', function() {
-            $(this).find('.edit-rack').show();
-        }).on('mouseout', function() {
-            $(this).find('.edit-rack').hide();
-        });
-
         // Add listener for toggling editmode
         $('#racks').on('click', '.edit-rack', function() {
-            $(this).closest('.rack').toggleClass('editmode');
+            var $this = $(this);
+            var $rack = $this.closest('.rack');
+            $rack.toggleClass('editmode');
+            if ($rack.hasClass('editmode')) {
+                $this.text('Close edit');
+            } else {
+                $this.text($this.data('originalText'));
+            }
         });
     }
 
@@ -293,7 +294,7 @@ require([
         $('.rack').each(function () {
             var $rack = $(this);
             if (!$rack.find('.rack-sensor').length) {
-                $rack.addClass('editmode');
+                $rack.find('.edit-rack').click();
             }
         });
     }

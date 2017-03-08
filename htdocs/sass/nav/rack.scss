@@ -5,20 +5,28 @@
 
 .rack {
     margin-right: 1em;
-    form { overflow: auto; display: none; }
+    form.rename-rack-form {
+        overflow: auto;
+        display: none;
+        input {
+            margin-bottom: 0;
+        }
+    }
 
     .fa {
         &.fa-edit, &.fa-remove {
           cursor: pointer;
         }
         &.fa-arrows { cursor: grab; }
-        &.remove-rack, &.edit-rack { display: none; }
     }
+
+    .remove-rack { display: none; margin-bottom: 0; }
 
     &.editmode {
         .fa { display: inline; }
         .rack-column > button { display: block; margin: 0; }
         form { display: block; }
+        .remove-rack { display: block; }
     }
 
     .ui-sortable-helper { background-color: white; border: 1px solid black; }
