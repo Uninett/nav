@@ -1,8 +1,10 @@
 <div class="rack" data-rackid="{{ rack.pk }}">
   <h5 class="rack-heading">
-    <span class="right"><i class="fa fa-edit edit-rack" title="Toggle edit mode for the rack"></i></span>
+    <span class="right">
+      <i class="fa fa-remove remove-rack" title="Remove rack"></i>
+      <i class="fa fa-edit edit-rack" title="Toggle edit mode for the rack"></i>
+    </span>
     <span class="rackname">{{ rack.rackname|default:"&nbsp;" }}</span>
-    <i class="fa fa-remove remove-rack" title="Remove rack"></i>
   </h5>
 
   <form action="{% url 'room-info-racks-rename-rack' room.pk rack.pk %}"
