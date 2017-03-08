@@ -11,7 +11,7 @@
         &.fa-edit, &.fa-remove {
           cursor: pointer;
         }
-        &.remove-rack { display: none; }
+        &.remove-rack, &.edit-rack { display: none; }
     }
 
     &.editmode {

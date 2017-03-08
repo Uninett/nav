@@ -253,6 +253,13 @@ require([
 
 
     function addEditModeListener() {
+        // Toggle edit icon on mouseover/out
+        $('.rack').on('mouseover', function() {
+            $(this).find('.edit-rack').show();
+        }).on('mouseout', function() {
+            $(this).find('.edit-rack').hide();
+        });
+
         // Add listener for toggling editmode
         $('#racks').on('click', '.edit-rack', function() {
             $(this).closest('.rack').toggleClass('editmode');
