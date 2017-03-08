@@ -13,7 +13,7 @@
 {% for sensor in sensors %}
     <tr>
         <td>{{ sensor.name }}</td>
-        <td>{{ sensor.human_readable }}</td>
+        <td>{% if sensor.human_readable != sensor.name %}{{ sensor.human_readable }}{% endif %}</td>
         <td>
             {% with sensor_metrics|get_item:sensor.id as metric %}
             {% if metric.thresholds %}
