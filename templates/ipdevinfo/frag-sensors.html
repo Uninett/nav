@@ -1,4 +1,6 @@
-<div id="sensors" class="multitable">
+<div id="sensors" class="multitable nav-metrics-container">
+    <a href="javascript:void(0);" class="all-graph-opener button secondary small">Show all graphs</a>
+    <a href="javascript:void(0);" class="all-graph-closer button secondary small">Hide all graphs</a>
 
     {% with netbox.get_powersupplies as psus %}
         {% if psus|length %}
