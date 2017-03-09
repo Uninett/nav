@@ -109,6 +109,8 @@ class Sensors(Plugin):
                 sensor.name = safestring(row.get('name', None))
                 sensor.internal_name = safestring(internal_name)
                 sensor.mib = mib
+                sensor.display_minimum_sys = row.get('minimum', None)
+                sensor.display_maximum_sys = row.get('maximum', None)
                 sensors.append(sensors)
         return sensors
 
