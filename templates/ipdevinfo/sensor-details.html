@@ -1,0 +1,75 @@
+{% extends "ipdevinfo/base.html" %}
+
+{% block footer_scripts %}
+<script>
+ require([
+     "plugins/graphfetcher_controller",
+     ]);
+</script>
+{% endblock %}
+
+{% block content %}
+
+  <p>
+    <a href="{% url 'ipdevinfo-details-by-name' sensor.netbox.sysname %}">
+      Back to {{ sensor.netbox.sysname }}
+    </a>
+  </p>
+
+  <div class="panel white">
+      <div class="row">
+          <div class="large-6 column">
+              <table>
+                  <caption>Sensor information:</caption>
+                  <tr>
+                      <th>Name</th>
+                      <td>{{sensor.name}}</td>
+                  </tr>
+                  <tr>
+                      <th>Description</th>
+                      <td>{{sensor.human_readable}}</td>
+                  </tr>
+                  <tr>
+                      <th>Unit</th>
+                      <td>{{sensor.unit_of_measurement}}</td>
+                  </tr>
+                  <tr>
+                      <th>Scale</th>
+                      <td>{{sensor.scale}}</td>
+                  </tr>
+                  <tr>
+                      <th>Thesholds</th>
+                      <td>
+                          {% if metric.thresholds %}
+                          {% for rule in metric.thresholds %}
+                          <strong>
+                              <a href="{% url 'threshold-edit' rule.id %}"
+                                 {% if rule.description %}title="{{ rule.description }}"{% endif %}>
+                                  {{ rule.alert }}
+                              </a>
+                          </strong>{% if not forloop.last %},{% endif %}
+                          {% endfor %}
+                          {% else %}
+                          &ndash;
+                          {% endif %}
+                          <a href="{% url 'threshold-add' sensor.get_metric_name %}"
+                             title="Add a new threshold rule for this metric"
+                             class="tiny button secondary">
+                              +
+                          </a>
+                      </td>
+                  </tr>
+              </table>
+          </div>
+          <div class="large-6 column">
+              <div class="nav-metrics-container">
+                  <div class="graphitegraph"
+                       data-url="{{ graphite_data_url }}">
+                      <div class="rickshaw-container"></div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+
+{% endblock %}

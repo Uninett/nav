@@ -12,7 +12,7 @@
 <tbody>
 {% for sensor in sensors %}
     <tr>
-        <td>{{ sensor.name }}</td>
+        <td><a href="{% url 'sensor-details' sensor.id %}">{{ sensor.name }}</a></td>
         <td>{% if sensor.human_readable != sensor.name %}{{ sensor.human_readable }}{% endif %}</td>
         <td>
             <div class="right">

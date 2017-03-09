@@ -26,9 +26,11 @@ from django.shortcuts import (render_to_response, get_object_or_404, redirect,
                               render)
 from django.template import RequestContext
 
+from nav.django.templatetags.thresholds import find_rules
 from nav.metrics.errors import GraphiteUnreachableError
 
-from nav.models.manage import Netbox, Module, Interface, Prefix, Arp, Cam
+from nav.models.manage import (Netbox, Module, Interface, Prefix, Arp, Cam,
+                               Sensor)
 from nav.models.msgmaint import MaintenanceTask
 from nav.models.arnold import Identity
 from nav.models.service import Service
@@ -657,4 +659,29 @@ def render_host_info(request, identifier):
     """Controller for getting host info"""
     return render(request, 'ipdevinfo/frag-hostinfo.html', {
         'host_info': get_host_info(identifier)
+    })
+
+
+def sensor_details(request, identifier):
+    """Controller for getting sensor info"""
+    sensor = get_object_or_404(Sensor, pk=identifier)
+
+    netbox_sysname = sensor.netbox.sysname
+
+    navpath = NAVPATH + [
+        (netbox_sysname,
+         reverse('ipdevinfo-details-by-name',
+                 kwargs={'name': netbox_sysname})), ('Sensor Details',)]
+    heading = title = 'Sensor details: ' + unicode(sensor)
+
+    metric = dict(id=sensor.get_metric_name())
+    find_rules([metric])
+    return render(request, 'ipdevinfo/sensor-details.html', {
+        'sensor': sensor,
+        'navpath': navpath,
+        'heading': heading,
+        'title': title,
+        'metric': metric,
+        'graphite_data_url': Graph(magic_targets=[sensor.get_metric_name()],
+                                   format='json')
     })
