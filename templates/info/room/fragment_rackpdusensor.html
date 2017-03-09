@@ -4,7 +4,7 @@
      data-metric="{{ racksensor.sensor.get_metric_name }}"
      data-racksensorid="{{ racksensor.pk }}">
   <div class="heading">
-    <span class="right"><i class="fa fa-remove remove-sensor" title="Remove sensor"></i></span>
+    <span class="right"><i class="fa fa-remove remove-sensor inline-when-edit" title="Remove sensor"></i></span>
     <a href="{{ racksensor.sensor.netbox.get_absolute_url }}">PDU</a>
   </div>
   <div id="sensor-{{ racksensor.sensor.pk }}" class="pdu-gauge"></div>
