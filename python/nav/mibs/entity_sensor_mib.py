@@ -66,10 +66,6 @@ class EntitySensorMib(mibretriever.MibRetriever):
         super(EntitySensorMib, self).__init__(agent_proxy)
         self.entity_mib = EntityMib(self.agent_proxy)
 
-    def get_module_name(self):
-        """Return this MIB-name"""
-        return self.mib.get('moduleName', None)
-
     def _get_sensors(self):
         """ Collect all sensors."""
         df = self.retrieve_columns([

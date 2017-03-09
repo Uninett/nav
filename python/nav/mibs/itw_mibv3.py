@@ -59,10 +59,6 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
         return self._logger.error(self.__class__.__name__ + ":: " + msg,
                                   *args, **kwargs)
 
-    def get_module_name(self):
-        """ Return this official MIB-name"""
-        return self.mib.get('moduleName', None)
-
     def _get_oid_for_sensor(self, sensor_name):
         """Return the OID for the given sensor-name as a string; Return
         None if sensor-name is not found.

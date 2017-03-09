@@ -63,10 +63,6 @@ class PDU2Mib(MibRetriever):
     """MibRetriever for Raritan PDU2"""
     from nav.smidumps.pdu2_mib import MIB as mib
 
-    def get_module_name(self):
-        """Returns the MIB module name"""
-        return self.mib.get('moduleName', None)
-
     @defer.inlineCallbacks
     def get_all_sensors(self):
         """Discovers and returns all eligible sensors.

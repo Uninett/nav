@@ -106,10 +106,6 @@ class UpsMib(mibretriever.MibRetriever):
         },
     }
 
-    def get_module_name(self):
-        """Returns the MIB module"""
-        return self.mib.get('moduleName', None)
-
     def _get_named_column(self, column):
         """Retrieves the contents of the named column from this MIB"""
         df = self.retrieve_columns([column])

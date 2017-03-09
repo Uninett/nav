@@ -68,10 +68,6 @@ class CiscoEntitySensorMib(mibretriever.MibRetriever):
         super(CiscoEntitySensorMib, self).__init__(agent_proxy)
         self.entity_mib = EntityMib(self.agent_proxy)
 
-    def get_module_name(self):
-        """Get the name of this MIB"""
-        return self.mib.get('moduleName', None)
-
     def _get_sensors(self):
         """ Collect all sensors from the box."""
         df = self.retrieve_columns([

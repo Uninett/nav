@@ -37,10 +37,6 @@ class Comet(MibRetriever):
     """MibRetriever for Comet Web Sensors"""
     from nav.smidumps.p8652_mib import MIB as mib
 
-    def get_module_name(self):
-        """Returns the MIB module name"""
-        return self.mib.get('moduleName', None)
-
     @defer.inlineCallbacks
     def get_all_sensors(self):
         """Discovers and returns all eligible sensors from the Comet MIB on this
@@ -127,10 +123,6 @@ class Comet(MibRetriever):
 class CometMS(MibRetriever):
     """MibRetriever for Comet Web Sensors"""
     from nav.smidumps.cometms_mib import MIB as mib
-
-    def get_module_name(self):
-        """Returns the MIB module name"""
-        return self.mib.get('moduleName', None)
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
