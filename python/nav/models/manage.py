@@ -1735,10 +1735,25 @@ class Sensor(models.Model):
     UNIT_WATTS = 'watts'         # power
     UNIT_HERTZ = 'hertz'         # frequency
     UNIT_CELSIUS = 'celsius'     # temperature
+    UNIT_FAHRENHEIT = 'fahrenheit'  # temperature
     UNIT_PERCENT_RELATIVE_HUMIDITY = 'percentRH'  # percent relative humidity
     UNIT_RPM = 'rpm'             # shaft revolutions per minute
     UNIT_CMM = 'cmm'             # cubic meters per minute (airflow)
     UNIT_TRUTHVALUE = 'boolean'  # value takes { true(1), false(2) }
+    UNIT_VOLTAMPERES = 'voltsamperes'  # apparent power
+    UNIT_WATTHOURS = 'watthours'  # electric energy consumed
+    UNIT_VOLTAMPEREHOURS = 'voltamperehours'  # apperant consumed energy
+    UNIT_PERCENT = '%'           # relative values
+    UNIT_MPS = 'm/s'             # speed
+    UNIT_PASCAL = 'pascal'       # pressure
+    UNIT_PSI = 'psi'             # pressure
+    UNIT_GRAMS = 'grams'         # weight
+    UNIT_FEET = 'feet'           # distance
+    UNIT_INCHES = 'inches'       # distance
+    UNIT_METERS = 'meters'       # distance
+    UNIT_DEGREES = 'degrees'     # angle
+    UNIT_LUX = 'lux'             # illuminance
+    UNIT_GPCM = 'grams/m3'       # gass density?
 
     UNIT_OF_MEASUREMENTS_CHOICES = (
         (UNIT_OTHER, 'Other'),
@@ -1749,10 +1764,25 @@ class Sensor(models.Model):
         (UNIT_WATTS, 'Watts'),
         (UNIT_HERTZ, 'Hertz'),
         (UNIT_CELSIUS, 'Celsius'),
+        (UNIT_FAHRENHEIT, 'Fahrenheit'),
         (UNIT_PERCENT_RELATIVE_HUMIDITY, 'Relative humidity'),
         (UNIT_RPM, 'Revolutions per minute'),
         (UNIT_CMM, 'Cubic meters per minute'),
         (UNIT_TRUTHVALUE, 'Boolean'),
+        (UNIT_VOLTAMPERES, 'Volt-ampere'),
+        (UNIT_VOLTAMPEREHOURS, 'Volt-ampere hours'),
+        (UNIT_WATTHOURS, 'Watt hours'),
+        (UNIT_PERCENT, '%'),
+        (UNIT_MPS, 'meters per second'),
+        (UNIT_PASCAL, 'pascal'),
+        (UNIT_PSI, 'psi'),
+        (UNIT_GRAMS, 'gram'),
+        (UNIT_FEET, 'Feet'),
+        (UNIT_INCHES, 'Inches'),
+        (UNIT_METERS, 'Meters'),
+        (UNIT_DEGREES, 'Degrees'),
+        (UNIT_LUX, 'Lux'),
+        (UNIT_GPCM, 'Grams per cubic meter'),
     )
 
     SCALE_YOCTO = 'yocto'  # 10^-24
