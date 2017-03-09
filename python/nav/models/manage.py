@@ -1847,6 +1847,14 @@ class Sensor(models.Model):
     name = VarcharField(db_column="name")
     internal_name = VarcharField(db_column="internal_name")
     mib = VarcharField(db_column="mib")
+    display_minimum_user = models.FloatField(db_column="display_minimum_user",
+                                              null=True)
+    display_maximum_user = models.FloatField(db_column="display_maximum_user",
+                                             null=True)
+    display_minimum_sys = models.FloatField(db_column="display_minimum_sys",
+                                             null=True)
+    display_maximum_sys = models.FloatField(db_column="display_maximum_sys",
+                                            null=True)
 
     class Meta(object):
         db_table = 'sensor'
@@ -1863,6 +1871,23 @@ class Sensor(models.Model):
     def get_graph_url(self, time_frame='1day'):
         return get_simple_graph_url([self.get_metric_name()],
                                     time_frame=time_frame)
+
+    def get_display_range(self):
+        minimum = 0
+        if self.display_minimum_user is not None:
+            minimum = self.display_minimum_user
+        elif self.display_minimum_sys is not None:
+            minimum = self.display_minimum_sys
+
+        maximum = 100
+        if self.display_maximum_user is not None:
+            maximum = self.display_maximum_user
+        elif self.display_maximum_sys is not None:
+            maximum = self.display_maximum_sys
+        elif self.unit_of_measurement == self.UNIT_CELSIUS:
+            maximum = 50
+
+        return (minimum, maximum)
 
     @property
     def normalized_unit(self):
