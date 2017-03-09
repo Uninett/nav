@@ -15,25 +15,27 @@
         <td>{{ sensor.name }}</td>
         <td>{% if sensor.human_readable != sensor.name %}{{ sensor.human_readable }}{% endif %}</td>
         <td>
+            <div class="right">
             {% with sensor_metrics|get_item:sensor.id as metric %}
-            {% if metric.thresholds %}
-            {% for rule in metric.thresholds %}
-            <strong>
-                <a href="{% url 'threshold-edit' rule.id %}"
-                   {% if rule.description %}title="{{ rule.description }}"{% endif %}>
-                    {{ rule.alert }}
+              {% if metric.thresholds %}
+                {% for rule in metric.thresholds %}
+                <strong>
+                    <a href="{% url 'threshold-edit' rule.id %}"
+                       {% if rule.description %}title="{{ rule.description }}"{% endif %}>
+                        {{ rule.alert }}
+                    </a>
+                </strong>{% if not forloop.last %},{% endif %}
+                {% endfor %}
+                {% else %}
+                &ndash;
+                {% endif %}
+                <a href="{% url 'threshold-add' sensor.get_metric_name %}"
+                   title="Add a new threshold rule for this metric"
+                   class="tiny button secondary">
+                    +
                 </a>
-            </strong>{% if not forloop.last %},{% endif %}
-            {% endfor %}
-            {% else %}
-            &ndash;
-            {% endif %}
-            <a href="{% url 'threshold-add' sensor.get_metric_name %}"
-               title="Add a new threshold rule for this metric"
-               class="tiny button secondary">
-                +
-            </a>
-            {% endwith %}
+                {% endwith %}
+            </div>
         </td>
         <td class="sensor-value" data-metric="{{sensor.get_metric_name}}"</td>
         <td>{{sensor.data_scale|default:''}}{{sensor.unit_of_measurement}}</td>
