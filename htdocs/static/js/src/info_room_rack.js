@@ -274,17 +274,26 @@ require([
     }
 
 
+    /**
+     * Add listeners for displaying and hiding edit mode
+     */
     function addEditModeListener() {
-        // Add listener for toggling editmode
-        $('#racks').on('click', '.edit-rack', function() {
+        var $racks = $('#racks');
+
+        function switchMode(func) {
             var $this = $(this);
             var $rack = $this.closest('.rack');
-            $rack.toggleClass('editmode');
-            if ($rack.hasClass('editmode')) {
-                $this.text('Close edit');
-            } else {
-                $this.text($this.data('originalText'));
-            }
+            $rack[func]('editmode');
+            $this.siblings('i').show();
+            $this.hide();
+        }
+
+        $racks.on('click', '.edit-rack', function() {
+            switchMode.call(this, 'addClass');
+        });
+
+        $racks.on('click', '.close-edit-rack', function() {
+            switchMode.call(this, 'removeClass');
         });
     }
 
