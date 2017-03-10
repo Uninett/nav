@@ -13,6 +13,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""MibRetriever implementation for IBM-PDU-MIB"""
+
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.mibs import reduce_index
@@ -30,7 +32,9 @@ OUTLET_LAST_POWER_READING = 'ibmPduOutletLastPowerReading'
 
 
 class IbmPduMib(MibRetriever):
-    """ Custom class for retrieveing sensors from APC UPSes."""
+    """MibRetriever implementation for IBM-PDU-MIB, as used by IBM/Lenovo Power
+    Distribution Units.
+    """
     from nav.smidumps.ibm_pdu_mib import MIB as mib
 
     @inlineCallbacks
@@ -47,7 +51,7 @@ class IbmPduMib(MibRetriever):
             self._logger.debug("Got phase power readings: %r", phases)
 
         result = []
-        column = self.nodes.get(PHASE_LAST_POWER_READING, None)
+        column = self.nodes.get(PHASE_LAST_POWER_READING)
         for index, row in phases.items():
             value_oid = str(column.oid + str(index))
             if len(index) == 2:
@@ -82,8 +86,8 @@ class IbmPduMib(MibRetriever):
 
         result = []
         for index, row in outlets.items():
-            for sensor in self._outlet_row_to_sensors(index, row):
-                result.append(sensor)
+            result.extend(self._outlet_row_to_sensors(index, row))
+
         returnValue(result)
 
     def _outlet_row_to_sensors(self, index, row):
@@ -103,7 +107,7 @@ class IbmPduMib(MibRetriever):
         yield voltage
 
         current = dict(
-            oid=str(self.nodes.get(OUTLET_CURRENT, None).oid + str(index)),
+            oid=str(self.nodes.get(OUTLET_CURRENT).oid + str(index)),
             unit_of_measurement=Sensor.UNIT_AMPERES,
             precision=3,
             scale=None,
@@ -115,8 +119,7 @@ class IbmPduMib(MibRetriever):
         yield current
 
         power = dict(
-            oid=str(self.nodes.get(OUTLET_LAST_POWER_READING,
-                                   None).oid + str(index)),
+            oid=str(self.nodes.get(OUTLET_LAST_POWER_READING).oid + str(index)),
             unit_of_measurement=Sensor.UNIT_WATTS,
             precision=0,
             scale=None,
