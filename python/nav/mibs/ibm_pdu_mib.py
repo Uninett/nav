@@ -39,6 +39,9 @@ class IbmPduMib(MibRetriever):
 
     @inlineCallbacks
     def get_all_sensors(self):
+        """Retrieves various phase and outlet power usage objects as sensor
+        records.
+        """
         phases = yield self._get_phase_sensors()
         outlets = yield self._get_outlet_sensors()
         returnValue(phases + outlets)
@@ -52,7 +55,7 @@ class IbmPduMib(MibRetriever):
 
         result = []
         column = self.nodes.get(PHASE_LAST_POWER_READING)
-        for index, row in phases.items():
+        for index, _row in phases.items():
             value_oid = str(column.oid + str(index))
             if len(index) == 2:
                 index = index[0]  # PDU agent breaks the MIB definition :P
