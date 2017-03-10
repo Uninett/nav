@@ -98,13 +98,13 @@ def _is_valid_ip_ipy(ip):
     if isinstance(ip, (str, unicode)) and not ip.isdigit():
         try:
             valid_ip = IPy.IP(ip)
-            if len(valid_ip) == 1:
+            if valid_ip.len() == 1:
                 return str(valid_ip)
         except ValueError:
             pass
     return False
 
-    
+
 def is_valid_cidr(cidr):
     """Verifies that a string is valid IPv4 or IPv6 CIDR specification.
 
