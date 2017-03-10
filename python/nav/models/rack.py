@@ -28,6 +28,7 @@ class Rack(models.Model):
     id = models.AutoField(primary_key=True, db_column='rackid')
     room = models.ForeignKey(Room, db_column='roomid')
     rackname = VarcharField(blank=True)
+    ordering = models.IntegerField()
 
     class Meta(object):
         db_table = 'rack'

@@ -344,6 +344,20 @@ require([
     }
 
 
+    function addRackSort() {
+        $('#racks-container').sortable({
+            tolerance: 'pointer',
+            handle: '.icon-container .fa-arrows',
+            forcePlaceholderSize: true,
+            placeholder: 'highlight',
+            update: function (event, ui) {
+                var serialized = $(this).sortable('serialize');
+                var request = $.post(NAV.urls.save_rack_order, serialized);
+            }
+        });
+    }
+
+
     /**
      * Runs on page load. Setup page
      */
@@ -366,6 +380,7 @@ require([
 
         addRenameRackListener();
 
+        addRackSort();
         addSensorSort();
 
         // Start updating racks with data

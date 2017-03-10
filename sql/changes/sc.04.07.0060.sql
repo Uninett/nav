@@ -3,7 +3,8 @@
 CREATE TABLE IF NOT EXISTS rack (
   rackid SERIAL PRIMARY KEY,
   roomid VARCHAR REFERENCES room ON DELETE CASCADE,
-  rackname VARCHAR
+  rackname VARCHAR,
+  ordering INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS racksensor (

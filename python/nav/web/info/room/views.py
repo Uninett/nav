@@ -23,7 +23,7 @@ import csv
 from os.path import join
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.http import HttpResponse
 from django.shortcuts import (render_to_response, redirect, get_object_or_404,
                               render)
@@ -308,7 +308,11 @@ def render_sensors(request, roomid):
 def add_rack(request, roomid):
     """Adds a new rack to a room"""
     room = get_object_or_404(Room, pk=roomid)
-    rack = Rack(room=room, rackname=request.POST.get('rackname'))
+
+    aggregate = Rack.objects.filter(room=room).aggregate(Max('ordering'))
+    ordering = (aggregate.get('ordering__max') or 0) + 1
+    rack = Rack(room=room, rackname=request.POST.get('rackname'),
+                ordering=ordering)
     rack.save()
     return render(request, 'info/room/fragment_rack.html', {
         'rack': rack,
@@ -346,7 +350,7 @@ def render_racks(request, roomid):
 
     context = {
         'room': room,
-        'racks': room.rack_set.all().order_by('rackname'),
+        'racks': room.rack_set.all().order_by('ordering'),
         'pdus': pdusensors,
         'sensors': sensors
     }
@@ -423,6 +427,16 @@ def save_sensor_order(request, roomid):
         racksensor = RackSensor.objects.get(pk=racksensorid)
         racksensor.row = index
         racksensor.save()
+
+    return HttpResponse()
+
+
+def save_rack_order(request, roomid):
+    """Saves the rack order for the given racks"""
+    for index, rackid in enumerate(request.POST.getlist('rack[]')):
+        rack = Rack.objects.get(pk=rackid)
+        rack.ordering = index
+        rack.save()
 
     return HttpResponse()
 
