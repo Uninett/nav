@@ -21,21 +21,32 @@ import math
 from twisted.internet import defer
 from twisted.internet.defer import returnValue
 from nav.mibs.mibretriever import MibRetriever
+from nav.models.manage import Sensor
 
 DEGREES_CELSIUS = "\xb0C"
 DEGREES_FAHRENHEIT = "\xb0F"
 UNIT_MAP = {
-    DEGREES_CELSIUS: "Celsius",
-    DEGREES_FAHRENHEIT: "Fahrenheit",
-    'mA': 'Amperes',
-    'W': 'Watts',
-    'V': 'VoltsDC',
-    's': 'Seconds',
-    'l/min': 'litres/minute',
+    DEGREES_CELSIUS: Sensor.UNIT_CELSIUS,
+    DEGREES_FAHRENHEIT: Sensor.UNIT_FAHRENHEIT,
+    'mA': Sensor.UNIT_AMPERES,
+    'A': Sensor.UNIT_AMPERES,
+    'W': Sensor.UNIT_WATTS,
+    'V': Sensor.UNIT_VOLTS_DC,
+    's': Sensor.UNIT_SECONDS,
+    'l/min': Sensor.UNIT_LPM,
+    '%': Sensor.UNIT_PERCENT,
+    '': Sensor.UNIT_UNKNOWN,
+    'VA': Sensor.UNIT_VOLTAMPERES,
+    'var': Sensor.UNIT_VAR,
+    'kWh': Sensor.UNIT_WATTHOURS,
+    'kVAh': Sensor.UNIT_VOLTAMPEREHOURS,
+    'Hz': Sensor.UNIT_HERTZ,
 }
 
 UNIT_SCALE = {
     'mA': 'milli',
+    'kWh': 'kilo',
+    'kVAh': 'kilo',
 }
 
 SENSOR_COLUMNS = [

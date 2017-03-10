@@ -1739,8 +1739,10 @@ class Sensor(models.Model):
     UNIT_PERCENT_RELATIVE_HUMIDITY = 'percentRH'  # percent relative humidity
     UNIT_RPM = 'rpm'             # shaft revolutions per minute
     UNIT_CMM = 'cmm'             # cubic meters per minute (airflow)
+    UNIT_LPM = 'l/min'           # liters per minute (waterflow)
     UNIT_TRUTHVALUE = 'boolean'  # value takes { true(1), false(2) }
     UNIT_VOLTAMPERES = 'voltsamperes'  # apparent power
+    UNIT_VAR = 'var'             # Volt-ampere reactive
     UNIT_WATTHOURS = 'watthours'  # electric energy consumed
     UNIT_VOLTAMPEREHOURS = 'voltamperehours'  # apperant consumed energy
     UNIT_PERCENT = '%'           # relative values
@@ -1754,6 +1756,7 @@ class Sensor(models.Model):
     UNIT_DEGREES = 'degrees'     # angle
     UNIT_LUX = 'lux'             # illuminance
     UNIT_GPCM = 'grams/m3'       # gass density?
+    UNIT_SECONDS = 'seconds'     # time
 
     UNIT_OF_MEASUREMENTS_CHOICES = (
         (UNIT_OTHER, 'Other'),
@@ -1768,8 +1771,10 @@ class Sensor(models.Model):
         (UNIT_PERCENT_RELATIVE_HUMIDITY, 'Relative humidity'),
         (UNIT_RPM, 'Revolutions per minute'),
         (UNIT_CMM, 'Cubic meters per minute'),
+        (UNIT_LPM, 'Liters per minute'),
         (UNIT_TRUTHVALUE, 'Boolean'),
         (UNIT_VOLTAMPERES, 'Volt-ampere'),
+        (UNIT_VAR, 'Volt-ampere reactive'),
         (UNIT_VOLTAMPEREHOURS, 'Volt-ampere hours'),
         (UNIT_WATTHOURS, 'Watt hours'),
         (UNIT_PERCENT, '%'),
@@ -1783,6 +1788,7 @@ class Sensor(models.Model):
         (UNIT_DEGREES, 'Degrees'),
         (UNIT_LUX, 'Lux'),
         (UNIT_GPCM, 'Grams per cubic meter'),
+        (UNIT_SECONDS, 'Seconds'),
     )
 
     SCALE_YOCTO = 'yocto'  # 10^-24
