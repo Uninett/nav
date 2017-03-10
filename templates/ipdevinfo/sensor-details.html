@@ -1,10 +1,30 @@
 {% extends "ipdevinfo/base.html" %}
+{% load thresholds %}
 
 {% block footer_scripts %}
 <script>
  require([
      "plugins/graphfetcher_controller",
-     ]);
+     "plugins/gauge",
+ ], function(graphfetcher_controller, Gauge) {
+     $(function() {
+         var $gauge = $('.sensor-gauge');
+         var thresholds = $gauge.data('thresholds').split(',');
+         for (var i = 0, j = thresholds.length; i < j; i++) {
+             thresholds[i] = parseFloat(thresholds[i].replace(/\D/g, ''));
+         }
+         var _gauge = new Gauge({
+             node: $gauge[0],
+             radius: 250,
+             min: {{sensor.get_display_range.0}},
+             max: {{sensor.get_display_range.1}},
+             url: "{{sensor.get_graph_url}}&format=json",
+             symbol: ' ',
+             unit: "{{sensor.unit_of_measurement}}",
+             thresholds: thresholds,
+         });
+     });
+ });
 </script>
 {% endblock %}
 
@@ -18,7 +38,7 @@
 
   <div class="panel white">
       <div class="row">
-          <div class="large-6 column">
+          <div class="large-3 column">
               <table>
                   <caption>Sensor information:</caption>
                   <tr>
@@ -60,14 +80,40 @@
                       </td>
                   </tr>
                   <tr>
-                      <th>Minimum value for graphs</th>
-                      <td>{{sensor.get_display_range.0}}</td>
+                      <th>Detected minimum value for graphs</th>
+                      <td>{{sensor.display_minimum_sys}}</td>
                   </tr>
                   <tr>
-                      <th>Maximum value for display</th>
-                      <td>{{sensor.get_display_range.1}}</td>
+                      <th>Detected maximum value for display</th>
+                      <td>{{sensor.display_maximum_sys}}</td>
                   </tr>
               </table>
+          </div>
+          <div class="large-3 column">
+              <div style="width:500px">
+              <div class="sensor-gauge"
+                   data-url="{{ sensor.get_graph_url }}"
+                   data-unit="{{ sensor.normalized_unit }}"
+                   data-sensorid="{{ sensor.id }}"
+                   data-sensorname="{{ sensor.human_readable }}"
+                   data-dashboard_url="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}"
+                   data-thresholds="{{ sensor.get_metric_name|find_thresholds }}"
+              ></div>
+              <form method="post">
+                  <div class="row">
+                      {% csrf_token %}
+                      <div class="small-4 column">
+                          {{form.minimum}}
+                      </div>
+                      <div class="small-4 column">
+                          <button type="submit" class="button">Update range</button>
+                      </div>
+                      <div class="small-4 column">
+                          {{form.maximum}}
+                      </div>
+                  </div>
+              </form>
+              </div>
           </div>
           <div class="large-6 column">
               <div class="nav-metrics-container">

@@ -58,3 +58,9 @@ class ActivityIntervalForm(forms.Form):
                 css_class='collapse'
             )
         )
+
+
+class SensorRangesForm(forms.Form):
+    """Form for setting display ranges for a sensor"""
+    minimum = forms.FloatField(label='Minimum', required=False)
+    maximum = forms.FloatField(label='Maximum', required=False)

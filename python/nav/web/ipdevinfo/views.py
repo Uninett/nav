@@ -40,7 +40,8 @@ from nav.web.ipdevinfo.utils import create_combined_urls
 from nav.web.utils import create_title, SubListView
 from nav.metrics.graphs import Graph
 
-from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
+from nav.web.ipdevinfo.forms import (SearchForm, ActivityIntervalForm,
+                                     SensorRangesForm)
 from nav.web.ipdevinfo.context_processors import search_form_processor
 from nav.web.ipdevinfo import utils
 from .host_information import get_host_info
@@ -666,6 +667,14 @@ def sensor_details(request, identifier):
     """Controller for getting sensor info"""
     sensor = get_object_or_404(Sensor, pk=identifier)
 
+    if request.method == 'POST':
+        form = SensorRangesForm(request.POST)
+        if form.is_valid():
+            sensor.display_minimum_user = form.cleaned_data['minimum']
+            sensor.display_maximum_user = form.cleaned_data['maximum']
+            sensor.save()
+            return redirect(request.path)
+
     netbox_sysname = sensor.netbox.sysname
 
     navpath = NAVPATH + [
@@ -676,12 +685,18 @@ def sensor_details(request, identifier):
 
     metric = dict(id=sensor.get_metric_name())
     find_rules([metric])
+
+    form = SensorRangesForm(initial={
+        'minimum': sensor.get_display_range()[0],
+        'maximum': sensor.get_display_range()[1],
+    })
     return render(request, 'ipdevinfo/sensor-details.html', {
         'sensor': sensor,
         'navpath': navpath,
         'heading': heading,
         'title': title,
         'metric': metric,
+        'form': form,
         'graphite_data_url': Graph(magic_targets=[sensor.get_metric_name()],
                                    format='json')
     })
