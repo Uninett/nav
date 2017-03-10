@@ -46,13 +46,17 @@ def cache_traffic(layer):
         return get_traffic
     return _decorator
 
-# Cache model: Index by topology layer
+# Cache model: Index by topology layer and view
 def cache_topology(layer):
     "Utility decorator to cache the topology graph of Netmap"
     def _decorator(func):
         @wraps(func)
         def get_traffic(*args, **kwargs):
-            cache_key = _cache_key("topology", layer)
+            view = kwargs["view"]
+            if view is None:
+                cache_key = _cache_key("topology", "global_view", layer)
+            else:
+                cache_key = _cache_key("topology", view.pk, layer)
             cached = cache.get(cache_key)
             if cached is not None:
                 return cached
@@ -63,8 +67,8 @@ def cache_topology(layer):
     return _decorator
 
 # Update all nodes at once to save a couple of hundred/thousand cache lookups
-def update_cached_node_positions(layer, updated_nodes):
-    cache_key = _cache_key("topology", layer)
+def update_cached_node_positions(viewid, layer, updated_nodes):
+    cache_key = _cache_key("topology", viewid, layer)
     to_update = cache.get(cache_key)
     nodes = to_update["nodes"]
     for node in updated_nodes:

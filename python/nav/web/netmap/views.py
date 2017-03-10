@@ -290,10 +290,10 @@ class NodePositionUpdate(generics.UpdateAPIView):
                 "new_node": created
             })
         # Invalidate cached position
-        if cache_exists("topology", "layer 2"):
-            update_cached_node_positions("layer 2", cache_updates)
-        if cache_exists("topology", "layer 3"):
-            update_cached_node_positions("layer 3", cache_updates)
+        if cache_exists("topology", viewid, "layer 2"):
+            update_cached_node_positions(viewid, "layer 2", cache_updates)
+        if cache_exists("topology", viewid, "layer 3"):
+            update_cached_node_positions(viewid, "layer 3", cache_updates)
         return Response(status=200)
 
 

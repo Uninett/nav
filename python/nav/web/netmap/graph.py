@@ -46,9 +46,9 @@ _logger = logging.getLogger(__name__)
 def get_topology_graph(layer=2, load_traffic=False, view=None):
     """Builds and returns topology graph for the given layer"""
     if layer == 2:
-        return _json_layer2(load_traffic, view)
+        return _json_layer2(load_traffic, view=view)
     else:
-        return _json_layer3(load_traffic, view)
+        return _json_layer3(load_traffic, view=view)
 
 
 @cache_topology("layer 2")
