@@ -28,7 +28,10 @@
     }
 
     button { margin-bottom: 0; }
+
+    &:hover .icon-container { opacity: 1; }
     .icon-container {
+        opacity: .2;
         margin-left: .5em;
         i {
             cursor: pointer;
