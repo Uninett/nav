@@ -316,6 +316,12 @@ require([
                 console.log("Failed to rename rack");
             });
             request.done(function (name) {
+                // Give a little flash to indicate success
+                var $submit = $form.find('[type="submit"]');
+                $submit.addClass('success');
+                setTimeout(function () {
+                    $submit.removeClass('success');
+                }, 1000);
                 $form.siblings('.rack-heading').find('.rackname').text(name);
             });
         });
