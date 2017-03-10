@@ -43,7 +43,6 @@ define(function (require, exports, module) {
         // Draw value on bar
         this.barText = groupEnter.append('text')
             .attr('fill', '#555')
-            .attr('font', '16px Arial')
             .attr('text-anchor', 'middle')
             .attr('x', this.width / 2).attr('y', function (d) {
                 return self.y(d) + 3;
@@ -127,9 +126,14 @@ define(function (require, exports, module) {
             }
 
             // Update and transition value
+            var fontSize = '16px';
+            if (data > 10) { fontSize = '14px'; }
+            if (data > 100) { fontSize = '12px'; }
+
             this.barText.data([data])
                 .transition()
                 .duration(this.animationSpeed)
+                .attr('style', 'font-size: ' + fontSize)
                 .attr('y', function (d) {
                     if (d > self.max) {
                         return self.y(self.max) + 3;
