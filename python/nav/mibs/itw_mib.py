@@ -25,6 +25,7 @@ from twisted.internet import defer
 
 from nav.mibs import reduce_index
 from nav.mibs import mibretriever
+from nav.models.manage import Sensor
 from nav.oids import OID
 
 
@@ -93,12 +94,14 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
 
                 sensors.append(self._make_result_dict(climate_oid,
                                 self._get_oid_for_sensor('climateTempC'),
-                                serial, 'climateTempC', u_o_m='celsius',
+                                serial, 'climateTempC',
+                                u_o_m=Sensor.UNIT_CELSIUS,
                                 name=name))
 
                 sensors.append(self._make_result_dict(climate_oid,
                                 self._get_oid_for_sensor('climateHumidity'),
-                                serial, 'climateHumidity', u_o_m='percentRH',
+                                serial, 'climateHumidity',
+                                u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY,
                                 name=name))
 
                 sensors.append(self._make_result_dict(climate_oid,
@@ -138,7 +141,8 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 name = temp_sensor.get('tempSensorName', None)
                 sensors.append(self._make_result_dict(temp_oid,
                                 self._get_oid_for_sensor('tempSensorTempC'),
-                                serial, 'tempSensorTempC', u_o_m='celsius',
+                                serial, 'tempSensorTempC',
+                                u_o_m=Sensor.UNIT_CELSIUS,
                                 name=name))
         return sensors
 
@@ -160,13 +164,13 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 sensors.append(self._make_result_dict(airflow_oid,
                                 self._get_oid_for_sensor('airFlowSensorTempC'),
                                 serial, 'airFlowSensorTempC',
-                                u_o_m='celsius',
+                                u_o_m=Sensor.UNIT_CELSIUS,
                                 name=name))
 
                 sensors.append(self._make_result_dict(airflow_oid,
                              self._get_oid_for_sensor('airFlowSensorHumidity'),
                              serial, 'airFlowSensorHumidity',
-                             u_o_m='percentRH',
+                             u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY,
                              name=name))
         return sensors
 
@@ -214,7 +218,8 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 sensors.append(self._make_result_dict(current_oid,
                                 self._get_oid_for_sensor('currentMonitorAmps'),
                                 serial, 'currentMonitorAmps',
-                                u_o_m='amperes', scale='milli', name=name))
+                                u_o_m=Sensor.UNIT_AMPERES, scale='milli',
+                                name=name))
         return sensors
 
     @for_table('millivoltMonitorTable')
@@ -229,7 +234,8 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 name = millivolt_sensor.get('millivoltMonitorName', None)
                 sensors.append(self._make_result_dict(millivolt_oid,
                                 self._get_oid_for_sensor('millivoltMonitorMV'),
-                                serial, 'millivoltMonitorMV', u_o_m='volts',
+                                serial, 'millivoltMonitorMV',
+                                u_o_m=Sensor.UNIT_VOLTS_DC,
                                 scale='milli', name=name))
         return sensors
 
@@ -245,17 +251,17 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 sensors.append(self._make_result_dict(dewpoint_oid,
                             self._get_oid_for_sensor('dewPointSensorDewPoint'),
                             serial, 'dewPointSensorDewPoint',
-                            u_o_m='celsius', name=name))
+                            u_o_m=Sensor.UNIT_CELSIUS, name=name))
 
                 sensors.append(self._make_result_dict(dewpoint_oid,
                                self._get_oid_for_sensor('dewPointSensorTempC'),
                                serial, 'dewPointSensorTempC',
-                               u_o_m='celsius', name=name))
+                               u_o_m=Sensor.UNIT_CELCIUS, name=name))
 
                 sensors.append(self._make_result_dict(dewpoint_oid,
                             self._get_oid_for_sensor('dewPointSensorHumidity'),
                             serial, 'dewPointSensorHumidity',
-                            u_o_m='percentRH', name=name))
+                            u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY, name=name))
         return sensors
 
     @for_table('digitalSensorTable')
@@ -313,7 +319,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 sensors.append(self._make_result_dict(neg48vdc_oid,
                              self._get_oid_for_sensor('neg48VdcSensorVoltage'),
                              serial, 'neg48VdcSensorVoltage',
-                             u_o_m='voltsDC', name=name))
+                             u_o_m=Sensor.UNIT_VOLTS_DC, name=name))
         return sensors
 
     @for_table('pos30VdcSensorTable')
@@ -328,7 +334,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 sensors.append(self._make_result_dict(pos30vdc_oid,
                              self._get_oid_for_sensor('pos30VdcSensorVoltage'),
                              serial, 'pos30VdcSensorVoltage',
-                             u_o_m='voltsDC', name=name))
+                             u_o_m=Sensor.UNIT_VOLTS_DC, name=name))
         return sensors
 
     @for_table('analogSensorTable')
@@ -356,27 +362,27 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 name = pow_mon_sensor.get('powMonName', None)
                 sensors.append(self._make_result_dict(pow_mon_oid,
                                 self._get_oid_for_sensor('powMonKWattHrs'),
-                                serial, 'powMonKWattHrs', u_o_m='watts',
+                                serial, 'powMonKWattHrs', u_o_m=Sensor.UNIT_WATTS,
                                 name=name))
                 sensors.append(self._make_result_dict(pow_mon_oid,
                                 self._get_oid_for_sensor('powMonVolts'),
-                                serial, 'powMonVolts', u_o_m='volts',
+                                serial, 'powMonVolts', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(pow_mon_oid,
                                 self._get_oid_for_sensor('powMonVoltMax'),
-                                serial, 'powMonVoltMax', u_o_m='volts',
+                                serial, 'powMonVoltMax', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(pow_mon_oid,
                                 self._get_oid_for_sensor('analogSensorAnalog'),
-                                serial, 'powMonVoltMin', u_o_m='volts',
+                                serial, 'powMonVoltMin', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(pow_mon_oid,
                                 self._get_oid_for_sensor('powMonVoltPk'),
-                                serial, 'powMonVoltPk', u_o_m='volts',
+                                serial, 'powMonVoltPk', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(pow_mon_oid,
                                 self._get_oid_for_sensor('powMonAmpsX10'),
-                                serial, 'powMonAmpsX10', u_o_m='amperes',
+                                serial, 'powMonAmpsX10', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(pow_mon_oid,
                                 self._get_oid_for_sensor('powMonRealPow'),
@@ -406,10 +412,10 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 name = power_sensor.get('powerName', None)
                 sensors.append(self._make_result_dict(power_sensor_oid,
                                 self._get_oid_for_sensor('powerVolts'), serial,
-                                'powerVolts', u_o_m='volts', name=name))
+                                'powerVolts', u_o_m=Sensor.UNIT_VOLTS_DC, name=name))
                 sensors.append(self._make_result_dict(power_sensor_oid,
                                 self._get_oid_for_sensor('powerAmps'), serial,
-                                'powerAmps', u_o_m='amperes', name=name))
+                                'powerAmps', u_o_m=Sensor.UNIT_AMPERES, name=name))
                 sensors.append(self._make_result_dict(power_sensor_oid,
                                 self._get_oid_for_sensor('powerRealPow'),
                                 serial, 'powerRealPow', name=name))
@@ -432,61 +438,61 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 name = pow3_ch_sensor.get('pow3ChName', None)
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChKWattHrsA'),
-                                serial, 'pow3ChKWattHrsA', u_o_m='watts',
+                                serial, 'pow3ChKWattHrsA', u_o_m=Sensor.UNIT_WATTS,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChVoltsA'),
-                                serial, 'pow3ChVoltsA', u_o_m='watts',
+                                serial, 'pow3ChVoltsA', u_o_m=Sensor.UNIT_WATTS,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChVoltMaxA'),
-                                serial, 'pow3ChVoltMaxA', u_o_m='watts',
+                                serial, 'pow3ChVoltMaxA', u_o_m=Sensor.UNIT_WATTS,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChVoltMinA'),
-                                serial, 'pow3ChVoltMinA', 'watts', name=name))
+                                serial, 'pow3ChVoltMinA', Sensor.UNIT_WATTS, name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChVoltPkA'),
-                                serial, 'pow3ChVoltPkA', u_o_m='watts',
+                                serial, 'pow3ChVoltPkA', u_o_m=Sensor.UNIT_WATTS,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChAmpsX10A'),
-                                serial, 'pow3ChAmpsX10A', u_o_m='amperes',
+                                serial, 'pow3ChAmpsX10A', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChRealPowA'),
-                                serial, 'pow3ChRealPowA', u_o_m='amperes',
+                                serial, 'pow3ChRealPowA', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChAppPowA'),
-                                serial, 'pow3ChAppPowA', u_o_m='amperes',
+                                serial, 'pow3ChAppPowA', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChPwrFactA'),
                                 serial, 'pow3ChPwrFactA', name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChKWattHrsB'),
-                                serial, 'pow3ChKWattHrsB', u_o_m='watts',
+                                serial, 'pow3ChKWattHrsB', u_o_m=Sensor.UNIT_WATTS,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChVoltsB'),
-                                serial, 'pow3ChVoltsB', u_o_m='volts',
+                                serial, 'pow3ChVoltsB', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChVoltMaxB'),
-                                serial, 'pow3ChVoltMaxB', u_o_m='volts',
+                                serial, 'pow3ChVoltMaxB', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChVoltMinB'),
-                                serial, 'pow3ChVoltMinB', u_o_m='volts',
+                                serial, 'pow3ChVoltMinB', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChVoltPkB'),
-                                serial, 'pow3ChVoltPkB', u_o_m='volts',
+                                serial, 'pow3ChVoltPkB', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChAmpsX10B'),
-                                serial, 'pow3ChAmpsX10B', u_o_m='amperes',
+                                serial, 'pow3ChAmpsX10B', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChRealPowB'),
@@ -499,27 +505,27 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                 serial, 'pow3ChPwrFactB', name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChKWattHrsC'),
-                                serial, 'pow3ChKWattHrsC', u_o_m='watts',
+                                serial, 'pow3ChKWattHrsC', u_o_m=Sensor.UNIT_WATTS,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChVoltsC'),
-                                serial, 'pow3ChVoltsC', u_o_m='volts',
+                                serial, 'pow3ChVoltsC', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChVoltMaxC'),
-                                serial, 'pow3ChVoltMaxC', u_o_m='volts',
+                                serial, 'pow3ChVoltMaxC', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChVoltMinC'),
-                                serial, 'pow3ChVoltMinC', u_o_m='volts',
+                                serial, 'pow3ChVoltMinC', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChVoltPkC'),
-                                serial, 'pow3ChVoltPkC', u_o_m='volts',
+                                serial, 'pow3ChVoltPkC', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChAmpsX10C'),
-                                serial, 'pow3ChAmpsX10C', u_o_m='amperes',
+                                serial, 'pow3ChAmpsX10C', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(pow3_ch_sensor_oid,
                                 self._get_oid_for_sensor('pow3ChRealPowC'),
@@ -560,31 +566,31 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 name = vsfc_sensor.get('vsfcName', None)
                 sensors.append(self._make_result_dict(vsfc_oid,
                                 self._get_oid_for_sensor('vsfcSetPointC'),
-                                serial, 'vsfcSetPointC', u_o_m='celsius',
+                                serial, 'vsfcSetPointC', u_o_m=Sensor.UNIT_CELCIUS,
                                 name=name))
                 sensors.append(self._make_result_dict(vsfc_oid,
                                 self._get_oid_for_sensor('vsfcIntTempC'),
-                                serial, 'vsfcIntTempC', u_o_m='celsius',
+                                serial, 'vsfcIntTempC', u_o_m=Sensor.UNIT_CELCIUS,
                                 name=name))
                 sensors.append(self._make_result_dict(vsfc_oid,
                                 self._get_oid_for_sensor('vsfcExt1TempC'),
-                                serial, 'vsfcExt1TempC', u_o_m='celsius',
+                                serial, 'vsfcExt1TempC', u_o_m=Sensor.UNIT_CELCIUS,
                                 name=name))
                 sensors.append(self._make_result_dict(vsfc_oid,
                                 self._get_oid_for_sensor('vsfcExt2TempC'),
-                                serial, 'vsfcExt2TempC', u_o_m='celsius',
+                                serial, 'vsfcExt2TempC', u_o_m=Sensor.UNIT_CELCIUS,
                                 name=name))
                 sensors.append(self._make_result_dict(vsfc_oid,
                                 self._get_oid_for_sensor('vsfcExt3TempC'),
-                                serial, 'vsfcExt3TempC', u_o_m='celsius',
+                                serial, 'vsfcExt3TempC', u_o_m=Sensor.UNIT_CELCIUS,
                                 name=name))
                 sensors.append(self._make_result_dict(vsfc_oid,
                                 self._get_oid_for_sensor('vsfcExt4TempC'),
-                                serial, 'vsfcExt4TempC', u_o_m='celsius',
+                                serial, 'vsfcExt4TempC', u_o_m=Sensor.UNIT_CELCIUS,
                                 name=name))
                 sensors.append(self._make_result_dict(vsfc_oid,
                                 self._get_oid_for_sensor('vsfcFanSpeed'),
-                                serial, 'vsfcFanSpeed', u_o_m='rpm',
+                                serial, 'vsfcFanSpeed', u_o_m=Sensor.UNIT_RPM,
                                 name=name))
         return sensors
 
@@ -599,45 +605,45 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 name = ctrl3_ch_sensor.get('ctrl3ChName', None)
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChVoltsA'),
-                                serial, 'ctrl3ChVoltsA', u_o_m='volts',
+                                serial, 'ctrl3ChVoltsA', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChVoltPkA'),
-                                serial, 'ctrl3ChVoltPkA', u_o_m='volts',
+                                serial, 'ctrl3ChVoltPkA', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChAmpsA'),
-                                serial, 'ctrl3ChAmpsA', u_o_m='amperes',
+                                serial, 'ctrl3ChAmpsA', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChAmpPkA'),
-                                serial, 'ctrl3ChAmpPkA', u_o_m='amperes',
+                                serial, 'ctrl3ChAmpPkA', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChRealPowA'),
                                 serial, 'ctrl3ChRealPowA', name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChAppPowA'),
-                                serial, 'ctrl3ChAppPowA', u_o_m='amperes',
+                                serial, 'ctrl3ChAppPowA', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChPwrFactA'),
                                 serial, 'ctrl3ChPwrFactA', name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChVoltsB'),
-                                serial, 'ctrl3ChVoltsB', u_o_m='volts',
+                                serial, 'ctrl3ChVoltsB', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChVoltPkB'),
-                                serial, 'ctrl3ChVoltPkB', u_o_m='volsta',
+                                serial, 'ctrl3ChVoltPkB', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChAmpsB'),
-                                serial, 'ctrl3ChAmpsB', u_o_m='amperes',
+                                serial, 'ctrl3ChAmpsB', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChAmpPkB'),
-                                serial, 'ctrl3ChAmpPkB', u_o_m='amperes',
+                                serial, 'ctrl3ChAmpPkB', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChRealPowB'),
@@ -650,19 +656,19 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                 serial, 'ctrl3ChPwrFactB', name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChVoltsC'),
-                                serial, 'ctrl3ChVoltsC', u_o_m='volts',
+                                serial, 'ctrl3ChVoltsC', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChVoltPkC'),
-                                serial, 'ctrl3ChVoltPkC', u_o_m='volts',
+                                serial, 'ctrl3ChVoltPkC', u_o_m=Sensor.UNIT_VOLTS_DC,
                                 name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChAmpsC'),
-                                serial, 'ctrl3ChAmpsC', u_o_m='amperes',
+                                serial, 'ctrl3ChAmpsC', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChAmpPkC'),
-                                serial, 'ctrl3ChAmpPkC', u_o_m='amperes',
+                                serial, 'ctrl3ChAmpPkC', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(ctrl3_ch_oid,
                                 self._get_oid_for_sensor('ctrl3ChRealPowC'),
@@ -686,27 +692,27 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 name = c_grp_amps_sensor.get('ctrlGrpAmpsName', None)
                 sensors.append(self._make_result_dict(c_grp_amp_oid,
                                 self._get_oid_for_sensor('ctrlGrpAmpsA'),
-                                serial, 'ctrlGrpAmpsA', u_o_m='amperes',
+                                serial, 'ctrlGrpAmpsA', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(c_grp_amp_oid,
                                 self._get_oid_for_sensor('ctrlGrpAmpsB'),
-                                serial, 'ctrlGrpAmpsB', u_o_m='amperes',
+                                serial, 'ctrlGrpAmpsB', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(c_grp_amp_oid,
                                 self._get_oid_for_sensor('ctrlGrpAmpsC'),
-                                serial, 'ctrlGrpAmpsC', u_o_m='amperes',
+                                serial, 'ctrlGrpAmpsC', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(c_grp_amp_oid,
                                 self._get_oid_for_sensor('ctrlGrpAmpsD'),
-                                serial, 'ctrlGrpAmpsD', u_o_m='amperes',
+                                serial, 'ctrlGrpAmpsD', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(c_grp_amp_oid,
                                 self._get_oid_for_sensor('ctrlGrpAmpsE'),
-                                serial, 'ctrlGrpAmpsE', u_o_m='amperes',
+                                serial, 'ctrlGrpAmpsE', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
                 sensors.append(self._make_result_dict(c_grp_amp_oid,
                                 self._get_oid_for_sensor('ctrlGrpAmpsF'),
-                                serial, 'ctrlGrpAmpsF', u_o_m='amperes',
+                                serial, 'ctrlGrpAmpsF', u_o_m=Sensor.UNIT_AMPERES,
                                 name=name))
         return sensors
 
@@ -728,7 +734,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                             serial, 'ctrlOutletPending', name=name))
             sensors.append(self._make_result_dict(c_outlet_oid,
                             self._get_oid_for_sensor('ctrlOutletAmps'),
-                            serial, 'ctrlOutletAmps', u_o_m='amperes',
+                            serial, 'ctrlOutletAmps', u_o_m=Sensor.UNIT_AMPERES,
                             name=name))
             sensors.append(self._make_result_dict(c_outlet_oid,
                             self._get_oid_for_sensor('ctrlOutletUpDelay'),
@@ -752,16 +758,16 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 name = dsts_sensor.get('dstsName', None)
                 sensors.append(self._make_result_dict(dsts_oid,
                                 self._get_oid_for_sensor('dstsVoltsA'), serial,
-                                'dstsVoltsA', u_o_m='volts', name=name))
+                                'dstsVoltsA', u_o_m=Sensor.UNIT_VOLTS_DC, name=name))
                 sensors.append(self._make_result_dict(dsts_oid,
                                 self._get_oid_for_sensor('dstsAmpsA'), serial,
-                                'dstsAmpsA', u_o_m='amperes', name=name))
+                                'dstsAmpsA', u_o_m=Sensor.UNIT_AMPERES, name=name))
                 sensors.append(self._make_result_dict(dsts_oid,
                                 self._get_oid_for_sensor('dstsVoltsB'), serial,
-                                'dstsVoltsB', u_o_m='volts', name=name))
+                                'dstsVoltsB', u_o_m=Sensor.UNIT_VOLTS_DC, name=name))
                 sensors.append(self._make_result_dict(dsts_oid,
                                 self._get_oid_for_sensor('dstsAmpsB'), serial,
-                                'dstsAmpsB', u_o_m='amperes', name=name))
+                                'dstsAmpsB', u_o_m=Sensor.UNIT_AMPERES, name=name))
                 sensors.append(self._make_result_dict(dsts_oid,
                                 self._get_oid_for_sensor('dstsSourceAActive'),
                                 serial, 'dstsSourceAActive', name=name))
@@ -776,11 +782,11 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                                 serial, 'dstsPowerStatusB', name=name))
                 sensors.append(self._make_result_dict(dsts_oid,
                                 self._get_oid_for_sensor('dstsSourceATempC'),
-                                serial, 'dstsSourceATempC', u_o_m='celsius',
+                                serial, 'dstsSourceATempC', u_o_m=Sensor.UNIT_CELCIUS,
                                 name=name))
                 sensors.append(self._make_result_dict(dsts_oid,
                                 self._get_oid_for_sensor('dstsSourceBTempC'),
-                                serial, 'dstsSourceBTempC', u_o_m='celsius',
+                                serial, 'dstsSourceBTempC', u_o_m=Sensor.UNIT_CELCIUS,
                                 name=name))
         return sensors
 
