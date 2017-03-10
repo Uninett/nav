@@ -371,8 +371,7 @@ def render_add_sensor(request, roomid):
     # Sensors that can be choosen for the pdu columns
     pdusensors = sensors.filter(
         netbox__room=room,
-        netbox__category='POWER',
-        internal_name__startswith='rPDULoadStatusLoad'
+        netbox__category='POWER'
     ).select_related('netbox').order_by('netbox__sysname', 'human_readable')
 
     filteredsensors = pdusensors
