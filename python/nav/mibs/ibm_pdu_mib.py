@@ -95,7 +95,7 @@ class IbmPduMib(MibRetriever):
         description = row.get(OUTLET_DESCRIPTION)
 
         voltage = dict(
-            oid=str(self.nodes.get(OUTLET_VOLTAGE, None).oid + str(index)),
+            oid=str(self.nodes.get(OUTLET_VOLTAGE).oid + str(index)),
             unit_of_measurement=Sensor.UNIT_VOLTS_AC,
             precision=3,
             scale=None,
