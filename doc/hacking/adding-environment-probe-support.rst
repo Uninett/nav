@@ -251,6 +251,23 @@ mib                  Should be the name of the MIB module that the sensor
                      information was found in.
 ===================  =========================================================
 
+A note on standardizing unit names
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Spelling and casing of unit names should be standardized throughout NAV. E.g.,
+when a list of sensors is filtered to select only those that report
+temperature values, it's much easier to write a filter if every temperature
+sensor reports either ``celsius`` or ``fahrenheit``. If you register sensors
+that have units like ``C``, ``F``, ``fahr``, ``°C`` or ``°F``, it's much
+harder to find *all* the relevant sensors.
+
+For this reason, an attempt has been made to standardize on a set of unit
+names in the :class:`nav.models.manage.Sensor` model class. It would be wise
+to import this model and use the relevant ``UNIT_*`` constants from this class
+when returning sensor dicts.
+
+This is exactly what we will do in the next example.
+
 
 Collecting actual sensors from the MIB
 --------------------------------------
@@ -259,8 +276,11 @@ Let's rewrite ``SPAgentMib`` to collect actual temperature sensors:
 
 .. code-block:: python
    :linenos:
-   :emphasize-lines: 6, 17
+   :emphasize-lines: 9, 20
 
+    from nav.models.manage import Sensor
+    
+		     
     class SPAgentMib(MibRetriever):
 	from nav.smidumps.spagent_mib import MIB as mib
 
@@ -291,7 +311,7 @@ Let's rewrite ``SPAgentMib`` to collect actual temperature sensors:
 
 	    unit = row.get("sensorProbeTempDegreeType", None)
 	    if unit == 'fahr':
-		unit = 'fahrenheit'
+		unit = Sensor.UNIT_FAHRENHEIT
 
 	    return {
 		'oid': readout_oid,
