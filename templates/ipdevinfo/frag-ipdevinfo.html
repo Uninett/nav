@@ -126,7 +126,7 @@
         <td>
           {% with netbox.get_filtered_prefix as prefix %}
             {% if prefix %}
-              <a href="{% url 'report-prefix-prefix' prefix.id %}">
+              <a href="{% url 'prefix-details' prefix.id %}">
                 {{ prefix }}</a>
             {% else %}
               N/A
@@ -479,7 +479,7 @@
         <td>
           {% with no_netbox.prefix as prefix %}
             {% if prefix %}
-              <a href="{% url 'report-prefix-prefix' prefix.id %}">
+              <a href="{% url 'prefix-details' prefix.id %}">
                 {{ prefix.net_address }}
               </a>
             {% else %}

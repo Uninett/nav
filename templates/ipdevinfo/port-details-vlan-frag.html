@@ -113,7 +113,7 @@
             <tr>
               <td>{{ gwprefix.gw_ip }}</td>
               <td>
-                <a href="{% url 'report-prefix-prefix' gwprefix.prefix.id %}">{{ gwprefix.prefix.net_address }}</a>
+                <a href="{% url 'prefix-details' gwprefix.prefix.id %}">{{ gwprefix.prefix.net_address }}</a>
               </td>
             </tr>
           {% endfor %}

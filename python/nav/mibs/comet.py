@@ -37,10 +37,6 @@ class Comet(MibRetriever):
     """MibRetriever for Comet Web Sensors"""
     from nav.smidumps.p8652_mib import MIB as mib
 
-    def get_module_name(self):
-        """Returns the MIB module name"""
-        return self.mib.get('moduleName', None)
-
     @defer.inlineCallbacks
     def get_all_sensors(self):
         """Discovers and returns all eligible sensors from the Comet MIB on this
@@ -53,7 +49,7 @@ class Comet(MibRetriever):
     @defer.inlineCallbacks
     def get_channels(self):
         """Returns the temperature sensor channels for this probe."""
-        self._logger.info("collecting Comet channels")
+        self._logger.debug("collecting Comet channels")
         result = []
         for channel in range(1, 5):
             o_name = "ch%dName" % channel
@@ -63,6 +59,8 @@ class Comet(MibRetriever):
 
             name = yield self.get_next(o_name)
             unit = yield self.get_next(o_unit)
+            if not name and not unit:
+                continue
             unit = UNIT_MAP.get(unit, unit)
             self._logger.debug("channel %s name/unit: %r/%r",
                                channel, name, unit)
@@ -82,7 +80,7 @@ class Comet(MibRetriever):
     @defer.inlineCallbacks
     def get_binary_inputs(self):
         """Returns the binary inputs of this probe, also their alarm status"""
-        self._logger.info("collecting Comet binary sensors")
+        self._logger.debug("collecting Comet binary sensors")
         result = []
         for binary in range(1, 4):
             o_name = "bin%dName" % binary
@@ -94,8 +92,8 @@ class Comet(MibRetriever):
             name = yield self.get_next(o_name)
             value = yield self.get_next(o_value)
             if value is None:
-                self._logger.info("Ignoring BIN input %s (%s), it has no value",
-                                  binary, name)
+                self._logger.debug("Ignoring BIN input %s (%s), it has no value",
+                                   binary, name)
                 continue
             self._logger.debug("BIN input %s name: %r", binary, name)
 
@@ -117,6 +115,44 @@ class Comet(MibRetriever):
                 description="%s alarm" % name,
                 name="BIN %s Alarm" % binary,
                 internal_name="bin%sAlarm" % binary,
+                mib=self.get_module_name(),
+            ))
+        returnValue(result)
+
+
+class CometMS(MibRetriever):
+    """MibRetriever for Comet Web Sensors"""
+    from nav.smidumps.cometms_mib import MIB as mib
+
+    @defer.inlineCallbacks
+    def get_all_sensors(self):
+        """Discovers and returns all eligible sensors from the Comet MIB on this
+        device.
+        """
+        channels = yield self.get_channels()
+        returnValue(channels)
+
+    @defer.inlineCallbacks
+    def get_channels(self):
+        """Returns the temperature sensor channels for this probe."""
+        value_oid = self.nodes['channelInt100'].oid
+
+        result = []
+        channels = yield self.retrieve_table('chTable')
+        channels = self.translate_result(channels)
+        for index, row in channels.items():
+            self._logger.debug("Got channel {}: {}".format(index, row))
+            unit = row['channelUnit']
+            unit = UNIT_MAP.get(unit, unit)
+            name = row['channelName']
+            result.append(dict(
+                oid=str(value_oid + index),
+                unit_of_measurement=unit,
+                precision=2,
+                scale=None,
+                description=name,
+                name=name,
+                internal_name="channel%s" % index,
                 mib=self.get_module_name(),
             ))
         returnValue(result)

@@ -116,10 +116,6 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
                 is_up = self._get_psu_status_value(psu_status)
         defer.returnValue(is_up)
 
-    def get_module_name(self):
-        """return the MIB-name."""
-        return self.mib.get('moduleName', None)
-
     @defer.inlineCallbacks
     def get_fan_status_table(self):
         """Retrieve the whole table of fan-sensors and cache the result."""

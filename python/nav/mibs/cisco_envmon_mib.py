@@ -34,9 +34,6 @@ POWER_SENSOR_TYPE = {
 class CiscoEnvMonMib(mibretriever.MibRetriever):
     from nav.smidumps.cisco_envmon_mib import MIB as mib
 
-    def get_module_name(self):
-        return self.mib.get('moduleName', None)
-
     def _get_voltage_sensors(self):
         df = self.retrieve_columns([
                 'ciscoEnvMonVoltageStatusDescr',

@@ -51,10 +51,6 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
     lowercase_nodes = dict((key.lower(), key)
                            for key in mib['nodes'])
 
-    def get_module_name(self):
-        """ Return this official MIB-name"""
-        return self.mib.get('moduleName', None)
-
     def _get_oid_for_sensor(self, sensor_name):
         """Return the OID for the given sensor-name as a string; Return
         None if sensor-name is not found.

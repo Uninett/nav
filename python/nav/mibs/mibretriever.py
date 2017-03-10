@@ -339,6 +339,10 @@ class MibRetriever(object):
         # pylint: disable=W0104
         self._logger
 
+    def get_module_name(self):
+        """Returns the MIB module"""
+        return self.mib.get('moduleName', None)
+
     @defer.inlineCallbacks
     def get_next(self, object_name):
         oid = self.nodes[object_name].oid
