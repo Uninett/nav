@@ -40,6 +40,7 @@ from nav.metrics.templates import (
     metric_prefix_for_interface,
     metric_prefix_for_ports,
     metric_prefix_for_device,
+    metric_prefix_for_sensors,
     metric_path_for_sensor,
     metric_path_for_prefix
 )
@@ -335,10 +336,11 @@ class Netbox(models.Model):
                    suffix="cpu1.loadavg1min"}
 
         """
-        exclude = metric_prefix_for_ports(self.sysname)
+        ports_exclude = metric_prefix_for_ports(self.sysname)
+        sensors_exclude = metric_prefix_for_sensors(self.sysname)
         base = metric_prefix_for_device(self.sysname)
 
-        nodes = get_all_leaves_below(base, [exclude])
+        nodes = get_all_leaves_below(base, [ports_exclude, sensors_exclude])
         result = []
         for node in nodes:
             suffix = node.replace(base + '.', '')
