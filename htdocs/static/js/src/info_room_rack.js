@@ -330,7 +330,6 @@ require([
 
     function addSensorSort() {
         $('.rack').find('.rack-column .sensors').each(function() {
-            console.log(this);
             $(this).sortable({
                 tolerance: 'pointer',
                 handle: '.fa-arrows',
