@@ -12,10 +12,12 @@
         }
     }
 
-    /* Edit-mode stuff*/
+    /* Edit-mode stuff */
+    .flex-when-noedit { display: flex; }
     .block-when-edit { display: none; }
     .inline-when-edit { display: none; }
     &.editmode {
+        .flex-when-noedit { display: none; }
         .block-when-edit { display: block; }
         .inline-when-edit { display: inline; }
     }
@@ -26,7 +28,9 @@
     }
 
     button { margin-bottom: 0; }
-    .close-edit-rack { display: none; }
+    .icon-container i {
+        font-size: 1rem;
+    }
 
     /* Sortable */
     .ui-sortable-helper { background-color: white; border: 1px solid black; }
@@ -35,7 +39,12 @@
 }
 
 
-.rack-heading { margin-bottom: 0; }
+.rack-heading, .rename-rack-form label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0;
+}
 
 
 .rack-body {

@@ -1,22 +1,23 @@
 <div class="rack" data-rackid="{{ rack.pk }}">
-  <h5 class="rack-heading">
-    <span class="right">
-      <small>
-        <i class="edit-rack fa fa-gear" title="Edit the rack"></i>
-        <i class="close-edit-rack fa fa-check-square-o" title="Done editing"></i>
-      </small>
-    </span>
+  <h5 class="rack-heading flex-when-noedit">
     <span class="rackname">{{ rack.rackname|default:"&nbsp;" }}</span>
+    <small class="icon-container">
+      <i class="edit-rack fa fa-gear" title="Edit the rack"></i>
+      <i class="fa fa-times-circle remove-rack" title="Remove rack"></i>
+    </small>
   </h5>
-
-  <button class="remove-rack tiny alert block-when-edit">Remove rack</button>
 
   <form action="{% url 'room-info-racks-rename-rack' room.pk rack.pk %}"
         method="post"
         class="rename-rack-form block-when-edit">
     <label>
       Change rack name
+      <small class="icon-container">
+        <i class="close-edit-rack fa fa-check-square-o" title="Done editing"></i>
+        <i class="fa fa-times-circle remove-rack" title="Remove rack"></i>
+      </small>
     </label>
+
     <input type="submit" value="Save name" class="button small right">
     <div style="overflow: hidden;">
       <input type="text" name="rackname" value="{{ rack.rackname }}">
@@ -47,7 +48,8 @@
       </div>
       <button class="tiny full-width block-when-edit"
               title="Add sensor to middle column"
-              data-column="1">Add sensor</button>
+              data-column="1">Add sensor
+      </button>
     </div>
 
     <div class="rack-right rack-pdu rack-column">

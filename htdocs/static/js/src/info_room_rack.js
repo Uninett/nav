@@ -284,8 +284,6 @@ require([
             var $this = $(this);
             var $rack = $this.closest('.rack');
             $rack[func]('editmode');
-            $this.siblings('i').show();
-            $this.hide();
         }
 
         $racks.on('click', '.edit-rack', function() {
