@@ -28,8 +28,11 @@
     }
 
     button { margin-bottom: 0; }
-    .icon-container i {
-        font-size: 1rem;
+    .icon-container {
+        margin-left: .5em;
+        i {
+            font-size: 1rem;
+        }
     }
 
     /* Sortable */
