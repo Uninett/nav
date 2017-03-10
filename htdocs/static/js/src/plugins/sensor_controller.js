@@ -78,7 +78,7 @@ define(function(require) {
         parseThresholds: function () {
             var input = this.$node.attr('data-thresholds');
             if (input) {
-                /* TOOD: Actually care about the bigger than, smaller than issue */
+                /* TODO: Actually care about the bigger than, smaller than issue */
                 var values = input.split(',');
                 for (var i = 0, j = values.length; i < j; i++) {
                     values[i] = parseFloat(values[i].replace(/\D/g, ''));
