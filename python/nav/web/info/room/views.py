@@ -305,17 +305,22 @@ def render_sensors(request, roomid):
     })
 
 
+
+def create_rack(room, rackname):
+    """Creates a rack in a room with a given name"""
+    aggregate = Rack.objects.filter(room=room).aggregate(Max('ordering'))
+    ordering = (aggregate.get('ordering__max') or 0) + 1
+    rack = Rack(room=room, rackname=rackname, ordering=ordering)
+    rack.save()
+    return rack
+
+
 def add_rack(request, roomid):
     """Adds a new rack to a room"""
     room = get_object_or_404(Room, pk=roomid)
-
-    aggregate = Rack.objects.filter(room=room).aggregate(Max('ordering'))
-    ordering = (aggregate.get('ordering__max') or 0) + 1
-    rack = Rack(room=room, rackname=request.POST.get('rackname'),
-                ordering=ordering)
-    rack.save()
+    rackname = request.POST.get('rackname')
     return render(request, 'info/room/fragment_rack.html', {
-        'rack': rack,
+        'rack': create_rack(room, rackname),
         'room': room
     })
 
@@ -399,7 +404,7 @@ def save_sensor(request, roomid):
     column = request.POST.get('column')
     sensorid = request.POST.get('sensorid')
 
-    room = get_object_or_404(Room, pk=roomid)
+    _room = get_object_or_404(Room, pk=roomid)
     sensor = get_object_or_404(Sensor, pk=sensorid)
     rack = get_object_or_404(Rack, pk=rackid)
     column = int(column)
@@ -442,7 +447,7 @@ def save_rack_order(request, roomid):
 
 def remove_sensor(request, roomid):
     """Remove a sensor from a room"""
-    room = get_object_or_404(Room, pk=roomid)
+    _room = get_object_or_404(Room, pk=roomid)
     racksensor = get_object_or_404(RackSensor,
                                    pk=request.POST.get('racksensorid'))
     try:
