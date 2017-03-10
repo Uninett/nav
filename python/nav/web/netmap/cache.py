@@ -83,7 +83,7 @@ def update_cached_node_positions(viewid, layer, updated_nodes):
             "x": node["x"],
             "y": node["y"]
         }
-        to_update["nodes"][node["id"]]["position"].update(diff)
+        to_update["nodes"][node["id"]]["position"] = diff
     cache.set(cache_key, to_update, CACHE_TIMEOUT)
 
 def invalidate_topology_cache(layer):
