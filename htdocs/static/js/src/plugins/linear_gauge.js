@@ -137,7 +137,7 @@ define(function (require, exports, module) {
                 .attr('y', function (d) {
                     if (d > self.max) {
                         return self.y(self.max) + 3;
-                    } else if (d > (self.max * 0.75)) {
+                    } else if (d > (self.max * 0.5)) {
                         return self.y(d) + 3;
                     } else {
                         return self.y(d) - 20;
