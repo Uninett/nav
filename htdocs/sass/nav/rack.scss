@@ -4,6 +4,8 @@
 }
 
 .rack {
+    max-width: 240px;
+
     margin-right: 1em;
     form.rename-rack-form {
         overflow: auto;
@@ -20,6 +22,7 @@
         .flex-when-noedit { display: none; }
         .block-when-edit { display: block; }
         .inline-when-edit { display: inline; }
+        .rack-center { flex: 1; }
     }
 
     .fa {
