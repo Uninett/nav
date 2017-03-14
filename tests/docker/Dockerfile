@@ -47,7 +47,7 @@ RUN echo "build    ALL=NOPASSWD: ALL" >> /etc/sudoers
 ADD runtime-requirements.txt /runtime-requirements.txt
 ADD test-requirements.txt /test-requirements.txt
 RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
-RUN pip install whisper carbon graphite-web django-tagging
+RUN pip install whisper carbon==0.9.14 graphite-web==0.9.14 django-tagging
 
 # Install geckodriver to properly run Selenium tests in Firefox versions>=47
 RUN cd /tmp && \
