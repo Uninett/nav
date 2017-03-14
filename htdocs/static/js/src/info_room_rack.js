@@ -136,7 +136,7 @@ require([
             return datapoint[0] != null;
         });
 
-        return point[0] != null ? point[0] : null;
+        return point ? point[0] : null;
     }
 
 
@@ -188,7 +188,7 @@ require([
                     nodeId: gaugeElement.id,
                     precision: 2,
                     color: 'lightsteelblue',
-                    height: 50
+                    height: 100
                 });
                 gauge.update(value);
                 $.data(gaugeElement, 'gauge', gauge);
