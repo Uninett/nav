@@ -101,9 +101,9 @@ require([
     function updateSingleSensor($sensor) {
         var thisIsPDU = $sensor.find('.pdu-gauge').length;
         if (thisIsPDU) {
-            getData(getMetric($sensor), updatePDUS);
+            getData(getMetric($sensor), updatePDU);
         } else {
-            getData(getMetric($sensor), updateSensors);
+            getData(getMetric($sensor), updateSensor);
         }
     }
 
@@ -113,25 +113,24 @@ require([
      */
     function getMetrics($element) {
         return _.object($element.find('[data-metric]').map(function () {
-            return [[this.dataset.metric, this.id]];
+            return [[this.id, this.dataset.metric]];
         }));
     }
 
     /**
-     * Creates mapping between metric and element id for a single element
+     * Creates mapping between element id and metric for a single element
      */
     function getMetric($element) {
         var element = $element[0];
         var obj = {};
-        obj[element.dataset.metric] = element.id;
+        obj[element.id] = element.dataset.metric;
         return obj;
     }
 
     /**
      * Gets the correct single value from the datapoints returned from Graphite
      */
-    function getValue(result) {
-        var datapoints = result.datapoints;
+    function getValue(datapoints) {
         var point = _.find(datapoints.reverse(), function (datapoint) {
             return datapoint[0] != null;
         });
@@ -139,70 +138,84 @@ require([
         return point ? point[0] : null;
     }
 
-
     /**
-     * Updates all sensors in the metricMap. They must not be PDU-sensors
-     * because these are visualized with a bullet-sparkline
+     * Map result list to {target: datapoints}
+     * @param {array} results - A list of {'target': 'metric', 'datapoints', [[value, timestamp]]}
      */
-    function updateSensors(results, metricMap) {
-        _.each(results, function (result) {
-            var value = getValue(result);
-            var element = metricMap[result.target];
-            var $element = $(document.getElementById(element));
-            var unit = $element.data('unit').toLowerCase();
-            var unitIsKnown = _.has(unitMapping, unit);
-            $element.find('.textvalue').html(value + symbol(unit));
-
-            if (unitIsKnown) {
-                // Create sparkline if unit is known only
-                $element.find('.sparkline').sparkline([null, value, 50], {
-                    type: 'bullet',
-                    performanceColor: 'lightsteelblue',
-                    rangeColors: ['#fff'],
-                    width: '100%',
-                    tooltipFormatter: function (data) {
-                        // return data.values[1].toFixed(2);
-                        return "";
-                    }
-                });
-            }
+    function createResultMap(results) {
+        var resultMap = {};
+        _.each(results, function(result) {
+            resultMap[result.target] = result.datapoints;
         });
+        return resultMap;
     }
 
 
     /**
-     * Updates all PDU-sensors in the metricMap. They must not be normal sensors
-     * because PDU-sensors are visualized with a LinearGauge
+     * Updates all sensors in the metricMap.
      */
-    function updatePDUS(results, metricMap) {
-        _.each(results, function (result) {
-            var value = getValue(result);
-            var elementId = metricMap[result.target];
+    function updateSensors(results, metricMap, updateFunc) {
+        var resultMap = createResultMap(results);
+
+        _.each(metricMap, function (target, elementId) {
+            var datapoints = resultMap[target];
+            var value = datapoints ? getValue(datapoints) : null;
             var $element = $(document.getElementById(elementId));
-            var gaugeElement = $element.find('.pdu-gauge')[0];
-
-            if ($.data(gaugeElement, 'gauge')) {
-                $.data(gaugeElement, 'gauge').update(value);
-            } else {
-                var gauge = new LinearGauge({
-                    nodeId: gaugeElement.id,
-                    precision: 2,
-                    color: 'lightsteelblue',
-                    height: 100
-                });
-                gauge.update(value);
-                $.data(gaugeElement, 'gauge', gauge);
-            }
-
+            updateFunc($element, value);
         });
     }
+
+
+    /** Update a sensor in the middle column (not PDU) */
+    function updateSensor($element, value) {
+        var unit = $element.data('unit') ? $element.data('unit').toLowerCase() : "";
+        var unitIsKnown = _.has(unitMapping, unit);
+        $element.find('.textvalue').html(value + symbol(unit));
+
+        if (unitIsKnown) {
+            // Create sparkline if unit is known only
+            $element.find('.sparkline').sparkline([null, value, 50], {
+                type: 'bullet',
+                performanceColor: 'lightsteelblue',
+                rangeColors: ['#fff'],
+                width: '100%',
+                tooltipFormatter: function (data) {
+                    // return data.values[1].toFixed(2);
+                    return "";
+                }
+            });
+        }
+
+    }
+
+
+    /** Update a PDU sensor */
+    function updatePDU($element, value) {
+        var gaugeElement = $element.find('.pdu-gauge')[0];
+
+        if ($.data(gaugeElement, 'gauge')) {
+            $.data(gaugeElement, 'gauge').update(value);
+        } else {
+            var gauge = new LinearGauge({
+                nodeId: gaugeElement.id,
+                precision: 2,
+                color: 'lightsteelblue',
+                height: 100
+            });
+            gauge.update(value);
+            $.data(gaugeElement, 'gauge', gauge);
+        }
+
+    }
+
 
     /**
      * Fetches data for all metrics in the metricmap and runs updatefunc
      */
     function getData(metricMap, updateFunc) {
-        var targets = _.keys(metricMap);
+        var targets = _.values(metricMap);
         if (!targets.length) { return; }
+        console.log('targets', targets);
         var url = '/graphite/render';
         var request = $.getJSON(url,
             {
@@ -214,7 +227,7 @@ require([
         );
 
         request.done(function (data) {
-            updateFunc(data, metricMap);
+            updateSensors(data, metricMap, updateFunc);
         });
 
         request.fail(function () {
@@ -229,8 +242,8 @@ require([
      */
     function updateRack($rack) {
         console.log("updating rack %s", $rack.data('rackid'));
-        getData(getMetrics($rack.find('.rack-body .rack-center')), updateSensors);
-        getData(getMetrics($rack.find('.rack-body .rack-pdu')), updatePDUS);
+        getData(getMetrics($rack.find('.rack-body .rack-center')), updateSensor);
+        getData(getMetrics($rack.find('.rack-body .rack-pdu')), updatePDU);
     }
 
     /**
