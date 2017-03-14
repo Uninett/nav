@@ -215,7 +215,6 @@ require([
     function getData(metricMap, updateFunc) {
         var targets = _.values(metricMap);
         if (!targets.length) { return; }
-        console.log('targets', targets);
         var url = '/graphite/render';
         var request = $.getJSON(url,
             {
