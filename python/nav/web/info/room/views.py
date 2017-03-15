@@ -34,7 +34,7 @@ from nav.django.utils import get_account
 
 from nav.models.manage import Room, Sensor
 from nav.models.roommeta import Image, ROOMIMAGEPATH
-from nav.models.rack import Rack, SensorRackItem
+from nav.models.rack import Rack, SensorRackItem, SensorsDiffRackItem
 from nav.web.info.forms import SearchForm
 from nav.web.info.room.utils import (get_extension, create_hash,
                                      create_image_directory,
@@ -399,7 +399,7 @@ def render_add_sensor(request, roomid):
 
         filteredsensors = othersensors
 
-    return render(request, 'info/room/fragment_add_sensor.html', {
+    return render(request, 'info/room/fragment_add_rackitem.html', {
         'room': room,
         'rack': rack,
         'sensortype': 'pdu sensor' if is_pdu else 'sensor',
@@ -410,16 +410,22 @@ def render_add_sensor(request, roomid):
 
 def save_sensor(request, roomid):
     rackid = request.POST.get('rackid')
-    column = request.POST.get('column')
-    sensorid = request.POST.get('sensorid')
-
-    _room = get_object_or_404(Room, pk=roomid)
-    sensor = get_object_or_404(Sensor, pk=sensorid)
+    column = int(request.POST.get('column'))
+    get_object_or_404(Room, pk=roomid)
     rack = get_object_or_404(Rack, pk=rackid)
-    column = int(column)
+    item_type = request.POST.get('item_type')
+    if item_type == "Sensor":
+        sensorid = request.POST.get('sensorid')
+        sensor = get_object_or_404(Sensor, pk=sensorid)
+        item = SensorRackItem(sensor=sensor)
+    elif item_type == "SensorsDiff":
+        minuendid = request.POST.get('minuendid')
+        minuend = get_object_or_404(Sensor, pk=minuendid)
+        subtrahendid = request.POST.get('subtrahendid')
+        subtrahend = get_object_or_404(Sensor, pk=subtrahendid)
+        item = SensorsDiffRackItem(minuend=minuend, subtrahend=subtrahend)
 
     try:
-        item = SensorRackItem(sensor=sensor)
         if column == RACK_CENTER:
             rack.add_center_item(item)
             rack.save()

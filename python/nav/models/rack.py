@@ -140,6 +140,8 @@ def rack_decoder(obj):
     if '__type__' in obj:
         if obj['__type__'] == 'SensorRackItem':
             return SensorRackItem(**obj)
+        if obj['__type__'] == 'SensorsDiffRackItem':
+            return SensorsDiffRackItem(**obj)
     return obj
 
 
@@ -206,3 +208,46 @@ class SensorRackItem(BaseRackItem):
 
     def human_readable(self):
         return self.sensor.human_readable
+
+
+class SensorsDiffRackItem(BaseRackItem):
+    def __init__(self, minuend, subtrahend, **kwargs):
+        super(SensorsDiffRackItem, self).__init__(**kwargs)
+        self.minuend = minuend
+        self.subtrahend = subtrahend
+        if isinstance(minuend, int):
+            try:
+                self.minuend = Sensor.objects.get(pk=minuend)
+            except Sensor.DoesNotExist:
+                pass
+        if isinstance(subtrahend, int):
+            try:
+                self.subtrahend = Sensor.objects.get(pk=subtrahend)
+            except Sensor.DoesNotExist:
+                pass
+
+    def to_json(self):
+        data = super(SensorsDiffRackItem, self).to_json()
+        data['minuend'] = self.minuend.pk
+        data['subtrahend'] = self.subtrahend.pk
+        return data
+
+    def title(self):
+        return "Difference between {} and {}".format(self.minuend,
+                                                     self.subtrahend)
+
+    def get_metric(self):
+        return "diffSeries({minuend},{subtrahend})".format(
+            minuend=self.minuend.get_metric_name(),
+            subtrahend=self.subtrahend.get_metric_name()
+        )
+
+    def unit_of_measurement(self):
+        return self.minuend.unit_of_measurement
+
+    def get_absolute_url(self):
+        return ""
+
+    def human_readable(self):
+        return "{} - {}".format(self.minuend.human_readable,
+                                self.subtrahend.human_readable)

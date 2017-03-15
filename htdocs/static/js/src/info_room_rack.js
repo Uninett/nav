@@ -47,6 +47,7 @@ require([
      */
     function addSensorModalListeners($sensorModal) {
         $(document).on('opened', '#sensormodal', function () {
+            $sensorModal.find('#add-rackitem-tabs').tabs().show();
             $sensorModal.find('.sensordropdown').select2();
             $sensorModal.find('.cancelbutton').on('click', function (event) {
                 event.preventDefault();
@@ -56,7 +57,7 @@ require([
             var $form = $sensorModal.find('form');
             $form.submit(function (event) {
                 event.preventDefault();
-                var request = $.post($form.attr('action'), $form.serialize());
+                var request = $.post($(this).attr('action'), $(this).serialize());
                 request.fail(function () {
                     console.log("Failed to post form");
                 });
