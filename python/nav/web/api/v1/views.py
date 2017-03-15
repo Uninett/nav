@@ -674,11 +674,19 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     def get_template_names(self):
         """Get the template name based on the alerthist object"""
         alert = self.get_object()
-        return [
-            'alertmsg/{a.event_type}/{a.alert_type.name}.html'.format(a=alert),
+        template_names = []
+        try:
+            template_names.append(
+                'alertmsg/{a.event_type}/{a.alert_type.name}.html'.format(
+                    a=alert))
+        except AttributeError:
+            pass
+
+        template_names.extend([
             'alertmsg/{a.event_type}/base.html'.format(a=alert),
             'alertmsg/base.html'
-        ]
+        ])
+        return template_names
 
 
 def get_or_create_token(request):
