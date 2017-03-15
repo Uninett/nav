@@ -1,8 +1,7 @@
-<div id="racksensor-{{ racksensor.pk }}"
-     class="rack-sensor"
+<div class="rack-sensor"
      title="{{ racksensor.sensor }}"
      data-metric="{{ racksensor.sensor.get_metric_name }}"
-     data-racksensorid="{{ racksensor.pk }}">
+     data-column="{{ column }}">
   <div class="heading">
     <i class="fa fa-arrows inline-when-edit" title="Click and drag"></i>
     <i class="fa fa-remove remove-sensor inline-when-edit" title="Remove sensor"></i>

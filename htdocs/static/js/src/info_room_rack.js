@@ -261,8 +261,13 @@ require([
     function addSensorRemoveListener() {
         $('#racks').on('click', '.remove-sensor', function () {
             var rackSensor = $(this).closest('.rack-sensor');
-            var request = $.post(NAV.urls.remove_sensor, {
-                racksensorid: rackSensor.data('racksensorid')
+            var rack = $(this).closest('.rack');
+            var rackSensors = rack.find('.rack-sensor');
+            var index = rackSensors.index(rackSensor);
+            var request = $.post(NAV.urls.remove_sensor , {
+                index: index,
+                column: rackSensor.data('column'),
+                rackid: rack.data('rackid')
             });
             request.done(function () {
                 rackSensor.remove();

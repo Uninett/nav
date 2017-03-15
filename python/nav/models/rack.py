@@ -34,7 +34,7 @@ class RackManager(models.Manager):
         """
         sensor_pks = (rack.get_all_sensor_pks()
                       for rack in self.filter(room=room))
-        return set(*chain(sensor_pks))
+        return set(chain(*sensor_pks))
 
 
 class Rack(models.Model):
@@ -62,29 +62,65 @@ class Rack(models.Model):
                                               object_hook=rack_decoder)
             if self.__configuration is None:
                 self.__configuration = {}
+            self.configuration.setdefault('left', [])
+            self.configuration.setdefault('center', [])
+            self.configuration.setdefault('right', [])
         return self.__configuration
 
     def save(self, *args, **kwargs):
         self._configuration = json.dumps(self.__configuration, cls=RackEncoder)
         return super(Rack, self).save(*args, **kwargs)
 
+    def _column(self, column):
+        return self.configuration[column]
+
+    @property
+    def left_column(self):
+        return self._column('left')
+
+    @property
+    def right_column(self):
+        return self._column('right')
+
+    @property
+    def center_column(self):
+        return self._column('center')
+
     def add_left_item(self, item):
         """
         :type item: RackItem
         """
-        self.configuration.setdefault('left', []).append(item)
+        self.left_column.append(item)
 
     def add_center_item(self, item):
         """
         :type item: RackItem
         """
-        self.configuration.setdefault('center', []).append(item)
+        self.center_column.append(item)
 
     def add_right_item(self, item):
         """
         :type item: RackItem
         """
-        self.configuration.setdefault('right', []).append(item)
+        self.right_column.append(item)
+
+    def remove_left_item(self, index):
+        """
+        :type index: int
+        """
+        self.left_column.pop(index)
+
+    def remove_center_item(self, index):
+        """
+        :type index: int
+        """
+        self.center_column.pop(index)
+
+    def remove_right_item(self, index):
+        """
+        :type index: int
+        """
+        self.right_column.pop(index)
 
     def get_all_sensor_pks(self):
         """Returns an exhaustive list of the primary keys of sensors in this

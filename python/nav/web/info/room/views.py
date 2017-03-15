@@ -419,7 +419,8 @@ def save_sensor(request, roomid):
             rack.add_center_item(item)
             rack.save()
             return render(request, 'info/room/fragment_racksensor.html', {
-                'racksensor': item
+                'racksensor': item,
+                'column': column,
             })
         else:
             if column == RACK_LEFT:
@@ -428,7 +429,8 @@ def save_sensor(request, roomid):
                 rack.add_right_item(item)
             rack.save()
             return render(request, 'info/room/fragment_rackpdusensor.html', {
-                'racksensor': item
+                'racksensor': item,
+                'column': column,
             })
 
     except (ValueError, IntegrityError) as error:
@@ -456,12 +458,26 @@ def save_rack_order(request, roomid):
 
 
 def remove_sensor(request, roomid):
-    """Remove a sensor from a room"""
-    _room = get_object_or_404(Room, pk=roomid)
-    racksensor = get_object_or_404(RackSensor,
-                                   pk=request.POST.get('racksensorid'))
+    """Remove a sensor from a rack"""
+    rackid = request.POST.get('rackid')
+    rack = get_object_or_404(Rack, pk=rackid)
+    column = int(request.POST.get('column'))
+    index = int(request.POST.get('index'))
+    if index < 0:
+        return HttpResponse(status=400)
+    cols = {
+        RACK_LEFT: 'left',
+        RACK_CENTER: 'center',
+        RACK_RIGHT: 'right',
+    }
+    if column not in cols:
+        return HttpResponse(status=400)
+    column = cols[column]
+    if index >= len(rack.configuration[column]):
+        return HttpResponse(status=400)
+    rack.configuration[column].pop(index)
     try:
-        racksensor.delete()
+        rack.save()
         return HttpResponse()
     except:
         return HttpResponse(status=500)
