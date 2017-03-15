@@ -41,6 +41,8 @@ help:
 clean-local:
 	rm -rf $(BUILDDIR)
 	rm -f html
+	find . -name __pycache__ -exec rm -rf '{}' +
+	find . -name '*.pyc' -exec rm -f '{}' +
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
@@ -104,6 +106,3 @@ doctest:
 buildloop:
 	while inotifywait -e modify -e move -e create -r --exclude \# . ../NOTES.rst; do sleep 1; $(MAKE); done
 
-pyclean:
-	find . -name __pycache__ -exec rm -rf '{}' +
-	find . -name '*.pyc' -exec rm '{}' +
