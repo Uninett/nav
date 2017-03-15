@@ -34,7 +34,7 @@ from nav.django.utils import get_account
 
 from nav.models.manage import Room, Sensor
 from nav.models.roommeta import Image, ROOMIMAGEPATH
-from nav.models.rack import Rack, RackSensor
+from nav.models.rack import Rack, RackItem
 from nav.web.info.forms import SearchForm
 from nav.web.info.room.utils import (get_extension, create_hash,
                                      create_image_directory,
@@ -45,6 +45,9 @@ from nav.metrics.data import get_netboxes_availability
 
 
 CATEGORIES = ("GW", "GSW", "SW", "EDGE")
+RACK_LEFT = 0
+RACK_CENTER = 1
+RACK_RIGHT = 2
 _logger = logging.getLogger('nav.web.info.room')
 
 
@@ -371,7 +374,8 @@ def render_add_sensor(request, roomid):
     rack = get_object_or_404(Rack, pk=rackid)
 
     # Filter away already added sensors
-    sensors = Sensor.objects.exclude(racksensor__rack__room=room)
+    already_used = Rack.objects.get_all_sensor_pks_in_room(room)
+    sensors = Sensor.objects.exclude(pk__in=already_used)
 
     # Sensors that can be choosen for the pdu columns
     pdusensors = sensors.filter(
@@ -410,15 +414,21 @@ def save_sensor(request, roomid):
     column = int(column)
 
     try:
-        racksensor = RackSensor(rack=rack, sensor=sensor, col=column, row=4)
-        racksensor.save()
-        if column == 1:
+        item = RackItem(sensor=sensor)
+        if column == RACK_CENTER:
+            rack.add_center_item(item)
+            rack.save()
             return render(request, 'info/room/fragment_racksensor.html', {
-                'racksensor': racksensor
+                'racksensor': item
             })
         else:
+            if column == RACK_LEFT:
+                rack.add_left_item(item)
+            else:
+                rack.add_right_item(item)
+            rack.save()
             return render(request, 'info/room/fragment_rackpdusensor.html', {
-                'racksensor': racksensor
+                'racksensor': item
             })
 
     except (ValueError, IntegrityError) as error:
