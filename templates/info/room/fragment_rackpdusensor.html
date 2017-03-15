@@ -1,14 +1,14 @@
 <div id="item_{{ racksensor.id }}"
      class="rack-sensor"
-     title="{{ racksensor.sensor }}"
-     data-metric="{{ racksensor.sensor.get_metric_name }}"
+     title="{{ racksensor.title }}"
+     data-metric="{{ racksensor.sensor.get_metric }}"
      data-id="{{ racksensor.id }}"
      data-column="{{ column }}">
   <div class="heading">
     <i class="fa fa-arrows inline-when-edit" title="Click and drag"></i>
     <i class="fa fa-remove remove-sensor inline-when-edit" title="Remove sensor"></i>
   </div>
-  <a href="{{ racksensor.sensor.netbox.get_absolute_url }}">
+  <a href="{{ racksensor.get_absolute_url }}">
     <div id="sensor-{{ racksensor.sensor.pk }}" class="pdu-gauge"></div>
   </a>
 </div>

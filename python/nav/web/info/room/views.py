@@ -34,7 +34,7 @@ from nav.django.utils import get_account
 
 from nav.models.manage import Room, Sensor
 from nav.models.roommeta import Image, ROOMIMAGEPATH
-from nav.models.rack import Rack, RackItem
+from nav.models.rack import Rack, SensorRackItem
 from nav.web.info.forms import SearchForm
 from nav.web.info.room.utils import (get_extension, create_hash,
                                      create_image_directory,
@@ -419,7 +419,7 @@ def save_sensor(request, roomid):
     column = int(column)
 
     try:
-        item = RackItem(sensor=sensor)
+        item = SensorRackItem(sensor=sensor)
         if column == RACK_CENTER:
             rack.add_center_item(item)
             rack.save()

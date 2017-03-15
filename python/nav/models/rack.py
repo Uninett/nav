@@ -138,28 +138,71 @@ class Rack(models.Model):
 
 def rack_decoder(obj):
     if '__type__' in obj:
-        if obj['__type__'] == 'RackItem':
-            return RackItem(obj['sensor'], obj['id'])
+        if obj['__type__'] == 'SensorRackItem':
+            return SensorRackItem(**obj)
     return obj
 
 
 class RackEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, RackItem):
-            return {'__type__': 'RackItem',
-                    'sensor': getattr(obj.sensor, 'pk', obj.sensor),
-                    'id': obj.id,
-                    }
+        if isinstance(obj, BaseRackItem):
+            return obj.to_json()
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
 
 
-class RackItem(object):
-    def __init__(self, sensor=None, id=None):
+class BaseRackItem(object):
+    def __init__(self, id=None, **kwargs):
         self.id = id
+
+    def to_json(self):
+        return {
+            '__type__': self.__class__.__name__,
+            'id': self.id,
+        }
+
+    def title(self):
+        return "Title"
+
+    def get_metric(self):
+        return ""
+
+    def unit_of_measurement(self):
+        return "SI"
+
+    def get_absolute_url(self):
+        return "https://example.com"
+
+    def human_readable(self):
+        return "A proper description"
+
+
+class SensorRackItem(BaseRackItem):
+    def __init__(self, sensor, **kwargs):
+        super(SensorRackItem, self).__init__(**kwargs)
         self.sensor = sensor
         if isinstance(sensor, int):
             try:
                 self.sensor = Sensor.objects.get(pk=sensor)
             except Sensor.DoesNotExist:
                 pass
+
+    def to_json(self):
+        data = super(SensorRackItem, self).to_json()
+        data['sensor'] = self.sensor.pk
+        return data
+
+    def title(self):
+        return str(self.sensor)
+
+    def get_metric(self):
+        return self.sensor.get_metric_name()
+
+    def unit_of_measurement(self):
+        return self.sensor.unit_of_measurement
+
+    def get_absolute_url(self):
+        return self.sensor.netbox.get_absolute_url()
+
+    def human_readable(self):
+        return self.sensor.human_readable
