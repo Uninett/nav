@@ -31,7 +31,7 @@
 
     <div class="rack-left rack-pdu rack-column">
       {% with 0 as column %}
-      <div class="sensors">
+      <div class="sensors" data-column="{{ column }}">
         {% for racksensor in rack.left_column %}
           {% include 'info/room/fragment_rackpdusensor.html' %}
         {% endfor %}
@@ -46,7 +46,7 @@
 
     <div class="rack-center rack-column">
       {% with 1 as column %}
-      <div class="sensors">
+      <div class="sensors" data-column="{{ column }}">
         {% for racksensor in rack.center_column %}
           {% include 'info/room/fragment_racksensor.html' %}
         {% endfor %}
@@ -60,7 +60,7 @@
 
     <div class="rack-right rack-pdu rack-column">
       {% with 2 as column %}
-      <div class="sensors">
+      <div class="sensors" data-column="{{ column }}">
         {% for racksensor in rack.right_column %}
           {% include 'info/room/fragment_rackpdusensor.html' %}
         {% endfor %}

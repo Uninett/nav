@@ -48,6 +48,12 @@ CATEGORIES = ("GW", "GSW", "SW", "EDGE")
 RACK_LEFT = 0
 RACK_CENTER = 1
 RACK_RIGHT = 2
+COLUMNS = {
+    RACK_LEFT: 'left',
+    RACK_CENTER: 'center',
+    RACK_RIGHT: 'right',
+}
+
 _logger = logging.getLogger('nav.web.info.room')
 
 
@@ -308,7 +314,6 @@ def render_sensors(request, roomid):
     })
 
 
-
 def create_rack(room, rackname):
     """Creates a rack in a room with a given name"""
     aggregate = Rack.objects.filter(room=room).aggregate(Max('ordering'))
@@ -439,10 +444,16 @@ def save_sensor(request, roomid):
 
 def save_sensor_order(request, roomid):
     """Saves the sensor order for the given racksensors"""
-    for index, racksensorid in enumerate(request.POST.getlist('racksensor[]')):
-        racksensor = RackSensor.objects.get(pk=racksensorid)
-        racksensor.row = index
-        racksensor.save()
+    rackid = request.POST.get('rackid')
+    rack = get_object_or_404(Rack, pk=rackid)
+    column = int(request.POST.get('column'))
+    if column not in COLUMNS:
+        return HttpResponse(status=400)
+    column = COLUMNS[column]
+    items = {item.id: item for item in rack.configuration[column]}
+    rack.configuration[column] = [items[int(itemid)] for itemid in
+                                  request.POST.getlist('item[]')]
+    rack.save()
 
     return HttpResponse()
 
@@ -462,20 +473,12 @@ def remove_sensor(request, roomid):
     rackid = request.POST.get('rackid')
     rack = get_object_or_404(Rack, pk=rackid)
     column = int(request.POST.get('column'))
-    index = int(request.POST.get('index'))
-    if index < 0:
+    itemid = int(request.POST.get('id'))
+    if column not in COLUMNS:
         return HttpResponse(status=400)
-    cols = {
-        RACK_LEFT: 'left',
-        RACK_CENTER: 'center',
-        RACK_RIGHT: 'right',
-    }
-    if column not in cols:
-        return HttpResponse(status=400)
-    column = cols[column]
-    if index >= len(rack.configuration[column]):
-        return HttpResponse(status=400)
-    rack.configuration[column].pop(index)
+    column = COLUMNS[column]
+    rack.configuration[column] = [item for item in rack.configuration[column]
+                                  if item.id != itemid]
     try:
         rack.save()
         return HttpResponse()

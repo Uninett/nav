@@ -262,10 +262,8 @@ require([
         $('#racks').on('click', '.remove-sensor', function () {
             var rackSensor = $(this).closest('.rack-sensor');
             var rack = $(this).closest('.rack');
-            var rackSensors = rack.find('.rack-sensor');
-            var index = rackSensors.index(rackSensor);
             var request = $.post(NAV.urls.remove_sensor , {
-                index: index,
+                id: rackSensor.data('id'),
                 column: rackSensor.data('column'),
                 rackid: rack.data('rackid')
             });
@@ -359,6 +357,10 @@ require([
                 placeholder: 'highlight',
                 update: function(event, ui) {
                     var serialized = $(this).sortable('serialize');
+                    var rack = $(this).closest('.rack');
+                    var column = $(this).data('column');
+                    serialized += '&column=' + column;
+                    serialized += '&rackid=' + rack.data('rackid');
                     var request = $.post(NAV.urls.save_sensor_order, serialized);
                 }
             });

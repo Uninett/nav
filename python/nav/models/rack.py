@@ -48,6 +48,7 @@ class Rack(models.Model):
     ordering = models.IntegerField()
     _configuration = VarcharField(default='{}', db_column='configuration')
     __configuration = None
+    item_counter = models.IntegerField(default=0, null=False, db_column='item_counter')
 
     class Meta(object):
         db_table = 'rack'
@@ -90,18 +91,24 @@ class Rack(models.Model):
         """
         :type item: RackItem
         """
+        self.item_counter += 1
+        item.id = self.item_counter
         self.left_column.append(item)
 
     def add_center_item(self, item):
         """
         :type item: RackItem
         """
+        self.item_counter += 1
+        item.id = self.item_counter
         self.center_column.append(item)
 
     def add_right_item(self, item):
         """
         :type item: RackItem
         """
+        self.item_counter += 1
+        item.id = self.item_counter
         self.right_column.append(item)
 
     def remove_left_item(self, index):
@@ -132,7 +139,7 @@ class Rack(models.Model):
 def rack_decoder(obj):
     if '__type__' in obj:
         if obj['__type__'] == 'RackItem':
-            return RackItem(obj['sensor'])
+            return RackItem(obj['sensor'], obj['id'])
     return obj
 
 
@@ -140,14 +147,16 @@ class RackEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, RackItem):
             return {'__type__': 'RackItem',
-                    'sensor': getattr(obj.sensor, 'pk', obj.sensor)
+                    'sensor': getattr(obj.sensor, 'pk', obj.sensor),
+                    'id': obj.id,
                     }
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
 
 
 class RackItem(object):
-    def __init__(self, sensor=None):
+    def __init__(self, sensor=None, id=None):
+        self.id = id
         self.sensor = sensor
         if isinstance(sensor, int):
             try:

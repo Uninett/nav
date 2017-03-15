@@ -1,6 +1,8 @@
-<div class="rack-sensor"
+<div id="item_{{ racksensor.id }}"
+     class="rack-sensor"
      title="{{ racksensor.sensor }}"
      data-metric="{{ racksensor.sensor.get_metric_name }}"
+     data-id="{{ racksensor.id }}"
      data-column="{{ column }}"
      data-unit="{{ racksensor.sensor.unit_of_measurement }}">
   <div class="heading">
