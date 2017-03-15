@@ -1,7 +1,7 @@
 <div id="item_{{ racksensor.id }}"
      class="rack-sensor"
      title="{{ racksensor.title }}"
-     data-metric="{{ racksensor.sensor.get_metric }}"
+     data-metric="{{ racksensor.get_metric }}"
      data-id="{{ racksensor.id }}"
      data-column="{{ column }}">
   <div class="heading">
@@ -9,6 +9,6 @@
     <i class="fa fa-remove remove-sensor inline-when-edit" title="Remove sensor"></i>
   </div>
   <a href="{{ racksensor.get_absolute_url }}">
-    <div id="sensor-{{ racksensor.sensor.pk }}" class="pdu-gauge"></div>
+    <div id="sensor-{{ racksensor.id }}" class="pdu-gauge"></div>
   </a>
 </div>
