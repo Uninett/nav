@@ -309,7 +309,7 @@ def profile_save(request):
         create_time_periods(request, profile)
 
     new_message(request,
-                'Saved profile {}'.format(profile.name),
+                u'Saved profile {}'.format(profile.name),
                 Messages.SUCCESS)
 
     return HttpResponseRedirect(
