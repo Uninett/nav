@@ -55,23 +55,23 @@
               <td>{{ row.level }}</td>
 
               <td>
-                {% ifequal row.vlan "trunk" %}
+                {% if not row.vlan.id %}
                   {{ row.vlan }}
                 {% else %}
-                  <a href="/report/prefix?vlan={{ row.vlan }}" title="Vlan report">{{ row.vlan }}</a>
-                {% endifequal %}
+                  <a href="{% url 'vlan-details' row.vlan.id %}" title="View VLAN details">{{ row.vlan }}</a>
+                {% endif %}
               </td>
 
-              {% if row.hostOk %}
-                <td><a href="/ipdevinfo/ip={{ row.ipaddr }}/" title="IP Device Info">{{ row.ipaddr }}</a></td>
+              {% if row.hostOk and row.ipaddr %}
+                <td><a href="{% url 'ipdevinfo-details-by-addr' row.ipaddr %}" title="View IP Device details">{{ row.ipaddr }}</a></td>
               {% else %}
                 <td>{{ row.ipaddr }}</td>
               {% endif %}
 
               {% if row.netboxid %}
-                <td><a href="/report/swport?netboxid={{ row.netboxid }}" title="Switch ports">{{ row.if_in|default:"" }}</a></td>
-                <td><a href="/ipdevinfo/{{ row.sysname }}/" title="IP Device Info">{{ row.sysname|default:"" }}</a></td>
-                <td><a href="/report/swport?netboxid={{ row.netboxid }}" title="Switch ports">{{ row.if_out|default:"" }}</a></td>
+                <td><a href="{{ row.if_in.get_absolute_url }}" title="View interface details">{{ row.if_in.ifname|default:"" }}</a></td>
+                <td><a href="{% url 'ipdevinfo-details-by-name' row.sysname %}" title="View IP Device details">{{ row.sysname|default:"" }}</a></td>
+                <td><a href="{{ row.if_out.get_absolute_url }}" title="View interface details">{{ row.if_out.ifname|default:"" }}</a></td>
               {% else %}
                 <td>{{ row.if_in|default:"" }}</td>
                 <td>{{ row.sysname|default:"" }}</td>

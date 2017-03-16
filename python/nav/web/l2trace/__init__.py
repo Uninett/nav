@@ -71,9 +71,9 @@ class L2TraceQuery(object):
                          netboxid=netboxid,
                          ipaddr=node.host.ip,
                          sysname=sysname,
-                         if_in=node.if_in and node.if_in.ifname,
-                         if_out=node.if_out and node.if_out.ifname,
-                         vlan=node.vlan and node.vlan.vlan)
+                         if_in=node.if_in,
+                         if_out=node.if_out,
+                         vlan=node.vlan)
 
 
 def join_at_junction(from_path, to_path):
