@@ -23,8 +23,8 @@ R_PDU_LOAD_STATUS_LOAD = 'rPDULoadStatusLoad'
 R_PDU_LOAD_STATUS_BANK_NUMBER = 'rPDULoadStatusBankNumber'
 R_PDU_LOAD_STATUS_PHASE_NUMBER = 'rPDULoadStatusPhaseNumber'
 
-U_VOLT = dict(u_o_m=Sensor.UNIT_VOLT_AC)
-U_DECIVOLT = dict(u_o_m=Sensor.UNIT_VOLT_AC, precision=1)
+U_VOLT = dict(u_o_m=Sensor.UNIT_VOLTS_AC)
+U_DECIVOLT = dict(u_o_m=Sensor.UNIT_VOLTS_AC, precision=1)
 U_AMPERE = dict(u_o_m=Sensor.UNIT_AMPERE)
 U_DECIAMPERE = dict(u_o_m=Sensor.UNIT_AMPERE, precision=1)
 U_HZ = dict(u_o_m=Sensor.UNIT_HERTZ)
