@@ -24,7 +24,6 @@
 # database.  It could also be extended to perform other database
 # maintenance tasks in NAV.
 #
-# Authors: Morten Vold <morten.vold@itea.ntnu.no>
 #
 """Delete old arp, cam or radius accounting records from the NAV database.
 
@@ -59,8 +58,6 @@ import sys
 import getopt
 import nav.db
 import psycopg2
-
-__id__ = "$Id: navclean.py 2875 2004-07-14 09:51:24Z mortenv $"
 
 
 def main(args):
