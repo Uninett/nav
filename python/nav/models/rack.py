@@ -48,7 +48,8 @@ class Rack(models.Model):
     ordering = models.IntegerField()
     _configuration = VarcharField(default='{}', db_column='configuration')
     __configuration = None
-    item_counter = models.IntegerField(default=0, null=False, db_column='item_counter')
+    item_counter = models.IntegerField(default=0, null=False,
+                                       db_column='item_counter')
 
     class Meta(object):
         db_table = 'rack'
