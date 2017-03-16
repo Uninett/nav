@@ -26,14 +26,18 @@
                     </a>
                 </strong>{% if not forloop.last %},{% endif %}
                 {% endfor %}
-                {% else %}
-                &ndash;
-                {% endif %}
                 <a href="{% url 'threshold-add' sensor.get_metric_name %}"
                    title="Add a new threshold rule for this metric"
-                   class="tiny button secondary">
+                   class="table-button secondary">
                     +
                 </a>
+              {% else %}
+                <a href="{% url 'threshold-add' sensor.get_metric_name %}"
+                   title="Add a new threshold rule for this metric"
+                   class="table-button secondary">
+                    Add threshold
+                </a>
+              {% endif %}
             </div>
         </td>
         <td>
