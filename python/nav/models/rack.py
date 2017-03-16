@@ -69,7 +69,7 @@ class Rack(models.Model):
         return self.__configuration
 
     def save(self, *args, **kwargs):
-        self._configuration = json.dumps(self.__configuration, cls=RackEncoder)
+        self._configuration = json.dumps(self.configuration, cls=RackEncoder)
         return super(Rack, self).save(*args, **kwargs)
 
     def _column(self, column):
