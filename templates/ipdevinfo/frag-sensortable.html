@@ -38,11 +38,14 @@
             </div>
         </td>
         <td>
-            <a href="javascript:void(0)"
-               id="graph-toggler-sensorstab-{{ forloop.counter }}"
-               class="graph-toggler sensor-value"
-               data-metric="{{sensor.get_metric_name}}">
-            </a>
+            <div class="right">
+              <span class="sensor-value" data-metric="{{sensor.get_metric_name}}"></span>&nbsp;
+              <a href="javascript:void(0)"
+                 id="graph-toggler-sensorstab-{{ forloop.counter }}"
+                 class="graph-toggler">
+                <i class="fa fa-area-chart" title="See values for last day"></i>
+              </a>
+            </div>
         </td>
         <td>{{sensor.data_scale|default:''}}{{sensor.unit_of_measurement}}</td>
         <td>
