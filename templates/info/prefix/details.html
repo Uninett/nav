@@ -115,7 +115,7 @@
           </thead>
 
           <tbody>
-            {% for gwportprefix in prefix.gwportprefix_set.all %}
+            {% for gwportprefix in prefix.get_router_ports %}
               <tr>
                 <td>
                   <a href="{% url 'ipdevinfo-details-by-name' gwportprefix.interface.netbox.sysname %}">
