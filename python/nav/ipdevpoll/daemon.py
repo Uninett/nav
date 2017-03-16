@@ -282,7 +282,7 @@ class CommandProcessor(object):
         opt("-p", "--list-plugins", action="store_true",
             help="load and print a list of configured plugins")
         opt("-J", action="store", dest="onlyjob", choices=self._joblist(),
-            metavar="JOBNAME", help="run only JOBNAME in this process")
+            metavar="JOBNAME", help="run only JOBNAME jobs in this process")
         opt("-n", "--netbox", action=NetboxAction, metavar="NETBOX",
             help="Run JOBNAME once for NETBOX. Also implies -f and -s options.")
         opt("-m", "--multiprocess", type=int, dest="multiprocess",
