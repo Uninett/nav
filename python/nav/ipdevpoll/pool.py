@@ -29,7 +29,7 @@ from . import control, jobs
 
 
 def initialize_worker():
-    handler = TaskHandler()
+    handler = JobHandler()
     factory = protocol.Factory()
     factory.protocol = lambda: ProcessAMP(is_worker=True, locator=handler)
     StandardIOEndpoint(reactor).listen(factory)
@@ -50,8 +50,8 @@ class Shutdown(amp.Command):
     response = []
 
 
-class Task(amp.Command):
-    """Represent a task for sending to a worker"""
+class Job(amp.Command):
+    """Represent a job for sending to a worker"""
     arguments = [
         ('netbox', amp.Integer()),
         ('job', amp.String()),
@@ -67,25 +67,25 @@ class Task(amp.Command):
     }
 
 
-class TaskHandler(amp.CommandLocator):
-    """Resolve actions for tasks received over AMP"""
+class JobHandler(amp.CommandLocator):
+    """Resolve actions for jobs received over AMP"""
 
     _logger = ContextLogger()
 
     def __init__(self):
-        super(TaskHandler, self).__init__()
-        self.tasks = dict()
+        super(JobHandler, self).__init__()
+        self.jobs = dict()
         self.done = False
 
-    def task_done(self, result, serial):
-        if serial in self.tasks:
-            del self.tasks[serial]
-        if self.done and not self.tasks:
+    def job_done(self, result, serial):
+        if serial in self.jobs:
+            del self.jobs[serial]
+        if self.done and not self.jobs:
             reactor.callLater(3, reactor.stop)
         return result
 
-    @Task.responder
-    def perform_task(self, netbox, job, plugins, interval, serial):
+    @Job.responder
+    def execute_job(self, netbox, job, plugins, interval, serial):
         self._logger.debug("Process {pid} received job {job} for"
                            " netbox {netbox}"
                            " with plugins {plugins}".format(
@@ -94,16 +94,16 @@ class TaskHandler(amp.CommandLocator):
                                netbox=netbox,
                                plugins=",".join(plugins)),)
         job = jobs.JobHandler(job, netbox, plugins, interval)
-        self.tasks[serial] = job
+        self.jobs[serial] = job
         deferred = job.run()
-        deferred.addBoth(self.task_done, serial)
+        deferred.addBoth(self.job_done, serial)
         deferred.addCallback(lambda x: {'result': x})
         return deferred
 
     @Cancel.responder
     def cancel(self, serial):
-        if serial in self.tasks:
-            self.tasks[serial].cancel()
+        if serial in self.jobs:
+            self.jobs[serial].cancel()
         return {}
 
     @Shutdown.responder
@@ -111,10 +111,10 @@ class TaskHandler(amp.CommandLocator):
         self.done = True
         return {}
 
-    def log_tasks(self):
-        self._logger.info("Got {tasks} active tasks".format(
-            tasks=len(self.tasks)))
-        for job in self.tasks.values():
+    def log_jobs(self):
+        self._logger.info("Got {jobs} active jobs".format(
+            jobs=len(self.jobs)))
+        for job in self.jobs.values():
             self._logger.info("{job} {netbox} {plugins}".format(
                 job=job.name,
                 netbox=job.netbox,
@@ -149,25 +149,25 @@ class ProcessAMP(amp.AMP):
 
 
 class InlinePool(object):
-    "This is a dummy worker pool that performs all tasks in the current process"
+    "This is a dummy worker pool that executes all jobs in the current process"
     def __init__(self):
-        self.active_tasks = {}
+        self.active_jobs = {}
 
     def job_done(self, result, deferred):
-        if deferred in self.active_tasks:
-            del self.active_tasks[deferred]
+        if deferred in self.active_jobs:
+            del self.active_jobs[deferred]
         return result
 
-    def perform_task(self, job, netbox, plugins=None, interval=None):
+    def execute_job(self, job, netbox, plugins=None, interval=None):
         job = jobs.JobHandler(job, netbox, plugins, interval)
         deferred = job.run()
-        self.active_tasks[deferred] = job
+        self.active_jobs[deferred] = job
         deferred.addBoth(self.job_done, deferred)
         return deferred
 
     def cancel(self, deferred):
-        if deferred in self.active_tasks:
-            self.active_tasks[deferred].cancel()
+        if deferred in self.active_jobs:
+            self.active_jobs[deferred].cancel()
 
 
 class Worker(object):
@@ -176,13 +176,13 @@ class Worker(object):
 
     _logger = ContextLogger()
 
-    def __init__(self, pool, threadpoolsize, max_tasks):
-        self.active_tasks = 0
-        self.total_tasks = 0
-        self.max_concurrent_tasks = 0
+    def __init__(self, pool, threadpoolsize, max_jobs):
+        self.active_jobs = 0
+        self.total_jobs = 0
+        self.max_concurrent_jobs = 0
         self.pool = pool
         self.threadpoolsize = threadpoolsize
-        self.max_tasks = max_tasks
+        self.max_jobs = max_jobs
 
     @inlineCallbacks
     def start(self):
@@ -193,36 +193,36 @@ class Worker(object):
                                    args, os.environ)
         factory = protocol.Factory()
         factory.protocol = lambda: ProcessAMP(is_worker=False,
-                                              locator=TaskHandler())
+                                              locator=JobHandler())
         self.process = yield endpoint.connect(factory)
         self.process.lost_handler = self._worker_died
         returnValue(self)
 
     def done(self):
-        return self.max_tasks and (self.total_tasks >= self.max_tasks)
+        return self.max_jobs and (self.total_jobs >= self.max_jobs)
 
     def _worker_died(self, worker, reason):
         if not self.done():
-            self._logger.warning("Lost worker {worker} with {tasks} "
-                                 "active tasks".format(
+            self._logger.warning("Lost worker {worker} with {jobs} "
+                                 "active jobs".format(
                                      worker=worker,
-                                     tasks=self.active_tasks))
-        elif self.active_tasks:
-            self._logger.warning("Worker {worker} exited with {tasks} "
-                                 "active tasks".format(
+                                     jobs=self.active_jobs))
+        elif self.active_jobs:
+            self._logger.warning("Worker {worker} exited with {jobs} "
+                                 "active jobs".format(
                                      worker=worker,
-                                     tasks=self.active_tasks))
+                                     jobs=self.active_jobs))
         else:
             self._logger.debug("Worker {worker} exited normally"
                                .format(worker=worker))
         self.pool.worker_died(self)
 
-    def execute(self, serial, task, **kwargs):
-        self.active_tasks += 1
-        self.total_tasks += 1
-        self.max_concurrent_tasks = max(self.active_tasks,
-                                        self.max_concurrent_tasks)
-        deferred = self.process.callRemote(task, serial=serial, **kwargs)
+    def execute(self, serial, command, **kwargs):
+        self.active_jobs += 1
+        self.total_jobs += 1
+        self.max_concurrent_jobs = max(self.active_jobs,
+                                       self.max_concurrent_jobs)
+        deferred = self.process.callRemote(command, serial=serial, **kwargs)
         if self.done():
             self.process.callRemote(Shutdown)
         return deferred
@@ -232,21 +232,21 @@ class Worker(object):
 
 
 class WorkerPool(object):
-    """This class represent a pool of worker processes to which tasks can
+    """This class represent a pool of worker processes to which jobs can
     be scheduled"""
 
     _logger = ContextLogger()
 
-    def __init__(self, workers, max_tasks, threadpoolsize=None):
+    def __init__(self, workers, max_jobs, threadpoolsize=None):
         twisted.internet.endpoints.log = HackLog
         self.workers = set()
         self.target_count = workers
-        self.max_tasks = max_tasks
+        self.max_jobs = max_jobs
         self.threadpoolsize = threadpoolsize
         for i in range(self.target_count):
             self._spawn_worker()
         self.serial = 0
-        self.tasks = dict()
+        self.jobs = dict()
 
     def worker_died(self, worker):
         self.workers.remove(worker)
@@ -255,37 +255,37 @@ class WorkerPool(object):
 
     @inlineCallbacks
     def _spawn_worker(self):
-        worker = yield Worker(self, self.threadpoolsize, self.max_tasks).start()
+        worker = yield Worker(self, self.threadpoolsize, self.max_jobs).start()
         self.workers.add(worker)
 
     def _cleanup(self, result, deferred):
-        serial, worker = self.tasks[deferred]
-        del self.tasks[deferred]
-        worker.active_tasks -= 1
+        serial, worker = self.jobs[deferred]
+        del self.jobs[deferred]
+        worker.active_jobs -= 1
         return result
 
-    def _execute(self, task, **kwargs):
+    def _execute(self, command, **kwargs):
         ready_workers = [w for w in self.workers if not w.done()]
         if not ready_workers:
             raise RuntimeError("No ready workers")
-        worker = min(ready_workers, key=lambda x: x.active_tasks)
+        worker = min(ready_workers, key=lambda x: x.active_jobs)
         self.serial += 1
-        deferred = worker.execute(self.serial, task, **kwargs)
+        deferred = worker.execute(self.serial, command, **kwargs)
         if worker.done():
             self._spawn_worker()
-        self.tasks[deferred] = (self.serial, worker)
+        self.jobs[deferred] = (self.serial, worker)
         deferred.addBoth(self._cleanup, deferred)
         return deferred
 
     def cancel(self, deferred):
-        if deferred not in self.tasks:
+        if deferred not in self.jobs:
             self._logger.debug("Cancelling job that isn't known")
             return
-        serial, worker = self.tasks[deferred]
+        serial, worker = self.jobs[deferred]
         return worker.cancel(serial)
 
-    def perform_task(self, job, netbox, plugins=None, interval=None):
-        deferred = self._execute(Task, job=job, netbox=netbox,
+    def execute_job(self, job, netbox, plugins=None, interval=None):
+        deferred = self._execute(Job, job=job, netbox=netbox,
                                  plugins=plugins, interval=interval)
         deferred.addCallback(lambda x: x['result'])
         return deferred
@@ -298,9 +298,9 @@ class WorkerPool(object):
             self._logger.info(" - ready {ready} active {active}"
                               " max {max} total {total}".format(
                                   ready=not worker.done(),
-                                  active=worker.active_tasks,
-                                  max=worker.max_concurrent_tasks,
-                                  total=worker.total_tasks))
+                                  active=worker.active_jobs,
+                                  max=worker.max_concurrent_jobs,
+                                  total=worker.total_jobs))
 
 
 class HackLog(object):
