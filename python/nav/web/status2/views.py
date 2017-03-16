@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """NAV status app views"""
+import base64
 import datetime
 import pickle
 
@@ -42,7 +43,11 @@ class StatusView(View):
         preferences = self.request.account.preferences.get(
             self.request.account.PREFERENCE_KEY_STATUS)
         if preferences:
-            return pickle.loads(preferences)
+            try:
+                data = base64.b64decode(preferences)
+                return pickle.loads(data)
+            except Exception:  # maybe an old, none-base64 pickle
+                return pickle.loads(preferences)
 
     @staticmethod
     def set_default_parameters(parameters):
@@ -92,8 +97,8 @@ def save_status_preferences(request):
     form = forms.StatusPanelForm(request.POST)
     if form.is_valid():
         account = request.account
-        account.preferences[account.PREFERENCE_KEY_STATUS] = pickle.dumps(
-            form.cleaned_data)
+        datastring = base64.b64encode(pickle.dumps(form.cleaned_data))
+        account.preferences[account.PREFERENCE_KEY_STATUS] = datastring
         account.save()
         return HttpResponse()
     else:
