@@ -16,29 +16,9 @@
         <td><a title="See details about {{ sensor }}" href="{% url 'sensor-details' sensor.id %}">{{ sensor.name }}</a></td>
         <td>{% if sensor.human_readable != sensor.name %}{{ sensor.human_readable }}{% endif %}</td>
         <td>
-            <div class="right">
-              {% if metric.thresholds %}
-                {% for rule in metric.thresholds %}
-                <strong>
-                    <a href="{% url 'threshold-edit' rule.id %}"
-                       {% if rule.description %}title="{{ rule.description }}"{% endif %}>
-                        {{ rule.alert }}
-                    </a>
-                </strong>{% if not forloop.last %},{% endif %}
-                {% endfor %}
-                <a href="{% url 'threshold-add' sensor.get_metric_name %}"
-                   title="Add a new threshold rule for this metric"
-                   class="table-button secondary">
-                    +
-                </a>
-              {% else %}
-                <a href="{% url 'threshold-add' sensor.get_metric_name %}"
-                   title="Add a new threshold rule for this metric"
-                   class="table-button secondary">
-                    Add threshold
-                </a>
-              {% endif %}
-            </div>
+          <div class="right">
+            {% include "threshold/frag-thresholdlist.html" %}
+          </div>
         </td>
         <td>
             <div class="right">
