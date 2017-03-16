@@ -25,8 +25,8 @@ R_PDU_LOAD_STATUS_PHASE_NUMBER = 'rPDULoadStatusPhaseNumber'
 
 U_VOLT = dict(u_o_m=Sensor.UNIT_VOLTS_AC)
 U_DECIVOLT = dict(u_o_m=Sensor.UNIT_VOLTS_AC, precision=1)
-U_AMPERE = dict(u_o_m=Sensor.UNIT_AMPERE)
-U_DECIAMPERE = dict(u_o_m=Sensor.UNIT_AMPERE, precision=1)
+U_AMPERE = dict(u_o_m=Sensor.UNIT_AMPERES)
+U_DECIAMPERE = dict(u_o_m=Sensor.UNIT_AMPERES, precision=1)
 U_HZ = dict(u_o_m=Sensor.UNIT_HERTZ)
 U_DECIHZ = dict(u_o_m=Sensor.UNIT_HERTZ, precision=1)
 U_PERCENT = dict(u_o_m=Sensor.UNIT_PERCENT)
