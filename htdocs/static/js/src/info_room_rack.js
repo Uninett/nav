@@ -16,6 +16,19 @@ require([
     };
 
 
+    /**
+     * Matches all search terms when searching in Select2
+     */
+    function select2MultipleMatcher(term, text) {
+        var has = true;
+        var words = term.toUpperCase().split(" ");
+        for (var i =0; i < words.length; i++){
+            var word = words[i];
+            has = has && (text.toUpperCase().indexOf(word) >= 0);
+        }
+        return has;
+    }
+
 
     /**
      * Opens modal (with remote url) with content for adding sensors when
@@ -49,11 +62,17 @@ require([
         $(document).on('opened', '#sensormodal', function () {
             $sensorModal.find('#add-rackitem-tabs').tabs().show();
             var sumSelectClone = $sensorModal.find('.sumsensors').closest('label').clone();
-            $sensorModal.find('.sensordropdown').select2();
+            $sensorModal.find('.sensordropdown').select2({
+                matcher: select2MultipleMatcher
+            });
+            $sensorModal.find('.sensordropdown').select2('open');
+
             $sensorModal.find('.sumform').on('change', '.sumsensors', function (event) {
                 var label = $(event.target).closest('label');
                 var clone = sumSelectClone.clone();
-                clone.find('select').select2();
+                clone.find('select').select2({
+                    matcher: select2MultipleMatcher
+                });
                 label.after(clone);
             });
             $sensorModal.find('.cancelbutton').on('click', function (event) {
