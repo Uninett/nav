@@ -73,6 +73,7 @@ pidfile = os.path.join(nav.path.localstatedir, 'run', 'smsd.pid')
 
 ### MAIN FUNCTION
 
+
 def main(args):
     # Get command line arguments
     optcancel = False
@@ -107,10 +108,9 @@ def main(args):
         if opt in ('-a', '--action'):
             optaction = int(val)
         if opt in ('-t', '--test', '-T', '--TEST'):
-            opttest = { 'opt': opt, 'val': val}
+            opttest = {'opt': opt, 'val': val}
         if opt in ('-u', '--uid'):
             optuid = int(val)
-
 
     # Set config defaults
     global defaults
@@ -168,10 +168,8 @@ def main(args):
     if not loginitsmtp(mailwarnlevel, mailaddr, fromaddr, mailserver):
         sys.exit('Failed to init SMTP logging.')
 
-
     # First log message
     logger.info('Starting smsd.')
-
 
     # Set custom loop delay
     if optdelay:
@@ -218,7 +216,8 @@ def main(args):
             rowsinserted = queue.inserttestmsgs(optuid, opttest['val'],
                 'This is a test message from NAV smsd.')
             if rowsinserted:
-                logger.info("SMS put in queue. %d row(s) inserted.", rowsinserted)
+                logger.info("SMS put in queue. %d row(s) inserted.",
+                            rowsinserted)
             else:
                 logger.info("SMS not put in queue.")
 
@@ -229,8 +228,8 @@ def main(args):
         nav.daemon.switchuser(username)
     except nav.daemon.DaemonError, error:
         logger.error("%s Run as root or %s to enter daemon mode. "
-            + "Try `%s --help' for more information.",
-            error, username, sys.argv[0])
+                     "Try `%s --help' for more information.",
+                     error, username, sys.argv[0])
         sys.exit(1)
 
     # Check if already running
@@ -269,8 +268,7 @@ def main(args):
     if autocancel != '0':
         ignCount = queue.cancel(autocancel)
         logger.info("%d unsent messages older than '%s' autocanceled.",
-            ignCount, autocancel)
-
+                    ignCount, autocancel)
 
     # Loop forever
     while True:
@@ -299,13 +297,12 @@ def main(args):
                     # Dispatching failed. Backing off.
                     backoff(delay, error, retryvars)
 
-                    break # End this run
+                    break  # End this run
                 except:
                     logger.exception("")
                     raise
             except Exception, error:
                 logger.exception("Unknown exception: %s", error)
-
 
             logger.info("SMS sent to %s.", user)
 
@@ -319,14 +316,14 @@ def main(args):
             for msgid in ignored:
                 queue.setsentstatus(msgid, 'I', smsid)
             logger.info("%d messages was sent and %d ignored.",
-                len(sent), len(ignored))
+                        len(sent), len(ignored))
 
         # Sleep a bit before the next run
         logger.debug("Sleeping for %d seconds.", delay)
         time.sleep(delay)
 
         # Devel only
-        #break
+        # break
 
     # Exit nicely
     sys.exit(0)
@@ -415,7 +412,6 @@ def backoffaction(error, retrylimitaction):
         failed = 0
         resetdelay()
 
-
     elif retrylimitaction == "shutdown":
         # Logs the number of unsent messages and time of the oldest in queue
         # before shutting down daemon.
@@ -460,8 +456,8 @@ def loginitfile(loglevel, filename):
         logger.addHandler(filehandler)
         return True
     except IOError, error:
-        print("Failed creating file loghandler. Daemon mode disabled. (%s)" \
-            % error, file=sys.stderr)
+        print("Failed creating file loghandler. Daemon mode disabled. (%s)"
+              % error, file=sys.stderr)
         return False
 
 
@@ -478,8 +474,8 @@ def loginitstderr(loglevel):
         logger.addHandler(stderrhandler)
         return True
     except IOError, error:
-        print("Failed creating stderr loghandler. Daemon mode disabled. (%s)" \
-            % error, file=sys.stderr)
+        print("Failed creating stderr loghandler. Daemon mode disabled. (%s)"
+              % error, file=sys.stderr)
         return False
 
 
@@ -506,8 +502,8 @@ def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
         logger.addHandler(mailhandler)
         return True
     except Exception, error:
-        print("Failed creating SMTP loghandler. Daemon mode disabled. (%s)" \
-            % error, file=sys.stderr)
+        print("Failed creating SMTP loghandler. Daemon mode disabled. (%s)"
+              % error, file=sys.stderr)
         return False
 
 

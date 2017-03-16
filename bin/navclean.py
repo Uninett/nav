@@ -24,7 +24,6 @@
 # database.  It could also be extended to perform other database
 # maintenance tasks in NAV.
 #
-# Authors: Morten Vold <morten.vold@itea.ntnu.no>
 #
 """Delete old arp, cam or radius accounting records from the NAV database.
 
@@ -55,12 +54,11 @@ Available options are:
 
 from __future__ import print_function
 
-__id__ = "$Id: navclean.py 2875 2004-07-14 09:51:24Z mortenv $"
-
 import sys
 import getopt
 import nav.db
 import psycopg2
+
 
 def main(args):
     """ Main execution function."""
@@ -71,9 +69,9 @@ def main(args):
     radiusAcct = False
     radiusAcctTable = "radiusacct"
     radiusLogTable = "radiuslog"
- 
+
     tables = []
-   
+
     try:
         opts, args = getopt.getopt(args, 'hqfe:E:', ['help', 'arp', 'cam', 'radiusacct', 'radiuslog'])
     except getopt.GetoptError, error:
@@ -81,7 +79,7 @@ def main(args):
         usage()
         sys.exit(1)
 
-    for opt,val in opts:
+    for opt, val in opts:
         if opt == '-h':
             usage()
             sys.exit(0)
@@ -106,7 +104,6 @@ def main(args):
     cursor = cx.cursor()
     sumtotal = 0
 
-
     arpCamSelector = "WHERE end_time < %s" % expiry
     radiusAcctSelector = """WHERE (acctstoptime < %s) 
                     OR ((acctstarttime + (acctsessiontime * interval '1 sec')) < %s)
@@ -123,7 +120,7 @@ def main(args):
             selector = radiusLogSelector
 
         sql = 'DELETE FROM %s %s' % (table, selector)
-        
+
         try:
             cursor.execute(sql)
             if not quiet:
@@ -131,11 +128,10 @@ def main(args):
             sumtotal += cursor.rowcount
 
         except psycopg2.ProgrammingError, e:
-            print("The PostgreSQL backend produced a ProgrammingError.\n" + \
+            print("The PostgreSQL backend produced a ProgrammingError.\n"
                   "Most likely, your expiry specification is invalid: %s" % expiry, file=sys.stderr);
             cx.rollback()
             sys.exit(1)
-
 
     if not force:
         cx.rollback()
@@ -146,7 +142,8 @@ def main(args):
         if not quiet and sumtotal > 0:
             print("Expired ARP/CAM/Radius Acccounting records deleted.")
 
-    if not quiet and sumtotal == 0: print("None deleted.")
+    if not quiet and sumtotal == 0:
+        print("None deleted.")
 
     cx.close()
 
