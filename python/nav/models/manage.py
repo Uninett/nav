@@ -1850,11 +1850,11 @@ class Sensor(models.Model):
     internal_name = VarcharField(db_column="internal_name")
     mib = VarcharField(db_column="mib")
     display_minimum_user = models.FloatField(db_column="display_minimum_user",
-                                              null=True)
+                                             null=True)
     display_maximum_user = models.FloatField(db_column="display_maximum_user",
                                              null=True)
     display_minimum_sys = models.FloatField(db_column="display_minimum_sys",
-                                             null=True)
+                                            null=True)
     display_maximum_sys = models.FloatField(db_column="display_maximum_sys",
                                             null=True)
 
