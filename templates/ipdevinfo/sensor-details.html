@@ -9,9 +9,13 @@
  ], function(graphfetcher_controller, Gauge) {
      $(function() {
          var $gauge = $('.sensor-gauge');
-         var thresholds = $gauge.data('thresholds').split(',');
-         for (var i = 0, j = thresholds.length; i < j; i++) {
-             thresholds[i] = parseFloat(thresholds[i].replace(/\D/g, ''));
+         var inThresholds = $gauge.data('thresholds').split(',');
+         var thresholds = [];
+         for (var i = 0, j = inThresholds.length; i < j; i++) {
+             var threshold = inThresholds[i].replace(/\D/g, '');
+             if (threshold !== '') {
+                 thresholds.push(parseFloat(threshold));
+             }
          }
          var _gauge = new Gauge({
              node: $gauge[0],
