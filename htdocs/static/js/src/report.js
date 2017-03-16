@@ -53,7 +53,8 @@ require([], function () {
     function addTogglePageSizeListener() {
         var form = $('#reportPageSize');
         form.change(function(event) {
-            form.submit();
+            var filters = $('#report_filters_form, #reportPageSize').serialize();
+            window.location = window.location.pathname + '?' + filters;
         });
     }
 
