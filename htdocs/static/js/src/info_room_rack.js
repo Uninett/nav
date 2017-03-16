@@ -383,7 +383,9 @@ require([
                 forcePlaceholderSize: true,
                 placeholder: 'highlight',
                 update: function(event, ui) {
-                    var serialized = $(this).sortable('serialize');
+                    var serialized = $(this).sortable('serialize', {
+                        attribute: 'data-sortid'
+                    });
                     var rack = $(this).closest('.rack');
                     var column = $(this).data('column');
                     serialized += '&column=' + column;

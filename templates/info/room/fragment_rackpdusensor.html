@@ -1,8 +1,9 @@
-<div id="item_{{ racksensor.id }}"
+<div id="item_{{ rack.id }}_{{ racksensor.id }}"
      class="rack-sensor"
      title="{{ racksensor.title }}"
      data-metric="{{ racksensor.get_metric }}"
      data-id="{{ racksensor.id }}"
+     data-sortid="item_{{ racksensor.id }}"
      data-column="{{ column }}">
   <div class="heading">
     <i class="fa fa-arrows inline-when-edit" title="Click and drag"></i>
