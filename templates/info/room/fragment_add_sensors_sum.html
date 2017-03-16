@@ -1,0 +1,17 @@
+<form class="sumform" method="post" action="{% url 'room-info-racks-save-sensor' room.pk %}">
+  <label>Title<input type="text" name="title" placeholder="Sum of sensors"></label>
+  <label>
+    {{ sensortype }}
+    <select class="sensordropdown sumsensors" name="sensors[]">
+      <option value="">----------</option>
+      {% for sensor in sensors %}
+        <option value="{{ sensor.pk }}">{{ sensor }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <input type="hidden" name="item_type" value="SensorsSum">
+  <input type="hidden" name="rackid" value="{{ rack.pk }}">
+  <input type="hidden" name="column" value="{{ column }}">
+  <input type="submit" class="button" value="Add sensor">
+  <button class="secondary right cancelbutton">Cancel</button>
+</form>

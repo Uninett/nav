@@ -48,7 +48,14 @@ require([
     function addSensorModalListeners($sensorModal) {
         $(document).on('opened', '#sensormodal', function () {
             $sensorModal.find('#add-rackitem-tabs').tabs().show();
+            var sumSelectClone = $sensorModal.find('.sumsensors').closest('label').clone();
             $sensorModal.find('.sensordropdown').select2();
+            $sensorModal.find('.sumform').on('change', '.sumsensors', function (event) {
+                var label = $(event.target).closest('label');
+                var clone = sumSelectClone.clone();
+                clone.find('select').select2();
+                label.after(clone);
+            });
             $sensorModal.find('.cancelbutton').on('click', function (event) {
                 event.preventDefault();
                 $sensorModal.foundation('reveal', 'close');

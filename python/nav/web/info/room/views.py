@@ -34,7 +34,8 @@ from nav.django.utils import get_account
 
 from nav.models.manage import Room, Sensor
 from nav.models.roommeta import Image, ROOMIMAGEPATH
-from nav.models.rack import Rack, SensorRackItem, SensorsDiffRackItem
+from nav.models.rack import (Rack, SensorRackItem, SensorsDiffRackItem,
+                             SensorsSumRackItem)
 from nav.web.info.forms import SearchForm
 from nav.web.info.room.utils import (get_extension, create_hash,
                                      create_image_directory,
@@ -424,7 +425,11 @@ def save_sensor(request, roomid):
         subtrahendid = request.POST.get('subtrahendid')
         subtrahend = get_object_or_404(Sensor, pk=subtrahendid)
         item = SensorsDiffRackItem(minuend=minuend, subtrahend=subtrahend)
-
+    elif item_type == "SensorsSum":
+        sensors = request.POST.getlist('sensors[]')
+        sensors = [int(s) for s in sensors if s]
+        title = request.POST.get('title')
+        item = SensorsSumRackItem(title=title, sensors=sensors)
     try:
         if column == RACK_CENTER:
             rack.add_center_item(item)

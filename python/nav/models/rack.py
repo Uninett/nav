@@ -142,6 +142,8 @@ def rack_decoder(obj):
             return SensorRackItem(**obj)
         if obj['__type__'] == 'SensorsDiffRackItem':
             return SensorsDiffRackItem(**obj)
+        if obj['__type__'] == 'SensorsSumRackItem':
+            return SensorsSumRackItem(**obj)
     return obj
 
 
@@ -251,3 +253,39 @@ class SensorsDiffRackItem(BaseRackItem):
     def human_readable(self):
         return "{} - {}".format(self.minuend.human_readable,
                                 self.subtrahend.human_readable)
+
+
+class SensorsSumRackItem(BaseRackItem):
+    def __init__(self, title, sensors, **kwargs):
+        super(SensorsSumRackItem, self).__init__(**kwargs)
+        self.sensors = sensors
+        self.title = title
+        for i, sensor in enumerate(self.sensors):
+            if isinstance(sensor, int):
+                try:
+                    self.sensors[i] = Sensor.objects.get(pk=sensor)
+                except Sensor.DoesNotExist:
+                    pass
+
+    def to_json(self):
+        data = super(SensorsSumRackItem, self).to_json()
+        data['sensors'] = [sensor.pk for sensor in self.sensors]
+        data['title'] = self.title
+        return data
+
+    def title(self):
+        return self.title
+
+    def get_metric(self):
+        return "sumSeries({})".format(
+            ",".join((s.get_metric_name() for s in self.sensors))
+        )
+
+    def unit_of_measurement(self):
+        return self.sensors[0].unit_of_measurement
+
+    def get_absolute_url(self):
+        return ""
+
+    def human_readable(self):
+        return self.title
