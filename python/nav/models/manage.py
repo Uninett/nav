@@ -1733,6 +1733,7 @@ class Sensor(models.Model):
     UNIT_VOLTS_DC = 'voltsDC'    # electric potential
     UNIT_AMPERES = 'amperes'     # electric current
     UNIT_WATTS = 'watts'         # power
+    UNIT_DBM = 'dBm'             # power (optics)
     UNIT_HERTZ = 'hertz'         # frequency
     UNIT_CELSIUS = 'celsius'     # temperature
     UNIT_FAHRENHEIT = 'fahrenheit'  # temperature
@@ -1749,6 +1750,7 @@ class Sensor(models.Model):
     UNIT_MPS = 'm/s'             # speed
     UNIT_PASCAL = 'pascal'       # pressure
     UNIT_PSI = 'psi'             # pressure
+    UNIT_BAR = 'bar'             # pressure
     UNIT_GRAMS = 'grams'         # weight
     UNIT_FEET = 'feet'           # distance
     UNIT_INCHES = 'inches'       # distance
@@ -1757,6 +1759,7 @@ class Sensor(models.Model):
     UNIT_LUX = 'lux'             # illuminance
     UNIT_GPCM = 'grams/m3'       # gass density?
     UNIT_SECONDS = 'seconds'     # time
+    UNIT_MINUTES = 'minutes'     # time
 
     UNIT_OF_MEASUREMENTS_CHOICES = (
         (UNIT_OTHER, 'Other'),
@@ -1765,6 +1768,7 @@ class Sensor(models.Model):
         (UNIT_VOLTS_DC, 'VoltsDC'),
         (UNIT_AMPERES, 'Amperes'),
         (UNIT_WATTS, 'Watts'),
+        (UNIT_DBM, 'dBm'),
         (UNIT_HERTZ, 'Hertz'),
         (UNIT_CELSIUS, 'Celsius'),
         (UNIT_FAHRENHEIT, 'Fahrenheit'),
@@ -1781,6 +1785,7 @@ class Sensor(models.Model):
         (UNIT_MPS, 'meters per second'),
         (UNIT_PASCAL, 'pascal'),
         (UNIT_PSI, 'psi'),
+        (UNIT_BAR, 'bar'),
         (UNIT_GRAMS, 'gram'),
         (UNIT_FEET, 'Feet'),
         (UNIT_INCHES, 'Inches'),
@@ -1789,6 +1794,7 @@ class Sensor(models.Model):
         (UNIT_LUX, 'Lux'),
         (UNIT_GPCM, 'Grams per cubic meter'),
         (UNIT_SECONDS, 'Seconds'),
+        (UNIT_MINUTES, 'Minutes'),
     )
 
     SCALE_YOCTO = 'yocto'  # 10^-24

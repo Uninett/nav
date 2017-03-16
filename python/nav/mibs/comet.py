@@ -24,12 +24,13 @@ implementation for multiple MIBs must be implemented.
 from twisted.internet import defer
 from twisted.internet.defer import returnValue
 from nav.mibs.mibretriever import MibRetriever
+from nav.models.manage import Sensor
 
 DEGREES_CELSIUS = "\xb0C"
 DEGREES_FAHRENHEIT = "\xb0F"
 UNIT_MAP = {
-    DEGREES_CELSIUS: "Celsius",
-    DEGREES_FAHRENHEIT: "Fahrenheit",
+    DEGREES_CELSIUS: Sensor.UNIT_CELSIUS,
+    DEGREES_FAHRENHEIT: Sensor.UNIT_FAHRENHEIT,
 }
 
 
@@ -99,7 +100,7 @@ class Comet(MibRetriever):
 
             result.append(dict(
                 oid=str(value_oid) + '.0',
-                unit_of_measurement="boolean",
+                unit_of_measurement=Sensor.UNIT_TRUTHVALUE,
                 precision=0,
                 scale=None,
                 description=name,

@@ -16,6 +16,7 @@
 """MibRetriever implementation for Eltek 48V rectifier devices"""
 from twisted.internet.defer import inlineCallbacks, returnValue
 from nav.mibs.mibretriever import MibRetriever
+from nav.models.manage import Sensor
 from nav.oids import OID
 
 DESIRED_SENSORS = (
@@ -31,10 +32,10 @@ DESIRED_SENSORS = (
 )
 
 UNIT_TRANSLATION = {
-    '1/100 Volt': {'unit_of_measurement': 'volts', 'precision': 2},
-    'Volts AC': {'unit_of_measurement': 'volts', 'precision': 0},
+    '1/100 Volt': {'unit_of_measurement': Sensor.UNIT_VOLTS_DC, 'precision': 2},
+    'Volts AC': {'unit_of_measurement': Sensor.UNIT_VOLTS_AC, 'precision': 0},
     'Deg. C/F': {'unit_of_measurement': 'degrees', 'precision': 0},
-    'Minutes': {'unit_of_measurement': 'minutes', 'precision': 0},
+    'Minutes': {'unit_of_measurement': Sensor.UNIT_MINUTES, 'precision': 0},
 }
 
 
