@@ -52,14 +52,12 @@ require([
                 var datapoints = metricData.datapoints;
                 for (var i = datapoints.length - 1; i >= 0; i--) {
                     var value = datapoints[i][0];
-                    console.log(value);
                     if (value !== null) {
                         $(metricMap[target]).html(value);
                         break;
                     }
                 }
             });
-            console.log(data);
         });
     }
 
