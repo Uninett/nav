@@ -30,7 +30,7 @@ Runtime requirements
 To run NAV, these software packages are required:
 
  * Apache2 + mod_wsgi
- * PostgreSQL >= 9.1 (With the ``hstore`` extension available)
+ * PostgreSQL >= 9.4 (With the ``hstore`` extension available)
  * Graphite_
  * Python >= 2.7.0
  * nbtscan = 1.5.1
