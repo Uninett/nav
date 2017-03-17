@@ -60,13 +60,19 @@ class Rack(models.Model):
     @property
     def configuration(self):
         if self.__configuration is None:
-            self.__configuration = json.loads(self._configuration,
-                                              object_hook=rack_decoder)
-            if self.__configuration is None:
-                self.__configuration = {}
-            self.configuration.setdefault('left', [])
-            self.configuration.setdefault('center', [])
-            self.configuration.setdefault('right', [])
+            if self._configuration is None:
+                self._configuration = {}
+            self._configuration.setdefault('left', [])
+            self._configuration.setdefault('center', [])
+            self._configuration.setdefault('right', [])
+            self._configuration['left'] = [rack_decoder(x) for x
+                                           in self._configuration['left']]
+            self._configuration['right'] = [rack_decoder(x) for x
+                                            in self._configuration['right']]
+            self._configuration['center'] = [rack_decoder(x) for x
+                                             in self._configuration['center']]
+            self.__configuration = self._configuration
+
         return self.__configuration
 
     def save(self, *args, **kwargs):
