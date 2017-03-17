@@ -260,7 +260,7 @@ class SensorsSumRackItem(BaseRackItem):
     def __init__(self, title, sensors, **kwargs):
         super(SensorsSumRackItem, self).__init__(**kwargs)
         self.sensors = sensors
-        self.title = title
+        self._title = title
         for i, sensor in enumerate(self.sensors):
             if isinstance(sensor, int):
                 try:
@@ -271,11 +271,11 @@ class SensorsSumRackItem(BaseRackItem):
     def to_json(self):
         data = super(SensorsSumRackItem, self).to_json()
         data['sensors'] = [sensor.pk for sensor in self.sensors]
-        data['title'] = self.title
+        data['title'] = self._title
         return data
 
     def title(self):
-        return self.title
+        return ", ".join([s.human_readable for s in self.sensors])
 
     def get_metric(self):
         return "sumSeries({})".format(
@@ -289,4 +289,4 @@ class SensorsSumRackItem(BaseRackItem):
         return ""
 
     def human_readable(self):
-        return self.title
+        return self._title
