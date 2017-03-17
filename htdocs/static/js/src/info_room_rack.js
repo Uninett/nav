@@ -23,6 +23,10 @@ require([
      */
     function round(number, n) {
         n = n === undefined ? 2 : n;
+        if (number === null) {
+            return number;
+        }
+
         try {
             return parseFloat(Number(number).toFixed(n));
         } catch (e) {
@@ -211,7 +215,8 @@ require([
     function updateSensor($element, value) {
         var unit = $element.data('unit') ? $element.data('unit').toLowerCase() : "";
         var unitIsKnown = _.has(unitMapping, unit);
-        $element.find('.textvalue').html(value + symbol(unit));
+        var textvalue = value === null ? 'NaN' : value + symbol(unit);
+        $element.find('.textvalue').html(textvalue);
 
         if (unitIsKnown) {
             // Create sparkline if unit is known only
