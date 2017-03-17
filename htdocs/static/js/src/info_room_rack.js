@@ -246,7 +246,8 @@ require([
                 nodeId: gaugeElement.id,
                 precision: 2,
                 color: 'lightsteelblue',
-                height: 100
+                height: 100,
+                max: 12
             });
             gauge.update(value);
             $.data(gaugeElement, 'gauge', gauge);
