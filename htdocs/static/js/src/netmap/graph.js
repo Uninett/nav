@@ -56,6 +56,8 @@ define([
 
         parse: function (response, options) {
 
+            console.log("Got response". response);
+
             var nodes = this.get('nodeCollection').populate(response.nodes);
             var links = this.get('linkCollection').populate(response.links);
             var vlans = this.get('vlanCollection').populate(response.vlans);
@@ -85,25 +87,31 @@ define([
         },
 
         /**
-         * Load traffic data from the server. This is a HUGE bottleneck
-         * and is therefore done asynchronously after page load.
+         * Load traffic data from the server for nodes matching the
+         * filterStrings. If the filterStrings is empty (e.g. a null list), get
+         * traffic data for all netboxes found in NAV (this is a HUGE
+         * bottleneck). Done asynchronously after page load to reduce perceived
+         * slowness of the app.
          */
-        loadTraffic: function () {
+        loadTraffic: function (filterStrings) {
             var self = this;
+            var layer = this.get("layer");
+
+            if (!filterStrings.length) {
+                $.getJSON('traffic/layer' + layer + '/')
+                    .done(function (data) {
+                        self.trafficSuccess.call(self, "all", data);
+                    })
+                    .fail(this.trafficError)
+                    .always(function() {
+                        self.set('loadingTraffic', false);
+                    });
+                return;
+            }
 
             this.set('loadingTraffic', true);
             console.log('Start fetching traffic data');
-            // TODO: Iterate over each locationId in netmapView.location_room_filter
-            var locations = this.get('locations');
-            var layer = this.get('layer');
-            // If no locations are defined, this is a noop
-            if (!locations.length) {
-                console.log('No data to fetch, skipping');
-                this.set('loadingTraffic', false);
-                return;
-            }
-            _.each(locations, function(location) {
-                console.log("Getting layer", layer, "traffic for", location);
+            _.each(filterStrings, function(location) {
                 $.getJSON('traffic/layer' + layer + '/' + location)
                     .done(function (data) {
                         self.trafficSuccess.call(self, location, data);
@@ -137,7 +145,6 @@ define([
             });
 
             Backbone.EventBroker.trigger('netmap:updateGraph');
-            console.log('Traffic data refreshed');
         },
 
         trafficError: function (jqXHR, textStatus, errorThrown) {

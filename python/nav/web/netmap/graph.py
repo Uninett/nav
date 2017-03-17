@@ -136,24 +136,31 @@ def get_traffic_interfaces(edges, interfaces):
     return storage.values()
 
 @cache_traffic("layer 2")
-def get_layer2_traffic(location_or_room_id):
+def get_layer2_traffic(location_or_room_id=None):
     """Fetches traffic data for layer 2"""
     start = datetime.now()
 
     # TODO: Handle missing?
-    room = Room.objects.filter(id=location_or_room_id)
-    if room.exists():
-        location = Room.objects.get(id=location_or_room_id)
+    if location_or_room_id is None or not location_or_room_id:
+        interfaces = Interface.objects.filter(
+            to_netbox__isnull=False
+        ).select_related(
+            'netbox', 'to_netbox', 'to_interface__netbox'
+        )
     else:
-        location = Location.objects.get(id=location_or_room_id)
-    # Sanity check: Does the room exist?
-    # Fetch interfaces for devices in that room
-    interfaces = Interface.objects.filter(
-        to_netbox__isnull=False,
-        netbox__room__location=location
-    ).select_related(
-        'netbox', 'to_netbox', 'to_interface__netbox'
-    )
+        room = Room.objects.filter(id=location_or_room_id)
+        if room.exists():
+            location = Room.objects.get(id=location_or_room_id)
+        else:
+            location = Location.objects.get(id=location_or_room_id)
+            # Sanity check: Does the room exist?
+            # Fetch interfaces for devices in that room
+        interfaces = Interface.objects.filter(
+            to_netbox__isnull=False,
+            netbox__room__location=location
+        ).select_related(
+            'netbox', 'to_netbox', 'to_interface__netbox'
+        )
 
     edges = set([
         (
@@ -192,28 +199,38 @@ def get_layer2_traffic(location_or_room_id):
     return traffic
 
 @cache_traffic("layer 3")
-def get_layer3_traffic(location_or_room_id):
+def get_layer3_traffic(location_or_room_id=None):
     """Fetches traffic data for layer 3"""
-
-    # Sanity check: Does the room exist?
-    room = Room.objects.filter(id=location_or_room_id)
-    if room.exists():
-        location = Room.objects.get(id=location_or_room_id)
-    else:
-        location = Location.objects.get(id=location_or_room_id)
 
     prefixes = Prefix.objects.filter(
         vlan__net_type__in=('link', 'elink', 'core')
     ).select_related('vlan__net_type')
 
-    router_ports = GwPortPrefix.objects.filter(
-        prefix__in=prefixes,
-        interface__netbox__room__location=location,
-        interface__netbox__category__in=('GW', 'GSW'),  # Or might be faster
-    ).select_related(
-        'interface',
-        'interface__to_interface',
-    )
+    # No location/room => fetch data for all nodes
+    if location_or_room_id is None or not location_or_room_id:
+        router_ports = GwPortPrefix.objects.filter(
+            prefix__in=prefixes,
+            interface__netbox__category__in=('GW', 'GSW'),  # Or might be faster
+        ).select_related(
+            'interface',
+            'interface__to_interface',
+        )
+    else:
+        # Sanity check: Does the room exist?
+        room = Room.objects.filter(id=location_or_room_id)
+        if room.exists():
+            location = Room.objects.get(id=location_or_room_id)
+        else:
+            location = Location.objects.get(id=location_or_room_id)
+
+        router_ports = GwPortPrefix.objects.filter(
+            prefix__in=prefixes,
+            interface__netbox__room__location=location,
+            interface__netbox__category__in=('GW', 'GSW'),  # Or might be faster
+        ).select_related(
+            'interface',
+            'interface__to_interface',
+        )
 
     router_ports_prefix_map = defaultdict(list)
     for router_port in router_ports:
