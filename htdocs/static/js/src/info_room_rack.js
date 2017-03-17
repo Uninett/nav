@@ -16,6 +16,20 @@ require([
     };
 
 
+
+    /**
+     * Rounds something that may be a number to max n decimals.
+     * If you want a specific number of decimals use toFixed.
+     */
+    function round(number, n) {
+        n = n === undefined ? 2 : n;
+        try {
+            return parseFloat(Number(number).toFixed(n));
+        } catch (e) {
+            return number;
+        }
+    }
+
     /**
      * Matches all search terms when searching in Select2
      */
@@ -186,7 +200,7 @@ require([
 
         _.each(metricMap, function (target, elementId) {
             var datapoints = resultMap[target];
-            var value = datapoints ? getValue(datapoints) : null;
+            var value = round(datapoints ? getValue(datapoints) : null);
             var $element = $(document.getElementById(elementId));
             updateFunc($element, value);
         });
