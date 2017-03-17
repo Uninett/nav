@@ -46,7 +46,7 @@ class Rack(models.Model):
     room = models.ForeignKey(Room, db_column='roomid')
     rackname = VarcharField(blank=True)
     ordering = models.IntegerField()
-    _configuration = VarcharField(default='{}', db_column='configuration')
+    _configuration = VarcharField(default=None, db_column='configuration')
     __configuration = None
     item_counter = models.IntegerField(default=0, null=False,
                                        db_column='item_counter')
