@@ -320,7 +320,6 @@ define([
             nodes = filterNodesByCategories(nodes, categories);
             links = filterLinksByCategories(links, categories);
             if (this.netmapView.filterStrings.length) {
-                this.model.set("locations", this.netmapView.filterStrings);
                 nodes = filterNodesByRoomsOrLocations(nodes, this.netmapView.filterStrings);
                 links = filterLinksByRoomsOrLocations(links, this.netmapView.filterStrings);
             }
@@ -483,8 +482,8 @@ define([
 
         refresh: function () {
 
-            if (this.netmapView.refreshTrafficOnly.get("locations").length) {
-                this.model.loadTraffic();
+            if (this.netmapView.refreshTrafficOnly) {
+                this.model.loadTraffic(this.netmapView.filterStrings);
             } else {
                 this.fetchGraphModel();
             }
@@ -500,7 +499,7 @@ define([
             var jqxhr = this.model.fetch({
                 success: function () {
                     self.update();
-                    self.model.loadTraffic();
+                    self.model.loadTraffic(self.netmapView.filterStrings);
                 },
                 error: function () { // TODO: Use alert message instead
                     alert('Error loading graph, please try to reload the page');
@@ -561,15 +560,14 @@ define([
         },
 
         addFilterString: function (filter) {
-
             this.netmapView.filterStrings.push(filter);
+            this.model.set("locations", this.netmapView.filterStrings);
             this.update();
         },
 
         removeRoomOrLocationFilter: function (filter) {
-
             this.netmapView.filterStrings = _.without(
-                this.netmapView.filterStrings, filter);
+                this.netmapView.filterStrings, filter.toString());
             this.update();
         },
 
@@ -749,7 +747,6 @@ define([
         },
 
         dragMove: function(node, self) {
-            console.log("æææ, moving", node);
             node.px += d3.event.dx;
             node.py += d3.event.dy;
             node.x += d3.event.dx;
