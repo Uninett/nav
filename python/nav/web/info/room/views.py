@@ -428,7 +428,13 @@ def save_sensor(request, roomid):
     elif item_type == "SensorsSum":
         sensors = request.POST.getlist('sensors[]')
         sensors = [int(s) for s in sensors if s]
-        title = request.POST.get('title')
+        given_title = request.POST.get('title')
+        sensors_description = ", ".join(
+            [Sensor.objects.get(pk=s).human_readable for s in sensors])
+        if given_title:
+            title = "{} - {}".format(given_title, sensors_description)
+        else:
+            title = sensors_description
         item = SensorsSumRackItem(title=title, sensors=sensors)
     try:
         if column == RACK_CENTER:
