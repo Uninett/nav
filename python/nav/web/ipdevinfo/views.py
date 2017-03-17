@@ -248,6 +248,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     alert_info = None
     job_descriptions = None
     system_metrics = netbox_availability = []
+    sensor_metrics = []
 
     graphite_error = False
     # If addr or host not a netbox it is not monitored by NAV
@@ -288,16 +289,15 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         except GraphiteUnreachableError:
             graphite_error = True
 
-    sensor_metrics = []
-    for sensor in netbox.sensor_set.all():
-        metric = {
-            'id': sensor.get_metric_name(),
-            'sensor': sensor,
-            'graphite_data_url': Graph(
-                magic_targets=[metric['id']], format='json'),
-        }
-        sensor_metrics.append(metric)
-    find_rules(sensor_metrics)
+        for sensor in netbox.sensor_set.all():
+            metric = {
+                'id': sensor.get_metric_name(),
+                'sensor': sensor,
+                'graphite_data_url': Graph(
+                    magic_targets=[metric['id']], format='json'),
+            }
+            sensor_metrics.append(metric)
+        find_rules(sensor_metrics)
     # Display info about current and scheduled maintenance tasks
     # related to this device
     current_tasks = MaintenanceTask.objects.current()
