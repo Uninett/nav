@@ -294,7 +294,7 @@ class NodePositionUpdate(generics.UpdateAPIView):
             update_cached_node_positions(viewid, "layer 2", cache_updates)
         if cache_exists("topology", viewid, "layer 3"):
             update_cached_node_positions(viewid, "layer 3", cache_updates)
-        return Response(status=200)
+        return Response({"status": "OK"})
 
 
 class NetmapGraph(views.APIView):

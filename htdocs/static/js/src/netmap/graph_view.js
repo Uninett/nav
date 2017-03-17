@@ -571,7 +571,7 @@ define([
             this.update();
         },
 
-        saveNodePositions: function () {
+        saveNodePositions: function (model, state, alertContainer) {
 
             var self = this;
 
@@ -599,7 +599,12 @@ define([
                 });
 
                 nodePositions.save(nodePositions.get('data'), {
-                    success: function () { console.log('nodepositions saved'); },
+                    success: function () {
+                        console.log('Node positions saved');
+                        // Notify control view of change, so it can display a green
+                        // "updated" box to the user
+                        Backbone.EventBroker.trigger('netmap:saveSuccessful', model, state, alertContainer);
+                    },
                     error: function (model, resp, opt) {
                         console.log("Failed", resp.responseText);
                     }

@@ -14,7 +14,11 @@ define([
     var ControlView = Backbone.View.extend({
 
         el: '#navigation-view',
-        interests: {},
+        interests: {
+            // For when we have saved the view and updated all its cached nodes,
+            // e.g. positions and other view-specific settings
+            'netmap:saveSuccessful': 'saveSuccessful'
+        },
         events: {
             'submit #graph-search-form': 'searchGraph',
             'reset #graph-search-form': 'resetSearch',
@@ -223,7 +227,7 @@ define([
             this.currentView.save(this.currentView.attributes,
                 {
                     success: function (model) {
-                        self.saveSuccessful.call(self, model, {'isNew': isNew}, self.middleAlertContainer);
+                        Backbone.EventBroker.trigger('netmap:saveNodePositions', model, {'isNew': isNew}, self.middleAlertContainer);
                     },
                     error: function (model, resp) {
                         self.saveError.call(self, resp.responseText);
@@ -262,7 +266,8 @@ define([
             this.currentView.save(data, {
                 success: function (model) {
                     console.log(model);
-                    self.saveSuccessful.call(self, model, {'isUpdated': true}, self.leftAlertContainer);
+                    Backbone.EventBroker.trigger('netmap:saveNodePositions', model, {'isUpdated': true}, self.leftAlertContainer);
+//                    self.saveSuccessful.call(self, model, {'isUpdated': true}, self.leftAlertContainer);
                 },
                 error: function (model, resp) {
                     self.saveError.call(self, resp.responseText);
@@ -404,8 +409,6 @@ define([
         },
 
         saveSuccessful: function (model, state, alertContainer) {
-
-            Backbone.EventBroker.trigger('netmap:saveNodePositions');
 
             if (state.isNew) {
                 /* If the model was new we need to set its value as
