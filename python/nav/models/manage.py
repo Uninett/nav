@@ -40,6 +40,7 @@ from nav.metrics.templates import (
     metric_prefix_for_interface,
     metric_prefix_for_ports,
     metric_prefix_for_device,
+    metric_prefix_for_sensors,
     metric_path_for_sensor,
     metric_path_for_prefix
 )
@@ -327,7 +328,7 @@ class Netbox(models.Model):
 
     def get_system_metrics(self):
         """Gets a list of available Graphite metrics related to this Netbox,
-        except for ports, which are seen as separate.
+        except for ports and sensors, which are seen as separate.
 
         :returns: A list of dicts describing the metrics, e.g.:
                   {id:"nav.devices.some-gw.cpu.cpu1.loadavg1min",
@@ -335,10 +336,11 @@ class Netbox(models.Model):
                    suffix="cpu1.loadavg1min"}
 
         """
-        exclude = metric_prefix_for_ports(self.sysname)
+        ports_exclude = metric_prefix_for_ports(self.sysname)
+        sensors_exclude = metric_prefix_for_sensors(self.sysname)
         base = metric_prefix_for_device(self.sysname)
 
-        nodes = get_all_leaves_below(base, [exclude])
+        nodes = get_all_leaves_below(base, [ports_exclude, sensors_exclude])
         result = []
         for node in nodes:
             suffix = node.replace(base + '.', '')
@@ -1847,6 +1849,14 @@ class Sensor(models.Model):
     name = VarcharField(db_column="name")
     internal_name = VarcharField(db_column="internal_name")
     mib = VarcharField(db_column="mib")
+    display_minimum_user = models.FloatField(db_column="display_minimum_user",
+                                             null=True)
+    display_maximum_user = models.FloatField(db_column="display_maximum_user",
+                                             null=True)
+    display_minimum_sys = models.FloatField(db_column="display_minimum_sys",
+                                            null=True)
+    display_maximum_sys = models.FloatField(db_column="display_maximum_sys",
+                                            null=True)
 
     class Meta(object):
         db_table = 'sensor'
@@ -1863,6 +1873,23 @@ class Sensor(models.Model):
     def get_graph_url(self, time_frame='1day'):
         return get_simple_graph_url([self.get_metric_name()],
                                     time_frame=time_frame)
+
+    def get_display_range(self):
+        minimum = 0
+        if self.display_minimum_user is not None:
+            minimum = self.display_minimum_user
+        elif self.display_minimum_sys is not None:
+            minimum = self.display_minimum_sys
+
+        maximum = 100
+        if self.display_maximum_user is not None:
+            maximum = self.display_maximum_user
+        elif self.display_maximum_sys is not None:
+            maximum = self.display_maximum_sys
+        elif self.unit_of_measurement == self.UNIT_CELSIUS:
+            maximum = 50
+
+        return (minimum, maximum)
 
     @property
     def normalized_unit(self):
@@ -1925,7 +1952,7 @@ class PowerSupplyOrFan(models.Model):
     def get_absolute_url(self):
         """Returns a canonical URL to view fan/psu status"""
         base = self.netbox.get_absolute_url()
-        return base + "#!powerfans"
+        return base + "#!sensors"
 
 
 class UnrecognizedNeighbor(models.Model):

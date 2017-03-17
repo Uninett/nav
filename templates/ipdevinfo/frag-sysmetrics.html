@@ -43,8 +43,7 @@
             <thead>
             <tr>
               <th>Metric</th>
-              <th>Threshold</th>
-              <th>&nbsp;</th>
+              <th><div class="right">Threshold</div></th>
             <tr>
             </thead>
 
@@ -55,25 +54,9 @@
                     <i class="fa fa-chevron-right"></i>&nbsp;{{ metric.suffix }}
                 </td>
                 <td>
-                  {% if metric.thresholds %}
-                    {% for rule in metric.thresholds %}
-                      <strong>
-                        <a href="{% url 'threshold-edit' rule.id %}"
-                           {% if rule.description %}title="{{ rule.description }}"{% endif %}>
-                          {{ rule.alert }}
-                        </a>
-                      </strong>{% if not forloop.last %},{% endif %}
-                    {% endfor %}
-                  {% else %}
-                    &ndash;
-                  {% endif %}
-                </td>
-                <td>
-                  <a href="{% url 'threshold-add' metric.id %}"
-                     title="Add a new threshold rule for this metric"
-                     class="tiny button secondary">
-                    Add
-                  </a>
+                  <div class="right">
+                    {% include "threshold/frag-thresholdlist.html" %}
+                  </div>
                 </td>
               </tr>
               <tr>

@@ -71,7 +71,8 @@ def add_threshold(request, metric=None):
         'form': form,
         'metric': metric,
         'title': title,
-        'navpath': navpath
+        'navpath': navpath,
+        'id': None,
     }
 
     return render(request, 'threshold/set_threshold.html', context)
@@ -100,7 +101,8 @@ def edit_threshold(request, rule_id):
         'form': form,
         'metric': metric,
         'title': title,
-        'navpath': navpath
+        'navpath': navpath,
+        'id': rule.id,
     }
     return render(request, 'threshold/set_threshold.html', context)
 

@@ -1,0 +1,44 @@
+<thead>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Threshold</th>
+        <th>Value</th>
+        <th>Unit</th>
+        <th></th>
+    </tr>
+</thead>
+
+<tbody>
+{% for metric in sensor_metrics %}
+    <tr>
+        {% with metric.sensor as sensor %}
+        <td><a title="See details about {{ sensor }}" href="{% url 'sensor-details' sensor.id %}">{{ sensor.name }}</a></td>
+        <td>{% if sensor.human_readable != sensor.name %}{{ sensor.human_readable }}{% endif %}</td>
+        <td>
+          <div class="right">
+            {% include "threshold/frag-thresholdlist.html" %}
+          </div>
+        </td>
+        <td>
+            <div class="right">
+              <span class="sensor-value" data-metric="{{sensor.get_metric_name}}"></span>&nbsp;
+              <a href="javascript:void(0)"
+                 id="graph-toggler-sensorstab-{{ forloop.counter }}"
+                 class="graph-toggler">
+                <i class="fa fa-area-chart" title="See values for last day"></i>
+              </a>
+            </div>
+        </td>
+        <td>{{sensor.data_scale|default:''}}{{sensor.unit_of_measurement}}</td>
+        <td>
+            <div class="graphitegraph hidden"
+                 data-url="{{ metric.graphite_data_url }}"
+                 data-handler-id="graph-toggler-sensorstab-{{ forloop.counter }}">
+                <div class="rickshaw-container"></div>
+            </div>
+        </td>
+        {% endwith %}
+    </tr>
+{% endfor %}
+</tbody>

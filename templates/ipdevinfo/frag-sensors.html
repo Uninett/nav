@@ -1,0 +1,45 @@
+<div id="sensors" class="multitable nav-metrics-container">
+
+  <div class="row">
+    <div class="large-6 column">
+      <h4>Power supplies</h4>
+      {% with netbox.get_powersupplies as psus %}
+      {% if psus|length %}
+      <table>
+        {% include "ipdevinfo/frag-psutable.html" %}
+      </table>
+      {% else %}
+      <span class="alert-box info">No powersupplies found.</span>
+      {% endif %}
+      {% endwith %}
+    </div>
+    <div class="large-6 column">
+      <h4>Fans</h4>
+      {% with netbox.get_fans as psus %}
+      {% if psus|length %}
+      <table>
+        {% include "ipdevinfo/frag-psutable.html" %}
+      </table>
+      {% else %}
+      <span class="alert-box info">No fans found.</span>
+      {% endif %}
+      {% endwith %}
+    </div>
+  </div>
+  <div class="row">
+    <div class="large-12 column">
+      <h4>Sensors</h4>
+      <a href="javascript:void(0);" class="all-graph-opener button secondary small">Show all graphs</a>
+      <a href="javascript:void(0);" class="all-graph-closer button secondary small">Hide all graphs</a>
+      {% with netbox.sensor_set.all as sensors %}
+      {% if sensors|length %}
+      <table>
+        {% include "ipdevinfo/frag-sensortable.html" %}
+      </table>
+      {% else %}
+      <span class="alert-box info">No sensors found.</span>
+      {% endif %}
+      {% endwith %}
+    </div>
+  </div>
+</div>

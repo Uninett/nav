@@ -22,7 +22,7 @@ from nav.web.ipdevinfo.views import (search, service_list, service_matrix,
                                      ipdev_details, module_details,
                                      port_details, get_port_view,
                                      render_affected, render_host_info,
-                                     port_counter_graph)
+                                     port_counter_graph, sensor_details)
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
@@ -73,4 +73,8 @@ urlpatterns = patterns('',
     # DNS
     url(r'hostinfo/(?P<identifier>.+)', render_host_info,
         name="ipdevinfo-hostinfo"),
+
+    # Sensors
+    url(r'sensor/(?P<identifier>.+)', sensor_details,
+        name="sensor-details"),
 )
