@@ -63,7 +63,7 @@ require([
 
     function getSensorData(metricMap, updateFunc) {
         var url = NAV.graphiteRenderUrl;
-        var request = $.getJSON(url,
+        var request = $.post(url,
             {
                 target: _.keys(metricMap),
                 format: 'json',
