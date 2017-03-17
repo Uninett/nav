@@ -289,7 +289,7 @@ class CommandProcessor(object):
             nargs='?', const=cpu_count(), metavar='WORKERS',
             help="Run ipdevpoll in a multiprocess setup. If WORKERS is not set "
             "it will default to number of cpus in the system")
-        opt("-T", "--max-jobs-per-worker", type=int, dest="max_jobs",
+        opt("-M", "--max-jobs-per-worker", type=int, dest="max_jobs",
             metavar="JOBS", help="Restart worker processes after completing "
             "JOBS jobs. (Default: Don't restart)")
         opt("-P", "--pidlog", action="store_true", dest="pidlog",
