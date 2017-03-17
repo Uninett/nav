@@ -1,0 +1,28 @@
+<h4>Add {{ sensortype }} to rack {{ rack.rackname }}</h4>
+
+{% if not sensors %}
+  <div class="alert-box">There are no {{ sensortype }}s to add</div>
+{% else %}
+
+  <div id="add-rackitem-tabs">
+    <ul>
+        <li aria-controls="sensortab"><a href="#sensortab">Sensor</a></li>
+        <li aria-controls="difftab"><a href="#difftab">Difference between sensors</a></li>
+        <li aria-controls="sumtab"><a href="#sumtab">Sum of sensors</a></li>
+    </ul>
+    <div class="tabs-content">
+        <section role="tabpanel" aria-hidden="false" class="content active" id="sensortab">
+            {% include 'info/room/fragment_add_sensor.html' %}
+        </section>
+        <section role="tabpanel" aria-hidden="true" class="content" id="difftab">
+          {% include 'info/room/fragment_add_sensorsdiff.html' %}
+        </section>
+        <section role="tabpanel" aria-hidden="true" class="content" id="sumtab">
+          {% include 'info/room/fragment_add_sensors_sum.html' %}
+        </section>
+        <section role="tabpanel" aria-hidden="true" class="content" id="panel2-4">
+            <h2>Fourth panel content goes here...</h2>
+        </section>
+    </div>
+  </div>
+{% endif %}

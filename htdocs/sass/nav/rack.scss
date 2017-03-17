@@ -1,0 +1,97 @@
+#racks-container {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#add-rackitem-tabs {
+    display: none;
+}
+
+#sensormodal { height: 500px; }
+
+.rack {
+    max-width: 240px;
+
+    margin-right: 1em;
+    form.rename-rack-form {
+        overflow: auto;
+        input {
+            margin-bottom: 0;
+        }
+    }
+
+    /* Edit-mode stuff */
+    .flex-when-noedit { display: flex; }
+    .block-when-edit { display: none; }
+    .inline-when-edit { display: none; }
+    &.editmode {
+        .flex-when-noedit { display: none; }
+        .block-when-edit { display: block; }
+        .inline-when-edit { display: inline; }
+        .rack-center { flex: 1; }
+    }
+
+    .fa {
+        &.fa-edit, &.fa-remove { cursor: pointer; }
+        &.fa-arrows { cursor: grab; }
+    }
+
+    button { margin-bottom: 0; }
+
+    &:hover .icon-container { opacity: 1; }
+    .icon-container {
+        opacity: .2;
+        margin-left: .5em;
+        i {
+            cursor: pointer;
+            font-size: 1rem;
+        }
+    }
+
+    /* Sortable */
+    .ui-sortable-helper { background-color: white; border: 1px solid black; }
+    .ui-sortable-placeholder { background-color: yellow; border: 1px solid black; }
+
+}
+
+
+.rack-heading, .rename-rack-form label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0;
+}
+
+
+.rack-body {
+    background-color: gainsboro;
+    border: 1px solid #aaaaaa;
+    display: flex;
+
+    padding: .3rem;
+
+    .rack-pdu {
+        height: 100%;
+        text-align: center;
+    }
+
+    .rack-center {
+        height: 100%;
+        max-width: 130px;
+        margin: 0 .5rem;
+        .rack-sensor {
+            padding-bottom: .3rem;
+            margin-bottom: .3rem;
+            &:not(:last-child) {
+                border-bottom: 1px solid #aaaaaa;
+            }
+        }
+
+    }
+
+    .rack-sensor {
+        .heading {
+            font-size: 0.9rem;
+        }
+    }
+}
