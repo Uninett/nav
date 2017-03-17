@@ -328,7 +328,7 @@ class Netbox(models.Model):
 
     def get_system_metrics(self):
         """Gets a list of available Graphite metrics related to this Netbox,
-        except for ports, which are seen as separate.
+        except for ports and sensors, which are seen as separate.
 
         :returns: A list of dicts describing the metrics, e.g.:
                   {id:"nav.devices.some-gw.cpu.cpu1.loadavg1min",
