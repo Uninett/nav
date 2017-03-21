@@ -197,6 +197,19 @@ require([
 
 
     /**
+     * Get min and max value for the item to display
+     */
+    function getMinMax(rackitem) {
+        try {
+            return rackitem.data('displayRange');
+        } catch (e) {
+            console.log('No minmax set for', rackitem);
+            return [0, 50];
+        }
+    }
+
+
+    /**
      * Updates all sensors in the metricMap.
      */
     function updateSensors(results, metricMap, updateFunc) {
@@ -206,21 +219,22 @@ require([
             var datapoints = resultMap[target];
             var value = round(datapoints ? getValue(datapoints) : null);
             var $element = $(document.getElementById(elementId));
-            updateFunc($element, value);
+            updateFunc($element, value, getMinMax($element));
         });
     }
 
 
     /** Update a sensor in the middle column (not PDU) */
-    function updateSensor($element, value) {
+    function updateSensor($element, value, minMax) {
         var unit = $element.data('unit') ? $element.data('unit').toLowerCase() : "";
         var unitIsKnown = _.has(unitMapping, unit);
         var textvalue = value === null ? 'NaN' : value + symbol(unit);
+        var min = minMax[0], max = minMax[1];
         $element.find('.textvalue').html(textvalue);
 
         if (unitIsKnown) {
             // Create sparkline if unit is known only
-            $element.find('.sparkline').sparkline([null, value, 50], {
+            $element.find('.sparkline').sparkline([null, value, max], {
                 type: 'bullet',
                 performanceColor: 'lightsteelblue',
                 rangeColors: ['#fff'],
@@ -236,7 +250,7 @@ require([
 
 
     /** Update a PDU sensor */
-    function updatePDU($element, value) {
+    function updatePDU($element, value, minMax) {
         var gaugeElement = $element.find('.pdu-gauge')[0];
 
         if ($.data(gaugeElement, 'gauge')) {
@@ -247,7 +261,7 @@ require([
                 precision: 2,
                 color: 'lightsteelblue',
                 height: 100,
-                max: 12
+                max: minMax[1]
             });
             gauge.update(value);
             $.data(gaugeElement, 'gauge', gauge);
@@ -287,7 +301,6 @@ require([
      * Updates a single rack
      */
     function updateRack($rack) {
-        console.log("updating rack %s", $rack.data('rackid'));
         getData(getMetrics($rack.find('.rack-body .rack-center')), updateSensor);
         getData(getMetrics($rack.find('.rack-body .rack-pdu')), updatePDU);
     }

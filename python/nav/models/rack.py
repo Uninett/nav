@@ -213,6 +213,13 @@ class BaseRackItem(object):
         """A short and consise description"""
         raise NotImplementedError
 
+    def get_display_range(self):
+        """Gets the range of values for this sensor
+
+        Is a list to simplify front-end usage
+        """
+        raise NotImplementedError
+
 
 class SensorRackItem(BaseRackItem):
     """A rackitem that display the value of a sensor"""
@@ -247,8 +254,7 @@ class SensorRackItem(BaseRackItem):
         return self.sensor.human_readable
 
     def get_display_range(self):
-        """Gets the range of values for this sensor"""
-        return self.sensor.get_display_range()
+        return list(self.sensor.get_display_range())
 
 
 class SensorsDiffRackItem(BaseRackItem):
@@ -296,8 +302,7 @@ class SensorsDiffRackItem(BaseRackItem):
                                 self.subtrahend.human_readable)
 
     def get_display_range(self):
-        """Gets the range of values for this sensor"""
-        return self.minuend.get_display_range()
+        return list(self.minuend.get_display_range())
 
 
 class SensorsSumRackItem(BaseRackItem):
@@ -338,7 +343,6 @@ class SensorsSumRackItem(BaseRackItem):
         return self._title
 
     def get_display_range(self):
-        """Gets the range of values for this sensor"""
-        return tuple(sum(r) for r in
-                     zip(*[s.get_display_range()
-                           for s in self.sensors]))
+        return [sum(r) for r in
+                zip(*[s.get_display_range()
+                      for s in self.sensors])]
