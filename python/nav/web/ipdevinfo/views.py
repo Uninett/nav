@@ -290,11 +290,12 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             graphite_error = True
 
         for sensor in netbox.sensor_set.all():
+            metric_id = sensor.get_metric_name()
             metric = {
-                'id': sensor.get_metric_name(),
+                'id': metric_id,
                 'sensor': sensor,
                 'graphite_data_url': Graph(
-                    magic_targets=[metric['id']], format='json'),
+                    magic_targets=[metric_id], format='json'),
             }
             sensor_metrics.append(metric)
         find_rules(sensor_metrics)
