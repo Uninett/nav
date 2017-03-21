@@ -25,6 +25,8 @@ from nav.models.manage import Room, Sensor
 
 
 class RackManager(models.Manager):
+    """A manager for the rack model"""
+
     def get_all_sensor_pks_in_room(self, room):
         """Returns an exhaustive list of the primary keys of sensors added to
         all racks in the given room.
@@ -59,6 +61,11 @@ class Rack(models.Model):
 
     @property
     def configuration(self):
+        """Gets (and sets) the rackitem configuration for this rack
+
+        The rack item configuration is stored as JSONB, and is returned as a
+        dict by psycopg.
+        """
         if self.__configuration is None:
             if self._configuration is None:
                 self._configuration = {}
@@ -84,14 +91,17 @@ class Rack(models.Model):
 
     @property
     def left_column(self):
+        """Gets all rackitems in the left column"""
         return self._column('left')
 
     @property
     def right_column(self):
+        """Gets all rackitems in the right column"""
         return self._column('right')
 
     @property
     def center_column(self):
+        """Gets all rackitems in the center column"""
         return self._column('center')
 
     def add_left_item(self, item):
@@ -144,6 +154,7 @@ class Rack(models.Model):
 
 
 def rack_decoder(obj):
+    """Instantiates the correct object based on __type__ internal"""
     if '__type__' in obj:
         if obj['__type__'] == 'SensorRackItem':
             return SensorRackItem(**obj)
@@ -155,6 +166,7 @@ def rack_decoder(obj):
 
 
 class RackEncoder(json.JSONEncoder):
+    """TODO: Write doc"""
     def default(self, obj):
         if isinstance(obj, BaseRackItem):
             return obj.to_json()
@@ -163,32 +175,48 @@ class RackEncoder(json.JSONEncoder):
 
 
 class BaseRackItem(object):
+    """The super class for rack items
+
+    This class should never be used directly
+    """
+
     def __init__(self, id=None, **kwargs):
         self.id = id
 
     def to_json(self):
+        """TODO: Not really to_json is it?"""
         return {
             '__type__': self.__class__.__name__,
             'id': self.id,
         }
 
     def title(self):
-        return "Title"
+        """A possible long description"""
+        return self.human_readable
 
     def get_metric(self):
-        return ""
+        """Returns the metric used for getting the values"""
+        raise NotImplementedError
 
     def unit_of_measurement(self):
-        return "SI"
+        """Returns the unit of measurement
+
+        :rtype: str
+        """
+        raise NotImplementedError
 
     def get_absolute_url(self):
-        return "https://example.com"
+        """Returns the linktarget"""
+        pass
 
     def human_readable(self):
-        return "A proper description"
+        """A short and consise description"""
+        raise NotImplementedError
 
 
 class SensorRackItem(BaseRackItem):
+    """A rackitem that display the value of a sensor"""
+
     def __init__(self, sensor, **kwargs):
         super(SensorRackItem, self).__init__(**kwargs)
         self.sensor = sensor
@@ -218,8 +246,14 @@ class SensorRackItem(BaseRackItem):
     def human_readable(self):
         return self.sensor.human_readable
 
+    def get_display_range(self):
+        """Gets the range of values for this sensor"""
+        return self.sensor.get_display_range()
+
 
 class SensorsDiffRackItem(BaseRackItem):
+    """A rackitem that display the difference of two sensors"""
+
     def __init__(self, minuend, subtrahend, **kwargs):
         super(SensorsDiffRackItem, self).__init__(**kwargs)
         self.minuend = minuend
@@ -261,8 +295,14 @@ class SensorsDiffRackItem(BaseRackItem):
         return "{} - {}".format(self.minuend.human_readable,
                                 self.subtrahend.human_readable)
 
+    def get_display_range(self):
+        """Gets the range of values for this sensor"""
+        return self.minuend.get_display_range()
+
 
 class SensorsSumRackItem(BaseRackItem):
+    """A rackitem that display the sum of several sensors"""
+
     def __init__(self, title, sensors, **kwargs):
         super(SensorsSumRackItem, self).__init__(**kwargs)
         self.sensors = sensors
@@ -296,3 +336,9 @@ class SensorsSumRackItem(BaseRackItem):
 
     def human_readable(self):
         return self._title
+
+    def get_display_range(self):
+        """Gets the range of values for this sensor"""
+        return tuple(sum(r) for r in
+                     zip(*[s.get_display_range()
+                           for s in self.sensors]))
