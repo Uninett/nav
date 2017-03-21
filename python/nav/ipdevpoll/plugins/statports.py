@@ -17,6 +17,7 @@
 import time
 from twisted.internet import defer
 from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import db
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_path_for_interface
 from nav.mibs import reduce_index
@@ -71,9 +72,15 @@ class StatPorts(Plugin):
 
     @defer.inlineCallbacks
     def handle(self):
+        if self.netbox.master:
+            yield db.run_in_thread(self._log_instance_details)
+            defer.returnValue(None)
+
         timestamp = time.time()
         stats = yield self._get_stats()
-        tuples = list(self._make_metrics(stats, timestamp))
+        netboxes = yield db.run_in_thread(self._get_netbox_list)
+        tuples = list(self._make_metrics(stats, netboxes=netboxes,
+                                         timestamp=timestamp))
         if tuples:
             self._logger.debug("Counters collected")
             send_metrics(tuples)
@@ -95,7 +102,7 @@ class StatPorts(Plugin):
 
         defer.returnValue(stats)
 
-    def _make_metrics(self, stats, timestamp=None):
+    def _make_metrics(self, stats, netboxes, timestamp=None):
         timestamp = timestamp or time.time()
         hc_counters = False
 
@@ -104,17 +111,43 @@ class StatPorts(Plugin):
             for key in LOGGED_COUNTERS:
                 if key not in row:
                     continue
-                path = metric_path_for_interface(
-                    self.netbox, row['ifName'] or row['ifDescr'], key)
                 value = row[key]
                 if value is not None:
-                    yield (path, (timestamp, value))
+                    for netbox in netboxes:
+                        # duplicate metrics for all involved netboxes
+                        path = metric_path_for_interface(
+                            netbox, row['ifName'] or row['ifDescr'], key)
+                        yield (path, (timestamp, value))
 
         if stats:
             if hc_counters:
                 self._logger.debug("High Capacity counters used")
             else:
                 self._logger.debug("High Capacity counters NOT used")
+
+    def _get_netbox_list(self):
+        """Returns a list of netbox names to make metrics for. Will return just
+        the one netbox in most instances, but for situations with multiple
+        virtual device contexts, all the subdevices will be returned.
+
+        """
+        netboxes = [self.netbox.sysname]
+        instances = self.netbox.instances.values_list('sysname', flat=True)
+        netboxes.extend(instances)
+        self._logger.debug("duplicating metrics for these netboxes: %s",
+                           netboxes)
+        return netboxes
+
+    def _log_instance_details(self):
+        netbox = self.netbox
+
+        my_ifcs = netbox.interface_set.values_list('ifname', flat=True)
+        masters_ifcs = netbox.master.interface_set.values_list('ifname',
+                                                               flat=True)
+        local_ifcs = set(masters_ifcs) - set(my_ifcs)
+
+        self._logger.debug("local interfaces (that do not exist on master "
+                           "%s): %r", self.netbox.master, local_ifcs)
 
 
 def use_hc_counters(row):
