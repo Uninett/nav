@@ -55,7 +55,7 @@ class Rack(models.Model):
         db_table = 'rack'
 
     def __unicode__(self):
-        return "Rack %r in %r" % (self.rackname or self.id, self.room)
+        return "'{}' in {}".format(self.rackname or self.id, self.room.pk)
 
     @property
     def configuration(self):
