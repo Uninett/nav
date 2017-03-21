@@ -99,8 +99,10 @@ class Netbox(models.Model):
     up_since = models.DateTimeField(db_column='upsince', auto_now_add=True)
     up_to_date = models.BooleanField(db_column='uptodate', default=False)
     discovered = models.DateTimeField(auto_now_add=True)
-
     deleted_at = models.DateTimeField(blank=True, null=True, default=None)
+    master = models.ForeignKey('Netbox', db_column='masterid', null=True,
+                               blank=True, default=None,
+                               related_name='instances')
 
     data = hstore.DictionaryField()
     objects = hstore.HStoreManager()
