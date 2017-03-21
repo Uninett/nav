@@ -353,20 +353,10 @@ def rename_rack(request, roomid, rackid):
 def render_racks(request, roomid):
     """Gets the racks for this room"""
     room = get_object_or_404(Room, pk=roomid)
-    pdusensors = Sensor.objects.filter(
-        netbox__room=room,
-        netbox__category='POWER',
-        internal_name__startswith='rPDULoadStatusLoad'
-    ).select_related('netbox')
-
-    sensors = Sensor.objects.filter(
-        netbox__room=room).exclude(pk__in=pdusensors).select_related('netbox')
 
     context = {
         'room': room,
-        'racks': room.rack_set.all().order_by('ordering'),
-        'pdus': pdusensors,
-        'sensors': sensors
+        'racks': room.rack_set.all().order_by('ordering')
     }
     return render(request, 'info/room/roominfo_racks.html', context)
 
