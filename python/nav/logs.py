@@ -29,6 +29,20 @@ LOGGING_CONF_FILE_DEFAULT = os.path.join(nav.path.sysconfdir, 'logging.conf')
 _logger = logging.getLogger(__name__)
 
 
+def convert_debug_level_to_loglevel(debug_level):
+    loglevels_to_logginglevels_map = {
+        0: logging.CRITICAL,
+        1: logging.CRITICAL,
+        2: logging.CRITICAL,
+        3: logging.ERROR,
+        4: logging.WARNING,
+        5: logging.INFO,
+        6: logging.INFO,
+        7: logging.DEBUG,
+    }
+    return loglevels_to_logginglevels_map[debug_level]
+
+
 def set_log_config():
     """Set log levels and custom log files"""
     set_log_levels()
