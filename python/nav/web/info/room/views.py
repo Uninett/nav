@@ -30,6 +30,7 @@ from django.shortcuts import (render_to_response, redirect, get_object_or_404,
 from django.template import RequestContext
 from django.contrib import messages
 
+from nav.django.decorators import require_admin
 from nav.django.utils import get_account
 
 from nav.models.manage import Room, Sensor
@@ -324,6 +325,7 @@ def create_rack(room, rackname):
     return rack
 
 
+@require_admin
 def add_rack(request, roomid):
     """Adds a new rack to a room"""
     room = get_object_or_404(Room, pk=roomid)
@@ -334,13 +336,15 @@ def add_rack(request, roomid):
     })
 
 
+@require_admin
 def remove_rack(request, roomid):
-    """Adds a new rack to a room"""
+    """Deletes a rack"""
     rack = get_object_or_404(Rack, pk=request.POST.get('rackid'))
     rack.delete()
     return HttpResponse()
 
 
+@require_admin
 def rename_rack(request, roomid, rackid):
     """Renames a rack"""
     rack = get_object_or_404(Rack, pk=rackid)
@@ -361,7 +365,9 @@ def render_racks(request, roomid):
     return render(request, 'info/room/roominfo_racks.html', context)
 
 
+@require_admin
 def render_add_sensor(request, roomid):
+    """Controller for rendering the add sensor template"""
     rackid = request.POST.get('rackid')
     column = request.POST.get('column')
     is_pdu = request.POST.get('is_pdu') == 'true'
@@ -399,6 +405,7 @@ def render_add_sensor(request, roomid):
     })
 
 
+@require_admin
 def save_sensor(request, roomid):
     rackid = request.POST.get('rackid')
     column = int(request.POST.get('column'))
@@ -443,6 +450,7 @@ def save_sensor(request, roomid):
         return HttpResponse(error, status=500)
 
 
+@require_admin
 def save_sensor_order(request, roomid):
     """Saves the sensor order for the given racksensors"""
     rackid = request.POST.get('rackid')
@@ -459,6 +467,7 @@ def save_sensor_order(request, roomid):
     return HttpResponse()
 
 
+@require_admin
 def save_rack_order(request, roomid):
     """Saves the rack order for the given racks"""
     for index, rackid in enumerate(request.POST.getlist('rack[]')):
@@ -469,6 +478,7 @@ def save_rack_order(request, roomid):
     return HttpResponse()
 
 
+@require_admin
 def remove_sensor(request, roomid):
     """Remove a sensor from a rack"""
     rackid = request.POST.get('rackid')

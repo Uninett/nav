@@ -40,9 +40,11 @@
     {% include 'info/room/fragment_rack.html' %}
   {% endfor %}
 
-  <div id="add-rack-button-container">
-    <h5 class="rack-heading">&nbsp;</h5>
-    <a class="button small" data-reveal-id="rackmodal">Add a rack</a>
-  </div>
+  {% if current_user_data.is_admin %}
+    <div id="add-rack-button-container">
+      <h5 class="rack-heading">&nbsp;</h5>
+      <a class="button small" data-reveal-id="rackmodal">Add a rack</a>
+    </div>
+  {% endif %}
 
 </div>
