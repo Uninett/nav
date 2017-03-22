@@ -45,9 +45,9 @@ run_pytests() {
     export TARGETURL=http://$TARGETHOST:$APACHE_PORT/
 
     cd "${WORKSPACE}/tests"
-    py.test --junitxml=unit-results.xml --verbose unittests
-    py.test --junitxml=integration-results.xml --verbose integration
-    py.test --junitxml=functional-results.xml \
+    py.test --disable-pytest-warnings --junitxml=unit-results.xml --verbose unittests
+    py.test --disable-pytest-warnings --junitxml=integration-results.xml --verbose integration
+    py.test --disable-pytest-warnings --junitxml=functional-results.xml \
 	    --verbose \
 	    --driver Firefox \
 	    --base-url "$TARGETURL" \
