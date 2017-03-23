@@ -79,6 +79,7 @@ class IPDevPollProcess(object):
         self._logger = logging.getLogger('nav.ipdevpoll')
         self._shutdown_start_time = 0
         self.job_loggers = []
+        self.reloaders = []
 
     def run(self):
         """Loads plugins, and initiates polling schedules."""
@@ -87,7 +88,8 @@ class IPDevPollProcess(object):
         if self.options.netbox:
             self.setup_single_job()
         elif self.options.multiprocess:
-            self.setup_multiprocess(self.options.multiprocess)
+            self.setup_multiprocess(self.options.multiprocess,
+                                    self.options.max_jobs)
         elif self.options.worker:
             self.setup_worker()
         else:
@@ -104,6 +106,7 @@ class IPDevPollProcess(object):
         signal.signal(signal.SIGTERM, self.sigterm_handler)
         signal.signal(signal.SIGINT, self.sigterm_handler)
         signal.signal(signal.SIGUSR1, self.sigusr1_handler)
+        signal.signal(signal.SIGUSR2, self.sigusr2_handler)
 
     def setup_scheduling(self):
         "Sets up regular job scheduling according to config"
@@ -124,6 +127,11 @@ class IPDevPollProcess(object):
 
         self.job_loggers.append(log_scheduler_jobs)
 
+        def reload_netboxes():
+            JobScheduler.reload()
+
+        self.reloaders.append(reload_netboxes)
+
     def setup_worker(self):
         "Sets up a worker process"
         # NOTE: This is locally imported because it will in turn import
@@ -136,7 +144,7 @@ class IPDevPollProcess(object):
 
         def init():
             handler = pool.initialize_worker()
-            self.job_loggers.append(handler.log_tasks)
+            self.job_loggers.append(handler.log_jobs)
 
         reactor.callWhenRunning(init)
 
@@ -167,11 +175,12 @@ class IPDevPollProcess(object):
                           self.options.onlyjob, self.options.netbox)
         reactor.callWhenRunning(_run_job)
 
-    def setup_multiprocess(self, process_count):
+    def setup_multiprocess(self, process_count, max_jobs):
         self._logger.info("Starting multi-process setup")
         from .schedule import JobScheduler
         plugins.import_plugins()
         self.work_pool = pool.WorkerPool(process_count,
+                                         max_jobs,
                                          self.options.threadpoolsize)
         reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run,
                                 self.work_pool, self.options.onlyjob)
@@ -181,6 +190,11 @@ class IPDevPollProcess(object):
 
         self.job_loggers.append(log_scheduler_jobs)
         self.job_loggers.append(self.work_pool.log_summary)
+
+        def reload_netboxes():
+            JobScheduler.reload()
+
+        self.reloaders.append(reload_netboxes)
 
     def sighup_handler(self, _signum, _frame):
         """Reopens log files."""
@@ -203,6 +217,12 @@ class IPDevPollProcess(object):
         self._logger.info("SIGUSR1 received: Logging active jobs")
         for logger in self.job_loggers:
             logger()
+
+    def sigusr2_handler(self, _signum, _frame):
+        "Reload boxes from database"
+        self._logger.info("SIGUSR2 received: Reloading netboxes")
+        for reloader in self.reloaders:
+            reloader()
 
     def shutdown(self):
         """Initiates a shutdown sequence"""
@@ -262,13 +282,16 @@ class CommandProcessor(object):
         opt("-p", "--list-plugins", action="store_true",
             help="load and print a list of configured plugins")
         opt("-J", action="store", dest="onlyjob", choices=self._joblist(),
-            metavar="JOBNAME", help="run only JOBNAME in this process")
+            metavar="JOBNAME", help="run only JOBNAME jobs in this process")
         opt("-n", "--netbox", action=NetboxAction, metavar="NETBOX",
             help="Run JOBNAME once for NETBOX. Also implies -f and -s options.")
         opt("-m", "--multiprocess", type=int, dest="multiprocess",
             nargs='?', const=cpu_count(), metavar='WORKERS',
             help="Run ipdevpoll in a multiprocess setup. If WORKERS is not set "
             "it will default to number of cpus in the system")
+        opt("-M", "--max-jobs-per-worker", type=int, dest="max_jobs",
+            metavar="JOBS", help="Restart worker processes after completing "
+            "JOBS jobs. (Default: Don't restart)")
         opt("-P", "--pidlog", action="store_true", dest="pidlog",
             help="Include process ID in every log line")
         opt("--capture-vars", action="store_true", dest="capture_vars",

@@ -70,7 +70,7 @@ class NetboxJobScheduler(object):
         self._last_job_started_at = 0
         self.running = False
         self._start_time = None
-        self._current_task = None
+        self._current_job = None
 
     def get_current_runtime(self):
         """Returns time elapsed since the start of the job as a timedelta."""
@@ -106,9 +106,9 @@ class NetboxJobScheduler(object):
         self._deferred.callback(self)
 
     def cancel_running_job(self):
-        if self._current_task:
-            self._logger.debug('Cancelling running task')
-            self.pool.cancel(self._current_task)
+        if self._current_job:
+            self._logger.debug('Cancelling running job')
+            self.pool.cancel(self._current_job)
 
     def run_job(self, dummy=None):
         if self.is_running():
@@ -132,10 +132,10 @@ class NetboxJobScheduler(object):
         # We're ok to start a polling run.
         try:
             self._start_time = datetime.datetime.now()
-            deferred = self.pool.perform_task(self.job.name, self.netbox.id,
-                                              plugins=self.job.plugins,
-                                              interval=self.job.interval)
-            self._current_task = deferred
+            deferred = self.pool.execute_job(self.job.name, self.netbox.id,
+                                             plugins=self.job.plugins,
+                                             interval=self.job.interval)
+            self._current_job = deferred
         except Exception:
             self._log_unhandled_error(Failure())
             self.reschedule(60)
@@ -264,7 +264,7 @@ class NetboxJobScheduler(object):
         current_count -= 1
         self.__class__.job_counters[self.job.name] = max(current_count, 0)
         self.running = False
-        self._current_task = None
+        self._current_job = None
 
     def get_job_count(self):
         return self.__class__.job_counters.get(self.job.name, 0)
@@ -415,6 +415,12 @@ class JobScheduler(object):
         scheduler = self.active_netboxes[netbox_id]
         scheduler.cancel()
         del self.active_netboxes[netbox_id]
+
+    @classmethod
+    def reload(cls):
+        """Reload netboxes for all jobs"""
+        for scheduler in cls.active_schedulers:
+            scheduler._reload_netboxes()
 
     @classmethod
     def log_active_jobs(cls, level=logging.DEBUG):
