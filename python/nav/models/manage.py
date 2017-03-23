@@ -1889,7 +1889,7 @@ class Sensor(models.Model):
         elif self.unit_of_measurement == self.UNIT_CELSIUS:
             maximum = 50
 
-        return (minimum, maximum)
+        return [minimum, maximum]
 
     @property
     def normalized_unit(self):

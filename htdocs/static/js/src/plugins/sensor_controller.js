@@ -12,19 +12,28 @@ define(function(require) {
         this.unit = this.$node.attr('data-unit');
         this.sensorid = this.$node.attr('data-sensorid');
         this.sensorname = this.$node.attr('data-sensorname');
+        this.displayRange = this.$node.data('displayRange');
         this.dashboardUrl = this.$node.attr('data-dashboard_url') || '';
         this.showGraph = ! _.contains([false, 'False', 'false', 0, '0'], this.$node.data('showGraph'));
         this.thresholds = this.parseThresholds();
 
         this.displayGauge = true;
-        if (this.unit.toLowerCase() === 'percent' || this.unit.substr(0, 1) === '%') {
-            this.maxValue = 100;  // Max value for graphs and gauges
-            this.sensorsymbol = '%';
-        } else if (['celsius', 'degrees'].indexOf(this.unit.toLowerCase()) >= 0) {
-            this.maxValue = 50;  // Max value for graphs and gauges
-            this.sensorsymbol = '\u00B0';
+        this.minValue = null;
+        this.maxValue = null;
+        if (this.displayRange) {
+            this.minValue = this.displayRange[0];
+            this.maxValue = this.displayRange[1];
         } else {
-            this.displayGauge = false;
+            if (this.unit.toLowerCase() === 'percent' || this.unit.substr(0, 1) === '%') {
+                this.maxValue = 100;  // Max value for graphs and gauges
+                this.sensorsymbol = '%';
+            } else if (['celsius', 'degrees'].indexOf(this.unit.toLowerCase()) >= 0) {
+                this.maxValue = 50;  // Max value for graphs and gauges
+                this.sensorsymbol = '\u00B0';
+            } else {
+                this.displayGauge = false;
+            }
+
         }
 
         var $html = this.render(templates.sensorTemplate);
@@ -93,7 +102,6 @@ define(function(require) {
         },
         loadData: function () {
             var self = this;
-            var minimumValue = 0;
             $.getJSON(this.url, function (data) {
                 if (data && data.length) {
                     var datapoints = data[0].datapoints.map(function (point) {
@@ -103,28 +111,25 @@ define(function(require) {
                         };
                     });
                     var last = datapoints[datapoints.length - 1].y || datapoints[datapoints.length - 2].y;
-                    if (!self.current) {  // Calculate minimum only if no graph has been made.
-                        minimumValue = getMinimumValue(datapoints);
-                    }
 
-                    self.updateCurrent(last, minimumValue);
+                    self.updateCurrent(last);
                     if (self.showGraph) {
                         self.updateGraph(datapoints);
                     }
                 }
             });
         },
-        updateCurrent: function (value, minimum) {
+        updateCurrent: function (value) {
             if (!this.current) {
-                this.current = this.createCurrent(value, minimum);
+                this.current = this.createCurrent(value);
             }
             this.current.refresh(value);
         },
-        createCurrent: function (value, minimum) {
+        createCurrent: function (value) {
             if (this.displayGauge) {
                 return new JohnGauge({
                     node: this.currentNode.get(0),
-                    min: minimum < 0 ? -25 : 0,
+                    min: this.minValue === null ? 0 : this.minValue,
                     value: value,
                     max: this.maxValue,
                     thresholds: this.thresholds,
@@ -196,15 +201,6 @@ define(function(require) {
             return graph;
         }
     };
-
-    /** Get minimum value of an array of datapoints (y=value), skipping NaNs and nulls*/
-    function getMinimumValue(datapoints) {
-        return Math.min.apply(null, datapoints.map(function (point) {
-            return point.y;
-        }).filter(function (value) {
-            return value !== null && !isNaN(value);
-        }));
-    }
 
     return SensorController;
 
