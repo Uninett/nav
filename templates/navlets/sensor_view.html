@@ -12,6 +12,7 @@
          data-sensorname="{{ sensor.human_readable }}"
          data-thresholds="{{ sensor.get_metric_name|find_thresholds }}"
          data-show-graph="{{ navlet.preferences.show_graph }}"
+         data-display-range="{{ sensor.get_display_range }}"
          >
     </div>
 
