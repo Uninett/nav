@@ -37,7 +37,7 @@
   </form>
 
   {# Body contains the sensors #}
-  <div class="rack-body">
+  <div class="rack-body {{ rack.configuration.body_class }}">
 
     <div class="rack-left rack-pdu rack-column">
       {% with 0 as column %}
@@ -83,6 +83,25 @@
       {% endwith %}
     </div>
 
+  </div>
+
+  {# Form for choosing background color on the rack body #}
+  <div class="block-when-edit">
+    <h6>Set background color</h6>
+    <form class="color-chooser">
+      {% for color_class in color_classes %}
+        <label>
+          <span class="color-indicator {{ color_class }}"></span>
+          <input type="radio"
+                 name="rack-color"
+                 value="{{ color_class }}"
+                 {% if rack.configuration.body_class == color_class %}
+                 checked
+                 {% endif %}
+          >
+        </label>
+      {% endfor %}
+    </form>
   </div>
 
   <button class="full-width small block-when-edit close-edit-rack">Close edit mode</button>

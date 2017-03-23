@@ -444,6 +444,28 @@ require([
     }
 
 
+    function addColorChooser() {
+        $('#racks-container').on('change', 'form.color-chooser', function(event) {
+            var classes = _.map(this.querySelectorAll("input[type=radio]"), function(element) {
+                return element.value;
+            }).join(' ');
+
+            var $radio = $(event.target),
+                html_class = $radio.val(),
+                rackid = $radio.closest('.rack').data('rackid');
+
+            $.post(NAV.urls.save_rack_color, {
+                rackid: rackid,
+                class: html_class
+            }).done(function() {
+                $radio.closest('.rack').find('.rack-body').removeClass(classes).addClass(html_class);
+            }).fail(function() {
+                console.error('Failed updating html class');
+            });
+        });
+    }
+
+
     /**
      * Runs on page load. Setup page
      */
@@ -468,6 +490,8 @@ require([
 
         addRackSort();
         addSensorSort();
+
+        addColorChooser();
 
         // Start updating racks with data
         updateRacks();

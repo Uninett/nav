@@ -10,7 +10,18 @@
 #sensormodal { height: 500px; }
 
 .rack {
+    /* Set a stronger link color due to dynamic background colors */
+    a { color: #1565c0 }
+
     max-width: 240px;
+
+    .color-chooser {
+        .color-indicator {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+        }
+    }
 
     margin-right: 1em;
     form.rename-rack-form {
@@ -63,8 +74,21 @@
 }
 
 
+.color-chooser {
+    display: flex;
+    justify-content: space-between;
+}
+
+.rack-body, .color-chooser .color-indicator {
+    &.bg1 { background-color: #E0E0E0; }
+    &.bg2 { background-color: #FFE0B2; }
+    &.bg3 { background-color: #C8E6C9; }
+    &.bg4 { background-color: #B3E5FC; }
+    &.bg5 { background-color: #E3DBF2; }
+}
+
 .rack-body {
-    background-color: gainsboro;
+    background-color: #E0E0E0;
     border: 1px solid #aaaaaa;
     display: flex;
 

@@ -357,10 +357,12 @@ def rename_rack(request, roomid, rackid):
 def render_racks(request, roomid):
     """Gets the racks for this room"""
     room = get_object_or_404(Room, pk=roomid)
+    background_color_classes = ['bg1', 'bg2', 'bg3', 'bg4', 'bg5']
 
     context = {
         'room': room,
-        'racks': room.rack_set.all().order_by('ordering')
+        'racks': room.rack_set.all().order_by('ordering'),
+        'color_classes': background_color_classes
     }
     return render(request, 'info/room/roominfo_racks.html', context)
 
@@ -475,6 +477,17 @@ def save_rack_order(request, roomid):
         rack.ordering = index
         rack.save()
 
+    return HttpResponse()
+
+
+@require_admin
+def save_rack_color(request, roomid):
+    """Saves the background color for the rack as a class"""
+    _room = get_object_or_404(Room, pk=roomid)
+    rackid = request.POST.get('rackid')
+    rack = get_object_or_404(Rack, pk=rackid)
+    rack.configuration['body_class'] = request.POST.get('class')
+    rack.save()
     return HttpResponse()
 
 
