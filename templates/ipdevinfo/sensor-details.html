@@ -1,6 +1,21 @@
 {% extends "ipdevinfo/base.html" %}
 {% load thresholds %}
 
+
+{% block base_header_additional_head %}
+  {{ block.super }}
+  <style>
+   #gauge-wrapper {
+       display: flex;
+       align-items: flex-end;
+   }
+   #gauge-wrapper button {
+       margin-left: 1em;
+       margin-bottom: 0;
+   }
+  </style>
+{% endblock %}
+
 {% block footer_scripts %}
 <script>
  require([
@@ -25,6 +40,18 @@
              symbol: ' ',
              unit: "{{sensor.unit_of_measurement}}",
              thresholds: thresholds,
+         });
+
+         $('#add-to-dashboard-button').on('click', function (event) {
+             event.preventDefault();
+             var $button = $(this);
+             var request = $.post($button.data('dashboardUrl'));
+             request.done(function() {
+                 $button.removeClass('secondary').addClass('success');
+             });
+             request.fail(function() {
+                 $button.removeClass('secondary').addClass('failure');
+             });
          });
      });
  });
@@ -78,18 +105,24 @@
     </div>
     <div class="large-6 column">
       <h4>Gauge display ranges</h4>
-      <div class="sensor-gauge"
-           data-url="{{ sensor.get_graph_url }}"
-           data-unit="{{ sensor.normalized_unit }}"
-           data-sensorid="{{ sensor.id }}"
-           data-sensorname="{{ sensor.human_readable }}"
-           data-dashboard_url="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}"
-           data-thresholds="{{ sensor.get_metric_name|find_thresholds }}"
-      ></div>
+      <div id="gauge-wrapper">
+        <div class="sensor-gauge"
+             data-url="{{ sensor.get_graph_url }}"
+             data-unit="{{ sensor.normalized_unit }}"
+             data-sensorid="{{ sensor.id }}"
+             data-sensorname="{{ sensor.human_readable }}"
+             data-thresholds="{{ sensor.get_metric_name|find_thresholds }}"
+        ></div>
+        <button id="add-to-dashboard-button"
+                class="tiny secondary"
+                data-dashboard-url="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}">
+          Add to dashboard
+        </button>
+      </div>
       <form method="post">
         {% csrf_token %}
         {{ form }}
-        <button type="submit" class="button">Update range</button>
+        <button type="submit" class="button small">Update range</button>
       </form>
     </div>
   </div>
