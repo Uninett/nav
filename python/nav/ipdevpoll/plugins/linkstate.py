@@ -28,6 +28,11 @@ class LinkState(Plugin):
 
     @inlineCallbacks
     def handle(self):
+        if self.netbox.master:
+            self._logger.debug("this is a virtual instance of %s, not polling",
+                               self.netbox.master)
+            returnValue(None)
+
         ifmib = IfMib(self.agent)
         result = yield ifmib.retrieve_columns(
             ['ifName', 'ifAdminStatus', 'ifOperStatus']).addCallback(
