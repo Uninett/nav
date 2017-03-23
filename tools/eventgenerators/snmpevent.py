@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
-# Copyright (C) 2007, 2012 UNINETT AS
+# Copyright (C) 2007, 2012, 2017 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -28,9 +28,9 @@ database = connection.cursor()
 
 def handler(nblist, state):
 
-    for deviceid, netboxid in nblist:
+    for netboxid in nblist:
 
-        e = Event('ipdevpoll', 'eventEngine', deviceid, netboxid,
+        e = Event('ipdevpoll', 'eventEngine', netboxid=netboxid,
                   eventtypeid='snmpAgentState', state=state, severity=100)
         e['alerttype'] = 'snmpAgentDown' if state == 's' else 'snmpAgentUp'
         e.post()
@@ -45,7 +45,7 @@ nbdup = set()
 sysnames = []
 
 for ii in range(1, len(sys.argv)-1):
-    sql = "SELECT deviceid,netboxid,sysname,typeid FROM netbox JOIN room USING(roomid) WHERE ip IS NOT NULL";
+    sql = "SELECT netboxid,sysname,typeid FROM netbox JOIN room USING(roomid) WHERE ip IS NOT NULL";
     qn = sys.argv[ii]
     if (qn.startswith("_") or qn.startswith("-") or qn.startswith("%") or qn.find(",") >= 0):
         if (qn.startswith("-")):
@@ -68,9 +68,9 @@ for ii in range(1, len(sys.argv)-1):
         sql += " AND sysname LIKE '"+qn+"'"
 
     database.execute(sql)
-    for deviceid, netboxid, sysname, typeid in database.fetchall():
+    for netboxid, sysname, typeid in database.fetchall():
         if not netboxid in nbdup:
-            nb.append(((deviceid, netboxid)))
+            nb.append(netboxid)
             sysnames.append(sysname)
         nbdup.add(netboxid)
 
