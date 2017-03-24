@@ -127,6 +127,7 @@ class NetboxModelForm(forms.ModelForm):
                              'data',
                              HTML("<a class='advanced-toggle'><i class='fa fa-caret-square-o-right'>&nbsp;</i>Advanced options</a>"),
                              Div(
+                                 HTML('<small class="alert-box">NB: An IP Device cannot both have a master and have virtual instances</small>'),
                                  'master', 'virtual_instance',
                                  css_class='advanced'
                              )
@@ -138,30 +139,23 @@ class NetboxModelForm(forms.ModelForm):
 
     def create_instance_query(self, masters):
         """Creates query for virtual instance multiselect"""
-        if self.instance.master:
-            # If we have a master, we should not be able to master instances
-            queryset = Netbox.objects.none()
-        else:
-            # - Should not see other masters
-            # - Should see those we are master for
-            # - Should see those who have no master
-            queryset = Netbox.objects.exclude(pk__in=masters).filter(
-                Q(master=self.instance.pk) | Q(master__isnull=True))
+        # - Should not see other masters
+        # - Should see those we are master for
+        # - Should see those who have no master
+        queryset = Netbox.objects.exclude(pk__in=masters).filter(
+            Q(master=self.instance.pk) | Q(master__isnull=True))
 
-            if self.instance.pk:
-                queryset = queryset.exclude(pk=self.instance.pk)
+        if self.instance.pk:
+            queryset = queryset.exclude(pk=self.instance.pk)
 
         return queryset
 
     def create_master_query(self, masters):
         """Creates query for master dropdown list"""
-        if self.instance and self.instance.pk in masters:
-            queryset = Netbox.objects.none()
-        else:
-            # - Should not set those who have master as master
-            queryset = Netbox.objects.filter(master__isnull=True)
-            if self.instance.pk:
-                queryset = queryset.exclude(pk=self.instance.pk)
+        # - Should not set those who have master as master
+        queryset = Netbox.objects.filter(master__isnull=True)
+        if self.instance.pk:
+            queryset = queryset.exclude(pk=self.instance.pk)
 
         return queryset
 
