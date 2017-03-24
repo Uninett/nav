@@ -55,6 +55,7 @@ class NetboxModelForm(forms.ModelForm):
                                      widget=forms.RadioSelect, initial='2')
     virtual_instance = MyModelMultipleChoiceField(
         queryset=Netbox.objects.none(), required=False,
+        label='Virtual instances',
         help_text='The list of virtual instances inside this master device')
 
     class Meta(object):
