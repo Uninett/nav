@@ -55,7 +55,7 @@ class NetboxModelForm(forms.ModelForm):
                                      widget=forms.RadioSelect, initial='2')
     virtual_instance = MyModelMultipleChoiceField(
         queryset=Netbox.objects.none(), required=False,
-        help_text='The list of virtual instances you are master to')
+        help_text='The list of virtual instances inside this master device')
 
     class Meta(object):
         model = Netbox
@@ -64,7 +64,8 @@ class NetboxModelForm(forms.ModelForm):
                   'groups', 'sysname', 'type', 'data', 'master',
                   'virtual_instance']
         help_texts = {
-            'master': 'Set the virtual master of this IP Device'
+            'master': 'Select a master device when this IP Device is a virtual'
+                      ' instance'
         }
 
     def __init__(self, *args, **kwargs):
