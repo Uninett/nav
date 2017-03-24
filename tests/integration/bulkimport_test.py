@@ -21,7 +21,7 @@ class TestGenericBulkImport(TestCase):
 
 class TestNetboxImporter(DjangoTransactionTestCase):
     def test_simple_import_yields_netbox_and_device_model(self):
-        data = 'myroom:10.0.90.252:myorg:SW:public::'
+        data = 'myroom:10.0.90.252:myorg:SW:1:public::'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
         _line_num, objects = importer.next()
@@ -31,7 +31,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertTrue(isinstance(objects[0], manage.Netbox), objects[0])
 
     def test_simple_import_yields_objects_with_proper_values(self):
-        data = 'myroom:10.0.90.252:myorg:SW:public::'
+        data = 'myroom:10.0.90.252:myorg:SW:1:public::'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
         _line_num, objects = importer.next()
@@ -41,17 +41,18 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertEquals(netbox.room_id, 'myroom')
         self.assertEquals(netbox.organization_id, 'myorg')
         self.assertEquals(netbox.category_id, 'SW')
+        self.assertEquals(netbox.snmp_version, '1')
         self.assertEquals(netbox.read_only, 'public')
 
     def test_invalid_room_gives_error(self):
-        data = 'invalid:10.0.90.252:myorg:SW:public::'
+        data = 'invalid:10.0.90.252:myorg:SW:1:public::'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
         _line_num, objects = importer.next()
         self.assertTrue(isinstance(objects, DoesNotExist))
 
     def test_netbox_function_is_set(self):
-        data = 'myroom:10.0.90.252:myorg:SW:public::does things:'
+        data = 'myroom:10.0.90.252:myorg:SW:1:public::does things:'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
         _line_num, objects = importer.next()
@@ -69,7 +70,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertEquals(netboxinfo.value, 'hella')
 
     def test_netbox_groups_are_set(self):
-        data = 'myroom:10.0.90.10:myorg:SRV:::fileserver::WEB:UNIX:MAIL'
+        data = 'myroom:10.0.90.10:myorg:SRV::::fileserver::WEB:UNIX:MAIL'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
         _line_num, objects = importer.next()
@@ -101,7 +102,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
             snmp_version=1)
         netbox.save()
 
-        data = 'myroom:10.1.0.1:myorg:SRV:::fileserver::WEB:UNIX:MAIL'
+        data = 'myroom:10.1.0.1:myorg:SRV::::fileserver::WEB:UNIX:MAIL'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
         _line_num, objects = importer.next()
@@ -109,7 +110,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertTrue(isinstance(objects, AlreadyExists))
 
     def test_created_objects_can_be_saved(self):
-        data = 'myroom:10.0.90.10:myorg:SRV:::fileserver::WEB:UNIX:MAIL'
+        data = 'myroom:10.0.90.10:myorg:SRV::::fileserver::WEB:UNIX:MAIL'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
         _line_num, objects = importer.next()
