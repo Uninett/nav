@@ -67,7 +67,8 @@ class Handlers(object):
         for box in manage.Netbox.objects.all():
             line = [box.room_id, box.ip, box.organization_id, box.category_id,
                     str(box.snmp_version) if box.snmp_version else "",
-                    box.read_only or "", box.read_write or ""]
+                    box.read_only or "", box.read_write or "",
+                    box.master.sysname if box.master else ""]
             functions = all_functions.filter(netbox=box)
             functions = str.join(", ", functions)
             line.append(functions)

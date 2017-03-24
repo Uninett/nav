@@ -138,7 +138,7 @@ class CommentStripper(object):
 class NetboxBulkParser(BulkParser):
     """Parses the netbox bulk format"""
     format = ('roomid', 'ip', 'orgid', 'catid', 'snmp_version', 'ro', 'rw',
-              'function', 'data')
+              'master', 'function', 'data')
     required = 4
     restkey = 'netboxgroup'
 
@@ -156,7 +156,7 @@ class NetboxBulkParser(BulkParser):
         if not value:
             return True  # empty values are ok
         try:
-            return int(value) in (1,2)
+            return int(value) in (1, 2)
         except ValueError:
             return False
 

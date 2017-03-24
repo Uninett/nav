@@ -52,7 +52,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertTrue(isinstance(objects, DoesNotExist))
 
     def test_netbox_function_is_set(self):
-        data = 'myroom:10.0.90.252:myorg:SW:1:public::does things:'
+        data = 'myroom:10.0.90.252:myorg:SW:1:public:::does things:'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
         _line_num, objects = importer.next()
@@ -70,7 +70,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertEquals(netboxinfo.value, 'hella')
 
     def test_netbox_groups_are_set(self):
-        data = 'myroom:10.0.90.10:myorg:SRV::::fileserver::WEB:UNIX:MAIL'
+        data = 'myroom:10.0.90.10:myorg:SRV:::::fileserver::WEB:UNIX:MAIL'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
         _line_num, objects = importer.next()
@@ -102,7 +102,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
             snmp_version=1)
         netbox.save()
 
-        data = 'myroom:10.1.0.1:myorg:SRV::::fileserver::WEB:UNIX:MAIL'
+        data = 'myroom:10.1.0.1:myorg:SRV:::::fileserver::WEB:UNIX:MAIL'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
         _line_num, objects = importer.next()
@@ -119,6 +119,13 @@ class TestNetboxImporter(DjangoTransactionTestCase):
             reset_object_foreignkeys(obj)
             print(repr(obj))
             obj.save()
+
+    def test_invalid_master_should_give_error(self):
+        data = 'myroom:10.0.90.10:myorg:SW::::badmaster:functionality'
+        parser = NetboxBulkParser(data)
+        importer = NetboxImporter(parser)
+        _line_num, objects = importer.next()
+        self.assertTrue(isinstance(objects, DoesNotExist))
 
 
 class TestLocationImporter(DjangoTransactionTestCase):
