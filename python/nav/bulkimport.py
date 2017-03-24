@@ -94,7 +94,8 @@ class NetboxImporter(BulkImporter):
     @staticmethod
     def _get_netbox_from_row(row):
         netbox = Netbox(ip=row['ip'], read_only=row['ro'],
-                        read_write=row['rw'], snmp_version=2)
+                        read_write=row['rw'],
+                        snmp_version=row['snmp_version'] or 2)
         netbox.room = get_object_or_fail(Room, id=row['roomid'])
         netbox.organization = get_object_or_fail(Organization, id=row['orgid'])
         netbox.category = get_object_or_fail(Category, id=row['catid'])
