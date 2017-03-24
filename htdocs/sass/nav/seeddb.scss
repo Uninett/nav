@@ -1,5 +1,9 @@
 .readonly {
-		border: none;
+  border: none;
+}
+
+.advanced {
+  display: none;
 }
 
 /* Style the tables on the index page */
@@ -21,9 +25,9 @@
 }
 
 .required:after {
-	content: " *";
-	color: #F00;
-	font-weight: bold;
+        content: " *";
+        color: #F00;
+        font-weight: bold;
 }
 
 /* Style the general info tables */

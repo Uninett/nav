@@ -22,7 +22,7 @@ from django.db.models import Q
 from django_hstore.forms import DictionaryField
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Submit,
-                                            Fieldset, Field, Div)
+                                            Fieldset, Field, Div, HTML)
 
 from nav.web.crispyforms import LabelSubmit, NavButton
 from nav.models.manage import Room, Category, Organization, Netbox
@@ -125,8 +125,12 @@ class NetboxModelForm(forms.ModelForm):
                              'function',
                              Field('groups', css_class='select2'),
                              'data',
-                             'master', 'virtual_instance'
-                             ),
+                             HTML("<a class='advanced-toggle'><i class='fa fa-caret-square-o-right'>&nbsp;</i>Advanced options</a>"),
+                             Div(
+                                 'master', 'virtual_instance',
+                                 css_class='advanced'
+                             )
+                    ),
                     css_class=css_class),
             ),
             Submit('save_ip_device', 'Save IP device')
