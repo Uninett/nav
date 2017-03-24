@@ -156,7 +156,7 @@ class NetboxBulkParser(BulkParser):
         if not value:
             return True  # empty values are ok
         try:
-            return int(value) in (1,2)
+            return int(value) in (1, 2)
         except ValueError:
             return False
 
