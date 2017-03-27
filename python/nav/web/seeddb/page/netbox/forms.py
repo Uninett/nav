@@ -225,6 +225,12 @@ class NetboxModelForm(forms.ModelForm):
     def save(self, commit=True):
         netbox = super(NetboxModelForm, self).save(commit)
         instances = self.cleaned_data.get('virtual_instance')
+
+        # Clean up instances
+        Netbox.objects.filter(
+            master=netbox).exclude(pk__in=instances).update(master=None)
+
+        # Add new instances
         for instance in instances:
             instance.master = netbox
             instance.save()
