@@ -7,70 +7,7 @@
     NAV.urls.seeddb = NAV.urls.seeddb || {};
     NAV.urls.get_readonly = "{% url 'seeddb-netbox-get-readonly' %}";
     NAV.urls.seeddb.verifyAddress = "{% url 'seeddb-netbox-get-address-info' %}";
-
-  </script>
-{% endblock %}
-
-{% block footer_scripts %}
-  <script>
-   var toggleTrigger = $('.advanced-toggle'),
-       fa = toggleTrigger.find('.fa'),
-       advanced = $('.advanced'),
-       storageKey = 'NAV.seeddb.advanced.show';
-
-   function isHidden(element) {
-       return element.offsetParent === null;
-   }
-
-   function toggle() {
-       advanced.slideToggle(function(){
-           if (isHidden(this)) {
-               console.log('Setting storagekey to ', 0);
-               localStorage.setItem(storageKey, '0');
-           } else {
-               console.log('Setting storagekey to ', 1);
-               localStorage.setItem(storageKey, '1');
-           }
-       });
-       fa.toggleClass('fa-caret-square-o-right fa-caret-square-o-down');
-   }
-
-   toggleTrigger.on('click', function(event) {
-       event.preventDefault();
-       toggle();
-   });
-
-   console.log('storageKey', localStorage.getItem(storageKey))
-   // Show element if localstorage says so
-   if (+localStorage.getItem(storageKey) === 1) {
-       advanced.show();
-       fa.toggleClass('fa-caret-square-o-right fa-caret-square-o-down');
-   }
-
-
-   // Master- and instancefield are mutually exclusive. Try to enforce that.
-   var masterField = document.querySelector('#id_master');
-   var instanceField = document.querySelector('#id_virtual_instance');
-
-   function checkField(field1, field2){
-       if (field1.value && !field1.disabled) {
-           field2.disabled = true;
-       } else {
-           field2.disabled = false;
-       }
-   }
-
-   checkField(masterField, instanceField);
-   checkField(instanceField, masterField);
-
-   $(masterField).change(function(){
-       checkField(masterField, instanceField);
-   });
-
-   $(instanceField).change(function(){
-       checkField(instanceField, masterField);
-   });
-
+    require(['src/seeddb_netbox']);
   </script>
 {% endblock %}
 

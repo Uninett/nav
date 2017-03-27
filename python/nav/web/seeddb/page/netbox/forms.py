@@ -78,12 +78,18 @@ class NetboxModelForm(forms.ModelForm):
                    Netbox.objects.filter(master__isnull=False)]
         self.fields['master'].queryset = self.create_master_query(masters)
         self.fields['virtual_instance'].queryset = self.create_instance_query(masters)
+
         if self.instance.pk:
             # Set instances that we are master to as initial values
             self.initial['virtual_instance'] = Netbox.objects.filter(
                 master=self.instance)
 
-        if self.instance.pk:
+            # Disable fields based on current state
+            if self.instance.master:
+                self.fields['virtual_instance'].widget.attrs['disabled'] = True
+            if self.instance.pk in masters:
+                self.fields['master'].widget.attrs['disabled'] = True
+
             # Set the inital value of the function field
             try:
                 netboxinfo = self.instance.info_set.get(variable='function')
