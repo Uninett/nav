@@ -37,6 +37,9 @@
         };
     </script>
     <script src="{{ STATIC_URL }}js/require_config.js"></script>
+    {% if debug %}
+      <script src="{{ STATIC_URL }}js/require_config_dev.js"></script>
+    {% endif %}
     <script src="{{ STATIC_URL }}js/libs/require.js" data-main='src/main'></script>
     <script>
       require.config({ urlArgs: 'bust={{ nav_version }}' });
