@@ -107,8 +107,8 @@ class RackItemSerializer(serializers.Serializer):
     metric = serializers.Field('get_metric')
     unit_of_measurement = serializers.Field()
     human_readable = serializers.Field()
-    absolute_url = serializers.Field()
-    display_range = serializers.Field()
+    absolute_url = serializers.Field('get_absolute_url')
+    display_range = serializers.Field('get_display_range')
 
 
 class RackConfigurationField(serializers.Field):
