@@ -8,21 +8,21 @@
       <left-item v-for="item in rack.configuration.left"
                  :item="item"
                  :id="rack.id"
-                 :key="item.id"></my-left-item>
+                 :key="item.id"></left-item>
     </div>
 
     <div class="rack-center rack-column">
       <center-item v-for="item in rack.configuration.center"
                    :item="item"
                    :id="rack.id"
-                   :key="item.id"></my-center-item>
+                   :key="item.id"></center-item>
     </div>
 
     <div>
       <right-item v-for="item in rack.configuration.right"
                   :item="item"
                   :id="rack.id"
-                  :key="item.id"></my-right-item>
+                  :key="item.id"></right-item>
     </div>
 
   </div>
