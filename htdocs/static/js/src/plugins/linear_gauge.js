@@ -2,10 +2,21 @@ define(function (require, exports, module) {
 
     var d3 = require('d3');
 
+    /* Need a random id for the gradient */
+    function guid() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+        return 'g' + s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+            s4() + '-' + s4() + s4() + s4();
+    }
+
     /* Draw a vertical gauge that animates value changes */
 
     function LinearGauge(config) {
-        this.nodeId = config.nodeId;
+        this.element = config.element || document.querySelector('#' + config.nodeId);
         this.url = config.url || null;
         this.max = config.max || 8;
         this.height = config.height || 150;
@@ -15,9 +26,10 @@ define(function (require, exports, module) {
         this.precision = config.precision || null;  // Number of decimals for value
         this.threshold = config.threshold || null;
         this.color = config.color;  // Set a single color instead of using the gradient
-        this.fill = config.color ? this.color : 'url(#' + this.nodeId + 'gradient)';
+        this.gradientId = guid();
+        this.fill = config.color ? this.color : 'url(#' + this.gradientId + ')';
 
-        this.container = d3.select('#' + this.nodeId).append('svg')
+        this.container = d3.select(this.element).append('svg')
             .attr('width', this.width).attr('height', this.height)
             .style('background-color', '#eee')
             .style('border', '1px solid #aaaaaa');
@@ -74,7 +86,7 @@ define(function (require, exports, module) {
             /* Create gradient to indicate severity of value */
             var gradient = this.container
                 .append("svg:defs").append("svg:linearGradient")
-                .attr("id", this.nodeId + "gradient").attr("x1", "100%").attr("y1", "100%")
+                .attr("id", this.gradientId + "gradient").attr("x1", "100%").attr("y1", "100%")
                 .attr("x2", "100%").attr("y2", "0%").attr('gradientUnits', 'userSpaceOnUse');
             gradient.append("svg:stop").attr("offset", "0%").attr("stop-color", "lightgreen");
             gradient.append("svg:stop").attr("offset", "50%").attr("stop-color", "yellow");

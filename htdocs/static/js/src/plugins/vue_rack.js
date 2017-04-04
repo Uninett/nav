@@ -25,6 +25,7 @@ define(function (require) {
     }
 
 
+    /** Gets the first relevant value from the datapoints */
     function getValue(datapoints) {
         var point = _.find(datapoints.reverse(), function (datapoint) {
             return datapoint[0] != null;
@@ -36,23 +37,18 @@ define(function (require) {
 
     var RackPduItem = {
         template: rackPduTemplate,
-        props: ['id', 'item'],
+        props: ['item'],
 
         methods: {
             createGauge: function () {
                 var self = this;
                 return new LinearGauge({
-                    nodeId: self.combinedid,
+                    element: self.$el,
                     precision: 2,
                     color: 'lightsteelblue',
                     height: 100,
                     max: self.item.display_range[1]
                 });
-            }
-        },
-        computed: {
-            combinedid: function () {
-                return "sensor-" + this.id + "-" + this.item.id;
             }
         },
         watch: {
@@ -146,7 +142,7 @@ define(function (require) {
         data: {
             racks: [],
             rack: null,
-            id: 305
+            id: 306
         },
         components: {
             'my-rack': Rack
