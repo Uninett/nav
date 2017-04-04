@@ -1,0 +1,29 @@
+<div class="rack">
+  <h5 class="rack-heading">
+    <span class="rackname">{{ rack.rackname }}</span>
+  </h5>
+
+  <div class="rack-body">
+    <div>
+      <my-left-item v-for="item in rack.configuration.left"
+                    :item="item"
+                    :id="rack.id"
+                    :key="item.id"></my-left-item>
+    </div>
+
+    <div class="rack-center rack-column">
+      <my-center-item v-for="item in rack.configuration.center"
+                      :item="item"
+                      :id="rack.id"
+                      :key="item.id"></my-center-item>
+    </div>
+
+    <div>
+      <my-right-item v-for="item in rack.configuration.right"
+                     :item="item"
+                     :id="rack.id"
+                     :key="item.id"></my-right-item>
+    </div>
+
+  </div>
+</div>
