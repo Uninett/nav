@@ -94,14 +94,15 @@ define(function (require) {
     var Rack = {
         template: rackTemplate,
         components: {
-            'my-left-item': RackPduItem,
-            'my-center-item': RackItem,
-            'my-right-item': RackPduItem
+            'left-item': RackPduItem,
+            'center-item': RackItem,
+            'right-item': RackPduItem
         },
         props: ['rack'],
         methods: {
             /** Loads Graphite data for all items in the rack updates by setting value */
             loadGraphiteData: function () {
+                console.log('Loading graphite data for', this.rack.rackname);
                 var rackitems = _.union(
                     this.rack.configuration.left,
                     this.rack.configuration.center,
@@ -130,17 +131,22 @@ define(function (require) {
 
             }
         },
-        mounted: function () {
-            this.loadGraphiteData();
-            setInterval(this.loadGraphiteData, 10000);
-            // console.log(this);
+        watch: {
+            rack: function () {
+                var oneMinute = 60 * 1000;
+                this.loadGraphiteData();
+                setInterval(this.loadGraphiteData, oneMinute);
+                // console.log(this);
+            }
         }
     };
 
     var vm = new Vue({
         el: '#test',
         data: {
-            racks: []
+            racks: [],
+            rack: null,
+            id: 305
         },
         components: {
             'my-rack': Rack
@@ -152,12 +158,19 @@ define(function (require) {
                     console.log(data);
                     self.racks = data.results;
                 });
+            },
+            loadRack: function () {
+                var self = this;
+                $.getJSON('/api/1/rack/' + this.id, function (data) {
+                    console.log(data);
+                    self.rack = data;
+                });
             }
         },
         mounted: function () {
-            this.loadRacks();
+            // this.loadRacks();
+            this.loadRack();
         }
-    })
+    });
 
-})
-;
+});
