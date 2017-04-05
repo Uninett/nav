@@ -1,0 +1,37 @@
+{% extends "auditlog/base.html" %}
+
+{% block content %}
+{% if object_list.exists %}
+<table id="auditlog" class="listtable full-width">
+<thead>
+<tr>
+    <th>Timestamp</th>
+    <th>Actor</th>
+    <th>Verb</th>
+    <th>Object</th>
+    <th>Target</th>
+    <th>Summary</th>
+</tr>
+</thead>
+<tbody>
+{% for object in object_list %}
+<tr>
+    <td>{{ object.timestamp }}</td>
+    <td>{{ object.actor }}</td>
+    <td>{{ object.verb }}</td>
+    <td>{{ object.object|default:"" }}</td>
+    <td>{{ object.target|default:"" }}</td>
+    <td>{{ object.summary }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+No auditlog for {{ auditmodel }}.
+{% endif %}
+<script type="text/javascript">
+    require(['libs/datatables.min'], function(){
+        $('table#auditlog').dataTable();
+    });
+</script>
+{% endblock content %}
