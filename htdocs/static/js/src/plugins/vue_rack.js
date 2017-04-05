@@ -98,7 +98,6 @@ define(function (require) {
         methods: {
             /** Loads Graphite data for all items in the rack updates by setting value */
             loadGraphiteData: function () {
-                console.log('Loading graphite data for', this.rack.rackname);
                 var rackitems = _.union(
                     this.rack.configuration.left,
                     this.rack.configuration.center,
@@ -136,6 +135,8 @@ define(function (require) {
             }
         }
     };
+
+    return Rack;
 
     /* Example usage
     var vm = new Vue({
