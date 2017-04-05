@@ -137,6 +137,7 @@ define(function (require) {
         }
     };
 
+    /* Example usage
     var vm = new Vue({
         el: '#test',
         data: {
@@ -151,7 +152,6 @@ define(function (require) {
             loadRacks: function () {
                 var self = this;
                 $.getJSON('/api/1/rack/', function (data) {
-                    console.log(data);
                     self.racks = data.results;
                 });
             },
@@ -168,5 +168,6 @@ define(function (require) {
             this.loadRack();
         }
     });
+     */
 
 });
