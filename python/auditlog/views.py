@@ -6,7 +6,7 @@ from django.views.generic import ListView, TemplateView
 from django.contrib.contenttypes.models import ContentType
 
 from auditlog.models import LogEntry
-from auditlog import registry, find_modelname
+from auditlog import find_modelname
 
 
 class AuditlogViewMixin(object):
