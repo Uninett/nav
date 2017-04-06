@@ -15,7 +15,27 @@
 #
 """Module containing EnvironmentRackWidget"""
 
+from django import forms
+
 from . import Navlet
+from nav.models.rack import Rack
+
+
+class RackSearchForm(forms.Form):
+    """Form for searching for a rack"""
+    rack = forms.ModelChoiceField(queryset=Rack.objects.all().order_by(
+        'room', 'rackname'))
+
+    def clean_rack(self):
+        """clean_rack makes sure the rack refers to the primary key
+
+        This is done because the rack is stored as a preference, and thus cannot
+        be a model instace
+        """
+        rack = self.cleaned_data.get('rack')
+        if rack:
+            return rack.pk
+        return rack
 
 
 class EnvironmentRackWidget(Navlet):
@@ -23,12 +43,28 @@ class EnvironmentRackWidget(Navlet):
 
     title = 'Environment rack'
     refresh_interval = 60000  # 60 seconds
+    is_editable = True
 
     def get_template_basename(self):
         return 'envrack'
 
     def get_context_data_view(self, context):
-        context['rackid'] = self.preferences.get('rackid', 294)
+        context['rackid'] = self.preferences.get('rack')
         context['refresh_interval'] = self.preferences.get(
             'refresh_interval', self.refresh_interval)
         return context
+
+    def get_context_data_edit(self, context):
+        try:
+            rack = Rack.objects.get(pk=self.preferences.get('rack'))
+            form = RackSearchForm(initial={'rack': rack})
+        except (Rack.DoesNotExist, ValueError):
+            form = RackSearchForm()
+
+        context['form'] = form
+        return context
+
+    def post(self, request, **kwargs):
+        """Save preferences"""
+        form = RackSearchForm(request.POST)
+        return super(EnvironmentRackWidget, self).post(request, form=form)
