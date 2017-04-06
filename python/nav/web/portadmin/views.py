@@ -370,7 +370,6 @@ def set_ifalias(account, fac, interface, request):
             try:
                 fac.set_if_alias(interface.ifindex, ifalias)
                 interface.ifalias = ifalias
-                # XXX
                 LogEntry.add_log_entry(
                     account,
                     'set-ifalias',
@@ -393,13 +392,6 @@ def set_vlan(account, fac, interface, request):
         vlan = int(request.POST.get('vlan'))
 
         try:
-            # XXX
-            LogEntry.add_log_entry(
-                account,
-                'set-vlan',
-                u'{actor}: {object} - vlan set to "%s"' % vlan,
-                interface
-            )
             if is_cisco(interface.netbox):
                 # If Cisco and trunk voice vlan (not Cisco voice vlan),
                 # we have to set native vlan instead of access vlan
@@ -413,6 +405,12 @@ def set_vlan(account, fac, interface, request):
                 fac.set_vlan(interface.ifindex, vlan)
 
             interface.vlan = vlan
+            LogEntry.add_log_entry(
+                account,
+                'set-vlan',
+                u'{actor}: {object} - vlan set to "%s"' % vlan,
+                interface
+            )
             _logger.info('%s: %s:%s - vlan set to %s', account.login,
                          interface.netbox.get_short_sysname(),
                          interface.ifname, vlan)
@@ -482,7 +480,7 @@ def set_admin_status(fac, interface, request):
                 )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'up')
-                #fac.set_if_up(interface.ifindex)
+                fac.set_if_up(interface.ifindex)
             elif adminstatus == status_down:
                 LogEntry.add_log_entry(
                     account,
@@ -492,7 +490,7 @@ def set_admin_status(fac, interface, request):
                 )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'down')
-                #fac.set_if_down(interface.ifindex)
+                fac.set_if_down(interface.ifindex)
         except (SnmpError, ValueError) as error:
             messages.error(request, "Error setting ifadminstatus: %s" % error)
 

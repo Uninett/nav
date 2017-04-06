@@ -39,9 +39,6 @@ except IOError:
 DEBUG = nav_config.get('DJANGO_DEBUG', 'False').upper() in ('TRUE', 'YES', 'ON')
 TEMPLATE_DEBUG = DEBUG
 
-DEBUG = True
-TEMPLATE_DEBUG = True
-
 # Admins
 ADMINS = (
     ('NAV Administrator', nav_config.get('ADMIN_MAIL', 'root@localhost')),
