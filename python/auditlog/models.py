@@ -40,6 +40,7 @@ class LogEntry(models.Model):
 
     @classmethod
     def add_log_entry(cls, actor, verb, template, object=None, target=None, before=None, after=None):
+        """LogEntry factory"""
         self = cls()
         dict = {'actor': actor, 'object': object, 'target': target}
         for k, v in dict.items():
@@ -54,6 +55,7 @@ class LogEntry(models.Model):
         self.target_pk = target.pk if target else None
         self.timestamp = utcnow()
         self.save()
+        return self
 
     def __str__(self):
         return self.summary
