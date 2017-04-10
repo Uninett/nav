@@ -60,6 +60,7 @@ import nav.daemon
 import nav.logs
 import nav.path
 import nav.smsd.navdbqueue
+from nav import buildconf
 from nav.smsd.dispatcher import DispatcherError, PermanentDispatcherError
 from nav.config import getconfig
 # Dispatchers are imported later according to config
@@ -115,7 +116,7 @@ def main(args):
     # Set config defaults
     global defaults
     defaults = {
-        'username': 'navcron',
+        'username': buildconf.nav_user,
         'delay': '30',
         'delayfactor': '1.5',
         'maxdelay': '3600',
