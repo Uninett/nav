@@ -20,7 +20,7 @@ The NAV Alert Engine daemon (alertengine)
 This background process polls the alert queue for new alerts from the
 eventengine and sends put alerts to users based on user defined profiles.
 
-Usage: alertengine [--test] [--loglevel=DEBUG|INFO|WARN|CRITICAL]
+Usage: alertengine [--test] [--foreground] [--loglevel=DEBUG|INFO|WARN|CRITICAL]
 """
 
 from __future__ import print_function
@@ -63,13 +63,15 @@ logger = None
 def main(args):
     # Get command line arguments
     try:
-        opts, args = getopt.getopt(args, 'ht', ['help', 'test', 'loglevel='])
-    except getopt.GetoptError, e:
+        opts, args = getopt.getopt(args, 'htf', ['help', 'test', 'loglevel=',
+                                                 'foreground'])
+    except getopt.GetoptError, error:
         print("%s\nTry `%s --help' for more information." %
-              (e, sys.argv[0]), file=sys.stderr)
+              (error, sys.argv[0]), file=sys.stderr)
         sys.exit(1)
 
     opttest = False
+    optforeground = True
     optlevel = None
 
     for opt, val in opts:
@@ -78,6 +80,8 @@ def main(args):
             sys.exit(0)
         if opt in ('-t', '--test'):
             opttest = True
+        if opt in ('-f', '--foreground'):
+            optforeground = True
         if opt == '--loglevel':
             optlevel = val
 
@@ -112,7 +116,7 @@ def main(args):
     loginitstderr(loglevel)
 
     # Switch user to $NAV_USER (navcron) (only works if we're root)
-    if not opttest:
+    if os.geteuid() == 0 and not opttest:
         try:
             nav.daemon.switchuser(username)
         except nav.daemon.DaemonError as err:
@@ -130,21 +134,21 @@ def main(args):
     # Check if already running
     try:
         nav.daemon.justme(pidfile)
-    except nav.daemon.DaemonError, e:
-        logger.error(e)
+    except nav.daemon.DaemonError as error:
+        logger.error(error)
         sys.exit(1)
 
     # Daemonize
-    if not opttest:
+    if not opttest and not optforeground:
         try:
             nav.daemon.daemonize(pidfile,
                                  stderr=nav.logs.get_logfile_from_logger())
-        except nav.daemon.DaemonError, e:
-            logger.error(e)
+        except nav.daemon.DaemonError as error:
+            logger.error(error)
             sys.exit(1)
 
-    # Stop logging explicitly to stderr
-    loguninitstderr()
+        # Stop logging explicitly to stderr
+        loguninitstderr()
 
     # Reopen log files on SIGHUP
     signal.signal(signal.SIGHUP, signalhandler)
