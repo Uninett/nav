@@ -71,7 +71,7 @@ def main(args):
         sys.exit(1)
 
     opttest = False
-    optforeground = True
+    optforeground = False
     optlevel = None
 
     for opt, val in opts:
