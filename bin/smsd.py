@@ -39,6 +39,7 @@ Usage: smsd [-h] [-c] [-d sec] [-f factor] [-m maxdelay] [-l limit] [-a action] 
   -u, --uid             User/account ID
   -t, --test            Send a test message to <phone no.>
   -T, --TEST            Put a test message to <phone no.> into the SMS queue
+  -n, --nofork          Run process in the foreground
 
 """
 
@@ -84,10 +85,11 @@ def main(args):
     optlimit = False
     optaction = False
     opttest = False
+    optforeground = False
     optuid = False
     try:
-        opts, args = getopt.getopt(args, 'hcd:f:m:l:a:t:T:u:',
-         ['help', 'cancel', 'delay=', 'test=', 'TEST=', 'uid='])
+        opts, args = getopt.getopt(args, 'hcd:f:m:l:a:t:T:nu:',
+         ['help', 'cancel', 'delay=', 'test=', 'TEST=', 'nofork', 'uid='])
     except getopt.GetoptError, error:
         print("%s\nTry `%s --help' for more information." % (
             error, sys.argv[0]), file=sys.stderr)
@@ -110,6 +112,8 @@ def main(args):
             optaction = int(val)
         if opt in ('-t', '--test', '-T', '--TEST'):
             opttest = {'opt': opt, 'val': val}
+        if opt in ('-n', '--nofork'):
+            optforeground = True
         if opt in ('-u', '--uid'):
             optuid = int(val)
 
@@ -225,33 +229,35 @@ def main(args):
         sys.exit(0)
 
     # Switch user to $NAV_USER (only works if we're root)
-    try:
-        nav.daemon.switchuser(username)
-    except nav.daemon.DaemonError, error:
-        logger.error("%s Run as root or %s to enter daemon mode. "
-                     "Try `%s --help' for more information.",
-                     error, username, sys.argv[0])
-        sys.exit(1)
+    if os.geteuid() == 0:
+        try:
+            nav.daemon.switchuser(username)
+        except nav.daemon.DaemonError as error:
+            logger.error("%s Run as root or %s to enter daemon mode. "
+                         "Try `%s --help' for more information.",
+                         error, username, sys.argv[0])
+            sys.exit(1)
 
     # Check if already running
     try:
         nav.daemon.justme(pidfile)
-    except nav.daemon.DaemonError, error:
+    except nav.daemon.DaemonError as error:
         logger.error(error)
         sys.exit(1)
 
     # Daemonize
-    try:
-        nav.daemon.daemonize(pidfile,
-                             stderr=nav.logs.get_logfile_from_logger())
-    except nav.daemon.DaemonError, error:
-        logger.error(error)
-        sys.exit(1)
+    if not optforeground:
+        try:
+            nav.daemon.daemonize(pidfile,
+                                 stderr=nav.logs.get_logfile_from_logger())
+        except nav.daemon.DaemonError as error:
+            logger.error(error)
+            sys.exit(1)
 
-    # Daemonized; stop logging explicitly to stderr and reopen log files
-    loguninitstderr()
-    nav.logs.reopen_log_files()
-    logger.debug('Daemonization complete; reopened log files.')
+        # Daemonized; stop logging explicitly to stderr and reopen log files
+        loguninitstderr()
+        nav.logs.reopen_log_files()
+        logger.debug('Daemonization complete; reopened log files.')
 
     # Reopen log files on SIGHUP
     logger.debug('Adding signal handler for reopening log files on SIGHUP.')
