@@ -100,8 +100,11 @@ class Account(models.Model):
         return self.login
 
     def get_active_profile(self):
-        """Returns the accounts active alert profile"""
-        return self.alertpreference.active_profile
+        """Returns the account's active alert profile"""
+        try:
+            return self.alertpreference.active_profile
+        except (AlertPreference.DoesNotExist, AlertProfile.DoesNotExist):
+            pass
 
     def get_groups(self):
         """Fetches and returns this users groups.
