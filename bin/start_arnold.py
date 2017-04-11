@@ -42,7 +42,8 @@ from optparse import OptionParser
 from os.path import join
 
 import nav.buildconf
-from nav.arnold import (init_logging, find_computer_info, is_inside_vlans,
+from nav.logs import init_generic_logging
+from nav.arnold import (find_computer_info, is_inside_vlans,
                         quarantine, disable, GeneralException)
 from nav.models.arnold import DetentionProfile, Identity
 from nav.models.manage import Prefix
@@ -53,7 +54,11 @@ LOGGER = logging.getLogger('start_arnold')
 def main(options):
     """Main controller"""
 
-    init_logging(nav.buildconf.localstatedir + "/log/arnold/start_arnold.log")
+    init_generic_logging(
+        logfile=nav.buildconf.localstatedir + "/log/arnold/start_arnold.log",
+        stderr=False,
+        read_config=True,
+    )
 
     if options.listblocktypes:
         print_detention_profiles()

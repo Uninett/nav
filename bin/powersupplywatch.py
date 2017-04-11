@@ -33,7 +33,7 @@ from nav import buildconf
 from nav.event import Event
 from nav.Snmp import Snmp
 from nav.models.manage import PowerSupplyOrFan, Device
-from nav.logs import set_log_levels
+from nav.logs import init_generic_logging
 
 import django
 
@@ -143,7 +143,14 @@ LOGGER = logging.getLogger('nav.powersupplywatch')
 
 def main():
     """Main program"""
-    stderr = init_logging()
+    init_generic_logging(
+        logfile=LOGFILE,
+        stderr=True,
+        formatter=logging.Formatter(LOGFORMAT),
+        read_config=False,
+        stderr_level=logging.ERROR if sys.stderr.isatty() else logging.CRITICAL,
+    )
+    stderr = logging.getLogger('')
     django.setup()
 
     parser = OptionParser()
@@ -175,28 +182,6 @@ def main():
     LOGGER.debug('Start checking PSUs and FANs')
     check_psus_and_fans(get_psus_and_fans(sysnames),
                         dryrun=opts.dryrun)
-
-
-def init_logging():
-    """Initializes logging"""
-    set_log_levels()
-    root = logging.getLogger('')
-    log_formatter = logging.Formatter(LOGFORMAT)
-
-    stderr = logging.StreamHandler(sys.stderr)
-    stderr.setFormatter(log_formatter)
-    stderr.setLevel(logging.ERROR if sys.stderr.isatty() else logging.CRITICAL)
-    root.addHandler(stderr)
-
-    try:
-        filehandler = logging.FileHandler(LOGFILE)
-    except IOError as err:
-        LOGGER.error("can't write to log file, logging to stderr only: %s", err)
-    else:
-        filehandler.setFormatter(log_formatter)
-        root.addHandler(filehandler)
-
-    return stderr
 
 
 def read_hostsfile(filename):

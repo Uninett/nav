@@ -29,6 +29,7 @@ import time
 import atexit
 import traceback
 from collections import defaultdict
+import logging
 
 import psycopg2
 from psycopg2.errorcodes import IN_FAILED_SQL_TRANSACTION
@@ -39,7 +40,9 @@ from nav.util import synchronized
 
 from . import checkermap
 from .event import Event
-from .debug import debug
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def db():
@@ -75,12 +78,12 @@ class _DB(threading.Thread):
             self.db = psycopg2.connect(conn_str)
             atexit.register(self.close)
 
-            debug("Successfully (re)connected to NAVdb")
+            LOGGER.info("Successfully (re)connected to NAVdb")
             # Set transaction isolation level to READ COMMITTED
             self.db.set_isolation_level(1)
         except Exception as err:
-            debug("Couldn't connect to db.", 2)
-            debug(str(err), 2)
+            LOGGER.critical("Couldn't connect to db.")
+            LOGGER.critical(str(err))
             self.db = None
 
     def close(self):
@@ -113,16 +116,17 @@ class _DB(threading.Thread):
                 cursor.execute('SELECT 1')
             except psycopg2.InternalError as err:
                 if err.pgcode == IN_FAILED_SQL_TRANSACTION:
-                    debug("Rolling back aborted transaction...", 2)
+                    LOGGER.critical("Rolling back aborted transaction...")
                     self.db.rollback()
                 else:
-                    debug("PostgreSQL reported an internal error I don't know "
-                          "how to handle: %s (code=%s)" % (
-                          pg_err_lookup(err.pgcode), err.pgcode), 2)
+                    LOGGER.critical("PostgreSQL reported an internal error "
+                                    "I don't know how to handle: %s "
+                                    "(code=%s)", pg_err_lookup(err.pgcode),
+                                    err.pgcode)
                     raise
         except Exception as err:
-            debug(str(err), 2)
-            debug("Could not get cursor. Trying to reconnect...", 2)
+            LOGGER.critical(str(err))
+            LOGGER.critical("Could not get cursor. Trying to reconnect...")
             self.close()
             self.connect()
             cursor = self.db.cursor()
@@ -133,14 +137,14 @@ class _DB(threading.Thread):
         self.connect()
         while 1:
             event = self.queue.get()
-            debug("Got event: [%s]" % event, 7)
+            LOGGER.debug("Got event: [%s]", event)
             try:
                 self.commit_event(event)
                 self.db.commit()
             except Exception:
                 # If we fail to commit the event, place it
                 # back in our queue
-                debug("Failed to commit event, rescheduling...", 7)
+                LOGGER.debug("Failed to commit event, rescheduling...")
                 self.new_event(event)
                 time.sleep(5)
 
@@ -155,19 +159,19 @@ class _DB(threading.Thread):
         try:
             cursor = self.cursor()
             cursor.execute(statement, values)
-            debug("Executed: %s" % cursor.query, 7)
+            LOGGER.debug("Executed: %s", cursor.query)
             if commit:
                 self.db.commit()
             return cursor.fetchall()
         except Exception as err:
-            debug("Failed to execute query: "
-                  "%s" % cursor.query if cursor else statement, 2)
-            debug(str(err))
+            LOGGER.critical("Failed to execute query: %s",
+                            cursor.query if cursor else statement)
+            LOGGER.info(str(err))
             if commit:
                 try:
                     self.db.rollback()
                 except Exception:
-                    debug("Failed to rollback", 2)
+                    LOGGER.critical("Failed to rollback")
             raise DbError()
 
     @synchronized(_queryLock)
@@ -181,22 +185,22 @@ class _DB(threading.Thread):
         try:
             cursor = self.cursor()
             cursor.execute(statement, values)
-            debug("Executed: %s" % cursor.query, 7)
+            LOGGER.debug("Executed: %s", cursor.query)
             if commit:
                 try:
                     self.db.commit()
                 except Exception:
-                    debug("Failed to commit", 2)
+                    LOGGER.critical("Failed to commit")
         except psycopg2.IntegrityError as err:
-            debug(str(err), 2)
-            debug("Tried to execute: %s" % cursor.query, 7)
-            debug("Throwing away update...", 2)
+            LOGGER.critical(str(err))
+            LOGGER.debug("Tried to execute: %s", cursor.query)
+            LOGGER.critical("Throwing away update...")
             if commit:
                 self.db.rollback()
         except Exception as err:
-            debug("Could not execute statement: "
-                  "%s" % cursor.query if cursor else statement, 2)
-            debug(str(err))
+            LOGGER.critical("Could not execute statement: %s",
+                            cursor.query if cursor else statement)
+            LOGGER.info(str(err))
             if commit:
                 self.db.rollback()
             raise DbError()
@@ -208,7 +212,7 @@ class _DB(threading.Thread):
     def commit_event(self, event):
         """Commits an event to the database event queue"""
         if event.source not in ("serviceping", "pping"):
-            debug("Invalid source for event: %s" % event.source, 1)
+            LOGGER.critical("Invalid source for event: %s", event.source)
             return
         if event.eventtype == "version":
             statement = """UPDATE service SET version = %s
@@ -283,7 +287,7 @@ class _DB(threading.Thread):
              sysname, upstate) in fromdb:
             checker = checkermap.get(handler)
             if not checker:
-                debug("no such checker: %s" % handler, 2)
+                LOGGER.critical("no such checker: %s", handler)
                 continue
             service = {
                 'id': serviceid,
@@ -305,9 +309,9 @@ class _DB(threading.Thread):
             try:
                 new_checker = checker(service, **kwargs)
             except Exception:
-                debug("Checker %s (%s) failed to init. This checker will "
-                      "remain DISABLED:\n%s" % (handler, checker,
-                                                traceback.format_exc()), 2)
+                LOGGER.critical("Checker %s (%s) failed to init. This checker "
+                                "will remain DISABLED:\n%s",  handler, checker,
+                                traceback.format_exc())
                 continue
 
             if onlyactive and not active:
@@ -316,5 +320,5 @@ class _DB(threading.Thread):
                 setattr(new_checker, 'active', active)
 
             self._checkers += [new_checker]
-        debug("Returned %s checkers" % len(self._checkers))
+        LOGGER.info("Returned %s checkers" , len(self._checkers))
         return self._checkers
