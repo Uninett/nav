@@ -21,8 +21,10 @@
 from __future__ import absolute_import
 import os
 import importlib
-from .debug import debug
+import logging
 
+
+LOGGER = logging.getLogger(__name__)
 HANDLER_PATTERN = "Checker.py"
 CHECKER_DIR = os.path.join(os.path.dirname(__file__), "checker")
 
@@ -32,7 +34,7 @@ dirty = []  # store failed imports here
 
 def register(key, module):
     if key not in checkers:
-        debug("Registering checker %s from module %s" % (key, module))
+        LOGGER.info("Registering checker %s from module %s", key, module)
         checkers[key] = module
 
 
@@ -49,7 +51,7 @@ def get(checker):
         module = importlib.import_module('.' + module_name,
                                          'nav.statemon.checker')
     except Exception as e:
-        debug("Failed to import %s, %s" % (module_name, e))
+        LOGGER.info("Failed to import %s, %s", module_name, e)
         dirty.append(checker)
         return
     return getattr(module, class_name)

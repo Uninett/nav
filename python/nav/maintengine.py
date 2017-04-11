@@ -42,29 +42,6 @@ MINIMUM_UPTIME = datetime.timedelta(minutes=60)
 _logger = logging.getLogger('nav.maintengine')
 
 
-def init_logging(log_file=None, log_format=None):
-    """Initializes logging setup for maintenance engine"""
-    root = logging.getLogger('')
-    formatter = None
-    if log_format:
-        formatter = logging.Formatter(log_format)
-    handler = None
-    try:
-        if log_file:
-            handler = logging.FileHandler(log_file)
-    except IOError:
-        # Most likely, we were denied access to the log file.
-        # We silently ignore it and log nothing :-P
-        pass
-    else:
-        if handler:
-            if formatter:
-                handler.setFormatter(formatter)
-            root.addHandler(handler)
-        nav.logs.set_log_config()
-    return _logger
-
-
 @transaction.atomic()
 def schedule():
     """Changes invalid task states to 'scheduled'"""
