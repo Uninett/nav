@@ -198,7 +198,7 @@ class pinger:
 
 
 def help():
-    print(("""Paralell pinger for NAV (Network Administration Visualized).
+    print(("""Parallel pinger for NAV (Network Administration Visualized).
 
     Usage: %s [OPTIONS]
     -h  --help      Displays this message
