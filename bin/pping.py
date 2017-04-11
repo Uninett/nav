@@ -175,11 +175,11 @@ class pinger:
                         len(self.netboxmap), elapsedtime, len(self.down))
             wait = self._looptime-elapsedtime
             if wait > 0:
-                LOGGER.info("Sleeping %03.3f secs", wait)
+                LOGGER.debug("Sleeping %03.3f secs", wait)
             else:
                 wait = abs(self._looptime + wait)
-                LOGGER.critical("Check lasted longer than looptime. "
-                                "Delaying next check for %03.3f secs", wait)
+                LOGGER.warning("Check lasted longer than looptime. "
+                               "Delaying next check for %03.3f secs", wait)
             sleep(wait)
 
     def signalhandler(self, signum, frame):

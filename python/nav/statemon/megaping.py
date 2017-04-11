@@ -46,14 +46,14 @@ def make_sockets():
         socketv6 = socket.socket(socket.AF_INET6, socket.SOCK_RAW,
                                  socket.getprotobyname('ipv6-icmp'))
     except Exception:
-        LOGGER.info("Could not create v6 socket")
+        LOGGER.error("Could not create v6 socket")
         raise
 
     try:
         socketv4 = socket.socket(socket.AF_INET, socket.SOCK_RAW,
                                  socket.getprotobyname('icmp'))
     except Exception:
-        LOGGER.info("Could not create v6 socket")
+        LOGGER.error("Could not create v6 socket")
         raise
 
     return [socketv6, socketv4]
@@ -202,7 +202,7 @@ class MegaPing:
             try:
                 sockets = make_sockets()
             except Exception:
-                LOGGER.info("Tried to create sockets without beeing root!")
+                LOGGER.error("Tried to create sockets without being root!")
 
             self._sock6 = sockets[0]
             self._sock4 = sockets[1]
@@ -305,7 +305,7 @@ class MegaPing:
                     try:
                         raw_pong, sender = sock.recvfrom(4096)
                     except socket.error as err:
-                        LOGGER.critical("RealityError -2: %s", err)
+                        LOGGER.critical("RealityError -2", exc_info=True)
                         continue
 
                     is_ipv6 = sock == self._sock6

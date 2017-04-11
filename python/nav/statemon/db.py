@@ -27,7 +27,6 @@ import threading
 import Queue
 import time
 import atexit
-import traceback
 from collections import defaultdict
 import logging
 
@@ -82,8 +81,7 @@ class _DB(threading.Thread):
             # Set transaction isolation level to READ COMMITTED
             self.db.set_isolation_level(1)
         except Exception as err:
-            LOGGER.critical("Couldn't connect to db.")
-            LOGGER.critical(str(err))
+            LOGGER.critical("Couldn't connect to db.", exc_info=True)
             self.db = None
 
     def close(self):
@@ -125,8 +123,8 @@ class _DB(threading.Thread):
                                     err.pgcode)
                     raise
         except Exception as err:
-            LOGGER.critical(str(err))
-            LOGGER.critical("Could not get cursor. Trying to reconnect...")
+            LOGGER.critical("Could not get cursor. Trying to reconnect...",
+                            exc_info=True)
             self.close()
             self.connect()
             cursor = self.db.cursor()
@@ -165,8 +163,8 @@ class _DB(threading.Thread):
             return cursor.fetchall()
         except Exception as err:
             LOGGER.critical("Failed to execute query: %s",
-                            cursor.query if cursor else statement)
-            LOGGER.info(str(err))
+                            cursor.query if cursor else statement,
+                            exc_info=True)
             if commit:
                 try:
                     self.db.rollback()
@@ -192,15 +190,15 @@ class _DB(threading.Thread):
                 except Exception:
                     LOGGER.critical("Failed to commit")
         except psycopg2.IntegrityError as err:
-            LOGGER.critical(str(err))
+            LOGGER.critical("Database integrity error, throwing away update",
+                            exc_info=True)
             LOGGER.debug("Tried to execute: %s", cursor.query)
-            LOGGER.critical("Throwing away update...")
             if commit:
                 self.db.rollback()
         except Exception as err:
             LOGGER.critical("Could not execute statement: %s",
-                            cursor.query if cursor else statement)
-            LOGGER.info(str(err))
+                            cursor.query if cursor else statement,
+                            exc_info=True)
             if commit:
                 self.db.rollback()
             raise DbError()
@@ -311,7 +309,7 @@ class _DB(threading.Thread):
             except Exception:
                 LOGGER.critical("Checker %s (%s) failed to init. This checker "
                                 "will remain DISABLED:\n%s",  handler, checker,
-                                traceback.format_exc())
+                                exc_info=True)
                 continue
 
             if onlyactive and not active:

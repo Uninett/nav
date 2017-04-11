@@ -49,10 +49,10 @@ class Controller:
         self._isrunning = 1
         self._checkers = []
         self._looptime = int(self.conf.get("checkinterval", 60))
-        LOGGER.warning("Setting checkinterval=%i", self._looptime)
+        LOGGER.debug("Setting checkinterval=%i", self._looptime)
         self.db = db.db()
-        LOGGER.warning("Reading database config")
-        LOGGER.warning("Setting up runqueue")
+        LOGGER.debug("Reading database config")
+        LOGGER.debug("Setting up runqueue")
         self._runqueue = RunQueue.RunQueue(controller=self)
         self.dirty = 1
 
@@ -77,7 +77,7 @@ class Controller:
 
             self._checkers = s
         elif self.db.status and self._checkers:
-            LOGGER.warning("No checkers left in database, flushing list.")
+            LOGGER.info("No checkers left in database, flushing list.")
             self._checkers = []
 
         # Randomize order of checker plugins
@@ -95,8 +95,8 @@ class Controller:
 
             wait = self._looptime - (time.time() - start)
             if wait <= 0:
-                LOGGER.critical("System clock has drifted backwards, "
-                                "resetting loop delay")
+                LOGGER.warning("System clock has drifted backwards, "
+                               "resetting loop delay")
                 wait = self._looptime
             if self._checkers:
                 pause = wait/(len(self._checkers)*2)
@@ -111,11 +111,11 @@ class Controller:
             for i in gc.get_objects():
                 if isinstance(i, threading.Thread):
                     dbgthreads.append(i)
-            LOGGER.warning("Garbage: %s Objects: %i Threads: %i", gc.garbage,
-                           len(gc.get_objects()), len(dbgthreads))
+            LOGGER.debug("Garbage: %s Objects: %i Threads: %i", gc.garbage,
+                         len(gc.get_objects()), len(dbgthreads))
 
             wait = self._looptime - (time.time() - start)
-            LOGGER.warning("Waiting %i seconds.", wait)
+            LOGGER.debug("Waiting %i seconds.", wait)
             if wait <= 0:
                 LOGGER.critical("Only superman can do this. Humans cannot "
                                 "wait for %i seconds.", wait)
@@ -126,19 +126,19 @@ class Controller:
 
     def signalhandler(self, signum, _):
         if signum == signal.SIGTERM:
-            LOGGER.warning("Caught SIGTERM. Exiting.")
+            LOGGER.info("Caught SIGTERM. Exiting.")
             self._runqueue.terminate()
             sys.exit(0)
         elif signum == signal.SIGHUP:
             # reopen the logfile
             logfile_path = self.conf.get("logfile", "servicemon.log")
-            LOGGER.warning("Caught SIGHUP. Reopening logfile...")
+            LOGGER.info("Caught SIGHUP. Reopening logfile...")
             logfile = file(logfile_path, 'a')
             nav.daemon.redirect_std_fds(stdout=logfile, stderr=logfile)
 
-            LOGGER.warning("Reopened logfile: %s", logfile_path)
+            LOGGER.info("Reopened logfile: %s", logfile_path)
         else:
-            LOGGER.warning("Caught %s. Resuming operation.", signum)
+            LOGGER.info("Caught %s. Resuming operation.", signum)
 
 
 def main(fork):
