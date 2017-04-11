@@ -36,7 +36,7 @@ from nav.logs import init_generic_logging, convert_debug_level_to_loglevel
 from nav.statemon import RunQueue, config, db
 
 
-LOGGER = logging.getLogger('bin.servicemon')
+LOGGER = logging.getLogger('nav.servicemon')
 
 
 class Controller:

@@ -41,7 +41,7 @@ from nav.statemon.event import Event
 from nav.statemon.netbox import Netbox
 
 
-LOGGER = logging.getLogger('bin.pping')
+LOGGER = logging.getLogger('nav.pping')
 
 
 class pinger:
