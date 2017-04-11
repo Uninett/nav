@@ -203,7 +203,6 @@ def help():
     Usage: %s [OPTIONS]
     -h  --help      Displays this message
     -n  --nofork    Run in foreground
-    -v  --version   Display version and exit
 
     """ % os.path.basename(sys.argv[0])))
 
@@ -246,19 +245,16 @@ if __name__ == "__main__":
     nofork = 0
     try:
         opts, args = getopt.getopt(sys.argv[1:],
-                                   "hnv",
-                                   ["help", "nofork", "version"])
+                                   "hn",
+                                   ["help", "nofork"])
         for opt, val in opts:
             if opt in ("-h", "--help"):
                 help()
                 sys.exit(0)
             elif opt in ("-n", "--nofork"):
                 nofork = 1
-            elif opt in ("-v", "--version"):
-                print(__version__)
-                sys.exit(0)
 
-    except (getopt.error):
+    except getopt.error:
         help()
         sys.exit(2)
     if os.getuid() != 0:
