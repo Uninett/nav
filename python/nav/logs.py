@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2006, 2007, 2009, 2011, 2012, 2014 UNINETT AS
+# Copyright (C) 2006, 2007, 2009, 2011, 2012, 2014, 2017 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -22,7 +22,7 @@ import logging
 import ConfigParser
 import nav.path
 
-DEFAULT_LOG_FORMATTER = logging.Formatter('[%(asctime)s] [%(levelname)s] '
+DEFAULT_LOG_FORMATTER = logging.Formatter('%(asctime)s [%(levelname)s] '
                                           '[%(name)s] %(message)s')
 LOGGING_CONF_VAR = 'NAV_LOGGING_CONF'
 LOGGING_CONF_FILE_DEFAULT = os.path.join(nav.path.sysconfdir, 'logging.conf')
@@ -216,7 +216,7 @@ def init_generic_logging(logfile=None, stderr=True, stdout=False,
     if stderr or (stdout and sys.stdout.isatty()):
         tty = sys.stderr if stderr else sys.stdout
         tty_handler = logging.StreamHandler(tty)
-        formatter = formatter or logging.Formatter(logging.BASIC_FORMAT)
+        formatter = formatter or DEFAULT_LOG_FORMATTER
         tty_handler.setFormatter(formatter)
         if stderr and stderr_level:
             tty_handler.setLevel(stderr_level)
