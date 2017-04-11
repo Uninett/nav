@@ -32,7 +32,7 @@ import logging
 import nav.daemon
 from nav import buildconf
 from nav.daemon import safesleep as sleep
-from nav.logs import init_generic_logging, convert_debug_level_to_loglevel
+from nav.logs import init_generic_logging
 from nav.statemon import statistics
 from nav.statemon import megaping
 from nav.statemon import db
