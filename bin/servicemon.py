@@ -44,11 +44,7 @@ class Controller:
         signal.signal(signal.SIGHUP, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
         self.conf = config.serviceconf()
-        debuglevel = int(self.conf.get('debuglevel', 4))
-        init_generic_logging(
-            stderr=True, read_config=True,
-            stderr_level=convert_debug_level_to_loglevel(debuglevel)
-        )
+        init_generic_logging(stderr=True, read_config=True)
         self._deamon = kwargs.get("fork", 1)
         self._isrunning = 1
         self._checkers = []

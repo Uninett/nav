@@ -49,16 +49,10 @@ class pinger:
         signal.signal(signal.SIGHUP, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
         self.config = config.pingconf()
-        debuglevel = int(self.config.get("debuglevel", 5))
-        init_generic_logging(
-            stderr=True, read_config=True,
-            stderr_level=convert_debug_level_to_loglevel(debuglevel),
-        )
-        LOGGER.info("Setting debuglevel=%s ", debuglevel)
+        init_generic_logging(stderr=True, read_config=True)
         self._isrunning = 1
         self._looptime = int(self.config.get("checkinterval", 60))
         LOGGER.info("Setting checkinterval=%i", self._looptime)
-        self._debuglevel = 0
         self.db = db.db()
         sock = kwargs.get("socket", None)
         self.pinger = megaping.MegaPing(sock)

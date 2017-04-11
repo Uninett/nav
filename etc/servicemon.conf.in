@@ -1,9 +1,6 @@
-# This is a sample configuration file for
-# NAV servicemon.
 #
-# $Id: $
-
-
+# This is a sample configuration file for NAV servicemon.
+#
 
 # Maximum number of threads. This value defaults to sysmaxint.
 maxthreads = 20
@@ -14,9 +11,6 @@ recycle interval = 50
 
 # How often do we want to check each service
 checkinterval = 60
-
-# How verbose should we be
-debuglevel = 7
 
 # Set default timeout in seconds
 # Defalts to 5
