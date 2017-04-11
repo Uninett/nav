@@ -124,7 +124,7 @@ class AbstractChecker(object):
             self.runcount += 1
             LOGGER.info("%-20s -> State changed. New check in %i sec. (%s, "
                         "%s)", service, delay, status, info)
-            # Updates rrd every time to get proper 'uptime' for the service
+            # Update metrics every time to get proper 'uptime' for the service
             self.update_stats()
             priority = delay + time.time()
             # Queue ourself
