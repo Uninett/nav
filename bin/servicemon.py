@@ -144,7 +144,9 @@ class Controller:
 def main(fork):
     """Daemon main entry point"""
     conf = config.serviceconf()
-    pidfilename = conf.get("pidfile", "servicemon.pid")
+    pidfilename = conf.get(
+        "pidfile",
+        os.path.join(buildconf.localstatedir, "run", "servicemon.pid"))
 
     # Already running?
     try:
@@ -158,7 +160,9 @@ def main(fork):
         sys.exit(1)
 
     if fork:
-        logfile_path = conf.get('logfile', 'servicemon.log')
+        logfile_path = conf.get(
+            'logfile',
+            os.path.join(buildconf.localstatedir, 'log','servicemon.log'))
         logfile = file(logfile_path, 'a')
         nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
 

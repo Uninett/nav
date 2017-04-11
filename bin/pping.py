@@ -30,6 +30,7 @@ import time
 import logging
 
 import nav.daemon
+from nav import buildconf
 from nav.daemon import safesleep as sleep
 from nav.logs import init_generic_logging, convert_debug_level_to_loglevel
 from nav.statemon import statistics
@@ -213,7 +214,8 @@ def start(nofork):
     a daemon.
     """
     conf = config.pingconf()
-    pidfilename = conf.get("pidfile", "/usr/local/nav/var/run/pping.pid")
+    pidfilename = conf.get(
+        "pidfile", os.path.join(buildconf.localstatedir, "run", "pping.pid"))
 
     # Already running?
     try:
@@ -227,7 +229,9 @@ def start(nofork):
         sys.exit(1)
 
     if not nofork:
-        logfile_path = conf.get("logfile", "pping.log")
+        logfile_path = conf.get(
+            'logfile',
+            os.path.join(buildconf.localstatedir, 'log','pping.log'))
         logfile = file(logfile_path, "a")
         nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
 
