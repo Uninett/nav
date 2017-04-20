@@ -1,0 +1,46 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  {% if rackid %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/rack.css">
+
+    <div id="envrack-{{ rackid }}" style="display: flex; justify-content: center;">
+      <my-rack :rack="rack"></my-rack>
+    </div>
+
+    <script>
+     (function(){
+         require(['plugins/vue_rack', 'vue'], function(rack, Vue){
+             var vm = new Vue({
+                 el: '#envrack-{{ rackid }}',
+                 data: {
+                     rack: null
+                 },
+                 components: {
+                     'my-rack': rack
+                 },
+                 methods: {
+                     loadRack: function () {
+                         var self = this;
+                         $.getJSON('{% url 'api:rack-detail' rackid %}', function (data) {
+                             self.rack = data;
+                         });
+                     }
+                 },
+                 mounted: function () {
+                     this.loadRack();
+                 }
+             });
+         });
+
+     })();
+    </script>
+
+  {% else %}
+    <p class="alert-box">Configure the widget to add a rack</p>
+  {% endif %}
+
+
+
+{% endblock %}

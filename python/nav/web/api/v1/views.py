@@ -36,7 +36,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.generics import ListAPIView
 from nav.models.api import APIToken
-from nav.models import manage, event, cabling
+from nav.models import manage, event, cabling, rack
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
 
@@ -131,6 +131,7 @@ def get_endpoints(request=None, version=1):
                                        **kwargs),
         'unrecognized_neighbor': reverse_lazy('{}unrecognized-neighbor-list'.format(prefix), **kwargs),
         'vlan': reverse_lazy('{}vlan-list'.format(prefix), **kwargs),
+        'rack': reverse_lazy('{}rack-list'.format(prefix), **kwargs),
     }
 
 
@@ -705,6 +706,26 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
             'alertmsg/base.html'
         ])
         return template_names
+
+
+class RackViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """Lists all environment racks.
+
+    Search
+    ------
+    Searches in *rackname*
+
+    Filters
+    -------
+    - id
+    - room
+    - rackname
+
+    """
+    queryset = rack.Rack.objects.all()
+    serializer_class = serializers.RackSerializer
+    filter_fields = ['room', 'rackname']
+    search_fields = ['rackname']
 
 
 def get_or_create_token(request):

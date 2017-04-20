@@ -334,7 +334,9 @@ class SensorsSumRackItem(BaseRackItem):
         )
 
     def unit_of_measurement(self):
-        return self.sensors[0].unit_of_measurement
+        if self.sensors:
+            return self.sensors[0].unit_of_measurement
+        return 'N/A'
 
     def get_absolute_url(self):
         return ""

@@ -1,0 +1,10 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  <form action="{% url 'get-user-navlet' navlet.navlet_id %}" method="post">
+    {{ form }}
+    <input type="submit" class="button tiny" value="Save">
+  </form>
+
+{% endblock %}
