@@ -19,13 +19,13 @@
 
 from __future__ import print_function
 
+import logging
 import os
 import re
 import socket
 import sys
 from optparse import OptionParser
 import ConfigParser
-import logging
 import signal
 
 # Import NAV libraries
@@ -40,10 +40,11 @@ from nav.snmptrapd import agent
 
 # Paths
 configfile = nav.buildconf.sysconfdir + "/snmptrapd.conf"
-traplogfile = nav.buildconf.localstatedir + "/log/snmptraps.log"
-logfile = nav.buildconf.localstatedir + "/log/snmptrapd.log"
-logger = None
-traplogger = None
+logfile_path = nav.buildconf.localstatedir + "/log/snmptrapd.log"
+pidfile = nav.buildconf.localstatedir + "/run/snmptrapd.pid"
+logging.raiseExceptions = False  # don't raise exceptions for logging issues
+logger = logging.getLogger('nav.snmptrapd')
+traplogger = logging.getLogger('nav.snmptrapd.traplog')
 handlermodules = None
 config = None
 
@@ -84,10 +85,9 @@ def main():
             sys.exit(-1)
 
     # Check if already running
-    pidfile = nav.buildconf.localstatedir + "/run/snmptrapd.pid"
     try:
         daemon.justme(pidfile)
-    except daemon.DaemonError, why:
+    except daemon.DaemonError as why:
         print(why)
         sys.exit(-1)
 
@@ -100,51 +100,14 @@ def main():
     try:
         if os.geteuid() == 0:
             daemon.switchuser(runninguser)
-    except daemon.DaemonError, why:
+    except daemon.DaemonError as why:
         print(why)
         server.close()
         sys.exit(-1)
 
-    # logger and traplogger logs to two different files. We want a
-    # complete log of received traps in one place, and an activity log
-    # somewhere else.  Note: When not running in daemonmode the
-    # loggers both log to stdout.
-    global logger, traplogger, handlermodules
+    global handlermodules
 
-    # Create logger based on if we are to daemonize or just run in
-    # shell
-    if opts.daemon:
-
-        # Fetch loglevel from snmptrapd.conf
-        loglevel = config.get('snmptrapd', 'loglevel')
-        if not loglevel.isdigit():
-            loglevel = logging.getLevelName(loglevel)
-
-        try:
-            loglevel = int(loglevel)
-        except ValueError:
-            # default to loglevel INFO
-            loglevel = 20
-
-        # Initialize deamonlogger
-        if not loginitfile(logfile, traplogfile, loglevel):
-            sys.exit(1)
-
-        traplogger = logging.getLogger('nav.snmptrapd.traplog')
-        logger = logging.getLogger('nav.snmptrapd')
-
-    else:
-
-        # Log to console
-        handler = logging.StreamHandler()
-
-        logger = logging.getLogger('')
-        logger.setLevel(logging.DEBUG)
-        traplogger = logging.getLogger('')
-        traplogger.setLevel(logging.DEBUG)
-
-        logger.addHandler(handler)
-        traplogger.addHandler(handler)
+    nav.logs.init_generic_logging(stderr=True, read_config=True)
 
     logger.debug("using %r as SNMP backend", agent.BACKEND)
 
@@ -152,7 +115,7 @@ def main():
     try:
         logger.debug('Trying to load handlermodules')
         handlermodules = load_handler_modules(config.get('snmptrapd', 'handlermodules').split(','))
-    except ModuleLoadError, why:
+    except ModuleLoadError as why:
         logger.error("Could not load handlermodules %s" % why)
         sys.exit(1)
 
@@ -161,9 +124,9 @@ def main():
         # Daemonize and listen for traps
         try:
             logger.debug("Going into daemon mode...")
-            daemon.daemonize(pidfile,
-                             stderr=nav.logs.get_logfile_from_logger())
-        except daemon.DaemonError, why:
+            logfile = open(logfile_path, 'a')
+            daemon.daemonize(pidfile, stderr=logfile, stdout=logfile)
+        except daemon.DaemonError as why:
             logger.error("Could not daemonize: %s", why)
             server.close()
             sys.exit(1)
@@ -188,7 +151,7 @@ def main():
             server.listen(opts.community, trapHandler)
         except SystemExit:
             raise
-        except Exception, why:
+        except Exception as why:
             logger.critical("Fatal exception ocurred", exc_info=True)
 
     else:
@@ -196,7 +159,7 @@ def main():
         try:
             logger.info("Listening on %s", addresses_text)
             server.listen(opts.community, trapHandler)
-        except KeyboardInterrupt, why:
+        except KeyboardInterrupt as why:
             logger.error("Received keyboardinterrupt, exiting.")
             server.close()
 
@@ -241,51 +204,38 @@ def parse_address(address):
     raise ValueError("%s is not a valid address" % address)
 
 
-def loginitfile(logfile, traplogfile, loglevel):
-    """Initalize the logging handler for logfile."""
-
-    try:
-        filehandler = logging.FileHandler(logfile, 'a')
-        fileformat = '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s'
-        fileformatter = logging.Formatter(fileformat)
-        filehandler.setFormatter(fileformatter)
-        logger = logging.getLogger()
-        logger.addHandler(filehandler)
-        logger.setLevel(loglevel)
-        # logger.setLevel(loglevel)
-
-        filehandler = logging.FileHandler(traplogfile, 'a')
-        filehandler.setFormatter(fileformatter)
-        traplogger = logging.getLogger("nav.snmptrapd.traplog")
-        traplogger.propagate = 0
-        traplogger.addHandler(filehandler)
-
-        return True
-    except IOError, error:
-        print("Failed creating file loghandler. Daemon mode disabled. (%s)"
-              % error, file=sys.stderr)
-        return False
-
-
 def trapHandler(trap):
-    """Handle a trap"""
+    """Handles a trap.
 
-    traplogger.info(trap.trapText())
+    :type trap: nav.snmptrapd.trap.SNMPTrap
+
+    """
+    traplogger.debug(trap.trapText())
     connection = getConnection('default')
+    handled_by = []
 
     for mod in handlermodules:
         logger.debug("Giving trap to %s" % str(mod))
         try:
             accepted = mod.handleTrap(trap, config=config)
+            if accepted:
+                handled_by.append(mod.__name__)
             logger.debug("Module %s %s trap", mod.__name__,
                          accepted and 'accepted' or 'ignored',)
-        except Exception, why:
+        except Exception as why:
             logger.exception("Error when handling trap with %s: %s"
                              % (mod.__name__, why))
         # Assuming that the handler used the same connection as this
         # function, we rollback any uncommitted changes.  This is to
         # avoid idling in transactions.
         connection.rollback()
+
+    if handled_by:
+        logger.info("v%s trap received from %s, handled by %s", trap.version,
+                    trap.src, handled_by)
+    else:
+        logger.info("v%s trap received from %s, no handlers wanted it",
+                    trap.version, trap.src)
 
 
 def verifySubsystem():
@@ -304,7 +254,8 @@ def signal_handler(signum, _):
     if signum == signal.SIGHUP:
         logger.info("SIGHUP received; reopening log files.")
         nav.logs.reopen_log_files()
-        daemon.redirect_std_fds(stderr=nav.logs.get_logfile_from_logger())
+        logfile = nav.logs.get_logfile_from_logger()
+        daemon.redirect_std_fds(stdout=logfile, stderr=logfile)
         logger.info("Log files reopened.")
     elif signum == signal.SIGTERM:
         logger.warning('SIGTERM received: Shutting down.')
