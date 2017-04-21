@@ -48,44 +48,30 @@ class AbstractAuditlogListView(AuditlogViewMixin, ListView):
     slug_url_kwarg = 'auditmodel'
     model = LogEntry
     template_name = 'auditlog/logentry_list.html'
+    limit_to = None
 
     def get_context_data(self, **kwargs):
         context = {'auditmodel': self.kwargs.get(self.slug_url_kwarg, None)}
         context.update(**kwargs)
         return super(AbstractAuditlogListView, self).get_context_data(**context)
 
-
-class AuditlogObjectListView(AbstractAuditlogListView):
-
     def get_queryset(self):
         # Show only logs for specific object type
-        qs = super(AuditlogObjectListView, self).get_queryset()
+        qs = super(AbstractAuditlogListView, self).get_queryset()
         auditmodel = self.kwargs.get(self.slug_url_kwarg, None)
-        if auditmodel:
-            model = registry.get(auditmodel)
-            qs = qs.filter(object_model=auditmodel)
+        if auditmodel and self.limit_to:
+            kwargs = {self.limit_to: auditmodel}
+            qs = qs.filter(**kwargs)
         return qs
+
+
+class AuditlogObjectListView(AbstractAuditlogListView):
+    limit_to = 'object_model'
 
 
 class AuditlogActorListView(AbstractAuditlogListView):
-
-    def get_queryset(self):
-        # Show only logs for specific actor type
-        qs = super(AuditlogActorListView, self).get_queryset()
-        auditmodel = self.kwargs.get(self.slug_url_kwarg, None)
-        if auditmodel:
-            model = registry.get(auditmodel)
-            qs = qs.filter(actor_model=auditmodel)
-        return qs
+    limit_to = 'actor_model'
 
 
 class AuditlogTargetListView(AbstractAuditlogListView):
-
-    def get_queryset(self):
-        # Show only logs for specific target type
-        qs = super(AuditlogTargetListView, self).get_queryset()
-        auditmodel = self.kwargs.get(self.slug_url_kwarg, None)
-        if auditmodel:
-            model = registry.get(auditmodel)
-            qs = qs.filter(target_model=auditmodel)
-        return qs
+    limit_to = 'target_model'
