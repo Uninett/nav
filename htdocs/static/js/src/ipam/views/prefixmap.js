@@ -21,6 +21,7 @@ define(function(require, exports, module) {
   var d3 = require("d3v4");
 
   var viewbox = _.template("0 0 <%= width %> <%= height %>");
+  var tooltipTmpl = _.template("<%= prefix %> <% if (vlan_number) { %> (vlan <%= vlan_number %>)<% } %> - <%= description %>");
 
   var PrefixMap = function(opts) {
     var width = opts.width;
@@ -103,7 +104,7 @@ define(function(require, exports, module) {
             div.transition()
               .duration(200)
               .style("opacity", .9);
-            div.html(d.data.prefix)
+            div.html(tooltipTmpl(d.data))
               .style("left", (d3.event.pageX) + "px")
               .style("top", (d3.event.pageY - 28) + "px");
           })
