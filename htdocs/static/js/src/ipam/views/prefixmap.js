@@ -56,6 +56,8 @@ define(function(require, exports, module) {
           .attr("class", "matrix")
           .append("g");
 
+    var rootTmpl = _.template("<%= prefix %> <% if (description) {%>- <%= description %><% } %>");
+
     // Container for tooltip on nodes
     var div = d3.select("body").append("div")
           .attr("class", "prefix-tooltip")
@@ -74,7 +76,20 @@ define(function(require, exports, module) {
       .attr("fill", colors)
       .attr("stroke", colors(rootElem).darker(1))
       .attr("width", xScale(rootElem.x1) - xScale(rootElem.x0))
-      .attr("height", yScale(rootElem.y1) - yScale(rootElem.y0));
+      .attr("height", yScale(rootElem.y1) - yScale(rootElem.y0))
+      .on("mouseover", function(d) {
+        div.transition()
+          .duration(200)
+          .style("opacity", .9);
+        div.html(tooltipTmpl(rootElem.data))
+          .style("left", (d3.event.pageX) + "px")
+          .style("top", (d3.event.pageY - 28) + "px");
+      })
+      .on("mouseout", function(d) {
+        div.transition()
+          .duration(500)
+          .style("opacity", 0);
+      });
     rootNode
       .append("text")
       .attr("visibility", "visible")
@@ -82,7 +97,7 @@ define(function(require, exports, module) {
       .attr("y", 0.5 * (yScale(rootElem.y1) - yScale(rootElem.y0)))
       .attr("class", "matrix-subnet-root-prefix")
       .append("tspan")
-      .text(rootElem.data.prefix)
+      .text(rootTmpl(rootElem.data))
       .attr("x", 0.5 * (xScale(rootElem.x1) - xScale(rootElem.x0)))
       .attr("y", 0.5 * (yScale(rootElem.y1) - yScale(rootElem.y0)));
 
