@@ -27,6 +27,7 @@ import json
 from django.core.urlresolvers import reverse, NoReverseMatch
 
 from nav.web.ipam.util import get_available_subnets
+from nav.models.manage import Prefix
 
 
 class PrefixHeap(object):
@@ -398,7 +399,12 @@ not part of the RFC1918 ranges.
     init = []
 
     if root_ip is not None:
-        init.append(FauxNode(root_ip, "scope", "scope"))
+        scope = Prefix.objects.get(net_address=root_ip)
+        if scope is not None:
+            node = PrefixNode(scope)
+        else:
+            node = FauxNode(root_ip, "scope", "scope")
+        init.append(node)
 
     opts = {
         "initial_children": init,
