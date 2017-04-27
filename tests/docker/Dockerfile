@@ -93,3 +93,4 @@ RUN chmod +s /usr/local/bin/gosu
 ENV WORKSPACE /source
 ENV BUILDDIR /opt/nav
 COPY tests/docker/build.sh /build.sh
+WORKDIR /source
