@@ -95,6 +95,7 @@ define([], function () {
      * @returns {HTMLElement}
      */
     function createFullscreenToggler(element, append) {
+        element.style.position = 'relative';
         var button = document.createElement('button'),
             icon = document.createElement('i');
         button.className = 'tiny';
@@ -102,7 +103,7 @@ define([], function () {
         button.appendChild(icon);
 
         button.style.position = 'absolute';
-        button.style.right = '30px';
+        button.style.right = '10px';
         button.style.top = '10px';
         button.style['z-index'] = 999;
 

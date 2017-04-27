@@ -1,4 +1,4 @@
-define(['libs/OpenLayers'], function () {
+define(['plugins/fullscreen', 'libs/OpenLayers'], function (fullscreen) {
 
     /*
      * Mapper creates an OpenStreetMap on the node given rooms from NAV
@@ -33,6 +33,7 @@ define(['libs/OpenLayers'], function () {
             var markers = addMarkers(this.rooms, this.map, this.markerImages);
             addMarkerControl(markers, this.map);
             addCoordinatePicker(this.map);
+            fullscreen.createFullscreenToggler(this.map.div, true);
         }
     };
 
