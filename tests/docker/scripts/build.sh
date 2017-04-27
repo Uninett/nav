@@ -18,3 +18,4 @@ cat > "${BUILDDIR}/etc/logging.conf" <<EOF
 [levels]
 root=DEBUG
 EOF
+echo "DJANGO_DEBUG=True" >> "${BUILDDIR}/etc/nav.conf"
