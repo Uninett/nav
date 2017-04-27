@@ -19,3 +19,11 @@ cat > "${BUILDDIR}/etc/logging.conf" <<EOF
 root=DEBUG
 EOF
 echo "DJANGO_DEBUG=True" >> "${BUILDDIR}/etc/nav.conf"
+
+
+# Now, because of a stupid Python issue, the running uid needs a passwd entry
+# Reference: https://bugs.python.org/issue10496
+if ! whoami; then
+    echo "Modifying the internal build user's UID"
+    gosu root usermod -u "$uid" build
+fi
