@@ -26,31 +26,18 @@ init_db() {
 }
 
 run_pytests() {
-    export TARGETHOST="localhost"
-    export APACHE_PORT=8000
-    export TARGETURL=http://$TARGETHOST:$APACHE_PORT/
-
-    cd "${WORKSPACE}/tests"
-    py.test --junitxml=unit-results.xml --verbose unittests
-    py.test --junitxml=integration-results.xml --verbose integration
-    py.test --junitxml=functional-results.xml \
-	    --verbose \
-	    --driver Firefox \
-	    --base-url "$TARGETURL" \
-	    --sensitive-url "nothing to see here" \
-	    --html functional-report.html \
-	    functional
-
+    /python-unit-tests.sh
+    /integration-tests.sh
+    /functional-tests.sh
     echo Python tests are done
 }
 
 run_jstests() {
-    cd "${WORKSPACE}"
-    CHROME_BIN=$(which google-chrome) ./tests/javascript-test.sh "$(pwd)"
+    /javascript-tests.sh
 }
 
 run_pylint() {
-    time "${WORKSPACE}/tests/docker/lint.sh" > "${WORKSPACE}/pylint.txt"
+    time "/pylint.sh" > "${WORKSPACE}/pylint.txt"
 }
 
 dump_possibly_relevant_apache_accesses() {
@@ -70,13 +57,12 @@ cd "$WORKSPACE"
 /build.sh
 
 run_pylint &
-"${WORKSPACE}/tests/docker/cloc.sh" &
+/count-lines-of-code.sh &
 
 init_db
-(start_apache)  # run in subprocess b/c of call to wait
-start_xvfb
-
+/start-services.sh
 trap dump_possibly_relevant_apache_accesses EXIT
+
 run_pytests
 run_jstests
 

@@ -52,7 +52,7 @@ RUN cd /tmp && \
     make && make install && echo tidy5 installed
 
 # Add a build user
-RUN adduser --system --group --home=/build --shell=/bin/bash build
+RUN adduser --system --group --no-create-home --home=/ --shell=/bin/bash build
 
 # Build and install Python requirements
 ADD requirements.txt /runtime-requirements.txt
@@ -92,5 +92,5 @@ RUN chmod +s /usr/local/bin/gosu
 
 ENV WORKSPACE /source
 ENV BUILDDIR /opt/nav
-COPY tests/docker/build.sh /build.sh
+COPY tests/docker/scripts/ /
 WORKDIR /source
