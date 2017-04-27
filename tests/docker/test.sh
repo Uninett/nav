@@ -1,19 +1,5 @@
 #!/bin/bash -xe
 
-build_nav() {
-    cd "${WORKSPACE}"
-
-    echo "Building and installing NAV..."
-    ./autogen.sh
-    ./configure --prefix "${BUILDDIR}" --localstatedir=/var/run/nav NAV_USER=build
-    make
-    make install
-    cat > "${BUILDDIR}/etc/logging.conf" <<EOF
-[levels]
-root=DEBUG
-EOF
-}
-
 start_apache() {
     APACHE_CONFIG="${WORKSPACE}/tests/docker/apache.conf"
 
@@ -80,7 +66,8 @@ dump_possibly_relevant_apache_accesses() {
 
 
 # MAIN EXECUTION POINT
-build_nav
+cd "$WORKSPACE"
+/build.sh
 
 run_pylint &
 "${WORKSPACE}/tests/docker/cloc.sh" &
