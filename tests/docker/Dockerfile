@@ -1,13 +1,22 @@
-FROM mbrekkevold/navbase-debian:jessie
+FROM python:2.7
 
+ENV DISTRO jessie
 ENV DISPLAY :99
 ENV ADMINPASSWORD omicronpersei8
 
-# Remove these superfluous, and possibly conflicting accounts
-RUN for U in systemd-timesync systemd-network systemd-resolve systemd-bus-proxy; do userdel -f $U; done
-
 ### Installing packages
-RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
+RUN echo "\n\
+\
+deb http://security.debian.org/ $DISTRO/updates main\n\
+deb-src http://security.debian.org/ $DISTRO/updates main\n\
+deb http://ftp.no.debian.org/debian $DISTRO main contrib non-free\n\
+deb-src http://ftp.no.debian.org/debian $DISTRO main contrib non-free\n\
+deb http://ftp.no.debian.org/debian $DISTRO-updates main contrib non-free\n\
+deb-src http://ftp.no.debian.org/debian $DISTRO-updates main contrib non-free\n\
+
+deb http://dl.google.com/linux/chrome/deb/ stable main\n\
+\
+" > /etc/apt/sources.list
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A040830F7FAC5991 1397BC53640DB551
 
 # TODO: Might not need all the dependencies
@@ -17,18 +26,20 @@ RUN apt-get update && \
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends install \
-	locales mercurial subversion git-core python-virtualenv python-pip \
-	build-essential librrd-dev python-dev autoconf automake libsnmp30 \
-	cron sudo apache2 libapache2-mod-wsgi rubygems inotify-tools python-cairo \
+	libsnmp30 \
+	cron \
+	apache2 libapache2-mod-wsgi \
+	rubygems \
+	python-cairo \
 	postgresql postgresql-contrib postgresql-client \
-	ruby-dev libxml2-dev libxslt1-dev net-tools \
-	postgresql-server-dev-all libpq-dev libwww-perl python-rrdtool \
+	libxml2-dev libxslt1-dev \
+	libwww-perl \
 	iceweasel xvfb nodejs-legacy curl \
-	python-iso8601 imagemagick x11vnc google-chrome-stable rrdtool cloc \
+	imagemagick \
+	x11vnc google-chrome-stable cloc \
 	cmake nbtscan python-gammu
 
-RUN gem install --version '3.3.9' sass ; \
-    gem install --version '~> 0.9' rb-inotify
+RUN gem install --version '3.3.9' sass
 
 # NPM for Javascript testing needs
 RUN curl --insecure https://www.npmjs.com/install.sh | clean=no bash
@@ -40,12 +51,12 @@ RUN cd /tmp && \
     cmake ../.. -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIB:BOOL=ON && \
     make && make install && echo tidy5 installed
 
+# Add a build user
 RUN adduser --system --group --home=/build --shell=/bin/bash build
-RUN echo "build    ALL=NOPASSWD: ALL" >> /etc/sudoers
 
 # Build and install Python requirements
-ADD runtime-requirements.txt /runtime-requirements.txt
-ADD test-requirements.txt /test-requirements.txt
+ADD requirements.txt /runtime-requirements.txt
+ADD tests/requirements.txt /test-requirements.txt
 RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
 RUN pip install whisper carbon==0.9.14 graphite-web==0.9.14 django-tagging
 
@@ -63,7 +74,22 @@ RUN cd /tmp && \
     unzip chromedriver_linux64.zip && \
     mv chromedriver /usr/local/bin/
 
-# This does not make files in source accessible for RUN-commands
-VOLUME ["/source"]
+# GOSU for our root needs
+ENV GOSU_VERSION 1.10
+RUN set -x \
+	&& apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+	&& dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
+	&& wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" \
+	&& wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc" \
+	&& export GNUPGHOME="$(mktemp -d)" \
+	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+	&& gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
+	&& rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
+	&& chmod +x /usr/local/bin/gosu \
+	&& gosu nobody true
 
-ENTRYPOINT ["/source/tests/docker/bootstrap.sh"]
+RUN chmod +s /usr/local/bin/gosu
+
+ENV WORKSPACE /source
+ENV BUILDDIR /opt/nav
+COPY tests/docker/build.sh /build.sh
