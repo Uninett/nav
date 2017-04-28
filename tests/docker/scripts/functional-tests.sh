@@ -10,5 +10,5 @@ py.test --junitxml=functional-results.xml \
         --driver Firefox \
         --base-url "$TARGETURL" \
         --sensitive-url "nothing to see here" \
-        --html functional-report.html \
+        --html functional-report.html --self-contained-html \
         functional
