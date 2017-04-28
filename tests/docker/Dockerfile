@@ -3,16 +3,17 @@ FROM python:2.7
 ENV DISTRO jessie
 ENV DISPLAY :99
 ENV ADMINPASSWORD omicronpersei8
+ENV MIRROR httpredir.debian.org
 
 ### Installing packages
 RUN echo "\n\
 \
 deb http://security.debian.org/ $DISTRO/updates main\n\
 deb-src http://security.debian.org/ $DISTRO/updates main\n\
-deb http://ftp.no.debian.org/debian $DISTRO main contrib non-free\n\
-deb-src http://ftp.no.debian.org/debian $DISTRO main contrib non-free\n\
-deb http://ftp.no.debian.org/debian $DISTRO-updates main contrib non-free\n\
-deb-src http://ftp.no.debian.org/debian $DISTRO-updates main contrib non-free\n\
+deb http://$MIRROR/debian $DISTRO main contrib non-free\n\
+deb-src http://$MIRROR/debian $DISTRO main contrib non-free\n\
+deb http://$MIRROR/debian $DISTRO-updates main contrib non-free\n\
+deb-src http://$MIRROR/debian $DISTRO-updates main contrib non-free\n\
 
 deb http://dl.google.com/linux/chrome/deb/ stable main\n\
 \
