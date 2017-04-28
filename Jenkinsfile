@@ -67,8 +67,6 @@ node {
 
     }
     
-    stage "Archive artifacts" {
-        archiveArtifacts artifacts: 'tests/*-report.html'
-    }        
+    archiveArtifacts artifacts: 'tests/*-report.html'
 
 }
