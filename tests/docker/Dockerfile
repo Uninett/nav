@@ -23,7 +23,7 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A040830F7FAC5991 13
 # TODO: Might not need all the dependencies
 RUN apt-get update && \
     apt-get -y --no-install-recommends build-dep \
-	python-psycopg2 python-lxml librrd-dev python-imaging python-ldap
+	python-psycopg2 python-lxml python-imaging python-ldap
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends install \
