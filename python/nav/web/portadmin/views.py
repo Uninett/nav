@@ -375,7 +375,7 @@ def set_ifalias(account, fac, interface, request):
                 _logger.error('Error setting ifalias: %s', error)
                 messages.error(request, "Error setting ifalias: %s" % error)
         else:
-            messages.error(request, "Wrong format on ifalias")
+            messages.error(request, "Wrong format on port description")
 
 
 def set_vlan(account, fac, interface, request):
