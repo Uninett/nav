@@ -3,7 +3,7 @@ define([
     "libs-amd/text!resources/seeddb/hstore_row.html",
     'libs/handlebars'
 ],
-function (hstore_container_source, hstore_row_source) {
+function (hstore_container_source, hstore_row_source, Handlebars) {
     /*
      An HStore field displays in the form of a textarea with a dict in it.
      This module parses the dict, and presents a form to the user for editing

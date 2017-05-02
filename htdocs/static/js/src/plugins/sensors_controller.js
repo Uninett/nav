@@ -2,8 +2,9 @@ define([
     "libs-amd/text!resources/room/sensor.html",
     "libs-amd/text!resources/room/detail.html",
     "libs-amd/text!resources/room/counter.html",
+    "libs/handlebars",
     "plugins/sensor_controller"],
-function (sensorTemplate, detailTemplate, counterTemplate, SensorController) {
+function (sensorTemplate, detailTemplate, counterTemplate, Handlebars, SensorController) {
 
     function SensorsController($sensors) {
         var templates = {
