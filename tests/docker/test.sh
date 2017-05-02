@@ -1,30 +1,5 @@
 #!/bin/bash -xe
 
-start_apache() {
-    APACHE_CONFIG="${WORKSPACE}/tests/docker/apache.conf"
-
-    echo -n "Starting apache..."
-    sudo a2dismod cgid
-    /usr/sbin/apache2ctl -f $APACHE_CONFIG -k start
-    echo " done"
-    wait
-}
-
-start_xvfb() {
-    XVFB=/usr/bin/Xvfb
-    XVFBARGS=":99 -screen 0 1024x768x24 -fbdir /var/tmp -ac"
-    PIDFILE="/var/tmp/xvfb.pid"
-
-    echo -n "Starting Xvfb..."
-    /sbin/start-stop-daemon --start --quiet --pidfile $PIDFILE --make-pidfile --background --exec $XVFB -- $XVFBARGS
-    echo " done"
-}
-
-
-init_db() {
-    . /source/tests/docker/create-db.sh
-}
-
 run_pytests() {
     /python-unit-tests.sh
     /integration-tests.sh
@@ -59,7 +34,7 @@ cd "$WORKSPACE"
 run_pylint &
 /count-lines-of-code.sh &
 
-init_db
+/create-db.sh
 /start-services.sh
 trap dump_possibly_relevant_apache_accesses EXIT
 
