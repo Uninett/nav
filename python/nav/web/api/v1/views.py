@@ -201,7 +201,7 @@ class ServiceHandlerViewSet(NAVAPIMixin, ViewSet):
         }
 
 
-class RoomViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+class RoomViewSet(NAVAPIMixin, viewsets.ModelViewSet):
     """Lists all rooms.
 
     Filters

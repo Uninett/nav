@@ -102,7 +102,7 @@ class Netbox(models.Model):
 
     deleted_at = models.DateTimeField(blank=True, null=True, default=None)
 
-    data = hstore.DictionaryField()
+    data = hstore.DictionaryField(blank=True)
     objects = hstore.HStoreManager()
     ups_objects = UpsManager()
 
@@ -722,7 +722,7 @@ class Room(models.Model):
                                  blank=True, null=True)
     description = VarcharField(db_column='descr', blank=True)
     position = PointField(null=True, blank=True, default=None)
-    data = hstore.DictionaryField()
+    data = hstore.DictionaryField(blank=True)
 
     objects = hstore.HStoreManager()
 

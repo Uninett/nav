@@ -28,9 +28,6 @@ from nav.models.api import APIToken
 _logger = logging.getLogger(__name__)
 
 
-ALLOWED_METHODS = ['GET']
-
-
 class APIAuthentication(TokenAuthentication):
     """Authenticates API users"""
 
@@ -68,10 +65,6 @@ class APIPermission(BasePermission):
         """Checks if request is permissable
         :type request: rest_framework.request.Request
         """
-        if request.method not in ALLOWED_METHODS:
-            _logger.warning('API access with forbidden method - %s',
-                            request.method)
-            return False
 
         # If user is logged in, it is authorized
         if not request.account.is_default_account():

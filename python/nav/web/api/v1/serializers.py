@@ -92,7 +92,7 @@ class RoomSerializer(serializers.ModelSerializer):
     @staticmethod
     def transform_position(obj, _value):
         """Returns string versions of the coordinates"""
-        if obj.position:
+        if hasattr(obj, 'position') and obj.position:
             lat, lon = obj.position
             return str(lat), str(lon)
 
