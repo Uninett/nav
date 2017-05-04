@@ -262,7 +262,7 @@ class UnrecognizedNeighborViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     search_fields = ('remote_name', )
 
 
-class NetboxViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     """Lists all netboxes.
 
     Search

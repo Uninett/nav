@@ -86,7 +86,7 @@ class Netbox(models.Model):
     room = models.ForeignKey('Room', db_column='roomid')
     type = models.ForeignKey('NetboxType', db_column='typeid',
                              blank=True, null=True)
-    sysname = VarcharField(unique=True)
+    sysname = VarcharField(unique=True, blank=True)
     category = models.ForeignKey('Category', db_column='catid')
     groups = models.ManyToManyField(
         'NetboxGroup', through='NetboxCategory', blank=True, null=True)
@@ -290,7 +290,7 @@ class Netbox(models.Model):
             and self.sysname.endswith(settings.DOMAIN_SUFFIX)):
             return self.sysname[:-len(settings.DOMAIN_SUFFIX)]
         else:
-            return self.sysname
+            return self.sysname or self.ip
 
     def is_on_maintenance(self):
         """Returns True if this netbox is currently on maintenance"""
