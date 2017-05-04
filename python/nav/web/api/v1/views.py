@@ -201,7 +201,37 @@ class ServiceHandlerViewSet(NAVAPIMixin, ViewSet):
         }
 
 
-class RoomViewSet(NAVAPIMixin, viewsets.ModelViewSet):
+class LoggerMixin(object):
+    """Mixin for logging API-calls"""
+
+    def create(self, request, *args, **kwargs):
+        """Log POST requests that create new objects"""
+        response = super(LoggerMixin, self).create(request, *args, **kwargs)
+        if response.status_code == status.HTTP_201_CREATED:
+            _logger.info('Token %s created %r', self.request.auth, self.object)
+        return response
+
+    def update(self, request, *args, **kwargs):
+        """Log successful update (PUT and PATCH) requests
+
+        Remember - update can create new objects with PUT
+        """
+        response = super(LoggerMixin, self).update(request, *args, **kwargs)
+        if response.status_code in [status.HTTP_200_OK, status.HTTP_201_CREATED]:
+            _logger.info('Token %s updated %r with %s', self.request.auth,
+                         self.object, dict(self.request.DATA))
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        """Log successful DELETE requests"""
+        obj = self.get_object()
+        response = super(LoggerMixin, self).destroy(request, *args, **kwargs)
+        if response.status_code == status.HTTP_204_NO_CONTENT:
+            _logger.info('Token %s deleted %r', self.request.auth, obj)
+        return response
+
+
+class RoomViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     """Lists all rooms.
 
     Filters
