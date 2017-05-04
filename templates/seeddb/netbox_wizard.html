@@ -7,42 +7,7 @@
     NAV.urls.seeddb = NAV.urls.seeddb || {};
     NAV.urls.get_readonly = "{% url 'seeddb-netbox-get-readonly' %}";
     NAV.urls.seeddb.verifyAddress = "{% url 'seeddb-netbox-get-address-info' %}";
-
-  </script>
-{% endblock %}
-
-{% block footer_scripts %}
-  <script>
-   var toggleTrigger = $('.advanced-toggle'),
-       fa = toggleTrigger.find('.fa'),
-       advanced = $('.advanced'),
-       storageKey = 'NAV.seeddb.advanced.show';
-
-   function isHidden(element) {
-       return element.offsetParent === null;
-   }
-
-   function toggle() {
-       advanced.slideToggle(function(){
-           if (isHidden(this)) {
-               localStorage.setItem(storageKey, '0');
-           } else {
-               localStorage.setItem(storageKey, '1');
-           }
-       });
-       fa.toggleClass('fa-caret-square-o-right fa-caret-square-o-down');
-   }
-
-   toggleTrigger.on('click', function(event) {
-       event.preventDefault();
-       toggle();
-   });
-
-   // Show element if localstorage says so
-   if (+localStorage.getItem(storageKey) === 1) {
-       toggle();
-   }
-
+    require(['src/seeddb_netbox']);
   </script>
 {% endblock %}
 

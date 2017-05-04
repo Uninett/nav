@@ -55,6 +55,7 @@ class NetboxModelForm(forms.ModelForm):
                                      widget=forms.RadioSelect, initial='2')
     virtual_instance = MyModelMultipleChoiceField(
         queryset=Netbox.objects.none(), required=False,
+        label='Virtual instances',
         help_text='The list of virtual instances inside this master device')
 
     class Meta(object):
@@ -77,12 +78,18 @@ class NetboxModelForm(forms.ModelForm):
                    Netbox.objects.filter(master__isnull=False)]
         self.fields['master'].queryset = self.create_master_query(masters)
         self.fields['virtual_instance'].queryset = self.create_instance_query(masters)
+
         if self.instance.pk:
             # Set instances that we are master to as initial values
             self.initial['virtual_instance'] = Netbox.objects.filter(
                 master=self.instance)
 
-        if self.instance.pk:
+            # Disable fields based on current state
+            if self.instance.master:
+                self.fields['virtual_instance'].widget.attrs['disabled'] = True
+            if self.instance.pk in masters:
+                self.fields['master'].widget.attrs['disabled'] = True
+
             # Set the inital value of the function field
             try:
                 netboxinfo = self.instance.info_set.get(variable='function')
@@ -128,6 +135,7 @@ class NetboxModelForm(forms.ModelForm):
                              'data',
                              HTML("<a class='advanced-toggle'><i class='fa fa-caret-square-o-right'>&nbsp;</i>Advanced options</a>"),
                              Div(
+                                 HTML('<small class="alert-box">NB: An IP Device cannot both have a master and have virtual instances</small>'),
                                  'master', 'virtual_instance',
                                  css_class='advanced'
                              )
@@ -139,30 +147,23 @@ class NetboxModelForm(forms.ModelForm):
 
     def create_instance_query(self, masters):
         """Creates query for virtual instance multiselect"""
-        if self.instance.master:
-            # If we have a master, we should not be able to master instances
-            queryset = Netbox.objects.none()
-        else:
-            # - Should not see other masters
-            # - Should see those we are master for
-            # - Should see those who have no master
-            queryset = Netbox.objects.exclude(pk__in=masters).filter(
-                Q(master=self.instance.pk) | Q(master__isnull=True))
+        # - Should not see other masters
+        # - Should see those we are master for
+        # - Should see those who have no master
+        queryset = Netbox.objects.exclude(pk__in=masters).filter(
+            Q(master=self.instance.pk) | Q(master__isnull=True))
 
-            if self.instance.pk:
-                queryset = queryset.exclude(pk=self.instance.pk)
+        if self.instance.pk:
+            queryset = queryset.exclude(pk=self.instance.pk)
 
         return queryset
 
     def create_master_query(self, masters):
         """Creates query for master dropdown list"""
-        if self.instance and self.instance.pk in masters:
-            queryset = Netbox.objects.none()
-        else:
-            # - Should not set those who have master as master
-            queryset = Netbox.objects.filter(master__isnull=True)
-            if self.instance.pk:
-                queryset = queryset.exclude(pk=self.instance.pk)
+        # - Should not set those who have master as master
+        queryset = Netbox.objects.filter(master__isnull=True)
+        if self.instance.pk:
+            queryset = queryset.exclude(pk=self.instance.pk)
 
         return queryset
 
@@ -224,6 +225,12 @@ class NetboxModelForm(forms.ModelForm):
     def save(self, commit=True):
         netbox = super(NetboxModelForm, self).save(commit)
         instances = self.cleaned_data.get('virtual_instance')
+
+        # Clean up instances
+        Netbox.objects.filter(
+            master=netbox).exclude(pk__in=instances).update(master=None)
+
+        # Add new instances
         for instance in instances:
             instance.master = netbox
             instance.save()
