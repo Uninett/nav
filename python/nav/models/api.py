@@ -30,6 +30,9 @@ class APIToken(models.Model):
     as an authorization token.
     """
 
+    permission_choices = (('read', 'Read'), ('write', 'Write'))
+    permission_help_text = "Read means that this token can be used for reading only. Write means that this token can be used to create new, update and delete objects as well as reading."
+
     token = VarcharField()
     expires = models.DateTimeField()
     created = models.DateTimeField(auto_now_add=True)
@@ -39,6 +42,9 @@ class APIToken(models.Model):
     revoked = models.BooleanField(default=False)
     last_used = models.DateTimeField(null=True)
     endpoints = hstore.DictionaryField(null=True, blank=True)
+    permission = VarcharField(choices=permission_choices,
+                              help_text=permission_help_text,
+                              default='read')
 
     objects = hstore.HStoreManager()
 

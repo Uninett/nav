@@ -95,9 +95,12 @@ def token_has_permission(request, token):
     """
     if token.endpoints:
         request_path = ensure_trailing_slash(request.path)
-        return any([request_path.startswith(
+        endpoint_ok = any([request_path.startswith(
             ensure_trailing_slash(urlparse(endpoint).path))
                     for endpoint in token.endpoints.values()])
+        req_method_ok = token.permission == 'write' or request.method == 'GET'
+        return endpoint_ok and req_method_ok
+
     return False
 
 
