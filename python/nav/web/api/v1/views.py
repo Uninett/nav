@@ -284,6 +284,10 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     filter_fields = ('ip', 'sysname', 'room', 'organization', 'category')
     search_fields = ('sysname', )
 
+    def pre_delete(self, obj):
+        obj.deleted_at = datetime.now()
+        obj.save()
+
 
 class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Lists all interfaces.
