@@ -8,6 +8,7 @@ from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.encoding import force_text
 from django.utils.timezone import now as utcnow
 
 from nav.models.fields import VarcharField, LegacyGenericForeignKey
@@ -54,6 +55,8 @@ class LogEntry(models.Model):
         self.object_pk = object.pk if object else None
         self.target_pk = target.pk if target else None
         self.timestamp = utcnow()
+        self.before = force_text(before)
+        self.after = force_text(after)
         self.save()
         return self
 
