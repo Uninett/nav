@@ -36,11 +36,13 @@ class LogEntry(models.Model):
 
     summary = models.TextField()
 
+    subsystem = models.SlugField(blank=True, null=True)
+
     before = models.TextField(blank=True, null=True)
     after = models.TextField(blank=True, null=True)
 
     @classmethod
-    def add_log_entry(cls, actor, verb, template, object=None, target=None, before=None, after=None):
+    def add_log_entry(cls, actor, verb, template, subsystem=None, object=None, target=None, before=None, after=None):
         """LogEntry factory"""
         self = cls()
         dict = {'actor': actor, 'object': object, 'target': target}
@@ -55,6 +57,7 @@ class LogEntry(models.Model):
         self.object_pk = object.pk if object else None
         self.target_pk = target.pk if target else None
         self.timestamp = utcnow()
+        self.subsystem = subsystem if subsystem else None
         self.before = force_text(before)
         self.after = force_text(after)
         self.save()

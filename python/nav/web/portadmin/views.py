@@ -372,9 +372,10 @@ def set_ifalias(account, fac, interface, request):
                 interface.ifalias = ifalias
                 LogEntry.add_log_entry(
                     account,
-                    'set-ifalias',
+                    u'set-ifalias',
                     u'{actor}: {object} - ifalias set to "%s"' % ifalias,
-                    interface
+                    subsystem=u'portadmin',
+                    object=interface,
                 )
                 _logger.info('%s: %s:%s - ifalias set to "%s"', account.login,
                              interface.netbox.get_short_sysname(),
@@ -407,9 +408,10 @@ def set_vlan(account, fac, interface, request):
             interface.vlan = vlan
             LogEntry.add_log_entry(
                 account,
-                'set-vlan',
+                u'set-vlan',
                 u'{actor}: {object} - vlan set to "%s"' % vlan,
-                interface
+                subsystem=u'portadmin',
+                object=interface,
             )
             _logger.info('%s: %s:%s - vlan set to %s', account.login,
                          interface.netbox.get_short_sysname(),
@@ -476,7 +478,8 @@ def set_admin_status(fac, interface, request):
                     account,
                     u'change status to up',
                     u'change status to up',
-                    interface,
+                    subsystem=u'portadmin',
+                    object=interface,
                 )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'up')
@@ -486,7 +489,8 @@ def set_admin_status(fac, interface, request):
                     account,
                     u'change status to down',
                     u'change status to down',
-                    interface,
+                    subsystem=u'portadmin',
+                    object=interface,
                 )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'down')
