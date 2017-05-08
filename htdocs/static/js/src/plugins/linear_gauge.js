@@ -2,10 +2,21 @@ define(function (require, exports, module) {
 
     var d3 = require('d3');
 
+    /* Need a random id for the gradient */
+    function guid() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+        return 'g' + s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+            s4() + '-' + s4() + s4() + s4();
+    }
+
     /* Draw a vertical gauge that animates value changes */
 
     function LinearGauge(config) {
-        this.nodeId = config.nodeId;
+        this.element = config.element || document.querySelector('#' + config.nodeId);
         this.url = config.url || null;
         this.max = config.max || 8;
         this.height = config.height || 150;
@@ -14,8 +25,11 @@ define(function (require, exports, module) {
         this.refreshInterval = 60;  // In seconds
         this.precision = config.precision || null;  // Number of decimals for value
         this.threshold = config.threshold || null;
+        this.color = config.color;  // Set a single color instead of using the gradient
+        this.gradientId = guid();
+        this.fill = config.color ? this.color : 'url(#' + this.gradientId + ')';
 
-        this.container = d3.select('#' + this.nodeId).append('svg')
+        this.container = d3.select(this.element).append('svg')
             .attr('width', this.width).attr('height', this.height)
             .style('background-color', '#eee')
             .style('border', '1px solid #aaaaaa');
@@ -36,12 +50,11 @@ define(function (require, exports, module) {
                 return self.y(d);
             }).attr('width', this.width).attr('height', function (d) {
                 return self.height - self.y(d);
-            }).attr('fill', 'url(#' + self.nodeId + 'gradient)');
+            }).attr('fill', this.fill);
 
         // Draw value on bar
         this.barText = groupEnter.append('text')
             .attr('fill', '#555')
-            .attr('font', '16px Arial')
             .attr('text-anchor', 'middle')
             .attr('x', this.width / 2).attr('y', function (d) {
                 return self.y(d) + 3;
@@ -73,7 +86,7 @@ define(function (require, exports, module) {
             /* Create gradient to indicate severity of value */
             var gradient = this.container
                 .append("svg:defs").append("svg:linearGradient")
-                .attr("id", this.nodeId + "gradient").attr("x1", "100%").attr("y1", "100%")
+                .attr("id", this.gradientId + "gradient").attr("x1", "100%").attr("y1", "100%")
                 .attr("x2", "100%").attr("y2", "0%").attr('gradientUnits', 'userSpaceOnUse');
             gradient.append("svg:stop").attr("offset", "0%").attr("stop-color", "lightgreen");
             gradient.append("svg:stop").attr("offset", "50%").attr("stop-color", "yellow");
@@ -121,17 +134,22 @@ define(function (require, exports, module) {
                 this.bar.attr('fill', 'red');
                 this.thresholdPassed = true;
             } else if (this.thresholdPassed && data < this.threshold) {
-                this.bar.attr('fill', 'url(#' + self.nodeId + 'gradient)');
+                this.bar.attr('fill', self.fill);
             }
 
             // Update and transition value
+            var fontSize = '16px';
+            if (data > 10) { fontSize = '14px'; }
+            if (data > 100) { fontSize = '12px'; }
+
             this.barText.data([data])
                 .transition()
                 .duration(this.animationSpeed)
+                .attr('style', 'font-size: ' + fontSize)
                 .attr('y', function (d) {
                     if (d > self.max) {
                         return self.y(self.max) + 3;
-                    } else if (d > (self.max * 0.75)) {
+                    } else if (d > (self.max * 0.5)) {
                         return self.y(d) + 3;
                     } else {
                         return self.y(d) - 20;

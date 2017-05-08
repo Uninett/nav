@@ -1,0 +1,8 @@
+{% with session=event.get_subject %}
+Subject: {{ netbox }} BGP session with {{ session.get_peer_display }} is ESTABLISHED
+
+{{ netbox }} BGP session with {{ session.get_peer_display }} returned to established state.
+
+Detected at {{ time }}.
+
+{% endwith %}

@@ -212,14 +212,14 @@ def do_login(request):
 
         try:
             account = auth.authenticate(username, password)
-        except ldapauth.Error, error:
+        except ldapauth.Error as error:
             errors.append('Error while talking to LDAP:\n%s' % error)
         else:
             if account:
                 try:
                     request.session[ACCOUNT_ID_VAR] = account.id
                     request.account = account
-                except ldapauth.Error, error:
+                except ldapauth.Error as error:
                     errors.append('Error while talking to LDAP:\n%s' % error)
                 else:
                     _logger.info("%s successfully logged in", account.login)

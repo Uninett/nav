@@ -21,6 +21,7 @@ from django.conf.urls import url, patterns, include
 from rest_framework import routers
 
 router = routers.SimpleRouter()
+router.register(r'rack', views.RackViewSet)
 router.register(r'room', views.RoomViewSet)
 router.register(r'netbox', views.NetboxViewSet)
 router.register(r'interface', views.InterfaceViewSet)

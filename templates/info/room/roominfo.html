@@ -37,7 +37,9 @@
 
     <div id="infotabs" class="ui-helper-hidden">
         <ul>
-            <li><a href="#roominfo">Room info</a></li>
+            <li aria-controls="roominfo">
+              <a href="#roominfo">Room info</a>
+            </li>
 
 
             <li aria-controls="deviceinfo">
@@ -57,6 +59,12 @@
                 Environment sensors
               </a>
             </li>
+
+            <li aria-controls="racks">
+              <a href="{% url 'room-info-racks' room.id %}">
+                Sensors in racks
+              </a>
+            </li>
         </ul>
 
         <div id="roominfo">
@@ -69,7 +77,8 @@
 
         <div id="sensors"></div>  {# sensors #}
 
-    </div> 
+        <div id="racks"></div>
+
+    </div>
 
 {% endblock %}
-

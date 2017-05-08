@@ -84,7 +84,7 @@ define(function (require, exports, module) {
     JohnGauge.prototype = {
         loadData: function (url) {
             var self = this;
-            d3.json(url, function (json, error) {
+            d3.json(url, function (error, json) {
                 var datapoints = json[0].datapoints,
                     value = datapoints[datapoints.length - 1][0] ||
                             datapoints[datapoints.length - 2][0];

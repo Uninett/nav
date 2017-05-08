@@ -33,7 +33,8 @@ import sys
 from datetime import datetime
 
 import nav.buildconf
-from nav.arnold import (open_port, init_logging, GeneralException)
+from nav.logs import init_generic_logging
+from nav.arnold import (open_port, GeneralException)
 from nav.models.arnold import Identity
 
 import django
@@ -44,7 +45,11 @@ LOGGER = logging.getLogger('autoenable')
 
 def main():
     """Main controller"""
-    init_logging(nav.buildconf.localstatedir + "/log/arnold/autoenable.log")
+    init_generic_logging(
+        logfile=nav.buildconf.localstatedir + "/log/arnold/autoenable.log",
+        stderr=False,
+        read_config=True,
+    )
     LOGGER.info("Starting autoenable")
     django.setup()
 

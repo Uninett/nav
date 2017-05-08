@@ -21,20 +21,21 @@ from nav.mibs import reduce_index
 from nav.mibs.entity_mib import EntityMib
 from nav.mibs.entity_mib import EntityTable
 from nav.mibs import mibretriever
+from nav.models.manage import Sensor
 
 UNITS_OF_MEASUREMENTS = {
-    1: 'other',
-    2: 'unknown',
-    3: 'voltsAC',
-    4: 'voltsDC',
-    5: 'amperes',
-    6: 'watts',
-    7: 'hertz',
-    8: 'celsius',
-    9: 'percentRH',
-    10: 'rpm',
-    11: 'cmm',
-    12: 'boolean',
+    1: Sensor.UNIT_OTHER,
+    2: Sensor.UNIT_UNKNOWN,
+    3: Sensor.UNIT_VOLTS_AC,
+    4: Sensor.UNIT_VOLTS_DC,
+    5: Sensor.UNIT_AMPERES,
+    6: Sensor.UNIT_WATTS,
+    7: Sensor.UNIT_HERTZ,
+    8: Sensor.UNIT_CELSIUS,
+    9: Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY,
+    10: Sensor.UNIT_RPM,
+    11: Sensor.UNIT_CMM,
+    12: Sensor.UNIT_TRUTHVALUE,
 }
 
 DATA_SCALE = {
@@ -65,10 +66,6 @@ class EntitySensorMib(mibretriever.MibRetriever):
         """Good old constructor..."""
         super(EntitySensorMib, self).__init__(agent_proxy)
         self.entity_mib = EntityMib(self.agent_proxy)
-
-    def get_module_name(self):
-        """Return this MIB-name"""
-        return self.mib.get('moduleName', None)
 
     def _get_sensors(self):
         """ Collect all sensors."""

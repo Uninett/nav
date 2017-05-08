@@ -20,7 +20,8 @@ var require = {
         // consider patching Marionette
         "backbone": "libs/backbone",
         "underscore": "libs/underscore",
-        "marionette": "libs/backbone.marionette.min"
+        "marionette": "libs/backbone.marionette.min",
+        "vue": "libs/vue.min"
     },
     shim: {
         'libs/foundation.min': ['libs/modernizr', 'libs/fastclick'],

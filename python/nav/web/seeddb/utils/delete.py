@@ -29,7 +29,8 @@ from nav.web.message import new_message, Messages
 LOGGER = logging.getLogger(__name__)
 
 
-def render_delete(request, model, redirect, whitelist=None, extra_context=None):
+def render_delete(request, model, redirect, whitelist=None, extra_context=None,
+                  pre_delete_operation=None):
     """Handles input and rendering of general delete page.
     """
     if request.method != 'POST':
@@ -56,14 +57,16 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None):
 
     if request.POST.get('confirm'):
         try:
+            if pre_delete_operation:
+                pre_delete_operation(objects)
             qs_delete(objects)
-        except IntegrityError, ex:
+        except IntegrityError as ex:
             # We can't delete.
             # Some of the objects we want to delete is referenced by another
             # table without any ON DELETE rules.
             msg = "Integrity failed: %s" % ex
             new_message(request, msg, Messages.ERROR)
-        except Exception, ex:
+        except Exception as ex:
             # Something else went wrong
             LOGGER.exception("Unhandled exception during delete: %r", request)
             msg = "Error: %s" % ex

@@ -71,9 +71,9 @@ class L2TraceQuery(object):
                          netboxid=netboxid,
                          ipaddr=node.host.ip,
                          sysname=sysname,
-                         if_in=node.if_in and node.if_in.ifname,
-                         if_out=node.if_out and node.if_out.ifname,
-                         vlan=node.vlan and node.vlan.vlan)
+                         if_in=node.if_in,
+                         if_out=node.if_out,
+                         vlan=node.vlan)
 
 
 def join_at_junction(from_path, to_path):
@@ -232,6 +232,7 @@ def get_vlan_gateway(vlan):
     gwport_prefixes = GwPortPrefix.objects.filter(
         prefix__vlan=vlan).order_by('prefix__net_address')
     gateways = Netbox.objects.filter(
+        category__in=('GW', 'GSW'),
         interface__gwportprefix__in=gwport_prefixes).distinct()
     if gateways:
         return gateways[0]

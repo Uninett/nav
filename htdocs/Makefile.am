@@ -34,4 +34,5 @@ sass:
 	$(SASS) --update sass:static/css
 
 clean-local:
-	rm -rf static/css
+	rm -rf static/css .sass-cache
+

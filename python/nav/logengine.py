@@ -246,7 +246,7 @@ def verify_singleton(quiet=False):
 
     try:
         daemon.justme(pidfile)
-    except daemon.AlreadyRunningError, err:
+    except daemon.AlreadyRunningError as err:
         if quiet:
             sys.exit(0)
         else:
@@ -305,7 +305,7 @@ def read_log_lines(config):
     ## open log
     try:
         logfile = open(filename, "r+")
-    except IOError, err:
+    except IOError as err:
         # If logfile can't be found, we ignore it.  We won't needlessly
         # spam the NAV admin every minute with a file not found error!
         if err.errno != errno.ENOENT:

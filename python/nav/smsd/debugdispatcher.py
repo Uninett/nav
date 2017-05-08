@@ -46,7 +46,7 @@ class DebugDispatcher(Dispatcher):
         try:
             # Result of "dispatch" attempts
             self.result = config['result']
-        except KeyError, error:
+        except KeyError as error:
             raise DispatcherError("Config option not found: %s" % error)
 
         if self.result.lower() not in self.OPTIONS:

@@ -19,18 +19,24 @@ import datetime
 import logging
 import os
 import csv
+
 from os.path import join
 from django.core.urlresolvers import reverse
-from django.db.models import Q
+from django.db import IntegrityError
+from django.db.models import Q, Max
 from django.http import HttpResponse
 from django.shortcuts import (render_to_response, redirect, get_object_or_404,
                               render)
 from django.template import RequestContext
 from django.contrib import messages
 
+from nav.django.decorators import require_admin
 from nav.django.utils import get_account
-from nav.models.manage import Room
+
+from nav.models.manage import Room, Sensor
 from nav.models.roommeta import Image, ROOMIMAGEPATH
+from nav.models.rack import (Rack, SensorRackItem, SensorsDiffRackItem,
+                             SensorsSumRackItem)
 from nav.web.info.forms import SearchForm
 from nav.web.info.room.utils import (get_extension, create_hash,
                                      create_image_directory,
@@ -41,6 +47,15 @@ from nav.metrics.data import get_netboxes_availability
 
 
 CATEGORIES = ("GW", "GSW", "SW", "EDGE")
+RACK_LEFT = 0
+RACK_CENTER = 1
+RACK_RIGHT = 2
+COLUMNS = {
+    RACK_LEFT: 'left',
+    RACK_CENTER: 'center',
+    RACK_RIGHT: 'right',
+}
+
 _logger = logging.getLogger('nav.web.info.room')
 
 
@@ -147,7 +162,7 @@ def upload_image(request, roomid):
                 handle_image(image, room, uploader=account)
                 messages.success(
                     request, 'Image &laquo;%s&raquo; uploaded' % image.name)
-            except IOError, e:
+            except IOError as e:
                 _logger.error(e)
                 messages.error(request, 'Image &laquo;%s&raquo; not saved - '
                                         'perhaps unsupported type' % image.name)
@@ -208,7 +223,7 @@ def delete_image(request):
             try:
                 _logger.debug('Deleting file %s', filepath)
                 os.unlink(join(filepath, image.name))
-            except OSError, error:
+            except OSError as error:
                 # If the file is not found, then this is ok, otherwise not ok
                 if error.errno != 2:
                     return HttpResponse(status=500)
@@ -299,3 +314,197 @@ def render_sensors(request, roomid):
                             for x in netboxes])
 
     })
+
+
+def create_rack(room, rackname):
+    """Creates a rack in a room with a given name"""
+    aggregate = Rack.objects.filter(room=room).aggregate(Max('ordering'))
+    ordering = (aggregate.get('ordering__max') or 0) + 1
+    rack = Rack(room=room, rackname=rackname, ordering=ordering)
+    rack.save()
+    return rack
+
+
+@require_admin
+def add_rack(request, roomid):
+    """Adds a new rack to a room"""
+    room = get_object_or_404(Room, pk=roomid)
+    rackname = request.POST.get('rackname')
+    return render(request, 'info/room/fragment_rack.html', {
+        'rack': create_rack(room, rackname),
+        'room': room
+    })
+
+
+@require_admin
+def remove_rack(request, roomid):
+    """Deletes a rack"""
+    rack = get_object_or_404(Rack, pk=request.POST.get('rackid'))
+    rack.delete()
+    return HttpResponse()
+
+
+@require_admin
+def rename_rack(request, roomid, rackid):
+    """Renames a rack"""
+    rack = get_object_or_404(Rack, pk=rackid)
+    newname = request.POST.get('rackname')
+    rack.rackname = newname
+    rack.save()
+    return HttpResponse(newname)
+
+
+def render_racks(request, roomid):
+    """Gets the racks for this room"""
+    room = get_object_or_404(Room, pk=roomid)
+    background_color_classes = ['bg1', 'bg2', 'bg3', 'bg4', 'bg5']
+
+    context = {
+        'room': room,
+        'racks': room.rack_set.all().order_by('ordering'),
+        'color_classes': background_color_classes
+    }
+    return render(request, 'info/room/roominfo_racks.html', context)
+
+
+@require_admin
+def render_add_sensor(request, roomid):
+    """Controller for rendering the add sensor template"""
+    rackid = request.POST.get('rackid')
+    column = request.POST.get('column')
+    is_pdu = request.POST.get('is_pdu') == 'true'
+
+    room = get_object_or_404(Room, pk=roomid)
+    rack = get_object_or_404(Rack, pk=rackid)
+
+    # Filter away already added sensors
+    already_used = Rack.objects.get_all_sensor_pks_in_room(room)
+    sensors = Sensor.objects.exclude(pk__in=already_used)
+
+    # Sensors that can be choosen for the pdu columns
+    pdusensors = sensors.filter(
+        netbox__room=room,
+        netbox__category='POWER'
+    ).select_related('netbox').order_by('netbox__sysname', 'human_readable')
+
+    filteredsensors = pdusensors
+
+    if not is_pdu:
+        # All other sensors
+        othersensors = sensors.filter(
+            netbox__room=room).exclude(
+            pk__in=pdusensors).select_related(
+            'netbox').order_by('netbox__sysname', 'human_readable')
+
+        filteredsensors = othersensors
+
+    return render(request, 'info/room/fragment_add_rackitem.html', {
+        'room': room,
+        'rack': rack,
+        'sensortype': 'pdu sensor' if is_pdu else 'sensor',
+        'sensors': filteredsensors,
+        'column': column
+    })
+
+
+@require_admin
+def save_sensor(request, roomid):
+    rackid = request.POST.get('rackid')
+    column = int(request.POST.get('column'))
+    get_object_or_404(Room, pk=roomid)
+    rack = get_object_or_404(Rack, pk=rackid)
+    item_type = request.POST.get('item_type')
+    if item_type == "Sensor":
+        sensorid = request.POST.get('sensorid')
+        sensor = get_object_or_404(Sensor, pk=sensorid)
+        item = SensorRackItem(sensor=sensor)
+    elif item_type == "SensorsDiff":
+        minuendid = request.POST.get('minuendid')
+        minuend = get_object_or_404(Sensor, pk=minuendid)
+        subtrahendid = request.POST.get('subtrahendid')
+        subtrahend = get_object_or_404(Sensor, pk=subtrahendid)
+        item = SensorsDiffRackItem(minuend=minuend, subtrahend=subtrahend)
+    elif item_type == "SensorsSum":
+        sensors = request.POST.getlist('sensors[]')
+        sensors = [int(s) for s in sensors if s]
+        title = request.POST.get('title')
+        item = SensorsSumRackItem(title=title, sensors=sensors)
+    try:
+        if column == RACK_CENTER:
+            rack.add_center_item(item)
+            rack.save()
+            return render(request, 'info/room/fragment_racksensor.html', {
+                'racksensor': item,
+                'column': column,
+            })
+        else:
+            if column == RACK_LEFT:
+                rack.add_left_item(item)
+            else:
+                rack.add_right_item(item)
+            rack.save()
+            return render(request, 'info/room/fragment_rackpdusensor.html', {
+                'racksensor': item,
+                'column': column,
+            })
+
+    except (ValueError, IntegrityError) as error:
+        return HttpResponse(error, status=500)
+
+
+@require_admin
+def save_sensor_order(request, roomid):
+    """Saves the sensor order for the given racksensors"""
+    rackid = request.POST.get('rackid')
+    rack = get_object_or_404(Rack, pk=rackid)
+    column = int(request.POST.get('column'))
+    if column not in COLUMNS:
+        return HttpResponse(status=400)
+    column = COLUMNS[column]
+    items = {item.id: item for item in rack.configuration[column]}
+    rack.configuration[column] = [items[int(itemid)] for itemid in
+                                  request.POST.getlist('item[]')]
+    rack.save()
+
+    return HttpResponse()
+
+
+@require_admin
+def save_rack_order(request, roomid):
+    """Saves the rack order for the given racks"""
+    for index, rackid in enumerate(request.POST.getlist('rack[]')):
+        rack = Rack.objects.get(pk=rackid)
+        rack.ordering = index
+        rack.save()
+
+    return HttpResponse()
+
+
+@require_admin
+def save_rack_color(request, roomid):
+    """Saves the background color for the rack as a class"""
+    _room = get_object_or_404(Room, pk=roomid)
+    rackid = request.POST.get('rackid')
+    rack = get_object_or_404(Rack, pk=rackid)
+    rack.configuration['body_class'] = request.POST.get('class')
+    rack.save()
+    return HttpResponse()
+
+
+@require_admin
+def remove_sensor(request, roomid):
+    """Remove a sensor from a rack"""
+    rackid = request.POST.get('rackid')
+    rack = get_object_or_404(Rack, pk=rackid)
+    column = int(request.POST.get('column'))
+    itemid = int(request.POST.get('id'))
+    if column not in COLUMNS:
+        return HttpResponse(status=400)
+    column = COLUMNS[column]
+    rack.configuration[column] = [item for item in rack.configuration[column]
+                                  if item.id != itemid]
+    try:
+        rack.save()
+        return HttpResponse()
+    except:
+        return HttpResponse(status=500)

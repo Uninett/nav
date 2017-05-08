@@ -29,6 +29,7 @@ import getopt
 
 from nav.models.profiles import Account
 
+
 def main(args):
     (opts, args) = getopt.getopt(args, 'h', ['help'])
 
@@ -50,20 +51,22 @@ def main(args):
         print("Could not find user '%s'" % user, file=sys.stderr)
         print("Error was: %s" % error, file=sys.stderr)
         sys.exit(10)
-        
+
     # Make use of the privilege system to discover whether the user
     # has been granted the privilege that is being asked for
     try:
         answer = account.has_perm(privilege, target)
     except Exception, error:
-        print("There was an error when asking for the privilege", file=sys.stderr)
+        print("There was an error when asking for the privilege",
+              file=sys.stderr)
         sys.exit(10)
 
     if answer:
         sys.exit(0)
     else:
         sys.exit(1)
-    
+
+
 def usage():
     print("""Determine whether a NAV user has been granted a specific privilege.
 Mostly for internal NAV usage.

@@ -1,4 +1,4 @@
-define(['libs/OpenLayers'], function() {
+define(['plugins/fullscreen', 'libs/OpenLayers'], function(fullscreen) {
 
     /**
      * Display map for editing room position in seedDB
@@ -37,6 +37,7 @@ define(['libs/OpenLayers'], function() {
 
         mapLayer.tileOptions = {crossOriginKeyword: null};
         map.addLayer(mapLayer);
+        fullscreen.createFullscreenToggler(map.div, true);
         return map;
     }
 

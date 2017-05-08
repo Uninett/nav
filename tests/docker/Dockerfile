@@ -31,7 +31,7 @@ RUN gem install --version '3.3.9' sass ; \
     gem install --version '~> 0.9' rb-inotify
 
 # NPM for Javascript testing needs
-RUN curl --insecure https://www.npmjs.com/install.sh | clean=no bash
+RUN curl -sS --insecure https://www.npmjs.com/install.sh | clean=no bash
 
 # Build and install libtidy5
 RUN cd /tmp && \

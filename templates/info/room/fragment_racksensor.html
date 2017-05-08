@@ -1,0 +1,22 @@
+<div id="item_{{ rack.id }}_{{ racksensor.id }}"
+     class="rack-sensor"
+     title="{{ racksensor.title }}"
+     data-metric="{{ racksensor.get_metric }}"
+     data-id="{{ racksensor.id }}"
+     data-sortid="item_{{ racksensor.id }}"
+     data-column="{{ column }}"
+     data-display-range="{{ racksensor.get_display_range }}"
+     data-unit="{{ racksensor.unit_of_measurement }}">
+  <div class="heading">
+    <span class="right">
+      <i class="fa fa-arrows inline-when-edit" title="Click and drag"></i>
+      <i class="fa fa-remove remove-sensor inline-when-edit" title="Remove sensor"></i>
+    </span>
+    <a href="{{ racksensor.get_absolute_url }}">
+      {{ racksensor.human_readable }}
+    </a>
+  </div>
+  <div class="sparkline"></div>
+  <small class="textvalue"></small>
+  <small>{{ racksensor.unit_of_measurement }}</small>
+</div>

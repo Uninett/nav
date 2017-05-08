@@ -71,7 +71,7 @@ def import_plugin(config, alias):
             class_ = getattr(module_, class_name)
         else:
             class_ = get_plugin_from_module(module_)
-    except (ImportError, AttributeError), error:
+    except (ImportError, AttributeError) as error:
         _logger.exception("Failed to import plugin %s", full_class_name)
         raise PluginImportError(error)
 
@@ -83,8 +83,8 @@ def import_plugin(config, alias):
 def get_plugin_from_module(module_):
     """Tries to find a Plugin subclass in module_ and returns it"""
     def _predicate(thing):
-        return (inspect.isclass(thing) and issubclass(thing, Plugin)
-                and inspect.getmodule(thing) == module_)
+        return (inspect.isclass(thing) and issubclass(thing, Plugin) and
+                inspect.getmodule(thing) == module_)
 
     members = inspect.getmembers(module_, _predicate)
     if members:

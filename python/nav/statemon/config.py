@@ -51,7 +51,6 @@ class Conf(dict):
                 pass
 
         if self._configfile is None:
-            #debug("Failed to open %s" % self._file)
             sys.exit(0)
         self._regexp = re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)", re.M)
         self.parsefile()

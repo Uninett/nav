@@ -20,6 +20,7 @@ from twisted.internet import defer
 
 from nav.mibs import reduce_index
 from nav.mibs import mibretriever
+from nav.models.manage import Sensor
 
 
 POWER_SENSOR_TYPE = {
@@ -33,9 +34,6 @@ POWER_SENSOR_TYPE = {
 
 class CiscoEnvMonMib(mibretriever.MibRetriever):
     from nav.smidumps.cisco_envmon_mib import MIB as mib
-
-    def get_module_name(self):
-        return self.mib.get('moduleName', None)
 
     def _get_voltage_sensors(self):
         df = self.retrieve_columns([
@@ -81,7 +79,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             voltage_sensor_oid = voltage_sensor.get(0, None)
             voltage_mib = self.nodes.get('ciscoEnvMonVoltageStatusValue', None)
             oid = str(voltage_mib.oid) + str(voltage_sensor_oid)
-            unit_of_measurement = 'volts'
+            unit_of_measurement = Sensor.UNIT_VOLTS_DC
             precision = 0
             scale = self.mib.get('nodes').get(
                     'ciscoEnvMonVoltageStatusValue').get('units').strip()
@@ -109,9 +107,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             temp_mib = self.nodes.get(
                             'ciscoEnvMonTemperatureStatusValue', None)
             oid = str(temp_mib.oid) + str(temp_sensor_oid)
-            unit_of_measurement = self.mib.get('nodes').get(
-                        'ciscoEnvMonTemperatureStatusValue').get(
-                            'units').strip()
+            unit_of_measurement = Sensor.UNIT_CELSIUS
             precision = 0
             scale = None
             description = temp_sensor.get(
@@ -136,7 +132,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             fanstate_sensor_oid = fanstate_sensor.get(0, None)
             fanstate_mib = self.nodes.get('ciscoEnvMonFanState', None)
             oid = str(fanstate_mib.oid) + str(fanstate_sensor_oid)
-            unit_of_measurement = 'boolean'
+            unit_of_measurement = Sensor.UNIT_TRUTHVALUE
             precision = 0
             scale = None
             description = fanstate_sensor.get(
@@ -161,7 +157,7 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             power_sensor_oid = power_sensor.get(0, None)
             power_mib = self.nodes.get('ciscoEnvMonSupplyState', None)
             oid = str(power_mib.oid) + str(power_sensor_oid)
-            unit_of_measurement = 'boolean'
+            unit_of_measurement = Sensor.UNIT_TRUTHVALUE
             precision = 0
             scale = None
             power_source = power_sensor.get('ciscoEnvMonSupplySource', None)

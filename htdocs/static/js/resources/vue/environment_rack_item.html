@@ -1,0 +1,11 @@
+<div class="rack-sensor"
+     :title="item.title">
+  <div class="heading">
+    <a :href="item.get_absolute_url">
+      {{ item.human_readable }}
+    </a>
+  </div>
+  <div class="sparkline"></div>
+  <small class="textvalue">{{ item.value }}</small>
+  <small>{{ item.unit_of_measurement }}</small>
+</div>

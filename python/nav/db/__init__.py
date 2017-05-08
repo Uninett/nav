@@ -21,6 +21,7 @@ from __future__ import absolute_import
 import atexit
 from functools import wraps
 import os
+import sys
 import time
 import psycopg2
 import psycopg2.extensions
@@ -134,8 +135,12 @@ def get_connection_string(db_params=None, script_name='default'):
     """
     if not db_params:
         db_params = get_connection_parameters(script_name)
-    conn_string = "host=%s port=%s dbname=%s user=%s password=%s" % db_params
-    return conn_string
+    dbhost, dbport, dbname, dbuser, dbpasswd = db_params
+    appname = os.path.basename(sys.argv[0]) or script_name
+    conn_string = ("host={dbhost} port={dbport} dbname={dbname} user={dbuser}"
+                   " password={dbpasswd}"
+                   " application_name='{appname} (NAV legacy)'")
+    return conn_string.format(**locals())
 
 
 def getConnection(scriptName, database='nav'):

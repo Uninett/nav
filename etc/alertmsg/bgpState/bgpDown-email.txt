@@ -1,0 +1,8 @@
+{% with session=event.get_subject %}
+Subject: {{ netbox }} BGP session with {{ session.get_peer_display }} is DOWN
+
+{{ netbox }} BGP session with {{ session.get_peer_display }} transitioned away from established state.
+
+Detected at {{ time }}.
+
+{% endwith %}

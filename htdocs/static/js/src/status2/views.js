@@ -2,11 +2,11 @@ define([
     'status/collections',
     'libs-amd/text!resources/status2/event_template.hbs',
     'moment',
+    'libs/handlebars',
     'status/handlebars-helpers',
     'libs/backbone',
-    'libs/backbone-eventbroker',
-    'libs/handlebars'
-], function (Collections, EventTemplate, moment) {
+    'libs/backbone-eventbroker'
+], function (Collections, EventTemplate, moment, Handlebars) {
 
     // This collection contains all the event-models that are to be cleared/acknowledged etc.
     var alertsToChange = new Collections.ChangeCollection();

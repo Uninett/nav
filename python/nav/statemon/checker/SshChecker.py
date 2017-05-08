@@ -45,7 +45,7 @@ class SshChecker(AbstractChecker):
             protocol, major = version.split('-')[:2]
             stream.write("%s-%s-%s" % (protocol, major, "NAV_Servicemon"))
             stream.flush()
-        except Exception, err:
+        except Exception as err:
             return (Event.DOWN,
                     "Failed to send version reply to %s: %s" % (
                     self.get_address(), str(err)))

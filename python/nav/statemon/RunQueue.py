@@ -27,8 +27,12 @@ from collections import deque
 import sys
 import time
 import threading
+import logging
+
 from . import config, prioqueunique
-from .debug import debug
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class TerminateException(Exception):
@@ -78,9 +82,9 @@ class Worker(threading.Thread):
             self._running = 0
             self._runqueue.unused_thread_name.append(self.getName())
             self._runqueue.workers.remove(self)
-            debug("%s is recycling." % self.getName())
-        debug("%s finished checker number %i" %
-              (self.getName(), self._runcount), 7)
+            LOGGER.info("%s is recycling.", self.getName())
+        LOGGER.debug("%s finished checker number %i", self.getName(),
+                     self._runcount)
         self._time_start_execute = 0
 
 
@@ -98,9 +102,9 @@ class _RunQueue(object):
     def __init__(self, **kwargs):
         self.conf = config.serviceconf()
         self._max_threads = int(self.conf.get('maxthreads', sys.maxint))
-        debug("Setting maxthreads=%i" % self._max_threads)
+        LOGGER.info("Setting maxthreads=%i", self._max_threads)
         self._max_run_count = int(self.conf.get('recycle interval', 50))
-        debug("Setting maxRunCount=%i" % self._max_run_count)
+        LOGGER.info("Setting maxRunCount=%i", self._max_run_count)
         self._controller = kwargs.get('controller', self)
         self.workers = []
         self.unused_thread_name = []
@@ -133,8 +137,8 @@ class _RunQueue(object):
         # threads are waiting for checkers.
         # pylint: disable=protected-access, no-member
         num_waiters = len(self.await_work._Condition__waiters)
-        debug("Number of workers: %i Waiting workers: %i" % (
-              len(self.workers), num_waiters), 7)
+        LOGGER.debug("Number of workers: %i Waiting workers: %i",
+                     len(self.workers), num_waiters)
         if num_waiters > 0:
             self.await_work.notify()
         elif len(self.workers) < self._max_threads:
@@ -188,7 +192,7 @@ class _RunQueue(object):
                 return r
             # Wait to execute priority checker, break if new checkers arrive
             else:
-                debug("Thread waits for %s secs" % wait, 7)
+                LOGGER.debug("Thread waits for %s secs", wait)
                 self.await_work.wait(wait)
 
     def terminate(self):
@@ -197,7 +201,7 @@ class _RunQueue(object):
         self.stop = 1
         self.await_work.notifyAll()
         self.lock.release()
-        debug("Waiting for threads to terminate...")
+        LOGGER.info("Waiting for threads to terminate...")
         for i in self.workers:
             i.join()
-        debug("All threads have finished")
+        LOGGER.info("All threads have finished")

@@ -26,9 +26,11 @@ from django.shortcuts import (render_to_response, get_object_or_404, redirect,
                               render)
 from django.template import RequestContext
 
+from nav.django.templatetags.thresholds import find_rules
 from nav.metrics.errors import GraphiteUnreachableError
 
-from nav.models.manage import Netbox, Module, Interface, Prefix, Arp, Cam
+from nav.models.manage import (Netbox, Module, Interface, Prefix, Arp, Cam,
+                               Sensor)
 from nav.models.msgmaint import MaintenanceTask
 from nav.models.arnold import Identity
 from nav.models.service import Service
@@ -38,13 +40,15 @@ from nav.web.ipdevinfo.utils import create_combined_urls
 from nav.web.utils import create_title, SubListView
 from nav.metrics.graphs import Graph
 
-from nav.web.ipdevinfo.forms import SearchForm, ActivityIntervalForm
+from nav.web.ipdevinfo.forms import (SearchForm, ActivityIntervalForm,
+                                     SensorRangesForm)
 from nav.web.ipdevinfo.context_processors import search_form_processor
 from nav.web.ipdevinfo import utils
 from .host_information import get_host_info
 
 NAVPATH = [('Home', '/'), ('IP Device Info', '/ipdevinfo')]
-COUNTER_TYPES = ('Octets', 'UcastPkts', 'Errors', 'Discards', 'MulticastPkts', 'BroadcastPkts')
+COUNTER_TYPES = ('Octets', 'UcastPkts', 'Errors', 'Discards',
+                 'MulticastPkts', 'BroadcastPkts')
 
 
 _logger = logging.getLogger('nav.web.ipdevinfo')
@@ -244,6 +248,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     alert_info = None
     job_descriptions = None
     system_metrics = netbox_availability = []
+    sensor_metrics = []
 
     graphite_error = False
     # If addr or host not a netbox it is not monitored by NAV
@@ -284,6 +289,16 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         except GraphiteUnreachableError:
             graphite_error = True
 
+        for sensor in netbox.sensor_set.all():
+            metric_id = sensor.get_metric_name()
+            metric = {
+                'id': metric_id,
+                'sensor': sensor,
+                'graphite_data_url': Graph(
+                    magic_targets=[metric_id], format='json'),
+            }
+            sensor_metrics.append(metric)
+        find_rules(sensor_metrics)
     # Display info about current and scheduled maintenance tasks
     # related to this device
     current_tasks = MaintenanceTask.objects.current()
@@ -322,6 +337,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'graphite_error': graphite_error,
             'current_maintenance_tasks': relevant_current_tasks,
             'future_maintenance_tasks': relevant_future_tasks,
+            'sensor_metrics': sensor_metrics,
         },
         context_instance=RequestContext(request,
                                         processors=[search_form_processor]))
@@ -445,7 +461,7 @@ def module_details(request, netbox_sysname, module_name):
             initial={'interval': activity_interval})
 
     module = get_object_or_404(Module.objects.select_related(),
-        netbox__sysname=netbox_sysname, name=module_name)
+                               netbox__sysname=netbox_sysname, name=module_name)
 
     swportstatus_view = get_module_view(module, 'swportstatus')
     swportactive_view = get_module_view(
@@ -537,7 +553,8 @@ def port_counter_graph(request, interfaceid, kind='Octets'):
 
     Redirects to the created url if successful
     """
-    if kind not in ('Octets', 'Errors', 'UcastPkts', 'Discards', 'MulticastPkts', 'BroadcastPkts'):
+    if kind not in ('Octets', 'Errors', 'UcastPkts', 'Discards',
+                    'MulticastPkts', 'BroadcastPkts'):
         raise Http404
 
     timeframe = request.GET.get('timeframe', 'day')
@@ -648,4 +665,43 @@ def render_host_info(request, identifier):
     """Controller for getting host info"""
     return render(request, 'ipdevinfo/frag-hostinfo.html', {
         'host_info': get_host_info(identifier)
+    })
+
+
+def sensor_details(request, identifier):
+    """Controller for getting sensor info"""
+    sensor = get_object_or_404(Sensor, pk=identifier)
+
+    if request.method == 'POST':
+        form = SensorRangesForm(request.POST)
+        if form.is_valid():
+            sensor.display_minimum_user = form.cleaned_data['minimum']
+            sensor.display_maximum_user = form.cleaned_data['maximum']
+            sensor.save()
+            return redirect(request.path)
+
+    netbox_sysname = sensor.netbox.sysname
+
+    navpath = NAVPATH + [
+        (netbox_sysname,
+         reverse('ipdevinfo-details-by-name',
+                 kwargs={'name': netbox_sysname})), ('Sensor Details',)]
+    heading = title = 'Sensor details: ' + unicode(sensor)
+
+    metric = dict(id=sensor.get_metric_name())
+    find_rules([metric])
+
+    form = SensorRangesForm(initial={
+        'minimum': sensor.get_display_range()[0],
+        'maximum': sensor.get_display_range()[1],
+    })
+    return render(request, 'ipdevinfo/sensor-details.html', {
+        'sensor': sensor,
+        'navpath': navpath,
+        'heading': heading,
+        'title': title,
+        'metric': metric,
+        'form': form,
+        'graphite_data_url': Graph(magic_targets=[sensor.get_metric_name()],
+                                   format='json')
     })

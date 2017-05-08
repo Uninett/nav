@@ -26,32 +26,60 @@ import sys
 from twisted.python.failure import Failure
 import os
 import logging
+from multiprocessing import cpu_count
 import signal
 import time
-from optparse import OptionParser
+import argparse
 
 from twisted.internet import reactor
 from twisted.internet.defer import maybeDeferred, setDebugging
 
 from nav import buildconf
+from nav.util import is_valid_ip
 import nav.daemon
 from nav.daemon import signame
 import nav.logs
 from nav.models import manage
 from django.db.models import Q
 
-from . import plugins
+from . import plugins, pool
 from nav.ipdevpoll import ContextFormatter, schedule, db
+
+
+class NetboxAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        if not values:
+            parser.error("%s argument must be non-empty" % option_string)
+
+        search_base = manage.Netbox.objects.select_related(
+            'type', 'type__vendor').order_by('sysname')
+        if is_valid_ip(values, use_socket_lib=True):
+            matches = search_base.filter(ip=values)
+        else:
+            matches = search_base.filter(sysname__startswith=values)
+
+        if len(matches) == 1:
+            namespace.netbox = matches[0]
+            namespace.foreground = True
+            namespace.logstderr = True
+            return
+        elif len(matches) > 1:
+            print("matched more than one netbox:")
+            print('\n'.join("%s (%s)" % (n.sysname, n.ip) for n in matches))
+        else:
+            print("no netboxes match %r" % values)
+
+        sys.exit(1)
 
 
 class IPDevPollProcess(object):
     """Main IPDevPoll process setup"""
-    def __init__(self, options, args):
+    def __init__(self, options):
         self.options = options
-        self.args = args
         self._logger = logging.getLogger('nav.ipdevpoll')
         self._shutdown_start_time = 0
-        self._procmon = None
+        self.job_loggers = []
+        self.reloaders = []
 
     def run(self):
         """Loads plugins, and initiates polling schedules."""
@@ -60,7 +88,10 @@ class IPDevPollProcess(object):
         if self.options.netbox:
             self.setup_single_job()
         elif self.options.multiprocess:
-            self.setup_multiprocess()
+            self.setup_multiprocess(self.options.multiprocess,
+                                    self.options.max_jobs)
+        elif self.options.worker:
+            self.setup_worker()
         else:
             self.setup_scheduling()
 
@@ -75,6 +106,7 @@ class IPDevPollProcess(object):
         signal.signal(signal.SIGTERM, self.sigterm_handler)
         signal.signal(signal.SIGINT, self.sigterm_handler)
         signal.signal(signal.SIGUSR1, self.sigusr1_handler)
+        signal.signal(signal.SIGUSR2, self.sigusr2_handler)
 
     def setup_scheduling(self):
         "Sets up regular job scheduling according to config"
@@ -83,10 +115,38 @@ class IPDevPollProcess(object):
         # logging.basicConfig().  If imported before our own loginit, this
         # causes us to have two StreamHandlers on the root logger, duplicating
         # every log statement.
+        self._logger.info("Starting scheduling in single process")
         from .schedule import JobScheduler
         plugins.import_plugins()
+        self.work_pool = pool.InlinePool()
         reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run,
-                                self.options.onlyjob)
+                                self.work_pool, self.options.onlyjob)
+
+        def log_scheduler_jobs():
+            JobScheduler.log_active_jobs(logging.INFO)
+
+        self.job_loggers.append(log_scheduler_jobs)
+
+        def reload_netboxes():
+            JobScheduler.reload()
+
+        self.reloaders.append(reload_netboxes)
+
+    def setup_worker(self):
+        "Sets up a worker process"
+        # NOTE: This is locally imported because it will in turn import
+        # twistedsnmp. Twistedsnmp is stupid enough to call
+        # logging.basicConfig().  If imported before our own loginit, this
+        # causes us to have two StreamHandlers on the root logger, duplicating
+        # every log statement.
+        self._logger.info("Starting worker process")
+        plugins.import_plugins()
+
+        def init():
+            handler = pool.initialize_worker()
+            self.job_loggers.append(handler.log_jobs)
+
+        reactor.callWhenRunning(init)
 
     def setup_single_job(self):
         "Sets up a single job run with exit when done"
@@ -98,8 +158,9 @@ class IPDevPollProcess(object):
             job = descriptors[self.options.onlyjob]
             self._log_context = dict(job=job.name,
                                      sysname=self.options.netbox.sysname)
-            job_handler = JobHandler(job.name, self.options.netbox,
-                                     plugins=job.plugins)
+            job_handler = JobHandler(job.name, self.options.netbox.id,
+                                     plugins=job.plugins,
+                                     interval=job.interval)
             deferred = maybeDeferred(job_handler.run)
             deferred.addBoth(_log_job, job_handler, interval=job.interval)
             deferred.addBoth(lambda x: reactor.stop())
@@ -114,10 +175,26 @@ class IPDevPollProcess(object):
                           self.options.onlyjob, self.options.netbox)
         reactor.callWhenRunning(_run_job)
 
-    def setup_multiprocess(self):
-        from . import control
-        self._procmon = control.run_as_multiprocess(
-            threadpoolsize=self.options.threadpoolsize)
+    def setup_multiprocess(self, process_count, max_jobs):
+        self._logger.info("Starting multi-process setup")
+        from .schedule import JobScheduler
+        plugins.import_plugins()
+        self.work_pool = pool.WorkerPool(process_count,
+                                         max_jobs,
+                                         self.options.threadpoolsize)
+        reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run,
+                                self.work_pool, self.options.onlyjob)
+
+        def log_scheduler_jobs():
+            JobScheduler.log_active_jobs(logging.INFO)
+
+        self.job_loggers.append(log_scheduler_jobs)
+        self.job_loggers.append(self.work_pool.log_summary)
+
+        def reload_netboxes():
+            JobScheduler.reload()
+
+        self.reloaders.append(reload_netboxes)
 
     def sighup_handler(self, _signum, _frame):
         """Reopens log files."""
@@ -133,15 +210,19 @@ class IPDevPollProcess(object):
         """Cleanly shuts down logging system and the reactor."""
         self._logger.warning("%s received: Shutting down", signame(signum))
         self._shutdown_start_time = time.time()
-        if self._procmon:
-            reactor.callFromThread(self._procmon.stopService)
         reactor.callFromThread(reactor.stop)
 
     def sigusr1_handler(self, _signum, _frame):
         "Log list of active jobs on SIGUSR1"
         self._logger.info("SIGUSR1 received: Logging active jobs")
-        from nav.ipdevpoll.schedule import JobScheduler
-        JobScheduler.log_active_jobs(logging.INFO)
+        for logger in self.job_loggers:
+            logger()
+
+    def sigusr2_handler(self, _signum, _frame):
+        "Reload boxes from database"
+        self._logger.info("SIGUSR2 received: Reloading netboxes")
+        for reloader in self.reloaders:
+            reloader()
 
     def shutdown(self):
         """Initiates a shutdown sequence"""
@@ -161,13 +242,17 @@ class CommandProcessor(object):
         nav.buildconf.localstatedir, 'run', 'ipdevpolld.pid')
 
     def __init__(self):
-        (self.options, self.args) = self.parse_options()
+        self.options = self.parse_options()
         self._logger = None
 
     def parse_options(self):
         """Parses the command line options"""
         parser = self.make_option_parser()
-        (options, args) = parser.parse_args()
+        options = parser.parse_args()
+        if options.list_jobs:
+            self._list_jobs()
+        if options.list_plugins:
+            self._list_plugins()
         if options.logstderr and not options.foreground:
             parser.error('-s is only valid if running in foreground')
         if options.netbox and not options.onlyjob:
@@ -176,32 +261,37 @@ class CommandProcessor(object):
             options.pidlog = True
         if options.capture_vars:
             setDebugging(True)
+        if options.multiprocess and options.multiprocess < 2:
+            parser.error('--multiprocess requires at least 2 workers')
 
-        return options, args
+        return options
 
     def make_option_parser(self):
         """Sets up and returns a command line option parser."""
-        parser = OptionParser(
+        parser = argparse.ArgumentParser(
             version="NAV " + buildconf.VERSION,
             epilog="This program runs SNMP polling jobs for IP devices "
             "monitored by NAV")
-        opt = parser.add_option
+        opt = parser.add_argument
         opt("-f", "--foreground", action="store_true", dest="foreground",
             help="run in foreground instead of daemonizing")
         opt("-s", "--log-stderr", action="store_true", dest="logstderr",
             help="log to stderr instead of log file")
-        opt("-j", "--list-jobs", action="callback", callback=self._list_jobs,
+        opt("-j", "--list-jobs", action="store_true",
             help="print a list of configured jobs and exit")
-        opt("-p", "--list-plugins", action="callback",
-            callback=self._list_plugins,
+        opt("-p", "--list-plugins", action="store_true",
             help="load and print a list of configured plugins")
         opt("-J", action="store", dest="onlyjob", choices=self._joblist(),
-            metavar="JOBNAME", help="run only JOBNAME in this process")
-        opt("-n", "--netbox", action="callback", nargs=1, type="string",
-            callback=self._find_netbox, metavar="NETBOX",
+            metavar="JOBNAME", help="run only JOBNAME jobs in this process")
+        opt("-n", "--netbox", action=NetboxAction, metavar="NETBOX",
             help="Run JOBNAME once for NETBOX. Also implies -f and -s options.")
-        opt("-m", "--multiprocess", action="store_true", dest="multiprocess",
-            help="Run ipdevpoll in a multiprocess setup")
+        opt("-m", "--multiprocess", type=int, dest="multiprocess",
+            nargs='?', const=cpu_count(), metavar='WORKERS',
+            help="Run ipdevpoll in a multiprocess setup. If WORKERS is not set "
+            "it will default to number of cpus in the system")
+        opt("-M", "--max-jobs-per-worker", type=int, dest="max_jobs",
+            metavar="JOBS", help="Restart worker processes after completing "
+            "JOBS jobs. (Default: Don't restart)")
         opt("-P", "--pidlog", action="store_true", dest="pidlog",
             help="Include process ID in every log line")
         opt("--capture-vars", action="store_true", dest="capture_vars",
@@ -211,9 +301,11 @@ class CommandProcessor(object):
             help="cleans/purges old job log entries from the database and then "
                  "exits")
         opt("--threadpoolsize", action="store", dest="threadpoolsize",
-            metavar="COUNT", type="int", default=10,
+            metavar="COUNT", type=int, default=10,
             help="the number of database worker threads, and thus db "
                  "connections, to use")
+        opt("--worker", action="store_true",
+            help="Used internally when lauching worker processes")
         return parser
 
     def run(self):
@@ -245,15 +337,7 @@ class CommandProcessor(object):
         """Initializes ipdevpoll logging for the current process."""
         formatter = ContextFormatter(self.options.pidlog)
 
-        # First initialize logging to stderr.
-        stderr_handler = logging.StreamHandler(sys.stderr)
-        stderr_handler.setFormatter(formatter)
-
-        root_logger = logging.getLogger('')
-        root_logger.addHandler(stderr_handler)
-
-        nav.logs.set_log_config()
-
+        logfile_name = None
         if not stderr_only:
             # Now try to load config and output logs to the configured file
             # instead.
@@ -263,11 +347,14 @@ class CommandProcessor(object):
                 logfile_name = os.path.join(nav.buildconf.localstatedir,
                                             'log', logfile_name)
 
-            file_handler = logging.FileHandler(logfile_name, 'a')
-            file_handler.setFormatter(formatter)
+        nav.logs.init_generic_logging(
+            logfile=logfile_name,
+            stderr=True,
+            formatter=formatter,
+            read_config=True,
+        )
 
-            root_logger.addHandler(file_handler)
-            root_logger.removeHandler(stderr_handler)
+        if not stderr_only:
             nav.daemon.redirect_std_fds(
                 stderr=nav.logs.get_logfile_from_logger())
 
@@ -275,7 +362,7 @@ class CommandProcessor(object):
         """Exits the process if another ipdevpoll daemon is already running"""
         try:
             nav.daemon.justme(self.pidfile)
-        except nav.daemon.DaemonError, error:
+        except nav.daemon.DaemonError as error:
             self._logger.error(error)
             sys.exit(1)
 
@@ -284,13 +371,13 @@ class CommandProcessor(object):
         try:
             nav.daemon.daemonize(self.pidfile,
                                  stderr=nav.logs.get_logfile_from_logger())
-        except nav.daemon.DaemonError, error:
+        except nav.daemon.DaemonError as error:
             self._logger.error(error)
             sys.exit(1)
 
     def start_ipdevpoll(self):
         """Creates an ipdevpoll process and runs it"""
-        process = IPDevPollProcess(self.options, self.args)
+        process = IPDevPollProcess(self.options)
         process.run()
 
     @staticmethod
@@ -311,26 +398,6 @@ class CommandProcessor(object):
         plugins.import_plugins()
         print('\n'.join(sorted(plugins.plugin_registry.keys())))
         sys.exit()
-
-    @staticmethod
-    def _find_netbox(_option, opt, value, parser):
-        if not value:
-            parser.error("%s argument must be non-empty" % opt)
-        matches = manage.Netbox.objects.filter(
-            Q(sysname__startswith=value) | Q(ip=value)
-        ).select_related('type', 'type__vendor').order_by('sysname')
-        if len(matches) == 1:
-            parser.values.netbox = matches[0]
-            parser.values.foreground = True
-            parser.values.logstderr = True
-            return
-        elif len(matches) > 1:
-            print("matched more than one netbox:")
-            print('\n'.join("%s (%s)" % (n.sysname, n.ip) for n in matches))
-        else:
-            print("no netboxes match %r" % value)
-
-        sys.exit(1)
 
 
 def main():

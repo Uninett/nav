@@ -561,7 +561,7 @@ def parse_nonblock_file(filename):
     # Open nonblocklist, parse it.
     try:
         handle = open(filename)
-    except IOError, why:
+    except IOError as why:
         raise FileError(why)
 
     for line in handle.readlines():
@@ -589,18 +589,6 @@ def get_config(configfile):
     config = ConfigParser.ConfigParser()
     config.read(configfile)
     return config
-
-
-def init_logging(logfile):
-    """Create logger for logging to file"""
-    logs.set_log_config()
-
-    filehandler = logging.FileHandler(logfile)
-    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] '
-                                  '[%(name)s] %(message)s')
-    filehandler.setFormatter(formatter)
-    root = logging.getLogger('')
-    root.addHandler(filehandler)
 
 
 def is_inside_vlans(ip, vlans):

@@ -16,7 +16,7 @@
 # pylint: disable=R0903
 """Serializers for the NAV REST api"""
 
-from nav.models import manage, cabling
+from nav.models import manage, cabling, rack
 from rest_framework import serializers
 
 
@@ -98,6 +98,36 @@ class RoomSerializer(serializers.ModelSerializer):
 
     class Meta(object):
         model = manage.Room
+
+
+class RackItemSerializer(serializers.Serializer):
+    """Serialize a rack item manually - no models available"""
+    id = serializers.Field()
+    title = serializers.Field()
+    metric = serializers.Field('get_metric')
+    unit_of_measurement = serializers.Field()
+    human_readable = serializers.Field()
+    absolute_url = serializers.Field('get_absolute_url')
+    display_range = serializers.Field('get_display_range')
+
+
+class RackConfigurationField(serializers.Field):
+    """Field representing the configuration of a rack"""
+    def to_native(self, obj):
+        configuration = {}
+        for column in ['left', 'center', 'right']:
+            configuration[column] = [RackItemSerializer(i).data
+                                     for i in obj[column]]
+        return configuration
+
+
+class RackSerializer(serializers.ModelSerializer):
+    """Serializer for the rack model"""
+    configuration = RackConfigurationField()
+
+    class Meta(object):
+        model = rack.Rack
+        exclude = ('_configuration',)
 
 
 class VlanSerializer(serializers.ModelSerializer):

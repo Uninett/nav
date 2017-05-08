@@ -219,7 +219,7 @@ def render_manual_detention_step_one(request):
                 check_target(form.cleaned_data['target'], trunk_ok=True)
                 return redirect('arnold-manual-detention-step-two',
                                 form.cleaned_data['target'])
-            except GeneralException, err:
+            except GeneralException as err:
                 error = err
     else:
         form = ManualDetentionTargetForm()
@@ -289,7 +289,7 @@ def process_manual_detention_form(form, account):
     try:
         interface = Interface.objects.get(
             netbox=cam.netbox, ifindex=cam.ifindex)
-    except Interface.DoesNotExist, error:
+    except Interface.DoesNotExist as error:
         return error
 
     identity = Identity()
@@ -302,14 +302,14 @@ def process_manual_detention_form(form, account):
         try:
             disable(identity, justification, username, comment=comment,
                     autoenablestep=days)
-        except GeneralException, error:
+        except GeneralException as error:
             return error
     elif form.cleaned_data['method'] == 'quarantine':
         qvlan = QuarantineVlan.objects.get(pk=form.cleaned_data['qvlan'])
         try:
             quarantine(identity, qvlan, justification,
                        username, comment=comment, autoenablestep=days)
-        except GeneralException, error:
+        except GeneralException as error:
             return error
 
 

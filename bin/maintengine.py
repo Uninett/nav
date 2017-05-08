@@ -24,21 +24,33 @@ schedule in NAVdb.
 
 import os.path
 import time
+import logging
+
 import nav.path
-from nav.maintengine import init_logging
+from nav.logs import init_generic_logging
 from nav.maintengine import check_devices_on_maintenance
+
+
+LOG_FORMAT = "[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s"
 
 
 def main():
     """Good old main..."""
     before = time.clock()
     log_file = os.path.join(nav.path.localstatedir, 'log', 'maintengine.log')
-    fmt = "[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s"
-    logger = init_logging(log_file, fmt)
+    fmt = logging.Formatter(LOG_FORMAT)
+    init_generic_logging(
+        logfile=log_file,
+        stderr=False,
+        formatter=fmt,
+        read_config=True,
+    )
+    logger = logging.getLogger('')
+
     logger.debug('------------------------------------------------------------')
     try:
         check_devices_on_maintenance()
-    except Exception as error:
+    except Exception:
         logger.exception("An unhandled exception occurred:")
     logger.debug('Finished in %.3fs' % (time.clock() - before))
     logger.debug('------------------------------------------------------------')

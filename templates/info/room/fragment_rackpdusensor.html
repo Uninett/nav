@@ -1,0 +1,16 @@
+<div id="item_{{ rack.id }}_{{ racksensor.id }}"
+     class="rack-sensor"
+     title="{{ racksensor.title }}"
+     data-metric="{{ racksensor.get_metric }}"
+     data-id="{{ racksensor.id }}"
+     data-display-range="{{ racksensor.get_display_range }}"
+     data-sortid="item_{{ racksensor.id }}"
+     data-column="{{ column }}">
+  <div class="heading">
+    <i class="fa fa-arrows inline-when-edit" title="Click and drag"></i>
+    <i class="fa fa-remove remove-sensor inline-when-edit" title="Remove sensor"></i>
+  </div>
+  <a href="{{ racksensor.get_absolute_url }}">
+    <div id="sensor-{{ rack.id }}-{{ racksensor.id }}" class="pdu-gauge"></div>
+  </a>
+</div>

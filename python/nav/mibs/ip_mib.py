@@ -242,7 +242,7 @@ class IpMib(mibretriever.MibRetriever):
             netmask = row[netmask_column]
             try:
                 prefix = ip.make_net(netmask)
-            except ValueError, err:
+            except ValueError as err:
                 self._logger.warning(
                     "ignoring IP address %s due to invalid netmask %s (%s)",
                     ip, netmask, err)

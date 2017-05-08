@@ -20,7 +20,6 @@ require(
             if ($('#infotabs').length) {
                 add_tabs();
                 add_navigation();
-                add_streetmap();
             }
 
             var $mapContainer = $('#mapcontainer');
@@ -38,6 +37,20 @@ require(
                         applyEnvironmentHandlers();
                     } else if (ui.tab.attr('aria-controls') === 'netboxinterfaces') {
                         applyNetboxInterfacesHandlers();
+                    }
+                },
+                create: function () {
+                    setTimeout(function () {
+                        // If the room_map element is visible 100 ms after the
+                        // tabs are created, create the map
+                        if (document.querySelector('#room_map').offsetParent) {
+                            add_streetmap();
+                        }
+                    }, 200);
+                },
+                activate: function (event, ui) {
+                    if (ui.newTab.attr('aria-controls') === 'roominfo') {
+                        add_streetmap();
                     }
                 }
             };
@@ -67,9 +80,11 @@ require(
         function add_streetmap() {
             var position_node = $('#roominfo td.position');
             var roomname = $(position_node).attr('data-roomname');
-            $.getJSON('/ajax/open/roommapper/rooms/' + roomname, function (data) {
-                new RoomMapper('room_map', data.rooms).createMap();
-            });
+            if (document.querySelector('#room_map').childElementCount === 0) {
+                $.getJSON('/ajax/open/roommapper/rooms/' + roomname, function (data) {
+                    new RoomMapper('room_map', data.rooms).createMap();
+                });
+            }
         }
 
 

@@ -19,7 +19,6 @@
 
 from __future__ import print_function
 
-import ConfigParser
 from optparse import OptionParser
 import logging
 import time
@@ -27,9 +26,9 @@ import sys
 from os.path import join
 
 import nav.daemon
-from nav import logs
 from nav.activeipcollector import manager
-from nav.path import localstatedir, sysconfdir
+from nav.path import localstatedir
+from nav.logs import init_generic_logging
 
 PIDFILE = join(localstatedir, 'run', 'collect_active_ip.pid')
 LOGFILE = join(localstatedir, 'log', 'collect_active_ip.log')
@@ -39,7 +38,7 @@ _logger = logging.getLogger('ipcollector')
 def main(days=None):
     """Controller"""
     exit_if_already_running()
-    init_logger(LOGFILE)
+    init_generic_logging(logfile=LOGFILE, stderr=False)
     run(days)
 
 
@@ -59,18 +58,6 @@ def run(days):
     starttime = time.time()
     manager.run(days)
     _logger.info('Done in %.2f seconds' % (time.time() - starttime))
-
-
-def init_logger(logfile):
-    """Create logger for this process"""
-    logs.set_log_levels()
-
-    filehandler = logging.FileHandler(logfile)
-    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] '
-                                  '[%(name)s] %(message)s')
-    filehandler.setFormatter(formatter)
-    root = logging.getLogger('')
-    root.addHandler(filehandler)
 
 
 if __name__ == '__main__':

@@ -60,11 +60,11 @@ class DispatcherHandler(object):
                 try:
                     module = self.importbyname(modulename)
                     self.logger.debug("Imported module %s", modulename)
-                except DispatcherError, error:
+                except DispatcherError as error:
                     self.logger.warning("Failed to import %s: %s",
                      dispatcher, error)
                     continue
-                except Exception, error:
+                except Exception as error:
                     self.logger.exception("Unknown exception: %s", error)
 
                 # Initialize dispatcher
@@ -73,11 +73,11 @@ class DispatcherHandler(object):
                     instance = dispatcher_class(config[dispatcher])
                     self.dispatchers.append((dispatcher, instance))
                     self.logger.debug("Dispatcher loaded: %s", dispatcher)
-                except DispatcherError, error:
+                except DispatcherError as error:
                     self.logger.warning("Failed to init %s: %s",
                         dispatcher, error)
                     continue
-                except Exception, error:
+                except Exception as error:
                     self.logger.exception("Unknown exception: %s", error)
 
         # Fail if no dispatchers are available
@@ -127,7 +127,7 @@ class DispatcherHandler(object):
                 self.logger.debug("Trying %s...", dispatchername)
                 (sms, sent, ignored, result, smsid) = \
                     dispatcher.sendsms(phone, msgs)
-            except PermanentDispatcherError, error:
+            except PermanentDispatcherError as error:
                 self.logger.error(
                     "%s reports a possibly permanent SMS dispatch failure: %s",
                     dispatchername, error)
@@ -137,11 +137,11 @@ class DispatcherHandler(object):
                         dispatchername)
                     del self.dispatchers[i]
                 continue # Skip to next dispatcher
-            except DispatcherError, error:
+            except DispatcherError as error:
                 self.logger.warning("%s failed to send SMS: %s",
                     dispatchername, error)
                 continue # Skip to next dispatcher
-            except Exception, error:
+            except Exception as error:
                 self.logger.exception(
                     "Unknown dispatcher exception during send: %s", error)
                 continue

@@ -4,13 +4,16 @@ define([
     'libs-amd/text!resources/networkexplorer/swport.html',
     'libs-amd/text!resources/networkexplorer/switch.html',
     'libs-amd/text!resources/networkexplorer/swport_leaf.html',
+    'libs/handlebars',
     'libs/backbone',
-    'libs/backbone-eventbroker',
-    'libs/handlebars'], function (routerTemplate,
+    'libs/backbone-eventbroker'
+                     ], function (routerTemplate,
                                   gwportTemplate,
                                   swportTemplate,
                                   switchTemplate,
-                                  leafTemplate) {
+                                  leafTemplate,
+                                  Handlebars
+                                 ) {
 
 
     Handlebars.registerHelper('equal', function(lvalue, rvalue, options) {
@@ -327,7 +330,9 @@ define([
                     break;
             }
 
-            this.template = Handlebars.compile(template);
+            if (template) {
+                this.template = Handlebars.compile(template);
+            }
             Backbone.EventBroker.register(this);
 
             this.listenTo(this.model.getChildren(), 'error', this.handleError);

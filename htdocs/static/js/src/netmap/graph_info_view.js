@@ -7,7 +7,7 @@ define([
     'libs/handlebars',
     'libs/backbone',
     'libs/jquery-ui.min'
-], function (Collections, NetmapExtras ,NodeTemplate, LinkTemplate, VlanTemplate) {
+], function (Collections, NetmapExtras ,NodeTemplate, LinkTemplate, VlanTemplate, Handlebars) {
 
     /**
      * View for rendering a modal with detailed node-/link-info

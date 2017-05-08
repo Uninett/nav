@@ -52,7 +52,7 @@ class DcChecker(AbstractChecker):
                                     stderr=subprocess.PIPE)
 
             proc.wait()
-        except OSError, msg:
+        except OSError as msg:
             return Event.DOWN, 'could not run rpcclient: %s' % msg
 
         if proc.returncode != 0:

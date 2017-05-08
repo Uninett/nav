@@ -18,21 +18,23 @@
 
 from __future__ import print_function
 
-import os
 import re
 import sys
 import email
 import ConfigParser
 import logging
-import types
 import traceback
 from optparse import OptionParser
 import nav
 import nav.mailin
 
+logger = None
+conf = None
+
+
 def add_mailin_subsystem():
     """Ensure that the 'mailin' subsystem exists in the db"""
-    
+
     conn = nav.db.getConnection('default', 'manage')
     cursor = conn.cursor()
 
@@ -41,9 +43,11 @@ def add_mailin_subsystem():
         cursor.execute("INSERT INTO subsystem (name, descr) VALUES ('mailin', '')")
     conn.commit()
 
+
 def indent_msg(msg):
     """Indent every line in msg."""
     return re.sub(r'(^|\n)', r'\1    ', msg)
+
 
 def load_plugins(paths):
     plugins = []
@@ -66,9 +70,10 @@ def load_plugins(paths):
 
     return plugins
 
+
 def authorize_match(plugin, msg):
     """Test message headers against a pattern in the configuration file"""
-    
+
     # Try to get 'authorization' option from plugin section
     # or from main section.
     if conf.has_option(plugin.name, 'authorization'):
@@ -92,6 +97,7 @@ def authorize_match(plugin, msg):
     logger.error("Message doesn't match auth pattern %s" % repr(p))
     return False
 
+
 def make_logger(filename):
     logger = logging.getLogger('nav.mailin')
     logger.setLevel(logging.DEBUG)
@@ -102,7 +108,7 @@ def make_logger(filename):
         handler = logging.StreamHandler()
     else:
         if conf.has_option('main', 'logfile'):
-            filename = conf.get('main', 'logfile')        
+            filename = conf.get('main', 'logfile')
             # logging.basicConfig(filename=logfile, level=logging.DEBUG)
 
         handler = logging.FileHandler(filename)
@@ -111,6 +117,7 @@ def make_logger(filename):
     logger.addHandler(handler)
 
     return logger
+
 
 def main():
     global logger
@@ -143,7 +150,7 @@ def main():
         logger = make_logger('-')
     else:
         logger = make_logger(logfile)
-    
+
     add_mailin_subsystem()
 
     plugins = conf.get('main', 'plugins').split()

@@ -5,7 +5,7 @@ build_nav() {
 
     echo "Building and installing NAV..."
     ./autogen.sh
-    ./configure --prefix "${BUILDDIR}" NAV_USER=build
+    ./configure --prefix "${BUILDDIR}" --localstatedir=/var/run/nav NAV_USER=build
     make
     make install
     cat > "${BUILDDIR}/etc/logging.conf" <<EOF
@@ -45,9 +45,9 @@ run_pytests() {
     export TARGETURL=http://$TARGETHOST:$APACHE_PORT/
 
     cd "${WORKSPACE}/tests"
-    py.test --junitxml=unit-results.xml --verbose unittests
-    py.test --junitxml=integration-results.xml --verbose integration
-    py.test --junitxml=functional-results.xml \
+    py.test --disable-pytest-warnings --junitxml=unit-results.xml --verbose unittests
+    py.test --disable-pytest-warnings --junitxml=integration-results.xml --verbose integration
+    py.test --disable-pytest-warnings --junitxml=functional-results.xml \
 	    --verbose \
 	    --driver Firefox \
 	    --base-url "$TARGETURL" \

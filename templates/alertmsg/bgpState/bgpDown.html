@@ -1,0 +1,23 @@
+{% extends "alertmsg/base.html" %}
+{% block left-content %}
+    {% with session=alert.get_subject %}
+
+        <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a>
+
+        BGP session with
+
+        {% with peer=session.get_peer_as_netbox %}
+            {% if peer %}
+                <a href="{{ peer.get_absolute_url }}">
+            {% else %}
+                <a href="{% url 'ipdevinfo-details-by-addr' session.peer %}">
+            {% endif %}
+            {{ session.get_peer_display  }}
+            </a>
+        {% endwith %}
+
+        has transitioned away from <code>established</code> state.
+        The last known state was <code>{{ session.state }}</code>.
+
+    {% endwith %}
+{% endblock %}

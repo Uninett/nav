@@ -19,3 +19,7 @@ check: all
 	@echo "*** Remember to also run the integration ***"
 	@echo "*** tests on a fully installed system    ***"
 	@echo
+
+clean-local:
+	find . -name __pycache__ -exec rm -rf '{}' +
+	find . -name '*.pyc' -exec rm -f '{}' +

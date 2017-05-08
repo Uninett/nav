@@ -248,7 +248,7 @@ def dispatcher(request, navlet_id):
     try:
         account_navlet = AccountNavlet.objects.get(
             account=account, pk=navlet_id)
-    except AccountNavlet.DoesNotExist, error:
+    except AccountNavlet.DoesNotExist as error:
         _logger.error('%s tried to fetch widget with id %s: %s',
                       account, navlet_id, error)
         return HttpResponse(status=404)

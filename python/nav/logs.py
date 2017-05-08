@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2006, 2007, 2009, 2011, 2012, 2014 UNINETT AS
+# Copyright (C) 2006, 2007, 2009, 2011, 2012, 2014, 2017 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -22,7 +22,7 @@ import logging
 import ConfigParser
 import nav.path
 
-DEFAULT_LOG_FORMATTER = logging.Formatter('[%(asctime)s] [%(levelname)s] '
+DEFAULT_LOG_FORMATTER = logging.Formatter('%(asctime)s [%(levelname)s] '
                                           '[%(name)s] %(message)s')
 LOGGING_CONF_VAR = 'NAV_LOGGING_CONF'
 LOGGING_CONF_FILE_DEFAULT = os.path.join(nav.path.sysconfdir, 'logging.conf')
@@ -173,7 +173,7 @@ def get_logfile_from_logger(logger=logging.root):
             return handler.stream
 
 
-def init_stderr_logging(formatter=None):
+def init_stderr_logging(formatter=None, rootlogger=''):
     """Initializes logging to stderr.
 
     Log levels are read from logging.conf, the root logger's format is set to
@@ -186,5 +186,39 @@ def init_stderr_logging(formatter=None):
     handler = logging.StreamHandler(sys.stderr)
     formatter = formatter or DEFAULT_LOG_FORMATTER
     handler.setFormatter(formatter)
-    root = logging.getLogger('')
+    root = logging.getLogger(rootlogger)
     root.addHandler(handler)
+
+
+def init_generic_logging(logfile=None, stderr=True, stdout=False,
+                         formatter=None, read_config=False, rootlogger='',
+                         stderr_level=None):
+    """Setup logging
+
+    Attempts to cover all the possible existing ways of setting up logging"""
+
+    root = logging.getLogger(rootlogger)
+
+    if stderr or (stdout and sys.stdout.isatty()):
+        tty = sys.stderr if stderr else sys.stdout
+        tty_handler = logging.StreamHandler(tty)
+        formatter = formatter or DEFAULT_LOG_FORMATTER
+        tty_handler.setFormatter(formatter)
+        if stderr and stderr_level:
+            tty_handler.setLevel(stderr_level)
+        root.addHandler(tty_handler)
+
+    if logfile:
+        try:
+            filehandler = logging.FileHandler(logfile)
+        except IOError as err:
+            pass
+        else:
+            formatter = formatter or DEFAULT_LOG_FORMATTER
+            filehandler.setFormatter(formatter)
+            root.addHandler(filehandler)
+
+    if read_config:
+        set_log_config()
+    else:
+        set_log_levels()

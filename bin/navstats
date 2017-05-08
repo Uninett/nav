@@ -27,7 +27,7 @@ from django.db import connection, DatabaseError
 import nav.models
 from nav.buildconf import localstatedir
 from nav.config import NAVConfigParser
-from nav.logs import set_log_levels
+from nav.logs import init_generic_logging
 from nav.metrics.carbon import send_metrics
 from nav.metrics.names import escape_metric_name
 
@@ -41,21 +41,12 @@ class NAVStatsConfig(NAVConfigParser):
 
 
 def main():
-    init_logging()
+    init_generic_logging(
+        logfile=os.path.join(localstatedir, 'log', LOGFILE),
+        stderr=False
+    )
     config = NAVStatsConfig()
     collect_stats(config)
-
-
-def init_logging():
-    """Initialize logging to file"""
-    set_log_levels()
-
-    handler = logging.FileHandler(os.path.join(localstatedir, 'log', LOGFILE))
-    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] '
-                                  '[%(name)s] %(message)s')
-    handler.setFormatter(formatter)
-    root = logging.getLogger('')
-    root.addHandler(handler)
 
 
 def collect_stats(config):

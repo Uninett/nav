@@ -128,7 +128,7 @@ def search_by_kwargs(request, **kwargs):
     """Search by keyword arguments"""
     try:
         netbox = Netbox.objects.get(**kwargs)
-    except Netbox.DoesNotExist, do_not_exist_ex:
+    except Netbox.DoesNotExist as do_not_exist_ex:
         _logger.error("Netbox %s not found; DoesNotExist = %s",
                       kwargs.get('sysname') or kwargs.get('ip'),
                       do_not_exist_ex)
@@ -148,7 +148,7 @@ def search_by_interfaceid(request, interfaceid):
     """View for showing a search done by interface id"""
     try:
         interface = Interface.objects.get(id=interfaceid)
-    except Interface.DoesNotExist, do_not_exist_ex:
+    except Interface.DoesNotExist as do_not_exist_ex:
         _logger.error("Interface %s not found; DoesNotExist = %s",
                       interfaceid, do_not_exist_ex)
         messages.error(request,
@@ -371,7 +371,7 @@ def set_ifalias(account, fac, interface, request):
                 _logger.info('%s: %s:%s - ifalias set to "%s"', account.login,
                              interface.netbox.get_short_sysname(),
                              interface.ifname, ifalias)
-            except SnmpError, error:
+            except SnmpError as error:
                 _logger.error('Error setting ifalias: %s', error)
                 messages.error(request, "Error setting ifalias: %s" % error)
         else:
@@ -400,7 +400,7 @@ def set_vlan(account, fac, interface, request):
             _logger.info('%s: %s:%s - vlan set to %s', account.login,
                          interface.netbox.get_short_sysname(),
                          interface.ifname, vlan)
-        except (SnmpError, TypeError), error:
+        except (SnmpError, TypeError) as error:
             _logger.error('Error setting vlan: %s', error)
             messages.error(request, "Error setting vlan: %s" % error)
 
@@ -489,7 +489,7 @@ def render_trunk_edit(request, interfaceid):
     if request.method == 'POST':
         try:
             handle_trunk_edit(request, agent, interface)
-        except SnmpError, error:
+        except SnmpError as error:
             messages.error(request, 'Error editing trunk: %s' % error)
         else:
             messages.success(request, 'Trunk edit successful')
@@ -597,7 +597,7 @@ def write_mem(request):
     if fac:
         try:
             fac.write_mem()
-        except SnmpError, error:
+        except SnmpError as error:
             error_message = 'Error doing write mem on {}: {}'.format(
                 fac.netbox, error)
             _logger.error(error_message)
@@ -617,7 +617,7 @@ def get_factory(netbox):
     try:
         return SNMPFactory.get_instance(netbox, timeout=timeout,
                                         retries=retries)
-    except SnmpError, error:
+    except SnmpError as error:
         _logger.error('Error getting snmpfactory instance %s: %s',
                       netbox, error)
 

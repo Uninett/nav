@@ -234,7 +234,7 @@ class MibRetrieverMaker(type):
     def __init__(cls, name, bases, dct):
         try:
             mib = dct['mib']
-        except KeyError, error:
+        except KeyError:
             try:
                 mib = bases[0].mib
             except AttributeError:
@@ -338,6 +338,10 @@ class MibRetriever(object):
         # touch _logger to initialize logging context right away
         # pylint: disable=W0104
         self._logger
+
+    def get_module_name(self):
+        """Returns the MIB module"""
+        return self.mib.get('moduleName', None)
 
     @defer.inlineCallbacks
     def get_next(self, object_name):

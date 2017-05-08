@@ -4,10 +4,6 @@
 # Name of user running the daemon (after binding to port)
 user = @nav_user@
 
-# Loglevel for rootlogger. Can be given as text (DEBUG, INFO) or
-# integers. See "pydoc logging" for levels (10 = DEBUG, 40 = ERROR)
-loglevel = 1
-
 # Modules to give traps to. If a module is added, snmptrapd must be restarted.
 # ($NAV/bin/nav restart snmptrapd). Every module may have it's own config in 
 # this file.

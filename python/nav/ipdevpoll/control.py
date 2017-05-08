@@ -17,54 +17,9 @@
 
 from __future__ import print_function
 
-import os
 import sys
-import logging
-
-from twisted.runner import procmon
-from twisted.internet import reactor
-
-from . import config
-
-_logger = logging.getLogger(__name__)
-
-
-def run_as_multiprocess(threadpoolsize=None):
-    "Sets up a process monitor to run each ipdevpoll job as a subprocess"
-    procmon.LineLogger.lineReceived = line_received
-    procmon.LineLogger.MAX_LENGTH = 2**16  # allow pretty long log lines
-    mon = ProcessMonitor()
-    jobs = config.get_jobs()
-
-    for job in jobs:
-        args = [get_process_command(), '-J', job.name, '-f', '-s', '-P']
-        if threadpoolsize:
-            args.append('--threadpoolsize=%d' % threadpoolsize)
-        mon.addProcess(job.name, args, env=os.environ)
-
-    reactor.callWhenRunning(mon.startService)
-    return mon
 
 
 def get_process_command():
     "Tries to return the path to the current executable"
     return sys.argv[0]
-
-
-def line_received(_, line):
-    """Prints line to stderr.
-
-    Used to monkeypatch procmon.LineLogger.lineReceived so that received lines
-    will be logged the ipdevpoll way.
-
-    """
-    print(line, file=sys.stderr)
-
-
-class ProcessMonitor(procmon.ProcessMonitor):
-    "A ProcessMonitor variant that properly logs dead children"
-    # an expected API name:
-    # pylint: disable=C0103
-    def connectionLost(self, name):
-        _logger.warning("Subprocess %s died, restart will be tried", name)
-        return procmon.ProcessMonitor.connectionLost(self, name)

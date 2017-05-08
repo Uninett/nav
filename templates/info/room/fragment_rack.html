@@ -1,0 +1,109 @@
+<div id="rack_{{ rack.pk }}" class="rack" data-rackid="{{ rack.pk }}">
+  <h5 class="rack-heading flex-when-noedit">
+    <span class="rackname">{{ rack.rackname|default:"&nbsp;" }}</span>
+    {% comment %}
+
+    This if-statement only prevents toggling the edit-mode on. Everything
+    related to edit-mode is still present. To prevent possible circumvention,
+    the admin state must be verified in the backend where data is actually
+    altered aswell.
+
+    {% endcomment %}
+    {% if current_user_data.is_admin %}
+      <small class="icon-container">
+        <i class="fa fa-arrows" title="Click and drag"></i>
+        <i class="edit-rack fa fa-gear" title="Edit the rack"></i>
+        <i class="fa fa-times-circle remove-rack" title="Remove rack"></i>
+      </small>
+    {% endif %}
+  </h5>
+
+  <form action="{% url 'room-info-racks-rename-rack' room.pk rack.pk %}"
+        method="post"
+        class="rename-rack-form block-when-edit">
+    <label>
+      Change rack name
+      <small class="icon-container">
+        <i class="fa fa-arrows" title="Click and drag"></i>
+        <i class="close-edit-rack fa fa-check-square-o" title="Close edit mode"></i>
+        <i class="fa fa-times-circle remove-rack" title="Remove rack"></i>
+      </small>
+    </label>
+
+    <input type="submit" value="Save name" class="button small right">
+    <div style="overflow: hidden;">
+      <input type="text" name="rackname" value="{{ rack.rackname }}">
+    </div>
+  </form>
+
+  {# Body contains the sensors #}
+  <div class="rack-body {{ rack.configuration.body_class }}">
+
+    <div class="rack-left rack-pdu rack-column">
+      {% with 0 as column %}
+      <div class="sensors" data-column="{{ column }}">
+        {% for racksensor in rack.left_column %}
+          {% include 'info/room/fragment_rackpdusensor.html' %}
+        {% endfor %}
+      </div>
+      <button class="tiny block-when-edit"
+              title="Add PDU sensor to left column"
+              data-column="{{column}}">
+        <i class="fa fa-plus"></i>
+      </button>
+      {% endwith %}
+    </div>
+
+    <div class="rack-center rack-column">
+      {% with 1 as column %}
+      <div class="sensors" data-column="{{ column }}">
+        {% for racksensor in rack.center_column %}
+          {% include 'info/room/fragment_racksensor.html' %}
+        {% endfor %}
+      </div>
+      <button class="tiny full-width block-when-edit"
+              title="Add sensor to middle column"
+              data-column="{{ column }}">Add sensor
+      </button>
+      {% endwith %}
+    </div>
+
+    <div class="rack-right rack-pdu rack-column">
+      {% with 2 as column %}
+      <div class="sensors" data-column="{{ column }}">
+        {% for racksensor in rack.right_column %}
+          {% include 'info/room/fragment_rackpdusensor.html' %}
+        {% endfor %}
+      </div>
+      <button class="tiny block-when-edit"
+              title="Add PDU sensor to right column"
+              data-column="{{ column }}">
+        <i class="fa fa-plus"></i>
+      </button>
+      {% endwith %}
+    </div>
+
+  </div>
+
+  {# Form for choosing background color on the rack body #}
+  <div class="block-when-edit">
+    <h6>Set background color</h6>
+    <form class="color-chooser">
+      {% for color_class in color_classes %}
+        <label>
+          <span class="color-indicator {{ color_class }}"></span>
+          <input type="radio"
+                 name="rack-color"
+                 value="{{ color_class }}"
+                 {% if rack.configuration.body_class == color_class %}
+                 checked
+                 {% endif %}
+          >
+        </label>
+      {% endfor %}
+    </form>
+  </div>
+
+  <button class="full-width small block-when-edit close-edit-rack">Close edit mode</button>
+
+</div>

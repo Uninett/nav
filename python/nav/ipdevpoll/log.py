@@ -127,6 +127,7 @@ class ContextLogger(object):
         raise AttributeError(
             "cannot delete a %s attribute" % self.__class__.__name__)
 
+
 #
 # Utility functions for inspecting the call stack for logging contexts
 #

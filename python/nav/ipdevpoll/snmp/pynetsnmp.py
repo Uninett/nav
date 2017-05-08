@@ -82,7 +82,7 @@ class AgentProxy(common.AgentProxyMixIn, twistedsnmp.AgentProxy):
     def open(self):
         try:
             super(AgentProxy, self).open()
-        except netsnmp.SnmpError, error:
+        except netsnmp.SnmpError:
             raise common.SnmpError(
                 "could not open session for %s:%s, maybe too many open file "
                 "descriptors?" % (self.ip, self.port))

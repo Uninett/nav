@@ -100,8 +100,11 @@ class Account(models.Model):
         return self.login
 
     def get_active_profile(self):
-        """Returns the accounts active alert profile"""
-        return self.alertpreference.active_profile
+        """Returns the account's active alert profile"""
+        try:
+            return self.alertpreference.active_profile
+        except (AlertPreference.DoesNotExist, AlertProfile.DoesNotExist):
+            pass
 
     def get_groups(self):
         """Fetches and returns this users groups.
@@ -355,21 +358,21 @@ class AlertAddress(models.Model):
                 alert.id, self.type, self.address,
                 subscription.get_type_display(), subscription.id)
 
-        except FatalDispatcherException, error:
+        except FatalDispatcherException as error:
             logger.error(
                 '%s raised a FatalDispatcherException indicating that the '
                 'alert never will be sent: %s',
                 self.type, error)
             raise
 
-        except DispatcherException, error:
+        except DispatcherException as error:
             logger.error(
                 '%s raised a DispatcherException indicating that an alert '
                 'could not be sent at this time: %s',
                 self.type, error)
             return False
 
-        except Exception, error:
+        except Exception as error:
             logger.exception(
                 'Unhandled error from %s (the handler has been blacklisted)',
                 self.type)
@@ -917,7 +920,6 @@ class MatchField(models.Model):
     NETBOXINFO = 'netboxinfo'
     ORGANIZATION = 'org'
     PREFIX = 'prefix'
-    PRODUCT = 'product'
     ROOM = 'room'
     SERVICE = 'service'
     INTERFACE = 'interface'
@@ -942,7 +944,6 @@ class MatchField(models.Model):
         (NETBOXINFO, _('netbox info')),
         (ORGANIZATION, _('organization')),
         (PREFIX, _('prefix')),
-        (PRODUCT, _('product')),
         (ROOM, _('room')),
         (SERVICE, _('service')),
         (INTERFACE, _('Interface')),
@@ -969,13 +970,12 @@ class MatchField(models.Model):
         NETBOXINFO:   'netbox__info',
         ORGANIZATION: 'netbox__organization',
         PREFIX:       'netbox__prefix',
-        PRODUCT:      'netbox__device__product',
         ROOM:         'netbox__room',
         SERVICE:      'netbox__service',
         INTERFACE:    'netbox__connected_to_interface',
         TYPE:         'netbox__type',
         USAGE:        'netbox__organization__vlan__usage',
-        VENDOR:       'netbox__device__product__vendor',
+        VENDOR:       'netbox__type__vendor',
         VLAN:         'netbox__organization__vlan',
         ALERT:        '',  # Checks alert object itself
         ALERTTYPE:    'alert_type',
@@ -1176,77 +1176,6 @@ class AccountAlertQueue(models.Model):
             self.delete()
 
         return sent
-
-
-class StatusPreference(models.Model):
-    """Preferences for the Status tool"""
-
-    SECTION_NETBOX = 'netbox'
-    SECTION_NETBOX_MAINTENANCE = 'netbox_maintenance'
-    SECTION_MODULE = 'module'
-    SECTION_SERVICE = 'service'
-    SECTION_SERVICE_MAINTENANCE = 'service_maintenance'
-    SECTION_THRESHOLD = 'threshold'
-    SECTION_LINKSTATE = 'linkstate'
-    SECTION_SNMPAGENT = 'snmpagent'
-    SECTION_PSU = 'psu'
-
-    SECTION_CHOICES = (
-        (SECTION_NETBOX, 'IP Devices down'),
-        (SECTION_NETBOX_MAINTENANCE, 'IP Devices on maintenance'),
-        (SECTION_MODULE, 'Modules down'),
-        (SECTION_SERVICE, 'Services down'),
-        (SECTION_SERVICE_MAINTENANCE, 'Services on maintenance'),
-        (SECTION_THRESHOLD, 'Thresholds exceeded'),
-        (SECTION_LINKSTATE, 'Links down'),
-        (SECTION_SNMPAGENT, 'SNMP agents down'),
-        (SECTION_PSU, 'Power supplies with problems'),
-    )
-
-    name = models.TextField()
-    position = models.IntegerField()
-    type = VarcharField(choices=SECTION_CHOICES)
-    account = models.ForeignKey('Account', db_column='accountid')
-    organizations = models.ManyToManyField(
-        Organization, db_table='statuspreference_organization')
-    categories = models.ManyToManyField(
-        Category, db_table='statuspreference_category', blank=True)
-
-    services = models.TextField(blank=True)
-    states = models.TextField()
-
-    class Meta(object):
-        db_table = u'statuspreference'
-        ordering = ('position',)
-
-    def readable_type(self):
-        """Returns a human-readable name for this section type."""
-        return StatusPreference.lookup_readable_type(self.type)
-
-    @staticmethod
-    def lookup_readable_type(type):
-        """Returns a human-readable name for the section type."""
-        for (identity, readable_type) in StatusPreference.SECTION_CHOICES:
-            if type == identity:
-                return readable_type
-
-
-class StatusPreferenceOrganization(models.Model):
-    """Organizational filter for a status preference."""
-    statuspreference = models.ForeignKey(StatusPreference)
-    organization = models.ForeignKey(Organization)
-
-    class Meta(object):
-        db_table = u'statuspreference_organization'
-
-
-class StatusPreferenceCategory(models.Model):
-    """Category filter for a status preference."""
-    statuspreference = models.ForeignKey(StatusPreference)
-    category = models.ForeignKey(Category)
-
-    class Meta(object):
-        db_table = u'statuspreference_category'
 
 
 # Make sure you update netmap-extras.js too if you change this! ;-)

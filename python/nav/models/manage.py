@@ -40,6 +40,7 @@ from nav.metrics.templates import (
     metric_prefix_for_interface,
     metric_prefix_for_ports,
     metric_prefix_for_device,
+    metric_prefix_for_sensors,
     metric_path_for_sensor,
     metric_path_for_prefix
 )
@@ -98,6 +99,8 @@ class Netbox(models.Model):
     up_since = models.DateTimeField(db_column='upsince', auto_now_add=True)
     up_to_date = models.BooleanField(db_column='uptodate', default=False)
     discovered = models.DateTimeField(auto_now_add=True)
+
+    deleted_at = models.DateTimeField(blank=True, null=True, default=None)
 
     data = hstore.DictionaryField()
     objects = hstore.HStoreManager()
@@ -325,7 +328,7 @@ class Netbox(models.Model):
 
     def get_system_metrics(self):
         """Gets a list of available Graphite metrics related to this Netbox,
-        except for ports, which are seen as separate.
+        except for ports and sensors, which are seen as separate.
 
         :returns: A list of dicts describing the metrics, e.g.:
                   {id:"nav.devices.some-gw.cpu.cpu1.loadavg1min",
@@ -333,10 +336,11 @@ class Netbox(models.Model):
                    suffix="cpu1.loadavg1min"}
 
         """
-        exclude = metric_prefix_for_ports(self.sysname)
+        ports_exclude = metric_prefix_for_ports(self.sysname)
+        sensors_exclude = metric_prefix_for_sensors(self.sysname)
         base = metric_prefix_for_device(self.sysname)
 
-        nodes = get_all_leaves_below(base, [exclude])
+        nodes = get_all_leaves_below(base, [ports_exclude, sensors_exclude])
         result = []
         for node in nodes:
             suffix = node.replace(base + '.', '')
@@ -1655,6 +1659,66 @@ class RoutingProtocolAttribute(models.Model):
         db_table = u'rproto_attr'
 
 
+class GatewayPeerSession(models.Model):
+    """Gateway protocol session decriptor"""
+    PROTOCOL_BGP = 1
+    PROTOCOL_OSPF = 2
+    PROTOCOL_ISIS = 3
+
+    PROTOCOL_CHOICES = (
+        (PROTOCOL_BGP, 'BGP'),
+        (PROTOCOL_OSPF, 'OSPF'),
+        (PROTOCOL_ISIS, 'IS-IS'),
+    )
+
+    id = models.AutoField(primary_key=True, db_column='peersessionid')
+    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    protocol = models.IntegerField(choices=PROTOCOL_CHOICES)
+    peer = models.IPAddressField()
+    state = VarcharField()
+    local_as = models.IntegerField(null=True)
+    remote_as = models.IntegerField(null=True)
+    adminstatus = VarcharField()
+
+    class Meta(object):
+        db_table = u'peersession'
+
+    def get_peer_as_netbox(self):
+        """If the peer of this partner is a known Netbox, it is returned.
+
+        :rtype: Netbox
+
+        """
+        expr = Q(ip=self.peer) | Q(interface__gwportprefix__gw_ip=self.peer)
+        netboxes = Netbox.objects.filter(expr)
+        if netboxes:
+            return netboxes[0]
+
+    def get_peer_display(self):
+        """Returns a display name for the peer.
+
+        Will access the database to see if the peer is a known Netbox.
+
+        """
+        peer = self.get_peer_as_netbox()
+        return "{} ({})".format(peer, self.peer) if peer else str(self.peer)
+
+    def __repr__(self):
+        return ("<GatewayPeerSession: protocol={protocol} netbox={netbox}"
+                " peer={peer} state={state} adminstatus={adminstatus}>").format(
+            protocol=self.get_protocol_display(),
+            netbox=self.netbox,
+            peer=self.peer,
+            state=self.state,
+            adminstatus=self.adminstatus)
+
+    def __str__(self):
+        tmpl = "{netbox} {proto} session with {peer}"
+        return tmpl.format(netbox=self.netbox,
+                           proto=self.get_protocol_display(),
+                           peer=self.get_peer_display())
+
+
 class Sensor(models.Model):
     """
     This table contains meta-data about available sensors in
@@ -1671,12 +1735,33 @@ class Sensor(models.Model):
     UNIT_VOLTS_DC = 'voltsDC'    # electric potential
     UNIT_AMPERES = 'amperes'     # electric current
     UNIT_WATTS = 'watts'         # power
+    UNIT_DBM = 'dBm'             # power (optics)
     UNIT_HERTZ = 'hertz'         # frequency
     UNIT_CELSIUS = 'celsius'     # temperature
+    UNIT_FAHRENHEIT = 'fahrenheit'  # temperature
     UNIT_PERCENT_RELATIVE_HUMIDITY = 'percentRH'  # percent relative humidity
     UNIT_RPM = 'rpm'             # shaft revolutions per minute
     UNIT_CMM = 'cmm'             # cubic meters per minute (airflow)
+    UNIT_LPM = 'l/min'           # liters per minute (waterflow)
     UNIT_TRUTHVALUE = 'boolean'  # value takes { true(1), false(2) }
+    UNIT_VOLTAMPERES = 'voltsamperes'  # apparent power
+    UNIT_VAR = 'var'             # Volt-ampere reactive
+    UNIT_WATTHOURS = 'watthours'  # electric energy consumed
+    UNIT_VOLTAMPEREHOURS = 'voltamperehours'  # apperant consumed energy
+    UNIT_PERCENT = '%'           # relative values
+    UNIT_MPS = 'm/s'             # speed
+    UNIT_PASCAL = 'pascal'       # pressure
+    UNIT_PSI = 'psi'             # pressure
+    UNIT_BAR = 'bar'             # pressure
+    UNIT_GRAMS = 'grams'         # weight
+    UNIT_FEET = 'feet'           # distance
+    UNIT_INCHES = 'inches'       # distance
+    UNIT_METERS = 'meters'       # distance
+    UNIT_DEGREES = 'degrees'     # angle
+    UNIT_LUX = 'lux'             # illuminance
+    UNIT_GPCM = 'grams/m3'       # gass density?
+    UNIT_SECONDS = 'seconds'     # time
+    UNIT_MINUTES = 'minutes'     # time
 
     UNIT_OF_MEASUREMENTS_CHOICES = (
         (UNIT_OTHER, 'Other'),
@@ -1685,12 +1770,33 @@ class Sensor(models.Model):
         (UNIT_VOLTS_DC, 'VoltsDC'),
         (UNIT_AMPERES, 'Amperes'),
         (UNIT_WATTS, 'Watts'),
+        (UNIT_DBM, 'dBm'),
         (UNIT_HERTZ, 'Hertz'),
         (UNIT_CELSIUS, 'Celsius'),
+        (UNIT_FAHRENHEIT, 'Fahrenheit'),
         (UNIT_PERCENT_RELATIVE_HUMIDITY, 'Relative humidity'),
         (UNIT_RPM, 'Revolutions per minute'),
         (UNIT_CMM, 'Cubic meters per minute'),
+        (UNIT_LPM, 'Liters per minute'),
         (UNIT_TRUTHVALUE, 'Boolean'),
+        (UNIT_VOLTAMPERES, 'Volt-ampere'),
+        (UNIT_VAR, 'Volt-ampere reactive'),
+        (UNIT_VOLTAMPEREHOURS, 'Volt-ampere hours'),
+        (UNIT_WATTHOURS, 'Watt hours'),
+        (UNIT_PERCENT, '%'),
+        (UNIT_MPS, 'meters per second'),
+        (UNIT_PASCAL, 'pascal'),
+        (UNIT_PSI, 'psi'),
+        (UNIT_BAR, 'bar'),
+        (UNIT_GRAMS, 'gram'),
+        (UNIT_FEET, 'Feet'),
+        (UNIT_INCHES, 'Inches'),
+        (UNIT_METERS, 'Meters'),
+        (UNIT_DEGREES, 'Degrees'),
+        (UNIT_LUX, 'Lux'),
+        (UNIT_GPCM, 'Grams per cubic meter'),
+        (UNIT_SECONDS, 'Seconds'),
+        (UNIT_MINUTES, 'Minutes'),
     )
 
     SCALE_YOCTO = 'yocto'  # 10^-24
@@ -1743,6 +1849,14 @@ class Sensor(models.Model):
     name = VarcharField(db_column="name")
     internal_name = VarcharField(db_column="internal_name")
     mib = VarcharField(db_column="mib")
+    display_minimum_user = models.FloatField(db_column="display_minimum_user",
+                                             null=True)
+    display_maximum_user = models.FloatField(db_column="display_maximum_user",
+                                             null=True)
+    display_minimum_sys = models.FloatField(db_column="display_minimum_sys",
+                                            null=True)
+    display_maximum_sys = models.FloatField(db_column="display_maximum_sys",
+                                            null=True)
 
     class Meta(object):
         db_table = 'sensor'
@@ -1759,6 +1873,23 @@ class Sensor(models.Model):
     def get_graph_url(self, time_frame='1day'):
         return get_simple_graph_url([self.get_metric_name()],
                                     time_frame=time_frame)
+
+    def get_display_range(self):
+        minimum = 0
+        if self.display_minimum_user is not None:
+            minimum = self.display_minimum_user
+        elif self.display_minimum_sys is not None:
+            minimum = self.display_minimum_sys
+
+        maximum = 100
+        if self.display_maximum_user is not None:
+            maximum = self.display_maximum_user
+        elif self.display_maximum_sys is not None:
+            maximum = self.display_maximum_sys
+        elif self.unit_of_measurement == self.UNIT_CELSIUS:
+            maximum = 50
+
+        return [minimum, maximum]
 
     @property
     def normalized_unit(self):
@@ -1821,7 +1952,7 @@ class PowerSupplyOrFan(models.Model):
     def get_absolute_url(self):
         """Returns a canonical URL to view fan/psu status"""
         base = self.netbox.get_absolute_url()
-        return base + "#!powerfans"
+        return base + "#!sensors"
 
 
 class UnrecognizedNeighbor(models.Model):

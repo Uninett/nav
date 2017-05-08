@@ -27,6 +27,7 @@ like temperature, humidity, voltages and currents.
 from twisted.internet import defer
 from nav.mibs import reduce_index
 from nav.mibs.mibretriever import MibRetriever
+from nav.models.manage import Sensor
 
 
 SENSOR_TABLES = {
@@ -41,7 +42,7 @@ SENSOR_TABLES = {
     'sensorProbeHumidityTable': {
         'descr': 'sensorProbeHumidityDescription',
         'online': 'sensorProbeHumidityOnline',
-        '_unit': 'percent',
+        '_unit': Sensor.UNIT_PERCENT,
         'readout': 'sensorProbeHumidityPercent',
         'precision': 0,
         'internal_prefix': 'humidity',
@@ -50,7 +51,7 @@ SENSOR_TABLES = {
     'sensorProbeIRMSSensorTable': {
         'descr': 'sensorProbeIRMSDescription',
         'online': 'sensorProbeIRMSOnline',
-        '_unit': 'percent',
+        '_unit': Sensor.UNIT_PERCENT,
         'readout': 'sensorProbeIRMSPercent',
         'precision': 0,
         'internal_prefix': 'IRMSsensor',
@@ -58,7 +59,7 @@ SENSOR_TABLES = {
     'sensorProbeVRMSSensorTable': {
         'descr': 'sensorProbeVRMSDescription',
         'online': 'sensorProbeVRMSOnline',
-        '_unit': 'percent',
+        '_unit': Sensor.UNIT_PERCENT,
         'readout': 'sensorProbeVRMSPercent',
         'precision': 0,
         'internal_prefix': 'VRMSsensor',
@@ -66,7 +67,7 @@ SENSOR_TABLES = {
     'sensorProbeEnergySensorTable': {
         'descr': 'sensorProbeEnergyDescription',
         'online': 'sensorProbeEnergyOnline',
-        '_unit': 'percent',
+        '_unit': Sensor.UNIT_PERCENT,
         'readout': 'sensorProbeEnergyPercent',
         'precision': 0,
         'internal_prefix': 'energysensor',
@@ -125,7 +126,7 @@ class SPAgentMib(MibRetriever):
         if 'unit' in config:
             unit = row.get(config['unit'], None)
             if unit == 'fahr':
-                unit = 'fahrenheit'
+                unit = Sensor.UNIT_FAHRENHEIT
         else:
             unit = config['_unit']
 

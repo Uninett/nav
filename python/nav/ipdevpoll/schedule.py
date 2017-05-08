@@ -25,7 +25,7 @@ from math import ceil
 
 from twisted.python.failure import Failure
 from twisted.internet import task, reactor
-from twisted.internet.defer import Deferred, maybeDeferred, inlineCallbacks
+from twisted.internet.defer import Deferred
 from twisted.internet.task import LoopingCall
 
 from nav import ipdevpoll
@@ -36,12 +36,12 @@ from .dataloader import NetboxLoader
 from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_prefix_for_ipdevpoll_job
-from nav.models import manage
 from nav.tableformat import SimpleTableFormatter
 
 from nav.ipdevpoll.utils import log_unhandled_failure
 
 _logger = logging.getLogger(__name__)
+
 
 class NetboxJobScheduler(object):
     """Netbox job schedule handler.
@@ -57,17 +57,24 @@ class NetboxJobScheduler(object):
                                                     'max_concurrent_jobs')
     _logger = ipdevpoll.ContextLogger()
 
-    def __init__(self, job, netbox):
+    def __init__(self, job, netbox, pool):
         self.job = job
         self.netbox = netbox
+        self.pool = pool
         self._log_context = dict(job=job.name, sysname=netbox.sysname)
         self._logger.debug("initializing %r job scheduling for %s",
                            job.name, netbox.sysname)
         self.cancelled = False
-        self.job_handler = None
         self._deferred = Deferred()
         self._next_call = None
         self._last_job_started_at = 0
+        self.running = False
+        self._start_time = None
+        self._current_job = None
+
+    def get_current_runtime(self):
+        """Returns time elapsed since the start of the job as a timedelta."""
+        return datetime.datetime.now() - self._start_time
 
     def start(self):
         """Start polling schedule."""
@@ -99,8 +106,9 @@ class NetboxJobScheduler(object):
         self._deferred.callback(self)
 
     def cancel_running_job(self):
-        if self.job_handler:
-            self.job_handler.cancel()
+        if self._current_job:
+            self._logger.debug('Cancelling running job')
+            self.pool.cancel(self._current_job)
 
     def run_job(self, dummy=None):
         if self.is_running():
@@ -123,18 +131,19 @@ class NetboxJobScheduler(object):
 
         # We're ok to start a polling run.
         try:
-            job_handler = JobHandler(self.job.name, self.netbox,
-                                     plugins=self.job.plugins)
+            self._start_time = datetime.datetime.now()
+            deferred = self.pool.execute_job(self.job.name, self.netbox.id,
+                                             plugins=self.job.plugins,
+                                             interval=self.job.interval)
+            self._current_job = deferred
         except Exception:
             self._log_unhandled_error(Failure())
             self.reschedule(60)
             return
 
-        self.job_handler = job_handler
         self.count_job()
         self._last_job_started_at = time.time()
 
-        deferred = maybeDeferred(job_handler.run)
         deferred.addErrback(self._adjust_intensity_on_snmperror)
         deferred.addCallbacks(self._reschedule_on_success,
                               self._reschedule_on_failure)
@@ -142,9 +151,8 @@ class NetboxJobScheduler(object):
 
         deferred.addCallback(self._unregister_handler)
 
-
     def is_running(self):
-        return self.job_handler is not None
+        return self.running
 
     @classmethod
     def _adjust_intensity_on_snmperror(cls, failure):
@@ -159,6 +167,14 @@ class NetboxJobScheduler(object):
                 cls.global_intensity = new_limit
         return failure
 
+    def _update_counters(self, success):
+        prefix = metric_prefix_for_ipdevpoll_job(self.netbox.sysname,
+                                                 self.job.name)
+        counter_path = (
+            prefix + (".success-count" if success else ".failure-count"))
+        _COUNTERS.increment(counter_path)
+        _COUNTERS.start()
+
     def _reschedule_on_success(self, result):
         """Reschedules the next normal run of this job."""
         delay = max(0, self.job.interval - self.get_runtime())
@@ -167,8 +183,7 @@ class NetboxJobScheduler(object):
             self._log_finished_job(True)
         else:
             self._logger.debug("job did nothing")
-        log_job_externally(self.job_handler, True if result else None,
-                           self.job.interval)
+        self._update_counters(True if result else None)
         return result
 
     def _reschedule_on_failure(self, failure):
@@ -180,7 +195,7 @@ class NetboxJobScheduler(object):
             delay = min(self.job.interval, randint(5*60, 10*60))
         self.reschedule(delay)
         self._log_finished_job(False)
-        log_job_externally(self.job_handler, False, self.job.interval)
+        self._update_counters(False)
         failure.trap(AbortedJobError)
 
     def _log_finished_job(self, success=True):
@@ -224,7 +239,6 @@ class NetboxJobScheduler(object):
         else:
             self._next_call = reactor.callLater(delay, self.run_job)
 
-
     def _log_unhandled_error(self, failure):
         if not failure.check(db.ResetDBConnectionError):
             log_unhandled_failure(self._logger,
@@ -233,8 +247,7 @@ class NetboxJobScheduler(object):
 
     def _unregister_handler(self, result):
         """Remove a JobHandler from internal data structures."""
-        if self.job_handler:
-            self.job_handler = None
+        if self.running:
             self.uncount_job()
             self.unqueue_next_job()
             self.unqueue_next_global_job()
@@ -244,11 +257,14 @@ class NetboxJobScheduler(object):
         current_count = self.__class__.job_counters.get(self.job.name, 0)
         current_count += 1
         self.__class__.job_counters[self.job.name] = current_count
+        self.running = True
 
     def uncount_job(self):
         current_count = self.__class__.job_counters.get(self.job.name, 0)
         current_count -= 1
         self.__class__.job_counters[self.job.name] = max(current_count, 0)
+        self.running = False
+        self._current_job = None
 
     def get_job_count(self):
         return self.__class__.job_counters.get(self.job.name, 0)
@@ -294,26 +310,28 @@ class NetboxJobScheduler(object):
             self.job_queues[self.job.name] = []
         return self.job_queues[self.job.name]
 
+
 class JobScheduler(object):
     active_schedulers = set()
     job_logging_loop = None
-    netbox_reload_interval = 2*60.0 # seconds
+    netbox_reload_interval = 2*60.0  # seconds
     netbox_reload_loop = None
     _logger = ipdevpoll.ContextLogger()
 
-    def __init__(self, job):
+    def __init__(self, job, pool):
         """Initializes a job schedule from the job descriptor."""
         self._log_context = dict(job=job.name)
         self.job = job
+        self.pool = pool
         self.netboxes = NetboxLoader()
         self.active_netboxes = {}
 
         self.active_schedulers.add(self)
 
     @classmethod
-    def initialize_from_config_and_run(cls, onlyjob=None):
+    def initialize_from_config_and_run(cls, pool, onlyjob=None):
         descriptors = config.get_jobs()
-        schedulers = [JobScheduler(d) for d in descriptors
+        schedulers = [JobScheduler(d, pool) for d in descriptors
                       if not onlyjob or (d.name == onlyjob)]
         for scheduler in schedulers:
             scheduler.run()
@@ -387,7 +405,7 @@ class JobScheduler(object):
 
     def add_netbox_scheduler(self, netbox_id):
         netbox = self.netboxes[netbox_id]
-        scheduler = NetboxJobScheduler(self.job, netbox)
+        scheduler = NetboxJobScheduler(self.job, netbox, self.pool)
         self.active_netboxes[netbox_id] = scheduler
         return scheduler.start()
 
@@ -399,6 +417,12 @@ class JobScheduler(object):
         del self.active_netboxes[netbox_id]
 
     @classmethod
+    def reload(cls):
+        """Reload netboxes for all jobs"""
+        for scheduler in cls.active_schedulers:
+            scheduler._reload_netboxes()
+
+    @classmethod
     def log_active_jobs(cls, level=logging.DEBUG):
         """Debug logs a list of running job handlers.
 
@@ -407,7 +431,7 @@ class JobScheduler(object):
         """
         jobs = [(netbox_scheduler.netbox.sysname,
                  netbox_scheduler.job.name,
-                 netbox_scheduler.job_handler.get_current_runtime())
+                 netbox_scheduler.get_current_runtime())
                 for scheduler in cls.active_schedulers
                 for netbox_scheduler in scheduler.active_netboxes.values()
                 if netbox_scheduler.is_running()]
@@ -423,48 +447,6 @@ class JobScheduler(object):
             logger.log(level,
                        "no active jobs (%d JobHandlers)",
                        JobHandler.get_instance_count())
-
-
-# pylint: disable=W0703
-@inlineCallbacks
-def log_job_externally(job_handler, success=True, interval=None):
-    """Logs a job to the database"""
-    duration = job_handler.get_current_runtime()
-    duration_in_seconds = (duration.days * 86400 +
-                           duration.seconds +
-                           duration.microseconds / 1e6)
-    timestamp = time.time()
-
-    def _create_record(timestamp):
-        log = manage.IpdevpollJobLog(
-            netbox_id=job_handler.netbox.id,
-            job_name=job_handler.name,
-            end_time=datetime.datetime.fromtimestamp(timestamp),
-            duration=duration_in_seconds,
-            success=success,
-            interval=interval
-        )
-        log.save()
-
-    def _log_to_graphite():
-        prefix = metric_prefix_for_ipdevpoll_job(job_handler.netbox.sysname,
-                                                 job_handler.name)
-        runtime_path = prefix + ".runtime"
-        runtime = (runtime_path, (timestamp, duration_in_seconds))
-        send_metrics([runtime])
-
-        counter_path = (
-            prefix + (".success-count" if success else ".failure-count"))
-        _COUNTERS.increment(counter_path)
-        _COUNTERS.start()
-
-    _log_to_graphite()
-    try:
-        yield db.run_in_thread(_create_record, timestamp)
-    except db.ResetDBConnectionError:
-        pass  # this is being logged all over the place at the moment
-    except Exception as error:
-        _logger.warning("failed to log job to database: %s", error)
 
 
 class CounterFlusher(defaultdict):

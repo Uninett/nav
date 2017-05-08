@@ -114,7 +114,7 @@ def tool_list(account):
                     fullpath = os.path.join(path, filename)
                     try:
                         tool = parse_tool(fullpath)
-                    except Exception, error:
+                    except Exception as error:
                         _logger.error('Error parsing tool in %s: %s',
                                       filename, error)
                         continue

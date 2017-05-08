@@ -144,7 +144,8 @@ def handle_new_alerts(new_alerts):
     # filtergroupcontent_set so that we don't redo db queries to much
     for account in Account.objects.filter(
             alertpreference__active_profile__isnull=False):
-        time_period = account.get_active_profile().get_active_timeperiod()
+        profile = account.get_active_profile()
+        time_period = profile.get_active_timeperiod() if profile else None
 
         if not time_period:
             continue

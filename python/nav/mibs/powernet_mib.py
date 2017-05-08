@@ -17,21 +17,23 @@
 from twisted.internet import defer
 from nav.mibs import reduce_index
 from nav.mibs.ups_mib import UpsMib
+from nav.models.manage import Sensor
 
 R_PDU_LOAD_STATUS_LOAD = 'rPDULoadStatusLoad'
 R_PDU_LOAD_STATUS_BANK_NUMBER = 'rPDULoadStatusBankNumber'
+R_PDU_LOAD_STATUS_PHASE_NUMBER = 'rPDULoadStatusPhaseNumber'
 
-U_VOLT = dict(u_o_m='Volt')
-U_DECIVOLT = dict(u_o_m='Volt', precision=1)
-U_AMPERE = dict(u_o_m='Ampere')
-U_DECIAMPERE = dict(u_o_m='Ampere', precision=1)
-U_HZ = dict(u_o_m='Hz')
-U_DECIHZ = dict(u_o_m='Hz', precision=1)
-U_PERCENT = dict(u_o_m='Percent')
-U_DECIPERCENT = dict(u_o_m='Percent', precision=1)
-U_CELSIUS = dict(u_o_m='Celsius')
-U_DECICELSIUS = dict(u_o_m='Celsius', precision=1)
-U_TIMETICKS = dict(u_o_m='Seconds', precision=2)
+U_VOLT = dict(u_o_m=Sensor.UNIT_VOLTS_AC)
+U_DECIVOLT = dict(u_o_m=Sensor.UNIT_VOLTS_AC, precision=1)
+U_AMPERE = dict(u_o_m=Sensor.UNIT_AMPERES)
+U_DECIAMPERE = dict(u_o_m=Sensor.UNIT_AMPERES, precision=1)
+U_HZ = dict(u_o_m=Sensor.UNIT_HERTZ)
+U_DECIHZ = dict(u_o_m=Sensor.UNIT_HERTZ, precision=1)
+U_PERCENT = dict(u_o_m=Sensor.UNIT_PERCENT)
+U_DECIPERCENT = dict(u_o_m=Sensor.UNIT_PERCENT, precision=1)
+U_CELSIUS = dict(u_o_m=Sensor.UNIT_CELSIUS)
+U_DECICELSIUS = dict(u_o_m=Sensor.UNIT_CELSIUS, precision=1)
+U_TIMETICKS = dict(u_o_m=Sensor.UNIT_SECONDS, precision=2)
 
 
 class PowerNetMib(UpsMib):
@@ -93,6 +95,7 @@ class PowerNetMib(UpsMib):
     @defer.inlineCallbacks
     def _get_pdu_bank_load_sensors(self):
         banks = yield self.retrieve_columns([R_PDU_LOAD_STATUS_LOAD,
+                                             R_PDU_LOAD_STATUS_PHASE_NUMBER,
                                              R_PDU_LOAD_STATUS_BANK_NUMBER])
         banks = reduce_index(banks)
         if banks:
@@ -104,7 +107,11 @@ class PowerNetMib(UpsMib):
             oid = str(column.oid + str(index))
 
             bank_number = row.get(R_PDU_LOAD_STATUS_BANK_NUMBER, None)
-            name = "PDU Bank %s" % bank_number
+            phase_number = row.get(R_PDU_LOAD_STATUS_PHASE_NUMBER, None)
+            if bank_number != 0:
+                name = "PDU Bank %s" % bank_number
+            else:
+                name = "PDU Phase %s" % phase_number
 
             result.append(dict(
                 oid=oid,

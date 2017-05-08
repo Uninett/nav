@@ -47,6 +47,7 @@ MANAGERS = ADMINS
 
 # Database / ORM configuration
 try:
+    _appname = os.path.basename(sys.argv[0])
     _host, _port, _name, _user, _password = get_connection_parameters('django')
     DATABASES = {
         'default': {
@@ -57,6 +58,10 @@ try:
             'USER': _user,
             'PASSWORD': _password,
             'CONN_MAX_AGE': 300,  # 5 minutes
+            'OPTIONS': {
+                'application_name': _appname or 'NAV',
+            }
+
         }
     }
 except IOError:
@@ -153,7 +158,6 @@ DJANGO_HSTORE_GLOBAL_REGISTER = False
 
 NAVLETS = (
     'nav.web.navlets.machinetracker.MachineTrackerNavlet',
-    'nav.web.navlets.status.StatusNavlet',
     'nav.web.navlets.error.ErrorWidget',
     'nav.web.navlets.vlangraph.VlanGraphNavlet',
     'nav.web.navlets.portadmin.PortadminNavlet',
@@ -173,6 +177,7 @@ NAVLETS = (
     'nav.web.navlets.ups.UpsWidget',
     'nav.web.navlets.pdu.PduWidget',
     'nav.web.navlets.roomstatus.RoomStatus',
+    'nav.web.navlets.env_rack.EnvironmentRackWidget',
 )
 
 CRISPY_TEMPLATE_PACK = 'foundation'

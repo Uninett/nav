@@ -36,6 +36,8 @@ from nav.mibs import mibretriever
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 from nav.enterprise import ids
+from nav.mibs.snmpv2_mib import Snmpv2Mib
+from nav.oids import get_enterprise_id
 
 _logger = logging.getLogger(__name__)
 
@@ -51,7 +53,7 @@ class Sensors(Plugin):
     @defer.inlineCallbacks
     def handle(self):
         """Collects sensors and feed them in to persistent store."""
-        mibs = self.mibfactory()
+        mibs = yield self.mibfactory()
         self._logger.debug("Discovering sensors sensors using: %r",
                            [type(m).__name__ for m in mibs])
         for mib in mibs:
@@ -64,6 +66,7 @@ class Sensors(Plugin):
                 self._store_sensors(all_sensors)
                 break
 
+    @defer.inlineCallbacks
     def mibfactory(self):
         """
         Returns a list of MibRetriever instances, as configured in
@@ -71,12 +74,17 @@ class Sensors(Plugin):
 
         """
         vendor_id = None
-        if self.netbox.type:
+
+        snmpv2_mib = Snmpv2Mib(self.agent)
+        sysobjectid = yield snmpv2_mib.get_sysObjectID()
+        if sysobjectid:
+            vendor_id = get_enterprise_id(sysobjectid)
+        elif self.netbox.type:
             vendor_id = self.netbox.type.get_enterprise_id()
-        if not vendor_id:
-            vendor_id = '*'
-        mibs = [cls(self.agent) for cls in self.mib_map.get(vendor_id, ())]
-        return mibs
+
+        classes = self.mib_map.get(vendor_id, ()) or self.mib_map.get('*', ())
+        mibs = [cls(self.agent) for cls in classes]
+        defer.returnValue(mibs)
 
     def _store_sensors(self, result):
         """Stores sensor records in the current job's container dictionary, so
@@ -101,6 +109,8 @@ class Sensors(Plugin):
                 sensor.name = safestring(row.get('name', None))
                 sensor.internal_name = safestring(internal_name)
                 sensor.mib = mib
+                sensor.display_minimum_sys = row.get('minimum', None)
+                sensor.display_maximum_sys = row.get('maximum', None)
                 sensors.append(sensors)
         return sensors
 
@@ -112,7 +122,7 @@ class Sensors(Plugin):
 def loadmodules(config):
     """:type config: ConfigParser.ConfigParser"""
     names = _get_space_separated_list(config, 'sensors', 'loadmodules')
-    names = list(_expand_module_names(names))
+    names = sorted(list(_expand_module_names(names)))
     _logger.debug("importing modules: %s", names)
     for name in names:
         importlib.import_module(name)

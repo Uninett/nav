@@ -88,7 +88,7 @@ def handleTrap(trap, config=None):
                 batterytimeoid, format = BATTERYTIME[vendor]
                 s = Snmp(trap.agent, trap.community)
                 batterytime = s.get(batterytimeoid)
-            except Exception, err:
+            except Exception as err:
                 logger.info("Could not get battery time from %s: %s",
                             trap.agent, err)
                 batterytime = False
@@ -118,7 +118,7 @@ def handleTrap(trap, config=None):
             # Post event
             try:
                 e.post()
-            except Exception, e:
+            except Exception as e:
                 logger.error(e)
                 return False
 
@@ -149,7 +149,7 @@ def handleTrap(trap, config=None):
             # Post event
             try:
                 e.post()
-            except Exception, e:
+            except Exception as e:
                 logger.error(e)
                 return False
 

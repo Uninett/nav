@@ -41,6 +41,12 @@ from nav.ipdevpoll.db import django_debug_cleanup, run_in_thread
 import django.db
 
 
+def load_netbox(netbox_id):
+    related = ('room__location', 'type__vendor',
+               'category', 'organization')
+    return manage.Netbox.objects.select_related(*related).get(id=netbox_id)
+
+
 class NetboxLoader(dict):
     """Loads netboxes from the database, synchronously or asynchronously.
 
@@ -81,7 +87,8 @@ class NetboxLoader(dict):
             'snmpAgentState').values_list('netbox__id', flat=True))
         self._logger.debug("These netboxes have active snmpAgentStates: %r",
                            snmp_down)
-        queryset = list(manage.Netbox.objects.select_related(*related))
+        queryset = manage.Netbox.objects.filter(deleted_at__isnull=True)
+        queryset = list(queryset.select_related(*related))
         for netbox in queryset:
             netbox.snmp_up = netbox.id not in snmp_down
         netbox_list = storage.shadowify_queryset(queryset)
@@ -142,6 +149,7 @@ def is_netbox_changed(netbox1, netbox2):
                  'snmp_version',
                  'up',
                  'snmp_up',
+                 'deleted_at'
                  ):
         if getattr(netbox1, attr) != getattr(netbox2, attr):
             return True

@@ -28,6 +28,7 @@ import atexit
 from nav import buildconf
 from nav import daemon
 from nav.debug import log_stacktrace, log_last_django_query
+from nav.logs import init_generic_logging
 from nav.topology.layer2 import update_layer2_topology
 from nav.topology.analyze import AdjacencyReducer, build_candidate_graph_from_db
 from nav.topology.vlan import VlanGraphAnalyzer, VlanTopologyUpdater
@@ -48,7 +49,12 @@ def main():
     parser = make_option_parser()
     (options, _args) = parser.parse_args()
 
-    init_logging()
+    init_generic_logging(
+        logfile=LOGFILE_PATH,
+        stderr=False,
+        stdout=True,
+        read_config=True,
+    )
     if options.l2 or options.vlan:
         # protect against multiple invocations of long-running jobs
         verify_singleton()
@@ -80,25 +86,6 @@ def make_option_parser():
                       metavar="vlan[,...]",
                       help="Only analyze the VLANs included in this list")
     return parser
-
-
-def init_logging():
-    """Initializes logging for this program"""
-    formatter = logging.Formatter(
-        "%(asctime)s [%(levelname)s %(name)s] %(message)s")
-    handler = logging.FileHandler(LOGFILE_PATH, 'a')
-    handler.setFormatter(formatter)
-
-    root = logging.getLogger('')
-    root.addHandler(handler)
-
-    if sys.stdout.isatty():
-        stdout_handler = logging.StreamHandler(sys.stdout)
-        stdout_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
-        root.addHandler(stdout_handler)
-
-    import nav.logs
-    nav.logs.set_log_config()
 
 
 def with_exception_logging(func):
@@ -176,7 +163,7 @@ def verify_singleton():
 
     try:
         daemon.justme(PIDFILE_PATH)
-    except daemon.AlreadyRunningError, error:
+    except daemon.AlreadyRunningError as error:
         print("navtopology is already running (%d)" % error.pid, file=sys.stderr)
         sys.exit(1)
 

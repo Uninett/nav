@@ -58,9 +58,10 @@ class MatrixIPv4(Matrix):
 
         # Initially, create the rows (subnets) we're going to display
         if self.show_unused_addresses:
-            subnets = IPtools.create_subnet_range(net, self._get_row_size())
+            row_size = self._get_row_size()
+            subnets = IPtools.create_subnet_range(net, row_size)
             large_subnets = [x for x in nets.keys()
-                             if x.prefixlen() < self._get_row_size()]
+                             if x.prefixlen() < row_size]
         else:
             subnets = IPtools.sort_nets_by_address(nets.keys())
 
@@ -87,7 +88,7 @@ class MatrixIPv4(Matrix):
                         num_extra_rows = self._add_large_subnet(
                             large_subnets.pop(index), matrix_row)
                         extra_rows = self._get_extra_rows(num_extra_rows,
-                                                             subnets)
+                                                          subnets)
                     else:
                         matrix_row.append(self._create_empty_cell())
                 else:

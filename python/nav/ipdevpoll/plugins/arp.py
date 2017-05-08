@@ -185,7 +185,7 @@ class Arp(Plugin):
 
         for (ip, mac) in mappings:
             if not ip or not mac:
-                continue # Some devices seem to return empty results!
+                continue  # Some devices seem to return empty results!
             arp = self.containers.factory((ip, mac), shadows.Arp)
             arp.netbox = netbox
             arp.sysname = self.netbox.sysname

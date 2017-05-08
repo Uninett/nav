@@ -36,7 +36,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.generics import ListAPIView
 from nav.models.api import APIToken
-from nav.models import manage, event, cabling
+from nav.models import manage, event, cabling, rack
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
 
@@ -131,6 +131,7 @@ def get_endpoints(request=None, version=1):
                                        **kwargs),
         'unrecognized_neighbor': reverse_lazy('{}unrecognized-neighbor-list'.format(prefix), **kwargs),
         'vlan': reverse_lazy('{}vlan-list'.format(prefix), **kwargs),
+        'rack': reverse_lazy('{}rack-list'.format(prefix), **kwargs),
     }
 
 
@@ -425,7 +426,8 @@ class ArpViewSet(MachineTrackerViewSet):
             except ValueError:
                 raise IPParseError
             oper = '=' if addr.len() == 1 else '<<'
-            queryset = queryset.extra(where=["ip {} '{}'".format(oper, addr)])
+            expr = "arp.ip {} '{}'".format(oper, addr)
+            queryset = queryset.extra(where=[expr])
 
         return queryset
 
@@ -691,11 +693,39 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     def get_template_names(self):
         """Get the template name based on the alerthist object"""
         alert = self.get_object()
-        return [
-            'alertmsg/{a.event_type}/{a.alert_type.name}.html'.format(a=alert),
+        template_names = []
+        try:
+            template_names.append(
+                'alertmsg/{a.event_type}/{a.alert_type.name}.html'.format(
+                    a=alert))
+        except AttributeError:
+            pass
+
+        template_names.extend([
             'alertmsg/{a.event_type}/base.html'.format(a=alert),
             'alertmsg/base.html'
-        ]
+        ])
+        return template_names
+
+
+class RackViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """Lists all environment racks.
+
+    Search
+    ------
+    Searches in *rackname*
+
+    Filters
+    -------
+    - id
+    - room
+    - rackname
+
+    """
+    queryset = rack.Rack.objects.all()
+    serializer_class = serializers.RackSerializer
+    filter_fields = ['room', 'rackname']
+    search_fields = ['rackname']
 
 
 def get_or_create_token(request):

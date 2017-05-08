@@ -50,14 +50,14 @@ class MysqlChecker(AbstractChecker):
             conn.write_auth_packet('navmon')
             try:
                 conn.read_packet()
-            except MysqlError, err:
+            except MysqlError as err:
                 pass  # Ignore login error
 
             conn.close()
 
             return Event.UP, 'OK'
 
-        except MysqlError, err:
+        except MysqlError as err:
             return Event.DOWN, str(err)
 
 

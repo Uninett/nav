@@ -1,6 +1,5 @@
 #
-# Sample onfiguration file for the NAV parallel pinger. 
-# $Id: pinger.conf,v 1.1 2002/08/29 11:04:26 magnun Exp $
+# Sample configuration file for the NAV parallel pinger.
 #
 
 
@@ -9,9 +8,6 @@ user = @nav_user@
 
 # How often do you want to ping
 checkinterval = 20
-
-# How verbose should we be
-debuglevel = 5
 
 # Size of the ping packets
 packetsize = 64

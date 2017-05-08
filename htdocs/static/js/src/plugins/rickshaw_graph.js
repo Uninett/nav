@@ -4,7 +4,7 @@ define([
     'libs/urijs/URI',
     'rickshaw-utils',
     'libs/handlebars'
-], function (Rickshaw, Template, URI, RickshawUtils) {
+], function (Rickshaw, Template, URI, RickshawUtils, Handlebars) {
 
     var template = Handlebars.compile(Template);
     var resizeTimeout = 250;  // resize throttled at resizeTimeout ms

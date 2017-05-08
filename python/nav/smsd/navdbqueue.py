@@ -38,7 +38,7 @@ class NAVDBQueue(object):
         # Open DB connection early so we can detect errors early
         try:
             self._connect()
-        except Exception, error:
+        except Exception as error:
             self.logger.exception("Queue failed to initialize. Exiting. (%s)",
                                   error)
             sys.exit(1)

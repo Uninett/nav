@@ -1,6 +1,7 @@
 from twisted.internet import defer
 from nav.mibs import reduce_index
 from nav.mibs.mibretriever import MibRetriever
+from nav.models.manage import Sensor
 
 
 class CD6CMib(MibRetriever):
@@ -41,11 +42,13 @@ class CD6CMib(MibRetriever):
         self._logger.debug('CD6C mib supported because main returned %s',
                            supported)
 
-        temp_sensors = [self.create_sensor(s, precision=1, uom='celsius')
+        temp_sensors = [self.create_sensor(s, precision=1,
+                                           uom=Sensor.UNIT_CELSIUS)
                         for s in self.sensors['temp']]
-        pressure_sensors = [self.create_sensor(s, precision=2, uom='bar')
+        pressure_sensors = [self.create_sensor(s, precision=2,
+                                               uom=Sensor.UNIT_BAR)
                             for s in self.sensors['pressure']]
-        flow_sensors = [self.create_sensor(s, uom='litres/minute')
+        flow_sensors = [self.create_sensor(s, uom=Sensor.UNIT_LPM)
                         for s in self.sensors['flow']]
 
         all_sensors = temp_sensors + pressure_sensors + flow_sensors

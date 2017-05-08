@@ -75,9 +75,14 @@ def metric_path_for_roundtrip_time(sysname):
     return tmpl.format(device=metric_prefix_for_device(sysname))
 
 
+def metric_prefix_for_sensors(sysname):
+    tmpl = "{device}.sensors"
+    return tmpl.format(device=metric_prefix_for_device(sysname))
+
+
 def metric_path_for_sensor(sysname, sensor):
-    tmpl = "{device}.sensors.{sensor}"
-    return tmpl.format(device=metric_prefix_for_device(sysname),
+    tmpl = "{prefix}.{sensor}"
+    return tmpl.format(prefix=metric_prefix_for_sensors(sysname),
                        sensor=escape_metric_name(sensor))
 
 

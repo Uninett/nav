@@ -109,12 +109,12 @@ class SNMPHandler(object):
         result = []
         try:
             result = handle.bulkwalk(oid)
-        except UnsupportedSnmpVersionError, unsup_ex:
+        except UnsupportedSnmpVersionError as unsup_ex:
             _logger.info("_bulkwalk: UnsupportedSnmpVersionError = %s",
                          unsup_ex)
             try:
                 result = handle.walk(oid)
-            except SnmpError, ex:
+            except SnmpError as ex:
                 _logger.error("_bulkwalk: Exception = %s", ex)
         return result
 
@@ -123,7 +123,7 @@ class SNMPHandler(object):
         handle = self._get_read_only_handle()
         try:
             return handle.jog(oid)
-        except SnmpError, _error:
+        except SnmpError as _error:
             return []
 
     @staticmethod
@@ -150,7 +150,7 @@ class SNMPHandler(object):
         result = None
         try:
             result = handle.get(self._get_query(oid, if_index))
-        except NoSuchObjectError, no_such_ex:
+        except NoSuchObjectError as no_such_ex:
             _logger.debug("_query_netbox: NoSuchObjectError = %s", no_such_ex)
         return result
 
@@ -441,7 +441,7 @@ class SNMPHandler(object):
                           vlan, bitvector.get_set_bits())
             self._set_netbox_value(self.VLAN_EGRESS_PORTS,
                                    vlan, 's', str(bitvector))
-        except SnmpError, error:
+        except SnmpError as error:
             _logger.error("Error setting egress ports: %s", error)
             raise error
 
@@ -557,7 +557,7 @@ class Cisco(SNMPHandler):
         try:
             _logger.debug("setting vlan: if_index: %s i %s", if_index, vlan)
             status = self._set_netbox_value(self.vlan_oid, if_index, "i", vlan)
-        except SnmpError, ex:
+        except SnmpError as ex:
             # Ignore this exception,- some boxes want signed integer and
             # we do not know this beforehand.
             # If unsigned fail,- try with signed integer.
@@ -591,9 +591,9 @@ class Cisco(SNMPHandler):
             voice_vlan = int(voice_vlan)
             status = self._set_netbox_value(
                 self.voice_vlan_oid, interface.ifindex, 'i', voice_vlan)
-        except SnmpError, error:
+        except SnmpError as error:
             _logger.error('Error setting voice vlan: %s', error)
-        except ValueError, error:
+        except ValueError as error:
             _logger.error('%s is not a valid voice vlan', voice_vlan)
 
         return status
@@ -604,7 +604,7 @@ class Cisco(SNMPHandler):
         try:
             status = self._set_netbox_value(
                 self.voice_vlan_oid, interface.ifindex, 'i', 4096)
-        except SnmpError, error:
+        except SnmpError as error:
             _logger.error('Error disabling voice vlan: %s', error)
 
         return status
@@ -705,7 +705,7 @@ class Cisco(SNMPHandler):
             bitvector_chunk = chunks.next()
             try:
                 self._set_netbox_value(oid, ifindex, 's', str(bitvector_chunk))
-            except SnmpError, error:
+            except SnmpError as error:
                 _logger.error('Error setting trunk vlans on %s ifindex %s: %s',
                               self.netbox, ifindex, error)
                 break

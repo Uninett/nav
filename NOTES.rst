@@ -20,6 +20,39 @@ devices to be bombarded with requests from NAV.  The `contrib/patches`
 directory contains a patch for TwistedSNMP that solves this problem.  The
 patch has been submitted upstream, but not yet accepted into a new release.
 
+NAV 4.7
+========
+
+Support for more infrastructure monitoring
+------------------------------------------
+
+NAV 4.7 adds support for collecting sensor readouts from various data loggers,
+power distribution units, and cooling devices, used in the latest HPC
+infrastructure being deployed in the Norwegian research network. Among these
+are:
+
+- `The Comet MS6D data logger`_
+- `Eaton Williams Cooling Distribution Units (CDU)`_
+- `Lenovo (IBM) power distribution units (PDU)`_
+- `Raritan power distribution units (PDU)`_
+- `Rittal power distribution units (PDU)`_
+- `Rittal liquid cooling package (in-row liquid coolers)`_
+
+.. note:: If adding Lenovo PDUs to NAV, please select *SNMP v1*, as their SNMP
+          v2c GET-BULK implementation is either broken or not implemented.
+          GET-BULK is NAV's default operation for mass retrieval operations
+          under v2c.
+
+
+.. _`The Comet MS6D data logger`: http://www.cometsystem.com/products/monitoring-systems/ms6d-data-logger/reg-MS6D
+.. _`Eaton Williams Cooling Distribution Units (CDU)`: http://eaton-williams.com/servercool/products/servercool.php
+.. _`Lenovo (IBM) power distribution units (PDU)`: http://shop.lenovo.com/us/en/systems/servers/options/systemx/rack-power-infrastructure/power/
+.. _`Raritan power distribution units (PDU)`: http://www.raritan.com/products/power-distribution
+.. _`Rittal power distribution units (PDU)`: https://www.rittal.com/com-en/product/list.action?categoryPath=/PG0001/PG0229STV1/PG7274STV1/PGR11260STV1
+.. _`Rittal liquid cooling package (in-row liquid coolers)`: http://www.rittal.com/com-en/product/list.action?categoryPath=/PG0001/PG0168KLIMA1/PGR1951KLIMA1/PG1023KLIMA1
+
+
+
 NAV 4.6
 ========
 

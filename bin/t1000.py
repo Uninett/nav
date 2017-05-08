@@ -33,9 +33,10 @@ import getpass
 from datetime import datetime, timedelta
 
 import nav.buildconf
+from nav.logs import init_generic_logging
 from nav.arnold import (find_computer_info, disable, quarantine,
                         is_inside_vlans, NoDatabaseInformationError,
-                        GeneralException, init_logging, open_port,
+                        GeneralException, open_port,
                         raise_if_detainment_not_allowed,
                         DetainmentNotAllowedError)
 from nav.models.arnold import Identity, DetentionProfile
@@ -49,7 +50,11 @@ LOGGER = logging.getLogger('t1000')
 
 def main():
     """Main controller"""
-    init_logging(nav.buildconf.localstatedir + "/log/arnold/t1000.log")
+    init_generic_logging(
+        logfile=nav.buildconf.localstatedir + "/log/arnold/t1000.log",
+        stderr=False,
+        read_config=True,
+    )
     LOGGER.info("Starting t1000")
     django.setup()
 
