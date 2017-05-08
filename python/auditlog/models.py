@@ -36,8 +36,8 @@ class LogEntry(models.Model):
 
     summary = models.TextField()
 
-    data_before = models.TextField(blank=True, null=True)
-    data_after = models.TextField(blank=True, null=True)
+    before = models.TextField(blank=True, null=True)
+    after = models.TextField(blank=True, null=True)
 
     @classmethod
     def add_log_entry(cls, actor, verb, template, object=None, target=None, before=None, after=None):
