@@ -772,18 +772,22 @@ class H3C(SNMPHandler):
     def write_mem(self):
         """Use hh3c-config-man-mib to save running config to startup"""
 
-        # Something about random variables:
-        # http://h20564.www2.hpe.com/hpsc/doc/public/display?docId=mmr_kc-0130894
-        suffix = '1'  #  Lets try hardcoded first
         running_to_startup = 1
         create_and_go = 4
+
+        # Find the next available row for configuring and store it as a suffix
+        active_rows = [self._extract_index_from_oid(o[0])
+                       for o in self._bulkwalk(self.hh3cCfgOperateRowStatus)]
+        suffix = str(max(active_rows) + 1)
 
         operation_type_oid = '.'.join([self.hh3cCfgOperateType, suffix])
         operation_status_oid = '.'.join([self.hh3cCfgOperateRowStatus, suffix])
 
         handle = self._get_read_write_handle()
-        handle.set(operation_type_oid, 'i', running_to_startup)
-        handle.set(operation_status_oid, 'i', create_and_go)
+        handle.multi_set([
+            Snmp.PDUVarbind(operation_type_oid, 'i', running_to_startup),
+            Snmp.PDUVarbind(operation_status_oid, 'i', create_and_go)
+        ])
 
 
 class SNMPFactory(object):
