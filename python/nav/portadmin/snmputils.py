@@ -181,6 +181,25 @@ class SNMPHandler(object):
         for i in xrange(0, len(hexes), chunksize):
             yield BitVector.from_hex(hexes[i:i + chunksize])
 
+    def test_read(self):
+        """Test if read works"""
+        handle = self._get_read_only_handle()
+        try:
+            handle.get(self.SYSOBJECTID)
+            return True
+        except SnmpError as error:
+            return False
+
+    def test_write(self):
+        """Test if write works"""
+        handle = self._get_read_write_handle()
+        try:
+            value = handle.get(self.SYSLOCATION)
+            handle.set(self.SYSLOCATION, 's', value)
+            return True
+        except SnmpError as error:
+            return False
+
     def get_if_alias(self, if_index):
         """ Get alias on a specific interface """
         return self._query_netbox(self.IF_ALIAS_OID, if_index)
