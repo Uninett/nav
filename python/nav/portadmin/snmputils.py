@@ -19,7 +19,7 @@ import time
 import logging
 from operator import attrgetter
 
-from nav.Snmp import Snmp
+from nav import Snmp
 from nav.errors import NoNetboxTypeError
 from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
                              NoSuchObjectError)
@@ -69,6 +69,8 @@ class SNMPHandler(object):
     from nav.smidumps.qbridge_mib import MIB as qbridgemib
     QBRIDGENODES = qbridgemib['nodes']
 
+    SYSOBJECTID = '.1.3.6.1.2.1.1.2.0'
+    SYSLOCATION = '1.3.6.1.2.1.1.6.0'
     IF_ALIAS_OID = '1.3.6.1.2.1.31.1.1.1.18'  # From IF-MIB
     IF_ADMIN_STATUS = '1.3.6.1.2.1.2.2.1.7'
     IF_ADMIN_STATUS_UP = 1
@@ -138,7 +140,7 @@ class SNMPHandler(object):
     def _get_read_only_handle(self):
         """Get a read only SNMP-handle."""
         if self.read_only_handle is None:
-            self.read_only_handle = Snmp(self.netbox.ip, self.netbox.read_only,
+            self.read_only_handle = Snmp.Snmp(self.netbox.ip, self.netbox.read_only,
                                          self.netbox.snmp_version,
                                          retries=self.retries,
                                          timeout=self.timeout)
@@ -157,11 +159,10 @@ class SNMPHandler(object):
     def _get_read_write_handle(self):
         """Get a read and write SNMP-handle."""
         if self.read_write_handle is None:
-            self.read_write_handle = Snmp(self.netbox.ip,
-                                          self.netbox.read_write,
-                                          self.netbox.snmp_version,
-                                          retries=self.retries,
-                                          timeout=self.timeout)
+            self.read_write_handle = Snmp.Snmp(
+                self.netbox.ip, self.netbox.read_write,
+                self.netbox.snmp_version, retries=self.retries,
+                timeout=self.timeout)
         return self.read_write_handle
 
     def _set_netbox_value(self, oid, if_index, value_type, value):
