@@ -66,6 +66,33 @@ define(function(require, exports, module) {
     onRender: function() {
       // Detect select2 inputs
       this.$el.find(".select2").select2();
+      // Set up remote fetching of prefixes for form auto-completion
+      var prefixSelect = this.$el.find("#prefix-search-box");
+      prefixSelect.select2({
+        ajax: {
+          url: "/api/prefix/search/",
+          dataType: 'json',
+          type: "GET",
+          delay: 250,
+          data: function (term, page) {
+            return {
+              net_address: term, // search term
+              page: page
+            };
+          },
+          results: function (data, page) {
+            return {
+              results: $.map(data, function (item) {
+                return {
+                  text: item.net_address,
+                  id: item.net_address
+                };
+              })
+            };
+          },
+          cache: true
+        }
+      });
     },
 
     // If the user triggers a search by hitting enter

@@ -13,6 +13,12 @@
   </label>
 
   <label>
+    Prefix
+    <input id="prefix-search-box" type="text" class="search-param" id="prefix-prefix"
+           name="within" value="<%= queryParams.prefix %>">
+  </label>
+
+  <label>
     Organization (optional)
     <select class="select2 search-param" name="organization" multiple="multiple">
     {% for organization in organizations %}
