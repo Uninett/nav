@@ -77,7 +77,9 @@
                   {% if not cell.is_empty %} class="has-data" {% endif %}
                   {% if cell.netaddr %}data-netaddr="{{ cell.netaddr }}"{% endif %}
                   {% if cell.dataurl %}data-url="{{ cell.dataurl }}"{% endif %}
-                  >  {# cell #}
+              >
+                  <i class="fa fa-info"></i>
+                  {# cell #}
 
                 {# Cells that are too small to have text #}
                 {% if cell.colspan in hide_for %}

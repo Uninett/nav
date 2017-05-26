@@ -15,7 +15,9 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
         this.tooltipTemplateV4 = _.template(
             '<h5><%= heading %></h5>' +
                 '<p>Active IPs: <%= active %> (of max <%= max %>)<br>' +
-                'Usage: <%= usage %>%</p>' +
+                'Usage: <%= usage %>%<br>' +
+                '<% if (vlan_id) { %>VLAN: <%= vlan_id %><br><% } %>' +
+                '<% if (net_ident) { %>netident: <%= net_ident %><br><% } %></p>' +
                 '<a href="<%= url_machinetracker %>" title="<%= title_machinetracker %>">' +
                 '<%= linktext_machinetracker %></a><br>' +
                 '<a href="<%= url_report %>" title="<%= title_report %>">' +
@@ -25,7 +27,9 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
         );
         this.tooltipTemplateV6 = _.template(
             '<h5><%= heading %></h5>' +
-                '<p>Active IPs: <%= active %></p>' +
+                '<p>Active IPs: <%= active %><br>' +
+                '<% if (vlan_id) { %>VLAN: <%= vlan_id %><br><% } %>' +
+                '<% if (net_ident) { %>netident: <%= net_ident %><br><% } %></p>' +
                 '<a href="<%= url_machinetracker %>" title="<%= title_machinetracker %>">' +
                 '<%= linktext_machinetracker %></a><br>' +
                 '<a href="<%= url_report %>" title="<%= title_report %>">' +
@@ -84,6 +88,7 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
                 // Add link and text for usage if colspan is large enough
                 $element.append(this.usageString(result));
             }
+          console.log(result);
             this.createTooltipText($element, this.tooltipTemplateV4, result);
         },
 
@@ -123,6 +128,8 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
                 max: data.max_hosts,
                 usage: data.usage.toFixed(1),
                 url_machinetracker: data.url_machinetracker,
+                net_ident: data.net_ident,
+                vlan_id: data.vlan_id,
                 title_machinetracker: "View active addresses in MachineTracker",
                 linktext_machinetracker: "View active addresses",
                 url_report: data.url_report,
