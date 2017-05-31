@@ -97,3 +97,16 @@ class Plugin(object):
         """Return the full module and class name of this instance."""
         return "%s.%s" % (self.__class__.__module__,
                           self.__class__.__name__)
+
+    def _get_netbox_list(self):
+        """Returns a list of netbox names to make metrics for. Will return just
+        the one netbox in most instances, but for situations with multiple
+        virtual device contexts, all the subdevices will be returned.
+
+        """
+        netboxes = [self.netbox.sysname]
+        instances = self.netbox.instances.values_list('sysname', flat=True)
+        netboxes.extend(instances)
+        self._logger.debug("duplicating metrics for these netboxes: %s",
+                           netboxes)
+        return netboxes
