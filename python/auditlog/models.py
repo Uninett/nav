@@ -5,8 +5,6 @@ from __future__ import unicode_literals
 import json
 
 from django.db import models
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import force_text
 from django.utils.timezone import now as utcnow
@@ -36,7 +34,7 @@ class LogEntry(models.Model):
 
     summary = models.TextField()
 
-    subsystem = models.SlugField(blank=True, null=True)
+    subsystem = VarcharField(blank=True, null=True)
 
     before = models.TextField(blank=True, null=True)
     after = models.TextField(blank=True, null=True)
