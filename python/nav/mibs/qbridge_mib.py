@@ -59,7 +59,7 @@ class QBridgeMib(mibretriever.MibRetriever):
 
     def get_vlan_static_egress_ports(self):
         """Retrieves, for each VLAN, a list of ports that are configured to
-        transmit untagged frames for the VLAN.
+        transmit frames for the VLAN.
 
         :returns: A Deferred, whose result is a dict of the form
                   { PVID: <PortList instance> }
