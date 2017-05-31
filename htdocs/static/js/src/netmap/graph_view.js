@@ -31,8 +31,8 @@ define([
             'netmap:zoomToExtent': 'zoomToExtent',
             'netmap:resetTransparency': 'resetTransparency',
             'netmap:resetZoom': 'resetZoom',
-            'netmap:unfixNodes': 'unfixNodes',
             'netmap:fixNodes': 'fixNodes',
+            'netmap:unfixNodes': 'unfixNodes',
             'netmap:toggleForce': 'toggleForce'
         },
 
@@ -47,7 +47,7 @@ define([
                 .linkDistance(250)
                 .size([this.w, this.h]);
 
-            this.forceEnabled = true;
+            this.forceEnabled = false;
             this.nodes = this.force.nodes();
             this.links = this.force.links();
             this.isLoadingForTheFirstTime = true;
@@ -56,6 +56,8 @@ define([
 
             this.model = new Graph();
             this.netmapView = this.options.netmapView;
+
+            this.model.set("locations", this.netmapView.filterStrings);
 
             // Indicators
             this.indicatorHolder = this.createIndicatorHolder();
@@ -315,7 +317,6 @@ define([
 
             var nodes = this.model.get('nodeCollection').getGraphObjects();
             var links = this.model.get('linkCollection').getGraphObjects();
-
             nodes = filterNodesByCategories(nodes, categories);
             links = filterLinksByCategories(links, categories);
             if (this.netmapView.filterStrings.length) {
@@ -358,9 +359,9 @@ define([
             this.updateNodesAndLinks();
             this.transformGraph();
             this.render();
-
-            this.force.start();
+            // Make sure the rendered nodes are evenly distributed
             this.forceEnabled = true;
+            this.force.start();
         },
 
         render: function () {
@@ -482,7 +483,7 @@ define([
         refresh: function () {
 
             if (this.netmapView.refreshTrafficOnly) {
-                this.model.loadTraffic();
+                this.model.loadTraffic(this.netmapView.filterStrings);
             } else {
                 this.fetchGraphModel();
             }
@@ -498,7 +499,7 @@ define([
             var jqxhr = this.model.fetch({
                 success: function () {
                     self.update();
-                    self.model.loadTraffic();
+                    self.model.loadTraffic(self.netmapView.filterStrings);
                 },
                 error: function () { // TODO: Use alert message instead
                     alert('Error loading graph, please try to reload the page');
@@ -520,9 +521,9 @@ define([
         updateNetmapView: function (view) {
 
             this.netmapView = view;
-
             this.model.set('viewId', this.netmapView.id);
             this.model.set('layer', this.netmapView.get('topology'));
+            this.model.set("locations", this.netmapView.filterStrings);
 
             var zoomParts = this.getTranslationsAndScale();
             this.netmapView.baseZoom = zoomParts;
@@ -549,20 +550,28 @@ define([
             this.update();
         },
 
-        addFilterString: function (filter) {
+        toggleForce: function (statusOn) {
+            if (statusOn) {
+                this.force.stop();
+            } else {
+                this.force.resume();
+            }
+            this.forceEnabled = !this.forceEnabled;
+        },
 
+        addFilterString: function (filter) {
             this.netmapView.filterStrings.push(filter);
+            this.model.set("locations", this.netmapView.filterStrings);
             this.update();
         },
 
         removeRoomOrLocationFilter: function (filter) {
-
             this.netmapView.filterStrings = _.without(
-                this.netmapView.filterStrings, filter);
+                this.netmapView.filterStrings, filter.toString());
             this.update();
         },
 
-        saveNodePositions: function () {
+        saveNodePositions: function (model, state, alertContainer) {
 
             var self = this;
 
@@ -582,15 +591,22 @@ define([
 
             if (dirtyNodes.length) {
 
+                console.log("Saving dirty nodes", dirtyNodes);
+
                 var nodePositions = new Models.NodePositions().set({
                     'data': dirtyNodes,
                     'viewid': this.netmapView.id
                 });
 
                 nodePositions.save(nodePositions.get('data'), {
-                    success: function () { console.log('nodepositions saved'); },
+                    success: function () {
+                        console.log('Node positions saved');
+                        // Notify control view of change, so it can display a green
+                        // "updated" box to the user
+                        Backbone.EventBroker.trigger('netmap:saveSuccessful', model, state, alertContainer);
+                    },
                     error: function (model, resp, opt) {
-                        console.log(resp.responseText);
+                        console.log("Failed", resp.responseText);
                     }
                 });
             }
@@ -648,23 +664,16 @@ define([
                 node.fixed = false;
             });
             if (this.forceEnabled) {
+                console.log("resume force");
                 this.force.resume();
             }
         },
 
         fixNodes: function () {
+            console.log("Fixing nodes");
             _.each(this.nodes, function (node) {
                 node.fixed = true;
             });
-        },
-
-        toggleForce: function (statusOn) {
-            if (statusOn) {
-                this.force.stop();
-            } else {
-                this.force.resume();
-            }
-            this.forceEnabled = !this.forceEnabled;
         },
 
         /**
@@ -802,7 +811,6 @@ define([
      * @param filters
      */
     function filterNodesByRoomsOrLocations(nodes, filters) {
-
         return _.filter(nodes, function (node) {
             return _.some(filters, function (filter) {
                 return filter === node.roomid || filter === node.locationid;
