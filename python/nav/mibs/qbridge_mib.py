@@ -112,30 +112,12 @@ def filter_newest_current_entries(dot1qvlancurrenttable):
 
 
 def convert_data_to_portlist(result):
-    return dict((key, PortList(data))
-                 for key, data in result.items())
+    return {key: portlist(data)
+            for key, data in result.items()}
 
 
-class PortList(str):
-    """Represent an octet string, as defined by the PortList syntax of
-    the Q-BRIDGE-MIB.
-
-    Offers conveniences such as subtracting one PortList from another,
-    and retrieving a list of port numbers represented by a PortList
-    octet string.
-
-    """
-
-    def __sub__(self, other):
-        # pad other with zeros if it happens to be shorter than self
-        padded_other = other.ljust(len(self), '\x00')
-        new_ints = [ord(char) - ord(padded_other[index])
-                    for index, char in enumerate(self)]
-        return PortList(''.join(chr(i) for i in new_ints))
-
-    def get_ports(self):
-        """Return a list of port numbers represented by this PortList."""
-        vector = nav.bitvector.BitVector(self)
-        # a bitvector is indexed from 0, but ports are indexed from 1
-        ports = [b+1 for b in vector.get_set_bits()]
-        return ports
+def portlist(data):
+    """Return a set of port numbers represented by this PortList."""
+    vector = nav.bitvector.BitVector(data)
+    # a bitvector is indexed from 0, but ports are indexed from 1
+    return {b+1 for b in vector.get_set_bits()}

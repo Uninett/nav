@@ -25,6 +25,8 @@ interfaces, as well as set the list of enabled VLANs on trunks.
 
 """
 
+from collections import defaultdict
+
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.util import mergedicts
@@ -119,7 +121,7 @@ class Dot1q(Plugin):
         returnValue((egress, untagged))
 
     def _find_trunkports(self, egress, untagged):
-        trunkports = {}
+        trunkports = defaultdict(list)
         for vlan, (egress, untagged) in mergedicts(egress, untagged).items():
             try:
                 tagged = egress - untagged
@@ -127,14 +129,11 @@ class Dot1q(Plugin):
                 self._logger.error("vlan %s subtraction mismatch between "
                                    "EgressPorts and UntaggedPorts", vlan)
             else:
-                for port in tagged.get_ports():
-                    if port not in trunkports:
-                        trunkports[port] = [vlan]
-                    else:
-                        trunkports[port].append(vlan)
+                for port in tagged:
+                    trunkports[port].append(vlan)
             finally:
                 self._logger.debug("vlan: %s egress: %r untagged: %r",
-                   vlan, egress.get_ports(), untagged.get_ports())
+                                   vlan, egress, untagged)
 
         return trunkports
 

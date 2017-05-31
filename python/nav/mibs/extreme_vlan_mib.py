@@ -16,7 +16,7 @@
 """Implements an EXTREME-VLAN-MIB MibRetriever"""
 from __future__ import absolute_import
 from . import mibretriever
-from nav.mibs.qbridge_mib import PortList
+from nav.mibs.qbridge_mib import portlist
 from nav.mibs import reduce_index
 
 
@@ -55,6 +55,6 @@ def _strip_slot_numbers_from_index(table):
 
 def _convert_columns_to_portlists(table):
     return dict((key,
-                 (PortList(row['extremeVlanOpaqueTaggedPorts']).get_ports(),
-                  PortList(row['extremeVlanOpaqueUntaggedPorts']).get_ports()))
+                 (portlist(row['extremeVlanOpaqueTaggedPorts']),
+                  portlist(row['extremeVlanOpaqueUntaggedPorts'])))
                 for key, row in table.items())
