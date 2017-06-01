@@ -167,9 +167,9 @@ class RoutedVlanTopologyAnalyzer(object):
         visited_nodes.add(dest)
 
         vlan_is_active = (
-            (direction == 'up'
-             and self._vlan_is_active_on_reverse_edge(edge, visited_nodes))
-            or self._is_vlan_active_on_destination(dest, ifc))
+            (direction == 'up' and
+             self._vlan_is_active_on_reverse_edge(edge, visited_nodes)) or
+            self._is_vlan_active_on_destination(dest, ifc))
 
         if direction == 'down' and not is_visited_before:
             # Recursive depth first search on each outgoing edge

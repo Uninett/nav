@@ -1069,7 +1069,7 @@ class Vlan(models.Model):
     vlan = models.IntegerField(null=True, blank=True)
     net_type = models.ForeignKey('NetType', db_column='nettype')
     organization = models.ForeignKey('Organization', db_column='orgid',
-        null=True, blank=True)
+                                     null=True, blank=True)
     usage = models.ForeignKey('Usage', db_column='usageid',
                               null=True, blank=True)
     net_ident = VarcharField(db_column='netident', null=True, blank=True)
@@ -1205,7 +1205,7 @@ class SwPortVlan(models.Model):
     interface = models.ForeignKey('Interface', db_column='interfaceid')
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
     direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES,
-        default=DIRECTION_UNDEFINED)
+                                 default=DIRECTION_UNDEFINED)
 
     class Meta(object):
         db_table = 'swportvlan'
