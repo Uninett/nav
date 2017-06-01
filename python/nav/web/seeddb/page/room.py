@@ -83,7 +83,11 @@ def room_delete(request):
 def room_edit(request, room_id=None, lat=None, lon=None):
     """Controller for editing a room"""
     info = RoomInfo()
-    extra_context = {'map': True}
+    roompositions = [[float(r.position[0]), float(r.position[1])]
+                     for r in Room.objects.all()
+                     if r.position]
+    extra_context = {'map': True, 'roompositions': roompositions}
+
     extra_context.update(info.template_context)
     return render_edit(request, Room, RoomForm, room_id,
                        'seeddb-room-edit', lon=lon, lat=lat,

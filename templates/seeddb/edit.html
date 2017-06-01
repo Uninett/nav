@@ -70,6 +70,13 @@
     </div>
 
     {% if map %}
+      <script>
+       var rooms = [];
+       {% for position in roompositions %}
+       rooms.push({{ position }});
+       {% endfor %}
+      </script>
+
       <div class="large-6 column">
         <div id="map-container">
 

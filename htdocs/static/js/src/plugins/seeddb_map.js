@@ -53,7 +53,16 @@ define(['plugins/fullscreen', 'libs/OpenLayers'], function(fullscreen) {
             marker = addMarkerToLayer(center, addMarkerLayer(map));
 
         if (isDefaultPoint(center)) {
-            map.zoomToMaxExtent();
+            // rooms is populated in the template
+            if (rooms.length) {
+                var bounds = new OpenLayers.Bounds();
+                for (var i = 0; i < rooms.length; i++) {
+                    bounds.extend(new OpenLayers.LonLat(rooms[i][1], rooms[i][0]));
+                }
+                map.zoomToExtent(bounds.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913")));
+            } else {
+                map.zoomToMaxExtent();
+            }
         } else {
             map.zoomTo(14);
             moveTo(center, map, marker);
@@ -216,6 +225,7 @@ define(['plugins/fullscreen', 'libs/OpenLayers'], function(fullscreen) {
             ]);
             moveTo(lonlat, map, marker);
             updatePosition(positionField, lonlat, map);
+            map.zoomTo(12);
         }
 
         function errorGettingPosition(error) {
