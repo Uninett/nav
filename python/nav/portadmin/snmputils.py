@@ -154,7 +154,10 @@ class SNMPHandler(object):
         return result
 
     def _get_read_write_handle(self):
-        """Get a read and write SNMP-handle."""
+        """Get a read and write SNMP-handle.
+
+        :rtype: nav.Snmp.Snmp
+        """
         if self.read_write_handle is None:
             self.read_write_handle = Snmp(self.netbox.ip,
                                           self.netbox.read_write,
