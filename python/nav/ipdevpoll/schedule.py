@@ -379,6 +379,7 @@ class JobScheduler(object):
         deferred = self.netboxes.load_all()
         deferred.addCallbacks(self._process_reloaded_netboxes,
                               self._handle_reload_failures)
+        db.django_debug_cleanup()
         return deferred
 
     def _process_reloaded_netboxes(self, result):
