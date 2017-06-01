@@ -84,9 +84,13 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
             return this.addFeedback('Configuring interface ' + $row.find('.port-name').text())
                 .append(this.createProgress());
         },
-        savedInterface: function(listItem, status) {
+        savedInterface: function(listItem, status, message) {
             status = typeof status === 'undefined' ? 'success' : status;
+            message = typeof message === 'undefined' ? '' : message;
             listItem.append(this.createAlert(status));
+            if (status !== 'success') {
+                listItem.append($('<small style="margin-left: 1em">').text(message));
+            }
             listItem.find('progress').remove();
         },
         restartingInterfaces: function() {
@@ -347,8 +351,16 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
             },
             error: function (jqXhr) {
                 console.log(jqXhr.responseText);
-                indicateError($row, $.parseJSON(jqXhr.responseText).messages);
-                feedback.savedInterface(listItem, 'alert');
+                var messages;
+                try {
+                    messages = $.parseJSON(jqXhr.responseText).messages;
+                } catch (error) {
+                    messages = [{'message': 'Error saving changes'}];
+                }
+                indicateError($row, messages);
+                feedback.savedInterface(listItem, 'alert', messages.map(function(message){
+                    return message['message'];
+                }).join(', '));
             },
             complete: function (jqXhr) {
                 removeFromQueue(rowid);

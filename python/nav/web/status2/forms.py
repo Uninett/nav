@@ -89,7 +89,7 @@ class StatusPanelForm(forms.Form):
             required=False
         )
         self.fields['not_device_group'] = forms.MultipleChoiceField(
-            choices=get_locations(),
+            choices=get_device_groups(),
             required=False
         )
         self.fields['not_location'] = forms.MultipleChoiceField(
