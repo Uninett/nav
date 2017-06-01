@@ -16,6 +16,9 @@ def get_auditlog_entries(iterable, limit=LATEST_N_AUDITLOG_ENTRIES):
     target_query = Q(target_pk__in=pks, object_model=modelname)
     actor_query = Q(actor_pk__in=pks, object_model=modelname)
     filter_query = object_query | target_query | actor_query
-    foo = LogEntry.objects.filter(object_pk__in=pks, object_model=modelname)
-    entries = LogEntry.objects.filter(object_query).distinct()[:limit]
+    entries = (LogEntry.objects
+               .filter(filter_query)
+               .distinct()
+               .order_by('-timestamp')[:limit]
+    )
     return entries
