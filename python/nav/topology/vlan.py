@@ -167,9 +167,9 @@ class RoutedVlanTopologyAnalyzer(object):
         visited_nodes.add(dest)
 
         vlan_is_active = (
-            (direction == 'up'
-             and self._vlan_is_active_on_reverse_edge(edge, visited_nodes))
-            or self._is_vlan_active_on_destination(dest, ifc))
+            (direction == 'up' and
+             self._vlan_is_active_on_reverse_edge(edge, visited_nodes)) or
+            self._is_vlan_active_on_destination(dest, ifc))
 
         if direction == 'down' and not is_visited_before:
             # Recursive depth first search on each outgoing edge
@@ -371,7 +371,7 @@ def build_layer2_graph(related_extra=None):
 
     select_related = ('netbox', 'to_netbox', 'to_interface')
     if related_extra:
-        select_related = select_related+related_extra
+        select_related = select_related + related_extra
 
     links = Interface.objects.filter(
         to_netbox__isnull=False).select_related(*select_related)

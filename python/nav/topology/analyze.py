@@ -259,8 +259,8 @@ class AdjacencyReducer(AdjacencyAnalyzer):
         for port in unvisited:
             for source, dest in self.graph.edges(port):
 
-                if (self.graph.out_degree(source) == 1 and
-                    type(dest) is Port):
+                if self.graph.out_degree(source) == 1 and \
+                   type(dest) is Port:
                     self.connect_ports(source, dest)
                     visited.add(dest)
 

@@ -39,7 +39,7 @@ from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import is_invalid_utf8
 
 HSRP_MAC_PREFIXES = ('00:00:0c:07:ac',)
-VRRP_MAC_PREFIXES = ('00:00:5e:00:01', '00:00:5e:00:02') # RFC5798
+VRRP_MAC_PREFIXES = ('00:00:5e:00:01', '00:00:5e:00:02')  # RFC5798
 IGNORED_MAC_PREFIXES = HSRP_MAC_PREFIXES + VRRP_MAC_PREFIXES
 
 

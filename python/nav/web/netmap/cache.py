@@ -20,8 +20,9 @@ from functools import wraps
 from django.core.cache import cache
 
 # TODO: This cache should be shared by all of NAV?
-# TODO: This cache should be invalidated only when the topology is changed, which
-# is somewhat rare, so set to a reasonable long time for now
+# TODO: This cache should be invalidated only when the topology is
+# changed, which is somewhat rare, so set to a reasonable long time
+# for now
 CACHE_TIMEOUT = 60*60
 # Data is collected every 5 minutes by NAV
 TRAFFIC_CACHE_TIMEOUT = 5*60
@@ -93,7 +94,7 @@ def update_cached_node_positions(viewid, layer, updated_nodes):
 
 def invalidate_topology_cache(layer):
     "Resets the topology cache, prompting NAV to rebuild it"
-    cache_key = _cache_key("topology", layer);
+    cache_key = _cache_key("topology", layer)
     cache.delete(cache_key)
 
 
