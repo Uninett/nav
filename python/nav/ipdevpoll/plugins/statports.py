@@ -125,19 +125,6 @@ class StatPorts(Plugin):
             else:
                 self._logger.debug("High Capacity counters NOT used")
 
-    def _get_netbox_list(self):
-        """Returns a list of netbox names to make metrics for. Will return just
-        the one netbox in most instances, but for situations with multiple
-        virtual device contexts, all the subdevices will be returned.
-
-        """
-        netboxes = [self.netbox.sysname]
-        instances = self.netbox.instances.values_list('sysname', flat=True)
-        netboxes.extend(instances)
-        self._logger.debug("duplicating metrics for these netboxes: %s",
-                           netboxes)
-        return netboxes
-
     def _log_instance_details(self):
         netbox = self.netbox
 
