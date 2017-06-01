@@ -219,9 +219,8 @@ class Neighbor(object):
         if name.isdigit():
             queries.append(Q(baseport=int(name)))
 
-        netbox = Q(netbox__id=self.netbox.id)
         for query in queries:
-            ifc = self._interface_query(netbox & query)
+            ifc = self._interface_query(query)
             if ifc:
                 return ifc
 
