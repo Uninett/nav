@@ -14,7 +14,6 @@
 
 from rest_framework import serializers
 from rest_framework import viewsets
-from rest_framework import mixins
 
 from nav.web.api.v1.views import NAVAPIMixin
 
@@ -33,6 +32,7 @@ class LogEntrySerializer(serializers.ModelSerializer):
             'before',
             'after',
         ]
+        read_only_fields = ['timestamp']
 
 
 class NAVDefaultsMixin(object):
@@ -42,8 +42,10 @@ class NAVDefaultsMixin(object):
     filter_backends = NAVAPIMixin.filter_backends
 
 
-class LogEntryViewSet(NAVDefaultsMixin, mixins.ListModelMixin,
-                      mixins.CreateModelMixin, mixins.RetrieveModelMixin,
-                      viewsets.GenericViewSet):
+class LogEntryViewSet(NAVDefaultsMixin, viewsets.ReadOnlyModelViewSet):
+    """Read only api endpoint for logentries.
+
+    Logentries are created behind the scenes by the subsystems themselves."""
+
     queryset = LogEntry.objects.all()
     serializer_class = LogEntrySerializer

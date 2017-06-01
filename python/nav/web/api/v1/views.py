@@ -114,6 +114,7 @@ def get_endpoints(request=None, version=1):
 
     return {
         'alert': reverse_lazy('{}alerthistory-list'.format(prefix), **kwargs),
+        'auditlog': reverse_lazy('{}auditlog-list'.format(prefix), **kwargs),
         'arp': reverse_lazy('{}arp-list'.format(prefix), **kwargs),
         'cabling': reverse_lazy('{}cabling-list'.format(prefix), **kwargs),
         'cam': reverse_lazy('{}cam-list'.format(prefix), **kwargs),
