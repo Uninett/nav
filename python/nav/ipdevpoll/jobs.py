@@ -237,7 +237,8 @@ class JobHandler(object):
                   plugins ran).
 
         """
-        self.netbox = yield dataloader.load_netbox(self.netbox_id)
+        self.netbox = yield db.run_in_thread(dataloader.load_netbox,
+                                             self.netbox_id)
         self._log_context.update(dict(job=self.name,
                                       sysname=self.netbox.sysname))
         self._logger.debug("Job %r started with plugins: %r",
