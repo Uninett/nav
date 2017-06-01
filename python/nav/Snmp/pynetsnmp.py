@@ -28,7 +28,7 @@ from ctypes import (c_int, sizeof, byref, cast, POINTER, c_char, c_char_p,
                     c_uint, c_ulong, c_uint64)
 
 from collections import namedtuple
-PDUVarbind = namedtuple("PDUVarbind", ['oid', 'data_type', 'value'])
+PDUVarbind = namedtuple("PDUVarbind", ['oid', 'type', 'value'])
 
 SNMPERR_MAP = dict(
     (value, name)
@@ -119,21 +119,21 @@ class Snmp(object):
             return ''
 
     @staticmethod
-    def translate_type(data_type):
+    def translate_type(type):
         """Translate type to fit backend library"""
-        if data_type in TYPEMAP:
-            value_type = TYPEMAP[data_type]
+        if type in TYPEMAP:
+            value_type = TYPEMAP[type]
             # TODO: verify that the type is defined for the selected SNMP ver
         else:
             raise ValueError("type must be one of %r, not %r" %
-                             (TYPEMAP.keys(), data_type))
+                             (TYPEMAP.keys(), type))
         return value_type
 
-    def set(self, query, data_type, value):
+    def set(self, query, type, value):
         """Performs an SNMP SET operations.
 
         :param query: OID to set
-        :param data_type: type of value to set. This may be
+        :param type: type of value to set. This may be
         i: INTEGER
         u: unsigned INTEGER
         t: TIMETICKS
@@ -145,17 +145,17 @@ class Snmp(object):
         :param value: the value to set. Must ofcourse match type: i = 2,
          s = 'string'
         """
-        self.handle.sset([PDUVarbind(
-            OID(query), self.translate_type(data_type), value)])
+        self.handle.sset([
+            PDUVarbind(OID(query), self.translate_type(type), value)])
 
     def multi_set(self, varbinds):
         """Performs SNMP set with multiple operations
 
         :type varbinds: list[PDUVarbind]
         """
-        self.handle.sset([PDUVarbind(
-            OID(v.oid), self.translate_type(v.data_type), v.value)
-                         for v in varbinds])
+        self.handle.sset([
+            PDUVarbind(OID(v.oid), self.translate_type(v.type), v.value)
+            for v in varbinds])
 
     def walk(self, query="1.3.6.1.2.1.1.1.0"):
         """Performs an SNMP walk operation.
@@ -304,9 +304,9 @@ class _MySnmpSession(Session):
         req = self._create_request(SNMP_MSG_SET)
         for varbind in varbinds:
             oid = mkoid(varbind.oid)
-            converter = CONVERTER_MAP[varbind.data_type]
+            converter = CONVERTER_MAP[varbind.type]
             data, size = converter(varbind.value)
-            lib.snmp_pdu_add_variable(req, oid, len(oid), varbind.data_type,
+            lib.snmp_pdu_add_variable(req, oid, len(oid), varbind.type,
                                       data, size)
 
         response = netsnmp_pdu_p()

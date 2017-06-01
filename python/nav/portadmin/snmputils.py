@@ -778,7 +778,10 @@ class H3C(SNMPHandler):
         # Find the next available row for configuring and store it as a suffix
         active_rows = [self._extract_index_from_oid(o[0])
                        for o in self._bulkwalk(self.hh3cCfgOperateRowStatus)]
-        suffix = str(max(active_rows) + 1)
+        try:
+            suffix = str(max(active_rows) + 1)
+        except ValueError:
+            suffix = '1'
 
         operation_type_oid = '.'.join([self.hh3cCfgOperateType, suffix])
         operation_status_oid = '.'.join([self.hh3cCfgOperateRowStatus, suffix])
