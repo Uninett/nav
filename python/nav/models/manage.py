@@ -1574,11 +1574,14 @@ class Interface(models.Model):
         return Interface.objects.filter(higher_layer__lower=self)
 
     def get_aggregator(self):
-        """Returns the interface that is selected as an aggregator for me"""
-        try:
-            return Interface.objects.get(aggregators__interface=self)
-        except Interface.DoesNotExist:
-            return
+        """Returns the interface that is selected as an aggregator for me.
+
+        Naively selects the aggregator with the lowest ifIndex in cases where
+        there are multiple aggregators (may happen on e.g. Juniper devices,
+        due to stacking of logical units)
+        """
+        return Interface.objects.filter(
+            aggregators__interface=self).order_by('ifindex').first()
 
     def get_bundled_interfaces(self):
         """Returns the interfaces that are bundled on this interface"""
