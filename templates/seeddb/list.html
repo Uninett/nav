@@ -52,6 +52,7 @@
                 <td>
                   <input type="checkbox" name="object" value="{{ object.pk }}" class="selector" />
                 </td>
+              {% block row %}
                 {% for element in object.values_list %}
                   <td {% if object.description %}title="{{ object.description }}"{% endif %}>
                     {% if forloop.first %}
@@ -69,6 +70,7 @@
                     {% endif %}
                   </td>
                 {% endfor %}
+              {% endblock %}
               </tr>
             {% endfor %}
           {% else %}
