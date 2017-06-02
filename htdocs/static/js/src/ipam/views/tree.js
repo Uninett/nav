@@ -191,7 +191,7 @@ define(function(require, exports, module) {
   // toggling them open/closed and so on.
   var NodeView = Marionette.LayoutView.extend({
     tagName: "li",
-    className: "prefix-tree-item",
+    className: "prefix-tree-item prefix-tree-item-closed",
     template: "#prefix-tree-node",
 
     regions: {
@@ -260,7 +260,8 @@ define(function(require, exports, module) {
       self.fsm.step("OPENED_NODE");
       // mark parent tree as having open node
       self.$el.addClass("prefix-tree-item-open");
-      self.$el.trigger("open");
+      self.$el.removeClass("prefix-tree-item-closed");
+      self.trigger("open_node");
       // open the node itself
       var content = self.$el.find(".prefix-tree-item-content:first");
       var title = self.$el.find(".prefix-tree-item-title:first");
@@ -278,7 +279,8 @@ define(function(require, exports, module) {
       self.fsm.step("CLOSED_NODE");
       // TODO replace this with message passing and parent.mode.("hasopenchildren")
       self.$el.removeClass("prefix-tree-item-open");
-      self.$el.trigger("close");
+      self.$el.addClass("prefix-tree-item-closed");
+      self.trigger("close_node");
       // close the node itself
       var content = self.$el.find(".prefix-tree-item-content:first");
       var title = self.$el.find(".prefix-tree-item-title:first");
@@ -342,7 +344,7 @@ define(function(require, exports, module) {
     }
   });
 
-  // Dumb container for prefix nodes, nested or otherwise
+  // Container for prefix nodes, nested or otherwise
   var TreeView = Marionette.CompositeView.extend({
     debug: debug.new("views:treeview"),
     template: "#prefix-children",
@@ -350,9 +352,12 @@ define(function(require, exports, module) {
     childViewContainer: ".prefix-tree-children",
     reorderOnSort: true,
 
+    childEvents: {
+      "open_node": "incrementOpenNodes",
+      "close_node": "decrementOpenNodes"
+    },
+
     events: {
-      "open .prefix-tree-item": "incrementOpenNodes",
-      "close .prefix-tree-item": "decrementOpenNodes",
       "change .sort-by": "onSortBy",
       "click .close-all": "resetOpenNodes"
     },
@@ -375,15 +380,15 @@ define(function(require, exports, module) {
       var self = this;
       // Reset sort to default when we fetch new tree data
       this.collection.bind("sync", this.resetSort.bind(this, this));
+      // Default state: No nodes are open
+      this.$el.addClass("has_no_open_nodes");
     },
 
     // Handle open nodes, i.e. blur all non-open nodes if one or more nodes are open
     incrementOpenNodes: function(evt) {
-      evt.stopPropagation();
       this.updateOpenNodes(1);
     },
     decrementOpenNodes: function(evt) {
-      evt.stopPropagation();
       this.updateOpenNodes(-1);
     },
     updateOpenNodes: function(delta) {
@@ -391,11 +396,12 @@ define(function(require, exports, module) {
       var newCount = currentCount + delta;
       this.model.set("open_nodes", newCount);
       this.debug("Current open nodes", newCount);
-      var childElem = this.$el.find(".prefix-tree-children");
       if (newCount > 0) {
-        childElem.addClass("has_open_nodes");
+        this.$el.addClass("has_open_nodes");
+        this.$el.removeClass("has_no_open_nodes");
       } else {
-        childElem.removeClass("has_open_nodes");
+        this.$el.addClass("has_no_open_nodes");
+        this.$el.removeClass("has_open_nodes");
       }
     },
     resetOpenNodes: function() {
