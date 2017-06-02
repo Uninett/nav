@@ -21,18 +21,33 @@ from .models import LogEntry
 
 
 class LogEntrySerializer(serializers.ModelSerializer):
+    actor = serializers.SerializerMethodField('get_actor')
+    object = serializers.SerializerMethodField('get_object')
+    target = serializers.SerializerMethodField('get_target')
 
     class Meta:
         model = LogEntry
         fields = [
             'timestamp',
-            'verb',
-            'summary',
             'subsystem',
+            'actor',
+            'verb',
+            'object',
+            'target',
+            'summary',
             'before',
             'after',
         ]
         read_only_fields = ['timestamp']
+
+    def get_actor(self, obj):
+        return obj.actor
+
+    def get_object(self, obj):
+        return obj.object
+
+    def get_target(self, obj):
+        return obj.target
 
 
 class NAVDefaultsMixin(object):
