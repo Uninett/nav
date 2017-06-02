@@ -88,7 +88,6 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
                 // Add link and text for usage if colspan is large enough
                 $element.append(this.usageString(result));
             }
-          console.log(result);
             this.createTooltipText($element, this.tooltipTemplateV4, result);
         },
 
@@ -197,18 +196,18 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
 
             // Actually show the tooltip only on click.
             this.container.on('click', function(event) {
-                var $target = $(event.target);
+                var $cell = event.target.nodeName === 'TD' ? $(event.target) : $(event.target).closest('td');
 
-                if ($target.hasClass('has-loaded')) {
+                if ($cell.hasClass('has-loaded')) {
                     // if for some reason the tooltip has not been created, do it now
-                    if (!$target.data('selector')) {
+                    if (!$cell.data('selector')) {
                         self.createTooltip($target);
                     }
 
-                    if ($target.hasClass('open')) {
+                    if ($cell.hasClass('open')) {
                         self.closeAllTips();
                     } else {
-                        self.openTip($target);
+                        self.openTip($cell);
                     }
                 } else {
                     // If we click outside the cells, remove all tooltips
@@ -249,7 +248,7 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
                 var request = $.getJSON($target.data('url'));
                 var sparkContainer = $('<div class="usage-sparkline">&nbsp;</div>');
                 sparkContainer.appendTo($toolTip);
-                
+
                 request.done(function(response) {
                     if (response.length > 0) {
                         var data = response[0],
