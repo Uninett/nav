@@ -3,10 +3,10 @@
 <thead>
 <tr>
     <th>Timestamp</th>
-    <!-- <th>Actor</th> -->
-    <!-- <th>Verb</th> -->
-    <!-- <th>Object</th> -->
-    <!-- <th>Target</th> -->
+    <th>Actor</th>
+    <th>Verb</th>
+    <th>Object</th>
+    <th>Target</th>
     <th>Summary</th>
 </tr>
 </thead>
@@ -28,6 +28,10 @@ No auditlog for {{ auditmodel }}.
             },
             columns: [
                 { 'data': 'timestamp' },
+                { 'data': 'actor' },
+                { 'data': 'verb' },
+                { 'data': 'object' },
+                { 'data': 'target' },
                 { 'data': 'summary' }
             ],
             bAutoWidth: false,
