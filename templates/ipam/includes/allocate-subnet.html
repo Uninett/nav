@@ -50,6 +50,7 @@
   </h4>
   <ul>
     <% if (!node.is_mock_node) { %>
+    <li><strong>VLAN:</strong> <%= node.vlan_number || "None" %></li>
     <li><strong>Description:</strong> <%= node.description || "Nothing" %></li>
     <li><strong>Organization:</strong> <%= node.organization %></li>
     <% } %>
