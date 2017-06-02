@@ -259,7 +259,7 @@ define(function(require, exports, module) {
 
   // Maps different types of nodes to different colors
   var colorMap = {
-    "used": d3.hsl(0, 0, .5),
+    "used": d3.hsl(52, 1.0, 0.5),
     "reserved": d3.hsl(210, 0.79, 0.46),
     "available": d3.hsl(0, 0, 1),
     "scope": d3.hsl(0, 0, 0.87)
