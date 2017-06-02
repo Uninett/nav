@@ -348,6 +348,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
                 if (interfaceData.hasOwnProperty('vlan')) {
                     restartInterface(interfaceData.interfaceid);
                 }
+                $(document).trigger('nav-portadmin-ajax-success');
             },
             error: function (jqXhr) {
                 console.log(jqXhr.responseText);

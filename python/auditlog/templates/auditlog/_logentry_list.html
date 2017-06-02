@@ -3,40 +3,57 @@
 <thead>
 <tr>
     <th>Timestamp</th>
-    <th>Actor</th>
-    <th>Verb</th>
-    <th>Object</th>
-    <th>Target</th>
+    <!-- <th>Actor</th> -->
+    <!-- <th>Verb</th> -->
+    <!-- <th>Object</th> -->
+    <!-- <th>Target</th> -->
     <th>Summary</th>
 </tr>
 </thead>
-<tbody>
-{% for object in object_list %}
-<tr>
-    <td>{{ object.timestamp }}</td>
-    <td>{{ object.actor }}</td>
-    <td>{{ object.verb }}</td>
-    <td>{{ object.object|default:"" }}</td>
-    <td>{{ object.target|default:"" }}</td>
-    <td>{{ object.summary }}</td>
-</tr>
-{% endfor %}
-</tbody>
 </table>
 {% else %}
 No auditlog for {{ auditmodel }}.
 {% endif %}
 <script type="text/javascript">
     require(['libs/datatables.min'], function(){
+        $('.latest-changes-heading').click(function(){
+            $('.latest-changes-content').slideToggle();
+            $('.latest-changes-heading i').toggleClass('fa-caret-square-o-right fa-caret-square-o-down');
+        });
+
         var dt_config = {
-           bAutoWidth: false,
-           bFilter: false,
-           bInfo: false,
-           bLengthChange: false,
-           bPaginate: true,
-           bSort: true
+            ajax: {
+                url: '/api/1/auditlog/?subsystem=portadmin',
+                dataSrc: 'results'
+            },
+            columns: [
+                { 'data': 'timestamp' },
+                { 'data': 'summary' }
+            ],
+            bAutoWidth: false,
+            bFilter: false,
+            bInfo: false,
+            bSort: true,
+            order: [[0, 'desc']],
+            paging: true,
+            pagingType: 'full_numbers',
+            lengthChange: true,  // Change number of visible rows
+            lengthMenu: [
+                [10, 25, 50, -1],   // Choices for number of rows to display
+                [10, 25, 50, "All"] // Text for the choices
+            ],
+            drawCallback: drawCallback,
         };
 
-        $('table#auditlog').dataTable(dt_config);
+        var table = $('table#auditlog').DataTable(dt_config);
+        $(document).on('nav-portadmin-ajax-success', function(){
+            table.ajax.reload();
+        });
+        function drawCallback(oSettings) {
+            $('.paginate_button').removeClass('secondary').addClass('button tiny');
+            $('.paginate_button.current').addClass('secondary');
+            $('.ellipsis').addClass('button tiny secondary disabled paginate_button');
+        }
+
     });
 </script>
