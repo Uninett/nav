@@ -86,7 +86,7 @@ class PrefixQuerysetBuilder(object):
 
     def vlan_number(self, vlan_number):
         "Return prefixes belonging to a particular VLAN"
-        if vlan_number is None and vlan:
+        if vlan_number is None and vlan_number:
             return self
         return self.filter(vlan_number, vlan__vlan=vlan_number)
 
