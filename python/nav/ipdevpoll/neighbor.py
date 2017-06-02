@@ -25,7 +25,6 @@ therefore be run in the threadpool instead of the main reactor thread.
 import re
 from datetime import timedelta
 import threading
-from itertools import groupby
 from IPy import IP
 from nav.util import cachedfor, synchronized
 
@@ -112,20 +111,20 @@ class Neighbor(object):
         if local_address:
             self._invalid_neighbor_ips.append(str(local_address))
 
-        self.netbox = self.interface = None
+        self.netbox = self.interfaces = None
         self.identified = False
 
         self.identify()
 
     def identify(self):
         self.netbox = self._identify_netbox()
-        self.interface = self._identify_interface()
-        self.identified = bool(self.netbox or self.interface)
+        self.interfaces = self._identify_interfaces()
+        self.identified = bool(self.netbox or self.interfaces)
 
     def _identify_netbox(self):
         raise NotImplementedError
 
-    def _identify_interface(self):
+    def _identify_interfaces(self):
         raise NotImplementedError
 
     def _netbox_from_ip(self, ip):
@@ -196,7 +195,7 @@ class Neighbor(object):
             return None
         return shadows.Netbox(**netbox)
 
-    def _interface_from_name(self, name):
+    def _interfaces_from_name(self, name):
         """Tries to find an Interface in NAV's database for the already
         identified netbox.
 
@@ -227,19 +226,14 @@ class Neighbor(object):
     def _interface_query(self, query):
         assert query
         netbox = Q(netbox__id=self.netbox.id)
-        try:
-            ifc = manage.Interface.objects.values(
-                'id', 'ifname', 'ifdescr', 'iftype').get(netbox & query)
-        except manage.Interface.DoesNotExist:
-            return None
-        except manage.Interface.MultipleObjectsReturned:
-            self._logger.info("found multiple matching interfaces on remote, "
-                              "cannot decide: %s", netbox & query)
-            return None
+        result = []
+        for ifc in manage.Interface.objects.values(
+                'id', 'ifname', 'ifdescr', 'iftype').filter(netbox & query):
 
-        ifc = shadows.Interface(**ifc)
-        ifc.netbox = self.netbox
-        return ifc
+            ifc = shadows.Interface(**ifc)
+            ifc.netbox = self.netbox
+            result.append(ifc)
+        return result
 
     def __repr__(self):
         return ('<{myclass} '
@@ -263,8 +257,8 @@ class CDPNeighbor(Neighbor):
 
         return netbox
 
-    def _identify_interface(self):
-        return self._interface_from_name(self.record.deviceport)
+    def _identify_interfaces(self):
+        return self._interfaces_from_name(self.record.deviceport)
 
 
 class LLDPNeighbor(Neighbor):
@@ -295,100 +289,36 @@ class LLDPNeighbor(Neighbor):
         if mac in mac_map:
             return self._netbox_query(Q(id=mac_map[mac]))
 
-    def _identify_interface(self):
+    def _identify_interfaces(self):
         portid = self.record.port_id
         if self.netbox and portid:
             lookup = None
             if isinstance(portid, (IdSubtypes.interfaceAlias,
                                    IdSubtypes.interfaceName,
                                    IdSubtypes.local)):
-                lookup = self._interface_from_name
+                lookup = self._interfaces_from_name
             elif isinstance(portid, (IdSubtypes.macAddress)):
-                lookup = self._interface_from_mac
+                lookup = self._interfaces_from_mac
             elif isinstance(portid, (IdSubtypes.networkAddress)):
-                lookup = self._interface_from_ip
+                lookup = self._interfaces_from_ip
 
             if lookup:
-                try:
-                    result = lookup(str(portid))
-                except manage.Interface.MultipleObjectsReturned:
-                    result = None
+                result = lookup(str(portid))
                 if not result:
                     # IEEE 802.1AB-2005 9.5.5.2
                     portdesc = self.record.port_desc
                     if portdesc:
-                        return self._interface_from_name(str(portdesc))
+                        return self._interfaces_from_name(str(portdesc))
                 else:
                     return result
 
-    def _interface_from_mac(self, mac):
+    def _interfaces_from_mac(self, mac):
         assert mac
         return self._interface_query(Q(ifphysaddress=mac))
 
-    def _interface_from_ip(self, ip):
+    def _interfaces_from_ip(self, ip):
         ip = unicode(ip)
         assert ip
         if ip in self._invalid_neighbor_ips:
             return
         return self._interface_query(Q(gwportprefix__gw_ip=ip))
-
-
-def filter_duplicate_neighbors(nborlist):
-    """Filters out duplicate neighbors on a port.
-
-    If the duplicates are all subinterfaces of a single master interface, the
-    returned Neighbor object's interface attribute will be set to the master
-    interface (if one could be found in the db).
-
-    """
-    def _keyfunc(nbor):
-        return nbor.record.ifindex
-
-    grouped = groupby(sorted(nborlist, key=_keyfunc), _keyfunc)
-    for _key, group in grouped:
-        group = list(group)
-        if len(group) > 1:
-            yield _reduce_to_single_neighbor(group)
-        else:
-            yield group[0]
-
-IFTYPE_L2VLAN = 135
-
-
-def _reduce_to_single_neighbor(nborlist):
-    target_boxes = set(nbor.netbox.id for nbor in nborlist)
-    same_netbox = len(target_boxes) == 1
-    if same_netbox:
-        are_all_subifcs = all(
-            nbor.interface and nbor.interface.iftype == IFTYPE_L2VLAN
-            for nbor in nborlist)
-
-        if are_all_subifcs:
-            pick = nborlist[0]
-            ifc = _get_parent_interface(pick.interface)
-            pick.interface = ifc
-            return pick
-    # nuts. Just return one of the records on random, basically
-    return nborlist[0]
-
-SUBIF_PATTERN = re.compile(r'(?P<basename>.*)\.(?P<subname>[0-9]+)$')
-
-
-def _get_parent_interface(ifc):
-    # NAV doesn't yet store data from ifStackTable in the database, so we can
-    # only guess at the parent interface based on naming conventions (used by
-    # Cisco).
-    match = SUBIF_PATTERN.match(ifc.ifname)
-    if match:
-        basename = match.group('basename')
-        try:
-            parent = manage.Interface.objects.values(
-                'id', 'ifname', 'ifdescr', 'iftype').get(
-                netbox__id=ifc.netbox.id, ifname=basename)
-        except manage.Interface.DoesNotExist:
-            pass
-        else:
-            parent = shadows.Interface(**parent)
-            parent.netbox = ifc.netbox
-            return parent
-    return ifc

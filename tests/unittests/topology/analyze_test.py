@@ -42,11 +42,11 @@ class TestAdjecencyReducer(object):
         cls.switch_port_b.name = "switch port b"
 
     def test_reduce_simple_case_cam(self):
-        graph = nx.DiGraph(name="simple case cam")
+        graph = nx.MultiDiGraph(name="simple case cam")
         graph.add_edge(self.switch_a, self.switch_port_a)
         graph.add_edge(self.switch_b, self.switch_port_b)
-        graph.add_edge(self.switch_port_a, self.switch_b)
-        graph.add_edge(self.switch_port_b, self.switch_a)
+        graph.add_edge(self.switch_port_a, self.switch_b, "cam")
+        graph.add_edge(self.switch_port_b, self.switch_a, "cam")
         reducer = AdjacencyReducer(graph)
         print("input:")
         print(reducer.format_connections())
@@ -60,11 +60,11 @@ class TestAdjecencyReducer(object):
         assert result.out_degree(self.switch_port_b) == 1
 
     def test_reduce_simple_case_lldp(self):
-        graph = nx.DiGraph(name="simple case lldp")
+        graph = nx.MultiDiGraph(name="simple case lldp")
         graph.add_edge(self.switch_a, self.switch_port_a)
         graph.add_edge(self.switch_b, self.switch_port_b)
-        graph.add_edge(self.switch_port_a, self.switch_port_b)
-        graph.add_edge(self.switch_port_b, self.switch_port_a)
+        graph.add_edge(self.switch_port_a, self.switch_port_b, "lldp")
+        graph.add_edge(self.switch_port_b, self.switch_port_a, "lldp")
         reducer = AdjacencyReducer(graph)
         print("input:")
         print(reducer.format_connections())
@@ -78,15 +78,15 @@ class TestAdjecencyReducer(object):
         assert result.out_degree(self.switch_port_b) == 1
 
     def test_reduce_simple_tree_lldp(self):
-        graph = nx.DiGraph(name="simple tree lldp")
+        graph = nx.MultiDiGraph(name="simple tree lldp")
         graph.add_edge(self.router, self.router_port_a)
         graph.add_edge(self.router, self.router_port_b)
         graph.add_edge(self.switch_a, self.switch_port_a)
         graph.add_edge(self.switch_b, self.switch_port_b)
-        graph.add_edge(self.switch_port_a, self.router_port_a)
-        graph.add_edge(self.switch_port_b, self.router_port_b)
-        graph.add_edge(self.router_port_a, self.switch_port_a)
-        graph.add_edge(self.router_port_b, self.switch_port_b)
+        graph.add_edge(self.switch_port_a, self.router_port_a, "lldp")
+        graph.add_edge(self.switch_port_b, self.router_port_b, "lldp")
+        graph.add_edge(self.router_port_a, self.switch_port_a, "lldp")
+        graph.add_edge(self.router_port_b, self.switch_port_b, "lldp")
         reducer = AdjacencyReducer(graph)
         print("input:")
         print(reducer.format_connections())
@@ -104,16 +104,16 @@ class TestAdjecencyReducer(object):
         assert result.out_degree(self.router_port_b) == 1
 
     def test_reduce_simple_tree_cam(self):
-        graph = nx.DiGraph()
+        graph = nx.MultiDiGraph()
         graph.add_edge(self.router, self.router_port_a)
         graph.add_edge(self.router, self.router_port_b)
         graph.add_edge(self.switch_a, self.switch_port_a)
         graph.add_edge(self.switch_b, self.switch_port_b)
 
-        graph.add_edge(self.switch_port_a, self.router)
-        graph.add_edge(self.switch_port_b, self.router)
-        graph.add_edge(self.router_port_a, self.switch_a)
-        graph.add_edge(self.router_port_b, self.switch_b)
+        graph.add_edge(self.switch_port_a, self.router, "cam")
+        graph.add_edge(self.switch_port_b, self.router, "cam")
+        graph.add_edge(self.router_port_a, self.switch_a, "cam")
+        graph.add_edge(self.router_port_b, self.switch_b, "cam")
         reducer = AdjacencyReducer(graph)
         print("input:")
         print(reducer.format_connections())
@@ -131,18 +131,18 @@ class TestAdjecencyReducer(object):
         assert result.out_degree(self.router_port_b) == 1
 
     def test_reduce_tree_cam(self):
-        graph = nx.DiGraph()
+        graph = nx.MultiDiGraph()
         graph.add_edge(self.router, self.router_port_a)
         graph.add_edge(self.router, self.router_port_b)
         graph.add_edge(self.switch_a, self.switch_port_a)
         graph.add_edge(self.switch_b, self.switch_port_b)
 
-        graph.add_edge(self.switch_port_a, self.router)
-        graph.add_edge(self.switch_port_a, self.switch_b)
-        graph.add_edge(self.switch_port_b, self.router)
-        graph.add_edge(self.switch_port_b, self.switch_a)
-        graph.add_edge(self.router_port_a, self.switch_a)
-        graph.add_edge(self.router_port_b, self.switch_b)
+        graph.add_edge(self.switch_port_a, self.router, "cam")
+        graph.add_edge(self.switch_port_a, self.switch_b, "cam")
+        graph.add_edge(self.switch_port_b, self.router, "cam")
+        graph.add_edge(self.switch_port_b, self.switch_a, "cam")
+        graph.add_edge(self.router_port_a, self.switch_a, "cam")
+        graph.add_edge(self.router_port_b, self.switch_b, "cam")
         reducer = AdjacencyReducer(graph)
         print("input:")
         print(reducer.format_connections())
@@ -160,21 +160,21 @@ class TestAdjecencyReducer(object):
         assert result.out_degree(self.router_port_b) == 1
 
     def test_reduce_simple_lldp_tree_and_cam(self):
-        graph = nx.DiGraph(name="simple tree lldp")
+        graph = nx.MultiDiGraph(name="simple tree lldp")
         graph.add_edge(self.router, self.router_port_a)
         graph.add_edge(self.router, self.router_port_b)
         graph.add_edge(self.switch_a, self.switch_port_a)
         graph.add_edge(self.switch_b, self.switch_port_b)
-        graph.add_edge(self.switch_port_a, self.router_port_a)
-        graph.add_edge(self.switch_port_b, self.router_port_b)
-        graph.add_edge(self.router_port_a, self.switch_port_a)
-        graph.add_edge(self.router_port_b, self.switch_port_b)
-        graph.add_edge(self.switch_port_a, self.router)
-        graph.add_edge(self.switch_port_a, self.switch_b)
-        graph.add_edge(self.switch_port_b, self.router)
-        graph.add_edge(self.switch_port_b, self.switch_a)
-        graph.add_edge(self.router_port_a, self.switch_a)
-        graph.add_edge(self.router_port_b, self.switch_b)
+        graph.add_edge(self.switch_port_a, self.router_port_a, "lldp")
+        graph.add_edge(self.switch_port_b, self.router_port_b, "lldp")
+        graph.add_edge(self.router_port_a, self.switch_port_a, "lldp")
+        graph.add_edge(self.router_port_b, self.switch_port_b, "lldp")
+        graph.add_edge(self.switch_port_a, self.router, "cam")
+        graph.add_edge(self.switch_port_a, self.switch_b, "cam")
+        graph.add_edge(self.switch_port_b, self.router, "cam")
+        graph.add_edge(self.switch_port_b, self.switch_a, "cam")
+        graph.add_edge(self.router_port_a, self.switch_a, "cam")
+        graph.add_edge(self.router_port_b, self.switch_b, "cam")
         reducer = AdjacencyReducer(graph)
         print("input:")
         print(reducer.format_connections())
@@ -192,9 +192,9 @@ class TestAdjecencyReducer(object):
         assert result.out_degree(self.router_port_b) == 1
 
     def test_self_loop(self):
-        graph = nx.DiGraph(name="self loop")
+        graph = nx.MultiDiGraph(name="self loop")
         graph.add_edge(self.switch_a, self.switch_port_a)
-        graph.add_edge(self.switch_port_a, self.switch_a)
+        graph.add_edge(self.switch_port_a, self.switch_a, "cam")
         reducer = AdjacencyReducer(graph)
         print("input:")
         print(reducer.format_connections())
@@ -202,14 +202,13 @@ class TestAdjecencyReducer(object):
         print("result:")
         print(reducer.format_connections())
         result = reducer.graph
-        # Probably not wanted
-        assert result.has_edge(self.switch_port_a, self.switch_a)
+        assert not result.has_edge(self.switch_port_a, self.switch_a)
 
     def test_no_return_path(self):
-        graph = nx.DiGraph()
+        graph = nx.MultiDiGraph()
         graph.add_edge(self.switch_a, self.switch_port_a)
         graph.add_edge(self.switch_b, self.switch_port_b)
-        graph.add_edge(self.switch_port_a, self.switch_b)
+        graph.add_edge(self.switch_port_a, self.switch_b, "cam")
         reducer = AdjacencyReducer(graph)
         print("input:")
         print(reducer.format_connections())
@@ -220,4 +219,4 @@ class TestAdjecencyReducer(object):
         assert result.has_edge(self.switch_port_a, self.switch_b)
         assert not result.has_edge(self.switch_port_b, self.switch_port_a)
         assert result.out_degree(self.switch_port_a) == 1
-        assert result.out_degree(self.switch_port_b) == 0
+        assert self.switch_port_b not in result

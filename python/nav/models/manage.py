@@ -1314,7 +1314,7 @@ class AdjacencyCandidate(models.Model):
 
     class Meta(object):
         db_table = 'adjacency_candidate'
-        unique_together = (('netbox', 'interface', 'to_netbox', 'source'),)
+        unique_together = (('netbox', 'interface', 'to_netbox', 'to_interface', 'source'),)
 
     def __unicode__(self):
         return u'%s:%s %s candidate %s:%s' % (self.netbox, self.interface,
