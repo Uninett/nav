@@ -20,6 +20,8 @@ from nav.web.api.v1 import views
 from django.conf.urls import url, patterns, include
 from rest_framework import routers
 
+from auditlog import api as auditlogapi
+
 router = routers.SimpleRouter()
 router.register(r'rack', views.RackViewSet)
 router.register(r'room', views.RoomViewSet)
@@ -35,6 +37,7 @@ router.register(r'servicehandler', views.ServiceHandlerViewSet,
                 base_name='servicehandler')
 router.register(r'alert', views.AlertHistoryViewSet)
 router.register(r'unrecognized-neighbor', views.UnrecognizedNeighborViewSet, base_name='unrecognized-neighbor')
+router.register(r'auditlog', auditlogapi.LogEntryViewSet, base_name='auditlog')
 
 urlpatterns = patterns(
     "",

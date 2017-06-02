@@ -1444,6 +1444,12 @@ class Interface(models.Model):
         return u'{ifname} at {netbox}'.format(
             ifname=self.ifname, netbox=self.netbox)
 
+    @property
+    def audit_logname(self):
+        template = u'{netbox}:{ifname}'
+        return template.format(ifname=self.ifname,
+                               netbox=self.netbox.get_short_sysname())
+
     @classmethod
     def sort_ports_by_ifname(cls, ports):
         return sorted(ports, key=lambda p: nav.natsort.split(p.ifname))

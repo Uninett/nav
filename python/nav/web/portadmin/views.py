@@ -28,6 +28,9 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.views.decorators.http import require_POST
 
+from auditlog.models import LogEntry
+from auditlog.utils import get_auditlog_entries
+
 from nav.django.utils import get_account
 from nav.web.utils import create_title
 from nav.models.manage import Netbox, Interface
@@ -140,8 +143,10 @@ def search_by_kwargs(request, **kwargs):
             return default_render(request)
 
         interfaces = netbox.get_swports_sorted()
+        auditlog_entries = get_auditlog_entries(interfaces)
         return render(request, 'portadmin/netbox.html',
-                      populate_infodict(request, netbox, interfaces))
+                      populate_infodict(request, netbox, interfaces,
+                                        auditlog_entries))
 
 
 def search_by_interfaceid(request, interfaceid):
@@ -162,16 +167,19 @@ def search_by_interfaceid(request, interfaceid):
             return default_render(request)
 
         interfaces = [interface]
+        auditlog_entries = get_auditlog_entries(interfaces)
         return render(request, 'portadmin/netbox.html',
-                      populate_infodict(request, netbox, interfaces))
+                      populate_infodict(request, netbox, interfaces,
+                                        auditlog_entries))
 
 
-def populate_infodict(request, netbox, interfaces):
+def populate_infodict(request, netbox, interfaces, auditlog_entries=None):
     """Populate a dictionary used in every http response"""
     allowed_vlans = []
     voice_vlan = None
     readonly = False
     config = read_config()
+    auditlog_entries = {} if auditlog_entries is None else auditlog_entries
 
     try:
         fac = get_and_populate_livedata(netbox, interfaces)
@@ -214,7 +222,8 @@ def populate_infodict(request, netbox, interfaces):
                       'voice_vlan': voice_vlan,
                       'allowed_vlans': allowed_vlans,
                       'readonly': readonly,
-                      'aliastemplate': aliastemplate})
+                      'aliastemplate': aliastemplate,
+                      'auditlog_entries': auditlog_entries,})
     return info_dict
 
 
@@ -368,6 +377,13 @@ def set_ifalias(account, fac, interface, request):
             try:
                 fac.set_if_alias(interface.ifindex, ifalias)
                 interface.ifalias = ifalias
+                LogEntry.add_log_entry(
+                    account,
+                    u'set-ifalias',
+                    u'{actor}: {object} - ifalias set to "%s"' % ifalias,
+                    subsystem=u'portadmin',
+                    object=interface,
+                )
                 _logger.info('%s: %s:%s - ifalias set to "%s"', account.login,
                              interface.netbox.get_short_sysname(),
                              interface.ifname, ifalias)
@@ -397,6 +413,13 @@ def set_vlan(account, fac, interface, request):
                 fac.set_vlan(interface.ifindex, vlan)
 
             interface.vlan = vlan
+            LogEntry.add_log_entry(
+                account,
+                u'set-vlan',
+                u'{actor}: {object} - vlan set to "%s"' % vlan,
+                subsystem=u'portadmin',
+                object=interface,
+            )
             _logger.info('%s: %s:%s - vlan set to %s', account.login,
                          interface.netbox.get_short_sysname(),
                          interface.ifname, vlan)
@@ -458,10 +481,24 @@ def set_admin_status(fac, interface, request):
         adminstatus = request.POST['ifadminstatus']
         try:
             if adminstatus == status_up:
+                LogEntry.add_log_entry(
+                    account,
+                    u'change status to up',
+                    u'change status to up',
+                    subsystem=u'portadmin',
+                    object=interface,
+                )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'up')
                 fac.set_if_up(interface.ifindex)
             elif adminstatus == status_down:
+                LogEntry.add_log_entry(
+                    account,
+                    u'change status to down',
+                    u'change status to down',
+                    subsystem=u'portadmin',
+                    object=interface,
+                )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'down')
                 fac.set_if_down(interface.ifindex)

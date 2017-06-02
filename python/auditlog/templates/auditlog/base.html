@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load tools %}
+
+{% block base_header_additional_head %}
+<link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css">
+{% endblock %}
+
+{% block base_content %}
+
+  {% include 'nav_header.html' %}
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert-box {{ message.tags }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% block page_content %}
+
+  {% block content %}{% endblock %}
+
+  {% endblock page_content %}
+
+{% endblock base_content %}
