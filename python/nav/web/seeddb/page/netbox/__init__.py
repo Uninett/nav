@@ -64,6 +64,7 @@ def netbox_list(request):
     return render_list(request, query, value_list, 'seeddb-netbox-edit',
                        edit_url_attr='pk',
                        filter_form=filter_form,
+                       template='seeddb/list_netbox.html',
                        extra_context=info.template_context,
                        censor_list=create_index_list(
                            value_list,
