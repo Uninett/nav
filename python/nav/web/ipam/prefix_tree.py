@@ -398,7 +398,7 @@ not part of the RFC1918 ranges.
     family = {"ipv4", "ipv6", "rfc1918"} if family is None else set(family)
     init = []
 
-    if root_ip is not None:
+    if root_ip is not None and root_ip:
         scope = Prefix.objects.get(net_address=root_ip)
         if scope is not None:
             node = PrefixNode(scope)
