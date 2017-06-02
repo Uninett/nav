@@ -1,25 +1,25 @@
-<a href="#prefix-<%= pk %>" class="prefix-tree-item-title">
-  <div class="prefix-graphs"></div>
-  <h3 class="ip">
-    <%= prefix %>
-    <% if (description) { %>
-    <span style="font-size: 60%">&nbsp;&ndash; <%= description %></span>
+<a id="prefix-<%= pk %>" href="#prefix-<%= pk %>" class="prefix-tree-item-title">
+    <div class="prefix-graphs"></div>
+    <h3 class="ip">
+        <%= prefix %>
+        <% if (description) { %>
+        <span style="font-size: 60%">&nbsp;&ndash; <%= description %></span>
+        <% } %>
+        <% if (length >= 1) { %>
+        <span title="<%= length %> children" class="number-of-children label round">
+            <%= length %>
+        </span>
+        <% } %>
+    </h3>
+    <% if (vlan_number) { %>
+    <span class="vlan"><strong>VLAN <%= vlan_number %>:</strong> </span>
     <% } %>
-    <% if (length >= 1) { %>
-    <span title="<%= length %> children" class="number-of-children label round">
-    <%= length %>
-    </span>
+    <% if (net_ident) { %>
+    <span class="net_ident"><%= net_ident %></span> &mdash;
     <% } %>
-  </h3>
-  <% if (vlan_number) { %>
-  <span class="vlan"><strong>VLAN <%= vlan_number %>:</strong> </span>
-  <% } %>
-  <% if (net_ident) { %>
-  <span class="net_ident"><%= net_ident %></span> &mdash;
-  <% } %>
-  <span class="net-type"><%= net_type %></span>
+    <span class="net-type"><%= net_type %></span>
 </a>
-<div id="prefix-<%= pk %>" class="content prefix-tree-item-content">
+<div class="content prefix-tree-item-content">
   <div class="prefix-tree-item-content-data">
     <a class="button small" href="<%= NAV.urls['prefix-index'] %><%= pk %>" target="_blank">
       View details

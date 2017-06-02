@@ -83,9 +83,11 @@ class PrefixHeap(object):
         # first, try adding to children (recursively)
         matches = (child for child in self.children if node in child)
         for child in matches:
+            node.parent = child
             child.add(node)
             return
         # if this fails, add to self
+        node.parent = self
         self.children.append(node)
         self.children.sort()
 
@@ -159,13 +161,21 @@ class IpNodeFacade(IpNode):
         "last_octet",
         "bits",
         "empty_ranges",
-        "is_reservable"
+        "is_reservable",
+        "parent_pk"
     ]
 
     def __init__(self, ip_addr, pk, net_type, sort_fn=None):
         super(IpNodeFacade, self).__init__(ip_addr, net_type)
         self.pk = pk
         self.sort_fn = sort_fn
+
+    @property
+    def parent_pk(self):
+        "The primary key of the node's parent"
+        if self.parent is None:
+            return None
+        return self.parent.pk
 
     @property
     def is_reservable(self):

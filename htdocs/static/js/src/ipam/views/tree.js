@@ -89,6 +89,25 @@ define(function(require, exports, module) {
         self.collection.queryParams = params;
         self.refetch();
       });
+      var scrolltoHandler = function(node) {
+        self.debug("Trying to scroll to", node);
+        var elem = $("#prefix-" + node.pk);
+        // Element not found in DOM
+        if (!elem.length && node.parent_pk) {
+          globalCh.vent.trigger("open_node", node.parent_pk);
+          setTimeout(function(){
+            scrolltoHandler(node);
+          }, 1000);
+          return;
+        }
+        // Calculate offset and move to the desired node
+        globalCh.vent.trigger("open_node", node.pk);
+        self.debug("Scrolling to", node.pk);
+        $("html, body").animate({
+          scrollTop: elem.offset().top
+        }, "slow");
+      };
+      globalCh.vent.on("scrollto", scrolltoHandler);
     },
 
     /* Whether or not we're currently fetching some data */
@@ -203,6 +222,9 @@ define(function(require, exports, module) {
       // Remove marker class for open node in tree, so new results (upon
       // searching/filtering) aren't blurred.
       this.$el.parent().removeClass("prefix-tree-open");
+      if (this.ch) {
+        this.ch.vent.off("open_node");
+      }
     },
 
     initialize: function() {
@@ -214,6 +236,14 @@ define(function(require, exports, module) {
       this.debug("Mounted node #", pk);
       this.fsm.onChange(function(nextState) {
         self.debug("Moving into state", nextState);
+      });
+      var self = this;
+      this.ch = Backbone.Wreqr.radio.channel("global");
+      this.ch.vent.on("open_node", function(__pk) {
+        if (__pk !== pk) {
+          return;
+        }
+        self.fsm.step("TOGGLE_OPEN");
       });
     },
 
