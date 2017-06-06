@@ -286,8 +286,7 @@ class Vlan(Shadow):
                 self.net_type = net_type
 
     def save(self, containers):
-        if (self._has_no_prefixes(containers) or
-                self._revert_vlan_on_type_change_to_scope(containers) or
+        if (self._revert_vlan_on_type_change_to_scope(containers) or
                 self._is_type_changed_to_static(containers)):
             return
 
@@ -319,8 +318,13 @@ class Vlan(Shadow):
             return super(Vlan, self).get_existing_model(containers)
 
         if self.net_ident:
+            if self.netbox:
+                netboxid = self.netbox.id
+            else:
+                netboxid = None
             vlans = manage.Vlan.objects.filter(vlan=self.vlan,
-                                               net_ident=self.net_ident)
+                                               net_ident=self.net_ident,
+                                               netbox__id=netboxid)
             if vlans:
                 self._logger.debug(
                     "get_existing_model: %d matches found for "

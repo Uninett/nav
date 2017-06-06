@@ -102,6 +102,10 @@ class QBridgeMib(mibretriever.MibRetriever):
             result.append((mac, port))
         defer.returnValue(result)
 
+    def get_vlan_static_names(self):
+        df = self.retrieve_column('dot1qVlanStaticName')
+        return df.addCallback(reduce_index)
+
 
 def filter_newest_current_entries(dot1qvlancurrenttable):
     """Filters a result from the dot1qVlanCurrentTable, removing the

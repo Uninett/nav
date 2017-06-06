@@ -1079,6 +1079,9 @@ class Vlan(models.Model):
                               null=True, blank=True)
     net_ident = VarcharField(db_column='netident', null=True, blank=True)
     description = VarcharField(null=True, blank=True)
+    netbox = models.ForeignKey('NetBox', db_column='netboxid',
+                               on_delete=models.SET_NULL,
+                               null=True, blank=True)
 
     class Meta(object):
         db_table = 'vlan'

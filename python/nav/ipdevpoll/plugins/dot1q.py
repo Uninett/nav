@@ -65,6 +65,7 @@ class Dot1q(Plugin):
         else:
             return
 
+        yield self._get_vlan_names()
         yield self._get_tagging_info()
 
     def _process_pvids(self):
@@ -157,6 +158,21 @@ class Dot1q(Plugin):
         allowed = self.containers.factory(ifindex, shadows.SwPortAllowedVlan)
         allowed.interface = interface
         allowed.hex_string = vlan_list_to_hex(vlans)
+
+    @inlineCallbacks
+    def _get_vlan_names(self):
+        names = yield self.qbridgemib.get_vlan_static_names()
+        if names:
+            for vlannum, name in names.items():
+                suffix = '+{}'.format(vlannum)
+                if name.endswith(suffix):
+                    name = name[:-len(suffix)]
+                vlan = self.containers.factory(name, shadows.Vlan)
+                vlan.net_type = shadows.NetType.get('lan')
+                vlan.vlan = vlannum
+                vlan.net_ident = name
+                vlan.netbox = self.netbox
+                self._logger.debug("Found vlan {}: {}".format(vlannum, name))
 
 
 def vlan_list_to_hex(vlans):
