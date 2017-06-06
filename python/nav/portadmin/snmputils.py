@@ -26,6 +26,7 @@ from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
 from nav.bitvector import BitVector
 from nav.models.manage import Vlan, SwPortAllowedVlan
 from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
+                                VENDOR_ID_H3C,
                                 VENDOR_ID_HEWLETT_PACKARD)
 
 
@@ -742,6 +743,32 @@ class HP(SNMPHandler):
                 for oid, state in self._bulkwalk(self.dot1xPortAuth)}
 
 
+class H3C(SNMPHandler):
+    """HP Comware Platform Software handler"""
+
+    hh3cCfgOperateType = '1.3.6.1.4.1.25506.2.4.1.2.4.1.2'
+    hh3cCfgOperateRowStatus = '1.3.6.1.4.1.25506.2.4.1.2.4.1.9'
+
+    def __init__(self, netbox, **kwargs):
+        super(H3C, self).__init__(netbox, **kwargs)
+
+    def write_mem(self):
+        """Use hh3c-config-man-mib to save running config to startup"""
+
+        # Something about random variables:
+        # http://h20564.www2.hpe.com/hpsc/doc/public/display?docId=mmr_kc-0130894
+        suffix = '1'  #  Lets try hardcoded first
+        running_to_startup = 1
+        create_and_go = 4
+
+        operation_type_oid = '.'.join([self.hh3cCfgOperateType, suffix])
+        operation_status_oid = '.'.join([self.hh3cCfgOperateRowStatus, suffix])
+
+        handle = self._get_read_write_handle()
+        handle.set(operation_type_oid, 'i', running_to_startup)
+        handle.set(operation_status_oid, 'i', create_and_go)
+
+
 class SNMPFactory(object):
     """Factory class for returning SNMP-handles depending
     on a netbox' vendor identification."""
@@ -755,6 +782,8 @@ class SNMPFactory(object):
             return Cisco(netbox, **kwargs)
         if vendor_id == VENDOR_ID_HEWLETT_PACKARD:
             return HP(netbox, **kwargs)
+        if vendor_id == VENDOR_ID_H3C:
+            return H3C(netbox, **kwargs)
         return SNMPHandler(netbox, **kwargs)
 
     def __init__(self):
