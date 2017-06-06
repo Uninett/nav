@@ -45,10 +45,7 @@ No auditlog for {{ auditmodel }}.
             drawCallback: drawCallback,
         };
 
-        var table = $('table#auditlog').DataTable(dt_config);
-        $(document).on('nav-portadmin-ajax-success', function(){
-            table.ajax.reload();
-        });
+        $('table#auditlog').DataTable(dt_config);
         function drawCallback(oSettings) {
             $('.paginate_button').removeClass('secondary').addClass('button tiny');
             $('.paginate_button.current').addClass('secondary');
