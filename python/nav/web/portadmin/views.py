@@ -602,6 +602,11 @@ def write_mem(request):
                 fac.netbox, error)
             _logger.error(error_message)
             return HttpResponse(error_message, status=500)
+        except AttributeError:
+            error_message = 'Error doing write mem on {}: {}'.format(
+                fac.netbox, 'Write to memory not supported')
+            _logger.error(error_message)
+            return HttpResponse(error_message, status=500)
 
         return HttpResponse()
     else:
