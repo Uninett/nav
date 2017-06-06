@@ -13,6 +13,12 @@
         {% endwith %}
       </div>
     </div>
+    <script>
+     $('.latest-changes-heading').click(function(){
+         $('.latest-changes-content').slideToggle();
+         $('.latest-changes-heading i').toggleClass('fa-caret-square-o-right fa-caret-square-o-down');
+     });
+    </script>
   {% endif %}
 
   {% if interfaces %}

@@ -16,11 +16,6 @@ No auditlog for {{ auditmodel }}.
 {% endif %}
 <script type="text/javascript">
     require(['libs/datatables.min'], function(){
-        $('.latest-changes-heading').click(function(){
-            $('.latest-changes-content').slideToggle();
-            $('.latest-changes-heading i').toggleClass('fa-caret-square-o-right fa-caret-square-o-down');
-        });
-
         var dt_config = {
             ajax: {
                 url: '/api/1/auditlog/',
