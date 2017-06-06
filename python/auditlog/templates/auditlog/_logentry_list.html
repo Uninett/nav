@@ -23,8 +23,9 @@ No auditlog for {{ auditmodel }}.
 
         var dt_config = {
             ajax: {
-                url: '/api/1/auditlog/?subsystem=portadmin',
-                dataSrc: 'results'
+                url: '/api/1/auditlog/',
+                dataSrc: 'results',
+                {% if auditlog_api_parameters %}data: {{ auditlog_api_parameters|safe }}{% endif %}
             },
             columns: [
                 { 'data': 'timestamp' },

@@ -17,6 +17,7 @@
 """View controller for PortAdmin"""
 import ConfigParser
 import logging
+import json
 
 from operator import or_ as OR
 
@@ -223,6 +224,8 @@ def populate_infodict(request, netbox, interfaces, auditlog_entries=None):
                       'allowed_vlans': allowed_vlans,
                       'readonly': readonly,
                       'aliastemplate': aliastemplate,
+                      'auditlog_api_parameters': json.dumps(
+                          {'subsystem': 'portadmin'}),
                       'auditlog_entries': auditlog_entries,})
     return info_dict
 
