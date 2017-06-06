@@ -19,13 +19,14 @@ import time
 import logging
 from operator import attrgetter
 
-from nav.Snmp import Snmp
+from nav import Snmp
 from nav.errors import NoNetboxTypeError
 from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
                              NoSuchObjectError)
 from nav.bitvector import BitVector
 from nav.models.manage import Vlan, SwPortAllowedVlan
 from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
+                                VENDOR_ID_H3C,
                                 VENDOR_ID_HEWLETT_PACKARD)
 
 
@@ -68,6 +69,8 @@ class SNMPHandler(object):
     from nav.smidumps.qbridge_mib import MIB as qbridgemib
     QBRIDGENODES = qbridgemib['nodes']
 
+    SYSOBJECTID = '.1.3.6.1.2.1.1.2.0'
+    SYSLOCATION = '1.3.6.1.2.1.1.6.0'
     IF_ALIAS_OID = '1.3.6.1.2.1.31.1.1.1.18'  # From IF-MIB
     IF_ADMIN_STATUS = '1.3.6.1.2.1.2.2.1.7'
     IF_ADMIN_STATUS_UP = 1
@@ -137,7 +140,7 @@ class SNMPHandler(object):
     def _get_read_only_handle(self):
         """Get a read only SNMP-handle."""
         if self.read_only_handle is None:
-            self.read_only_handle = Snmp(self.netbox.ip, self.netbox.read_only,
+            self.read_only_handle = Snmp.Snmp(self.netbox.ip, self.netbox.read_only,
                                          self.netbox.snmp_version,
                                          retries=self.retries,
                                          timeout=self.timeout)
@@ -159,11 +162,10 @@ class SNMPHandler(object):
         :rtype: nav.Snmp.Snmp
         """
         if self.read_write_handle is None:
-            self.read_write_handle = Snmp(self.netbox.ip,
-                                          self.netbox.read_write,
-                                          self.netbox.snmp_version,
-                                          retries=self.retries,
-                                          timeout=self.timeout)
+            self.read_write_handle = Snmp.Snmp(
+                self.netbox.ip, self.netbox.read_write,
+                self.netbox.snmp_version, retries=self.retries,
+                timeout=self.timeout)
         return self.read_write_handle
 
     def _set_netbox_value(self, oid, if_index, value_type, value):
@@ -182,6 +184,25 @@ class SNMPHandler(object):
         chunksize = len(bitvector.to_hex()) / chunks
         for i in xrange(0, len(hexes), chunksize):
             yield BitVector.from_hex(hexes[i:i + chunksize])
+
+    def test_read(self):
+        """Test if read works"""
+        handle = self._get_read_only_handle()
+        try:
+            handle.get(self.SYSOBJECTID)
+            return True
+        except SnmpError as error:
+            return False
+
+    def test_write(self):
+        """Test if write works"""
+        handle = self._get_read_write_handle()
+        try:
+            value = handle.get(self.SYSLOCATION)
+            handle.set(self.SYSLOCATION, 's', value)
+            return True
+        except SnmpError as error:
+            return False
 
     def get_if_alias(self, if_index):
         """ Get alias on a specific interface """
@@ -742,6 +763,39 @@ class HP(SNMPHandler):
                 for oid, state in self._bulkwalk(self.dot1xPortAuth)}
 
 
+class H3C(SNMPHandler):
+    """HP Comware Platform Software handler"""
+
+    hh3cCfgOperateType = '1.3.6.1.4.1.25506.2.4.1.2.4.1.2'
+    hh3cCfgOperateRowStatus = '1.3.6.1.4.1.25506.2.4.1.2.4.1.9'
+
+    def __init__(self, netbox, **kwargs):
+        super(H3C, self).__init__(netbox, **kwargs)
+
+    def write_mem(self):
+        """Use hh3c-config-man-mib to save running config to startup"""
+
+        running_to_startup = 1
+        create_and_go = 4
+
+        # Find the next available row for configuring and store it as a suffix
+        active_rows = [self._extract_index_from_oid(o[0])
+                       for o in self._bulkwalk(self.hh3cCfgOperateRowStatus)]
+        try:
+            suffix = str(max(active_rows) + 1)
+        except ValueError:
+            suffix = '1'
+
+        operation_type_oid = '.'.join([self.hh3cCfgOperateType, suffix])
+        operation_status_oid = '.'.join([self.hh3cCfgOperateRowStatus, suffix])
+
+        handle = self._get_read_write_handle()
+        handle.multi_set([
+            Snmp.PDUVarbind(operation_type_oid, 'i', running_to_startup),
+            Snmp.PDUVarbind(operation_status_oid, 'i', create_and_go)
+        ])
+
+
 class SNMPFactory(object):
     """Factory class for returning SNMP-handles depending
     on a netbox' vendor identification."""
@@ -755,6 +809,8 @@ class SNMPFactory(object):
             return Cisco(netbox, **kwargs)
         if vendor_id == VENDOR_ID_HEWLETT_PACKARD:
             return HP(netbox, **kwargs)
+        if vendor_id == VENDOR_ID_H3C:
+            return H3C(netbox, **kwargs)
         return SNMPHandler(netbox, **kwargs)
 
     def __init__(self):
