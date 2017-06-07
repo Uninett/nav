@@ -70,6 +70,7 @@ define(function(require, exports, module) {
       var prefixSelect = this.$el.find("#prefix-search-box");
       prefixSelect.select2({
         minimumInputLength: 1,
+        allowClear: true,
         ajax: {
           url: "/api/prefix/search/",
           dataType: 'json',
@@ -95,6 +96,9 @@ define(function(require, exports, module) {
         }
       });
       prefixSelect.on('change', this.forceSearch.bind(this));
+      // Make sure net_type select always reflects default value. This is mostly
+      // needed for the initial rendering.
+      this.$el.find("#prefix-net-type").select2("val", this.model.get("queryParams").net_type);
     },
 
     // If the user triggers a search by hitting enter
