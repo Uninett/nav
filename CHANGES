@@ -1,3 +1,47 @@
+Version 4.7.0
+(released 08 Jun 2017)
+
+ User-visible features and improvements:
+
+
+  * #1174 (Rewrite ipdevpoll's multiprocess mode to use generic worker
+           model)
+  * #1183+#1463 (Monitor BGP connectivity)
+  * #1236 (Feature request: API for unrecognized neighbors)
+  * #1239 (multidashboard export import)
+  * #1411+#1515 (Add PortAdmin "Write mem" support for H3C switches)
+  * #1416 (Unrecognized neighbors API)
+  * #1428 (added broadcast & multicast counters to interfaces (ipdevinfo))
+  * #1467 (Add support for Comet MS series data loggers)
+  * #1468 (Rittal cmc iii support)
+  * #1469 (Powernet: Distinguish between phase load and bank load sensors.)
+  * #1472 (Added support for Raritan PDU2 mib PDUs)
+  * #1474 (Add a comprehensive view of collected sensors and their data on
+           a new Sensors tab in ipdevinfo)
+  * #1475 (Collect sensor readings from Lenovo/IBM PDUs (Power Distribution
+           Units))
+  * #1486+#1488 (Add a rack based view of environment sensors in a room)
+  * #1489+#1492 (Avoid redundant port counter collection from virtualized
+                 instances, such as Cisco VRF)
+  * #1498 (Add fullscreen mode for all maps)
+  * #1518 (Default setting for map starting point when selecting room geo
+           location)
+  * #1522 (Auditlog)
+
+ Other fixed GitHub issues in this release:
+
+  * #1403 (deleting a netbox makes data-collection stop)
+  * #1456 (The old status page code should be removed)
+  * #1462 (Netmap performance improvements)
+  * #1493 (Status widget, "Not device group" filter is wrong)
+  * #1496 (Missing jQuery tinysort javascript library)
+  * #1500 (Sensor details - fix spelling on "Thesholds")
+  * #1507 (The regexp for ifalias is not shown)
+  * #1511 (Minor IPAM improvements)
+  * #1512 (Update old javascript libraries)
+  * #1519 (ipdevinfo doesn't list aggregators for some Juniper interfaces)
+
+
 Version 4.6.2
 (released 16 Mar 2017)
 
