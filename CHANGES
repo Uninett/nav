@@ -7,10 +7,9 @@ Version 4.7.0
   * #1174 (Rewrite ipdevpoll's multiprocess mode to use generic worker
            model)
   * #1183+#1463 (Monitor BGP connectivity)
-  * #1236 (Feature request: API for unrecognized neighbors)
+  * #1236+1416 (Feature request: API for unrecognized neighbors)
   * #1239 (multidashboard export import)
   * #1411+#1515 (Add PortAdmin "Write mem" support for H3C switches)
-  * #1416 (Unrecognized neighbors API)
   * #1428 (added broadcast & multicast counters to interfaces (ipdevinfo))
   * #1467 (Add support for Comet MS series data loggers)
   * #1468 (Rittal cmc iii support)
