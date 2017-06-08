@@ -60,13 +60,15 @@ class Handlers(object):
     @staticmethod
     def netbox():
         """Outputs a line for each netbox in the database"""
-        header("#roomid:ip:orgid:catid:[ro:rw:function:"
+        header("#roomid:ip:orgid:catid:[snmp_version:ro:rw:function:"
                "key1=value1|key2=value2:"
                "devicegroup1:devicegroup2..]")
         all_functions = manage.NetboxInfo.objects.filter(key='function')
         for box in manage.Netbox.objects.all():
             line = [box.room_id, box.ip, box.organization_id, box.category_id,
-                    box.read_only or "", box.read_write or ""]
+                    str(box.snmp_version) if box.snmp_version else "",
+                    box.read_only or "", box.read_write or "",
+                    box.master.sysname if box.master else ""]
             functions = all_functions.filter(netbox=box)
             functions = str.join(", ", functions)
             line.append(functions)

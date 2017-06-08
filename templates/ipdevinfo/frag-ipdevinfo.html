@@ -21,6 +21,13 @@
         <td>{{ netbox.sysname }}</td>
       </tr>
 
+      {% if netbox.master %}
+          <tr>
+              <th>Virtual instance of</th>
+              <td><a href="{{ netbox.master.get_absolute_url }}">{{ netbox.master }}</a></td>
+          </tr>
+      {% endif %}
+
       <tr>
         <th>Type</th>
         <td>
@@ -193,6 +200,23 @@
         <td><a href="{% url 'report-gwport-netbox' netbox.id %}">
           {{ netbox.get_gwports.count }}</a></td>
       </tr>
+
+      {% if netbox.instances.count > 0 %}
+          <tr>
+              <th>Virtual instances</th>
+              <td>
+                  <ul class="no-bullet">
+                      {% for instance in netbox.instances.all %}
+                      <li>
+                          <a href="{{ instance.get_absolute_url }}">
+                              {{ instance }}
+                          </a>
+                      </li>
+                      {% endfor %}
+                  </ul>
+              </td>
+          </tr>
+      {% endif %}
 
       </tbody>
     </table>

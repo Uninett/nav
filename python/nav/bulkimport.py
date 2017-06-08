@@ -25,6 +25,7 @@ from nav.models.manage import Location, Usage, NetboxType, Vendor
 from nav.models.manage import Prefix, Vlan, NetType
 from nav.models.cabling import Cabling, Patch
 from nav.models.service import Service, ServiceProperty
+from nav.util import is_valid_ip
 from nav.web.servicecheckers import get_description
 
 from nav.bulkparse import BulkParseError
@@ -94,11 +95,21 @@ class NetboxImporter(BulkImporter):
     @staticmethod
     def _get_netbox_from_row(row):
         netbox = Netbox(ip=row['ip'], read_only=row['ro'],
-                        read_write=row['rw'], snmp_version=2)
+                        read_write=row['rw'],
+                        snmp_version=row['snmp_version'] or 2)
         netbox.room = get_object_or_fail(Room, id=row['roomid'])
         netbox.organization = get_object_or_fail(Organization, id=row['orgid'])
         netbox.category = get_object_or_fail(Category, id=row['catid'])
         netbox.sysname = netbox.ip
+
+        master = row.get('master')
+        if master:
+            if is_valid_ip(master, use_socket_lib=True):
+                netbox.master = get_object_or_fail(Netbox, ip=master)
+            else:
+                netbox.master = get_object_or_fail(Netbox,
+                                                   sysname__startswith=master)
+
         return netbox
 
     @staticmethod

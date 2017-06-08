@@ -52,6 +52,27 @@ are:
 .. _`Rittal liquid cooling package (in-row liquid coolers)`: http://www.rittal.com/com-en/product/list.action?categoryPath=/PG0001/PG0168KLIMA1/PGR1951KLIMA1/PG1023KLIMA1
 
 
+Changes to bulk import formats
+------------------------------
+
+The IP Device (Netbox) bulk import format has changed. Two new columns have
+been added, so that the format is now specified as::
+
+    roomid:ip:orgid:catid[:snmp_version:ro:rw:master:function:data:netboxgroup:...]
+
+The new columns are:
+
+snmp_version
+  Selecting an explicit SNMP version was made compulsory in NAV 4.6, but the
+  bulk import format was not updated in the same release, so any device added
+  through the SeedDB bulk import function would default to SNMP v2c. Valid
+  values here are 1 or 2.
+
+master
+  If this device is a virtual instance on another physical device, specify the
+  sysname or IP address of the master in this column. You may have to bulk
+  import multiple times if the master devices are part of the same bulk import
+  file.
 
 NAV 4.6
 ========

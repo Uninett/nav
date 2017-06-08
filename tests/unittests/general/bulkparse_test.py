@@ -23,12 +23,13 @@ class TestBulkParser(TestCase):
         b = TestParser(data)
         try:
             list(b)
-        except InvalidFieldValue, error:
+        except InvalidFieldValue as error:
             self.assertEquals(error.line_num, 2)
             self.assertEquals(error.field, 'one')
             self.assertEquals(error.value, 'once')
         else:
             self.fail("No exception raised")
+
 
 class TestNetboxBulkParser(TestCase):
     def test_parse_returns_iterator(self):
@@ -43,7 +44,7 @@ class TestNetboxBulkParser(TestCase):
         self.assertTrue(out_data is not None)
 
     def test_parse_single_line_yields_columns(self):
-        data = ("room1:10.0.0.186:myorg:SW:public:secret:doesthings:"
+        data = ("room1:10.0.0.186:myorg:SW:1:public:secret:amaster:doesthings:"
                 "key=value:blah1:blah2")
         b = NetboxBulkParser(data)
         out_data = b.next()
@@ -52,6 +53,7 @@ class TestNetboxBulkParser(TestCase):
         self.assertEquals(out_data['ip'], '10.0.0.186')
         self.assertEquals(out_data['orgid'], 'myorg')
         self.assertEquals(out_data['catid'], 'SW')
+        self.assertEquals(out_data['master'], 'amaster')
         self.assertEquals(out_data['data'], 'key=value')
         self.assertEquals(out_data['netboxgroup'], ['blah1', 'blah2'])
 
@@ -59,10 +61,10 @@ class TestNetboxBulkParser(TestCase):
         self.assertEquals(
             NetboxBulkParser.get_header(),
             "#roomid:ip:orgid:catid"
-            "[:ro:rw:function:data:netboxgroup:...]")
+            "[:snmp_version:ro:rw:master:function:data:netboxgroup:...]")
 
     def test_two_rows_returned_with_empty_lines_in_input(self):
-        data = ("room1:10.0.0.186:myorg:SW:public:parrot::\n"
+        data = ("room1:10.0.0.186:myorg:SW:1:public:parrot::\n"
                 "\n"
                 "room1:10.0.0.187:myorg:OTHER::parrot::\n")
         b = NetboxBulkParser(data)
@@ -70,7 +72,7 @@ class TestNetboxBulkParser(TestCase):
         self.assertEquals(len(out_data), 2)
 
     def test_three_lines_with_two_rows_should_be_counted_as_three(self):
-        data = ("room1:10.0.0.186:myorg:SW:public:parrot::\n"
+        data = ("room1:10.0.0.186:myorg:SW:1:public:parrot::\n"
                 "\n"
                 "room1:10.0.0.187:myorg:OTHER::parrot::\n")
         b = NetboxBulkParser(data)

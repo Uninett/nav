@@ -18,7 +18,8 @@
 """Functions for rendering seeddb list views"""
 from collections import defaultdict
 
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, NoReverseMatch
+from django.db.models import Model
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db.models.fields import FieldDoesNotExist
@@ -52,25 +53,18 @@ def render_list(request, queryset, value_list, edit_url=None,
 
     queryset = _filter_query(filter_form, queryset)
 
-    # Get values specified in value_list from the queryset.
-    # Also make sure that the primary key and the edit_url_attr appears.
     if not edit_url:
-        value_queryset = queryset.values('pk', *value_list)
+        rows, datakeys = _process_objects(queryset, value_list)
     else:
-        value_queryset = queryset.values('pk', edit_url_attr, *value_list)
-
-    if not edit_url:
-        objects, datakeys = _process_objects(value_queryset, value_list)
-    else:
-        objects, datakeys = _process_objects(value_queryset, value_list,
-                                             edit_url, edit_url_attr)
+        rows, datakeys = _process_objects(queryset, value_list,
+                                          edit_url, edit_url_attr)
 
     labels = _label(queryset.model, value_list, datakeys)
     if add_descriptions:
-        _add_descriptions(objects, queryset)
+        _add_descriptions(rows, queryset)
 
     context = {
-        'object_list': objects,
+        'object_list': rows,
         'labels': labels,
         'filter_form': filter_form,
         'sub_active': {'list': True},
@@ -95,8 +89,7 @@ def _filter_query(filter_form, queryset):
     return queryset
 
 
-def _process_objects(query_set_values, value_list, edit_url=None,
-                     edit_url_attr=None):
+def _process_objects(queryset, value_list, edit_url=None, edit_url_attr=None):
     """Packs values into a format the template understands.
 
     A list contains each row.
@@ -108,32 +101,49 @@ def _process_objects(query_set_values, value_list, edit_url=None,
     """
     # pick up which values are dictionaries and make note of their existing keys
     datakeys = defaultdict(set)
-    for obj in query_set_values:
+    for obj in queryset:
         for attr in value_list:
-            value = obj[attr]
+            value = _getattr(obj, attr)
             if isinstance(value, dict):
                 datakeys[attr].update(value)
     datakeys = dict([(k, list(sorted(v))) for k, v in datakeys.iteritems()])
 
     def _getvalues(obj):
         for attr in value_list:
-            value = obj[attr]
+            value = _getattr(obj, attr)
             if attr in datakeys:
                 for key in datakeys[attr]:
                     yield value.get(key, None)
             else:
                 yield value
 
-    objects = []
-    for obj in query_set_values:
+    rows = []
+    for obj in queryset:
         row = {
-            'pk': obj['pk'],
-            'values_list': list(_getvalues(obj))
+            'pk': obj.pk,
+            'values_list': list(_getvalues(obj)),
+            'model': obj,
         }
-        if edit_url:
-            row['url'] = reverse(edit_url, args=(obj[edit_url_attr],))
-        objects.append(row)
-    return objects, datakeys
+        if edit_url and edit_url_attr:
+            key = _getattr(obj, edit_url_attr)
+            row['url'] = reverse(edit_url, args=(key,))
+        rows.append(row)
+    return rows, datakeys
+
+
+def _getattr(obj, attr):
+    """Deep getattr for Django double underscore specs.
+
+    Should conform to the bassackwards ways of SeedDB at large.
+    """
+    try:
+        value = reduce(getattr, attr.split('__'), obj)
+        if isinstance(value, Model):
+            return value.pk
+        else:
+            return value
+    except AttributeError:
+        pass
 
 
 def _label(model, value_list, datakeys=None):
@@ -156,8 +166,8 @@ def _label(model, value_list, datakeys=None):
     return zip(labels, attrs)
 
 
-def _add_descriptions(objects, queryset):
+def _add_descriptions(rows, queryset):
     """Adds a description key to all objects"""
-    for obj in objects:
-        model = queryset.get(pk=obj['pk'])
-        obj['description'] = getattr(model, 'description', '')
+    for row in rows:
+        model = row['model']
+        row['description'] = getattr(model, 'description', '')

@@ -7,6 +7,7 @@
     NAV.urls.seeddb = NAV.urls.seeddb || {};
     NAV.urls.get_readonly = "{% url 'seeddb-netbox-get-readonly' %}";
     NAV.urls.seeddb.verifyAddress = "{% url 'seeddb-netbox-get-address-info' %}";
+    require(['src/seeddb_netbox']);
   </script>
 {% endblock %}
 

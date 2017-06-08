@@ -14,24 +14,30 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Collects interface link states and dispatches NAV events on changes"""
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
-
-from nav.models.manage import Interface
 
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
 
 class LinkState(Plugin):
+    """Monitors interface link states"""
 
+    @inlineCallbacks
     def handle(self):
-        self.ifmib = IfMib(self.agent)
-        df = self.ifmib.retrieve_columns(
-            ['ifName', 'ifAdminStatus', 'ifOperStatus'])
-        df.addCallback(reduce_index)
-        return df.addCallback(self._put_results)
+        if self.netbox.master:
+            self._logger.debug("this is a virtual instance of %s, not polling",
+                               self.netbox.master)
+            returnValue(None)
+
+        ifmib = IfMib(self.agent)
+        result = yield ifmib.retrieve_columns(
+            ['ifName', 'ifAdminStatus', 'ifOperStatus']).addCallback(
+            reduce_index)
+        self._put_results(result)
 
     def _put_results(self, results):
         netbox = self.containers.factory(None, shadows.Netbox)
