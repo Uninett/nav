@@ -151,7 +151,7 @@ on each prefix. If no time interval is specified, fetches the current status
 
 
 api/unrecognized-neighbors/[<id>]
----------------
+---------------------------------
 
 Provide access to NAVs unrecognized neighbor data.
 

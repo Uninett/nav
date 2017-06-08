@@ -59,7 +59,7 @@ You can zoom into the subnet map by clicking on the slider and selecting the
 area you want to focus on (the dark grey area in the slider above). You can also
 zoom by double-clicking or by using your scroll wheel.
 
-.. _reserving_prefixes
+.. _reserving_prefixes:
 
 How to reserve prefixes
 =======================
