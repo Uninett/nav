@@ -23,6 +23,16 @@ patch has been submitted upstream, but not yet accepted into a new release.
 NAV 4.7
 ========
 
+Dependency changes
+------------------
+
+NAV 4.7 changes the minimum version requirement for three of its dependencies:
+
+* PostgreSQL must now be at least version *9.4*.
+* :mod:`psycopg2` must now be at least version *2.4.5*.
+* :mod:`twisted` must now be at least version *14.0.1*.
+
+
 Support for more infrastructure monitoring
 ------------------------------------------
 
