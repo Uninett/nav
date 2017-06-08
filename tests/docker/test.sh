@@ -1,5 +1,9 @@
 #!/bin/bash -xe
 
+pre_cleanup() {
+    rm -f "${BUILDDIR}/var/run/"*
+}
+
 build_nav() {
     cd "${WORKSPACE}"
 
@@ -80,6 +84,7 @@ dump_possibly_relevant_apache_accesses() {
 
 
 # MAIN EXECUTION POINT
+pre_cleanup
 build_nav
 
 run_pylint &
