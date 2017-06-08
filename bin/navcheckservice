@@ -27,17 +27,18 @@ from __future__ import print_function
 
 import argparse
 import IPy
+import logging
 
-from nav.statemon import debug
 from nav.statemon import checkermap
+
+_logger = logging.getLogger('nav.checkservice')
 
 
 def main():
     cargs = parse_args()
-    debug.setDebugLevel(cargs.debuglevel)
     args = read_checker_args()
-    debug.debug("Ip: %s sysname: %s handler: %s args: %s" % (
-        cargs.ip, cargs.sysname, cargs.handler, args))
+    _logger.debug("Ip: %s sysname: %s handler: %s args: %s",
+                  cargs.ip, cargs.sysname, cargs.handler, args)
     checker = checkermap.get(cargs.handler)
 
     service = {
@@ -61,8 +62,6 @@ def parse_args():
     checkermap.parsedir()
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--debuglevel', '-d', metavar='LEVEL', type=int,
-                        choices=range(1, 8), default=7, help='Debug level')
     parser.add_argument('ip', metavar='IP', type=IPy.IP,
                         help='IP address of host to check')
     parser.add_argument('sysname', metavar='SYSNAME',
