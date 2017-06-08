@@ -27,14 +27,18 @@ with children are more and more "padded" */
         opacity: 1.0;
     }
 }
-.prefix-tree-children.has_open_nodes {
-    .prefix-tree-item.prefix-tree-item-open {
+
+.has_no_open_nodes {
+    .prefix-tree-item, .prefix-tree-item-closed {
         opacity: 1.0 !important;
-        .prefix-tree-children > .prefix-tree-item {
-            opacity: 1.0;
-        }
     }
-    .prefix-tree-item {
+}
+
+.has_open_nodes {
+    .prefix-tree-item.prefix-tree-item-open {
+        opacity: 1.0;
+    }
+    .prefix-tree-item-closed {
         opacity: 0.25;
     }
     .prefix-tree-item:hover {

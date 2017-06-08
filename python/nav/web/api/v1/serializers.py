@@ -151,6 +151,8 @@ class PrefixUsageSerializer(serializers.Serializer):
     active_addresses = serializers.IntegerField()
     max_addresses = serializers.IntegerField()
     max_hosts = serializers.IntegerField()
+    vlan_id = serializers.IntegerField()
+    net_ident = serializers.CharField()
     url_machinetracker = serializers.CharField()
     url_report = serializers.CharField()
     url_vlan = serializers.CharField()

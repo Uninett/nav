@@ -27,6 +27,7 @@ import json
 from django.core.urlresolvers import reverse, NoReverseMatch
 
 from nav.web.ipam.util import get_available_subnets
+from nav.models.manage import Prefix
 
 
 class PrefixHeap(object):
@@ -82,9 +83,11 @@ class PrefixHeap(object):
         # first, try adding to children (recursively)
         matches = (child for child in self.children if node in child)
         for child in matches:
+            node.parent = child
             child.add(node)
             return
         # if this fails, add to self
+        node.parent = self
         self.children.append(node)
         self.children.sort()
 
@@ -158,13 +161,21 @@ class IpNodeFacade(IpNode):
         "last_octet",
         "bits",
         "empty_ranges",
-        "is_reservable"
+        "is_reservable",
+        "parent_pk"
     ]
 
     def __init__(self, ip_addr, pk, net_type, sort_fn=None):
         super(IpNodeFacade, self).__init__(ip_addr, net_type)
         self.pk = pk
         self.sort_fn = sort_fn
+
+    @property
+    def parent_pk(self):
+        "The primary key of the node's parent"
+        if self.parent is None:
+            return None
+        return self.parent.pk
 
     @property
     def is_reservable(self):
@@ -397,8 +408,13 @@ not part of the RFC1918 ranges.
     family = {"ipv4", "ipv6", "rfc1918"} if family is None else set(family)
     init = []
 
-    if root_ip is not None:
-        init.append(FauxNode(root_ip, "scope", "scope"))
+    if root_ip is not None and root_ip:
+        scope = Prefix.objects.get(net_address=root_ip)
+        if scope is not None:
+            node = PrefixNode(scope)
+        else:
+            node = FauxNode(root_ip, "scope", "scope")
+        init.append(node)
 
     opts = {
         "initial_children": init,

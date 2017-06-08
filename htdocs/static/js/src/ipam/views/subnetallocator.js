@@ -17,6 +17,9 @@ define(function(require, exports, module) {
   var Models = require("src/ipam/models");
   var PrefixMap = require("src/ipam/views/prefixmap");
 
+  // Event broker
+  var globalCh = Backbone.Wreqr.radio.channel("global");
+
   // For simplicity reasons, use a state singleton
   var viewStates = {
     INIT: {
@@ -112,6 +115,9 @@ define(function(require, exports, module) {
       var treeMap = target.find(".treemap").get(0);
       var data = self.model.get("raw_data");
       var notify = function(__node) {
+        if (__node.net_type == "scope") {
+          globalCh.vent.trigger("scrollto", __node);
+        }
         self.fsm.step("FOCUS_NODE", __node);
       };
       // Signal state change, do stuff

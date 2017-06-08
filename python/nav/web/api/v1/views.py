@@ -27,7 +27,7 @@ import iso8601
 
 from provider.utils import long_token
 from rest_framework import status, filters, viewsets, exceptions
-from rest_framework.decorators import api_view, renderer_classes
+from rest_framework.decorators import api_view, renderer_classes, list_route
 from rest_framework.reverse import reverse_lazy
 from rest_framework.renderers import (JSONRenderer, BrowsableAPIRenderer,
                                       TemplateHTMLRenderer)
@@ -470,6 +470,20 @@ class PrefixViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.PrefixSerializer
     filter_fields = ('vlan', 'net_address', 'vlan__vlan')
 
+    @list_route()
+    def search(self, request):
+        """Do string-like prefix searching. Currently only supports net_address.
+
+        """
+        net_address = request.GET.get('net_address', None)
+        if not net_address or net_address is None:
+            return Response("Empty search", status=status.HTTP_400_BAD_REQUEST)
+        query = "SELECT * FROM prefix WHERE text(netaddr) LIKE %s"
+        # Note: We assume people always know the beginning of a prefix, and
+        # need to drill down further. Hence the wildcard ("%") at the end.
+        queryset = manage.Prefix.objects.raw(query, [net_address + "%"])
+        results = self.get_serializer(queryset, many=True)
+        return Response(results.data)
 
 class RoutedPrefixList(NAVAPIMixin, ListAPIView):
     """Lists all routed prefixes. A router has category *GSW* or *GW*

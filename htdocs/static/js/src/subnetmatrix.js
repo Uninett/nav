@@ -15,7 +15,9 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
         this.tooltipTemplateV4 = _.template(
             '<h5><%= heading %></h5>' +
                 '<p>Active IPs: <%= active %> (of max <%= max %>)<br>' +
-                'Usage: <%= usage %>%</p>' +
+                'Usage: <%= usage %>%<br>' +
+                '<% if (vlan_id) { %>VLAN: <%= vlan_id %><br><% } %>' +
+                '<% if (net_ident) { %>netident: <%= net_ident %><br><% } %></p>' +
                 '<a href="<%= url_machinetracker %>" title="<%= title_machinetracker %>">' +
                 '<%= linktext_machinetracker %></a><br>' +
                 '<a href="<%= url_report %>" title="<%= title_report %>">' +
@@ -25,7 +27,9 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
         );
         this.tooltipTemplateV6 = _.template(
             '<h5><%= heading %></h5>' +
-                '<p>Active IPs: <%= active %></p>' +
+                '<p>Active IPs: <%= active %><br>' +
+                '<% if (vlan_id) { %>VLAN: <%= vlan_id %><br><% } %>' +
+                '<% if (net_ident) { %>netident: <%= net_ident %><br><% } %></p>' +
                 '<a href="<%= url_machinetracker %>" title="<%= title_machinetracker %>">' +
                 '<%= linktext_machinetracker %></a><br>' +
                 '<a href="<%= url_report %>" title="<%= title_report %>">' +
@@ -123,6 +127,8 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
                 max: data.max_hosts,
                 usage: data.usage.toFixed(1),
                 url_machinetracker: data.url_machinetracker,
+                net_ident: data.net_ident,
+                vlan_id: data.vlan_id,
                 title_machinetracker: "View active addresses in MachineTracker",
                 linktext_machinetracker: "View active addresses",
                 url_report: data.url_report,
@@ -190,18 +196,18 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
 
             // Actually show the tooltip only on click.
             this.container.on('click', function(event) {
-                var $target = $(event.target);
+                var $cell = event.target.nodeName === 'TD' ? $(event.target) : $(event.target).closest('td');
 
-                if ($target.hasClass('has-loaded')) {
+                if ($cell.hasClass('has-loaded')) {
                     // if for some reason the tooltip has not been created, do it now
-                    if (!$target.data('selector')) {
+                    if (!$cell.data('selector')) {
                         self.createTooltip($target);
                     }
 
-                    if ($target.hasClass('open')) {
+                    if ($cell.hasClass('open')) {
                         self.closeAllTips();
                     } else {
-                        self.openTip($target);
+                        self.openTip($cell);
                     }
                 } else {
                     // If we click outside the cells, remove all tooltips
@@ -242,7 +248,7 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
                 var request = $.getJSON($target.data('url'));
                 var sparkContainer = $('<div class="usage-sparkline">&nbsp;</div>');
                 sparkContainer.appendTo($toolTip);
-                
+
                 request.done(function(response) {
                     if (response.length > 0) {
                         var data = response[0],

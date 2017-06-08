@@ -86,6 +86,8 @@ class PrefixQuerysetBuilder(object):
 
     def vlan_number(self, vlan_number):
         "Return prefixes belonging to a particular VLAN"
+        if vlan_number is None and vlan_number:
+            return self
         return self.filter(vlan_number, vlan__vlan=vlan_number)
 
     def net_type(self, net_type_or_net_types):
@@ -114,9 +116,8 @@ class PrefixQuerysetBuilder(object):
     # Mutating methods, e.g. resets the queryset
     def within(self, prefix):
         "Sets the queryset to every Prefix within a certain prefix"
-        if prefix is None:
-            return self
-        self.queryset = self.queryset & Prefix.objects.within(prefix)
+        if prefix is not None and prefix:
+            self.queryset = self.queryset & Prefix.objects.within(prefix)
         return self
 
     def contains_ip(self, addr):
