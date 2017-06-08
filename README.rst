@@ -3,7 +3,7 @@
 ===================================
 
 This is NAV - Network Administration Visualized - an advanced software suite
-to monitor large computer networks.
+to monitor small and large computer networks.
 
 :Homepage: https://nav.uninett.no/
 :Bug tracker and release management: https://github.com/UNINETT/nav
@@ -39,5 +39,6 @@ licensed under the Apache License v2.0.
 
 Installation
 ------------
-See the file `INSTALL.rst` for installation instructions.  See the file
-`NOTES.rst` for release notes and upgrade instructions.
+For detailed instructions on how to install NAV, see
+``doc/intro/install.rst``. See the file ``NOTES.rst`` for release notes and
+upgrade instructions.
