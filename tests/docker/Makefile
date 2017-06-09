@@ -2,37 +2,27 @@ mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 top_srcdir := $(mkfile_dir)../..
 name := navtest:$(shell git describe --tags)
 uname := $(shell uname)
-ifeq ($(uname), Darwin)
- runas := build
-else
- runas := root
-endif
+uid := $(shell id -u)
+gid := $(shell id -g)
 
 .PHONY: build check
 
-build: runtime-requirements.txt test-requirements.txt
-	docker build -t $(name) $(mkfile_dir)
+build:
+	docker build -t $(name) -f Dockerfile $(top_srcdir)
 
-buildnocache: runtime-requirements.txt test-requirements.txt
-	docker build --no-cache -t $(name) $(mkfile_dir)
+buildnocache:
+	docker build --no-cache -t $(name) -f Dockerfile $(top_srcdir)
 
 check: build
-# Running in privileged mode because Google Chrome apparently requires it
 	/usr/bin/env
-	docker run -u $(runas) --privileged -v $(top_srcdir):/source $(name) /source/tests/docker/test.sh
+	docker run -u $(uid):$(gid) -v $(top_srcdir):/source $(name) /source/tests/docker/test.sh
 
 lint: build
 	/usr/bin/env
-	docker run -u $(runas) -v $(top_srcdir):/source $(name) /source/tests/docker/lint.sh
+	docker run -u $(uid):$(gid) -v $(top_srcdir):/source $(name) /pylint.sh
 
 shell:
-	docker run -u $(runas) -t -i --privileged -v $(top_srcdir):/source $(name) /bin/bash
-
-runtime-requirements.txt: $(top_srcdir)/requirements/*
-	cat $^ > $@
-
-test-requirements.txt: $(top_srcdir)/tests/requirements.txt
-	cp -a $< $@
+	docker run -ti --rm -u $(uid):$(gid) -v $(top_srcdir):/source $(name) /bin/bash
 
 name:
 	echo Image name: $(name)

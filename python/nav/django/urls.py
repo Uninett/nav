@@ -58,7 +58,7 @@ urlpatterns += patterns('',
     (r'^useradmin/', include('nav.web.useradmin.urls')),
     (r'^styleguide/', styleguide_index),
 
-    (r'^auditlog/', include('auditlog.urls')),
+    (r'^auditlog/', include('nav.auditlog.urls')),
 )
 
 # Load local url-config

@@ -9,9 +9,16 @@ module.exports = function (config) {
           type : 'cobertura',
           dir : 'coverage/'
         },
-        browsers:      ['Chrome', 'Firefox', 'PhantomJS'],
+        browsers:      ['ChromeNoSandbox', 'Firefox', 'PhantomJS'],
         autoWatch:      false,
         singleRun: true,
-        colors: false
+        colors: false,
+
+        customLaunchers: {
+            ChromeNoSandbox: {
+                base: 'Chrome',
+                flags: ['--no-sandbox']
+            }
+        }
     });
 };

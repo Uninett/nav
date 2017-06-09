@@ -14,7 +14,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 
 import json
 
@@ -25,7 +25,7 @@ from django.utils.timezone import now as utcnow
 
 from nav.models.fields import VarcharField, LegacyGenericForeignKey
 
-from auditlog import find_modelname
+from . import find_modelname
 
 
 @python_2_unicode_compatible
