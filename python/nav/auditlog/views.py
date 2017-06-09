@@ -14,13 +14,13 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 
 from django.views.generic import ListView, TemplateView
 from django.contrib.contenttypes.models import ContentType
 
-from auditlog.models import LogEntry
-from auditlog import find_modelname
+from .models import LogEntry
+from . import find_modelname
 
 
 class AuditlogViewMixin(object):

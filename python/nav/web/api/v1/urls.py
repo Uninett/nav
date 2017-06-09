@@ -20,7 +20,7 @@ from nav.web.api.v1 import views
 from django.conf.urls import url, patterns, include
 from rest_framework import routers
 
-from auditlog import api as auditlogapi
+from nav.auditlog import api as auditlogapi
 
 router = routers.SimpleRouter()
 router.register(r'rack', views.RackViewSet)

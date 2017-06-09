@@ -2,8 +2,8 @@ from django.test import TestCase
 
 from nav.models.arnold import Justification
 
-from auditlog import find_modelname
-from auditlog.models import LogEntry
+from nav.auditlog import find_modelname
+from nav.auditlog.models import LogEntry
 
 
 class AuditlogTestCase(TestCase):
