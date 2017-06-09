@@ -12,11 +12,11 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 
 from django.conf.urls import *
 
-from auditlog.views import *
+from .views import *
 
 
 urlpatterns = patterns('',

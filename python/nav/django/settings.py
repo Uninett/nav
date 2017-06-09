@@ -192,7 +192,7 @@ INSTALLED_APPS = (
     'crispy_forms_foundation',
     'django_hstore',
     'rest_framework',
-    'auditlog',
+    'nav.auditlog',
 )
 
 REST_FRAMEWORK = {

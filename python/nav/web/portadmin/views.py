@@ -29,8 +29,8 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.views.decorators.http import require_POST
 
-from auditlog.models import LogEntry
-from auditlog.utils import get_auditlog_entries
+from nav.auditlog.models import LogEntry
+from nav.auditlog.utils import get_auditlog_entries
 
 from nav.django.utils import get_account
 from nav.web.utils import create_title
