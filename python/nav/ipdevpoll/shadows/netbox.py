@@ -30,8 +30,27 @@ class Netbox(Shadow):
         super(Netbox, self).__init__(*args, **kwargs)
         if args:
             obj = args[0]
-            self.snmp_up = getattr(obj, 'snmp_up', None)
-            self.last_updated = getattr(obj, 'last_updated', None)
+            self.snmp_up = getattr(obj, 'snmp_up', not obj.is_snmp_down())
+            self.last_updated = getattr(obj, 'last_updated',
+                                        self._translate_last_jobs(obj))
+
+    @staticmethod
+    def _translate_last_jobs(netbox):
+        """Compatibility method for translating a set of last run jobs for a
+        Netbox into the structure expected by users of this class. This was
+        made necessary because the Netbox objects initialized by the
+        dataloder classes is no longer passed through to the JobHandler
+        instances, just a netbox primary key, used to load a new Netbox
+        instance from the database.
+
+        :type netbox: nav.models.manage.Netbox
+
+        :returns: A dict structured like the return value of
+                  nav.ipdevpoll.dataloader.load_last_updated_times()
+
+        """
+        return {job.job_name: job.end_time
+                for job in netbox.get_last_jobs()}
 
     def is_up(self):
         return self.up == manage.Netbox.UP_UP
