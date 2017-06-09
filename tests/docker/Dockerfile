@@ -43,7 +43,8 @@ RUN apt-get update && \
 RUN gem install --version '3.3.9' sass
 
 # NPM for Javascript testing needs
-RUN curl -sS --insecure https://www.npmjs.com/install.sh | clean=no bash
+#RUN curl -sS --insecure https://www.npmjs.com/install.sh | clean=no bash
+RUN apt-get update && apt-get -y --no-install-recommends install npm
 
 # Build and install libtidy5
 RUN cd /tmp && \
