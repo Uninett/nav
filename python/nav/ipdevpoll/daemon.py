@@ -349,7 +349,7 @@ class CommandProcessor(object):
 
         nav.logs.init_generic_logging(
             logfile=logfile_name,
-            stderr=True,
+            stderr=False,
             formatter=formatter,
             read_config=True,
         )
