@@ -57,8 +57,9 @@ RUN cd /tmp && \
 RUN adduser --system --group --home=/home/build --shell=/bin/bash build
 
 # Build and install Python requirements
-ADD requirements.txt /runtime-requirements.txt
-ADD tests/requirements.txt /test-requirements.txt
+COPY requirements.txt /runtime-requirements.txt
+COPY requirements/ /requirements
+COPY tests/requirements.txt /test-requirements.txt
 RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
 RUN pip install whisper carbon==0.9.14 graphite-web==0.9.14 django-tagging
 
