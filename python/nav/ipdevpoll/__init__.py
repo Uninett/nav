@@ -21,6 +21,7 @@ Packages:
 
 """
 from .log import ContextLogger, ContextFormatter
+from nav.models import manage
 
 
 class Plugin(object):
@@ -105,7 +106,8 @@ class Plugin(object):
 
         """
         netboxes = [self.netbox.sysname]
-        instances = self.netbox.instances.values_list('sysname', flat=True)
+        instances = manage.Netbox.objects.filter(
+            master=self.netbox.id).values_list('sysname', flat=True)
         netboxes.extend(instances)
         self._logger.debug("duplicating metrics for these netboxes: %s",
                            netboxes)
