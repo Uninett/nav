@@ -1,3 +1,4 @@
+#!groovy
 // Work in tandem with tests/docker/Dockerfile & Co to run a full CI run in
 // Jenkins.
 // TODO: SLOCCount plugin doesn't support publishing results in pipelines yet.
@@ -72,6 +73,20 @@ node {
 
     }
     
+    stage("Publish documentation") {
+        when {
+            branch: 'master'
+        }
+        steps {
+            VERSION = sh (
+                script: 'cd ${WORKSPACE}/doc; python -c "import conf; print conf.version"',
+                returnStdout: true
+            ).trim()
+            echo "Publishing docs for ${VERSION}"
+            sh 'rsync -av --delete --no-perms --chmod=Dog+rx,Fog+r "${WORKSPACE}/doc/html/" "doc@nav.uninett.no:/var/www/doc/${VERSION}/"'
+        }
+    }
+
     archiveArtifacts artifacts: 'tests/*-report.html'
 
 }
