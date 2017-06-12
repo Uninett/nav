@@ -1,4 +1,3 @@
-# Copyright (C) 2010, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -12,21 +11,19 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""
+Query DB using Django models test
 
+Intended purpose is to catch obvious omissions in DB state or the Django models
+themselves.
+"""
 import os
 
 import nav.models
 
 from django.db import connection
 from django.db.models import get_models
-
-
-'''
-Query DB using Django models test
-
-Intended purpose is to catch obvious omissions in DB state or the Django models
-themselves.
-'''
+import pytest
 
 # Ensure that all modules are loaded
 for file_name in os.listdir(os.path.dirname(nav.models.__file__)):
@@ -34,12 +31,8 @@ for file_name in os.listdir(os.path.dirname(nav.models.__file__)):
         module_name = file_name.replace('.py', '')
         __import__('nav.models.%s' % module_name)
 
-def check_model(model):
-    connection.close() # Ensure clean connection
-    list(model.objects.all()[:5])
 
-def test_models():
-    for model in get_models():
-        model_name = "%s.%s" % (model.__module__,
-                                model.__name__)
-        yield "%s seems up to date" % model_name, check_model, model
+@pytest.mark.parametrize("model", get_models())
+def test_django_model(model):
+    connection.close()  # Ensure clean connection
+    list(model.objects.all()[:5])
