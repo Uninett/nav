@@ -6,7 +6,7 @@ USERNAME = 'admin'
 
 @pytest.fixture
 def selenium(selenium, base_url):
-    selenium.implicitly_wait(5)
+    selenium.implicitly_wait(10)
     cookie = create_session_cookie(USERNAME)
     selenium.get('{}/400'.format(base_url))
     selenium.add_cookie(cookie)
