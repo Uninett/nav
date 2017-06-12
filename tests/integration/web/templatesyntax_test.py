@@ -1,25 +1,19 @@
-#!/usr/bin/env python
 """Generates syntax tests for all NAV Django templates"""
 
-import django
-django.setup()
-
 import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
-from os.path import sep, commonprefix, abspath, pardir, curdir, join, relpath
-
+from os.path import join, relpath
 from django.conf import settings
 from django.template import loader
 
 from nav.eventengine.alerts import ensure_alert_templates_are_available
+import pytest
 
-def test_template_syntax():
+
+def test_templates_can_be_found():
     ensure_alert_templates_are_available()
     templates = list(get_template_list())
     assert templates, "Can't find any Django templates"
-    for template in templates:
-        testname = "does %s validate" % template
-        yield testname, loader.get_template, template
+
 
 def get_template_list():
     for tmpldir in settings.TEMPLATE_DIRS:
@@ -27,3 +21,9 @@ def get_template_list():
             for name in files:
                 fullpath = join(dirname, name)
                 yield relpath(fullpath, tmpldir)
+
+
+@pytest.mark.parametrize("template_name", get_template_list())
+def test_template_syntax(template_name):
+    loader.get_template(template_name)
+
