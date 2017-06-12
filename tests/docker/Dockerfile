@@ -64,9 +64,10 @@ RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
 RUN pip install whisper carbon==0.9.14 graphite-web==0.9.14 django-tagging
 
 # Install geckodriver to properly run Selenium tests in Firefox versions>=47
+ENV GECKOVERSION=0.11.1
 RUN cd /tmp && \
-    wget https://github.com/mozilla/geckodriver/releases/download/v0.11.1/geckodriver-v0.11.1-linux64.tar.gz && \
-    tar xvzf geckodriver-v0.11.1-linux64.tar.gz && \
+    wget https://github.com/mozilla/geckodriver/releases/download/v$GECKOVERSION/geckodriver-v$GECKOVERSION-linux64.tar.gz && \
+    tar xvzf geckodriver-v$GECKOVERSION-linux64.tar.gz && \
     mv geckodriver /usr/local/bin/
 
 # Install chromedriver to properly run Selenium tests in Chrome, if need be
