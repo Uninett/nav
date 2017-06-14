@@ -1,3 +1,4 @@
+import pytest
 from mock import Mock
 from unittest import TestCase
 import random
@@ -144,17 +145,16 @@ class ParseMessageWithNoOriginTimestampTest(ParseTest):
         self.mnemonic = '321007'
         self.description = "'System is low on free memory blocks of size 8192 (0 CNT out of 250 MAX)'"
 
-def test_non_conforming_lines():
-    def _line_doesnt_parse(line):
-        msg = logengine.create_message(line)
-        assert msg is None, "line shouldn't be parseable: %s" % line
 
-    badlines = [
-        "Dec 20 15:16:04 10.0.101.179 SNTP[141365768]: sntp_client.c(1917) 2945474 %% SNTP: system clock synchronized on THU DEC 20 15:16:04 2012 UTC. Indicates that SNTP has successfully synchronized the time of the box with the server.",
-        "Dec 20 16:23:37 10.0.3.15 2605010: CPU utilization for five seconds: 86%/14%; one minute: 33%; five minutes: 31%",
-        "Jan 29 10:21:26 10.0.129.61 %LINK-W-Down:  e30",
-        "pr 18 05:12:59.716 CEST: %SISF-6-ENTRY_CHANGED: Entry changed A=FE80::10F1:F7E9:6EDF:2129 V=204 I=Gi0/8 P=0005 M=",
-    ]
-    for line in badlines:
-        yield _line_doesnt_parse, line
+non_conforming_lines = [
+    "Dec 20 15:16:04 10.0.101.179 SNTP[141365768]: sntp_client.c(1917) 2945474 %% SNTP: system clock synchronized on THU DEC 20 15:16:04 2012 UTC. Indicates that SNTP has successfully synchronized the time of the box with the server.",
+    "Dec 20 16:23:37 10.0.3.15 2605010: CPU utilization for five seconds: 86%/14%; one minute: 33%; five minutes: 31%",
+    "Jan 29 10:21:26 10.0.129.61 %LINK-W-Down:  e30",
+    "pr 18 05:12:59.716 CEST: %SISF-6-ENTRY_CHANGED: Entry changed A=FE80::10F1:F7E9:6EDF:2129 V=204 I=Gi0/8 P=0005 M=",
+]
 
+
+@pytest.mark.parametrize("line", non_conforming_lines)
+def test_non_conforming_lines(line):
+    msg = logengine.create_message(line)
+    assert msg is None, "line shouldn't be parseable: %s" % line

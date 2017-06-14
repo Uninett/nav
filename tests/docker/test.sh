@@ -1,12 +1,5 @@
 #!/bin/bash -xe
 
-run_pytests() {
-    /python-unit-tests.sh
-    /integration-tests.sh
-    /functional-tests.sh
-    echo Python tests are done
-}
-
 run_jstests() {
     /javascript-tests.sh
 }
@@ -34,11 +27,18 @@ cd "$WORKSPACE"
 run_pylint &
 /count-lines-of-code.sh &
 
+# Run unit tests before starting services
+/python-unit-tests.sh
+
+# start services
 /create-db.sh
 /start-services.sh
 trap dump_possibly_relevant_apache_accesses EXIT
 
-run_pytests
+# Run integrations tests after everything is up
+/integration-tests.sh
+/functional-tests.sh
+
 run_jstests
 
 
