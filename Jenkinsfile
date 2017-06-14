@@ -74,10 +74,7 @@ node {
     }
     
     stage("Publish documentation") {
-        when {
-            branch: 'master'
-        }
-        steps {
+        if (env.JOB_NAME == 'master') {
             VERSION = sh (
                 script: 'cd ${WORKSPACE}/doc; python -c "import conf; print conf.version"',
                 returnStdout: true
