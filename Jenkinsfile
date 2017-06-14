@@ -43,24 +43,27 @@ node {
                 }
             },
             "test": {
+                stage("Run Python unit tests") {
+                    sh "/python-unit-tests.sh"
+                }
+
                 stage("Create database and start services") {
                     sh "/create-db.sh"
                     sh "/start-services.sh"
                 }
 
-                stage("Run Python unit tests") {
-                    sh "/python-unit-tests.sh"
-                }
                 stage("Run integration tests") {
                     sh "/integration-tests.sh"
                 }
+
                 stage("Run Selenium tests") {
                     sh "/functional-tests.sh"
                 }
+
                 stage("Run JavaScript tests") {
                     sh "/javascript-tests.sh"
                 }
-                
+
                 junit "**/*-results.xml"
             }
         )
