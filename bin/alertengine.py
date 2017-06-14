@@ -1,4 +1,5 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
+# -*- testargs: --test -*-
 #
 # Copyright (C) 2007, 2008, 2011, 2013 UNINETT AS
 #
