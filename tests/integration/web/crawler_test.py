@@ -168,6 +168,8 @@ class WebCrawler(object):
 # test functions
 #
 
+# just one big, global crawler instance to ensure it's results are cached
+# throughout all the tests in a single session
 crawler = WebCrawler(HOST_URL, USERNAME, PASSWORD)
 
 
