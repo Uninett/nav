@@ -63,7 +63,8 @@ Page = namedtuple('Page', 'url response content_type content')
 
 
 def normalize_path(url):
-    return urlparse.urlsplit(url).path.rstrip('/')
+    url = urlparse.urlsplit(url).path.rstrip('/')
+    return '/' + url if not url.startswith('/') else url
 
 
 class WebCrawler(object):
