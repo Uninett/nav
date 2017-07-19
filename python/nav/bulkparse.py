@@ -135,6 +135,23 @@ class CommentStripper(object):
         return self.COMMENT_PATTERN.sub('', line)
 
 
+def validate_attribute_list(value):
+    """Validates simple attribute lists.
+
+    Any 'restkey' column that has the required 'variable=value' format can be
+    validated by this function. Variable names and variable values themselves
+    are not validated in any way, just that there is a minimum of one equals
+    sign in there.
+    """
+    if not isinstance(value, list):
+        return False
+    for arg in value:
+        items = arg.split('=', 1)
+        if len(items) < 2:
+            return False
+    return True
+
+
 class NetboxBulkParser(BulkParser):
     """Parses the netbox bulk format"""
     format = ('roomid', 'ip', 'orgid', 'catid', 'snmp_version', 'ro', 'rw',
@@ -191,6 +208,7 @@ class OrgBulkParser(BulkParser):
     format = ('orgid', 'parent', 'description')
     restkey = 'attr'
     required = 1
+    _validate_attr = staticmethod(validate_attribute_list)
 
 
 class PrefixBulkParser(BulkParser):
@@ -224,6 +242,7 @@ class RoomBulkParser(BulkParser):
     format = ('roomid', 'locationid', 'descr', 'position')
     restkey = 'attr'
     required = 2
+    _validate_attr = staticmethod(validate_attribute_list)
 
 
 class ServiceBulkParser(BulkParser):
@@ -231,16 +250,7 @@ class ServiceBulkParser(BulkParser):
     format = ('host', 'service')
     restkey = 'arg'
     required = 2
-
-    @staticmethod
-    def _validate_arg(value):
-        if not isinstance(value, list):
-            return False
-        for arg in value:
-            items = arg.split('=', 1)
-            if len(items) < 2:
-                return False
-        return True
+    _validate_arg = staticmethod(validate_attribute_list)
 
 
 class NetboxGroupBulkParser(BulkParser):
