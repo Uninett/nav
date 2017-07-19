@@ -6,6 +6,8 @@ services:
       - "80:80"
     volumes:
       - .:/source
+    depends_on:
+      - postgres
   postgres:
     image: "postgres:9.4"
   graphite:
