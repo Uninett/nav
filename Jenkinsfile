@@ -22,6 +22,7 @@ node {
             env.TARGETURL = "http://localhost:8000/"
 
             stage("Build NAV") {
+                sh "git fetch --tags" // seems tags arent't cloned by Jenkins :P
                 sh "/build.sh"
             }
 
