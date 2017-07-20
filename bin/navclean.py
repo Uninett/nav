@@ -1,159 +1,198 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2004 Norwegian University of Science and Technology
+# Copyright (C) 2004 Norwegian University of Science and Technology
+# Copyright (C) 2017 UNINETT
 #
-# This file is part of Network Administration Visualized (NAV)
+# This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# NAV is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
 #
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public License
+# along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# This script will help remove old arp/cam records from the NAV
-# database.  It could also be extended to perform other database
-# maintenance tasks in NAV.
-#
-#
-"""Delete old arp, cam or radius accounting records from the NAV database.
-
-Usage: navclean.py [options...]
-
-Unless options are given, the number of expired records will be printed
-The default expiry limit is 6 months. The -e and -E sets a common expiry
-date for all tables. If you want different expiry dates for each table,
-you need to run navclean more than once. To actually delete the expired
-records, add the -f option.
-
-Available options are:
-
-  -h, --help    -- Show this help screen.
-  -q            -- Be quiet.
-  -f            -- Force deletion of expired records.
-  -e <date>     -- Set a different expiry date (default is 6 months
-                   ago) on ISO format.
-  -E <interval> -- Set a different expiry date using PostgreSQL
-                   interval syntax.  E.g.: '30 days', '4 weeks', '6
-                   months'
-  --arp         -- Delete from ARP table
-  --cam         -- Delete from CAM table
-  --radiusacct  -- Delete from radius accounting table
-  --radiuslog   -- Delete from radius error log table
-
-"""
-
+"""Deletes old log records from the NAV database"""
 from __future__ import print_function
 
 import sys
-import getopt
+import argparse
 import nav.db
 import psycopg2
 
 
 def main(args):
-    """ Main execution function."""
-    global quiet, force, tables, radiusAcctTable
-    quiet = False
-    force = False
-    expiry = "NOW() - interval '6 months'"
-    radiusAcct = False
-    radiusAcctTable = "radiusacct"
-    radiusLogTable = "radiuslog"
+    """Main execution function."""
+    parser = make_argparser()
+    args = parser.parse_args()
 
-    tables = []
+    if args.interval:
+        expiry = "NOW() - interval %s" % nav.db.escape(args.interval)
+    elif args.datetime:
+        expiry = args.datetime
 
-    try:
-        opts, args = getopt.getopt(args, 'hqfe:E:', ['help', 'arp', 'cam', 'radiusacct', 'radiuslog'])
-    except getopt.GetoptError, error:
-        print(error, file=sys.stderr)
-        usage()
-        sys.exit(1)
+    connection = nav.db.getConnection('default', 'manage')
+    deleters = get_selected_deleters(args, connection)
 
-    for opt, val in opts:
-        if opt == '-h':
-            usage()
-            sys.exit(0)
-        if opt == '-q':
-            quiet = True
-        if opt == '-f':
-            force = True
-        if opt == '-e':
-            expiry = nav.db.escape(val)
-        if opt == '-E':
-            expiry = "NOW() - interval %s" % nav.db.escape(val)
-        if opt == '--arp':
-            tables.append("arp")
-        if opt == '--cam':
-            tables.append("cam")
-        if opt == '--radiusacct':
-            tables.append("radiusacct")
-        if opt == '--radiuslog':
-            tables.append("radiuslog")
-
-    cx = nav.db.getConnection('default', 'manage')
-    cursor = cx.cursor()
     sumtotal = 0
-
-    arpCamSelector = "WHERE end_time < %s" % expiry
-    radiusAcctSelector = """WHERE (acctstoptime < %s) 
-                    OR ((acctstarttime + (acctsessiontime * interval '1 sec')) < %s)
-                    OR (acctstarttime < %s AND (acctstarttime + (acctsessiontime * interval '1 sec')) IS NULL)
-""" % (expiry, expiry, expiry)
-    radiusLogSelector = "WHERE time < %s" % expiry
-
-    for table in tables:
-        if table == "arp" or table == "cam":
-            selector = arpCamSelector
-        if table == radiusAcctTable:
-            selector = radiusAcctSelector
-        if table == radiusLogTable:
-            selector = radiusLogSelector
-
-        sql = 'DELETE FROM %s %s' % (table, selector)
-
+    for deleter in deleters:
         try:
-            cursor.execute(sql)
-            if not quiet:
-                print("%s contains %s expired records." % (table, cursor.rowcount))
-            sumtotal += cursor.rowcount
+            count = deleter.delete(expiry)
+            if not args.quiet:
+                print("{table} contains {count} expired records.".format(
+                    table=deleter.table, count=count))
+            sumtotal += count
 
-        except psycopg2.ProgrammingError, e:
-            print("The PostgreSQL backend produced a ProgrammingError.\n"
-                  "Most likely, your expiry specification is invalid: %s" % expiry, file=sys.stderr);
-            cx.rollback()
+        except psycopg2.Error as error:
+            print("The PostgreSQL backend produced an error", file=sys.stderr)
+            print(error, file=sys.stderr)
+            connection.rollback()
             sys.exit(1)
 
-    if not force:
-        cx.rollback()
+    if not args.force:
+        connection.rollback()
         sumtotal = 0
     else:
-        cx.commit()
+        connection.commit()
 
-        if not quiet and sumtotal > 0:
+        if not args.quiet and sumtotal > 0:
             print("Expired ARP/CAM/Radius Acccounting records deleted.")
 
-    if not quiet and sumtotal == 0:
-        print("None deleted.")
+    if not args.quiet and sumtotal == 0:
+        print("Nothing deleted.")
 
-    cx.close()
+    connection.close()
+
+#
+# helper functions
+#
 
 
-def usage():
-    """ Print a usage screen to stderr."""
-    print(__doc__, file=sys.stderr)
+def make_argparser():
+    """Makes this program's ArgumentParser"""
+    parser = argparse.ArgumentParser(
+        description="Deletes old ARP, CAM or Radius accounting records from "
+                    "the NAV database",
+        epilog="Unless options are given, the number of expired records will "
+               "be printed. The default expiry limit is 6 months. The -e and -E"
+               " options set a common expiry date for all selected tables. If "
+               "you want different expiry dates for each table, you need to "
+               "run navclean more than once. To actually delete the expired "
+               "records, add the -f option."
+    )
+    arg = parser.add_argument
 
-##############
-# begin here #
-##############
+    arg("-q", "--quiet", action="store_true", help="be quiet")
+    arg("-f", "--force", action="store_true",
+        help="force deletion of expired records")
+    arg("-e", "--datetime", type=postgresql_datetime,
+        help="set an explicit expiry date on ISO format")
+    arg("-E", "--interval", type=postgresql_interval, default="6 months",
+        help="set an expiry interval using PostgreSQL interval syntax, e.g. "
+             "'30 days', '4 weeks', '6 months'")
+
+    arg("--arp", action="store_true", help="delete from ARP table")
+    arg("--cam", action="store_true", help="delete from CAM table")
+    arg("--radiusacct", action="store_true",
+        help="delete from Radius accounting table")
+    arg("--radiuslog", action="store_true",
+        help="delete from Radius error log table")
+
+    return parser
+
+
+def validate_sql(sql, args):
+    """Validates than an SQL statement can run without errors"""
+    connection = nav.db.getConnection('default', 'manage')
+    cursor = connection.cursor()
+    try:
+        cursor.execute(sql, args)
+    except psycopg2.DataError as error:
+        raise ValueError(error)
+    finally:
+        connection.rollback()
+    return True
+
+
+def postgresql_datetime(value):
+    """Validates a user-input value as a PostgreSQL timestamp string"""
+    if validate_sql('SELECT TIMESTAMP %s', (value,)):
+        return value
+
+
+def postgresql_interval(value):
+    """Validates a user-input value as a PostgreSQL interval string"""
+    if validate_sql("SELECT INTERVAL %s", (value,)):
+        return value
+
+
+def get_selected_deleters(args, connection):
+    """Returns a list of RecordDeleter instances for each of the tables
+    selected in the supplied ArgumentParser.
+    """
+    return [deleter(connection) for deleter in RecordDeleter.__subclasses__()
+            if getattr(args, deleter.table, False)]
+
+#
+# Deleter implementations
+#
+
+
+class RecordDeleter(object):
+    """Base class for record deletion"""
+    table = None
+    selector = ""
+
+    def __init__(self, connection):
+        self.connection = connection
+
+    def filter(self, expiry):
+        """Returns a selector statement formatted with the supplied expiry"""
+        return self.selector.format(expiry=expiry)
+
+    def sql(self, expiry):
+        """Returns the full DELETE statement based on the expiry date"""
+        where = self.filter(expiry)
+        return 'DELETE FROM {table} {filter}'.format(table=self.table,
+                                                     filter=where)
+
+    def delete(self, expiry):
+        """Deletes the records selected by the expiry spec"""
+        cursor = self.connection.cursor()
+        sql = self.sql(expiry)
+        cursor.execute(sql)
+        return cursor.rowcount
+
+
+# pylint: disable=missing-docstring
+
+class ArpDeleter(RecordDeleter):
+    table = "arp"
+    selector = "WHERE end_time < {expiry}"
+
+
+class CamDeleter(RecordDeleter):
+    table = "cam"
+    selector = "WHERE end_time < {expiry}"
+
+
+class RadiusAcctDeleter(RecordDeleter):
+    table = "radiusacct"
+    selector = """
+        WHERE (acctstoptime < {expiry})
+        OR ((acctstarttime + (acctsessiontime * interval '1 sec')) < {expiry})
+        OR (acctstarttime < {expiry} 
+            AND (acctstarttime + (acctsessiontime * interval '1 sec')) IS NULL)
+        """
+
+class RadiusLogDeleter(RecordDeleter):
+    table = "radiuslog"
+    selector = "WHERE time < {expiry}"
+
+
 if __name__ == '__main__':
     main(sys.argv[1:])
