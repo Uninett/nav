@@ -45,7 +45,7 @@ from nav.statemon.netbox import Netbox
 LOGGER = logging.getLogger('nav.pping')
 
 
-class pinger:
+class Pinger:
     def __init__(self, **kwargs):
         signal.signal(signal.SIGHUP, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
@@ -62,9 +62,9 @@ class pinger:
         self.netboxmap = {}  # hash netboxid -> netbox
         self.down = []       # list of netboxids down
         self.replies = {}    # hash netboxid -> circbuf
-        self.ipToNetboxid = {}
+        self.ip_to_netboxid = {}
 
-    def updateHostList(self):
+    def update_host_list(self):
         """
         Fetches all netboxes from the NAVdb, and updates
         internal data structures.
@@ -72,7 +72,7 @@ class pinger:
         LOGGER.debug("Getting hosts from database...")
         hosts = self.db.hosts_to_ping()
         netboxmap = {}
-        self.ipToNetboxid = {}
+        self.ip_to_netboxid = {}
         for host in hosts:
             netboxid, sysname, ip, up = host
             netbox = Netbox(netboxid, sysname, ip, up)
@@ -90,15 +90,15 @@ class pinger:
                     # This genious line marks all-down for the whole buf
                     map(buf.push, [-1]*len(buf))
             netboxmap[netbox.netboxid] = netbox
-            self.ipToNetboxid[netbox.ip] = netbox.netboxid
+            self.ip_to_netboxid[netbox.ip] = netbox.netboxid
         # Update netboxmap
         self.netboxmap = netboxmap
         LOGGER.debug("We now got %i hosts in our list to ping",
                      len(self.netboxmap))
         # then update our pinger object
-        self.pinger.set_hosts(self.ipToNetboxid.keys())
+        self.pinger.set_hosts(self.ip_to_netboxid.keys())
 
-    def generateEvents(self):
+    def generate_events(self):
         """
         Report state changes to event engine.
         """
@@ -106,7 +106,7 @@ class pinger:
         answers = self.pinger.results()
         for ip, rtt in answers:
             # rtt = round trip time (-1 => host didn't reply)
-            netboxid = self.ipToNetboxid.get(ip)
+            netboxid = self.ip_to_netboxid.get(ip)
             self.replies[netboxid].push(rtt)
             netbox = self.netboxmap[netboxid]
             if rtt != -1:
@@ -125,39 +125,39 @@ class pinger:
 
         LOGGER.debug("No answer from %i hosts", len(downNow))
         # Detect state changes since last run
-        reportDown = filter(lambda x: x not in self.down, downNow)
-        reportUp = filter(lambda x: x not in downNow, self.down)
+        report_down = filter(lambda x: x not in self.down, downNow)
+        report_up = filter(lambda x: x not in downNow, self.down)
         self.down = downNow
 
         # Reporting netboxes as down
-        LOGGER.debug("Starts reporting %i hosts as down", len(reportDown))
-        for netboxid in reportDown:
+        LOGGER.debug("Starts reporting %i hosts as down", len(report_down))
+        for netboxid in report_down:
             netbox = self.netboxmap[netboxid]
-            newEvent = Event(None,
-                             netbox.netboxid,
-                             None,  # deviceid
-                             Event.boxState,
-                             "pping",
-                             Event.DOWN
-                             )
-            self.db.new_event(newEvent)
+            new_event = Event(None,
+                              netbox.netboxid,
+                              None,  # deviceid
+                              Event.boxState,
+                              "pping",
+                              Event.DOWN
+                              )
+            self.db.new_event(new_event)
             LOGGER.info("%s marked as down.", netbox)
         # Reporting netboxes as up
-        LOGGER.debug("Starts reporting %i hosts as up", len(reportUp))
-        for netboxid in reportUp:
+        LOGGER.debug("Starts reporting %i hosts as up", len(report_up))
+        for netboxid in report_up:
             try:
                 netbox = self.netboxmap[netboxid]
             except:
                 LOGGER.info("Netbox %s is no longer with us...", netboxid)
                 continue
-            newEvent = Event(None,
-                             netbox.netboxid,
-                             None,  # deviceid
-                             Event.boxState,
-                             "pping",
-                             Event.UP
-                             )
-            self.db.new_event(newEvent)
+            new_event = Event(None,
+                              netbox.netboxid,
+                              None,  # deviceid
+                              Event.boxState,
+                              "pping",
+                              Event.UP
+                              )
+            self.db.new_event(new_event)
             LOGGER.info("%s marked as up.", netbox)
 
     def main(self):
@@ -167,9 +167,9 @@ class pinger:
         self.db.start()
         while self._isrunning:
             LOGGER.debug("Starts pinging....")
-            self.updateHostList()
+            self.update_host_list()
             elapsedtime = self.pinger.ping()
-            self.generateEvents()
+            self.generate_events()
             LOGGER.info("%i hosts checked in %03.3f secs. %i hosts "
                         "currently marked as down.",
                         len(self.netboxmap), elapsedtime, len(self.down))
@@ -190,7 +190,7 @@ class pinger:
             # reopen the logfile
             logfile_path = self.config.get("logfile", "pping.log")
             LOGGER.info("Caught SIGHUP. Reopening logfile...")
-            logfile = file(logfile_path, 'a')
+            logfile = open(logfile_path, 'a')
             nav.daemon.redirect_std_fds(stdout=logfile, stderr=logfile)
 
             LOGGER.info("Reopened logfile: %s", logfile_path)
@@ -220,26 +220,26 @@ def start(nofork):
     # Already running?
     try:
         nav.daemon.justme(pidfilename)
-    except nav.daemon.AlreadyRunningError, e:
-        otherpid = file(pidfilename, "r").read().strip()
+    except nav.daemon.AlreadyRunningError:
+        otherpid = open(pidfilename, "r").read().strip()
         sys.stderr.write("pping is already running (pid: %s)\n" % otherpid)
         sys.exit(1)
-    except nav.daemon.DaemonError, e:
-        sys.stderr.write("%s\n" % e)
+    except nav.daemon.DaemonError as error:
+        sys.stderr.write("%s\n" % error)
         sys.exit(1)
 
     if not nofork:
         logfile_path = conf.get(
             'logfile',
             os.path.join(buildconf.localstatedir, 'log','pping.log'))
-        logfile = file(logfile_path, "a")
+        logfile = open(logfile_path, "a")
         nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
 
-    myPinger = pinger(socket=sock)
-    myPinger.main()
+    my_pinger = Pinger(socket=sock)
+    my_pinger.main()
 
 
-def setUser():
+def switch_user():
     conf = config.pingconf()
     username = conf.get("user", "nobody")
     nav.daemon.switchuser(username)
@@ -265,5 +265,5 @@ if __name__ == "__main__":
         print("Must be started as root")
         sys.exit(1)
     sock = megaping.make_sockets()
-    setUser()
+    switch_user()
     start(nofork)
