@@ -25,8 +25,7 @@ from __future__ import print_function
 import os
 import sys
 import signal
-import getopt
-import time
+import argparse
 import logging
 
 import nav.daemon
@@ -45,7 +44,29 @@ from nav.statemon.netbox import Netbox
 LOGGER = logging.getLogger('nav.pping')
 
 
+def main():
+    args = make_argparser().parse_args()
+
+    if os.getuid() != 0:
+        print("Must be started as root")
+        sys.exit(1)
+
+    socket = megaping.make_sockets()  # make raw sockets while we have root
+    switch_user()
+    start(args.nofork, socket)
+
+
+def make_argparser():
+    parser = argparse.ArgumentParser(
+        description="Parallel pinger daemon (part of NAV)",
+    )
+    parser.add_argument("-n", "--nofork", action="store_true",
+                        help="run in foreground")
+    return parser
+
+
 class Pinger:
+
     def __init__(self, **kwargs):
         signal.signal(signal.SIGHUP, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
@@ -208,7 +229,7 @@ def help():
     """ % os.path.basename(sys.argv[0])))
 
 
-def start(nofork):
+def start(nofork, socket):
     """
     Forks a new prosess, letting the service run as
     a daemon.
@@ -235,7 +256,7 @@ def start(nofork):
         logfile = open(logfile_path, "a")
         nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
 
-    my_pinger = Pinger(socket=sock)
+    my_pinger = Pinger(socket=socket)
     my_pinger.main()
 
 
@@ -244,26 +265,5 @@ def switch_user():
     username = conf.get("user", "nobody")
     nav.daemon.switchuser(username)
 
-
-if __name__ == "__main__":
-    nofork = 0
-    try:
-        opts, args = getopt.getopt(sys.argv[1:],
-                                   "hn",
-                                   ["help", "nofork"])
-        for opt, val in opts:
-            if opt in ("-h", "--help"):
-                help()
-                sys.exit(0)
-            elif opt in ("-n", "--nofork"):
-                nofork = 1
-
-    except getopt.error:
-        help()
-        sys.exit(2)
-    if os.getuid() != 0:
-        print("Must be started as root")
-        sys.exit(1)
-    sock = megaping.make_sockets()
-    switch_user()
-    start(nofork)
+if __name__ == '__main__':
+    main()
