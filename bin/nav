@@ -2,7 +2,7 @@
 # -*- testargs: list -*-
 #
 # Copyright (C) 2004 Norwegian University of Science and Technology
-# Copyright (C) 2006, 2011, 2016 UNINETT AS
+# Copyright (C) 2006, 2011, 2016, 2017 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,27 +16,12 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""This command is your interface to start, stop and query NAV services.
-
-Usage: nav [command] [service ...]
-
-The selected command will be applied to all known services, unless you
-specify a list of services after the command.
-Available commands are:
-
-  start   -- Start services.
-  stop    -- Stop services.
-  status  -- Query the status of services.
-  info    -- Display information about/description of services.
-  list    -- Display list of known services.
-
-  version -- Displays which version of NAV you are running.
-"""
+"""Command line program to control NAV processes"""
 from __future__ import print_function
 import sys
 import os
 import os.path
-import getopt
+import argparse
 import textwrap
 
 try:
@@ -53,48 +38,41 @@ except OSError as _error:
           str(_error), file=sys.stderr)
     sys.exit(1)
 
-_allow_non_root = False
-
 
 def main(args):
     """Main execution point"""
-    try:
-        opts, args = getopt.getopt(args, '', ['nonroot'])
-    except getopt.GetoptError as error:
-        print(error, file=sys.stderr)
-        usage()
-        sys.exit(1)
+    args = make_argparser().parse_args()
+    args.func(args)
 
-    for opt, _val in opts:
-        if opt == '--nonroot':
-            global _allow_non_root
-            _allow_non_root = True
 
-    if len(args) == 0:
-        usage()
-        sys.exit(1)
+def make_argparser():
+    """Builds and returns an ArgumentParser instance for this program"""
+    parser = argparse.ArgumentParser(
+        description="This command is your interface to start, stop and query "
+                    "NAV services.",
+        epilog="The selected command will be applied to all known services, "
+               "unless you specify a list of services after the command."
+    )
+    parser.add_argument("--nonroot", action="store_true",
+                        help="don't complain about not having root privileges")
 
-    command = args.pop(0)
-    if len(args) == 0:
-        query_list = SERVICES.keys()
-        query_list.sort()
-    else:
-        query_list = args
-
-    # Use reflection to decide whether the command is known, and to
-    # call it if it is.
     self = sys.modules[__name__]
-    command_func_name = 'c_' + command
-    if hasattr(self, command_func_name):
-        command_func = getattr(self, command_func_name)
-        command_func(query_list)
-    else:
-        print("Unknown command: " + command, file=sys.stderr)
+    commands = sorted((name.replace('c_', ''), func)
+                      for name, func in vars(self).items()
+                      if name.startswith('c_') and callable(func))
+    all_services = sorted(SERVICES.keys())
+    subparsers = parser.add_subparsers()
+    for command, func in commands:
+        subp = subparsers.add_parser(command, help=func.__doc__)
+        subp.add_argument("service", nargs="*", default=all_services)
+        subp.set_defaults(func=func)
+
+    return parser
 
 
 def verify_root():
     """Verifies that a user has root privileges, if they are needed"""
-    if not _allow_non_root and os.geteuid() != 0:
+    if os.geteuid() != 0:
         print("You should be root to run this command.", file=sys.stderr)
         sys.exit(10)
 
@@ -114,7 +92,7 @@ def service_iterator(query_list, func):
 
 
 def action_iterator(query_list, action, ok_string, fail_string):
-    """Iterate through a list of service names, performing an action on each
+    """Iterates through a list of service names, performing an action on each
     of them.
     """
     failed = []
@@ -150,8 +128,8 @@ def action_iterator(query_list, action, ok_string, fail_string):
         print(" ".join(["%s (%s)" % error for error in errors]))
 
 
-def c_info(query_list):
-    """Lists each service and their associated description"""
+def c_info(args):
+    """lists each service and their associated description"""
     def _helper(service):
         kind = service.__class__.__name__
         if kind.endswith("Service"):
@@ -159,48 +137,48 @@ def c_info(query_list):
         output = "%-18s %8s: %s" % (service.name, "(%s)" % kind, service.info)
         print('\n'.join(textwrap.wrap(output, width=79,
                                       subsequent_indent=" "*29)))
-    service_iterator(query_list, _helper)
+    service_iterator(args.service, _helper)
 
 
-def c_list(query_list):
-    """Lists all the available service names"""
-    service_iterator(query_list, lambda service: print(service.name))
+def c_list(args):
+    """lists all the available service names"""
+    service_iterator(args.service, lambda service: print(service.name))
 
 
-def c_start(query_list):
-    """Starts services"""
-    verify_root()
-    action_iterator(query_list, "start", "Starting", "Failed")
+def c_start(args):
+    """starts services"""
+    if not args.nonroot:
+        verify_root()
+    action_iterator(args.service, "start", "Starting", "Failed")
 
 
-def c_stop(query_list):
-    """Stops services"""
-    verify_root()
-    action_iterator(query_list, "stop", "Stopping", "Failed")
+def c_stop(args):
+    """stops services"""
+    if not args.nonroot:
+        verify_root()
+    action_iterator(args.service, "stop", "Stopping", "Failed")
 
 
-def c_restart(query_list):
-    """Restarts services"""
-    verify_root()
-    c_stop(query_list)
-    c_start(query_list)
+def c_restart(args):
+    """restarts services"""
+    if not args.nonroot:
+        verify_root()
+    c_stop(args)
+    c_start(args)
 
 
-def c_status(query_list):
-    """Prints the status of services"""
-    verify_root()
-    action_iterator(query_list, "is_up", "Up", "Down")
+def c_status(args):
+    """reports the status of services"""
+    if not args.nonroot:
+        verify_root()
+    action_iterator(args.service, "is_up", "Up", "Down")
 
 
 def c_version(_):
-    """Prints the currently installed NAV version"""
+    """reports the currently installed NAV version"""
     from nav import buildconf
     print("NAV %s" % buildconf.VERSION)
 
-
-def usage():
-    """Prints a usage screen to stderr."""
-    print(__doc__, file=sys.stderr)
 
 ##############
 # begin here #
