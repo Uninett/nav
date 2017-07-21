@@ -117,17 +117,17 @@ class Pinger:
                 statistics.update(netbox.netboxid, netbox.sysname, 'N', 'DOWN',
                                   5)
 
-        downNow = []
+        down_now = []
         # Find out which netboxes to consider down
         for (netboxid, replies) in self.replies.items():
             if replies[:self._nrping] == [-1]*self._nrping:
-                downNow.append(netboxid)
+                down_now.append(netboxid)
 
-        LOGGER.debug("No answer from %i hosts", len(downNow))
+        LOGGER.debug("No answer from %i hosts", len(down_now))
         # Detect state changes since last run
-        report_down = filter(lambda x: x not in self.down, downNow)
-        report_up = filter(lambda x: x not in downNow, self.down)
-        self.down = downNow
+        report_down = filter(lambda x: x not in self.down, down_now)
+        report_up = filter(lambda x: x not in down_now, self.down)
+        self.down = down_now
 
         # Reporting netboxes as down
         LOGGER.debug("Starts reporting %i hosts as down", len(report_down))
