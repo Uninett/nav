@@ -19,7 +19,7 @@
 
 from __future__ import print_function
 
-from optparse import OptionParser
+import argparse
 import logging
 import time
 import sys
@@ -47,7 +47,7 @@ def exit_if_already_running():
     try:
         nav.daemon.justme(PIDFILE)
         nav.daemon.writepidfile(PIDFILE)
-    except nav.daemon.DaemonError, error:
+    except nav.daemon.DaemonError as error:
         print(error)
         sys.exit(1)
 
@@ -57,13 +57,13 @@ def run(days):
     _logger.info('Starting active ip collector')
     starttime = time.time()
     manager.run(days)
-    _logger.info('Done in %.2f seconds' % (time.time() - starttime))
+    _logger.info('Done in %.2f seconds', time.time() - starttime)
 
 
 if __name__ == '__main__':
-    PARSER = OptionParser()
-    PARSER.add_option("-d", "--days", dest="days", default=None, type="int",
-                      help="Days back in time to start collecting from")
+    _parser = argparse.ArgumentParser()
+    _parser.add_argument("-d", "--days", default=None, type=int,
+                         help="days back in time to start collecting from")
 
-    OPTIONS, _ = PARSER.parse_args()
-    main(OPTIONS.days)
+    _args = _parser.parse_args()
+    main(_args.days)
