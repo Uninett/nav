@@ -219,16 +219,6 @@ class Pinger:
             LOGGER.critical("Caught %s. Resuming operation.", signum)
 
 
-def help():
-    print(("""Parallel pinger for NAV (Network Administration Visualized).
-
-    Usage: %s [OPTIONS]
-    -h  --help      Displays this message
-    -n  --nofork    Run in foreground
-
-    """ % os.path.basename(sys.argv[0])))
-
-
 def start(nofork, socket):
     """
     Forks a new prosess, letting the service run as
