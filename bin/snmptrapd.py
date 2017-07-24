@@ -24,7 +24,7 @@ import os
 import re
 import socket
 import sys
-from optparse import OptionParser
+import argparse
 import ConfigParser
 import signal
 
@@ -66,7 +66,7 @@ if socket.has_ipv6 and agent.BACKEND == 'pynetsnmp':
 def main():
 
     # Verify that subsystem exists, if not insert it into database
-    verifySubsystem()
+    verify_subsystem()
 
     # Initialize and read startupconfig
     global config
@@ -74,11 +74,10 @@ def main():
     config.read(configfile)
 
     # Create parser and define options
-    global opts
-    opts, addresses = parse_args()
+    opts = parse_args()
 
     # When binding to a port < 1024 we need to be root
-    minport = min(port for addr, port in addresses)
+    minport = min(port for addr, port in opts.address)
     if minport < 1024:
         if os.geteuid() != 0:
             print("Must be root to bind to ports < 1024, exiting")
@@ -92,7 +91,7 @@ def main():
         sys.exit(-1)
 
     # Create SNMP agent object
-    server = agent.TrapListener(*addresses)
+    server = agent.TrapListener(*opts.address)
     server.open()
 
     # We have bound to a port and can safely drop privileges
@@ -114,7 +113,8 @@ def main():
     # Load handlermodules
     try:
         logger.debug('Trying to load handlermodules')
-        handlermodules = load_handler_modules(config.get('snmptrapd', 'handlermodules').split(','))
+        handlermodules = load_handler_modules(
+            config.get('snmptrapd', 'handlermodules').split(','))
     except ModuleLoadError as why:
         logger.error("Could not load handlermodules %s" % why)
         sys.exit(1)
@@ -148,7 +148,7 @@ def main():
 
         logger.info("Snmptrapd started, listening on %s", addresses_text)
         try:
-            server.listen(opts.community, trapHandler)
+            server.listen(opts.community, trap_handler)
         except SystemExit:
             raise
         except Exception as why:
@@ -158,40 +158,34 @@ def main():
         # Start listening and exit cleanly if interrupted.
         try:
             logger.info("Listening on %s", addresses_text)
-            server.listen(opts.community, trapHandler)
+            server.listen(opts.community, trap_handler)
         except KeyboardInterrupt as why:
             logger.error("Received keyboardinterrupt, exiting.")
             server.close()
 
 
 def parse_args():
-    usage = "usage: %prog [options] [address1 [address2 ...]]"
-    parser = OptionParser(
-        usage,
+    parser = argparse.ArgumentParser(
+        description="NAV SNMP Trap daemon",
         epilog="One or more address specifications can be given to tell the "
                "trap daemon which interface/port combinations it should "
-               "listen to. The default is 0.0.0.0:162, which means the daemon "
-               "will accept traps on any IPv4 interface, UDP port 162."
+               "listen to. The default is 0.0.0.0:162, and, if the system "
+               "appears to support IPv6, also [::]:162, which means the daemon "
+               "will accept traps on any IPv4/IPv6 interface, UDP port 162."
     )
-    parser.add_option("-d", "--daemon", action="store_true", dest="daemon",
-                      help="Run as daemon")
-    parser.add_option("-c", "--community", dest="community", default="public",
-                      help="Which SNMP community incoming traps must use. "
-                           "The default is 'public'")
+    parser.add_argument("-d", "--daemon", action="store_true",
+                        help="Run as daemon")
+    parser.add_argument("-c", "--community", default="public",
+                        help="Which SNMP community incoming traps must use. "
+                             "The default is 'public'")
+    parser.add_argument("address", nargs="*", type=Address,
+                        default=DEFAULT_ADDRESSES)
 
-    (opts, args) = parser.parse_args()
-    try:
-        addresses = parse_address_list(args) or DEFAULT_ADDRESSES
-    except ValueError as error:
-        parser.error(error)
-    return opts, addresses
+    return parser.parse_args()
 
 
-def parse_address_list(args):
-    return [parse_address(arg.strip()) for arg in args]
-
-
-def parse_address(address):
+def Address(address):
+    address = address.strip()
     match = (pattern.match(address) for pattern in ADDRESS_PATTERNS)
     match = reduce(lambda x, y: x or y, match)
     if match:
@@ -204,7 +198,7 @@ def parse_address(address):
     raise ValueError("%s is not a valid address" % address)
 
 
-def trapHandler(trap):
+def trap_handler(trap):
     """Handles a trap.
 
     :type trap: nav.snmptrapd.trap.SNMPTrap
@@ -238,7 +232,7 @@ def trapHandler(trap):
                     trap.version, trap.src)
 
 
-def verifySubsystem():
+def verify_subsystem():
     """Verify that subsystem exists, if not insert it into database"""
     db = getConnection('default')
     c = db.cursor()
@@ -250,7 +244,7 @@ def verifySubsystem():
 
 
 def signal_handler(signum, _):
-    """Signal handler to close and reopen log file(s) on HUP and exit on TERM."""
+    """Signal handler to close and reopen log file(s) on HUP and exit on TERM"""
     if signum == signal.SIGHUP:
         logger.info("SIGHUP received; reopening log files.")
         nav.logs.reopen_log_files()
