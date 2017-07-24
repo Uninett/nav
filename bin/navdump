@@ -3,7 +3,7 @@
 # -*- testargs: -h -*-
 #
 # Copyright (C) 2004,2009 Norwegian University of Science and Technology
-# Copyright (C) 2010-2011, 2013-2015 UNINETT AS
+# Copyright (C) 2010-2011, 2013-2015, 2017 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -18,18 +18,78 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 # pylint: disable=C0111
-"""Dumps core information from NAV to textfiles importable by editDB."""
+"""Dumps core information from NAV to textfiles importable by SeedDB"""
 
 from __future__ import print_function
 
 import sys
-sys._stdout = sys.stdout
+import argparse
 from nav.models import manage
 import nav.models.service
 # required to register the hstore extension outside webapp environment
 import django_hstore.apps  # pylint: disable=W0611
 
+
 SEPARATOR = ":"
+
+
+def main():
+    args = parse_args()
+
+    if args.separator:
+        global SEPARATOR
+        SEPARATOR = args.separator
+
+    if args.all:
+        keys = [key for key, func in vars(Handlers).items()
+                if type(func) is staticmethod and not key.startswith('_')]
+        for key in keys:
+            filename = key + ".txt"
+            print("Dumping " + filename)
+            try:
+                # We're lazy and are using print all the way
+                sys.stdout = open(filename, "w")
+            except IOError as error:
+                fail(2, "Could not open file %s: %s" % (args.output, error))
+            handler = getattr(Handlers, key)
+            handler()
+        sys.exit(0)
+
+    if args.output:
+        try:
+            # We're lazy and are using print all the way
+            sys.stdout = open(args.output, "w")
+        except IOError as error:
+            fail(2, "Could not open file %s: %s" % (args.output, error))
+
+    handler = getattr(Handlers(), args.table)
+
+    # And run the handler
+    handler()
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Dumps NAV database seed data to importable files",
+    )
+    arg = parser.add_argument
+    arg("-s", "--separator",
+        help="use SEP to separate fields in output, [default :]",
+        metavar="SEP", default=":")
+    tables = sorted(table for table, func in vars(Handlers).items()
+                    if type(func) is staticmethod and not table.startswith('_'))
+    arg("-t", "--table", help="dump data from TABLE", default="",
+        choices=tables, metavar="TABLE")
+    arg("-o", "--output", help="dump data to FILE instead of stdout",
+        metavar="FILE")
+    arg("-a", "--all", dest="all", action="store_true",
+        help="dump all tables to files named TABLE.txt")
+
+    args = parser.parse_args()
+    if not (args.table or args.all):
+        parser.error("Please specify which tables to dump, using either "
+                     "--table or --all")
+    return args
 
 
 def warn(msg):
@@ -187,70 +247,6 @@ class Handlers(object):
             line.extend(properties)
             lineout(line)
         SEPARATOR = old_sep
-
-
-def main():
-    from optparse import OptionParser
-    usage = "usage: %prog [options]\n" \
-            "Dumps NAV database to importable files."
-    parser = OptionParser(usage=usage)
-    parser.add_option("-s", "--seperator", dest="separator",
-                      help="use SEP to seperate fields in output, "
-                           "[default :]",
-                      metavar="SEP", default=":")
-    parser.add_option("-t", "--table", dest="table",
-                      help="dump data from TABLE",
-                      default="")
-    parser.add_option("-o", "--output", dest="output",
-                      help="dump data to FILE instead of stdout",
-                      metavar="FILE")
-    parser.add_option("-a", "--all", dest="all", action="store_true",
-                      help="dump all tables to files named TABLE.txt")
-    (options, _args) = parser.parse_args()
-
-    if options.separator:
-        global SEPARATOR
-        SEPARATOR = options.separator
-
-    if options.all:
-        handlers = Handlers()
-        for key in Handlers.__dict__.keys():
-            if key[0] == "_":
-                continue
-            filename = key + ".txt"
-            sys.stdout = sys._stdout
-            print("Dumping " + filename)
-            try:
-                # We're lazy and are using print all the way
-                sys.stdout = open(filename, "w")
-            except IOError, error:
-                fail(2, "Could not open file %s: %s" % (options.output, error))
-            handler = getattr(handlers, key)
-            handler()
-        sys.exit(0)
-
-    if options.output:
-        try:
-            # We're lazy and are using print all the way
-            sys.stdout = open(options.output, "w")
-        except IOError, error:
-            fail(2, "Could not open file %s: %s" % (options.output, error))
-        except TypeError:
-            fail(2, "You stupid moron")
-
-    handler = getattr(Handlers(), options.table, "")
-    if not handler:
-        parser.print_help()
-        tables = [table for table in Handlers.__dict__.keys()
-                  if not table[0] == "_"]
-        tables.sort()
-        tables = str.join(" ", tables)
-        fail(3,
-             "\nERROR: You must select a valid table. Valid tables are:\n" +
-             tables)
-
-    # And run the handler
-    handler()
 
 
 if __name__ == "__main__":

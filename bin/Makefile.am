@@ -4,6 +4,7 @@ bin_SCRIPTS = $(wildcard *.py) $(wildcard *.sh) \
               nav \
               navcheckservice \
               navdf \
+              navdump \
               naventity \
               navoidverify \
               navpgdump \
