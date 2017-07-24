@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- testargs: --test -*-
 #
-# Copyright (C) 2007, 2008, 2011, 2013 UNINETT AS
+# Copyright (C) 2007, 2008, 2011, 2013, 2017 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -20,15 +20,13 @@ The NAV Alert Engine daemon (alertengine)
 
 This background process polls the alert queue for new alerts from the
 eventengine and sends put alerts to users based on user defined profiles.
-
-Usage: alertengine [--test] [--foreground] [--loglevel=DEBUG|INFO|WARN|CRITICAL]
 """
 
 from __future__ import print_function
 
 # FIXME missing detailed usage
 
-import getopt
+import argparse
 import logging
 import logging.handlers
 import os
@@ -51,40 +49,22 @@ import nav.db
 from django.db import DatabaseError, connection
 from nav.alertengine.base import check_alerts
 
-### PATHS
+#
+#  PATHS
+#
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 logfile = os.path.join(nav.path.localstatedir, 'log', 'alertengine.log')
 pidfile = os.path.join(nav.path.localstatedir, 'run', 'alertengine.pid')
 
 logger = None
 
-### MAIN FUNCTION
+#
+# MAIN FUNCTION
+#
 
 
-def main(args):
-    # Get command line arguments
-    try:
-        opts, args = getopt.getopt(args, 'htf', ['help', 'test', 'loglevel=',
-                                                 'foreground'])
-    except getopt.GetoptError, error:
-        print("%s\nTry `%s --help' for more information." %
-              (error, sys.argv[0]), file=sys.stderr)
-        sys.exit(1)
-
-    opttest = False
-    optforeground = False
-    optlevel = None
-
-    for opt, val in opts:
-        if opt in ('-h', '--help'):
-            usage()
-            sys.exit(0)
-        if opt in ('-t', '--test'):
-            opttest = True
-        if opt in ('-f', '--foreground'):
-            optforeground = True
-        if opt == '--loglevel':
-            optlevel = val
+def main():
+    args = parse_args()
 
     # Set config defaults
     defaults = {
@@ -104,7 +84,7 @@ def main(args):
     # Set variables based on config
     username = config['main']['username']
     delay = int(config['main']['delay'])
-    loglevel = eval('logging.' + (optlevel or config['main']['loglevel']))
+    loglevel = eval('logging.' + (args.loglevel or config['main']['loglevel']))
     mailwarnlevel = eval('logging.' + config['main']['mailwarnlevel'])
     mailserver = config['main']['mailserver']
     mailaddr = config['main']['mailaddr']
@@ -117,7 +97,7 @@ def main(args):
     loginitstderr(loglevel)
 
     # Switch user to $NAV_USER (navcron) (only works if we're root)
-    if os.geteuid() == 0 and not opttest:
+    if os.geteuid() == 0 and not args.test:
         try:
             nav.daemon.switchuser(username)
         except nav.daemon.DaemonError as err:
@@ -140,7 +120,7 @@ def main(args):
         sys.exit(1)
 
     # Daemonize
-    if not opttest and not optforeground:
+    if not args.test and not args.foreground:
         try:
             nav.daemon.daemonize(pidfile,
                                  stderr=nav.logs.get_logfile_from_logger())
@@ -159,7 +139,7 @@ def main(args):
     logger.info('Starting alertengine loop.')
     while True:
         try:
-            check_alerts(debug=opttest)
+            check_alerts(debug=args.test)
             # nav.db connections are currently not in autocommit mode, and
             # since the current auth code uses legacy db connections we need to
             # be sure that we end all and any transactions so that we don't
@@ -184,7 +164,7 @@ def main(args):
             sys.exit(1)
 
         # Devel only
-        if opttest:
+        if args.test:
             break
         else:
             # Sleep a bit before the next run
@@ -195,10 +175,33 @@ def main(args):
     sys.exit(0)
 
 
-### HELPER FUNCTIONS
+#
+# HELPER FUNCTIONS
+#
+
+
+def parse_args():
+    """Parses command line arguments using argparse"""
+    parser = argparse.ArgumentParser(
+        description="The NAV Alert Engine daemon",
+        epilog="This background process polls the alert queue for new alerts "
+               "from the event engine and sends put alerts to users based on "
+               "user defined profiles.",
+    )
+    parser.add_argument("-t", "--test", action="store_true",
+                        help="process the alert queue once and exit")
+    parser.add_argument("-f", "--foreground", action="store_true",
+                        help="run in the foreground")
+    levels = [name for lvl, name in sorted(logging._levelNames.items())
+              if type(lvl) is int]
+    parser.add_argument("--loglevel", metavar="LEVEL", choices=levels,
+                        help="set the daemon log level")
+
+    return parser.parse_args()
+
 
 def signalhandler(signum, _):
-    """Signal handler to close and reopen log file(s) on HUP and exit on TERM."""
+    """Signal handler to close and reopen log file(s) on HUP and exit on TERM"""
 
     if signum == signal.SIGHUP:
         logger.info('SIGHUP received; reopening log files.')
@@ -216,14 +219,16 @@ def loginitfile(loglevel, filename):
 
     try:
         filehandler = logging.FileHandler(filename, 'a')
-        fileformat = '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s'
+        fileformat = (
+            '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] '
+            '%(message)s')
         fileformatter = logging.Formatter(fileformat)
         filehandler.setFormatter(fileformatter)
         filehandler.setLevel(loglevel)
         logger = logging.getLogger()
         logger.addHandler(filehandler)
         return True
-    except IOError, error:
+    except IOError as error:
         print("Failed creating file loghandler. Daemon mode disabled. (%s)"
               % error, file=sys.stderr)
         return False
@@ -241,7 +246,7 @@ def loginitstderr(loglevel):
         logger = logging.getLogger()
         logger.addHandler(stderrhandler)
         return True
-    except IOError, error:
+    except IOError as error:
         print("Failed creating stderr loghandler. Daemon mode disabled. (%s)"
               % error, file=sys.stderr)
         return False
@@ -260,16 +265,19 @@ def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
 
     try:
         hostname = socket.gethostname()
-        mailhandler = logging.handlers.SMTPHandler(mailserver, fromaddr,
-         mailaddr, 'NAV alertengine warning from ' + hostname)
-        mailformat = '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s'
+        mailhandler = logging.handlers.SMTPHandler(
+            mailserver, fromaddr, mailaddr,
+            'NAV alertengine warning from ' + hostname)
+        mailformat = (
+            '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] '
+            '%(message)s')
         mailformatter = logging.Formatter(mailformat)
         mailhandler.setFormatter(mailformatter)
         mailhandler.setLevel(loglevel)
         logger = logging.getLogger()
         logger.addHandler(mailhandler)
         return True
-    except Exception, error:
+    except Exception as error:
         print("Failed creating SMTP loghandler. Daemon mode disabled. (%s)"
               % error, file=sys.stderr)
         return False
@@ -293,6 +301,5 @@ def setdelay(sec):
         return False
 
 
-### BEGIN
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()
