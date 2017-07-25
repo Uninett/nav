@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2011, 2012, 2014 UNINETT AS
+# Copyright (C) 2011, 2012, 2014, 2017 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -26,7 +26,7 @@ logging.raiseExceptions = False
 import sys
 from os.path import join
 from datetime import datetime
-from optparse import OptionParser
+import argparse
 
 # import NAV libraries
 from nav import buildconf
@@ -86,7 +86,6 @@ HP_PSU_PS_MAX = 5
 STATE_UNKNOWN = PowerSupplyOrFan.STATE_UNKNOWN
 STATE_UP = PowerSupplyOrFan.STATE_UP
 STATE_DOWN = PowerSupplyOrFan.STATE_DOWN
-STATE_UNKNOWN = PowerSupplyOrFan.STATE_UNKNOWN
 STATE_WARNING = PowerSupplyOrFan.STATE_WARNING
 
 STATE_MAP = dict(PowerSupplyOrFan.STATE_CHOICES)
@@ -153,20 +152,7 @@ def main():
     stderr = logging.getLogger('')
     django.setup()
 
-    parser = OptionParser()
-    parser.add_option(
-        "-d", "--dry-run", action="store_true", dest="dryrun",
-        help="Dry run.  No changes will be made and no events posted")
-    parser.add_option(
-        "-f", "--file", dest="hostsfile",
-        help="A file with hostnames to check. Must be one FQDN per line")
-    parser.add_option(
-        "-n", "--netbox", dest="hostname",
-        help="Check only this hostname.  Must be a FQDN")
-    parser.add_option(
-        "-v", "--verify", action="store_true", dest="verify",
-        help="Print (lots of) debug-information to stderr")
-    opts, _args = parser.parse_args()
+    opts = parse_args()
 
     if opts.verify:
         LOGGER.info("-v option used, setting log level to DEBUG")
@@ -182,6 +168,26 @@ def main():
     LOGGER.debug('Start checking PSUs and FANs')
     check_psus_and_fans(get_psus_and_fans(sysnames),
                         dryrun=opts.dryrun)
+
+
+def parse_args():
+    """Parses the command line arguments"""
+    parser = argparse.ArgumentParser(
+        description="Powersupply and fan status monitor for NAV"
+    )
+    parser.add_argument(
+        "-d", "--dry-run", action="store_true", dest="dryrun",
+        help="Dry run.  No changes will be made and no events posted")
+    parser.add_argument(
+        "-f", "--file", dest="hostsfile",
+        help="A file with hostnames to check. Must be one FQDN per line")
+    parser.add_argument(
+        "-n", "--netbox", dest="hostname",
+        help="Check only this hostname.  Must be a FQDN")
+    parser.add_argument(
+        "-v", "--verify", action="store_true",
+        help="Print (lots of) debug-information to stderr")
+    return parser.parse_args()
 
 
 def read_hostsfile(filename):
