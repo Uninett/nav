@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- testargs: -h -*-
 #
-# Copyright (C) 2014 UNINETT AS
+# Copyright (C) 2014, 2017 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -30,26 +30,25 @@ GPL v2 and Apache License v2.
 """
 import sys
 import time
-import optparse
+import argparse
 try:
     import whisper
 except ImportError:
     raise SystemExit('[ERROR] Please make sure whisper is installed properly')
 
 now = int(time.time())
-option_parser = optparse.OptionParser(usage="""%prog path""")
+option_parser = argparse.ArgumentParser(
+    description="Accepts multiple Whisper datapoints on stdin to update a "
+                "single .wsp file"
+)
+option_parser.add_argument("filename", nargs=1,
+                           help="path to a .wsp file to update")
+args = option_parser.parse_args()
 
-(options, args) = option_parser.parse_args()
-
-if len(args) < 1:
-    option_parser.print_help()
-    sys.exit(1)
-
-path = args[0]
 datapoint_strings = [point.replace('N:', '%d:' % now) for point in sys.stdin]
 datapoints = [tuple(point.strip().split(':')) for point in datapoint_strings]
 
 try:
-    whisper.update_many(path, datapoints)
-except whisper.WhisperException, exc:
+    whisper.update_many(args.filename, datapoints)
+except whisper.WhisperException as exc:
     raise SystemExit('[ERROR] %s' % str(exc))
