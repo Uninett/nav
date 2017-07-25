@@ -38,7 +38,7 @@ import logging
 import re
 import sys
 from operator import methodcaller
-from optparse import OptionParser
+import argparse
 from os.path import join
 
 import nav.buildconf
@@ -51,7 +51,7 @@ from nav.models.manage import Prefix
 LOGGER = logging.getLogger('start_arnold')
 
 
-def main(options):
+def main(args):
     """Main controller"""
 
     init_generic_logging(
@@ -60,27 +60,23 @@ def main(options):
         read_config=True,
     )
 
-    if options.listblocktypes:
+    if args.listblocktypes:
         print_detention_profiles()
         return
 
-    profile = verify_options(options)
-    if not profile:
-        return
-
-    LOGGER.info('Starting automatic detentions based on %s', profile.name)
-    addresses = get_addresses_to_detain(options)
+    LOGGER.info('Starting automatic detentions based on %s', args.profile.name)
+    addresses = get_addresses_to_detain(args)
 
     detentions = []  # List of successfully blocked ip-addresses
     for address, comment in addresses:
         try:
-            detentions.append(detain(address, profile, comment))
+            detentions.append(detain(address, args.profile, comment))
         except GeneralException as error:
             LOGGER.error(error)
             continue
 
-    if profile.mailfile and detentions:
-        report_detentions(profile, detentions)
+    if args.profile.mailfile and detentions:
+        report_detentions(args.profile, detentions)
 
 
 def print_detention_profiles():
@@ -89,27 +85,6 @@ def print_detention_profiles():
     print(output_format % ("ID", "Act", "Title"))
     for profile in DetentionProfile.objects.all():
         print(output_format % (profile.id, profile.active, profile.name))
-
-
-def verify_options(options):
-    """Verify that the options passed in are sane"""
-
-    if not options.blockid:
-        LOGGER.info("No profile id given")
-        return
-
-    try:
-        profile = DetentionProfile.objects.get(pk=options.blockid)
-    except DetentionProfile.DoesNotExist:
-        LOGGER.debug(
-            "No such profile id: %s", options.blockid)
-        return
-
-    if profile.active == 'n':
-        LOGGER.info("Detention profile is inactive: %s", options.blockid)
-        return
-
-    return profile
 
 
 def get_addresses_to_detain(options):
@@ -143,7 +118,7 @@ def parse_input(lines):
 
         # Grab first part of line, use that as an address to block. Grab the
         # rest and use it as comment.
-        match = re.match("([^ ]+)(\s+.+)?", line)
+        match = re.match(r"([^ ]+)(\s+.+)?", line)
         if match:
             address, comment = match.groups()
             if comment:
@@ -282,19 +257,36 @@ def get_organization(ip):
 
 def parse_command_options():
     """Parse options from commandline"""
-    usage = """usage: %prog [options] id
-Pipe in ip-addresses to block or use the -f option to specify file"""
-    parser = OptionParser(usage)
-    parser.add_option("-i", dest="blockid", help="id of blocktype to use")
-    parser.add_option("-f", dest="filename",
-                      help="filename with id's to detain")
-    parser.add_option("--list", action="store_true", dest="listblocktypes",
-                      help="list predefined detentions")
+    parser = argparse.ArgumentParser(
+        description="Accepts a list of IP addresses to block",
+        epilog="Address list can either be piped in to stdin, or use the -f "
+               "option to specify a file containing a list of addresses",
+    )
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("-i", "--blockid", dest="profile", type=valid_profile,
+                       help="id of blocktype to use")
+    parser.add_argument("-f", "--filename", help="filename with IPs to detain")
+    group.add_argument("--list", action="store_true", dest="listblocktypes",
+                       help="list predefined detentions/blocktypes")
 
     return parser.parse_args()
 
 
-if __name__ == '__main__':
+def valid_profile(detention_profile_id):
+    """Verifies that a detention profile id is valid"""
+    try:
+        profile = DetentionProfile.objects.get(pk=detention_profile_id)
+    except DetentionProfile.DoesNotExist:
+        raise argparse.ArgumentTypeError(
+            "No such profile id: %s" % detention_profile_id)
 
-    OPTS, ARGS = parse_command_options()
-    main(OPTS)
+    if profile.active == 'n':
+        raise argparse.ArgumentTypeError(
+            "Detention profile is inactive: %s" % profile.name)
+
+    return profile
+
+
+if __name__ == '__main__':
+    _args = parse_command_options()
+    main(_args)
