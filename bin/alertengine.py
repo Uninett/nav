@@ -190,8 +190,9 @@ def parse_args():
                         help="process the alert queue once and exit")
     parser.add_argument("-f", "--foreground", action="store_true",
                         help="run in the foreground")
-    levels = [name for lvl, name in sorted(logging._levelNames.items())
-              if type(lvl) is int]
+
+    levels = getattr(logging, '_levelNames', {})
+    levels = [name for lvl, name in sorted(levels.items()) if type(lvl) is int]
     parser.add_argument("--loglevel", metavar="LEVEL", choices=levels,
                         help="set the daemon log level")
 
