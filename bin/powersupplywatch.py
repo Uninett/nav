@@ -190,7 +190,7 @@ def read_hostsfile(filename):
     hostnames = []
     try:
         hosts_file = open(filename, 'r')
-    except IOError, error:
+    except IOError as error:
         LOGGER.error("I/O error (%s): %s (%s)",
                      error.errno, filename, error.strerror)
         sys.exit(2)
@@ -236,7 +236,7 @@ def check_psus_and_fans(to_check, dryrun=False):
         if psu_or_fan.sensor_oid and snmp_handle:
             try:
                 numerical_status = snmp_handle.get(psu_or_fan.sensor_oid)
-            except Exception, ex:
+            except Exception as ex:
                 LOGGER.error('%s: %s, Exception = %s',
                              psu_or_fan.netbox.sysname, psu_or_fan.name, ex)
                 # Don't jump out, continue to next psu or fan
@@ -334,7 +334,7 @@ def post_event(psu_or_fan, status):
     LOGGER.debug('Posting event: %s', event)
     try:
         event.post()
-    except Exception, why:
+    except Exception as why:
         LOGGER.error('post_event: exception = %s', why)
         return False
     return True
