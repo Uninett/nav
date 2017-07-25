@@ -159,6 +159,11 @@ additional-builtins=
 # mixin class is detected if its name ends with "mixin" (case insensitive).
 ignore-mixin-members=yes
 
+# List of module names for which member attributes should not be checked
+# (useful for modules/projects where namespaces are manipulated during runtime
+# and thus existing member attributes cannot be deduced by static analysis
+ignored-modules=ldap
+
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set).
 ignored-classes=twisted.internet.reactor,Meta,Account,Arp,Cam,Category,Device,GwPortPrefix,Interface,Location,Module,NetType,Netbox,NetboxInfo,NetboxCategory,NetboxSnmpOid,NetboxType,Organization,Prefix,Room,Shadow,SwPortAllowedVlan,SwPortVlan,SwPortBlocked,Usage,Vendor,Vlan,CharField,OneToOneField,ForeignKey,Filter,Subcategory,EventType,Memory,AlertQueue,AlertQueueMessage,AlertType,Memory,AccountGroup,AlertProfile,AlertSubscription,Expression,Operator,AccountAlertQueue,AlertSender,AccountProperty,AlertAddress,TimePeriod,AlertPreference,MatchField,FilterGroup,FilterGroupContent,AccountNavbar,AlertHistory,AlertHistoryMessage,AlertHistoryVariable,Cabling,EventQueue,EventQueueVar,Message,NavbarLink,Patch,Privilege,SMSQueue,Service,ServiceProperty,StatusPreference,StatusPreferenceCategory,StatusPreferenceOrganization,Subsystem,AdjacencyCandidate,UnrecognizedNeighbor,ThresholdRule,AlertHistoryManager,HStoreManager,PrefixManager,MaintenanceTaskManager,APIToken,AccountDashboard,GatewayPeerSession,Sensor,RackManager,Rack
