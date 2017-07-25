@@ -144,9 +144,7 @@ def main():
             # since the current auth code uses legacy db connections we need to
             # be sure that we end all and any transactions so that we don't
             # idle.
-            conns = [v.object for v in nav.db._connection_cache.values()]
-            for conn in conns:
-                conn.commit()
+            nav.db.commit_all_connections()
 
         except DatabaseError as err:
             logger.error('Database error, closing the DB connection just in '
