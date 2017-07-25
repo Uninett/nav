@@ -135,6 +135,9 @@ bad-names=foo,bar,baz,toto,tutu,tata
 # not require a docstring
 no-docstring-rgx=(_.*|Meta|get_absolute_url|get_urlpatterns)
 
+# Minimum line length for functions/classes that require docstrings, shorter
+# ones are exempt.
+docstring-min-length=5
 
 [VARIABLES]
 
