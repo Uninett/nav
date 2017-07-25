@@ -70,7 +70,7 @@ def main():
             LOGGER.info("Opening %s %s:%s for %s" % (
                 netbox.sysname, interface.module,
                 interface.baseport, candidate.mac))
-        except GeneralException, why:
+        except GeneralException as why:
             LOGGER.error(why)
             continue
 

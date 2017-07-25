@@ -75,7 +75,7 @@ def main(options):
     for address, comment in addresses:
         try:
             detentions.append(detain(address, profile, comment))
-        except GeneralException, error:
+        except GeneralException as error:
             LOGGER.error(error)
             continue
 
@@ -117,7 +117,7 @@ def get_addresses_to_detain(options):
     if options.filename:
         try:
             handle = open(options.filename, 'r')
-        except IOError, error:
+        except IOError as error:
             LOGGER.error(error)
             return
         return parse_input(handle.readlines())
@@ -220,7 +220,7 @@ def report_detentions(profile, detentions):
         mailfile = join(nav.buildconf.sysconfdir, "/arnold/mailtemplates/",
                         profile.mailfile)
         message_template = open(mailfile).read()
-    except IOError, error:
+    except IOError as error:
         LOGGER.error(error)
         return
 
@@ -238,7 +238,7 @@ def report_detentions(profile, detentions):
 
         try:
             nav.arnold.sendmail(fromaddr, toaddr, subject, msg)
-        except Exception, error:
+        except Exception as error:
             LOGGER.error(error)
             continue
 

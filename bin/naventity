@@ -75,7 +75,7 @@ def collect_entities(netbox):
 def make_graph(entities, netbox):
     """Makes a NetworkX DiGraph from the entPhysicalTable result"""
     graph = networkx.DiGraph(name="%s entPhysicalTable" % netbox)
-    for index, entity in entities.iteritems():
+    for index, entity in entities.items():
         container = entity.get('entPhysicalContainedIn', None)
         if container and container in entities:
             graph.add_edge(index, container)

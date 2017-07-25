@@ -79,14 +79,14 @@ def prioritize_location(cam_objects, logger):
     # mac addresses, error in db and so on). This is such a small problem
     # that we ignore it for the time.
     prioritized_cams = {0: [], }
-    for value in LOCATION_PRIORITY.itervalues():
+    for value in LOCATION_PRIORITY.values():
         if not value in prioritized_cams:
             prioritized_cams[value] = []
     for curr_cam in cam_objects:
         category = curr_cam.netbox.category_id
         prioritized_cams[LOCATION_PRIORITY[category]].append(curr_cam)
     rank = 0
-    for value in LOCATION_PRIORITY.itervalues():
+    for value in LOCATION_PRIORITY.values():
         if prioritized_cams[value] and value > rank:
             rank = value
     logger.debug('Returning %s' % str(prioritized_cams.get(rank)))
@@ -114,7 +114,7 @@ def post_event(mac_watch, cam, logger):
     event['alerttype'] = 'macWarning'
     try:
         event.post()
-    except Exception, why:
+    except Exception as why:
         logger.warning(why)
         return False
     return True
@@ -219,7 +219,7 @@ def main():
                 cam_by_mac[cam_obj.mac] = []
             cam_by_mac[cam_obj.mac].append(cam_obj)
 
-        for cams in cam_by_mac.itervalues():
+        for cams in cam_by_mac.values():
             logger.debug('Cam-objects length %d; cam-objects = %s' %
                          (len(cams), str(cams)))
             prioritized_cams = prioritize_location(cams, logger)

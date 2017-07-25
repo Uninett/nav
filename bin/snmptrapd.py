@@ -53,7 +53,7 @@ DEFAULT_ADDRESSES = (
     ('0.0.0.0', DEFAULT_PORT),
 )
 ADDRESS_PATTERNS = (
-    re.compile(r"(?P<addr>[0-9\.]+) (:(?P<port>[0-9]+))?$", re.VERBOSE),
+    re.compile(r"(?P<addr>[0-9.]+) (:(?P<port>[0-9]+))?$", re.VERBOSE),
 )
 if socket.has_ipv6 and agent.BACKEND == 'pynetsnmp':
     DEFAULT_ADDRESSES += (('::', DEFAULT_PORT),)

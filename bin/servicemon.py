@@ -133,7 +133,7 @@ class Controller:
             # reopen the logfile
             logfile_path = self.conf.get("logfile", "servicemon.log")
             LOGGER.info("Caught SIGHUP. Reopening logfile...")
-            logfile = file(logfile_path, 'a')
+            logfile = open(logfile_path, 'a')
             nav.daemon.redirect_std_fds(stdout=logfile, stderr=logfile)
 
             LOGGER.info("Reopened logfile: %s", logfile_path)
@@ -152,10 +152,10 @@ def main(fork):
     try:
         nav.daemon.justme(pidfilename)
     except nav.daemon.AlreadyRunningError:
-        otherpid = file(pidfilename, "r").read().strip()
+        otherpid = open(pidfilename, "r").read().strip()
         sys.stderr.write("servicemon is already running (pid: %s)\n" % otherpid)
         sys.exit(1)
-    except nav.daemon.DaemonError, e:
+    except nav.daemon.DaemonError as e:
         sys.stderr.write("%s\n" % e)
         sys.exit(1)
 
@@ -163,7 +163,7 @@ def main(fork):
         logfile_path = conf.get(
             'logfile',
             os.path.join(buildconf.localstatedir, 'log','servicemon.log'))
-        logfile = file(logfile_path, 'a')
+        logfile = open(logfile_path, 'a')
         nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
 
     my_controller = Controller(fork=fork)
@@ -182,6 +182,6 @@ def parse_args():
 
 
 if __name__ == '__main__':
-    os.umask(0002)
+    os.umask(0o0002)
     args = parse_args()
     main(not args.nofork)
