@@ -68,7 +68,7 @@ def main(options):
     if not profile:
         return
 
-    LOGGER.info('Starting automatic detentions based on %s' % profile.name)
+    LOGGER.info('Starting automatic detentions based on %s', profile.name)
     addresses = get_addresses_to_detain(options)
 
     detentions = []  # List of successfully blocked ip-addresses
@@ -102,11 +102,11 @@ def verify_options(options):
         profile = DetentionProfile.objects.get(pk=options.blockid)
     except DetentionProfile.DoesNotExist:
         LOGGER.debug(
-            "No such profile id: %s" % options.blockid)
+            "No such profile id: %s", options.blockid)
         return
 
     if profile.active == 'n':
-        LOGGER.info("Detention profile is inactive: %s" % options.blockid)
+        LOGGER.info("Detention profile is inactive: %s", options.blockid)
         return
 
     return profile
@@ -157,7 +157,7 @@ def parse_input(lines):
 
 def detain(address, profile, comment=''):
     """Detain address with the given profile"""
-    LOGGER.debug("Trying to detain %s" % address)
+    LOGGER.debug("Trying to detain %s", address)
 
     username = getpass.getuser()
     candidate = find_computer_info(address)
@@ -166,7 +166,7 @@ def detain(address, profile, comment=''):
             candidate.ip, profile.active_on_vlans):
         LOGGER.error(
             "%s is not inside defined vlanrange for this predefined "
-            "detention" % address)
+            "detention", address)
         return
 
     duration = find_duration(candidate, profile)
@@ -206,7 +206,7 @@ def find_duration(candidate, profile):
             if event:
                 autoenablestep = event[0].autoenablestep * 2
 
-    LOGGER.debug("Setting duration to %s days" % autoenablestep)
+    LOGGER.debug("Setting duration to %s days", autoenablestep)
     return autoenablestep
 
 
@@ -225,7 +225,7 @@ def report_detentions(profile, detentions):
         return
 
     for email, iplist in emails.items():
-        LOGGER.info("Sending mail to %s" % email)
+        LOGGER.info("Sending mail to %s", email)
 
         fromaddr = 'noreply'
         toaddr = email
@@ -249,11 +249,11 @@ def find_contact_addresses(detentions):
     for ip in detentions:
         organization = get_organization(ip)
         if not organization:
-            LOGGER.info("No organization found for %s" % ip)
+            LOGGER.info("No organization found for %s", ip)
             continue
 
         if not organization.contact:
-            LOGGER.info("No contact info for %s" % organization)
+            LOGGER.info("No contact info for %s", organization)
             continue
 
         dns = nav.arnold.get_host_name(ip)
