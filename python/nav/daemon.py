@@ -203,7 +203,7 @@ def justme(pidfile):
 
     # If pidfile exists (is readable)
     if os.access(pidfile, os.R_OK):
-        with file(pidfile, 'r') as pid_fd:
+        with open(pidfile, 'r') as pid_fd:
             pid = pid_fd.readline().strip()
 
         # Check if pidfile is empty (obscure, but we should handle it)
@@ -245,7 +245,7 @@ def writepidfile(pidfile):
     # Write pidfile
     pid = os.getpid()
     try:
-        pid_fd = file(pidfile, 'w+')
+        pid_fd = open(pidfile, 'w+')
     except IOError as error:
         _logger.debug('Cannot open pidfile %s for writing. Exiting. (%s)',
                       pidfile, error)
@@ -270,11 +270,11 @@ def redirect_std_fds(stdin=None, stdout=None, stderr=None):
         ``stderr`` file object to redirect stderr to
     """
     if stdin is None:
-        stdin = file(os.path.devnull, 'r')
+        stdin = open(os.path.devnull, 'r')
     if stdout is None:
-        stdout = file(os.path.devnull, 'w')
+        stdout = open(os.path.devnull, 'w')
     if stderr is None:
-        stderr = file(os.path.devnull, 'w')
+        stderr = open(os.path.devnull, 'w')
 
     # Make sure to flush and close before redirecting
     sys.stdout.flush()

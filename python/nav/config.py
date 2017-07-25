@@ -43,7 +43,7 @@ def read_flat_config(config_file, delimiter='='):
     if isinstance(config_file, basestring):
         if config_file[0] != os.sep:
             config_file = os.path.join(buildconf.sysconfdir, config_file)
-        config_file = file(config_file, 'r')
+        config_file = open(config_file, 'r')
 
     configuration = {}
     for line in config_file.readlines():
@@ -75,7 +75,7 @@ def getconfig(configfile, defaults=None, configfolder=None):
     if isinstance(configfile, basestring):
         if configfolder:
             configfile = os.path.join(configfolder, configfile)
-        configfile = file(configfile, 'r')
+        configfile = open(configfile, 'r')
 
     config = ConfigParser.RawConfigParser(defaults)
     config.readfp(configfile)

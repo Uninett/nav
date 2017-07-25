@@ -37,7 +37,7 @@ def gradient(start, stop, steps):
     steps = steps > 1 and steps-1 or 1
     increment = distance / float(steps)
     grad = []
-    for i in xrange(steps):
+    for i in range(steps):
         grad.append(int(round(start + i*increment)))
     grad.append(stop)
     return grad

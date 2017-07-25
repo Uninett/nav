@@ -176,7 +176,7 @@ def parse_conf(lines, filename):
     def error(msg):
         raise ConfigurationSyntaxError(msg, filename, linenr)
 
-    for linenr in xrange(1, len(lines)+1):
+    for linenr in range(1, len(lines)+1):
         line = normalize_line(lines[linenr-1])
         if line_empty_p(line):
             continue
@@ -207,7 +207,7 @@ def parse_conf_file(filename):
     filename -- absolute path to configuration file
 
     """
-    with file(filename) as conf:
+    with open(filename) as conf:
         lines = conf.readlines()
     return parse_conf(lines, filename)
 

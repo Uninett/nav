@@ -59,7 +59,7 @@ def quick_read(filename):
     """Read and return the contents of a file, or None if something went wrong.
     """
     try:
-        return file(filename).read().strip()
+        return open(filename).read().strip()
     except IOError:
         return None
 

@@ -1263,7 +1263,7 @@ class SwPortAllowedVlan(models.Model):
 
     def _calculate_allowed_vlans(self):
         octets = [self.hex_string[x:x + 2]
-                  for x in xrange(0, len(self.hex_string), 2)]
+                  for x in range(0, len(self.hex_string), 2)]
         string = ''.join(chr(int(o, 16)) for o in octets)
         bits = BitVector(string)
         return set(bits.get_set_bits())

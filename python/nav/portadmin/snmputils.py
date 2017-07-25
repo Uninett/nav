@@ -182,7 +182,7 @@ class SNMPHandler(object):
         """
         hexes = bitvector.to_hex()
         chunksize = len(bitvector.to_hex()) / chunks
-        for i in xrange(0, len(hexes), chunksize):
+        for i in range(0, len(hexes), chunksize):
             yield BitVector.from_hex(hexes[i:i + chunksize])
 
     def test_read(self):

@@ -100,7 +100,7 @@ class ReportList(object):
 
         report_pattern = re.compile(r"^\s*(\S+)\s*\{(.*?)\}$",
                                     re.M | re.S | re.I)
-        contents = file(config_file).read()
+        contents = open(config_file).read()
         reports = report_pattern.findall(contents)
 
         parser = ConfigParser(config_file, None)
@@ -148,8 +148,8 @@ class ConfigParser(object):
         """
 
         if self.config is None:
-            self.config = file(self.config_file).read()
-            self.config_local = file(self.config_file_local).read()
+            self.config = open(self.config_file).read()
+            self.config_local = open(self.config_file_local).read()
         report_pattern = re.compile(r"^\s*" + report_name + r"\s*\{(.*?)\}$",
                                     re.M | re.S | re.I)
         match = report_pattern.search(self.config)

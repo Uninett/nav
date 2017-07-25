@@ -349,7 +349,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                 serial = pow3_ch.get('pow3ChSerial', None)
                 name = pow3_ch.get('pow3ChName', None)
                 # sensors iwith postfix A - C
-                ports = [chr(i) for i in xrange(ord('A'), ord('D'))]
+                ports = [chr(i) for i in range(ord('A'), ord('D'))]
                 for port in ports:
                     sensors.append(self._make_result_dict(
                         pow3_ch_oid,
@@ -461,7 +461,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                 serial = ctrl3_ch.get('ctrl3ChSerial', None)
                 name = ctrl3_ch.get('ctrl3ChName', None)
                 # sensors A - C
-                postfixes = [chr(i) for i in xrange(ord('A'), ord('D'))]
+                postfixes = [chr(i) for i in range(ord('A'), ord('D'))]
                 for pfix in postfixes:
                     sensors.append(self._make_result_dict(
                         ctrl3_ch_oid,
@@ -509,7 +509,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                 ctrl_grp_amp_oid = ctrl_grp_amp.get(0, None)
                 serial = ctrl_grp_amp.get('ctrlGrpAmpsSerial', None)
                 name = ctrl_grp_amp_avail.get('ctrlGrpAmpsName', None)
-                postfixes = [chr(i) for i in xrange(ord('A'), ord('I'))]
+                postfixes = [chr(i) for i in range(ord('A'), ord('I'))]
                 for pfix in postfixes:
                     sensors.append(self._make_result_dict(
                         ctrl_grp_amp_oid,
@@ -629,7 +629,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                 dsts_sensor_oid = dsts_sensor.get(0, None)
                 serial = dsts_sensor.get('dstsSerial', None)
                 name = dsts_sensor.get('dstsName', None)
-                postfixes = [chr(i) for i in xrange(ord('A'), ord('C'))]
+                postfixes = [chr(i) for i in range(ord('A'), ord('C'))]
                 for pfix in postfixes:
                     sensors.append(self._make_result_dict(
                         dsts_sensor_oid,
@@ -746,7 +746,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                 ctrl3_chiect_oid = ctrl3_chiect.get(0, None)
                 serial = ctrl3_chiect.get('ctrl3ChIECSerial', None)
                 name = ctrl3_chiect.get('ctrl3ChIECName', None)
-                postfixes = [chr(i) for i in xrange(ord('A'), ord('D'))]
+                postfixes = [chr(i) for i in range(ord('A'), ord('D'))]
                 for pfix in postfixes:
                     sensors.append(self._make_result_dict(
                         ctrl3_chiect_oid,
