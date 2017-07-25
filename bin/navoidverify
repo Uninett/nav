@@ -82,7 +82,7 @@ def endit(_result):
 
 
 def parse_args():
-    """Builds an OptionParser and returns parsed program arguments"""
+    """Parses the command line arguments"""
     parser = ArgumentParser(
         description=
         "Verifies SNMP sub-tree support on a set of NAV-monitored devices",

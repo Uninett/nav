@@ -116,7 +116,7 @@ def endit(result):
 
 
 def parse_args():
-    """Builds an OptionParser and returns parsed program arguments"""
+    """Parses the command line arguments"""
     parser = argparse.ArgumentParser(
         description=
         "Outputs entity hierarchy graph from a device's "
