@@ -119,7 +119,8 @@ def main():
         logger.error("Could not load handlermodules %s" % why)
         sys.exit(1)
 
-    addresses_text = ", ".join(address_to_string(*addr) for addr in addresses)
+    addresses_text = ", ".join(address_to_string(*addr)
+                               for addr in opts.address)
     if opts.daemon:
         # Daemonize and listen for traps
         try:
