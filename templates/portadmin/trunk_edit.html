@@ -1,6 +1,14 @@
 {% extends 'portadmin/base.html' %}
 
 {% block page_content %}
+<script language="JavaScript">
+function toggle(source) {
+  checkboxes = document.getElementsByName('trunk_vlans');
+  for(var i=0, n=checkboxes.length;i<n;i++) {
+    checkboxes[i].checked = source.checked;
+  }
+}
+</script>
 
     {% if interface %}
 
@@ -23,7 +31,7 @@
                             <th>Description</th>
                             <th>Net Ident</th>
                             <th>Native</th>
-                            <th>Trunked</th>
+                            <th>Trunked <input type="checkbox" onClick="toggle(this)" style="al" /></th>
                         </tr>
                     </thead>
 
