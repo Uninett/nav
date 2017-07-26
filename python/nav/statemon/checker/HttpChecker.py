@@ -44,6 +44,8 @@ class HttpChecker(AbstractChecker):
     DESCRIPTION = "HTTP"
     OPTARGS = (
         ('url', ''),
+        ('username', ''),
+        ('password', ''),
         ('port', ''),
         ('timeout', ''),
     )
@@ -51,14 +53,20 @@ class HttpChecker(AbstractChecker):
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, service, port=0, **kwargs)
 
+    def connect(self, ip, port):
+        return HTTPConnection(self.timeout, ip, port)
+
     def execute(self):
         ip, port = self.get_address()
         url = self.args.get('url', '')
+        username = self.args.get('username')
+        password = self.args.get('password', '')
         if not url:
             url = "/"
         _protocol, vhost, path, query, _fragment = urlsplit(url)
 
-        i = HTTPConnection(self.timeout, ip, port or 80)
+        i = self.connect(ip, port or 80)
+
         if vhost:
             i.host = vhost
 
@@ -67,9 +75,12 @@ class HttpChecker(AbstractChecker):
         i.putrequest('GET', path)
         i.putheader('User-Agent',
                     'NAV/servicemon; version %s' % buildconf.VERSION)
+        if username:
+            auth = "%s:%s" % (username, password)
+            i.putheader("Authorization", "Basic %s" % auth.encode("base64"))
         i.endheaders()
         response = i.getresponse()
-        if 200 <= response.status < 400:
+        if 200 <= response.status < 400 or (response.status == 401 and not username):
             status = Event.UP
             version = response.getheader('SERVER')
             self.version = version
