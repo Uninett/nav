@@ -101,6 +101,7 @@ def make_argparser():
         help="delete from Radius accounting table")
     arg("--radiuslog", action="store_true",
         help="delete from Radius error log table")
+    arg("--netbox", action="store_true", help="delete from NETBOX table")
 
     return parser
 
@@ -192,6 +193,11 @@ class RadiusAcctDeleter(RecordDeleter):
 class RadiusLogDeleter(RecordDeleter):
     table = "radiuslog"
     selector = "WHERE time < {expiry}"
+
+
+class NetboxDeleter(RecordDeleter):
+    table = "netbox"
+    selector = "WHERE deleted_at IS NOT NULL"
 
 
 if __name__ == '__main__':
