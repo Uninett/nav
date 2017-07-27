@@ -49,6 +49,7 @@ class HttpChecker(AbstractChecker):
         ('port', ''),
         ('timeout', ''),
     )
+    PORT = 80
 
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, service, port=0, **kwargs)
@@ -65,7 +66,7 @@ class HttpChecker(AbstractChecker):
             url = "/"
         _protocol, vhost, path, query, _fragment = urlsplit(url)
 
-        i = self.connect(ip, port or 80)
+        i = self.connect(ip, port or self.PORT)
 
         if vhost:
             i.host = vhost

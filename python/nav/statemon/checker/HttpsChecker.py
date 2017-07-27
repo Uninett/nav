@@ -25,7 +25,7 @@ from nav.statemon.abstractchecker import AbstractChecker
 
 from ssl import wrap_socket
 
-from python.nav.statemon.checker.HttpChecker import HttpChecker
+from nav.statemon.checker.HttpChecker import HttpChecker
 
 
 class HTTPSConnection(httplib.HTTPSConnection):
@@ -45,5 +45,6 @@ class HTTPSConnection(httplib.HTTPSConnection):
 
 class HttpsChecker(HttpChecker):
     """HTTPS"""
-    def connect(self, timeout, ip, port):
-        return HTTPSConnection(timeout, ip, port)
+    PORT = 443
+    def connect(self, ip, port):
+        return HTTPSConnection(self.timeout, ip, port)
