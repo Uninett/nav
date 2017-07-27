@@ -24,6 +24,9 @@
             <th>MAC</th>
             <th>Start time</th>
             <th>End time</th>
+            {% if form_data.origin %}
+            <th>Router</th>
+            {% endif %}
         </tr>
     </thead>
 
@@ -64,6 +67,9 @@
                     {{ row.end_time|date:"Y-m-d H:i:s" }}
                 {% endif %}
             </td>
+            {% if form_data.origin %}
+            <td>{{row.netbox}}</td>
+            {% endif %}
         </tr>
         {% endfor %}
     {% endfor %}
