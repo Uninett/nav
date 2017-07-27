@@ -70,7 +70,7 @@ def task_form_initial(task=None, start_time=None):
             start_time = datetime.strptime(start_time, "%Y-%m-%d")
         else:
             start_time = datetime.today()
-        end_time = start_time + timedelta(weeks=1)
+        end_time = start_time + timedelta(days=1)
         initial = {
             'start_time': start_time.strftime("%Y-%m-%d %H:%M"),
             'end_time': end_time.strftime("%Y-%m-%d %H:%M"),
