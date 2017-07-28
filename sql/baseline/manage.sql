@@ -1423,6 +1423,72 @@ UPDATE snmpoid SET unit = 'bytes/s' WHERE oidkey = 'ifHCOutOctets';
 UPDATE snmpoid SET unit = 'bytes/s' WHERE oidkey = 'ifInOctets';
 UPDATE snmpoid SET unit = 'bytes/s' WHERE oidkey = 'ifOutOctets';
 
+-- Added because macwatch may use mac-address prefixes
+CREATE TABLE macwatch_match(
+  id SERIAL PRIMARY KEY,
+  macwatch INT NOT NULL REFERENCES macwatch(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  cam INT NOT NULL REFERENCES cam(camid) ON DELETE CASCADE ON UPDATE CASCADE,
+  posted TIMESTAMP DEFAULT NOW()
+);
+
+INSERT INTO macwatch_match (macwatch, cam, posted)
+  SELECT id, camid, posted
+    FROM macwatch
+  WHERE camid IS NOT NULL;
+
+ALTER TABLE macwatch ADD COLUMN prefix_length INT DEFAULT NULL;
+ALTER TABLE macwatch ADD CONSTRAINT macwatch_unique_mac UNIQUE (mac);
+ALTER TABLE macwatch DROP COLUMN camid;
+ALTER TABLE macwatch DROP COLUMN posted;
+ALTER TABLE macwatch DROP COLUMN login;
+
+-- Notify the eventEngine immediately as new events are inserted in the queue
+CREATE OR REPLACE RULE eventq_notify AS ON INSERT TO eventq DO ALSO NOTIFY new_event;
+
+-- remove useless cam constraints/indexes to prevent index bloat
+-- On some installs, the index may already have been manually removed. "DROP
+-- CONSTRAINT IF EXISTS" wasn't introduced until PostgreSQL 9,
+-- so we make a conditional drop function to accomplish this without errors
+-- here:
+
+CREATE OR REPLACE FUNCTION manage.drop_constraint(tbl_schema VARCHAR, tbl_name VARCHAR, const_name VARCHAR) RETURNS void AS $$
+DECLARE
+    exec_string TEXT;
+BEGIN
+    exec_string := 'ALTER TABLE ';
+    IF tbl_schema != NULL THEN
+        exec_string := exec_string || quote_ident(tbl_schema) || '.';
+    END IF;
+    exec_string := exec_string || quote_ident(tb_name)
+        || ' DROP CONSTRAINT '
+        || quote_ident(const_name);
+    EXECUTE exec_string;
+EXCEPTION
+    WHEN OTHERS THEN
+        NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT drop_constraint('manage', 'cam', 'cam_netboxid_key');
+DROP INDEX IF EXISTS cam_start_time_btree;
+
+-- Create trigger to delete rrd_file tuples regarding deleted prefix
+CREATE OR REPLACE RULE prefix_on_delete_do_clean_rrd_file AS ON DELETE TO prefix
+  DO DELETE FROM rrd_file
+      WHERE category = 'activeip'
+          AND key = 'prefix' AND CAST(value AS int) = OLD.prefixid;
+
+-- Fix uniqueness on quarantine vlans
+
+DELETE FROM quarantine_vlans WHERE quarantineid in (
+  SELECT q2.quarantineid
+  FROM quarantine_vlans q1
+  JOIN quarantine_vlans q2
+    ON (q1.vlan = q2.vlan AND q1.quarantineid < q2.quarantineid)
+    ORDER BY q1.quarantineid);
+
+ALTER TABLE quarantine_vlans ADD CONSTRAINT quarantine_vlan_unique UNIQUE (vlan);
+
 
 INSERT INTO schema_change_log (major, minor, point, script_name)
-    VALUES (3, 12, 111, 'initial install');
+    VALUES (3, 13, 15, 'initial install');

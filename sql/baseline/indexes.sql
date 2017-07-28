@@ -60,6 +60,7 @@ CREATE INDEX cam_open_records_by_netbox ON cam USING btree (netboxid) WHERE end_
 
 CREATE INDEX ipdevpoll_job_log_netboxjob_btree ON ipdevpoll_job_log (netboxid, job_name);
 
+CREATE INDEX rrd_datasource_rrd_fileid_btree ON rrd_datasource(rrd_fileid);
 
 ----------------------------------------------
 -- Create lookup indexes on profiles tables --
