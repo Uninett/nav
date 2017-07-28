@@ -58,6 +58,9 @@ CREATE INDEX alerthist_open_states_by_eventtype ON alerthist USING btree (netbox
 
 CREATE INDEX cam_open_records_by_netbox ON cam USING btree (netboxid) WHERE end_time >= 'infinity' OR misscnt >= 0;
 
+CREATE INDEX ipdevpoll_job_log_netboxjob_btree ON ipdevpoll_job_log (netboxid, job_name);
+
+
 ----------------------------------------------
 -- Create lookup indexes on profiles tables --
 ----------------------------------------------

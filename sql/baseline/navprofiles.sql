@@ -1114,6 +1114,52 @@ INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUE
 INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (4, 'Modules down/in shadow', 4, 'module', 0, 'n,s');
 INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (5, 'Services down', 5, 'service', 0, 'n,s');
 
+-- netmap_view
+CREATE TABLE profiles.netmap_view (
+  viewid SERIAL,
+  owner INT4 NOT NULL REFERENCES account ON UPDATE CASCADE ON DELETE CASCADE,
+  title VARCHAR NOT NULL,
+  link_types VARCHAR NOT NULL,
+  zoom VARCHAR NOT NULL,
+  is_public BOOLEAN NOT NULL DEFAULT FALSE,
+  last_modified TIMESTAMP NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (viewid)
+);
+COMMENT ON TABLE netmap_view IS 'Stored views with settings for NetMap';
+
+CREATE TABLE profiles.netmap_view_categories (
+  id SERIAL,
+  viewid INT4 CONSTRAINT netmapview_fkey REFERENCES netmap_view ON UPDATE CASCADE ON DELETE CASCADE,
+  catid VARCHAR(8) CONSTRAINT netmapview_category_fkey REFERENCES cat ON UPDATE CASCADE ON DELETE CASCADE,
+  PRIMARY KEY (viewid, catid)
+);
+
+CREATE TABLE profiles.netmap_view_nodeposition (
+  id SERIAL,
+  viewid INT4 NOT NULL REFERENCES netmap_view ON UPDATE CASCADE ON DELETE CASCADE,
+  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  x INT4 NOT NULL,
+  y INT4 NOT NULL,
+  PRIMARY KEY (viewid, netboxid)
+);
+
+TRUNCATE TABLE netmap_view CASCADE;
+ALTER TABLE netmap_view ADD COLUMN topology INT4 NOT NULL;
+ALTER TABLE netmap_view DROP COLUMN link_types;
+ALTER TABLE netmap_view ADD COLUMN display_elinks BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE netmap_view ADD COLUMN display_orphans BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE netmap_view ADD COLUMN description TEXT DEFAULT null;
+
+-- netmap_view_defaultview
+CREATE TABLE profiles.netmap_view_defaultview (
+  id SERIAL,
+  viewid INT4 NOT NULL REFERENCES netmap_view ON UPDATE CASCADE ON DELETE CASCADE,
+  ownerid INT4 NOT NULL REFERENCES account ON UPDATE CASCADE ON DELETE CASCADE,
+  PRIMARY KEY (viewid, ownerid)
+);
+COMMENT ON TABLE netmap_view_defaultview IS 'Stores default views for users in Netmap';
+
+
 /*
 ------------------------------------------------------
  EOF

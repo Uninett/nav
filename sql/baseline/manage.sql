@@ -1029,17 +1029,6 @@ CREATE TABLE message_to_maint_task (
 CREATE OR REPLACE VIEW maint AS
     SELECT * FROM maint_task NATURAL JOIN maint_component;
 
-
-------------------------------------------------------------------------------
--- netmap helper tables
-------------------------------------------------------------------------------
-
-CREATE TABLE netmap_position(
-sysname VARCHAR PRIMARY KEY NOT NULL,
-xpos double precision NOT NULL,
-ypos double precision NOT NULL
-);
-
 ------------------------------------------------------------------------------
 -- log of schema changes
 ------------------------------------------------------------------------------
@@ -1199,6 +1188,241 @@ INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (8, 'L
 
 UPDATE matchfield SET list_limit=1000 WHERE list_limit < 1000;
 
+ALTER TABLE gwportprefix RENAME COLUMN hsrp TO virtual;
+
+-- Create a log table for ipdevpoll job runs
+CREATE TABLE manage.ipdevpoll_job_log (
+  id BIGSERIAL NOT NULL PRIMARY KEY,
+  netboxid INTEGER NOT NULL,
+  job_name VARCHAR NOT NULL,
+  end_time TIMESTAMP NOT NULL,
+  duration DOUBLE PRECISION,
+  success BOOLEAN NOT NULL,
+  "interval" INTEGER,
+
+  CONSTRAINT ipdevpoll_job_log_netbox_fkey FOREIGN KEY (netboxid)
+             REFERENCES netbox (netboxid)
+             ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TRIGGER trig_trim_old_ipdevpoll_job_log_entries_on_insert
+    AFTER INSERT ON ipdevpoll_job_log
+    FOR EACH ROW
+    EXECUTE PROCEDURE trim_old_ipdevpoll_job_log_entries();
+
+-- Grant web access to unauthorized ajax requests
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
+  SELECT 2, 2, '^/ajax/open/?' WHERE NOT EXISTS (
+    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid=2 AND privilegeid=2 AND target='^/ajax/open/?'
+  )
+;
+
+-- Add column for storing rrd-file category
+ALTER TABLE rrd_file ADD category VARCHAR
+
+-- Insert oids used to check for ipv6 interface counters
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, mib)
+  SELECT 'ipIfStatsHCInOctets.ipv4', '1.3.6.1.2.1.4.31.3.1.6.1', 'Cricket', 'IP-MIB' WHERE NOT EXISTS (
+    SELECT * FROM snmpoid WHERE oidkey = 'ipIfStatsHCInOctets.ipv4'
+  )
+;
+
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, mib)
+  SELECT 'ipIfStatsHCInOctets.ipv6', '1.3.6.1.2.1.4.31.3.1.6.2', 'Cricket', 'IP-MIB' WHERE NOT EXISTS (
+    SELECT * FROM snmpoid WHERE oidkey = 'ipIfStatsHCInOctets.ipv6'
+  )
+;
+
+-- Grant web access to osm map redirects
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
+  SELECT 2, 2, '^/info/osm_map_redirect/?' WHERE NOT EXISTS (
+    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid=2 AND privilegeid=2 AND target = '^/info/osm_map_redirect/?'
+  )
+;
+
+-- Grant web access to /info for authenticated users
+UPDATE AccountGroupPrivilege SET
+        target = '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap|info|netmap)/?'
+  WHERE target = '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap)/?'
+;
+
+CREATE OR REPLACE FUNCTION trim_old_ipdevpoll_job_log_entries()
+RETURNS TRIGGER AS '
+    BEGIN
+        DELETE FROM ipdevpoll_job_log
+        WHERE id IN (SELECT id FROM ipdevpoll_job_log
+                     WHERE job_name=NEW.job_name AND netboxid=NEW.netboxid
+                     ORDER BY end_time DESC
+                     OFFSET 100);
+        RETURN NULL;
+    END;
+    ' language 'plpgsql';
+
+UPDATE snmpoid SET oidsource = 'IP-MIB' WHERE oidkey ~* 'ipIfStatsHCInOctets';
+
+-- automatically close snmpAgentStates when community is removed.
+
+CREATE OR REPLACE FUNCTION close_snmpagentstates_on_community_clear()
+RETURNS TRIGGER AS E'
+    BEGIN
+        IF COALESCE(OLD.ro, \'\') IS DISTINCT FROM COALESCE(NEW.ro, \'\')
+           AND COALESCE(NEW.ro, \'\') = \'\' THEN
+            UPDATE alerthist
+            SET end_time=NOW()
+            WHERE netboxid=NEW.netboxid
+              AND eventtypeid=\'snmpAgentState\'
+              AND end_time >= \'infinity\';
+        END IF;
+        RETURN NULL;
+    END;
+    ' language 'plpgsql';
+
+CREATE TRIGGER trig_close_snmpagentstates_on_community_clear
+    AFTER UPDATE ON netbox
+    FOR EACH ROW
+    EXECUTE PROCEDURE close_snmpagentstates_on_community_clear();
+
+-- also close any currently wrongfully open SNMP states
+UPDATE alerthist
+SET end_time=NOW()
+FROM netbox
+WHERE eventtypeid='snmpAgentState'
+  AND end_time >= 'infinity'
+  AND alerthist.netboxid = netbox.netboxid
+  AND COALESCE(netbox.ro, '') = '';
+
+INSERT INTO subsystem VALUES ('powersupplywatch');
+
+-- create new event and alert types for fan and psu alerts
+
+INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
+  ('psuState', 'Reports state changes in power supply units', 'y');
+
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('psuState', 'psuNotOK', 'A PSU has entered a non-OK state');
+
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('psuState', 'psuOK', 'A PSU has returned to an OK state');
+
+
+INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
+  ('fanState', 'Reports state changes in fan units', 'y');
+
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('fanState', 'fanNotOK', 'A fan unit has entered a non-OK state');
+
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('fanState', 'fanOK', 'A fan unit has returned to an OK state');
+
+-- rename logging jobs to ip2mac in ipdevpoll job log table
+UPDATE ipdevpoll_job_log SET job_name = 'ip2mac' WHERE job_name = 'logging';
+
+-- Add unit column to snmpoid table for storing of units
+ALTER TABLE snmpoid ADD unit VARCHAR;
+
+
+-- Insert some default units
+UPDATE snmpoid SET unit = 'Mbit/s' WHERE oidkey = 'c1900Bandwidth';
+UPDATE snmpoid SET unit = 'Mbit/s' WHERE oidkey = 'c1900BandwidthMax';
+UPDATE snmpoid SET unit = 'Mbit/s' WHERE oidkey = 'c2900Bandwidth';
+UPDATE snmpoid SET unit = 'Mbit/s' WHERE oidkey = 'c5000Bandwidth';
+UPDATE snmpoid SET unit = 'Mbit/s' WHERE oidkey = 'c5000BandwidthMax';
+UPDATE snmpoid SET unit = '%' WHERE oidkey = 'cpu1min';
+UPDATE snmpoid SET unit = '%' WHERE oidkey = 'cpu5min';
+UPDATE snmpoid SET unit = '%' WHERE oidkey = 'hpcpu';
+UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'hpmem5minFree';
+UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'hpmem5minUsed';
+UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'mem5minFree';
+UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'mem5minUsed';
+UPDATE snmpoid SET unit = '%' WHERE oidkey = 'ucd_cpuIdle';
+UPDATE snmpoid SET unit = '%' WHERE oidkey = 'ucd_cpuSystem';
+UPDATE snmpoid SET unit = '%' WHERE oidkey = 'ucd_cpuUser';
+UPDATE snmpoid SET unit = 'load' WHERE oidkey = 'ucd_load15min';
+UPDATE snmpoid SET unit = 'load' WHERE oidkey = 'ucd_load1min';
+UPDATE snmpoid SET unit = 'load' WHERE oidkey = 'ucd_load5min';
+UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ucd_memrealAvail';
+UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ucd_memswapAvail';
+UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ucd_memtotalAvail';
+UPDATE snmpoid SET unit = 'timeticks' WHERE oidkey = 'sysUpTime';
+
+UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ipIfStatsHCInOctets.ipv6';
+UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ipIfStatsHCInOctets.ipv4';
+UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ifHCInOctets';
+UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifHCInUcastPkts';
+UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ifHCOutOctets';
+UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifHCOutUcastPkts';
+UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifInDiscards';
+UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifInErrors';
+UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifInNUcastPkts';
+UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ifInOctets';
+UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifInUcastPkts';
+UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifInUnknownProtos';
+UPDATE snmpoid SET unit = 'timeticks' WHERE oidkey = 'ifLastChange';
+UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifOutDiscards';
+UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifOutErrors';
+UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifOutNUcastPkts';
+UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ifOutOctets';
+UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifOutQLen';
+UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifOutUcastPkts';
+
+-- automatically close thresholdState when threshold in rrd_datasource is removed.
+CREATE OR REPLACE FUNCTION close_thresholdstate_on_threshold_delete()
+RETURNS TRIGGER AS E'
+  BEGIN
+    IF TG_OP = \'DELETE\' THEN
+      UPDATE alerthist
+        SET end_time = NOW()
+          WHERE subid = CAST(OLD.rrd_datasourceid AS text)
+            AND eventtypeid = \'thresholdState\'
+              AND end_time >= \'infinity\';
+    END IF;
+    IF TG_OP = \'UPDATE\' THEN
+        IF COALESCE(OLD.threshold, \'\') IS 
+            DISTINCT FROM COALESCE(NEW.threshold, \'\')
+                AND COALESCE(NEW.threshold, \'\') = \'\' THEN
+            UPDATE alerthist
+                SET end_time = NOW()
+                    WHERE subid = CAST(NEW.rrd_datasourceid AS text)
+                        AND eventtypeid = \'thresholdState\'
+                            AND end_time >= \'infinity\';
+        END IF;
+    END IF;
+    RETURN NULL;
+  END;
+  'language 'plpgsql';
+
+CREATE TRIGGER trig_close_thresholdstate_on_threshold_delete
+    AFTER UPDATE OR DELETE ON rrd_datasource
+    FOR EACH ROW
+    EXECUTE PROCEDURE close_thresholdstate_on_threshold_delete();
+
+-- also close any currently wrongfully open threshold states
+UPDATE alerthist
+    SET end_time = NOW()
+    FROM rrd_datasource
+        WHERE eventtypeid = 'thresholdState'
+            AND end_time >= 'infinity'
+            AND subid NOT IN
+                (SELECT CAST(rrd_datasource.rrd_datasourceid AS text)
+                    FROM rrd_datasource);
+
+UPDATE alerthist
+    SET end_time = NOW()
+    FROM rrd_datasource
+        WHERE eventtypeid = 'thresholdState'
+            AND end_time >= 'infinity'
+            AND alerthist.subid = CAST(rrd_datasource.rrd_datasourceid AS text)
+            AND COALESCE(rrd_datasource.threshold, '') = '';
+
+-- Alter unit on octets
+
+UPDATE snmpoid SET unit = 'bytes/s' WHERE oidkey = 'ipIfStatsHCInOctets.ipv6';
+UPDATE snmpoid SET unit = 'bytes/s' WHERE oidkey = 'ipIfStatsHCInOctets.ipv4';
+UPDATE snmpoid SET unit = 'bytes/s' WHERE oidkey = 'ifHCInOctets';
+UPDATE snmpoid SET unit = 'bytes/s' WHERE oidkey = 'ifHCOutOctets';
+UPDATE snmpoid SET unit = 'bytes/s' WHERE oidkey = 'ifInOctets';
+UPDATE snmpoid SET unit = 'bytes/s' WHERE oidkey = 'ifOutOctets';
+
 
 INSERT INTO schema_change_log (major, minor, point, script_name)
-    VALUES (3, 11, 13, 'initial install');
+    VALUES (3, 12, 111, 'initial install');
