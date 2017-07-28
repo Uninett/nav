@@ -1062,4 +1062,4 @@ CREATE TABLE schema_change_log (
     date_applied TIMESTAMP NOT NULL DEFAULT NOW()
 );
 INSERT INTO schema_change_log (major, minor, point, script_name)
-    VALUES (3, 8, 0, 'initial install');
+    VALUES (3, 8, 1, 'initial install');
