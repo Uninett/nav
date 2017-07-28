@@ -1159,6 +1159,14 @@ CREATE TABLE profiles.netmap_view_defaultview (
 );
 COMMENT ON TABLE netmap_view_defaultview IS 'Stores default views for users in Netmap';
 
+CREATE TABLE profiles.accounttool(
+  account_tool_id SERIAL PRIMARY KEY,
+  toolname VARCHAR,
+  accountid INTEGER NOT NULL REFERENCES account(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  display BOOLEAN DEFAULT TRUE,
+  priority INTEGER DEFAULT 0
+);
+
 
 /*
 ------------------------------------------------------

@@ -1470,7 +1470,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 SELECT drop_constraint('manage', 'cam', 'cam_netboxid_key');
-DROP INDEX IF EXISTS cam_start_time_btree;
 
 -- Create trigger to delete rrd_file tuples regarding deleted prefix
 CREATE OR REPLACE RULE prefix_on_delete_do_clean_rrd_file AS ON DELETE TO prefix
@@ -1489,6 +1488,33 @@ DELETE FROM quarantine_vlans WHERE quarantineid in (
 
 ALTER TABLE quarantine_vlans ADD CONSTRAINT quarantine_vlan_unique UNIQUE (vlan);
 
+-- Create table for netbios names
+
+CREATE TABLE netbios (
+  netbiosid SERIAL PRIMARY KEY,
+  ip INET NOT NULL,
+  mac MACADDR NOT NULL,
+  name VARCHAR NOT NULL,
+  server VARCHAR NOT NULL,
+  username VARCHAR NOT NULL,
+  start_time TIMESTAMP NOT NULL,
+  end_time TIMESTAMP NOT NULL DEFAULT 'infinity'
+);
+
+-- Make MAC addresses optional for netbios entries
+ALTER TABLE netbios ALTER COLUMN mac DROP NOT NULL;
+
+-- fix view that gives wrong ip count in VRRP/HSRP environments
+CREATE OR REPLACE VIEW manage.prefix_active_ip_cnt AS
+(SELECT prefix.prefixid, COUNT(DISTINCT arp.ip) AS active_ip_cnt
+ FROM prefix
+ LEFT JOIN arp ON arp.ip << prefix.netaddr
+ WHERE arp.end_time = 'infinity'
+ GROUP BY prefix.prefixid);
+
+UPDATE rrd_file SET category='port-counters'
+  WHERE category IN ('router-interfaces-counters', 'switch-port-counters');
+
 
 INSERT INTO schema_change_log (major, minor, point, script_name)
-    VALUES (3, 13, 15, 'initial install');
+    VALUES (3, 14, 7, 'initial install');

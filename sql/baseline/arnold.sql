@@ -64,3 +64,7 @@ detainmenttype VARCHAR CHECK (detainmenttype='disable' OR detainmenttype='quaran
 quarantineid INT REFERENCES quarantine_vlans ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+-- Create field for storing textual representation of the interface when detaining
+
+ALTER table arnold.identity ADD textual_interface VARCHAR DEFAULT '';
+
