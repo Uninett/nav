@@ -1061,5 +1061,41 @@ CREATE TABLE schema_change_log (
     script_name VARCHAR NOT NULL,
     date_applied TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('info','macWarning','Mac appeared on port');
+
+------------------------------------------------------------------------------
+-- mac watch table for storing watched mac addresses
+------------------------------------------------------------------------------
+CREATE TABLE manage.macwatch (
+  id SERIAL PRIMARY KEY,
+  camid INT REFERENCES cam(camid) ON DELETE CASCADE ON UPDATE CASCADE,
+  mac MACADDR NOT NULL,
+  posted TIMESTAMP,
+  userid INT REFERENCES account(id) ON DELETE SET NULL ON UPDATE CASCADE,
+  login VARCHAR,
+  description VARCHAR,
+  created TIMESTAMP DEFAULT NOW()
+);
+
+INSERT INTO subsystem (
+  SELECT 'macwatch' AS name
+  WHERE NOT EXISTS (
+    SELECT name FROM subsystem WHERE name='macwatch'));
+
+CREATE OR REPLACE RULE netbox_status_close_arp AS ON UPDATE TO netbox
+   WHERE NEW.up='n'
+   DO UPDATE arp SET end_time=NOW()
+     WHERE netboxid=OLD.netboxid AND end_time='infinity';
+
+UPDATE snmpoid SET uptodate=FALSE WHERE oidsource ILIKE 'cricket';
+
+ALTER TABLE rrd_file DROP CONSTRAINT rrd_file_netboxid_fkey;
+ALTER TABLE rrd_file ADD CONSTRAINT rrd_file_netboxid_fkey
+  FOREIGN KEY (netboxid) REFERENCES netbox(netboxid)
+  ON UPDATE CASCADE ON DELETE CASCADE;
+
+
 INSERT INTO schema_change_log (major, minor, point, script_name)
-    VALUES (3, 8, 1, 'initial install');
+    VALUES (3, 9, 6, 'initial install');
