@@ -350,16 +350,6 @@ CREATE TABLE iana_iftype (
   CONSTRAINT iftype_pkey PRIMARY KEY (iftype)
 );
 
-CREATE TABLE swp_netbox (
-  swp_netboxid SERIAL PRIMARY KEY,
-  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  ifindex INT4 NOT NULL,
-  to_netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  to_interfaceid INT4 REFERENCES interface (interfaceid) ON UPDATE CASCADE ON DELETE SET NULL,
-  misscnt INT4 NOT NULL DEFAULT '0',
-  UNIQUE(netboxid, ifindex, to_netboxid)
-);
-
 CREATE TABLE gwportprefix (
   interfaceid INT4 NOT NULL REFERENCES interface ON UPDATE CASCADE ON DELETE CASCADE,
   prefixid INT4 NOT NULL REFERENCES prefix ON UPDATE CASCADE ON DELETE CASCADE,
@@ -1176,6 +1166,39 @@ CREATE OR REPLACE RULE close_alerthist_netboxes AS ON DELETE TO netbox
      WHERE netboxid=OLD.netboxid
        AND end_time='infinity';
 
+-- swp_netbox replacement table
+CREATE TABLE manage.adjacency_candidate (
+  adjacency_candidateid SERIAL PRIMARY KEY,
+  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  interfaceid INT4 NOT NULL REFERENCES interface ON UPDATE CASCADE ON DELETE CASCADE,
+  to_netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  to_interfaceid INT4 REFERENCES interface ON UPDATE CASCADE ON DELETE SET NULL,
+  source VARCHAR NOT NULL,
+  misscnt INT4 NOT NULL DEFAULT 0,
+  CONSTRAINT adjacency_candidate_uniq UNIQUE(netboxid, interfaceid, to_netboxid, source)
+);
+
+DELETE FROM netboxinfo WHERE key='unrecognizedCDP';
+
+-- new unrecognized neighbors table
+CREATE TABLE manage.unrecognized_neighbor (
+  id SERIAL PRIMARY KEY,
+  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  interfaceid INT4 NOT NULL REFERENCES interface ON UPDATE CASCADE ON DELETE CASCADE,
+  remote_id VARCHAR NOT NULL,
+  remote_name VARCHAR NOT NULL,
+  source VARCHAR NOT NULL,
+  since TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+COMMENT ON TABLE unrecognized_neighbor IS 'Unrecognized neighboring devices reported by support discovery protocols';
+
+INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (6, 'Thresholds exceeded', 6, 'threshold', 0);
+INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (7, 'SNMP agents down', 7, 'snmpagent', 0);
+INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (8, 'Links down', 8, 'linkstate', 0);
+
+UPDATE matchfield SET list_limit=1000 WHERE list_limit < 1000;
+
 
 INSERT INTO schema_change_log (major, minor, point, script_name)
-    VALUES (3, 10, 7, 'initial install');
+    VALUES (3, 11, 13, 'initial install');

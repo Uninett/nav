@@ -54,6 +54,9 @@ CREATE INDEX alerthistmsg_alerthistid_btree ON alerthistmsg USING btree (alerthi
 
 CREATE INDEX alerthistvar_alerthistid_btree ON alerthistvar USING btree (alerthistid);
 
+CREATE INDEX alerthist_open_states_by_eventtype ON alerthist USING btree (netboxid, eventtypeid) WHERE end_time >= 'infinity';
+
+CREATE INDEX cam_open_records_by_netbox ON cam USING btree (netboxid) WHERE end_time >= 'infinity' OR misscnt >= 0;
 
 ----------------------------------------------
 -- Create lookup indexes on profiles tables --
