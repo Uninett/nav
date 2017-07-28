@@ -49,7 +49,6 @@ class MachineTrackerForm(forms.Form):
 
 class IpTrackerForm(MachineTrackerForm):
     """Form for searching by IP-address"""
-    # IPAddressField only supports IPv4 as of Django 1.1
     choices = [('active', 'Active'), ('inactive', 'Inactive'),
                ('both', 'Both')]
 
