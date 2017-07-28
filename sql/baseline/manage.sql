@@ -1096,6 +1096,86 @@ ALTER TABLE rrd_file ADD CONSTRAINT rrd_file_netboxid_fkey
   FOREIGN KEY (netboxid) REFERENCES netbox(netboxid)
   ON UPDATE CASCADE ON DELETE CASCADE;
 
+CREATE TABLE manage.sensor (
+  sensorid SERIAL PRIMARY KEY,
+  netboxid INT REFERENCES netbox(netboxid) ON DELETE CASCADE ON UPDATE CASCADE,
+  oid VARCHAR,
+  unit_of_measurement VARCHAR,
+  precision integer default 0,
+  data_scale VARCHAR,
+  human_readable VARCHAR,
+  name VARCHAR,
+  internal_name VARCHAR,
+  mib VARCHAR
+);
+
+CREATE TABLE manage.powersupply_or_fan (
+    powersupplyid SERIAL PRIMARY KEY,
+    netboxid INT REFERENCES netbox(netboxid) ON DELETE CASCADE ON UPDATE CASCADE,
+    deviceid INT REFERENCES device(deviceid) ON DELETE CASCADE ON UPDATE CASCADE,
+    name VARCHAR NOT NULL,
+    model VARCHAR,
+    descr VARCHAR,
+    physical_class VARCHAR not null,
+    downsince TIMESTAMP default null,
+    sensor_oid VARCHAR,
+    up CHAR(1) NOT NULL DEFAULT 'u' CHECK (up='y' OR up='n' or up='u' or up='w')
+);
+
+INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
+  ('snmpAgentState', 'Tells us whether the SNMP agent on a device is down or up.', 'y');
+
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('snmpAgentState', 'snmpAgentDown', 'SNMP agent is down or unreachable due to misconfiguration.');
+
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('snmpAgentState', 'snmpAgentUp', 'SNMP agent is up.');
+
+INSERT INTO subsystem (name) VALUES ('ipdevpoll');
+
+ALTER SEQUENCE eventqvar_id_seq OWNED BY manage.eventqvar.id;
+ALTER SEQUENCE accountgroup_accounts_id_seq OWNED BY profiles.accountgroup_accounts.id;
+ALTER SEQUENCE accountproperty_id_seq OWNED BY profiles.accountproperty.id;
+ALTER SEQUENCE alertsender_id_seq OWNED BY profiles.alertsender.id;
+ALTER SEQUENCE alertprofile_id_seq OWNED BY profiles.alertprofile.id;
+ALTER SEQUENCE alertaddress_id_seq OWNED BY profiles.alertaddress.id;
+ALTER SEQUENCE timeperiod_id_seq OWNED BY profiles.timeperiod.id;
+ALTER SEQUENCE filtergroup_group_permission_id_seq OWNED BY profiles.filtergroup_group_permission.id;
+ALTER SEQUENCE filtergroup_id_seq OWNED BY profiles.filtergroup.id;
+ALTER SEQUENCE filtergroupcontent_id_seq OWNED BY profiles.filtergroupcontent.id;
+ALTER SEQUENCE expression_id_seq OWNED BY profiles.expression.id;
+ALTER SEQUENCE filter_id_seq OWNED BY profiles.filter.id;
+ALTER SEQUENCE operator_operator_id_seq OWNED BY profiles.operator.operator_id;
+ALTER SEQUENCE operator_id_seq OWNED BY profiles.operator.id;
+ALTER SEQUENCE matchfield_id_seq OWNED BY profiles.matchfield.id;
+ALTER SEQUENCE alertsubscription_id_seq OWNED BY profiles.alertsubscription.id;
+ALTER SEQUENCE accountnavbar_id_seq OWNED BY profiles.accountnavbar.id;
+ALTER SEQUENCE navbarlink_id_seq OWNED BY profiles.navbarlink.id;
+ALTER SEQUENCE accountorg_id_seq OWNED BY profiles.accountorg.id;
+ALTER SEQUENCE account_id_seq OWNED BY profiles.account.id;
+ALTER SEQUENCE accountgroup_id_seq OWNED BY profiles.accountgroup.id;
+ALTER SEQUENCE accountgroupprivilege_id_seq OWNED BY profiles.accountgroupprivilege.id;
+ALTER SEQUENCE privilege_id_seq OWNED BY profiles.privilege.privilegeid;
+ALTER SEQUENCE statuspreference_organization_id_seq OWNED BY profiles.statuspreference_organization.id;
+ALTER SEQUENCE statuspreference_id_seq OWNED BY profiles.statuspreference.id;
+ALTER SEQUENCE statuspreference_category_id_seq OWNED BY profiles.statuspreference_category.id;
+
+-- Ensure any associated service alerts are closed when a service is deleted
+CREATE RULE close_alerthist_services
+  AS ON DELETE TO service DO
+  UPDATE alerthist SET end_time=NOW()
+  WHERE
+    eventtypeid='serviceState'
+    AND end_time='infinity'
+    AND subid = old.serviceid::text;
+
+-- Rule to automatically resolve netbox related alert states when netboxes are
+-- deleted.
+CREATE OR REPLACE RULE close_alerthist_netboxes AS ON DELETE TO netbox
+  DO UPDATE alerthist SET end_time=NOW()
+     WHERE netboxid=OLD.netboxid
+       AND end_time='infinity';
+
 
 INSERT INTO schema_change_log (major, minor, point, script_name)
-    VALUES (3, 9, 6, 'initial install');
+    VALUES (3, 10, 7, 'initial install');
