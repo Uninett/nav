@@ -133,22 +133,6 @@ CREATE TABLE type (
   UNIQUE (sysObjectID)
 );
 
-CREATE TABLE snmpoid (
-  snmpoidid SERIAL PRIMARY KEY,
-  oidkey VARCHAR NOT NULL,
-  snmpoid VARCHAR NOT NULL,
-  oidsource VARCHAR,
-  getnext BOOLEAN NOT NULL DEFAULT true,
-  decodehex BOOLEAN NOT NULL DEFAULT false,
-  match_regex VARCHAR,
-  defaultfreq INT4 NOT NULL DEFAULT 21600,
-  uptodate BOOLEAN NOT NULL DEFAULT false,
-  descr VARCHAR,
-  oidname VARCHAR,
-  mib VARCHAR,
-  UNIQUE(oidkey)
-);
-
 CREATE TABLE netbox (
   netboxid SERIAL PRIMARY KEY,
   ip INET NOT NULL,
@@ -169,18 +153,6 @@ CREATE TABLE netbox (
   UNIQUE(deviceid)
 );
 
--- These rules make sure to invalidate all netbox SNMP profiles when
--- new snmpoids are inserted, or existing ones updated.
-CREATE RULE reprofile_netboxes_on_snmpoid_insert
-  AS ON INSERT TO snmpoid
-  DO ALSO
-    UPDATE netbox SET uptodate=false;
-
-CREATE RULE reprofile_netboxes_on_snmpoid_update
-  AS ON UPDATE TO snmpoid
-  DO ALSO
-    UPDATE netbox SET uptodate=false;
-
 -- View to match each netbox with a prefix
 -- Multiple prefixes may match netbox.ip, but only the one with the longest
 -- mask is interesting.
@@ -192,15 +164,6 @@ CREATE VIEW netboxprefix AS
           ORDER BY masklen(prefix.netaddr::inet) DESC
           LIMIT 1) AS prefixid
   FROM netbox;
-
-CREATE TABLE netboxsnmpoid (
-  id SERIAL,
-  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  snmpoidid INT4 NOT NULL REFERENCES snmpoid ON UPDATE CASCADE ON DELETE CASCADE,
-  frequency INT4,
-  PRIMARY KEY(id),
-  UNIQUE(netboxid, snmpoidid)
-);  
 
 CREATE TABLE netbox_vtpvlan (
   id SERIAL,
@@ -622,45 +585,6 @@ INSERT INTO subsystem (name) VALUES ('devBrowse');
 INSERT INTO subsystem (name) VALUES ('maintenance');
 INSERT INTO subsystem (name) VALUES ('snmptrapd');
 
--- Each rrdfile should be registered here. We need the path to find it,
--- and also a link to which unit or service it has data about to easily be
--- able to select all relevant files to a unit or service. Key and value
--- are meant to be combined and thereby point to a specific row in the db.
-CREATE TABLE rrd_file (
-  rrd_fileid    SERIAL PRIMARY KEY,
-  path      VARCHAR NOT NULL, -- complete path to the rrdfile
-  filename  VARCHAR NOT NULL, -- name of the rrdfile (including the .rrd)
-  step      INT, -- the number of seconds between each update
-  subsystem VARCHAR REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
-  netboxid  INT REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
-  key       VARCHAR,
-  value     VARCHAR,
-  CONSTRAINT rrd_file_path_filename_key UNIQUE (path, filename)
-);
-
--- Each datasource for each rrdfile is registered here. We need the name and
--- desc for instance in Cricket. Cricket has the name ds0, ds1 and so on, and
--- to understand what that is for humans we need the descr.
-CREATE TABLE rrd_datasource (
-  rrd_datasourceid  SERIAL PRIMARY KEY,
-  rrd_fileid        INT REFERENCES rrd_file ON UPDATE CASCADE ON DELETE CASCADE,
-  name          VARCHAR, -- name of the datasource in the file
-  descr         VARCHAR, -- human-understandable name of the datasource
-  dstype        VARCHAR CHECK (dstype='GAUGE' OR dstype='DERIVE' OR dstype='COUNTER' OR dstype='ABSOLUTE'),
-  units         VARCHAR, -- textual decription of the y-axis (percent, kilo, giga, etc.)
-  threshold VARCHAR,
-  max   VARCHAR,
-  delimiter CHAR(1) CHECK (delimiter='>' OR delimiter='<'),
-  thresholdstate VARCHAR CHECK (thresholdstate='active' OR thresholdstate='inactive')
-);
-
-
--- 
-CREATE VIEW rrddatasourcenetbox AS
-(SELECT DISTINCT rrd_datasource.descr, rrd_datasource.rrd_datasourceid, sysname
-  FROM rrd_datasource
-  JOIN rrd_file USING (rrd_fileid)
-  JOIN netbox USING (netboxid));
 
 ------------------------------------------------------------------------------------------
 -- event system tables
@@ -885,10 +809,6 @@ CREATE TABLE service (
   version VARCHAR,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n' OR up='s') -- y=up, n=down, s=shadow
 );
-CREATE RULE rrdfile_deleter AS 
-    ON DELETE TO service 
-    DO DELETE FROM rrd_file 
-        WHERE key='serviceid' AND value=old.serviceid::text;
 
 CREATE TABLE serviceproperty (
   id SERIAL,
@@ -1044,12 +964,6 @@ CREATE OR REPLACE RULE netbox_status_close_arp AS ON UPDATE TO netbox
    DO UPDATE arp SET end_time=NOW()
      WHERE netboxid=OLD.netboxid AND end_time='infinity';
 
-UPDATE snmpoid SET uptodate=FALSE WHERE oidsource ILIKE 'cricket';
-
-ALTER TABLE rrd_file DROP CONSTRAINT rrd_file_netboxid_fkey;
-ALTER TABLE rrd_file ADD CONSTRAINT rrd_file_netboxid_fkey
-  FOREIGN KEY (netboxid) REFERENCES netbox(netboxid)
-  ON UPDATE CASCADE ON DELETE CASCADE;
 
 CREATE TABLE manage.sensor (
   sensorid SERIAL PRIMARY KEY,
@@ -1181,26 +1095,6 @@ CREATE TABLE manage.ipdevpoll_job_log (
 );
 
 
--- Add column for storing rrd-file category
-ALTER TABLE rrd_file ADD category VARCHAR
-
--- Insert oids used to check for ipv6 interface counters
-INSERT INTO snmpoid (oidkey, snmpoid, oidsource, mib)
-  SELECT 'ipIfStatsHCInOctets.ipv4', '1.3.6.1.2.1.4.31.3.1.6.1', 'Cricket', 'IP-MIB' WHERE NOT EXISTS (
-    SELECT * FROM snmpoid WHERE oidkey = 'ipIfStatsHCInOctets.ipv4'
-  )
-;
-
-INSERT INTO snmpoid (oidkey, snmpoid, oidsource, mib)
-  SELECT 'ipIfStatsHCInOctets.ipv6', '1.3.6.1.2.1.4.31.3.1.6.2', 'Cricket', 'IP-MIB' WHERE NOT EXISTS (
-    SELECT * FROM snmpoid WHERE oidkey = 'ipIfStatsHCInOctets.ipv6'
-  )
-;
-
-
-
-UPDATE snmpoid SET oidsource = 'IP-MIB' WHERE oidkey ~* 'ipIfStatsHCInOctets';
-
 -- automatically close snmpAgentStates when community is removed.
 
 CREATE OR REPLACE FUNCTION close_snmpagentstates_on_community_clear()
@@ -1258,84 +1152,6 @@ INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
 -- rename logging jobs to ip2mac in ipdevpoll job log table
 UPDATE ipdevpoll_job_log SET job_name = 'ip2mac' WHERE job_name = 'logging';
 
--- Add unit column to snmpoid table for storing of units
-ALTER TABLE snmpoid ADD unit VARCHAR;
-
-
--- Insert some default units
-UPDATE snmpoid SET unit = 'Mbit/s' WHERE oidkey = 'c1900Bandwidth';
-UPDATE snmpoid SET unit = 'Mbit/s' WHERE oidkey = 'c1900BandwidthMax';
-UPDATE snmpoid SET unit = 'Mbit/s' WHERE oidkey = 'c2900Bandwidth';
-UPDATE snmpoid SET unit = 'Mbit/s' WHERE oidkey = 'c5000Bandwidth';
-UPDATE snmpoid SET unit = 'Mbit/s' WHERE oidkey = 'c5000BandwidthMax';
-UPDATE snmpoid SET unit = '%' WHERE oidkey = 'cpu1min';
-UPDATE snmpoid SET unit = '%' WHERE oidkey = 'cpu5min';
-UPDATE snmpoid SET unit = '%' WHERE oidkey = 'hpcpu';
-UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'hpmem5minFree';
-UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'hpmem5minUsed';
-UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'mem5minFree';
-UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'mem5minUsed';
-UPDATE snmpoid SET unit = '%' WHERE oidkey = 'ucd_cpuIdle';
-UPDATE snmpoid SET unit = '%' WHERE oidkey = 'ucd_cpuSystem';
-UPDATE snmpoid SET unit = '%' WHERE oidkey = 'ucd_cpuUser';
-UPDATE snmpoid SET unit = 'load' WHERE oidkey = 'ucd_load15min';
-UPDATE snmpoid SET unit = 'load' WHERE oidkey = 'ucd_load1min';
-UPDATE snmpoid SET unit = 'load' WHERE oidkey = 'ucd_load5min';
-UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ucd_memrealAvail';
-UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ucd_memswapAvail';
-UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ucd_memtotalAvail';
-UPDATE snmpoid SET unit = 'timeticks' WHERE oidkey = 'sysUpTime';
-
-UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ipIfStatsHCInOctets.ipv6';
-UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ipIfStatsHCInOctets.ipv4';
-UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ifHCInOctets';
-UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifHCInUcastPkts';
-UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ifHCOutOctets';
-UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifHCOutUcastPkts';
-UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifInDiscards';
-UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifInErrors';
-UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifInNUcastPkts';
-UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ifInOctets';
-UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifInUcastPkts';
-UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifInUnknownProtos';
-UPDATE snmpoid SET unit = 'timeticks' WHERE oidkey = 'ifLastChange';
-UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifOutDiscards';
-UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifOutErrors';
-UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifOutNUcastPkts';
-UPDATE snmpoid SET unit = 'bytes' WHERE oidkey = 'ifOutOctets';
-UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifOutQLen';
-UPDATE snmpoid SET unit = 'packets' WHERE oidkey = 'ifOutUcastPkts';
-
--- automatically close thresholdState when threshold in rrd_datasource is removed.
-CREATE OR REPLACE FUNCTION close_thresholdstate_on_threshold_delete()
-RETURNS TRIGGER AS E'
-  BEGIN
-    IF TG_OP = \'DELETE\' THEN
-      UPDATE alerthist
-        SET end_time = NOW()
-          WHERE subid = CAST(OLD.rrd_datasourceid AS text)
-            AND eventtypeid = \'thresholdState\'
-              AND end_time >= \'infinity\';
-    END IF;
-    IF TG_OP = \'UPDATE\' THEN
-        IF COALESCE(OLD.threshold, \'\') IS 
-            DISTINCT FROM COALESCE(NEW.threshold, \'\')
-                AND COALESCE(NEW.threshold, \'\') = \'\' THEN
-            UPDATE alerthist
-                SET end_time = NOW()
-                    WHERE subid = CAST(NEW.rrd_datasourceid AS text)
-                        AND eventtypeid = \'thresholdState\'
-                            AND end_time >= \'infinity\';
-        END IF;
-    END IF;
-    RETURN NULL;
-  END;
-  'language 'plpgsql';
-
-CREATE TRIGGER trig_close_thresholdstate_on_threshold_delete
-    AFTER UPDATE OR DELETE ON rrd_datasource
-    FOR EACH ROW
-    EXECUTE PROCEDURE close_thresholdstate_on_threshold_delete();
 
 -- also close any currently wrongfully open threshold states
 UPDATE alerthist
@@ -1354,15 +1170,6 @@ UPDATE alerthist
             AND end_time >= 'infinity'
             AND alerthist.subid = CAST(rrd_datasource.rrd_datasourceid AS text)
             AND COALESCE(rrd_datasource.threshold, '') = '';
-
--- Alter unit on octets
-
-UPDATE snmpoid SET unit = 'bytes/s' WHERE oidkey = 'ipIfStatsHCInOctets.ipv6';
-UPDATE snmpoid SET unit = 'bytes/s' WHERE oidkey = 'ipIfStatsHCInOctets.ipv4';
-UPDATE snmpoid SET unit = 'bytes/s' WHERE oidkey = 'ifHCInOctets';
-UPDATE snmpoid SET unit = 'bytes/s' WHERE oidkey = 'ifHCOutOctets';
-UPDATE snmpoid SET unit = 'bytes/s' WHERE oidkey = 'ifInOctets';
-UPDATE snmpoid SET unit = 'bytes/s' WHERE oidkey = 'ifOutOctets';
 
 -- Added because macwatch may use mac-address prefixes
 CREATE TABLE macwatch_match(
@@ -1412,12 +1219,6 @@ $$ LANGUAGE plpgsql;
 
 SELECT drop_constraint('manage', 'cam', 'cam_netboxid_key');
 
--- Create trigger to delete rrd_file tuples regarding deleted prefix
-CREATE OR REPLACE RULE prefix_on_delete_do_clean_rrd_file AS ON DELETE TO prefix
-  DO DELETE FROM rrd_file
-      WHERE category = 'activeip'
-          AND key = 'prefix' AND CAST(value AS int) = OLD.prefixid;
-
 -- Fix uniqueness on quarantine vlans
 
 DELETE FROM quarantine_vlans WHERE quarantineid in (
@@ -1452,9 +1253,6 @@ CREATE OR REPLACE VIEW manage.prefix_active_ip_cnt AS
  LEFT JOIN arp ON arp.ip << prefix.netaddr
  WHERE arp.end_time = 'infinity'
  GROUP BY prefix.prefixid);
-
-UPDATE rrd_file SET category='port-counters'
-  WHERE category IN ('router-interfaces-counters', 'switch-port-counters');
 
 -- Create table for images
 
@@ -1877,6 +1675,55 @@ ALTER TABLE apitoken ADD COLUMN endpoints hstore;
 
 UPDATE apitoken SET created = NULL;
 
+-- Create a table for interface aggregation information
+CREATE TABLE manage.interface_aggregate (
+  id SERIAL PRIMARY KEY, -- dummy primary key for Django
+  aggregator INTEGER REFERENCES interface(interfaceid) ON DELETE CASCADE ON UPDATE CASCADE,
+  interface INTEGER REFERENCES interface(interfaceid) ON DELETE CASCADE ON UPDATE CASCADE,
+  UNIQUE (aggregator, interface)
+);
+
+---
+-- Insert new event and alert types for degraded link events
+---
+INSERT INTO eventtype (
+  SELECT 'aggregateLinkState', 'The state of this aggregated link changed', 'y'
+  WHERE NOT EXISTS (SELECT * FROM eventtype WHERE eventtypeid = 'aggregateLinkState'));
+
+---
+-- Insert new alerttypes for degradation and restoration of aggregated links
+---
+INSERT INTO alerttype (
+  SELECT nextval('alerttype_alerttypeid_seq'), 'aggregateLinkState', 'linkDegraded',
+         'This aggregate link has been degraded'
+  WHERE NOT EXISTS (SELECT * FROM alerttype WHERE alerttype = 'linkDegraded'));
+
+INSERT INTO alerttype (
+  SELECT nextval('alerttype_alerttypeid_seq'), 'aggregateLinkState', 'linkRestored',
+         'This aggregate link has been restored'
+  WHERE NOT EXISTS (SELECT * FROM alerttype WHERE alerttype = 'linkRestored'));
+
+-- Always default new devices to SNMP v2c
+ALTER TABLE netbox
+ALTER COLUMN snmp_version SET DEFAULT 2;
+
+ALTER TABLE location ADD parent VARCHAR REFERENCES location(locationid) ON UPDATE CASCADE;
+
+-- Create table for storing prefix tags
+CREATE TABLE IF NOT EXISTS prefix_usage (
+    prefix_usage_id SERIAL PRIMARY KEY,
+    prefixid        INTEGER REFERENCES prefix (prefixid)
+                    ON UPDATE CASCADE ON DELETE CASCADE,
+    usageid         VARCHAR REFERENCES usage (usageid)
+                    ON UPDATE CASCADE ON DELETE CASCADE,
+    UNIQUE (prefixid, usageid)
+);
+
+-- Set description to be optional for Locations and set default value to be an
+-- empty string as that is what is used in Django for empty char-fields
+ALTER TABLE manage.location ALTER descr DROP NOT NULL,
+                            ALTER descr SET DEFAULT '';
+
 
 INSERT INTO schema_change_log (major, minor, point, script_name)
-    VALUES (4, 5, 50, 'initial install');
+    VALUES (4, 6, 56, 'initial install');

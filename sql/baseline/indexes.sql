@@ -67,6 +67,9 @@ CREATE INDEX interface_stack_lower ON interface_stack (lower);
 
 CREATE INDEX netbios_ip ON manage.netbios (ip);
 
+CREATE INDEX interface_aggregate_aggregator ON interface_aggregate (aggregator);
+CREATE INDEX interface_aggregate_interface ON interface_aggregate (interface);
+
 
 ----------------------------------------------
 -- Create lookup indexes on profiles tables --

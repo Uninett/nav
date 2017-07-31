@@ -1206,17 +1206,6 @@ $$ LANGUAGE plpgsql;
 SELECT insert_default_navlets_for_existing_users();
 
 
----
--- Create trigger that inserts default navlets for new users
----
-CREATE OR REPLACE FUNCTION insert_default_navlets_for_new_users() RETURNS trigger AS $$
-    BEGIN
-      INSERT INTO account_navlet (account, navlet, displayorder, col, preferences)
-        SELECT NEW.id, navlet, displayorder, col, preferences FROM account_navlet WHERE account=0;
-      RETURN NULL;
-    END
-$$ LANGUAGE plpgsql;
-
 CREATE TRIGGER add_default_navlets_on_account_create AFTER INSERT ON account
   FOR EACH ROW
   EXECUTE PROCEDURE insert_default_navlets_for_new_users();
@@ -1339,6 +1328,74 @@ END$$;
 UPDATE account_navlet
 SET preferences = '{"refresh_interval": 60000}'
 WHERE navlet = 'nav.web.navlets.messages.MessagesNavlet';
+
+--- Create table for storing multiple dashboards
+CREATE TABLE profiles.account_dashboard (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR DEFAULT 'My dashboard',
+  is_default BOOLEAN DEFAULT FALSE,
+  num_columns INT,
+  account_id INT REFERENCES account(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+
+--- Widgets should now be a part of a dashboard
+ALTER TABLE account_navlet
+  ADD dashboard_id INT
+    REFERENCES account_dashboard(id)
+    ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--- Create a dashboard for each user and move all widgets there
+DO $$DECLARE thisaccount RECORD;
+BEGIN
+  FOR thisaccount IN SELECT * FROM account LOOP
+    RAISE NOTICE 'Creating dashboard for %s', quote_ident(thisaccount.login);
+    WITH inserted AS (
+      INSERT INTO account_dashboard (account_id, is_default, num_columns)
+      VALUES (thisaccount.id, TRUE, 3) RETURNING id
+    )
+    UPDATE account_navlet
+      SET dashboard_id=inserted.id
+      FROM inserted
+      WHERE account=thisaccount.id;
+  END LOOP;
+END$$;
+
+-- Create a new dashboard and copy all the widgets from the default user to
+-- the dashboard
+CREATE OR REPLACE FUNCTION create_new_dashboard() RETURNS trigger AS $$
+  BEGIN
+    WITH inserted AS (
+      INSERT INTO account_dashboard (account_id, is_default, num_columns)
+      VALUES (NEW.id, TRUE, 3) RETURNING id
+    )
+    INSERT INTO account_navlet (account, navlet, displayorder, col, preferences, dashboard_id)
+      SELECT NEW.id, navlet, displayorder, col, preferences, (SELECT id from inserted)
+        FROM account_navlet WHERE account=0;
+
+    RETURN NULL;
+  END
+$$ LANGUAGE plpgsql;
+
+
+-- Creates a dashboard with default widgets for a new user
+CREATE TRIGGER add_default_dashboard_on_account_create AFTER INSERT ON account
+  FOR EACH ROW
+  EXECUTE PROCEDURE create_new_dashboard();
+
+---
+-- Give authenticated users access to dashboard urls
+---
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
+  SELECT 3, 2, '^/index/dashboard/?' WHERE NOT EXISTS (
+    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 3 AND privilegeid = 2 AND target = '^/index/dashboard/?'
+  );
+
+---
+-- Sort Alert Types when modifying Alert Profiles
+---
+UPDATE MatchField SET value_sort='alerttype.alerttype' WHERE id=11 AND value_sort='alerttype.alerttypeid';
 
 /*
 ------------------------------------------------------
