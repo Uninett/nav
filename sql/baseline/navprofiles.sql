@@ -1311,6 +1311,16 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
     SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 3 AND privilegeid = 2 AND target = '^/search/?'
   );
 
+ALTER TABLE netmap_view ADD COLUMN location_room_filter varchar NOT NULL DEFAULT '';
+
+---
+-- Replace old status widget with new one.
+---
+UPDATE account_navlet
+  SET navlet='nav.web.navlets.status2.Status2Widget',
+      preferences = '{"status_filter": "event_type=boxState&stateless_threshold=24", "refresh_interval": 60000}'
+  WHERE navlet='nav.web.navlets.status.StatusNavlet';
+
 
 /*
 ------------------------------------------------------

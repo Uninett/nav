@@ -1180,11 +1180,6 @@ CREATE TABLE manage.ipdevpoll_job_log (
              ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-CREATE TRIGGER trig_trim_old_ipdevpoll_job_log_entries_on_insert
-    AFTER INSERT ON ipdevpoll_job_log
-    FOR EACH ROW
-    EXECUTE PROCEDURE trim_old_ipdevpoll_job_log_entries();
-
 
 -- Add column for storing rrd-file category
 ALTER TABLE rrd_file ADD category VARCHAR
@@ -1203,18 +1198,6 @@ INSERT INTO snmpoid (oidkey, snmpoid, oidsource, mib)
 ;
 
 
-
-CREATE OR REPLACE FUNCTION trim_old_ipdevpoll_job_log_entries()
-RETURNS TRIGGER AS '
-    BEGIN
-        DELETE FROM ipdevpoll_job_log
-        WHERE id IN (SELECT id FROM ipdevpoll_job_log
-                     WHERE job_name=NEW.job_name AND netboxid=NEW.netboxid
-                     ORDER BY end_time DESC
-                     OFFSET 100);
-        RETURN NULL;
-    END;
-    ' language 'plpgsql';
 
 UPDATE snmpoid SET oidsource = 'IP-MIB' WHERE oidkey ~* 'ipIfStatsHCInOctets';
 
@@ -1686,6 +1669,74 @@ UPDATE room SET data = hstore('') WHERE data IS NULL;
 ALTER TABLE room ALTER COLUMN data SET NOT NULL;
 ALTER TABLE room ALTER COLUMN data SET DEFAULT hstore('');
 
+CREATE TABLE manage.alerthist_ack (
+  alert_id INTEGER PRIMARY KEY NOT NULL,
+  account_id INTEGER NOT NULL,
+  comment VARCHAR DEFAULT NULL,
+  date TIMESTAMPTZ DEFAULT NOW(),
+
+  CONSTRAINT alerthistory_ack_alert FOREIGN KEY (alert_id)
+             REFERENCES manage.alerthist (alerthistid)
+             ON UPDATE CASCADE ON DELETE CASCADE,
+
+  CONSTRAINT alerthistory_ack_user FOREIGN KEY (account_id)
+             REFERENCES profiles.account (id)
+             ON UPDATE CASCADE ON DELETE CASCADE
+
+);
+
+-- clean up some alert- and event-type descriptions
+UPDATE alerttype SET alerttypedesc = 'The IP device has coldstarted'
+WHERE alerttype='coldStart';
+
+UPDATE alerttype SET alerttypedesc = 'The IP device has warmstarted'
+WHERE alerttype='warmStart';
+
+UPDATE alerttype SET alerttypedesc = 'The device is now in operation with an active IP address'
+WHERE alerttype='deviceInIPOperation';
+
+UPDATE alerttype SET alerttypedesc = 'The device is now in operation as a chassis module'
+WHERE alerttype='deviceInStack';
+
+ALTER TABLE manage.netbox ADD data hstore DEFAULT hstore('') NOT NULL;
+ALTER TABLE manage.location ADD data hstore DEFAULT hstore('') NOT NULL;
+
+-- fix ambiguity in the subid field of alert and event tables
+-- as a result of LP#1403365
+UPDATE eventq SET subid='' WHERE subid IS NULL;
+UPDATE alertq SET subid='' WHERE subid IS NULL;
+UPDATE alerthist SET subid='' WHERE subid IS NULL;
+
+ALTER TABLE eventq ALTER COLUMN subid SET NOT NULL;
+ALTER TABLE eventq ALTER COLUMN subid SET DEFAULT '';
+
+ALTER TABLE alertq ALTER COLUMN subid SET NOT NULL;
+ALTER TABLE alertq ALTER COLUMN subid SET DEFAULT '';
+
+ALTER TABLE alerthist ALTER COLUMN subid SET NOT NULL;
+ALTER TABLE alerthist ALTER COLUMN subid SET DEFAULT '';
+
+-- allow jobs to be logged with no success indicator, i.e. the job was
+-- checked but nothing ran.
+ALTER TABLE ipdevpoll_job_log ALTER COLUMN success DROP NOT NULL;
+
+CREATE OR REPLACE FUNCTION never_use_null_subid()
+RETURNS trigger AS $$
+  BEGIN
+    NEW.subid = COALESCE(NEW.subid, '');
+    RETURN NEW;
+  END;
+$$ language plpgsql;
+
+CREATE TRIGGER eventq_subid_fix BEFORE INSERT OR UPDATE ON eventq
+    FOR EACH ROW EXECUTE PROCEDURE never_use_null_subid();
+
+CREATE TRIGGER alertq_subid_fix BEFORE INSERT OR UPDATE ON alertq
+    FOR EACH ROW EXECUTE PROCEDURE never_use_null_subid();
+
+CREATE TRIGGER alerthist_subid_fix BEFORE INSERT OR UPDATE ON alerthist
+    FOR EACH ROW EXECUTE PROCEDURE never_use_null_subid();
+
 
 INSERT INTO schema_change_log (major, minor, point, script_name)
-    VALUES (4, 1, 3, 'initial install');
+    VALUES (4, 2, 104, 'initial install');
