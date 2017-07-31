@@ -546,5 +546,4 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         });
     });
 
-
 });
