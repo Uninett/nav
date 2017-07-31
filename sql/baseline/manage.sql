@@ -1653,6 +1653,39 @@ ALTER TABLE manage.type
     DROP COLUMN cs_at_vlan,
     DROP COLUMN chassis;
 
+-- Add field data to room - requires the hstore extension to be installed.
+ALTER TABLE room ADD COLUMN data hstore;
+
+-- Copy all information from opt-fields to hstore
+UPDATE room SET data = hstore('opt1', opt1) WHERE COALESCE(opt1, '') <> '';
+UPDATE room SET data = data || hstore('opt2', opt2) WHERE COALESCE(opt2, '') <> '';
+UPDATE room SET data = data || hstore('opt3', opt3) WHERE COALESCE(opt3, '') <> '';
+UPDATE room SET data = data || hstore('opt4', opt4) WHERE COALESCE(opt4, '') <> '';
+
+-- Drop useless opt columns
+ALTER TABLE room DROP COLUMN opt1, DROP COLUMN opt2, DROP COLUMN opt3, DROP COLUMN opt4;
+
+-- Add field data to org
+ALTER TABLE org ADD COLUMN data hstore;
+
+-- Copy all information from opt-fields to hstore
+UPDATE org SET data = hstore('opt1', opt1) WHERE COALESCE(opt1, '') <> '';
+UPDATE org SET data = data || hstore('opt2', opt2) WHERE COALESCE(opt2, '') <> '';
+UPDATE org SET data = data || hstore('opt3', opt3) WHERE COALESCE(opt3, '') <> '';
+
+-- Drop useless opt columns
+ALTER TABLE org DROP COLUMN opt1, DROP COLUMN opt2, DROP COLUMN opt3;
+
+-- Ensure the data field of org and room can't be a NULL value. An empty
+-- hstore value is acceptable.
+UPDATE org SET data = hstore('') WHERE data IS NULL;
+ALTER TABLE org ALTER COLUMN data SET NOT NULL;
+ALTER TABLE org ALTER COLUMN data SET DEFAULT hstore('');
+
+UPDATE room SET data = hstore('') WHERE data IS NULL;
+ALTER TABLE room ALTER COLUMN data SET NOT NULL;
+ALTER TABLE room ALTER COLUMN data SET DEFAULT hstore('');
+
 
 INSERT INTO schema_change_log (major, minor, point, script_name)
-    VALUES (4, 0, 20, 'initial install');
+    VALUES (4, 1, 3, 'initial install');
