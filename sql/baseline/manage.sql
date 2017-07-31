@@ -20,18 +20,6 @@
 =============================================
 */
 
--- This table has possibly gone unused since NAV 2
-CREATE TABLE status (
-  statusid SERIAL PRIMARY KEY,
-  trapsource VARCHAR NOT NULL,
-  trap VARCHAR NOT NULL,
-  trapdescr VARCHAR,
-  tilstandsfull CHAR(1) CHECK (tilstandsfull='Y' OR tilstandsfull='N') NOT NULL,
-  boksid INT2,
-  fra TIMESTAMP NOT NULL,
-  til TIMESTAMP
-);
-
 CREATE TABLE org (
   orgid VARCHAR(30) PRIMARY KEY,
   parent VARCHAR(30),
@@ -1116,7 +1104,6 @@ ALTER SEQUENCE operator_operator_id_seq OWNED BY profiles.operator.operator_id;
 ALTER SEQUENCE operator_id_seq OWNED BY profiles.operator.id;
 ALTER SEQUENCE matchfield_id_seq OWNED BY profiles.matchfield.id;
 ALTER SEQUENCE alertsubscription_id_seq OWNED BY profiles.alertsubscription.id;
-ALTER SEQUENCE accountnavbar_id_seq OWNED BY profiles.accountnavbar.id;
 ALTER SEQUENCE navbarlink_id_seq OWNED BY profiles.navbarlink.id;
 ALTER SEQUENCE accountorg_id_seq OWNED BY profiles.accountorg.id;
 ALTER SEQUENCE account_id_seq OWNED BY profiles.account.id;
@@ -1604,6 +1591,68 @@ SELECT DISTINCT ON (mac) netboxid, mac FROM (
 WHERE mac <> '00:00:00:00:00:00' -- exclude invalid MACs
 ORDER BY mac, netboxid;
 
+CREATE TABLE manage.thresholdrule (
+  id SERIAL PRIMARY KEY,
+  target VARCHAR NOT NULL,
+  alert VARCHAR NOT NULL,
+  clear VARCHAR,
+  raw BOOLEAN NOT NULL DEFAULT FALSE,
+  period INTEGER DEFAULT NULL,
+  description VARCHAR,
+  creator_id INTEGER DEFAULT NULL,
+  created TIMESTAMP DEFAULT NOW(),
+
+  CONSTRAINT thresholdrule_creator_fkey FOREIGN KEY (creator_id)
+             REFERENCES profiles.account (id)
+             ON UPDATE CASCADE ON DELETE SET NULL
+
+);
+
+-- automatically close thresholdState when threshold rules are removed
+CREATE OR REPLACE FUNCTION close_thresholdstate_on_thresholdrule_delete()
+RETURNS TRIGGER AS $$
+  BEGIN
+    IF TG_OP = 'DELETE'
+      OR (TG_OP = 'UPDATE' AND
+          (OLD.alert <> NEW.alert OR OLD.target <> NEW.target))
+    THEN
+      UPDATE alerthist
+      SET end_time = NOW()
+      WHERE subid LIKE (CAST(OLD.id AS text) || ':%')
+            AND eventtypeid = 'thresholdState'
+            AND end_time >= 'infinity';
+    END IF;
+    RETURN NULL;
+  END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER trig_close_thresholdstate_on_thresholdrule_delete
+    AFTER UPDATE OR DELETE ON manage.thresholdrule
+    FOR EACH ROW
+    EXECUTE PROCEDURE close_thresholdstate_on_thresholdrule_delete();
+
+-- Clean up scale/precision problems of already known APC sensors (LP#1270095)
+
+UPDATE sensor
+SET precision=1, data_scale=NULL
+WHERE mib = 'PowerNet-MIB'
+      AND data_scale = 'deci';
+
+UPDATE sensor
+SET precision=2, data_scale=NULL
+WHERE mib = 'PowerNet-MIB'
+      AND data_scale = 'centi';
+
+INSERT INTO manage.cat (catid, descr, req_snmp) VALUES ('ENV', 'Environmental probes', true);
+INSERT INTO manage.cat (catid, descr, req_snmp) VALUES ('POWER', 'Power distribution equipment', true);
+
+-- Drop fields that have been obsolete for many NAV versions.
+ALTER TABLE manage.type
+    DROP COLUMN cdp,
+    DROP COLUMN tftp,
+    DROP COLUMN cs_at_vlan,
+    DROP COLUMN chassis;
+
 
 INSERT INTO schema_change_log (major, minor, point, script_name)
-    VALUES (3, 15, 201, 'initial install');
+    VALUES (4, 0, 20, 'initial install');

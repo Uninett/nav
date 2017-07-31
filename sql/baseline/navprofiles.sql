@@ -608,33 +608,6 @@ CREATE TABLE NavbarLink (
 -- ALTER SEQUENCE navbarlink_id_seq OWNED BY navbarlink.id;
 
 /*
--- 21 ACCOUNTNAVBAR
-
-Relation between account and navbarlinks, describing where the user wants
-the link to be.
-
-positions      'navbar', 'qlink1', 'qlink2' or a combination of these.
-
-*/
-CREATE SEQUENCE accountnavbar_id_seq;
-CREATE TABLE AccountNavbar (
-    id integer NOT NULL DEFAULT nextval('accountnavbar_id_seq'),
-    accountid integer NOT NULL,
-    navbarlinkid integer NOT NULL,
-    positions varchar,
-
-    CONSTRAINT accountnavbar_pkey PRIMARY KEY (id),
-    CONSTRAINT accountnavbar_accountid_fkey
-               FOREIGN KEY (accountid) REFERENCES Account(id)
-               ON DELETE CASCADE
-               ON UPDATE CASCADE,
-    CONSTRAINT accountnavbar_navbarlinkid_fkey
-               FOREIGN KEY (navbarlinkid) REFERENCES NavbarLink(id)
-               ON DELETE CASCADE
-               ON UPDATE CASCADE
-);
-
-/*
 -- AccountOrg
 
 This table associates accounts with organizations.  Unfortunately, the
@@ -825,11 +798,6 @@ INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,2); --
 INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,3); -- add admin to Authenticated users
 
 -- NAVBAR PREFERENCES
-
-INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (1, 0, 'Preferences', '/preferences');
-INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (2, 0, 'Toolbox', '/toolbox');
-INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (3, 0, 'Useradmin', '/useradmin/');
-INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (4, 0, 'Userinfo', '/userinfo/');
 
 INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 1, 'navbar');
 INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 2, 'navbar');
@@ -1260,6 +1228,89 @@ ALTER TABLE accounttool ADD CONSTRAINT accounttool_accountid_fkey
   FOREIGN KEY (accountid)
   REFERENCES account(id)
   ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- Add new blog navlet to all users. Exclude those that have already activated it.
+DO $$DECLARE account_record RECORD;
+BEGIN
+  FOR account_record IN SELECT * FROM account WHERE id NOT IN (SELECT account FROM account_navlet WHERE navlet = 'nav.web.navlets.navblog.NavBlogNavlet') LOOP
+    INSERT INTO account_navlet (navlet, account, col, displayorder, preferences) VALUES
+    ('nav.web.navlets.navblog.NavBlogNavlet', account_record.id, 2, 0, '(dp0
+S''refresh_interval''
+p1
+I600000
+s.');
+  END LOOP;
+END$$;
+
+UPDATE accountgroupprivilege SET target = '^/search/osm_map_redirect/?' WHERE target = '^/info/osm_map_redirect/?';
+
+ALTER TABLE account_navlet DROP CONSTRAINT account_navlet_account_fkey;
+ALTER TABLE account_navlet ADD CONSTRAINT account_navlet_account_fkey
+  FOREIGN KEY (account)
+  REFERENCES account(id)
+  ON DELETE CASCADE ON UPDATE CASCADE;
+
+---
+-- Delete all widgets from all users
+---
+DELETE FROM account_navlet;
+
+---
+-- Insert default widgets for every existing user
+---
+CREATE OR REPLACE FUNCTION insert_default_navlets_for_existing_users() RETURNS void AS $$
+DECLARE
+  account RECORD;
+BEGIN
+  FOR account IN SELECT * FROM account LOOP
+    RAISE NOTICE 'Adding default navlets for %s', quote_ident(account.login);
+    INSERT INTO account_navlet (navlet, account, displayorder, col) VALUES
+      ('nav.web.navlets.gettingstarted.GettingStartedWidget', account.id, 0, 1),
+      ('nav.web.navlets.status.StatusNavlet', account.id, 1, 1),
+      ('nav.web.navlets.messages.MessagesNavlet', account.id, 2, 1),
+      ('nav.web.navlets.navblog.NavBlogNavlet', account.id, 0, 2),
+      ('nav.web.navlets.linklist.LinkListNavlet', account.id, 1, 2);
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT insert_default_navlets_for_existing_users();
+
+---
+-- Remove GettingStartedWidget for default user.
+---
+DELETE FROM account_navlet WHERE account=0 AND navlet='nav.web.navlets.gettingstarted.GettingStartedWidget';
+
+---
+-- Create trigger that inserts default navlets for new users
+---
+CREATE OR REPLACE FUNCTION insert_default_navlets_for_new_users() RETURNS trigger AS $$
+    BEGIN
+      INSERT INTO account_navlet (account, navlet, displayorder, col, preferences)
+        SELECT NEW.id, navlet, displayorder, col, preferences FROM account_navlet WHERE account=0;
+      INSERT INTO account_navlet (account, navlet, displayorder, col) VALUES
+        (NEW.id, 'nav.web.navlets.gettingstarted.GettingStartedWidget', -1, 1);
+      RETURN NULL;
+    END
+$$ LANGUAGE plpgsql;
+
+---
+-- Give authenticated users access to Graphite graphs and stuffz
+---
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
+  SELECT 3, 2, '^/graphite/?' WHERE NOT EXISTS (
+    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 3 AND privilegeid = 2 AND target = '^/graphite/?'
+  );
+
+
+---
+-- Give authenticated users access to search
+---
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
+  SELECT 3, 2, '^/search/?' WHERE NOT EXISTS (
+    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 3 AND privilegeid = 2 AND target = '^/search/?'
+  );
+
 
 /*
 ------------------------------------------------------
