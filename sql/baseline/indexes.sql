@@ -61,6 +61,13 @@ CREATE INDEX ipdevpoll_job_log_netboxjob_btree ON ipdevpoll_job_log (netboxid, j
 
 CREATE INDEX rrd_datasource_rrd_fileid_btree ON rrd_datasource(rrd_fileid);
 
+CREATE INDEX interface_stack_higher ON interface_stack (higher);
+CREATE INDEX interface_stack_lower ON interface_stack (lower);
+-- Create index for ip column on manage.netbios to make lookups faster
+
+CREATE INDEX netbios_ip ON manage.netbios (ip);
+
+
 ----------------------------------------------
 -- Create lookup indexes on profiles tables --
 ----------------------------------------------

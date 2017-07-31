@@ -572,18 +572,6 @@ CREATE OR REPLACE RULE netbox_close_cam AS ON DELETE TO netbox
 
 
 -- VIEWs -----------------------
-CREATE VIEW netboxmac AS  
-(SELECT DISTINCT ON (mac) netbox.netboxid, arp.mac
- FROM netbox
- JOIN arp ON (arp.arpid = (SELECT arp.arpid FROM arp WHERE arp.ip=netbox.ip AND end_time='infinity' LIMIT 1)))
-UNION DISTINCT
-(SELECT DISTINCT ON (mac) module.netboxid,mac
- FROM arp
- JOIN gwportprefix gwp ON
-  (arp.ip=gwp.gwip AND (hsrp=true OR (SELECT COUNT(*) FROM gwportprefix WHERE gwp.prefixid=gwportprefix.prefixid AND hsrp=true) = 0))
- JOIN interface USING (interfaceid)
- JOIN module USING (moduleid)
- WHERE arp.end_time='infinity');
 
 CREATE VIEW prefix_active_ip_cnt AS
 (SELECT prefix.prefixid, COUNT(arp.ip) AS active_ip_cnt
@@ -1210,12 +1198,6 @@ CREATE TRIGGER trig_trim_old_ipdevpoll_job_log_entries_on_insert
     FOR EACH ROW
     EXECUTE PROCEDURE trim_old_ipdevpoll_job_log_entries();
 
--- Grant web access to unauthorized ajax requests
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
-  SELECT 2, 2, '^/ajax/open/?' WHERE NOT EXISTS (
-    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid=2 AND privilegeid=2 AND target='^/ajax/open/?'
-  )
-;
 
 -- Add column for storing rrd-file category
 ALTER TABLE rrd_file ADD category VARCHAR
@@ -1233,18 +1215,7 @@ INSERT INTO snmpoid (oidkey, snmpoid, oidsource, mib)
   )
 ;
 
--- Grant web access to osm map redirects
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
-  SELECT 2, 2, '^/info/osm_map_redirect/?' WHERE NOT EXISTS (
-    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid=2 AND privilegeid=2 AND target = '^/info/osm_map_redirect/?'
-  )
-;
 
--- Grant web access to /info for authenticated users
-UPDATE AccountGroupPrivilege SET
-        target = '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap|info|netmap)/?'
-  WHERE target = '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap)/?'
-;
 
 CREATE OR REPLACE FUNCTION trim_old_ipdevpoll_job_log_entries()
 RETURNS TRIGGER AS '
@@ -1515,6 +1486,124 @@ CREATE OR REPLACE VIEW manage.prefix_active_ip_cnt AS
 UPDATE rrd_file SET category='port-counters'
   WHERE category IN ('router-interfaces-counters', 'switch-port-counters');
 
+-- Create table for images
+
+CREATE TABLE image (
+  imageid SERIAL PRIMARY KEY,
+  roomid VARCHAR REFERENCES room(roomid) NOT NULL,
+  title VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  name VARCHAR NOT NULL,
+  created TIMESTAMP NOT NULL,
+  uploader INT REFERENCES account(id),
+  priority INT
+);
+
+-- Create a table for interface stacking information
+CREATE TABLE manage.interface_stack (
+  id SERIAL PRIMARY KEY, -- dummy primary key for Django
+  higher INTEGER REFERENCES interface(interfaceid),
+  lower INTEGER REFERENCES interface(interfaceid),
+  UNIQUE (higher, lower)
+);
+
+ALTER TABLE subcat DROP catid;
+ALTER TABLE subcat RENAME TO netboxgroup;
+ALTER TABLE netboxgroup RENAME subcatid TO netboxgroupid;
+
+UPDATE matchfield SET
+  name='Group',
+  value_id='netboxgroup.netboxgroupid',
+  value_name='netboxgroup.descr',
+  value_sort='netboxgroup.descr',
+  description='Group: netboxes may belong to a group that is independent of type and category'
+  WHERE id=14;
+
+-- Create basic token storage for api tokens
+
+CREATE TABLE apitoken (
+  id SERIAL PRIMARY KEY,
+  token VARCHAR not null,
+  expires TIMESTAMP not null,
+  client INT REFERENCES profiles.account(id),
+  scope INT DEFAULT 0
+);
+
+-- Fix cascading deletes in interface_stack foreign keys (LP#1246226)
+
+ALTER TABLE interface_stack DROP CONSTRAINT interface_stack_higher_fkey;
+ALTER TABLE interface_stack ADD CONSTRAINT interface_stack_higher_fkey
+  FOREIGN KEY (higher)
+  REFERENCES interface(interfaceid)
+  ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE interface_stack DROP CONSTRAINT interface_stack_lower_fkey;
+ALTER TABLE interface_stack ADD CONSTRAINT interface_stack_lower_fkey
+  FOREIGN KEY (lower)
+  REFERENCES interface(interfaceid)
+  ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- clean up remnants of LP#1269714
+-- (Physically replacing a device may cause all further SNMP polling of it to
+--  stop)
+
+UPDATE alerthist
+SET end_time=NOW()
+WHERE alerthistid IN (SELECT alerthistid
+                      FROM alerthist ah
+                      JOIN netbox n USING (netboxid)
+                      WHERE eventtypeid = 'snmpAgentState'
+                            AND end_time >= 'infinity'
+                            AND ah.deviceid <> n.deviceid);
+
+INSERT INTO vendor (
+  SELECT 'unknown' AS vendorid
+  WHERE NOT EXISTS (
+    SELECT vendorid FROM vendor WHERE vendorid='unknown'));
+
+- Fix maintenance tasks that are open "until the end of time" (LP#1273706)
+UPDATE maint_task
+SET maint_end = 'infinity'
+WHERE extract(year from maint_end) = 9999;
+
+CREATE OR REPLACE VIEW manage.netboxmac AS
+
+SELECT DISTINCT ON (mac) netboxid, mac FROM (
+(
+
+ -- Attempt to get MAC for netbox' monitored IP
+ SELECT DISTINCT netbox.netboxid, arp.mac
+ FROM netbox
+ JOIN arp ON (arp.ip = netbox.ip AND arp.end_time = 'infinity')
+
+) UNION (
+
+ -- Attempt to get MAC for router's interface addresses and virtual addresses
+ SELECT interface.netboxid, arp.mac
+ FROM arp
+ JOIN gwportprefix gwp ON arp.ip = gwp.gwip
+ LEFT JOIN (SELECT prefixid, COUNT(*) > 0 AS has_virtual
+            FROM gwportprefix
+            WHERE virtual=true
+            GROUP BY prefixid) AS prefix_virtual_ports ON (gwp.prefixid = prefix_virtual_ports.prefixid)
+ JOIN interface USING (interfaceid)
+ WHERE arp.end_time = 'infinity'
+   AND (gwp.virtual = true OR has_virtual IS NULL)
+
+) UNION (
+
+ -- Get MAC directly from interface physical addresses
+ SELECT DISTINCT ON (interface.ifphysaddress) interface.netboxid, interface.ifphysaddress AS mac
+   FROM interface
+   -- physical ethernet interfaces are assumed to be iftype=6
+  WHERE interface.iftype = 6 AND interface.ifphysaddress IS NOT NULL
+
+)
+
+) AS foo
+WHERE mac <> '00:00:00:00:00:00' -- exclude invalid MACs
+ORDER BY mac, netboxid;
+
 
 INSERT INTO schema_change_log (major, minor, point, script_name)
-    VALUES (3, 14, 7, 'initial install');
+    VALUES (3, 15, 201, 'initial install');
