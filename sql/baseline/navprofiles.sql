@@ -1321,6 +1321,24 @@ UPDATE account_navlet
       preferences = '{"status_filter": "event_type=boxState&stateless_threshold=24", "refresh_interval": 60000}'
   WHERE navlet='nav.web.navlets.status.StatusNavlet';
 
+INSERT INTO alertsender (id, name, handler) VALUES (4, 'Slack', 'slack');
+
+ALTER TABLE account ADD COLUMN preferences hstore DEFAULT hstore('');
+
+-- Save all properties from accountproperty as preferences in account table.
+DO $$DECLARE accountproperty RECORD;
+BEGIN
+  FOR accountproperty IN SELECT * FROM accountproperty LOOP
+    UPDATE account
+      SET preferences = preferences || hstore(accountproperty.property, accountproperty.value)
+      WHERE account.id = accountproperty.accountid;
+  END LOOP;
+END$$;
+
+-- Set refresh interval on existing message widgets
+UPDATE account_navlet
+SET preferences = '{"refresh_interval": 60000}'
+WHERE navlet = 'nav.web.navlets.messages.MessagesNavlet';
 
 /*
 ------------------------------------------------------
