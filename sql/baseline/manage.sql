@@ -1868,5 +1868,15 @@ ORDER BY enterprise, count DESC, vendorid;
 COMMENT ON VIEW enterprise_number IS
 'Shows the most common enterprise numbers associated with each vendorid, based on the type table';
 
+-- Add fields to apitoken
+ALTER TABLE apitoken ADD COLUMN created TIMESTAMP DEFAULT now();
+ALTER TABLE apitoken ADD COLUMN last_used TIMESTAMP;
+ALTER TABLE apitoken ADD COLUMN comment TEXT;
+ALTER TABLE apitoken ADD COLUMN revoked BOOLEAN default FALSE;
+ALTER TABLE apitoken ADD COLUMN endpoints hstore;
+
+UPDATE apitoken SET created = NULL;
+
+
 INSERT INTO schema_change_log (major, minor, point, script_name)
-    VALUES (4, 4, 53, 'initial install');
+    VALUES (4, 5, 50, 'initial install');
