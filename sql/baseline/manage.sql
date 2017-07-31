@@ -1737,6 +1737,123 @@ CREATE TRIGGER alertq_subid_fix BEFORE INSERT OR UPDATE ON alertq
 CREATE TRIGGER alerthist_subid_fix BEFORE INSERT OR UPDATE ON alerthist
     FOR EACH ROW EXECUTE PROCEDURE never_use_null_subid();
 
+-- drop the mandatory netbox relation to device
+ALTER TABLE netbox
+    ALTER COLUMN deviceid DROP NOT NULL,
+    DROP CONSTRAINT netbox_deviceid_key;
+
+CREATE TABLE netboxentity (
+  netboxentityid SERIAL NOT NULL,
+  netboxid INTEGER NOT NULL,
+
+  index VARCHAR NOT NULL,
+  source VARCHAR NOT NULL,
+  descr VARCHAR,
+  vendor_type VARCHAR,
+  contained_in_id INTEGER,
+  physical_class INTEGER,
+  parent_relpos INTEGER,
+  name VARCHAR,
+  hardware_revision VARCHAR,
+  firmware_revision VARCHAR,
+  software_revision VARCHAR,
+  deviceid INTEGER,
+  mfg_name VARCHAR,
+  model_name VARCHAR,
+  alias VARCHAR,
+  asset_id VARCHAR,
+  fru BOOLEAN,
+  mfg_date TIMESTAMP WITH TIME ZONE,
+  uris VARCHAR,
+  data hstore NOT NULL DEFAULT hstore(''),
+
+  CONSTRAINT netboxentity_pkey PRIMARY KEY (netboxentityid),
+  CONSTRAINT netboxentity_netboxid_fkey
+             FOREIGN KEY (netboxid)
+             REFERENCES netbox (netboxid)
+             ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT netboxentity_contained_in_id_fkey
+             FOREIGN KEY (contained_in_id)
+             REFERENCES netboxentity (netboxentityid)
+             ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT netboxentity_deviceid_fkey
+             FOREIGN KEY (deviceid)
+             REFERENCES device (deviceid)
+             ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT netboxentity_netboxid_source_index_unique
+             UNIQUE (netboxid, source, index) INITIALLY DEFERRED
+
+);
+
+-- Cry 'Havoc!', and let slip the dogs of war!
+ALTER TABLE netbox DROP COLUMN deviceid;
+
+ALTER TABLE netboxentity
+    ADD COLUMN gone_since TIMESTAMP;
+
+---
+-- Insert new event and alert types for stack state events
+---
+INSERT INTO eventtype (
+  SELECT 'chassisState', 'The state of this chassis has changed', 'y'
+  WHERE NOT EXISTS (SELECT * FROM eventtype WHERE eventtypeid = 'chassisState'));
+
+---
+-- Insert new alerttypes for chassie state alerts
+---
+INSERT INTO alerttype (
+  SELECT nextval('alerttype_alerttypeid_seq'), 'chassisState', 'chassisDown',
+         'This chassis is no longer visible in the stack'
+  WHERE NOT EXISTS (SELECT * FROM alerttype WHERE alerttype = 'chassisDown'));
+
+INSERT INTO alerttype (
+  SELECT nextval('alerttype_alerttypeid_seq'), 'chassisState', 'chassisUp',
+         'This chassis is visible in the stack again'
+  WHERE NOT EXISTS (SELECT * FROM alerttype WHERE alerttype = 'chassisUp'));
+
+-- Modernize existing close_alerthist_modules rule
+
+CREATE OR REPLACE RULE close_alerthist_modules AS ON DELETE TO module
+  DO UPDATE alerthist SET end_time=NOW()
+     WHERE eventtypeid = 'moduleState'
+       AND end_time >= 'infinity'
+       AND netboxid = OLD.netboxid
+       AND subid = OLD.moduleid::text;
+
+-- Make similar rule for chassis devices
+
+CREATE OR REPLACE RULE close_alerthist_chassis AS ON DELETE TO netboxentity
+  WHERE OLD.physical_class = 3  -- chassis class magic number
+  DO UPDATE alerthist SET end_time=NOW()
+     WHERE eventtypeid = 'chassisState'
+       AND end_time >= 'infinity'
+       AND netboxid = OLD.netboxid
+       AND subid = OLD.netboxentityid::text;
+
+-- Make similar rule for interface devices
+
+CREATE OR REPLACE RULE close_alerthist_interface AS ON DELETE TO interface
+  DO UPDATE alerthist SET end_time=NOW()
+     WHERE eventtypeid = 'linkState'
+       AND end_time >= 'infinity'
+       AND netboxid = OLD.netboxid
+       AND subid = OLD.interfaceid::text;
+
+---
+-- Add field to unrecognized_neighbor indicating ignored state
+---
+ALTER TABLE unrecognized_neighbor ADD ignored_since TIMESTAMP DEFAULT NULL;
+
+--- Remove unique constraints for devices in module table
+
+ALTER TABLE module DROP CONSTRAINT IF EXISTS module_deviceid_key;
+
+-- Fix data type of netboxentity.index, which, for mysterious reasons, was
+-- defined as varchar in 4.3.0
+ALTER TABLE netboxentity
+    ALTER COLUMN index TYPE INTEGER
+    USING index::INT;
+
 
 INSERT INTO schema_change_log (major, minor, point, script_name)
-    VALUES (4, 2, 104, 'initial install');
+    VALUES (4, 3, 70, 'initial install');
