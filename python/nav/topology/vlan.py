@@ -64,12 +64,13 @@ class VlanGraphAnalyzer(object):
 
     def analyze_all(self):
         """Analyze all VLAN topologies"""
-        for vlan in self.routed_vlans:
-            _LOGGER.debug("Analyzing VLAN %s", vlan)
+        for vlan in sorted(self.routed_vlans, key=lambda x: x.vlan):
+            _LOGGER.debug("Analyzing routed VLAN %s", vlan)
             self.analyze_vlan(vlan)
         while self.unrouted_vlans:
-            vlan = self.unrouted_vlans.pop()
-            _LOGGER.debug("Analyzing VLAN %s", vlan)
+            vlan = min(self.unrouted_vlans, key=lambda x: x.vlan)
+            self.unrouted_vlans.remove(vlan)
+            _LOGGER.debug("Analyzing unrouted VLAN %s", vlan)
             self.analyze_vlan(vlan)
         return self.ifc_vlan_map
 
