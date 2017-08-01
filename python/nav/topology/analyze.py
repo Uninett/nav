@@ -84,12 +84,6 @@ class AdjacencyAnalyzer(object):
         else:
             return 0
 
-    def get_ports_ordered_by_degree(self):
-        """Return a list of port nodes from the Graph, ordered by degree."""
-        ports_and_degree = self.get_ports_and_degree()
-        ports_and_degree.sort()
-        return [port for _degree, port in ports_and_degree]
-
     def find_return_port(self, from_port, to_netbox):
         """Given a candidate edge from from_port to to_netbox, find a port at
         to_netbox that points to from_port's netbox
@@ -142,30 +136,6 @@ class AdjacencyAnalyzer(object):
         port_nodes = [n for n in self.graph.nodes()
                       if type(n) is Port and self.graph.out_degree(n) == degree]
         return port_nodes
-
-    def port_in_degree(self, port):
-        """Returns the in_degree of the port node, only counting outgoing
-        edges from ports, not boxes.
-
-        """
-        return len([(u, v) for (u, v) in self.graph.in_edges(port)
-                    if type(u) is Port])
-
-    def get_incomplete_ports(self):
-        """Return a list of port nodes whose outgoing edges have not been
-        successfully reduced to one.
-
-        """
-        ports_and_degree = self.get_ports_and_degree()
-        return [port for degree, port in ports_and_degree
-                if degree > 1]
-
-    def get_boxes_without_ports(self):
-        """Return a list of netboxes that have no outgoing edges."""
-        result = [n for n in self.graph.nodes()
-                  if type(n) is Box and
-                  self.graph.out_degree(n) == 0]
-        return result
 
 
 class AdjacencyReducer(AdjacencyAnalyzer):
