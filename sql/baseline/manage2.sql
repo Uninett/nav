@@ -91,10 +91,10 @@ CREATE TABLE manage.thresholdrule (
   alert VARCHAR NOT NULL,
   clear VARCHAR,
   raw BOOLEAN NOT NULL DEFAULT FALSE,
-  period INTEGER DEFAULT NULL,
   description VARCHAR,
   creator_id INTEGER DEFAULT NULL,
   created TIMESTAMP DEFAULT NOW(),
+  period INTEGER DEFAULT NULL,
 
   CONSTRAINT thresholdrule_creator_fkey FOREIGN KEY (creator_id)
              REFERENCES profiles.account (id)

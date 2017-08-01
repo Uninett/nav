@@ -1537,6 +1537,15 @@ CREATE TABLE IF NOT EXISTS prefix_usage (
 ALTER TABLE manage.location ALTER descr DROP NOT NULL,
                             ALTER descr SET DEFAULT '';
 
+ALTER TABLE swportblocked
+  DROP CONSTRAINT swportblocked_pkey;
+
+ALTER TABLE swportblocked
+  ADD CONSTRAINT swportblocked_uniq UNIQUE (interfaceid, vlan);
+
+ALTER TABLE swportblocked
+  ADD COLUMN swportblockedid SERIAL PRIMARY KEY;
+
 
 INSERT INTO schema_change_log (major, minor, point, script_name)
     VALUES (4, 6, 56, 'initial install');
