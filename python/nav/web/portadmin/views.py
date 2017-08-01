@@ -219,6 +219,7 @@ def populate_infodict(request, netbox, interfaces, auditlog_entries=None):
 
     info_dict = get_base_context([(netbox.sysname, )], form=get_form(request))
     info_dict.update({'interfaces': interfaces,
+                      'auditmodel': netbox.sysname,
                       'netbox': netbox,
                       'voice_vlan': voice_vlan,
                       'allowed_vlans': allowed_vlans,
