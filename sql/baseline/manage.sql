@@ -940,24 +940,7 @@ CREATE TABLE schema_change_log (
 INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
   ('info','macWarning','Mac appeared on port');
 
-------------------------------------------------------------------------------
--- mac watch table for storing watched mac addresses
-------------------------------------------------------------------------------
-CREATE TABLE manage.macwatch (
-  id SERIAL PRIMARY KEY,
-  camid INT REFERENCES cam(camid) ON DELETE CASCADE ON UPDATE CASCADE,
-  mac MACADDR NOT NULL,
-  posted TIMESTAMP,
-  userid INT REFERENCES account(id) ON DELETE SET NULL ON UPDATE CASCADE,
-  login VARCHAR,
-  description VARCHAR,
-  created TIMESTAMP DEFAULT NOW()
-);
 
-INSERT INTO subsystem (
-  SELECT 'macwatch' AS name
-  WHERE NOT EXISTS (
-    SELECT name FROM subsystem WHERE name='macwatch'));
 
 CREATE OR REPLACE RULE netbox_status_close_arp AS ON UPDATE TO netbox
    WHERE NEW.up='n'
@@ -1002,31 +985,6 @@ INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
 
 INSERT INTO subsystem (name) VALUES ('ipdevpoll');
 
-ALTER SEQUENCE eventqvar_id_seq OWNED BY manage.eventqvar.id;
-ALTER SEQUENCE accountgroup_accounts_id_seq OWNED BY profiles.accountgroup_accounts.id;
-ALTER SEQUENCE accountproperty_id_seq OWNED BY profiles.accountproperty.id;
-ALTER SEQUENCE alertsender_id_seq OWNED BY profiles.alertsender.id;
-ALTER SEQUENCE alertprofile_id_seq OWNED BY profiles.alertprofile.id;
-ALTER SEQUENCE alertaddress_id_seq OWNED BY profiles.alertaddress.id;
-ALTER SEQUENCE timeperiod_id_seq OWNED BY profiles.timeperiod.id;
-ALTER SEQUENCE filtergroup_group_permission_id_seq OWNED BY profiles.filtergroup_group_permission.id;
-ALTER SEQUENCE filtergroup_id_seq OWNED BY profiles.filtergroup.id;
-ALTER SEQUENCE filtergroupcontent_id_seq OWNED BY profiles.filtergroupcontent.id;
-ALTER SEQUENCE expression_id_seq OWNED BY profiles.expression.id;
-ALTER SEQUENCE filter_id_seq OWNED BY profiles.filter.id;
-ALTER SEQUENCE operator_operator_id_seq OWNED BY profiles.operator.operator_id;
-ALTER SEQUENCE operator_id_seq OWNED BY profiles.operator.id;
-ALTER SEQUENCE matchfield_id_seq OWNED BY profiles.matchfield.id;
-ALTER SEQUENCE alertsubscription_id_seq OWNED BY profiles.alertsubscription.id;
-ALTER SEQUENCE navbarlink_id_seq OWNED BY profiles.navbarlink.id;
-ALTER SEQUENCE accountorg_id_seq OWNED BY profiles.accountorg.id;
-ALTER SEQUENCE account_id_seq OWNED BY profiles.account.id;
-ALTER SEQUENCE accountgroup_id_seq OWNED BY profiles.accountgroup.id;
-ALTER SEQUENCE accountgroupprivilege_id_seq OWNED BY profiles.accountgroupprivilege.id;
-ALTER SEQUENCE privilege_id_seq OWNED BY profiles.privilege.privilegeid;
-ALTER SEQUENCE statuspreference_organization_id_seq OWNED BY profiles.statuspreference_organization.id;
-ALTER SEQUENCE statuspreference_id_seq OWNED BY profiles.statuspreference.id;
-ALTER SEQUENCE statuspreference_category_id_seq OWNED BY profiles.statuspreference_category.id;
 
 -- Ensure any associated service alerts are closed when a service is deleted
 CREATE RULE close_alerthist_services
@@ -1071,11 +1029,7 @@ CREATE TABLE manage.unrecognized_neighbor (
 
 COMMENT ON TABLE unrecognized_neighbor IS 'Unrecognized neighboring devices reported by support discovery protocols';
 
-INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (6, 'Thresholds exceeded', 6, 'threshold', 0);
-INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (7, 'SNMP agents down', 7, 'snmpagent', 0);
-INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (8, 'Links down', 8, 'linkstate', 0);
 
-UPDATE matchfield SET list_limit=1000 WHERE list_limit < 1000;
 
 ALTER TABLE gwportprefix RENAME COLUMN hsrp TO virtual;
 
@@ -1153,42 +1107,6 @@ INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
 UPDATE ipdevpoll_job_log SET job_name = 'ip2mac' WHERE job_name = 'logging';
 
 
--- also close any currently wrongfully open threshold states
-UPDATE alerthist
-    SET end_time = NOW()
-    FROM rrd_datasource
-        WHERE eventtypeid = 'thresholdState'
-            AND end_time >= 'infinity'
-            AND subid NOT IN
-                (SELECT CAST(rrd_datasource.rrd_datasourceid AS text)
-                    FROM rrd_datasource);
-
-UPDATE alerthist
-    SET end_time = NOW()
-    FROM rrd_datasource
-        WHERE eventtypeid = 'thresholdState'
-            AND end_time >= 'infinity'
-            AND alerthist.subid = CAST(rrd_datasource.rrd_datasourceid AS text)
-            AND COALESCE(rrd_datasource.threshold, '') = '';
-
--- Added because macwatch may use mac-address prefixes
-CREATE TABLE macwatch_match(
-  id SERIAL PRIMARY KEY,
-  macwatch INT NOT NULL REFERENCES macwatch(id) ON DELETE CASCADE ON UPDATE CASCADE,
-  cam INT NOT NULL REFERENCES cam(camid) ON DELETE CASCADE ON UPDATE CASCADE,
-  posted TIMESTAMP DEFAULT NOW()
-);
-
-INSERT INTO macwatch_match (macwatch, cam, posted)
-  SELECT id, camid, posted
-    FROM macwatch
-  WHERE camid IS NOT NULL;
-
-ALTER TABLE macwatch ADD COLUMN prefix_length INT DEFAULT NULL;
-ALTER TABLE macwatch ADD CONSTRAINT macwatch_unique_mac UNIQUE (mac);
-ALTER TABLE macwatch DROP COLUMN camid;
-ALTER TABLE macwatch DROP COLUMN posted;
-ALTER TABLE macwatch DROP COLUMN login;
 
 -- Notify the eventEngine immediately as new events are inserted in the queue
 CREATE OR REPLACE RULE eventq_notify AS ON INSERT TO eventq DO ALSO NOTIFY new_event;
@@ -1219,16 +1137,6 @@ $$ LANGUAGE plpgsql;
 
 SELECT drop_constraint('manage', 'cam', 'cam_netboxid_key');
 
--- Fix uniqueness on quarantine vlans
-
-DELETE FROM quarantine_vlans WHERE quarantineid in (
-  SELECT q2.quarantineid
-  FROM quarantine_vlans q1
-  JOIN quarantine_vlans q2
-    ON (q1.vlan = q2.vlan AND q1.quarantineid < q2.quarantineid)
-    ORDER BY q1.quarantineid);
-
-ALTER TABLE quarantine_vlans ADD CONSTRAINT quarantine_vlan_unique UNIQUE (vlan);
 
 -- Create table for netbios names
 
@@ -1254,19 +1162,6 @@ CREATE OR REPLACE VIEW manage.prefix_active_ip_cnt AS
  WHERE arp.end_time = 'infinity'
  GROUP BY prefix.prefixid);
 
--- Create table for images
-
-CREATE TABLE image (
-  imageid SERIAL PRIMARY KEY,
-  roomid VARCHAR REFERENCES room(roomid) NOT NULL,
-  title VARCHAR NOT NULL,
-  path VARCHAR NOT NULL,
-  name VARCHAR NOT NULL,
-  created TIMESTAMP NOT NULL,
-  uploader INT REFERENCES account(id),
-  priority INT
-);
-
 -- Create a table for interface stacking information
 CREATE TABLE manage.interface_stack (
   id SERIAL PRIMARY KEY, -- dummy primary key for Django
@@ -1279,23 +1174,6 @@ ALTER TABLE subcat DROP catid;
 ALTER TABLE subcat RENAME TO netboxgroup;
 ALTER TABLE netboxgroup RENAME subcatid TO netboxgroupid;
 
-UPDATE matchfield SET
-  name='Group',
-  value_id='netboxgroup.netboxgroupid',
-  value_name='netboxgroup.descr',
-  value_sort='netboxgroup.descr',
-  description='Group: netboxes may belong to a group that is independent of type and category'
-  WHERE id=14;
-
--- Create basic token storage for api tokens
-
-CREATE TABLE apitoken (
-  id SERIAL PRIMARY KEY,
-  token VARCHAR not null,
-  expires TIMESTAMP not null,
-  client INT REFERENCES profiles.account(id),
-  scope INT DEFAULT 0
-);
 
 -- Fix cascading deletes in interface_stack foreign keys (LP#1246226)
 
@@ -1329,7 +1207,7 @@ INSERT INTO vendor (
   WHERE NOT EXISTS (
     SELECT vendorid FROM vendor WHERE vendorid='unknown'));
 
-- Fix maintenance tasks that are open "until the end of time" (LP#1273706)
+-- Fix maintenance tasks that are open "until the end of time" (LP#1273706)
 UPDATE maint_task
 SET maint_end = 'infinity'
 WHERE extract(year from maint_end) = 9999;
@@ -1371,46 +1249,6 @@ SELECT DISTINCT ON (mac) netboxid, mac FROM (
 ) AS foo
 WHERE mac <> '00:00:00:00:00:00' -- exclude invalid MACs
 ORDER BY mac, netboxid;
-
-CREATE TABLE manage.thresholdrule (
-  id SERIAL PRIMARY KEY,
-  target VARCHAR NOT NULL,
-  alert VARCHAR NOT NULL,
-  clear VARCHAR,
-  raw BOOLEAN NOT NULL DEFAULT FALSE,
-  period INTEGER DEFAULT NULL,
-  description VARCHAR,
-  creator_id INTEGER DEFAULT NULL,
-  created TIMESTAMP DEFAULT NOW(),
-
-  CONSTRAINT thresholdrule_creator_fkey FOREIGN KEY (creator_id)
-             REFERENCES profiles.account (id)
-             ON UPDATE CASCADE ON DELETE SET NULL
-
-);
-
--- automatically close thresholdState when threshold rules are removed
-CREATE OR REPLACE FUNCTION close_thresholdstate_on_thresholdrule_delete()
-RETURNS TRIGGER AS $$
-  BEGIN
-    IF TG_OP = 'DELETE'
-      OR (TG_OP = 'UPDATE' AND
-          (OLD.alert <> NEW.alert OR OLD.target <> NEW.target))
-    THEN
-      UPDATE alerthist
-      SET end_time = NOW()
-      WHERE subid LIKE (CAST(OLD.id AS text) || ':%')
-            AND eventtypeid = 'thresholdState'
-            AND end_time >= 'infinity';
-    END IF;
-    RETURN NULL;
-  END;
-$$ language 'plpgsql';
-
-CREATE TRIGGER trig_close_thresholdstate_on_thresholdrule_delete
-    AFTER UPDATE OR DELETE ON manage.thresholdrule
-    FOR EACH ROW
-    EXECUTE PROCEDURE close_thresholdstate_on_thresholdrule_delete();
 
 -- Clean up scale/precision problems of already known APC sensors (LP#1270095)
 
@@ -1466,22 +1304,6 @@ ALTER TABLE org ALTER COLUMN data SET DEFAULT hstore('');
 UPDATE room SET data = hstore('') WHERE data IS NULL;
 ALTER TABLE room ALTER COLUMN data SET NOT NULL;
 ALTER TABLE room ALTER COLUMN data SET DEFAULT hstore('');
-
-CREATE TABLE manage.alerthist_ack (
-  alert_id INTEGER PRIMARY KEY NOT NULL,
-  account_id INTEGER NOT NULL,
-  comment VARCHAR DEFAULT NULL,
-  date TIMESTAMPTZ DEFAULT NOW(),
-
-  CONSTRAINT alerthistory_ack_alert FOREIGN KEY (alert_id)
-             REFERENCES manage.alerthist (alerthistid)
-             ON UPDATE CASCADE ON DELETE CASCADE,
-
-  CONSTRAINT alerthistory_ack_user FOREIGN KEY (account_id)
-             REFERENCES profiles.account (id)
-             ON UPDATE CASCADE ON DELETE CASCADE
-
-);
 
 -- clean up some alert- and event-type descriptions
 UPDATE alerttype SET alerttypedesc = 'The IP device has coldstarted'
@@ -1665,15 +1487,6 @@ ORDER BY enterprise, count DESC, vendorid;
 
 COMMENT ON VIEW enterprise_number IS
 'Shows the most common enterprise numbers associated with each vendorid, based on the type table';
-
--- Add fields to apitoken
-ALTER TABLE apitoken ADD COLUMN created TIMESTAMP DEFAULT now();
-ALTER TABLE apitoken ADD COLUMN last_used TIMESTAMP;
-ALTER TABLE apitoken ADD COLUMN comment TEXT;
-ALTER TABLE apitoken ADD COLUMN revoked BOOLEAN default FALSE;
-ALTER TABLE apitoken ADD COLUMN endpoints hstore;
-
-UPDATE apitoken SET created = NULL;
 
 -- Create a table for interface aggregation information
 CREATE TABLE manage.interface_aggregate (

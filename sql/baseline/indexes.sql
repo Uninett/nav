@@ -12,8 +12,6 @@ CREATE INDEX vlan_vlan_btree ON vlan USING btree (vlan);
 
 CREATE INDEX prefix_vlanid_btree ON prefix USING btree (vlanid);
 
-CREATE INDEX netboxsnmpoid_snmpoidid_btree ON netboxsnmpoid USING btree (snmpoidid);
-
 CREATE INDEX interface_to_interfaceid_btree ON interface USING btree (to_interfaceid);
 
 CREATE INDEX gwportprefix_interfaceid_btree ON gwportprefix USING btree (interfaceid);
@@ -36,8 +34,6 @@ CREATE INDEX cam_netboxid_ifindex_end_time_btree ON cam USING btree (netboxid, i
 -- Index to speed up ipdevinfo queries for the first cam entry from a box
 CREATE INDEX cam_netboxid_start_time_btree ON cam USING btree (netboxid, start_time);
 
-CREATE INDEX rrd_file_value ON rrd_file(value);
-
 CREATE INDEX eventq_target_btree ON eventq USING btree (target);
 
 CREATE INDEX eventqvar_eventqid_btree ON eventqvar USING btree (eventqid);
@@ -58,8 +54,6 @@ CREATE INDEX alerthist_open_states_by_eventtype ON alerthist USING btree (netbox
 CREATE INDEX cam_open_records_by_netbox ON cam USING btree (netboxid) WHERE end_time >= 'infinity' OR misscnt >= 0;
 
 CREATE INDEX ipdevpoll_job_log_netboxjob_btree ON ipdevpoll_job_log (netboxid, job_name);
-
-CREATE INDEX rrd_datasource_rrd_fileid_btree ON rrd_datasource(rrd_fileid);
 
 CREATE INDEX interface_stack_higher ON interface_stack (higher);
 CREATE INDEX interface_stack_lower ON interface_stack (lower);

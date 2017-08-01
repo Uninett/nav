@@ -797,18 +797,6 @@ INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,1); --
 INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,2); -- add admin to Everyone
 INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,3); -- add admin to Authenticated users
 
--- NAVBAR PREFERENCES
-
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 1, 'navbar');
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 2, 'navbar');
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 3, 'navbar');
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 4, 'navbar');
-
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (0, 1, 'navbar');
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (0, 2, 'navbar');
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (0, 4, 'navbar');
-
-
 -- Privileges
 
 -- INSERT INTO Privilege VALUES (1, 'empty_privilege');
@@ -1098,14 +1086,14 @@ COMMENT ON TABLE netmap_view IS 'Stored views with settings for NetMap';
 CREATE TABLE profiles.netmap_view_categories (
   id SERIAL,
   viewid INT4 CONSTRAINT netmapview_fkey REFERENCES netmap_view ON UPDATE CASCADE ON DELETE CASCADE,
-  catid VARCHAR(8) CONSTRAINT netmapview_category_fkey REFERENCES cat ON UPDATE CASCADE ON DELETE CASCADE,
+  catid VARCHAR(8) CONSTRAINT netmapview_category_fkey REFERENCES manage.cat ON UPDATE CASCADE ON DELETE CASCADE,
   PRIMARY KEY (viewid, catid)
 );
 
 CREATE TABLE profiles.netmap_view_nodeposition (
   id SERIAL,
   viewid INT4 NOT NULL REFERENCES netmap_view ON UPDATE CASCADE ON DELETE CASCADE,
-  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  netboxid INT4 NOT NULL REFERENCES manage.netbox ON UPDATE CASCADE ON DELETE CASCADE,
   x INT4 NOT NULL,
   y INT4 NOT NULL,
   PRIMARY KEY (viewid, netboxid)
@@ -1205,10 +1193,6 @@ $$ LANGUAGE plpgsql;
 
 SELECT insert_default_navlets_for_existing_users();
 
-
-CREATE TRIGGER add_default_navlets_on_account_create AFTER INSERT ON account
-  FOR EACH ROW
-  EXECUTE PROCEDURE insert_default_navlets_for_new_users();
 
 -- Fix cascading deletes in accounttool foreign keys (LP#1293621)
 
@@ -1312,14 +1296,14 @@ UPDATE account_navlet
 
 INSERT INTO alertsender (id, name, handler) VALUES (4, 'Slack', 'slack');
 
-ALTER TABLE account ADD COLUMN preferences hstore DEFAULT hstore('');
+ALTER TABLE account ADD COLUMN preferences manage.hstore DEFAULT manage.hstore('');
 
 -- Save all properties from accountproperty as preferences in account table.
 DO $$DECLARE accountproperty RECORD;
 BEGIN
   FOR accountproperty IN SELECT * FROM accountproperty LOOP
     UPDATE account
-      SET preferences = preferences || hstore(accountproperty.property, accountproperty.value)
+      SET preferences = preferences || manage.hstore(accountproperty.property, accountproperty.value)
       WHERE account.id = accountproperty.accountid;
   END LOOP;
 END$$;
@@ -1397,6 +1381,19 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
 ---
 UPDATE MatchField SET value_sort='alerttype.alerttype' WHERE id=11 AND value_sort='alerttype.alerttypeid';
 
+INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (6, 'Thresholds exceeded', 6, 'threshold', 0);
+INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (7, 'SNMP agents down', 7, 'snmpagent', 0);
+INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (8, 'Links down', 8, 'linkstate', 0);
+
+UPDATE matchfield SET list_limit=1000 WHERE list_limit < 1000;
+
+UPDATE matchfield SET
+  name='Group',
+  value_id='netboxgroup.netboxgroupid',
+  value_name='netboxgroup.descr',
+  value_sort='netboxgroup.descr',
+  description='Group: netboxes may belong to a group that is independent of type and category'
+  WHERE id=14;
 /*
 ------------------------------------------------------
  EOF
