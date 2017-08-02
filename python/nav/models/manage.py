@@ -1069,7 +1069,7 @@ class Vlan(models.Model):
     vlan = models.IntegerField(null=True, blank=True)
     net_type = models.ForeignKey('NetType', db_column='nettype')
     organization = models.ForeignKey('Organization', db_column='orgid',
-        null=True, blank=True)
+                                     null=True, blank=True)
     usage = models.ForeignKey('Usage', db_column='usageid',
                               null=True, blank=True)
     net_ident = VarcharField(db_column='netident', null=True, blank=True)
@@ -1205,7 +1205,7 @@ class SwPortVlan(models.Model):
     interface = models.ForeignKey('Interface', db_column='interfaceid')
     vlan = models.ForeignKey('Vlan', db_column='vlanid')
     direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES,
-        default=DIRECTION_UNDEFINED)
+                                 default=DIRECTION_UNDEFINED)
 
     class Meta(object):
         db_table = 'swportvlan'
@@ -1251,7 +1251,7 @@ class SwPortAllowedVlan(models.Model):
         # Make sure there are at least 256 digits (128 octets) in the
         # resulting hex string.  This is necessary for parts of NAV to
         # parse the hexstring correctly.
-        max_vlan = sorted(vlans)[-1]
+        max_vlan = max(vlans)
         needed_octets = int(math.ceil((max_vlan+1) / 8.0))
         bits = BitVector('\x00' * max(needed_octets, 128))
         for vlan in vlans:
