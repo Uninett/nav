@@ -18,6 +18,7 @@
 
 # pylint: disable=R0903, C1001
 
+import itertools
 import logging
 from django.core.urlresolvers import reverse
 import os
@@ -785,6 +786,7 @@ class Filter(models.Model):
 
         Running alertengine in debug mode will print the dicts to the logs.
 
+        :type alert: nav.models.event.AlertQueue
         """
         logger = logging.getLogger('nav.alertengine.filter.check')
 
@@ -818,6 +820,19 @@ class Filter(models.Model):
                     extra['where'].append(
                         where % expression.match_field.value_id)
                     extra['params'].append(expression.value)
+
+            # Include all sublocations when matching on location
+            elif expression.match_field.name == 'Location':
+                lookup = "{}__in".format(MatchField.FOREIGN_MAP[MatchField.LOCATION])
+                # Location only have two Operators (in and exact) so we handle
+                # both with a split
+                locations = Location.objects.filter(
+                    pk__in=expression.value.split('|'))
+
+                # Find all descendants for locations in a totally readable way
+                filtr[lookup] = list(set(itertools.chain(
+                    *[l.get_descendants(include_self=True)
+                      for l in locations])))
 
             # Handle wildcard lookups which are not directly supported by
             # django (as far as i know)

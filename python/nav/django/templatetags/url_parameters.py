@@ -53,10 +53,10 @@ def _get_url_params(token):
 
     if len(raw_params) > 0 and len(raw_params) %2 != 0:
         error = "%r tag requires an even number of parameters" % tag_name
-        raise template.TemplateSyntaxError, error
+        raise template.TemplateSyntaxError(error)
 
     params = []
-    for index in xrange(0, len(raw_params), 2):
+    for index in range(0, len(raw_params), 2):
         params.append((raw_params[index],
                        template.Variable(raw_params[index + 1])))
     return params

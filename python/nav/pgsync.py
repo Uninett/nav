@@ -502,7 +502,7 @@ class Synchronizer(object):
         Terminates the process if there are errors.
 
         """
-        sql = file(filename, 'rb').read()
+        sql = open(filename, 'rb').read()
         print_color("%-20s " % (filename + ":"), COLOR_CYAN, newline=False)
         try:
             self.cursor.execute(sql)

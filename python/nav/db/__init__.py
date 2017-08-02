@@ -182,6 +182,13 @@ def closeConnections():
             pass
 
 
+def commit_all_connections():
+    """Attempts to commit the current transactions on all cached connections"""
+    conns = (v.object for v in _connection_cache.values())
+    for conn in conns:
+        conn.commit()
+
+
 def retry_on_db_loss(count=3, delay=2, fallback=None, also_handled=None):
     """Decorates functions to retry them a set number of times in the face of
     exceptions that appear to be database connection related. If the function

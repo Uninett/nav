@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2011, 2012, 2014 UNINETT AS
+# Copyright (C) 2011, 2012, 2014, 2017 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -26,7 +26,7 @@ logging.raiseExceptions = False
 import sys
 from os.path import join
 from datetime import datetime
-from optparse import OptionParser
+import argparse
 
 # import NAV libraries
 from nav import buildconf
@@ -86,7 +86,6 @@ HP_PSU_PS_MAX = 5
 STATE_UNKNOWN = PowerSupplyOrFan.STATE_UNKNOWN
 STATE_UP = PowerSupplyOrFan.STATE_UP
 STATE_DOWN = PowerSupplyOrFan.STATE_DOWN
-STATE_UNKNOWN = PowerSupplyOrFan.STATE_UNKNOWN
 STATE_WARNING = PowerSupplyOrFan.STATE_WARNING
 
 STATE_MAP = dict(PowerSupplyOrFan.STATE_CHOICES)
@@ -153,20 +152,7 @@ def main():
     stderr = logging.getLogger('')
     django.setup()
 
-    parser = OptionParser()
-    parser.add_option(
-        "-d", "--dry-run", action="store_true", dest="dryrun",
-        help="Dry run.  No changes will be made and no events posted")
-    parser.add_option(
-        "-f", "--file", dest="hostsfile",
-        help="A file with hostnames to check. Must be one FQDN per line")
-    parser.add_option(
-        "-n", "--netbox", dest="hostname",
-        help="Check only this hostname.  Must be a FQDN")
-    parser.add_option(
-        "-v", "--verify", action="store_true", dest="verify",
-        help="Print (lots of) debug-information to stderr")
-    opts, _args = parser.parse_args()
+    opts = parse_args()
 
     if opts.verify:
         LOGGER.info("-v option used, setting log level to DEBUG")
@@ -184,13 +170,33 @@ def main():
                         dryrun=opts.dryrun)
 
 
+def parse_args():
+    """Parses the command line arguments"""
+    parser = argparse.ArgumentParser(
+        description="Powersupply and fan status monitor for NAV"
+    )
+    parser.add_argument(
+        "-d", "--dry-run", action="store_true", dest="dryrun",
+        help="Dry run.  No changes will be made and no events posted")
+    parser.add_argument(
+        "-f", "--file", dest="hostsfile",
+        help="A file with hostnames to check. Must be one FQDN per line")
+    parser.add_argument(
+        "-n", "--netbox", dest="hostname",
+        help="Check only this hostname.  Must be a FQDN")
+    parser.add_argument(
+        "-v", "--verify", action="store_true",
+        help="Print (lots of) debug-information to stderr")
+    return parser.parse_args()
+
+
 def read_hostsfile(filename):
     """ Read file with hostnames."""
     LOGGER.debug('Reading hosts from %s', filename)
     hostnames = []
     try:
         hosts_file = open(filename, 'r')
-    except IOError, error:
+    except IOError as error:
         LOGGER.error("I/O error (%s): %s (%s)",
                      error.errno, filename, error.strerror)
         sys.exit(2)
@@ -236,7 +242,7 @@ def check_psus_and_fans(to_check, dryrun=False):
         if psu_or_fan.sensor_oid and snmp_handle:
             try:
                 numerical_status = snmp_handle.get(psu_or_fan.sensor_oid)
-            except Exception, ex:
+            except Exception as ex:
                 LOGGER.error('%s: %s, Exception = %s',
                              psu_or_fan.netbox.sysname, psu_or_fan.name, ex)
                 # Don't jump out, continue to next psu or fan
@@ -334,7 +340,7 @@ def post_event(psu_or_fan, status):
     LOGGER.debug('Posting event: %s', event)
     try:
         event.post()
-    except Exception, why:
+    except Exception as why:
         LOGGER.error('post_event: exception = %s', why)
         return False
     return True

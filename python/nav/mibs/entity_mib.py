@@ -30,6 +30,7 @@ _logger = logging.getLogger(__name__)
 
 
 class EntityMib(mibretriever.MibRetriever):
+    """MibRetriever for the ENTITY-MIB"""
     from nav.smidumps.entity_mib import MIB as mib
 
     def retrieve_alternate_bridge_mibs(self):
@@ -50,7 +51,7 @@ class EntityMib(mibretriever.MibRetriever):
         # Define this locally to avoid external overhead
         bridge_mib_oid = OID('.1.3.6.1.2.1.17')
 
-        def bridge_mib_filter(result):
+        def _bridge_mib_filter(result):
             def _is_bridge_mib_instance_with_valid_community(row):
                 return (row['entLogicalType']
                         and OID(row['entLogicalType']) == bridge_mib_oid
@@ -66,7 +67,7 @@ class EntityMib(mibretriever.MibRetriever):
                 'entLogicalType',
                 'entLogicalCommunity'
                 ])
-        df.addCallback(bridge_mib_filter)
+        df.addCallback(_bridge_mib_filter)
         return df
 
     def get_last_change_time(self):
@@ -86,6 +87,7 @@ class EntityMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_entity_physical_table(self):
+        """Retrieves the full entPhysicalTable contents"""
         phy_sensor_table = yield self._get_named_table('entPhysicalTable')
         defer.returnValue(phy_sensor_table)
 
@@ -124,16 +126,19 @@ class EntityTable(dict):
 
         self.clean()
 
-    def is_module(self, e):
-        return e['entPhysicalClass'] == 'module' and \
-            e['entPhysicalIsFRU'] and \
-            e['entPhysicalSerialNum']
+    @staticmethod
+    def is_module(entity):
+        return (entity['entPhysicalClass'] == 'module' and
+                entity['entPhysicalIsFRU'] and
+                entity['entPhysicalSerialNum'])
 
-    def is_port(self, e):
-        return e['entPhysicalClass'] == 'port'
+    @staticmethod
+    def is_port(entity):
+        return entity['entPhysicalClass'] == 'port'
 
-    def is_chassis(self, e):
-        return e['entPhysicalClass'] == 'chassis'
+    @staticmethod
+    def is_chassis(entity):
+        return entity['entPhysicalClass'] == 'chassis'
 
     def get_modules(self):
         """Return the subset of entities that are modules.

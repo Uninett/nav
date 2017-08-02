@@ -45,7 +45,7 @@ class VirtualRouter(Plugin):
 
     def __init__(self, *args, **kwargs):
         super(VirtualRouter, self).__init__(*args, **kwargs)
-        self.mibs = [mib(self.agent) for mib in CiscoHSRPMib, VRRPMib]
+        self.mibs = [mib(self.agent) for mib in (CiscoHSRPMib, VRRPMib)]
 
     @defer.inlineCallbacks
     def handle(self):

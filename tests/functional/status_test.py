@@ -42,4 +42,6 @@ def test_remember_last_panel_state(selenium, statuspage):
     selenium.refresh()
     # We need to fetch panel element again after a refresh
     panel = selenium.find_element_by_id('status-panel')
+    if not panel.is_displayed():
+        sleep(1)  # stupid attempt to workaround potential FOUC
     assert panel.is_displayed(), 'Panel did not stay in same state after page refresh'

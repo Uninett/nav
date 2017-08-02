@@ -51,7 +51,7 @@ def create_image_directory(imagedirectory):
     """Create directory and change permissions"""
     if not exists(imagedirectory):
         os.mkdir(imagedirectory)
-        os.chmod(imagedirectory, 0755)
+        os.chmod(imagedirectory, 0o0755)
 
 
 def save_image(image, imagefullpath):
@@ -62,7 +62,7 @@ def save_image(image, imagefullpath):
     with open(imagefullpath, 'wb+') as destination:
         for chunk in image.chunks():
             destination.write(chunk)
-        os.chmod(imagefullpath, 0644)
+        os.chmod(imagefullpath, 0o0644)
 
 
 def save_thumbnail(imagename, imagedirectory, thumb_dir):

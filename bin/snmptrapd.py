@@ -53,7 +53,7 @@ DEFAULT_ADDRESSES = (
     ('0.0.0.0', DEFAULT_PORT),
 )
 ADDRESS_PATTERNS = (
-    re.compile(r"(?P<addr>[0-9\.]+) (:(?P<port>[0-9]+))?$", re.VERBOSE),
+    re.compile(r"(?P<addr>[0-9.]+) (:(?P<port>[0-9]+))?$", re.VERBOSE),
 )
 if socket.has_ipv6 and agent.BACKEND == 'pynetsnmp':
     DEFAULT_ADDRESSES += (('::', DEFAULT_PORT),)
@@ -119,7 +119,8 @@ def main():
         logger.error("Could not load handlermodules %s" % why)
         sys.exit(1)
 
-    addresses_text = ", ".join(address_to_string(*addr) for addr in addresses)
+    addresses_text = ", ".join(address_to_string(*addr)
+                               for addr in opts.address)
     if opts.daemon:
         # Daemonize and listen for traps
         try:

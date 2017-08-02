@@ -144,9 +144,7 @@ def main():
             # since the current auth code uses legacy db connections we need to
             # be sure that we end all and any transactions so that we don't
             # idle.
-            conns = [v.object for v in nav.db._connection_cache.values()]
-            for conn in conns:
-                conn.commit()
+            nav.db.commit_all_connections()
 
         except DatabaseError as err:
             logger.error('Database error, closing the DB connection just in '
@@ -192,8 +190,9 @@ def parse_args():
                         help="process the alert queue once and exit")
     parser.add_argument("-f", "--foreground", action="store_true",
                         help="run in the foreground")
-    levels = [name for lvl, name in sorted(logging._levelNames.items())
-              if type(lvl) is int]
+
+    levels = getattr(logging, '_levelNames', {})
+    levels = [name for lvl, name in sorted(levels.items()) if type(lvl) is int]
     parser.add_argument("--loglevel", metavar="LEVEL", choices=levels,
                         help="set the daemon log level")
 

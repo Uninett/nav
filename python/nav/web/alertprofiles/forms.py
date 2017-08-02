@@ -336,7 +336,7 @@ class FilterGroupForm(forms.Form):
             self.fields['owner'].widget.attrs['disabled'] = 'disabled'
 
         if not is_owner:
-            for field in self.fields.itervalues():
+            for field in self.fields.values():
                 field.widget.attrs['disabled'] = 'disabled'
 
         self.helper = FormHelper()
@@ -369,7 +369,7 @@ class FilterForm(forms.Form):
             self.fields['owner'].widget.attrs['disabled'] = 'disabled'
 
         if not is_owner:
-            for field in self.fields.itervalues():
+            for field in self.fields.values():
                 field.widget.attrs['disabled'] = 'disabled'
 
         self.helper = FormHelper()

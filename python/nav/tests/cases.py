@@ -48,7 +48,7 @@ class DjangoTransactionTestCase(django.test.TestCase):
         if fixtures and not fixture_paths:
             raise Exception("No fixtures found")
         for fixture_path in fixture_paths:
-            fixture = file(fixture_path, "r")
+            fixture = open(fixture_path, "r")
             try:
                 objects = serializers.deserialize("xml", fixture)
                 for obj in objects:
