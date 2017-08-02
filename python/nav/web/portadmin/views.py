@@ -596,7 +596,6 @@ def handle_trunk_edit(request, agent, interface):
     )
 
     if trunked_vlans:
-
         agent.set_trunk(interface, native_vlan, trunked_vlans)
     else:
         agent.set_access(interface, native_vlan)
