@@ -587,8 +587,16 @@ def handle_trunk_edit(request, agent, interface):
 
     _logger.info('Interface %s - native: %s, trunk: %s', interface,
                  native_vlan, trunked_vlans)
+    LogEntry.add_log_entry(
+        request.account,
+        u'set-vlan',
+        u'{actor}: {object} - trunk set to native: "%s", trunk: "%s"' % (native_vlan, trunked_vlans),
+        subsystem=u'portadmin',
+        object=interface,
+    )
 
     if trunked_vlans:
+
         agent.set_trunk(interface, native_vlan, trunked_vlans)
     else:
         agent.set_access(interface, native_vlan)
