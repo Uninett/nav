@@ -51,7 +51,7 @@ def main():
 
     init_generic_logging(
         logfile=LOGFILE_PATH,
-        stderr=False,
+        stderr=options.stderr,
         stdout=True,
         read_config=True,
     )
@@ -89,6 +89,8 @@ def make_option_parser():
     parser.add_argument("-i", dest="include_vlans", type=int_list,
                         metavar="vlan[,...]",
                         help="Only analyze the VLANs included in this list")
+    parser.add_argument("-s", "--stderr", action="store_true",
+                        help="Log to stderr (even if not a tty)")
     return parser
 
 
