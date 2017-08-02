@@ -539,5 +539,11 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         $("input.saveall_button").removeAttr('disabled');
     }
 
+    $(document).ready(function() {
+        $(".toggle-all").click(function() {
+            var $checkboxes = $(this).parents().find('input[type=checkbox]');
+        $checkboxes.prop('checked', $(this).is(':checked'));
+        });
+    });
 
 });
