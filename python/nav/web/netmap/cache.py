@@ -80,7 +80,7 @@ def update_cached_node_positions(viewid, layer, updated_nodes):
         # If the node is new, it is easier just to make an early exit and
         # rebuild the whole topology
         if node["new_node"]:
-            return invalidate_topology_cache(layer)
+            return invalidate_topology_cache(viewid, layer)
         # Otherwise, don't update nodes not cached in the topology
         if node["id"] not in to_update["nodes"]:
             continue
@@ -92,9 +92,9 @@ def update_cached_node_positions(viewid, layer, updated_nodes):
     cache.set(cache_key, to_update, CACHE_TIMEOUT)
 
 
-def invalidate_topology_cache(layer):
+def invalidate_topology_cache(viewid, layer):
     "Resets the topology cache, prompting NAV to rebuild it"
-    cache_key = _cache_key("topology", layer)
+    cache_key = _cache_key("topology", viewid, layer)
     cache.delete(cache_key)
 
 
