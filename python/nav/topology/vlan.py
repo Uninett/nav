@@ -70,6 +70,8 @@ class VlanGraphAnalyzer(object):
         while self.unrouted_vlans:
             vlan = min(self.unrouted_vlans, key=_unrouted_vlan_sort)
             self.unrouted_vlans.remove(vlan)
+            if vlan.netbox not in self.layer2:
+                continue
             _LOGGER.debug("Analyzing unrouted VLAN %s", vlan)
             self.analyze_vlan(vlan)
         return self.ifc_vlan_map
