@@ -1096,6 +1096,13 @@ class Vlan(models.Model):
             result += ' (%s)' % self.net_ident
         return result
 
+    def has_meaningful_net_ident(self):
+        if not self.net_ident:
+            return False
+        if self.net_ident.upper() == "VLAN{}".format(self.vlan):
+            return False
+        return True
+
     def get_graph_urls(self):
         """Fetches the graph urls for graphing this vlan"""
         return [url for url in [self.get_graph_url(f) for f in [4, 6]] if url]

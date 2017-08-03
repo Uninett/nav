@@ -68,7 +68,7 @@ class VlanGraphAnalyzer(object):
             _LOGGER.debug("Analyzing routed VLAN %s", vlan)
             self.analyze_vlan(vlan)
         while self.unrouted_vlans:
-            vlan = min(self.unrouted_vlans, key=lambda x: x.vlan)
+            vlan = min(self.unrouted_vlans, key=_unrouted_vlan_sort)
             self.unrouted_vlans.remove(vlan)
             _LOGGER.debug("Analyzing unrouted VLAN %s", vlan)
             self.analyze_vlan(vlan)
@@ -605,3 +605,7 @@ def get_stp_blocked_ports():
     for block in SwPortBlocked.objects.all():
         blocked[block.interface_id].append(block.vlan)
     return dict(blocked)
+
+
+def _unrouted_vlan_sort(vlan):
+    return vlan.vlan * 10 + (0 if vlan.has_meaningful_net_ident() else 1)
