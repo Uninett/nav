@@ -17,7 +17,7 @@
       <tr>
         <th>Location</th>
         <td>
-          <a href="/report/location?locationid={{ room.location.id }}">{{ room.location.description }}</a>
+          <a href="{% url 'location-info' room.location.id %}">{{ room.location.description }}</a>
         </td>
       </tr>
       <tr>
