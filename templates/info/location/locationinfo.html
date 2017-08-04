@@ -26,11 +26,25 @@
             <li aria-controls="locationinfo">
               <a href="#locationinfo">Location info</a>
             </li>
+            <li aria-controls="sublocations">
+              <a href="#sublocations">Sub-Locations</a>
+            </li>
+            <li aria-controls="rooms">
+              <a href="#rooms">Rooms</a>
+            </li>
 
         </ul>
 
         <div id="locationinfo">
           {% include 'info/location/locationinfo_main.html' %}
+        </div>
+
+        <div id="sublocations">
+          {% include 'info/location/locationinfo_sublocations.html' %}
+        </div>
+
+        <div id="rooms">
+          {% include 'info/location/locationinfo_rooms.html' %}
         </div>
 
     </div>

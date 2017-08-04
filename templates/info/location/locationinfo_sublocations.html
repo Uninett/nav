@@ -1,0 +1,30 @@
+
+<div class="row">
+
+
+  <div class="medium-6 column">
+    {% if location.location_set.exists %}
+    <table id="sublocationtable" class="vertitable full-width">
+      <caption>Sub-Locations</caption>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for subloc in location.location_set.all %}
+      <tr>
+        <td><a href="{% url 'location-info' subloc.id %}">{{ subloc.id }}</a></td>
+        <td>{{ subloc.description }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="alert-box">This location has no sub-locations</div>
+    {% endif %}
+
+  </div> {# End of column #}
+
+</div>
