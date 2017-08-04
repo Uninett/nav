@@ -790,6 +790,12 @@ class Location(models.Model, TreeMixin):
         else:
             return u'{}'.format(self.id)
 
+    def get_all_rooms(self):
+        """Return a queryset returning all rooms in this location and
+        sublocations"""
+        locations = self.get_descendants(True)
+        return Room.objects.filter(location__in=locations)
+
 
 class Organization(models.Model, TreeMixin):
     """From NAV Wiki: The org table defines an organization which is in charge

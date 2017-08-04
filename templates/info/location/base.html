@@ -5,7 +5,7 @@
 {% block base_header_additional_head %}
   {{ block.super }}
   <link href="{{ STATIC_URL }}css/nav/info_room.css"  rel="stylesheet">
-  <script>require(["src/info_room"]);</script>
+  <script>require(["src/info_location"]);</script>
   {% try_to_include 'info/room/header_extras.html' %}
 {% endblock %}
 
