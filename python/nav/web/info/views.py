@@ -64,6 +64,7 @@ def process_form(form):
         return []
 
     searchproviders = [providers.RoomSearchProvider(query),
+                       providers.LocationSearchProvider(query),
                        providers.NetboxSearchProvider(query),
                        providers.InterfaceSearchProvider(query),
                        providers.VlanSearchProvider(query),
