@@ -60,7 +60,6 @@ class LinkAggregate(Plugin):
         returnValue(ifc)
 
     def _log_aggregates(self, aggregates):
-        self._logger.debug("%r", aggregates)
         if not self._logger.isEnabledFor(logging.DEBUG):
             return
 
