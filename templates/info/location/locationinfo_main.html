@@ -14,6 +14,12 @@
         <th>Description</th>
         <td>{{ location.description }}</td>
       </tr>
+      {% if location.parent %}
+      <tr>
+        <th>Location</th>
+        <td><a href="{% url 'location-info' location.parent.id %}">{{ location.parent.description|default:location.parent.id }}</a></td>
+      </tr>
+      {% endif %}
       {% for key, value in location.sorted_data %}
       <tr>
         <th>{{ key }}</th>
