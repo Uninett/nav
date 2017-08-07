@@ -10,8 +10,6 @@
 
 node {
     try {
-        notifyBuild('STARTED')
-
         stage("Checkout") {
             checkout scm
         }
