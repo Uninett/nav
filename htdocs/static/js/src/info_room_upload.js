@@ -21,6 +21,32 @@ require(['libs/jquery-ui.min'], function () {
         $('.user-feedback').click(function (event) {
             $(event.target).closest('.alert-box').remove();
         });
+        var input = document.querySelector('.inputfile');
+        var label = input.nextElementSibling,
+            labelVal = label.innerHTML;
+
+        input.addEventListener('change', function (e) {
+            var fileName = '', title = '';
+            if (this.files && this.files.length > 1) {
+                console.log(this.files);
+                fileName = ( this.getAttribute('data-multiple-caption') || '' ).replace('{count}', this.files.length);
+                var names = [];
+                for (var i = 0; i < this.files.length; i++) {
+                    names.push(this.files[i].name);
+                }
+                title = names.join('\n');
+            } else {
+                fileName = e.target.value.split('\\').pop();
+            }
+
+            if (fileName) {
+                label.querySelector('span').innerHTML = fileName;
+            } else {
+                label.innerHTML = labelVal;
+            }
+            label.setAttribute('title', title);
+
+        });
     });
 
     function addButtonListeners(index, element) {
