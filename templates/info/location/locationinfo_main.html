@@ -38,3 +38,28 @@
   </div>
 
 </div>
+{% if images|length > 0 %}
+
+<h4>Images for this location</h4>
+<ul class="clearing-thumbs small-block-grid-2 medium-block-grid-6"
+    data-clearing>
+  {% for image in images %}
+  <li>
+    <a href="{{image.url }}"
+       class="th">
+      <img src="{{ image.thumb_url }}"
+           data-caption="{{ image.title|safe }}">
+    </a>
+  </li>
+  {% endfor %}
+
+</ul>
+
+{% else %}
+
+<a href="{% url 'location-info-upload' location.id %}" class="button secondary small">
+  Add images
+  <i class="fa fa-camera"></i>
+</a>
+
+{% endif %}

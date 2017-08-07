@@ -41,9 +41,9 @@ def create_hash(something, salt=False):
     return hash_object.hexdigest()
 
 
-def get_next_priority(room):
-    """Get the next priority value for the images in this room"""
-    priority = room.image_set.all().aggregate(Max('priority'))['priority__max']
+def get_next_priority(obj):
+    """Get the next priority value for the images in the room/location"""
+    priority = obj.image_set.all().aggregate(Max('priority'))['priority__max']
     return priority + 1 if priority is not None else 0
 
 

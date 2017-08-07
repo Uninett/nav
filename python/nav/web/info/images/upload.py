@@ -27,14 +27,21 @@ def handle_image_upload(request, **kwargs):
                                     'perhaps unsupported type' % image.name)
 
 
-def handle_image(image, uploader, room=None):
+def handle_image(image, uploader, room=None, location=None):
     _logger.debug('Uploading image %s', image)
     original_name = image.name
     imagename = "%s%s" % (create_hash(image, True),
                           get_extension(original_name))
-    imagedirectory = create_hash(room.id)
+    if room:
+        imagedirectory = create_hash(room.id)
+        obj = room
+    else:
+        imagedirectory = create_hash(location.id)
+        obj = location
+
     image_obj = Image(title=original_name, path=imagedirectory, name=imagename,
-                      room=room, priority=get_next_priority(room),
+                      room=room, location=location,
+                      priority=get_next_priority(obj),
                       uploader=uploader)
     imagedirectorypath = join(image_obj.basepath, imagedirectory)
     create_image_directory(imagedirectorypath)

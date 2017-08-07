@@ -3,7 +3,7 @@ import os
 from os.path import exists, join
 from django.db import models
 from nav.models.profiles import Account
-from nav.models.manage import Room
+from nav.models.manage import Location, Room
 from nav.models.fields import VarcharField
 from nav.path import localstatedir
 
@@ -13,7 +13,8 @@ ROOTPATH = join(localstatedir, 'uploads', 'images')
 class Image(models.Model):
     """Model representing an uploaded image"""
     id = models.AutoField(db_column='imageid', primary_key=True)
-    room = models.ForeignKey(Room, db_column='roomid')
+    room = models.ForeignKey(Room, db_column='roomid', null=True)
+    location = models.ForeignKey(Location, db_column='locationid', null=True)
     title = VarcharField()
     path = VarcharField()
     name = VarcharField()
@@ -36,18 +37,24 @@ class Image(models.Model):
         return os.access(self.fullpath, os.R_OK)
 
     def _get_url(self):
-        return '/uploads/images/rooms/{path}/{name}'.format(
+        return '/uploads/images/{itype}/{path}/{name}'.format(
+            itype=self._type(),
             path=self.path,
             name=self.name)
 
     def _get_thumb_url(self):
-        return '/uploads/images/rooms/{path}/thumbs/{name}'.format(
+        return '/uploads/images/{itype}/{path}/thumbs/{name}'.format(
+            itype=self._type(),
             path=self.path,
             name=self.name)
 
+    def _type(self):
+        if self.room:
+            return 'rooms'
+        return 'locations'
+
     def _get_basepath(self):
-        directory = 'rooms'
-        return join(ROOTPATH, directory)
+        return join(ROOTPATH, self._type())
 
     def _get_fullpath(self):
         return join(self.basepath, self.path, self.name)
