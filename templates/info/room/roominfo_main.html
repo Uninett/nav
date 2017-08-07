@@ -52,9 +52,9 @@
       data-clearing>
     {% for image in images %}
       <li>
-        <a href="/uploads/images/rooms/{{ image.path }}/{{ image.name }}"
+        <a href="{{image.url }}"
            class="th">
-          <img src="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}"
+          <img src="{{ image.thumb_url }}"
                data-caption="{{ image.title|safe }}">
         </a>
       </li>

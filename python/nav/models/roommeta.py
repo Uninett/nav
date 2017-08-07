@@ -35,6 +35,18 @@ class Image(models.Model):
     def _check_readable(self):
         return os.access(join(ROOMIMAGEPATH, self.path, self.name), os.R_OK)
 
+    def _get_url(self):
+        return '/uploads/images/rooms/{path}/{name}'.format(
+            path=self.path,
+            name=self.name)
+
+    def _get_thumb_url(self):
+        return '/uploads/images/rooms/{path}/thumbs/{name}'.format(
+            path=self.path,
+            name=self.name)
+
     image_exists = property(_check_image_existance)
     thumb_exists = property(_check_thumb_existance)
     is_readable = property(_check_readable)
+    url = property(_get_url)
+    thumb_url = property(_get_thumb_url)

@@ -76,7 +76,7 @@
         <h5 class="heading">{{ image.title|safe }}</h5>
 
         {% if image.image_exists and image.is_readable %}
-          <img src="/uploads/images/rooms/{{ image.path }}/thumbs/{{ image.name }}">
+          <img src="{{ image.thumb_url }}">
         {% else %}
           {% if not image.image_exists %}
             <span class="alert-box alert">Image does not exist</span>
