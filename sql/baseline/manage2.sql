@@ -3,13 +3,13 @@
 ------------------------------------------------------------------------------
 CREATE TABLE manage.macwatch (
   id SERIAL PRIMARY KEY,
-  camid INT REFERENCES cam(camid) ON DELETE CASCADE ON UPDATE CASCADE,
   mac MACADDR NOT NULL,
-  posted TIMESTAMP,
   userid INT REFERENCES profiles.account(id) ON DELETE SET NULL ON UPDATE CASCADE,
-  login VARCHAR,
   description VARCHAR,
-  created TIMESTAMP DEFAULT NOW()
+  created TIMESTAMP DEFAULT NOW(),
+  prefix_length INT DEFAULT NULL,
+
+  CONSTRAINT macwatch_unique_mac UNIQUE (mac)
 );
 
 -- Create table for images
@@ -69,12 +69,6 @@ INSERT INTO macwatch_match (macwatch, cam, posted)
     FROM macwatch
   WHERE camid IS NOT NULL;
 
-ALTER TABLE macwatch ADD COLUMN prefix_length INT DEFAULT NULL;
-ALTER TABLE macwatch ADD CONSTRAINT macwatch_unique_mac UNIQUE (mac);
-ALTER TABLE macwatch DROP COLUMN camid;
-ALTER TABLE macwatch DROP COLUMN posted;
-ALTER TABLE macwatch DROP COLUMN login;
-
 -- Create basic token storage for api tokens
 
 CREATE TABLE apitoken (
@@ -82,8 +76,13 @@ CREATE TABLE apitoken (
   token VARCHAR not null,
   expires TIMESTAMP not null,
   client INT REFERENCES profiles.account(id),
-  scope INT DEFAULT 0
+  scope INT DEFAULT 0,
+  created TIMESTAMP DEFAULT now(),
+  last_used TIMESTAMP,
+  comment TEXT,
+  revoked BOOLEAN default FALSE
 );
+
 
 CREATE TABLE manage.thresholdrule (
   id SERIAL PRIMARY KEY,
@@ -140,12 +139,4 @@ CREATE TRIGGER trig_close_thresholdstate_on_thresholdrule_delete
     AFTER UPDATE OR DELETE ON manage.thresholdrule
     FOR EACH ROW
     EXECUTE PROCEDURE close_thresholdstate_on_thresholdrule_delete();
-
--- Add fields to apitoken
-ALTER TABLE apitoken ADD COLUMN created TIMESTAMP DEFAULT now();
-ALTER TABLE apitoken ADD COLUMN last_used TIMESTAMP;
-ALTER TABLE apitoken ADD COLUMN comment TEXT;
-ALTER TABLE apitoken ADD COLUMN revoked BOOLEAN default FALSE;
 ALTER TABLE apitoken ADD COLUMN endpoints hstore;
-
-UPDATE apitoken SET created = NULL;

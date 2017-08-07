@@ -25,9 +25,7 @@ CREATE TABLE org (
   parent VARCHAR(30),
   descr VARCHAR,
   contact VARCHAR,
-  opt1 VARCHAR,
-  opt2 VARCHAR,
-  opt3 VARCHAR,
+  data hstore NOT NULL DEFAULT hstore(''),
   CONSTRAINT org_parent_fkey FOREIGN KEY (parent) REFERENCES org (orgid)
              ON UPDATE CASCADE
 );
@@ -41,7 +39,9 @@ CREATE TABLE usage (
 
 CREATE TABLE location (
   locationid VARCHAR(30) PRIMARY KEY,
-  descr VARCHAR NOT NULL
+  descr VARCHAR DEFAULT '',
+  data hstore DEFAULT hstore('') NOT NULL,
+  parent VARCHAR REFERENCES location(locationid) ON UPDATE CASCADE
 );
 INSERT INTO location (locationid, descr) VALUES ('mylocation', 'Example location');
 
@@ -49,11 +49,8 @@ CREATE TABLE room (
   roomid VARCHAR(30) PRIMARY KEY,
   locationid VARCHAR(30) REFERENCES location,
   descr VARCHAR,
-  opt1 VARCHAR,
-  opt2 VARCHAR,
-  opt3 VARCHAR,
-  opt4 VARCHAR,
-  position POINT
+  position POINT,
+  data hstore NOT NULL DEFAULT hstore('')
 );
 INSERT INTO room (roomid, locationid, descr) VALUES ('myroom', 'mylocation', 'Example wiring closet');
 
@@ -124,10 +121,6 @@ CREATE TABLE type (
   vendorid VARCHAR(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
   typename VARCHAR NOT NULL,
   sysObjectID VARCHAR NOT NULL,
-  cdp BOOL DEFAULT false,
-  tftp BOOL DEFAULT false,
-  cs_at_vlan BOOL,
-  chassis BOOL NOT NULL DEFAULT true,
   descr VARCHAR,
   UNIQUE (vendorid, typename),
   UNIQUE (sysObjectID)
@@ -138,19 +131,18 @@ CREATE TABLE netbox (
   ip INET NOT NULL,
   roomid VARCHAR(30) NOT NULL CONSTRAINT netbox_roomid_fkey REFERENCES room ON UPDATE CASCADE,
   typeid INT4 CONSTRAINT netbox_typeid_fkey REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
-  deviceid INT4 NOT NULL CONSTRAINT netbox_deviceid_fkey REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   sysname VARCHAR UNIQUE NOT NULL,
   catid VARCHAR(8) NOT NULL CONSTRAINT netbox_catid_fkey REFERENCES cat ON UPDATE CASCADE ON DELETE CASCADE,
   orgid VARCHAR(30) NOT NULL CONSTRAINT netbox_orgid_fkey REFERENCES org ON UPDATE CASCADE,
   ro VARCHAR,
   rw VARCHAR,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n' OR up='s'), -- y=up, n=down, s=shadow
-  snmp_version INT4 NOT NULL DEFAULT 1,
+  snmp_version INT4 NOT NULL DEFAULT 2,
   upsince TIMESTAMP NOT NULL DEFAULT NOW(),
   uptodate BOOLEAN NOT NULL DEFAULT false, 
   discovered TIMESTAMP NULL DEFAULT NOW(),
+  data hstore DEFAULT hstore('') NOT NULL,
   UNIQUE(ip),
-  UNIQUE(deviceid)
 );
 
 -- View to match each netbox with a prefix
@@ -305,7 +297,7 @@ CREATE TABLE gwportprefix (
   interfaceid INT4 NOT NULL REFERENCES interface ON UPDATE CASCADE ON DELETE CASCADE,
   prefixid INT4 NOT NULL REFERENCES prefix ON UPDATE CASCADE ON DELETE CASCADE,
   gwip INET NOT NULL,
-  hsrp BOOL NOT NULL DEFAULT false,
+  virtual BOOL NOT NULL DEFAULT false,
   UNIQUE(gwip)
 );
 
@@ -1031,7 +1023,6 @@ COMMENT ON TABLE unrecognized_neighbor IS 'Unrecognized neighboring devices repo
 
 
 
-ALTER TABLE gwportprefix RENAME COLUMN hsrp TO virtual;
 
 -- Create a log table for ipdevpoll job runs
 CREATE TABLE manage.ipdevpoll_job_log (
@@ -1143,16 +1134,13 @@ SELECT drop_constraint('manage', 'cam', 'cam_netboxid_key');
 CREATE TABLE netbios (
   netbiosid SERIAL PRIMARY KEY,
   ip INET NOT NULL,
-  mac MACADDR NOT NULL,
+  mac MACADDR,
   name VARCHAR NOT NULL,
   server VARCHAR NOT NULL,
   username VARCHAR NOT NULL,
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL DEFAULT 'infinity'
 );
-
--- Make MAC addresses optional for netbios entries
-ALTER TABLE netbios ALTER COLUMN mac DROP NOT NULL;
 
 -- fix view that gives wrong ip count in VRRP/HSRP environments
 CREATE OR REPLACE VIEW manage.prefix_active_ip_cnt AS
@@ -1265,46 +1253,6 @@ WHERE mib = 'PowerNet-MIB'
 INSERT INTO manage.cat (catid, descr, req_snmp) VALUES ('ENV', 'Environmental probes', true);
 INSERT INTO manage.cat (catid, descr, req_snmp) VALUES ('POWER', 'Power distribution equipment', true);
 
--- Drop fields that have been obsolete for many NAV versions.
-ALTER TABLE manage.type
-    DROP COLUMN cdp,
-    DROP COLUMN tftp,
-    DROP COLUMN cs_at_vlan,
-    DROP COLUMN chassis;
-
--- Add field data to room - requires the hstore extension to be installed.
-ALTER TABLE room ADD COLUMN data hstore;
-
--- Copy all information from opt-fields to hstore
-UPDATE room SET data = hstore('opt1', opt1) WHERE COALESCE(opt1, '') <> '';
-UPDATE room SET data = data || hstore('opt2', opt2) WHERE COALESCE(opt2, '') <> '';
-UPDATE room SET data = data || hstore('opt3', opt3) WHERE COALESCE(opt3, '') <> '';
-UPDATE room SET data = data || hstore('opt4', opt4) WHERE COALESCE(opt4, '') <> '';
-
--- Drop useless opt columns
-ALTER TABLE room DROP COLUMN opt1, DROP COLUMN opt2, DROP COLUMN opt3, DROP COLUMN opt4;
-
--- Add field data to org
-ALTER TABLE org ADD COLUMN data hstore;
-
--- Copy all information from opt-fields to hstore
-UPDATE org SET data = hstore('opt1', opt1) WHERE COALESCE(opt1, '') <> '';
-UPDATE org SET data = data || hstore('opt2', opt2) WHERE COALESCE(opt2, '') <> '';
-UPDATE org SET data = data || hstore('opt3', opt3) WHERE COALESCE(opt3, '') <> '';
-
--- Drop useless opt columns
-ALTER TABLE org DROP COLUMN opt1, DROP COLUMN opt2, DROP COLUMN opt3;
-
--- Ensure the data field of org and room can't be a NULL value. An empty
--- hstore value is acceptable.
-UPDATE org SET data = hstore('') WHERE data IS NULL;
-ALTER TABLE org ALTER COLUMN data SET NOT NULL;
-ALTER TABLE org ALTER COLUMN data SET DEFAULT hstore('');
-
-UPDATE room SET data = hstore('') WHERE data IS NULL;
-ALTER TABLE room ALTER COLUMN data SET NOT NULL;
-ALTER TABLE room ALTER COLUMN data SET DEFAULT hstore('');
-
 -- clean up some alert- and event-type descriptions
 UPDATE alerttype SET alerttypedesc = 'The IP device has coldstarted'
 WHERE alerttype='coldStart';
@@ -1317,15 +1265,6 @@ WHERE alerttype='deviceInIPOperation';
 
 UPDATE alerttype SET alerttypedesc = 'The device is now in operation as a chassis module'
 WHERE alerttype='deviceInStack';
-
-ALTER TABLE manage.netbox ADD data hstore DEFAULT hstore('') NOT NULL;
-ALTER TABLE manage.location ADD data hstore DEFAULT hstore('') NOT NULL;
-
--- fix ambiguity in the subid field of alert and event tables
--- as a result of LP#1403365
-UPDATE eventq SET subid='' WHERE subid IS NULL;
-UPDATE alertq SET subid='' WHERE subid IS NULL;
-UPDATE alerthist SET subid='' WHERE subid IS NULL;
 
 ALTER TABLE eventq ALTER COLUMN subid SET NOT NULL;
 ALTER TABLE eventq ALTER COLUMN subid SET DEFAULT '';
@@ -1356,11 +1295,6 @@ CREATE TRIGGER alertq_subid_fix BEFORE INSERT OR UPDATE ON alertq
 
 CREATE TRIGGER alerthist_subid_fix BEFORE INSERT OR UPDATE ON alerthist
     FOR EACH ROW EXECUTE PROCEDURE never_use_null_subid();
-
--- drop the mandatory netbox relation to device
-ALTER TABLE netbox
-    ALTER COLUMN deviceid DROP NOT NULL,
-    DROP CONSTRAINT netbox_deviceid_key;
 
 CREATE TABLE netboxentity (
   netboxentityid SERIAL NOT NULL,
@@ -1404,9 +1338,6 @@ CREATE TABLE netboxentity (
              UNIQUE (netboxid, source, index) INITIALLY DEFERRED
 
 );
-
--- Cry 'Havoc!', and let slip the dogs of war!
-ALTER TABLE netbox DROP COLUMN deviceid;
 
 ALTER TABLE netboxentity
     ADD COLUMN gone_since TIMESTAMP;
@@ -1516,12 +1447,6 @@ INSERT INTO alerttype (
          'This aggregate link has been restored'
   WHERE NOT EXISTS (SELECT * FROM alerttype WHERE alerttype = 'linkRestored'));
 
--- Always default new devices to SNMP v2c
-ALTER TABLE netbox
-ALTER COLUMN snmp_version SET DEFAULT 2;
-
-ALTER TABLE location ADD parent VARCHAR REFERENCES location(locationid) ON UPDATE CASCADE;
-
 -- Create table for storing prefix tags
 CREATE TABLE IF NOT EXISTS prefix_usage (
     prefix_usage_id SERIAL PRIMARY KEY,
@@ -1531,11 +1456,6 @@ CREATE TABLE IF NOT EXISTS prefix_usage (
                     ON UPDATE CASCADE ON DELETE CASCADE,
     UNIQUE (prefixid, usageid)
 );
-
--- Set description to be optional for Locations and set default value to be an
--- empty string as that is what is used in Django for empty char-fields
-ALTER TABLE manage.location ALTER descr DROP NOT NULL,
-                            ALTER descr SET DEFAULT '';
 
 ALTER TABLE swportblocked
   DROP CONSTRAINT swportblocked_pkey;
