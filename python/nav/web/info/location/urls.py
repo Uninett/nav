@@ -17,7 +17,7 @@
 
 
 from django.conf.urls import url, patterns
-from nav.web.info.location import  views
+from nav.web.info.location import views
 
 urlpatterns = patterns('',
     url(r'^$', views.search, name='location-search'),
