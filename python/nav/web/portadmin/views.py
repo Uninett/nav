@@ -590,7 +590,7 @@ def handle_trunk_edit(request, agent, interface):
     LogEntry.add_log_entry(
         request.account,
         u'set-vlan',
-        u'{actor}: {object} - trunk set to native: "%s", trunk: "%s"' % (native_vlan, trunked_vlans),
+        u'{actor}: {object} - native vlan: "%s", trunk vlans: "%s"' % (native_vlan, trunked_vlans),
         subsystem=u'portadmin',
         object=interface,
     )
