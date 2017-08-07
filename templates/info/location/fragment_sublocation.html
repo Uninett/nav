@@ -1,0 +1,19 @@
+<li class="branch" data-locationid="{{ location.pk }}">
+  {% if location.has_children %}
+  <i class="fa fa-toggle-down"></i>
+  {% endif %}
+  <a href="{% url 'location-info' location.pk %}">
+    {{ location }}
+  </a>
+
+  {% if location.has_children %}
+  <ul class="child">
+    {% for child in location.get_children %}
+    {% with location=child %}
+    {% include 'info/location/fragment_sublocation.html' %}
+    {% endwith %}
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+</li>
