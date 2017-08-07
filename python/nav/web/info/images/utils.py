@@ -13,7 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Utils for the info room views"""
+"""Utils for the image upload views"""
 import hashlib
 import time
 import os

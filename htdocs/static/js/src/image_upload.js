@@ -84,7 +84,7 @@ require(['libs/jquery-ui.min'], function () {
             imageid = $card.attr('data-imageid'),
             $titlecell = $card.find('.heading'),
             title = $titlecell.find('input').val(),
-            jqxhr = $.post(NAV.urls['room-info-update-title'], {'id': imageid, 'title': title});
+            jqxhr = $.post(NAV.urls['image-update-title'], {'id': imageid, 'title': title});
 
         jqxhr.done(function () {
             $titlecell.html(title);
@@ -103,7 +103,7 @@ require(['libs/jquery-ui.min'], function () {
                 var $this = $(this),
                     $row = $this.parents('.imagecard'),
                     $imageid = $row.attr('data-imageid'),
-                    jqxhr = $.post(NAV.urls['room-info-delete-image'], {'id': $imageid});
+                    jqxhr = $.post(NAV.urls['image-delete-image'], {'id': $imageid});
 
                 jqxhr.done(function () {
                     location.reload();
@@ -128,7 +128,7 @@ require(['libs/jquery-ui.min'], function () {
     }
 
     function saveOrder() {
-        var jqxhr = $.post(NAV.urls['room-info-update-priority'], get_image_priorities());
+        var jqxhr = $.post(NAV.urls['image-update-priority'], get_image_priorities());
         jqxhr.done(function () {
             createFeedback('Image order has been saved', 'success');
         });

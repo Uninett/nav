@@ -1,4 +1,4 @@
-"""Models for room meta information"""
+"""Models for uploaded image information"""
 import os
 from os.path import exists, join
 from django.db import models

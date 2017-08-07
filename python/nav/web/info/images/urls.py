@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012 UNINETT AS
+# Copyright (C) 2017 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,15 +15,15 @@
 #
 """Django URL configuration"""
 
-from django.conf.urls import patterns, include, url
-from nav.web.info.views import index
+
+from django.conf.urls import url, patterns
+from nav.web.info.images import views
 
 urlpatterns = patterns('',
-    url(r'^$', index, name="info-search"),
-    url(r'^room/', include('nav.web.info.room.urls')),
-    url(r'^location/', include('nav.web.info.location.urls')),
-    url(r'^vlan/', include('nav.web.info.vlan.urls')),
-    url(r'^prefix/', include('nav.web.info.prefix.urls')),
-    url(r'^devicegroup/', include('nav.web.info.netboxgroup.urls')),
-    url(r'^image/', include('nav.web.info.images.urls')),
+    url(r'^update_title', views.update_title,
+        name='image-update-title'),
+    url(r'^delete', views.delete_image,
+        name='image-delete-image'),
+    url(r'^update_priority', views.update_priority,
+        name='image-update-priority'),
 )
