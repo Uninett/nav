@@ -177,6 +177,7 @@ NAVLETS = (
     'nav.web.navlets.ups.UpsWidget',
     'nav.web.navlets.pdu.PduWidget',
     'nav.web.navlets.roomstatus.RoomStatus',
+    'nav.web.navlets.locationstatus.LocationStatus',
     'nav.web.navlets.env_rack.EnvironmentRackWidget',
 )
 

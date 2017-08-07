@@ -207,7 +207,7 @@ $fullscreen-color: #EEE;
     fieldset { padding: .3em .8em; }
 }
 
-.RoomStatus {
+.RoomStatus, .LocationStatus {
     // Override the jquery ui css styles
     .ui-accordion {
         a { color: $primary-color; }

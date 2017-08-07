@@ -2,26 +2,26 @@
 
 {% block navlet-content %}
 
-  {% if rooms %}
+  {% if items %}
 
     <div class="accordion">
-      {% for room in rooms %}
-        <h3 data-roomid="{{ room.pk }}">
-          {{ room }}
+      {% for item in items %}
+        <h3 data-itemid="{{ item.pk }}">
+          {{ item }}
           <small class="label radius alert"
-                 title="{{ room.alerts|length }} alerts in {{ room.pk }}">
-            {{ room.alerts|length }}
+                 title="{{ item.alerts|length }} alerts in {{ item.pk }}">
+            {{ item.alerts|length }}
           </small>
         </h3>
         <div>
-          <a href="{% url 'devicehistory-view-room' room.pk %}"
-             title="Go to device history for this room">Alerts</a>
+          <a href="{% url history_route item.pk %}"
+             title="Go to device history for this {{name}}">Alerts</a>
           in
-          <a href="{% url 'room-info' room.pk %}"
-             title="Go to room info for this room">{{ room.pk }}</a>
+          <a href="{% url info_route item.pk %}"
+             title="Go to {{name}} info for this {{name}}">{{ item.pk }}</a>
 
           <ul>
-            {% for alert in room.alerts %}
+            {% for alert in item.alerts %}
               <li>
                 {{ alert.start_time }} &ndash;
                 <a href="{{ alert.netbox.get_absolute_url }}"
@@ -46,7 +46,7 @@
           heightStyle: 'content',
           activate: function (event, ui) {
             if (ui.newHeader.length) {
-              $navlet.data('active-header', ui.newHeader.data('roomid'));
+              $navlet.data('active-header', ui.newHeader.data('itemid'));
             } else {
               $navlet.data('active-header', null);
             }
@@ -58,7 +58,7 @@
           var active = false;
           if (activeHeader) {
             $navlet.find('.accordion h3').each(function (index, element) {
-              if ($(element).data('roomid') === activeHeader) {
+              if ($(element).data('itemid') === activeHeader) {
                 active = index;
               }
             });
@@ -71,7 +71,7 @@
 
 
   {% else %}
-    <div class="alert-box success with-icon">No alerts in any rooms</div>
+    <div class="alert-box success with-icon">No alerts in any {{name_plural}}</div>
   {% endif %}
 
   <small class="right">
