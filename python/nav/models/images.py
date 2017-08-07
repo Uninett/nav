@@ -7,7 +7,7 @@ from nav.models.manage import Room
 from nav.models.fields import VarcharField
 from nav.path import localstatedir
 
-ROOMIMAGEPATH = join(localstatedir, 'uploads', 'images', 'rooms')
+ROOTPATH = join(localstatedir, 'uploads', 'images')
 
 
 class Image(models.Model):
@@ -26,14 +26,14 @@ class Image(models.Model):
         ordering = ['priority']
 
     def _check_image_existance(self):
-        return exists(join(ROOMIMAGEPATH, self.path, self.name))
+        return exists(self.fullpath)
 
     def _check_thumb_existance(self):
         """Relies on static thumb directory"""
-        return exists(join(ROOMIMAGEPATH, self.path, 'thumbs', self.name))
+        return exists(self.thumbpath)
 
     def _check_readable(self):
-        return os.access(join(ROOMIMAGEPATH, self.path, self.name), os.R_OK)
+        return os.access(self.fullpath, os.R_OK)
 
     def _get_url(self):
         return '/uploads/images/rooms/{path}/{name}'.format(
@@ -45,8 +45,21 @@ class Image(models.Model):
             path=self.path,
             name=self.name)
 
+    def _get_basepath(self):
+        directory = 'rooms'
+        return join(ROOTPATH, directory)
+
+    def _get_fullpath(self):
+        return join(self.basepath, self.path, self.name)
+
+    def _get_thumb_path(self):
+        return join(self.basepath, self.path, 'thumbs', self.name)
+
     image_exists = property(_check_image_existance)
     thumb_exists = property(_check_thumb_existance)
     is_readable = property(_check_readable)
     url = property(_get_url)
     thumb_url = property(_get_thumb_url)
+    basepath = property(_get_basepath)
+    fullpath = property(_get_fullpath)
+    thumbpath = property(_get_thumb_path)

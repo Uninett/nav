@@ -5,7 +5,7 @@ from os.path import join
 from django.contrib import messages
 from django.http import HttpResponse
 
-from nav.models.images import Image, ROOMIMAGEPATH
+from nav.models.images import Image
 
 _logger = logging.getLogger('nav.web.info.image')
 
@@ -38,10 +38,10 @@ def delete_image(request):
         except Image.DoesNotExist:
             return HttpResponse(status=500)
         else:
-            filepath = join(ROOMIMAGEPATH, image.path)
+            filepath = image.fullpath
             try:
                 _logger.debug('Deleting file %s', filepath)
-                os.unlink(join(filepath, image.name))
+                os.unlink(filepath)
             except OSError as error:
                 # If the file is not found, then this is ok, otherwise not ok
                 if error.errno != 2:
@@ -51,7 +51,7 @@ def delete_image(request):
                     request, 'Image &laquo;%s&raquo; deleted' % image.title)
 
             try:
-                os.unlink(join(filepath, 'thumbs', image.name))
+                os.unlink(image.thumbpath)
             except OSError:
                 # We don't really care if the thumbnail is not deleted
                 pass

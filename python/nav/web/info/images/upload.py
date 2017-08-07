@@ -4,7 +4,7 @@ from os.path import join
 from django.contrib import messages
 
 from nav.django.utils import get_account
-from nav.models.images import Image, ROOMIMAGEPATH
+from nav.models.images import Image
 from nav.web.info.images.utils import (get_extension, create_hash,
                                        create_image_directory,
                                        get_next_priority, save_image,
@@ -33,11 +33,12 @@ def handle_image(image, uploader, room=None):
     imagename = "%s%s" % (create_hash(image, True),
                           get_extension(original_name))
     imagedirectory = create_hash(room.id)
-    imagedirectorypath = join(ROOMIMAGEPATH, imagedirectory)
+    image_obj = Image(title=original_name, path=imagedirectory, name=imagename,
+                      room=room, priority=get_next_priority(room),
+                      uploader=uploader)
+    imagedirectorypath = join(image_obj.basepath, imagedirectory)
     create_image_directory(imagedirectorypath)
     save_image(image, join(imagedirectorypath, imagename))
     save_thumbnail(imagename, imagedirectorypath,
                    join(imagedirectorypath, 'thumbs'))
-    Image(title=original_name, path=imagedirectory, name=imagename, room=room,
-          priority=get_next_priority(room),
-          uploader=uploader).save()
+    image_obj.save()
