@@ -142,7 +142,7 @@ CREATE TABLE netbox (
   uptodate BOOLEAN NOT NULL DEFAULT false, 
   discovered TIMESTAMP NULL DEFAULT NOW(),
   data hstore DEFAULT hstore('') NOT NULL,
-  UNIQUE(ip),
+  UNIQUE(ip)
 );
 
 -- View to match each netbox with a prefix
