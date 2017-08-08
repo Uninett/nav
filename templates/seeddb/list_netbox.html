@@ -8,6 +8,7 @@
     <td {% if object.description %}title="{{ object.description }}"{% endif %}
         style="white-space: nowrap">
       {% if forloop.first %}  {# first column is always sysname #}
+
         {% if object.model.deleted_at %}
         <a href="{{ object.url }}"><del>{{ element }}</del> {{object.master }}</a>
         {% else %}
