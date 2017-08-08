@@ -219,6 +219,7 @@ def populate_infodict(request, netbox, interfaces, auditlog_entries=None):
 
     info_dict = get_base_context([(netbox.sysname, )], form=get_form(request))
     info_dict.update({'interfaces': interfaces,
+                      'auditmodel': netbox.sysname,
                       'netbox': netbox,
                       'voice_vlan': voice_vlan,
                       'allowed_vlans': allowed_vlans,
@@ -586,6 +587,13 @@ def handle_trunk_edit(request, agent, interface):
 
     _logger.info('Interface %s - native: %s, trunk: %s', interface,
                  native_vlan, trunked_vlans)
+    LogEntry.add_log_entry(
+        request.account,
+        u'set-vlan',
+        u'{actor}: {object} - native vlan: "%s", trunk vlans: "%s"' % (native_vlan, trunked_vlans),
+        subsystem=u'portadmin',
+        object=interface,
+    )
 
     if trunked_vlans:
         agent.set_trunk(interface, native_vlan, trunked_vlans)
