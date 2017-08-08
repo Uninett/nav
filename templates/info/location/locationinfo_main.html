@@ -1,0 +1,40 @@
+
+<div class="row">
+
+
+  <div class="medium-6 column">
+    <table id="locationinfotable" class="vertitable full-width">
+      <caption>Locationinfo</caption>
+      <tbody>
+      <tr>
+        <th>Name</th>
+        <td class="locationid" data-locationid="{{location.id}}">{{ location.id }}</td>
+      </tr>
+      <tr>
+        <th>Description</th>
+        <td>{{ location.description }}</td>
+      </tr>
+      {% if location.parent %}
+      <tr>
+        <th>Location</th>
+        <td><a href="{% url 'location-info' location.parent.id %}">{{ location.parent.description|default:location.parent.id }}</a></td>
+      </tr>
+      {% endif %}
+      {% for key, value in location.sorted_data %}
+      <tr>
+        <th>{{ key }}</th>
+        <td>{{ value|urlize }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+  </div> {# End of column #}
+
+  <div class="medium-6 column">
+    <div class="mapwrapper">
+      <div id="room_map"></div>
+    </div>
+  </div>
+
+</div>

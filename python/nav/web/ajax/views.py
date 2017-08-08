@@ -22,17 +22,10 @@ The view definitions does not necessarily need to be placed here.
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 
-from nav.models.manage import Room, Netbox
+from nav.models.manage import Room, Netbox, Location
 
 
-def get_rooms_with_position(_request, roomid=None):
-    """
-    Get rooms for presentation in OSM map
-    """
-    if roomid:
-        rooms = Room.objects.filter(id=roomid, position__isnull=False)
-    else:
-        rooms = Room.objects.filter(position__isnull=False)
+def _process_room_position(rooms):
     data = {'rooms': []}
     for room in rooms:
         roomdata = {
@@ -43,6 +36,26 @@ def get_rooms_with_position(_request, roomid=None):
         data['rooms'].append(roomdata)
 
     return JsonResponse(data)
+
+
+def get_rooms_with_position(_request, roomid=None):
+    """
+    Get rooms for presentation in OSM map
+    """
+    if roomid:
+        rooms = Room.objects.filter(id=roomid, position__isnull=False)
+    else:
+        rooms = Room.objects.filter(position__isnull=False)
+    return _process_room_position(rooms)
+
+
+def get_rooms_with_position_for_location(_request, locationid):
+    """
+    Get rooms for presentation in OSM map based on location
+    """
+    location = Location.objects.get(pk=locationid)
+    rooms = location.get_all_rooms().filter(position__isnull=False)
+    return _process_room_position(rooms)
 
 
 def get_room_status(room):

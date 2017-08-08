@@ -1,0 +1,41 @@
+
+<div class="row">
+
+
+  <div class="medium-6 column">
+    {% if location.location_set.exists %}
+    <button id="collapse-all" class="button small">Collapse all</button>
+    <button id="expand-all" class="button small">Expand all</button>
+
+    <ul class="tree-list no-bullet">
+      {% for subloc in location.location_set.all %}
+      {% with location=subloc %}
+      {% include 'info/location/fragment_sublocation.html' %}
+      {% endwith %}
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="alert-box">This location has no sub-locations</div>
+    {% endif %}
+
+  </div> {# End of column #}
+
+</div>
+
+{% block footer_scripts %}
+<script>
+ $('.tree-list').on('click', '.branch > i.fa', function(event) {
+     $(event.target).toggleClass('fa-toggle-right fa-toggle-down').nextAll('.child').slideToggle();
+ });
+
+ $('#collapse-all').click(function(){
+     $('.tree-list .child').hide();
+     $('.tree-list [class*="fa-toggle-"]').removeClass('fa-toggle-down').addClass('fa-toggle-right');
+ });
+
+ $('#expand-all').click(function(){
+     $('.child').show();
+     $('.tree-list [class*="fa-toggle-"]').removeClass('fa-toggle-right').addClass('fa-toggle-down');
+ });
+</script>
+{% endblock %}

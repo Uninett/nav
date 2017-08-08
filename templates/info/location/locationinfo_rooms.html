@@ -1,0 +1,30 @@
+
+<div class="row">
+
+
+  <div class="medium-6 column">
+    {% if location.room_set.exists %}
+    <table id="roomtable" class="vertitable full-width">
+      <caption>Rooms in {{location}}</caption>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for room in location.room_set.all %}
+      <tr>
+        <td><a href="{% url 'room-info' room.id %}">{{ room.id }}</a></td>
+        <td>{{ room.description }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="alert-box">This location does not contain any rooms</div>
+    {% endif %}
+
+  </div> {# End of column #}
+
+</div>

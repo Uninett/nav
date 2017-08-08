@@ -15,14 +15,11 @@
 #
 """Django URL configuration"""
 
-from django.conf.urls import patterns, include, url
-from nav.web.info.views import index
+
+from django.conf.urls import url, patterns
+from nav.web.info.location import  views
 
 urlpatterns = patterns('',
-    url(r'^$', index, name="info-search"),
-    url(r'^room/', include('nav.web.info.room.urls')),
-    url(r'^location/', include('nav.web.info.location.urls')),
-    url(r'^vlan/', include('nav.web.info.vlan.urls')),
-    url(r'^prefix/', include('nav.web.info.prefix.urls')),
-    url(r'^devicegroup/', include('nav.web.info.netboxgroup.urls')),
+    url(r'^$', views.search, name='location-search'),
+    url(r'^(?P<locationid>.+)/$', views.locationinfo, name='location-info'),
 )
