@@ -60,6 +60,9 @@ class IpTrackerForm(MachineTrackerForm):
     netbios = forms.BooleanField(required=False, initial=False,
                                  help_text="Show netbios name (if any)")
 
+    source = forms.BooleanField(required=False, initial=False,
+                                help_text="Show which router the data is retrieved from")
+
     def clean_ip_range(self):
         """Clean the ip_range field"""
         data = self.cleaned_data['ip_range']
