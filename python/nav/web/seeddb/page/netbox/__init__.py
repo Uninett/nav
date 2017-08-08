@@ -82,7 +82,8 @@ def netbox_delete(request):
     return render_delete(request, Netbox, 'seeddb-netbox',
                          whitelist=SEEDDB_EDITABLE_MODELS,
                          extra_context=info.template_context,
-                         pre_delete_operation=netbox_pre_deletion_mark)
+                         pre_delete_operation=netbox_pre_deletion_mark,
+                         delete_operation=None)
 
 
 @transaction.atomic
