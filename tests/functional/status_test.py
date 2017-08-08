@@ -45,7 +45,7 @@ def test_remember_last_panel_state(selenium, statuspage):
     filter_toggle.click()
     sleep(1)
     selenium.refresh()
-    WebDriverWait(selenium, 3).until(
+    WebDriverWait(selenium, 10).until(
         expected_conditions.visibility_of_element_located((By.ID, 'status-page')))
     # We need to fetch panel element again after a refresh
     panel = selenium.find_element_by_id('status-panel')
