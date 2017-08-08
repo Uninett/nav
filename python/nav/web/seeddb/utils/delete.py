@@ -29,8 +29,33 @@ from nav.web.message import new_message, Messages
 LOGGER = logging.getLogger(__name__)
 
 
+@transaction.atomic()
+def qs_delete(queryset):
+    """Deletes objects from the database.
+
+    Given a queryset containing the objects to be deleted, this method will
+    either delete all without error, or delete none if there's an error.
+    """
+    quote_name = connection.ops.quote_name
+
+    pk_list = tuple([obj.pk for obj in queryset])
+    primary_key = queryset.model._meta.pk.db_column
+    table = queryset.model._meta.db_table
+
+    cursor = connection.cursor()
+    sql = "DELETE FROM %(table)s WHERE %(field)s IN %%s" % {
+        'table': quote_name(table),
+        'field': quote_name(primary_key),
+    }
+    try:
+        cursor.execute(sql, (pk_list,))
+    finally:
+        transaction.set_dirty()
+    return cursor.rowcount
+
+
 def render_delete(request, model, redirect, whitelist=None, extra_context=None,
-                  pre_delete_operation=None):
+                  pre_delete_operation=None, delete_operation=qs_delete):
     """Handles input and rendering of general delete page.
     """
     if request.method != 'POST':
@@ -59,7 +84,8 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None,
         try:
             if pre_delete_operation:
                 pre_delete_operation(objects)
-            qs_delete(objects)
+            if delete_operation:
+                delete_operation(objects)
         except IntegrityError as ex:
             # We can't delete.
             # Some of the objects we want to delete is referenced by another
@@ -72,8 +98,12 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None,
             msg = "Error: %s" % ex
             new_message(request, msg, Messages.ERROR)
         else:
-            new_message(request,
-                        "Deleted %i rows" % len(objects), Messages.SUCCESS)
+            if delete_operation:
+                new_message(request,
+                            "Deleted %i rows" % len(objects), Messages.SUCCESS)
+            else:
+                new_message(request,
+                            "Scheduled %i rows for deletion" % len(objects), Messages.SUCCESS)
             return HttpResponseRedirect(reverse(redirect))
 
     info_dict = {
@@ -115,28 +145,3 @@ def dependencies(queryset, whitelist):
             related_objects[attr].append(obj)
 
     return related_objects
-
-
-@transaction.atomic()
-def qs_delete(queryset):
-    """Deletes objects from the database.
-
-    Given a queryset containing the objects to be deleted, this method will
-    either delete all without error, or delete none if there's an error.
-    """
-    quote_name = connection.ops.quote_name
-
-    pk_list = tuple([obj.pk for obj in queryset])
-    primary_key = queryset.model._meta.pk.db_column
-    table = queryset.model._meta.db_table
-
-    cursor = connection.cursor()
-    sql = "DELETE FROM %(table)s WHERE %(field)s IN %%s" % {
-        'table': quote_name(table),
-        'field': quote_name(primary_key),
-    }
-    try:
-        cursor.execute(sql, (pk_list,))
-    finally:
-        transaction.set_dirty()
-    return cursor.rowcount
