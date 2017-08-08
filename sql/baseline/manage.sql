@@ -1177,18 +1177,6 @@ ALTER TABLE interface_stack ADD CONSTRAINT interface_stack_lower_fkey
   REFERENCES interface(interfaceid)
   ON DELETE CASCADE ON UPDATE CASCADE;
 
--- clean up remnants of LP#1269714
--- (Physically replacing a device may cause all further SNMP polling of it to
---  stop)
-
-UPDATE alerthist
-SET end_time=NOW()
-WHERE alerthistid IN (SELECT alerthistid
-                      FROM alerthist ah
-                      JOIN netbox n USING (netboxid)
-                      WHERE eventtypeid = 'snmpAgentState'
-                            AND end_time >= 'infinity'
-                            AND ah.deviceid <> n.deviceid);
 
 INSERT INTO vendor (
   SELECT 'unknown' AS vendorid
