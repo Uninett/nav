@@ -64,11 +64,6 @@ CREATE TABLE macwatch_match(
   posted TIMESTAMP DEFAULT NOW()
 );
 
-INSERT INTO macwatch_match (macwatch, cam, posted)
-  SELECT id, camid, posted
-    FROM macwatch
-  WHERE camid IS NOT NULL;
-
 -- Create basic token storage for api tokens
 
 CREATE TABLE apitoken (
