@@ -190,6 +190,7 @@ class RadiusAcctDeleter(RecordDeleter):
             AND (acctstarttime + (acctsessiontime * interval '1 sec')) IS NULL)
         """
 
+
 class RadiusLogDeleter(RecordDeleter):
     table = "radiuslog"
     selector = "WHERE time < {expiry}"
@@ -197,7 +198,7 @@ class RadiusLogDeleter(RecordDeleter):
 
 class NetboxDeleter(RecordDeleter):
     table = "netbox"
-    selector = "WHERE deleted_at IS NOT NULL"
+    selector = "WHERE pg_try_advisory_lock(netboxid) and deleted_at IS NOT NULL"
 
 
 if __name__ == '__main__':
