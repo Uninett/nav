@@ -651,3 +651,13 @@ class PowerSupplyOrFan(Shadow):
         missing_psus_and_fans = manage.PowerSupplyOrFan.objects.filter(
             netbox=netbox.id).exclude(pk__in=found_psus_and_fans_pks)
         return missing_psus_and_fans
+
+
+class POEPort(Shadow):
+    __shadowclass__ = manage.POEPort
+    __lookups__ = [('netbox', 'poegroup', 'index')]
+
+
+class POEGroup(Shadow):
+    __shadowclass__ = manage.POEGroup
+    __lookups__ = [('netbox', 'index')]
