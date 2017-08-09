@@ -45,7 +45,7 @@
           <caption>Port details</caption>
           <thead>
             <tr>
-              <th>Index</th>
+              <th>Interface</th>
               <th>Enabled</th>
               <th>Status</th>
               <th>Priority</th>
@@ -55,7 +55,13 @@
           <tbody>
             {% for port in poegroup.poeport_set.all %}
               <tr>
-                <td>{{port.index}}</td>
+                <td>
+                  {% if port.interface %}
+                    <a href="{% url 'ipdevinfo-interface-details' port.interface.netbox.sysname port.interface.id%}">{{port.interface}}</a>
+                  {% else %}
+                    {{port.index}}
+                  {% endif %}
+                </td>
                 <td>{{port.admin_enable}}</td>
                 <td>{{port.get_detection_status_display}}</td>
                 <td>{{port.get_priority_display}}</td>
