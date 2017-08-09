@@ -42,7 +42,8 @@ from nav.metrics.templates import (
     metric_prefix_for_device,
     metric_prefix_for_sensors,
     metric_path_for_sensor,
-    metric_path_for_prefix
+    metric_path_for_prefix,
+    metric_path_for_power
 )
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
@@ -2101,6 +2102,11 @@ class POEGroup(models.Model):
     )
     status = models.IntegerField(choices=STATUS_CHOICES)
     power = models.IntegerField()
+
+    def get_graph_url(self, time_frame='1day'):
+        metric = metric_path_for_power(self.netbox, self.index)
+        return get_simple_graph_url([metric],
+                                    time_frame=time_frame)
 
     class Meta(object):
         db_table = 'poegroup'
