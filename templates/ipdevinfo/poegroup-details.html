@@ -1,0 +1,78 @@
+{% extends "ipdevinfo/base.html" %}
+
+{% block content %}
+  <p>
+    <a href="{% url 'ipdevinfo-details-by-name' poegroup.netbox.sysname %}">
+      Back to {{ poegroup.netbox.sysname }}
+    </a>
+  </p>
+
+  <div class="panel white">
+    <div class="row">
+      <div class="large-4 columns">
+        <table class="vertitable full-width">
+          <caption>
+            PoE Group {{ poegroup.index }}
+            at {{ poegroup.netbox.get_short_sysname }}
+          </caption>
+          <tr>
+            <th>At IP device</th>
+            <td><a href="{{ poegroup.netbox.get_absolute_url }}">
+              {{ poegroup.netbox }}</a></td>
+          </tr>
+          <tr>
+            <th>Status</th>
+            <td>
+              {{poegroup.get_status_display }}
+            </td>
+          </tr>
+          <tr>
+            <th>Power rating</th>
+            <td>{{poegroup.power}}W</td>
+          </tr>
+        </table>
+      </div>
+      <div class="large-4 columns">
+        <div class="nav-metrics-container">
+          <div class="graphitegraph"
+               data-url="{{ poegroup.get_graph_url }}&format=json">
+            <div class="rickshaw-container"></div>
+          </div>
+        </div>
+      </div>
+      <div class="large-4 columns">
+        <table class="veritable full-width">
+          <caption>Port details</caption>
+          <thead>
+            <tr>
+              <th>Index</th>
+              <th>Enabled</th>
+              <th>Status</th>
+              <th>Priority</th>
+              <th>Classification</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for port in poegroup.poeport_set.all %}
+              <tr>
+                <td>{{port.index}}</td>
+                <td>{{port.admin_enable}}</td>
+                <td>{{port.get_detection_status_display}}</td>
+                <td>{{port.get_priority_display}}</td>
+                <td>{{port.get_classification_display}}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block footer_scripts %}
+  <script>
+   require([
+       "plugins/graphfetcher_controller"
+   ], function(graphfetcher_controller) {};
+  </script>
+{% endblock %}
