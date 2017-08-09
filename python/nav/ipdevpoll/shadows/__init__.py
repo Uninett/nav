@@ -657,7 +657,21 @@ class POEPort(Shadow):
     __shadowclass__ = manage.POEPort
     __lookups__ = [('netbox', 'poegroup', 'index')]
 
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        found = [port.id for port in containers[cls].values()]
+        netbox = containers.get(None, Netbox)
+        manage.POEPort.objects.filter(netbox=netbox.id)\
+                              .exclude(pk__in=found).delete()
+
 
 class POEGroup(Shadow):
     __shadowclass__ = manage.POEGroup
     __lookups__ = [('netbox', 'index')]
+
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        found = [grp.id for grp in containers[cls].values()]
+        netbox = containers.get(None, Netbox)
+        manage.POEGroup.objects.filter(netbox=netbox.id)\
+                               .exclude(pk__in=found).delete()
