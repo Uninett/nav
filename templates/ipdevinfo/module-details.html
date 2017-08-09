@@ -139,6 +139,9 @@
            }
        });
        tabs.removeClass('notvisible').show();
+        $('.portlegendToggler').on('click', function () {
+            $(this).next().toggle();
+        });
    });
   </script>
 {% endblock %}
