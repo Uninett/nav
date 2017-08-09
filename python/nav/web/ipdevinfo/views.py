@@ -468,7 +468,11 @@ def module_details(request, netbox_sysname, module_name):
         module, 'swportactive', activity_interval)
     gwportstatus_view = get_module_view(module, 'gwportstatus')
 
-    navpath = NAVPATH + [('Module Details',)]
+    navpath = NAVPATH + [
+        (netbox_sysname,
+         reverse('ipdevinfo-details-by-name',
+                 kwargs={'name': netbox_sysname})),
+        ('Module Details',)]
 
     return render_to_response(
         'ipdevinfo/module-details.html',
