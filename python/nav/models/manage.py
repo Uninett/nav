@@ -2081,3 +2081,77 @@ class Netbios(models.Model):
 
     class Meta(object):
         db_table = 'netbios'
+
+
+class POEGroup(models.Model):
+    """Model representing a group of power over ethernet ports"""
+    id = models.AutoField(db_column='poegroupid', primary_key=True)
+    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    module = models.ForeignKey('Module', db_column='moduleid',
+                               null=True)
+    index = models.IntegerField()
+
+    STATUS_ON = 1
+    STATUS_OFF = 2
+    STATUS_FAULTY = 3
+    STATUS_CHOICES = (
+        (STATUS_ON, 'on'),
+        (STATUS_OFF, 'off'),
+        (STATUS_FAULTY, 'faulty'),
+    )
+    status = models.IntegerField(choices=STATUS_CHOICES)
+    power = models.IntegerField()
+
+    class Meta(object):
+        db_table = 'poegroup'
+        unique_together = (('netbox', 'index'),)
+
+
+class POEPort(models.Model):
+    """Model representing a PoE port"""
+    id = models.AutoField(db_column='poeportid', primary_key=True)
+    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    poegroup = models.ForeignKey('POEGroup', db_column='poegroupid')
+    interface = models.ForeignKey('Interface', db_column='interfaceid',
+                                  null=True)
+    admin_enable = models.BooleanField()
+    index = models.IntegerField()
+
+    STATUS_DISABLED = 1
+    STATUS_SEARCHING = 2
+    STATUS_DELIVERING_POWER = 3
+    STATUS_FAULT = 4
+    STATUS_TEST = 5
+    STATUS_OTHER_FAULT = 6
+    STATUS_CHOICES = (
+        (STATUS_DISABLED, 'disabled'),
+        (STATUS_SEARCHING, 'searching'),
+        (STATUS_DELIVERING_POWER, 'delivering power'),
+        (STATUS_FAULT, 'fault'),
+        (STATUS_TEST, 'test'),
+        (STATUS_OTHER_FAULT, 'other fault'),
+    )
+    detection_status = models.IntegerField(choices=STATUS_CHOICES)
+
+    PRIORITY_LOW = 3
+    PRIORITY_HIGH = 2
+    PRIORITY_CRITICAL = 1
+    PRIORITY_CHOICES = (
+        (PRIORITY_LOW, 'low'),
+        (PRIORITY_HIGH, 'high'),
+        (PRIORITY_CRITICAL, 'critical'),
+    )
+    priority = models.IntegerField(choices=PRIORITY_CHOICES)
+
+    CLASSIFICATION_CHOICES = (
+        (1, 'class0'),
+        (2, 'class1'),
+        (3, 'class2'),
+        (4, 'class3'),
+        (5, 'class4'),
+    )
+    classification = models.IntegerField(choices=CLASSIFICATION_CHOICES)
+
+    class Meta(object):
+        db_table = 'poeport'
+        unique_together = (('poegroup', 'index'),)
