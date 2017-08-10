@@ -29,7 +29,7 @@ from django.db.models import Q
 from nav.models import manage
 from nav.event2 import EventFactory
 
-from nav.ipdevpoll.storage import MetaShadow, Shadow
+from nav.ipdevpoll.storage import MetaShadow, Shadow, shadowify
 from nav.ipdevpoll import descrparsers
 from nav.ipdevpoll import utils
 
@@ -675,3 +675,12 @@ class POEGroup(Shadow):
         netbox = containers.get(None, Netbox)
         manage.POEGroup.objects.filter(netbox=netbox.id)\
                                .exclude(pk__in=found).delete()
+
+    def prepare(self, containers):
+        if self.netbox.type.vendor.id == 'hp' and not self.module:
+            module = manage.Module.objects.filter(
+                netbox=self.netbox.id,
+                name=chr(ord('A') + self.index - 1),
+            ).first()
+            if module:
+                self.module = shadowify(module)

@@ -2108,6 +2108,11 @@ class POEGroup(models.Model):
         return get_simple_graph_url([metric],
                                     time_frame=time_frame)
 
+    def get_active_ports(self):
+        return self.poeport_set.filter(
+            admin_enable=True,
+            detection_status=POEPort.STATUS_DELIVERING_POWER)
+
     class Meta(object):
         db_table = 'poegroup'
         unique_together = (('netbox', 'index'),)

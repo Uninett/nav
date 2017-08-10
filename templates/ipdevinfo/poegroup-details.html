@@ -30,6 +30,12 @@
             <th>Power rating</th>
             <td>{{poegroup.power}}W</td>
           </tr>
+          {% if poegroup.module %}
+            <tr>
+              <th>Module</th>
+              <td><a href="{% url 'ipdevinfo-module-details' poegroup.netbox.sysname poegroup.module.name %}">{{poegroup.module}}</a></td>
+            </tr>
+          {% endif %}
         </table>
       </div>
       <div class="large-4 columns">

@@ -64,6 +64,18 @@
               <td><a href="{% url 'report-gwport-module' netbox_id=module.netbox.id module_name=module.name %}">
                 {{ module.get_gwports.count }}</a></td>
             </tr>
+            {% if module.poegroup_set.all|length == 1 %}
+              <tr>
+                <th>Active PoE ports</th>
+                {% with module.poegroup_set.first as poegroup %}
+                  <td>
+                    <a href="{% url 'ipdevinfo-poegroup-details' module.netbox.sysname poegroup.index %}">
+                      {{poegroup.get_active_ports|length}}
+                    </a>
+                  </td>
+                {% endwith %}
+              </tr>
+            {% endif %}
           </table>
         </div>
       </div>

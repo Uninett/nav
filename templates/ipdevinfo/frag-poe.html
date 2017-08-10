@@ -4,7 +4,15 @@
     <div class="row">
       {% for group in netbox.poegroup_set.all %}
         <div class="large-2 columns">
-          <h3><a href="{% url 'ipdevinfo-poegroup-details' netbox.sysname group.index %}">{{group.index}}</a></h3>
+          <h3>
+            <a href="{% url 'ipdevinfo-poegroup-details' netbox.sysname group.index %}">
+              {% if group.module %}
+                Module {{ group.module.name }}
+              {% else %}
+                PoE Group {{group.index}}
+              {% endif %}
+            </a>
+          </h3>
           {% if group.status == group.STATUS_ON %}
             <div id="gauge-wrapper">
               <div class="gauge"
