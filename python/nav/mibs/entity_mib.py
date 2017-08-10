@@ -116,13 +116,11 @@ class EntityMib(mibretriever.MibRetriever):
         defer.returnValue(self._process_alias_mapping(alias_mapping))
 
     def _process_alias_mapping(self, alias_mapping):
-        mapping = {}
+        mapping = defaultdict(list)
         for (phys_index, _logical), rowpointer in alias_mapping.items():
             # Last element is ifindex. Preceding elements is an OID.
             ifindex = OID(rowpointer)[-1]
 
-            if phys_index not in mapping:
-                mapping[phys_index] = []
             mapping[phys_index].append(ifindex)
 
         self._logger.debug("alias mapping: %r", mapping)
