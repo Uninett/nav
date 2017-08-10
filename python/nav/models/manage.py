@@ -2111,6 +2111,7 @@ class POEGroup(models.Model):
     class Meta(object):
         db_table = 'poegroup'
         unique_together = (('netbox', 'index'),)
+        ordering = ('index',)
 
 
 class POEPort(models.Model):
@@ -2161,3 +2162,4 @@ class POEPort(models.Model):
     class Meta(object):
         db_table = 'poeport'
         unique_together = (('poegroup', 'index'),)
+        ordering = ('index',)
