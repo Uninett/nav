@@ -677,6 +677,11 @@ class POEGroup(Shadow):
                                .exclude(pk__in=found).delete()
 
     def prepare(self, containers):
+        if self.phy_index and not self.module:
+            entity = manage.NetboxEntity.objects.filter(
+                netbox=self.netbox.id, index=self.phy_index).first()
+            if entity and entity.device:
+                self.module = entity.device.module_set.first()
         if self.netbox.type.vendor.id == 'hp' and not self.module:
             module = manage.Module.objects.filter(
                 netbox=self.netbox.id,

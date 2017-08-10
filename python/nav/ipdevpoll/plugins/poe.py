@@ -17,6 +17,8 @@
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.mibs.power_ethernet_mib import PowerEthernetMib
+from nav.mibs.cisco_power_ethernet_ext_mib import CiscoPowerEthernetExtMib
+from nav.mibs.entity_mib import EntityMib
 
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
@@ -33,32 +35,45 @@ class poe(Plugin):
             returnValue(None)
 
         poemib = PowerEthernetMib(self.agent)
+        if self.netbox.type.vendor.id == 'cisco':
+            cisco_mib = CiscoPowerEthernetExtMib(self.agent)
+            port_phy_index = yield cisco_mib.retrieve_column(
+                "cpeExtPsePortEntPhyIndex")
+            group_phy_index = yield cisco_mib.retrieve_column(
+                "cpeExtMainPseEntPhyIndex")
+            entity_mib = EntityMib(self.agent)
+            alias_mapping = yield entity_mib.get_alias_mapping()
+            port_ifindices = self._resolve_ifindex(port_phy_index, alias_mapping)
+        else:
+            port_ifindices = {}
+            group_phy_index = {}
 
         groups = yield poemib.get_groups_table()
-        self._process_groups(groups)
+        self._process_groups(groups, group_phy_index)
 
         ports = yield poemib.get_ports_table()
-        self._process_ports(ports)
+        self._process_ports(ports, port_ifindices)
 
-    def _process_groups(self, groups):
+    def _process_groups(self, groups, phy_indices):
         netbox = self.containers.factory(None, shadows.Netbox)
         for index, row in groups.items():
-            self._update_group(netbox, index, row)
+            self._update_group(netbox, index, row, phy_indices.get(index))
 
-    def _update_group(self, netbox, index, row):
+    def _update_group(self, netbox, index, row, phy_index):
         index = index[0]
         group = self.containers.factory(index, shadows.POEGroup)
         group.netbox = self.netbox
         group.index = index
         group.status = row['pethMainPseOperStatus']
         group.power = row['pethMainPsePower']
+        group.phy_index = phy_index
 
-    def _process_ports(self, ports):
+    def _process_ports(self, ports, ifindices):
         netbox = self.containers.factory(None, shadows.Netbox)
         for index, row in ports.items():
-            self._update_port(netbox, index, row)
+            self._update_port(netbox, index, row, ifindices.get(index))
 
-    def _update_port(self, netbox, index, row):
+    def _update_port(self, netbox, index, row, ifindex):
         grpindex, portindex = index
         port = self.containers.factory((grpindex, portindex), shadows.POEPort)
         port.netbox = self.netbox
@@ -68,8 +83,23 @@ class poe(Plugin):
         port.detection_status = row['pethPsePortDetectionStatus']
         port.priority = row['pethPsePortPowerPriority']
         port.classification = row['pethPsePortPowerClassifications']
-        if self.netbox.type.vendor.id == 'hp':
-            port.interface = self.containers.factory(portindex,
+        if not ifindex and self.netbox.type.vendor.id == 'hp':
+            ifindex = portindex
+        if ifindex:
+            port.interface = self.containers.factory(ifindex,
                                                      shadows.Interface)
             port.interface.netbox = netbox
-            port.interface.ifindex = portindex
+            port.interface.ifindex = ifindex
+
+    def _resolve_ifindex(self, phy_indices, alias_mapping):
+        result = {}
+        for portindex, phy_index in phy_indices.items():
+            if phy_index in alias_mapping:
+                ifindices = alias_mapping[phy_index]
+                if len(ifindices) != 1:
+                    self._logger.warning(
+                        "Found unexpected number of ifindices for phy_index %s",
+                        phy_index)
+                    continue
+                result[portindex] = ifindices[0]
+        return result
