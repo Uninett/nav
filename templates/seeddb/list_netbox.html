@@ -9,7 +9,11 @@
         style="white-space: nowrap">
       {% if forloop.first %}  {# first column is always sysname #}
 
-          <a href="{{ object.url }}">{{ element }} {{object.master }}</a>
+        {% if object.model.deleted_at %}
+        <a href="{{ object.url }}"><del>{{ element }}</del> {{object.master }}</a>
+        {% else %}
+        <a href="{{ object.url }}">{{ element }} {{object.master }}</a>
+        {% endif %}
           {% if object.model.master %}
               <span class="label secondary"
                     title="This is a virtual instance of {{ object.model.master }}">V</span>

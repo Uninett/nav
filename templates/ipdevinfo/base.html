@@ -8,8 +8,17 @@
 {% endblock %}
 
 {% block base_content %}
+    {% if netbox.deleted_at %}
+    <h3><del>{{ heading }}</del></h3>
+    {% else %}
     <h3>{{ heading }}</h3>
+    {% endif %}
 
+        {% if netbox.deleted_at %}
+
+          <div class="alert-box warning with-icon">This IP Device was scheduled for deletion at {{ netbox.deleted_at }}</div>
+
+      {% endif %}
 
     {% if errors %}
         <ul class="error">
