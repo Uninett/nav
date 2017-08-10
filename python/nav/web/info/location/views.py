@@ -19,11 +19,12 @@ import logging
 
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.shortcuts import (render_to_response, get_object_or_404)
+from django.shortcuts import (redirect, render_to_response, get_object_or_404)
 from django.template import RequestContext
 
 from nav.models.manage import Location
 from nav.web.info.forms import SearchForm
+from nav.web.info.images.upload import handle_image_upload
 from nav.web.utils import create_title
 
 
@@ -90,5 +91,27 @@ def locationinfo(request, locationid):
     return render_to_response("info/location/locationinfo.html",
                               {"location": location,
                                "navpath": navpath,
+                               "images": location.image_set.all(),
+                               "title": create_title(navpath)},
+                              context_instance=RequestContext(request))
+
+
+def upload_image(request, locationid):
+    """Controller for uploading an image"""
+
+    location = get_object_or_404(Location, pk=locationid)
+    navpath = get_path() + [
+        (location.id,
+         reverse('location-info', kwargs={'locationid': location.id})),
+        ('Edit images',)
+    ]
+
+    if request.method == 'POST':
+        _logger.debug('Uploading images')
+        handle_image_upload(request, location=location)
+        return redirect("location-info-upload", locationid=location.id)
+
+    return render_to_response("info/location/upload.html",
+                              {"object": location, "navpath": navpath,
                                "title": create_title(navpath)},
                               context_instance=RequestContext(request))

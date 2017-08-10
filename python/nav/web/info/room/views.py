@@ -17,10 +17,8 @@
 
 import datetime
 import logging
-import os
 import csv
 
-from os.path import join
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.db.models import Q, Max
@@ -28,20 +26,14 @@ from django.http import HttpResponse
 from django.shortcuts import (render_to_response, redirect, get_object_or_404,
                               render)
 from django.template import RequestContext
-from django.contrib import messages
 
 from nav.django.decorators import require_admin
-from nav.django.utils import get_account
 
 from nav.models.manage import Room, Sensor
-from nav.models.roommeta import Image, ROOMIMAGEPATH
 from nav.models.rack import (Rack, SensorRackItem, SensorsDiffRackItem,
                              SensorsSumRackItem)
 from nav.web.info.forms import SearchForm
-from nav.web.info.room.utils import (get_extension, create_hash,
-                                     create_image_directory,
-                                     get_next_priority, save_image,
-                                     save_thumbnail)
+from nav.web.info.images.upload import handle_image_upload
 from nav.web.utils import create_title
 from nav.metrics.data import get_netboxes_availability
 
@@ -151,108 +143,16 @@ def upload_image(request, roomid):
         (room.id, reverse('room-info', kwargs={'roomid': room.id})),
         ('Edit images',)
     ]
-    account = get_account(request)
 
     if request.method == 'POST':
         _logger.debug('Uploading images')
-
-        images = request.FILES.getlist('images')
-        for image in images:
-            try:
-                handle_image(image, room, uploader=account)
-                messages.success(
-                    request, 'Image &laquo;%s&raquo; uploaded' % image.name)
-            except IOError as e:
-                _logger.error(e)
-                messages.error(request, 'Image &laquo;%s&raquo; not saved - '
-                                        'perhaps unsupported type' % image.name)
-
+        handle_image_upload(request, room=room)
         return redirect("room-info-upload", roomid=room.id)
 
     return render_to_response("info/room/upload.html",
-                              {"room": room, "navpath": navpath,
+                              {"object": room, "room": room, "navpath": navpath,
                                "title": create_title(navpath)},
                               context_instance=RequestContext(request))
-
-
-def handle_image(image, room, uploader):
-    _logger.debug('Uploading image %s', image)
-    original_name = image.name
-    imagename = "%s%s" % (create_hash(image, True),
-                          get_extension(original_name))
-    imagedirectory = create_hash(room.id)
-    imagedirectorypath = join(ROOMIMAGEPATH, imagedirectory)
-    create_image_directory(imagedirectorypath)
-    save_image(image, join(imagedirectorypath, imagename))
-    save_thumbnail(imagename, imagedirectorypath,
-                   join(imagedirectorypath, 'thumbs'))
-    Image(title=original_name, path=imagedirectory, name=imagename, room=room,
-          priority=get_next_priority(room),
-          uploader=uploader).save()
-
-
-def update_title(request):
-    """Update the title for a room image"""
-    if request.method == 'POST':
-        imageid = int(request.POST['id'])
-        title = request.POST.get('title', '')
-        try:
-            image = Image.objects.get(pk=imageid)
-        except Image.DoesNotExist:
-            return HttpResponse(status=500)
-        else:
-            image.title = title
-            image.save()
-
-    return HttpResponse(status=200)
-
-
-def delete_image(request):
-    """Delete an image from a room"""
-    if request.method == 'POST':
-        imageid = int(request.POST['id'])
-
-        _logger.debug('Deleting image %s', imageid)
-
-        try:
-            image = Image.objects.get(pk=imageid)
-        except Image.DoesNotExist:
-            return HttpResponse(status=500)
-        else:
-            filepath = join(ROOMIMAGEPATH, image.path)
-            try:
-                _logger.debug('Deleting file %s', filepath)
-                os.unlink(join(filepath, image.name))
-            except OSError as error:
-                # If the file is not found, then this is ok, otherwise not ok
-                if error.errno != 2:
-                    return HttpResponse(status=500)
-            else:
-                messages.success(
-                    request, 'Image &laquo;%s&raquo; deleted' % image.title)
-
-            try:
-                os.unlink(join(filepath, 'thumbs', image.name))
-            except OSError:
-                # We don't really care if the thumbnail is not deleted
-                pass
-
-            # Fetch all image instances that uses this image and delete them
-            Image.objects.filter(path=image.path, name=image.name).delete()
-
-    return HttpResponse(status=200)
-
-
-def update_priority(request):
-    """Update the order of image objects"""
-    if request.method == 'POST':
-        for key, value in request.POST.items():
-            _logger.debug('%s=%s', key, value)
-            image = Image.objects.get(pk=key)
-            image.priority = value
-            image.save()
-
-    return HttpResponse(status=200)
 
 
 def render_netboxes(request, roomid):

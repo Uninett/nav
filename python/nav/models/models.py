@@ -18,6 +18,6 @@ from .event import *
 from .logger import *
 from .msgmaint import *
 from .profiles import *
-from .roommeta import *
+from .images import *
 from .service import *
 from .thresholds import *

@@ -1,4 +1,4 @@
-{% extends "info/room/base.html" %}
+{% extends "info/location/base.html" %}
 {% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
@@ -32,7 +32,7 @@
   <div class="row">
     <div class="column small-12">
       <a href="#" data-reveal-id="add_image_help" class="small secondary button right" data-reveal>Help</a>
-      <h3>Images for &laquo;{{ room.id }}&raquo;</h3>
+      <h3>Images for &laquo;{{ object.id }}&raquo;</h3>
     </div>
   </div>
 
@@ -47,7 +47,7 @@
     </ul>
   </div>
 
-  <p><a href="{% url 'room-info' room.id %}">Back to room</a></p>
+  <p><a href="{% url 'location-info' object.id %}">Back to location</a></p>
 
   {% include 'info/images/upload.html' %}
 {% endblock %}

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012 UNINETT AS
+# Copyright (C) 2017 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,11 +17,13 @@
 
 
 from django.conf.urls import url, patterns
-from nav.web.info.location import views
+from nav.web.info.images import views
 
 urlpatterns = patterns('',
-    url(r'^$', views.search, name='location-search'),
-    url(r'^(?P<locationid>.+)/upload/', views.upload_image,
-        name='location-info-upload'),
-    url(r'^(?P<locationid>.+)/$', views.locationinfo, name='location-info'),
+    url(r'^update_title', views.update_title,
+        name='image-update-title'),
+    url(r'^delete', views.delete_image,
+        name='image-delete-image'),
+    url(r'^update_priority', views.update_priority,
+        name='image-update-priority'),
 )

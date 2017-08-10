@@ -25,4 +25,5 @@ urlpatterns = patterns('',
     url(r'^vlan/', include('nav.web.info.vlan.urls')),
     url(r'^prefix/', include('nav.web.info.prefix.urls')),
     url(r'^devicegroup/', include('nav.web.info.netboxgroup.urls')),
+    url(r'^image/', include('nav.web.info.images.urls')),
 )
