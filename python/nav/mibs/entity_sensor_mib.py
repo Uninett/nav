@@ -35,6 +35,8 @@ UNITS_OF_MEASUREMENTS = {
     10: Sensor.UNIT_RPM,
     11: Sensor.UNIT_CMM,
     12: Sensor.UNIT_TRUTHVALUE,
+    13: 'specialEnum',  # cisco extension
+    14: Sensor.UNIT_DBM,  # cisco extension
 }
 
 DATA_SCALE = {
@@ -60,6 +62,12 @@ DATA_SCALE = {
 
 class EntitySensorMib(mibretriever.MibRetriever):
     from nav.smidumps.entity_sensor_mib import MIB as mib
+    TYPE_COLUMN = 'entPhySensorType'
+    SCALE_COLUMN = 'entPhySensorScale'
+    PRECISION_COLUMN = 'entPhySensorPrecision'
+    VALUE_COLUMN = 'entPhySensorValue'
+    STATUS_COLUMN = 'entPhySensorOperStatus'
+    UNITS_DISPLAY_COLUMN = 'entPhySensorUnitsDisplay'
 
     def __init__(self, agent_proxy):
         """Good old constructor..."""
@@ -69,12 +77,12 @@ class EntitySensorMib(mibretriever.MibRetriever):
     def _get_sensors(self):
         """ Collect all sensors from the box."""
         df = self.retrieve_columns([
-                'entPhySensorType',
-                'entPhySensorScale',
-                'entPhySensorPrecision',
-                'entPhySensorValue',
-                'entPhySensorOperStatus',
-                'entPhySensorUnitsDisplay',
+                self.TYPE_COLUMN,
+                self.SCALE_COLUMN,
+                self.PRECISION_COLUMN,
+                self.VALUE_COLUMN,
+                self.STATUS_COLUMN,
+                self.UNITS_DISPLAY_COLUMN,
                 ])
         df.addCallback(reduce_index)
         return df
@@ -106,12 +114,12 @@ class EntitySensorMib(mibretriever.MibRetriever):
         result = []
         for row_id, row in sensors.items():
             row_oid = row.get(0, None)
-            mibobject = self.nodes.get('entPhySensorValue', None)
+            mibobject = self.nodes.get(self.VALUE_COLUMN, None)
             oid = str(mibobject.oid) + str(row_oid)
-            unit_of_measurement = row.get('entPhySensorType', 2)
-            precision = row.get('entPhySensorPrecision', 0)
-            scale = row.get('entPhySensorScale', None)
-            op_status = row.get('entPhySensorOperStatus', None)
+            unit_of_measurement = row.get(self.TYPE_COLUMN, 2)
+            precision = row.get(self.PRECISION_COLUMN, 0)
+            scale = row.get(self.SCALE_COLUMN, None)
+            op_status = row.get(self.STATUS_COLUMN, None)
             description = row.get('entPhysicalDescr', None)
             name = row.get('entPhysicalName', None)
             internal_name = name
