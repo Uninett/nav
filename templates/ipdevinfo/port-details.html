@@ -60,6 +60,7 @@
       <li><a href="#port-details-infotables">Details</a></li>
       <li><a href="#port-details-activity-graphs">Activity graphs</a></li>
       <li><a href="#port-details-metrics-list">Metric list</a></li>
+      <li><a href="#port-details-sensors-list">Port Sensors</a></li>
     </ul>
 
 
@@ -109,6 +110,12 @@
     <div id="port-details-metrics-list">
       <h3>Metrics</h3>
       {% include 'ipdevinfo/port-details-metrics-frag.html' %}
+    </div>
+
+    {# List of sensors for this port #}
+    <div id="port-details-sensors-list">
+      <h3>Metrics</h3>
+      {% include 'ipdevinfo/port-details-sensors-frag.html' %}
     </div>
 
 

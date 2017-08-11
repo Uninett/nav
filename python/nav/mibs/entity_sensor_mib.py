@@ -87,15 +87,6 @@ class EntitySensorMib(mibretriever.MibRetriever):
         df.addCallback(reduce_index)
         return df
 
-    def _collect_entity_names(self):
-        """ Collect all entity-names in netbox."""
-        df = self.entity_mib.retrieve_columns([
-                'entPhysicalDescr',
-                'entPhysicalName',
-                ])
-        df.addCallback(reduce_index)
-        return df
-
     @defer.inlineCallbacks
     def get_all_sensors(self):
         """ Collect all sensors and names on a netbox, and match
@@ -104,13 +95,19 @@ class EntitySensorMib(mibretriever.MibRetriever):
             Return a list with dictionaries, each dictionary
             represent a sensor."""
         sensors = yield self._get_sensors()
-        entity_names = yield self._collect_entity_names()
-        for idx, row in entity_names.items():
+        entities = yield self.entity_mib.get_entity_physical_table()
+        aliases = yield self.entity_mib.get_alias_mapping()
+        for idx, row in entities.items():
             if idx in sensors:
                 sensors[idx]['entPhysicalDescr'] = row.get(
                     'entPhysicalDescr', None)
                 sensors[idx]['entPhysicalName'] = row.get(
                     'entPhysicalName', None)
+                port = entities.get_nearest_port_parent(row)
+                if port and port.index[-1] in aliases:
+                    ifindices = aliases[port.index[-1]]
+                    if len(ifindices) == 1:
+                        sensors[idx]['ifindex'] = ifindices[0]
         result = []
         for row_id, row in sensors.items():
             row_oid = row.get(0, None)
@@ -122,6 +119,7 @@ class EntitySensorMib(mibretriever.MibRetriever):
             op_status = row.get(self.STATUS_COLUMN, None)
             description = row.get('entPhysicalDescr', None)
             name = row.get('entPhysicalName', None)
+            ifindex = row.get('ifindex')
             internal_name = name
             if op_status == 1:
                 result.append({
@@ -134,6 +132,7 @@ class EntitySensorMib(mibretriever.MibRetriever):
                     'name': name,
                     'internal_name': internal_name,
                     'mib': self.get_module_name(),
+                    'ifindex': ifindex,
                     })
         self._logger.debug('get_all_sensors: result=%s', result)
         defer.returnValue(result)

@@ -14,10 +14,10 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from nav.mibs.entity_sensors_mib import EntitySensorsMib
+from nav.mibs.entity_sensor_mib import EntitySensorMib
 
 
-class CiscoEntitySensorMib(EntitySensorsMib):
+class CiscoEntitySensorMib(EntitySensorMib):
     """This MIB should collect all present sensors from Cisco NEXUS boxes."""
     from nav.smidumps.cisco_entity_sensor_mib import MIB as mib
     TYPE_COLUMN = 'entSensorType'

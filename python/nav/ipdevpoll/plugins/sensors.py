@@ -96,6 +96,7 @@ class Sensors(Plugin):
             oid = row.get('oid', None)
             internal_name = row.get('internal_name', None)
             mib = row.get('mib', None)
+            ifindex = row.get('ifindex')
             # Minimum requirement.  Uniq by netbox, internal name and mib
             if oid and internal_name and mib:
                 sensor = self.containers.factory(oid, shadows.Sensor)
@@ -111,6 +112,11 @@ class Sensors(Plugin):
                 sensor.mib = mib
                 sensor.display_minimum_sys = row.get('minimum', None)
                 sensor.display_maximum_sys = row.get('maximum', None)
+                if ifindex:
+                    iface = self.containers.factory(ifindex, shadows.Interface)
+                    iface.netbox = self.netbox
+                    iface.ifindex = ifindex
+                    sensor.interface = iface
                 sensors.append(sensors)
         return sensors
 
