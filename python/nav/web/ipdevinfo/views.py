@@ -501,7 +501,7 @@ def poegroup_details(request, netbox_sysname, grpindex):
         (netbox_sysname,
          reverse('ipdevinfo-details-by-name',
                  kwargs={'name': netbox_sysname})),
-        ('PoE Details',)]
+        ('PoE Details for ' + poegroup.name,)]
 
     return render_to_response(
         'ipdevinfo/poegroup-details.html',

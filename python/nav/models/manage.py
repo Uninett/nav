@@ -2113,6 +2113,13 @@ class POEGroup(models.Model):
             admin_enable=True,
             detection_status=POEPort.STATUS_DELIVERING_POWER)
 
+    @property
+    def name(self):
+        if self.module:
+            return "Module {}".format(self.module.name)
+        else:
+            return "PoE Group {}".format(self.index)
+
     class Meta(object):
         db_table = 'poegroup'
         unique_together = (('netbox', 'index'),)
