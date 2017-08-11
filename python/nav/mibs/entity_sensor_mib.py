@@ -19,7 +19,6 @@ from twisted.internet import defer
 
 from nav.mibs import reduce_index
 from nav.mibs.entity_mib import EntityMib
-from nav.mibs.entity_mib import EntityTable
 from nav.mibs import mibretriever
 from nav.models.manage import Sensor
 
@@ -88,19 +87,6 @@ class EntitySensorMib(mibretriever.MibRetriever):
                 ])
         df.addCallback(reduce_index)
         return df
-
-    @defer.inlineCallbacks
-    def _get_named_table(self, table_name):
-        df = self.retrieve_table(table_name)
-        df.addCallback(self.translate_result)
-        ret_table = yield df
-        named_table = EntityTable(ret_table)
-        defer.returnValue(named_table)
-
-    @defer.inlineCallbacks
-    def get_phy_sensor_table(self):
-        phy_sensor_table = yield self._get_named_table('entPhySensorTable')
-        defer.returnValue(phy_sensor_table)
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
