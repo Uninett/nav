@@ -53,9 +53,34 @@
             <tr>
               <th>Interface</th>
               <th>Enabled</th>
-              <th>Status</th>
+              <th>Status
+                  <span class="tip-left" data-tooltip
+                        title="Shows PoE device detection status for this port. Valid values:
+                               &lt;ul&gt;
+                               &lt;li&gt;disabled: Power over ethernet is disabled for this port&lt;/li&gt;
+                               &lt;li&gt;searching: No power over ethernet device is detected on this port&lt;/li&gt;
+                               &lt;li&gt;delivering power: Power over ethernet is active for this port and delivers power to the connected device&lt;/li&gt;
+                               &lt;li&gt;fault: The port has been tested and found faulty&lt;/li&gt;
+                               &lt;li&gt;test: The port is under testing&lt;/li&gt;
+                               &lt;li&gt;other fault: The port is idle because of error conditions&lt;/li&gt;
+                               &lt;/ul&gt;">
+                    <i class="fa fa-info-circle"></i>
+                </div>
+              </th>
               <th>Priority</th>
-              <th>Classification</th>
+              <th>Classification
+                  <span class="tip-left" data-tooltip
+                        title="Shows PoE device classification for this port. Valid values:
+                               &lt;ul&gt;
+                               &lt;li&gt;class0: Unclassified (15.4W)&lt;/li&gt;
+                               &lt;li&gt;class1: Very low power (4W)&lt;/li&gt;
+                               &lt;li&gt;class2: Low power (7W)&lt;/li&gt;
+                               &lt;li&gt;class3: Mid power (15.4W)&lt;/li&gt;
+                               &lt;li&gt;class4: High power (30W)&lt;/li&gt;
+                               &lt;/ul&gt;">
+                    <i class="fa fa-info-circle"></i>
+                  </span>
+              </th>
             </tr>
           </thead>
           <tbody>
