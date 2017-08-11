@@ -9,7 +9,7 @@
 
   <div class="panel white">
     <div class="row">
-      <div class="large-4 columns">
+      <div class="large-6 columns">
         <table class="vertitable full-width">
           <caption>
             PoE Group {{ poegroup.index }}
@@ -37,8 +37,7 @@
             </tr>
           {% endif %}
         </table>
-      </div>
-      <div class="large-4 columns">
+        <strong>Total power usage for module (W)</strong>
         <div class="nav-metrics-container">
           <div class="graphitegraph"
                data-url="{{ poegroup.get_graph_url }}&format=json">
@@ -46,8 +45,8 @@
           </div>
         </div>
       </div>
-      <div class="large-4 columns">
-        <table class="veritable full-width">
+      <div class="large-6 columns">
+        <table class="listtable full-width">
           <caption>Port details</caption>
           <thead>
             <tr>
