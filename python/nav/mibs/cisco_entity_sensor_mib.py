@@ -133,5 +133,5 @@ class CiscoEntitySensorMib(mibretriever.MibRetriever):
                     'internal_name': internal_name,
                     'mib': self.get_module_name(),
                     })
-        self._logger.debug('get_all_sensors: result=%s' % str(result))
+        self._logger.debug('get_all_sensors: result=%s', result)
         defer.returnValue(result)

@@ -47,15 +47,15 @@ DATA_SCALE = {
     7: 'micro',
     8: 'milli',
     9: None,
-   10: 'kilo',
-   11: 'mega',
-   12: 'giga',
-   13: 'tera',
-   14: 'exa',
-   15: 'peta',
-   16: 'zetta',
-   17: 'yotta',
-  }
+    10: 'kilo',
+    11: 'mega',
+    12: 'giga',
+    13: 'tera',
+    14: 'exa',
+    15: 'peta',
+    16: 'zetta',
+    17: 'yotta',
+}
 
 
 class EntitySensorMib(mibretriever.MibRetriever):
@@ -67,7 +67,7 @@ class EntitySensorMib(mibretriever.MibRetriever):
         self.entity_mib = EntityMib(self.agent_proxy)
 
     def _get_sensors(self):
-        """ Collect all sensors."""
+        """ Collect all sensors from the box."""
         df = self.retrieve_columns([
                 'entPhySensorType',
                 'entPhySensorScale',
@@ -80,7 +80,7 @@ class EntitySensorMib(mibretriever.MibRetriever):
         return df
 
     def _collect_entity_names(self):
-        """ Collect all entity-names on netbox."""
+        """ Collect all entity-names in netbox."""
         df = self.entity_mib.retrieve_columns([
                 'entPhysicalDescr',
                 'entPhysicalName',
@@ -119,7 +119,7 @@ class EntitySensorMib(mibretriever.MibRetriever):
                 result.append({
                     'oid': oid,
                     'unit_of_measurement': UNITS_OF_MEASUREMENTS.get(
-                                                unit_of_measurement, None),
+                        unit_of_measurement, None),
                     'precision': precision,
                     'scale': DATA_SCALE.get(scale, None),
                     'description': description,
