@@ -1,6 +1,7 @@
 <div id="poe">
   {% if netbox and netbox.poegroup_set.count %}
     <h2>PoE groups</h2>
+    <div class="panel" style="display:inline-block">This page lists Power over Ethernet modules with current power usage out of max rated for each module</div>
     <ul class="groups">
       {% for group in netbox.poegroup_set.all %}
         <li>
