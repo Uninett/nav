@@ -12,6 +12,7 @@
               <th>Portname</th>
               <th>Status</th>
               <th>Vlan</th>
+              <th>Speed</th>
             </tr>
           </thead>
         </table>
@@ -32,7 +33,7 @@
   <script>
    $(function() {
        var columns = {
-           0: "ifname", 1: "ifalias", 2: "ifoperstatus", 3: "vlan"
+           0: "ifname", 1: "ifalias", 2: "ifoperstatus", 3: "vlan", 4: "speed"
        }
 
        var dtColumns = Object.keys(columns).map(function(index) {
@@ -49,7 +50,8 @@
        }
 
        require(['libs/datatables.min'], function() {
-           $('#portlist').dataTable({
+           var dataTable = $('#portlist').DataTable({
+               autoWidth: false,
                paging: false,
                info: false,
                serverSide: true,
