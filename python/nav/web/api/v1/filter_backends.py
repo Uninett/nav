@@ -30,8 +30,11 @@ class NaturalIfnameFilter(filters.OrderingFilter):
 
         interface_ifnames = ['interface__ifname', '-interface__ifname']
         ifnames = ['ifname', '-ifname']
-        intersection = (set(self.get_ordering(request)) &
-                        set(interface_ifnames + ifnames))
+        ordering = self.get_ordering(request)
+        if not ordering:
+            return queryset
+
+        intersection = (set(ordering) & set(interface_ifnames + ifnames))
 
         try:
             match_field = intersection.pop()
