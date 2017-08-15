@@ -22,21 +22,29 @@ from nav import natsort
 from nav.models.manage import Location
 
 
-class NaturalIfnameFilter(filters.BaseFilterBackend):
+class NaturalIfnameFilter(filters.OrderingFilter):
     """Filter naturally on interface ifname"""
 
     def filter_queryset(self, request, queryset, view):
-        """Filter on interface__ifname if it exists in GET-request"""
+        """Filter on ifname if it exists as an ordering parameter"""
 
-        to_match = ['interface__ifname', '-interface__ifname']
-        intersection = (set(request.GET.get('ordering', '').split(',')) &
-                        set(to_match))
-        if intersection:
+        interface_ifnames = ['interface__ifname', '-interface__ifname']
+        ifnames = ['ifname', '-ifname']
+        intersection = (set(self.get_ordering(request)) &
+                        set(interface_ifnames + ifnames))
+
+        try:
             match_field = intersection.pop()
+        except KeyError:
+            return queryset
+        else:
+            if match_field in interface_ifnames:
+                lookup = lambda x: natsort.split(x.interface.ifname)
+            if match_field in ifnames:
+                lookup = lambda x: natsort.split(x.ifname)
             return sorted(queryset,
-                          key=lambda x: natsort.split(x.interface.ifname),
+                          key=lookup,
                           reverse=match_field.startswith('-'))
-        return queryset
 
 
 class AlertHistoryFilterBackend(filters.BaseFilterBackend):

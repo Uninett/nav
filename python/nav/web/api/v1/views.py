@@ -279,6 +279,7 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     filter_fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
                      'ifadminstatus', 'iftype', 'baseport')
     search_fields = ('ifalias', 'ifdescr', 'ifname')
+    filter_backends = NAVAPIMixin.filter_backends + (NaturalIfnameFilter, )
 
 
 class PatchViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
