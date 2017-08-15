@@ -3,28 +3,19 @@
     {% if netbox.module_set.count or netbox.interface_set.count %}
 
       <div id="moduletabs">
-        <ul>
-          <li>
-            <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'swportstatus' %}">
-              Switch port status
-            </a>
-          </li>
-          <li id="swportactivetab">
-            <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'swportactive' %}">
-              Switch port activity
-            </a>
-          </li>
-          <li>
-            <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'gwportstatus' %}">
-              Router port status
-            </a>
-          </li>
-          <li>
-            <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'physportstatus' %}">
-              Physical ports
-            </a>
-          </li>
-        </ul>
+
+        <table id="portlist" class="listtable">
+          <caption>Listing {{ netbox.interface_set.count }} ports</caption>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Portname</th>
+              <th>Status</th>
+              <th>Vlan</th>
+            </tr>
+          </thead>
+        </table>
+
       </div>
 
     {% else %}
@@ -33,4 +24,58 @@
       </div>
     {% endif %}
   {% endif %}
+
+  <style>
+   #portlist_filter input { width: 30em; }
+  </style>
+
+  <script>
+   $(function() {
+       var columns = {
+           0: "ifname", 1: "ifalias", 2: "ifoperstatus", 3: "vlan"
+       }
+
+       var dtColumns = Object.keys(columns).map(function(index) {
+           return {data: columns[index]};
+       });
+
+       dtColumns[2].render = function(data, type, row, meta) {
+           var color = data === 2 ? 'red' : 'green';
+           return '<img title="Link status" src="/static/images/lys/' + color + '.png">';
+       }
+
+       dtColumns[3].render = function(data, type, row, meta) {
+           return row.trunk ? 'Trunk' : data;
+       }
+
+       require(['libs/datatables.min'], function() {
+           $('#portlist').dataTable({
+               paging: false,
+               info: false,
+               serverSide: true,
+               ajax: {
+                   url: "/api/1/interface/?netbox={{netbox.id}}",
+                   data: function(d) {
+                       // d.page = d.start / d.length + 1;
+                       d.page_size = 1000;
+                       d.search = d.search.value;
+                       d.ordering = d.order.map(function(order) {
+                           var direction = order.dir === 'asc' ? '' : '-';
+                           return direction + columns[order.column];
+                       }).join(',');
+                   },
+                   dataFilter: function(data){
+                       var json = jQuery.parseJSON( data );
+                       json.recordsTotal = json.count;
+                       json.recordsFiltered = json.count;
+                       json.data = json.results;
+                       return JSON.stringify( json );
+                   }
+               },
+               columns: dtColumns,
+           });
+       });
+   });
+  </script>
+
 </div>
