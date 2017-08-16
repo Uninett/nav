@@ -61,6 +61,7 @@ class InterfaceSerializer(serializers.ModelSerializer):
 
     class Meta(object):
         model = manage.Interface
+        depth = 1
 
 
 class CablingSerializer(serializers.ModelSerializer):
