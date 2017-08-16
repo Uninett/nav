@@ -55,9 +55,18 @@ class SpecificPatchSerializer(serializers.ModelSerializer):
         fields = ('id', 'cabling', 'split')
 
 
+class ModuleSerializer(serializers.ModelSerializer):
+    """Serializer for the module model"""
+    object_url = serializers.CharField(source='get_absolute_url')
+
+    class Meta(object):
+        model = manage.Module
+
+
 class InterfaceSerializer(serializers.ModelSerializer):
     """Serializer for the interface model"""
     patches = SpecificPatchSerializer()
+    module = ModuleSerializer()
     object_url = serializers.CharField(source='get_absolute_url')
 
     class Meta(object):

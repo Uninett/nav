@@ -273,11 +273,12 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     - iftype
     - netbox
     - trunk
+    - module__name
     """
     queryset = manage.Interface.objects.all()
     serializer_class = serializers.InterfaceSerializer
     filter_fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
-                     'ifadminstatus', 'iftype', 'baseport')
+                     'ifadminstatus', 'iftype', 'baseport', 'module__name')
     search_fields = ('ifalias', 'ifdescr', 'ifname')
     filter_backends = NAVAPIMixin.filter_backends + (NaturalIfnameFilter, IfClassFilter)
 

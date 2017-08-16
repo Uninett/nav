@@ -7,56 +7,52 @@ define(['libs/datatables.min'], function(require) {
     /* The data we want to use from the result set from the api. This determines
      * the order and what the table consist of. Remember that the table headers
      * need to be updated aswell */
-    var columns = [
-        "ifname",
-        "ifalias",
-        "module.name",
-        "ifadminstatus",
-        "ifoperstatus",
-        "vlan",
-        "trunk",
-        "speed"
-    ]
-
-    // Create object with index => value for columns
-    var columnsRef = columns.reduce(function(obj, value, index) {
-        obj[index] = value;
-        return obj;
-    }, {});
-
-    // The columns definitions for the datatable
-    var dtColumns = columns.map(function(value) {
-        return {data: value};
-    });
-
-
-    /*
-     * RENDER FUNCTIONS
-     *
-     * Not everything can be rendered directly from the api. Here we modify what
-     * is rendered in some columns.
-     */
-    dtColumns[columns.indexOf('ifname')].render = function(data, type, row, meta) {
-        return '<a href="' + row.object_url + '">' + data + '</a>';
-    };
-    dtColumns[columns.indexOf('ifadminstatus')].render = renderStatus;
-    dtColumns[columns.indexOf('ifoperstatus')].render = renderStatus;
-    dtColumns[columns.indexOf('trunk')].render = function(data, type, row, meta) {
-        return data ? 'Yes': ''
-    };
-
-    var duplexMap = {'f': 'FD', 'h': 'HD'}
-    dtColumns[columns.indexOf('speed')].render = function(data, type, row, meta) {
-        var duplex = duplexMap[row.duplex] || ''
-        return data + " " + duplex;
-    };
-
+    var duplexMap = {'f': 'FD', 'h': 'HD'};
 
     /** Renders a light indicating status (red or green) */
     function renderStatus(data, type, row, meta) {
         var color = data === 2 ? 'red' : 'green';
         return '<img src="/static/images/lys/' + color + '.png">';
     }
+
+    var dtColumns = [
+        {
+            data: "ifname",
+            render: function(data, type, row, meta) {
+                return '<a href="' + row.object_url + '">' + data + '</a>';
+            }
+        },
+
+        {data: "ifalias"},
+
+        {
+            data: 'module',
+            render: function(data, type, row, meta) {
+                return data
+                    ? '<a href="' + data.object_url + '">' + data.name + '</a>'
+                    : '';
+            }
+        },
+
+        {data: "ifadminstatus", render: renderStatus},
+        {data: "ifoperstatus", render: renderStatus},
+        {data: "vlan"},
+
+        {
+            data: "trunk",
+            render: function(data, type, row, meta) {
+                return data ? 'Yes': ''
+            }
+        },
+
+        {
+            data: "speed",
+            render: function(data, type, row, meta) {
+                var duplex = duplexMap[row.duplex] || ''
+                return data + " " + duplex;
+            }
+        }
+    ];
 
 
     /**
@@ -69,7 +65,7 @@ define(['libs/datatables.min'], function(require) {
         d.search = d.search.value;
         d.ordering = d.order.map(function(order) {
             var direction = order.dir === 'asc' ? '' : '-';
-            return direction + columnsRef[order.column];
+            return direction + dtColumns[order.column].data;
         }).join(',');
         d.ifclass = getIfClasses();
     }
@@ -119,7 +115,7 @@ define(['libs/datatables.min'], function(require) {
         });
 
         createClassFilters(dataTable);
-
+        fixSearchDelay(dataTable);
     }
 
 
@@ -131,6 +127,27 @@ define(['libs/datatables.min'], function(require) {
         $form.append('<label><input type="checkbox" value="swport">Show swports</label>');
         $form.append('<label><input type="checkbox" value="gwport">Show gwports</label>');
         $form.on('change', dataTable.draw);
+    }
+
+
+    function fixSearchDelay(dataTable) {
+        $('div.dataTables_filter input').off('keyup.DT input.DT');
+
+        var searchDelay = null,
+            prevSearch = null;
+
+        $('div.dataTables_filter input').on('keyup', function() {
+            var search = $('div.dataTables_filter input').val();
+
+            clearTimeout(searchDelay);
+
+            if (search !== prevSearch) {
+                searchDelay = setTimeout(function() {
+                    prevSearch = search;
+                    dataTable.search(search).draw();
+                }, 400);
+            }
+        });
     }
 
 
