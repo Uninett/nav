@@ -1,8 +1,16 @@
 define(['libs/datatables.min'], function(require) {
 
+    /**
+     * Set up the lookup arrays and objects
+     */
+
+    /* The data we want to use from the result set from the api. This determines
+     * the order and what the table consist of. Remember that the table headers
+     * need to be updated aswell */
     var columns = [
         "ifname",
         "ifalias",
+        "module.name",
         "ifadminstatus",
         "ifoperstatus",
         "vlan",
@@ -21,7 +29,13 @@ define(['libs/datatables.min'], function(require) {
         return {data: value};
     });
 
-    // Render functions for columns that need special treatment
+
+    /*
+     * RENDER FUNCTIONS
+     *
+     * Not everything can be rendered directly from the api. Here we modify what
+     * is rendered in some columns.
+     */
     dtColumns[columns.indexOf('ifname')].render = function(data, type, row, meta) {
         return '<a href="' + row.object_url + '">' + data + '</a>';
     };
@@ -38,6 +52,7 @@ define(['libs/datatables.min'], function(require) {
     };
 
 
+    /** Renders a light indicating status (red or green) */
     function renderStatus(data, type, row, meta) {
         var color = data === 2 ? 'red' : 'green';
         return '<img src="/static/images/lys/' + color + '.png">';
@@ -60,6 +75,10 @@ define(['libs/datatables.min'], function(require) {
     }
 
 
+    /**
+     * Gets the selected checkboxes for interface classes
+     * @returns {Array}
+     */
     function getIfClasses() {
         return $('#ifclasses input:checked').map(function() {
             return this.value;
@@ -103,12 +122,17 @@ define(['libs/datatables.min'], function(require) {
 
     }
 
+
+    /**
+     * Creates the checkboxes for filtering on ifclasses (swport, gwport)
+     */
     function createClassFilters(dataTable) {
         var $form = $('#ifclasses').append("<form>");
         $form.append('<label><input type="checkbox" value="swport">Show swports</label>');
         $form.append('<label><input type="checkbox" value="gwport">Show gwports</label>');
         $form.on('change', dataTable.draw);
     }
+
 
     return portTable;
 
