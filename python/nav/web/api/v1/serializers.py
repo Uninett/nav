@@ -58,6 +58,7 @@ class SpecificPatchSerializer(serializers.ModelSerializer):
 class InterfaceSerializer(serializers.ModelSerializer):
     """Serializer for the interface model"""
     patches = SpecificPatchSerializer()
+    object_url = serializers.CharField(source='get_absolute_url')
 
     class Meta(object):
         model = manage.Interface
