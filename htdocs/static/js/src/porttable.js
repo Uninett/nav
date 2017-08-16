@@ -75,7 +75,6 @@ define(['libs/datatables.min'], function(require) {
         var dataTable = $(selector).DataTable({
             autoWidth: false,
             paging: false,
-            // info: false,
             processing: true,
             serverSide: true,
             ajax: {
@@ -84,9 +83,10 @@ define(['libs/datatables.min'], function(require) {
                 dataFilter: translateData
             },
             columns: dtColumns,
-            dom: "<f<'#ifclasses'>i>t",
+            dom: "f<'#ifclasses'><'#infoprocessing'ir>t",
             language: {
-                info: "Showing _MAX_ entries"
+                info: "_MAX_ entries",
+                processing: "Loading...",
             }
         });
 
