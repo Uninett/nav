@@ -22,10 +22,19 @@ define(['libs/datatables.min'], function(require) {
     });
 
     // Render functions for columns that need special treatment
+    dtColumns[columns.indexOf('ifname')].render = function(data, type, row, meta) {
+        return '<a href="' + row.object_url + '">' + data + '</a>';
+    };
     dtColumns[columns.indexOf('ifadminstatus')].render = renderStatus;
     dtColumns[columns.indexOf('ifoperstatus')].render = renderStatus;
     dtColumns[columns.indexOf('trunk')].render = function(data, type, row, meta) {
         return data ? 'Yes': ''
+    };
+
+    var duplexMap = {'f': 'FD', 'h': 'HD'}
+    dtColumns[columns.indexOf('speed')].render = function(data, type, row, meta) {
+        var duplex = duplexMap[row.duplex] || ''
+        return data + " " + duplex;
     };
 
 
