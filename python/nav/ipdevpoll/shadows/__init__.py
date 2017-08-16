@@ -625,6 +625,18 @@ class Sensor(Shadow):
             netbox=netbox.id).exclude(pk__in=found_sensor_pks)
         return missing_sensors
 
+    def prepare(self, containers):
+        if self.interface:
+            if self.name:
+                self.name = self.name.format(
+                    ifc=self.interface.ifname)
+            if self.human_readable:
+                self.human_readable = self.human_readable.format(
+                    ifc=self.interface.ifdescr)
+            if self.internal_name:
+                self.internal_name = self.internal_name.format(
+                    ifc=self.interface.ifname)
+
 
 class PowerSupplyOrFan(Shadow):
     __shadowclass__ = manage.PowerSupplyOrFan
