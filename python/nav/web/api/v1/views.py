@@ -43,7 +43,7 @@ from nav.web.servicecheckers import load_checker_classes
 from nav.web.api.v1 import serializers, alert_serializers
 from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
 from .helpers import prefix_collector
-from .filter_backends import AlertHistoryFilterBackend, NaturalIfnameFilter
+from .filter_backends import *
 from nav.web.status2 import STATELESS_THRESHOLD
 
 EXPIRE_DELTA = timedelta(days=365)
@@ -279,7 +279,7 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     filter_fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
                      'ifadminstatus', 'iftype', 'baseport')
     search_fields = ('ifalias', 'ifdescr', 'ifname')
-    filter_backends = NAVAPIMixin.filter_backends + (NaturalIfnameFilter, )
+    filter_backends = NAVAPIMixin.filter_backends + (NaturalIfnameFilter, IfClassFilter)
 
 
 class PatchViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):

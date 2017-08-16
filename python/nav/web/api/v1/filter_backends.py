@@ -21,6 +21,32 @@ from rest_framework import filters
 from nav import natsort
 from nav.models.manage import Location
 
+__all__ = ['NaturalIfnameFilter', 'IfClassFilter', 'AlertHistoryFilterBackend']
+
+
+class IfClassFilter(filters.BaseFilterBackend):
+    """Filter on ifclasses
+
+    An ifclass is a fantasy construct that defines if this interface is a
+    swport, gwport (and physcial port)
+    """
+    def filter_queryset(self, request, queryset, view):
+        filters = {
+            'swport': 'is_swport',
+            'gwport': 'is_gwport',
+        }
+
+        if 'ifclass[]' in request.QUERY_PARAMS:
+            matching_filters = (set(request.QUERY_PARAMS.getlist('ifclass[]'))
+                                & set(filters))
+            return [
+                i
+                for f in matching_filters
+                for i in queryset if getattr(i, filters[f])()
+            ]
+
+        return queryset
+
 
 class NaturalIfnameFilter(filters.OrderingFilter):
     """Filter naturally on interface ifname"""
@@ -82,7 +108,7 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
             if values:
                 # Locations are hierarchial - must include descendants
                 if arg == 'location':
-                    values = get_descendants(values)
+                    values = _get_descendants(values)
                 filtr = field + '__in'
                 queryset = queryset.filter(**{filtr: values})
 
@@ -91,7 +117,7 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
             if values:
                 # Locations are hierarchial - must include descendants
                 if arg == 'not_location':
-                    values = get_descendants(values)
+                    values = _get_descendants(values)
                 filtr = field + '__in'
                 queryset = queryset.exclude(**{filtr: values})
 
@@ -111,7 +137,7 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
         return queryset
 
 
-def get_descendants(parents):
+def _get_descendants(parents):
     """Returns a list of all descendants for the parents including themselves"""
     locations = []
     for parent in parents:
