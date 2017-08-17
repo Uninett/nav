@@ -157,6 +157,11 @@ define(['libs/datatables.min'], function(require) {
     }
 
 
+    /**
+     * The searchdelay in DataTables starts whenever you start to write
+     * (weird). Make it work so that the delay kicks in until you're actually
+     * done typing.
+     */
     function fixSearchDelay(dataTable) {
         $('div.dataTables_filter input').off('keyup.DT input.DT');
 
