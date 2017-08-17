@@ -126,6 +126,7 @@ define(['libs/datatables.min'], function(require) {
         var $form = $('#ifclasses').append("<form>");
         $form.append('<label><input type="checkbox" value="swport">Show swports</label>');
         $form.append('<label><input type="checkbox" value="gwport">Show gwports</label>');
+        $form.append('<label><input type="checkbox" value="physicalport">Show physical ports</label>');
         $form.on('change', dataTable.draw);
     }
 
