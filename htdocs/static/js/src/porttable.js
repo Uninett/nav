@@ -51,7 +51,26 @@ define(['libs/datatables.min'], function(require) {
                 var duplex = duplexMap[row.duplex] || ''
                 return data + " " + duplex;
             }
-        }
+        },
+
+        {
+            data: 'to_netbox',
+            render: function(data, type, row, meta) {
+                return data
+                    ? '<a href="' + data.object_url + '">' + data.sysname + '</a>'
+                    : '';
+            }
+        },
+
+        {
+            data: 'to_interface',
+            render: function(data, type, row, meta) {
+                return data
+                    ? '<a href="' + data.object_url + '">' + data.ifname + '</a>'
+                    : '';
+            }
+        },
+
     ];
 
 
