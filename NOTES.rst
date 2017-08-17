@@ -899,7 +899,7 @@ Removed dependencies:
 - Cricket
 - rrdtool
 
-.. _Graphite: http://graphite.wikidot.com/
+.. _Graphite: http://graphiteapp.org/
 .. _Sass: http://sass-lang.com/
 
 Major changes to statistics collection

@@ -61,7 +61,7 @@ follows:
           forced to resort to using :mod:`twistedsnmp`, the :file:`contrib/patches`
           directory contains a recommended patch for this problem.
 
-.. _Graphite: http://graphite.wikidot.com/
+.. _Graphite: http://graphiteapp.org/
 
 Recommended add-ons
 -------------------
