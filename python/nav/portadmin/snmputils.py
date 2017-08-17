@@ -268,7 +268,7 @@ class SNMPHandler(object):
 
     def set_native_vlan(self, interface, vlan):
         """Set native vlan on a trunk interface"""
-        self.set_vlan(interface.base_port, vlan)
+        self.set_vlan(interface.baseport, vlan)
 
     def set_if_up(self, if_index):
         """Set interface.to up"""
