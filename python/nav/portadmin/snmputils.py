@@ -31,7 +31,7 @@ from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
                                 VENDOR_ID_H3C,
                                 VENDOR_ID_DELL_INC,
                                 VENDOR_ID_HEWLETT_PACKARD)
-
+from . import BaseHandler
 
 _logger = logging.getLogger("nav.portadmin.snmputils")
 CHARS_IN_1024_BITS = 128
@@ -71,7 +71,7 @@ class FantasyVlan(object):
 
 
 @python_2_unicode_compatible
-class SNMPHandler(object):
+class SNMPHandler(BaseHandler):
     """A basic class for SNMP-read and -write to switches."""
 
     from nav.smidumps.qbridge_mib import MIB as qbridgemib
@@ -103,10 +103,8 @@ class SNMPHandler(object):
     # Port Access Control in a System.
     dot1xPaeSystemAuthControl = '1.0.8802.1.1.1.1.1.1.0'
 
-    netbox = None
-
     def __init__(self, netbox, **kwargs):
-        self.netbox = netbox
+        super(SNMPHandler, self).__init__(netbox)
         self.read_only_handle = None
         self.read_write_handle = None
         self.available_vlans = None
@@ -221,11 +219,11 @@ class SNMPHandler(object):
         """Get all aliases for all interfaces."""
         return self._bulkwalk(self.IF_ALIAS_OID)
 
-    def set_if_alias(self, if_index, if_alias):
+    def set_if_alias(self, interface, if_alias):
         """Set alias on a specific interface."""
         if isinstance(if_alias, six.text_type):
             if_alias = if_alias.encode('utf8')
-        return self._set_netbox_value(self.IF_ALIAS_OID, if_index, "s",
+        return self._set_netbox_value(self.IF_ALIAS_OID, interface.ifindex, "s",
                                       if_alias)
 
     def get_vlan(self, interface):
@@ -280,25 +278,27 @@ class SNMPHandler(object):
         """Set native vlan on a trunk interface"""
         self.set_vlan(interface, vlan)
 
-    def set_if_up(self, if_index):
+    def set_if_up(self, interface):
         """Set interface.to up"""
+        if_index = interface.ifindex
         return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i",
                                       self.IF_ADMIN_STATUS_UP)
 
-    def set_if_down(self, if_index):
+    def set_if_down(self, interface):
         """Set interface.to down"""
+        if_index = interface.ifindex
         return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i",
                                       self.IF_ADMIN_STATUS_DOWN)
 
-    def restart_if(self, if_index, wait=5):
+    def restart_if(self, interface, wait=5):
         """ Take interface down and up.
             wait = number of seconds to wait between down and up."""
         wait = int(wait)
-        self.set_if_down(if_index)
+        self.set_if_down(interface)
         _logger.debug('Interface set administratively down - '
                       'waiting %s seconds', wait)
         time.sleep(wait)
-        self.set_if_up(if_index)
+        self.set_if_up(interface)
         _logger.debug('Interface set administratively up')
 
     def write_mem(self):

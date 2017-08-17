@@ -385,7 +385,7 @@ def set_ifalias(account, fac, interface, request):
         ifalias = request.POST.get('ifalias')
         if check_format_on_ifalias(ifalias):
             try:
-                fac.set_if_alias(interface.ifindex, ifalias)
+                fac.set_if_alias(interface, ifalias)
                 interface.ifalias = ifalias
                 LogEntry.add_log_entry(
                     account,
@@ -505,7 +505,7 @@ def set_admin_status(fac, interface, request):
                 )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'up')
-                fac.set_if_up(interface.ifindex)
+                fac.set_if_up(interface)
             elif adminstatus == status_down:
                 LogEntry.add_log_entry(
                     account,
@@ -516,7 +516,7 @@ def set_admin_status(fac, interface, request):
                 )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'down')
-                fac.set_if_down(interface.ifindex)
+                fac.set_if_down(interface)
         except (SnmpError, ValueError) as error:
             messages.error(request, "Error setting ifadminstatus: %s" % error)
 
@@ -632,7 +632,7 @@ def restart_interface(request):
         _logger.debug('Restarting interface %s', interface)
         try:
             # Restart interface so that client fetches new address
-            fac.restart_if(interface.ifindex)
+            fac.restart_if(interface)
         except TimeOutException:
             # Swallow this exception as it is not important. Others should
             # create an error

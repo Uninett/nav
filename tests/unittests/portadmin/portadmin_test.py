@@ -4,6 +4,7 @@ import unittest
 
 from django.utils import six
 
+from nav.models.manage import Interface
 from nav.web.portadmin.utils import *
 from nav.portadmin.snmputils import *
 
@@ -106,7 +107,8 @@ class PortadminResponseTest(unittest.TestCase):
         # replace set-method on Snmp-object with a mock-method
         # all set-methods return None
         self.snmpReadWriteHandler.set = Mock(return_value=None)
-        self.assertEqual(self.handler.set_if_alias(1, 'punkt1'), None,
+        ifc = Interface(ifindex=1)
+        self.assertEqual(self.handler.set_if_alias(ifc, 'punkt1'), None,
                          'setIfAlias failed')
 
     def test_get_vlans(self):
