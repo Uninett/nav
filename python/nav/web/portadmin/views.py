@@ -414,9 +414,9 @@ def set_vlan(account, fac, interface, request):
                 if not is_cisco_voice_enabled(config) and voice_activated:
                     fac.set_native_vlan(interface, vlan)
                 else:
-                    fac.set_vlan(interface.ifindex, vlan)
+                    fac.set_vlan(interface, vlan)
             else:
-                fac.set_vlan(interface.ifindex, vlan)
+                fac.set_vlan(interface, vlan)
 
             interface.vlan = vlan
             LogEntry.add_log_entry(
