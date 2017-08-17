@@ -15,8 +15,12 @@
 #
 """Custom filter backends"""
 
+import operator
+# reduce is removed in python 3, import it from functools
+from functools import reduce as reduce3
 from . import alert_serializers
 from rest_framework import filters
+from django.db.models import Q
 
 from nav import natsort
 from nav.models.manage import Location
@@ -27,23 +31,31 @@ __all__ = ['NaturalIfnameFilter', 'IfClassFilter', 'AlertHistoryFilterBackend']
 class IfClassFilter(filters.BaseFilterBackend):
     """Filter on ifclasses
 
-    An ifclass is a fantasy construct that defines if this interface is a
-    swport, gwport (and physcial port)
+    An ifclass is a fantasy construct that tells you if this interface is a
+    swport, gwport or physical port (can be zero or more)
     """
+
     def filter_queryset(self, request, queryset, view):
+        """Filter on interface class/type
+
+        NB: Needs a Queryset as queryset, other filters that return lists will
+        break this.
+
+        Using the methods (is_swport, is_gwport etc) on the Interface model
+        means doing everything in python in stead of letting the database do it,
+        so we reimplement them here with Q-objects.
+        """
         filters = {
-            'swport': 'is_swport',
-            'gwport': 'is_gwport',
+            'swport': Q(baseport__isnull=False),
+            'gwport': Q(gwportprefix__isnull=False),
+            'physicalport': Q(ifconnectorpresent=True)
         }
 
         if 'ifclass[]' in request.QUERY_PARAMS:
             matching_filters = (set(request.QUERY_PARAMS.getlist('ifclass[]'))
                                 & set(filters))
-            return [
-                i
-                for f in matching_filters
-                for i in queryset if getattr(i, filters[f])()
-            ]
+            q = reduce3(operator.or_, [filters[f] for f in matching_filters])
+            queryset = queryset.filter(q).distinct()
 
         return queryset
 
