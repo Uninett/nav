@@ -54,8 +54,9 @@ class IfClassFilter(filters.BaseFilterBackend):
         if 'ifclass[]' in request.QUERY_PARAMS:
             matching_filters = (set(request.QUERY_PARAMS.getlist('ifclass[]'))
                                 & set(filters))
-            q = reduce3(operator.or_, [filters[f] for f in matching_filters])
-            queryset = queryset.filter(q).distinct()
+            if matching_filters:
+                q = reduce3(operator.or_, [filters[f] for f in matching_filters])
+                queryset = queryset.filter(q).distinct()
 
         return queryset
 

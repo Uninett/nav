@@ -143,10 +143,17 @@ define(['libs/datatables.min'], function(require) {
      */
     function createClassFilters(dataTable) {
         var $form = $('#ifclasses').append("<form>");
-        $form.append('<label><input type="checkbox" value="swport">Show swports</label>');
-        $form.append('<label><input type="checkbox" value="gwport">Show gwports</label>');
-        $form.append('<label><input type="checkbox" value="physicalport">Show physical ports</label>');
-        $form.on('change', dataTable.draw);
+        $form.append('<label><input type="radio" name="portgroup" value="all" checked>All ports</label>');
+        $form.append('<label><input type="radio" name="portgroup" value="swport">Swports</label>');
+        $form.append('<label><input type="radio" name="portgroup" value="gwport">Gwports</label>');
+        $form.append('<label><input type="radio" name="portgroup" value="physicalport">Physical ports</label>');
+        $form.on('change', function() {
+            dataTable.draw();
+            $form.find('input').prop('disabled', true);
+        });
+        dataTable.on('draw.dt', function() {
+            $form.find('input').prop('disabled', false);
+        })
     }
 
 
