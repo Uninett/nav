@@ -41,7 +41,9 @@ define(['libs/datatables.min'], function(require) {
         {
             data: "trunk",
             render: function(data, type, row, meta) {
-                return data ? 'Yes': ''
+                if (data) {return 'Yes'}
+                else if (data === false) {return ''}
+                else {return 'N/A'}
             }
         },
 
