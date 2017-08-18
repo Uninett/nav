@@ -4,21 +4,19 @@ define(function(require) {
     var moduleSort = require('dt_plugins/modulesort');
     var URI = require('libs/urijs/URI');
 
-    /**
-     * Set up the lookup arrays and objects
+
+    /*
+     * dtColumns defines the data we want to use from the result set from the
+     * api. They are in order of appearance in the table - changes here may need
+     * changes in the template aswell.
+
+     * _data_ defines what key to look up for the value in the column
+     *
+     * _type_ defines a type needed for using the correct sorting function
+     *        (added by adding functions to $.fn.dataTable.ext.type.order)
+     **
+     * _render_ completely overrides the default rendering of the value
      */
-
-    /* The data we want to use from the result set from the api. This determines
-     * the order and what the table consist of. Remember that the table headers
-     * need to be updated aswell */
-    var duplexMap = {'f': 'FD', 'h': 'HD'};
-
-    /** Renders a light indicating status (red or green) */
-    function renderStatus(data, type, row, meta) {
-        var color = data === 2 ? 'red' : 'green';
-        return '<img src="/static/images/lys/' + color + '.png">';
-    }
-
     var dtColumns = [
         {
             data: "ifname",
@@ -91,89 +89,22 @@ define(function(require) {
     ];
 
 
-    /**
-     * Gets the selected checkboxes for interface classes
-     * @returns {Array}
-     */
-    function getIfClasses() {
-        return $('#ifclasses input:checked').map(function() {
-            return this.value;
-        }).get();
+    // Text mapping for duplex
+    var duplexMap = {'f': 'FD', 'h': 'HD'};
+
+
+    /** Renders a light indicating status (red or green) */
+    function renderStatus(data, type, row, meta) {
+        var color = data === 2 ? 'red' : 'green';
+        return '<img src="/static/images/lys/' + color + '.png">';
     }
 
 
     /**
-     * Translate data keys from response to something datatables understand
+     * Creates the checkboxes for filtering on ifclasses (swport, gwport, physicalport)
      */
-    function translateData(data) {
-        var json = jQuery.parseJSON( data );
-        json.recordsTotal = json.count;
-        json.recordsFiltered = json.count;
-        json.data = json.results;
-        return JSON.stringify( json );
-    }
-
-
-    /** Create datatable */
-    function PortTable(selector, netboxid) {
-        this.netboxid = netboxid;
-        this.selector = selector;
-        this.dataTable = this.createDataTable();
-
-        this.addCustomOrdering();
-        this.addPortGroupListeners(createClassFilters());
-        fixSearchDelay(this.dataTable);
-    }
-
-    PortTable.prototype = {
-        createDataTable: function() {
-            return $(this.selector).DataTable({
-                autoWidth: false,
-                paging: false,
-                ajax: {
-                    url: this.getUrl().toString(),
-                    dataFilter: translateData
-                },
-                columns: dtColumns,
-                dom: "f<'#ifclasses'><'#infoprocessing'ir>t",
-                language: {
-                    info: "_MAX_ entries",
-                    processing: "Loading...",
-                }
-            });
-        },
-
-        /** Custom ordering for statuslight as it cant sort on html elements */
-        addCustomOrdering: function() {
-            $.fn.dataTable.ext.type.order['statuslight-pre'] = function ( data ) {
-                return data;
-            };
-        },
-
-        addPortGroupListeners: function($form) {
-            var self = this;
-            $form.on('change', function() {
-                var selectedGroup = $form.find('[name=portgroup]:checked').val();
-                var newUrl = self.getUrl().setSearch('ifclass[]', selectedGroup);
-                console.log(newUrl.toString());
-                self.dataTable.ajax.url(newUrl.toString()).load();
-            });
-        },
-
-        getUrl: function() {
-            return URI("/api/1/interface/")
-                .addSearch('page_size', 1000)
-                .addSearch('netbox', this.netboxid);
-        }
-
-    }
-
-
-    /**
-     * Creates the checkboxes for filtering on ifclasses (swport, gwport)
-     */
-    function createClassFilters() {
-        var $form = $('#ifclasses').append("<form>");
+    function createClassFilters(selector) {
+        var $form = $(selector).append("<form>");
         $form.append('<label><input type="radio" name="portgroup" value="all" checked>All ports</label>');
         $form.append('<label><input type="radio" name="portgroup" value="swport">Swports</label>');
         $form.append('<label><input type="radio" name="portgroup" value="gwport">Gwports</label>');
@@ -205,6 +136,81 @@ define(function(require) {
                 }, 400);
             }
         });
+    }
+
+
+    /**
+     * Translate data keys from response to something datatables understand
+     */
+    function translateData(data) {
+        var json = jQuery.parseJSON( data );
+        json.recordsTotal = json.count;
+        json.recordsFiltered = json.count;
+        json.data = json.results;
+        return JSON.stringify( json );
+    }
+
+
+    /** Custom ordering for statuslight as it cant sort on html elements */
+    function addCustomOrdering() {
+        $.fn.dataTable.ext.type.order['statuslight-pre'] = function ( data ) {
+            return data;
+        };
+    }
+
+
+    /**
+     * The table to be instantiated
+     * @param {string} selector - the jQuery selector for the table
+     * @param {int} netboxid - the netboxid of the device to list ports for
+     */
+    function PortTable(selector, netboxid) {
+        this.netboxid = netboxid;
+        this.selector = selector;
+        this.formContainerSelector = '#ifclasses';
+        this.dataTable = this.createDataTable();
+        this.addPortGroupListeners(createClassFilters(this.formContainerSelector));
+
+        addCustomOrdering();
+        fixSearchDelay(this.dataTable);
+    }
+
+    PortTable.prototype = {
+        createDataTable: function() {
+            return $(this.selector).DataTable({
+                autoWidth: false,
+                paging: false,
+                processing: true,
+                ajax: {
+                    url: this.getUrl().toString(),
+                    dataFilter: translateData
+                },
+                columns: dtColumns,
+                dom: "f<'#ifclasses'><'#infoprocessing'ir>t",
+                language: {
+                    info: "_MAX_ entries",
+                    processing: "Loading...",
+                }
+            });
+        },
+
+        /** Listen to changes on port groups */
+        addPortGroupListeners: function($form) {
+            var self = this;
+            $form.on('change', function() {
+                var selectedGroup = $form.find('[name=portgroup]:checked').val();
+                var newUrl = self.getUrl().setSearch('ifclass[]', selectedGroup);
+                console.log(newUrl.toString());
+                self.dataTable.ajax.url(newUrl.toString()).load();
+            });
+        },
+
+        getUrl: function() {
+            return URI("/api/1/interface/")
+                .addSearch('page_size', 1000)
+                .addSearch('netbox', this.netboxid);
+        }
+
     }
 
 
