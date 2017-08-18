@@ -26,8 +26,8 @@
 <script>
  $(function() {
      console.log('Rendering port overview');
-     require(['src/porttable'], function(portTable) {
-         portTable('#portlist', {{netbox.id}});
+     require(['src/porttable'], function(PortTable) {
+         new PortTable('#portlist', {{netbox.id}});
      });
  });
 </script>

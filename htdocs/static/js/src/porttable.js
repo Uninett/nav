@@ -1,4 +1,8 @@
-define(['libs/datatables.min', 'dt_plugins/modulesort'], function(require) {
+define(function(require) {
+
+    var DataTables = require('libs/datatables.min');
+    var moduleSort = require('dt_plugins/modulesort');
+    var URI = require('libs/urijs/URI');
 
     /**
      * Set up the lookup arrays and objects
@@ -35,8 +39,18 @@ define(['libs/datatables.min', 'dt_plugins/modulesort'], function(require) {
             }
         },
 
-        {data: "ifadminstatus", render: renderStatus},
-        {data: "ifoperstatus", render: renderStatus},
+        {
+            data: "ifadminstatus",
+            type: "statuslight",
+            render: renderStatus
+        },
+
+        {
+            data: "ifoperstatus",
+            type: "statuslight",
+            render: renderStatus
+        },
+
         {data: "vlan"},
 
         {
@@ -101,43 +115,70 @@ define(['libs/datatables.min', 'dt_plugins/modulesort'], function(require) {
 
 
     /** Create datatable */
-    function portTable(selector, netboxid) {
-        var dataTable = $(selector).DataTable({
-            autoWidth: false,
-            paging: false,
-            ajax: {
-                url: "/api/1/interface/?netbox=" + netboxid,
-                dataFilter: translateData
-            },
-            columns: dtColumns,
-            dom: "f<'#ifclasses'><'#infoprocessing'ir>t",
-            language: {
-                info: "_MAX_ entries",
-                processing: "Loading...",
-            }
-        });
+    function PortTable(selector, netboxid) {
+        this.netboxid = netboxid;
+        this.selector = selector;
+        this.dataTable = this.createDataTable();
 
-        createClassFilters(dataTable);
-        fixSearchDelay(dataTable);
+        this.addCustomOrdering();
+        this.addPortGroupListeners(createClassFilters());
+        fixSearchDelay(this.dataTable);
+    }
+
+    PortTable.prototype = {
+        createDataTable: function() {
+            return $(this.selector).DataTable({
+                autoWidth: false,
+                paging: false,
+                ajax: {
+                    url: this.getUrl().toString(),
+                    dataFilter: translateData
+                },
+                columns: dtColumns,
+                dom: "f<'#ifclasses'><'#infoprocessing'ir>t",
+                language: {
+                    info: "_MAX_ entries",
+                    processing: "Loading...",
+                }
+            });
+        },
+
+        /** Custom ordering for statuslight as it cant sort on html elements */
+        addCustomOrdering: function() {
+            $.fn.dataTable.ext.type.order['statuslight-pre'] = function ( data ) {
+                return data;
+            };
+        },
+
+        addPortGroupListeners: function($form) {
+            var self = this;
+            $form.on('change', function() {
+                var selectedGroup = $form.find('[name=portgroup]:checked').val();
+                var newUrl = self.getUrl().setSearch('ifclass[]', selectedGroup);
+                console.log(newUrl.toString());
+                self.dataTable.ajax.url(newUrl.toString()).load();
+            });
+        },
+
+        getUrl: function() {
+            return URI("/api/1/interface/")
+                .addSearch('page_size', 1000)
+                .addSearch('netbox', this.netboxid);
+        }
+
     }
 
 
     /**
      * Creates the checkboxes for filtering on ifclasses (swport, gwport)
      */
-    function createClassFilters(dataTable) {
+    function createClassFilters() {
         var $form = $('#ifclasses').append("<form>");
         $form.append('<label><input type="radio" name="portgroup" value="all" checked>All ports</label>');
         $form.append('<label><input type="radio" name="portgroup" value="swport">Swports</label>');
         $form.append('<label><input type="radio" name="portgroup" value="gwport">Gwports</label>');
         $form.append('<label><input type="radio" name="portgroup" value="physicalport">Physical ports</label>');
-        $form.on('change', function() {
-            dataTable.draw();
-            $form.find('input').prop('disabled', true);
-        });
-        dataTable.on('draw.dt', function() {
-            $form.find('input').prop('disabled', false);
-        })
+        return $form;
     }
 
 
@@ -167,6 +208,6 @@ define(['libs/datatables.min', 'dt_plugins/modulesort'], function(require) {
     }
 
 
-    return portTable;
+    return PortTable;
 
 });
