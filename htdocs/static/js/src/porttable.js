@@ -77,22 +77,6 @@ define(['libs/datatables.min'], function(require) {
 
 
     /**
-     * Translate datatables parameters to be compatible with django rest
-     * framework parameters
-     */
-    function translateParameters(d) {
-        d.page = d.start / d.length + 1;
-        d.page_size = 1000;
-        d.search = d.search.value;
-        d.ordering = d.order.map(function(order) {
-            var direction = order.dir === 'asc' ? '' : '-';
-            return direction + dtColumns[order.column].data;
-        }).join(',');
-        d.ifclass = getIfClasses();
-    }
-
-
-    /**
      * Gets the selected checkboxes for interface classes
      * @returns {Array}
      */
@@ -120,11 +104,8 @@ define(['libs/datatables.min'], function(require) {
         var dataTable = $(selector).DataTable({
             autoWidth: false,
             paging: false,
-            processing: true,
-            serverSide: true,
             ajax: {
                 url: "/api/1/interface/?netbox=" + netboxid,
-                data: translateParameters,
                 dataFilter: translateData
             },
             columns: dtColumns,
