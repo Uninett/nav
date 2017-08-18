@@ -7,7 +7,6 @@
       <th title="Administrative status - is enabled or not">Admin</th>
       <th title="Operational status - has link or not">Link</th>
       <th>Vlan</th>
-      <th>Trunk</th>
       <th title="Speed in Mbit/s and duplex (full or half)">Speed</th>
       <th>To Device</th>
       <th>To Port</th>
@@ -17,6 +16,8 @@
 
 <style>
  #portlist th {cursor: pointer;}
+ #portlist td:nth-child(6) { text-align: center; }
+
  #portlist_filter { max-width: 30em; }
  #ifclasses label { margin-right: 1em; }
  #infoprocessing { overflow: auto; }

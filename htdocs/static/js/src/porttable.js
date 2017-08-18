@@ -49,14 +49,13 @@ define(function(require) {
             render: renderStatus
         },
 
-        {data: "vlan"},
-
         {
-            data: "trunk",
+            data: "vlan",
             render: function(data, type, row, meta) {
-                if (data) {return 'Yes'}
-                else if (data === false) {return ''}
-                else {return 'N/A'}
+                if (row['trunk']) {
+                    return "<span title='Trunk' style='border: 3px double black; padding: 0 5px'>" + data + "</span>"
+                }
+                return data;
             }
         },
 
