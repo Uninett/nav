@@ -145,7 +145,6 @@ define(function(require) {
     function translateData(data) {
         var json = jQuery.parseJSON( data );
         json.recordsTotal = json.count;
-        json.recordsFiltered = json.count;
         json.data = json.results;
         return JSON.stringify( json );
     }
@@ -188,7 +187,7 @@ define(function(require) {
                 columns: dtColumns,
                 dom: "f<'#ifclasses'><'#infoprocessing'ir>t",
                 language: {
-                    info: "_MAX_ entries",
+                    info: "Showing _TOTAL_ entries",
                     processing: "Loading...",
                 }
             });
