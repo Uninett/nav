@@ -104,7 +104,7 @@ define(function(require) {
      * Creates the checkboxes for filtering on ifclasses (swport, gwport, physicalport)
      */
     function createClassFilters(selector) {
-        var $form = $(selector).append("<form>");
+        var $form = $("<form>").appendTo(selector);
         $form.append('<label><input type="radio" name="portgroup" value="all" checked>All ports</label>');
         $form.append('<label><input type="radio" name="portgroup" value="swport">Swports</label>');
         $form.append('<label><input type="radio" name="portgroup" value="gwport">Gwports</label>');
