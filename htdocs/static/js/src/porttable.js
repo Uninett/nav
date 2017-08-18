@@ -1,4 +1,4 @@
-define(['libs/datatables.min'], function(require) {
+define(['libs/datatables.min', 'dt_plugins/modulesort'], function(require) {
 
     /**
      * Set up the lookup arrays and objects
@@ -18,6 +18,7 @@ define(['libs/datatables.min'], function(require) {
     var dtColumns = [
         {
             data: "ifname",
+            type: "module",
             render: function(data, type, row, meta) {
                 return '<a href="' + row.object_url + '">' + data + '</a>';
             }
