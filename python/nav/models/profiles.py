@@ -79,6 +79,7 @@ class Account(models.Model):
     PREFERENCE_KEY_WIDGET_COLUMNS = 'widget_columns'
     PREFERENCE_KEY_REPORT_PAGE_SIZE = 'report_page_size'
     PREFERENCE_KEY_WIDGET_DISPLAY_DENSITY = 'widget_display_density'
+    PREFERENCE_KEY_IPDEVINFO_PORT_LAYOUT = 'ipdevinfo_port_layout'
 
     # FIXME get this from setting.
     MIN_PASSWD_LENGTH = 8

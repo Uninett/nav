@@ -34,6 +34,7 @@ from nav.models.manage import (Netbox, Module, Interface, Prefix, Arp, Cam,
 from nav.models.msgmaint import MaintenanceTask
 from nav.models.arnold import Identity
 from nav.models.service import Service
+from nav.models.profiles import Account
 from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import create_combined_urls
@@ -709,3 +710,13 @@ def sensor_details(request, identifier):
         'graphite_data_url': Graph(magic_targets=[sensor.get_metric_name()],
                                    format='json')
     })
+
+
+def save_port_layout_pref(request):
+    """Save the ipdevinfo port layout preference"""
+    account = request.account
+    key = Account.PREFERENCE_KEY_IPDEVINFO_PORT_LAYOUT
+    account.preferences[key] = request.GET.get('layout')
+    account.save()
+    return redirect('ipdevinfo-details-by-id',
+                    netbox_id=request.GET.get('netboxid'))

@@ -1,0 +1,33 @@
+<table id="portlist" class="listtable">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Port name</th>
+      <th>Module</th>
+      <th title="Administrative status - is enabled or not">Admin</th>
+      <th title="Operational status - has link or not">Link</th>
+      <th>Vlan</th>
+      <th>Trunk</th>
+      <th title="Speed in Mbit/s and duplex (full or half)">Speed</th>
+      <th>To Device</th>
+      <th>To Port</th>
+    </tr>
+  </thead>
+</table>
+
+<style>
+ #portlist_filter { max-width: 30em; }
+ #ifclasses label { margin-right: 1em; }
+ #infoprocessing { overflow: auto; }
+ .dataTables_info { font-size: small; float: left; margin-right: 1em; }
+ .dataTables_processing { font-size: small; }
+</style>
+
+<script>
+ $(function() {
+     console.log('Rendering port overview');
+     require(['src/porttable'], function(portTable) {
+         portTable('#portlist', {{netbox.id}});
+     });
+ });
+</script>

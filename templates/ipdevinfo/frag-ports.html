@@ -2,28 +2,22 @@
   {% if netbox %}
     {% if netbox.module_set.count or netbox.interface_set.count %}
 
-      <div id="moduletabs">
+      <form action="{% url 'ipdevinfo-save-port-layout' %}">
+        <input type="hidden" name="netboxid" value="{{ netbox.pk }}">
+        {% if request.account.preferences.ipdevinfo_port_layout == 'old' %}
+          <input type="hidden" name="layout" value="new">
+          <input type="submit" class="small right" value="Try the new layout" />
+        {% else %}
+          <input type="hidden" name="layout" value="old">
+          <input type="submit" class="small right" value="Revert to old layout" />
+        {% endif %}
+      </form>
 
-        <button class="tiny right">How to use the filters</button>
-
-        <table id="portlist" class="listtable">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Port name</th>
-              <th>Module</th>
-              <th title="Administrative status - is enabled or not">Admin</th>
-              <th title="Operational status - has link or not">Link</th>
-              <th>Vlan</th>
-              <th>Trunk</th>
-              <th title="Speed in Mbit/s and duplex (full or half)">Speed</th>
-              <th>To Device</th>
-              <th>To Port</th>
-            </tr>
-          </thead>
-        </table>
-
-      </div>
+      {% if request.account.preferences.ipdevinfo_port_layout == 'old' %}
+        {% include 'ipdevinfo/frag-portlist-tabs.html' %}
+      {% else %}
+        {% include 'ipdevinfo/frag-portlist-datatable.html' %}
+      {% endif %}
 
     {% else %}
       <div class="alert-box info">
@@ -31,22 +25,5 @@
       </div>
     {% endif %}
   {% endif %}
-
-  <style>
-   #portlist_filter { max-width: 30em; }
-   #ifclasses label { margin-right: 1em; }
-   #infoprocessing { overflow: auto; }
-   .dataTables_info { font-size: small; float: left; margin-right: 1em; }
-   .dataTables_processing { font-size: small; }
-  </style>
-
-  <script>
-   $(function() {
-       console.log('Rendering port overview');
-       require(['src/porttable'], function(portTable) {
-           portTable('#portlist', {{netbox.id}});
-       });
-   });
-  </script>
 
 </div>

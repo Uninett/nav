@@ -1,0 +1,24 @@
+<div id="moduletabs">
+  <ul>
+    <li>
+      <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'swportstatus' %}">
+        Switch port status
+      </a>
+    </li>
+    <li id="swportactivetab">
+      <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'swportactive' %}">
+        Switch port activity
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'gwportstatus' %}">
+        Router port status
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'physportstatus' %}">
+        Physical ports
+      </a>
+    </li>
+  </ul>
+</div>
