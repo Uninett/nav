@@ -187,7 +187,7 @@ define(function(require) {
                 columns: dtColumns,
                 dom: "f<'#ifclasses'><'#infoprocessing'ir>t",
                 language: {
-                    info: "Showing _TOTAL_ entries",
+                    info: "_TOTAL_ entries",
                     processing: "Loading...",
                 }
             });
