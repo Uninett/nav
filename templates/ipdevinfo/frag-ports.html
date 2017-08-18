@@ -6,10 +6,10 @@
         <input type="hidden" name="netboxid" value="{{ netbox.pk }}">
         {% if request.account.preferences.ipdevinfo_port_layout == 'old' %}
           <input type="hidden" name="layout" value="new">
-          <input type="submit" class="small right" value="Try the new layout" />
+          <input type="submit" class="button small right" value="Try the new layout" />
         {% else %}
           <input type="hidden" name="layout" value="old">
-          <input type="submit" class="small right" value="Revert to old layout" />
+          <input type="submit" class="button small right" value="Revert to old layout" />
         {% endif %}
       </form>
 
