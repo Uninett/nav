@@ -25,13 +25,13 @@ from socket import error as SocketError
 from django.core.urlresolvers import reverse
 
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.db import transaction
 from django.contrib import messages
 
 from nav.auditlog.models import LogEntry
 from nav.models.manage import Netbox, NetboxCategory, NetboxType
-from nav.models.manage import NetboxInfo
+from nav.models.manage import NetboxInfo, ConnectionProfile
 from nav.Snmp import Snmp, safestring
 from nav.Snmp.errors import SnmpError
 from nav.util import is_valid_ip
@@ -101,27 +101,39 @@ def get_title(netbox):
 def get_read_only_variables(request):
     """Fetches read only attributes for an IP-address"""
     ip_address = request.GET.get('ip_address')
-    read_community = request.GET.get('read_community')
-    write_community = request.GET.get('read_write_community')
-    snmp_version = request.GET.get('snmp_version')
-    if snmp_version == '2':
-        snmp_version = '2c'
+    read_profile_id = request.GET.get('read_profile')
+    write_profile_id = request.GET.get('read_write_profile')
+    read_profile = get_object_or_404(ConnectionProfile,
+                                     pk=read_profile_id)
+    write_profile = None
+    if write_profile_id:
+        write_profile = get_object_or_404(ConnectionProfile,
+                                          pk=write_profile_id)
 
     sysname = get_sysname(ip_address)
 
+    netbox_type = None
+    read_test = None
+    write_test = None
+
+    if read_profile.is_snmp:
+        netbox_type = get_type_id(ip_address, read_profile)
+        read_test = check_snmp_version(ip_address, read_profile)
+
+    if write_profile and write_profile.is_snmp:
+        write_test = snmp_write_test(ip_address, write_profile)
+
     data = {
         'sysname': sysname,
-        'netbox_type': get_type_id(ip_address, read_community, snmp_version),
-        'snmp_read_test': check_snmp_version(ip_address, read_community, snmp_version),
-        'snmp_write_test': snmp_write_test(ip_address, write_community, snmp_version)
+        'netbox_type': netbox_type,
+        'read_test': read_test,
+        'write_test': write_test,
     }
     return JsonResponse(data)
 
 
-def snmp_write_test(ip, community, snmp_version):
+def snmp_write_test(ip, profile):
     """Test that snmp write works"""
-    if not community:
-        return False
 
     testresult = {
         'error_message': '',
@@ -133,8 +145,8 @@ def snmp_write_test(ip, community, snmp_version):
     syslocation = '1.3.6.1.2.1.1.6.0'
     value = ''
     try:
-        snmp = Snmp(ip, community, snmp_version)
-        value = safestring(snmp.get(syslocation))
+        snmp = Snmp(ip, profile.snmp_community, profile.snmp_version)
+        value = snmp.get(syslocation)
         snmp.set(syslocation, 's', value.encode('utf-8'))
     except SnmpError as error:
         try:
@@ -151,11 +163,11 @@ def snmp_write_test(ip, community, snmp_version):
     return testresult
 
 
-def check_snmp_version(ip, community, version):
+def check_snmp_version(ip, profile):
     """Check if version of snmp is supported by device"""
     sysobjectid = '1.3.6.1.2.1.1.2.0'
     try:
-        snmp = Snmp(ip, community, version)
+        snmp = Snmp(ip, profile.snmp_community, profile.snmp_version)
         snmp.get(sysobjectid)
     except Exception:  # pylint: disable=W0703
         return False
@@ -172,9 +184,10 @@ def get_sysname(ip_address):
         return None
 
 
-def get_type_id(ip_addr, snmp_ro, snmp_version):
+def get_type_id(ip_addr, profile):
     """Gets the id of the type of the ip_addr"""
-    netbox_type = snmp_type(ip_addr, snmp_ro, snmp_version)
+    netbox_type = snmp_type(ip_addr, profile.snmp_community,
+                            profile.snmp_version)
     if netbox_type:
         return netbox_type.id
 

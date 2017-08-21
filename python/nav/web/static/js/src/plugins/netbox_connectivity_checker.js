@@ -39,14 +39,13 @@ define(['libs/spin.min'], function (Spinner) {
         button.on('click', function () {
             hideAlertBoxes();
             var ip_address = $('#id_ip').val().trim(),
-                read_community = $('#id_read_only').val(),
-                read_write_community = $('#id_read_write').val(),
-                snmp_version = $('[name=snmp_version]:checked').val();
+                read_profile = $('#id_readonly_connection_profile').val(),
+                read_write_profile = $('#id_readwrite_connection_profile').val();
 
-            if (!(ip_address && read_community)) {
-                var message = "We need an IP-address and a read community to talk to the device.";
-                if (read_write_community) {
-                    message += " The read write community is not used for reading in NAV.";
+            if (!(ip_address && read_profile)) {
+                var message = "We need an IP-address and a read only connection profile to talk to the device.";
+                if (read_write_profile) {
+                    message += " The read write profile is not used for reading in NAV.";
                 }
                 reportError(readAlertBox, message);
                 return;
@@ -58,7 +57,7 @@ define(['libs/spin.min'], function (Spinner) {
             var checkHostname = ipchecker.getAddresses();
             checkHostname.done(function () {
                 if (ipchecker.isSingleAddress) {
-                    checkConnectivity(ip_address, read_community, read_write_community, snmp_version);
+                    checkConnectivity(ip_address, read_profile, read_write_profile);
                 } else {
                     onStop();
                 }
@@ -66,13 +65,12 @@ define(['libs/spin.min'], function (Spinner) {
 
         });
 
-        function checkConnectivity(ip_address, read_community, read_write_community, snmp_version) {
+        function checkConnectivity(ip_address, read_profile, read_write_profile) {
             console.log('Checking connectivity');
             var request = $.getJSON(NAV.urls.get_readonly, {
                 'ip_address': ip_address,
-                'read_community': read_community,
-                'read_write_community': read_write_community,
-                'snmp_version': snmp_version
+                'read_profile': read_profile,
+                'read_write_profile': read_write_profile
             });
             request.done(onSuccess);
             request.error(onError);
@@ -124,10 +122,10 @@ define(['libs/spin.min'], function (Spinner) {
         }
 
         function onSuccess(data) {
-            if (data.snmp_read_test) {
+            if (data.read_test) {
                 reportSuccess(readAlertBox, 'Read test was successful');
-                if (data.snmp_write_test) {
-                    reportWriteTest(data.snmp_write_test);
+                if (data.write_test) {
+                    reportWriteTest(data.write_test);
                 }
                 setNewValues(data);
             } else {

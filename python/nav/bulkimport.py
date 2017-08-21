@@ -26,6 +26,7 @@ from nav.models.manage import Category, NetboxInfo, NetboxGroup
 from nav.models.manage import NetboxCategory, Interface
 from nav.models.manage import Location, Usage, NetboxType, Vendor
 from nav.models.manage import Prefix, Vlan, NetType
+from nav.models.manage import ConnectionProfile
 from nav.models.cabling import Cabling, Patch
 from nav.models.service import Service, ServiceProperty
 from nav.util import is_valid_ip
@@ -217,6 +218,14 @@ class RoomImporter(BulkImporter):
         except (ValidationError, ValueError):
             raise InvalidValue(row['position'])
         return [room]
+
+
+class ConnectionProfileImporter(BulkImporter):
+    """Creates objects from the connection profile bulk format"""
+    def _create_objects_from_row(self, row):
+        raise_if_exists(ConnectionProfile, name=row['name'])
+        result = ConnectionProfile(name=row['name'])
+        return [result]
 
 
 class OrgImporter(BulkImporter):

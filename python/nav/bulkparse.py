@@ -197,6 +197,19 @@ class NetboxBulkParser(BulkParser):
             return True
 
 
+class ConnectionProfileBulkParser(BulkParser):
+    """Parses the netbox connection profile bulk format"""
+    format = ('name', 'protocol')
+    required = 2
+    restkey = (
+        'snmp_community',
+        'ca_certificate',
+        'client_cert',
+        'username',
+        'password',
+    )
+
+
 class UsageBulkParser(BulkParser):
     """Parses the usage bulk format"""
     format = ('usageid', 'descr')

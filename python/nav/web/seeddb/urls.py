@@ -23,6 +23,9 @@ from nav.web.seeddb.page.netbox import edit as netbox_edit
 from nav.web.seeddb.page import service
 from nav.web.seeddb.page.service import edit as service_edit
 from nav.web.seeddb.page import room
+from nav.web.seeddb.page.connection_profile import (connection_profile,
+                                                    connection_profile_edit,
+                                                    connection_profile_bulk)
 from nav.web.seeddb.page import location
 from nav.web.seeddb.page import organization
 from nav.web.seeddb.page import usage
@@ -62,6 +65,17 @@ urlpatterns = [
     url(r'^netbox/get-address-info/',
         netbox_edit.get_address_info,
         name='seeddb-netbox-get-address-info'),
+
+    # Connection Profile
+    url(r'^connection-profile/$', connection_profile,
+        name='seeddb-connection-profile'),
+    url(r'^connection-profile/edit/(?P<connection_profile_id>.+)/$',
+        connection_profile_edit,
+        name='seeddb-connection-profile-edit'),
+    url(r'^connection-profile/add/$', connection_profile_edit,
+        name='seeddb-connection-profile-edit'),
+    url(r'^connection-profile/bulk/$', connection_profile_bulk,
+        name='seeddb-connection-profile-bulk'),
 
     # Service
     url(r'^service/$',

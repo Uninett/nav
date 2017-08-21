@@ -70,6 +70,61 @@ class UpsManager(models.Manager):
 
 
 @python_2_unicode_compatible
+class ConnectionProfile(models.Model):
+    """Connection parameters shared between multiple netboxes. These may
+    include protocols, credentials etc"""
+
+    id = models.AutoField(db_column='connectionprofileid', primary_key=True)
+    name = VarcharField(unique=True)
+    description = VarcharField(blank=True, null=True)
+
+    PROTOCOL_NOOP = 0
+    PROTOCOL_SNMP_V1 = 1
+    PROTOCOL_SNMP_V2C = 2
+    PROTOCOL_RESTCONF = 4
+    PROTOCOL_CHOICES = (
+        (PROTOCOL_NOOP, "No management connection"),
+        (PROTOCOL_SNMP_V1, "SNMP v1"),
+        (PROTOCOL_SNMP_V2C, "SNMP v2c"),
+        (PROTOCOL_RESTCONF, "RESTConf"),
+    )
+    protocol = models.IntegerField(choices=PROTOCOL_CHOICES)
+
+    port = models.IntegerField(blank=True, null=True)
+
+    # SNMP v1 and v2c data
+    snmp_community = VarcharField(blank=True, null=True)
+
+    # HTTP(S) protocols
+    ca_certificate = VarcharField(blank=True, null=True)
+    client_cert = VarcharField(blank=True, null=True)
+    username = VarcharField(blank=True, null=True)
+    password = VarcharField(blank=True, null=True)
+
+    class Meta(object):
+        db_table = 'connectionprofile'
+        verbose_name = 'connection profile'
+        verbose_name_plural = 'connection profiles'
+        ordering = ('protocol', 'name')
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def is_snmp(self):
+        return self.protocol in (self.PROTOCOL_SNMP_V1, self.PROTOCOL_SNMP_V2C)
+
+    @property
+    def snmp_version(self):
+        if self.protocol == self.PROTOCOL_SNMP_V1:
+            return 1
+        if self.protocol == self.PROTOCOL_SNMP_V2C:
+            return 2
+        raise ValueError("Getting snmp protocol version for non-snmp "
+                         "connection profile")
+
+
+@python_2_unicode_compatible
 class Netbox(models.Model):
     """From NAV Wiki: The netbox table is the heart of the heart so to speak,
     the most central table of them all. The netbox tables contains information
@@ -96,10 +151,17 @@ class Netbox(models.Model):
         'NetboxGroup', through='NetboxCategory', blank=True)
     groups.help_text = ''
     organization = models.ForeignKey('Organization', db_column='orgid')
-    read_only = VarcharField(db_column='ro', blank=True, null=True)
-    read_write = VarcharField(db_column='rw', blank=True, null=True)
+
+    readonly_connection_profile = models.ForeignKey(
+        ConnectionProfile,
+        related_name='readonly_netboxes',
+    )
+    readwrite_connection_profile = models.ForeignKey(
+        ConnectionProfile,
+        related_name='readwrite_netboxes',
+    )
+
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
-    snmp_version = models.IntegerField(verbose_name="SNMP version")
     up_since = models.DateTimeField(db_column='upsince', auto_now_add=True)
     up_to_date = models.BooleanField(db_column='uptodate', default=False)
     discovered = models.DateTimeField(auto_now_add=True)
