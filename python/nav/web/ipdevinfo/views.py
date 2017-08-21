@@ -672,6 +672,13 @@ def render_host_info(request, identifier):
     })
 
 
+def unrecognized_neighbors(request, netboxid):
+    """Render unrecognized neighbors tab"""
+    netbox = get_object_or_404(Netbox, pk=netboxid)
+    return render(request, 'ipdevinfo/frag-neighbors.html',
+                  {'netbox': netbox})
+
+
 def sensor_details(request, identifier):
     """Controller for getting sensor info"""
     sensor = get_object_or_404(Sensor, pk=identifier)
