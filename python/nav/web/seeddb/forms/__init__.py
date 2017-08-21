@@ -36,7 +36,7 @@ BOX_CHARS = {
     'SPACE': '&nbsp;',
     'VERTICAL': '&#9474;',  # │
     'UP_AND_RIGHT': '&#9492;',  # └
-    'VERTICAL_AND_RIGHT': '&#9500;' # ├
+    'VERTICAL_AND_RIGHT': '&#9500;'  # ├
 }
 
 
