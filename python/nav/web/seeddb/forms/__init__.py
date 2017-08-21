@@ -21,12 +21,11 @@ from django_hstore.forms import DictionaryField
 from django.utils.safestring import mark_safe
 
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column,
-                                            Submit)
+from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column)
 
 from nav.web.crispyforms import LabelSubmit
 from nav.models.manage import (Location, Room, Organization, NetboxType,
-                               Vendor, NetboxGroup, Category, Netbox)
+                               Vendor, NetboxGroup, Netbox)
 from nav.models.cabling import Cabling
 
 import logging
