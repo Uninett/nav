@@ -17,7 +17,7 @@
 
 from twisted.internet import defer
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll.shadows import Netbox, Device, NetboxEntity
 from nav.models import manage
 
@@ -36,7 +36,7 @@ VENDOR_MIBS = {
 }
 
 
-class ProprietarySerial(Plugin):
+class ProprietarySerial(SNMPPlugin):
     """retrieves chassis serial numbers from various proprietary MIBs"""
     RESTRICT_TO_VENDORS = VENDOR_MIBS.keys()
 

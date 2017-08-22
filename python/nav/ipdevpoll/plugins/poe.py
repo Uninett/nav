@@ -21,11 +21,11 @@ from nav.mibs.power_ethernet_mib import PowerEthernetMib
 from nav.mibs.cisco_power_ethernet_ext_mib import CiscoPowerEthernetExtMib
 from nav.mibs.entity_mib import EntityMib
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll import shadows
 
 
-class Poe(Plugin):
+class Poe(SNMPPlugin):
     """Monitors power over ethernet status"""
     def __init__(self, *args, **kwargs):
         super(Poe, self).__init__(*args, **kwargs)

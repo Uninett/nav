@@ -34,7 +34,7 @@ from nav.models import manage
 from nav.util import splitby
 from nav.ipdevpoll import db
 from .plugins import plugin_registry
-from . import storage, shadows, dataloader
+from . import storage, shadows, dataloader, SNMPPlugin
 from .utils import log_unhandled_failure
 from .snmp.common import snmp_parameter_factory
 
@@ -137,10 +137,23 @@ class JobHandler(object):
         plugin_classes = [plugin_registry[name]
                           for name in self._get_valid_plugins()]
         willing_plugins = yield self._get_willing_plugins(plugin_classes)
+        willing_plugins = set(willing_plugins)
+        snmp_plugins = {p for p in willing_plugins if issubclass(p, SNMPPlugin)}
+        base_plugins = willing_plugins - snmp_plugins
+        self._logger.debug("SNMP plugins: %s", snmp_plugins)
+        self._logger.debug("base plugins: %s", base_plugins)
 
-        plugins = [cls(self.netbox, agent=self.agent,
-                       containers=self.containers, config=ipdevpoll_conf)
-                   for cls in willing_plugins]
+        plugins = []
+        if snmp_plugins:
+            self._logger.debug("Creating agentproxy")
+            self._create_agentproxy()
+            for plugin in snmp_plugins:
+                plugins.append(plugin(self.netbox, agent=self.agent,
+                                      containers=self.containers,
+                                      config=ipdevpoll_conf))
+        for plugin in base_plugins:
+            plugins.append(plugin(self.netbox, containers=self.containers,
+                                  config=ipdevpoll_conf))
 
         if not plugins:
             defer.returnValue(None)
@@ -248,11 +261,9 @@ class JobHandler(object):
                                      id=self.netbox.id,
                                      sysname=self.netbox.sysname)
 
-        self._create_agentproxy()
         plugins = yield self._find_plugins()
         self._reset_timers()
         if not plugins:
-            self._destroy_agentproxy()
             defer.returnValue(False)
 
         self._logger.debug("Starting job %r for %s",

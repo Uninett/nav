@@ -20,7 +20,7 @@ import re
 from twisted.internet.defer import inlineCallbacks
 
 from nav.models import manage
-from nav.ipdevpoll import Plugin, shadows
+from nav.ipdevpoll import SNMPPlugin, shadows
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 
 PATTERNS = [
@@ -32,7 +32,7 @@ PATTERNS = [
     ]
 
 
-class System(Plugin):
+class System(SNMPPlugin):
     """Collects sysDescr and parses a software version from it"""
 
     @inlineCallbacks

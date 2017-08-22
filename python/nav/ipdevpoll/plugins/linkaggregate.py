@@ -17,13 +17,13 @@ import logging
 from collections import defaultdict
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll import shadows
 from nav.mibs.ieee8023_lag_mib import IEEE8023LagMib
 from nav.mibs.if_mib import IfMib
 
 
-class LinkAggregate(Plugin):
+class LinkAggregate(SNMPPlugin):
     """Collects information about link aggregation"""
     def __init__(self, *args, **kwargs):
         super(LinkAggregate, self).__init__(*args, **kwargs)

@@ -19,11 +19,11 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll import shadows
 
 
-class LinkState(Plugin):
+class LinkState(SNMPPlugin):
     """Monitors interface link states"""
 
     @inlineCallbacks

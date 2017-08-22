@@ -32,18 +32,15 @@ class Plugin(object):
 
     """
     _logger = ContextLogger()
-    RESTRICT_TO_VENDORS = []
 
-    def __init__(self, netbox, agent, containers, config=None):
+    def __init__(self, netbox, containers, config=None):
         """
 
         :type netbox: nav.ipdevpoll.shadows.Netbox
-        :type agent: nav.ipdevpoll.snmp.AgentProxy
         :type containers: nav.ipdevpoll.storage.ContainerRepository
         :type config: configparser.ConfigParser
         """
         self.netbox = netbox
-        self.agent = agent
         self.containers = containers
         self.config = config
         # touch _logger to initialize logging context right away
@@ -60,32 +57,18 @@ class Plugin(object):
         """Handle plugin business, return a deferred."""
         raise NotImplementedError
 
-    # this is an API, so netbox goes unused in the base class:
-    # pylint: disable=W0613
     @classmethod
     def can_handle(cls, netbox):
         """Verifies whether this plugin can/wants to handle polling for this
         netbox instance at this time.
 
-        The base implementation returns True as long as the Netbox' SNMP agent
-        is not known to be down and it has a configured SNMP community;
+        The base implementation returns True as long as the Netbox
+        is not known to be down;
         plugins must override this method if their requirements are different.
 
         :returns: A boolean value.
         """
-        snmp_up = getattr(netbox, 'snmp_up', True)
-
-        basic_req = netbox.is_up() and snmp_up and bool(netbox.read_only)
-        vendor_check = cls._verify_vendor_restriction(netbox)
-        return basic_req and vendor_check
-
-    @classmethod
-    def _verify_vendor_restriction(cls, netbox):
-        if cls.RESTRICT_TO_VENDORS:
-            return (netbox.type and
-                    netbox.type.get_enterprise_id() in cls.RESTRICT_TO_VENDORS)
-        else:
-            return True
+        return netbox.is_up()
 
     @classmethod
     def on_plugin_load(cls):
@@ -119,3 +102,51 @@ class Plugin(object):
         self._logger.debug("duplicating metrics for these netboxes: %s",
                            netboxes)
         return netboxes
+
+
+class SNMPPlugin(Plugin):
+
+    """Abstract class providing common functionality for all polling
+    plugins using SNMP.
+
+    Do *NOT* create instances of the base class.
+
+    """
+    RESTRICT_TO_VENDORS = []
+
+    def __init__(self, netbox, agent, containers, config=None):
+        """
+
+        :type netbox: nav.ipdevpoll.shadows.Netbox
+        :type agent: nav.ipdevpoll.snmp.AgentProxy
+        :type containers: nav.ipdevpoll.storage.ContainerRepository
+        :type config: configparser.ConfigParser
+        """
+        super(SNMPPlugin, self).__init__(netbox, containers, config)
+        self.agent = agent
+
+    @classmethod
+    def can_handle(cls, netbox):
+        """Verifies whether this plugin can/wants to handle polling for this
+        netbox instance at this time.
+
+        The base implementation returns True as long as the Netbox' SNMP agent
+        is not known to be down and it has a configured SNMP community;
+        plugins must override this method if their requirements are different.
+
+        :returns: A boolean value.
+        """
+        daddy_says_ok = super(SNMPPlugin, cls).can_handle(netbox)
+        snmp_up = getattr(netbox, 'snmp_up', True)
+
+        basic_req = daddy_says_ok and snmp_up and bool(netbox.read_only)
+        vendor_check = cls._verify_vendor_restriction(netbox)
+        return basic_req and vendor_check
+
+    @classmethod
+    def _verify_vendor_restriction(cls, netbox):
+        if cls.RESTRICT_TO_VENDORS:
+            return (netbox.type and
+                    netbox.type.get_enterprise_id() in cls.RESTRICT_TO_VENDORS)
+        else:
+            return True

@@ -33,11 +33,11 @@ from nav.util import mergedicts
 from nav.mibs.bridge_mib import BridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib
 from nav.models.manage import SwPortAllowedVlan
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll import shadows
 
 
-class Dot1q(Plugin):
+class Dot1q(SNMPPlugin):
     """Collect 802.1q info from BRIDGE and Q-BRIDGE MIBs."""
     baseports = {}
     pvids = {}

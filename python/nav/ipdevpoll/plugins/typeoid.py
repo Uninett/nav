@@ -22,7 +22,7 @@ netbox.
 """
 from twisted.internet import defer
 
-from nav.ipdevpoll import Plugin, storage, shadows, signals, db
+from nav.ipdevpoll import SNMPPlugin, storage, shadows, signals, db
 from nav.oids import OID, get_enterprise_id
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.models import manage
@@ -39,7 +39,7 @@ class InvalidResponseError(Exception):
     pass
 
 
-class TypeOid(Plugin):
+class TypeOid(SNMPPlugin):
     def handle(self):
         """Collects sysObjectID and looks for type changes."""
         self._logger.debug("Collecting sysObjectId")

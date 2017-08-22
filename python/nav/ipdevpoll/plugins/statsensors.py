@@ -20,7 +20,7 @@ import time
 from twisted.internet import defer
 from django.utils.six import iteritems
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll import db
 from nav.ipdevpoll.db import run_in_thread
 from nav.metrics.carbon import send_metrics
@@ -31,7 +31,7 @@ from nav.models.manage import Sensor
 MAX_SENSORS_PER_REQUEST = 10
 
 
-class StatSensors(Plugin):
+class StatSensors(SNMPPlugin):
     """Collects measurement values from registered sensors and pushes to
     Graphite.
 

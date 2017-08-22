@@ -19,7 +19,7 @@ import time
 from twisted.internet import defer
 from twisted.internet.error import TimeoutError
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll import db
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import (
@@ -64,7 +64,7 @@ MEMORY_MIBS = {
 }
 
 
-class StatSystem(Plugin):
+class StatSystem(SNMPPlugin):
     """Collects system statistics and pushes to Graphite"""
     @defer.inlineCallbacks
     def handle(self):

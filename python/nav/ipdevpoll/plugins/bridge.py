@@ -23,7 +23,7 @@ ENTITY-MIB. The plugin also fetches the base bridge address from the bridge mib
 """
 from twisted.internet import defer
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import get_multibridgemib, binary_mac_to_hex
 
@@ -31,7 +31,7 @@ INFO_KEY_BRIDGE_INFO = 'bridge_info'
 INFO_VAR_BASE_ADDRESS = 'base_address'
 
 
-class Bridge(Plugin):
+class Bridge(SNMPPlugin):
     "Finds interfaces in L2/switchport mode"
 
     @defer.inlineCallbacks

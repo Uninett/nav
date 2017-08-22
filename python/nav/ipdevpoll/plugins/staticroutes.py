@@ -22,13 +22,13 @@ from nav.ipdevpoll.shadows import Prefix, Vlan, NetType
 from nav.mibs.ip_forward_mib import IpForwardMib
 from nav.mibs.if_mib import IfMib
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from .prefix import get_ignored_prefixes
 
 WANTED_PROTOCOLS = ("local", "netmgmt")
 
 
-class StaticRoutes(Plugin):
+class StaticRoutes(SNMPPlugin):
     """
     Collects the entire routing table to select only static routes
     """

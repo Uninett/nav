@@ -16,7 +16,7 @@
 """BGP peer state monitor plugin for ipdevpoll"""
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll.shadows import GatewayPeerSession, Netbox
 from nav.models import manage
 
@@ -25,7 +25,7 @@ from nav.mibs.bgp4_v2_mib_juniper import BGP4V2JuniperMib
 from nav.mibs.cisco_bgp4_mib import CiscoBGP4Mib
 
 
-class BGP(Plugin):
+class BGP(SNMPPlugin):
     """Monitors the state of BGP peers through polling"""
 
     @classmethod

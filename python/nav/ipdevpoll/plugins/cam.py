@@ -23,13 +23,13 @@ from nav.models import manage
 from nav.util import splitby
 from nav.mibs.bridge_mib import MultiBridgeMib
 from nav.mibs.qbridge_mib import QBridgeMib
-from nav.ipdevpoll import Plugin, db
+from nav.ipdevpoll import SNMPPlugin, db
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll import utils
 from nav.ipdevpoll.neighbor import get_netbox_macs
 
 
-class Cam(Plugin):
+class Cam(SNMPPlugin):
     """Collects switches' forwarding tables and port STP states.
 
     For each port it finds forwarding data from, a decision is made:

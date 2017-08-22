@@ -34,7 +34,7 @@ from twisted.internet import defer
 from nav.Snmp import safestring
 from nav.config import ConfigurationError
 from nav.mibs import mibretriever
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll import shadows
 from nav.enterprise import ids
 from nav.mibs.snmpv2_mib import Snmpv2Mib
@@ -43,7 +43,7 @@ from nav.oids import get_enterprise_id
 _logger = logging.getLogger(__name__)
 
 
-class Sensors(Plugin):
+class Sensors(SNMPPlugin):
     """Plugin to detect environmental sensors in netboxes"""
     @classmethod
     def on_plugin_load(cls):

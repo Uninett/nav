@@ -20,7 +20,7 @@ from twisted.internet import defer
 
 from nav.models import manage
 from nav.mibs.lldp_mib import LLDPMib
-from nav.ipdevpoll import Plugin, shadows
+from nav.ipdevpoll import SNMPPlugin, shadows
 from nav.ipdevpoll.neighbor import LLDPNeighbor
 from nav.ipdevpoll.db import run_in_thread
 from nav.ipdevpoll.timestamps import TimestampChecker
@@ -29,7 +29,7 @@ INFO_VAR_NAME = 'lldp'
 SOURCE = 'lldp'
 
 
-class LLDP(Plugin):
+class LLDP(SNMPPlugin):
     """Collects devices' table of remote LLDP devices.
 
     If the neighbor can be identified as something monitored by NAV, a

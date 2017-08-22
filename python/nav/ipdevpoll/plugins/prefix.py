@@ -46,13 +46,13 @@ from nav.mibs.ip_mib import IpMib, IndexToIpException
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll import shadows
 
 VLAN_PATTERN = re.compile(r"(Vl(an)?|irb\.)(?P<vlan>\d+)", re.IGNORECASE)
 
 
-class Prefix(Plugin):
+class Prefix(SNMPPlugin):
     """
     ipdevpoll-plugin for collecting prefix information from monitored
     equipment.

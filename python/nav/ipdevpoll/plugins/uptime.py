@@ -20,13 +20,13 @@ from datetime import timedelta, datetime
 
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from nav.ipdevpoll import Plugin, shadows
+from nav.ipdevpoll import SNMPPlugin, shadows
 from nav.ipdevpoll.timestamps import TimestampChecker
 
 COLDBOOT_MAX_DELTA = 60*60  # seconds
 
 
-class Uptime(Plugin):
+class Uptime(SNMPPlugin):
     """Collects uptime ticks and discovers discontinuities in uptime data"""
 
     @inlineCallbacks

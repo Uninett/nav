@@ -17,13 +17,13 @@
 from IPy import IP
 from twisted.internet import defer
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll.shadows import GwPortPrefix
 from nav.mibs.vrrp_mib import VRRPMib
 from nav.mibs.cisco_hsrp_mib import CiscoHSRPMib
 
 
-class VirtualRouter(Plugin):
+class VirtualRouter(SNMPPlugin):
     """ipdevpoll plugin to collect Virtual Router addresses from VRRP and
     HSRP routers.
 

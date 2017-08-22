@@ -22,14 +22,14 @@ from twisted.internet import defer
 from nav.ipdevpoll.shadows.entity import NetboxEntity
 
 from nav.mibs.entity_mib import EntityMib, EntityTable
-from nav.ipdevpoll import Plugin, shadows
+from nav.ipdevpoll import SNMPPlugin, shadows
 from nav.ipdevpoll.timestamps import TimestampChecker
 from nav.models import manage
 
 INFO_VAR_NAME = 'entityphysical'
 
 
-class Entity(Plugin):
+class Entity(SNMPPlugin):
     """Plugin to collect physical entity data from devices"""
 
     def __init__(self, *args, **kwargs):

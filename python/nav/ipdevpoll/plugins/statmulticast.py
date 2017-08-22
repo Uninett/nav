@@ -22,14 +22,14 @@ from pprint import pformat
 from django.utils.six import iteritems
 from twisted.internet import defer
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_path_for_multicast_usage
 from nav.mibs.statistics_mib import StatisticsMib
 from nav.enterprise.ids import VENDOR_ID_HEWLETT_PACKARD
 
 
-class StatMulticast(Plugin):
+class StatMulticast(SNMPPlugin):
     """Collects system statistics and pushes to Graphite"""
 
     @defer.inlineCallbacks

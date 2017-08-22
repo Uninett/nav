@@ -29,13 +29,13 @@ from twisted.internet import defer
 
 from nav.oids import OID
 from nav.mibs.entity_mib import EntityMib, EntityTable
-from nav.ipdevpoll import Plugin, shadows
+from nav.ipdevpoll import SNMPPlugin, shadows
 from nav.ipdevpoll.timestamps import TimestampChecker
 
 INFO_VAR_NAME = 'modules'
 
 
-class Modules(Plugin):
+class Modules(SNMPPlugin):
     """Plugin to collect module data from devices"""
 
     def __init__(self, *args, **kwargs):

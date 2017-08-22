@@ -46,13 +46,13 @@ from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
 from nav.models import manage
-from nav.ipdevpoll import Plugin, db
+from nav.ipdevpoll import SNMPPlugin, db
 from nav.ipdevpoll import storage, shadows
 
 INCOMPLETE_MAC = '00:00:00:00:00:00'
 
 
-class Arp(Plugin):
+class Arp(SNMPPlugin):
     """Collects ARP records for IPv4 devices and NDP cache for IPv6 devices."""
     prefix_cache = [] # prefix cache, should be sorted by descending mask length
     prefix_cache_update_time = datetime.min

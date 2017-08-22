@@ -19,7 +19,7 @@ import logging
 
 from django.utils.six import itervalues
 from twisted.internet import defer
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll import db
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_path_for_interface
@@ -68,7 +68,7 @@ USED_COUNTERS = NON_HC_COUNTERS + HC_COUNTERS + OTHER_COUNTERS
 LOGGED_COUNTERS = USED_COUNTERS + IP_COUNTERS
 
 
-class StatPorts(Plugin):
+class StatPorts(SNMPPlugin):
     @classmethod
     def can_handle(cls, netbox):
         daddy_says_ok = super(StatPorts, cls).can_handle(netbox)

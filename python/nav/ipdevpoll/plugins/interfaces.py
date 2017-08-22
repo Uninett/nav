@@ -27,7 +27,7 @@ from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
 from nav.mibs.etherlike_mib import EtherLikeMib
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import binary_mac_to_hex
 from nav.models import manage
@@ -39,7 +39,7 @@ DUPLEX_MAP = {
 }
 
 
-class Interfaces(Plugin):
+class Interfaces(SNMPPlugin):
     "Collects comprehensive information about device's network interfaces"
     def __init__(self, *args, **kwargs):
         super(Interfaces, self).__init__(*args, **kwargs)

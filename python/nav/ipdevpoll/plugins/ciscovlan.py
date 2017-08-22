@@ -28,12 +28,12 @@ from nav.mibs.cisco_vlan_membership_mib import CiscoVlanMembershipMib
 from nav.mibs.cisco_vlan_iftable_relationship_mib \
     import CiscoVlanIftableRelationshipMib
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll import shadows
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 
 
-class CiscoVlan(Plugin):
+class CiscoVlan(SNMPPlugin):
     """Collect 802.1q info from CISCO-VTP-MIB and CISCO-VLAN-MEMBERSHIP-MIB."""
     _valid_ifindexes = ()
 

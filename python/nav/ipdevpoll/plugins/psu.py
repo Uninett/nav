@@ -31,7 +31,7 @@ from operator import itemgetter
 
 from twisted.internet import defer
 
-from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import SNMPPlugin
 from nav.ipdevpoll import shadows
 
 from nav.mibs.entity_mib import EntityMib, EntityTable
@@ -43,7 +43,7 @@ from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
                                 )
 
 
-class PowerSupplyUnit(Plugin):
+class PowerSupplyUnit(SNMPPlugin):
     """Plugin that collect PSUs and FANs,- and their status from netboxes."""
     vendor_id = None
 

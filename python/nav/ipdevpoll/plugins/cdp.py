@@ -18,7 +18,7 @@ from django.utils import six
 from twisted.internet import defer
 
 from nav.models import manage
-from nav.ipdevpoll import Plugin, shadows
+from nav.ipdevpoll import SNMPPlugin, shadows
 from nav.mibs.cisco_cdp_mib import CiscoCDPMib
 from nav.ipdevpoll.neighbor import CDPNeighbor
 from nav.ipdevpoll.db import run_in_thread
@@ -28,7 +28,7 @@ INFO_VAR_NAME = 'cdp'
 SOURCE = 'cdp'
 
 
-class CDP(Plugin):
+class CDP(SNMPPlugin):
     """Finds neighboring devices from a device's CDP cache.
 
     If the neighbor can be identified as something monitored by NAV, a

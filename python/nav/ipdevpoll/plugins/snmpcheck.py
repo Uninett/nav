@@ -22,7 +22,7 @@ from twisted.internet.defer import returnValue
 
 from nav.event2 import EventFactory
 from nav.models.event import AlertHistory
-from nav.ipdevpoll import Plugin, db
+from nav.ipdevpoll import SNMPPlugin, db
 from nav.ipdevpoll.jobs import SuggestedReschedule
 
 from django.db import transaction
@@ -32,7 +32,7 @@ EVENT = EventFactory('ipdevpoll', 'eventEngine',
                      'snmpAgentState', 'snmpAgentDown', 'snmpAgentUp')
 
 
-class SnmpCheck(Plugin):
+class SnmpCheck(SNMPPlugin):
     """Checks that the device's SNMP agent is responding properly.
 
     This is done by attempting to retrieve the SNMPv2-MIB::system variables.
