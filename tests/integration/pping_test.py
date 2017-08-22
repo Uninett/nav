@@ -81,10 +81,11 @@ def get_pping_output(timeout=5):
 
 
 @pytest.fixture()
-def host_expected_to_be_down():
+def host_expected_to_be_down(connection_profile):
     box = Netbox(ip='10.254.254.254', sysname='downhost.example.org',
                  organization_id='myorg', room_id='myroom', category_id='SRV',
-                 snmp_version=2)
+                 readonly_connection_profile=connection_profile,
+                 readwrite_connection_profile=connection_profile)
     box.save()
     yield box
     print("teardown test device")

@@ -216,7 +216,8 @@ def set_editable_on_interfaces(netbox, interfaces, vlans):
     vlan_numbers = [vlan.vlan for vlan in vlans]
 
     for interface in interfaces:
-        iseditable = (interface.vlan in vlan_numbers and netbox.read_write)
+        iseditable = (interface.vlan in vlan_numbers and
+                      netbox.readwrite_connection_profile.usable)
         if iseditable:
             interface.iseditable = True
         else:

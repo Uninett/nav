@@ -123,6 +123,14 @@ class ConnectionProfile(models.Model):
         raise ValueError("Getting snmp protocol version for non-snmp "
                          "connection profile")
 
+    @property
+    def usable(self):
+        if self.protocol == self.PROTOCOL_NOOP:
+            return False
+        if self.is_snmp:
+            return bool(self.snmp_community)
+        return False
+
 
 @python_2_unicode_compatible
 class Netbox(models.Model):

@@ -55,6 +55,12 @@ class Netbox(Shadow):
     def is_up(self):
         return self.up == manage.Netbox.UP_UP
 
+    def get_snmp_version(self):
+        return self.readonly_connection_profile.snmp_version
+
+    def get_snmp_community(self):
+        return self.readonly_connection_profile.snmp_community
+
     def copy(self, other):
         super(Netbox, self).copy(other)
         for attr in ('snmp_up', 'last_updated'):

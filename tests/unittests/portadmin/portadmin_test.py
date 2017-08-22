@@ -26,15 +26,20 @@ class PortadminResponseTest(unittest.TestCase):
         self.ciscoType.vendor = self.ciscoVendor
         self.ciscoType.get_enterprise_id.return_value = VENDOR_ID_CISCOSYSTEMS
 
+        profile = Mock()
+        profile.snmp_version = 2
+
         self.netboxHP = Mock()
         self.netboxHP.type = self.hpType
         self.netboxHP.ip = '10.240.160.39'
-        self.netboxHP.snmp_version = "2c"
+        self.netboxHP.readonly_connection_profile = profile
+        self.netboxHP.readwrite_connection_profile = profile
 
         self.netboxCisco = Mock()
         self.netboxCisco.type = self.ciscoType
         self.netboxCisco.ip = '10.240.160.38'
-        self.netboxCisco.snmp_version = "2c"
+        self.netboxCisco.readonly_connection_profile = profile
+        self.netboxCisco.readwrite_connection_profile = profile
 
         self.snmpReadOnlyHandler = None
         self.handler = None

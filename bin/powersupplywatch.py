@@ -32,7 +32,7 @@ bootstrap_django(__file__)
 
 # import NAV libraries
 from nav.event import Event
-from nav.Snmp import Snmp
+from nav import Snmp
 from nav.models.manage import PowerSupplyOrFan, Device
 from nav.logs import init_generic_logging
 
@@ -250,7 +250,7 @@ def check_psus_and_fans(to_check, dryrun=False):
 def get_snmp_handle(netbox):
     """Allocates an Snmp-handle for a given netbox"""
     LOGGER.debug('Allocate SNMP-handle for %s', netbox.sysname)
-    return Snmp(netbox.ip, netbox.read_only, netbox.snmp_version)
+    return Snmp.from_netbox(netbox.ip)
 
 
 def handle_status(psu_or_fan, status, dry_run=False):

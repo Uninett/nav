@@ -43,14 +43,15 @@ class SnmpCheck(SNMPPlugin):
 
     @classmethod
     def can_handle(cls, netbox):
-        return netbox.is_up() and bool(netbox.read_only)
+        return netbox.is_up() and bool(netbox.get_snmp_community())
 
     def __init__(self, *args, **kwargs):
         super(SnmpCheck, self).__init__(*args, **kwargs)
 
     @defer.inlineCallbacks
     def handle(self):
-        self._logger.debug("snmp version from db: %s", self.netbox.snmp_version)
+        self._logger.debug("snmp version from db: %s",
+                           self.netbox.get_snmp_version())
         was_down = yield db.run_in_thread(self._currently_down)
         is_ok = yield self._do_check()
 

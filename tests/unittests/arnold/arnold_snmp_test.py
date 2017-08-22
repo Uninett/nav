@@ -29,9 +29,9 @@ class TestArnoldSnmp(unittest.TestCase):
         """Create netbox model mock object"""
         netbox = Mock()
         netbox.ip = self.ip
-        netbox.read_write = self.read_write
-        netbox.read_only = self.read_write
-        netbox.snmp_version = 1
+        netbox.readwrite_connection_profile.snmp_community = self.read_write
+        netbox.readwrite_connection_profile.protocol = 1
+        netbox.readwrite_connection_profile.snmp_version = 1
         netbox.type.vendor.id = 'cisco'
         return netbox
 

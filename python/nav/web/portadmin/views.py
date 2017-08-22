@@ -197,7 +197,7 @@ def populate_infodict(request, netbox, interfaces):
         readonly = True
         messages.error(request, "Timeout when contacting %s. Values displayed "
                                 "are from database" % netbox.sysname)
-        if not netbox.read_only:
+        if not netbox.readonly_connection_profile.snmp_community:
             messages.error(request, "Read only community not set")
     except SnmpError:
         readonly = True
@@ -311,7 +311,7 @@ def check_read_write(netbox, request):
 
     :returns: flag indicating readonly or not
     """
-    if not netbox.read_write:
+    if not netbox.readwrite_connection_profile.usable:
         messages.error(request,
                        "Write community not set for this device, "
                        "changes cannot be saved")

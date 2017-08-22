@@ -98,15 +98,15 @@ class JobHandler(object):
         if self.agent:
             self._destroy_agentproxy()
 
-        if not self.netbox.read_only:
+        if not self.netbox.get_snmp_community():
             self.agent = None
             return
 
         port = next(ports)
         self.agent = AgentProxy(
             self.netbox.ip, 161,
-            community=self.netbox.read_only,
-            snmpVersion='v%s' % self.netbox.snmp_version,
+            community=self.netbox.get_snmp_community(),
+            snmpVersion='v%s' % self.netbox.get_snmp_version(),
             protocol=port.protocol,
             snmp_parameters=snmp_parameter_factory(self.netbox)
         )

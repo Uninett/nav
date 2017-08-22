@@ -272,7 +272,7 @@ def disable(candidate, justification, username, comment="", autoenablestep=0):
     LOGGER.info('Disabling %s - %s on interface %s',
                 candidate.ip, candidate.mac, candidate.interface)
 
-    if not candidate.interface.netbox.read_write:
+    if not candidate.interface.netbox.readwrite_connection_profile.usable:
         raise NoReadWriteCommunityError(candidate.interface.netbox)
     identity = check_identity(candidate)
     change_port_status('disable', identity)
@@ -290,7 +290,7 @@ def quarantine(candidate, qvlan, justification, username, comment="",
     LOGGER.info('Quarantining %s - %s on interface %s',
                 candidate.ip, candidate.mac, candidate.interface)
 
-    if not candidate.interface.netbox.read_write:
+    if not candidate.interface.netbox.readwrite_connection_profile.usable:
         raise NoReadWriteCommunityError(candidate.interface.netbox)
     identity = check_identity(candidate)
     identity.fromvlan = change_port_vlan(identity, qvlan.vlan)
@@ -423,8 +423,7 @@ def change_port_status(action, identity):
 
     # Create snmp-object
     netbox = identity.interface.netbox
-    agent = nav.Snmp.Snmp(netbox.ip, netbox.read_write,
-                          version=netbox.snmp_version)
+    agent = nav.Snmp.from_netbox(netbox, readonly=False)
 
     # Disable or enable based on input
     try:

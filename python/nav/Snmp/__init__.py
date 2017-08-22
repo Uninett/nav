@@ -64,3 +64,12 @@ def safestring(string, encodings_to_try=('utf-8', 'latin-1')):
                 pass
 
     return repr(string)  # fallback
+
+
+def from_netbox(netbox, readonly=True, **kwargs):
+    if readonly:
+        profile = netbox.readonly_connection_profile
+    else:
+        profile = netbox.readwrite_connection_profile
+    version = profile.snmp_version
+    return Snmp(netbox.ip, profile.snmp_community, version=version, **kwargs)

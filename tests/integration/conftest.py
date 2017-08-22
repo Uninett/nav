@@ -125,11 +125,23 @@ def _scan_testargs(filename):
 ##################
 
 @pytest.fixture()
-def localhost():
+def connection_profile():
+    from nav.models.manage import ConnectionProfile
+    cp = ConnectionProfile(name="Test connection profile",
+                           protocol=ConnectionProfile.PROTOCOL_SNMP_V2C,
+                           snmp_community="public")
+    cp.save()
+    yield cp
+    cp.delete()
+
+
+@pytest.fixture()
+def localhost(connection_profile):
     from nav.models.manage import Netbox
     box = Netbox(ip='127.0.0.1', sysname='localhost.example.org',
                  organization_id='myorg', room_id='myroom', category_id='SRV',
-                 read_only='public', snmp_version=2)
+                 readonly_connection_profile=connection_profile,
+                 readwrite_connection_profile=connection_profile)
     box.save()
     yield box
     print("teardown test device")

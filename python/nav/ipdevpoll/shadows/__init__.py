@@ -707,3 +707,15 @@ class POEGroup(Shadow):
             ).first()
             if module:
                 self.module = shadowify(module)
+
+
+class ConnectionProfile(Shadow):
+    __shadowclass__ = manage.ConnectionProfile
+
+    @property
+    def snmp_version(self):
+        if self.protocol == manage.ConnectionProfile.PROTOCOL_SNMP_V1:
+            return 1
+        if self.protocol == manage.ConnectionProfile.PROTOCOL_SNMP_V2C:
+            return 2
+        raise ValueError("{} is not an snmp profile".format(self.name))

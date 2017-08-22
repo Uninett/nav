@@ -37,7 +37,7 @@ def test_fail(localhost, ipdevpoll_test_config, pool):
 @pytest.mark.twisted
 @pytest_twisted.inlineCallbacks
 def test_not_done(localhost, ipdevpoll_test_config, pool):
-    localhost.read_only = None
+    localhost.readonly_connection_profile_id = 0
     localhost.save()
     res = yield pool.execute_job('noop', localhost.pk, ['snmpcheck', ], 0)
     assert res is False

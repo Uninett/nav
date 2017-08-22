@@ -139,7 +139,8 @@ class SNMPPlugin(Plugin):
         daddy_says_ok = super(SNMPPlugin, cls).can_handle(netbox)
         snmp_up = getattr(netbox, 'snmp_up', True)
 
-        basic_req = daddy_says_ok and snmp_up and bool(netbox.read_only)
+        basic_req = daddy_says_ok and snmp_up and \
+            bool(netbox.get_snmp_community())
         vendor_check = cls._verify_vendor_restriction(netbox)
         return basic_req and vendor_check
 
