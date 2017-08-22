@@ -98,7 +98,6 @@ class DnsName(Plugin):
             if new_name.strip().lower() != self.netbox.sysname.strip().lower():
                 self._logger.warning("Box dnsname has changed from %s to %s",
                                      repr(self.netbox.sysname), repr(new_name))
-                netbox = self.containers.factory(None, shadows.Netbox)
-                netbox.sysname = new_name
+                self.netbox.sysname = new_name
 
         return new_name

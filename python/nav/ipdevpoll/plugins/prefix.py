@@ -65,7 +65,6 @@ class Prefix(Plugin):
     @defer.inlineCallbacks
     def handle(self):
         self._logger.debug("Collecting prefixes")
-        netbox = self.containers.factory(None, shadows.Netbox)
 
         ipmib = IpMib(self.agent)
         ciscoip = CiscoIetfIpMib(self.agent)
@@ -104,7 +103,7 @@ class Prefix(Plugin):
             if self._prefix_should_be_ignored(prefix):
                 self._logger.debug("ignoring prefix %s as configured", prefix)
                 continue
-            self.create_containers(netbox, ifindex, prefix, ip,
+            self.create_containers(ifindex, prefix, ip,
                                    vlan_interfaces, ifc_aliases)
 
     def _get_ifc_aliases(self):
@@ -125,7 +124,7 @@ class Prefix(Plugin):
                      if status == 'up')
         defer.returnValue(result)
 
-    def create_containers(self, netbox, ifindex, net_prefix, ip,
+    def create_containers(self, ifindex, net_prefix, ip,
                           vlan_interfaces, ifc_aliases=None):
         """
         Utitilty method for creating the shadow-objects
@@ -134,7 +133,7 @@ class Prefix(Plugin):
         interface.ifindex = ifindex
         if ifc_aliases and ifc_aliases.get(ifindex, None):
             interface.ifalias = ifc_aliases[ifindex]
-        interface.netbox = netbox
+        interface.netbox = self.netbox
 
         # No use in adding the GwPortPrefix unless we actually found a prefix
         if net_prefix:

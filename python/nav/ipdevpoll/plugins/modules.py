@@ -92,9 +92,7 @@ class Modules(Plugin):
     def _module_from_entity(self, ent):
         module = self.containers.factory(ent['entPhysicalSerialNum'],
                                          shadows.Module)
-        netbox = self.containers.factory(None, shadows.Netbox)
-
-        module.netbox = netbox
+        module.netbox = self.netbox
         module.model = ent['entPhysicalModelName'].strip()
         module.description = ent['entPhysicalDescr'].strip()
         module.name = ent['entPhysicalName'].strip()
@@ -121,7 +119,6 @@ class Modules(Plugin):
 
     def _process_ports(self, entities, module_containers):
         ports = entities.get_ports()
-        netbox = self.containers.factory(None, shadows.Netbox)
 
         # Map interfaces to modules, if possible
         module_ifindex_map = {}  # just for logging debug info
@@ -136,7 +133,7 @@ class Modules(Plugin):
                     for ifindex in indices:
                         interface = self.containers.factory(ifindex,
                                                             shadows.Interface)
-                        interface.netbox = netbox
+                        interface.netbox = self.netbox
                         interface.ifindex = ifindex
                         interface.module = module
 

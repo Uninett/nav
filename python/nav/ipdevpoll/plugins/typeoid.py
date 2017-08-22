@@ -86,12 +86,10 @@ class TypeOid(Plugin):
 
     def _set_type(self, new_type):
         """Sets the netbox type to type_."""
-        netbox_container = self.containers.factory(None, shadows.Netbox)
-        netbox_container.type = new_type
-        self._send_signal_if_changed_from_known_to_new_type(new_type)
-
-    def _send_signal_if_changed_from_known_to_new_type(self, new_type):
-        if self.netbox.type and self.has_type_changed():
+        changed = self.has_type_changed()
+        old_type = self.netbox.type
+        self.netbox.type = new_type
+        if old_type and changed:
             signals.netbox_type_changed.send(
                 sender=self, netbox_id=self.netbox.id, new_type=new_type)
 

@@ -17,7 +17,7 @@
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll.shadows import GatewayPeerSession, Netbox
+from nav.ipdevpoll.shadows import GatewayPeerSession
 from nav.models import manage
 
 from nav.mibs.bgp4_mib import BGP4Mib
@@ -53,11 +53,9 @@ class BGP(Plugin):
             self._make_gwpeer(peer)
 
     def _make_gwpeer(self, bgp_peer_state):
-        netbox = self.containers.factory(None, Netbox)
-
         key = ('bgp', str(bgp_peer_state.peer))
         session = self.containers.factory(key, GatewayPeerSession)
-        session.netbox = netbox
+        session.netbox = self.netbox
         session.protocol = manage.GatewayPeerSession.PROTOCOL_BGP
         session.peer = bgp_peer_state.peer
         session.state = bgp_peer_state.state

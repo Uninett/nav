@@ -4,6 +4,7 @@ from mock import Mock
 from nav.ipdevpoll.storage import ContainerRepository
 from nav.ipdevpoll.plugins.interfaces import Interfaces, decode_to_unicode
 
+
 class EncodingTests(TestCase):
     def test_ifalias_should_be_unicode(self):
         netbox = Mock('Netbox')
@@ -22,7 +23,7 @@ class EncodingTests(TestCase):
         for k in required_keys:
             row[k] = None
 
-        interface = plugin._convert_row_to_container(netbox, 1, row)
+        interface = plugin._convert_row_to_container(1, row)
         self.assertTrue(isinstance(interface.ifalias, unicode))
 
     def test_latin1_encoded_ifalias_should_be_properly_decoded(self):

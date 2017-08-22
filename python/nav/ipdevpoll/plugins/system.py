@@ -47,7 +47,6 @@ class System(Plugin):
                 self._set_device_version(version)
 
     def _set_device_version(self, version):
-        netbox = self.containers.factory(None, shadows.Netbox)
         chassis = shadows.NetboxEntity.get_chassis_entities(self.containers)
         if chassis and len(chassis) == 1:
             entity = chassis[0]
@@ -76,7 +75,7 @@ class System(Plugin):
                 device.software_version = version
 
                 entity = self.containers.factory(None, shadows.NetboxEntity)
-                entity.netbox = netbox
+                entity.netbox = self.netbox
                 entity.index = 0
                 entity.source = "SNMPv2-MIB"
                 entity.physical_class = manage.NetboxEntity.CLASS_CHASSIS

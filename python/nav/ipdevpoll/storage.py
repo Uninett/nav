@@ -571,11 +571,18 @@ class ContainerRepository(dict):
         obj = self.get(key, container_class)
         if obj is None:
             obj = container_class(*args, **kwargs)
-            if container_class not in self:
-                self[container_class] = {}
-            self[container_class][key] = obj
+            self.inject(key, obj)
 
         return obj
+
+    def inject(self, key, obj):
+        """Insert an object created in some other way into the repository
+        using the given key. In most cases you should use factory() in
+        stead"""
+        container_class = type(obj)
+        if container_class not in self:
+            self[container_class] = {}
+        self[container_class][key] = obj
 
     def add(self, container_class):
         """Ensures there is a reference to container_class in repository.

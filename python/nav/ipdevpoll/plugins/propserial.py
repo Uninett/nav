@@ -18,7 +18,7 @@
 from twisted.internet import defer
 
 from nav.ipdevpoll import Plugin
-from nav.ipdevpoll.shadows import Netbox, Device, NetboxEntity
+from nav.ipdevpoll.shadows import Device, NetboxEntity
 from nav.models import manage
 
 from nav.mibs.hp_httpmanageable_mib import HPHTTPManageableMib
@@ -53,14 +53,13 @@ class ProprietarySerial(Plugin):
                 self._set_chassis_serial(serial, mib.mib.get('moduleName'))
 
     def _set_chassis_serial(self, serial, source):
-        netbox = self.containers.factory(None, Netbox)
         chassis = NetboxEntity.get_chassis_entities(self.containers)
         if not chassis:
             entity = self.containers.factory(None, NetboxEntity)
             device = self.containers.factory(serial, Device)
             device.serial = serial
 
-            entity.netbox = netbox
+            entity.netbox = self.netbox
             entity.index = 0
             entity.source = source
             entity.physical_class = manage.NetboxEntity.CLASS_CHASSIS
