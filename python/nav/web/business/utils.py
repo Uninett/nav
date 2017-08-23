@@ -8,7 +8,7 @@ AvailabilityRecord = namedtuple(
     'AvailabilityRecord', ['subject', 'incidents', 'downtime', 'availability'])
 
 
-def get_interval(sometime, _interval='month'):
+def get_interval(sometime, interval='month'):
     """Gets the interval for some time
 
     :param sometime: A datetime.datetime object
@@ -18,9 +18,13 @@ def get_interval(sometime, _interval='month'):
     """
     year = sometime.year
     month = sometime.month
-    _day, days = calendar.monthrange(year, month)
-    start = datetime(year, month, 1)
-    end = datetime(year, month, days) + timedelta(days=1)
+    if interval == 'month':
+        _day, days = calendar.monthrange(year, month)
+        start = datetime(year, month, 1)
+        end = datetime(year, month, days) + timedelta(days=1)
+    elif interval == 'week':
+        start = sometime - timedelta(days=sometime.weekday())
+        end = start + timedelta(days=7)
     return start, end
 
 

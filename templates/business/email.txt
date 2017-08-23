@@ -1,0 +1,6 @@
+Device downtime for period {{ start }} - {{ end }}
+
+{{ 'Device'|stringformat:"-30s" }} {{ 'Start time'|stringformat:"-20s" }} {{ 'End time'|stringformat:"-20s" }} {{ 'Downtime' }}
+------------------------------------------------------------------------------------------{% for alert in active_alerts %}
+{{ alert.netbox|stringformat:"-30s" }} {{ alert.start_time|date:"DATETIME_FORMAT"|stringformat:"-20s" }} {{ 'Still down'|stringformat:"-20s" }} {{ alert.start_time|timesince:today }} {% endfor %}{% for alert in inactive_alerts %}
+{{ alert.netbox|stringformat:"-30s" }} {{ alert.start_time|date:"DATETIME_FORMAT"|stringformat:"-20s" }} {{ alert.end_time|date:"DATETIME_FORMAT"|stringformat:"-20s" }} {{ alert.start_time|timesince:alert.end_time }} {% endfor %}

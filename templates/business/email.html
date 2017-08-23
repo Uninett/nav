@@ -1,0 +1,31 @@
+<table>
+  <caption>Device downtime for period {{ start }} - {{ end }}</caption>
+  <thead>
+    <tr>
+      <th>Device</th>
+      <th>Start time</th>
+      <th>End time</th>
+      <th>Downtime</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for alert in active_alerts  %}
+      <tr>
+        <td>{{ alert.netbox }}</td>
+        <td>{{ alert.start_time }}</td>
+        <td>Still down</td>
+        <td>{{ alert.start_time|timesince:today }}</td>
+      </tr>
+    {% endfor %}
+
+    {% for alert in inactive_alerts  %}
+      <tr>
+        <td>{{ alert.netbox }}</td>
+        <td>{{ alert.start_time }}</td>
+        <td>{{ alert.end_time }}</td>
+        <td>{{ alert.start_time|timesince:alert.end_time }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
