@@ -1,4 +1,4 @@
-Device downtime for period {{ start }} - {{ end }}
+Downtime for period {{ start }} - {{ end }}
 
 {{ 'Device'|stringformat:"-30s" }} {{ 'Start time'|stringformat:"-20s" }} {{ 'End time'|stringformat:"-20s" }} {{ 'Downtime' }}
 ------------------------------------------------------------------------------------------{% for alert in active_alerts %}
