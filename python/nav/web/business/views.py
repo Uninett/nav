@@ -63,34 +63,9 @@ class AvailabilityReportView(BusinessView):
 
         return context
 
-    def get_records(self, start, end,
-                    eventtype='boxState', alerttype='boxDown'):
+    def get_records(self, start, end):
         """Get records for the specified event and alert types"""
-        from django.db.models import Q
-
-        # Coarse filtering of alerts
-        alerts = AlertHistory.objects.filter(
-            event_type=eventtype, end_time__isnull=False,
-            alert_type__name=alerttype).filter(
-                Q(end_time__range=(start, end)) |
-                Q(start_time__range=(start, end)) |
-                  (Q(start_time__lte=start) & Q(end_time__gte=end)
-               ))
-
-        # Group alerts by subject
-        self.grouped_alerts = self.group_alerts(alerts)
-
-        # Create availability records for each subject
-        return [utils.create_record(subject, alerts, start, end)
-                for subject, alerts in self.grouped_alerts.items()]
-
-    @staticmethod
-    def group_alerts(alerts):
-        """Group alerts by subject"""
-        grouped_alerts = defaultdict(list)
-        for alert in alerts:
-            grouped_alerts[alert.netbox].append(alert)
-        return grouped_alerts
+        return utils.get_records(start, end)
 
     def get_url(self):
         """Get the url for this view"""

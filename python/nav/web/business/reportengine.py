@@ -16,14 +16,13 @@
 """Module for emailing status reports"""
 
 from __future__ import print_function
+
 from datetime import date, datetime, timedelta
 
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
-from django.db.models import Q
 
 from nav.web.business import utils
-from nav.models.event import AlertHistory
 
 from collections import namedtuple
 Subscription = namedtuple('Subscription', ['to_address', 'period'])
@@ -48,10 +47,6 @@ def send_reports():
 
 def send_report(report):
     """Sends a single email report"""
-
-    print("Sending {} report to {}".format(report.period, report.to_address))
-    print("Subject: {}".format(report.subject))
-    print(report.text_message)
     send_mail(
         report.subject,
         report.text_message,
@@ -66,31 +61,20 @@ def build_report(subscription):
     context = build_context(subscription)
     html_message = render_to_string('business/email.html', context)
     text_message = render_to_string('business/email.txt', context)
-    return Report(get_subject(subscription), subscription.to_address,
+    return Report(get_email_subject(subscription), subscription.to_address,
                   subscription.period, text_message, html_message)
-
-def get_subject(subscription):
-    """Gets the subject for a given subscription"""
-    lookup = {
-        'month': 'Monthly downtime report for devices in NAV',
-        'week': 'Weekly downtime report for devices in NAV',
-    }
-    return lookup.get(subscription.period)
 
 
 def build_context(subscription):
     """Builds a context for the given subscription"""
     midnight = date.today()
     start, end = get_interval(midnight, subscription.period)
-    alerts = get_alerts(start, end)
-    active_alerts = alerts.filter(end_time__gte=datetime.max)
-    inactive_alerts = alerts.exclude(end_time__gte=datetime.max)
+    records = utils.get_records(start, end)
     return {
         'start': start,
         'end': end,
         'today': midnight,
-        'active_alerts': active_alerts,
-        'inactive_alerts': inactive_alerts
+        'records': records
     }
 
 
@@ -107,23 +91,18 @@ def get_interval(sometime, period='month'):
 
     last_period = first_day - timedelta(days=1)
     start, end = utils.get_interval(last_period, period)
-    return convert_to_date(start, end)
+    return convert_to_datetime(start, end)
 
 
-def convert_to_date(*dates):
+def convert_to_datetime(*dates):
     """Converts date or datetime objects to date"""
-    return [date(d.year, d.month, d.day) for d in dates]
+    return [datetime(d.year, d.month, d.day) for d in dates]
 
 
-def get_alerts(start, end):
-    """Gets the alerts for the given start-end interval"""
-    eventtype = 'boxState'
-    alerttype = 'boxDown'
-
-    return AlertHistory.objects.filter(
-        event_type=eventtype, end_time__isnull=False,
-        alert_type__name=alerttype).filter(
-            Q(end_time__range=(start, end)) |
-            Q(start_time__range=(start, end)) |
-            (Q(start_time__lte=start) & Q(end_time__gte=end)
-            )).order_by('-start_time')
+def get_email_subject(subscription):
+    """Gets the subject for a given subscription"""
+    lookup = {
+        'month': 'Monthly downtime report for devices in NAV',
+        'week': 'Weekly downtime report for devices in NAV',
+    }
+    return lookup.get(subscription.period)

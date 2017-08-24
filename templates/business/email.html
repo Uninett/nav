@@ -1,5 +1,6 @@
 <style>
- td { padding-right: 1em; }
+ td, th { padding-right: 1em; }
+ th { text-align: left; }
  table { margin-bottom: 2em; }
 </style>
 
@@ -7,29 +8,20 @@
   <caption>Downtime for period {{ start }} - {{ end }}</caption>
   <thead>
     <tr>
-      <th>Device</th>
-      <th>Start time</th>
-      <th>End time</th>
+      <th>Subject</th>
+      <th>Incidents</th>
       <th>Downtime</th>
+      <th>Availability</th>
     </tr>
   </thead>
 
   <tbody>
-    {% for alert in active_alerts  %}
+    {% for record in records  %}
       <tr>
-        <td>{{ alert.netbox }}</td>
-        <td>{{ alert.start_time }}</td>
-        <td>Still down</td>
-        <td>{{ alert.start_time|timesince:today }}</td>
-      </tr>
-    {% endfor %}
-
-    {% for alert in inactive_alerts  %}
-      <tr>
-        <td>{{ alert.netbox }}</td>
-        <td>{{ alert.start_time }}</td>
-        <td>{{ alert.end_time }}</td>
-        <td>{{ alert.start_time|timesince:alert.end_time }}</td>
+        <td>{{ record.subject }}</td>
+        <td>{{ record.incidents|length }}</td>
+        <td>{{ record.downtime }}</td>
+        <td>{{ record.availability }}</td>
       </tr>
     {% endfor %}
   </tbody>

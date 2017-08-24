@@ -2,7 +2,10 @@
 
 import calendar
 from datetime import datetime, timedelta
-from collections import namedtuple
+from collections import defaultdict, namedtuple
+
+from nav.models.event import AlertHistory
+from django.db.models import Q
 
 AvailabilityRecord = namedtuple(
     'AvailabilityRecord', ['subject', 'incidents', 'downtime', 'availability'])
@@ -85,3 +88,36 @@ def create_record(subject, alerts, start, end):
     downtime = downtime - timedelta(microseconds=downtime.microseconds)
 
     return AvailabilityRecord(subject, alerts, downtime, availability)
+
+
+def get_alerts(start, end, eventtype='boxState', alerttype='boxDown'):
+    """Gets the alerts for the given start-end interval"""
+    return AlertHistory.objects.filter(
+        event_type=eventtype, end_time__isnull=False,
+        alert_type__name=alerttype).filter(
+            Q(end_time__range=(start, end)) |
+            Q(start_time__range=(start, end)) |
+            (Q(start_time__lte=start) & Q(end_time__gte=end)
+            )).order_by('-start_time')
+
+
+def group_alerts(alerts):
+    """Group alerts by subject"""
+    grouped_alerts = defaultdict(list)
+    for alert in alerts:
+        grouped_alerts[alert.netbox].append(alert)
+    return grouped_alerts
+
+
+def get_records(start, end, eventtype='boxState', alerttype='boxDown'):
+    """Gets all availabilityrecords for this period"""
+
+    # Coarse filtering of alerts
+    alerts = get_alerts(start, end)
+
+    # Group alerts by subject
+    grouped_alerts = group_alerts(alerts)
+
+    # Create availability records for each subject
+    return [create_record(subject, alerts, start, end)
+            for subject, alerts in grouped_alerts.items()]
