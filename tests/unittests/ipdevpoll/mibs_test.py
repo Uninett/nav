@@ -39,7 +39,7 @@ from nav.mibs.snmpv2_mib import Snmpv2Mib
 
 class IpMibTests(unittest.TestCase):
     def test_ipv4_syntax_with_length_should_be_parsed_correctly(self):
-        ip_tuple = (1, 4, 192, 0L, 2L, 1L)
+        ip_tuple = (1, 4, 192, 0, 2, 1)
         expected = IP('192.0.2.1')
         ip = IpMib.inetaddress_to_ip(ip_tuple)
         self.assertEquals(ip, expected)
@@ -49,21 +49,21 @@ class IpMibTests(unittest.TestCase):
         self.assertRaises(ValueError, IpMib.inetaddress_to_ip, ip_tuple)
 
     def test_too_short_ipv4_address_should_raise_exception(self):
-        ip_tuple = (1, 4, 1L, 2L)
+        ip_tuple = (1, 4, 1, 2)
         self.assertRaises(IndexToIpException, IpMib.inetaddress_to_ip, ip_tuple)
 
     def test_ipv4_syntax_not_annotated_with_size_should_parse_ok(self):
-        ip_tuple = (1, 192, 0L, 2L, 1L)
+        ip_tuple = (1, 192, 0, 2, 1)
         expected = IP('192.0.2.1')
         ip = IpMib.inetaddress_to_ip(ip_tuple)
         self.assertEquals(ip, expected)
 
     def test_too_long_ipv6_address_should_raise_exception(self):
-        ip_tuple = (2, 16, 32L, 1L, 13L, 184L, 18L, 52L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L)
+        ip_tuple = (2, 16, 32, 1, 13, 184, 18, 52, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
         self.assertRaises(IndexToIpException, IpMib.inetaddress_to_ip, ip_tuple)
 
     def test_ipv6_syntax_with_length_should_be_parsed_correctly(self):
-        ip_tuple = (2, 16, 32L, 1L, 13L, 184L, 18L, 52L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L)
+        ip_tuple = (2, 16, 32, 1, 13, 184, 18, 52, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
         expected = IP('2001:db8:1234::1')
         ip = IpMib.inetaddress_to_ip(ip_tuple)
         self.assertEquals(ip, expected)
@@ -101,7 +101,7 @@ class IpMibTests(unittest.TestCase):
 
 class Ipv6MibTests(unittest.TestCase):
     def test_ipv6mib_index(self):
-        ip_tuple = (32L, 1L, 13L, 184L, 18L, 52L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L)
+        ip_tuple = (32, 1, 13, 184, 18, 52, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
         expected = IP('2001:db8:1234::1')
         ip = Ipv6Mib.ipv6address_to_ip(ip_tuple)
         self.assertEquals(ip, expected)
@@ -127,15 +127,15 @@ class EntityMibTests(unittest.TestCase):
 
 class Snmpv2MibTests(unittest.TestCase):
     def test_simple_uptime_deviation_should_be_correct(self):
-        first_uptime =  (1338372778.0, 10000L)
-        second_uptime = (1338372900.0, 22200L)
+        first_uptime = (1338372778.0, 10000)
+        second_uptime = (1338372900.0, 22200)
         dev = Snmpv2Mib.get_uptime_deviation(first_uptime, second_uptime)
         self.assertTrue(abs(dev) < 0.5,
                         msg="deviation is higher than 0.5: %r" % dev)
 
     def test_wrapped_uptime_deviation_should_be_correct(self):
-        first_uptime =  (1338372778.0, 4294967196L)
-        second_uptime = (1338372900.0, 12100L)
+        first_uptime = (1338372778.0, 4294967196)
+        second_uptime = (1338372900.0, 12100)
         dev = Snmpv2Mib.get_uptime_deviation(first_uptime, second_uptime)
         self.assertTrue(abs(dev) < 0.5,
                         msg="deviation is higher than 0.5: %r" % dev)
@@ -165,12 +165,12 @@ class CiscoHSRPMibTests(unittest.TestCase):
 
 def test_short_dateandtime_parses_properly():
     parsed = parse_dateandtime_tc('\xdf\x07\x05\x0e\x0c\x1e*\x05')
-    assert parsed == datetime.datetime(2015, 05, 14, 12, 30, 42, 500000)
+    assert parsed == datetime.datetime(2015, 5, 14, 12, 30, 42, 500000)
 
 
 def test_long_dateandtime_parses_properly():
     parsed = parse_dateandtime_tc('\xdf\x07\x05\x0e\x0c\x1e*\x05+\x02\x00')
-    assert parsed == datetime.datetime(2015, 05, 14, 12, 30, 42, 500000)
+    assert parsed == datetime.datetime(2015, 5, 14, 12, 30, 42, 500000)
 
 
 def test_zero_dateandtime_parses_properly():
