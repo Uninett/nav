@@ -12,7 +12,7 @@ from django.http import HttpResponse
 from nav.metrics.data import get_netboxes_availability
 from nav.models.event import AlertHistory
 from nav.models.manage import Interface
-from nav.models.profiles import AlertAddress, ReportSubscription
+from nav.models.profiles import AlertAddress, ReportSubscription, AlertSender
 from nav.web.business import utils
 from nav.web.utils import create_title
 
@@ -123,7 +123,8 @@ def save_report_subscription(request):
         email_sender = AlertSender.objects.get(name=AlertSender.EMAIL)
         address = AlertAddress(account=request.account,
                                type=email_sender,
-                               address=new_address).save()
+                               address=new_address)
+        address.save()
     else:
         address = get_object_or_404(AlertAddress,
                                     pk=int(request.POST.get('address')))
