@@ -22,7 +22,11 @@ from __future__ import absolute_import
 
 import re
 import os
-import ConfigParser
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
+
 import logging
 import socket
 from datetime import datetime, timedelta
@@ -585,7 +589,7 @@ def parse_nonblock_file(filename):
 @Memo
 def get_config(configfile):
     """Get config from file"""
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(configfile)
     return config
 

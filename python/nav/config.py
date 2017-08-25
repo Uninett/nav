@@ -16,12 +16,15 @@
 #
 """Utility functions for NAV configuration file parsing."""
 from __future__ import absolute_import
-from StringIO import StringIO
+from io import StringIO
 import logging
 
 import os
 import sys
-import ConfigParser
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 
 from django.utils import six
 
@@ -79,7 +82,7 @@ def getconfig(configfile, defaults=None, configfolder=None):
             configfile = os.path.join(configfolder, configfile)
         configfile = open(configfile, 'r')
 
-    config = ConfigParser.RawConfigParser(defaults)
+    config = configparser.RawConfigParser(defaults)
     config.readfp(configfile)
 
     sections = config.sections()
@@ -92,7 +95,7 @@ def getconfig(configfile, defaults=None, configfolder=None):
     return configdict
 
 
-class NAVConfigParser(ConfigParser.ConfigParser):
+class NAVConfigParser(configparser.ConfigParser):
     """A ConfigParser for NAV config files with some NAV-related
     simplifications.
 
@@ -105,7 +108,7 @@ class NAVConfigParser(ConfigParser.ConfigParser):
     directory upon instantation of the parser subclass.
 
     """
-    DEFAULT_CONFIG = ""
+    DEFAULT_CONFIG = u""
     DEFAULT_CONFIG_FILES = ()
 
     def __init__(self, default_config=None, default_config_files=None):
@@ -114,7 +117,7 @@ class NAVConfigParser(ConfigParser.ConfigParser):
         if default_config_files is not None:
             self.DEFAULT_CONFIG_FILES = default_config_files
 
-        ConfigParser.ConfigParser.__init__(self)
+        configparser.ConfigParser.__init__(self)
         # TODO: perform sanity check on config settings
         faked_default_file = StringIO(self.DEFAULT_CONFIG)
         self.readfp(faked_default_file)

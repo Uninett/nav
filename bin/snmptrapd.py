@@ -25,7 +25,10 @@ import re
 import socket
 import sys
 import argparse
-import ConfigParser
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 import signal
 
 # Import NAV libraries
@@ -70,7 +73,7 @@ def main():
 
     # Initialize and read startupconfig
     global config
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(configfile)
 
     # Create parser and define options

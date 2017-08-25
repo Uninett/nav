@@ -22,7 +22,11 @@ import stat
 import socket
 import datetime
 from functools import wraps
-from itertools import chain, tee, ifilter
+from itertools import chain, tee
+try:
+    from itertools import ifilter
+except ImportError:
+    ifilter = filter
 
 from django.utils import six
 

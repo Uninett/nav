@@ -16,7 +16,10 @@
 #
 """Util functions for the PortAdmin"""
 import re
-import ConfigParser
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 import logging
 
 import django.template
@@ -205,7 +208,7 @@ def fetch_voice_vlans(config=None):
 
 def read_config():
     """Read the config"""
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(CONFIGFILE)
 
     return config

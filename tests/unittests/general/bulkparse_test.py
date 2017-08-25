@@ -1,6 +1,7 @@
 """Tests for bulkparse"""
 
 # pylint: disable=C0111, C0103, W0614
+from __future__ import unicode_literals
 
 from unittest import TestCase
 from nav.bulkparse import *

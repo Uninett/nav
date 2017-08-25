@@ -32,7 +32,10 @@ commit log messages' summary line, add the -v option to hg log.
 
 from __future__ import print_function
 
-import urllib2
+try:
+    from urllib.request import Request, urlopen
+except ImportError:
+    from urllib2 import Request, urlopen
 import re
 import sys
 import textwrap
@@ -83,7 +86,7 @@ class LaunchpadBug(Bug):
     def _get_details(self):
         """Returns a list of strings detailing the bug"""
         url = BUG_URL.format(bug_id=self.number)
-        info = urllib2.urlopen(url)
+        info = urlopen(url)
         return info.readlines()
 
 
@@ -98,10 +101,10 @@ class GithubIssue(Bug):
     def _get_details(self):
         """Returns a JSON structure detailing the bug"""
         url = ISSUE_URL.format(bug_id=self.number)
-        req = urllib2.Request(url, headers={
+        req = Request(url, headers={
             'Accept': 'application/json'
         })
-        data = urllib2.urlopen(req).read()
+        data = urlopen(req).read()
         return json.loads(data)
 
 
