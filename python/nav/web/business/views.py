@@ -6,10 +6,13 @@ from operator import attrgetter
 
 from django.core.urlresolvers import reverse
 from django.views.generic import TemplateView
+from django.shortcuts import get_object_or_404, render
+from django.http import HttpResponse
 
 from nav.metrics.data import get_netboxes_availability
 from nav.models.event import AlertHistory
 from nav.models.manage import Interface
+from nav.models.profiles import AlertAddress, ReportSubscription
 from nav.web.business import utils
 from nav.web.utils import create_title
 
@@ -60,6 +63,7 @@ class AvailabilityReportView(BusinessView):
 
         context['months'] = utils.get_months()
         context['report'] = self
+        context['subscription_periods'] = ReportSubscription.PERIODS
 
         return context
 
@@ -108,3 +112,40 @@ class LinkAvailabilityReport(AvailabilityReportView):
                 grouped_alerts[interface].append(alert)
 
         return grouped_alerts
+
+def save_report_subscription(request):
+    """Saves a report subscription"""
+
+    new_address = request.POST.get('new_address')
+    address_id = request.POST.get('address')
+    period = request.POST.get('period')
+    if new_address:
+        email_sender = AlertSender.objects.get(name=AlertSender.EMAIL)
+        address = AlertAddress(account=request.account,
+                               type=email_sender,
+                               address=new_address).save()
+    else:
+        address = get_object_or_404(AlertAddress,
+                                    pk=int(request.POST.get('address')))
+
+    ReportSubscription(
+        account=request.account,
+        address=address,
+        period=period).save()
+
+    return HttpResponse()
+
+
+def render_report_subscriptions(request):
+    """Renders the report subscriptions"""
+    return render(request, 'business/frag-report-items.html')
+
+
+def remove_report_subscription(request):
+    """Remove a report subscription"""
+    subscription_id = request.POST.get('subscriptionId')
+    subscription = get_object_or_404(
+        ReportSubscription, account=request.account, pk=subscription_id)
+    subscription.delete()
+
+    return HttpResponse()

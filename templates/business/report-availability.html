@@ -13,22 +13,57 @@
 
 
   {# Form for choosing period #}
-  <div>
-    I want a report for
-    <form id="report-form" class="inline-form">
-      <select name="report-month">
-        {% for month in months %}
-          {{ start }}
-          {{ month }}
-          <option value="{{ month.year }}-{{ month.month }}"
-                  {% if start == month %}selected{% endif %}
-                  >
-            {{ month|date:'F Y' }}
-          </option>
-        {% endfor %}
-      </select>
-      <input type="submit" class="button small" value="Fetch report">
-    </form>
+  <div class="row">
+
+    <div class="medium-6 column">
+      I want a report for
+      <form id="report-form" class="inline-form">
+        <select name="report-month">
+          {% for month in months %}
+            {{ start }}
+            {{ month }}
+            <option value="{{ month.year }}-{{ month.month }}"
+                    {% if start == month %}selected{% endif %}
+            >
+              {{ month|date:'F Y' }}
+            </option>
+          {% endfor %}
+        </select>
+        <input type="submit" class="button small" value="Fetch report">
+      </form>
+    </div>
+
+    <div class="medium-6 column">
+      <h4>Subscribe to email reports</h4>
+      <p class="alert-box info">
+        The first day of a new period an email containing last periods report will be sent to you.
+      </p>
+      <form id="subscription-form" class="inline-form" method="post" action="{% url 'save-report-subscription' %}">
+        Send
+        <select name="period">
+          {% for period in subscription_periods  %}
+            <option value="{{ period.0 }}">{{ period.1 }}</option>
+          {% endfor %}
+        </select>
+        reports for device availability to
+        {% if request.account.get_email_addresses|length %}
+          <select name="address">
+            {% for address in request.account.get_email_addresses  %}
+              <option value="{{ address.pk }}">{{ address.address }}</option>
+            {% endfor %}
+          </select>
+        {% else %}
+          <input type="email" name="new_address" placeholder="email address">
+        {% endif %}
+        <input type="submit" class="button small" value="Subscribe">
+      </form>
+
+      <h5>Your subscriptions</h5>
+      <ul id="subscription-list">
+        {% include 'business/frag-report-items.html' %}
+      </ul>
+    </div>
+
   </div>
 
 

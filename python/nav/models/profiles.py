@@ -229,6 +229,9 @@ class Account(models.Model):
         elif value and not self.password.startswith('!'):
             self.password = '!' + self.password
 
+    def get_email_addresses(self):
+        return self.alertaddress_set.filter(type__name=AlertSender.EMAIL)
+
 
 class AccountGroup(models.Model):
     """NAV account groups"""
@@ -1368,3 +1371,23 @@ class AccountNavlet(models.Model):
     class Meta(object):
         db_table = 'account_navlet'
         ordering = ['order']
+
+
+class ReportSubscription(models.Model):
+    """Subscriptions for availability reports"""
+
+    MONTH = 'monthly'
+    WEEK = 'weekly'
+    DAY = 'daily'
+
+    PERIODS = ((MONTH, 'monthly'), (WEEK, 'weekly'), (DAY, 'daily'))
+
+    account = models.ForeignKey(Account)
+    address = models.ForeignKey(AlertAddress)
+    period = models.CharField(choices=PERIODS)
+
+    class Meta(object):
+        db_table = u'report_subscription'
+
+    def __unicode__(self):
+        return u"{} report sent to {}".format(self.period, self.address.address)

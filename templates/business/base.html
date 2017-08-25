@@ -4,6 +4,10 @@
 
 {% block base_header_additional_head %}
   <script>require(['src/business']);</script>
+  <script>
+   NAV.urls.render_report_subscriptions = "{% url 'render-report-subscriptions' %}";
+   NAV.urls.remove_report_subscription = "{% url 'remove-report-subscription' %}";
+  </script>
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/business.css">
 {% endblock %}
 
