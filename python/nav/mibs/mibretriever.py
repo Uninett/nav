@@ -31,6 +31,9 @@ this to allow asynchronous data retrieval.
 """
 
 import logging
+
+from django.utils import six
+
 from twisted.internet import defer, reactor
 from twisted.internet.defer import returnValue
 from twisted.internet.error import TimeoutError
@@ -323,11 +326,10 @@ class MibRetrieverMaker(type):
                          for node_name in cls.mib['nodes'].keys())
 
 
-class MibRetriever(object):
+class MibRetriever(six.with_metaclass(MibRetrieverMaker, object)):
     """Base class for functioning MIB retriever classes."""
     mib = None
     nodes = None
-    __metaclass__ = MibRetrieverMaker
     _logger = ContextLogger()
 
     def __init__(self, agent_proxy):
