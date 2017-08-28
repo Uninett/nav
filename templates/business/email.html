@@ -16,18 +16,17 @@
   </thead>
 
   <tbody>
-    {% for record in records  %}
+    {% for record in records %}
       <tr>
         <td>{{ record.subject }}</td>
         <td>{{ record.incidents|length }}</td>
         <td>{{ record.downtime }}</td>
         <td>{{ record.availability }}</td>
       </tr>
+    {% empty %}
+      <tr>
+        <td>No downtime this period</td>
+      </tr>
     {% endfor %}
   </tbody>
 </table>
-
-
-<img alt="nav-logo-black"
-     height="28px"
-     src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNi4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB3aWR0aD0iMjE5cHgiIGhlaWdodD0iMTAwcHgiIHZpZXdCb3g9IjAgMCAyMTkgMTAwIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAyMTkgMTAwIiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnIGlkPSJiZyIgZGlzcGxheT0ibm9uZSI+DQoJPHJlY3QgeD0iMC4wNjMiIGRpc3BsYXk9ImlubGluZSIgd2lkdGg9IjIxOSIgaGVpZ2h0PSIxMDAiLz4NCjwvZz4NCjxnIGlkPSJOQVYiPg0KCTxnPg0KCQk8Zz4NCgkJCTxwYXRoIGQ9Ik0xOTIuMjU5LDBsLTE4LjUyMSw3MS45NjVMMTU0Ljk4NCwwaC0yNi45MTZsMzEuNDczLDEwMGgyNy45MDlMMjE4LjM5MywwSDE5Mi4yNTl6IE05NS45ODMsMTAwaDM3LjQ2MmwtNC4yOTctMTYuNDQ3DQoJCQkJTDk1Ljk4MywxMDB6IE0xMTQuNzM2LDI1LjkybC05LjEsMzUuOTQ5aDE4LjMwMUwxMTQuNzM2LDI1LjkyeiBNNTYuMDMsNTUuMzJMMjQuNjUzLDBIMC42MDl2MTAwaDI0LjIxNVY0NS4wOTFMNTYuMDMsMTAwaDI0LjI3MQ0KCQkJCVYwSDU2LjAzVjU1LjMyeiIvPg0KCQk8L2c+DQoJPC9nPg0KPC9nPg0KPC9zdmc+DQo=">
