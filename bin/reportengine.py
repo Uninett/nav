@@ -16,14 +16,25 @@
 #
 """Sends email status reports"""
 
-import django
+import argparse
 from nav.web.business.reportengine import send_reports
+from nav.models.profiles import ReportSubscription
 
 
-def main():
+def main(period):
     """Send all reports"""
-    django.setup()
-    send_reports()
+    send_reports(period)
+
+
+def get_parser():
+    """Define the parser"""
+    parser = argparse.ArgumentParser()
+    choices = [p[0] for p in ReportSubscription.PERIODS]
+    help_text = 'The period for this report'
+    parser.add_argument('period', help=help_text, choices=choices)
+    return parser
+
 
 if __name__ == '__main__':
-    main()
+    args = get_parser().parse_args()
+    main(args.period)

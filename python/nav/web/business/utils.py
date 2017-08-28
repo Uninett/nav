@@ -5,13 +5,14 @@ from datetime import datetime, timedelta
 from collections import defaultdict, namedtuple
 
 from nav.models.event import AlertHistory
+from nav.models.profiles import ReportSubscription
 from django.db.models import Q
 
 AvailabilityRecord = namedtuple(
     'AvailabilityRecord', ['subject', 'incidents', 'downtime', 'availability'])
 
 
-def get_interval(sometime, interval='month'):
+def get_interval(sometime, interval):
     """Gets the interval for some time
 
     :param sometime: A datetime.datetime object
@@ -21,13 +22,17 @@ def get_interval(sometime, interval='month'):
     """
     year = sometime.year
     month = sometime.month
-    if interval == 'month':
+    if interval == ReportSubscription.MONTH:
         _day, days = calendar.monthrange(year, month)
         start = datetime(year, month, 1)
         end = datetime(year, month, days) + timedelta(days=1)
-    elif interval == 'week':
+    elif interval == ReportSubscription.WEEK:
         start = sometime - timedelta(days=sometime.weekday())
         end = start + timedelta(days=7)
+    else:
+        # interval is one day
+        start = sometime
+        end = start + timedelta(days=1)
     return start, end
 
 
