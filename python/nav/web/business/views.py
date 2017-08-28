@@ -55,7 +55,7 @@ class AvailabilityReportView(BusinessView):
             year, month = [int(x) for x in
                            self.request.GET.get('report-month').split('-')]
             sometime = datetime(year, month, 1)
-            start, end = utils.get_interval(sometime)
+            start, end = utils.get_interval(sometime, ReportSubscription.MONTH)
             context['start'] = start
             context['end'] = end
             context['records'] = sorted(self.get_records(start, end),
