@@ -15,7 +15,7 @@
   {# Form for choosing period #}
   <div class="row">
 
-    <div class="medium-6 column">
+    <div class="large-6 column">
       I want a report for
       <form id="report-form" class="inline-form">
         <select name="report-month">
@@ -31,9 +31,94 @@
         </select>
         <input type="submit" class="button small" value="Fetch report">
       </form>
+
+
+      {# Display records #}
+      {% if 'report-month' in request.GET %}
+
+        <table id="record-table" class="listtable expandable">
+          <caption>
+            Availability report for {{ start|date:'F Y' }}
+          </caption>
+
+          {# Table header #}
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th title="Number of incidents this month (click 'Show' for details)">Incidents</th>
+              <th title="Total downtime this month">Downtime</th>
+              <th title="Availability as a percentage of total uptime this month">Availability</th>
+            </tr>
+          </thead>
+
+          {# Table body #}
+          <tbody>
+
+            {% for record in records %}
+              {# Main information row #}
+              <tr class="record-row">
+                <td>
+                  {% if record.subject %}
+                    <a href="{{ record.subject.get_absolute_url }}">
+                      {{ record.subject }}
+                    </a>
+                  {% else %}
+                    <em>N/A</em>
+                  {% endif %}
+                </td>
+                <td>
+                  {{ record.incidents|length }}
+                  <a href="javascript:void(0);" class="toggle-incident pull-right">
+                    Show
+                  </a>
+                </td>
+                <td>{{ record.downtime }}</td>
+                <td>
+                  {{ record.availability|floatformat:"-3" }}%
+                </td>
+              </tr>
+
+              {# Hidden incidents row #}
+              <tr class="hidden incident-row">
+                <td colspan="4">
+                  <div>
+                    <b>{{ record.incidents|length }} incident{{ record.incidents|pluralize }}</b>
+                    <ul>
+                      {% for incident in record.incidents %}
+                        <li>
+                          <em>{{ incident.alert_type.name }}</em> &mdash;
+                          {{ incident.start_time }} -
+                          {% if incident.end_time|is_max_timestamp %}
+                            Incident has not ended
+                          {% else %}
+                            {{ incident.end_time }}
+                          {% endif %}
+                          &mdash;
+                          Total downtime: {{ incident.get_downtime|remove_microseconds }}
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+
+            {% empty %}
+              <tr>
+                <td colspan="4">
+                  No downtime in {{ start|date:'F Y' }}
+                </td>
+              </tr>
+            {% endfor %} {# End listing of records #}
+          </tbody>
+
+        </table>
+
+      {% endif %}
+
+
     </div>
 
-    <div class="medium-6 column">
+    <div class="large-6 column">
       <h4>Subscribe to email reports</h4>
       <p class="alert-box info">
         The first day of a new period an email containing last periods report will be sent to you.
@@ -65,88 +150,5 @@
     </div>
 
   </div>
-
-
-  {# Display records #}
-  {% if 'report-month' in request.GET %}
-
-    <table id="record-table" class="listtable expandable">
-      <caption>
-        Availability report for {{ start|date:'F Y' }}
-      </caption>
-
-      {# Table header #}
-      <thead>
-        <tr>
-          <th>Subject</th>
-          <th title="Number of incidents this month (click 'Show' for details)">Incidents</th>
-          <th title="Total downtime this month">Downtime</th>
-          <th title="Availability as a percentage of total uptime this month">Availability</th>
-        </tr>
-      </thead>
-
-      {# Table body #}
-      <tbody>
-
-        {% for record in records %}
-          {# Main information row #}
-          <tr class="record-row">
-            <td>
-              {% if record.subject %}
-                <a href="{{ record.subject.get_absolute_url }}">
-                  {{ record.subject }}
-                </a>
-              {% else %}
-                <em>N/A</em>
-              {% endif %}
-            </td>
-            <td>
-              {{ record.incidents|length }}
-              <a href="javascript:void(0);" class="toggle-incident pull-right">
-                Show
-              </a>
-            </td>
-            <td>{{ record.downtime }}</td>
-            <td>
-              {{ record.availability|floatformat:"-3" }}%
-            </td>
-          </tr>
-
-          {# Hidden incidents row #}
-          <tr class="hidden incident-row">
-            <td colspan="4">
-              <div>
-                <b>{{ record.incidents|length }} incident{{ record.incidents|pluralize }}</b>
-                <ul>
-                  {% for incident in record.incidents %}
-                    <li>
-                      <em>{{ incident.alert_type.name }}</em> &mdash;
-                      {{ incident.start_time }} -
-                      {% if incident.end_time|is_max_timestamp %}
-                        Incident has not ended
-                      {% else %}
-                        {{ incident.end_time }}
-                      {% endif %}
-                      &mdash;
-                      Total downtime: {{ incident.get_downtime|remove_microseconds }}
-                    </li>
-                  {% endfor %}
-                </ul>
-              </div>
-            </td>
-          </tr>
-
-        {% empty %}
-          <tr>
-            <td colspan="4">
-              No downtime in {{ start|date:'F Y' }}
-            </td>
-          </tr>
-        {% endfor %} {# End listing of records #}
-      </tbody>
-
-    </table>
-
-  {% endif %}
 
 {% endblock %}
