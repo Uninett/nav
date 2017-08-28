@@ -19,22 +19,26 @@ Django ORM wrapper for the NAV logger database
 
 
 from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
+
 from nav.models.fields import VarcharField
 
 
+@python_2_unicode_compatible
 class LoggerCategory(models.Model):
     """
     Model for the logger.category-table
     """
     category = VarcharField(db_column='category', unique=True, primary_key=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.category
 
     class Meta(object):
         db_table = '"logger"."category"'
 
 
+@python_2_unicode_compatible
 class Origin(models.Model):
     """
     Model for the logger.origin-table
@@ -43,13 +47,14 @@ class Origin(models.Model):
     name = VarcharField(db_column='name')
     category = models.ForeignKey(LoggerCategory, db_column='category')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta(object):
         db_table = '"logger"."origin"'
 
 
+@python_2_unicode_compatible
 class Priority(models.Model):
     """
     Model for the logger.priority-table
@@ -58,13 +63,14 @@ class Priority(models.Model):
     keyword = VarcharField(db_column='keyword', unique=True)
     description = VarcharField(db_column='description')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.keyword
 
     class Meta(object):
         db_table = '"logger"."priority"'
 
 
+@python_2_unicode_compatible
 class LogMessageType(models.Model):
     """
     Model for the logger.log_message_type-table
@@ -74,7 +80,7 @@ class LogMessageType(models.Model):
     facility = VarcharField(db_column='facility')
     mnemonic = VarcharField(db_column='mnemonic')
 
-    def __unicode__(self):
+    def __str__(self):
         return u"{0}-{1}-{2}".format(
             self.facility,
             self.priority,

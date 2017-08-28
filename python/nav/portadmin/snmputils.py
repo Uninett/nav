@@ -19,6 +19,8 @@ import time
 import logging
 from operator import attrgetter
 
+from django.utils.encoding import python_2_unicode_compatible
+
 from nav import Snmp
 from nav.errors import NoNetboxTypeError
 from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
@@ -36,6 +38,7 @@ CHARS_IN_1024_BITS = 128
 # TODO: Fix get_vlans as it does not return all vlans, see get_available_vlans
 
 
+@python_2_unicode_compatible
 class FantasyVlan(object):
     """A container object for storing vlans for a netbox
 
@@ -50,7 +53,7 @@ class FantasyVlan(object):
         self.net_ident = netident
         self.descr = descr
 
-    def __unicode__(self):
+    def __str__(self):
         if self.net_ident:
             return "%s (%s)" % (self.vlan, self.net_ident)
         else:
@@ -63,6 +66,7 @@ class FantasyVlan(object):
         return cmp(self.vlan, other.vlan)
 
 
+@python_2_unicode_compatible
 class SNMPHandler(object):
     """A basic class for SNMP-read and -write to switches."""
 
@@ -102,7 +106,7 @@ class SNMPHandler(object):
         self.timeout = kwargs.get('timeout', 3)
         self.retries = kwargs.get('retries', 3)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.netbox.type.vendor.id
 
     def _bulkwalk(self, oid):

@@ -21,6 +21,7 @@ import logging
 from datetime import datetime, timedelta
 from django.utils.timesince import timesince
 from django.db.models import Count
+from django.utils.encoding import python_2_unicode_compatible
 
 from nav.asyncdns import reverse_lookup
 from nav.models.manage import IpdevpollJobLog, Netbox, Arp, Cam
@@ -34,6 +35,7 @@ STATUS_NOT_OK = 'not_ok'
 STATUS_UNKNOWN = 'unknown'
 
 
+@python_2_unicode_compatible
 class TestResult(object):
     """Result for test errors"""
 
@@ -41,7 +43,7 @@ class TestResult(object):
         self.description = description  # The human readable description
         self.obj = obj  # An optional object representing the test
 
-    def __unicode__(self):
+    def __str__(self):
         return unicode(self.description)
 
     def __str__(self):

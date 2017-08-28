@@ -20,6 +20,7 @@ from datetime import datetime
 import logging
 
 from django.db.models import Q
+from django.utils.encoding import python_2_unicode_compatible
 
 from nav.web import webfrontConfig
 from nav.models.msgmaint import Message
@@ -30,6 +31,7 @@ from nav.models.profiles import AccountTool
 _logger = logging.getLogger('nav.web.tools.utils')
 
 
+@python_2_unicode_compatible
 class Tool(object):
     """Class representing a tool"""
     def __init__(self, name, uri, icon, description, priority=0, display=True,
@@ -42,7 +44,7 @@ class Tool(object):
         self.display = display
         self.doclink = doclink
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def __eq__(self, other):
