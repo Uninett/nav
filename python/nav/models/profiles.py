@@ -1395,6 +1395,16 @@ class ReportSubscription(models.Model):
 
     def __unicode__(self):
         return u"{} report for {} sent to {}".format(
-            next(v for k, v in self.PERIODS if k == self.period),
-            next(v for k, v in self.TYPES if k == self.report_type),
+            self.get_period_description(self.period),
+            self.get_type_description(self.report_type),
             self.address.address)
+
+    @staticmethod
+    def get_period_description(period):
+        return next(v for k, v in ReportSubscription.PERIODS
+                    if k == period)
+
+    @staticmethod
+    def get_type_description(report_type):
+        return next(v for k, v in ReportSubscription.TYPES
+                    if k == report_type)
