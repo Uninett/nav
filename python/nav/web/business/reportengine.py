@@ -82,7 +82,7 @@ def get_last_interval(sometime, period):
     the second one is the first day of the _current_ month.
 
     :returns: start and end date objects
-    :rtype: datetime.date
+    :rtype: list[datetime.datetime]
     """
     if period == ReportSubscription.MONTH:
         first_day = sometime.replace(day=1)
