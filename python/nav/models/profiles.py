@@ -1376,9 +1376,9 @@ class AccountNavlet(models.Model):
 class ReportSubscription(models.Model):
     """Subscriptions for availability reports"""
 
-    MONTH = 'monthly'
-    WEEK = 'weekly'
-    DAY = 'daily'
+    MONTH = 'month'
+    WEEK = 'week'
+    DAY = 'day'
     PERIODS = ((MONTH, 'monthly'), (WEEK, 'weekly'), (DAY, 'daily'))
 
     DEVICE = 'device'
