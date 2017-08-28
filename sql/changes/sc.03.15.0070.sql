@@ -1,6 +1,6 @@
 -- Create basic token storage for api tokens
 
-CREATE TABLE apitoken (
+CREATE TABLE manage.apitoken (
   id SERIAL PRIMARY KEY,
   token VARCHAR not null,
   expires TIMESTAMP not null,
