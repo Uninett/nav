@@ -1,7 +1,7 @@
 {% for subscription in request.account.reportsubscription_set.all  %}
   <li>
     {{ subscription }}
-    <button class="tiny secondary"
+    <button class="table-button secondary"
             data-subscription-id="{{ subscription.pk }}">
       Unsubscribe
     </button>
