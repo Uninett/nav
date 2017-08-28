@@ -37,6 +37,8 @@ class BusinessView(TemplateView):
         context['title'] = create_title(navpath)
         context['available_reports'] = [DeviceAvailabilityReport,
                                         LinkAvailabilityReport]
+        context['subscription_periods'] = ReportSubscription.PERIODS
+        context['report_types'] = ReportSubscription.TYPES
 
         return context
 
@@ -62,7 +64,6 @@ class AvailabilityReportView(BusinessView):
 
         context['months'] = utils.get_months()
         context['report'] = self
-        context['subscription_periods'] = ReportSubscription.PERIODS
 
         return context
 
@@ -109,6 +110,7 @@ def save_report_subscription(request):
     new_address = request.POST.get('new_address')
     address_id = request.POST.get('address')
     period = request.POST.get('period')
+    report_type = request.POST.get('report_type')
     if new_address:
         email_sender = AlertSender.objects.get(name=AlertSender.EMAIL)
         address = AlertAddress(account=request.account,
@@ -122,7 +124,8 @@ def save_report_subscription(request):
     ReportSubscription(
         account=request.account,
         address=address,
-        period=period).save()
+        period=period,
+        report_type=report_type).save()
 
     return HttpResponse()
 

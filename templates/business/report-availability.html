@@ -13,142 +13,103 @@
 
 
   {# Form for choosing period #}
-  <div class="row">
-
-    <div class="large-6 column">
-      I want a report for
-      <form id="report-form" class="inline-form">
-        <select name="report-month">
-          {% for month in months %}
-            {{ start }}
-            {{ month }}
-            <option value="{{ month.year }}-{{ month.month }}"
-                    {% if start == month %}selected{% endif %}
-            >
-              {{ month|date:'F Y' }}
-            </option>
-          {% endfor %}
-        </select>
-        <input type="submit" class="button small" value="Fetch report">
-      </form>
+  I want a report for
+  <form id="report-form" class="inline-form">
+    <select name="report-month">
+      {% for month in months %}
+        {{ start }}
+        {{ month }}
+        <option value="{{ month.year }}-{{ month.month }}"
+                {% if start == month %}selected{% endif %}
+        >
+          {{ month|date:'F Y' }}
+        </option>
+      {% endfor %}
+    </select>
+    <input type="submit" class="button small" value="Fetch report">
+  </form>
 
 
-      {# Display records #}
-      {% if 'report-month' in request.GET %}
+  {# Display records #}
+  {% if 'report-month' in request.GET %}
 
-        <table id="record-table" class="listtable expandable">
-          <caption>
-            Availability report for {{ start|date:'F Y' }}
-          </caption>
+    <table id="record-table" class="listtable expandable">
+      <caption>
+        Availability report for {{ start|date:'F Y' }}
+      </caption>
 
-          {# Table header #}
-          <thead>
-            <tr>
-              <th>Subject</th>
-              <th title="Number of incidents this month (click 'Show' for details)">Incidents</th>
-              <th title="Total downtime this month">Downtime</th>
-              <th title="Availability as a percentage of total uptime this month">Availability</th>
-            </tr>
-          </thead>
+      {# Table header #}
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th title="Number of incidents this month (click 'Show' for details)">Incidents</th>
+          <th title="Total downtime this month">Downtime</th>
+          <th title="Availability as a percentage of total uptime this month">Availability</th>
+        </tr>
+      </thead>
 
-          {# Table body #}
-          <tbody>
+      {# Table body #}
+      <tbody>
 
-            {% for record in records %}
-              {# Main information row #}
-              <tr class="record-row">
-                <td>
-                  {% if record.subject %}
-                    <a href="{{ record.subject.get_absolute_url }}">
-                      {{ record.subject }}
-                    </a>
-                  {% else %}
-                    <em>N/A</em>
-                  {% endif %}
-                </td>
-                <td>
-                  {{ record.incidents|length }}
-                  <a href="javascript:void(0);" class="toggle-incident pull-right">
-                    Show
-                  </a>
-                </td>
-                <td>{{ record.downtime }}</td>
-                <td>
-                  {{ record.availability|floatformat:"-3" }}%
-                </td>
-              </tr>
+        {% for record in records %}
+          {# Main information row #}
+          <tr class="record-row">
+            <td>
+              {% if record.subject %}
+                <a href="{{ record.subject.get_absolute_url }}">
+                  {{ record.subject }}
+                </a>
+              {% else %}
+                <em>N/A</em>
+              {% endif %}
+            </td>
+            <td>
+              {{ record.incidents|length }}
+              <a href="javascript:void(0);" class="toggle-incident pull-right">
+                Show
+              </a>
+            </td>
+            <td>{{ record.downtime }}</td>
+            <td>
+              {{ record.availability|floatformat:"-3" }}%
+            </td>
+          </tr>
 
-              {# Hidden incidents row #}
-              <tr class="hidden incident-row">
-                <td colspan="4">
-                  <div>
-                    <b>{{ record.incidents|length }} incident{{ record.incidents|pluralize }}</b>
-                    <ul>
-                      {% for incident in record.incidents %}
-                        <li>
-                          <em>{{ incident.alert_type.name }}</em> &mdash;
-                          {{ incident.start_time }} -
-                          {% if incident.end_time|is_max_timestamp %}
-                            Incident has not ended
-                          {% else %}
-                            {{ incident.end_time }}
-                          {% endif %}
-                          &mdash;
-                          Total downtime: {{ incident.get_downtime|remove_microseconds }}
-                        </li>
-                      {% endfor %}
-                    </ul>
-                  </div>
-                </td>
-              </tr>
+          {# Hidden incidents row #}
+          <tr class="hidden incident-row">
+            <td colspan="4">
+              <div>
+                <b>{{ record.incidents|length }} incident{{ record.incidents|pluralize }}</b>
+                <ul>
+                  {% for incident in record.incidents %}
+                    <li>
+                      <em>{{ incident.alert_type.name }}</em> &mdash;
+                      {{ incident.start_time }} -
+                      {% if incident.end_time|is_max_timestamp %}
+                        Incident has not ended
+                      {% else %}
+                        {{ incident.end_time }}
+                      {% endif %}
+                      &mdash;
+                      Total downtime: {{ incident.get_downtime|remove_microseconds }}
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </td>
+          </tr>
 
-            {% empty %}
-              <tr>
-                <td colspan="4">
-                  No downtime in {{ start|date:'F Y' }}
-                </td>
-              </tr>
-            {% endfor %} {# End listing of records #}
-          </tbody>
+        {% empty %}
+          <tr>
+            <td colspan="4">
+              No downtime in {{ start|date:'F Y' }}
+            </td>
+          </tr>
+        {% endfor %} {# End listing of records #}
+      </tbody>
 
-        </table>
+    </table>
 
-      {% endif %}
-
-
-    </div>
-
-    <div class="large-6 column">
-      <h4>Subscribe to email reports</h4>
-      <p class="alert-box info">
-        The first day of a new period an email containing last periods report will be sent to you.
-      </p>
-      <form id="subscription-form" class="inline-form" method="post" action="{% url 'save-report-subscription' %}">
-        Send
-        <select name="period">
-          {% for period in subscription_periods  %}
-            <option value="{{ period.0 }}">{{ period.1 }}</option>
-          {% endfor %}
-        </select>
-        reports for device availability to
-        {% if request.account.get_email_addresses|length %}
-          <select name="address">
-            {% for address in request.account.get_email_addresses  %}
-              <option value="{{ address.pk }}">{{ address.address }}</option>
-            {% endfor %}
-          </select>
-        {% else %}
-          <input type="email" name="new_address" placeholder="email address">
-        {% endif %}
-        <input type="submit" class="button small" value="Subscribe">
-      </form>
-
-      <h5>Your subscriptions</h5>
-      <ul id="subscription-list">
-        {% include 'business/frag-report-items.html' %}
-      </ul>
-    </div>
-
-  </div>
+  {% endif %}
 
 {% endblock %}
