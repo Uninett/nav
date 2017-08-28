@@ -23,20 +23,16 @@ from nav.models.profiles import ReportSubscription
 
 def main(args):
     """Send all reports"""
-    send_reports(args.period, args.report_type)
+    send_reports(args.period)
 
 
 def get_parser():
     """Define the parser"""
     parser = argparse.ArgumentParser()
     period_choices = [p[0] for p in ReportSubscription.PERIODS]
-    type_choices = [p[0] for p in ReportSubscription.TYPES]
     parser.add_argument('period',
                         help='The period for this report',
                         choices=period_choices)
-    parser.add_argument('report_type',
-                        help='The type of report',
-                        choices=type_choices)
     return parser
 
 

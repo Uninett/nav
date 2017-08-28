@@ -29,18 +29,22 @@ from nav.models.profiles import ReportSubscription
 
 Report = namedtuple('Report', ['subject', 'period', 'text_message',
                                'html_message'])
+_logger = logging.getLogger(__name__)
 
 
-def send_reports(period, report_type):
+def send_reports(period):
     """Sends all reports for the given period
 
     Supported periods are in the ReportSubscription class
     """
-    report = build_report(period, report_type)
-    subscriptions = ReportSubscription.objects.filter(period=period,
-                                                      report_type=report_type)
-    for subscription in subscriptions:
-        send_report(report, subscription.address.address)
+
+    report_types = [t for t, _ in ReportSubscription.TYPES]
+    for report_type in report_types:
+        report = build_report(period, report_type)
+        subscriptions = ReportSubscription.objects.filter(
+            period=period, report_type=report_type)
+        for subscription in subscriptions:
+            send_report(report, subscription.address.address)
 
 
 def send_report(report, to_address):
