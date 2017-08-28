@@ -1379,15 +1379,22 @@ class ReportSubscription(models.Model):
     MONTH = 'monthly'
     WEEK = 'weekly'
     DAY = 'daily'
-
     PERIODS = ((MONTH, 'monthly'), (WEEK, 'weekly'), (DAY, 'daily'))
+
+    DEVICE = 'device'
+    LINK = 'link'
+    TYPES = ((DEVICE, 'device availability'), (LINK, 'link availability'))
 
     account = models.ForeignKey(Account)
     address = models.ForeignKey(AlertAddress)
     period = models.CharField(choices=PERIODS)
+    report_type = models.CharField(choices=TYPES)
 
     class Meta(object):
         db_table = u'report_subscription'
 
     def __unicode__(self):
-        return u"{} report sent to {}".format(self.period, self.address.address)
+        return u"{} report for {} sent to {}".format(
+            next(v for k, v in self.PERIODS if k == self.period),
+            next(v for k, v in self.TYPES if k == self.report_type),
+            self.address.address)
