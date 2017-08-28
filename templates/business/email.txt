@@ -2,8 +2,7 @@ Downtime for period {{ start }} - {{ end }}
 
 {{ 'Subject'|stringformat:"-30s" }} {{ 'Incidents'|stringformat:"-10s" }} {{ 'Downtime'|stringformat:"-20s" }} {{ 'Availability' }}
 ------------------------------------------------------------------------------------------{% for record in records %}
-{{ record.subject|stringformat:"-30s" }} {{ record.incidents|length|stringformat:"-10s" }} {{ record.downtime|stringformat:"-20s" }} {{ record.availability }}
-{% empty %}
+{{ record.subject|stringformat:"-30s" }} {{ record.incidents|length|stringformat:"-10s" }} {{ record.downtime|stringformat:"-20s" }} {{ record.availability }}{% empty %}
 No downtime this period
 {% endfor %}
 

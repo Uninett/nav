@@ -21,20 +21,24 @@ from nav.web.business.reportengine import send_reports
 from nav.models.profiles import ReportSubscription
 
 
-def main(period):
+def main(args):
     """Send all reports"""
-    send_reports(period)
+    send_reports(args.period, args.report_type)
 
 
 def get_parser():
     """Define the parser"""
     parser = argparse.ArgumentParser()
-    choices = [p[0] for p in ReportSubscription.PERIODS]
-    help_text = 'The period for this report'
-    parser.add_argument('period', help=help_text, choices=choices)
+    period_choices = [p[0] for p in ReportSubscription.PERIODS]
+    type_choices = [p[0] for p in ReportSubscription.TYPES]
+    parser.add_argument('period',
+                        help='The period for this report',
+                        choices=period_choices)
+    parser.add_argument('report_type',
+                        help='The type of report',
+                        choices=type_choices)
     return parser
 
 
 if __name__ == '__main__':
-    args = get_parser().parse_args()
-    main(args.period)
+    main(get_parser().parse_args())
