@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict, namedtuple
 
 from nav.models.event import AlertHistory
+from nav.models.manage import Interface
 from nav.models.profiles import ReportSubscription
 from django.db.models import Q
 
@@ -106,23 +107,35 @@ def get_alerts(start, end, eventtype='boxState', alerttype='boxDown'):
             )).order_by('-start_time')
 
 
-def group_alerts(alerts):
-    """Group alerts by subject"""
+def group_by_netbox(alerts):
+    """Group alerts by netbox"""
     grouped_alerts = defaultdict(list)
     for alert in alerts:
         grouped_alerts[alert.netbox].append(alert)
     return grouped_alerts
 
 
-def get_records(start, end, eventtype='boxState', alerttype='boxDown'):
-    """Gets all availabilityrecords for this period"""
+def group_by_interface(alerts):
+    grouped_alerts = defaultdict(list)
+    for alert in alerts:
+        try:
+            interface = Interface.objects.get(pk=alert.subid)
+        except Interface.DoesNotExist:
+            continue
+        else:
+            grouped_alerts[interface].append(alert)
+    return grouped_alerts
 
-    # Coarse filtering of alerts
-    alerts = get_alerts(start, end)
 
-    # Group alerts by subject
-    grouped_alerts = group_alerts(alerts)
+def get_netbox_records(start, end):
+    alerts = get_alerts(start, end, 'boxState', 'boxDown')
+    grouped_alerts = group_by_netbox(alerts)
+    return [create_record(subject, alerts, start, end)
+            for subject, alerts in grouped_alerts.items()]
 
-    # Create availability records for each subject
+
+def get_interface_records(start, end):
+    alerts = get_alerts(start, end, 'linkState', 'linkDown')
+    grouped_alerts = group_by_interface(alerts)
     return [create_record(subject, alerts, start, end)
             for subject, alerts in grouped_alerts.items()]

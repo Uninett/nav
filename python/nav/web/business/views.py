@@ -11,7 +11,6 @@ from django.http import HttpResponse
 
 from nav.metrics.data import get_netboxes_availability
 from nav.models.event import AlertHistory
-from nav.models.manage import Interface
 from nav.models.profiles import AlertAddress, ReportSubscription, AlertSender
 from nav.web.business import utils
 from nav.web.utils import create_title
@@ -69,7 +68,7 @@ class AvailabilityReportView(BusinessView):
 
     def get_records(self, start, end):
         """Get records for the specified event and alert types"""
-        return utils.get_records(start, end)
+        raise NotImplementedError
 
     def get_url(self):
         """Get the url for this view"""
@@ -85,6 +84,10 @@ class DeviceAvailabilityReport(AvailabilityReportView):
     def get_url(self):
         return reverse('business-report-device-availability')
 
+    def get_records(self, start, end):
+        """Get records for the specified event and alert types"""
+        return utils.get_netbox_records(start, end)
+
 
 class LinkAvailabilityReport(AvailabilityReportView):
     """Availability for links"""
@@ -95,23 +98,10 @@ class LinkAvailabilityReport(AvailabilityReportView):
     def get_url(self):
         return reverse('business-report-link-availability')
 
-    def get_records(self, start, end, **_kwargs):
+    def get_records(self, start, end):
         """Gets all records regarding links for this period"""
-        return super(LinkAvailabilityReport, self).get_records(
-            start, end, 'linkState', 'linkDown')
+        return utils.get_interface_records(start, end)
 
-    @staticmethod
-    def group_alerts(alerts):
-        grouped_alerts = defaultdict(list)
-        for alert in alerts:
-            try:
-                interface = Interface.objects.get(pk=alert.subid)
-            except Interface.DoesNotExist:
-                continue
-            else:
-                grouped_alerts[interface].append(alert)
-
-        return grouped_alerts
 
 def save_report_subscription(request):
     """Saves a report subscription"""
