@@ -6,3 +6,6 @@ Downtime for period {{ start }} - {{ end }}
 {% empty %}
 No downtime this period
 {% endfor %}
+
+
+{% include 'business/frag-unsubscribe.html' %}
