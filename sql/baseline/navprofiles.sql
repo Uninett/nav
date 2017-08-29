@@ -37,6 +37,7 @@ CREATE TABLE alertsender (
 	CONSTRAINT alertsender_unique_handler UNIQUE(handler),
 	CONSTRAINT alertsender_pkey  PRIMARY KEY(id)
 );
+ALTER SEQUENCE alertsender_id_seq OWNED BY alertsender.id;
 
 /*
 -- 1 ACCOUNT
@@ -60,8 +61,7 @@ CREATE TABLE Account (
     CONSTRAINT account_pkey PRIMARY KEY(id),
     CONSTRAINT account_login_key UNIQUE(login)
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE account_id_seq OWNED BY account.id;
+ALTER SEQUENCE account_id_seq OWNED BY account.id;
 
 -- Trigger that ensures that users are a part of the groups everyone and authenticated users
 CREATE OR REPLACE FUNCTION group_membership() RETURNS trigger AS $group_membership$
@@ -93,8 +93,7 @@ CREATE TABLE AccountGroup (
 
     CONSTRAINT accountgroup_pkey PRIMARY KEY(id)
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE accountgroup_id_seq OWNED BY accountgroup.id;
+ALTER SEQUENCE accountgroup_id_seq OWNED BY accountgroup.id;
 
 
 -- 3 ACCOUNTGROUP_ACCOUNTS
@@ -115,8 +114,7 @@ CREATE TABLE accountgroup_accounts (
         ON UPDATE CASCADE
         ON DELETE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE accountgroup_accounts_id_seq OWNED BY accountgroup_accounts.id;
+ALTER SEQUENCE accountgroup_accounts_id_seq OWNED BY accountgroup_accounts.id;
 
 -- ACCOUNTINGROUP
 -- View for compability with older code that thinks accountgroup_accounts is
@@ -151,8 +149,7 @@ CREATE TABLE AccountProperty (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE accountproperty_id_seq OWNED BY accountproperty.id;
+ALTER SEQUENCE accountproperty_id_seq OWNED BY accountproperty.id;
 
 /*
 -- 5 ALERTADDRESS
@@ -185,8 +182,7 @@ CREATE TABLE alertaddress (
                   ON UPDATE CASCADE
          
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE alertaddress_id_seq OWNED BY alertaddress.id;
+ALTER SEQUENCE alertaddress_id_seq OWNED BY alertaddress.id;
 
 
 /*
@@ -218,8 +214,7 @@ CREATE TABLE alertprofile (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE alertprofile_id_seq OWNED BY alertprofile.id;
+ALTER SEQUENCE alertprofile_id_seq OWNED BY alertprofile.id;
 
 
 /*
@@ -275,8 +270,7 @@ CREATE TABLE timeperiod (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE timeperiod_id_seq OWNED BY timeperiod.id;
+ALTER SEQUENCE timeperiod_id_seq OWNED BY timeperiod.id;
 
 /*
 -- 9 FILTERGROUP
@@ -301,8 +295,7 @@ CREATE TABLE filtergroup (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE filtergroup_id_seq OWNED BY filtergroup.id;
+ALTER SEQUENCE filtergroup_id_seq OWNED BY filtergroup.id;
 
 /*
 -- 10 ALERTSUBSCRIPTION
@@ -343,8 +336,7 @@ CREATE TABLE alertsubscription (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE alertsubscription_id_seq OWNED BY alertsubscription.id;
+ALTER SEQUENCE alertsubscription_id_seq OWNED BY alertsubscription.id;
 
 /*
 -- 11 FILTERGROUP_GROUP_PERMISSION
@@ -373,8 +365,7 @@ CREATE TABLE filtergroup_group_permission (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE filtergroup_group_permission_id_seq OWNED BY filtergroup_group_permission.id;
+ALTER SEQUENCE filtergroup_group_permission_id_seq OWNED BY filtergroup_group_permission.id;
 
 /*
 -- 14 FILTER
@@ -398,8 +389,7 @@ CREATE TABLE filter (
 		  ON DELETE SET NULL
 		  ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE filter_id_seq OWNED BY filter.id;
+ALTER SEQUENCE filter_id_seq OWNED BY filter.id;
 
 /*
 -- 15 FILTERGROUPCONTENT
@@ -433,8 +423,7 @@ CREATE TABLE filtergroupcontent (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE filtergroupcontent_id_seq OWNED BY filtergroupcontent.id;
+ALTER SEQUENCE filtergroupcontent_id_seq OWNED BY filtergroupcontent.id;
 
 /*
 -- 16 MATCHFIELD
@@ -466,8 +455,7 @@ CREATE TABLE MatchField (
 
     CONSTRAINT matchfield_pkey PRIMARY KEY(id)
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE matchfield_id_seq OWNED BY matchfield.id;
+ALTER SEQUENCE matchfield_id_seq OWNED BY matchfield.id;
 
 /*
 -- 17 EXPRESSION
@@ -496,8 +484,7 @@ CREATE TABLE expression (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE expression_id_seq OWNED BY expression.id;
+ALTER SEQUENCE expression_id_seq OWNED BY expression.id;
 
 
 /*
@@ -521,9 +508,8 @@ CREATE TABLE Operator (
             ON DELETE CASCADE
             ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE operator_id_seq OWNED BY operator.id;
--- ALTER SEQUENCE operator_operator_id_seq OWNED BY operator.operator_id;
+ALTER SEQUENCE operator_id_seq OWNED BY operator.id;
+ALTER SEQUENCE operator_operator_id_seq OWNED BY operator.operator_id;
 
 /*
 -- 20 SMSQ
@@ -604,8 +590,7 @@ CREATE TABLE NavbarLink (
                ON DELETE CASCADE
                ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE navbarlink_id_seq OWNED BY navbarlink.id;
+ALTER SEQUENCE navbarlink_id_seq OWNED BY navbarlink.id;
 
 /*
 -- AccountOrg
@@ -633,8 +618,7 @@ CREATE TABLE AccountOrg (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE accountorg_id_seq OWNED BY accountorg.id;
+ALTER SEQUENCE accountorg_id_seq OWNED BY accountorg.id;
 
 /*
 -- Privilege
@@ -651,8 +635,7 @@ CREATE TABLE Privilege (
        CONSTRAINT privilege_pkey PRIMARY KEY (privilegeid),
        CONSTRAINT privilege_privilegename_key UNIQUE(privilegename)
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE privilege_id_seq OWNED BY privilege.privilegeid;
+ALTER SEQUENCE privilege_id_seq OWNED BY privilege.privilegeid;
 
 /*
 -- AccountGroupPrivilege
@@ -678,8 +661,7 @@ CREATE TABLE AccountGroupPrivilege (
                   ON DELETE CASCADE
                   ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE accountgroupprivilege_id_seq OWNED BY accountgroupprivilege.id;
+ALTER SEQUENCE accountgroupprivilege_id_seq OWNED BY accountgroupprivilege.id;
 
 /*
 -- PrivilegeByGroup
@@ -714,8 +696,7 @@ CREATE TABLE statuspreference (
 		ON UPDATE CASCADE
 		ON DELETE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE statuspref_id_seq OWNED BY statuspref.id;
+ALTER SEQUENCE statuspreference_id_seq OWNED BY statuspreference.id;
 
 CREATE SEQUENCE statuspreference_organization_id_seq;
 CREATE TABLE statuspreference_organization (
@@ -735,8 +716,7 @@ CREATE TABLE statuspreference_organization (
 		ON UPDATE CASCADE
 		ON DELETE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE statuspref_org_id_seq OWNED BY statuspref_org.id;
+ALTER SEQUENCE statuspreference_organization_id_seq OWNED BY statuspreference_organization.id;
 
 CREATE SEQUENCE statuspreference_category_id_seq;
 CREATE TABLE statuspreference_category (
@@ -756,8 +736,7 @@ CREATE TABLE statuspreference_category (
 		ON UPDATE CASCADE
 		ON DELETE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE statuspreference_category_id_seq OWNED BY statuspreference_category.id;
+ALTER SEQUENCE statuspreference_category_id_seq OWNED BY statuspreference_category.id;
 
 
 

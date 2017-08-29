@@ -1,3 +1,14 @@
+/*
+
+  manage2.sql
+
+  This file is used for defining objects in the `manage` namespace that depend
+  on objects in the `profiles` namespace. This is necessary because
+  `manage.sql` is run before `profiles.sql`, and objects in `profiles.sql`
+  depend on objects in `manage.sql`, and dependency cycles are bad.
+
+*/
+
 ------------------------------------------------------------------------------
 -- mac watch table for storing watched mac addresses
 ------------------------------------------------------------------------------
@@ -25,31 +36,6 @@ CREATE TABLE image (
   priority INT
 );
 
-ALTER SEQUENCE eventqvar_id_seq OWNED BY manage.eventqvar.id;
-ALTER SEQUENCE profiles.accountgroup_accounts_id_seq OWNED BY profiles.accountgroup_accounts.id;
-ALTER SEQUENCE profiles.accountproperty_id_seq OWNED BY profiles.accountproperty.id;
-ALTER SEQUENCE profiles.alertsender_id_seq OWNED BY profiles.alertsender.id;
-ALTER SEQUENCE profiles.alertprofile_id_seq OWNED BY profiles.alertprofile.id;
-ALTER SEQUENCE profiles.alertaddress_id_seq OWNED BY profiles.alertaddress.id;
-ALTER SEQUENCE profiles.timeperiod_id_seq OWNED BY profiles.timeperiod.id;
-ALTER SEQUENCE profiles.filtergroup_group_permission_id_seq OWNED BY profiles.filtergroup_group_permission.id;
-ALTER SEQUENCE profiles.filtergroup_id_seq OWNED BY profiles.filtergroup.id;
-ALTER SEQUENCE profiles.filtergroupcontent_id_seq OWNED BY profiles.filtergroupcontent.id;
-ALTER SEQUENCE profiles.expression_id_seq OWNED BY profiles.expression.id;
-ALTER SEQUENCE profiles.filter_id_seq OWNED BY profiles.filter.id;
-ALTER SEQUENCE profiles.operator_operator_id_seq OWNED BY profiles.operator.operator_id;
-ALTER SEQUENCE profiles.operator_id_seq OWNED BY profiles.operator.id;
-ALTER SEQUENCE profiles.matchfield_id_seq OWNED BY profiles.matchfield.id;
-ALTER SEQUENCE profiles.alertsubscription_id_seq OWNED BY profiles.alertsubscription.id;
-ALTER SEQUENCE profiles.navbarlink_id_seq OWNED BY profiles.navbarlink.id;
-ALTER SEQUENCE profiles.accountorg_id_seq OWNED BY profiles.accountorg.id;
-ALTER SEQUENCE profiles.account_id_seq OWNED BY profiles.account.id;
-ALTER SEQUENCE profiles.accountgroup_id_seq OWNED BY profiles.accountgroup.id;
-ALTER SEQUENCE profiles.accountgroupprivilege_id_seq OWNED BY profiles.accountgroupprivilege.id;
-ALTER SEQUENCE profiles.privilege_id_seq OWNED BY profiles.privilege.privilegeid;
-ALTER SEQUENCE profiles.statuspreference_organization_id_seq OWNED BY profiles.statuspreference_organization.id;
-ALTER SEQUENCE profiles.statuspreference_id_seq OWNED BY profiles.statuspreference.id;
-ALTER SEQUENCE profiles.statuspreference_category_id_seq OWNED BY profiles.statuspreference_category.id;
 
 INSERT INTO subsystem (
   SELECT 'macwatch' AS name

@@ -639,8 +639,7 @@ CREATE TABLE eventqvar (
   CONSTRAINT eventqvar_pkey PRIMARY KEY(id),
   CONSTRAINT eventqvar_eventqid_key UNIQUE(eventqid, var) -- only one val per var per event
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE eventqvar_id_seq OWNED BY eventqvar.id;
+ALTER SEQUENCE eventqvar_id_seq OWNED BY eventqvar.id;
 
 
 
