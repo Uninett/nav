@@ -17,6 +17,7 @@
 
 from __future__ import print_function
 
+import logging
 from collections import namedtuple
 from datetime import date, datetime, timedelta
 
@@ -26,7 +27,7 @@ from django.template.loader import render_to_string
 from nav.web.business import utils
 from nav.models.profiles import ReportSubscription
 
-
+_logger = logging.getLogger(__name__)
 Report = namedtuple('Report', ['subject', 'period', 'text_message',
                                'html_message'])
 
@@ -39,15 +40,20 @@ def send_reports(period):
 
     report_types = [t for t, _ in ReportSubscription.TYPES]
     for report_type in report_types:
+        _logger.debug('Sending reports for period %s, type %s',
+                      period, report_type)
         report = build_report(period, report_type)
         subscriptions = ReportSubscription.objects.filter(
             period=period, report_type=report_type)
         for subscription in subscriptions:
             send_report(report, subscription.address.address)
+        _logger.info('%s %s availability: Sent %s reports',
+                     period, report_type, subscriptions.count())
 
 
 def send_report(report, to_address):
     """Sends a single email report"""
+    _logger.debug('Sending report to %s', to_address)
     send_mail(
         report.subject,
         report.text_message,
