@@ -1,5 +1,7 @@
 import pytest
 from mock import Mock
+from django.utils import six
+
 from nav.eventengine.config import EventEngineConfig
 from nav.eventengine.engine import EventEngine
 from nav.eventengine.plugin import UnsupportedEvent, EventHandler
@@ -34,7 +36,7 @@ def test_handler_should_construct_fine_on_supported_event():
 
 def test_find_package_modules_is_list():
     modules = _find_package_modules('nav.eventengine.plugins')
-    assert not isinstance(modules, basestring)
+    assert not isinstance(modules, six.string_types)
     assert len(modules) >= 0
 
 

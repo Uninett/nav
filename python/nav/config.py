@@ -23,6 +23,8 @@ import os
 import sys
 import ConfigParser
 
+from django.utils import six
+
 from . import buildconf
 from nav.errors import GeneralException
 
@@ -40,7 +42,7 @@ def read_flat_config(config_file, delimiter='='):
     :returns: dictionary of the key/value pairs that were read.
     """
 
-    if isinstance(config_file, basestring):
+    if isinstance(config_file, six.string_types):
         if config_file[0] != os.sep:
             config_file = os.path.join(buildconf.sysconfdir, config_file)
         config_file = open(config_file, 'r')
@@ -72,7 +74,7 @@ def getconfig(configfile, defaults=None, configfolder=None):
               section as values.
 
     """
-    if isinstance(configfile, basestring):
+    if isinstance(configfile, six.string_types):
         if configfolder:
             configfile = os.path.join(configfolder, configfile)
         configfile = open(configfile, 'r')

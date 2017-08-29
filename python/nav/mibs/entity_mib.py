@@ -21,6 +21,7 @@ import logging
 from datetime import datetime
 import struct
 
+from django.utils import six
 from twisted.internet import defer
 
 from nav.oids import OID
@@ -214,7 +215,7 @@ class EntityTable(dict):
     def _parse_mfg_date(self):
         for entity in self.values():
             mfg_date = entity.get('entPhysicalMfgDate')
-            if isinstance(mfg_date, basestring):
+            if isinstance(mfg_date, six.string_types):
                 mfg_date = parse_dateandtime_tc(mfg_date)
                 entity['entPhysicalMfgDate'] = mfg_date
 

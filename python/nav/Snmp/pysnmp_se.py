@@ -19,6 +19,7 @@ import re
 # other modules expect to find these here
 # pylint: disable=W0401
 from nav.Snmp.errors import *
+from django.utils import six
 
 from pysnmp.asn1.oid import OID
 from pysnmp.mapping.udp import error as snmperror
@@ -28,7 +29,7 @@ from pysnmp.proto.api import alpha
 
 def oid_to_str(oid):
     """Converts an OID object/tuplet to a dotted string representation."""
-    if not isinstance(oid, basestring):
+    if not isinstance(oid, six.string_types):
         oid = "." + ".".join(str(i) for i in oid)
     return oid
 
