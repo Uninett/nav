@@ -25,6 +25,7 @@ from django import forms
 from django.db import models, connection
 from django.core import exceptions
 from django.db.models import Q
+from django.utils import six
 
 from nav.util import is_valid_cidr, is_valid_ip
 from nav.django import validators, forms as navforms
@@ -57,10 +58,9 @@ class VarcharField(models.TextField):
         return super(VarcharField, self).formfield(**defaults)
 
 
-class PickleField(models.TextField):
+class PickleField(six.with_metaclass(models.SubfieldBase, models.TextField)):
     """Automatically pickles and unpickles values"""
 
-    __metaclass__ = models.SubfieldBase  # Ensure to_python is called on init
     description = "Field for storing pickles"
 
     def db_type(self, connection=None):
@@ -78,11 +78,10 @@ class PickleField(models.TextField):
             return pickle.dumps(value)
 
 
-class DictAsJsonField(models.TextField):
+class DictAsJsonField(six.with_metaclass(models.SubfieldBase, models.TextField)):
     """Serializes value to and from json. Has a fallback to pickle for
     historical reasons"""
 
-    __metaclass__ = models.SubfieldBase  # Ensure to_python is called on init
     description = "Field for storing json structure"
 
     def db_type(self, connection=None):
@@ -106,8 +105,7 @@ class DictAsJsonField(models.TextField):
             return json.dumps(value)
 
 
-class CIDRField(VarcharField):
-    __metaclass__ = models.SubfieldBase
+class CIDRField(six.with_metaclass(models.SubfieldBase, VarcharField)):
 
     def to_python(self, value):
         """Verifies that the value is a string with a valid CIDR IP address"""
@@ -118,8 +116,7 @@ class CIDRField(VarcharField):
             return value
 
 
-class PointField(models.CharField):
-    __metaclass__ = models.SubfieldBase
+class PointField(six.with_metaclass(models.SubfieldBase, models.CharField)):
 
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 100
