@@ -94,8 +94,5 @@ class SnmpCheck(Plugin):
 
     @transaction.atomic()
     def _currently_down(self):
-        infinity = datetime.datetime.max
-        return AlertHistory.objects.filter(
-            netbox=self.netbox.id,
-            event_type__id='snmpAgentState',
-            end_time__gte=infinity).exists()
+        return AlertHistory.objects.unresolved(
+            'snmpAgentState').filter(netbox=self.netbox.id).exists()
