@@ -1254,18 +1254,6 @@ SELECT insert_default_navlets_for_existing_users();
 ---
 DELETE FROM account_navlet WHERE account=0 AND navlet='nav.web.navlets.gettingstarted.GettingStartedWidget';
 
----
--- Create trigger that inserts default navlets for new users
----
-CREATE OR REPLACE FUNCTION insert_default_navlets_for_new_users() RETURNS trigger AS $$
-    BEGIN
-      INSERT INTO account_navlet (account, navlet, displayorder, col, preferences)
-        SELECT NEW.id, navlet, displayorder, col, preferences FROM account_navlet WHERE account=0;
-      INSERT INTO account_navlet (account, navlet, displayorder, col) VALUES
-        (NEW.id, 'nav.web.navlets.gettingstarted.GettingStartedWidget', -1, 1);
-      RETURN NULL;
-    END
-$$ LANGUAGE plpgsql;
 
 ---
 -- Give authenticated users access to Graphite graphs and stuffz
