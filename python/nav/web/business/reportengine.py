@@ -29,7 +29,6 @@ from nav.models.profiles import ReportSubscription
 
 Report = namedtuple('Report', ['subject', 'period', 'text_message',
                                'html_message'])
-_logger = logging.getLogger(__name__)
 
 
 def send_reports(period):
