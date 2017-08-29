@@ -39,7 +39,7 @@ class SnmpTestPynetsnmp(SnmpTestCase):
 
     def test_load_pynetsnmp_if_available_as_first_choice(self):
         # This import should be fine
-        from nav.Snmp.pynetsnmp import *
+        import nav.Snmp.pynetsnmp as _
 
         # wrapper should also be fine to import
         from nav.Snmp import Snmp
@@ -78,7 +78,7 @@ class SnmpTestPysnmp(SnmpTestCase):
         pytest.raises(ImportError, 'from pynetsnmp import netsnmp')
 
         # Should not fail.
-        from nav.Snmp.pysnmp_se import *
+        import nav.Snmp.pysnmp_se as _
 
         from nav.Snmp import Snmp
 
