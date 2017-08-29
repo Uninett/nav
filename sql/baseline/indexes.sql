@@ -12,8 +12,6 @@ CREATE INDEX vlan_vlan_btree ON vlan USING btree (vlan);
 
 CREATE INDEX prefix_vlanid_btree ON prefix USING btree (vlanid);
 
-CREATE INDEX netboxsnmpoid_snmpoidid_btree ON netboxsnmpoid USING btree (snmpoidid);
-
 CREATE INDEX interface_to_interfaceid_btree ON interface USING btree (to_interfaceid);
 
 CREATE INDEX gwportprefix_interfaceid_btree ON gwportprefix USING btree (interfaceid);
@@ -30,14 +28,11 @@ CREATE INDEX arp_end_time_btree ON arp USING btree (end_time);
 CREATE INDEX arp_prefixid_btree ON arp USING btree (prefixid);
 
 CREATE INDEX cam_mac_btree ON cam USING btree (mac);
-CREATE INDEX cam_start_time_btree ON cam USING btree (start_time);
 CREATE INDEX cam_end_time_btree ON cam USING btree (end_time);
 CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
 CREATE INDEX cam_netboxid_ifindex_end_time_btree ON cam USING btree (netboxid, ifindex, end_time);
 -- Index to speed up ipdevinfo queries for the first cam entry from a box
 CREATE INDEX cam_netboxid_start_time_btree ON cam USING btree (netboxid, start_time);
-
-CREATE INDEX rrd_file_value ON rrd_file(value);
 
 CREATE INDEX eventq_target_btree ON eventq USING btree (target);
 
@@ -53,6 +48,21 @@ CREATE INDEX alerthist_end_time_btree ON alerthist USING btree (end_time);
 CREATE INDEX alerthistmsg_alerthistid_btree ON alerthistmsg USING btree (alerthistid);
 
 CREATE INDEX alerthistvar_alerthistid_btree ON alerthistvar USING btree (alerthistid);
+
+CREATE INDEX alerthist_open_states_by_eventtype ON alerthist USING btree (netboxid, eventtypeid) WHERE end_time >= 'infinity';
+
+CREATE INDEX cam_open_records_by_netbox ON cam USING btree (netboxid) WHERE end_time >= 'infinity' OR misscnt >= 0;
+
+CREATE INDEX ipdevpoll_job_log_netboxjob_btree ON ipdevpoll_job_log (netboxid, job_name);
+
+CREATE INDEX interface_stack_higher ON interface_stack (higher);
+CREATE INDEX interface_stack_lower ON interface_stack (lower);
+-- Create index for ip column on manage.netbios to make lookups faster
+
+CREATE INDEX netbios_ip ON manage.netbios (ip);
+
+CREATE INDEX interface_aggregate_aggregator ON interface_aggregate (aggregator);
+CREATE INDEX interface_aggregate_interface ON interface_aggregate (interface);
 
 
 ----------------------------------------------
