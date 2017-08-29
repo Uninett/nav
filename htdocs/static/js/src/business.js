@@ -69,7 +69,11 @@ require(['libs/jquery'], function() {
             var $form = $(this);
             $.post($form.attr("action"), $form.serialize())
              .then(function() {
-                 $('body').trigger(subscriptionReloadEvent);
+                 if (_.has($form.get(0).elements, 'new_address')) {
+                     window.location.reload();
+                 } else {
+                     $('body').trigger(subscriptionReloadEvent);
+                 }
              });
         })
     }
