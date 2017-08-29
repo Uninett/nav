@@ -276,7 +276,7 @@ class Synchronizer(object):
         ('logger', 'logger.sql'),
         ('arnold', 'arnold.sql'),
         ('radius', 'radius.sql'),
-	('manage', 'manage2.sql'),
+        ('manage', 'manage2.sql'),
         (None, 'indexes.sql'),
         ]
 
