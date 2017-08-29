@@ -4,8 +4,8 @@ import unittest
 from nav.netmap import topology
 from nav.netmap.topology import build_netmap_layer2_graph
 
-from topology_layer2_testcase import TopologyLayer2TestCase
-from topology_layer3_testcase import TopologyLayer3TestCase
+from .topology_layer2_testcase import TopologyLayer2TestCase
+from .topology_layer3_testcase import TopologyLayer3TestCase
 
 
 class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
