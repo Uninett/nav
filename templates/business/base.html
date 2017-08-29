@@ -7,6 +7,7 @@
   <script>
    NAV.urls.render_report_subscriptions = "{% url 'render-report-subscriptions' %}";
    NAV.urls.remove_report_subscription = "{% url 'remove-report-subscription' %}";
+   NAV.urls.save_report_subscription = "{% url 'save-report-subscription' %}";
   </script>
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/business.css">
 {% endblock %}
@@ -68,6 +69,13 @@
       <ul id="subscription-list">
         {% include 'business/frag-report-items.html' %}
       </ul>
+
+      <p id="undounsubscribe"
+         class="alert-box warning"
+         style="max-width: 30em; display: none; justify-content: space-between; align-items: center;">
+        Subscription removed.
+        <button class="tiny" style="margin-bottom: 0">Undo</button>
+      </p>
 
 
     </div>

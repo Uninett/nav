@@ -20,6 +20,7 @@
 
 import itertools
 import logging
+import json
 from django.core.urlresolvers import reverse
 import os
 from datetime import datetime
@@ -31,6 +32,7 @@ from hashlib import md5
 
 from django.db import models, transaction
 from django_hstore import hstore
+from django.forms.models import model_to_dict
 
 import nav.path
 import nav.pwhash
@@ -1398,6 +1400,11 @@ class ReportSubscription(models.Model):
             self.get_period_description(self.period),
             self.get_type_description(self.report_type),
             self.address.address)
+
+    def serialize(self):
+        keys = ['report_type', 'period', 'address']
+        filtered = {k:v for k, v in model_to_dict(self).items() if k in keys}
+        return json.dumps(filtered)
 
     @staticmethod
     def get_period_description(period):
