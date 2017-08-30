@@ -18,9 +18,11 @@ class PortadminResponseTest(unittest.TestCase):
 
         self.hpType = Mock()
         self.hpType.vendor = self.hpVendor
+        self.hpType.get_enterprise_id.return_value = VENDOR_ID_HEWLETT_PACKARD
 
         self.ciscoType = Mock()
         self.ciscoType.vendor = self.ciscoVendor
+        self.ciscoType.get_enterprise_id.return_value = VENDOR_ID_CISCOSYSTEMS
 
         self.netboxHP = Mock()
         self.netboxHP.type = self.hpType
@@ -73,8 +75,10 @@ class PortadminResponseTest(unittest.TestCase):
         # replace get-method on Snmp-object with a mock-method
         # this get-method returns a vlan-number
         self.snmpReadOnlyHandler.get = Mock(return_value=666)
-        self.assertEqual(self.handler.get_vlan(1), 666,
-                         "getVlan-test failed")
+        ifc = Interface(baseport=1)
+        self.assertEqual(self.handler.get_vlan(ifc), 666,
+                                "getVlan-test failed")
+        self.snmpReadOnlyHandler.get.assert_called_with('1.3.6.1.2.1.17.7.1.4.5.1.1.1')
 
     def test_get_ifaliases_hp(self):
         self.handler = SNMPFactory.get_instance(self.netboxHP)
@@ -118,10 +122,10 @@ class PortadminResponseTest(unittest.TestCase):
         #  cisco-netbox
         self.handler = SNMPFactory.get_instance(self.netboxCisco)
         self.assertNotEqual(self.handler, None, 'Could not get handler-object')
-        self.assertEquals(self.handler.__unicode__(),  u'cisco',
-                          'Wrong handler-type')
+        self.assertEquals(self.handler.__unicode__(),  u'cisco', 'Wrong handler-type')
+        self.assertEquals(type(self.handler), Cisco, 'Wrong handler-type')
 
-    def test_get_ifalias_cisco(self):
+    def test_get_ifaliases_cisco(self):
         self.handler = SNMPFactory.get_instance(self.netboxCisco)
         # get hold of the read-only Snmp-object
         self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
@@ -133,13 +137,16 @@ class PortadminResponseTest(unittest.TestCase):
 
     def test_get_vlan_cisco(self):
         self.handler = SNMPFactory.get_instance(self.netboxCisco)
+        assert type(self.handler) == Cisco
         # get hold of the read-only Snmp-object
         self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
         # replace get-method on Snmp-object with a mock-method
         # this get-method returns a vlan-number
         self.snmpReadOnlyHandler.get = Mock(return_value=77)
-        self.assertEqual(self.handler.get_vlan(1), 77,
-                         "getVlan-test failed")
+        ifc = Interface(ifindex=1)
+        self.assertEqual(self.handler.get_vlan(ifc), 77,
+                                "getVlan-test failed")
+        self.snmpReadOnlyHandler.get.assert_called_with('1.3.6.1.4.1.9.9.68.1.2.2.1.2.1')
 
     def test_get_ifaliases_cisco(self):
         self.handler = SNMPFactory.get_instance(self.netboxCisco)
