@@ -17,7 +17,6 @@
 
 import socket
 import imaplib
-from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import  Event
@@ -92,9 +91,7 @@ class IMAPSConnection(imaplib.IMAP4):
         """
         self.host = host
         self.port = port
-        # try with 2.3 socket
-        self.sock = socket.socket(socktype_from_addr(host), socket.SOCK_STREAM)
-        self.sock.connect((host, port))
+        self.sock = socket.create_connection((host, port))
         self.sslobj = socket.ssl(self.sock, self.keyfile, self.certfile)
 
     def read(self, size):
