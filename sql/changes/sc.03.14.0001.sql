@@ -1,6 +1,6 @@
 -- Create table for netbios names
 
-CREATE TABLE netbios (
+CREATE TABLE manage.netbios (
   netbiosid SERIAL PRIMARY KEY,
   ip INET NOT NULL,
   mac MACADDR NOT NULL,

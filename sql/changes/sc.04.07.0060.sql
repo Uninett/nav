@@ -1,6 +1,6 @@
 -- Definition of a rack with environment sensors
 
-CREATE TABLE IF NOT EXISTS rack (
+CREATE TABLE IF NOT EXISTS manage.rack (
   rackid SERIAL PRIMARY KEY,
   roomid VARCHAR REFERENCES room ON DELETE CASCADE,
   rackname VARCHAR,
