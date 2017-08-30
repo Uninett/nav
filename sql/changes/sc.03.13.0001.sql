@@ -1,5 +1,5 @@
 -- Added because macwatch may use mac-address prefixes
-CREATE TABLE macwatch_match(
+CREATE TABLE manage.macwatch_match(
   id SERIAL PRIMARY KEY,
   macwatch INT NOT NULL REFERENCES macwatch(id) ON DELETE CASCADE ON UPDATE CASCADE,
   cam INT NOT NULL REFERENCES cam(camid) ON DELETE CASCADE ON UPDATE CASCADE,

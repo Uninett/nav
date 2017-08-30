@@ -1,4 +1,4 @@
-CREATE TABLE peersession (
+CREATE TABLE manage.peersession (
   peersessionid SERIAL NOT NULL,
   netboxid INTEGER NOT NULL,
   protocol INTEGER NOT NULL,

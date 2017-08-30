@@ -1,6 +1,6 @@
 DROP TABLE nav_schema_version;
 
-CREATE TABLE schema_change_log (
+CREATE TABLE manage.schema_change_log (
     id SERIAL PRIMARY KEY,
     major INTEGER NOT NULL,
     minor INTEGER NOT NULL,
