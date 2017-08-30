@@ -14,7 +14,7 @@ class PortadminResponseTest(unittest.TestCase):
 
         self.ciscoVendor = Mock()
         self.ciscoVendor.id  = u'cisco'
-        
+
         self.hpType = Mock()
         self.hpType.vendor = self.hpVendor
         self.hpType.get_enterprise_id.return_value = VENDOR_ID_HEWLETT_PACKARD
@@ -35,7 +35,7 @@ class PortadminResponseTest(unittest.TestCase):
 
         self.snmpReadOnlyHandler = None
         self.handler = None
- 
+
     def tearDown(self):
         self.hpVendor = None
         self.ciscoVendor = None
@@ -56,17 +56,17 @@ class PortadminResponseTest(unittest.TestCase):
                                 'Could not get handler-object')
         self.assertEquals(self.handler.__unicode__(),  u'hp',
                                 'Wrong handler-type')
-    
+
     def test_get_ifalias_hp(self):
         self.handler = SNMPFactory.get_instance(self.netboxHP)
         # get hold of the read-only Snmp-object
         self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
         # replace get-method on Snmp-object with a mock-method
         # this get-method returns a ifalias
-        self.snmpReadOnlyHandler.get = Mock(return_value="pkt: 999") 
+        self.snmpReadOnlyHandler.get = Mock(return_value="pkt: 999")
         self.assertEquals(self.handler.get_if_alias(1), "pkt: 999",
                                 "getIfAlias-test failed")
-        
+
     def test_get_vlan_hp(self):
         self.handler = SNMPFactory.get_instance(self.netboxHP)
         # get hold of the read-only Snmp-object
@@ -88,7 +88,7 @@ class PortadminResponseTest(unittest.TestCase):
         self.snmpReadOnlyHandler.bulkwalk = Mock(return_value=['hjalmar', 'snorre', 'bjarne'])
         self.assertEqual(self.handler.get_all_if_alias(),
             ['hjalmar', 'snorre', 'bjarne'], "getAllIfAlias failed.")
-        
+
     def test_set_ifalias_hp(self):
         self.handler = SNMPFactory.get_instance(self.netboxHP)
         # get hold of the read-write Snmp-object
