@@ -322,11 +322,11 @@ class Synchronizer(object):
                        if wanted not in schemas]
 
         if add_schemas:
+            print(("Existing namespaces in %s search path: %s. Adding %s." %
+                   (self.connect_options.dbname, ", ".join(schemas), ", ".join(add_schemas))))
             schemas.extend(add_schemas)
-            print(("Adding namespaces to %s search_path: %s" %
-                   (self.connect_options.dbname, ", ".join(add_schemas))))
             sql = ('ALTER DATABASE "%s" SET search_path TO %s' %
-                   (self.connect_options.dbname, ", ".join(add_schemas)))
+                   (self.connect_options.dbname, ", ".join(schemas)))
             self.cursor.execute(sql)
         self.connection.commit()
         self.connect() # must reconnect to activate the new search path
