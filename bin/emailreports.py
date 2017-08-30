@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# -*- testargs: month -*-
 # Copyright (C) 2016 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
