@@ -1,4 +1,4 @@
-CREATE TABLE netboxentity (
+CREATE TABLE manage.netboxentity (
   netboxentityid SERIAL NOT NULL,
   netboxid INTEGER NOT NULL,
 

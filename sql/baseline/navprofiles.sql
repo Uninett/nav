@@ -37,6 +37,7 @@ CREATE TABLE alertsender (
 	CONSTRAINT alertsender_unique_handler UNIQUE(handler),
 	CONSTRAINT alertsender_pkey  PRIMARY KEY(id)
 );
+ALTER SEQUENCE alertsender_id_seq OWNED BY alertsender.id;
 
 /*
 -- 1 ACCOUNT
@@ -60,8 +61,7 @@ CREATE TABLE Account (
     CONSTRAINT account_pkey PRIMARY KEY(id),
     CONSTRAINT account_login_key UNIQUE(login)
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE account_id_seq OWNED BY account.id;
+ALTER SEQUENCE account_id_seq OWNED BY account.id;
 
 -- Trigger that ensures that users are a part of the groups everyone and authenticated users
 CREATE OR REPLACE FUNCTION group_membership() RETURNS trigger AS $group_membership$
@@ -93,8 +93,7 @@ CREATE TABLE AccountGroup (
 
     CONSTRAINT accountgroup_pkey PRIMARY KEY(id)
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE accountgroup_id_seq OWNED BY accountgroup.id;
+ALTER SEQUENCE accountgroup_id_seq OWNED BY accountgroup.id;
 
 
 -- 3 ACCOUNTGROUP_ACCOUNTS
@@ -115,8 +114,7 @@ CREATE TABLE accountgroup_accounts (
         ON UPDATE CASCADE
         ON DELETE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE accountgroup_accounts_id_seq OWNED BY accountgroup_accounts.id;
+ALTER SEQUENCE accountgroup_accounts_id_seq OWNED BY accountgroup_accounts.id;
 
 -- ACCOUNTINGROUP
 -- View for compability with older code that thinks accountgroup_accounts is
@@ -151,8 +149,7 @@ CREATE TABLE AccountProperty (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE accountproperty_id_seq OWNED BY accountproperty.id;
+ALTER SEQUENCE accountproperty_id_seq OWNED BY accountproperty.id;
 
 /*
 -- 5 ALERTADDRESS
@@ -185,8 +182,7 @@ CREATE TABLE alertaddress (
                   ON UPDATE CASCADE
          
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE alertaddress_id_seq OWNED BY alertaddress.id;
+ALTER SEQUENCE alertaddress_id_seq OWNED BY alertaddress.id;
 
 
 /*
@@ -218,8 +214,7 @@ CREATE TABLE alertprofile (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE alertprofile_id_seq OWNED BY alertprofile.id;
+ALTER SEQUENCE alertprofile_id_seq OWNED BY alertprofile.id;
 
 
 /*
@@ -275,8 +270,7 @@ CREATE TABLE timeperiod (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE timeperiod_id_seq OWNED BY timeperiod.id;
+ALTER SEQUENCE timeperiod_id_seq OWNED BY timeperiod.id;
 
 /*
 -- 9 FILTERGROUP
@@ -301,8 +295,7 @@ CREATE TABLE filtergroup (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE filtergroup_id_seq OWNED BY filtergroup.id;
+ALTER SEQUENCE filtergroup_id_seq OWNED BY filtergroup.id;
 
 /*
 -- 10 ALERTSUBSCRIPTION
@@ -343,8 +336,7 @@ CREATE TABLE alertsubscription (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE alertsubscription_id_seq OWNED BY alertsubscription.id;
+ALTER SEQUENCE alertsubscription_id_seq OWNED BY alertsubscription.id;
 
 /*
 -- 11 FILTERGROUP_GROUP_PERMISSION
@@ -373,8 +365,7 @@ CREATE TABLE filtergroup_group_permission (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE filtergroup_group_permission_id_seq OWNED BY filtergroup_group_permission.id;
+ALTER SEQUENCE filtergroup_group_permission_id_seq OWNED BY filtergroup_group_permission.id;
 
 /*
 -- 14 FILTER
@@ -398,8 +389,7 @@ CREATE TABLE filter (
 		  ON DELETE SET NULL
 		  ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE filter_id_seq OWNED BY filter.id;
+ALTER SEQUENCE filter_id_seq OWNED BY filter.id;
 
 /*
 -- 15 FILTERGROUPCONTENT
@@ -433,8 +423,7 @@ CREATE TABLE filtergroupcontent (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE filtergroupcontent_id_seq OWNED BY filtergroupcontent.id;
+ALTER SEQUENCE filtergroupcontent_id_seq OWNED BY filtergroupcontent.id;
 
 /*
 -- 16 MATCHFIELD
@@ -466,8 +455,7 @@ CREATE TABLE MatchField (
 
     CONSTRAINT matchfield_pkey PRIMARY KEY(id)
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE matchfield_id_seq OWNED BY matchfield.id;
+ALTER SEQUENCE matchfield_id_seq OWNED BY matchfield.id;
 
 /*
 -- 17 EXPRESSION
@@ -496,8 +484,7 @@ CREATE TABLE expression (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE expression_id_seq OWNED BY expression.id;
+ALTER SEQUENCE expression_id_seq OWNED BY expression.id;
 
 
 /*
@@ -521,9 +508,8 @@ CREATE TABLE Operator (
             ON DELETE CASCADE
             ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE operator_id_seq OWNED BY operator.id;
--- ALTER SEQUENCE operator_operator_id_seq OWNED BY operator.operator_id;
+ALTER SEQUENCE operator_id_seq OWNED BY operator.id;
+ALTER SEQUENCE operator_operator_id_seq OWNED BY operator.operator_id;
 
 /*
 -- 20 SMSQ
@@ -604,35 +590,7 @@ CREATE TABLE NavbarLink (
                ON DELETE CASCADE
                ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE navbarlink_id_seq OWNED BY navbarlink.id;
-
-/*
--- 21 ACCOUNTNAVBAR
-
-Relation between account and navbarlinks, describing where the user wants
-the link to be.
-
-positions      'navbar', 'qlink1', 'qlink2' or a combination of these.
-
-*/
-CREATE SEQUENCE accountnavbar_id_seq;
-CREATE TABLE AccountNavbar (
-    id integer NOT NULL DEFAULT nextval('accountnavbar_id_seq'),
-    accountid integer NOT NULL,
-    navbarlinkid integer NOT NULL,
-    positions varchar,
-
-    CONSTRAINT accountnavbar_pkey PRIMARY KEY (id),
-    CONSTRAINT accountnavbar_accountid_fkey
-               FOREIGN KEY (accountid) REFERENCES Account(id)
-               ON DELETE CASCADE
-               ON UPDATE CASCADE,
-    CONSTRAINT accountnavbar_navbarlinkid_fkey
-               FOREIGN KEY (navbarlinkid) REFERENCES NavbarLink(id)
-               ON DELETE CASCADE
-               ON UPDATE CASCADE
-);
+ALTER SEQUENCE navbarlink_id_seq OWNED BY navbarlink.id;
 
 /*
 -- AccountOrg
@@ -660,8 +618,7 @@ CREATE TABLE AccountOrg (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE accountorg_id_seq OWNED BY accountorg.id;
+ALTER SEQUENCE accountorg_id_seq OWNED BY accountorg.id;
 
 /*
 -- Privilege
@@ -678,8 +635,7 @@ CREATE TABLE Privilege (
        CONSTRAINT privilege_pkey PRIMARY KEY (privilegeid),
        CONSTRAINT privilege_privilegename_key UNIQUE(privilegename)
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE privilege_id_seq OWNED BY privilege.privilegeid;
+ALTER SEQUENCE privilege_id_seq OWNED BY privilege.privilegeid;
 
 /*
 -- AccountGroupPrivilege
@@ -705,8 +661,7 @@ CREATE TABLE AccountGroupPrivilege (
                   ON DELETE CASCADE
                   ON UPDATE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE accountgroupprivilege_id_seq OWNED BY accountgroupprivilege.id;
+ALTER SEQUENCE accountgroupprivilege_id_seq OWNED BY accountgroupprivilege.id;
 
 /*
 -- PrivilegeByGroup
@@ -741,8 +696,7 @@ CREATE TABLE statuspreference (
 		ON UPDATE CASCADE
 		ON DELETE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE statuspref_id_seq OWNED BY statuspref.id;
+ALTER SEQUENCE statuspreference_id_seq OWNED BY statuspreference.id;
 
 CREATE SEQUENCE statuspreference_organization_id_seq;
 CREATE TABLE statuspreference_organization (
@@ -762,8 +716,7 @@ CREATE TABLE statuspreference_organization (
 		ON UPDATE CASCADE
 		ON DELETE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE statuspref_org_id_seq OWNED BY statuspref_org.id;
+ALTER SEQUENCE statuspreference_organization_id_seq OWNED BY statuspreference_organization.id;
 
 CREATE SEQUENCE statuspreference_category_id_seq;
 CREATE TABLE statuspreference_category (
@@ -783,8 +736,7 @@ CREATE TABLE statuspreference_category (
 		ON UPDATE CASCADE
 		ON DELETE CASCADE
 );
--- Only compatible with PostgreSQL >= 8.2:
--- ALTER SEQUENCE statuspreference_category_id_seq OWNED BY statuspreference_category.id;
+ALTER SEQUENCE statuspreference_category_id_seq OWNED BY statuspreference_category.id;
 
 
 
@@ -823,23 +775,6 @@ INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (0,2); --
 INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,1); -- add admin to Administrators
 INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,2); -- add admin to Everyone
 INSERT INTO accountgroup_accounts (account_id, accountgroup_id) VALUES (1,3); -- add admin to Authenticated users
-
--- NAVBAR PREFERENCES
-
-INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (1, 0, 'Preferences', '/preferences');
-INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (2, 0, 'Toolbox', '/toolbox');
-INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (3, 0, 'Useradmin', '/useradmin/');
-INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (4, 0, 'Userinfo', '/userinfo/');
-
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 1, 'navbar');
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 2, 'navbar');
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 3, 'navbar');
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 4, 'navbar');
-
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (0, 1, 'navbar');
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (0, 2, 'navbar');
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (0, 4, 'navbar');
-
 
 -- Privileges
 
@@ -1110,10 +1045,322 @@ INSERT INTO filtergroup_group_permission (accountgroup_id, filtergroup_id) VALUE
 
 INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (1, 'IP devices down', 1, 'netbox', 0, 'n');
 INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (2, 'IP devices in shadow', 2, 'netbox', 0, 's');
-INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (3, 'IP devices on maintenance', 3, 'netbox_maintenance', 0, 'n,s');
+INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (3, 'IP devices on maintenance', 3, 'netbox_maintenance', 0, 'y,n,s');
 INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (4, 'Modules down/in shadow', 4, 'module', 0, 'n,s');
 INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (5, 'Services down', 5, 'service', 0, 'n,s');
 
+-- netmap_view
+CREATE TABLE profiles.netmap_view (
+  viewid SERIAL,
+  owner INT4 NOT NULL REFERENCES account ON UPDATE CASCADE ON DELETE CASCADE,
+  title VARCHAR NOT NULL,
+  link_types VARCHAR NOT NULL,
+  zoom VARCHAR NOT NULL,
+  is_public BOOLEAN NOT NULL DEFAULT FALSE,
+  last_modified TIMESTAMP NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (viewid)
+);
+COMMENT ON TABLE netmap_view IS 'Stored views with settings for NetMap';
+
+CREATE TABLE profiles.netmap_view_categories (
+  id SERIAL,
+  viewid INT4 CONSTRAINT netmapview_fkey REFERENCES netmap_view ON UPDATE CASCADE ON DELETE CASCADE,
+  catid VARCHAR(8) CONSTRAINT netmapview_category_fkey REFERENCES manage.cat ON UPDATE CASCADE ON DELETE CASCADE,
+  PRIMARY KEY (viewid, catid)
+);
+
+CREATE TABLE profiles.netmap_view_nodeposition (
+  id SERIAL,
+  viewid INT4 NOT NULL REFERENCES netmap_view ON UPDATE CASCADE ON DELETE CASCADE,
+  netboxid INT4 NOT NULL REFERENCES manage.netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  x INT4 NOT NULL,
+  y INT4 NOT NULL,
+  PRIMARY KEY (viewid, netboxid)
+);
+
+TRUNCATE TABLE netmap_view CASCADE;
+ALTER TABLE netmap_view ADD COLUMN topology INT4 NOT NULL;
+ALTER TABLE netmap_view DROP COLUMN link_types;
+ALTER TABLE netmap_view ADD COLUMN display_elinks BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE netmap_view ADD COLUMN display_orphans BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE netmap_view ADD COLUMN description TEXT DEFAULT null;
+
+-- netmap_view_defaultview
+CREATE TABLE profiles.netmap_view_defaultview (
+  id SERIAL,
+  viewid INT4 NOT NULL REFERENCES netmap_view ON UPDATE CASCADE ON DELETE CASCADE,
+  ownerid INT4 NOT NULL REFERENCES account ON UPDATE CASCADE ON DELETE CASCADE,
+  PRIMARY KEY (viewid, ownerid)
+);
+COMMENT ON TABLE netmap_view_defaultview IS 'Stores default views for users in Netmap';
+
+CREATE TABLE profiles.accounttool(
+  account_tool_id SERIAL PRIMARY KEY,
+  toolname VARCHAR,
+  accountid INTEGER NOT NULL REFERENCES account(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  display BOOLEAN DEFAULT TRUE,
+  priority INTEGER DEFAULT 0
+);
+
+-- Django database-backed sessions are now being used by NAV.
+CREATE TABLE profiles.django_session (
+    "session_key" varchar(40) NOT NULL PRIMARY KEY,
+    "session_data" text NOT NULL,
+    "expire_date" timestamp with time zone NOT NULL
+);
+
+-- Map topology id to match OSI layer number
+UPDATE profiles.netmap_view SET topology = 3 where topology = 2;
+UPDATE profiles.netmap_view SET topology = 2 where topology = 1;
+
+-- Create table for storing navlet information for a user
+
+CREATE TABLE IF NOT EXISTS profiles.account_navlet (
+  id SERIAL PRIMARY KEY,
+  navlet VARCHAR NOT NULL,
+  account INT REFERENCES profiles.account(id),
+  col INT,
+  displayorder INT NOT NULL,
+  preferences VARCHAR
+);
+
+-- Grant web access to unauthorized ajax requests
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
+  SELECT 2, 2, '^/ajax/open/?' WHERE NOT EXISTS (
+    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid=2 AND privilegeid=2 AND target='^/ajax/open/?'
+  )
+;
+
+-- Grant web access to osm map redirects
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
+  SELECT 2, 2, '^/info/osm_map_redirect/?' WHERE NOT EXISTS (
+    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid=2 AND privilegeid=2 AND target = '^/info/osm_map_redirect/?'
+  )
+;
+
+-- Grant web access to /info for authenticated users
+UPDATE AccountGroupPrivilege SET
+        target = '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap|info|netmap)/?'
+  WHERE target = '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap)/?'
+;
+
+---
+-- Give everyone access to navlets
+---
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
+  SELECT 2, 2, '^/navlets/.*' WHERE NOT EXISTS (
+    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 2 AND privilegeid = 2 AND target = '^/navlets/.*'
+  );
+
+
+---
+-- Insert default navlets for every existing user
+---
+CREATE OR REPLACE FUNCTION insert_default_navlets_for_existing_users() RETURNS void AS $$
+DECLARE
+  account RECORD;
+BEGIN
+  FOR account IN SELECT * FROM account LOOP
+    RAISE NOTICE 'Adding default navlets for %s', quote_ident(account.login);
+    INSERT INTO account_navlet (navlet, account, displayorder, col) VALUES
+      ('nav.web.navlets.welcome.WelcomeNavlet', account.id, 0, 1),
+      ('nav.web.navlets.linklist.LinkListNavlet', account.id, 0, 2),
+      ('nav.web.navlets.messages.MessagesNavlet', account.id, 1, 2);
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT insert_default_navlets_for_existing_users();
+
+
+-- Fix cascading deletes in accounttool foreign keys (LP#1293621)
+
+ALTER TABLE accounttool DROP CONSTRAINT accounttool_accountid_fkey;
+ALTER TABLE accounttool ADD CONSTRAINT accounttool_accountid_fkey
+  FOREIGN KEY (accountid)
+  REFERENCES account(id)
+  ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- Add new blog navlet to all users. Exclude those that have already activated it.
+DO $$DECLARE account_record RECORD;
+BEGIN
+  FOR account_record IN SELECT * FROM account WHERE id NOT IN (SELECT account FROM account_navlet WHERE navlet = 'nav.web.navlets.navblog.NavBlogNavlet') LOOP
+    INSERT INTO account_navlet (navlet, account, col, displayorder, preferences) VALUES
+    ('nav.web.navlets.navblog.NavBlogNavlet', account_record.id, 2, 0, '(dp0
+S''refresh_interval''
+p1
+I600000
+s.');
+  END LOOP;
+END$$;
+
+UPDATE accountgroupprivilege SET target = '^/search/osm_map_redirect/?' WHERE target = '^/info/osm_map_redirect/?';
+
+ALTER TABLE account_navlet DROP CONSTRAINT account_navlet_account_fkey;
+ALTER TABLE account_navlet ADD CONSTRAINT account_navlet_account_fkey
+  FOREIGN KEY (account)
+  REFERENCES account(id)
+  ON DELETE CASCADE ON UPDATE CASCADE;
+
+---
+-- Delete all widgets from all users
+---
+DELETE FROM account_navlet;
+
+---
+-- Insert default widgets for every existing user
+---
+CREATE OR REPLACE FUNCTION insert_default_navlets_for_existing_users() RETURNS void AS $$
+DECLARE
+  account RECORD;
+BEGIN
+  FOR account IN SELECT * FROM account LOOP
+    RAISE NOTICE 'Adding default navlets for %s', quote_ident(account.login);
+    INSERT INTO account_navlet (navlet, account, displayorder, col) VALUES
+      ('nav.web.navlets.gettingstarted.GettingStartedWidget', account.id, 0, 1),
+      ('nav.web.navlets.status.StatusNavlet', account.id, 1, 1),
+      ('nav.web.navlets.messages.MessagesNavlet', account.id, 2, 1),
+      ('nav.web.navlets.navblog.NavBlogNavlet', account.id, 0, 2),
+      ('nav.web.navlets.linklist.LinkListNavlet', account.id, 1, 2);
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT insert_default_navlets_for_existing_users();
+
+---
+-- Remove GettingStartedWidget for default user.
+---
+DELETE FROM account_navlet WHERE account=0 AND navlet='nav.web.navlets.gettingstarted.GettingStartedWidget';
+
+
+---
+-- Give authenticated users access to Graphite graphs and stuffz
+---
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
+  SELECT 3, 2, '^/graphite/?' WHERE NOT EXISTS (
+    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 3 AND privilegeid = 2 AND target = '^/graphite/?'
+  );
+
+
+---
+-- Give authenticated users access to search
+---
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
+  SELECT 3, 2, '^/search/?' WHERE NOT EXISTS (
+    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 3 AND privilegeid = 2 AND target = '^/search/?'
+  );
+
+ALTER TABLE netmap_view ADD COLUMN location_room_filter varchar NOT NULL DEFAULT '';
+
+---
+-- Replace old status widget with new one.
+---
+UPDATE account_navlet
+  SET navlet='nav.web.navlets.status2.Status2Widget',
+      preferences = '{"status_filter": "event_type=boxState&stateless_threshold=24", "refresh_interval": 60000}'
+  WHERE navlet='nav.web.navlets.status.StatusNavlet';
+
+INSERT INTO alertsender (id, name, handler) VALUES (4, 'Slack', 'slack');
+
+ALTER TABLE account ADD COLUMN preferences manage.hstore DEFAULT manage.hstore('');
+
+-- Save all properties from accountproperty as preferences in account table.
+DO $$DECLARE accountproperty RECORD;
+BEGIN
+  FOR accountproperty IN SELECT * FROM accountproperty LOOP
+    UPDATE account
+      SET preferences = preferences || manage.hstore(accountproperty.property, accountproperty.value)
+      WHERE account.id = accountproperty.accountid;
+  END LOOP;
+END$$;
+
+-- Set refresh interval on existing message widgets
+UPDATE account_navlet
+SET preferences = '{"refresh_interval": 60000}'
+WHERE navlet = 'nav.web.navlets.messages.MessagesNavlet';
+
+--- Create table for storing multiple dashboards
+CREATE TABLE profiles.account_dashboard (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR DEFAULT 'My dashboard',
+  is_default BOOLEAN DEFAULT FALSE,
+  num_columns INT,
+  account_id INT REFERENCES account(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+
+--- Widgets should now be a part of a dashboard
+ALTER TABLE account_navlet
+  ADD dashboard_id INT
+    REFERENCES account_dashboard(id)
+    ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--- Create a dashboard for each user and move all widgets there
+DO $$DECLARE thisaccount RECORD;
+BEGIN
+  FOR thisaccount IN SELECT * FROM account LOOP
+    RAISE NOTICE 'Creating dashboard for %s', quote_ident(thisaccount.login);
+    WITH inserted AS (
+      INSERT INTO account_dashboard (account_id, is_default, num_columns)
+      VALUES (thisaccount.id, TRUE, 3) RETURNING id
+    )
+    UPDATE account_navlet
+      SET dashboard_id=inserted.id
+      FROM inserted
+      WHERE account=thisaccount.id;
+  END LOOP;
+END$$;
+
+-- Create a new dashboard and copy all the widgets from the default user to
+-- the dashboard
+CREATE OR REPLACE FUNCTION create_new_dashboard() RETURNS trigger AS $$
+  BEGIN
+    WITH inserted AS (
+      INSERT INTO account_dashboard (account_id, is_default, num_columns)
+      VALUES (NEW.id, TRUE, 3) RETURNING id
+    )
+    INSERT INTO account_navlet (account, navlet, displayorder, col, preferences, dashboard_id)
+      SELECT NEW.id, navlet, displayorder, col, preferences, (SELECT id from inserted)
+        FROM account_navlet WHERE account=0;
+
+    RETURN NULL;
+  END
+$$ LANGUAGE plpgsql;
+
+
+-- Creates a dashboard with default widgets for a new user
+CREATE TRIGGER add_default_dashboard_on_account_create AFTER INSERT ON account
+  FOR EACH ROW
+  EXECUTE PROCEDURE create_new_dashboard();
+
+---
+-- Give authenticated users access to dashboard urls
+---
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
+  SELECT 3, 2, '^/index/dashboard/?' WHERE NOT EXISTS (
+    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 3 AND privilegeid = 2 AND target = '^/index/dashboard/?'
+  );
+
+---
+-- Sort Alert Types when modifying Alert Profiles
+---
+UPDATE MatchField SET value_sort='alerttype.alerttype' WHERE id=11 AND value_sort='alerttype.alerttypeid';
+
+INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (6, 'Thresholds exceeded', 6, 'threshold', 0);
+INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (7, 'SNMP agents down', 7, 'snmpagent', 0);
+INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (8, 'Links down', 8, 'linkstate', 0);
+
+UPDATE matchfield SET list_limit=1000 WHERE list_limit < 1000;
+
+UPDATE matchfield SET
+  name='Group',
+  value_id='netboxgroup.netboxgroupid',
+  value_name='netboxgroup.descr',
+  value_sort='netboxgroup.descr',
+  description='Group: netboxes may belong to a group that is independent of type and category'
+  WHERE id=14;
 /*
 ------------------------------------------------------
  EOF

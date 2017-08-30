@@ -41,16 +41,20 @@ define(['libs/jquery-ui.min'], function () {
         function navigate() {
             var hashes = window.location.hash.split('!');
             var tabIndex = 0;
+            var tabLabel = null;
 
             if (hashes.length === 1 && !parent) {
                 $selector.tabs('option', 'active', tabIndex);
             } else if (hashes.length === 2 && !parent) {
-                tabIndex = $('#' + hashes[1], $selector).index() - 1;
+                tabLabel = $('#' + hashes[1], $selector).attr('aria-labelledby');
+                tabIndex = $('.ui-tabs-nav [aria-labelledby='+tabLabel+']', $selector).index();
                 $selector.tabs('option', 'active', tabIndex);
             } else if (hashes.length === 3 && parent) {
-                tabIndex = $('#' + hashes[2], $selector).index() - 1;
+                tabLabel = $('#' + hashes[2], $selector).attr('aria-labelledby');
+                tabIndex = $('.ui-tabs-nav [aria-labelledby='+tabLabel+']', $selector).index();
                 if (tabIndex >= 0) {
-                    var parentIndex = $('#' + hashes[1], $parent).index() - 1;
+                    var parentLabel = $('#' + hashes[1], $parent).attr('aria-labelledby');
+                    var parentIndex = $('.ui-tabs-nav [aria-labelledby='+parentLabel+']', $parent).index();
                     $parent.tabs('option', 'active', parentIndex);
                     $selector.tabs('option', 'active', tabIndex);
                 }

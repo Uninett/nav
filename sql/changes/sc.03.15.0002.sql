@@ -1,6 +1,6 @@
 -- Create table for images
 
-CREATE TABLE image (
+CREATE TABLE manage.image (
   imageid SERIAL PRIMARY KEY,
   roomid VARCHAR REFERENCES room(roomid) NOT NULL,
   title VARCHAR NOT NULL,

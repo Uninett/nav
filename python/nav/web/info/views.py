@@ -14,16 +14,20 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Views for /info"""
+import importlib
+import logging
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.conf import settings
 
 from nav.web.info.forms import SearchForm
 from nav.web.info import searchproviders as providers
 from nav.web.utils import create_title
 
+_logger = logging.getLogger(__name__)
 
 def get_path():
     """Get the path for this subsystem"""
@@ -63,14 +67,16 @@ def process_form(form):
     if not query:
         return []
 
-    searchproviders = [providers.RoomSearchProvider(query),
-                       providers.LocationSearchProvider(query),
-                       providers.NetboxSearchProvider(query),
-                       providers.InterfaceSearchProvider(query),
-                       providers.VlanSearchProvider(query),
-                       providers.PrefixSearchProvider(query),
-                       providers.DevicegroupSearchProvider(query),
-                       providers.UnrecognizedNeighborSearchProvider(query)]
+    searchproviders = []
+    for providerpath in settings.SEARCHPROVIDERS:
+        modulestring, functionstring = providerpath.rsplit('.', 1)
+        try:
+            providermodule = importlib.import_module(modulestring)
+            provider = getattr(providermodule, functionstring)
+            searchproviders.append(provider(query))
+        except (AttributeError, ImportError):
+            _logger.error('Could not import %s', providerpath)
+
     providers_with_result = has_results(searchproviders)
     if not providers_with_result:
         fallback = providers.FallbackSearchProvider(query)

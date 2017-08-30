@@ -17,7 +17,6 @@
 import re
 import socket
 import smtplib
-from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
@@ -66,7 +65,5 @@ class SMTP(smtplib.SMTP):
         smtplib.SMTP.__init__(self, host, port)
 
     def connect(self, host='localhost', port=25):
-        self.sock = socket.socket(socktype_from_addr(host), socket.SOCK_STREAM)
-        self.sock.settimeout(self._timeout)
-        self.sock.connect((host, port))
+        self.sock = socket.create_connection((host, port), self._timeout)
         return self.getreply()
