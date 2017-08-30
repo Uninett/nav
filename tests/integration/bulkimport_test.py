@@ -11,6 +11,7 @@ from nav.tests.cases import DjangoTransactionTestCase
 from nav.bulkimport import *
 from nav.bulkparse import *
 
+
 class TestGenericBulkImport(TestCase):
     def test_is_generator(self):
         importer = BulkImporter(None)

@@ -6,6 +6,7 @@ from nav.netmap import topology, stubs
 from nav.topology import vlan
 from topology_testcase import TopologyTestCase
 
+
 class TopologyLayer3TestCase(TopologyTestCase):
 
     def setUp(self):
@@ -29,7 +30,6 @@ class TopologyLayer3TestCase(TopologyTestCase):
         self.net_type_link = NetType(id=1, description='link')
         self.net_type_elink = NetType(id=2, description='elink')
         self.net_type_core = NetType(id=3, description='core')
-
 
         self.a = a = self._netbox_factory('a')
         self.b = b = self._netbox_factory('b')

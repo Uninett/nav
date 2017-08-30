@@ -25,8 +25,6 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
     def test_edges_length_of_orginal_graph_consists_with_nav_topology_behavior(self):
         self.assertEquals(6, len(self.nav_graph.edges()))
 
-
-
     # netmap graphs tests below
 
     def test_nodes_length_of_netmap_graph_is_reduced_properly(self):
@@ -70,6 +68,7 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
                              self.a,
                              self.b
                          ).get('metadata', [])))
+
 
 class Layer3MultiGraphToUndirectTests(TopologyLayer3TestCase):
 

@@ -43,6 +43,7 @@ from .cache import cache_traffic, cache_topology
 import logging
 _logger = logging.getLogger(__name__)
 
+
 def get_topology_graph(layer=2, load_traffic=False, view=None):
     """Builds and returns topology graph for the given layer"""
     if layer == 2:
@@ -78,6 +79,7 @@ def _json_layer2(load_traffic=False, view=None):
                   node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
     }
     return result
+
 
 @cache_topology("layer 3")
 def _json_layer3(load_traffic=False, view=None):
@@ -134,6 +136,7 @@ def get_traffic_interfaces(edges, interfaces):
                 storage[interface.to_interface.pk] = interface.to_interface
 
     return storage.values()
+
 
 @cache_traffic("layer 2")
 def get_layer2_traffic(location_or_room_id=None):
@@ -197,6 +200,7 @@ def get_layer2_traffic(location_or_room_id=None):
 
     _logger.debug('Time used: %s', datetime.now() - start)
     return traffic
+
 
 @cache_traffic("layer 3")
 def get_layer3_traffic(location_or_room_id=None):

@@ -22,6 +22,7 @@ import types
 import unittest
 from nav.smsd import dispatcher
 
+
 class DispatcherHandlerTest(unittest.TestCase):
     """Tests for the DispatcherHandler class.
 
@@ -57,13 +58,15 @@ class DispatcherHandlerTest(unittest.TestCase):
             dispatcher.DispatcherError,
             handler.sendsms, 'unhandled', [])
 
+
 class FakeDispatcherHandler(dispatcher.DispatcherHandler):
     def importbyname(self, name):
         print("import by name: %r" % name)
         fakemodule = types.ModuleType('fakedispatcher')
         fakemodule.FakeDispatcher = FakeDispatcher
         return fakemodule
-    
+
+
 class FakeDispatcher(object):
     def __init__(self, *args, **kwargs):
         self.lastfailed = None
@@ -76,7 +79,6 @@ class FakeDispatcher(object):
         elif phone == 'unhandled':
             raise Exception('This exception should be unknown')
         return (None, 1, 0, 1, 1)
-    
 
 
 # Run all tests if run as a program

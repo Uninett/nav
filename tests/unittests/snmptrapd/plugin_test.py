@@ -50,7 +50,6 @@ class SnmptrapdPluginTest(TestCase):
 
         assert not hasattr(loader[0], 'initialize')
 
-
     def test_plugin_loader_calls_initialize_method_if_it_exists(self):
         loader = load_handler_modules([self.plugin_a])
 

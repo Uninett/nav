@@ -16,6 +16,7 @@ import unittest
 
 from nav import pwhash
 
+
 class PwHashTestCase(unittest.TestCase):
     """Tests for nav.pwhash.Hash class"""
 

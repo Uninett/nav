@@ -3,6 +3,7 @@ from IPy import IPSet, IP
 from nav.web.ipam.util import suggest_range, get_available_subnets,\
     partition_subnet, _get_available_subnets
 
+
 class IpamUtilTest(unittest.TestCase):
 
     def test_partition_subnet(self):

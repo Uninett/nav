@@ -4,6 +4,7 @@ from nav.web.ipam.util import get_available_subnets
 from nav.tests.cases import DjangoTransactionTestCase
 from IPy import IP, IPSet
 
+
 class UtilTestCase(DjangoTransactionTestCase):
     fixtures = ["prefixes.xml"]
 
@@ -13,6 +14,7 @@ class UtilTestCase(DjangoTransactionTestCase):
     def tearDown(self):
         pass
 
+
 class getAvailableSubnets(UtilTestCase):
     def test_get_available_subnets(self):
         available = get_available_subnets("10.0.160.0/19")
@@ -20,4 +22,3 @@ class getAvailableSubnets(UtilTestCase):
         # only 10.0.160.0/21 should be available
         self.assertEqual(len(available), 1)
         self.assertEqual(available[0], IP("10.0.160.0/21"))
-            

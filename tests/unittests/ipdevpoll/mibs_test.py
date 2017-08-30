@@ -106,9 +106,11 @@ class Ipv6MibTests(unittest.TestCase):
         ip = Ipv6Mib.ipv6address_to_ip(ip_tuple)
         self.assertEquals(ip, expected)
 
+
 class EntityMibTests(unittest.TestCase):
     def test_empty_logical_type_should_not_raise(self):
         mib = EntityMib(Mock('AgentProxy'))
+
         def mock_retrieve(columns):
             return defer.succeed(
                 {1: {'entLogicalDescr': None,
@@ -181,4 +183,3 @@ def test_crazy_dateandtime_should_not_crash():
 
 if __name__ == '__main__':
     unittest.main()
-

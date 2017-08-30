@@ -17,11 +17,13 @@ def pytest_generate_tests(metafunc):
         ids = [b[0] for b in binaries]
         metafunc.parametrize("binary", _nav_binary_tests(), ids=ids)
 
+
 def _nav_binary_tests():
     for binary in _nav_binary_list():
         for args in _scan_testargs(binary):
             if args:
                 yield args
+
 
 def _nav_binary_list():
     files = sorted(os.path.join(bindir, f)

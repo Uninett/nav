@@ -108,7 +108,7 @@ def verifyEventtype ():
             c.execute(q)
 
     db.commit()
-        
+
 
 def initialize():
     """Initialize method for snmpdtrap daemon so it can initialize plugin

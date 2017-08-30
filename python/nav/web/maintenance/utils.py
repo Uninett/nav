@@ -186,7 +186,7 @@ def task_component_trails(component_keys, components):
         'netbox': 'IP Device',
         'netboxgroup': 'Device Group'
     }
-    
+
     trails = []
     for key in component_keys:
         title = title_mapping.get(key, key)

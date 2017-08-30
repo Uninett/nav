@@ -115,4 +115,3 @@ class TestNewCamAndArp(TestCase):
         test = tests.TestNewCamAndArpRecords()
         self.assertEqual(test.get_status(), tests.STATUS_NOT_OK)
         self.assertEqual(len(test.errors), 2)
-

@@ -11,6 +11,7 @@ else:
         def __init__(self):
             pass
 
+
 @pytest.mark.skipif("'TrapListener' not in vars()")
 class TrapListenerTest(TestCase):
     def test_v1_wxgoose_trap_agent_is_decoded_correctly(self):
@@ -32,5 +33,3 @@ class TrapListenerTest(TestCase):
         trap = listener._decode(trap_packet, source)
 
         self.assertEquals(trap.agent, '10.0.0.42')
-
-

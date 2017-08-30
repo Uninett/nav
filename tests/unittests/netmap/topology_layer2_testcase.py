@@ -5,6 +5,7 @@ from nav.netmap import topology
 from nav.topology import vlan
 from topology_testcase import TopologyTestCase
 
+
 class TopologyLayer2TestCase(TopologyTestCase):
 
     def setUp(self):

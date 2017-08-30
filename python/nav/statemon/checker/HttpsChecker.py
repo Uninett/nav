@@ -43,5 +43,6 @@ class HTTPSConnection(httplib.HTTPSConnection):
 class HttpsChecker(HttpChecker):
     """HTTPS"""
     PORT = 443
+
     def connect(self, ip, port):
         return HTTPSConnection(self.timeout, ip, port)

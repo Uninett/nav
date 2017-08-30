@@ -29,6 +29,7 @@ import re
 connection = db.getConnection('default')
 database = connection.cursor()
 
+
 def handler(nblist, state):
 
     for netboxid in nblist:
@@ -89,4 +90,3 @@ else: updown="down"
 print("SNMP agents going %s on: %r" % (updown, sysnames))
 handler(nb, state)
 connection.commit()
-

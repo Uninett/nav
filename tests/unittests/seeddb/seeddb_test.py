@@ -71,7 +71,7 @@ class TestCreateChoices(unittest.TestCase):
 
         root.get_children.return_value = mock_children
         self.root = root
-    
+
     def test_root_node(self):
         self.my_setup()
         result = create_choices(self.root, [], is_last_child=True)
@@ -82,7 +82,7 @@ class TestCreateChoices(unittest.TestCase):
 
         result = create_choices(self.root, [], is_last_child=True)
         self.assertEqual(len(result), 2)
-        
+
     def test_two_children(self):
         self.my_setup([
             MagicMock(pk='child1'),
@@ -99,7 +99,7 @@ class TestCreateChoices(unittest.TestCase):
         ])
         result = create_choices(self.root, [], is_last_child=True)
         self.assertTrue(result[1][1].startswith(TreePadTest.PIPE))
-        
+
     def test_two_children_prefix_second(self):
         self.my_setup([
             MagicMock(pk='child1'),
@@ -107,6 +107,3 @@ class TestCreateChoices(unittest.TestCase):
         ])
         result = create_choices(self.root, [], is_last_child=True)
         self.assertTrue(result[2][1].startswith(TreePadTest.CORNER))
-        
-        
-        

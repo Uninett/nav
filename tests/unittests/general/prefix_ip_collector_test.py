@@ -17,4 +17,3 @@ class TestPrefixIpCollector(unittest.TestCase):
     def test_find_timestamp(self):
         ts = datetime(2012, 10, 04, 14, 30)
         self.assertEqual(get_timestamp(ts), 1349353800)
-

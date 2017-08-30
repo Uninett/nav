@@ -3,6 +3,7 @@ from nav.arnold import change_port_status, change_port_vlan
 from mock import Mock, patch
 import unittest
 
+
 @patch('nav.Snmp.Snmp', autospec=True)
 class TestArnoldSnmp(unittest.TestCase):
     """Testclass for Arnold"""
@@ -16,7 +17,6 @@ class TestArnoldSnmp(unittest.TestCase):
 
         self.netbox = self.create_netbox_mock()
         self.interface = self.create_interface_mock()
-
 
     def create_interface_mock(self):
         """Create interface model mock object"""
@@ -45,7 +45,6 @@ class TestArnoldSnmp(unittest.TestCase):
         snmp.assert_called_once_with(self.ip, self.read_write, version=1)
         instance.set.assert_called_once_with(
             self.port_status_oid + '.' + str(self.ifindex), 'i', 1)
-
 
     def test_change_port_status_disable(self, snmp):
         """Test disabling of a port"""

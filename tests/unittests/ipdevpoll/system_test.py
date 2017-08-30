@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from nav.ipdevpoll.plugins.system import parse_version
 
+
 class SysDescrParseTests(TestCase):
 
     def test_should_parse_cisco2950_sysdescr(self):

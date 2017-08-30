@@ -32,12 +32,14 @@ updatesql = 'UPDATE "type" SET vendorid=%s, typename=%s, cdp=%s, tftp=%s, ' \
             'cs_at_vlan=%s, chassis=%s, descr=%s ' \
             'WHERE sysobjectid=%s;'
 
+
 def escape(v):
     """Escape a value before entering it in to the db"""
     if v is None:
         return "NULL"
     else:
         return nav.db.escape(str(v))
+
 
 def main(args):
     """Main execution flow"""
@@ -53,6 +55,6 @@ def main(args):
         print("\nCOMMIT;")
 
     conn.close()
-    
+
 if __name__ == '__main__':
     main(sys.argv[1:])

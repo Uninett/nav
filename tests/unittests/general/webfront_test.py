@@ -5,6 +5,7 @@ from mock import patch, Mock, MagicMock
 import nav.web.ldapauth
 from nav.web import auth
 
+
 class LdapAuthenticateTest(TestCase):
     def setUp(self):
         self.ldap_available = nav.web.ldapauth.available
@@ -52,7 +53,6 @@ class NormalAuthenticateTest(TestCase):
         self.patched_get = patch("nav.web.auth.Account.objects.get",
                                  return_value=self.mock_account)
         self.patched_get.start()
-
 
     def tearDown(self):
         nav.web.ldapauth.available = self.ldap_available
@@ -123,4 +123,3 @@ class LdapUserTestCase(TestCase):
         })
         u = nav.web.ldapauth.LDAPUser(u"Ægir", conn)
         u.is_group_member('cn=noc-operators,cn=groups,dc=example,dc=com')
-

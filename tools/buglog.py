@@ -43,6 +43,7 @@ ISSUE_URL = 'https://github.com/UNINETT/nav/issues/{bug_id}'
 COMMITLOG_PATTERN = re.compile(r'((bug)?fix for|fix(es|ed)?|close(s|d)?):? '
                                r'+(?P<lp>lp)? *# *(?P<bug_id>[0-9]+)', re.I)
 
+
 class Bug(object):
     prefix = ""
 
@@ -85,6 +86,7 @@ class LaunchpadBug(Bug):
         info = urllib2.urlopen(url)
         return info.readlines()
 
+
 class GithubIssue(Bug):
     prefix = "GH"
 
@@ -119,6 +121,7 @@ def filter_log(file):
         match = COMMITLOG_PATTERN.search(line)
         if match:
             yield (line, match)
+
 
 def filter_bugs(matches):
     for line, match in matches:

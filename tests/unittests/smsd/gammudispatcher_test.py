@@ -10,6 +10,7 @@ except ImportError:
     gammu = sys.modules['gammu'] = type(sys)('gammu')
 from nav.smsd.gammudispatcher import decode_sms_to_unicode
 
+
 class EncodingTests(TestCase):
     def test_ascii_string_should_decode_to_equal_object(self):
         sms = 'Hello'

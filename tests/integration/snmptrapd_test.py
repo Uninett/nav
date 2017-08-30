@@ -8,6 +8,7 @@ import time
 from nav.buildconf import sysconfdir
 from nav.snmptrapd.plugin import load_handler_modules
 
+
 class SnmptrapdPluginTest(TestCase):
     """Implementation tests for plugins"""
 
@@ -39,8 +40,6 @@ class SnmptrapdPluginTest(TestCase):
 
         loaded_modules = load_handler_modules(list_from_config)
         assert len(list_from_config) == len(loaded_modules)
-
-
 
 
 class SnmptrapdSignalTest(TestCase):

@@ -19,6 +19,7 @@ from __future__ import unicode_literals
 
 default_app_config = 'nav.auditlog.apps.AuditlogConfig'
 
+
 def find_modelname(obj):
     try:
         # Django <= 1.7.*

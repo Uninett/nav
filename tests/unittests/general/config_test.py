@@ -18,6 +18,7 @@ import StringIO
 
 from nav import config
 
+
 class ConfigTestCase(unittest.TestCase):
     def setUp(self):
         mockfile = StringIO.StringIO("".join([
@@ -59,4 +60,3 @@ class ConfigTestCase(unittest.TestCase):
         self.assertEquals(values['section1']['foo2'], 'bar2')
         self.assertEquals(values['section2']['foo4'], 'bar4')
         self.assertFalse(values['section2'].has_key('foo3'))
-

@@ -219,4 +219,3 @@ def _should_ignore(msg):
         if ignore in msg:
             return True
     return False
-

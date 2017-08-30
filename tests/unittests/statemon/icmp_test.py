@@ -3,6 +3,7 @@ from unittest import TestCase
 import os
 from nav.statemon.megaping import Host
 
+
 class ICMPPacketTestcase(TestCase):
 
     def test_assemble_v6_packet_echo(self):

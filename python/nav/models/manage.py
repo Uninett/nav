@@ -668,7 +668,6 @@ class Module(models.Model):
                              "duplicate entities, returning just one", self)
             return entities[0]
 
-
     def get_chassis(self):
         """
         Attempts to find the NetboxEntity that corresponds to the chassis that

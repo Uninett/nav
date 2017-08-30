@@ -196,5 +196,3 @@ class MacPrefixTest(unittest.TestCase):
         param = 'e4-2f-45'
         mac_addr = MacPrefix(param)
         self.assertEqual(unicode(mac_addr[-1]), u'e4:2f:45:ff:ff:ff')
-
-

@@ -50,7 +50,6 @@ class TemplateTagsTest(unittest.TestCase):
         self.assertTrue(is_max_timestamp(datetime.max))
         self.assertFalse(is_max_timestamp(datetime(3, 2, 1)))
 
-
     def test_get_attr_basic_lookup(self):
         """Test template filter for getting attributes from objects"""
 
@@ -59,19 +58,16 @@ class TemplateTagsTest(unittest.TestCase):
             isinstance(get_attr(self.dummy, 'dummyobject'), AnotherDummyObject))
         self.assertEqual(get_attr(self.dummy, 'tes'), "")
 
-
     def test_get_attr_chained_lookup(self):
         """Test template filter for getting attributes from objects"""
 
         self.assertTrue(
             isinstance(get_attr(self.dummy, 'dummyobject.test'), unicode))
 
-
     def test_get_attr_chained_lookup_error(self):
         """Test template filter for getting attributes from objects"""
 
         self.assertEqual(get_attr(self.dummy, 'dummyobject.tes'),"")
-
 
     def test_find_attr_basic_lookup(self):
         """Test helper function for getting attributes from objects"""
@@ -79,26 +75,22 @@ class TemplateTagsTest(unittest.TestCase):
         self.assertTrue(isinstance(find_attr(self.dummy, ['dummyobject']),
                                    AnotherDummyObject))
 
-
     def test_find_attr_chained_lookup(self):
         """Test helper function for getting attributes from objects"""
 
         self.assertTrue(
             isinstance(find_attr(self.dummy, ['dummyobject', 'test']), unicode))
 
-
     def test_find_attr_error_lookup(self):
         """Test helper function for getting attributes from objects"""
 
         self.assertEqual(find_attr(self.dummy, ['dummyobjec']),"")
-
 
     def test_find_attr_chained_error_lookup(self):
         """Test helper function for getting attributes from objects"""
 
         self.assertEqual(
             find_attr(self.dummy, ['dummyobject', 'test', 'nothere']), "")
-
 
     def test_find_attr_middle_chained_error_lookup(self):
         """Test helper function for getting attributes from objects"""
