@@ -390,7 +390,8 @@ class Synchronizer(object):
                      "Failed to install the hstore extension, maybe you need "
                      "to run as the postgres superuser?",
                      check_call,
-                     ["psql", "--quiet", "-c", "CREATE EXTENSION hstore;",
+                     ["psql", "--quiet", "-c", "CREATE EXTENSION hstore "
+                                               "WITH SCHEMA manage;",
                       self.connect_options.dbname])
 
     def install_baseline(self):
