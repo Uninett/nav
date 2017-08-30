@@ -144,6 +144,9 @@ def search_by_kwargs(request, **kwargs):
             return default_render(request)
 
         interfaces = netbox.get_swports_sorted()
+        if len(interfaces) == 0:
+            messages.error(request, 'IP device has no ports (yet)')
+            return default_render(request)
         auditlog_entries = get_auditlog_entries(interfaces)
         return render(request, 'portadmin/netbox.html',
                       populate_infodict(request, netbox, interfaces,
@@ -412,9 +415,9 @@ def set_vlan(account, fac, interface, request):
                 if not is_cisco_voice_enabled(config) and voice_activated:
                     fac.set_native_vlan(interface, vlan)
                 else:
-                    fac.set_vlan(interface.ifindex, vlan)
+                    fac.set_vlan(interface, vlan)
             else:
-                fac.set_vlan(interface.ifindex, vlan)
+                fac.set_vlan(interface, vlan)
 
             interface.vlan = vlan
             LogEntry.add_log_entry(

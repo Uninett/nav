@@ -219,9 +219,9 @@ class SNMPHandler(object):
         return self._set_netbox_value(self.IF_ALIAS_OID, if_index, "s",
                                       if_alias)
 
-    def get_vlan(self, base_port):
+    def get_vlan(self, interface):
         """Get vlan on a specific interface."""
-        return self._query_netbox(self.VlAN_OID, base_port)
+        return self._query_netbox(self.VlAN_OID, interface.baseport)
 
     def get_all_vlans(self):
         """Get all vlans on the switch"""
@@ -242,15 +242,16 @@ class SNMPHandler(object):
             bit[port] = 0
         return str(bit)
 
-    def set_vlan(self, base_port, vlan):
+    def set_vlan(self, interface, vlan):
         """Set a new vlan on the given interface and remove
         the previous vlan"""
+        base_port = interface.baseport
         try:
             vlan = int(vlan)
         except ValueError:
             raise TypeError('Not a valid vlan %s' % vlan)
         # Fetch current vlan
-        fromvlan = self.get_vlan(base_port)
+        fromvlan = self.get_vlan(interface)
         # fromvlan and vlan is the same, there's nothing to do
         if fromvlan == vlan:
             _logger.debug('fromvlan and vlan is the same - skip')
@@ -268,7 +269,7 @@ class SNMPHandler(object):
 
     def set_native_vlan(self, interface, vlan):
         """Set native vlan on a trunk interface"""
-        self.set_vlan(interface.base_port, vlan)
+        self.set_vlan(interface, vlan)
 
     def set_if_up(self, if_index):
         """Set interface.to up"""
@@ -401,7 +402,7 @@ class SNMPHandler(object):
         :returns native vlan + list of trunked vlan
 
         """
-        native_vlan = self.get_vlan(interface.baseport)
+        native_vlan = self.get_vlan(interface)
 
         bitvector_index = interface.baseport - 1
         vlans = []
@@ -430,7 +431,7 @@ class SNMPHandler(object):
 
         """
         base_port = interface.baseport
-        native_vlan = self.get_vlan(base_port)
+        native_vlan = self.get_vlan(interface)
         bitvector_index = base_port - 1
 
         _logger.debug('base_port: %s, native_vlan: %s, trunk_vlans: %s',
@@ -475,7 +476,7 @@ class SNMPHandler(object):
         """
         _logger.debug('Setting access mode vlan %s on interface %s',
                       access_vlan, interface)
-        self.set_vlan(interface.baseport, access_vlan)
+        self.set_vlan(interface, access_vlan)
         self.set_trunk_vlans(interface, [])
         interface.vlan = access_vlan
         interface.trunk = False
@@ -483,7 +484,7 @@ class SNMPHandler(object):
 
     def set_trunk(self, interface, native_vlan, trunk_vlans):
         """Set this port in trunk mode and set native vlan"""
-        self.set_vlan(interface.baseport, native_vlan)
+        self.set_vlan(interface, native_vlan)
         self.set_trunk_vlans(interface, trunk_vlans)
         self._save_trunk_interface(interface, native_vlan, trunk_vlans)
 
@@ -560,18 +561,19 @@ class Cisco(SNMPHandler):
         self.write_mem_oid = '1.3.6.1.4.1.9.2.1.54.0'
         self.voice_vlan_oid = '1.3.6.1.4.1.9.9.68.1.5.1.1.1'
 
-    def get_vlan(self, if_index):
-        return self._query_netbox(self.vlan_oid, if_index)
+    def get_vlan(self, interface):
+        return self._query_netbox(self.vlan_oid, interface.ifindex)
 
-    def set_vlan(self, if_index, vlan):
+    def set_vlan(self, interface, vlan):
         """Set a new vlan for a specified interface,- and
         remove the previous vlan."""
+        if_index = interface.ifindex
         try:
             vlan = int(vlan)
         except ValueError:
             raise TypeError('Not a valid vlan %s' % vlan)
         # Fetch current vlan
-        fromvlan = self.get_vlan(if_index)
+        fromvlan = self.get_vlan(interface)
         # fromvlan and vlan is the same, there's nothing to do
         if fromvlan == vlan:
             return None
@@ -671,7 +673,7 @@ class Cisco(SNMPHandler):
             self._set_access_mode(interface)
         self.set_trunk_vlans(interface, [])
         self.set_native_vlan(interface, access_vlan)
-        self.set_vlan(interface.ifindex, access_vlan)
+        self.set_vlan(interface, access_vlan)
         interface.trunk = False # Make sure database is updated
         interface.vlan = access_vlan
         interface.save()

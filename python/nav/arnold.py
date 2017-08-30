@@ -454,13 +454,13 @@ def change_port_vlan(identity, vlan):
 
     agent = SNMPFactory().get_instance(netbox)
     try:
-        fromvlan = agent.get_vlan(interface.ifindex)
+        fromvlan = agent.get_vlan(interface)
     except Exception as error:
         raise ChangePortVlanError(error)
     else:
         LOGGER.info('Setting vlan %s on interface %s', vlan, interface)
         try:
-            agent.set_vlan(interface.ifindex, vlan)
+            agent.set_vlan(interface, vlan)
             agent.restart_if(interface.ifindex)
         except Exception as error:
             raise ChangePortVlanError(error)

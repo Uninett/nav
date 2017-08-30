@@ -23,7 +23,8 @@ from nav.web.ipdevinfo.views import (search, service_list, service_matrix,
                                      port_details, get_port_view,
                                      render_affected, render_host_info,
                                      port_counter_graph, sensor_details,
-                                     save_port_layout_pref)
+                                     save_port_layout_pref,
+                                     unrecognized_neighbors)
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
@@ -80,4 +81,7 @@ urlpatterns = patterns('',
     # Sensors
     url(r'sensor/(?P<identifier>.+)', sensor_details,
         name="sensor-details"),
+
+    url(r'^(?P<netboxid>\d+)/unrecognized_neighbors', unrecognized_neighbors,
+        name='ipdevinfo-unrecognized_neighbors')
 )

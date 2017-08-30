@@ -271,11 +271,12 @@ class Synchronizer(object):
         )
 
     schemas = [
-        ('manage', 'manage.sql', 'types.sql', 'snmpoid.sql'),
+        ('manage', 'manage.sql', 'types.sql'),
         ('profiles', 'navprofiles.sql'),
         ('logger', 'logger.sql'),
         ('arnold', 'arnold.sql'),
         ('radius', 'radius.sql'),
+        ('manage', 'manage2.sql'),
         (None, 'indexes.sql'),
         ]
 

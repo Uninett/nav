@@ -1,14 +1,13 @@
 require([
     "plugins/table_utils",
     "plugins/tab_navigation",
-    "plugins/neighbor-map",
     "plugins/jquery_ui_helpers",
     "plugins/graphfetcher_controller",
     "libs/jquery",
     "libs/jquery-ui.min",
     "libs/jquery.sparkline",
     "plugins/rickshaw_graph"
-], function (TableUtil, TabNavigation, NeighborMap, JUIHelpers) {
+], function (TableUtil, TabNavigation, JUIHelpers) {
 
     var mainTabsSelector = '#ipdevinfotabs';
     var metricTabsSelector = "#metrictabs";
@@ -30,12 +29,6 @@ require([
             TabNavigation.add(moduleTabsSelector, mainTabsSelector);
             TabNavigation.add(metricTabsSelector, mainTabsSelector);
         }
-
-        var $neighbornode = $('.neighbormap');
-        if ($neighbornode.length) {
-            new NeighborMap($neighbornode.get(0));
-        }
-
 
         addSparkLinesToJobs();
         loadSensorValues();

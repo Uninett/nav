@@ -1,7 +1,7 @@
 define([
     'libs/datatables.min'
 ],
-        
+
 function() {
 
     var tableWrapper = '#tablewrapper',
@@ -20,7 +20,7 @@ function() {
             'cabling': applyCablingDataTable,
             'patch': applyPatchDataTable
         };
-        
+
         var table = tableTypes[tableType](config);
 
         /* Store rowcount when user changes it */
@@ -98,26 +98,25 @@ function() {
                     targets: 0  // On this column
                 }
             ],
-
             info: true,  // Show number of entries visible
             language: {
                 info: '_START_ - _END_ of _TOTAL_'
             },
-            
+
             dom: "<lip>t",   // display order of metainfo (lengthchange, info, pagination)
             drawCallback: drawCallback
         };
         $.extend(config, getPageConfig(numRows));
-        
+
         /* Apply default DataTable */
         return $(tableSelector).DataTable(config);
-        
+
     }
 
     function applyCablingDataTable(options) {
         var numRows = options.numRows,
             showCheckBoxes = options.showCheckBoxes;
-        
+
         var columns = {
             0: 'id', 1: 'room', 2: 'jack', 3: 'building', 4: 'target_room',
             5: 'category', 6: 'description'
@@ -184,12 +183,12 @@ function() {
             drawCallback: drawCallback
         };
         $.extend(config, getPageConfig(numRows));
-        
-        
+
+
         /* Apply DataTable */
         var table = $(tableSelector).DataTable(config);
 
-        /* 
+        /*
          Add a dropdown to select room. The dropdown is prepopulated. Do a new
          query when using the dropdown.
          */
@@ -198,14 +197,14 @@ function() {
         });
 
         $('#id_room').select2(); // Apply select2 to the room dropdown
-        
+
         return table;
     }
-    
+
     function applyPatchDataTable(options) {
         var numRows = options.numRows,
             showCheckBoxes = options.showCheckBoxes;
-        
+
         var columns = {
             0: 'id', 1: 'cabling.room.id', 2: 'interface.netbox.sysname',
             3: 'interface.ifname', 4: 'interface.ifalias', 5: 'cabling.jack', 6: 'split'
@@ -273,12 +272,12 @@ function() {
             drawCallback: drawCallback
         };
         $.extend(config, getPageConfig(numRows));
-        
-        
+
+
         /* Apply DataTable */
         var table = $(tableSelector).DataTable(config);
 
-        /* 
+        /*
          Add dropdowns to select room and netbox. The dropdowns are
          prepopulated. Do a new query when using the dropdowns. They reset each
          other.
@@ -290,20 +289,20 @@ function() {
             table.draw();
         });
         $roomdropdown.select2(); // Apply select2 to the room dropdown
-        
+
         $netboxdropdown.appendTo('.filters').change(function() {
             $roomdropdown.select2('val', '');
             table.draw();
         });
         $netboxdropdown.select2(); // Apply select2 to the room dropdown
-        
+
         return table;
     }
-    
+
     return {
         enrichTable: enrichTable,
         $dataTable: $dataTable,
         $tableWrapper: $tableWrapper
     };
-    
+
 });

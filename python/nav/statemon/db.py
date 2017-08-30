@@ -309,7 +309,7 @@ class _DB(threading.Thread):
                 new_checker = checker(service, **kwargs)
             except Exception:
                 LOGGER.critical("Checker %s (%s) failed to init. This checker "
-                                "will remain DISABLED:\n%s",  handler, checker,
+                                "will remain DISABLED:",  handler, checker,
                                 exc_info=True)
                 continue
 

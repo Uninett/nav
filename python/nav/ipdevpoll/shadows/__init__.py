@@ -32,7 +32,6 @@ from nav.event2 import EventFactory
 from nav.ipdevpoll.storage import MetaShadow, Shadow
 from nav.ipdevpoll import descrparsers
 from nav.ipdevpoll import utils
-from nav.ipdevpoll import db
 
 from .netbox import Netbox
 from .interface import Interface, InterfaceStack, InterfaceAggregate

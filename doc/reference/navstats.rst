@@ -39,7 +39,7 @@ There are three steps for starting out with *navstats*:
    SQL statement that produces the number(s) you are looking for.
 
 #. You need to know what a `metric path
-   <http://graphite.wikidot.com/getting-your-data-into-graphite>`_ is in
+   <http://graphite.readthedocs.io/en/latest/feeding-carbon.html#getting-your-data-into-graphite>`_ is in
    Graphite, and how it is relevant for storing data. Basically, you need to
    choose the naming scheme for *your* data. All NAV-data starts with **nav.**,
    so your data should probably have another prefix.
