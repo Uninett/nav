@@ -201,6 +201,18 @@ REST_FRAMEWORK = {
     'PAGINATE_BY_PARAM': 'page_size',
 }
 
+# Classes that implement a search engine for the web navbar
+SEARCHPROVIDERS = [
+    'nav.web.info.searchproviders.RoomSearchProvider',
+    'nav.web.info.searchproviders.LocationSearchProvider',
+    'nav.web.info.searchproviders.NetboxSearchProvider',
+    'nav.web.info.searchproviders.InterfaceSearchProvider',
+    'nav.web.info.searchproviders.VlanSearchProvider',
+    'nav.web.info.searchproviders.PrefixSearchProvider',
+    'nav.web.info.searchproviders.DevicegroupSearchProvider',
+    'nav.web.info.searchproviders.UnrecognizedNeighborSearchProvider',
+]
+
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
 sys.path.append(os.path.join(nav.buildconf.sysconfdir, "python"))
