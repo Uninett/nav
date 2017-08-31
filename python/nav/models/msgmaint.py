@@ -17,12 +17,15 @@
 """Django ORM wrapper for the NAV manage database"""
 
 from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
+
 from datetime import datetime, timedelta
 from nav.models.fields import (VarcharField, LegacyGenericForeignKey,
                                DateTimeInfinityField, INFINITY)
 from nav.models import manage, service
 
 
+@python_2_unicode_compatible
 class Message(models.Model):
     """From NAV Wiki: The table contains the messages registered
     in the messages tool. Each message has a timeframe for when
@@ -47,7 +50,7 @@ class Message(models.Model):
     class Meta(object):
         db_table = 'message'
 
-    def __unicode__(self):
+    def __str__(self):
         return u'"%s" by %s' % (self.title, self.author)
 
 
@@ -79,6 +82,7 @@ class MaintenanceTaskManager(models.Manager):
         return self.get_queryset().filter(end_time__gte=INFINITY)
 
 
+@python_2_unicode_compatible
 class MaintenanceTask(models.Model):
     """From NAV Wiki: The maintenance task created in the maintenance task
     tool."""
@@ -105,7 +109,7 @@ class MaintenanceTask(models.Model):
     class Meta(object):
         db_table = 'maint_task'
 
-    def __unicode__(self):
+    def __str__(self):
         return u'"%s" by %s' % (self.description, self.author)
 
     def full_representation(self):
@@ -146,6 +150,7 @@ class MaintenanceTask(models.Model):
         return self.end_time >= INFINITY
 
 
+@python_2_unicode_compatible
 class MaintenanceComponent(models.Model):
     """From NAV Wiki: The components that are put on maintenance in the
     maintenance tool."""
@@ -161,10 +166,11 @@ class MaintenanceComponent(models.Model):
         db_table = 'maint_component'
         unique_together = (('maint_task', 'key', 'value'),)  # Primary key
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s=%s' % (self.key, self.value)
 
 
+@python_2_unicode_compatible
 class MessageToMaintenanceTask(models.Model):
     """From NAV Wiki: The connection between messages and related maintenance
     tasks."""
@@ -179,6 +185,6 @@ class MessageToMaintenanceTask(models.Model):
         db_table = 'message_to_maint_task'
         unique_together = (('message', 'maintenance_task'),)  # Primary key
 
-    def __unicode__(self):
+    def __str__(self):
         return u'Message %s, connected to task %s' % (
             self.message, self.maintenance_task)
