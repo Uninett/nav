@@ -239,7 +239,7 @@ class Neighbor(object):
         return ('<{myclass} '
                 'identified={identified} '
                 'netbox={netbox} '
-                'interface={interface}>'
+                'interfaces={interfaces}>'
                 ).format(myclass=self.__class__.__name__,
                          **vars(self))
 
