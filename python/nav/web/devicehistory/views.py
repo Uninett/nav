@@ -22,7 +22,6 @@ from django.db import connection, transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.db import transaction
 
 from nav.models.fields import INFINITY
 from nav.models.manage import Netbox, Module, Location
