@@ -120,6 +120,8 @@ class Neighbor(object):
         self.netbox = self._identify_netbox()
         self.interfaces = self._identify_interfaces()
         self.identified = bool(self.netbox or self.interfaces)
+        if self.interfaces and len(self.interfaces) > 1:
+            self._logger.info("found multiple interface matches for %r", self)
 
     def _identify_netbox(self):
         raise NotImplementedError
