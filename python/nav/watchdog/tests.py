@@ -46,9 +46,6 @@ class TestResult(object):
     def __str__(self):
         return unicode(self.description)
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
-
 
 class Test(object):
     """Interface for all test classes"""
