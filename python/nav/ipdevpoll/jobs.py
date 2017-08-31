@@ -410,7 +410,7 @@ class JobHandler(object):
 
     def _cleanup_containers_after_save(self):
         """Runs every queued manager's cleanup routine"""
-        self._logger.debug("Running cleanup routines for %d managers",
+        self._logger.debug("Running cleanup routines for %d managers: %r",
                            len(self.storage_queue), self.storage_queue)
         try:
             for manager in self.storage_queue:
