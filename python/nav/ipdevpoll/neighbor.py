@@ -296,9 +296,10 @@ class LLDPNeighbor(Neighbor):
         if self.netbox and portid:
             lookup = None
             if isinstance(portid, (IdSubtypes.interfaceAlias,
-                                   IdSubtypes.interfaceName,
-                                   IdSubtypes.local)):
+                                   IdSubtypes.interfaceName)):
                 lookup = self._interfaces_from_name
+            elif isinstance(portid, (IdSubtypes.local)):
+                lookup = self._interfaces_from_local
             elif isinstance(portid, (IdSubtypes.macAddress)):
                 lookup = self._interfaces_from_mac
             elif isinstance(portid, (IdSubtypes.networkAddress)):
@@ -313,6 +314,21 @@ class LLDPNeighbor(Neighbor):
                         return self._interfaces_from_name(str(portdesc))
                 else:
                     return result
+
+    def _interfaces_from_local(self, portid):
+        """Implements a heuristic seen on Juniper, where the port id is an
+        ifIndex and the remote port description is the port's ifAlias value.
+        If no match can be made this way, just revert to the regular "portid
+        interpreted as name" lookup
+
+        """
+        portdesc = self.record.port_desc
+        if portdesc and portid.isdigit():
+            query = Q(ifindex=int(portid)) & Q(ifalias=portdesc)
+            ifc = self._interface_query(query)
+            if ifc:
+                return ifc
+        return self._interfaces_from_name(portid)
 
     def _interfaces_from_mac(self, mac):
         assert mac
