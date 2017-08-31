@@ -125,7 +125,7 @@ class PortadminResponseTest(unittest.TestCase):
         self.assertEquals(self.handler.__unicode__(),  u'cisco', 'Wrong handler-type')
         self.assertEquals(type(self.handler), Cisco, 'Wrong handler-type')
 
-    def test_get_ifaliases_cisco(self):
+    def test_get_ifalias_cisco(self):
         self.handler = SNMPFactory.get_instance(self.netboxCisco)
         # get hold of the read-only Snmp-object
         self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
