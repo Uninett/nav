@@ -86,7 +86,7 @@ def verifyEventtype ():
 
     c = db.cursor()
 
-    # NB: Remember to replace the values with the one you need. 
+    # NB: Remember to replace the values with the one you need.
 
     sql = """
     INSERT INTO eventtype (

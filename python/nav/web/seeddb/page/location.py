@@ -55,7 +55,7 @@ def location(request):
 
 def location_list(request):
     info = LocationInfo()
-    context = info.template_context    
+    context = info.template_context
     context.update({
         'roots': Location.objects.filter(parent=None).order_by('id'),
         'edit_url_name': 'seeddb-location-edit'
