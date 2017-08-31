@@ -48,15 +48,15 @@ class ConfigTestCase(unittest.TestCase):
         self.assertEquals(values['foo1'], 'bar1')
         self.assertEquals(values['foo2'], 'bar2')
         self.assertEquals(values['foo4'], 'bar4')
-        self.assertFalse(values.has_key('foo3'))
+        self.assertFalse('foo3' in values)
 
     def test_getconfig(self):
         values = config.getconfig(self.mockinifile)
         self.assertEquals(2, len(values.keys()))
-        self.assert_(values.has_key('section1'))
-        self.assert_(values.has_key('section2'))
+        self.assert_('section1' in values)
+        self.assert_('section2' in values)
 
         self.assertEquals(values['section1']['foo1'], 'bar1')
         self.assertEquals(values['section1']['foo2'], 'bar2')
         self.assertEquals(values['section2']['foo4'], 'bar4')
-        self.assertFalse(values['section2'].has_key('foo3'))
+        self.assertFalse('foo3' in values['section2'])
