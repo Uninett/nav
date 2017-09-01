@@ -58,26 +58,6 @@ class VarcharField(models.TextField):
         return super(VarcharField, self).formfield(**defaults)
 
 
-class PickleField(six.with_metaclass(models.SubfieldBase, models.TextField)):
-    """Automatically pickles and unpickles values"""
-
-    description = "Field for storing pickles"
-
-    def db_type(self, connection=None):
-        return 'varchar'
-
-    def to_python(self, value):
-        if value:
-            if isinstance(value, dict):
-                return value
-            else:
-                return pickle.loads(value)
-
-    def get_prep_value(self, value):
-        if value is not None:
-            return pickle.dumps(value)
-
-
 class DictAsJsonField(six.with_metaclass(models.SubfieldBase, models.TextField)):
     """Serializes value to and from json. Has a fallback to pickle for
     historical reasons"""
