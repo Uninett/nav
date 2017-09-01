@@ -45,8 +45,6 @@ class WeatherGoose1TrapTest(WeatherGooseMockedDb):
                          '.1.3.6.1.4.1.17373.2.2.1.5.1': self.temperature}
         self.trap = trap
 
-        import nav.event
-
         class Event(dict):
             def post(self):
                 pass

@@ -44,7 +44,7 @@ from nav.models.manage import Arp, Cam, Category, Device, Location
 from nav.models.manage import Memory, Netbox, NetboxInfo, NetboxType
 from nav.models.manage import Organization, Prefix, Room, NetboxGroup
 from nav.models.manage import Interface, Usage, Vlan, Vendor
-from nav.models.fields import VarcharField, PickleField, DictAsJsonField
+from nav.models.fields import VarcharField, DictAsJsonField
 
 configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
 

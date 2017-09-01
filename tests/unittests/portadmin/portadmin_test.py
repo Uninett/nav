@@ -1,7 +1,6 @@
 from mock import Mock
 
 import unittest
-from nav.models.manage import Netbox
 from nav.web.portadmin.utils import *
 from nav.portadmin.snmputils import *
 

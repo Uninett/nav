@@ -41,7 +41,6 @@ import os
 
 import re
 from time import mktime, strptime
-import glob
 import datetime
 
 # Configuration settings.

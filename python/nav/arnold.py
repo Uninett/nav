@@ -35,7 +35,6 @@ import nav.Snmp
 from nav.Snmp.errors import AgentError
 import nav.bitvector
 import nav.buildconf
-from nav import logs
 from nav.errors import GeneralException
 from nav.models.arnold import Identity, Event
 from nav.models.manage import Interface, Prefix

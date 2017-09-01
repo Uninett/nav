@@ -17,10 +17,6 @@
 
 import httplib
 import socket
-from urlparse import urlsplit
-from nav import buildconf
-from nav.statemon.event import Event
-from nav.statemon.abstractchecker import AbstractChecker
 
 from ssl import wrap_socket
 

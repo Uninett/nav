@@ -19,12 +19,9 @@
 
 from __future__ import print_function
 
-import os
-import nav
 import sys
 from nav import db
 from nav.event import Event
-import re
 
 connection = db.getConnection('default')
 database = connection.cursor()

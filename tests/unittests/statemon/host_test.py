@@ -1,7 +1,7 @@
 from unittest import TestCase
 import os
 from nav.statemon.megaping import Host
-from nav.statemon.icmppacket import Packet, PacketV4, PacketV6
+from nav.statemon.icmppacket import PacketV4, PacketV6
 
 
 class HostTestcase(TestCase):

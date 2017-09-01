@@ -17,13 +17,12 @@
 
 from django import forms
 from django.core.urlresolvers import reverse
-from django.forms.models import (BaseModelFormSet, BaseFormSet,
-                                 modelformset_factory)
+from django.forms.models import modelformset_factory
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column,
-                                            Field, HTML, Submit)
-from nav.models.profiles import NavbarLink, Account, AccountDashboard
-from nav.web.crispyforms import LabelSubmit, CheckBox, NavSubmit
+                                            HTML, Submit)
+from nav.models.profiles import NavbarLink, Account
+from nav.web.crispyforms import CheckBox, NavSubmit
 
 
 class LoginForm(forms.Form):

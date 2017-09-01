@@ -22,7 +22,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from datetime import datetime, timedelta
 from nav.models.fields import (VarcharField, LegacyGenericForeignKey,
                                DateTimeInfinityField, INFINITY)
-from nav.models import manage, service
+from nav.models import manage
 
 
 @python_2_unicode_compatible

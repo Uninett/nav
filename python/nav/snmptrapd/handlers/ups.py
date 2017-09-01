@@ -23,8 +23,6 @@ off battery.
 """
 
 import logging
-import nav.errors
-import re
 from nav.db import getConnection
 from nav.event import Event
 from nav.Snmp import Snmp

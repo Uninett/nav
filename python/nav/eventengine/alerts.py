@@ -15,7 +15,6 @@
 #
 """Alert generator functionality for the eventEngine"""
 from collections import namedtuple
-import datetime
 import logging
 from pprint import pformat
 import os

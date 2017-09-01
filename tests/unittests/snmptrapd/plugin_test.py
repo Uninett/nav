@@ -1,4 +1,4 @@
-from mock import Mock, patch, call
+from mock import Mock, patch
 import pytest
 from unittest import TestCase
 import sys

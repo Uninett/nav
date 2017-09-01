@@ -17,10 +17,8 @@
 from __future__ import unicode_literals, absolute_import
 
 from django.views.generic import ListView, TemplateView
-from django.contrib.contenttypes.models import ContentType
 
 from .models import LogEntry
-from . import find_modelname
 
 
 class AuditlogViewMixin(object):

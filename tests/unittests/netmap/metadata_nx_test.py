@@ -1,6 +1,4 @@
 from mock import Mock
-import pytest
-import unittest
 from nav.models.manage import Interface, Netbox
 from nav.netmap.metadata import Edge, Group
 from topology_layer2_testcase import TopologyLayer2TestCase

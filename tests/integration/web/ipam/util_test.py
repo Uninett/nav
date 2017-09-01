@@ -1,8 +1,6 @@
-from nav.models.manage import Prefix
-from mock import patch
 from nav.web.ipam.util import get_available_subnets
 from nav.tests.cases import DjangoTransactionTestCase
-from IPy import IP, IPSet
+from IPy import IP
 
 
 class UtilTestCase(DjangoTransactionTestCase):

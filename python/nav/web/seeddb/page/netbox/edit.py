@@ -31,7 +31,7 @@ from django.contrib import messages
 from nav.models.manage import Netbox, NetboxCategory, NetboxType
 from nav.models.manage import NetboxInfo
 from nav.Snmp import Snmp
-from nav.Snmp.errors import SnmpError, TimeOutException
+from nav.Snmp.errors import SnmpError
 from nav.util import is_valid_ip
 from nav.web.seeddb import reverse_lazy
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname

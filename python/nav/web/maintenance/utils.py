@@ -15,7 +15,6 @@
 #
 
 from calendar import HTMLCalendar
-from itertools import groupby
 from datetime import date, datetime, timedelta
 from time import strftime
 

@@ -17,8 +17,6 @@
 """
 Contains web authentication functionality for NAV.
 """
-import urllib
-import os
 import logging
 
 from nav.web import ldapauth

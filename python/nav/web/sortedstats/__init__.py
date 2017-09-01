@@ -15,7 +15,6 @@
 #
 """Useful crap"""
 
-from operator import itemgetter
 from .statmodules import (StatCpuAverage, StatUptime, StatIfInOctets,
                           StatIfOutOctets, StatIfOutErrors, StatIfInErrors,
                           StatMinFreeAddresses)

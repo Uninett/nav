@@ -21,8 +21,7 @@ from logging import getLogger
 from nav.models.profiles import Account
 from nav.django.utils import is_admin, get_account
 
-from django.http import (HttpResponseForbidden, HttpResponseRedirect,
-                         HttpResponse)
+from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.sessions.backends.db import SessionStore
 from django.conf import settings
 from django.utils.encoding import python_2_unicode_compatible

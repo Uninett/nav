@@ -17,7 +17,6 @@
 
 from datetime import datetime
 from collections import defaultdict
-from functools import partial
 
 from nav.netmap.metadata import (
     node_to_json_layer2,

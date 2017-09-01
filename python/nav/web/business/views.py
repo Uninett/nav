@@ -7,7 +7,6 @@ from operator import attrgetter
 from django.core.urlresolvers import reverse
 from django.views.generic import TemplateView
 
-from nav.metrics.data import get_netboxes_availability
 from nav.models.event import AlertHistory
 from nav.models.manage import Interface
 from nav.web.business import utils

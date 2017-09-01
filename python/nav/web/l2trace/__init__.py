@@ -19,8 +19,6 @@
 import socket
 from socket import gethostbyaddr, gethostbyname
 
-from nav import db
-
 from django.db.models import Q
 from nav.models.manage import Netbox, SwPortVlan, GwPortPrefix, Prefix, Arp, Cam
 import datetime

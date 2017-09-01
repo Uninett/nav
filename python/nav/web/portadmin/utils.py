@@ -23,10 +23,8 @@ import django.template
 
 from django.template.loaders.filesystem import Loader
 from nav.django.utils import is_admin
-from nav.models.profiles import AccountGroup
 from nav.path import sysconfdir
 from nav.portadmin.snmputils import SNMPFactory, FantasyVlan
-from nav.models.arnold import Identity
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 from operator import attrgetter
 from os.path import join

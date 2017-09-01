@@ -18,7 +18,7 @@
 from collections import OrderedDict
 import itertools
 import json
-from urllib import urlencode, quote
+from urllib import urlencode
 import urllib2
 from urlparse import urljoin
 from nav.metrics import CONFIG, errors

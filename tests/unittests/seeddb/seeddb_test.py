@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-#
 import unittest
 
-from mock import Mock, MagicMock
+from mock import MagicMock
 from nav.web.seeddb.forms import get_prefix, tree_pad, create_choices, BOX_CHARS
 
 

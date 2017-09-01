@@ -21,12 +21,11 @@ from operator import itemgetter
 from django.http import HttpResponse, QueryDict, JsonResponse
 from django.test.client import RequestFactory
 
-from nav.django.settings import DATETIME_FORMAT
-from nav.models.profiles import AccountNavlet, Account
+from nav.models.profiles import Account
 from nav.models.manage import Netbox
 from nav.web.status2.forms import StatusWidgetForm
 from nav.web.api.v1.views import AlertHistoryViewSet
-from . import Navlet, NAVLET_MODE_EDIT, NAVLET_MODE_VIEW
+from . import Navlet
 
 
 class Status2Widget(Navlet):

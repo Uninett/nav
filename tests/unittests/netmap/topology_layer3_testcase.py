@@ -1,6 +1,5 @@
-from mock import Mock, patch
+from mock import patch
 import networkx as nx
-from nav.models.fields import CIDRField
 from nav.models.manage import Prefix, Vlan, GwPortPrefix, NetType
 from nav.netmap import topology, stubs
 from nav.topology import vlan

@@ -14,7 +14,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import re
 import unittest
 from nav.macaddress import MacAddress, MacPrefix
 

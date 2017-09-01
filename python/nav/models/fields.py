@@ -22,7 +22,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from django import forms
-from django.db import models, connection
+from django.db import models
 from django.core import exceptions
 from django.db.models import Q
 from django.utils import six

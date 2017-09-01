@@ -1,5 +1,5 @@
 """Tests for Arnold using snmp objects"""
-from nav.arnold import change_port_status, change_port_vlan
+from nav.arnold import change_port_status
 from mock import Mock, patch
 import unittest
 

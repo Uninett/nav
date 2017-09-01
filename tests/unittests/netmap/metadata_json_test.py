@@ -15,9 +15,7 @@
 #
 
 import unittest
-from mock import Mock
-from nav.models.manage import (Netbox, Room, Location, SwPortVlan, Vlan,
-    Interface)
+from nav.models.manage import (SwPortVlan, Vlan)
 from nav.models.profiles import NetmapViewNodePosition
 from nav.netmap import stubs, metadata
 from nav.netmap.metadata import Edge, Group
