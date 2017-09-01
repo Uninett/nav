@@ -93,6 +93,7 @@ def devicehistory_view(request):
         'room__location': request.REQUEST.getlist('loc'),
         'room': request.REQUEST.getlist('room'),
         'netbox': request.REQUEST.getlist('netbox'),
+        'groups': request.REQUEST.getlist('netboxgroup'),
         'module': request.REQUEST.getlist('module'),
         'mode': request.REQUEST.getlist('mode')
     }
