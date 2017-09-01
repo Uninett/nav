@@ -58,7 +58,8 @@ class VarcharField(models.TextField):
         return super(VarcharField, self).formfield(**defaults)
 
 
-class DictAsJsonField(six.with_metaclass(models.SubfieldBase, models.TextField)):
+@six.add_metaclass(models.SubfieldBase)
+class DictAsJsonField(models.TextField):
     """Serializes value to and from json. Has a fallback to pickle for
     historical reasons"""
 
@@ -85,7 +86,8 @@ class DictAsJsonField(six.with_metaclass(models.SubfieldBase, models.TextField))
             return json.dumps(value)
 
 
-class CIDRField(six.with_metaclass(models.SubfieldBase, VarcharField)):
+@six.add_metaclass(models.SubfieldBase)
+class CIDRField(VarcharField):
 
     def to_python(self, value):
         """Verifies that the value is a string with a valid CIDR IP address"""
@@ -96,7 +98,8 @@ class CIDRField(six.with_metaclass(models.SubfieldBase, VarcharField)):
             return value
 
 
-class PointField(six.with_metaclass(models.SubfieldBase, models.CharField)):
+@six.add_metaclass(models.SubfieldBase)
+class PointField(models.CharField):
 
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 100

@@ -326,7 +326,8 @@ class MibRetrieverMaker(type):
                          for node_name in cls.mib['nodes'].keys())
 
 
-class MibRetriever(six.with_metaclass(MibRetrieverMaker, object)):
+@six.add_metaclass(MibRetrieverMaker)
+class MibRetriever(object):
     """Base class for functioning MIB retriever classes."""
     mib = None
     nodes = None
