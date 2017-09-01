@@ -192,8 +192,8 @@ def describe_search_params(selection):
             data[name] = _get_data_to_search_terms(selection, arg, model)
 
     # Special case with netboxes
-    if 'netbox' not in data:
-        data['netbox'] = ["All netboxes selected."]
+    if Netbox._meta.verbose_name not in data:
+        data[Netbox._meta.verbose_name] = ["All IP devices selected."]
 
     return data
 
