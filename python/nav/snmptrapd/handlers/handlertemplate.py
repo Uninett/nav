@@ -42,7 +42,7 @@ def handleTrap(trap, config=None):
 
     # Use the trap-object to access trap-variables and do stuff.
     if trap.genericType in ['LINKUP', 'LINKDOWN']:
-        logger.debug ("This is a linkState trap")
+        logger.debug("This is a linkState trap")
 
     # config may be fetched like this
     variable = config.get('template', 'variable')
@@ -77,7 +77,7 @@ def handleTrap(trap, config=None):
 # This function is a nice to run to make sure the event and alerttypes
 # exist in the database if you post events for alerting.
 
-def verifyEventtype ():
+def verifyEventtype():
     """
     Safe way of verifying that the event- and alarmtypes exist in the
     database. Should be run when module is imported.

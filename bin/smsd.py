@@ -48,6 +48,11 @@ logfile = os.path.join(nav.path.localstatedir, 'log', 'smsd.log')
 pidfile = os.path.join(nav.path.localstatedir, 'run', 'smsd.pid')
 
 #
+# Globals
+#
+logger = config = delay = failed = defaults = None
+
+#
 #  MAIN FUNCTION
 #
 
