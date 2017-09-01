@@ -15,12 +15,6 @@ def shorten_ifname(ifname):
 
 
 @register.filter
-def add_zwsp(value, separator="|"):
-    """Add Zero Width space after the given separator"""
-    return ("%s%s" % (separator, "&#8203;")).join(value.split(separator))
-
-
-@register.filter
 def deep_urlize(value):
     """Convert anything that looks like an url to an href tag"""
     if value:
