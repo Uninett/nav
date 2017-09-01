@@ -251,19 +251,19 @@ class MibRetrieverMaker(type):
         # modify mib data to slightly optimize later OID manipulation
         convert_oids(mib)
 
-        MibRetrieverMaker.__make_node_objects(cls)
+        MibRetrieverMaker.__make_node_objects()
         cls.tables = dict((t.table.name, t)
                           for t in MibTableDescriptor.build_all(cls))
 
-        MibRetrieverMaker.__make_scalar_getters(cls)
-        MibRetrieverMaker.__make_table_getters(cls)
+        MibRetrieverMaker.__make_scalar_getters()
+        MibRetrieverMaker.__make_table_getters()
 
         MibRetrieverMaker.modules[mib['moduleName']] = cls
 
     # following is a collection of helper methods to modify the
     # MIB-aware retriever class that is being created.
 
-    @staticmethod
+    @classmethod
     def __make_scalar_getters(cls):
         """Make a get_* method for every scalar MIB node."""
         for node in cls.nodes.values():
@@ -300,7 +300,7 @@ class MibRetrieverMaker(type):
         getter.__name__ = node_name
         return getter
 
-    @staticmethod
+    @classmethod
     def __make_table_getters(cls):
         """Make a get_* method for all table MIB node."""
         for node_name in cls.tables.keys():
@@ -320,7 +320,7 @@ class MibRetrieverMaker(type):
         getter.__name__ = node_name
         return getter
 
-    @staticmethod
+    @classmethod
     def __make_node_objects(cls):
         cls.nodes = dict((node_name, MIBObject(cls.mib, node_name))
                          for node_name in cls.mib['nodes'].keys())
