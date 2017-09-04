@@ -23,8 +23,5 @@ djangorestframework==2.4.4
 django-filter>=0.7,<0.8
 iso8601
 
-# dependencies that our dependencies forgot to mention
-ipaddr==2.1.11  # req by pynetsnmp
-
-# Our own, patched version of pynetsnmp, until pull request is accepted by upstream.
+# Our own, patched version of pynetsnmp
 git+https://github.com/lunkwill42/pynetsnmp
