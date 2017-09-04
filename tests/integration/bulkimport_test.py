@@ -2,7 +2,7 @@
 
 # pylint: disable=W0614, C0111, W0401
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 from unittest import TestCase
 

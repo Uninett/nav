@@ -14,7 +14,10 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """ipdevpoll plugin to find and store static routes from routing tables"""
-import ConfigParser
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 
 from twisted.internet import defer
 
@@ -127,5 +130,5 @@ def get_throttle_delay(config):
     """Returns a throttle delay value from a ConfigParser instance"""
     try:
         return config.getfloat('staticroutes', 'throttle-delay')
-    except ConfigParser.Error:
+    except configparser.Error:
         return 0.0

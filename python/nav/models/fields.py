@@ -111,7 +111,7 @@ class PointField(models.CharField):
     def to_python(self, value):
         if not value or isinstance(value, tuple):
             return value
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             if validators.is_valid_point_string(value):
                 if value.startswith('(') and value.endswith(')'):
                     noparens = value[1:-1]

@@ -17,9 +17,14 @@
 
 from datetime import datetime
 import json
-from urllib import urlencode
-import urllib2
-from urlparse import urljoin
+try:
+    from urllib.parse import urlencode, urljoin
+    from urllib.request import Request, urlopen
+    from urllib.error import HTTPError
+except ImportError:
+    from urlparse import urljoin
+    from urllib import urlencode
+    from urllib2 import Request, urlopen, HTTPError
 import logging
 from nav.metrics import CONFIG, errors
 from nav.metrics.templates import (metric_path_for_packet_loss,
@@ -108,19 +113,19 @@ def get_metric_data(target, start="-5min", end="now"):
     query = urlencode(query, True)
 
     _logger.debug("get_metric_data%r", (target, start, end))
-    req = urllib2.Request(url, data=query)
+    req = Request(url, data=query)
     try:
-        response = urllib2.urlopen(req)
+        response = urlopen(req)
         json_data = json.load(response)
         _logger.debug("get_metric_data: returning %d results", len(json_data))
         return json_data
-    except urllib2.HTTPError as err:
+    except HTTPError as err:
         _logger.error("Got a 500 error from graphite-web when fetching %s"
                       "with data %s", err.url, query)
         _logger.error("Graphite output: %s", err.fp.read())
         raise errors.GraphiteUnreachableError(
             "{0} is unreachable".format(base), err)
-    except urllib2.URLError as err:
+    except URLError as err:
         raise errors.GraphiteUnreachableError(
             "{0} is unreachable".format(base), err)
     except ValueError:

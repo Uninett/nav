@@ -15,7 +15,10 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """View controller for PortAdmin"""
-import ConfigParser
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 import logging
 import json
 
@@ -682,5 +685,5 @@ def get_config_value(config, section, key, fallback=None):
     """Get the value of key from a ConfigParser object, with fallback"""
     try:
         return config.get(section, key)
-    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+    except (configparser.NoOptionError, configparser.NoSectionError):
         return fallback

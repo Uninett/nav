@@ -1,6 +1,9 @@
 from __future__ import print_function
 
-import ConfigParser
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 import pytest
 from unittest import TestCase
 import signal
@@ -29,7 +32,7 @@ class SnmptrapdPluginTest(TestCase):
 
     def test_plugin_loader_reading_in_modules_from_config_file(self):
         configfile = sysconfdir + "/snmptrapd.conf"
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(configfile)
         list_from_config = config.get('snmptrapd', 'handlermodules').split(',')
 

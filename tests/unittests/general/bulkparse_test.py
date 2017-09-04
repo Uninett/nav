@@ -1,6 +1,7 @@
 """Tests for bulkparse"""
 
 # pylint: disable=C0111, C0103, W0614
+from __future__ import unicode_literals
 
 from unittest import TestCase
 from nav.bulkparse import *
@@ -95,7 +96,7 @@ class TestNetboxBulkParser(TestCase):
         b = NetboxBulkParser(data)
         try:
             b.next()
-        except RequiredFieldMissing, error:
+        except RequiredFieldMissing as error:
             self.assertEquals(error.line_num, 1)
             self.assertEquals(error.missing_field, 'orgid')
         else:

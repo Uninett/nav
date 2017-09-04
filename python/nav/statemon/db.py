@@ -24,7 +24,10 @@ is used at a time.
 from __future__ import absolute_import
 
 import threading
-import Queue
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 import time
 import atexit
 from collections import defaultdict
@@ -65,7 +68,7 @@ class _DB(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.setDaemon(1)
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
         self._hosts_to_ping = []
         self._checkers = []
         self.db = None

@@ -28,7 +28,11 @@ Oslo, but could be useful for other similar solutions.
 """
 
 import urllib
-import urllib2
+try:
+    from urllib.request import urlopen
+    from urllib.error import HTTPError
+except ImportError:
+    from urllib2 import urlopen, HTTPError
 from nav.smsd.dispatcher import Dispatcher, DispatcherError
 
 
@@ -75,9 +79,9 @@ class HttpGetDispatcher(Dispatcher):
 
         # Send SMS
         try:
-            urllib2.urlopen(url)
+            urlopen(url)
             result = True
-        except urllib2.HTTPError as e:
+        except HTTPError as e:
             self.logger.error('HTTP error: <%s>: %s (%s).' %
                               (e.url, e.msg, e.code))
             result = False

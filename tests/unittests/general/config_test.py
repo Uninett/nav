@@ -13,15 +13,19 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import unicode_literals
 import unittest
-import StringIO
+try:
+    from io import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 from nav import config
 
 
 class ConfigTestCase(unittest.TestCase):
     def setUp(self):
-        mockfile = StringIO.StringIO("".join([
+        mockfile = StringIO("".join([
             '# mock config file\n',
             'foo1=bar1\n',
             'foo2 =  bar2  \n',
@@ -31,7 +35,7 @@ class ConfigTestCase(unittest.TestCase):
             ]))
         self.mockfile = mockfile
 
-        mockinifile = StringIO.StringIO("".join([
+        mockinifile = StringIO("".join([
             '# mock config file\n',
             '[section1]\n',
             'foo1=bar1\n',

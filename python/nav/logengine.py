@@ -52,7 +52,10 @@ import os.path
 import errno
 import atexit
 import logging
-from ConfigParser import ConfigParser
+try:
+    from configparser import ConfigParser
+except ImportError:
+    from ConfigParser import ConfigParser
 import datetime
 import optparse
 

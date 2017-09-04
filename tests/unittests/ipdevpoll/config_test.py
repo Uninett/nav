@@ -15,9 +15,13 @@
 #
 # pylint:  disable=C0111
 """Tests for config module"""
+from __future__ import unicode_literals
 
 import unittest
-from ConfigParser import NoOptionError
+try:
+    from configparser import NoOptionError
+except ImportError:
+    from ConfigParser import NoOptionError
 from nav.config import NAVConfigParser
 from nav.ipdevpoll.config import (get_job_sections, get_jobs,
                                   get_job_descriptions, JobDescriptor)

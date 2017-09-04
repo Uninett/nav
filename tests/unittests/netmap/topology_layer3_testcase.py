@@ -3,7 +3,7 @@ import networkx as nx
 from nav.models.manage import Prefix, Vlan, GwPortPrefix, NetType
 from nav.netmap import topology, stubs
 from nav.topology import vlan
-from topology_testcase import TopologyTestCase
+from .topology_testcase import TopologyTestCase
 
 
 class TopologyLayer3TestCase(TopologyTestCase):

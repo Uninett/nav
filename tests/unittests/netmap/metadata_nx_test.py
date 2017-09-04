@@ -1,9 +1,9 @@
 from mock import Mock
 from nav.models.manage import Interface, Netbox
 from nav.netmap.metadata import Edge, Group
-from topology_layer2_testcase import TopologyLayer2TestCase
-from topology_layer3_testcase import TopologyLayer3TestCase
-from metaclass_testcase import MetaClassTestCase
+from .topology_layer2_testcase import TopologyLayer2TestCase
+from .topology_layer3_testcase import TopologyLayer3TestCase
+from .metaclass_testcase import MetaClassTestCase
 
 
 class MetaClassesTests(MetaClassTestCase):

@@ -15,7 +15,10 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """This package encompasses modules with web functionality for NAV"""
-import ConfigParser
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 import os.path
 import cgi
 import logging
@@ -26,7 +29,7 @@ from nav.models.profiles import Account
 
 
 logger = logging.getLogger("nav.web")
-webfrontConfig = ConfigParser.ConfigParser()
+webfrontConfig = configparser.ConfigParser()
 webfrontConfig.read(os.path.join(nav.path.sysconfdir, 'webfront',
                                  'webfront.conf'))
 
