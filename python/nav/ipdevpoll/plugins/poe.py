@@ -24,7 +24,7 @@ from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
 
-class poe(Plugin):
+class Poe(Plugin):
     """Monitors power over ethernet status"""
 
     @inlineCallbacks
