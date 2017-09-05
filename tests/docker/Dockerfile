@@ -91,7 +91,6 @@ COPY requirements.txt /runtime-requirements.txt
 COPY requirements/ /requirements
 COPY tests/requirements.txt /test-requirements.txt
 RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
-RUN pip install whisper carbon==0.9.14 graphite-web==0.9.14 django-tagging
 
 
 ENV WORKSPACE /source
