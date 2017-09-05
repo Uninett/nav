@@ -20,7 +20,7 @@ import networkx as nx
 from IPy import IP
 
 from nav.models.manage import (GwPortPrefix, Interface, SwPortVlan,
-                               SwPortBlocked, Prefix)
+                               SwPortBlocked, Prefix, Vlan)
 
 from django.db.models import Q
 from django.db import transaction
@@ -36,7 +36,8 @@ NO_TRUNK = Q(trunk=False) | Q(trunk__isnull=True)
 class VlanGraphAnalyzer(object):
     """Analyzes VLAN topologies as a subset of the layer 2 topology"""
     def __init__(self):
-        self.vlans = self._build_vlan_router_dict()
+        self.routed_vlans = self._build_vlan_router_dict()
+        self.unrouted_vlans = self._build_unrouted_vlan_seed_dict()
         self.layer2 = build_layer2_graph()
         self.stp_blocked = get_stp_blocked_ports()
         _LOGGER.debug("blocked ports: %r", self.stp_blocked)
@@ -57,27 +58,56 @@ class VlanGraphAnalyzer(object):
         addrs = sorted(get_active_addresses_of_routed_vlans(), key=_sortkey)
         return dict((addr.prefix.vlan, addr) for addr in reversed(addrs))
 
+    def _build_unrouted_vlan_seed_dict(self):
+        return {x for x in Vlan.objects.filter(prefix__isnull=True,
+                                               netbox__isnull=False).iterator()}
+
     def analyze_all(self):
         """Analyze all VLAN topologies"""
-        for vlan in self.vlans:
-            _LOGGER.debug("Analyzing VLAN %s", vlan)
+        for vlan in sorted(self.routed_vlans, key=lambda x: x.vlan):
+            _LOGGER.debug("Analyzing routed VLAN %s", vlan)
+            self.analyze_vlan(vlan)
+        while self.unrouted_vlans:
+            vlan = min(self.unrouted_vlans, key=_unrouted_vlan_sort)
+            self.unrouted_vlans.remove(vlan)
+            if vlan.netbox not in self.layer2:
+                continue
+            _LOGGER.debug("Analyzing unrouted VLAN %s", vlan)
             self.analyze_vlan(vlan)
         return self.ifc_vlan_map
 
     def analyze_vlans_by_id(self, vlans):
         """Analyzes a list of VLANs by their PVIDs"""
-        vlan_id_map = dict((vlan.vlan, vlan) for vlan in self.vlans.keys())
+        vlan_id_map = {vlan.vlan: vlan for vlan in self.routed_vlans.keys()}
+        vlan_id_map.update(
+            {vlan.vlan: vlan for vlan in self.unrouted_vlans}
+        )
         for vlan in vlans:
             if vlan in vlan_id_map:
                 self.analyze_vlan(vlan_id_map[vlan])
 
     def analyze_vlan(self, vlan):
         """Analyzes a single vlan"""
-        addr = self.vlans[vlan]
-        analyzer = RoutedVlanTopologyAnalyzer(addr, self.layer2,
-                                              self.stp_blocked)
+        if vlan in self.routed_vlans:
+            addr = self.routed_vlans[vlan]
+            analyzer = RoutedVlanTopologyAnalyzer(addr, self.layer2,
+                                                  self.stp_blocked)
+        else:
+            seed_netbox = vlan.netbox
+            analyzer = UnroutedVlanTopologyAnalyzer(vlan, seed_netbox,
+                                                    self.layer2,
+                                                    self.stp_blocked)
         topology = analyzer.analyze()
         self._integrate_vlan_topology(vlan, topology)
+        self._prune_unrouted_vlans(vlan, topology)
+
+    def _prune_unrouted_vlans(self, vlan, topology):
+        for ifc in topology:
+            for cand in list(self.unrouted_vlans):
+                if cand.vlan == vlan.vlan and cand.netbox == ifc.netbox:
+                    _LOGGER.debug("pruning vlan %s because of %s",
+                                  cand, vlan)
+                    self.unrouted_vlans.remove(cand)
 
     def _integrate_vlan_topology(self, vlan, topology):
         for ifc, direction in topology.items():
@@ -167,9 +197,9 @@ class RoutedVlanTopologyAnalyzer(object):
         visited_nodes.add(dest)
 
         vlan_is_active = (
-            (direction == 'up'
-             and self._vlan_is_active_on_reverse_edge(edge, visited_nodes))
-            or self._is_vlan_active_on_destination(dest, ifc))
+            (direction == 'up' and
+             self._vlan_is_active_on_reverse_edge(edge, visited_nodes)) or
+            self._is_vlan_active_on_destination(dest, ifc))
 
         if direction == 'down' and not is_visited_before:
             # Recursive depth first search on each outgoing edge
@@ -288,6 +318,29 @@ class RoutedVlanTopologyAnalyzer(object):
             self.ifc_directions[dest_ifc] = 'blocked'
 
 
+class UnroutedVlanTopologyAnalyzer(RoutedVlanTopologyAnalyzer):
+    """Analyzer of a single unrouted VLAN topology"""
+
+    def __init__(self, vlan, seed, layer2_graph, stp_blocked=None):
+        """Initializes an analyzer for a given unrouted VLAN.
+
+        :param layer2_graph: A layer 2 graph, as produced by the
+                             build_layer2_graph() function.
+
+        """
+        self.layer2 = layer2_graph
+        self.stp_blocked = stp_blocked or {}
+        self.ifc_directions = {}
+        self.edge_directions = {}
+        self.seed_netbox = seed
+        self.vlan = vlan
+
+    def analyze(self):
+        start_edge = (self.seed_netbox, self.seed_netbox, None)
+        self._examine_edge(start_edge)
+        return {ifc: 'undefined' for ifc in self.ifc_directions.keys()}
+
+
 class VlanTopologyUpdater(object):
     """Updater of the VLAN topology.
 
@@ -338,6 +391,7 @@ class VlanTopologyUpdater(object):
         'up': SwPortVlan.DIRECTION_UP,
         'down': SwPortVlan.DIRECTION_DOWN,
         'blocked': SwPortVlan.DIRECTION_BLOCKED,
+        'undefined': SwPortVlan.DIRECTION_UNDEFINED,
     }
 
     @classmethod
@@ -371,7 +425,7 @@ def build_layer2_graph(related_extra=None):
 
     select_related = ('netbox', 'to_netbox', 'to_interface')
     if related_extra:
-        select_related = select_related+related_extra
+        select_related = select_related + related_extra
 
     links = Interface.objects.filter(
         to_netbox__isnull=False).select_related(*select_related)
@@ -553,3 +607,7 @@ def get_stp_blocked_ports():
     for block in SwPortBlocked.objects.all():
         blocked[block.interface_id].append(block.vlan)
     return dict(blocked)
+
+
+def _unrouted_vlan_sort(vlan):
+    return vlan.vlan * 10 + (0 if vlan.has_meaningful_net_ident() else 1)

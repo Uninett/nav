@@ -29,10 +29,7 @@ def _get_vlans_map_layer2(graph):
     """Builds two dictionaries to lookup VLAN information for layer2
     :param a networkx NAV topology graph
     :returns a tuple to look up vlans by interface and/or netbox"""
-    interface_id_list = list()
-    for _, _, key in graph.edges_iter(keys=True):
-        if key.vlan:
-            interface_id_list.append(key.id)
+    interface_id_list = [x[2].id for x in graph.edges_iter(keys=True)]
 
     vlan_by_interface = defaultdict(list)
     vlan_by_netbox = defaultdict(dict)
