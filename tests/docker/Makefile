@@ -5,13 +5,19 @@ uname := $(shell uname)
 uid := $(shell id -u)
 gid := $(shell id -g)
 
+ifeq ($(PYTHON_VERSION),3)
+  dockerfile := Dockerfile3
+else
+  dockerfile := Dockerfile
+endif
+
 .PHONY: build check
 
 build:
-	docker build -t $(name) -f Dockerfile $(top_srcdir)
+	docker build -t $(name) -f $(dockerfile) $(top_srcdir)
 
 buildnocache:
-	docker build --no-cache -t $(name) -f Dockerfile $(top_srcdir)
+	docker build --no-cache -t $(name) -f $(dockerfile) $(top_srcdir)
 
 check: build
 	/usr/bin/env
