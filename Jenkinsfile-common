@@ -10,8 +10,9 @@
 
 node {
     try {
-        stage("Checkout") {
-            checkout scm
+        def dockerfile = 'tests/docker/Dockerfile'
+        if (env.PYTHON_VERSOIN == '3') {
+            dockerfile = 'tests/docker/Dockerfile3'
         }
 
         docker.build("nav/testfjas:${env.BUILD_NUMBER}", "-f tests/docker/Dockerfile .").inside() {
