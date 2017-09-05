@@ -10,11 +10,11 @@
 
 try {
     def dockerfile = 'tests/docker/Dockerfile'
-    if (env.PYTHON_VERSOIN == '3') {
+    if (env.PYTHON_VERSION == '3') {
         dockerfile = 'tests/docker/Dockerfile3'
     }
 
-    docker.build("nav/testfjas:${env.BUILD_NUMBER}", "-f tests/docker/Dockerfile .").inside() {
+    docker.build("nav/testfjas:${env.BUILD_NUMBER}", "-f ${dockerfile} .").inside() {
         env.WORKSPACE = "${WORKSPACE}"
         env.BUILDDIR = "/opt/nav"
         env.TARGETURL = "http://localhost:8000/"
