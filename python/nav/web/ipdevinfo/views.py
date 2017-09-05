@@ -546,6 +546,17 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
         port_metrics = []
         graphite_error = True
 
+    sensor_metrics = []
+    for sensor in port.sensor_set.all():
+        metric_id = sensor.get_metric_name()
+        metric = {
+            'id': metric_id,
+            'sensor': sensor,
+            'graphite_data_url': Graph(
+                magic_targets=[metric_id], format='json'),
+        }
+        sensor_metrics.append(metric)
+    find_rules(sensor_metrics)
     # If interface is detained in Arnold, this should be visible on the
     # port details view
     try:
@@ -571,6 +582,7 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             'port_metrics': port_metrics,
             'graphite_error': graphite_error,
             'detention': detention,
+            'sensor_metrics': sensor_metrics,
         },
         context_instance=RequestContext(
             request, processors=[search_form_processor]))

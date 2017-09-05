@@ -211,6 +211,20 @@ class EntityTable(dict):
             else:
                 return self.get_nearest_module_parent(parent)
 
+    def get_nearest_port_parent(self, entity):
+        """Traverse the entity hierarchy to find a suitable parent port.
+
+        Returns a port row if a parent is found, else None is returned.
+
+        """
+        parent_index = entity['entPhysicalContainedIn']
+        if parent_index in self:
+            parent = self[parent_index]
+            if self.is_port(parent):
+                return parent
+            else:
+                return self.get_nearest_port_parent(parent)
+
     def get_chassis_of(self, entity):
         """Returns the nearest parent chassis of an entity.
 

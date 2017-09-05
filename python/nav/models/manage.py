@@ -1896,6 +1896,7 @@ class Sensor(models.Model):
 
     id = models.AutoField(db_column='sensorid', primary_key=True)
     netbox = models.ForeignKey(Netbox, db_column='netboxid')
+    interface = models.ForeignKey(Interface, db_column='interfaceid', null=True)
     oid = VarcharField(db_column="oid")
     unit_of_measurement = VarcharField(db_column="unit_of_measurement",
                                        choices=UNIT_OF_MEASUREMENTS_CHOICES)
