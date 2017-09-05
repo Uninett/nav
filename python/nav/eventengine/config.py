@@ -16,12 +16,15 @@
 """eventengine config"""
 from nav.config import NAVConfigParser
 from nav.util import parse_interval
-from ConfigParser import NoSectionError, NoOptionError
+try:
+    from configparser import NoSectionError, NoOptionError
+except ImportError:
+    from ConfigParser import NoSectionError, NoOptionError
 
 
 class EventEngineConfig(NAVConfigParser):
     DEFAULT_CONFIG_FILES = ('eventengine.conf',)
-    DEFAULT_CONFIG = """
+    DEFAULT_CONFIG = u"""
 [timeouts]
 boxDown.warning = 1m
 boxDown.alert = 4m

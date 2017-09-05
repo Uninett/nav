@@ -28,6 +28,7 @@ from nav.metrics.templates import (
     metric_path_for_cpu_load,
     metric_path_for_cpu_utilization,
     metric_path_for_sysuptime,
+    metric_path_for_power,
     metric_prefix_for_memory
 )
 from nav.mibs.cisco_memory_pool_mib import CiscoMemoryPoolMib
@@ -41,6 +42,7 @@ from nav.mibs.cisco_process_mib import CiscoProcessMib
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.mibs.statistics_mib import StatisticsMib
 from nav.mibs.juniper_mib import JuniperMib
+from nav.mibs.power_ethernet_mib import PowerEthernetMib
 from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
                                 VENDOR_ID_HEWLETT_PACKARD,
                                 VENDOR_ID_JUNIPER_NETWORKS_INC)
@@ -73,8 +75,9 @@ class StatSystem(Plugin):
         cpu = yield self._collect_cpu(netboxes)
         sysuptime = yield self._collect_sysuptime(netboxes)
         memory = yield self._collect_memory(netboxes)
+        power = yield self._collect_power(netboxes)
 
-        metrics = bandwidth + cpu + sysuptime + memory
+        metrics = bandwidth + cpu + sysuptime + memory + power
         if metrics:
             send_metrics(metrics)
 
@@ -181,6 +184,26 @@ class StatSystem(Plugin):
             for netbox in netboxes:
                 path = metric_path_for_sysuptime(netbox)
                 metrics.append((path, (timestamp, uptime)))
+            defer.returnValue(metrics)
+        else:
+            defer.returnValue([])
+
+    @defer.inlineCallbacks
+    def _collect_power(self, netboxes):
+        mib = PowerEthernetMib(self.agent)
+        power = yield mib.get_groups_table()
+        self._logger.debug("Got poe data %s", power)
+        power = {key: val['pethMainPseConsumptionPower']
+                 for key, val in power.items()
+                 if val['pethMainPseOperStatus'] == 1}
+        timestamp = time.time()
+
+        if power:
+            metrics = []
+            for netbox in netboxes:
+                for index, power in power.items():
+                    path = metric_path_for_power(netbox, index)
+                    metrics.append((path, (timestamp, power)))
             defer.returnValue(metrics)
         else:
             defer.returnValue([])

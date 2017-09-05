@@ -18,6 +18,7 @@
 
 from selenium.common.exceptions import NoSuchElementException
 
+
 def test_geomap_loaded(selenium, base_url):
     """Test if map is loaded"""
     selenium.get('{}/geomap/'.format(base_url))

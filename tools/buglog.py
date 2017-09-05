@@ -32,7 +32,10 @@ commit log messages' summary line, add the -v option to hg log.
 
 from __future__ import print_function
 
-import urllib2
+try:
+    from urllib.request import Request, urlopen
+except ImportError:
+    from urllib2 import Request, urlopen
 import re
 import sys
 import textwrap
@@ -42,6 +45,7 @@ BUG_URL = 'https://launchpad.net/bugs/{bug_id}/+text'
 ISSUE_URL = 'https://github.com/UNINETT/nav/issues/{bug_id}'
 COMMITLOG_PATTERN = re.compile(r'((bug)?fix for|fix(es|ed)?|close(s|d)?):? '
                                r'+(?P<lp>lp)? *# *(?P<bug_id>[0-9]+)', re.I)
+
 
 class Bug(object):
     prefix = ""
@@ -82,8 +86,9 @@ class LaunchpadBug(Bug):
     def _get_details(self):
         """Returns a list of strings detailing the bug"""
         url = BUG_URL.format(bug_id=self.number)
-        info = urllib2.urlopen(url)
+        info = urlopen(url)
         return info.readlines()
+
 
 class GithubIssue(Bug):
     prefix = "GH"
@@ -96,10 +101,10 @@ class GithubIssue(Bug):
     def _get_details(self):
         """Returns a JSON structure detailing the bug"""
         url = ISSUE_URL.format(bug_id=self.number)
-        req = urllib2.Request(url, headers={
+        req = Request(url, headers={
             'Accept': 'application/json'
         })
-        data = urllib2.urlopen(req).read()
+        data = urlopen(req).read()
         return json.loads(data)
 
 
@@ -119,6 +124,7 @@ def filter_log(file):
         match = COMMITLOG_PATTERN.search(line)
         if match:
             yield (line, match)
+
 
 def filter_bugs(matches):
     for line, match in matches:

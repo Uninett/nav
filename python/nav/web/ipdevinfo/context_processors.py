@@ -15,8 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from django.conf import settings
-
 from nav.web.ipdevinfo.forms import SearchForm
 
 

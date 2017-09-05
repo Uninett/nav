@@ -14,7 +14,10 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 "SNMP timestamps and sysUpTime comparisons"
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 from twisted.internet import defer
 

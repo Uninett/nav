@@ -16,7 +16,6 @@
 """Module containing RoomStatus"""
 
 from datetime import datetime
-from django import forms
 from itertools import groupby
 from operator import attrgetter
 

@@ -1,7 +1,7 @@
 from nav.statemon.icmppacket import PacketV6, PacketV4, inet_checksum
 from unittest import TestCase
 import os
-from nav.statemon.megaping import Host
+
 
 class ICMPPacketTestcase(TestCase):
 

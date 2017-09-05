@@ -21,7 +21,10 @@ from django.db.models.aggregates import Count
 import json
 import os
 import datetime
-from ConfigParser import ConfigParser
+try:
+    from configparser import ConfigParser
+except ImportError:
+    from ConfigParser import ConfigParser
 
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.template import RequestContext

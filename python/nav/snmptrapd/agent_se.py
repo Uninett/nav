@@ -18,6 +18,8 @@
 from __future__ import absolute_import
 import logging
 
+from django.utils import six
+
 from pysnmp.mapping.udp.role import Agent
 from pysnmp.proto.api import alpha
 
@@ -160,6 +162,6 @@ def oid_to_str(oid):
     This is needed since that's what snmptrapd expects.
 
     """
-    if not isinstance(oid, basestring):
+    if not isinstance(oid, six.string_types):
         oid = "." + ".".join(str(i) for i in oid)
     return oid

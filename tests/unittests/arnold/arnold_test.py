@@ -2,6 +2,7 @@
 import unittest
 from nav.arnold import find_input_type
 
+
 class TestArnold(unittest.TestCase):
     """Tests for nav.arnold"""
 
@@ -27,5 +28,3 @@ class TestArnold(unittest.TestCase):
         """Tests that a simple ipv6 address is recognized"""
         ip_address = 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
         self.assertEqual(find_input_type(ip_address), 'IP')
-
-

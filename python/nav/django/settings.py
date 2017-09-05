@@ -37,7 +37,8 @@ except IOError:
     webfront_config = {}
 
 DEBUG = nav_config.get('DJANGO_DEBUG', 'False').upper() in ('TRUE', 'YES', 'ON')
-TEMPLATE_DEBUG = DEBUG
+
+TEMPLATE_DEBUG = DEBUG # XXX Pre Django 1.8
 
 # Admins
 ADMINS = (
@@ -80,21 +81,34 @@ STATICFILES_FINDERS = (
 
 
 # Templates
-TEMPLATE_DIRS = (
-    os.path.join(nav.path.sysconfdir, 'templates'),
-    nav.path.djangotmpldir
-)
 
-# Context processors
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.core.context_processors.request',
-    'django.contrib.messages.context_processors.messages',
-    'nav.django.context_processors.debug',
-    'nav.django.context_processors.account_processor',
-    'nav.django.context_processors.nav_version',
-    'nav.django.context_processors.graphite_base',
-    'nav.django.context_processors.footer_info',
-    'django.core.context_processors.static',
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            os.path.join(nav.path.sysconfdir, 'templates'),
+            nav.path.djangotmpldir,
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.core.context_processors.request',
+                'django.contrib.messages.context_processors.messages',
+                'nav.django.context_processors.debug',
+                'nav.django.context_processors.account_processor',
+                'nav.django.context_processors.nav_version',
+                'nav.django.context_processors.graphite_base',
+                'nav.django.context_processors.footer_info',
+                'django.core.context_processors.static',
+            ],
+            'debug': DEBUG,
+        },
+    }
+]
+
+TEMPLATE_DIRS = tuple(TEMPLATES[0]['DIRS']) # XXX Pre Django 1.8
+TEMPLATE_CONTEXT_PROCESSORS = tuple(        # XXX Pre Django 1.8
+    TEMPLATES[0]['OPTIONS']['context_processors']
 )
 
 # Middleware
@@ -201,6 +215,18 @@ REST_FRAMEWORK = {
     'PAGINATE_BY': 100,
     'PAGINATE_BY_PARAM': 'page_size',
 }
+
+# Classes that implement a search engine for the web navbar
+SEARCHPROVIDERS = [
+    'nav.web.info.searchproviders.RoomSearchProvider',
+    'nav.web.info.searchproviders.LocationSearchProvider',
+    'nav.web.info.searchproviders.NetboxSearchProvider',
+    'nav.web.info.searchproviders.InterfaceSearchProvider',
+    'nav.web.info.searchproviders.VlanSearchProvider',
+    'nav.web.info.searchproviders.PrefixSearchProvider',
+    'nav.web.info.searchproviders.DevicegroupSearchProvider',
+    'nav.web.info.searchproviders.UnrecognizedNeighborSearchProvider',
+]
 
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)

@@ -1,11 +1,10 @@
 from mock import Mock
-import pytest
-import unittest
 from nav.models.manage import Interface, Netbox
 from nav.netmap.metadata import Edge, Group
-from topology_layer2_testcase import TopologyLayer2TestCase
-from topology_layer3_testcase import TopologyLayer3TestCase
-from metaclass_testcase import MetaClassTestCase
+from .topology_layer2_testcase import TopologyLayer2TestCase
+from .topology_layer3_testcase import TopologyLayer3TestCase
+from .metaclass_testcase import MetaClassTestCase
+
 
 class MetaClassesTests(MetaClassTestCase):
     def setUp(self):
@@ -28,7 +27,6 @@ class MetaClassesTests(MetaClassTestCase):
         foo = Edge((netbox_a, netbox_b), a, b)
 
 
-
 class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
     def setUp(self):
         super(Layer2NetworkXMetadataTests, self).setUp()
@@ -41,7 +39,6 @@ class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
             for pair in metadata.get('metadata'):
                 assert type(pair) == Edge
                 assert type(pair) == Edge
-
 
     def test_node_a1_and_b1_contains_vlan_metadata(self):
         vlans = self.netmap_graph.node[self.a]['metadata']['vlans']
@@ -62,7 +59,6 @@ class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
         self.assertEqual(self.b1, pairs[0].target.interface)
         self.assertEqual(self.a2, pairs[1].source.interface)
         self.assertEqual(self.b2, pairs[1].target.interface)
-
 
     def test_netmap_metadata_shows_2_links_for_edge_between_a_and_b(self):
         self.assertEquals(2, len(self._get_metadata(self.a, self.b)))

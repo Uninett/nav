@@ -2,6 +2,7 @@
 from unittest import TestCase
 from nav.web.report.views import find_page_range
 
+
 class PageRangeTest(TestCase):
     """Tests for find_page_range"""
 

@@ -17,11 +17,6 @@
 
 import httplib
 import socket
-from urlparse import urlsplit
-from nav import buildconf
-from nav.statemon.DNS import socktype_from_addr
-from nav.statemon.event import Event
-from nav.statemon.abstractchecker import AbstractChecker
 
 from ssl import wrap_socket
 
@@ -36,15 +31,14 @@ class HTTPSConnection(httplib.HTTPSConnection):
         self.connect()
 
     def connect(self):
-        self.sock = socket.socket(socktype_from_addr(self.host),
-                                  socket.SOCK_STREAM)
-        self.sock.settimeout(self.timeout)
-        self.sock.connect((self.host, self.port))
+        self.sock = socket.create_connection((self.host, self.port),
+                                             self.timeout)
         self.sock = wrap_socket(self.sock)
 
 
 class HttpsChecker(HttpChecker):
     """HTTPS"""
     PORT = 443
+
     def connect(self, ip, port):
         return HTTPSConnection(self.timeout, ip, port)

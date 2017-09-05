@@ -15,7 +15,6 @@
 #
 
 from django import template
-from django.utils.encoding import force_unicode
 
 register = template.Library()
 
@@ -51,7 +50,7 @@ def _get_url_params(token):
     raw_params = token.split_contents()
     tag_name = raw_params.pop(0)
 
-    if len(raw_params) > 0 and len(raw_params) %2 != 0:
+    if len(raw_params) > 0 and len(raw_params) % 2 != 0:
         error = "%r tag requires an even number of parameters" % tag_name
         raise template.TemplateSyntaxError(error)
 

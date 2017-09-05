@@ -21,8 +21,15 @@ import os
 import pytest
 from tidylib import tidy_document
 import urllib
-import urllib2
-import urlparse
+try:
+    from urllib.request import (urlopen, build_opener, install_opener,
+                                HTTPCookieProcessor)
+    from urllib.error import HTTPError, URLError
+    from urllib.parse import urlsplit
+except ImportError:
+    from urllib2 import (urlopen, build_opener, install_opener,
+                         HTTPError, URLError, HTTPCookieProcessor)
+    from urlparse import urlsplit
 
 HOST_URL = os.environ.get('TARGETURL', None)
 USERNAME = os.environ.get('ADMINUSERNAME', 'admin')
@@ -63,7 +70,7 @@ Page = namedtuple('Page', 'url response content_type content')
 
 
 def normalize_path(url):
-    url = urlparse.urlsplit(url).path.rstrip('/')
+    url = urlsplit(url).path.rstrip('/')
     return '/' + url if not url.startswith('/') else url
 
 
@@ -72,7 +79,7 @@ class WebCrawler(object):
 
     def __init__(self, base_url, username, password):
         self.base_url = base_url
-        self.netloc = urlparse.urlsplit(base_url).netloc
+        self.netloc = urlsplit(base_url).netloc
         self.username = username
         self.password = password
         self.seen_pages = {}
@@ -96,12 +103,12 @@ class WebCrawler(object):
     def _visit_with_error_handling(self, url):
         try:
             page = self._visit(url)
-        except urllib2.HTTPError as error:
+        except HTTPError as error:
             content = error.fp.read()
             page = Page(url, error.code, error, content)
             self._add_seen(page)
 
-        except urllib2.URLError as error:
+        except URLError as error:
             page = Page(url, None, error, None)
             self._add_seen(page)
 
@@ -111,7 +118,7 @@ class WebCrawler(object):
         if self._is_seen(url):
             return
 
-        resp = urllib2.urlopen(url, timeout=TIMEOUT)
+        resp = urlopen(url, timeout=TIMEOUT)
         content_type = resp.info()['Content-type']
 
         if 'html' in content_type.lower():
@@ -129,7 +136,7 @@ class WebCrawler(object):
         html.make_links_absolute(base_url)
 
         for element, attribute, link, pos in html.iterlinks():
-            url = urlparse.urlsplit(link)
+            url = urlsplit(link)
             path = normalize_path(link)
 
             if url.scheme not in ['http', 'https']:
@@ -145,11 +152,11 @@ class WebCrawler(object):
 
     def login(self):
         login_url = '%sindex/login/' % self.base_url
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
+        opener = build_opener(HTTPCookieProcessor())
         data = urllib.urlencode({'username': self.username,
                                  'password': self.password})
         opener.open(login_url, data, TIMEOUT)
-        urllib2.install_opener(opener)
+        install_opener(opener)
 
     def _add_seen(self, page, url=None):
         if not url:
@@ -219,4 +226,3 @@ def _should_ignore(msg):
         if ignore in msg:
             return True
     return False
-

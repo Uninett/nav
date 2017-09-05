@@ -17,6 +17,7 @@ import unittest
 
 from nav import bitvector
 
+
 class BitVectorTestCase(unittest.TestCase):
     """Tests for nav.bitvector.BitVector class"""
 

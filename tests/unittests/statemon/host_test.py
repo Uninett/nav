@@ -1,10 +1,10 @@
 from unittest import TestCase
 import os
 from nav.statemon.megaping import Host
-from nav.statemon.icmppacket import Packet, PacketV4, PacketV6
+from nav.statemon.icmppacket import PacketV4, PacketV6
+
 
 class HostTestcase(TestCase):
-
 
     def test_make_v4_packet(self):
         """

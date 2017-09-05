@@ -121,6 +121,7 @@ class ViewsTest(TestDataMixin, TestCase):
         self.assertFalse('gwports' in response.content)
         self.assertFalse('swports' in response.content)
 
+
 class FormsTest(TestDataMixin, TestCase):
 
     def test_search_form(self):

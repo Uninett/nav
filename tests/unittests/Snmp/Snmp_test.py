@@ -3,6 +3,7 @@ from mock import Mock, patch
 import pytest
 import sys
 
+
 class SnmpTestCase(unittest.TestCase):
 
     def _patch_cleaning(self, patched_sys_modules_to_modify):
@@ -36,16 +37,16 @@ class SnmpTestPynetsnmp(SnmpTestCase):
             assert sys.modules[name] == module
         self.patcher.stop()
 
-
     def test_load_pynetsnmp_if_available_as_first_choice(self):
         # This import should be fine
-        from nav.Snmp.pynetsnmp import *
+        import nav.Snmp.pynetsnmp as _
 
         # wrapper should also be fine to import
         from nav.Snmp import Snmp
 
         # should be of nav.Snmp.pynetsnmp ...
         assert Snmp == self._import('pynetsnmp')
+
 
 class SnmpTestPysnmp(SnmpTestCase):
 
@@ -72,19 +73,16 @@ class SnmpTestPysnmp(SnmpTestCase):
             assert sys.modules[name] == module
         self.patcher.stop()
 
-
-
     def test_load_pysnmp_se_if_pynetsnmp_is_not_available(self):
         pytest.raises(ImportError, 'import pynetsnmp')
         pytest.raises(ImportError, 'from pynetsnmp import netsnmp')
 
         # Should not fail.
-        from nav.Snmp.pysnmp_se import *
+        import nav.Snmp.pysnmp_se as _
 
         from nav.Snmp import Snmp
 
         assert Snmp == self._import('pysnmp_se')
-
 
     def test_load_pysnmp_se_if_pynetsnmp_unavailable_and_pysnmp_version_requirement_satisfy(self):
 
@@ -100,7 +98,6 @@ class SnmpTestPysnmp(SnmpTestCase):
         from nav.Snmp import Snmp
 
         assert Snmp == self._import('pysnmp_se')
-
 
     def test_load_pysnmp_v2_if_pynetsnmp_unavailable_and_pysnmp_version_requirement_throws_exception__but_doesnt_have_majorVersionId_attribute(
             self):
@@ -119,7 +116,6 @@ class SnmpTestPysnmp(SnmpTestCase):
         from nav.Snmp import Snmp
 
         assert Snmp == self._import('pysnmp_v2')
-
 
     def test_raise_unsupported_pysnmp_backend_if_pynetsnmp_unavailable_and_pysnmp_version_requirement_throws_exception(
             self):
@@ -141,9 +137,8 @@ class SnmpTestPysnmp(SnmpTestCase):
             from nav.Snmp import Snmp
 
             pytest.fail("Should never happen")
-        except ImportError, e:
+        except ImportError as e:
             assert unicode(e) == "Unsupported PySNMP version 4"
-
 
     def test_raise_no_supported_snmp_backend_if_pynetsnmp_unavailable_and_pysnmp_version_requirement_throws_exception_and_fails_with_having_majorVersionId_attr(
                 self):
@@ -161,10 +156,9 @@ class SnmpTestPysnmp(SnmpTestCase):
         try:
             from nav.Snmp import Snmp
             pytest.fail("Should never happen")
-        except ImportError, foo:
+        except ImportError as foo:
             assert str(foo) == 'Unsupported PySNMP version %s' % self.modules[
                 'pysnmp'].majorVersionId
-
 
 
 class OtherSnmpTests(SnmpTestCase):
@@ -187,5 +181,5 @@ class OtherSnmpTests(SnmpTestCase):
             try:
                 from nav.Snmp import Snmp
                 pytest.fail("Should never happen")
-            except ImportError, foo:
+            except ImportError as foo:
                 assert str(foo) == 'No supported SNMP backend was found'

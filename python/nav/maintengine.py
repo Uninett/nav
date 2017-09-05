@@ -25,7 +25,6 @@ from __future__ import absolute_import
 import datetime
 import logging
 
-import nav.logs
 from nav.models import manage, service
 from nav.models.event import EventQueue as Event, AlertHistory
 from nav.models.msgmaint import MaintenanceTask

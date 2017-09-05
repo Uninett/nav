@@ -26,4 +26,3 @@ def get_template_list():
 @pytest.mark.parametrize("template_name", get_template_list())
 def test_template_syntax(template_name):
     loader.get_template(template_name)
-

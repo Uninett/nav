@@ -103,6 +103,12 @@ def metric_path_for_sysuptime(sysname):
     return tmpl.format(system=metric_prefix_for_system(sysname))
 
 
+def metric_path_for_power(sysname, index):
+    tmpl = "{system}.power.{index}"
+    return tmpl.format(system=metric_prefix_for_system(sysname),
+                       index=index)
+
+
 def metric_prefix_for_cpu(sysname):
     tmpl = "{device}.cpu"
     return tmpl.format(device=metric_prefix_for_device(sysname))

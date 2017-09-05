@@ -17,10 +17,7 @@
 
 import csv
 import re
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+from io import StringIO
 
 from IPy import IP
 

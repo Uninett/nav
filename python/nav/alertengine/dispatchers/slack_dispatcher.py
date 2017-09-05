@@ -1,7 +1,10 @@
 """A sender for slack messages"""
 
 import json
-import urllib2
+try:
+    from urllib.request import Request, urlopen
+except ImportError:
+    from urllib2 import Request, urlopen
 
 from nav.alertengine.dispatchers import Dispatcher
 
@@ -25,9 +28,9 @@ class Slack(Dispatcher):
             'channel': self.channel,
             'icon_emoji': self.emoji
         }
-        request = urllib2.Request(address.address, json.dumps(params),
-                                  {'Content-Type': 'application/json'})
-        urllib2.urlopen(request)
+        request = Request(address.address, json.dumps(params),
+                          {'Content-Type': 'application/json'})
+        urlopen(request)
 
     @staticmethod
     def is_valid_address(address):

@@ -271,11 +271,12 @@ class Synchronizer(object):
         )
 
     schemas = [
-        ('manage', 'manage.sql', 'types.sql', 'snmpoid.sql'),
+        ('manage', 'manage.sql', 'types.sql'),
         ('profiles', 'navprofiles.sql'),
         ('logger', 'logger.sql'),
         ('arnold', 'arnold.sql'),
         ('radius', 'radius.sql'),
+        ('manage', 'manage2.sql'),
         (None, 'indexes.sql'),
         ]
 
@@ -321,11 +322,11 @@ class Synchronizer(object):
                        if wanted not in schemas]
 
         if add_schemas:
+            print(("Existing namespaces in %s search path: %s. Adding %s." %
+                   (self.connect_options.dbname, ", ".join(schemas), ", ".join(add_schemas))))
             schemas.extend(add_schemas)
-            print(("Adding namespaces to %s search_path: %s" %
-                   (self.connect_options.dbname, ", ".join(add_schemas))))
             sql = ('ALTER DATABASE "%s" SET search_path TO %s' %
-                   (self.connect_options.dbname, ", ".join(add_schemas)))
+                   (self.connect_options.dbname, ", ".join(schemas)))
             self.cursor.execute(sql)
         self.connection.commit()
         self.connect() # must reconnect to activate the new search path
@@ -390,7 +391,8 @@ class Synchronizer(object):
                      "Failed to install the hstore extension, maybe you need "
                      "to run as the postgres superuser?",
                      check_call,
-                     ["psql", "--quiet", "-c", "CREATE EXTENSION hstore;",
+                     ["psql", "--quiet", "-c", "CREATE EXTENSION hstore "
+                                               "WITH SCHEMA manage;",
                       self.connect_options.dbname])
 
     def install_baseline(self):

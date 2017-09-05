@@ -22,10 +22,9 @@ from django.db import connection, transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.db import transaction
 
 from nav.models.fields import INFINITY
-from nav.models.manage import Netbox, Module, Location
+from nav.models.manage import Netbox, Module
 from nav.models.event import AlertHistory
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect

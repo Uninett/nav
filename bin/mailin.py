@@ -21,7 +21,11 @@ from __future__ import print_function
 import re
 import sys
 import email
-import ConfigParser
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
+
 import argparse
 
 import nav
@@ -43,7 +47,7 @@ def main():
     logfile = nav.buildconf.localstatedir + '/log/mailin.log'
 
     # Todo: fail if config file is not found
-    conf = ConfigParser.ConfigParser()
+    conf = configparser.ConfigParser()
     conf.read(configfile)
 
     # Must do this after config, so logfile can be configurable

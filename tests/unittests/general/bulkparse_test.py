@@ -1,9 +1,11 @@
 """Tests for bulkparse"""
 
 # pylint: disable=C0111, C0103, W0614
+from __future__ import unicode_literals
 
 from unittest import TestCase
 from nav.bulkparse import *
+
 
 class TestBulkParser(TestCase):
     def test_init(self):
@@ -89,17 +91,17 @@ class TestNetboxBulkParser(TestCase):
         b = NetboxBulkParser(data)
         self.assertRaises(InvalidFieldValue, b.next)
 
-
     def test_short_line_should_raise_error_with_correct_details(self):
         data = "room1:10.0.0.8"
         b = NetboxBulkParser(data)
         try:
             b.next()
-        except RequiredFieldMissing, error:
+        except RequiredFieldMissing as error:
             self.assertEquals(error.line_num, 1)
             self.assertEquals(error.missing_field, 'orgid')
         else:
             self.fail("No exception raised")
+
 
 class TestUsageBulkParser(TestCase):
     def test_get_header(self):
@@ -113,6 +115,7 @@ class TestUsageBulkParser(TestCase):
         first_row = b.next()
         self.assertEquals(first_row['usageid'], 'sby')
 
+
 class TestPrefixBulkParser(TestCase):
     def test_invalid_prefix_should_raise_error(self):
         data = "10.0.0.x/3f:scope"
@@ -124,6 +127,7 @@ class TestPrefixBulkParser(TestCase):
         b = PrefixBulkParser(data)
         self.assertTrue(b.next())
 
+
 class TestServiceBulkParser(TestCase):
     def test_invalid_service_arguments_should_raise_error(self):
         data = "host.example.org;http;port80"
@@ -134,6 +138,7 @@ class TestServiceBulkParser(TestCase):
         data = "host.example.org;http;port=80;uri=/"
         b = ServiceBulkParser(data)
         self.assertTrue(b.next())
+
 
 class TestCommentStripper(TestCase):
     def test_leading_comment_should_be_stripped(self):
@@ -147,6 +152,7 @@ class TestCommentStripper(TestCase):
         stripper = CommentStripper(data)
         self.assertEquals(stripper.next(), 'somedata\n')
         self.assertEquals(stripper.next(), 'otherdata\n')
+
 
 class TestHeaderGenerator(TestCase):
     def test_simple(self):

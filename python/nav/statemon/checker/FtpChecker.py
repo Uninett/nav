@@ -16,7 +16,6 @@
 """FTP Service Checker"""
 import socket
 import ftplib
-from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
@@ -80,10 +79,8 @@ class FTP(ftplib.FTP):
             self.host = host
         if port:
             self.port = port
-        self.sock = socket.socket(socktype_from_addr(self.host),
-                                  socket.SOCK_STREAM)
-        self.sock.settimeout(self.timeout)
-        self.sock.connect((self.host, self.port))
+        self.sock = socket.create_connection((self.host, self.port),
+                                             self.timeout)
         self.file = self.sock.makefile('rb')
         self.welcome = self.getresp()
         return self.welcome

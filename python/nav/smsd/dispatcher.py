@@ -17,8 +17,6 @@
 """Dispatch handling for smsd"""
 
 import logging
-import sys
-import time
 
 
 class DispatcherError(Exception):

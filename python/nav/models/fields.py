@@ -22,9 +22,10 @@ from datetime import datetime
 from decimal import Decimal
 
 from django import forms
-from django.db import models, connection
+from django.db import models
 from django.core import exceptions
 from django.db.models import Q
+from django.utils import six
 
 from nav.util import is_valid_cidr, is_valid_ip
 from nav.django import validators, forms as navforms
@@ -57,32 +58,11 @@ class VarcharField(models.TextField):
         return super(VarcharField, self).formfield(**defaults)
 
 
-class PickleField(models.TextField):
-    """Automatically pickles and unpickles values"""
-
-    __metaclass__ = models.SubfieldBase  # Ensure to_python is called on init
-    description = "Field for storing pickles"
-
-    def db_type(self, connection=None):
-        return 'varchar'
-
-    def to_python(self, value):
-        if value:
-            if isinstance(value, dict):
-                return value
-            else:
-                return pickle.loads(value)
-
-    def get_prep_value(self, value):
-        if value is not None:
-            return pickle.dumps(value)
-
-
+@six.add_metaclass(models.SubfieldBase)
 class DictAsJsonField(models.TextField):
     """Serializes value to and from json. Has a fallback to pickle for
     historical reasons"""
 
-    __metaclass__ = models.SubfieldBase  # Ensure to_python is called on init
     description = "Field for storing json structure"
 
     def db_type(self, connection=None):
@@ -106,8 +86,8 @@ class DictAsJsonField(models.TextField):
             return json.dumps(value)
 
 
+@six.add_metaclass(models.SubfieldBase)
 class CIDRField(VarcharField):
-    __metaclass__ = models.SubfieldBase
 
     def to_python(self, value):
         """Verifies that the value is a string with a valid CIDR IP address"""
@@ -118,8 +98,8 @@ class CIDRField(VarcharField):
             return value
 
 
+@six.add_metaclass(models.SubfieldBase)
 class PointField(models.CharField):
-    __metaclass__ = models.SubfieldBase
 
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 100
@@ -131,7 +111,7 @@ class PointField(models.CharField):
     def to_python(self, value):
         if not value or isinstance(value, tuple):
             return value
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             if validators.is_valid_point_string(value):
                 if value.startswith('(') and value.endswith(')'):
                     noparens = value[1:-1]

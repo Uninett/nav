@@ -122,7 +122,7 @@ class Modules(Plugin):
         netbox = self.containers.factory(None, shadows.Netbox)
 
         # Map interfaces to modules, if possible
-        module_ifindex_map = {} #just for logging debug info
+        module_ifindex_map = {}  # just for logging debug info
         for port in ports:
             entity_index = port[0]
             if entity_index in self.alias_mapping:

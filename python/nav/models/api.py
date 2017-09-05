@@ -16,13 +16,17 @@
 """Models for the NAV API"""
 
 from datetime import datetime
+
 from django.db import models
 from django.core.urlresolvers import reverse
 from django_hstore import hstore
+from django.utils.encoding import python_2_unicode_compatible
+
 from nav.models.fields import VarcharField
 from nav.models.profiles import Account
 
 
+@python_2_unicode_compatible
 class APIToken(models.Model):
     """APItokens are used for authenticating to the api
 
@@ -42,7 +46,7 @@ class APIToken(models.Model):
 
     objects = hstore.HStoreManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.token
 
     def is_expired(self):

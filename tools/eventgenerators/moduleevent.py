@@ -22,6 +22,7 @@ from __future__ import print_function
 import sys
 from nav import db
 
+
 def handler(cursor, boxlist, state):
 
     for (deviceid, netboxid, subid) in boxlist:
@@ -69,7 +70,6 @@ def main():
     else:
         print("Unknown state: " + sys.argv[-1])
         sys.exit(0)
-
 
     updown = "up" if (state=="e") else "down"
     print("Modules going %s: %r" % (updown, sysnames))

@@ -15,7 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from django import forms
 from django.shortcuts import render
 
 from nav.models.manage import Location
@@ -26,7 +25,6 @@ from nav.web.seeddb import SeeddbInfo, reverse_lazy
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.forms import LocationForm
 from nav.web.seeddb.page import view_switcher, not_implemented
-from nav.web.seeddb.utils.list import render_list
 from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.bulk import render_bulkimport
@@ -55,7 +53,7 @@ def location(request):
 
 def location_list(request):
     info = LocationInfo()
-    context = info.template_context    
+    context = info.template_context
     context.update({
         'roots': Location.objects.filter(parent=None).order_by('id'),
         'edit_url_name': 'seeddb-location-edit'

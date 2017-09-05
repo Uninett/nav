@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from nav.models.fields import *
 
+
 class PointFieldTest(TestCase):
     def test_to_python_from_string(self):
         expected_point = (Decimal("1.2"), Decimal("3.4"))

@@ -14,7 +14,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Trap manager functionality for snmptrapd."""
-import logging
 from nav.Snmp import BACKEND
 
 if BACKEND == 'v2':

@@ -4,8 +4,8 @@ import unittest
 from nav.netmap import topology
 from nav.netmap.topology import build_netmap_layer2_graph
 
-from topology_layer2_testcase import TopologyLayer2TestCase
-from topology_layer3_testcase import TopologyLayer3TestCase
+from .topology_layer2_testcase import TopologyLayer2TestCase
+from .topology_layer3_testcase import TopologyLayer3TestCase
 
 
 class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
@@ -24,8 +24,6 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
     # [2 / 2]
     def test_edges_length_of_orginal_graph_consists_with_nav_topology_behavior(self):
         self.assertEquals(6, len(self.nav_graph.edges()))
-
-
 
     # netmap graphs tests below
 
@@ -70,6 +68,7 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
                              self.a,
                              self.b
                          ).get('metadata', [])))
+
 
 class Layer3MultiGraphToUndirectTests(TopologyLayer3TestCase):
 

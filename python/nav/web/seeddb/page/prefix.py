@@ -36,7 +36,7 @@ from nav.web.seeddb import SeeddbInfo, reverse_lazy
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher, not_implemented
 from nav.web.seeddb.utils.list import render_list
-from nav.web.seeddb.utils.edit import render_edit, _get_object
+from nav.web.seeddb.utils.edit import _get_object
 from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.utils.delete import render_delete
 

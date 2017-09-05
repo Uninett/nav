@@ -40,7 +40,6 @@ class SnmpCheck(Plugin):
     dispatched.
 
     """
-    down_set = None
 
     @classmethod
     def can_handle(cls, netbox):
@@ -48,21 +47,18 @@ class SnmpCheck(Plugin):
 
     def __init__(self, *args, **kwargs):
         super(SnmpCheck, self).__init__(*args, **kwargs)
-        if SnmpCheck.down_set is None:
-            SnmpCheck.down_set = get_snmp_agent_down_set()
-            SnmpCheck._logger.debug("initially down: %r",
-                                    SnmpCheck.down_set)
 
     @defer.inlineCallbacks
     def handle(self):
         self._logger.debug("snmp version from db: %s", self.netbox.snmp_version)
+        was_down = yield db.run_in_thread(self._currently_down)
         is_ok = yield self._do_check()
 
-        if not is_ok:
+        if is_ok and was_down:
+            yield self._mark_as_up()
+        elif not is_ok and not was_down:
             yield self._mark_as_down()
             raise SuggestedReschedule(delay=60)
-        else:
-            yield self._mark_as_up()
 
     @defer.inlineCallbacks
     def _do_check(self):
@@ -79,18 +75,14 @@ class SnmpCheck(Plugin):
 
     @defer.inlineCallbacks
     def _mark_as_down(self):
-        if self.netbox.id not in self.down_set:
-            self._logger.warning("SNMP agent down on %s", self.netbox.sysname)
-            self.down_set.add(self.netbox.id)
-            yield db.run_in_thread(self._dispatch_down_event)
+        self._logger.warning("SNMP agent down on %s", self.netbox.sysname)
+        yield db.run_in_thread(self._dispatch_down_event)
 
     @defer.inlineCallbacks
     def _mark_as_up(self):
-        if self.netbox.id in self.down_set:
-            self._logger.warning("SNMP agent up again on %s",
-                                 self.netbox.sysname)
-            self.down_set.remove(self.netbox.id)
-            yield db.run_in_thread(self._dispatch_up_event)
+        self._logger.warning("SNMP agent up again on %s",
+                             self.netbox.sysname)
+        yield db.run_in_thread(self._dispatch_up_event)
 
     @transaction.atomic()
     def _dispatch_down_event(self):
@@ -100,13 +92,7 @@ class SnmpCheck(Plugin):
     def _dispatch_up_event(self):
         EVENT.end(None, self.netbox.id).save()
 
-
-@transaction.atomic()
-def get_snmp_agent_down_set():
-    """Returns a set of netbox ids where the SNMP agent is known to be down"""
-    infinity = datetime.datetime.max
-    down = AlertHistory.objects.filter(
-        netbox__isnull=False, event_type__id='snmpAgentState',
-        end_time__gte=infinity).values('netbox__id')
-    down_set = set(row['netbox__id'] for row in down)
-    return down_set
+    @transaction.atomic()
+    def _currently_down(self):
+        return AlertHistory.objects.unresolved(
+            'snmpAgentState').filter(netbox=self.netbox.id).exists()

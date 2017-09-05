@@ -25,8 +25,7 @@ from django.db.models import Q
 from datetime import datetime, timedelta
 
 from nav.arnold import (open_port, disable, quarantine, GeneralException,
-                        find_id_information, find_input_type, check_target,
-                        NoDatabaseInformationError)
+                        find_id_information, find_input_type, check_target)
 from nav.models.arnold import (Identity, Justification, QuarantineVlan,
                                DetentionProfile)
 from nav.models.manage import Cam, Interface

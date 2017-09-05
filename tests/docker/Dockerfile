@@ -53,16 +53,6 @@ RUN cd /tmp && \
     cmake ../.. -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIB:BOOL=ON && \
     make && make install && echo tidy5 installed
 
-# Add a build user
-RUN adduser --system --group --home=/home/build --shell=/bin/bash build
-
-# Build and install Python requirements
-COPY requirements.txt /runtime-requirements.txt
-COPY requirements/ /requirements
-COPY tests/requirements.txt /test-requirements.txt
-RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
-RUN pip install whisper carbon==0.9.14 graphite-web==0.9.14 django-tagging
-
 # Install geckodriver to properly run Selenium tests in Firefox versions>=47
 ENV GECKOVERSION=0.11.1
 RUN cd /tmp && \
@@ -91,8 +81,18 @@ RUN set -x \
 	&& rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
 	&& chmod +x /usr/local/bin/gosu \
 	&& gosu nobody true
-
 RUN chmod +s /usr/local/bin/gosu
+
+# Add a build user
+RUN adduser --system --group --home=/home/build --shell=/bin/bash build
+
+# Build and install Python requirements
+COPY requirements.txt /runtime-requirements.txt
+COPY requirements/ /requirements
+COPY tests/requirements.txt /test-requirements.txt
+RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
+RUN pip install whisper carbon==0.9.14 graphite-web==0.9.14 django-tagging
+
 
 ENV WORKSPACE /source
 ENV BUILDDIR /opt/nav

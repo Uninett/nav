@@ -30,7 +30,7 @@ from nav.django.templatetags.thresholds import find_rules
 from nav.metrics.errors import GraphiteUnreachableError
 
 from nav.models.manage import (Netbox, Module, Interface, Prefix, Arp, Cam,
-                               Sensor)
+                               Sensor, POEGroup)
 from nav.models.msgmaint import MaintenanceTask
 from nav.models.arnold import Identity
 from nav.models.service import Service
@@ -491,6 +491,30 @@ def module_details(request, netbox_sysname, module_name):
             request, processors=[search_form_processor]))
 
 
+def poegroup_details(request, netbox_sysname, grpindex):
+    """Show detailed view of one IP device power over ethernet group"""
+
+    poegroup = get_object_or_404(POEGroup.objects.select_related(),
+                                 netbox__sysname=netbox_sysname, index=grpindex)
+
+    navpath = NAVPATH + [
+        (netbox_sysname,
+         reverse('ipdevinfo-details-by-name',
+                 kwargs={'name': netbox_sysname})),
+        ('PoE Details for ' + poegroup.name,)]
+
+    return render_to_response(
+        'ipdevinfo/poegroup-details.html',
+        {
+            'poegroup': poegroup,
+            'navpath': navpath,
+            'heading': navpath[-1][0],
+            'title': create_title(navpath),
+        },
+        context_instance=RequestContext(
+            request, processors=[search_form_processor]))
+
+
 def port_details(request, netbox_sysname, port_type=None, port_id=None,
                  port_name=None):
     """Show detailed view of one IP device port"""
@@ -682,6 +706,13 @@ def render_host_info(request, identifier):
     return render(request, 'ipdevinfo/frag-hostinfo.html', {
         'host_info': get_host_info(identifier)
     })
+
+
+def unrecognized_neighbors(request, netboxid):
+    """Render unrecognized neighbors tab"""
+    netbox = get_object_or_404(Netbox, pk=netboxid)
+    return render(request, 'ipdevinfo/frag-neighbors.html',
+                  {'netbox': netbox})
 
 
 def sensor_details(request, identifier):

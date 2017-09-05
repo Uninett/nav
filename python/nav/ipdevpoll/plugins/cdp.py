@@ -19,7 +19,7 @@ from twisted.internet import defer
 from nav.models import manage
 from nav.ipdevpoll import Plugin, shadows
 from nav.mibs.cisco_cdp_mib import CiscoCDPMib
-from nav.ipdevpoll.neighbor import CDPNeighbor, filter_duplicate_neighbors
+from nav.ipdevpoll.neighbor import CDPNeighbor
 from nav.ipdevpoll.db import run_in_thread
 from nav.ipdevpoll.timestamps import TimestampChecker
 
@@ -97,27 +97,31 @@ class CDP(Plugin):
     def _process_identified(self, identified):
         for neigh in identified:
             self._logger.debug("identified neighbor %r from %r",
-                               (neigh.netbox, neigh.interface), neigh.record)
+                               (neigh.netbox, neigh.interfaces), neigh.record)
 
-        filtered = list(filter_duplicate_neighbors(identified))
-        delta = len(identified) - len(filtered)
-        if delta:
-            self._logger.debug("filtered out %d duplicate CDP entries", delta)
-        for neigh in filtered:
-            self._store_candidate(neigh)
+            self._store_candidates(neigh)
 
-    def _store_candidate(self, neighbor):
+    def _store_candidates(self, neighbor):
+        if not neighbor.interfaces:
+            return self._store_candidate(neighbor, None)
+        for interface in neighbor.interfaces:
+            self._store_candidate(neighbor, interface)
+
+    def _store_candidate(self, neighbor, interface):
         ifindex = neighbor.record.ifindex
         ifc = self.containers.factory(ifindex, shadows.Interface)
         ifc.ifindex = ifindex
 
-        key = (ifindex, neighbor.netbox.id,
-               neighbor.interface and neighbor.interface.id or None, SOURCE)
+        key = (ifindex, self.netbox.id,
+               neighbor.netbox.id,
+               interface and interface.id or None,
+               SOURCE,
+               )
         cand = self.containers.factory(key, shadows.AdjacencyCandidate)
         cand.netbox = self.netbox
         cand.interface = ifc
         cand.to_netbox = neighbor.netbox
-        cand.to_interface = neighbor.interface
+        cand.to_interface = interface
         cand.source = SOURCE
 
     def _process_unidentified(self, unidentified):

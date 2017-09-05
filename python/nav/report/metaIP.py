@@ -16,7 +16,6 @@
 """Holds meta information on one IPy.IP address."""
 
 import re
-import math
 from IPy import IP
 from nav import db
 

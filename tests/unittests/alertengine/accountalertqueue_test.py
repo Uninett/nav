@@ -5,6 +5,7 @@ from mock import Mock
 from nav.models.profiles import AlertSubscription
 from nav.alertengine.base import alert_should_be_ignored
 
+
 class HandleQueuedAlertsTest(TestCase):
     def test_alert_should_not_be_ignored_on_invalid_subscription(self):
         now = datetime.now()

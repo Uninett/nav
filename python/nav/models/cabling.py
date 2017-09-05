@@ -17,11 +17,13 @@
 """Django ORM wrapper for the NAV manage database"""
 
 from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
 
 from nav.models.manage import Room, Interface
 from nav.models.fields import VarcharField
 
 
+@python_2_unicode_compatible
 class Cabling(models.Model):
     """From NAV Wiki: The cabling table documents the cabling from the wiring
     closet's jack number to the end user's room number."""
@@ -38,7 +40,7 @@ class Cabling(models.Model):
         db_table = 'cabling'
         unique_together = (('room', 'jack'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'jack %s, in room %s' % (self.jack, self.room.id)
 
     def verbose(self):
@@ -48,6 +50,7 @@ class Cabling(models.Model):
                          self.description] if x]))
 
 
+@python_2_unicode_compatible
 class Patch(models.Model):
     """From NAV Wiki: The patch table documents the cross connect from switch
     port to jack."""
@@ -62,5 +65,5 @@ class Patch(models.Model):
         db_table = 'patch'
         unique_together = (('interface', 'cabling'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s, patched to %s' % (self.interface, self.cabling)

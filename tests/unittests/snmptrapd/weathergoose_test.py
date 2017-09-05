@@ -3,6 +3,7 @@ from mock import patch, Mock
 
 from nav.snmptrapd.handlers import weathergoose as wg
 
+
 class WeatherGooseMockedDb(TestCase):
     def setUp(self):
         self.getConnection = patch('nav.snmptrapd.handlers.weathergoose'
@@ -11,6 +12,7 @@ class WeatherGooseMockedDb(TestCase):
 
     def tearDown(self):
         self.getConnection.stop()
+
 
 class WeatherGoose1ClassTest(WeatherGooseMockedDb):
     def test_should_not_handle_a_weathergoose2_trap(self):
@@ -30,6 +32,7 @@ class WeatherGoose1ClassTest(WeatherGooseMockedDb):
         trap = Mock(snmpTrapOID = '5')
         self.assertRaises(Exception, wg.WeatherGoose1, trap, None, None, None)
 
+
 class WeatherGoose1TrapTest(WeatherGooseMockedDb):
     def setUp(self):
         super(WeatherGoose1TrapTest, self).setUp()
@@ -42,7 +45,6 @@ class WeatherGoose1TrapTest(WeatherGooseMockedDb):
                          '.1.3.6.1.4.1.17373.2.2.1.5.1': self.temperature}
         self.trap = trap
 
-        import nav.event
         class Event(dict):
             def post(self):
                 pass
@@ -80,6 +82,7 @@ class WeatherGoose1TrapTest(WeatherGooseMockedDb):
     def test_should_find_correct_sensorname(self):
         goose = wg.WeatherGoose1(self.trap, None, None, None)
         self.assertEquals(goose._get_sensorname(), 'cleese')
+
 
 class WeatherGoose2Test(WeatherGooseMockedDb):
     def test_should_not_handle_a_weathergoose1_trap(self):

@@ -18,7 +18,6 @@
 default_app_config = 'nav.models.apps.NavModelsConfig'
 
 import os
-import sys
 import django
 from django.apps import apps as _apps
 

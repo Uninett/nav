@@ -151,7 +151,8 @@ def candidate_key(cand):
 
             (getattr(cand, 'to_netbox_id', None)
              or (cand.to_netbox and cand.to_netbox.id)),
-
+            (getattr(cand, 'to_interface_id', None)
+             or (cand.to_interface and cand.to_interface.id)),
             cand.source)
 
 

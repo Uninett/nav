@@ -15,15 +15,13 @@
 #
 
 import unittest
-from mock import Mock
-from nav.models.manage import (Netbox, Room, Location, SwPortVlan, Vlan,
-    Interface)
+from nav.models.manage import (SwPortVlan, Vlan)
 from nav.models.profiles import NetmapViewNodePosition
 from nav.netmap import stubs, metadata
 from nav.netmap.metadata import Edge, Group
-from metaclass_testcase import MetaClassTestCase
-from topology_layer3_testcase import TopologyLayer3TestCase
-from topology_layer2_testcase import TopologyLayer2TestCase
+from .metaclass_testcase import MetaClassTestCase
+from .topology_layer3_testcase import TopologyLayer3TestCase
+from .topology_layer2_testcase import TopologyLayer2TestCase
 
 
 class MetaClassesJsonTests(MetaClassTestCase):

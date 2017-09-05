@@ -40,7 +40,6 @@ import nav.daemon
 from nav.daemon import signame
 import nav.logs
 from nav.models import manage
-from django.db.models import Q
 
 from . import plugins, pool
 from nav.ipdevpoll import ContextFormatter, schedule, db

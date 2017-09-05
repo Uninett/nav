@@ -20,9 +20,11 @@ from django.conf.urls import url, patterns
 
 from nav.web.ipdevinfo.views import (search, service_list, service_matrix,
                                      ipdev_details, module_details,
+                                     poegroup_details,
                                      port_details, get_port_view,
                                      render_affected, render_host_info,
-                                     port_counter_graph, sensor_details)
+                                     port_counter_graph, sensor_details,
+                                     unrecognized_neighbors)
 
 # The patterns are relative to the base URL of the subsystem
 urlpatterns = patterns('',
@@ -52,6 +54,10 @@ urlpatterns = patterns('',
     url(r'^(?P<netbox_sysname>[^/]+)/module=(?P<module_name>.+)/$',
         module_details, name='ipdevinfo-module-details'),
 
+    # PoE details
+    url(r'^(?P<netbox_sysname>[^/]+)/poegroup=(?P<grpindex>.+)/$',
+        poegroup_details, name='ipdevinfo-poegroup-details'),
+
     # Interface details
     url(r'^(?P<netbox_sysname>[^/]+)/interface=(?P<port_id>\d+)/$',
         port_details, name='ipdevinfo-interface-details'),
@@ -77,4 +83,7 @@ urlpatterns = patterns('',
     # Sensors
     url(r'sensor/(?P<identifier>.+)', sensor_details,
         name="sensor-details"),
+
+    url(r'^(?P<netboxid>\d+)/unrecognized_neighbors', unrecognized_neighbors,
+        name='ipdevinfo-unrecognized_neighbors')
 )

@@ -20,6 +20,15 @@ devices to be bombarded with requests from NAV.  The `contrib/patches`
 directory contains a patch for TwistedSNMP that solves this problem.  The
 patch has been submitted upstream, but not yet accepted into a new release.
 
+NAV 4.8
+========
+
+Dependency changes
+------------------
+
+NAV 4.8 introduces a new dependency on dnspython *1.15.0* for the DNS
+service checker.
+
 NAV 4.7
 ========
 
@@ -899,7 +908,7 @@ Removed dependencies:
 - Cricket
 - rrdtool
 
-.. _Graphite: http://graphite.wikidot.com/
+.. _Graphite: http://graphiteapp.org/
 .. _Sass: http://sass-lang.com/
 
 Major changes to statistics collection

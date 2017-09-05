@@ -17,8 +17,7 @@
 
 from django.shortcuts import render
 
-from ..forms import (OrganizationFilterForm, OrganizationForm,
-                     OrganizationMoveForm)
+from ..forms import OrganizationForm, OrganizationMoveForm
 
 from nav.models.manage import Organization
 from nav.bulkparse import OrgBulkParser
@@ -27,7 +26,6 @@ from nav.bulkimport import OrgImporter
 from nav.web.seeddb import SeeddbInfo, reverse_lazy
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher
-from nav.web.seeddb.utils.list import render_list
 from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.utils.delete import render_delete

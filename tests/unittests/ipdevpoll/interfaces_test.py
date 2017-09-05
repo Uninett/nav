@@ -4,6 +4,7 @@ from mock import Mock
 from nav.ipdevpoll.storage import ContainerRepository
 from nav.ipdevpoll.plugins.interfaces import Interfaces, decode_to_unicode
 
+
 class EncodingTests(TestCase):
     def test_ifalias_should_be_unicode(self):
         netbox = Mock('Netbox')

@@ -485,6 +485,7 @@ class PrefixViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         results = self.get_serializer(queryset, many=True)
         return Response(results.data)
 
+
 class RoutedPrefixList(NAVAPIMixin, ListAPIView):
     """Lists all routed prefixes. A router has category *GSW* or *GW*
 

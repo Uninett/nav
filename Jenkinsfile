@@ -74,6 +74,7 @@ node {
                         }
                     } finally {
                         junit "**/*-results.xml"
+                        step([$class: 'CoberturaPublisher', coberturaReportFile: 'tests/coverage.xml'])
                     }
                 }
             )
