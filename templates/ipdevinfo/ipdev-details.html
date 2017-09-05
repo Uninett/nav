@@ -55,6 +55,7 @@
         </li>
         <li><a href="#sensors">Sensors</a></li>
         <li><a href="#services">Services</a></li>
+        <li><a href="#poe">PoE</a></li>
         <li>
           <a href="{% url 'ipdevinfo-hostinfo' netbox.sysname %}">
             DNS
@@ -73,6 +74,7 @@
       {% include "ipdevinfo/frag-alerts.html" %}
       {% include "ipdevinfo/frag-sensors.html" %}
       {% include "ipdevinfo/frag-services.html" %}
+      {% include "ipdevinfo/frag-poe.html" %}
     {% else %}
 
       <ul>

@@ -215,3 +215,12 @@ table.module td div.portcell span.oplayer {
     }
 }
 
+#poe ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    li {
+        padding: 20px;
+        list-style-type: none;
+    }
+}

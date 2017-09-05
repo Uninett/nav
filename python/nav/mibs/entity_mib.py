@@ -110,6 +110,23 @@ class EntityMib(mibretriever.MibRetriever):
         ])
         defer.returnValue(self.translate_result(columns))
 
+    @defer.inlineCallbacks
+    def get_alias_mapping(self):
+        alias_mapping = yield self.retrieve_column(
+            'entAliasMappingIdentifier')
+        defer.returnValue(self._process_alias_mapping(alias_mapping))
+
+    def _process_alias_mapping(self, alias_mapping):
+        mapping = defaultdict(list)
+        for (phys_index, _logical), rowpointer in alias_mapping.items():
+            # Last element is ifindex. Preceding elements is an OID.
+            ifindex = OID(rowpointer)[-1]
+
+            mapping[phys_index].append(ifindex)
+
+        self._logger.debug("alias mapping: %r", mapping)
+        return mapping
+
 
 class EntityTable(dict):
     """Represent the contents of the entPhysicalTable as a dictionary"""

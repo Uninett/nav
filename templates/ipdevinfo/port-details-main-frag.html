@@ -56,6 +56,25 @@
       <td>{{ port.ifphysaddress|default:"N/A"|upper }}</td>
   </tr>
 
+  {% if port.poeport_set.exists %}
+    {%with port.poeport_set.first as poeport %}
+    <tr>
+      <th>PoE Status</th>
+      <td>
+        {% if poeport.admin_enable %}
+          {% if poeport.detection_status != poeport.STATUS_DELIVERING_POWER %}
+            {{ poeport.get_detection_status_display }}
+          {% else %}
+            {{ poeport.get_classification_display }} (priority {{poeport.get_priority_display}})
+          {% endif %}
+        {% else %}
+          Disabled
+        {% endif %}
+      </td>
+    </tr>
+    {% endwith %}
+  {% endif %}
+
   {% if debug %}
   <tr>
     <th>ifIndex</th>
