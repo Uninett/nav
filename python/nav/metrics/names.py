@@ -25,6 +25,7 @@ try:
 except ImportError:
     from urllib import urlencode
     from urllib2 import Request, urlopen, URLError
+    from urlparse import urljoin
 from nav.metrics import CONFIG, errors
 
 
