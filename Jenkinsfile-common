@@ -5,7 +5,6 @@
  * Work in tandem with tests/docker/Dockerfile & Co to run a full CI run in
  * Jenkins.
  * TODO: SLOCCount plugin doesn't support publishing results in pipelines yet.
- * TODO: Publish coverage data
 */
 
 try {
