@@ -57,7 +57,7 @@ class JuniperDomMib(MibRetriever):
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
-        """Discovers and returns all eligible sensors from the Comet MIB on this
+        """Discovers and returns all eligible dom sensors from this
         device.
         """
         sensors = []
@@ -67,8 +67,7 @@ class JuniperDomMib(MibRetriever):
 
     @defer.inlineCallbacks
     def handle_column(self, column, config):
-        """Returns the temperature sensor channels for this probe."""
-        self._logger.debug("collecting Comet channels")
+        """Returns the sensors of the given type"""
         result = []
         value_oid = self.nodes[column].oid
         rows = yield self.retrieve_column(column)
