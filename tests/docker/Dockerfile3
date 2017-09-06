@@ -1,9 +1,9 @@
 # Full integration test image for NAV
 #
-# A more or less identical image exists for Python >= 3.6, don't forget to
+# A more or less identical image exists for Python 2, don't forget to
 # update also that one.
 #
-FROM python:2.7
+FROM python:3.6
 
 ENV DISTRO jessie
 ENV DISPLAY :99

@@ -9,7 +9,7 @@ node {
     stage("Checkout") {
         checkout scm
     }
-    withEnv(["PYTHON_VERSION=2"]) {
+    withEnv(["PYTHON_VERSION=3"]) {
         load 'Jenkinsfile-common'
     }
 }
