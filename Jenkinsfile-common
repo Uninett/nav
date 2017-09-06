@@ -14,7 +14,9 @@ try {
         dockerfile = 'tests/docker/Dockerfile3'
     }
 
-    docker.build("nav/testfjas:${env.BUILD_NUMBER}", "-f ${dockerfile} .").inside() {
+    def imageTag = "nav/${env.JOB_NAME}:${env.BUILD_NUMBER}"
+    echo "Docker image tag: ${imageTag}"
+    docker.build("${imageTag}", "-f ${dockerfile} .").inside() {
         env.WORKSPACE = "${WORKSPACE}"
         env.BUILDDIR = "/opt/nav"
         env.TARGETURL = "http://localhost:8000/"
