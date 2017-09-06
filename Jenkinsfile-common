@@ -13,7 +13,7 @@ try {
         dockerfile = 'tests/docker/Dockerfile3'
     }
 
-    def imageTag = "nav/${env.JOB_NAME}:${env.BUILD_NUMBER}"
+    def imageTag = "nav/${env.JOB_NAME}:${env.BUILD_NUMBER}".toLowerCase()
     echo "Docker image tag: ${imageTag}"
     docker.build("${imageTag}", "-f ${dockerfile} .").inside() {
         env.WORKSPACE = "${WORKSPACE}"
