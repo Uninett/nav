@@ -4,7 +4,7 @@ from django.utils.encoding import force_text
 from django.db.models import Q
 
 from . import find_modelname
-from models import LogEntry
+from .models import LogEntry
 
 LATEST_N_AUDITLOG_ENTRIES = 15
 
