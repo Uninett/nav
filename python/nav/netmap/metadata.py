@@ -354,7 +354,7 @@ def vlan_to_json(vlan):
 
 def get_vlan_lookup_json(vlan_by_interface):
     vlan_lookup = {}
-    for list_of_swpv in vlan_by_interface.itervalues():
+    for list_of_swpv in six.itervalues(vlan_by_interface):
         for swpv in list_of_swpv:
             vlan_lookup[swpv.vlan.id] = vlan_to_json(swpv.vlan)
     return vlan_lookup
@@ -421,11 +421,11 @@ def edge_to_json_layer3(nx_edge, nx_metadata):
 
     # todo: fix sorted list keyed on prefix :-))
     metadata_collection = defaultdict(list)
-    for vlan_id, edges in nx_metadata['metadata'].iteritems():
+    for vlan_id, edges in six.iteritems(nx_metadata['metadata']):
         for edge in edges:
             metadata_collection[vlan_id].append(edge.to_json())
 
-    for key, value in metadata_collection.iteritems():
+    for key, value in six.iteritems(metadata_collection):
         value = sorted(value, key=operator.itemgetter('prefix'))
 
     json = {

@@ -35,7 +35,7 @@ class SnmpTestPynetsnmp(SnmpTestCase):
         self._patch_cleaning(sys.modules)
 
     def tearDown(self):
-        for name, module in self.modules.iteritems():
+        for name, module in self.modules.items():
             assert sys.modules[name] == module
         self.patcher.stop()
 
@@ -71,7 +71,7 @@ class SnmpTestPysnmp(SnmpTestCase):
         self._patch_cleaning(sys.modules)
 
     def tearDown(self):
-        for name, module in self.modules.iteritems():
+        for name, module in self.modules.items():
             assert sys.modules[name] == module
         self.patcher.stop()
 
