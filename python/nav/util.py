@@ -102,7 +102,7 @@ def _is_valid_ip_ipy(ip):
     A cleaned up version of the IP address string is returned if it is verified,
     otherwise a false value is returned.
     """
-    if isinstance(ip, (str, unicode)) and not ip.isdigit():
+    if isinstance(ip, six.string_types) and not ip.isdigit():
         try:
             valid_ip = IPy.IP(ip)
             if valid_ip.len() == 1:
@@ -123,7 +123,7 @@ def is_valid_cidr(cidr):
     if (isinstance(cidr, six.string_types) and
             not cidr.isdigit() and '/' in cidr):
         try:
-            valid_cidr = IPy.IP(cidr)
+            valid_cidr = IPy.IP(cidr) is not None
         except (ValueError, TypeError):
             return False
         else:
