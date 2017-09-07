@@ -212,7 +212,7 @@ def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
     if kwargs:
         graph.args.update(kwargs)
 
-    return unicode(graph)
+    return six.text_type(graph)
 
 
 def get_metric_meta(metric_path):

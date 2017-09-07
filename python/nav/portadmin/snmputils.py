@@ -19,6 +19,7 @@ import time
 import logging
 from operator import attrgetter
 
+from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible
 
 from nav import Snmp
@@ -218,7 +219,7 @@ class SNMPHandler(object):
 
     def set_if_alias(self, if_index, if_alias):
         """Set alias on a specific interface."""
-        if isinstance(if_alias, unicode):
+        if isinstance(if_alias, six.text_type):
             if_alias = if_alias.encode('utf8')
         return self._set_netbox_value(self.IF_ALIAS_OID, if_index, "s",
                                       if_alias)

@@ -27,6 +27,8 @@ Depends on python-gammu.
 from nav.smsd.dispatcher import (Dispatcher, PermanentDispatcherError,
                                  DispatcherError)
 
+from django.utils import six
+
 try:
     import gammu
 except ImportError as error:
@@ -110,7 +112,7 @@ class GammuDispatcher(Dispatcher):
 
 
 def decode_sms_to_unicode(sms):
-    if isinstance(sms, unicode):
+    if isinstance(sms, six.text_type):
         return sms
     else:
         return sms.decode('utf-8')

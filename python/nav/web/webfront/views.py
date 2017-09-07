@@ -32,6 +32,8 @@ from django.views.decorators.debug import (sensitive_variables,
 from django.shortcuts import get_object_or_404, render
 from django.utils.http import urlquote
 
+from django.utils import six
+
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.path import sysconfdir
 from nav.django.utils import get_account
@@ -106,14 +108,14 @@ def export_dashboard(request, did):
 
 
 dashboard_fields = {
-    'name': unicode,
+    'name': six.text_type,
     'num_columns': int,
     'widgets': list,
     'version': int,
 }
 
 widget_fields = {
-    'navlet': unicode,
+    'navlet': six.text_type,
     'column': int,
     'preferences': dict,
     'order': int,

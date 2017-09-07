@@ -3,6 +3,8 @@ from mock import Mock, patch
 import pytest
 import sys
 
+from django.utils import six
+
 
 class SnmpTestCase(unittest.TestCase):
 
@@ -138,7 +140,7 @@ class SnmpTestPysnmp(SnmpTestCase):
 
             pytest.fail("Should never happen")
         except ImportError as e:
-            assert unicode(e) == "Unsupported PySNMP version 4"
+            assert six.text_type(e) == "Unsupported PySNMP version 4"
 
     def test_raise_no_supported_snmp_backend_if_pynetsnmp_unavailable_and_pysnmp_version_requirement_throws_exception_and_fails_with_having_majorVersionId_attr(
                 self):

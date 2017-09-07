@@ -1,5 +1,6 @@
 from unittest import TestCase
 from mock import Mock
+from django.utils import six
 
 from nav.ipdevpoll.storage import ContainerRepository
 from nav.ipdevpoll.plugins.interfaces import Interfaces, decode_to_unicode
@@ -24,7 +25,7 @@ class EncodingTests(TestCase):
             row[k] = None
 
         interface = plugin._convert_row_to_container(netbox, 1, row)
-        self.assertTrue(isinstance(interface.ifalias, unicode))
+        self.assertTrue(isinstance(interface.ifalias, six.text_type))
 
     def test_latin1_encoded_ifalias_should_be_properly_decoded(self):
         result = decode_to_unicode('A m\xf8\xf8se once bit my sister')
@@ -42,7 +43,7 @@ class EncodingTests(TestCase):
 
     def test_unknown_encoding_should_not_raise_error(self):
         result = decode_to_unicode('A m\x9b\x9bse once bit my sister')
-        self.assertTrue(isinstance(result, unicode))
+        self.assertTrue(isinstance(result, six.text_type))
 
     def test_number_should_be_encoded(self):
         result = decode_to_unicode(42)
