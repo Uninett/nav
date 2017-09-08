@@ -16,7 +16,6 @@
 #
 """Utility methods for Alert Profiles"""
 
-import dircache
 import hashlib
 import os
 
@@ -107,7 +106,7 @@ def order_filter_group_content(filter_group):
 def read_time_period_templates():
     templates = {}
     template_dir = os.path.join(nav.path.sysconfdir, CONFIGDIR)
-    template_configs = dircache.listdir(template_dir)
+    template_configs = os.listdir(template_dir)
 
     for template_file in template_configs:
         if '.conf' in template_file:
