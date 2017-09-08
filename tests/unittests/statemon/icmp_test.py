@@ -9,7 +9,7 @@ class ICMPPacketTestcase(TestCase):
 
         #Make packet
         packet = PacketV6()
-        packet.data = 'Testing'
+        packet.data = b'Testing'
         packet.id = os.getpid()
         packet.sequence = 3
         packet = packet.assemble()
@@ -24,7 +24,7 @@ class ICMPPacketTestcase(TestCase):
         self.assertEquals(v6_packet.sequence, 3)
 
         #Check payload
-        self.assertEquals(v6_packet.data, 'Testing')
+        self.assertEquals(v6_packet.data, b'Testing')
 
         #Check if Id of the packet is process id
         self.assertEquals(os.getpid(), v6_packet.id)
@@ -37,7 +37,7 @@ class ICMPPacketTestcase(TestCase):
 
         #Make packet
         packet = PacketV4()
-        packet.data = 'Testing'
+        packet.data = b'Testing'
         packet.id = os.getpid()
         packet.sequence = 3
         packet = packet.assemble()
@@ -59,7 +59,7 @@ class ICMPPacketTestcase(TestCase):
         self.assertEquals(os.getpid(), v4_packet.id)
 
         #Check payload
-        self.assertEquals(v4_packet.data, 'Testing')
+        self.assertEquals(v4_packet.data, b'Testing')
 
         #Check if the checksum is correct
         unpacked_packet = packet[v4_packet.packet_slice]
