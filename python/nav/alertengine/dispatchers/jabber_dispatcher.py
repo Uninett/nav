@@ -16,11 +16,15 @@
 #
 """Plugin module for sending jabber alerts"""
 
-import xmpp
 import logging
 import time
 from threading import Thread
 from time import sleep
+
+try:
+    import xmpp
+except ImportError:
+    pass
 
 from nav.errors import ConfigurationError
 from nav.alertengine.dispatchers import Dispatcher, DispatcherException, \
