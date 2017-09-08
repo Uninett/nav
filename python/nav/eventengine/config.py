@@ -21,6 +21,8 @@ try:
 except ImportError:
     from ConfigParser import NoSectionError, NoOptionError
 
+from django.utils import six
+
 
 class EventEngineConfig(NAVConfigParser):
     DEFAULT_CONFIG_FILES = ('eventengine.conf',)
@@ -48,7 +50,7 @@ bgpDown.alert = 1m
                  an int, option is returned unchanged.
 
         """
-        if isinstance(option, (int, long)):
+        if isinstance(option, six.integer_types):
             return option
         try:
             return parse_interval(self.get('timeouts', option))
