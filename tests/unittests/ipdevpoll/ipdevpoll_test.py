@@ -88,11 +88,11 @@ class UtilsTest(unittest.TestCase):
         self.assertEquals(converted_mac, mac)
 
     def test_invalid_utf8(self):
-        self.assertTrue(is_invalid_utf8('P%\xe4\xb8D\xb6\x108B\x1d'))
+        self.assertTrue(is_invalid_utf8(b'P%\xe4\xb8D\xb6\x108B\x1d'))
 
     def test_valid_utf8(self):
-        self.assertFalse(is_invalid_utf8("ABC-123"))
-        self.assertFalse(is_invalid_utf8('\xc3\x86\xc3\x98\xc3\x85'))
+        self.assertFalse(is_invalid_utf8(b"ABC-123"))
+        self.assertFalse(is_invalid_utf8(b'\xc3\x86\xc3\x98\xc3\x85'))
 
 if __name__ == '__main__':
     unittest.main()

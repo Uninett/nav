@@ -28,12 +28,12 @@ class EncodingTests(TestCase):
         self.assertTrue(isinstance(interface.ifalias, six.text_type))
 
     def test_latin1_encoded_ifalias_should_be_properly_decoded(self):
-        result = decode_to_unicode('A m\xf8\xf8se once bit my sister')
+        result = decode_to_unicode(b'A m\xf8\xf8se once bit my sister')
         expected = u'A m\xf8\xf8se once bit my sister'
         self.assertEquals(result, expected)
 
     def test_utf_8_encoded_ifalias_should_be_properly_decoded(self):
-        result = decode_to_unicode('A m\xc3\xb8\xc3\xb8se once bit my sister')
+        result = decode_to_unicode(b'A m\xc3\xb8\xc3\xb8se once bit my sister')
         expected = u'A m\xf8\xf8se once bit my sister'
         self.assertEquals(result, expected)
 
@@ -42,7 +42,7 @@ class EncodingTests(TestCase):
         self.assertTrue(result is None)
 
     def test_unknown_encoding_should_not_raise_error(self):
-        result = decode_to_unicode('A m\x9b\x9bse once bit my sister')
+        result = decode_to_unicode(b'A m\x9b\x9bse once bit my sister')
         self.assertTrue(isinstance(result, six.text_type))
 
     def test_number_should_be_encoded(self):

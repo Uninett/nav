@@ -164,22 +164,22 @@ class CiscoHSRPMibTests(unittest.TestCase):
 
 
 def test_short_dateandtime_parses_properly():
-    parsed = parse_dateandtime_tc('\xdf\x07\x05\x0e\x0c\x1e*\x05')
+    parsed = parse_dateandtime_tc(b'\xdf\x07\x05\x0e\x0c\x1e*\x05')
     assert parsed == datetime.datetime(2015, 5, 14, 12, 30, 42, 500000)
 
 
 def test_long_dateandtime_parses_properly():
-    parsed = parse_dateandtime_tc('\xdf\x07\x05\x0e\x0c\x1e*\x05+\x02\x00')
+    parsed = parse_dateandtime_tc(b'\xdf\x07\x05\x0e\x0c\x1e*\x05+\x02\x00')
     assert parsed == datetime.datetime(2015, 5, 14, 12, 30, 42, 500000)
 
 
 def test_zero_dateandtime_parses_properly():
-    parsed = parse_dateandtime_tc('\x00\x00\x00\x00\x00\x00\x00\x00')
+    parsed = parse_dateandtime_tc(b'\x00\x00\x00\x00\x00\x00\x00\x00')
     assert parsed is None
 
 
 def test_crazy_dateandtime_should_not_crash():
-    assert parse_dateandtime_tc("FOOBAR") is None
+    assert parse_dateandtime_tc(b"FOOBAR") is None
 
 if __name__ == '__main__':
     unittest.main()
