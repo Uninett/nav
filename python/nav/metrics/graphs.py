@@ -15,10 +15,7 @@
 #
 """Getting graphs of NAV-collected data from Graphite"""
 import re
-try:
-    from urllib.parse import urlencode
-except ImportError:
-    from urllib import urlencode
+from django.utils.six.moves.urllib.parse import urlencode
 
 from django.utils import six
 

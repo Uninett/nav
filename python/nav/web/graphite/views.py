@@ -13,11 +13,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-try:
-    from urllib.request import Request, urlopen
-except ImportError:
-    from urllib2 import Request, urlopen
-from urlparse import urljoin
+from django.utils.six.moves.urllib.request import Request, urlopen
+from django.utils.six.moves.urllib.parse import urljoin
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotAllowed
 from nav.metrics import CONFIG

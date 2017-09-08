@@ -28,11 +28,8 @@ Oslo, but could be useful for other similar solutions.
 """
 
 import urllib
-try:
-    from urllib.request import urlopen
-    from urllib.error import HTTPError
-except ImportError:
-    from urllib2 import urlopen, HTTPError
+from django.utils.six.moves.urllib.request import urlopen
+from django.utils.six.moves.urllib.error import HTTPError
 from nav.smsd.dispatcher import Dispatcher, DispatcherError
 
 
