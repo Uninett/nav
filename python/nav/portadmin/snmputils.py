@@ -63,6 +63,12 @@ class FantasyVlan(object):
     def __hash__(self):
         return hash(self.vlan)
 
+    def __lt__(self, other):
+        return self.vlan < other.vlan
+
+    def __eq__(self, other):
+        return self.vlan == other.vlan
+
     def __cmp__(self, other):
         return cmp(self.vlan, other.vlan)
 
