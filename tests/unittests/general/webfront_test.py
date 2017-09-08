@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
 from mock import patch, Mock
+import pytest
 
 import nav.web.ldapauth
 from nav.web import auth
@@ -69,6 +70,8 @@ class NormalAuthenticateTest(TestCase):
             self.assertFalse(auth.authenticate('knight', 'rabbit'))
 
 
+@pytest.mark.skipif(nav.web.ldapauth.ldap is None,
+                    reason="ldap library not available")
 class LdapUserTestCase(TestCase):
     @patch.dict("nav.web.ldapauth._config._sections",
                 {'ldap': {'__name__': 'ldap',
