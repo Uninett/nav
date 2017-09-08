@@ -16,6 +16,8 @@
 #
 """MibRetriever implementation for IP-MIB"""
 from __future__ import absolute_import
+
+from django.utils import six
 from twisted.internet import defer
 from twisted.internet.defer import inlineCallbacks, returnValue
 
@@ -100,7 +102,7 @@ class IpMib(mibretriever.MibRetriever):
         if not root or not root.oid.is_a_prefix_of(index):
             return index
 
-        children = (c.oid for c in cls.nodes.itervalues()
+        children = (c.oid for c in six.itervalues(cls.nodes)
                     if root.oid.is_a_prefix_of(c.oid))
         matched_prefixes = [
             c for c in children if c.is_a_prefix_of(index)] + [root.oid]
