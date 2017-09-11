@@ -21,16 +21,18 @@ import time
 from threading import Thread
 from time import sleep
 
-try:
-    import xmpp
-except ImportError:
-    pass
-
 from nav.errors import ConfigurationError
 from nav.alertengine.dispatchers import Dispatcher, DispatcherException, \
-is_valid_email
+    is_valid_email
 
 _logger = logging.getLogger('nav.alertengine.dispatchers.jabber')
+
+try:
+    import xmpp
+except ImportError as err:
+    xmpp = None
+    _logger.warning("Python xmpp module is not available, "
+                    "jabber dispatching disabled (%s) ", err)
 
 
 class Jabber(Dispatcher):
