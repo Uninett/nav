@@ -168,7 +168,7 @@ def user_exists(username):
     except subprocess.CalledProcessError:
         die("Failed checking for the existence of user %s" % username)
 
-    return username in output
+    return username in output.decode('UTF-8')
 
 
 def create_user(username, password):
@@ -201,7 +201,7 @@ def install_pl_pgsql(dbname):
         popen, ["createlang", "-l", dbname],
         stdout=subprocess.PIPE)
 
-    output = process.communicate()[0]
+    output = process.communicate()[0].decode('UTF-8')
     if 'plpgsql' not in output.lower():
         trap_and_die(
             subprocess.CalledProcessError,
