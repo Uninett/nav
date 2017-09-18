@@ -39,8 +39,8 @@ try {
                                                               parserName: 'PYLint',
                                                                 pattern   : 'pylint.txt'
                                                             ]],
-                                unstableTotalAll           : '1400',
-                                failedTotalAll             : '1450',
+                                unstableTotalAll           : '1850',
+                                failedTotalAll             : '1900',
                                 usePreviousBuildAsReference: true
                             ])
 
