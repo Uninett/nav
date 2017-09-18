@@ -39,7 +39,7 @@
             <tbody>
             {% if alert_info.count %}
                 {% for a in alert_info.alerts %}
-                    <tr class="{% cycle oddrow,evenrow %}">
+                    <tr>
                         <td>{{ a.type }}</td>
                         <td>{{ a.message|default:"" }}</td>
                         <td>{{ a.alert.start_time|date|default:"N/A" }}
