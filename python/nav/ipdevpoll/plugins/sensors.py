@@ -192,7 +192,7 @@ def _find_submodules(name):
 
 
 def _get_space_separated_list(config, section, option):
-    raw_string = config.get(section, option, '').strip()
+    raw_string = config.get(section, option, fallback='').strip()
     items = re.split(r"\s+", raw_string)
     return [item for item in items if item]
 

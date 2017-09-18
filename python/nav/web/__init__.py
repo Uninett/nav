@@ -15,10 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """This package encompasses modules with web functionality for NAV"""
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
+import configparser
 import os.path
 import cgi
 import logging
