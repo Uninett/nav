@@ -16,11 +16,7 @@
 """Trap manager functionality for snmptrapd."""
 from nav.Snmp import BACKEND
 
-if BACKEND == 'v2':
-    from .agent_v2 import *
-elif BACKEND == 'se':
-    from .agent_se import *
-elif BACKEND == 'pynetsnmp':
+if BACKEND == 'pynetsnmp':
     from .agent_pynetsnmp import *
 else:
     raise ImportError("No supported SNMP backend was found")
