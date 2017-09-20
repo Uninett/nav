@@ -140,7 +140,7 @@ def portlist_juniper(data):
     return None
 
 
-def portlist(data, juniper_hack):
+def portlist(data, juniper_hack=False):
     """Return a set of port numbers represented by this PortList.
 
     If juniper_hack is true and it is formatted according to junipers
