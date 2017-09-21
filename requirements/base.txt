@@ -1,6 +1,7 @@
 # for debian build-deps, see the apt-get commands in
 # tools/vagrant-provision.sh
 
+asciitree=0.3.3  # optional, for naventity
 psycopg2==2.5.4  # requires libpq to build
 IPy==0.81
 twisted>=14.0.1,<15
