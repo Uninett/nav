@@ -24,12 +24,13 @@ This module provides a threadpool and fair scheduling.
 from __future__ import absolute_import
 
 from collections import deque
+import heapq
 import sys
 import time
 import threading
 import logging
 
-from . import config, prioqueunique
+from . import config
 
 
 LOGGER = logging.getLogger(__name__)
@@ -109,7 +110,7 @@ class _RunQueue(object):
         self.workers = []
         self.unused_thread_name = []
         self.queue = deque()
-        self.prioq = prioqueunique.prioque()
+        self.timerqueue = EventQueue()
         self.lock = threading.RLock()
         self.await_work = threading.Condition(self.lock)
         self.stop = 0
@@ -129,7 +130,7 @@ class _RunQueue(object):
         # Checkers with priority is put in a seperate queue
         if isinstance(runnable, tuple):
             pri, obj = runnable
-            self.prioq.put(pri, obj)
+            self.timerqueue.put(pri, obj)
         else:
             self.queue.append(runnable)
 
@@ -160,13 +161,11 @@ class _RunQueue(object):
         Gets a runnable from the runqueue. Checks if we have
         scheduled checkers (runnables containing timestamp. If not, we
         return a checker without timestamp.
-        self.prioq = priorityqueue
-        self.queue = queue
         """
         self.lock.acquire()
         while 1:
             # wait if we have no checkers in queue
-            while len(self.queue) == 0 and len(self.prioq) == 0:
+            while not self.queue and not self.timerqueue:
                 if self.stop:
                     self.lock.release()
                     raise TerminateException
@@ -175,21 +174,20 @@ class _RunQueue(object):
                 self.lock.release()
                 raise TerminateException
 
-            if len(self.prioq) > 0:
-                scheduled_time, _obj = self.prioq.headPair()
-                scheduled_time = float(scheduled_time)
+            if self.timerqueue:
+                scheduled_time = float(self.timerqueue.firstTimestamp())
                 now = time.time()
                 wait = scheduled_time-now
                 # If we have priority ready we
                 # return it now.
                 if wait <= 0:
-                    r = self.prioq.get()
+                    r = self.timerqueue.pop()
                     self.lock.release()
                     return r
             # We have no priority checkers ready.
             # Check if we have unpriority checkers
             # to execute
-            if len(self.queue) > 0:
+            if self.queue:
                 r = self.queue.popleft()
                 self.lock.release()
                 return r
@@ -208,3 +206,32 @@ class _RunQueue(object):
         for i in self.workers:
             i.join()
         LOGGER.info("All threads have finished")
+
+
+class EventQueue(object):
+
+    def __init__(self):
+        self.heap = []
+        self.counter = 0
+
+    def put(self, timestamp, item):
+        '''Insert item *item* in heap with the timestamp *timestamp*'''
+        self.counter += 1
+        heapq.heappush(self.heap, (timestamp, self.counter, item))
+
+    def firstTimestamp(self):
+        '''Returns the timestamp of the first event in the queue'''
+        if not self.heap:
+            raise IndexError("empty event queue")
+        return self.heap[0][0]
+
+    def pop(self):
+        '''Removes and returns the first event in the queue'''
+        timestamp, counter, item = heapq.heappop(self.heap)
+        return item
+
+    def __bool__(self):
+        return bool(self.heap)
+
+    def __len__(self):
+        return len(self.heap)
