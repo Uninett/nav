@@ -256,10 +256,6 @@ class MegaPing(object):
 
         # Ping each host
         for host in hosts:
-            if host in self._requests:
-                LOGGER.info("Duplicate host %s ignored", host)
-                continue
-
             host.time = time.time()
             # create and save a request identifier
             packet, cookie = host.make_packet(self._packetsize)
