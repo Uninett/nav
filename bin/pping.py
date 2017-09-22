@@ -65,7 +65,7 @@ def make_argparser():
     return parser
 
 
-class Pinger:
+class Pinger(object):
 
     def __init__(self, **kwargs):
         signal.signal(signal.SIGHUP, self.signalhandler)
@@ -242,7 +242,7 @@ def start(nofork, socket):
     if not nofork:
         logfile_path = conf.get(
             'logfile',
-            os.path.join(buildconf.localstatedir, 'log','pping.log'))
+            os.path.join(buildconf.localstatedir, 'log', 'pping.log'))
         logfile = open(logfile_path, "a")
         nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
 
