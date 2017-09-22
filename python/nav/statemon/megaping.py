@@ -304,7 +304,7 @@ class MegaPing:
                 for sock in readable:
                     try:
                         raw_pong, sender = sock.recvfrom(4096)
-                    except socket.error as err:
+                    except socket.error:
                         LOGGER.critical("RealityError -2", exc_info=True)
                         continue
 
@@ -337,7 +337,7 @@ class MegaPing:
 
         if not pong.id == self._pid:
             LOGGER.debug("packet from %r doesn't match our id (%s): %r (raw "
-                         "packet: %r)",sender, self._pid, pong, raw_pong)
+                         "packet: %r)", sender, self._pid, pong, raw_pong)
             return
 
         cookie = pong.data[:Host.COOKIE_LENGTH]

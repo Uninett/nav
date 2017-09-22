@@ -63,7 +63,7 @@ class Pop3Checker(AbstractChecker):
 
 class PopConnection(poplib.POP3):
     """Customized POP3 protocol interface"""
-    #pylint: disable=W0231
+    # pylint: disable=W0231
     def __init__(self, timeout, ip, port):
         self.ip = ip
         self.port = port
