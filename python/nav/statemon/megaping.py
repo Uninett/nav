@@ -153,7 +153,7 @@ class Host(object):
             self.ip, self.packet.sequence)
 
 
-class MegaPing:
+class MegaPing(object):
     """
     Sends icmp echo to multiple hosts in parallell.
     Typical use:
