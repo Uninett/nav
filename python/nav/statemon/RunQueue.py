@@ -133,6 +133,10 @@ class _RunQueue(object):
         else:
             self.queue.append(runnable)
 
+        self._start_worker_if_needed()
+        self.lock.release()
+
+    def _start_worker_if_needed(self):
         # This is quite dirty, but I really need to know how many
         # threads are waiting for checkers.
         # pylint: disable=protected-access, no-member
@@ -150,7 +154,6 @@ class _RunQueue(object):
                 new_worker.setName('worker'+str(len(self.workers)))
             self.workers.append(new_worker)
             new_worker.start()
-        self.lock.release()
 
     def deq(self):
         """
