@@ -56,7 +56,7 @@ class Status2Widget(Navlet):
         self.title = self.preferences.get('title', self.title)
         status_filter = self.preferences.get('status_filter')
         if status_filter:
-            context['form'] = StatusWidgetForm(QueryDict(status_filter))
+            context['form'] = StatusWidgetForm(QueryDict(str(status_filter)))
         else:
             context['form'] = StatusWidgetForm()
         context['interval'] = self.preferences['refresh_interval'] / 1000
@@ -92,7 +92,7 @@ class Status2Widget(Navlet):
     def find_extra_columns(status_filter):
         """Finds the chosen extra columns and returns them in a list"""
         column_choices = StatusWidgetForm().fields.get('extra_columns').choices
-        chosen_columns = QueryDict(status_filter).getlist('extra_columns')
+        chosen_columns = QueryDict(str(status_filter)).getlist('extra_columns')
         return [(k, v) for k, v in column_choices if k in chosen_columns]
 
     @staticmethod
