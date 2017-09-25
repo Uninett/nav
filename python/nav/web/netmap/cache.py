@@ -103,5 +103,10 @@ def _cache_key(*args):
     => netmap:topology:layer3
 
     """
-    args = (str(a).replace(' ', '-') for a in args)
-    return 'netmap:' + ':'.join(args)
+    def stringify(thing):
+        if type(thing) is str:
+            return thing.decode('utf-8')
+        else:
+            return unicode(thing)
+    args = (stringify(a).replace(' ', '-') for a in args)
+    return u'netmap:' + u':'.join(args)
