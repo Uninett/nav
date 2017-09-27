@@ -92,7 +92,7 @@ RUN chmod +s /usr/local/bin/gosu
 RUN adduser --system --group --home=/home/build --shell=/bin/bash build
 
 # Build and install Python requirements
-COPY requirements.txt /runtime-requirements.txt
+COPY requirements3.txt /runtime-requirements.txt
 COPY requirements/ /requirements
 COPY tests/requirements.txt /test-requirements.txt
 RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt

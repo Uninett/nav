@@ -2,13 +2,14 @@
 # tools/vagrant-provision.sh
 
 asciitree==0.3.3  # optional, for naventity
+configparser==3.5.0 ; python_version < '3'
 psycopg2==2.5.4  # requires libpq to build
-IPy==0.81
+IPy==0.83
 twisted>=14.0.1,<15
 networkx>=1.7,<1.8
 xmpppy==0.5.0rc1  # optional, for alerting via Jabber
 Pillow==3.0.0
-pyrad==1.2
+pyrad==2.1
 python-ldap==2.4.10 ; python_version < '3' # optional for LDAP authentication, requires libldap (OpenLDAP) to build
 sphinx>=1.0
 django-crispy-forms==1.3.2

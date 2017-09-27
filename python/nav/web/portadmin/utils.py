@@ -16,10 +16,7 @@
 #
 """Util functions for the PortAdmin"""
 import re
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
+import configparser
 import logging
 
 import django.template
