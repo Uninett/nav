@@ -20,11 +20,11 @@ import json
 try:
     from urllib.parse import urlencode, urljoin
     from urllib.request import Request, urlopen
-    from urllib.error import HTTPError
+    from urllib.error import HTTPError, URLError
 except ImportError:
     from urlparse import urljoin
     from urllib import urlencode
-    from urllib2 import Request, urlopen, HTTPError
+    from urllib2 import Request, urlopen, HTTPError, URLError
 import logging
 from nav.metrics import CONFIG, errors
 from nav.metrics.templates import (metric_path_for_packet_loss,
