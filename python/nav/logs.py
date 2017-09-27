@@ -19,10 +19,7 @@
 import sys
 import os
 import logging
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
+import configparser
 import nav.path
 
 DEFAULT_LOG_FORMATTER = logging.Formatter('%(asctime)s [%(levelname)s] '

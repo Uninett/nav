@@ -16,10 +16,7 @@
 """Configparser for Netbiostracker"""
 
 import logging
-try:
-    from configparser import NoSectionError, NoOptionError
-except ImportError:
-    from ConfigParser import NoSectionError, NoOptionError
+from configparser import NoSectionError, NoOptionError
 from IPy import IP
 from nav.config import NAVConfigParser
 

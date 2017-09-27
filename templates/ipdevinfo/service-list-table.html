@@ -40,7 +40,7 @@
 </tfoot>
 <tbody>
     {% for service in service_list %}
-    <tr class="{% cycle oddrow,evenrow %}">
+    <tr>
       
         {% if service.is_on_maintenance %}
             <td class="status_maintenance">

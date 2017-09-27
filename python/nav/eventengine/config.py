@@ -16,10 +16,7 @@
 """eventengine config"""
 from nav.config import NAVConfigParser
 from nav.util import parse_interval
-try:
-    from configparser import NoSectionError, NoOptionError
-except ImportError:
-    from ConfigParser import NoSectionError, NoOptionError
+from configparser import NoSectionError, NoOptionError
 
 from django.utils import six
 

@@ -165,7 +165,7 @@
 
               {% if not interface.trunk %}
                 {{ interface.last_cam|days_since }}
-                <span class="hidden" title="{% firstof interface.last_cam 'Never' %}"></span>
+                <span class="hidden" title="{{ interface.last_cam|default:'Never' }}"></span>
               {% endif %}
             </td>
           {% endif %}

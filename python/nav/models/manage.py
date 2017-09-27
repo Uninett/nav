@@ -1016,14 +1016,14 @@ class PrefixManager(models.Manager):
 
     def within(self, scope):
         """Gets all prefixes that are within this scope"""
-        return self.get_query_set().extra(
+        return self.get_queryset().extra(
             where=["%s >> netaddr"],
             params=[scope]
         ).select_related('vlan')
 
     def private(self):
         """Gets all the prefixes that is a private network"""
-        return self.get_query_set().extra(
+        return self.get_queryset().extra(
             where=["netaddr <<= %s or netaddr <<= %s or netaddr <<= %s"],
             params=['172.16.0.0/12', '10.0.0.0/8', '192.168.0.0/16']
         ).select_related('vlan')

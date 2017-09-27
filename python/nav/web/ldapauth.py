@@ -22,10 +22,7 @@ from __future__ import print_function
 
 import sys
 import logging
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
+import configparser
 from os.path import join
 from io import StringIO
 
@@ -296,7 +293,7 @@ class LDAPUser(object):
         objects, the latter should work for posixGroup objects.
         """
         encoding = _config.get('ldap', 'encoding')
-        group_search = _config.get('ldap', 'group_search')
+        group_search = _config.get('ldap', 'group_search').encode(encoding)
         user_dn = self.get_user_dn().encode(encoding)
         # Match groupOfNames/groupOfUniqueNames objects
         try:

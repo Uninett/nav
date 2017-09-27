@@ -26,7 +26,6 @@ import logging
 import hashlib
 
 from nav.daemon import safesleep as sleep
-from nav.statemon import circbuf
 from nav.statemon import config
 
 from .icmppacket import ICMP_MINLEN, PacketV4, PacketV6
@@ -83,7 +82,7 @@ class Host(object):
             self.packet = PacketV4()
 
         self.packet.id = os.getpid() % 65536
-        self.replies = circbuf.CircBuf()
+        self.reply = None
 
     def make_packet(self, size, cookie=None):
         """Makes the next echo reply packet"""
@@ -135,35 +134,21 @@ class Host(object):
         if not self.certain and self.packet.sequence > 2:
             self.certain = 1
 
-    def get_state(self):
-        """Returns the roundtrip time of the first reply"""
-        return self.replies[0]
-
-    def __hash__(self):
-        return self.ip.__hash__()
-
-    def __eq__(self, obj):
-        if type(obj) == type(''):
-            return self.ip == obj
-        else:
-            return self.ip == obj.ip
-
     def __repr__(self):
         return "Host instance for IP %s with sequence number %s " % (
             self.ip, self.packet.sequence)
 
 
-class MegaPing:
+class MegaPing(object):
     """
     Sends icmp echo to multiple hosts in parallell.
     Typical use:
     pinger = megaping.MegaPing()
     pinger.set_hosts(['127.0.0.1','10.0.0.1'])
     timeUsed = pinger.ping()
-    hostsUp = pinger.answers()
-    hostsDown = pinger.no_answers()
+    results = pinger.results()
     """
-    _requests = responses = _sender = _getter = _sender_finished = None
+    _requests = _sender = _getter = _sender_finished = None
 
     def __init__(self, sockets, conf=None):
 
@@ -228,7 +213,8 @@ class MegaPing:
         Reset method to clear requests and responses
         """
         self._requests = {}
-        self.responses = {}
+        for host in self._hosts.values():
+            host.reply = None
         self._sender_finished = 0
 
     def ping(self):
@@ -242,8 +228,8 @@ class MegaPing:
                                         name="sender")
         self._getter = threading.Thread(target=self._get_responses,
                                         name="getter")
-        self._sender.setDaemon(1)
-        self._getter.setDaemon(1)
+        self._sender.daemon = True
+        self._getter.daemon = True
         self._sender.start()
         self._getter.start()
         self._getter.join()
@@ -256,10 +242,6 @@ class MegaPing:
 
         # Ping each host
         for host in hosts:
-            if host in self._requests:
-                LOGGER.info("Duplicate host %s ignored", host)
-                continue
-
             host.time = time.time()
             # create and save a request identifier
             packet, cookie = host.make_packet(self._packetsize)
@@ -304,7 +286,7 @@ class MegaPing:
                 for sock in readable:
                     try:
                         raw_pong, sender = sock.recvfrom(4096)
-                    except socket.error as err:
+                    except socket.error:
                         LOGGER.critical("RealityError -2", exc_info=True)
                         continue
 
@@ -315,7 +297,7 @@ class MegaPing:
 
         # Everything else timed out
         for host in self._requests.values():
-            host.replies.push(None)
+            host.reply = None
         end = time.time()
         self._elapsedtime = end - start
 
@@ -337,7 +319,7 @@ class MegaPing:
 
         if not pong.id == self._pid:
             LOGGER.debug("packet from %r doesn't match our id (%s): %r (raw "
-                         "packet: %r)",sender, self._pid, pong, raw_pong)
+                         "packet: %r)", sender, self._pid, pong, raw_pong)
             return
 
         cookie = pong.data[:Host.COOKIE_LENGTH]
@@ -353,7 +335,7 @@ class MegaPing:
 
         # Delete the entry of the host who has replied and add the pingtime
         pingtime = arrival - host.time
-        host.replies.push(pingtime)
+        host.reply = pingtime
         LOGGER.debug("Response from %-16s in %03.3f ms",
                      sender, pingtime*1000)
         del self._requests[cookie]
@@ -364,32 +346,5 @@ class MegaPing:
         (ip, roundtriptime) for all hosts.
         Unreachable hosts will have roundtriptime = -1
         """
-        reply = []
-        for host in self._hosts.values():
-            if host.get_state():
-                reply.append((host.ip, host.replies[0]))
-            else:
-                reply.append((host.ip, -1))
-        return reply
-
-    def no_answers(self):
-        """
-        Returns a tuple of
-        (ip, timeout) for the unreachable hosts.
-        """
-        reply = []
-        for host in self._hosts.values():
-            if not host.get_state():
-                reply.append((host.ip, self._timeout))
-        return reply
-
-    def answers(self):
-        """
-        Returns a tuple of
-        (ip, roundtriptime) for reachable hosts.
-        """
-        reply = []
-        for host in self._hosts.values():
-            if host.get_state():
-                reply.append((host.ip, host.replies[0]))
-        return reply
+        return [(host.ip, host.reply if host.reply else -1)
+                for host in self._hosts.values]
