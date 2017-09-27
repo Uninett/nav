@@ -5,4 +5,4 @@
 cd "${WORKSPACE}"
 echo "Running pylint"
 export PYLINTHOME="${WORKSPACE}"
-pylint python/nav --rcfile=python/pylint.rc --disable=I,similarities --output-format=parseable || true
+pylint --load-plugins pylint_django python/nav --rcfile=python/pylint.rc --disable=I,similarities --output-format=parseable || true
