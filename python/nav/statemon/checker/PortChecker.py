@@ -18,7 +18,7 @@ import select
 import socket
 
 from nav.statemon.abstractchecker import AbstractChecker
-from nav.statemon.event import  Event
+from nav.statemon.event import Event
 
 
 class PortChecker(AbstractChecker):

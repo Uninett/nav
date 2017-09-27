@@ -60,7 +60,7 @@ class MysqlChecker(AbstractChecker):
             return Event.DOWN, str(err)
 
 
-class MysqlConnection:
+class MysqlConnection(object):
     """Very minimal implementation of MySQL protocol. (Packet layer only.)
 
     Error messages from the server raise MysqlError exceptions.

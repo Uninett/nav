@@ -65,7 +65,7 @@ def make_argparser():
     return parser
 
 
-class Pinger:
+class Pinger(object):
 
     def __init__(self, **kwargs):
         signal.signal(signal.SIGHUP, self.signalhandler)
@@ -105,7 +105,7 @@ class Pinger:
                         "marked down in navDB", netbox.ip)
                     self.down.append(netbox.netboxid)
             if netbox.netboxid not in self.replies:
-                self.replies[netbox.netboxid] = circbuf.CircBuf()
+                self.replies[netbox.netboxid] = circbuf.CircBuf(self._nrping)
                 if netbox.up != 'y':
                     buf = self.replies[netbox.netboxid]
                     # This genious line marks all-down for the whole buf
@@ -242,7 +242,7 @@ def start(nofork, socket):
     if not nofork:
         logfile_path = conf.get(
             'logfile',
-            os.path.join(buildconf.localstatedir, 'log','pping.log'))
+            os.path.join(buildconf.localstatedir, 'log', 'pping.log'))
         logfile = open(logfile_path, "a")
         nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
 

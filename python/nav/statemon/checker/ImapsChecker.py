@@ -19,7 +19,7 @@ import socket
 import imaplib
 
 from nav.statemon.abstractchecker import AbstractChecker
-from nav.statemon.event import  Event
+from nav.statemon.event import Event
 
 
 class ImapsChecker(AbstractChecker):
@@ -60,7 +60,7 @@ class ImapsChecker(AbstractChecker):
         return Event.UP, version
 
 
-#pylint: disable=R0904
+# pylint: disable=R0904
 class IMAPSConnection(imaplib.IMAP4):
     """IMAP4 client class over SSL connection
 

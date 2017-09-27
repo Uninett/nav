@@ -20,7 +20,6 @@ class NetworkExplorerSearchTest(TestCase):
     """
     def setUp(self):
         transaction.enter_transaction_management()
-        transaction.managed(True)
 
     def tearDown(self):
         transaction.rollback()

@@ -88,7 +88,7 @@ class OracleChecker(AbstractChecker):
             row = cursor.fetchone()
             version = row[0]
             connection.close()
-            #pylint: disable=W0703
+            # pylint: disable=W0703
         except Exception as err:
             return Event.DOWN, str(err)
         return Event.UP, "Oracle " + version

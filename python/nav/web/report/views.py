@@ -231,7 +231,7 @@ def create_matrix(scope, show_unused):
             max_leaf = get_max_leaf(tree)
             bits_in_matrix = max_leaf.prefixlen() - scope.prefixlen()
             matrix = MatrixIPv4(scope, show_unused, end_net=max_leaf,
-                bits_in_matrix=bits_in_matrix)
+                                bits_in_matrix=bits_in_matrix)
     else:
         raise UnknownNetworkTypeException(
             'version: ' + str(scope.version))

@@ -50,7 +50,7 @@ class PostgresqlChecker(AbstractChecker):
 
         (kwargs['host'], kwargs['port']) = self.get_address()
 
-        #pylint: disable=W0703
+        # pylint: disable=W0703
         try:
             psycopg2.connect(**kwargs)
         except Exception as err:

@@ -83,7 +83,7 @@ class _DB(threading.Thread):
             LOGGER.info("Successfully (re)connected to NAVdb")
             # Set transaction isolation level to READ COMMITTED
             self.db.set_isolation_level(1)
-        except Exception as err:
+        except Exception:
             LOGGER.critical("Couldn't connect to db.", exc_info=True)
             self.db = None
 
@@ -165,7 +165,7 @@ class _DB(threading.Thread):
             if commit:
                 self.db.commit()
             return cursor.fetchall()
-        except Exception as err:
+        except Exception:
             LOGGER.critical("Failed to execute query: %s",
                             cursor.query if cursor else statement,
                             exc_info=True)
@@ -193,13 +193,13 @@ class _DB(threading.Thread):
                     self.db.commit()
                 except Exception:
                     LOGGER.critical("Failed to commit")
-        except psycopg2.IntegrityError as err:
+        except psycopg2.IntegrityError:
             LOGGER.critical("Database integrity error, throwing away update",
                             exc_info=True)
             LOGGER.debug("Tried to execute: %s", cursor.query)
             if commit:
                 self.db.rollback()
-        except Exception as err:
+        except Exception:
             LOGGER.critical("Could not execute statement: %s",
                             cursor.query if cursor else statement,
                             exc_info=True)
@@ -322,5 +322,5 @@ class _DB(threading.Thread):
                 setattr(new_checker, 'active', active)
 
             self._checkers += [new_checker]
-        LOGGER.info("Returned %s checkers" , len(self._checkers))
+        LOGGER.info("Returned %s checkers", len(self._checkers))
         return self._checkers

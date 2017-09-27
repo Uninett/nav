@@ -174,4 +174,4 @@ def inet_checksum(packet):
     sum_ = high + low
     sum_ = sum_ + (sum_ >> 16)
 
-    return (~sum_) & 0xffff # return ones complement
+    return (~sum_) & 0xffff  # return ones complement

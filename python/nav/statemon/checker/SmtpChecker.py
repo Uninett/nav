@@ -57,7 +57,7 @@ class SmtpChecker(AbstractChecker):
         return Event.UP, msg
 
 
-#pylint: disable=R0904
+# pylint: disable=R0904
 class SMTP(smtplib.SMTP):
     """A customized SMTP protocol interface"""
     def __init__(self, timeout, host='', port=25):

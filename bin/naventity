@@ -27,7 +27,7 @@ import argparse
 
 import networkx
 
-from nav.asciitree import draw_tree
+from asciitree import draw_tree
 from nav.util import is_valid_ip
 from nav.ipdevpoll.snmp.common import snmp_parameter_factory, SnmpError
 from nav.ipdevpoll.snmp import AgentProxy, snmpprotocol
