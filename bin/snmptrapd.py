@@ -25,10 +25,7 @@ import re
 import socket
 import sys
 import argparse
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
+import configparser
 import signal
 
 # Import NAV libraries

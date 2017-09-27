@@ -14,10 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """ipdevpoll plugin to find and store static routes from routing tables"""
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
+import configparser
 
 from twisted.internet import defer
 
