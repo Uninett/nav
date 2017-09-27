@@ -27,7 +27,7 @@ class Generator(object):
     sql = None
 
     def make_report(self, report_name, config_file, config_file_local,
-                   query_dict, config, dbresult):
+                    query_dict, config, dbresult):
         """Makes a report
 
         :param report_name: the name of the report that will be represented

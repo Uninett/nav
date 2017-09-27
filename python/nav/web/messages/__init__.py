@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2006-2008 UNINETT AS
 #

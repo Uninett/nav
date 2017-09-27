@@ -19,7 +19,6 @@
 from nav.config import read_flat_config, getconfig
 from nav.db import get_connection_parameters
 import nav.buildconf
-import nav.path
 import sys
 import os
 
@@ -32,7 +31,7 @@ except IOError:
 
 try:
     webfront_config = getconfig('webfront/webfront.conf',
-                                configfolder=nav.path.sysconfdir)
+                                configfolder=nav.buildconf.sysconfdir)
 except IOError:
     webfront_config = {}
 
@@ -73,7 +72,7 @@ ROOT_URLCONF = 'nav.django.urls'
 
 #Static files
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(nav.path.webrootdir, 'static')
+STATIC_ROOT = os.path.join(nav.buildconf.webrootdir, 'static')
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
@@ -86,8 +85,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(nav.path.sysconfdir, 'templates'),
-            nav.path.djangotmpldir,
+            os.path.join(nav.buildconf.sysconfdir, 'templates'),
+            nav.buildconf.djangotmpldir,
         ],
         'APP_DIRS': True,
         'OPTIONS': {

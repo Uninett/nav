@@ -126,7 +126,7 @@ def template_from_config(filename, filters):
     """
     if filename is None:
         return None
-    confdir = os.path.join(nav.path.sysconfdir, 'geomap')
+    confdir = os.path.join(nav.buildconf.sysconfdir, 'geomap')
     abs_filename = os.path.join(confdir, filename)
     afile = open(abs_filename, 'r')
     content = afile.read()

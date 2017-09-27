@@ -32,7 +32,7 @@ import time
 import nav.config
 import nav.daemon
 import nav.logs
-import nav.path
+import nav.buildconf
 import nav.smsd.navdbqueue
 from nav import buildconf
 from nav.smsd.dispatcher import DispatcherError, PermanentDispatcherError
@@ -43,9 +43,9 @@ from nav.config import getconfig
 #
 #  PATHS
 #
-configfile = os.path.join(nav.path.sysconfdir, 'smsd.conf')
-logfile = os.path.join(nav.path.localstatedir, 'log', 'smsd.log')
-pidfile = os.path.join(nav.path.localstatedir, 'run', 'smsd.pid')
+configfile = os.path.join(nav.buildconf.sysconfdir, 'smsd.conf')
+logfile = os.path.join(nav.buildconf.localstatedir, 'log', 'smsd.log')
+pidfile = os.path.join(nav.buildconf.localstatedir, 'run', 'smsd.pid')
 
 #
 # Globals

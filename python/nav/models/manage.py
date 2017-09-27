@@ -381,7 +381,7 @@ class NetboxInfo(models.Model):
 
     id = models.AutoField(db_column='netboxinfoid', primary_key=True)
     netbox = models.ForeignKey('Netbox', db_column='netboxid',
-        related_name='info_set')
+                               related_name='info_set')
     key = VarcharField()
     variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
@@ -1471,9 +1471,10 @@ class Interface(models.Model):
     duplex = models.CharField(max_length=1, choices=DUPLEX_CHOICES, null=True)
 
     to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid', null=True,
-        related_name='connected_to_interface')
+                                  related_name='connected_to_interface')
     to_interface = models.ForeignKey('self', db_column='to_interfaceid',
-        null=True, related_name='connected_to_interface')
+                                     null=True,
+                                     related_name='connected_to_interface')
 
     gone_since = models.DateTimeField()
 
@@ -2101,7 +2102,7 @@ class IpdevpollJobLog(models.Model):
                 '-end_time')[:job_count]
         runtimes = [
             [int((j.end_time - dt.datetime(1970, 1, 1)).total_seconds()),
-            j.duration] for j in jobs]
+             j.duration] for j in jobs]
         runtimes.reverse()
         return runtimes
 

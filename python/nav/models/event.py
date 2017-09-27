@@ -398,7 +398,7 @@ class EventQueueVar(models.Model):
     events."""
 
     event_queue = models.ForeignKey('EventQueue', db_column='eventqid',
-        related_name='variables')
+                                    related_name='variables')
     variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 

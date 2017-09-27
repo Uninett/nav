@@ -41,7 +41,7 @@ import nav.buildconf
 import nav.config
 import nav.daemon
 import nav.logs
-import nav.path
+import nav.buildconf
 import nav.db
 
 
@@ -52,9 +52,9 @@ from nav.alertengine.base import check_alerts
 #
 #  PATHS
 #
-configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
-logfile = os.path.join(nav.path.localstatedir, 'log', 'alertengine.log')
-pidfile = os.path.join(nav.path.localstatedir, 'run', 'alertengine.pid')
+configfile = os.path.join(nav.buildconf.sysconfdir, 'alertengine.conf')
+logfile = os.path.join(nav.buildconf.localstatedir, 'log', 'alertengine.log')
+pidfile = os.path.join(nav.buildconf.localstatedir, 'run', 'alertengine.pid')
 
 logger = None
 

@@ -33,7 +33,7 @@ from django.db import models, transaction
 from django.utils.encoding import python_2_unicode_compatible
 from django_hstore import hstore
 
-import nav.path
+import nav.buildconf
 import nav.pwhash
 from nav.config import getconfig as get_alertengine_config
 from nav.alertengine.dispatchers import DispatcherException
@@ -46,7 +46,7 @@ from nav.models.manage import Organization, Prefix, Room, NetboxGroup
 from nav.models.manage import Interface, Usage, Vlan, Vendor
 from nav.models.fields import VarcharField, DictAsJsonField
 
-configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
+configfile = os.path.join(nav.buildconf.sysconfdir, 'alertengine.conf')
 
 # This should be the authorative source as to which models alertengine
 # supports.  The acctuall mapping from alerts to data in these models is done
@@ -432,7 +432,7 @@ class AlertSender(models.Model):
         # Get config
         if not hasattr(AlertSender, 'config'):
             AlertSender.config = get_alertengine_config(
-                os.path.join(nav.path.sysconfdir, 'alertengine.conf'))
+                os.path.join(nav.buildconf.sysconfdir, 'alertengine.conf'))
 
         # Load module
         module = __import__(

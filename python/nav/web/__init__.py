@@ -21,13 +21,13 @@ import cgi
 import logging
 
 import nav
-import nav.path
+import nav.buildconf
 from nav.models.profiles import Account
 
 
 logger = logging.getLogger("nav.web")
 webfrontConfig = configparser.ConfigParser()
-webfrontConfig.read(os.path.join(nav.path.sysconfdir, 'webfront',
+webfrontConfig.read(os.path.join(nav.buildconf.sysconfdir, 'webfront',
                                  'webfront.conf'))
 
 
