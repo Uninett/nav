@@ -3,6 +3,7 @@ coverage>=3.6
 lxml==2.3.2
 mock>=0.8.0,<1.1.0
 pylint==1.7.2
+pylint-django==0.7.2
 pytest
 pytest-capturelog
 pytest-cov
