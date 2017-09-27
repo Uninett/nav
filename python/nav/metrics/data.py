@@ -17,10 +17,11 @@
 
 from datetime import datetime
 import json
+import logging
 from django.utils.six.moves.urllib.parse import urlencode, urljoin
 from django.utils.six.moves.urllib.request import Request, urlopen
 from django.utils.six.moves.urllib.error import HTTPError, URLError
-import logging
+
 from nav.metrics import CONFIG, errors
 from nav.metrics.templates import (metric_path_for_packet_loss,
                                    metric_path_for_roundtrip_time)
