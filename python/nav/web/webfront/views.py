@@ -33,7 +33,7 @@ from django.shortcuts import get_object_or_404, render
 from django.utils.http import urlquote
 
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
-from nav.path import sysconfdir
+from nav.buildconf import sysconfdir
 from nav.django.utils import get_account
 from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
 from nav.web import ldapauth, auth

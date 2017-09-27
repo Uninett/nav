@@ -27,7 +27,7 @@ from os.path import join
 
 import nav.daemon
 from nav.activeipcollector import manager
-from nav.path import localstatedir
+from nav.buildconf import localstatedir
 from nav.logs import init_generic_logging
 
 PIDFILE = join(localstatedir, 'run', 'collect_active_ip.pid')

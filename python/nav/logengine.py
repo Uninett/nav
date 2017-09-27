@@ -60,7 +60,7 @@ import nav
 import nav.logs
 from nav import db
 from nav import daemon
-from nav.buildconf import localstatedir
+from nav.buildconf import localstatedir, sysconfdir
 
 _logger = logging.getLogger("logengine")
 
@@ -499,7 +499,7 @@ def main():
     # Process setup
 
     config = ConfigParser()
-    config.read(os.path.join(nav.path.sysconfdir, 'logger.conf'))
+    config.read(os.path.join(sysconfdir, 'logger.conf'))
 
     logging.basicConfig()
     nav.logs.set_log_config()

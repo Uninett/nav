@@ -22,7 +22,7 @@ import os
 from django.db import transaction
 
 import nav.config
-import nav.path
+import nav.buildconf
 from nav.django.utils import get_account, is_admin
 from nav.models.profiles import Filter, FilterGroup, FilterGroupContent, \
     Account, AlertSubscription, TimePeriod
@@ -105,7 +105,7 @@ def order_filter_group_content(filter_group):
 
 def read_time_period_templates():
     templates = {}
-    template_dir = os.path.join(nav.path.sysconfdir, CONFIGDIR)
+    template_dir = os.path.join(nav.buildconf.sysconfdir, CONFIGDIR)
     template_configs = os.listdir(template_dir)
 
     for template_file in template_configs:

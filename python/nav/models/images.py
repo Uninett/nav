@@ -5,7 +5,7 @@ from django.db import models
 from nav.models.profiles import Account
 from nav.models.manage import Location, Room
 from nav.models.fields import VarcharField
-from nav.path import localstatedir
+from nav.buildconf import localstatedir
 
 ROOTPATH = join(localstatedir, 'uploads', 'images')
 

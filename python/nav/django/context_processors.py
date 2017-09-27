@@ -27,7 +27,7 @@ from nav.web.message import Messages
 from nav.web.webfront.utils import tool_list, quick_read, split_tools
 from nav.models.profiles import NavbarLink
 from nav.buildconf import VERSION
-from nav.path import sysconfdir
+from nav.buildconf import sysconfdir
 from nav.metrics import CONFIG
 
 WEBCONF_DIR_PATH = os.path.join(sysconfdir, "webfront")

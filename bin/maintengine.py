@@ -26,7 +26,7 @@ import os.path
 import time
 import logging
 
-import nav.path
+import nav.buildconf
 from nav.logs import init_generic_logging
 from nav.maintengine import check_devices_on_maintenance
 
@@ -37,7 +37,8 @@ LOG_FORMAT = "[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message
 def main():
     """Good old main..."""
     before = time.clock()
-    log_file = os.path.join(nav.path.localstatedir, 'log', 'maintengine.log')
+    log_file = os.path.join(nav.buildconf.localstatedir,
+                            'log', 'maintengine.log')
     fmt = logging.Formatter(LOG_FORMAT)
     init_generic_logging(
         logfile=log_file,

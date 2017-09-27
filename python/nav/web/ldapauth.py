@@ -26,7 +26,7 @@ import configparser
 from os.path import join
 from io import StringIO
 
-from nav.path import sysconfdir
+from nav.buildconf import sysconfdir
 import nav.errors
 
 _logger = logging.getLogger("nav.web.ldapauth")

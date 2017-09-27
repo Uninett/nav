@@ -224,7 +224,7 @@ def exceptions_response(request):
     if not account:
         return HttpResponseRedirect('/')
     config = ConfigParser()
-    config.read(os.path.join(nav.path.sysconfdir, 'logger.conf'))
+    config.read(os.path.join(nav.buildconf.sysconfdir, 'logger.conf'))
     options = config.options("priorityexceptions")
     excepts = []
     context = {}

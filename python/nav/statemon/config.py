@@ -31,8 +31,8 @@ import re
 
 try:
     # this module exists in a properly installed enviroment
-    import nav.path
-    CONFIGFILEPATH = [nav.path.sysconfdir]
+    import nav.buildconf
+    CONFIGFILEPATH = [nav.buildconf.sysconfdir]
 except ImportError:
     # fallback to current dir++
     CONFIGFILEPATH = ['/usr/local/nav/local/etc/conf/', '.']
