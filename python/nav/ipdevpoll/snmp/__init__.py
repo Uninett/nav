@@ -16,14 +16,11 @@
 """selects a proper SNMP backend for ipdevpoll"""
 
 from __future__ import absolute_import
-import warnings
 
 try:
     import pynetsnmp.twistedsnmp
 except ImportError:
-    from nav.ipdevpoll.snmp.twistedsnmp import AgentProxy, snmpprotocol
-    warnings.warn("Using pure Python-based SNMP library, which will affect "
-                  "performance")
+    raise ImportError("No supported SNMP backend was found")
 else:
     from nav.ipdevpoll.snmp.pynetsnmp import AgentProxy, snmpprotocol
 

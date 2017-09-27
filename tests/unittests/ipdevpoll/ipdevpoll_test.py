@@ -20,8 +20,6 @@ import os
 from random import shuffle
 from IPy import IP
 
-os.environ['PYSNMP_API_VERSION'] = 'v3'
-
 import django
 django.setup()
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
