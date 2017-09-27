@@ -23,7 +23,8 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from nav.web.webfront.urls import urlpatterns
 from nav.web.styleguide import styleguide_index
 
-urlpatterns += patterns('',
+urlpatterns += patterns(
+    '',
     (r'^status/', include('nav.web.status2.urls')),
     (r'^ajax/', include('nav.web.ajax.urls')),
     (r'^business/', include('nav.web.business.urls')),

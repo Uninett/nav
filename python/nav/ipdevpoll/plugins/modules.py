@@ -145,7 +145,7 @@ class Modules(Plugin):
 
         if module_ifindex_map:
             self._logger.debug("module/ifindex mapping: %r",
-                              module_ifindex_map)
+                               module_ifindex_map)
 
     def _process_entities(self, result):
         """Process the list of collected entities."""

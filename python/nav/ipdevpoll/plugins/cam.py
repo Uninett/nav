@@ -219,7 +219,7 @@ class Cam(Plugin):
         self.containers.add(shadows.SwPortBlocked)
 
         translated = [(baseports[port], vlan) for port, vlan in blocking
-                     if port in baseports]
+                      if port in baseports]
         if translated:
             self._log_blocking_ports(translated)
             self._store_blocking_ports(translated)

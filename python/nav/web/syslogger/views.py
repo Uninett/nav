@@ -201,8 +201,8 @@ def handle_search(request, _searchform, form_target):
 
 def index(request):
     return render_to_response('syslogger/index.html',
-        _build_context(request),
-        RequestContext(request))
+                              _build_context(request),
+                              RequestContext(request))
 
 
 def group_search(request):
@@ -234,8 +234,8 @@ def exceptions_response(request):
     context['exceptions'] = excepts
     context['exceptions_mode'] = True
     return render_to_response('syslogger/frag-exceptions.html',
-                                context,
-                                RequestContext(request))
+                              context,
+                              RequestContext(request))
 
 
 def errors_response(request):

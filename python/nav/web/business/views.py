@@ -73,8 +73,8 @@ class AvailabilityReportView(BusinessView):
             alert_type__name=alerttype).filter(
                 Q(end_time__range=(start, end)) |
                 Q(start_time__range=(start, end)) |
-                  (Q(start_time__lte=start) & Q(end_time__gte=end)
-               ))
+                (Q(start_time__lte=start) & Q(end_time__gte=end))
+            )
 
         # Group alerts by subject
         self.grouped_alerts = self.group_alerts(alerts)

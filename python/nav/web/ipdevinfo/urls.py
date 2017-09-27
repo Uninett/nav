@@ -27,7 +27,8 @@ from nav.web.ipdevinfo.views import (search, service_list, service_matrix,
                                      unrecognized_neighbors)
 
 # The patterns are relative to the base URL of the subsystem
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     # Search
     url(r'^$', search,
         name='ipdevinfo-search'),
