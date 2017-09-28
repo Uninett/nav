@@ -21,14 +21,17 @@ contains ad-hoc serializer methods (self.fields) for API purposes.
 """
 
 from __future__ import unicode_literals
-from IPy import IP, IPSet
 import json
+import logging
+from IPy import IP, IPSet
 
 from django.core.urlresolvers import reverse, NoReverseMatch
 
 from nav.web.ipam.util import get_available_subnets
 from nav.models.manage import Prefix
 
+
+_logger = logging.getLogger('nav.web.ipam.prefix_tree')
 
 class PrefixHeap(object):
     "Pseudo-heap ordered topologically by prefixes"
@@ -291,6 +294,37 @@ class FauxNode(IpNodeFacade):
         "Marker propery for declaring the node as fake (templating reasons)"
         return True
 
+class FakeVLAN(object):
+    "Mock object that quacks like prefix.vlan"
+
+    def __init__(self):
+        pass
+
+    @property
+    def net_type(self):
+        "The type of the network"
+        return "UNKNOWN"
+
+    @property
+    def description(self):
+        "Description of the network"
+        return "UNKNOWN"
+
+    @property
+    def organization(self):
+        "Organization connected to the network"
+        return "UNKNOWN"
+
+    @property
+    def vlan(self):
+        "The VLAN ID of the network"
+        return "UNKNOWN"
+
+    @property
+    def net_ident(self):
+        "The network identifier of the network"
+        return "UNKNOWN"
+
 
 class PrefixNode(IpNodeFacade):
     "Wrapper node for Prefix results"
@@ -298,14 +332,24 @@ class PrefixNode(IpNodeFacade):
         self._prefix = prefix # cache of prefix
         ip_addr = prefix.net_address
         pk = prefix.pk
-        net_type = str(prefix.vlan.net_type)
+        # Some prefixes might not have an associated VLAN due to data/migration
+        # issues, in which case we use a filler
+        vlan = getattr(prefix, "vlan", None)
+        if vlan is None:
+            _logger.warning(
+                "Prefix {} (id={}) does not have a VLAN relation".format(
+                    prefix.net_address, prefix.id
+                )
+            )
+            vlan = FakeVLAN()
+        net_type = str(vlan.net_type)
         super(PrefixNode, self).__init__(ip_addr, pk, net_type, sort_fn)
-        self._description = prefix.vlan.description
-        self._organization = prefix.vlan.organization
-        self._vlan_number = prefix.vlan.vlan
-        self._net_ident = prefix.vlan.net_ident
+        self._description = vlan.description
+        self._organization = vlan.organization
+        self._vlan_number = vlan.vlan
+        self._net_ident = vlan.net_ident
         # Export usage field of VLAN
-        if getattr(prefix.vlan, "usage"):
+        if getattr(vlan, "usage"):
             self.vlan_usage = prefix.vlan.usage.description
             self.FIELDS.append("vlan_usage")
 
