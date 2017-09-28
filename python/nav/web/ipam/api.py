@@ -23,6 +23,7 @@ API specific code for the private IPAM API. Exports a router for easy mounting.
 from rest_framework import viewsets, status, routers
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
+from django.core.cache import cache
 from IPy import IP
 
 from .prefix_tree import make_tree, make_tree_from_ip
@@ -37,6 +38,9 @@ from nav.web.ipam.util import PrefixQuerysetBuilder, get_available_subnets, \
 from rest_framework import serializers
 #from nav.models.fields import CIDRField
 
+# Timeout settings for cached utilization data
+ACTIVE_CACHE_TIMEOUT = 25*60
+ALLOCATED_CACHE_TIMEOUT = 5*60
 
 # Inspired by
 # http://blog.karolmajta.com/parsing-query-parameters-in-rest-framework/
@@ -117,16 +121,29 @@ class PrefixViewSet(viewsets.ViewSet):
         pk = kwargs.pop("pk", None)
         prefix = Prefix.objects.get(pk=pk)
         max_addr = IP(prefix.net_address).len()
-        active_addr = prefix_collector.collect_active_ip(prefix)
-        # calculate allocated ratio
-        query = PrefixQuerysetBuilder().within(prefix.net_address)
-        allocated = query.finalize().exclude(vlan__net_type="scope")
-        total_allocated = sum(p.get_prefix_size() for p in allocated)
+        # Do a cache lookup
+        active_key = "prefix:active:{}".format(prefix.pk)
+        active_addr = cache.get(active_key)
+        if active_addr is None:
+            # Cache miss, fire off expensive collect operation. Might need to
+            # look into optimizins this further in the future.
+            active_addr = prefix_collector.collect_active_ip(prefix)
+            cache.set(active_key, active_addr, ACTIVE_CACHE_TIMEOUT)
+        # Cache lookup of allocated prefixes
+        allocated_key = "prefix:allocated:{}".format(prefix.pk)
+        allocated = cache.get(allocated_key)
+        if allocated is None:
+            # Cache miss, find all prefixes within the span of the current
+            # prefix and get their total size
+            query = PrefixQuerysetBuilder().within(prefix.net_address)
+            in_use = query.finalize().exclude(vlan__net_type="scope")
+            allocated = sum(p.get_prefix_size() for p in in_use) / max_addr
+            cache.set(allocated_key, allocated, ALLOCATED_CACHE_TIMEOUT)
         payload = {
             "max_addr": max_addr,
             "active_addr": active_addr,
             "usage": 1.0 * active_addr / max_addr,
-            "allocated": 1.0 * total_allocated / max_addr,
+            "allocated": 1.0 * allocated,
             "pk": pk
         }
         return Response(payload, status=status.HTTP_200_OK)
