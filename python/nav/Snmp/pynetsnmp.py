@@ -18,14 +18,14 @@
 from __future__ import absolute_import
 
 from collections import namedtuple
+from ctypes import (c_int, sizeof, byref, cast, POINTER, c_char, c_char_p,
+                    c_uint, c_ulong, c_uint64)
 
 from IPy import IP
 from pynetsnmp import netsnmp
 from pynetsnmp.netsnmp import (Session, SNMP_MSG_GETNEXT, mkoid, lib,
                                netsnmp_pdu_p, getResult, netsnmp_pdu,
                                SNMP_MSG_GETBULK, SNMP_MSG_SET, SNMP_MSG_GET)
-from ctypes import (c_int, sizeof, byref, cast, POINTER, c_char, c_char_p,
-                    c_uint, c_ulong, c_uint64)
 
 from nav.oids import OID
 from .errors import *
