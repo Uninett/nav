@@ -17,7 +17,7 @@
 
 import csv
 import re
-from io import StringIO
+from io import BytesIO as StringIO
 
 from IPy import IP
 
