@@ -17,7 +17,7 @@
 
 import csv
 import re
-from io import BytesIO as StringIO
+from io import BytesIO
 
 from IPy import IP
 
@@ -35,7 +35,7 @@ class BulkParser(object):
         if hasattr(data, 'seek'):
             self.data = data
         else:
-            self.data = StringIO(data)
+            self.data = BytesIO(data)
 
         if delimiter is None:
             try:
