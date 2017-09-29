@@ -221,16 +221,19 @@ def populate_infodict(request, netbox, interfaces, auditlog_entries=None):
     save_to_database(interfaces)
 
     info_dict = get_base_context([(netbox.sysname, )], form=get_form(request))
-    info_dict.update({'interfaces': interfaces,
-                      'auditmodel': netbox.sysname,
-                      'netbox': netbox,
-                      'voice_vlan': voice_vlan,
-                      'allowed_vlans': allowed_vlans,
-                      'readonly': readonly,
-                      'aliastemplate': aliastemplate,
-                      'auditlog_api_parameters': json.dumps(
-                          {'subsystem': 'portadmin'}),
-                      'auditlog_entries': auditlog_entries,})
+    info_dict.update(
+        {
+            'interfaces': interfaces,
+            'auditmodel': netbox.sysname,
+            'netbox': netbox,
+            'voice_vlan': voice_vlan,
+            'allowed_vlans': allowed_vlans,
+            'readonly': readonly,
+            'aliastemplate': aliastemplate,
+            'auditlog_api_parameters': json.dumps({'subsystem': 'portadmin'}),
+            'auditlog_entries': auditlog_entries,
+        }
+    )
     return info_dict
 
 
