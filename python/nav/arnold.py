@@ -549,7 +549,7 @@ def compute_octet_string(hexstring, port, action='enable'):
     else:
         bit[port] = 0
 
-    return str(bit)
+    return bit.to_bytes()
 
 
 @Memo
