@@ -31,7 +31,7 @@ from nav.web.ipam.util import get_available_subnets
 from nav.models.manage import Prefix
 
 
-_logger = logging.getLogger('nav.web.ipam.prefix_tree')
+LOGGER = logging.getLogger('nav.web.ipam.prefix_tree')
 
 class PrefixHeap(object):
     "Pseudo-heap ordered topologically by prefixes"
@@ -114,6 +114,7 @@ class IpNode(PrefixHeap):
         self.net_type = net_type
 
     @property
+    # pylint: disable=invalid-name
     def ip(self):
         "Return the IP object of the node"
         return self._ip
@@ -170,10 +171,11 @@ class IpNodeFacade(IpNode):
 
     def __init__(self, ip_addr, pk, net_type, sort_fn=None):
         super(IpNodeFacade, self).__init__(ip_addr, net_type)
-        self.pk = pk
+        self.pk = pk  # pylint: disable=invalid-name
         self.sort_fn = sort_fn
 
     @property
+    # pylint: disable=no-member
     def parent_pk(self):
         "The primary key of the node's parent"
         if self.parent is None:
@@ -329,21 +331,19 @@ class FakeVLAN(object):
 class PrefixNode(IpNodeFacade):
     "Wrapper node for Prefix results"
     def __init__(self, prefix, sort_fn=None):
-        self._prefix = prefix # cache of prefix
+        self._prefix = prefix  # cache of prefix
         ip_addr = prefix.net_address
-        pk = prefix.pk
+        primary_key = prefix.pk
         # Some prefixes might not have an associated VLAN due to data/migration
         # issues, in which case we use a filler
         vlan = getattr(prefix, "vlan", None)
         if vlan is None:
-            _logger.warning(
-                "Prefix {} (id={}) does not have a VLAN relation".format(
-                    prefix.net_address, prefix.id
-                )
-            )
+            LOGGER.warning(
+                "Prefix % id=% does not have a VLAN relation",
+                prefix.net_address, prefix.id)
             vlan = FakeVLAN()
         net_type = str(vlan.net_type)
-        super(PrefixNode, self).__init__(ip_addr, pk, net_type, sort_fn)
+        super(PrefixNode, self).__init__(ip_addr, primary_key, net_type, sort_fn)
         self._description = vlan.description
         self._organization = vlan.organization
         self._vlan_number = vlan.vlan
@@ -381,12 +381,12 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
 
     def accept(prefix):
         "Helper function for filtering prefixes by IP family"
-        ip = IP(prefix.net_address)
-        if "ipv4" in family and ip.version() == 4 and ip not in rfc1918:
+        ip_addr = IP(prefix.net_address)
+        if "ipv4" in family and ip_addr.version() == 4 and ip_addr not in rfc1918:
             return True
-        if "ipv6" in family and ip.version() == 6:
+        if "ipv6" in family and ip_addr.version() == 6:
             return True
-        if "rfc1918" in family and ip in rfc1918:
+        if "rfc1918" in family and ip_addr in rfc1918:
             return True
         return False
 
@@ -407,7 +407,7 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
     if show_unused:
         unused_prefixes = (child.not_in_use() for child in heap.walk())
         for unused_prefix in unused_prefixes:
-            nodes = nodes_from_ips(unused_prefix, type="empty")
+            nodes = nodes_from_ips(unused_prefix, klass="empty")
             heap.add_many(nodes)
     return heap
 
@@ -422,12 +422,12 @@ def get_available_nodes(ips):
 
     """
     available_nodes = get_available_subnets(ips)
-    return nodes_from_ips(available_nodes, type="available")
+    return nodes_from_ips(available_nodes, klass="available")
 
 
-def nodes_from_ips(ips, type="empty"):
+def nodes_from_ips(ips, klass="empty"):
     "Turn a list of IPs into FauxNodes"
-    return [FauxNode(ip, ip.strNormal(), type) for ip in ips]
+    return [FauxNode(ip, ip.strNormal(), klass) for ip in ips]
 
 
 def make_tree(prefixes, family=None, root_ip=None, show_all=None, sort_by="ip"):
@@ -453,6 +453,7 @@ not part of the RFC1918 ranges.
     init = []
 
     if root_ip is not None and root_ip:
+        # pylint: disable=redefined-variable-type
         scope = Prefix.objects.get(net_address=root_ip)
         if scope is not None:
             node = PrefixNode(scope)
