@@ -20,14 +20,16 @@ Provides common database functionality for NAV.
 from __future__ import absolute_import
 import atexit
 from functools import wraps
+import logging
 import os
 import sys
 import time
+
 import psycopg2
 import psycopg2.extensions
+
 import nav
 from nav import config
-import logging
 
 _logger = logging.getLogger('nav.db')
 _connection_cache = nav.ObjectCache()

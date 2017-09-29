@@ -16,10 +16,10 @@
 """High level synchronouse NAV API for NetSNMP"""
 
 from __future__ import absolute_import
-from .errors import *
+
+from collections import namedtuple
 
 from IPy import IP
-from nav.oids import OID
 from pynetsnmp import netsnmp
 from pynetsnmp.netsnmp import (Session, SNMP_MSG_GETNEXT, mkoid, lib,
                                netsnmp_pdu_p, getResult, netsnmp_pdu,
@@ -27,7 +27,9 @@ from pynetsnmp.netsnmp import (Session, SNMP_MSG_GETNEXT, mkoid, lib,
 from ctypes import (c_int, sizeof, byref, cast, POINTER, c_char, c_char_p,
                     c_uint, c_ulong, c_uint64)
 
-from collections import namedtuple
+from nav.oids import OID
+from .errors import *
+
 PDUVarbind = namedtuple("PDUVarbind", ['oid', 'type', 'value'])
 
 SNMPERR_MAP = dict(

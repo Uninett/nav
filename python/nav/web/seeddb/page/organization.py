@@ -17,8 +17,6 @@
 
 from django.shortcuts import render
 
-from ..forms import OrganizationForm, OrganizationMoveForm
-
 from nav.models.manage import Organization
 from nav.bulkparse import OrgBulkParser
 from nav.bulkimport import OrgImporter
@@ -30,6 +28,8 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
+
+from ..forms import OrganizationForm, OrganizationMoveForm
 
 
 class OrganizationInfo(SeeddbInfo):

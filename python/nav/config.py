@@ -25,8 +25,8 @@ import configparser
 
 from django.utils import six
 
-from . import buildconf
 from nav.errors import GeneralException
+from . import buildconf
 
 _logger = logging.getLogger(__name__)
 

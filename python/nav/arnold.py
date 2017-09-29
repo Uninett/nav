@@ -27,10 +27,11 @@ import configparser
 import logging
 import socket
 from datetime import datetime, timedelta
-from IPy import IP
 from subprocess import Popen, PIPE
 from collections import namedtuple
 from smtplib import SMTPException
+
+from IPy import IP
 
 import nav.Snmp
 from nav.Snmp.errors import AgentError
