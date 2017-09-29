@@ -25,9 +25,7 @@ import os
 from datetime import datetime
 import re
 
-# To stay compatible with both python 2.4 and 2.6:
 from django.views.decorators.debug import sensitive_variables
-
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
 from django.utils.encoding import python_2_unicode_compatible
