@@ -20,7 +20,7 @@ from datetime import timedelta, datetime
 
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from nav.ipdevpoll import Plugin, shadows
+from nav.ipdevpoll import Plugin
 from nav.ipdevpoll.timestamps import TimestampChecker
 
 COLDBOOT_MAX_DELTA = 60*60  # seconds
@@ -32,15 +32,13 @@ class Uptime(Plugin):
     @inlineCallbacks
     def handle(self):
         is_deviant, new_upsince = yield self._get_timestamps()
-        netbox = self.containers.factory(None, shadows.Netbox)
         if is_deviant:
             self._logger.warning("Detected possible coldboot at %s",
                                  new_upsince)
 
         if is_deviant or not self.netbox.up_since:
             self._logger.debug("setting new upsince: %s", new_upsince)
-            netbox.up_since = new_upsince  # container netbox
-            self.netbox.up_since = new_upsince  # input netbox
+            self.netbox.up_since = new_upsince
 
     @inlineCallbacks
     def _get_timestamps(self):

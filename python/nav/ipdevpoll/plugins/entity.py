@@ -113,8 +113,7 @@ class Entity(Plugin):
         device_key = 'ENTITY-MIB:' + str(ent.get(0))
 
         container = self.containers.factory(device_key, NetboxEntity)
-        netbox = self.containers.factory(None, shadows.Netbox)
-        container.netbox = netbox
+        container.netbox = self.netbox
         container.index = ent.get(0)
         container.source = 'ENTITY-MIB'
 

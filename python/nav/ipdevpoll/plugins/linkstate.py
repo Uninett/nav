@@ -40,13 +40,12 @@ class LinkState(Plugin):
         self._put_results(result)
 
     def _put_results(self, results):
-        netbox = self.containers.factory(None, shadows.Netbox)
         for index, row in results.items():
-            self._update_interface(netbox, index, row)
+            self._update_interface(index, row)
 
-    def _update_interface(self, netbox, ifindex, row):
+    def _update_interface(self, ifindex, row):
         ifc = self.containers.factory(ifindex, shadows.Interface)
-        ifc.netbox = netbox
+        ifc.netbox = self.netbox
         ifc.ifindex = ifindex
         if row['ifName']:
             ifc.ifname = row['ifName']

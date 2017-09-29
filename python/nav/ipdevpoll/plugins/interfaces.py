@@ -77,12 +77,11 @@ class Interfaces(Plugin):
 
         # Now save stuff to containers and pass the list of containers
         # to the next callback
-        netbox = self.containers.factory(None, shadows.Netbox)
-        interfaces = [self._convert_row_to_container(netbox, ifindex, row)
+        interfaces = [self._convert_row_to_container(ifindex, row)
                       for ifindex, row in result.items()]
         return interfaces
 
-    def _convert_row_to_container(self, netbox, ifindex, row):
+    def _convert_row_to_container(self, ifindex, row):
         """Convert a collected ifTable/ifXTable row into a container object."""
 
         interface = self.containers.factory(ifindex, shadows.Interface)
@@ -111,7 +110,7 @@ class Interfaces(Plugin):
 
         interface.gone_since = None
 
-        interface.netbox = netbox
+        interface.netbox = self.netbox
         return interface
 
     @defer.inlineCallbacks

@@ -179,7 +179,6 @@ class Arp(Plugin):
           mappings -- An iterable containing tuples: (ip, mac)
 
         """
-        netbox = self.containers.factory(None, shadows.Netbox)
         timestamp = datetime.now()
         infinity = datetime.max
 
@@ -187,7 +186,7 @@ class Arp(Plugin):
             if not ip or not mac:
                 continue  # Some devices seem to return empty results!
             arp = self.containers.factory((ip, mac), shadows.Arp)
-            arp.netbox = netbox
+            arp.netbox = self.netbox
             arp.sysname = self.netbox.sysname
             arp.ip = ip.strCompressed()
             arp.mac = mac

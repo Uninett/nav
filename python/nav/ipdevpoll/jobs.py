@@ -244,9 +244,7 @@ class JobHandler(object):
         self._logger.debug("Job %r started with plugins: %r",
                            self.name, self.plugins)
         # Initialize netbox in container
-        nb = self._container_factory(shadows.Netbox, key=None,
-                                     id=self.netbox.id,
-                                     sysname=self.netbox.sysname)
+        self.containers.inject(None, self.netbox)
 
         self._create_agentproxy()
         plugins = yield self._find_plugins()
@@ -479,10 +477,6 @@ class JobHandler(object):
         for shadow_class in self.containers.sortedkeys():
             manager = shadow_class.manager(shadow_class, self.containers)
             self.storage_queue.append(manager)
-
-    def _container_factory(self, container_class, key, *args, **kwargs):
-        """Container factory function"""
-        return self.containers.factory(key, container_class, *args, **kwargs)
 
     def _raise_if_cancelled(self):
         """Raises an AbortedJobError if the current job is cancelled"""
