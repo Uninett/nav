@@ -41,7 +41,7 @@ class BitVector(object):
         return len(self.vector)*8
 
     def __repr__(self):
-        return "<%s %s>" % (self.__class__.__name__, repr(str(self)))
+        return "%s(%s)" % (self.__class__.__name__, repr(self.to_bytes()))
 
     def __setitem__(self, posn, val):
         """
