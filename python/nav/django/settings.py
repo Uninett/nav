@@ -16,11 +16,12 @@
 
 """Django configuration wrapper around the NAV configuration files"""
 
+import os
+import sys
+
 from nav.config import read_flat_config, getconfig
 from nav.db import get_connection_parameters
 import nav.buildconf
-import sys
-import os
 
 ALLOWED_HOSTS = ['*']
 

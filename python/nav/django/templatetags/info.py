@@ -1,7 +1,8 @@
 """Template tags used in info subsystem"""
-import time
-from django import template
 from datetime import datetime, timedelta
+import time
+
+from django import template
 from django.utils.timesince import timesince
 
 # pylint: disable=C0103

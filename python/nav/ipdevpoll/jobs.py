@@ -28,13 +28,13 @@ from twisted.internet.error import TimeoutError
 from nav.ipdevpoll import ContextLogger
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
 from nav.ipdevpoll.snmp.common import SnmpError
-from . import storage, shadows, dataloader
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_prefix_for_ipdevpoll_job
 from nav.models import manage
 from nav.util import splitby
-from .plugins import plugin_registry
 from nav.ipdevpoll import db
+from .plugins import plugin_registry
+from . import storage, shadows, dataloader
 from .utils import log_unhandled_failure
 from .snmp.common import snmp_parameter_factory
 

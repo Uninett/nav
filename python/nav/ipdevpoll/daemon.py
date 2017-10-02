@@ -23,7 +23,6 @@ This is the daemon program that runs the IP device poller.
 from __future__ import print_function
 
 import sys
-from twisted.python.failure import Failure
 import os
 import logging
 from multiprocessing import cpu_count
@@ -33,6 +32,7 @@ import argparse
 
 from twisted.internet import reactor
 from twisted.internet.defer import maybeDeferred, setDebugging
+from twisted.python.failure import Failure
 
 from nav import buildconf
 from nav.util import is_valid_ip
@@ -41,8 +41,8 @@ from nav.daemon import signame
 import nav.logs
 from nav.models import manage
 
-from . import plugins, pool
 from nav.ipdevpoll import ContextFormatter, schedule, db
+from . import plugins, pool
 
 
 class NetboxAction(argparse.Action):

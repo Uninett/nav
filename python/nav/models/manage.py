@@ -19,18 +19,18 @@
 # pylint: disable=R0903
 
 import datetime as dt
-import IPy
+from functools import partial
+from itertools import count, groupby
+import logging
 import math
 import re
-import logging
 
+import IPy
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
 from django.utils.encoding import python_2_unicode_compatible
-from functools import partial
-from itertools import count, groupby
 
 from nav.bitvector import BitVector
 from nav.metrics.data import get_netboxes_availability

@@ -24,9 +24,10 @@ support.
 """
 
 import socket
-from IPy import IP
 from itertools import cycle
 from collections import defaultdict
+
+from IPy import IP
 from twisted.names import dns
 from twisted.names import client
 from twisted.internet import defer

@@ -18,17 +18,15 @@
 
 # pylint: disable=R0903, C1001
 
+from hashlib import md5
 import itertools
 import logging
-from django.core.urlresolvers import reverse
 import os
 from datetime import datetime
 import re
-# To stay compatible with both python 2.4 and 2.6:
+
 from django.views.decorators.debug import sensitive_variables
-
-from hashlib import md5
-
+from django.core.urlresolvers import reverse
 from django.db import models, transaction
 from django.utils.encoding import python_2_unicode_compatible
 from django_hstore import hstore

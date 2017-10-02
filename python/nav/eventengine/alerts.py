@@ -16,18 +16,18 @@
 """Alert generator functionality for the eventEngine"""
 from collections import namedtuple
 import logging
-from pprint import pformat
 import os
+from pprint import pformat
 import re
-from . import unresolved
+
+from django.template import loader, Context
 
 from nav.models.event import AlertQueue as Alert, EventQueue as Event, AlertType
 from nav.models.event import AlertHistory
 from nav.models.fields import INFINITY
 
-from django.template import loader, Context
-
 from nav import buildconf
+from . import unresolved
 
 ALERT_TEMPLATE_DIR = os.path.join(buildconf.sysconfdir, 'alertmsg')
 _logger = logging.getLogger(__name__)

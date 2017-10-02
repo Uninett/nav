@@ -1,3 +1,25 @@
+Version 4.7.2
+(released 28 Sep 2017)
+
+ Fixed GitHub issues in this release:
+
+  * #1516 (Default maintenance duration too long)
+  * #1532 (SeedDB bulk import of organizations and rooms crashes on
+           misformatted attribute lists)
+  * #1535 (Alert profiles - filtering on location does not include
+           sublocations)
+  * #1546 (IndexError in portadmin search if ipdevpoll hasn't run yet)
+  * #1553 (Status widgets crash if filtering on locations with non-ascii
+           characters in the ID)
+  * #1560 (portadmin may change vlan for incorrect port on non-cisco
+           devices)
+  * #1565 (geomap does not render rooms)
+  * #1567 (Moved searchproviderlist to settings)
+  * #1568 (Fixed deleting non-required schemas in search_path)
+  * #1571 (devicehistory - device group history does not work)
+  * #1583 (Netmap cache crashes on non-ascii strings)
+
+
 Version 4.7.1
 (released 09 Jun 2017)
 

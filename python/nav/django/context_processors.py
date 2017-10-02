@@ -18,10 +18,11 @@
 """Context processors for NAV."""
 
 import os
-from django.conf import settings
 from operator import attrgetter
-from nav.django.auth import get_sudoer
 
+from django.conf import settings
+
+from nav.django.auth import get_sudoer
 from nav.django.utils import get_account, is_admin
 from nav.web.message import Messages
 from nav.web.webfront.utils import tool_list, quick_read, split_tools
