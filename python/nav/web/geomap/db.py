@@ -26,10 +26,7 @@ Based on datacollector.py from the old Java-applet based Netmap.
 """
 
 import logging
-try:
-    from urllib.error import HTTPError
-except ImportError:
-    from urllib2 import HTTPError
+from django.utils.six.moves.urllib.error import HTTPError
 
 import nav
 from nav.config import read_flat_config

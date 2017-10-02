@@ -3,6 +3,8 @@ from mock import Mock, patch
 import pytest
 import sys
 
+from django.utils import six
+
 
 class SnmpTestCase(unittest.TestCase):
 
@@ -30,7 +32,7 @@ class SnmpTestPynetsnmp(SnmpTestCase):
         self._patch_cleaning(sys.modules)
 
     def tearDown(self):
-        for name, module in self.modules.iteritems():
+        for name, module in self.modules.items():
             assert sys.modules[name] == module
         self.patcher.stop()
 

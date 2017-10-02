@@ -4,6 +4,9 @@
 
 from io import BytesIO
 from unittest import TestCase
+
+from django.utils import six
+
 from nav import bulkparse
 
 
@@ -37,19 +40,19 @@ class TestNetboxBulkParser(TestCase):
     def test_parse_returns_iterator(self):
         data = "room1:10.0.0.186:myorg:OTHER::parrot::"
         b = bulkparse.NetboxBulkParser(data)
-        self.assertTrue(hasattr(b, 'next'))
+        self.assertTrue(hasattr(b, '__next__'))
 
     def test_parse_single_line_should_yield_value(self):
         data = "room1:10.0.0.186:myorg:OTHER::parrot::"
         b = bulkparse.NetboxBulkParser(data)
-        out_data = b.next()
+        out_data = six.next(b)
         self.assertTrue(out_data is not None)
 
     def test_parse_single_line_yields_columns(self):
         data = ("room1:10.0.0.186:myorg:SW:1:public:secret:amaster:doesthings:"
                 "key=value:blah1:blah2")
         b = bulkparse.NetboxBulkParser(data)
-        out_data = b.next()
+        out_data = six.next(b)
         self.assertTrue(isinstance(out_data, dict), out_data)
         self.assertEquals(out_data['roomid'], 'room1')
         self.assertEquals(out_data['ip'], '10.0.0.186')
@@ -84,18 +87,18 @@ class TestNetboxBulkParser(TestCase):
     def test_short_line_should_raise_error(self):
         data = "room1:10.0.0.8"
         b = bulkparse.NetboxBulkParser(data)
-        self.assertRaises(bulkparse.RequiredFieldMissing, b.next)
+        self.assertRaises(bulkparse.RequiredFieldMissing, b.__next__)
 
     def test_invalid_ip_should_raise_error(self):
         data = "room1:10.0.x.x:myorg:SW:public:parrot::\n"
         b = bulkparse.NetboxBulkParser(data)
-        self.assertRaises(bulkparse.InvalidFieldValue, b.next)
+        self.assertRaises(bulkparse.InvalidFieldValue, lambda: six.next(b))
 
     def test_short_line_should_raise_error_with_correct_details(self):
         data = "room1:10.0.0.8"
         b = bulkparse.NetboxBulkParser(data)
         try:
-            b.next()
+            six.next(b)
         except bulkparse.RequiredFieldMissing as error:
             self.assertEquals(error.line_num, 1)
             self.assertEquals(error.missing_field, 'orgid')
@@ -112,7 +115,7 @@ class TestUsageBulkParser(TestCase):
     def test_leading_comments_should_be_stripped(self):
         data = "#comment\nsby:student village"
         b = bulkparse.UsageBulkParser(data)
-        first_row = b.next()
+        first_row = six.next(b)
         self.assertEquals(first_row['usageid'], 'sby')
 
 
@@ -120,38 +123,38 @@ class TestPrefixBulkParser(TestCase):
     def test_invalid_prefix_should_raise_error(self):
         data = "10.0.0.x/3f:scope"
         b = bulkparse.PrefixBulkParser(data)
-        self.assertRaises(bulkparse.InvalidFieldValue, b.next)
+        self.assertRaises(bulkparse.InvalidFieldValue, lambda: six.next(b))
 
     def test_valid_prefix_should_not_raise_error(self):
         data = "10.0.0.0/8:scope"
         b = bulkparse.PrefixBulkParser(data)
-        self.assertTrue(b.next())
+        self.assertTrue(six.next(b))
 
 
 class TestServiceBulkParser(TestCase):
     def test_invalid_service_arguments_should_raise_error(self):
         data = "host.example.org;http;port80"
         b = bulkparse.ServiceBulkParser(data)
-        self.assertRaises(bulkparse.InvalidFieldValue, b.next)
+        self.assertRaises(bulkparse.InvalidFieldValue, lambda: six.next(b))
 
     def test_valid_service_arguments_should_not_raise_error(self):
         data = "host.example.org;http;port=80;uri=/"
         b = bulkparse.ServiceBulkParser(data)
-        self.assertTrue(b.next())
+        self.assertTrue(six.next(b))
 
 
 class TestCommentStripper(TestCase):
     def test_leading_comment_should_be_stripped(self):
         data = BytesIO('#leadingcomment\nsomething\n')
         stripper = bulkparse.CommentStripper(data)
-        self.assertEquals(stripper.next(), '\n')
-        self.assertEquals(stripper.next(), 'something\n')
+        self.assertEquals(six.next(stripper), '\n')
+        self.assertEquals(six.next(stripper), 'something\n')
 
     def test_suffix_comment_should_be_stripped(self):
         data = BytesIO('somedata\notherdata    # ignore this\n')
         stripper = bulkparse.CommentStripper(data)
-        self.assertEquals(stripper.next(), 'somedata\n')
-        self.assertEquals(stripper.next(), 'otherdata\n')
+        self.assertEquals(six.next(stripper), 'somedata\n')
+        self.assertEquals(six.next(stripper), 'otherdata\n')
 
 
 class TestHeaderGenerator(TestCase):

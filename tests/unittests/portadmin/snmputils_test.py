@@ -26,7 +26,7 @@ class SnmpUtilsTest(unittest.TestCase):
 
     def test_chunkify(self):
         vlans = [10, 33, 513, 1023, 1025, 2048, 4095]
-        b = BitVector(512 * '\000')
+        b = BitVector(512 * b'\000')
         for vlan in vlans:
             b[vlan] = 1
 

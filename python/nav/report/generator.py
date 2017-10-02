@@ -17,10 +17,7 @@
 
 from nav.report.dbresult import DatabaseResult
 from nav.report.report import Report
-try:
-    from urllib.parse import unquote_plus
-except ImportError:
-    from urllib import unquote_plus
+from django.utils.six.moves.urllib.parse import unquote_plus
 import nav.db
 import re
 

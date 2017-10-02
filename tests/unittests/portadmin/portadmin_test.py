@@ -1,6 +1,9 @@
 from mock import Mock
 
 import unittest
+
+from django.utils import six
+
 from nav.web.portadmin.utils import *
 from nav.portadmin.snmputils import *
 
@@ -54,7 +57,7 @@ class PortadminResponseTest(unittest.TestCase):
         self.handler = SNMPFactory.get_instance(self.netboxHP)
         self.assertNotEqual(self.handler, None,
                             'Could not get handler-object')
-        self.assertEquals(self.handler.__unicode__(),  u'hp',
+        self.assertEquals(six.text_type(self.handler),  u'hp',
                           'Wrong handler-type')
 
     def test_get_ifalias_hp(self):
@@ -121,7 +124,7 @@ class PortadminResponseTest(unittest.TestCase):
         #  cisco-netbox
         self.handler = SNMPFactory.get_instance(self.netboxCisco)
         self.assertNotEqual(self.handler, None, 'Could not get handler-object')
-        self.assertEquals(self.handler.__unicode__(),  u'cisco', 'Wrong handler-type')
+        self.assertEquals(six.text_type(self.handler),  u'cisco', 'Wrong handler-type')
         self.assertEquals(type(self.handler), Cisco, 'Wrong handler-type')
 
     def test_get_ifalias_cisco(self):

@@ -1,10 +1,8 @@
 """A sender for slack messages"""
 
 import json
-try:
-    from urllib.request import Request, urlopen
-except ImportError:
-    from urllib2 import Request, urlopen
+
+from django.utils.six.moves.urllib.request import Request, urlopen
 
 from nav.alertengine.dispatchers import Dispatcher
 

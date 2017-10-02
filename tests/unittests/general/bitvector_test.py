@@ -22,9 +22,9 @@ class BitVectorTestCase(unittest.TestCase):
     """Tests for nav.bitvector.BitVector class"""
 
     def setUp(self):
-        self.zerobits = bitvector.BitVector('\x00' * 8)
+        self.zerobits = bitvector.BitVector(b'\x00' * 8)
 
-        self.somebits = bitvector.BitVector('\x00' * 8)
+        self.somebits = bitvector.BitVector(b'\x00' * 8)
         self.somebits[5] = True
         self.somebits[50] = True
 
@@ -39,8 +39,8 @@ class BitVectorTestCase(unittest.TestCase):
         self.assertEquals(True, bool(self.somebits[50]))
 
     def test_modified_string(self):
-        self.assertEquals('\x04\x00\x00\x00\x00\x00 \x00',
-                          str(self.somebits))
+        self.assertEquals(b'\x04\x00\x00\x00\x00\x00 \x00',
+                          self.somebits.to_bytes())
 
     def test_modified_binary_string(self):
         self.assertEquals('00000100000000000000000000000000'

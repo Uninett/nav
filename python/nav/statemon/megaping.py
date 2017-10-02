@@ -96,9 +96,9 @@ class Host(object):
         packet.
         """
         cookie = hashlib.new('md5')
-        cookie.update(self.ip)
-        cookie.update(str(self.rnd))
-        cookie.update(str(self.time))
+        cookie.update(self.ip.encode('ASCII'))
+        cookie.update(str(self.rnd).encode('ASCII'))
+        cookie.update(str(self.time).encode('ASCII'))
         return cookie.digest()
 
     def is_v6(self):

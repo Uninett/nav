@@ -42,7 +42,7 @@ files, one of which this program will have exclusive access to.
 ## TODO: Possible future enhancement is the ability to tail a log file
 ## continually, instead of reading and truncating as a cron job.
 
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 import re
 import fcntl
@@ -55,6 +55,8 @@ import logging
 from configparser import ConfigParser
 import datetime
 import optparse
+
+from django.utils import six
 
 import nav
 import nav.logs
@@ -417,7 +419,7 @@ def add_category(category, categories, database):
 def add_origin(origin, category, origins, database):
     database.execute("SELECT nextval('origin_origin_seq')")
     originid = database.fetchone()[0]
-    assert type(originid) in (int, long)
+    assert type(originid) in six.integer_types
     database.execute("INSERT INTO origin (origin, name, "
                      "category) VALUES (%s, %s, %s)",
                      (originid, origin, category))
@@ -428,7 +430,7 @@ def add_origin(origin, category, origins, database):
 def add_type(facility, mnemonic, priorityid, types, database):
     database.execute("SELECT nextval('log_message_type_type_seq')")
     typeid = int(database.fetchone()[0])
-    assert type(typeid) in (long, int)
+    assert type(typeid) in six.integer_types
 
     database.execute("INSERT INTO log_message_type (type, facility, "
                      "mnemonic, priority) "

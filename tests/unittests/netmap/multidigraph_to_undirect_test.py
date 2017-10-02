@@ -1,6 +1,9 @@
 from __future__ import print_function
 
 import unittest
+
+from django.utils import six
+
 from nav.netmap import topology
 from nav.netmap.topology import build_netmap_layer2_graph
 
@@ -19,7 +22,7 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
 
     # [1 / 2]
     def test_nodes_length_of_orignal_graph_consists_with_nav_topology_behavior(self):
-        self.assertEquals(4, len(self.nav_graph.nodes()), msg="Original NAV graph should only contain 2 nodes, it contains: "+unicode(self.nav_graph.nodes()))
+        self.assertEquals(4, len(self.nav_graph.nodes()), msg="Original NAV graph should only contain 2 nodes, it contains: "+six.text_type(self.nav_graph.nodes()))
 
     # [2 / 2]
     def test_edges_length_of_orginal_graph_consists_with_nav_topology_behavior(self):

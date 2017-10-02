@@ -30,6 +30,7 @@ from nav.util import cachedfor, synchronized
 
 from nav.models import manage
 from django.db.models import Q
+from django.utils import six
 
 from nav.mibs.lldp_mib import IdSubtypes
 
@@ -137,7 +138,7 @@ class Neighbor(object):
 
         """
         try:
-            ip = unicode(IP(ip))
+            ip = six.text_type(IP(ip))
         except ValueError:
             self._logger.warning("Invalid IP (%s) in neighbor record: %r",
                                  ip, self.record)

@@ -21,15 +21,11 @@ import os
 import pytest
 from tidylib import tidy_document
 import urllib
-try:
-    from urllib.request import (urlopen, build_opener, install_opener,
-                                HTTPCookieProcessor)
-    from urllib.error import HTTPError, URLError
-    from urllib.parse import urlsplit
-except ImportError:
-    from urllib2 import (urlopen, build_opener, install_opener,
-                         HTTPError, URLError, HTTPCookieProcessor)
-    from urlparse import urlsplit
+from django.utils.six.moves.urllib.request import (urlopen, build_opener,
+                                                   install_opener,
+                                                   HTTPCookieProcessor)
+from django.utils.six.moves.urllib.error import HTTPError, URLError
+from django.utils.six.moves.urllib.parse import urlsplit
 
 HOST_URL = os.environ.get('TARGETURL', None)
 USERNAME = os.environ.get('ADMINUSERNAME', 'admin')

@@ -18,14 +18,9 @@
 from collections import OrderedDict
 import itertools
 import json
-try:
-    from urllib.parse import urlencode, urljoin
-    from urllib.request import Request, urlopen
-    from urllib.error import URLError
-except ImportError:
-    from urllib import urlencode
-    from urllib2 import Request, urlopen, URLError
-    from urlparse import urljoin
+from django.utils.six.moves.urllib.parse import urlencode, urljoin
+from django.utils.six.moves.urllib.request import Request, urlopen
+from django.utils.six.moves.urllib.error import URLError
 from nav.metrics import CONFIG, errors
 
 

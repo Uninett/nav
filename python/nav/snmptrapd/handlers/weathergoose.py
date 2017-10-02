@@ -22,6 +22,7 @@ Climate Monitor, versions 1 and 2.
 import re
 import logging
 from collections import defaultdict
+import itertools
 
 import nav.event
 from nav.db import getConnection
@@ -65,7 +66,8 @@ class WeatherGoose1(object):
 
     @classmethod
     def map_oid_to_trigger(cls, oid):
-        for trigger in cls.TRIGGERTRAPS.keys() + cls.CLEARTRAPS.keys():
+        for trigger in itertools.chain(cls.TRIGGERTRAPS.keys(),
+                                       cls.CLEARTRAPS.keys()):
             if oid == "." + cls.TRAPS[trigger]['oid']:
                 return trigger
 

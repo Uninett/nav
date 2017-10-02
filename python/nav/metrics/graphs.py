@@ -15,10 +15,7 @@
 #
 """Getting graphs of NAV-collected data from Graphite"""
 import re
-try:
-    from urllib.parse import urlencode
-except ImportError:
-    from urllib import urlencode
+from django.utils.six.moves.urllib.parse import urlencode
 
 from django.utils import six
 
@@ -212,7 +209,7 @@ def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
     if kwargs:
         graph.args.update(kwargs)
 
-    return unicode(graph)
+    return six.text_type(graph)
 
 
 def get_metric_meta(metric_path):

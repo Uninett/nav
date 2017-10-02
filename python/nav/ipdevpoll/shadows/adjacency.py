@@ -42,6 +42,7 @@ A sentinel record is an AdjacencyCandidate instance whose interface attribute
 is None, and whose source attribute is a non-empty string.
 
 """
+from django.utils import six
 
 from nav.models import manage
 from nav.ipdevpoll.storage import Shadow, DefaultManager
@@ -218,6 +219,6 @@ class UnrecognizedNeighbor(Shadow):
                 setattr(self, attr, repr(getattr(self, attr)))
             elif not getattr(self, attr):
                 setattr(self, attr, '')
-            elif not isinstance(getattr(self, attr), unicode):
+            elif not isinstance(getattr(self, attr), six.text_type):
                 value = getattr(self, attr)
-                setattr(self, attr, unicode(value, 'utf-8'))
+                setattr(self, attr, value.decode('utf-8'))
