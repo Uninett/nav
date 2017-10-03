@@ -145,13 +145,13 @@ class TestServiceBulkParser(TestCase):
 
 class TestCommentStripper(TestCase):
     def test_leading_comment_should_be_stripped(self):
-        data = BytesIO(b'#leadingcomment\nsomething\n')
+        data = iter(['#leadingcomment\n', 'something\n'])
         stripper = bulkparse.CommentStripper(data)
         self.assertEquals(six.next(stripper), '\n')
         self.assertEquals(six.next(stripper), 'something\n')
 
     def test_suffix_comment_should_be_stripped(self):
-        data = BytesIO(b'somedata\notherdata    # ignore this\n')
+        data = iter(['somedata\n', 'otherdata    # ignore this\n'])
         stripper = bulkparse.CommentStripper(data)
         self.assertEquals(six.next(stripper), 'somedata\n')
         self.assertEquals(six.next(stripper), 'otherdata\n')

@@ -19,7 +19,7 @@ from __future__ import absolute_import
 
 import csv
 import re
-from io import BytesIO
+import io
 
 from django.utils import six
 from IPy import IP
@@ -38,7 +38,10 @@ class BulkParser(six.Iterator):
         if hasattr(data, 'seek'):
             self.data = data
         else:
-            self.data = BytesIO(data)
+            if six.PY3:
+                self.data = io.StringIO(data.decode('utf-8'))
+            else:
+                self.data = io.BytesIO(data)
 
         if delimiter is None:
             try:
