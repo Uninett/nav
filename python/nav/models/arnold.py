@@ -61,7 +61,7 @@ class Identity(models.Model):
     organization = models.ForeignKey('Organization', db_column='orgid',
                                      null=True)
     keep_closed = models.CharField(db_column='determined', default='n',
-                                   choices=KEEP_CLOSED_CHOICES)
+                                   choices=KEEP_CLOSED_CHOICES, max_length=1)
     fromvlan = models.IntegerField(null=True)
     tovlan = models.ForeignKey('QuarantineVlan', db_column='tovlan',
                                to_field='vlan', null=True, default=None)
@@ -148,10 +148,10 @@ class DetentionProfile(models.Model):
     mailfile = VarcharField(blank=True)
     justification = models.ForeignKey('Justification', db_column='reasonid')
     keep_closed = models.CharField(db_column='determined', default='n',
-                                   choices=KEEP_CLOSED_CHOICES)
-    incremental = models.CharField(default='n')
+                                   choices=KEEP_CLOSED_CHOICES, max_length=1)
+    incremental = models.CharField(default='n', max_length=1)
     duration = models.IntegerField(db_column='blocktime')
-    active = models.CharField(default='n')
+    active = models.CharField(default='n', max_length=1)
     last_edited = models.DateTimeField(db_column='lastedited',
                                        auto_now_add=True)
     edited_by = VarcharField(db_column='lastedituser')
