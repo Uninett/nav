@@ -84,9 +84,8 @@ def escape(string):
     ..warning:: You should be using parameterized queries if you can!
 
     """
-    if isinstance(string, unicode):
-        string = string.encode("utf-8")
-    return str(psycopg2.extensions.QuotedString(string))
+    quoted = psycopg2.extensions.QuotedString(string)
+    return quoted.getquoted()
 
 
 def get_connection_parameters(script_name='default', database='nav'):
