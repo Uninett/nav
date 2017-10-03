@@ -55,28 +55,23 @@ try {
             step([$class: 'CoberturaPublisher', coberturaReportFile: 'tests/coverage.xml'])
         }
 
-        stage("Analyze") {
-            parallel (
-                "PyLint": {
-                    env.PYLINTHOME = "${WORKSPACE}"
-                    sh """/pylint.sh > "${WORKSPACE}/pylint.txt" """
-                    //sh 'cat pylint.txt'
-                    step([
-                        $class                     : 'WarningsPublisher',
-                        parserConfigurations       : [[
-                                                      parserName: 'PYLint',
-                                                        pattern   : 'pylint.txt'
-                                                    ]],
-                        unstableTotalAll           : '1680',
-                        failedTotalAll             : '1730',
-                        usePreviousBuildAsReference: true
-                    ])
+        stage("PyLint") {
+            env.PYLINTHOME = "${WORKSPACE}"
+            sh """/pylint.sh > "${WORKSPACE}/pylint.txt" """
+            step([
+                $class                     : 'WarningsPublisher',
+                parserConfigurations       : [[
+                                              parserName: 'PYLint',
+                                                pattern   : 'pylint.txt'
+                                            ]],
+                unstableTotalAll           : '1680',
+                failedTotalAll             : '1730',
+                usePreviousBuildAsReference: true
+            ])
+        }
 
-                },
-                "Lines of code": {
-                    sh "/count-lines-of-code.sh"
-                }
-            )
+	stage("Lines of code") {
+            sh "/count-lines-of-code.sh"
         }
 
     }
