@@ -164,7 +164,7 @@ class MaintenanceComponent(models.Model):
 
     class Meta(object):
         db_table = 'maint_component'
-        unique_together = (('maint_task', 'key', 'value'),)  # Primary key
+        unique_together = (('maintenance_task', 'key', 'value'),)  # Primary key
 
     def __str__(self):
         return u'%s=%s' % (self.key, self.value)
@@ -176,10 +176,9 @@ class MessageToMaintenanceTask(models.Model):
     tasks."""
 
     id = models.AutoField(primary_key=True)  # Serial for faking primary key
-    message = models.ForeignKey(Message, db_column='messageid',
-                                related_name='maintenance_tasks')
+    message = models.ForeignKey(Message, db_column='messageid')
     maintenance_task = models.ForeignKey(
-        MaintenanceTask, db_column='maint_taskid', related_name='messages')
+        MaintenanceTask, db_column='maint_taskid')
 
     class Meta(object):
         db_table = 'message_to_maint_task'
