@@ -50,6 +50,7 @@ RUN apt-get update && apt-get -y --no-install-recommends install npm
 RUN cd /tmp && \
     git clone https://github.com/htacg/tidy-html5.git && \
     cd tidy-html5/build/cmake && \
+    git checkout tags/5.2.0 && \
     cmake ../.. -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIB:BOOL=ON && \
     make && make install && echo tidy5 installed
 
