@@ -406,8 +406,8 @@ class ReportConfig(object):
         self.report_id = ''
 
     def __repr__(self):
-        template = ("ReportConfig(sql({0}) sql_select({1}) where({2}) "
-                    "order_by({3}))")
+        template = ("<ReportConfig sql={0!r}, sql_select={1!r}, where={2!r}, "
+                    "order_by={3!r} >")
         return template.format(self.sql, self.sql_select, self.where,
                                self.order_by)
 
