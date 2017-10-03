@@ -25,64 +25,59 @@ try {
             sh "/build.sh"
         }
 
-        parallel(
-            "analyze": {
-                stage("Analyze") {
-                    parallel (
-                        "PyLint": {
-                            env.PYLINTHOME = "${WORKSPACE}"
-                            sh """/pylint.sh > "${WORKSPACE}/pylint.txt" """
-                            //sh 'cat pylint.txt'
-                            step([
-                                $class                     : 'WarningsPublisher',
-                                parserConfigurations       : [[
-                                                              parserName: 'PYLint',
-                                                                pattern   : 'pylint.txt'
-                                                            ]],
-                                unstableTotalAll           : '1680',
-                                failedTotalAll             : '1730',
-                                usePreviousBuildAsReference: true
-                            ])
-
-                        },
-                        "Lines of code": {
-                            sh "/count-lines-of-code.sh"
-                        }
-                    )
-                }
-            },
-            "test": {
-                try {
-                    stage("Run Python unit tests") {
-                        sh "/python-unit-tests.sh"
-                    }
-
-                    stage("Create database and start services") {
-                        sh "/create-db.sh"
-                        sh "/start-services.sh"
-                    }
-
-                    stage("Run Django checks") {
-                        sh "python -m nav.django.manage check"
-                    }
-
-                    stage("Run integration tests") {
-                        sh "/integration-tests.sh"
-                    }
-
-                    stage("Run Selenium tests") {
-                        sh "/functional-tests.sh"
-                    }
-
-                    stage("Run JavaScript tests") {
-                        sh "/javascript-tests.sh"
-                    }
-                } finally {
-                    junit "**/*-results.xml"
-                    step([$class: 'CoberturaPublisher', coberturaReportFile: 'tests/coverage.xml'])
-                }
+        try {
+            stage("Run Python unit tests") {
+                sh "/python-unit-tests.sh"
             }
-        )
+
+            stage("Create database and start services") {
+                sh "/create-db.sh"
+                sh "/start-services.sh"
+            }
+
+            stage("Run Django checks") {
+                sh "python -m nav.django.manage check"
+            }
+
+            stage("Run integration tests") {
+                sh "/integration-tests.sh"
+            }
+
+            stage("Run Selenium tests") {
+                sh "/functional-tests.sh"
+            }
+
+            stage("Run JavaScript tests") {
+                sh "/javascript-tests.sh"
+            }
+        } finally {
+            junit "**/*-results.xml"
+            step([$class: 'CoberturaPublisher', coberturaReportFile: 'tests/coverage.xml'])
+        }
+
+        stage("Analyze") {
+            parallel (
+                "PyLint": {
+                    env.PYLINTHOME = "${WORKSPACE}"
+                    sh """/pylint.sh > "${WORKSPACE}/pylint.txt" """
+                    //sh 'cat pylint.txt'
+                    step([
+                        $class                     : 'WarningsPublisher',
+                        parserConfigurations       : [[
+                                                      parserName: 'PYLint',
+                                                        pattern   : 'pylint.txt'
+                                                    ]],
+                        unstableTotalAll           : '1680',
+                        failedTotalAll             : '1730',
+                        usePreviousBuildAsReference: true
+                    ])
+
+                },
+                "Lines of code": {
+                    sh "/count-lines-of-code.sh"
+                }
+            )
+        }
 
     }
 
