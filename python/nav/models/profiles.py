@@ -790,7 +790,7 @@ class Filter(models.Model):
     def __str__(self):
         return self.name
 
-    def check(self, alert):
+    def verify(self, alert):
         """Combines expressions to an ORM query that will tell us if an alert
         matched.
 
