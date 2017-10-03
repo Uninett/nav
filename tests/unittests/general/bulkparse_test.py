@@ -12,7 +12,7 @@ from nav import bulkparse
 
 class TestBulkParser(TestCase):
     def test_init(self):
-        data = "room1:10.0.0.186:myorg:OTHER::parrot::"
+        data = b"room1:10.0.0.186:myorg:OTHER::parrot::"
         b = bulkparse.BulkParser(data)
         self.assertTrue(isinstance(b, bulkparse.BulkParser))
 
@@ -24,7 +24,7 @@ class TestBulkParser(TestCase):
             def _validate_one(self, value):
                 return value == '1'
 
-        data = "1:2\nonce:twice"
+        data = b"1:2\nonce:twice"
         b = TestParser(data)
         try:
             list(b)
@@ -38,19 +38,19 @@ class TestBulkParser(TestCase):
 
 class TestNetboxBulkParser(TestCase):
     def test_parse_returns_iterator(self):
-        data = "room1:10.0.0.186:myorg:OTHER::parrot::"
+        data = b"room1:10.0.0.186:myorg:OTHER::parrot::"
         b = bulkparse.NetboxBulkParser(data)
         self.assertTrue(hasattr(b, '__next__'))
 
     def test_parse_single_line_should_yield_value(self):
-        data = "room1:10.0.0.186:myorg:OTHER::parrot::"
+        data = b"room1:10.0.0.186:myorg:OTHER::parrot::"
         b = bulkparse.NetboxBulkParser(data)
         out_data = six.next(b)
         self.assertTrue(out_data is not None)
 
     def test_parse_single_line_yields_columns(self):
-        data = ("room1:10.0.0.186:myorg:SW:1:public:secret:amaster:doesthings:"
-                "key=value:blah1:blah2")
+        data = (b"room1:10.0.0.186:myorg:SW:1:public:secret:amaster:doesthings:"
+                b"key=value:blah1:blah2")
         b = bulkparse.NetboxBulkParser(data)
         out_data = six.next(b)
         self.assertTrue(isinstance(out_data, dict), out_data)
@@ -69,33 +69,33 @@ class TestNetboxBulkParser(TestCase):
             "[:snmp_version:ro:rw:master:function:data:netboxgroup:...]")
 
     def test_two_rows_returned_with_empty_lines_in_input(self):
-        data = ("room1:10.0.0.186:myorg:SW:1:public:parrot::\n"
-                "\n"
-                "room1:10.0.0.187:myorg:OTHER::parrot::\n")
+        data = (b"room1:10.0.0.186:myorg:SW:1:public:parrot::\n"
+                b"\n"
+                b"room1:10.0.0.187:myorg:OTHER::parrot::\n")
         b = bulkparse.NetboxBulkParser(data)
         out_data = list(b)
         self.assertEquals(len(out_data), 2)
 
     def test_three_lines_with_two_rows_should_be_counted_as_three(self):
-        data = ("room1:10.0.0.186:myorg:SW:1:public:parrot::\n"
-                "\n"
-                "room1:10.0.0.187:myorg:OTHER::parrot::\n")
+        data = (b"room1:10.0.0.186:myorg:SW:1:public:parrot::\n"
+                b"\n"
+                b"room1:10.0.0.187:myorg:OTHER::parrot::\n")
         b = bulkparse.NetboxBulkParser(data)
         out_data = list(b)
         self.assertEquals(b.line_num, 3)
 
     def test_short_line_should_raise_error(self):
-        data = "room1:10.0.0.8"
+        data = b"room1:10.0.0.8"
         b = bulkparse.NetboxBulkParser(data)
         self.assertRaises(bulkparse.RequiredFieldMissing, b.__next__)
 
     def test_invalid_ip_should_raise_error(self):
-        data = "room1:10.0.x.x:myorg:SW:public:parrot::\n"
+        data = b"room1:10.0.x.x:myorg:SW:public:parrot::\n"
         b = bulkparse.NetboxBulkParser(data)
         self.assertRaises(bulkparse.InvalidFieldValue, lambda: six.next(b))
 
     def test_short_line_should_raise_error_with_correct_details(self):
-        data = "room1:10.0.0.8"
+        data = b"room1:10.0.0.8"
         b = bulkparse.NetboxBulkParser(data)
         try:
             six.next(b)
@@ -113,7 +113,7 @@ class TestUsageBulkParser(TestCase):
             "#usageid:descr")
 
     def test_leading_comments_should_be_stripped(self):
-        data = "#comment\nsby:student village"
+        data = b"#comment\nsby:student village"
         b = bulkparse.UsageBulkParser(data)
         first_row = six.next(b)
         self.assertEquals(first_row['usageid'], 'sby')
@@ -121,37 +121,37 @@ class TestUsageBulkParser(TestCase):
 
 class TestPrefixBulkParser(TestCase):
     def test_invalid_prefix_should_raise_error(self):
-        data = "10.0.0.x/3f:scope"
+        data = b"10.0.0.x/3f:scope"
         b = bulkparse.PrefixBulkParser(data)
         self.assertRaises(bulkparse.InvalidFieldValue, lambda: six.next(b))
 
     def test_valid_prefix_should_not_raise_error(self):
-        data = "10.0.0.0/8:scope"
+        data = b"10.0.0.0/8:scope"
         b = bulkparse.PrefixBulkParser(data)
         self.assertTrue(six.next(b))
 
 
 class TestServiceBulkParser(TestCase):
     def test_invalid_service_arguments_should_raise_error(self):
-        data = "host.example.org;http;port80"
+        data = b"host.example.org;http;port80"
         b = bulkparse.ServiceBulkParser(data)
         self.assertRaises(bulkparse.InvalidFieldValue, lambda: six.next(b))
 
     def test_valid_service_arguments_should_not_raise_error(self):
-        data = "host.example.org;http;port=80;uri=/"
+        data = b"host.example.org;http;port=80;uri=/"
         b = bulkparse.ServiceBulkParser(data)
         self.assertTrue(six.next(b))
 
 
 class TestCommentStripper(TestCase):
     def test_leading_comment_should_be_stripped(self):
-        data = BytesIO('#leadingcomment\nsomething\n')
+        data = BytesIO(b'#leadingcomment\nsomething\n')
         stripper = bulkparse.CommentStripper(data)
         self.assertEquals(six.next(stripper), '\n')
         self.assertEquals(six.next(stripper), 'something\n')
 
     def test_suffix_comment_should_be_stripped(self):
-        data = BytesIO('somedata\notherdata    # ignore this\n')
+        data = BytesIO(b'somedata\notherdata    # ignore this\n')
         stripper = bulkparse.CommentStripper(data)
         self.assertEquals(six.next(stripper), 'somedata\n')
         self.assertEquals(six.next(stripper), 'otherdata\n')
