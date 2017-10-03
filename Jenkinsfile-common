@@ -62,6 +62,10 @@ try {
                         sh "/start-services.sh"
                     }
 
+                    stage("Run Django checks") {
+                        sh "python -m nav.django.manage check"
+                    }
+
                     stage("Run integration tests") {
                         sh "/integration-tests.sh"
                     }
