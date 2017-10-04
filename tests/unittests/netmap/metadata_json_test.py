@@ -215,7 +215,7 @@ class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
 
         self.assertEqual(1, len(edge_json_metadata['edges']))
         self.assertEqual(2, len(edge_json_metadata['edges'][2112]))
-        expected_prefixes = (u'feed:dead:cafe:babe::/64', u'158.38.0.4/30')
+        expected_prefixes = (u'158.38.0.4/30', u'feed:dead:cafe:babe::/64')
         for i, prefix in enumerate(expected_prefixes):
             self.assertEqual(edge_json_metadata['edges'][2112][i]['prefix']['net_address'], prefix)
 

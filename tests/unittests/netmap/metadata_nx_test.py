@@ -82,13 +82,11 @@ class Layer3NetworkXMetadataTests(TopologyLayer3TestCase):
         super(Layer3NetworkXMetadataTests, self).setUp()
 
     def test_link_between_a_and_c_contains_both_v4_and_v6_prefix(self):
-        self.assertEqual(
-            [self.prefix_bar_ipv6, self.prefix_bar],
-
-            [edge.prefix for edge in self.netmap_graph.get_edge_data(
-                self.a, self.c
-            ).get('metadata').get(2112)]
-        )
+        prefixes = {
+            edge.prefix for edge in self.netmap_graph.get_edge_data(
+                self.a, self.c).get('metadata').get(2112)}
+        expected = {self.prefix_bar, self.prefix_bar_ipv6}
+        self.assertSetEqual(prefixes, expected)
 
     def test_link_got_prefixed_attached(self):
         self.assertEqual(self.prefix_foo, self.netmap_graph.get_edge_data(
