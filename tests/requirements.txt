@@ -1,6 +1,6 @@
 astroid==1.5.3
 coverage>=3.6
-lxml==2.3.2
+lxml==4.0.0
 mock==2.0.0
 pylint==1.7.2
 pytest
