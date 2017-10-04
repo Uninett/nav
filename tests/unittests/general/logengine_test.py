@@ -85,8 +85,8 @@ class ParseTest(TestCase):
         self.facility = 'LINEPROTO'
         self.priority = 5
         self.mnemonic = 'UPDOWN'
-        self.description = ("'Line protocol on Interface GigabitEthernet1/0/30,"
-                            " changed state to up'")
+        self.description = ("Line protocol on Interface GigabitEthernet1/0/30,"
+                            " changed state to up")
 
     def test_should_parse_without_exception(self):
         msg = logengine.create_message(self.message)
@@ -120,7 +120,7 @@ class ParseMessageWithStrangeGarbageTest(ParseTest):
         self.facility = 'LINK'
         self.priority = 3
         self.mnemonic = 'UPDOWN'
-        self.description = "'Interface Dot11Radio0, changed state to up'"
+        self.description = "Interface Dot11Radio0, changed state to up"
 
 class ParseMessageEndingWithColonTest(ParseTest):
     """Regression test for issue LP#720024"""
@@ -132,7 +132,7 @@ class ParseMessageEndingWithColonTest(ParseTest):
         self.facility = 'HA_EM'
         self.priority = 6
         self.mnemonic = 'LOG'
-        self.description = "'on_high_cpu: CPU utilization is over 80%:'"
+        self.description = "on_high_cpu: CPU utilization is over 80%:"
 
 class ParseMessageWithNoOriginTimestampTest(ParseTest):
     def setUp(self):
@@ -143,7 +143,7 @@ class ParseMessageWithNoOriginTimestampTest(ParseTest):
         self.facility = 'ASA'
         self.priority = 3
         self.mnemonic = '321007'
-        self.description = "'System is low on free memory blocks of size 8192 (0 CNT out of 250 MAX)'"
+        self.description = "System is low on free memory blocks of size 8192 (0 CNT out of 250 MAX)"
 
 
 non_conforming_lines = [

@@ -177,7 +177,7 @@ class Message(object):
         self.origin = origin
         self.category = self.find_category(origin)
         self.type = msgtype
-        self.description = db.escape(description)
+        self.description = description
         (self.facility, self.priorityid,
          self.mnemonic) = self.find_priority(msgtype)
         if not self.facility:
