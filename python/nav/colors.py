@@ -35,6 +35,9 @@ except curses.error:
     # silently ignore errors and turn off colors
     _set_color = ''
     _reset_color = ''
+    _is_term = False
+else:
+    _is_term = True
 
 
 def colorize(color):
@@ -56,7 +59,7 @@ def colorize(color):
                 return func(*args, **kwargs)
             finally:
                 reset_foreground()
-        return _wrapper
+        return _wrapper if _is_term else func
     return _colorize
 
 
@@ -69,13 +72,13 @@ def print_color(string, color, newline=True):
 
 def set_foreground(color):
     """Sets the current foreground color of the terminal"""
-    if sys.stdout.isatty():
+    if _is_term:
         sys.stdout.write(curses.tparm(_set_color, color))
         sys.stdout.flush()
 
 
 def reset_foreground():
     """Resets the foreground color of the terminal"""
-    if sys.stdout.isatty():
+    if _is_term:
         sys.stdout.write(_reset_color)
         sys.stdout.flush()

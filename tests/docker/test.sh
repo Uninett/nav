@@ -24,9 +24,6 @@ dump_possibly_relevant_apache_accesses() {
 cd "$WORKSPACE"
 /build.sh
 
-run_pylint &
-/count-lines-of-code.sh &
-
 # Run unit tests before starting services
 /python-unit-tests.sh
 
@@ -49,8 +46,8 @@ fi
 
 run_jstests
 
-
-echo "Waiting for background tasks to end"
-wait
+# Code analysis steps
+run_pylint
+/count-lines-of-code.sh
 
 echo "test.sh done"
