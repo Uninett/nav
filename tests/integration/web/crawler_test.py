@@ -20,12 +20,11 @@ from lxml.html import fromstring
 import os
 import pytest
 from tidylib import tidy_document
-import urllib
 from django.utils.six.moves.urllib.request import (urlopen, build_opener,
                                                    install_opener,
                                                    HTTPCookieProcessor)
 from django.utils.six.moves.urllib.error import HTTPError, URLError
-from django.utils.six.moves.urllib.parse import urlsplit
+from django.utils.six.moves.urllib.parse import urlsplit, urlencode
 
 HOST_URL = os.environ.get('TARGETURL', None)
 USERNAME = os.environ.get('ADMINUSERNAME', 'admin')
@@ -149,8 +148,8 @@ class WebCrawler(object):
     def login(self):
         login_url = '%sindex/login/' % self.base_url
         opener = build_opener(HTTPCookieProcessor())
-        data = urllib.urlencode({'username': self.username,
-                                 'password': self.password})
+        data = urlencode({'username': self.username,
+                          'password': self.password})
         opener.open(login_url, data, TIMEOUT)
         install_opener(opener)
 
