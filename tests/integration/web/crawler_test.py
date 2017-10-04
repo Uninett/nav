@@ -150,7 +150,7 @@ class WebCrawler(object):
         opener = build_opener(HTTPCookieProcessor())
         data = urlencode({'username': self.username,
                           'password': self.password})
-        opener.open(login_url, data, TIMEOUT)
+        opener.open(login_url, data.encode('utf-8'), TIMEOUT)
         install_opener(opener)
 
     def _add_seen(self, page, url=None):
