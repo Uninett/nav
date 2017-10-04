@@ -41,7 +41,7 @@ def _scan_testargs(filename):
     Scans filename for testargs comments and returns a list of elements
     suitable for invocation of this binary with the given testargs
     """
-    contents = open(filename, "rb").read()
+    contents = open(filename).read()
     matches = TESTARGS_PATTERN.findall(contents)
     if matches:
         retval = []
