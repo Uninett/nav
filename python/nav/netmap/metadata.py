@@ -20,7 +20,7 @@ import logging
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.utils import six
 
-import operator
+from IPy import IP
 from nav.netmap.config import NETMAP_CONFIG
 from nav.errors import GeneralException
 from nav.models.manage import GwPortPrefix, Interface
@@ -419,14 +419,18 @@ def edge_to_json_layer3(nx_edge, nx_metadata):
     """
     source, target = nx_edge
 
-    # todo: fix sorted list keyed on prefix :-))
     metadata_collection = defaultdict(list)
     for vlan_id, edges in six.iteritems(nx_metadata['metadata']):
         for edge in edges:
             metadata_collection[vlan_id].append(edge.to_json())
 
+    def prefixaddress(item):
+        addr = item.get('prefix', {}).get('net_address')
+        return IP(addr) if addr else addr
+
+    # sorting the output based on prefix address
     for key, value in six.iteritems(metadata_collection):
-        value = sorted(value, key=operator.itemgetter('prefix'))
+        value.sort(key=prefixaddress)
 
     json = {
         'source': six.text_type(source.id),
