@@ -1,6 +1,5 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 top_srcdir := $(mkfile_dir)../..
-name := navtest:$(shell git describe --tags)
 uname := $(shell uname)
 uid := $(shell id -u)
 gid := $(shell id -g)
@@ -10,6 +9,8 @@ ifeq ($(PYTHON_VERSION),3)
 else
   dockerfile := Dockerfile
 endif
+
+name := navtest:$(shell git describe --tags)-$(dockerfile)
 
 .PHONY: build check
 
