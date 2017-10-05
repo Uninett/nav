@@ -15,11 +15,13 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 """Generates the query and makes the report."""
 
+import io
+import re
+
+from django.utils.six.moves.urllib.parse import unquote_plus
+
 from nav.report.dbresult import DatabaseResult
 from nav.report.report import Report
-from django.utils.six.moves.urllib.parse import unquote_plus
-import nav.db
-import re
 
 
 class Generator(object):
@@ -100,7 +102,7 @@ class ReportList(object):
 
         report_pattern = re.compile(r"^\s*(\S+)\s*\{(.*?)\}$",
                                     re.M | re.S | re.I)
-        contents = open(config_file).read()
+        contents = io.open(config_file, encoding='utf-8').read()
         reports = report_pattern.findall(contents)
 
         parser = ConfigParser(config_file, None)
