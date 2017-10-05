@@ -1,31 +1,32 @@
 # Full integration test image for NAV
 #
-# A more or less identical image exists for Python >= 3.6, don't forget to
+# A more or less identical image exists for Python 3, don't forget to
 # update also that one.
 #
-FROM python:2.7
+FROM debian:stretch
 
-ENV DISTRO jessie
+ENV DISTRO stretch
 ENV DISPLAY :99
 ENV ADMINPASSWORD omicronpersei8
-ENV MIRROR httpredir.debian.org
 
 ### Installing packages
+RUN apt-get update && \
+    apt-get -y install --no-install-recommends \
+      curl gnupg dirmngr \
+      git \
+      python python-dev python-pip build-essential
+
 RUN echo "\n\
 \
-deb http://security.debian.org/ $DISTRO/updates main\n\
 deb-src http://security.debian.org/ $DISTRO/updates main\n\
-deb http://$MIRROR/debian $DISTRO main contrib non-free\n\
-deb-src http://$MIRROR/debian $DISTRO main contrib non-free\n\
-deb http://$MIRROR/debian $DISTRO-updates main contrib non-free\n\
-deb-src http://$MIRROR/debian $DISTRO-updates main contrib non-free\n\
+deb-src http://deb.debian.org/debian $DISTRO main contrib non-free\n\
+deb-src http://deb.debian.org/debian $DISTRO-updates main contrib non-free\n\
 
 deb http://dl.google.com/linux/chrome/deb/ stable main\n\
 \
-" > /etc/apt/sources.list
+" > /etc/apt/sources.list.d/pkg-sources.list
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A040830F7FAC5991 1397BC53640DB551
 
-# TODO: Might not need all the dependencies
 RUN apt-get update && \
     apt-get -y --no-install-recommends build-dep \
 	python-psycopg2 python-lxml python-imaging python-ldap
@@ -40,16 +41,18 @@ RUN apt-get update && \
 	postgresql postgresql-contrib postgresql-client \
 	libxml2-dev libxslt1-dev \
 	libwww-perl \
-	iceweasel xvfb nodejs-legacy curl \
+	iceweasel xvfb curl \
 	imagemagick \
 	x11vnc google-chrome-stable cloc \
 	cmake nbtscan python-gammu
 
 RUN gem install --version '3.3.9' sass
 
-# NPM for Javascript testing needs
-#RUN curl -sS --insecure https://www.npmjs.com/install.sh | clean=no bash
-RUN apt-get update && apt-get -y --no-install-recommends install npm
+# Now install NodeJS and NPM for Javascript testing needs -
+# Which incidentally includes Python2.7, so we need some selection magic
+RUN curl -sL https://deb.nodesource.com/setup_8.x  | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    update-alternatives --install /usr/bin/python python /usr/bin/python2.7 2
 
 # Build and install libtidy5
 RUN cd /tmp && \
@@ -84,10 +87,9 @@ RUN set -x \
 	&& export GNUPGHOME="$(mktemp -d)" \
 	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
 	&& gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
-	&& rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
-	&& chmod +x /usr/local/bin/gosu \
+	&& rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc \
+	&& chmod +sx /usr/local/bin/gosu \
 	&& gosu nobody true
-RUN chmod +s /usr/local/bin/gosu
 
 # Add a build user
 RUN adduser --system --group --home=/home/build --shell=/bin/bash build
@@ -96,7 +98,8 @@ RUN adduser --system --group --home=/home/build --shell=/bin/bash build
 COPY requirements.txt /runtime-requirements.txt
 COPY requirements/ /requirements
 COPY tests/requirements.txt /test-requirements.txt
-RUN pip install -r /runtime-requirements.txt -r /test-requirements.txt
+RUN pip install --upgrade pip wheel && \
+    pip install -r /runtime-requirements.txt -r /test-requirements.txt
 
 
 ENV WORKSPACE /source
