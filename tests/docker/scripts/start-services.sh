@@ -6,7 +6,7 @@ start_apache() {
 
     echo -n "Starting apache..."
     gosu root:root a2dismod cgid
-    /usr/sbin/apache2ctl -f $APACHE_CONFIG -k start
+    gosu root /usr/sbin/apache2ctl -f $APACHE_CONFIG -k start
     echo " done"
     wait
 }
