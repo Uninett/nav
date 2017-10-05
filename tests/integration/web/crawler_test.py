@@ -20,6 +20,7 @@ from lxml.html import fromstring
 import os
 import pytest
 from tidylib import tidy_document
+from django.utils import six
 from django.utils.six.moves.urllib.request import (urlopen, build_opener,
                                                    install_opener,
                                                    HTTPCookieProcessor)
@@ -182,7 +183,14 @@ def page_id(page):
 
 @pytest.mark.parametrize("page", crawler.crawl(), ids=page_id)
 def test_link_should_be_reachable(page):
-    assert page.response == 200, page.content
+    assert page.response == 200, _content_as_string(page.content)
+
+
+def _content_as_string(content):
+    if isinstance(content, six.string_types) or content is None:
+        return content
+    else:
+        return content.decode('utf-8')
 
 
 @pytest.mark.parametrize("page", crawler.crawl(), ids=page_id)
