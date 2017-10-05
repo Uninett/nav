@@ -50,8 +50,8 @@ class Tool(object):
     def __eq__(self, other):
         return self.name == other.name
 
-    def __cmp__(self, other):
-        return cmp(self.priority, other.priority)
+    def __lt__(self, other):
+        return self.priority < other.priority
 
     def __repr__(self):
         return "Tool('%s')" % self.name
