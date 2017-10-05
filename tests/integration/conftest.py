@@ -1,4 +1,5 @@
 import os
+import io
 import re
 import shlex
 from nav.buildconf import bindir
@@ -41,7 +42,7 @@ def _scan_testargs(filename):
     Scans filename for testargs comments and returns a list of elements
     suitable for invocation of this binary with the given testargs
     """
-    contents = open(filename).read()
+    contents = io.open(filename, encoding="utf-8").read()
     matches = TESTARGS_PATTERN.findall(contents)
     if matches:
         retval = []
