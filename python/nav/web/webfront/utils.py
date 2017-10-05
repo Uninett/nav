@@ -146,7 +146,7 @@ def get_account_tools(account, all_tools):
 def split_tools(tools, parts=3):
     """Split tools into even parts for megadropdown"""
     columns = []
-    tools_in_column = len(tools) / parts
+    tools_in_column = len(tools) // parts
     remainder = len(tools) % parts
     first_index = 0
     for _column in range(parts):
