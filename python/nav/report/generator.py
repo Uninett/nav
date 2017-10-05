@@ -150,8 +150,9 @@ class ConfigParser(object):
         """
 
         if self.config is None:
-            self.config = open(self.config_file).read()
-            self.config_local = open(self.config_file_local).read()
+            self.config = io.open(self.config_file, encoding='utf-8').read()
+            self.config_local = io.open(self.config_file_local,
+                                        encoding='utf-8').read()
         report_pattern = re.compile(r"^\s*" + report_name + r"\s*\{(.*?)\}$",
                                     re.M | re.S | re.I)
         match = report_pattern.search(self.config)
