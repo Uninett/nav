@@ -21,8 +21,13 @@ from __future__ import print_function
 
 import sys
 import argparse
-import nav.db
+from nav.models import manage as _manage  # Just to init Django stuff
+
 import psycopg2
+from django.db.transaction import atomic
+from django.contrib.sessions.backends.db import Session, timezone
+
+import nav.db
 
 
 def main(args):
@@ -102,6 +107,8 @@ def make_argparser():
     arg("--radiuslog", action="store_true",
         help="delete from Radius error log table")
     arg("--netbox", action="store_true", help="delete from NETBOX table")
+    arg("--websessions", action="store_true",
+        help="delete expired web sessions")
 
     return parser
 
@@ -200,6 +207,23 @@ class NetboxDeleter(RecordDeleter):
     table = "netbox"
     selector = "WHERE pg_try_advisory_lock(netboxid) and deleted_at IS NOT NULL"
 
+
+class SessionDeleter(RecordDeleter):
+    """Special case deleter for Django Sessions"""
+    table = "websessions"
+
+    @atomic
+    def delete(self, expiry, dry_run=False):
+        """Deletes all expired django sessions if not a dry_run.
+
+        Expiry spec is ignored, as sessions have a different expiry mechanism.
+        """
+        expired = Session.objects.filter(expire_date__lt=timezone.now())
+        count = expired.count()
+        if dry_run:
+            return count
+        expired.delete()
+        return count
 
 if __name__ == '__main__':
     main(sys.argv[1:])
