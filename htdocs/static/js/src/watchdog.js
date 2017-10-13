@@ -16,12 +16,9 @@ require([], function () {
             activeAddressesElement = document.getElementById('active-addresses'),
             serialNumbers = document.getElementById('serial-numbers');
 
-        doRequest(arpElement, '/api/arp', function(data) {
-            arpElement.innerHTML = intComma(data.count);
-        });
-
-        doRequest(camElement, '/api/cam', function(data) {
-            camElement.innerHTML = intComma(data.count);
+        doRequest(arpElement, '/watchdog/cam_and_arp', function(data) {
+            arpElement.innerHTML = '~' + intComma(data.arp);
+            camElement.innerHTML = '~' + intComma(data.cam);
         });
 
         doRequest(netboxElement, '/api/netbox', function(data) {

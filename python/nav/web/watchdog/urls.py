@@ -23,5 +23,7 @@ urlpatterns = patterns(
     url(r'^active_addresses', 'get_active_addresses',
         name='watchdog-active-addresses'),
     url(r'^serial_numbers', 'get_serial_numbers',
-        name='watchdog-serial-numbers')
+        name='watchdog-serial-numbers'),
+    url(r'^cam_and_arp', 'get_cam_and_arp',
+        name='watchdog-cam-and-arp')
 )
