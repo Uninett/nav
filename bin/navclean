@@ -16,7 +16,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Deletes old log records from the NAV database"""
+"""Deletes old data from the NAV database"""
 from __future__ import print_function
 
 import sys
@@ -38,14 +38,15 @@ def main(args):
     connection = nav.db.getConnection('default', 'manage')
     deleters = get_selected_deleters(args, connection)
 
-    sumtotal = 0
+    deleted = False
     for deleter in deleters:
         try:
             count = deleter.delete(expiry)
             if not args.quiet:
-                print("{table} contains {count} expired records.".format(
-                    table=deleter.table, count=count))
-            sumtotal += count
+                print("Expired records in {table}: {count}".format(
+                    table=deleter.table,
+                    count=count if count is not None else "N/A"))
+            deleted = True
 
         except psycopg2.Error as error:
             print("The PostgreSQL backend produced an error", file=sys.stderr)
@@ -55,15 +56,15 @@ def main(args):
 
     if not args.force:
         connection.rollback()
-        sumtotal = 0
+        deleted = False
     else:
         connection.commit()
 
-        if not args.quiet and sumtotal > 0:
-            print("Expired ARP/CAM/Radius Acccounting records deleted.")
-
-    if not args.quiet and sumtotal == 0:
-        print("Nothing deleted.")
+    if not args.quiet:
+        if deleted:
+            print("Expired records were deleted.")
+        else:
+            print("Nothing deleted.")
 
     connection.close()
 
@@ -75,8 +76,7 @@ def main(args):
 def make_argparser():
     """Makes this program's ArgumentParser"""
     parser = argparse.ArgumentParser(
-        description="Deletes old ARP, CAM or Radius accounting records from "
-                    "the NAV database",
+        description="Deletes old data from the NAV database",
         epilog="Unless options are given, the number of expired records will "
                "be printed. The default expiry limit is 6 months. The -e and -E"
                " options set a common expiry date for all selected tables. If "
