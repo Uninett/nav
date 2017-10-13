@@ -41,7 +41,7 @@ def main(args):
     deleted = False
     for deleter in deleters:
         try:
-            count = deleter.delete(expiry)
+            count = deleter.delete(expiry, dry_run=not args.force)
             if not args.quiet:
                 print("Expired records in {table}: {count}".format(
                     table=deleter.table,
@@ -161,7 +161,7 @@ class RecordDeleter(object):
         return 'DELETE FROM {table} {filter}'.format(table=self.table,
                                                      filter=where)
 
-    def delete(self, expiry):
+    def delete(self, expiry, dry_run=False):
         """Deletes the records selected by the expiry spec"""
         cursor = self.connection.cursor()
         sql = self.sql(expiry)
