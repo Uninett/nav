@@ -29,7 +29,7 @@ from django.db.models import Q
 from nav.models import manage
 from nav.event2 import EventFactory
 
-from nav.ipdevpoll.storage import MetaShadow, Shadow
+from nav.ipdevpoll.storage import MetaShadow, Shadow, shadowify
 from nav.ipdevpoll import descrparsers
 from nav.ipdevpoll import utils
 
@@ -286,8 +286,7 @@ class Vlan(Shadow):
                 self.net_type = net_type
 
     def save(self, containers):
-        if (self._has_no_prefixes(containers) or
-                self._revert_vlan_on_type_change_to_scope(containers) or
+        if (self._revert_vlan_on_type_change_to_scope(containers) or
                 self._is_type_changed_to_static(containers)):
             return
 
@@ -319,8 +318,13 @@ class Vlan(Shadow):
             return super(Vlan, self).get_existing_model(containers)
 
         if self.net_ident:
+            if self.netbox:
+                netboxid = self.netbox.id
+            else:
+                netboxid = None
             vlans = manage.Vlan.objects.filter(vlan=self.vlan,
-                                               net_ident=self.net_ident)
+                                               net_ident=self.net_ident,
+                                               netbox__id=netboxid)
             if vlans:
                 self._logger.debug(
                     "get_existing_model: %d matches found for "
@@ -621,6 +625,18 @@ class Sensor(Shadow):
             netbox=netbox.id).exclude(pk__in=found_sensor_pks)
         return missing_sensors
 
+    def prepare(self, containers):
+        if self.interface:
+            if self.name:
+                self.name = self.name.format(
+                    ifc=self.interface.ifname)
+            if self.human_readable:
+                self.human_readable = self.human_readable.format(
+                    ifc=self.interface.ifdescr)
+            if self.internal_name:
+                self.internal_name = self.internal_name.format(
+                    ifc=self.interface.ifname)
+
 
 class PowerSupplyOrFan(Shadow):
     __shadowclass__ = manage.PowerSupplyOrFan
@@ -651,3 +667,41 @@ class PowerSupplyOrFan(Shadow):
         missing_psus_and_fans = manage.PowerSupplyOrFan.objects.filter(
             netbox=netbox.id).exclude(pk__in=found_psus_and_fans_pks)
         return missing_psus_and_fans
+
+
+class POEPort(Shadow):
+    __shadowclass__ = manage.POEPort
+    __lookups__ = [('netbox', 'poegroup', 'index')]
+
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        found = [port.id for port in containers[cls].values()]
+        netbox = containers.get(None, Netbox)
+        manage.POEPort.objects.filter(netbox=netbox.id)\
+                              .exclude(pk__in=found).delete()
+
+
+class POEGroup(Shadow):
+    __shadowclass__ = manage.POEGroup
+    __lookups__ = [('netbox', 'index')]
+
+    @classmethod
+    def cleanup_after_save(cls, containers):
+        found = [grp.id for grp in containers[cls].values()]
+        netbox = containers.get(None, Netbox)
+        manage.POEGroup.objects.filter(netbox=netbox.id)\
+                               .exclude(pk__in=found).delete()
+
+    def prepare(self, containers):
+        if self.phy_index and not self.module:
+            entity = manage.NetboxEntity.objects.filter(
+                netbox=self.netbox.id, index=self.phy_index).first()
+            if entity and entity.device:
+                self.module = entity.device.module_set.first()
+        if self.netbox.type.vendor.id == 'hp' and not self.module:
+            module = manage.Module.objects.filter(
+                netbox=self.netbox.id,
+                name=chr(ord('A') + self.index - 1),
+            ).first()
+            if module:
+                self.module = shadowify(module)

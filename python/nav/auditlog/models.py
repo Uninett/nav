@@ -1,4 +1,4 @@
-# coding: UTF-8
+# coding: utf-8
 
 # Copyright (C) 2017 UNINETT AS
 #
@@ -15,8 +15,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import unicode_literals, absolute_import
-
-import json
 
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible

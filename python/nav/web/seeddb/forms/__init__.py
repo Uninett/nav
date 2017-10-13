@@ -23,6 +23,8 @@ from django.utils.safestring import mark_safe
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column)
 
+from django.utils import six
+
 from nav.web.crispyforms import LabelSubmit
 from nav.models.manage import (Location, Room, Organization, NetboxType,
                                Vendor, NetboxGroup, Netbox)
@@ -67,7 +69,8 @@ def create_choices(element, ancestors, is_last_child=False):
               string element is padded to indicate placement in a tree-structure
     """
     choices = [(element.pk,
-                tree_pad(unicode(element.pk), ancestors, last=is_last_child))]
+                tree_pad(six.text_type(element.pk), ancestors,
+                         last=is_last_child))]
     child_ancestors = ancestors + [is_last_child]
     children = element.get_children()
     num_children = children.count()

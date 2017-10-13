@@ -21,7 +21,7 @@
   <tbody>
     {% for key, result in netbios_tracker.items %}
       {% for row in result %}
-        <tr class="{% cycle 'oddrow' 'evenrow' %}">
+        <tr>
           <td>
             <a href="{% url 'machinetracker-ip_short_search' row.ip form_data.days dns %}"
                title="Search for this IP address">{{ row.ip }}

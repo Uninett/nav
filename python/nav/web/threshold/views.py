@@ -18,7 +18,7 @@
 import datetime
 import json
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
 from nav.metrics.names import raw_metric_query
@@ -26,7 +26,6 @@ from nav.metrics.graphs import get_simple_graph_url, Graph
 from nav.models.thresholds import ThresholdRule
 from nav.web.threshold.forms import ThresholdForm
 from nav.django.utils import get_account
-from nav.util import parse_interval
 from nav.web.utils import create_title
 
 

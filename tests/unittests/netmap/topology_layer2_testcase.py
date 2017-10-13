@@ -1,9 +1,10 @@
-from mock import patch, Mock, MagicMock
+from mock import patch
 import networkx as nx
 from nav.models.manage import SwPortVlan, Vlan
 from nav.netmap import topology
 from nav.topology import vlan
-from topology_testcase import TopologyTestCase
+from .topology_testcase import TopologyTestCase
+
 
 class TopologyLayer2TestCase(TopologyTestCase):
 

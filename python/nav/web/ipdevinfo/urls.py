@@ -20,13 +20,15 @@ from django.conf.urls import url, patterns
 
 from nav.web.ipdevinfo.views import (search, service_list, service_matrix,
                                      ipdev_details, module_details,
+                                     poegroup_details,
                                      port_details, get_port_view,
                                      render_affected, render_host_info,
                                      port_counter_graph, sensor_details,
                                      unrecognized_neighbors)
 
 # The patterns are relative to the base URL of the subsystem
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     # Search
     url(r'^$', search,
         name='ipdevinfo-search'),
@@ -52,6 +54,10 @@ urlpatterns = patterns('',
     # Module details
     url(r'^(?P<netbox_sysname>[^/]+)/module=(?P<module_name>.+)/$',
         module_details, name='ipdevinfo-module-details'),
+
+    # PoE details
+    url(r'^(?P<netbox_sysname>[^/]+)/poegroup=(?P<grpindex>.+)/$',
+        poegroup_details, name='ipdevinfo-poegroup-details'),
 
     # Interface details
     url(r'^(?P<netbox_sysname>[^/]+)/interface=(?P<port_id>\d+)/$',

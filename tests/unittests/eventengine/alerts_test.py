@@ -4,12 +4,14 @@ from nav.models.event import EventQueue as Event, Subsystem, EventType
 from nav.models.manage import Netbox, Device
 from nav.eventengine.alerts import AlertGenerator
 
+
 class MockedAlertGenerator(AlertGenerator):
     def get_alert_type(self):
         return None
 
     def _find_existing_alert_history(self):
         return None
+
 
 class AlertFromEventBase(TestCase):
     def setUp(self):
@@ -24,6 +26,7 @@ class AlertFromEventBase(TestCase):
             value=50,
             severity=80,
             )
+
 
 class AlertFromEventTests(AlertFromEventBase):
     def test_alert_from_event_copies_attributes(self):
@@ -43,6 +46,7 @@ class AlertFromEventTests(AlertFromEventBase):
         alert = MockedAlertGenerator(self.event).make_alert()
 
         self.assertEqual(alert.varmap, self.event.varmap)
+
 
 class AlertHistoryFromEventTests(AlertFromEventBase):
     def test_alerthist_from_event_copies_attributes(self):

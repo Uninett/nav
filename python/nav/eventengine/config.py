@@ -16,12 +16,14 @@
 """eventengine config"""
 from nav.config import NAVConfigParser
 from nav.util import parse_interval
-from ConfigParser import NoSectionError, NoOptionError
+from configparser import NoSectionError, NoOptionError
+
+from django.utils import six
 
 
 class EventEngineConfig(NAVConfigParser):
     DEFAULT_CONFIG_FILES = ('eventengine.conf',)
-    DEFAULT_CONFIG = """
+    DEFAULT_CONFIG = u"""
 [timeouts]
 boxDown.warning = 1m
 boxDown.alert = 4m
@@ -45,7 +47,7 @@ bgpDown.alert = 1m
                  an int, option is returned unchanged.
 
         """
-        if isinstance(option, (int, long)):
+        if isinstance(option, six.integer_types):
             return option
         try:
             return parse_interval(self.get('timeouts', option))

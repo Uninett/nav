@@ -1,12 +1,13 @@
 from __future__ import print_function
 
-import ConfigParser
+import configparser
 import pytest
 from unittest import TestCase
 import signal
 import time
 from nav.buildconf import sysconfdir
 from nav.snmptrapd.plugin import load_handler_modules
+
 
 class SnmptrapdPluginTest(TestCase):
     """Implementation tests for plugins"""
@@ -28,7 +29,7 @@ class SnmptrapdPluginTest(TestCase):
 
     def test_plugin_loader_reading_in_modules_from_config_file(self):
         configfile = sysconfdir + "/snmptrapd.conf"
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(configfile)
         list_from_config = config.get('snmptrapd', 'handlermodules').split(',')
 
@@ -39,8 +40,6 @@ class SnmptrapdPluginTest(TestCase):
 
         loaded_modules = load_handler_modules(list_from_config)
         assert len(list_from_config) == len(loaded_modules)
-
-
 
 
 class SnmptrapdSignalTest(TestCase):

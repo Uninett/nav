@@ -9,17 +9,6 @@ To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
 
-Known problems
-==============
-
-The recommended SNMP library for use with ipdevpoll is `pynetsnmp`.  If you
-choose to go with the original TwistedSNMP, the latest version (0.3.13)
-contains a bug that manifests in table retrieval operations.  Timeouts and
-retries aren't handled properly, and this may cause slow or otherwise busy
-devices to be bombarded with requests from NAV.  The `contrib/patches`
-directory contains a patch for TwistedSNMP that solves this problem.  The
-patch has been submitted upstream, but not yet accepted into a new release.
-
 NAV 4.8
 ========
 
@@ -28,6 +17,13 @@ Dependency changes
 
 NAV 4.8 introduces a new dependency on dnspython *1.15.0* for the DNS
 service checker.
+
+The support for the old PySNMP v2 and PySNMP-SE libraries (and consequently,
+the pure-Python TwistedSNMP library) has been removed, since they are outdated
+and do not provide the full feature set used by NAV and provided by our
+preferred library: :mod:`pynetsnmp`.
+
+
 
 NAV 4.7
 ========

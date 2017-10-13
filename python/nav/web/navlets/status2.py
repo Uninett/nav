@@ -21,12 +21,11 @@ from operator import itemgetter
 from django.http import HttpResponse, QueryDict, JsonResponse
 from django.test.client import RequestFactory
 
-from nav.django.settings import DATETIME_FORMAT
-from nav.models.profiles import AccountNavlet, Account
+from nav.models.profiles import Account
 from nav.models.manage import Netbox
 from nav.web.status2.forms import StatusWidgetForm
 from nav.web.api.v1.views import AlertHistoryViewSet
-from . import Navlet, NAVLET_MODE_EDIT, NAVLET_MODE_VIEW
+from . import Navlet
 
 
 class Status2Widget(Navlet):
@@ -57,7 +56,7 @@ class Status2Widget(Navlet):
         self.title = self.preferences.get('title', self.title)
         status_filter = self.preferences.get('status_filter')
         if status_filter:
-            context['form'] = StatusWidgetForm(QueryDict(status_filter))
+            context['form'] = StatusWidgetForm(QueryDict(str(status_filter)))
         else:
             context['form'] = StatusWidgetForm()
         context['interval'] = self.preferences['refresh_interval'] / 1000
@@ -93,7 +92,7 @@ class Status2Widget(Navlet):
     def find_extra_columns(status_filter):
         """Finds the chosen extra columns and returns them in a list"""
         column_choices = StatusWidgetForm().fields.get('extra_columns').choices
-        chosen_columns = QueryDict(status_filter).getlist('extra_columns')
+        chosen_columns = QueryDict(str(status_filter)).getlist('extra_columns')
         return [(k, v) for k, v in column_choices if k in chosen_columns]
 
     @staticmethod

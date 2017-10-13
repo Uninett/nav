@@ -18,17 +18,17 @@
 """Context processors for NAV."""
 
 import os
-from django.conf import settings
 from operator import attrgetter
-from nav.django.auth import get_sudoer
 
+from django.conf import settings
+
+from nav.django.auth import get_sudoer
 from nav.django.utils import get_account, is_admin
 from nav.web.message import Messages
-from nav.web.webfront.utils import (get_account_tools, tool_list, quick_read,
-                                    split_tools)
+from nav.web.webfront.utils import tool_list, quick_read, split_tools
 from nav.models.profiles import NavbarLink
 from nav.buildconf import VERSION
-from nav.path import sysconfdir
+from nav.buildconf import sysconfdir
 from nav.metrics import CONFIG
 
 WEBCONF_DIR_PATH = os.path.join(sysconfdir, "webfront")

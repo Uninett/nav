@@ -26,7 +26,7 @@ Based on datacollector.py from the old Java-applet based Netmap.
 """
 
 import logging
-import urllib2
+from django.utils.six.moves.urllib.error import HTTPError
 
 import nav
 from nav.config import read_flat_config
@@ -517,6 +517,6 @@ def _get_metric_average(targets, time_interval):
         _logger.error("graphite unreachable on load query for %s targets "
                       "(%r): %s",
                       len(targets), time_interval, err)
-        if isinstance(err.cause, urllib2.HTTPError):
+        if isinstance(err.cause, HTTPError):
             _logger.debug("error cause: %s", err.cause.read())
         return {}

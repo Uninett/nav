@@ -26,7 +26,7 @@ from django.http import HttpResponse, Http404
 
 from nav.maintengine import check_devices_on_maintenance
 from nav.models.event import AlertHistory
-from nav.models.manage import Netbox, Device, NetboxEntity, Module
+from nav.models.manage import Netbox, NetboxEntity, Module
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.models.fields import INFINITY
 from . import forms, STATELESS_THRESHOLD

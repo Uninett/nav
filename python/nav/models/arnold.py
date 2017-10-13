@@ -18,9 +18,11 @@
 
 #pylint: disable=R0903
 
+from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
+
 from nav.models.fields import VarcharField
 from nav.models.manage import Interface
-from django.db import models
 
 STATUSES = [
     ('enabled', 'Enabled'),
@@ -34,6 +36,7 @@ DETENTION_TYPE_CHOICES = [('disable', 'Block'),
 KEEP_CLOSED_CHOICES = [('n', 'Open on move'), ('y', 'All closed')]
 
 
+@python_2_unicode_compatible
 class Identity(models.Model):
     """
     The table contains a listing for each computer,interface combo Arnold
@@ -58,7 +61,7 @@ class Identity(models.Model):
     organization = models.ForeignKey('Organization', db_column='orgid',
                                      null=True)
     keep_closed = models.CharField(db_column='determined', default='n',
-                                   choices=KEEP_CLOSED_CHOICES)
+                                   choices=KEEP_CLOSED_CHOICES, max_length=1)
     fromvlan = models.IntegerField(null=True)
     tovlan = models.ForeignKey('QuarantineVlan', db_column='tovlan',
                                to_field='vlan', null=True, default=None)
@@ -70,7 +73,7 @@ class Identity(models.Model):
     # The format is "interface.ifname at interface.netbox.sysname"
     textual_interface = VarcharField(default='')
 
-    def __unicode__(self):
+    def __str__(self):
         try:
             interface = self.interface
         except Interface.DoesNotExist:
@@ -85,6 +88,7 @@ class Identity(models.Model):
         unique_together = ('mac', 'interface')
 
 
+@python_2_unicode_compatible
 class Event(models.Model):
     """A class representing an action taken"""
     id = models.AutoField(db_column='eventid', primary_key=True)
@@ -97,7 +101,7 @@ class Event(models.Model):
     autoenablestep = models.IntegerField(null=True)
     executor = VarcharField(db_column='username')
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s" % (self.action, self.event_time)
 
     class Meta(object):
@@ -105,13 +109,14 @@ class Event(models.Model):
         ordering = ('event_time', )
 
 
+@python_2_unicode_compatible
 class Justification(models.Model):
     """Represents the justification for an event"""
     id = models.AutoField(db_column='blocked_reasonid', primary_key=True)
     name = VarcharField()
     description = VarcharField(db_column='comment', blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta(object):
@@ -119,13 +124,14 @@ class Justification(models.Model):
         ordering = ('name', )
 
 
+@python_2_unicode_compatible
 class QuarantineVlan(models.Model):
     """A quarantine vlan is a vlan where offenders are placed"""
     id = models.AutoField(db_column='quarantineid', primary_key=True)
     vlan = models.IntegerField(unique=True)
     description = VarcharField(blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.vlan, self.description)
 
     class Meta(object):
@@ -133,6 +139,7 @@ class QuarantineVlan(models.Model):
         ordering = ('vlan',)
 
 
+@python_2_unicode_compatible
 class DetentionProfile(models.Model):
     """A detention profile is a configuration used by an automatic detention"""
     id = models.AutoField(db_column='blockid', primary_key=True)
@@ -141,10 +148,10 @@ class DetentionProfile(models.Model):
     mailfile = VarcharField(blank=True)
     justification = models.ForeignKey('Justification', db_column='reasonid')
     keep_closed = models.CharField(db_column='determined', default='n',
-                                   choices=KEEP_CLOSED_CHOICES)
-    incremental = models.CharField(default='n')
+                                   choices=KEEP_CLOSED_CHOICES, max_length=1)
+    incremental = models.CharField(default='n', max_length=1)
     duration = models.IntegerField(db_column='blocktime')
-    active = models.CharField(default='n')
+    active = models.CharField(default='n', max_length=1)
     last_edited = models.DateTimeField(db_column='lastedited',
                                        auto_now_add=True)
     edited_by = VarcharField(db_column='lastedituser')
@@ -155,7 +162,7 @@ class DetentionProfile(models.Model):
     quarantine_vlan = models.ForeignKey('QuarantineVlan',
                                         db_column='quarantineid', null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta(object):

@@ -39,14 +39,14 @@ Port nodes can have outgoing edges to other Port nodes, or to Netbox nodes
 """
 # pylint: disable=R0903
 
-from itertools import groupby
-from operator import attrgetter
-
 import networkx as nx
 from nav.models.manage import AdjacencyCandidate
 
 import logging
 _logger = logging.getLogger(__name__)
+
+CDP = 'cdp'
+LLDP = 'lldp'
 
 # Data classes
 
@@ -84,89 +84,23 @@ class AdjacencyAnalyzer(object):
         else:
             return 0
 
-    def get_ports_ordered_by_degree(self):
-        """Return a list of port nodes from the Graph, ordered by degree."""
-        ports_and_degree = self.get_ports_and_degree()
-        ports_and_degree.sort()
-        return [port for _degree, port in ports_and_degree]
-
-    def find_return_path(self, edge):
-        """Find a return path starting along edge from a port node.
-
-        In the typical network adjacency candidates graph, a return path will
-        consist of no more than 5 nodes, including the source node at both
-        ends of the path.
-
+    def find_return_port(self, from_port, to_netbox):
+        """Given a candidate edge from from_port to to_netbox, find a port at
+        to_netbox that points to from_port's netbox
         """
-        from_port, to_thing = edge
         from_netbox = from_port[0]
 
-        # Initial known element of the path
-        path = [from_port]
-
-        if type(to_thing) is Box:
-            # Remote was a netbox, so we need to check each of the netbox'
-            # outgoing ports to find a path
-            remote_ports = [e[1] for e in self.graph.edges(to_thing)]
-        else:
-            remote_ports = [to_thing]
+        # Remote is a netbox, we need to check each of the netbox'
+        # outgoing ports to find a path
+        remote_ports = self.graph.neighbors(to_netbox)
 
         for remote_port in remote_ports:
             for remote_edge in self.graph.edges(remote_port):
-                remote_thing = remote_edge[1]
-                if type(remote_thing) is Box and remote_thing == from_netbox:
-                    path.extend([remote_port, remote_thing, from_port])
-                    return path
-                elif remote_thing == from_port:
-                    path.extend([remote_port, remote_thing])
-                    return path
+                remote_netbox = remote_edge[1]
+                if remote_netbox == from_netbox:
+                    return remote_port
 
-        return []
-
-    @staticmethod
-    def get_distinct_ports(path):
-        """Return a distinct list of ports listed in path"""
-        result = []
-        for node in path:
-            if type(node) is Port and node not in result:
-                result.append(node)
-        return result
-
-    def connect_ports(self, i, j):
-        """Remove existing arcs from a and b and connect them.
-
-        a's outgoing edges are replaced by a single outgoing edge to b.
-        b's outgoing edges are replaced by a single outgoing edge to a.
-
-        Oncee two ports are connected, incoming edges from other ports are no
-        longer relevant and are deleted.
-
-        """
-        self._delete_edges(i)
-        self._delete_edges(j)
-
-        self.delete_incoming_edges_from_ports(i)
-        self.delete_incoming_edges_from_ports(j)
-
-        self.graph.add_edge(i, j)
-        self.graph.add_edge(j, i)
-
-    def _delete_edges(self, node):
-        """Deletes all outgoing edges from node"""
-        # this stupidity is here to support the changing NetworkX APIs
-        if hasattr(self.graph, 'delete_edges_from'):
-            self.graph.delete_edges_from(self.graph.edges(node))
-        else:
-            self.graph[node].clear()
-
-    def delete_incoming_edges_from_ports(self, node):
-        """Deletes all edges coming in from ports to node"""
-        edges_from_ports = [(u, v) for u, v in self.graph.in_edges(node)
-                            if type(u) is Port]
-        if hasattr(self.graph, 'delete_edges_from'):
-            self.graph.delete_edges_from(edges_from_ports)
-        else:
-            self.graph.remove_edges_from(edges_from_ports)
+        return None
 
     def get_ports_and_degree(self):
         """Return a list of port nodes and their outgoing degrees.
@@ -203,83 +137,111 @@ class AdjacencyAnalyzer(object):
                       if type(n) is Port and self.graph.out_degree(n) == degree]
         return port_nodes
 
-    def port_in_degree(self, port):
-        """Returns the in_degree of the port node, only counting outgoing
-        edges from ports, not boxes.
-
-        """
-        return len([(u, v) for (u, v) in self.graph.in_edges(port)
-                    if type(u) is Port])
-
-    def get_incomplete_ports(self):
-        """Return a list of port nodes whose outgoing edges have not been
-        successfully reduced to one.
-
-        """
-        ports_and_degree = self.get_ports_and_degree()
-        return [port for degree, port in ports_and_degree
-                if degree > 1]
-
-    def get_boxes_without_ports(self):
-        """Return a list of netboxes that have no outgoing edges."""
-        result = [n for n in self.graph.nodes()
-                  if type(n) is Box and
-                  self.graph.out_degree(n) == 0]
-        return result
-
 
 class AdjacencyReducer(AdjacencyAnalyzer):
     """Adjacency candidate graph reducer"""
 
     def reduce(self):
-        """Reduces the associated graph.
+        """Find physical topology based on the graph
 
-        This will reduce the graph as much as possible.  After the graph has
-        been reduced, any port (tuple) node with an out_degree of 1 should be
-        ready to store as part of the physical topology.
+        First LLDP and CDP data is analyzed. Then CAM data. The result
+        is stored in a new graph which can then be used to update
+        physical topology
 
         """
+        self.result = nx.DiGraph(name="network adjacency candidates")
+        self._reduce_discovery_protocol(LLDP)
+        self._reduce_discovery_protocol(CDP)
+        self._reduce_cam()
+        self.graph = self.result
+
+    def _reduce_cam(self):
+        """Find topology based on CAM data.
+
+        The algorithm iterates over graph nodes starting with the
+        lowest order nodes. Then the outward edges of the node is
+        iterated over and if an edge is found where a suitable return
+        path is found the pair of nodes are removed from the graph and
+        added to the result, thus reducing the order of the remaining
+        nodes so that connections for these can be deduced more
+        correctly.
+
+        After the graph has been reduced, any port (tuple) node with
+        an out_degree of 1 are added to the result
+        """
         max_degree = self.get_max_out_degree()
+        _logger.debug("Analyzing graph with max degree %d", max_degree)
         degree = 1
 
-        visited = set()
         while degree <= max_degree:
-            unvisited = self._get_unvisited_by_degree(degree, visited)
+            _logger.debug("At degree %s", degree)
+            unvisited = self.get_ports_by_degree(degree)
+            _logger.debug("Found %d unvisited ports", len(unvisited))
             if len(unvisited) == 0:
                 degree += 1
                 continue
 
-            self._visit_unvisited(unvisited, visited)
+            if not self._visit_unvisited(unvisited):
+                degree += 1
+                continue
+        self.result.add_edges_from(self.get_single_edges_from_ports())
 
-    def _get_unvisited_by_degree(self, degree, visited):
-        ports = set(self.get_ports_by_degree(degree))
-        return ports.difference(visited)
-
-    def _visit_unvisited(self, unvisited, visited):
-        for port in unvisited:
-            for source, dest in self.graph.edges(port):
-
-                if (self.graph.out_degree(source) == 1 and
-                    type(dest) is Port):
-                    self.connect_ports(source, dest)
-                    visited.add(dest)
-
+    def _reduce_discovery_protocol(self, sourcetype):
+        done = False
+        while not done:
+            done = True
+            for source, dest, proto in self.graph.edges(keys=True):
+                if (not type(source) is Port or not type(dest) is Port or
+                        proto != sourcetype):
+                    continue
+                if self.graph.has_edge(dest, source, proto):
+                    _logger.debug("Found connection from %s to %s", source,
+                                  dest)
+                    self.result.add_edge(source, dest)
+                    self.result.add_edge(dest, source)
+                    self.graph.remove_node(source)
+                    self.graph.remove_node(dest)
+                    done = False
+                    break
                 else:
+                    _logger.debug("Removing unmatched %s connection %s -> %s",
+                                  proto, source, dest)
+                    self.graph.remove_edge(source, dest, proto)
 
-                    path = self.find_return_path((source, dest))
-                    if path:
-                        ports = self.get_distinct_ports(path)
-                        if len(ports) == 2:
-                            i, j = ports
-                            self.connect_ports(i, j)
-                        else:
-                            _logger.warning("A possible self-loop was found: "
-                                            "%r", ports)
-                            i, j = (ports[0], ports[0])
-                        visited.update((i, j))
-                        break
+    def _visit_unvisited(self, unvisited):
+        for port in unvisited:
+            for source, dest, proto in self.graph.edges(port, keys=True):
+                _logger.debug("Considering %s %s source %s",
+                              source, dest, proto)
+                if dest == source[0]:
+                    _logger.warning("A possible self-loop was found: "
+                                    "%r", (source, dest))
+                    self.graph.remove_edge(source, dest)
+                    continue
 
-            visited.add(port)
+                remote_port = self.find_return_port(source, dest)
+                if remote_port:
+                    _logger.debug("Found connection %s -> %s because of good return path",
+                                  source, remote_port)
+                    self.connect_ports(source, remote_port)
+                    return True
+            _logger.debug("Found no connection for %s", port)
+        return False
+
+    def connect_ports(self, i, j):
+        """Add connection between a and b to result.
+
+        If a or b are of type Port they are removed from the input
+        graph, as they are now completely processed
+
+        """
+        if type(i) is Port:
+            self.graph.remove_node(i)
+        if type(j) is Port:
+            self.graph.remove_node(j)
+
+        self.result.add_edge(i, j)
+        self.result.add_edge(j, i)
 
 # Graph builder functions
 
@@ -292,9 +254,8 @@ def build_candidate_graph_from_db():
     """
     acs = AdjacencyCandidate.objects.select_related(
         'netbox', 'interface', 'to_netbox', 'to_interface')
-    acs = _filter_by_source(acs)
 
-    graph = nx.DiGraph(name="network adjacency candidates")
+    graph = nx.MultiDiGraph(name="network adjacency candidates")
 
     for cand in acs:
         if not cand.interface.is_admin_up():
@@ -313,33 +274,7 @@ def build_candidate_graph_from_db():
         netbox = Box(cand.netbox.id)
         netbox.name = cand.netbox.sysname
 
-        graph.add_edge(port, dest_node)
+        graph.add_edge(port, dest_node, cand.source)
         graph.add_edge(netbox, port)
 
     return graph
-
-CDP = 'cdp'
-LLDP = 'lldp'
-
-
-def _filter_by_source(all_candidates):
-    """Filters candidates from list based on their source.
-
-    For each interface, LLDP is preferred over CDP, CDP is preferred over
-    anything else.
-
-    """
-    key = attrgetter('interface.id')
-    all_candidates = sorted(all_candidates, key=key)
-    by_ifc = groupby(all_candidates, key)
-
-    for _ifc, candidates in by_ifc:
-        candidates = list(candidates)
-        sources = set(c.source for c in candidates)
-        if LLDP in sources:
-            candidates = (c for c in candidates if c.source == LLDP)
-        elif CDP in sources:
-            candidates = (c for c in candidates if c.source == CDP)
-
-        for candidate in candidates:
-            yield candidate

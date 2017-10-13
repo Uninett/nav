@@ -22,12 +22,11 @@
 #	- post alerts on every device found under that room/location
 
 from django.db import transaction
-from django.db.models import Q
 
 from nav.django.utils import get_account
-from nav.models.manage import Room, Location, Netbox, Module
+from nav.models.manage import Room, Netbox, Module
 from nav.models.event import EventQueue, EventQueueVar, EventType, Subsystem
-from nav.web.message import new_message, Messages
+from nav.web.message import Messages
 
 STATE_NONE = 'x'
 STATE_START = 's'

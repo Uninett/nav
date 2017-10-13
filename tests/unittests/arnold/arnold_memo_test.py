@@ -3,6 +3,7 @@ import unittest
 from mock import Mock, patch
 from nav.arnold import Memo
 
+
 @patch('os.path.getmtime')
 class ArnoldMemoTest(unittest.TestCase):
     """Run the tests"""
@@ -37,5 +38,3 @@ class ArnoldMemoTest(unittest.TestCase):
         self.decorated_fun(1)
         self.decorated_fun(2)
         self.assertEqual(self.fun.call_count, 2)
-
-

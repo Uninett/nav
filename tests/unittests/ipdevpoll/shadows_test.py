@@ -56,7 +56,6 @@ class RFC3021NetTypeTest(TestCase):
         self.vlan = vlan
         self.repo = repo
 
-
     def test_elink_net_with_subnet_31_rfc3021_router_count_as_1(self):
         with patch.object(self.vlan, '_get_router_count_for_prefix') as rcount:
             rcount.return_value = 1

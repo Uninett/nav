@@ -1,3 +1,3 @@
 #!/bin/sh -xe
 cd "${WORKSPACE}/tests"
-py.test --junitxml=unit-results.xml --verbose unittests
+py.test --cov=/opt/nav/lib/python --cov-report=xml:coverage.xml --junitxml=unit-results.xml --verbose unittests

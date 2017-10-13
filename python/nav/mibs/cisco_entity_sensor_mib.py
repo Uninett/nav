@@ -13,125 +13,15 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Implements a MibRetriever for the ENTITY-MIB, as well as helper classes."""
 
-from twisted.internet import defer
-
-from nav.mibs import reduce_index
-from nav.mibs.entity_mib import EntityMib
-from nav.mibs import mibretriever
-from nav.models.manage import Sensor
-
-UNITS_OF_MEASUREMENTS = {
-    1: Sensor.UNIT_OTHER,
-    2: Sensor.UNIT_UNKNOWN,
-    3: Sensor.UNIT_VOLTS_AC,
-    4: Sensor.UNIT_VOLTS_DC,
-    5: Sensor.UNIT_AMPERES,
-    6: Sensor.UNIT_WATTS,
-    7: Sensor.UNIT_HERTZ,
-    8: Sensor.UNIT_CELSIUS,
-    9: Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY,
-    10: Sensor.UNIT_RPM,
-    11: Sensor.UNIT_CMM,
-    12: Sensor.UNIT_TRUTHVALUE,
-    13: 'specialEnum',
-    14: Sensor.UNIT_DBM,
-}
-
-DATA_SCALE = {
-    1: 'yocto',
-    2: 'zepto',
-    3: 'atto',
-    4: 'femto',
-    5: 'pico',
-    6: 'nano',
-    7: 'micro',
-    8: 'milli',
-    9: None,
-    10: 'kilo',
-    11: 'mega',
-    12: 'giga',
-    13: 'tera',
-    14: 'exa',
-    15: 'peta',
-    16: 'zetta',
-    17: 'yotta',
-}
+from nav.mibs.entity_sensor_mib import EntitySensorMib
 
 
-class CiscoEntitySensorMib(mibretriever.MibRetriever):
+class CiscoEntitySensorMib(EntitySensorMib):
     """This MIB should collect all present sensors from Cisco NEXUS boxes."""
     from nav.smidumps.cisco_entity_sensor_mib import MIB as mib
-
-    def __init__(self, agent_proxy):
-        """Good old constructor..."""
-        super(CiscoEntitySensorMib, self).__init__(agent_proxy)
-        self.entity_mib = EntityMib(self.agent_proxy)
-
-    def _get_sensors(self):
-        """ Collect all sensors from the box."""
-        df = self.retrieve_columns([
-                'entSensorType',
-                'entSensorScale',
-                'entSensorPrecision',
-                'entSensorValue',
-                'entSensorStatus',
-                'entSensorValueTimeStamp',
-                'entSensorValueUpdateRate',
-                'entSensorMeasuredEntity',
-                ])
-        df.addCallback(reduce_index)
-        return df
-
-    def _collect_entity_names(self):
-        """ Collect all entity-names in netbox."""
-        df = self.entity_mib.retrieve_columns([
-                'entPhysicalDescr',
-                'entPhysicalName',
-                ])
-        df.addCallback(reduce_index)
-        return df
-
-    @defer.inlineCallbacks
-    def get_all_sensors(self):
-        """ Collect all sensors and names on a netbox, and match
-            sensors with names.
-
-            Return a list with dictionaries, each dictionary
-            represent a sensor."""
-        self._logger.debug('get_all_sensors: Called....')
-        sensors = yield self._get_sensors()
-        entity_names = yield self._collect_entity_names()
-        for idx, row in entity_names.items():
-            if idx in sensors:
-                sensors[idx]['entPhysicalDescr'] = row.get(
-                    'entPhysicalDescr', None)
-                sensors[idx]['entPhysicalName'] = row.get(
-                    'entPhysicalName', None)
-        result = []
-        for row_id, row in sensors.items():
-            row_oid = row.get(0, None)
-            mibobject = self.nodes.get('entSensorValue', None)
-            oid = str(mibobject.oid) + str(row_oid)
-            unit_of_measurement = row.get('entSensorType', 2)
-            precision = row.get('entSensorPrecision', 0)
-            scale = row.get('entSensorScale', None)
-            op_status = row.get('entSensorStatus', None)
-            description = row.get('entPhysicalDescr', None)
-            name = row.get('entPhysicalName', None)
-            internal_name = name
-            if op_status == 1:
-                result.append({
-                    'oid': oid,
-                    'unit_of_measurement': UNITS_OF_MEASUREMENTS.get(
-                        unit_of_measurement, None),
-                    'precision': precision,
-                    'scale': DATA_SCALE.get(scale, None),
-                    'description': description,
-                    'name': name,
-                    'internal_name': internal_name,
-                    'mib': self.get_module_name(),
-                    })
-        self._logger.debug('get_all_sensors: result=%s' % str(result))
-        defer.returnValue(result)
+    TYPE_COLUMN = 'entSensorType'
+    SCALE_COLUMN = 'entSensorScale'
+    PRECISION_COLUMN = 'entSensorPrecision'
+    VALUE_COLUMN = 'entSensorValue'
+    STATUS_COLUMN = 'entSensorStatus'

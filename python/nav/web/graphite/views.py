@@ -13,8 +13,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-import urllib2
-from urlparse import urljoin
+from django.utils.six.moves.urllib.request import Request, urlopen
+from django.utils.six.moves.urllib.parse import urljoin
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotAllowed
 from nav.metrics import CONFIG
@@ -32,16 +32,16 @@ def index(request, uri):
     if request.method in ('GET', 'HEAD'):
         query = _inject_default_arguments(request.GET)
         url = urljoin(base, uri + ('?' + query) if query else '')
-        req = urllib2.Request(url)
+        req = Request(url)
     elif request.method == 'POST':
         data = _inject_default_arguments(request.POST)
         url = urljoin(base, uri)
-        req = urllib2.Request(url, data)
+        req = Request(url, data)
     else:
         return HttpResponseNotAllowed(['GET', 'POST', 'HEAD'])
 
     LOGGER.debug("proxying request to %r", url)
-    proxy = urllib2.urlopen(req)
+    proxy = urlopen(req)
     headers = proxy.info()
     content_type = headers.getheader('Content-Type', 'text/html')
 

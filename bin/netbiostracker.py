@@ -21,7 +21,7 @@ import time
 from os.path import join
 from nav.netbiostracker import tracker
 from nav.netbiostracker.config import NetbiosTrackerConfig
-from nav.path import localstatedir
+from nav.buildconf import localstatedir
 from nav.logs import init_generic_logging
 import django
 

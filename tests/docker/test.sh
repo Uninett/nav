@@ -24,9 +24,6 @@ dump_possibly_relevant_apache_accesses() {
 cd "$WORKSPACE"
 /build.sh
 
-run_pylint &
-/count-lines-of-code.sh &
-
 # Run unit tests before starting services
 /python-unit-tests.sh
 
@@ -37,12 +34,20 @@ trap dump_possibly_relevant_apache_accesses EXIT
 
 # Run integrations tests after everything is up
 /integration-tests.sh
-/functional-tests.sh
+if ! /functional-tests.sh
+then
+    echo "Functional tests failed. Dumping error log from apache"
+
+    echo "-------------------------------------------------"
+    cat "${BUILDDIR}/var/log/apache2-error.log"
+    echo "-------------------------------------------------"
+    exit 1
+fi
 
 run_jstests
 
-
-echo "Waiting for background tasks to end"
-wait
+# Code analysis steps
+run_pylint
+/count-lines-of-code.sh
 
 echo "test.sh done"

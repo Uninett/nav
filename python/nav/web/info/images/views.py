@@ -1,6 +1,5 @@
 import logging
 import os
-from os.path import join
 
 from django.contrib import messages
 from django.http import HttpResponse

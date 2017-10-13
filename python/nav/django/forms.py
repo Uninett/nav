@@ -16,9 +16,6 @@
 """Django form field types for NAV"""
 
 from django import forms
-from django.db import models
-from django.utils.text import capfirst
-from django.core import exceptions
 
 from nav.util import is_valid_cidr
 from nav.django import validators, widgets

@@ -15,11 +15,13 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 """Generates the query and makes the report."""
 
+import io
+import re
+
+from django.utils.six.moves.urllib.parse import unquote_plus
+
 from nav.report.dbresult import DatabaseResult
 from nav.report.report import Report
-from urllib import unquote_plus
-import nav.db
-import re
 
 
 class Generator(object):
@@ -27,7 +29,7 @@ class Generator(object):
     sql = None
 
     def make_report(self, report_name, config_file, config_file_local,
-                   query_dict, config, dbresult):
+                    query_dict, config, dbresult):
         """Makes a report
 
         :param report_name: the name of the report that will be represented
@@ -100,7 +102,7 @@ class ReportList(object):
 
         report_pattern = re.compile(r"^\s*(\S+)\s*\{(.*?)\}$",
                                     re.M | re.S | re.I)
-        contents = open(config_file).read()
+        contents = io.open(config_file, encoding='utf-8').read()
         reports = report_pattern.findall(contents)
 
         parser = ConfigParser(config_file, None)
@@ -148,8 +150,9 @@ class ConfigParser(object):
         """
 
         if self.config is None:
-            self.config = open(self.config_file).read()
-            self.config_local = open(self.config_file_local).read()
+            self.config = io.open(self.config_file, encoding='utf-8').read()
+            self.config_local = io.open(self.config_file_local,
+                                        encoding='utf-8').read()
         report_pattern = re.compile(r"^\s*" + report_name + r"\s*\{(.*?)\}$",
                                     re.M | re.S | re.I)
         match = report_pattern.search(self.config)
@@ -406,8 +409,8 @@ class ReportConfig(object):
         self.report_id = ''
 
     def __repr__(self):
-        template = ("ReportConfig(sql({0}) sql_select({1}) where({2}) "
-                    "order_by({3}))")
+        template = ("<ReportConfig sql={0!r}, sql_select={1!r}, where={2!r}, "
+                    "order_by={3!r} >")
         return template.format(self.sql, self.sql_select, self.where,
                                self.order_by)
 
@@ -430,6 +433,8 @@ class ReportConfig(object):
         def _transform(arg):
             if arg.startswith("-"):
                 arg = "%s DESC" % arg.replace("-", "")
+            if isinstance(arg, unicode):
+                return arg.encode('utf-8')
             return arg
 
         sort = [_transform(s) for s in self.order_by]

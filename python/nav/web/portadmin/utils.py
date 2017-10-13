@@ -16,17 +16,15 @@
 #
 """Util functions for the PortAdmin"""
 import re
-import ConfigParser
+import configparser
 import logging
 
 import django.template
 
 from django.template.loaders.filesystem import Loader
 from nav.django.utils import is_admin
-from nav.models.profiles import AccountGroup
-from nav.path import sysconfdir
+from nav.buildconf import sysconfdir
 from nav.portadmin.snmputils import SNMPFactory, FantasyVlan
-from nav.models.arnold import Identity
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 from operator import attrgetter
 from os.path import join
@@ -207,7 +205,7 @@ def fetch_voice_vlans(config=None):
 
 def read_config():
     """Read the config"""
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(CONFIGFILE)
 
     return config

@@ -19,7 +19,6 @@ from twisted.internet import defer
 
 from nav.mibs import reduce_index
 from nav.mibs.entity_mib import EntityMib
-from nav.mibs.entity_mib import EntityTable
 from nav.mibs import mibretriever
 from nav.models.manage import Sensor
 
@@ -36,6 +35,8 @@ UNITS_OF_MEASUREMENTS = {
     10: Sensor.UNIT_RPM,
     11: Sensor.UNIT_CMM,
     12: Sensor.UNIT_TRUTHVALUE,
+    13: 'specialEnum',  # cisco extension
+    14: Sensor.UNIT_DBM,  # cisco extension
 }
 
 DATA_SCALE = {
@@ -48,19 +49,25 @@ DATA_SCALE = {
     7: 'micro',
     8: 'milli',
     9: None,
-   10: 'kilo',
-   11: 'mega',
-   12: 'giga',
-   13: 'tera',
-   14: 'exa',
-   15: 'peta',
-   16: 'zetta',
-   17: 'yotta',
-  }
+    10: 'kilo',
+    11: 'mega',
+    12: 'giga',
+    13: 'tera',
+    14: 'exa',
+    15: 'peta',
+    16: 'zetta',
+    17: 'yotta',
+}
 
 
 class EntitySensorMib(mibretriever.MibRetriever):
     from nav.smidumps.entity_sensor_mib import MIB as mib
+    TYPE_COLUMN = 'entPhySensorType'
+    SCALE_COLUMN = 'entPhySensorScale'
+    PRECISION_COLUMN = 'entPhySensorPrecision'
+    VALUE_COLUMN = 'entPhySensorValue'
+    STATUS_COLUMN = 'entPhySensorOperStatus'
+    UNITS_DISPLAY_COLUMN = 'entPhySensorUnitsDisplay'
 
     def __init__(self, agent_proxy):
         """Good old constructor..."""
@@ -68,39 +75,17 @@ class EntitySensorMib(mibretriever.MibRetriever):
         self.entity_mib = EntityMib(self.agent_proxy)
 
     def _get_sensors(self):
-        """ Collect all sensors."""
+        """ Collect all sensors from the box."""
         df = self.retrieve_columns([
-                'entPhySensorType',
-                'entPhySensorScale',
-                'entPhySensorPrecision',
-                'entPhySensorValue',
-                'entPhySensorOperStatus',
-                'entPhySensorUnitsDisplay',
+                self.TYPE_COLUMN,
+                self.SCALE_COLUMN,
+                self.PRECISION_COLUMN,
+                self.VALUE_COLUMN,
+                self.STATUS_COLUMN,
+                self.UNITS_DISPLAY_COLUMN,
                 ])
         df.addCallback(reduce_index)
         return df
-
-    def _collect_entity_names(self):
-        """ Collect all entity-names on netbox."""
-        df = self.entity_mib.retrieve_columns([
-                'entPhysicalDescr',
-                'entPhysicalName',
-                ])
-        df.addCallback(reduce_index)
-        return df
-
-    @defer.inlineCallbacks
-    def _get_named_table(self, table_name):
-        df = self.retrieve_table(table_name)
-        df.addCallback(self.translate_result)
-        ret_table = yield df
-        named_table = EntityTable(ret_table)
-        defer.returnValue(named_table)
-
-    @defer.inlineCallbacks
-    def get_phy_sensor_table(self):
-        phy_sensor_table = yield self._get_named_table('entPhySensorTable')
-        defer.returnValue(phy_sensor_table)
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
@@ -110,36 +95,44 @@ class EntitySensorMib(mibretriever.MibRetriever):
             Return a list with dictionaries, each dictionary
             represent a sensor."""
         sensors = yield self._get_sensors()
-        entity_names = yield self._collect_entity_names()
-        for idx, row in entity_names.items():
+        entities = yield self.entity_mib.get_entity_physical_table()
+        aliases = yield self.entity_mib.get_alias_mapping()
+        for idx, row in entities.items():
             if idx in sensors:
                 sensors[idx]['entPhysicalDescr'] = row.get(
                     'entPhysicalDescr', None)
                 sensors[idx]['entPhysicalName'] = row.get(
                     'entPhysicalName', None)
+                port = entities.get_nearest_port_parent(row)
+                if port and port.index[-1] in aliases:
+                    ifindices = aliases[port.index[-1]]
+                    if len(ifindices) == 1:
+                        sensors[idx]['ifindex'] = ifindices[0]
         result = []
         for row_id, row in sensors.items():
             row_oid = row.get(0, None)
-            mibobject = self.nodes.get('entPhySensorValue', None)
+            mibobject = self.nodes.get(self.VALUE_COLUMN, None)
             oid = str(mibobject.oid) + str(row_oid)
-            unit_of_measurement = row.get('entPhySensorType', 2)
-            precision = row.get('entPhySensorPrecision', 0)
-            scale = row.get('entPhySensorScale', None)
-            op_status = row.get('entPhySensorOperStatus', None)
+            unit_of_measurement = row.get(self.TYPE_COLUMN, 2)
+            precision = row.get(self.PRECISION_COLUMN, 0)
+            scale = row.get(self.SCALE_COLUMN, None)
+            op_status = row.get(self.STATUS_COLUMN, None)
             description = row.get('entPhysicalDescr', None)
             name = row.get('entPhysicalName', None)
+            ifindex = row.get('ifindex')
             internal_name = name
             if op_status == 1:
                 result.append({
                     'oid': oid,
                     'unit_of_measurement': UNITS_OF_MEASUREMENTS.get(
-                                                unit_of_measurement, None),
+                        unit_of_measurement, None),
                     'precision': precision,
                     'scale': DATA_SCALE.get(scale, None),
                     'description': description,
                     'name': name,
                     'internal_name': internal_name,
                     'mib': self.get_module_name(),
+                    'ifindex': ifindex,
                     })
         self._logger.debug('get_all_sensors: result=%s', result)
         defer.returnValue(result)

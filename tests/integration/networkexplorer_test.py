@@ -20,7 +20,6 @@ class NetworkExplorerSearchTest(TestCase):
     """
     def setUp(self):
         transaction.enter_transaction_management()
-        transaction.managed(True)
 
     def tearDown(self):
         transaction.rollback()
@@ -120,6 +119,7 @@ class ViewsTest(TestDataMixin, TestCase):
         self.assertFalse('routers' in response.content)
         self.assertFalse('gwports' in response.content)
         self.assertFalse('swports' in response.content)
+
 
 class FormsTest(TestDataMixin, TestCase):
 

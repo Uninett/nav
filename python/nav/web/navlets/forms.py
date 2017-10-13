@@ -1,12 +1,11 @@
 """Module containing some of the forms used in widgets"""
 
 from django import forms
-from django.db.models import Q
 
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation import layout
 
-from nav.models.manage import Netbox, Sensor, Room
+from nav.models.manage import Sensor, Room
 
 
 class AlertWidgetForm(forms.Form):

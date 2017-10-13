@@ -23,7 +23,7 @@ added, the first item is removed.
 """
 
 
-class CircBuf:
+class CircBuf(object):
     def __init__(self, size=10, *_args, **_kwargs):
         self._size = size
         self._data = [None]*self._size

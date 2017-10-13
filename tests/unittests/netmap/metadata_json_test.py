@@ -15,15 +15,13 @@
 #
 
 import unittest
-from mock import Mock
-from nav.models.manage import (Netbox, Room, Location, SwPortVlan, Vlan,
-    Interface)
+from nav.models.manage import (SwPortVlan, Vlan)
 from nav.models.profiles import NetmapViewNodePosition
 from nav.netmap import stubs, metadata
 from nav.netmap.metadata import Edge, Group
-from metaclass_testcase import MetaClassTestCase
-from topology_layer3_testcase import TopologyLayer3TestCase
-from topology_layer2_testcase import TopologyLayer2TestCase
+from .metaclass_testcase import MetaClassTestCase
+from .topology_layer3_testcase import TopologyLayer3TestCase
+from .topology_layer2_testcase import TopologyLayer2TestCase
 
 
 class MetaClassesJsonTests(MetaClassTestCase):
@@ -217,7 +215,7 @@ class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
 
         self.assertEqual(1, len(edge_json_metadata['edges']))
         self.assertEqual(2, len(edge_json_metadata['edges'][2112]))
-        expected_prefixes = (u'feed:dead:cafe:babe::/64', u'158.38.0.4/30')
+        expected_prefixes = (u'158.38.0.4/30', u'feed:dead:cafe:babe::/64')
         for i, prefix in enumerate(expected_prefixes):
             self.assertEqual(edge_json_metadata['edges'][2112][i]['prefix']['net_address'], prefix)
 

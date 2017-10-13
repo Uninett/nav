@@ -19,7 +19,7 @@
 from collections import defaultdict
 from functools import reduce
 
-from django.core.urlresolvers import reverse, NoReverseMatch
+from django.core.urlresolvers import reverse
 from django.db.models import Model
 from django.shortcuts import render_to_response
 from django.template import RequestContext

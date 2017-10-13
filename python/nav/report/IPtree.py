@@ -28,7 +28,6 @@ def build_tree(start_net, end_net=None, bits_in_matrix=0,
 
     Arguments:
         start_net: IPy.IP instance of the starting point
-        forceBuild: Force tree build instead of using cached result
 
     Returns: A tree (using a hash map)
 
@@ -51,8 +50,8 @@ def build_tree(start_net, end_net=None, bits_in_matrix=0,
     subnets = get_subnets(start_net)
     sorted_subnets = sort_nets_by_prefixlength(subnets)
 
-    #TODO: Reimplement this to respect that the list is allready sorted,
-    #      that way we won't have to sort the list again.
+    # TODO: Reimplement this to respect that the list is allready sorted,
+    #       that way we won't have to sort the list again.
     if add_missing_nets and bits_in_matrix > 0:
         mask = getMask(start_net.version(), end_net.prefixlen()-bits_in_matrix)
         for ip in sorted_subnets:
@@ -64,7 +63,7 @@ def build_tree(start_net, end_net=None, bits_in_matrix=0,
 
         sorted_subnets = sort_nets_by_prefixlength(sorted_subnets)
 
-    #build the tree
+    # build the tree
     for ip in sorted_subnets:
         _insert_into_tree(result, ip)
 

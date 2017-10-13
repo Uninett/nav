@@ -15,7 +15,6 @@
 #
 """Functions for updating the database's layer 2 topology"""
 
-from nav.topology.analyze import AdjacencyReducer, build_candidate_graph_from_db
 from nav.topology.analyze import Port
 
 from nav.models.manage import Interface, Netbox

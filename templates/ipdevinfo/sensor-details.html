@@ -79,6 +79,16 @@
           <th>Description</th>
           <td>{{sensor.human_readable}}</td>
         </tr>
+        {% if sensor.interface %}
+          <tr>
+            <th>Interface</th>
+            <td>
+              <a href="{% url 'ipdevinfo-interface-details' sensor.interface.netbox.sysname sensor.interface.id %}">
+                {{sensor.interface.ifname}}
+              </a>
+            </td>
+          </tr>
+        {% endif %}
         <tr>
           <th>Unit</th>
           <td>{{sensor.unit_of_measurement}}</td>

@@ -16,7 +16,7 @@
 
     <tbody>
     {% for o in objects %}
-        <tr class="{% cycle 'oddrow' 'evenrow' %}">
+        <tr>
             <td>
                 <input type="checkbox" name="object" value="{{ o.id }}" checked="checked" />
             </td>

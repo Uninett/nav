@@ -49,6 +49,11 @@ _jnxExVlanTag = '.1.3.6.1.4.1.2636.3.40.1.5.1.5.1.5'
 class JuniperDot1q(dot1q.Dot1q):
     """Collect 802.1q info from BRIDGE and Q-BRIDGE MIBs, with Juniper patch"""
 
+    def __init__(self, *args, **kwargs):
+        super(JuniperDot1q, self).__init__(*args, **kwargs)
+        if self.__is_a_moronic_juniper_device():
+            self.qbridgemib.juniper_hack = True
+
     @inlineCallbacks
     def _retrieve_vlan_ports(self):
         """

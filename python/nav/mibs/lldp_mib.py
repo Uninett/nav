@@ -18,6 +18,8 @@ import socket
 from collections import namedtuple
 
 from nav.ip import IP
+
+from django.utils import six
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.mibs.if_mib import IfMib
@@ -151,7 +153,7 @@ class IdType(str):
 class MacAddress(IdType):
     def __new__(cls, *args, **_kwargs):
         arg = args[0]
-        if isinstance(arg, basestring):
+        if isinstance(arg, six.string_types):
             arg = binary_mac_to_hex(arg)
         elif isinstance(arg, cls):
             return arg
@@ -168,7 +170,7 @@ class NetworkAddress(IdType):
 
     def __new__(cls, *args, **_kwargs):
         arg = args[0]
-        if arg and isinstance(arg, basestring):
+        if arg and isinstance(arg, six.string_types):
             addr_type = ord(arg[0])
             addr_string = arg[1:]
             if addr_type in cls.ADDR_FAMILY:

@@ -1,6 +1,7 @@
 """Template filters for string manipulation"""
-from django import template
 import re
+
+from django import template
 
 register = template.Library()
 
@@ -12,12 +13,6 @@ def shorten_ifname(ifname):
     if matchobject:
         return "...".join(matchobject.groups())
     return ifname
-
-
-@register.filter
-def add_zwsp(value, separator="|"):
-    """Add Zero Width space after the given separator"""
-    return ("%s%s" % (separator, "&#8203;")).join(value.split(separator))
 
 
 @register.filter

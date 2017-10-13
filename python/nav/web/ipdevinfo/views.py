@@ -30,7 +30,7 @@ from nav.django.templatetags.thresholds import find_rules
 from nav.metrics.errors import GraphiteUnreachableError
 
 from nav.models.manage import (Netbox, Module, Interface, Prefix, Arp, Cam,
-                               Sensor)
+                               Sensor, POEGroup)
 from nav.models.msgmaint import MaintenanceTask
 from nav.models.arnold import Identity
 from nav.models.service import Service
@@ -491,6 +491,30 @@ def module_details(request, netbox_sysname, module_name):
             request, processors=[search_form_processor]))
 
 
+def poegroup_details(request, netbox_sysname, grpindex):
+    """Show detailed view of one IP device power over ethernet group"""
+
+    poegroup = get_object_or_404(POEGroup.objects.select_related(),
+                                 netbox__sysname=netbox_sysname, index=grpindex)
+
+    navpath = NAVPATH + [
+        (netbox_sysname,
+         reverse('ipdevinfo-details-by-name',
+                 kwargs={'name': netbox_sysname})),
+        ('PoE Details for ' + poegroup.name,)]
+
+    return render_to_response(
+        'ipdevinfo/poegroup-details.html',
+        {
+            'poegroup': poegroup,
+            'navpath': navpath,
+            'heading': navpath[-1][0],
+            'title': create_title(navpath),
+        },
+        context_instance=RequestContext(
+            request, processors=[search_form_processor]))
+
+
 def port_details(request, netbox_sysname, port_type=None, port_id=None,
                  port_name=None):
     """Show detailed view of one IP device port"""
@@ -522,6 +546,17 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
         port_metrics = []
         graphite_error = True
 
+    sensor_metrics = []
+    for sensor in port.sensor_set.all():
+        metric_id = sensor.get_metric_name()
+        metric = {
+            'id': metric_id,
+            'sensor': sensor,
+            'graphite_data_url': Graph(
+                magic_targets=[metric_id], format='json'),
+        }
+        sensor_metrics.append(metric)
+    find_rules(sensor_metrics)
     # If interface is detained in Arnold, this should be visible on the
     # port details view
     try:
@@ -547,6 +582,7 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             'port_metrics': port_metrics,
             'graphite_error': graphite_error,
             'detention': detention,
+            'sensor_metrics': sensor_metrics,
         },
         context_instance=RequestContext(
             request, processors=[search_form_processor]))

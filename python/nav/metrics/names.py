@@ -18,9 +18,9 @@
 from collections import OrderedDict
 import itertools
 import json
-from urllib import urlencode, quote
-import urllib2
-from urlparse import urljoin
+from django.utils.six.moves.urllib.parse import urlencode, urljoin
+from django.utils.six.moves.urllib.request import Request, urlopen
+from django.utils.six.moves.urllib.error import URLError
 from nav.metrics import CONFIG, errors
 
 
@@ -129,11 +129,11 @@ def raw_metric_query(query):
     query = urlencode({'query': query})
     url = "%s?%s" % (url, query)
 
-    req = urllib2.Request(url)
+    req = Request(url)
     try:
-        response = urllib2.urlopen(req)
+        response = urlopen(req)
         return json.load(response)
-    except urllib2.URLError as err:
+    except URLError as err:
         raise errors.GraphiteUnreachableError(
             "{0} is unreachable".format(base), err)
     except ValueError:

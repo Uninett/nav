@@ -15,19 +15,19 @@
 #
 """Bulk import format parsers."""
 
+from __future__ import absolute_import
+
 import csv
 import re
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+import io
 
+from django.utils import six
 from IPy import IP
 
 from nav.errors import GeneralException
 
 
-class BulkParser(object):
+class BulkParser(six.Iterator):
     """Abstract base class for bulk parsers"""
     format = ()
     required = 0
@@ -38,7 +38,10 @@ class BulkParser(object):
         if hasattr(data, 'seek'):
             self.data = data
         else:
-            self.data = StringIO(data)
+            if six.PY3:
+                self.data = io.StringIO(data.decode('utf-8'))
+            else:
+                self.data = io.BytesIO(data)
 
         if delimiter is None:
             try:
@@ -61,9 +64,9 @@ class BulkParser(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         """Generate next parsed row"""
-        row = self.reader.next()
+        row = six.next(self.reader)
         # although the DictReader doesn't return blank lines, we want
         # to count them so we can pinpoint errors exactly within the
         # source file.
@@ -119,7 +122,7 @@ class BulkParser(object):
 
 # don't complain about simple iterators, mr. Pylint!
 # pylint: disable=R0903
-class CommentStripper(object):
+class CommentStripper(six.Iterator):
     """Iterator that strips comments from the input iterator"""
     COMMENT_PATTERN = re.compile(r'\W*#[^\n\r]*')
 
@@ -129,9 +132,9 @@ class CommentStripper(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         """Returns next line"""
-        line = self.source_iterator.next()
+        line = six.next(self.source_iterator)
         return self.COMMENT_PATTERN.sub('', line)
 
 

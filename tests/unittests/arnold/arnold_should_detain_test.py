@@ -4,6 +4,7 @@ from mock import Mock, patch
 from nav.arnold import (InExceptionListError, WrongCatidError,
                         BlockonTrunkError, raise_if_detainment_not_allowed, check_non_block)
 
+
 @patch('nav.arnold.get_config')
 class TestArnoldShouldDetain(unittest.TestCase):
     """Tests for should_detain"""
@@ -17,7 +18,6 @@ class TestArnoldShouldDetain(unittest.TestCase):
             parse.return_value = {'ip': {'10.0.0.1': 1}}
             arguments = ['10.0.0.1']
             self.assertRaises(InExceptionListError, check_non_block, *arguments)
-
 
     def test_should_detain_wrongcatid(self, mock_getconfig):
         """Test that WrongCatidError is properly thrown"""
@@ -56,4 +56,3 @@ def create_interface():
     interface.trunk = True
 
     return interface
-

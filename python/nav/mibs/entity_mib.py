@@ -21,6 +21,7 @@ import logging
 from datetime import datetime
 import struct
 
+from django.utils import six
 from twisted.internet import defer
 
 from nav.oids import OID
@@ -109,6 +110,23 @@ class EntityMib(mibretriever.MibRetriever):
         ])
         defer.returnValue(self.translate_result(columns))
 
+    @defer.inlineCallbacks
+    def get_alias_mapping(self):
+        alias_mapping = yield self.retrieve_column(
+            'entAliasMappingIdentifier')
+        defer.returnValue(self._process_alias_mapping(alias_mapping))
+
+    def _process_alias_mapping(self, alias_mapping):
+        mapping = defaultdict(list)
+        for (phys_index, _logical), rowpointer in alias_mapping.items():
+            # Last element is ifindex. Preceding elements is an OID.
+            ifindex = OID(rowpointer)[-1]
+
+            mapping[phys_index].append(ifindex)
+
+        self._logger.debug("alias mapping: %r", mapping)
+        return mapping
+
 
 class EntityTable(dict):
     """Represent the contents of the entPhysicalTable as a dictionary"""
@@ -193,6 +211,20 @@ class EntityTable(dict):
             else:
                 return self.get_nearest_module_parent(parent)
 
+    def get_nearest_port_parent(self, entity):
+        """Traverse the entity hierarchy to find a suitable parent port.
+
+        Returns a port row if a parent is found, else None is returned.
+
+        """
+        parent_index = entity['entPhysicalContainedIn']
+        if parent_index in self:
+            parent = self[parent_index]
+            if self.is_port(parent):
+                return parent
+            else:
+                return self.get_nearest_port_parent(parent)
+
     def get_chassis_of(self, entity):
         """Returns the nearest parent chassis of an entity.
 
@@ -214,7 +246,7 @@ class EntityTable(dict):
     def _parse_mfg_date(self):
         for entity in self.values():
             mfg_date = entity.get('entPhysicalMfgDate')
-            if isinstance(mfg_date, basestring):
+            if isinstance(mfg_date, six.string_types):
                 mfg_date = parse_dateandtime_tc(mfg_date)
                 entity['entPhysicalMfgDate'] = mfg_date
 

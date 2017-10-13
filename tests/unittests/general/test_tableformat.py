@@ -1,6 +1,7 @@
 from unittest import TestCase
 from nav.tableformat import SimpleTableFormatter
 
+
 class TestSimpleTableFormatter(TestCase):
     def test_column_count(self):
         data = (('one', 'two', 'three'),

@@ -17,10 +17,14 @@
 
 import logging
 from IPy import IP
+import django
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.db.models import Q
-from django.db.models.related import RelatedObject
+if django.VERSION < (1, 8):
+    from django.db.models.related import RelatedObject as _RelatedObject
+else:
+    from django.db.models.fields.related import ManyToOneRel as _RelatedObject
 from django.db.models.fields import FieldDoesNotExist
 from datetime import datetime, timedelta
 import iso8601
@@ -152,7 +156,7 @@ class RelatedOrderingFilter(filters.OrderingFilter):
                 model._meta.get_field_by_name(components[0])
 
             # reverse relation
-            if isinstance(field, RelatedObject):
+            if isinstance(field, _RelatedObject):
                 return self.is_valid_field(field.model, components[1])
 
             # foreign key
@@ -484,6 +488,7 @@ class PrefixViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         queryset = manage.Prefix.objects.raw(query, [net_address + "%"])
         results = self.get_serializer(queryset, many=True)
         return Response(results.data)
+
 
 class RoutedPrefixList(NAVAPIMixin, ListAPIView):
     """Lists all routed prefixes. A router has category *GSW* or *GW*
