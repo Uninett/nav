@@ -24,6 +24,7 @@ from nav.web.ipdevinfo.views import (search, service_list, service_matrix,
                                      port_details, get_port_view,
                                      render_affected, render_host_info,
                                      port_counter_graph, sensor_details,
+                                     save_port_layout_pref,
                                      unrecognized_neighbors)
 
 # The patterns are relative to the base URL of the subsystem
@@ -50,6 +51,8 @@ urlpatterns = patterns(
         name='ipdevinfo-details-by-id'),
     url(r'^(?P<name>[^/]+)/$', ipdev_details,
         name='ipdevinfo-details-by-name'),
+    url(r'^save_port_layout_pref', save_port_layout_pref,
+        name='ipdevinfo-save-port-layout'),
 
     # Module details
     url(r'^(?P<netbox_sysname>[^/]+)/module=(?P<module_name>.+)/$',
