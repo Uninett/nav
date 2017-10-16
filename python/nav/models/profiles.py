@@ -1410,8 +1410,8 @@ class ReportSubscription(models.Model):
 
     account = models.ForeignKey(Account)
     address = models.ForeignKey(AlertAddress)
-    period = models.CharField(choices=PERIODS)
-    report_type = models.CharField(choices=TYPES)
+    period = models.CharField(choices=PERIODS, max_length=255)
+    report_type = models.CharField(choices=TYPES, max_length=255)
 
     class Meta(object):
         db_table = u'report_subscription'
