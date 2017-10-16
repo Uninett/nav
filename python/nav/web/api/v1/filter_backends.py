@@ -48,7 +48,8 @@ class IfClassFilter(filters.BaseFilterBackend):
         filters = {
             'swport': Q(baseport__isnull=False),
             'gwport': Q(gwportprefix__isnull=False),
-            'physicalport': Q(ifconnectorpresent=True)
+            'physicalport': Q(ifconnectorpresent=True),
+            'trunk': Q(trunk=True)
         }
 
         if 'ifclass[]' in request.QUERY_PARAMS:

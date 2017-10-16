@@ -113,6 +113,7 @@ define(function(require) {
         $form.append('<label><input type="radio" name="portgroup" value="swport">Swports</label>');
         $form.append('<label><input type="radio" name="portgroup" value="gwport">Gwports</label>');
         $form.append('<label><input type="radio" name="portgroup" value="physicalport">Physical ports</label>');
+        $form.append('<label><input type="radio" name="portgroup" value="trunk">Trunks</label>');
         return $form;
     }
 
