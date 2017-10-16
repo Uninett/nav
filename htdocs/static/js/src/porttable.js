@@ -26,7 +26,12 @@ define(function(require) {
             }
         },
 
-        {data: "ifalias"},
+        {
+            data: "ifalias",
+            render: function(data, type, row, meta) {
+                return '<a href="' + row.object_url + '">' + data + '</a>';
+            }
+        },
 
         {
             data: 'module',
