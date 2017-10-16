@@ -278,6 +278,9 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     - netbox
     - trunk
     - module__name
+    - ifclass[swport, gwport, physicalport, trunk]
+
+    Example: `/api/1/interface/?netbox=91&ifclass[]=trunk&ifclass[]=swport`
     """
     queryset = manage.Interface.objects.all()
     serializer_class = serializers.InterfaceSerializer
