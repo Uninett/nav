@@ -20,6 +20,7 @@ import re
 
 from django.utils.six.moves.urllib.parse import unquote_plus
 
+import nav
 from nav.report.dbresult import DatabaseResult
 from nav.report.report import Report
 
