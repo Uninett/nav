@@ -24,6 +24,7 @@ import logging
 import os
 from datetime import datetime
 import re
+import json
 
 from django.views.decorators.debug import sensitive_variables
 from django.core.urlresolvers import reverse
@@ -1410,8 +1411,8 @@ class ReportSubscription(models.Model):
 
     account = models.ForeignKey(Account)
     address = models.ForeignKey(AlertAddress)
-    period = models.CharField(choices=PERIODS, max_length=255)
-    report_type = models.CharField(choices=TYPES, max_length=255)
+    period = VarcharField(choices=PERIODS)
+    report_type = VarcharField(choices=TYPES)
 
     class Meta(object):
         db_table = u'report_subscription'
