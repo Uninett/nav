@@ -1,7 +1,7 @@
 """NAV web common package."""
 
 from django.db.models import Count
-from django.http import HttpResponse, Http404
+from django.http import Http404
 
 from nav.models.profiles import AccountDashboard
 

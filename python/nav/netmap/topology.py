@@ -17,6 +17,9 @@
 import logging
 import networkx as nx
 from collections import defaultdict
+
+from django.utils import six
+
 from nav.models.manage import SwPortVlan
 from nav.netmap.metadata import edge_metadata_layer3, edge_metadata_layer2
 from nav.netmap.traffic import get_traffic_data, Traffic
@@ -29,10 +32,7 @@ def _get_vlans_map_layer2(graph):
     """Builds two dictionaries to lookup VLAN information for layer2
     :param a networkx NAV topology graph
     :returns a tuple to look up vlans by interface and/or netbox"""
-    interface_id_list = list()
-    for _, _, key in graph.edges_iter(keys=True):
-        if key.vlan:
-            interface_id_list.append(key.id)
+    interface_id_list = [x[2].id for x in graph.edges_iter(keys=True)]
 
     vlan_by_interface = defaultdict(list)
     vlan_by_netbox = defaultdict(dict)
@@ -88,7 +88,7 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
     # metadata into netmap_graph
     for source, neighbors_dict in topology_without_metadata.adjacency_iter():
         for target, connected_interfaces_at_source_for_target in (
-                neighbors_dict.iteritems()):
+                six.iteritems(neighbors_dict)):
             for interface in connected_interfaces_at_source_for_target:
                 # fetch existing metadata that might have been added already
                 existing_metadata = netmap_graph.get_edge_data(
@@ -133,7 +133,7 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
     for node, data in netmap_graph.nodes_iter(data=True):
         if node in vlan_by_netbox:
             data['metadata'] = {
-                'vlans': sorted(vlan_by_netbox[node].iteritems(),
+                'vlans': sorted(six.iteritems(vlan_by_netbox[node]),
                         key=lambda x: x[1].vlan.vlan)}
 
     _LOGGER.debug("build_netmap_layer2_graph() vlan metadata for _nodes_ done")

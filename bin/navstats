@@ -20,7 +20,7 @@ import logging
 import os.path
 import time
 from functools import partial
-import ConfigParser
+import configparser
 
 from django.db import connection, DatabaseError
 
@@ -61,7 +61,7 @@ def collect_stats(config):
         try:
             get = partial(config.get, section)
             collect(get('path'), get('query'), int(get('valueindex')))
-        except (DatabaseError, ConfigParser.Error, ValueError) as error:
+        except (DatabaseError, configparser.Error, ValueError) as error:
             _logger.error('Error collecting stats for %s: %s', section, error)
 
     _logger.info('--> Stats collection done <--')

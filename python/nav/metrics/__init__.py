@@ -22,7 +22,7 @@ from nav.config import NAVConfigParser
 class GraphiteConfigParser(NAVConfigParser):
     """Parser for NAV's graphite related configuration"""
     DEFAULT_CONFIG_FILES = ['graphite.conf']
-    DEFAULT_CONFIG = """
+    DEFAULT_CONFIG = u"""
 [carbon]
 host = 127.0.0.1
 port = 2003

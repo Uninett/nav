@@ -447,7 +447,7 @@ def check_alert_against_filtergroupcontents(alert, filtergroupcontents, atype):
 
         # If we have not matched the message see if we can match it
         if not matches and content.include:
-            matches = content.filter.check(alert) == content.positive
+            matches = content.filter.verify(alert) == content.positive
 
             if matches:
                 logger.debug('alert %d: got included by filter %d in %s',
@@ -455,7 +455,7 @@ def check_alert_against_filtergroupcontents(alert, filtergroupcontents, atype):
 
         # If the alert has been matched try excluding it
         elif matches and not content.include:
-            matches = content.filter.check(alert) != content.positive
+            matches = content.filter.verify(alert) != content.positive
 
             # Log that we excluded the alert
             if not matches:

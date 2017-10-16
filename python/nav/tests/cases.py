@@ -34,7 +34,6 @@ class DjangoTransactionTestCase(django.test.TestCase):
 
     def _pre_setup(self):
         transaction.enter_transaction_management()
-        transaction.managed(True)
         if hasattr(self, 'fixtures'):
             self._load_fixtures(self.fixtures)
 

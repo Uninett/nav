@@ -103,7 +103,8 @@ class DefaultManager(object):
                                     self.containers.__class__.__name__)
 
 
-class Shadow(six.with_metaclass(MetaShadow, object)):
+@six.add_metaclass(MetaShadow)
+class Shadow(object):
     """Base class to shadow Django model classes.
 
     To create a "dumb" container of values, whose attribute list will

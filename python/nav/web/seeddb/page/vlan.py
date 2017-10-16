@@ -18,8 +18,7 @@
 from django import forms
 
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (Layout, Row, Column, Submit,
-                                            Fieldset)
+from crispy_forms_foundation.layout import Layout, Row, Column, Fieldset
 from nav.web.crispyforms import LabelSubmit
 
 from nav.models.manage import Vlan, NetType, Organization, Usage

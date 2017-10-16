@@ -1,4 +1,4 @@
-# coding: UTF-8
+# coding: utf-8
 
 # Copyright (C) 2017 UNINETT AS
 #
@@ -18,6 +18,7 @@ from __future__ import unicode_literals
 
 
 default_app_config = 'nav.auditlog.apps.AuditlogConfig'
+
 
 def find_modelname(obj):
     try:

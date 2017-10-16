@@ -19,6 +19,7 @@ import json
 from itertools import chain
 
 from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
 
 from nav.models.fields import VarcharField
 from nav.models.manage import Room, Sensor
@@ -39,6 +40,7 @@ class RackManager(models.Manager):
         return set(chain(*sensor_pks))
 
 
+@python_2_unicode_compatible
 class Rack(models.Model):
     """A physical rack placed in a room."""
 
@@ -56,7 +58,7 @@ class Rack(models.Model):
     class Meta(object):
         db_table = 'rack'
 
-    def __unicode__(self):
+    def __str__(self):
         return "'{}' in {}".format(self.rackname or self.id, self.room.pk)
 
     @property

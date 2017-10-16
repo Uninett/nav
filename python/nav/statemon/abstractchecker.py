@@ -132,7 +132,7 @@ class AbstractChecker(object):
             return
 
         if status != self.status:
-            LOGGER.critical("%-20s -> %s, %s",service, status, info)
+            LOGGER.critical("%-20s -> %s, %s", service, status, info)
             new_event = event.Event(self.serviceid,
                                     self.netboxid,
                                     None,  # deviceid

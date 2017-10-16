@@ -35,10 +35,9 @@ class SshChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=22, **kwargs)
 
     def execute(self):
-        s_family, s_sockaddr = self._get_sock_info()
-        sock = socket.socket(s_family, socket.SOCK_STREAM)
-        sock.settimeout(self.timeout)
-        sock.connect(s_sockaddr)
+        (hostname, port) = self.get_address()
+        sock = socket.create_connection((hostname, port),
+                                        self.timeout)
         stream = sock.makefile('r+')
         version = stream.readline().strip()
         try:
@@ -48,15 +47,7 @@ class SshChecker(AbstractChecker):
         except Exception as err:
             return (Event.DOWN,
                     "Failed to send version reply to %s: %s" % (
-                    self.get_address(), str(err)))
+                        self.get_address(), str(err)))
         sock.close()
         self.version = version
         return Event.UP, version
-
-    def _get_sock_info(self):
-        (hostname, port) = self.get_address()
-        addrinfo = socket.getaddrinfo(
-            hostname, port, 0, 0, socket.IPPROTO_TCP, 0)
-        for family, _socktype, _proto, _canonname, sockaddr in addrinfo:
-            if family in (socket.AF_INET, socket.AF_INET6):
-                return family, sockaddr

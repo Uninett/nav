@@ -34,18 +34,6 @@ def map_to_class(status):
 
 
 @register.filter
-def map_to_word(status):
-    """Map a status to a human word"""
-    mapping = {
-        STATUS_NOT_OK: 'Not ok',
-        STATUS_OK: 'Ok',
-        STATUS_UNKNOWN: 'Unknown'
-    }
-
-    return mapping.get(status, '')
-
-
-@register.filter
 def map_to_faclass(status):
     """Return Font Awesome class based on status"""
     mapping = {

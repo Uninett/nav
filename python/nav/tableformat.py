@@ -14,6 +14,9 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Formatting of table data to readable text."""
+from __future__ import absolute_import
+
+from django.utils import six
 
 
 class SimpleTableFormatter(object):
@@ -42,7 +45,7 @@ class SimpleTableFormatter(object):
         new_row = []
         for index, cell in enumerate(row):
             fmt = u"%%%ds" % widths[index]
-            new_row.append(fmt % unicode(cell))
+            new_row.append(fmt % six.text_type(cell))
         return ' | '.join(new_row)
 
     def _find_widest_elements(self):
@@ -54,7 +57,7 @@ class SimpleTableFormatter(object):
         return max_widths
 
     def _get_max_width_of_column(self, column_number):
-        widths = [len(unicode(row[column_number])) for row in self.data]
+        widths = [len(six.text_type(row[column_number])) for row in self.data]
         return max(widths)
 
     def _get_column_count(self):

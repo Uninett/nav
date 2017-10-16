@@ -19,13 +19,14 @@
 import sys
 import os
 import logging
-import ConfigParser
-import nav.path
+import configparser
+import nav.buildconf
 
 DEFAULT_LOG_FORMATTER = logging.Formatter('%(asctime)s [%(levelname)s] '
                                           '[%(name)s] %(message)s')
 LOGGING_CONF_VAR = 'NAV_LOGGING_CONF'
-LOGGING_CONF_FILE_DEFAULT = os.path.join(nav.path.sysconfdir, 'logging.conf')
+LOGGING_CONF_FILE_DEFAULT = os.path.join(nav.buildconf.sysconfdir,
+                                         'logging.conf')
 _logger = logging.getLogger(__name__)
 
 
@@ -72,7 +73,7 @@ def translate_log_level(level):
 def set_custom_log_file():
     """Read logging config and add additional file handlers to specified logs"""
 
-    logdir = os.path.join(nav.path.localstatedir, 'log')
+    logdir = os.path.join(nav.buildconf.localstatedir, 'log')
     config = get_logging_conf()
     section = 'files'
 
@@ -101,7 +102,7 @@ def get_logging_conf():
 
     """
     filename = os.environ.get(LOGGING_CONF_VAR, LOGGING_CONF_FILE_DEFAULT)
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     read = config.read(filename)
     if filename not in read and LOGGING_CONF_VAR in os.environ:
         _logger.error("cannot read logging config from %s, trying default %s",

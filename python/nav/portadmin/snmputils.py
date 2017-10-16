@@ -19,6 +19,9 @@ import time
 import logging
 from operator import attrgetter
 
+from django.utils import six
+from django.utils.encoding import python_2_unicode_compatible
+
 from nav import Snmp
 from nav.errors import NoNetboxTypeError
 from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
@@ -36,6 +39,7 @@ CHARS_IN_1024_BITS = 128
 # TODO: Fix get_vlans as it does not return all vlans, see get_available_vlans
 
 
+@python_2_unicode_compatible
 class FantasyVlan(object):
     """A container object for storing vlans for a netbox
 
@@ -50,7 +54,7 @@ class FantasyVlan(object):
         self.net_ident = netident
         self.descr = descr
 
-    def __unicode__(self):
+    def __str__(self):
         if self.net_ident:
             return "%s (%s)" % (self.vlan, self.net_ident)
         else:
@@ -59,10 +63,17 @@ class FantasyVlan(object):
     def __hash__(self):
         return hash(self.vlan)
 
+    def __lt__(self, other):
+        return self.vlan < other.vlan
+
+    def __eq__(self, other):
+        return self.vlan == other.vlan
+
     def __cmp__(self, other):
         return cmp(self.vlan, other.vlan)
 
 
+@python_2_unicode_compatible
 class SNMPHandler(object):
     """A basic class for SNMP-read and -write to switches."""
 
@@ -102,7 +113,7 @@ class SNMPHandler(object):
         self.timeout = kwargs.get('timeout', 3)
         self.retries = kwargs.get('retries', 3)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.netbox.type.vendor.id
 
     def _bulkwalk(self, oid):
@@ -181,7 +192,7 @@ class SNMPHandler(object):
 
         """
         hexes = bitvector.to_hex()
-        chunksize = len(bitvector.to_hex()) / chunks
+        chunksize = len(bitvector.to_hex()) // chunks
         for i in range(0, len(hexes), chunksize):
             yield BitVector.from_hex(hexes[i:i + chunksize])
 
@@ -214,7 +225,7 @@ class SNMPHandler(object):
 
     def set_if_alias(self, if_index, if_alias):
         """Set alias on a specific interface."""
-        if isinstance(if_alias, unicode):
+        if isinstance(if_alias, six.text_type):
             if_alias = if_alias.encode('utf8')
         return self._set_netbox_value(self.IF_ALIAS_OID, if_index, "s",
                                       if_alias)
@@ -240,7 +251,7 @@ class SNMPHandler(object):
             bit[port] = 1
         else:
             bit[port] = 0
-        return str(bit)
+        return bit.to_bytes()
 
     def set_vlan(self, interface, vlan):
         """Set a new vlan on the given interface and remove
@@ -464,7 +475,7 @@ class SNMPHandler(object):
             _logger.debug('Setting egress ports for vlan %s, set bits: %s',
                           vlan, bitvector.get_set_bits())
             self._set_netbox_value(self.VLAN_EGRESS_PORTS,
-                                   vlan, 's', str(bitvector))
+                                   vlan, 's', bitvector.to_bytes())
         except SnmpError as error:
             _logger.error("Error setting egress ports: %s", error)
             raise error
@@ -729,7 +740,8 @@ class Cisco(SNMPHandler):
                     self.TRUNKPORTVLANSENABLED4K]:
             bitvector_chunk = chunks.next()
             try:
-                self._set_netbox_value(oid, ifindex, 's', str(bitvector_chunk))
+                self._set_netbox_value(oid, ifindex, 's',
+                                       bitvector_chunk.to_bytes())
             except SnmpError as error:
                 _logger.error('Error setting trunk vlans on %s ifindex %s: %s',
                               self.netbox, ifindex, error)

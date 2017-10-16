@@ -1,4 +1,4 @@
-from mock import Mock, patch, call
+from mock import Mock, patch
 import pytest
 from unittest import TestCase
 import sys
@@ -49,7 +49,6 @@ class SnmptrapdPluginTest(TestCase):
                                        globals(), locals(), ['bar'])
 
         assert not hasattr(loader[0], 'initialize')
-
 
     def test_plugin_loader_calls_initialize_method_if_it_exists(self):
         loader = load_handler_modules([self.plugin_a])

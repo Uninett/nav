@@ -21,7 +21,7 @@ from django.utils.datastructures import SortedDict
 
 from nav.models.event import AlertHistory, AlertHistoryMessage
 from nav.models.manage import (Netbox, Device, Location, Room, Module,
-                               Organization, Category)
+                               NetboxGroup, Organization, Category)
 
 LOCATION_GROUPING = {
     'order_by': 'netbox__room__location__description',
@@ -75,7 +75,7 @@ def fetch_history(selection, form):
     def make_selection_filter(and_mode=False):
         dicts = {'%s__in' % (arg if arg != 'netbox' else 'id'): selection[arg]
                  for arg in ('netbox', 'room', 'room__location', 'organization',
-                             'category', 'module')
+                             'category', 'module', 'groups')
                  if selection[arg]}
         filters = [Q(**dicts)]
 
@@ -183,6 +183,7 @@ def describe_search_params(selection):
     for arg, model in (('room__location', Location),
                        ('room', Room),
                        ('netbox', Netbox),
+                       ('groups', NetboxGroup),
                        ('module', Module),
                        ('organization', Organization),
                        ('category', Category)):
@@ -191,8 +192,8 @@ def describe_search_params(selection):
             data[name] = _get_data_to_search_terms(selection, arg, model)
 
     # Special case with netboxes
-    if 'netbox' not in data:
-        data['netbox'] = ["All netboxes selected."]
+    if Netbox._meta.verbose_name not in data:
+        data[Netbox._meta.verbose_name] = ["All IP devices selected."]
 
     return data
 

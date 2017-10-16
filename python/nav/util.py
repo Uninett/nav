@@ -15,13 +15,20 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """General utility functions for Network Administration Visualized"""
+from __future__ import absolute_import
 import os
 import re
 import stat
 import socket
 import datetime
 from functools import wraps
-from itertools import chain, tee, ifilter
+from itertools import chain, tee
+try:
+    from itertools import ifilter
+except ImportError:
+    ifilter = filter
+
+from django.utils import six
 
 import IPy
 
@@ -95,7 +102,7 @@ def _is_valid_ip_ipy(ip):
     A cleaned up version of the IP address string is returned if it is verified,
     otherwise a false value is returned.
     """
-    if isinstance(ip, (str, unicode)) and not ip.isdigit():
+    if isinstance(ip, six.string_types) and not ip.isdigit():
         try:
             valid_ip = IPy.IP(ip)
             if valid_ip.len() == 1:
@@ -113,9 +120,10 @@ def is_valid_cidr(cidr):
 
     Uses the IPy library to verify addresses.
     """
-    if isinstance(cidr, basestring) and not cidr.isdigit() and '/' in cidr:
+    if (isinstance(cidr, six.string_types) and
+            not cidr.isdigit() and '/' in cidr):
         try:
-            valid_cidr = IPy.IP(cidr)
+            valid_cidr = IPy.IP(cidr) is not None
         except (ValueError, TypeError):
             return False
         else:

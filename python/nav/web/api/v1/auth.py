@@ -17,7 +17,7 @@
 
 import logging
 from datetime import datetime
-from urlparse import urlparse
+from django.utils.six.moves.urllib.parse import urlparse
 from rest_framework.permissions import BasePermission
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authentication import (TokenAuthentication,

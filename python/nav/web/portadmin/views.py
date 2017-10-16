@@ -15,7 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """View controller for PortAdmin"""
-import ConfigParser
+import configparser
 import logging
 import json
 
@@ -221,16 +221,19 @@ def populate_infodict(request, netbox, interfaces, auditlog_entries=None):
     save_to_database(interfaces)
 
     info_dict = get_base_context([(netbox.sysname, )], form=get_form(request))
-    info_dict.update({'interfaces': interfaces,
-                      'auditmodel': netbox.sysname,
-                      'netbox': netbox,
-                      'voice_vlan': voice_vlan,
-                      'allowed_vlans': allowed_vlans,
-                      'readonly': readonly,
-                      'aliastemplate': aliastemplate,
-                      'auditlog_api_parameters': json.dumps(
-                          {'subsystem': 'portadmin'}),
-                      'auditlog_entries': auditlog_entries,})
+    info_dict.update(
+        {
+            'interfaces': interfaces,
+            'auditmodel': netbox.sysname,
+            'netbox': netbox,
+            'voice_vlan': voice_vlan,
+            'allowed_vlans': allowed_vlans,
+            'readonly': readonly,
+            'aliastemplate': aliastemplate,
+            'auditlog_api_parameters': json.dumps({'subsystem': 'portadmin'}),
+            'auditlog_entries': auditlog_entries,
+        }
+    )
     return info_dict
 
 
@@ -682,5 +685,5 @@ def get_config_value(config, section, key, fallback=None):
     """Get the value of key from a ConfigParser object, with fallback"""
     try:
         return config.get(section, key)
-    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+    except (configparser.NoOptionError, configparser.NoSectionError):
         return fallback

@@ -18,6 +18,7 @@ from nav import util
 from nav.util import IPRange
 from IPy import IP
 
+
 class UtilTestCase(unittest.TestCase):
     """Test various functions in the util module"""
     def setUp(self):
@@ -62,6 +63,7 @@ class UtilTestCase(unittest.TestCase):
             self.assertFalse(util.is_valid_ip(ip),
                              msg="%s should be invalid" % ip)
 
+
 class IPRangeTests(unittest.TestCase):
     def test_ipv4_range_length_should_be_correct(self):
         i = IPRange(IP('10.0.42.0'), IP('10.0.42.127'))
@@ -82,6 +84,7 @@ class IPRangeTests(unittest.TestCase):
     def test_out_of_bounds_negative_index_should_raise(self):
         i = IPRange(IP('10.0.42.0'), IP('10.0.42.127'))
         self.assertRaises(IndexError, lambda x: i[x], -129)
+
 
 class IPRangeStringTests(unittest.TestCase):
     def test_simple_ipv4_range_should_parse(self):

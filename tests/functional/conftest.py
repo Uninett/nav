@@ -4,6 +4,7 @@ from nav.django.auth import create_session_cookie
 
 USERNAME = 'admin'
 
+
 @pytest.fixture
 def selenium(selenium, base_url):
     selenium.implicitly_wait(10)
@@ -12,6 +13,7 @@ def selenium(selenium, base_url):
     selenium.add_cookie(cookie)
     selenium.refresh()
     return selenium
+
 
 @pytest.fixture(scope="session")
 def base_url():

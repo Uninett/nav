@@ -18,11 +18,14 @@
 import re
 
 from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
+
 from nav.models.fields import VarcharField
 from nav.models.manage import Cam
 from nav.models.profiles import Account
 
 
+@python_2_unicode_compatible
 class MacWatch(models.Model):
     """Data-model for mac-address that should get watched
     by bin/macwatch.py"""
@@ -42,7 +45,7 @@ class MacWatch(models.Model):
         db_table = u'macwatch'
         ordering = ('created',)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s' % self.mac
 
     def _filtered_mac_addr(self):
@@ -80,6 +83,7 @@ class MacWatch(models.Model):
             return self.mac
 
 
+@python_2_unicode_compatible
 class MacWatchMatch(models.Model):
     """Extra model (helper-model) for mac-watch when macwatch
     only has a mac-adress prefix"""
@@ -91,6 +95,6 @@ class MacWatchMatch(models.Model):
     class Meta(object):
         db_table = u'macwatch_match'
 
-    def __unicode__(self):
+    def __str__(self):
         return (u'id=%d; macwatch = %d; cam = %d; posted = %s' %
                 (self.id, self.macwatch, self.cam, str(self.posted)))

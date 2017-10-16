@@ -13,8 +13,8 @@ sent to the NAV server and handing them off to trap handler plugins,
 which will process them.  Anyone with some knowledge of Python should
 be able to write a new trap handler plugin.
 
-snmptrapd uses the PySNMP library (via NAV's own ``nav.Snmp`` module),
-and is loosely base on this example:
+snmptrapd uses the pynetsnmp library (via NAV's own ``nav.Snmp`` module),
+but is loosely base on this example from the PySNMP library:
 http://pysnmp.sourceforge.net/examples/2.x/snmptrapd.html
 
 

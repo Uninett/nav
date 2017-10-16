@@ -31,14 +31,15 @@ from twisted.internet.task import LoopingCall
 from nav import ipdevpoll
 from nav.ipdevpoll import db
 from nav.ipdevpoll.snmp import SnmpError, AgentProxy
-from . import shadows, config, signals
-from .dataloader import NetboxLoader
-from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_prefix_for_ipdevpoll_job
 from nav.tableformat import SimpleTableFormatter
 
 from nav.ipdevpoll.utils import log_unhandled_failure
+
+from . import shadows, config, signals
+from .dataloader import NetboxLoader
+from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
 
 _logger = logging.getLogger(__name__)
 

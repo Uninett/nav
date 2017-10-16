@@ -15,13 +15,14 @@
 #
 """Simple tools for terminal color support"""
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import sys
 from functools import wraps
 import curses
 from curses import (COLOR_BLACK, COLOR_BLUE, COLOR_CYAN, COLOR_GREEN,
                     COLOR_MAGENTA, COLOR_RED, COLOR_WHITE, COLOR_YELLOW)
+from django.utils import six
 
 __all__ = ['COLOR_BLACK', 'COLOR_BLUE', 'COLOR_CYAN', 'COLOR_GREEN',
            'COLOR_MAGENTA', 'COLOR_RED', 'COLOR_WHITE', 'COLOR_YELLOW',
@@ -35,6 +36,14 @@ except curses.error:
     # silently ignore errors and turn off colors
     _set_color = ''
     _reset_color = ''
+    _is_term = False
+else:
+    _is_term = True
+
+if six.PY3:
+    _term = sys.stdout.buffer
+else:
+    _term = sys.stdout
 
 
 def colorize(color):
@@ -56,7 +65,7 @@ def colorize(color):
                 return func(*args, **kwargs)
             finally:
                 reset_foreground()
-        return _wrapper
+        return _wrapper if _is_term else func
     return _colorize
 
 
@@ -69,13 +78,13 @@ def print_color(string, color, newline=True):
 
 def set_foreground(color):
     """Sets the current foreground color of the terminal"""
-    if sys.stdout.isatty():
-        sys.stdout.write(curses.tparm(_set_color, color))
-        sys.stdout.flush()
+    if _is_term:
+        _term.write(curses.tparm(_set_color, color))
+        _term.flush()
 
 
 def reset_foreground():
     """Resets the foreground color of the terminal"""
-    if sys.stdout.isatty():
-        sys.stdout.write(_reset_color)
-        sys.stdout.flush()
+    if _is_term:
+        _term.write(_reset_color)
+        _term.flush()

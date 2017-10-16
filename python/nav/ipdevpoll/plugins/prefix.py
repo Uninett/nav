@@ -204,7 +204,7 @@ class Prefix(Plugin):
 def get_ignored_prefixes(config):
     """Returns a list of ignored prefixes from a ConfigParser instance"""
     if config is not None:
-        raw_string = config.get('prefix', 'ignored', '')
+        raw_string = config.get('prefix', 'ignored', fallback='')
     else:
         return []
     items = raw_string.split(',')

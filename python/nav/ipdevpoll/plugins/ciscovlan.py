@@ -103,8 +103,8 @@ class CiscoVlan(Plugin):
                 interface.vlan = native_vlans[ifindex]
 
             self._logger.debug("Trunk port %r enabled VLAN count: %s",
-                              interface.ifname,
-                              len(vector.get_set_bits()))
+                               interface.ifname,
+                               len(vector.get_set_bits()))
 
             allowed = self.containers.factory(ifindex,
                                               shadows.SwPortAllowedVlan)

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # -*- notest -*-
 #
-# Copyright 2008 University of Tromsø 
+# Copyright 2008 University of Tromsø
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -41,7 +41,6 @@ import os
 
 import re
 from time import mktime, strptime
-import glob
 import datetime
 
 # Configuration settings.

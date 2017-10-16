@@ -51,12 +51,3 @@ def find_thresholds(metric):
     rules = [(r.get_pattern(), r) for r in ThresholdRule.objects.all()]
     thresholds = [rule for pat, rule in rules if pat.match(metric)]
     return ",".join([t.alert for t in thresholds])
-
-
-@register.filter
-def alerts(rules):
-    """
-    Maps a list of Threshold Rules to a list of their corresponding alert
-    conditions.
-    """
-    return [r.alert for r in rules]

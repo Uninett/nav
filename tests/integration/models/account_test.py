@@ -1,6 +1,7 @@
 import unittest
 from nav.models.profiles import Account
 
+
 class AccountTest(unittest.TestCase):
 
     def setUp(self):

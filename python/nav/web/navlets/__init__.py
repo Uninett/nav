@@ -47,14 +47,12 @@ Templates
 
 import logging
 import json
-from collections import namedtuple, Counter
 from operator import attrgetter
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.db.models import Max
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template.context import RequestContext
 from django.views.decorators.http import require_POST
 from django.views.generic.base import TemplateView
@@ -64,7 +62,7 @@ from nav.models.manage import Sensor
 from nav.django.auth import get_sudoer
 from nav.django.utils import get_account
 from nav.web.utils import require_param
-from nav.web.webfront import get_widget_columns, find_dashboard
+from nav.web.webfront import find_dashboard
 
 NAVLET_MODE_VIEW = 'VIEW'
 NAVLET_MODE_EDIT = 'EDIT'

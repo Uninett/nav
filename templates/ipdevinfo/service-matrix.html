@@ -15,7 +15,7 @@
         </thead>
         <tbody>
             {% for row in matrix|dictsort:"sysname" %}
-                <tr class="{% cycle oddrow,evenrow %}">
+                <tr>
                     <td><a href="{{ row.netbox.get_absolute_url }}">
                         {{ row.netbox }}</a></td>
                     {% for service in row.services %}

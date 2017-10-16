@@ -17,7 +17,7 @@
 
 from __future__ import print_function
 
-from optparse import OptionParser
+from argparse import ArgumentParser
 from functools import wraps
 import inspect
 import logging
@@ -47,11 +47,11 @@ _logger = logging.getLogger(__name__)
 def main():
     """Program entry point"""
     parser = make_option_parser()
-    (options, _args) = parser.parse_args()
+    options = parser.parse_args()
 
     init_generic_logging(
         logfile=LOGFILE_PATH,
-        stderr=False,
+        stderr=options.stderr,
         stdout=True,
         read_config=True,
     )
@@ -70,21 +70,27 @@ def main():
         delete_unused_vlans()
 
 
+def int_list(value):
+    return [int(x) for x in value.split(",")]
+
+
 def make_option_parser():
     """Sets up and returns a command line option parser."""
-    parser = OptionParser(
+    parser = ArgumentParser(
         version="NAV " + buildconf.VERSION,
         description=("Detects and updates the network topology in your NAV "
                      "database")
         )
 
-    parser.add_option("--l2", action="store_true", dest="l2",
-                      help="Detect physical topology")
-    parser.add_option("--vlan", action="store_true", dest="vlan",
-                      help="Detect vlan subtopologies")
-    parser.add_option("-i", dest="include_vlans", default="",
-                      metavar="vlan[,...]",
-                      help="Only analyze the VLANs included in this list")
+    parser.add_argument("--l2", action="store_true",
+                        help="Detect physical topology")
+    parser.add_argument("--vlan", action="store_true",
+                        help="Detect vlan subtopologies")
+    parser.add_argument("-i", dest="include_vlans", type=int_list,
+                        metavar="vlan[,...]",
+                        help="Only analyze the VLANs included in this list")
+    parser.add_argument("-s", "--stderr", action="store_true",
+                        help="Log to stderr (even if not a tty)")
     return parser
 
 

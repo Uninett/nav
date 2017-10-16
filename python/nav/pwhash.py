@@ -23,7 +23,7 @@ import hashlib
 import base64
 import re
 from nav import errors
-from django.utils import crypto
+from django.utils import crypto, six
 
 
 def sha1(password, salt):
@@ -87,17 +87,20 @@ class Hash(object):
     def __cmp__(self, other):
         return cmp(str(self), str(other))
 
+    def __eq__(self, other):
+        return str(self) == str(other)
+
     def __str__(self):
-        digest64 = base64.encodestring(self.digest).strip()
+        digest64 = base64.encodestring(self.digest).strip().decode('ASCII')
         return "{%s}%s$%s" % (self.method, self.salt, digest64)
 
     def update(self, password):
         """Update the hash with a new password."""
 
         salt = self.salt
-        if isinstance(salt, unicode):
+        if isinstance(salt, six.text_type):
             salt = salt.encode('utf-8')
-        if isinstance(password, unicode):
+        if isinstance(password, six.text_type):
             password = password.encode('utf-8')
 
         hasher = KNOWN_METHODS[self.method]
@@ -115,7 +118,7 @@ class Hash(object):
             else:
                 self.method = method
             self.salt = match.group(2)
-            self.digest = base64.decodestring(match.group(3))
+            self.digest = base64.decodestring(match.group(3).encode('ASCII'))
 
     def verify(self, password):
         """Verify a password against this hash."""

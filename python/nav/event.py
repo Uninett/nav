@@ -18,7 +18,10 @@
 from __future__ import absolute_import
 import nav.db
 from nav.errors import GeneralException
-from UserDict import UserDict
+try:
+    from collections import UserDict
+except:
+    from UserDict import UserDict
 
 from nav.models.event import EventType, AlertType
 from django.db import transaction

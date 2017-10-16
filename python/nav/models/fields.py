@@ -21,8 +21,9 @@ import json
 from datetime import datetime
 from decimal import Decimal
 
+import django
 from django import forms
-from django.db import models, connection
+from django.db import models
 from django.core import exceptions
 from django.db.models import Q
 from django.utils import six
@@ -58,27 +59,8 @@ class VarcharField(models.TextField):
         return super(VarcharField, self).formfield(**defaults)
 
 
-class PickleField(six.with_metaclass(models.SubfieldBase, models.TextField)):
-    """Automatically pickles and unpickles values"""
-
-    description = "Field for storing pickles"
-
-    def db_type(self, connection=None):
-        return 'varchar'
-
-    def to_python(self, value):
-        if value:
-            if isinstance(value, dict):
-                return value
-            else:
-                return pickle.loads(value)
-
-    def get_prep_value(self, value):
-        if value is not None:
-            return pickle.dumps(value)
-
-
-class DictAsJsonField(six.with_metaclass(models.SubfieldBase, models.TextField)):
+@six.add_metaclass(models.SubfieldBase)
+class DictAsJsonField(models.TextField):
     """Serializes value to and from json. Has a fallback to pickle for
     historical reasons"""
 
@@ -105,7 +87,8 @@ class DictAsJsonField(six.with_metaclass(models.SubfieldBase, models.TextField))
             return json.dumps(value)
 
 
-class CIDRField(six.with_metaclass(models.SubfieldBase, VarcharField)):
+@six.add_metaclass(models.SubfieldBase)
+class CIDRField(VarcharField):
 
     def to_python(self, value):
         """Verifies that the value is a string with a valid CIDR IP address"""
@@ -116,7 +99,8 @@ class CIDRField(six.with_metaclass(models.SubfieldBase, VarcharField)):
             return value
 
 
-class PointField(six.with_metaclass(models.SubfieldBase, models.CharField)):
+@six.add_metaclass(models.SubfieldBase)
+class PointField(models.CharField):
 
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 100
@@ -128,7 +112,7 @@ class PointField(six.with_metaclass(models.SubfieldBase, models.CharField)):
     def to_python(self, value):
         if not value or isinstance(value, tuple):
             return value
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             if validators.is_valid_point_string(value):
                 if value.startswith('(') and value.endswith(')'):
                     noparens = value[1:-1]
@@ -166,13 +150,21 @@ class LegacyGenericForeignKey(object):
     def __init__(self, model_name_field, model_fk_field):
         self.mn_field = model_name_field
         self.fk_field = model_fk_field
+        if django.VERSION >= (1, 8):
+            self.is_relation = True
+            self.many_to_many = False
+            self.one_to_many = True
+            self.related_model = None
 
     def contribute_to_class(self, cls, name):
         """Add things to the model class using this descriptor"""
         self.name = name
         self.model = cls
         self.cache_attr = "_%s_cache" % name
-        cls._meta.add_virtual_field(self)
+        if django.VERSION >= (1, 8):
+            cls._meta.virtual_fields.append(self)
+        else:
+            cls._meta.add_virtual_field(self)
 
         setattr(cls, name, self)
 

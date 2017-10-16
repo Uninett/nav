@@ -17,6 +17,8 @@
 """Django ORM wrapper for the NAV manage database"""
 
 from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
+
 from nav.metrics.data import get_metric_average
 from nav.metrics.templates import (
     metric_path_for_service_availability,
@@ -27,6 +29,7 @@ from nav.models.manage import Netbox
 from nav.models.fields import VarcharField
 
 
+@python_2_unicode_compatible
 class Service(models.Model):
     """From NAV Wiki: The service table defines the services on a netbox that
     serviceMon monitors."""
@@ -52,7 +55,7 @@ class Service(models.Model):
         db_table = 'service'
         ordering = ('handler',)
 
-    def __unicode__(self):
+    def __str__(self):
         return u"{handler} at {netbox}".format(
             handler=self.handler, netbox=self.netbox)
 
@@ -127,6 +130,7 @@ class Service(models.Model):
     description = property(get_handler_description)
 
 
+@python_2_unicode_compatible
 class ServiceProperty(models.Model):
     """From NAV Wiki: Each service may have an additional set of attributes.
     They are defined here."""
@@ -140,5 +144,5 @@ class ServiceProperty(models.Model):
         db_table = 'serviceproperty'
         unique_together = (('service', 'property'),) # Primary key
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s=%s, for %s' % (self.property, self.value, self.service)

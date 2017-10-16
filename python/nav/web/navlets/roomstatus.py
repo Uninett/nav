@@ -17,14 +17,10 @@
 
 from datetime import datetime
 from django import forms
-from collections import defaultdict
 from itertools import groupby
 from operator import attrgetter
 
 from nav.models.event import AlertHistory
-from nav.models.fields import INFINITY
-from nav.models.manage import Room
-from . import Navlet
 
 from nav.web.navlets.status2 import Status2Widget
 

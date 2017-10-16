@@ -16,7 +16,6 @@
 #
 """Shortcuts for Alert Profiles"""
 
-from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django.template import RequestContext
 
 from nav.web.message import Messages, new_message

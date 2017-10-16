@@ -29,19 +29,18 @@ Getting the code
 ----------------
 
 * Start by cloning the latest stable branch (or use ``git fetch; git checkout
-  4.6.x`` to update your existing clone), e.g. 4.6.x::
+  4.7.x`` to update your existing clone), e.g. 4.7.x::
 
-    git clone -b 4.6.x git@github.com:UNINETT/nav.git
+    git clone -b 4.7.x git@github.com:UNINETT/nav.git
     cd nav
 
 
 Updating changelog and release notes
 ------------------------------------
 
-* Generate a list of referenced issues from the changelog since the last
-  release::
+* Generate a list of referenced issues from the GitHub milestone::
 
-    git log <LASTRELEASE>.. | ./tools/buglog.py
+    ./tools/buglog.py 4.7.3
 
 * Add a new entry to the CHANGES file for for the new release and paste the
   list produced by the above command.

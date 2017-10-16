@@ -18,7 +18,6 @@
 from django.forms import ModelForm
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Submit
-from datetime import datetime, timedelta
 
 from nav.models.msgmaint import Message
 from nav.models.msgmaint import MessageToMaintenanceTask

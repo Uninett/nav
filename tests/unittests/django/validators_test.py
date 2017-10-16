@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from nav.django.validators import *
 
+
 class ValidPointStringTest(TestCase):
     def test_valid_point_string(self):
         point_string = "(2.3,4.5)"

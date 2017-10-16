@@ -165,7 +165,6 @@ def _get_available_subnets(prefix_or_prefixes, used_prefixes):
         prefix_or_prefixes: a single or a list of prefixes ("10.0.0.0/8") or
                           IPy.IP objects
         used_prefixes: prefixes that are in use
-        
 
     Returns:
            An iterable IPy.IPSet of available addresses within prefix_or_prefixes

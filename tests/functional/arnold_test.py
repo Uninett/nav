@@ -16,6 +16,7 @@
 # pylint: disable=C0111, R0904
 """Selenium tests for arnold"""
 
+
 def test_title_should_contain_detentions(selenium, base_url):
     selenium.get('{}/arnold/'.format(base_url))
     assert 'Detentions' in selenium.title

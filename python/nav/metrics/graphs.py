@@ -15,7 +15,10 @@
 #
 """Getting graphs of NAV-collected data from Graphite"""
 import re
-from urllib import urlencode
+from django.utils.six.moves.urllib.parse import urlencode
+
+from django.utils import six
+
 from django.core.urlresolvers import reverse
 
 TIMETICKS_IN_DAY = 100 * 3600 * 24
@@ -36,7 +39,9 @@ def get_sensor_meta(metric_path):
         return dict()
     assert isinstance(sensor, Sensor)
 
-    meta = dict(alias=sensor.human_readable.replace("\n", " ") or sensor.name)
+    alias = (sensor.human_readable.replace("\n", " ") if sensor.human_readable
+             else sensor.name)
+    meta = dict(alias=alias)
     scale = (sensor.get_data_scale_display()
              if sensor.data_scale != sensor.SCALE_UNITS else None) or ''
     uom = (sensor.unit_of_measurement
@@ -195,7 +200,7 @@ def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
     :return: The URL that will generate the requested graph.
 
     """
-    if isinstance(metric_paths, basestring):
+    if isinstance(metric_paths, six.string_types):
         metric_paths = [metric_paths]
 
     target_spec = {'magic_targets': metric_paths} if magic else {
@@ -206,7 +211,7 @@ def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
     if kwargs:
         graph.args.update(kwargs)
 
-    return unicode(graph)
+    return six.text_type(graph)
 
 
 def get_metric_meta(metric_path):

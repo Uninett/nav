@@ -20,7 +20,7 @@ from operator import itemgetter
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
-                                            HTML, Div, Fieldset)
+                                            HTML, Fieldset)
 
 from . import STATELESS_THRESHOLD
 from nav.models.event import EventType, AlertType

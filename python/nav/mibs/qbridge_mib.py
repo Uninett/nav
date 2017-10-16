@@ -14,6 +14,8 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Implements a Q-BRIDGE-MIB MibRetriever and associated functionality."""
+import re
+
 from twisted.internet import defer
 
 import nav.bitvector
@@ -22,6 +24,7 @@ from nav.mibs import mibretriever, reduce_index
 
 class QBridgeMib(mibretriever.MibRetriever):
     from nav.smidumps.qbridge_mib import MIB as mib
+    juniper_hack = False
 
     def get_baseport_pvid_map(self):
         """Retrieves the mapping between baseport numbers and VLAN tag numbers.
@@ -43,7 +46,7 @@ class QBridgeMib(mibretriever.MibRetriever):
         """
         df = self.retrieve_column('dot1qVlanCurrentEgressPorts')
         df.addCallback(filter_newest_current_entries)
-        return df.addCallback(convert_data_to_portlist)
+        return df.addCallback(convert_data_to_portlist, self.juniper_hack)
 
     def get_vlan_current_untagged_ports(self):
         """Retrieves, for each VLAN, a list of ports that can currently
@@ -55,7 +58,7 @@ class QBridgeMib(mibretriever.MibRetriever):
         """
         df = self.retrieve_column('dot1qVlanCurrentUntaggedPorts')
         df.addCallback(filter_newest_current_entries)
-        return df.addCallback(convert_data_to_portlist)
+        return df.addCallback(convert_data_to_portlist, self.juniper_hack)
 
     def get_vlan_static_egress_ports(self):
         """Retrieves, for each VLAN, a list of ports that are configured to
@@ -67,7 +70,7 @@ class QBridgeMib(mibretriever.MibRetriever):
         """
         df = self.retrieve_column('dot1qVlanStaticEgressPorts')
         df.addCallback(reduce_index)
-        return df.addCallback(convert_data_to_portlist)
+        return df.addCallback(convert_data_to_portlist, self.juniper_hack)
 
     def get_vlan_static_untagged_ports(self):
         """Retrieves, for each VLAN, a list of ports that are configured to
@@ -79,7 +82,7 @@ class QBridgeMib(mibretriever.MibRetriever):
         """
         df = self.retrieve_column('dot1qVlanStaticUntaggedPorts')
         df.addCallback(reduce_index)
-        return df.addCallback(convert_data_to_portlist)
+        return df.addCallback(convert_data_to_portlist, self.juniper_hack)
 
     @defer.inlineCallbacks
     def get_forwarding_database(self):
@@ -99,6 +102,10 @@ class QBridgeMib(mibretriever.MibRetriever):
             result.append((mac, port))
         defer.returnValue(result)
 
+    def get_vlan_static_names(self):
+        df = self.retrieve_column('dot1qVlanStaticName')
+        return df.addCallback(reduce_index)
+
 
 def filter_newest_current_entries(dot1qvlancurrenttable):
     """Filters a result from the dot1qVlanCurrentTable, removing the
@@ -111,31 +118,37 @@ def filter_newest_current_entries(dot1qvlancurrenttable):
                 in sorted(dot1qvlancurrenttable.items()))
 
 
-def convert_data_to_portlist(result):
-    return dict((key, PortList(data))
-                 for key, data in result.items())
+def convert_data_to_portlist(result, juniper_hack):
+    return {key: portlist(data, juniper_hack)
+            for key, data in result.items()}
 
 
-class PortList(str):
-    """Represent an octet string, as defined by the PortList syntax of
-    the Q-BRIDGE-MIB.
+def portlist_spec(data):
+    """Return a set of port numbers represented by this PortList."""
+    vector = nav.bitvector.BitVector(data)
+    # a bitvector is indexed from 0, but ports are indexed from 1
+    return {b+1 for b in vector.get_set_bits()}
 
-    Offers conveniences such as subtracting one PortList from another,
-    and retrieving a list of port numbers represented by a PortList
-    octet string.
 
+def portlist_juniper(data):
+    """Return a set of port numbers represented by this PortList
+    interpreted in junipers strange notion of the spec or None if data
+    does not match this format
     """
+    if re.match("^[0-9,]+$", data):
+        return {int(x) for x in data.split(",")}
+    return None
 
-    def __sub__(self, other):
-        # pad other with zeros if it happens to be shorter than self
-        padded_other = other.ljust(len(self), '\x00')
-        new_ints = [ord(char) - ord(padded_other[index])
-                    for index, char in enumerate(self)]
-        return PortList(''.join(chr(i) for i in new_ints))
 
-    def get_ports(self):
-        """Return a list of port numbers represented by this PortList."""
-        vector = nav.bitvector.BitVector(self)
-        # a bitvector is indexed from 0, but ports are indexed from 1
-        ports = [b+1 for b in vector.get_set_bits()]
-        return ports
+def portlist(data, juniper_hack=False):
+    """Return a set of port numbers represented by this PortList.
+
+    If juniper_hack is true and it is formatted according to junipers
+    formatting, interpret it that way, otherwise follow the spec
+    """
+    if not juniper_hack:
+        return portlist_spec(data)
+    juniper_list = portlist_juniper(data)
+    if not juniper_list:
+        return portlist_spec(data)
+    return juniper_list

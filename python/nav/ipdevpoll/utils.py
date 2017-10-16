@@ -21,6 +21,7 @@ import re
 
 from IPy import IP
 
+from django.utils import six
 from twisted.internet import defer
 from twisted.internet.defer import Deferred
 from twisted.internet import reactor
@@ -95,7 +96,7 @@ def is_invalid_utf8(string):
     returned.
 
     """
-    if isinstance(string, str):
+    if isinstance(string, six.binary_type):
         try:
             string.decode('utf-8')
         except UnicodeDecodeError:

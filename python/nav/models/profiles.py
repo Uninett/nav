@@ -18,23 +18,21 @@
 
 # pylint: disable=R0903, C1001
 
+from hashlib import md5
 import itertools
 import logging
-import json
-from django.core.urlresolvers import reverse
 import os
 from datetime import datetime
 import re
-# To stay compatible with both python 2.4 and 2.6:
+
 from django.views.decorators.debug import sensitive_variables
-
-from hashlib import md5
-
+from django.core.urlresolvers import reverse
 from django.db import models, transaction
+from django.utils.encoding import python_2_unicode_compatible
 from django_hstore import hstore
 from django.forms.models import model_to_dict
 
-import nav.path
+import nav.buildconf
 import nav.pwhash
 from nav.config import getconfig as get_alertengine_config
 from nav.alertengine.dispatchers import DispatcherException
@@ -45,9 +43,9 @@ from nav.models.manage import Arp, Cam, Category, Device, Location
 from nav.models.manage import Memory, Netbox, NetboxInfo, NetboxType
 from nav.models.manage import Organization, Prefix, Room, NetboxGroup
 from nav.models.manage import Interface, Usage, Vlan, Vendor
-from nav.models.fields import VarcharField, PickleField, DictAsJsonField
+from nav.models.fields import VarcharField, DictAsJsonField
 
-configfile = os.path.join(nav.path.sysconfdir, 'alertengine.conf')
+configfile = os.path.join(nav.buildconf.sysconfdir, 'alertengine.conf')
 
 # This should be the authorative source as to which models alertengine
 # supports.  The acctuall mapping from alerts to data in these models is done
@@ -68,6 +66,7 @@ _ = lambda a: a
 ### Account models
 
 
+@python_2_unicode_compatible
 class Account(models.Model):
     """ NAV's basic account model"""
 
@@ -99,7 +98,7 @@ class Account(models.Model):
         db_table = u'account'
         ordering = ('login',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.login
 
     def get_active_profile(self):
@@ -235,6 +234,7 @@ class Account(models.Model):
         return self.alertaddress_set.filter(type__name=AlertSender.EMAIL)
 
 
+@python_2_unicode_compatible
 class AccountGroup(models.Model):
     """NAV account groups"""
 
@@ -253,7 +253,7 @@ class AccountGroup(models.Model):
         db_table = u'accountgroup'
         ordering = ('name',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def is_system_group(self):
@@ -273,6 +273,7 @@ class AccountGroup(models.Model):
         return self.id == self.ADMIN_GROUP
 
 
+@python_2_unicode_compatible
 class NavbarLink(models.Model):
     """A hyperlink on a user's navigation bar."""
     account = models.ForeignKey('Account', db_column='accountid')
@@ -283,10 +284,11 @@ class NavbarLink(models.Model):
         db_table = u'navbarlink'
         ordering = ('id', )
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s=%s' % (self.name, self.uri)
 
 
+@python_2_unicode_compatible
 class Privilege(models.Model):
     """A privilege granted to an AccountGroup."""
     group = models.ForeignKey('AccountGroup', db_column='accountgroupid')
@@ -296,10 +298,11 @@ class Privilege(models.Model):
     class Meta(object):
         db_table = u'accountgroupprivilege'
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s for %s' % (self.type, self.target)
 
 
+@python_2_unicode_compatible
 class PrivilegeType(models.Model):
     """A registered privilege type."""
     id = models.AutoField(db_column='privilegeid', primary_key=True)
@@ -308,10 +311,11 @@ class PrivilegeType(models.Model):
     class Meta(object):
         db_table = u'privilege'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
+@python_2_unicode_compatible
 class AlertAddress(models.Model):
     """Accounts alert addresses, valid types are retrived from
     alertengine.conf
@@ -326,7 +330,7 @@ class AlertAddress(models.Model):
     class Meta(object):
         db_table = u'alertaddress'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.type.scheme() + self.address
 
     @transaction.atomic
@@ -388,6 +392,7 @@ class AlertAddress(models.Model):
         return True
 
 
+@python_2_unicode_compatible
 class AlertSender(models.Model):
     """A registered alert sender/medium."""
     name = models.CharField(max_length=100)
@@ -408,7 +413,7 @@ class AlertSender(models.Model):
         SLACK: u'slack:'
     }
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @transaction.atomic
@@ -429,7 +434,7 @@ class AlertSender(models.Model):
         # Get config
         if not hasattr(AlertSender, 'config'):
             AlertSender.config = get_alertengine_config(
-                os.path.join(nav.path.sysconfdir, 'alertengine.conf'))
+                os.path.join(nav.buildconf.sysconfdir, 'alertengine.conf'))
 
         # Load module
         module = __import__(
@@ -459,6 +464,7 @@ class AlertSender(models.Model):
         db_table = 'alertsender'
 
 
+@python_2_unicode_compatible
 class AlertPreference(models.Model):
     """AlertProfile account preferences"""
 
@@ -472,13 +478,14 @@ class AlertPreference(models.Model):
     class Meta(object):
         db_table = u'alertpreference'
 
-    def __unicode__(self):
+    def __str__(self):
         return 'preferences for %s' % self.account
 
 
 #######################################################################
 ### Profile models
 
+@python_2_unicode_compatible
 class AlertProfile(models.Model):
     """Account AlertProfiles"""
 
@@ -511,7 +518,7 @@ class AlertProfile(models.Model):
     class Meta(object):
         db_table = u'alertprofile'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def get_active_timeperiod(self):
@@ -553,6 +560,7 @@ class AlertProfile(models.Model):
         return active_timeperiod
 
 
+@python_2_unicode_compatible
 class TimePeriod(models.Model):
     """Defines TimerPeriods and which part of the week they are valid"""
 
@@ -574,11 +582,12 @@ class TimePeriod(models.Model):
     class Meta(object):
         db_table = u'timeperiod'
 
-    def __unicode__(self):
+    def __str__(self):
         return u'from %s for %s profile on %s' % (
             self.start, self.profile, self.get_valid_during_display())
 
 
+@python_2_unicode_compatible
 class AlertSubscription(models.Model):
     """Links an address and timeperiod to a filtergroup with a given
     subscription type.
@@ -606,7 +615,7 @@ class AlertSubscription(models.Model):
     class Meta(object):
         db_table = u'alertsubscription'
 
-    def __unicode__(self):
+    def __str__(self):
         return 'alerts received %s should be sent %s to %s' % (
             self.time_period, self.get_type_display(), self.alert_address)
 
@@ -614,6 +623,7 @@ class AlertSubscription(models.Model):
 ### Equipment models
 
 
+@python_2_unicode_compatible
 class FilterGroupContent(models.Model):
     """Defines how a given filter should be used in a filtergroup"""
 
@@ -644,7 +654,7 @@ class FilterGroupContent(models.Model):
         db_table = u'filtergroupcontent'
         ordering = ['priority']
 
-    def __unicode__(self):
+    def __str__(self):
         if self.include:
             type_ = 'inclusive'
         else:
@@ -656,6 +666,7 @@ class FilterGroupContent(models.Model):
         return '%s filter on %s' % (type_, self.filter)
 
 
+@python_2_unicode_compatible
 class Operator(models.Model):
     """Defines valid operators for a given matchfield."""
 
@@ -732,7 +743,7 @@ class Operator(models.Model):
         db_table = u'operator'
         unique_together = (('type', 'match_field'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s match on %s' % (self.get_type_display(), self.match_field)
 
     def get_operator_mapping(self):
@@ -744,6 +755,7 @@ class Operator(models.Model):
         return self.IP_OPERATOR_MAPPING[self.type]
 
 
+@python_2_unicode_compatible
 class Expression(models.Model):
     """Combines filer, operator, matchfield and value into an expression that
     can be evaluated.
@@ -757,7 +769,7 @@ class Expression(models.Model):
     class Meta(object):
         db_table = u'expression'
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s match on %s against %s' % (self.get_operator_display(),
                                               self.match_field, self.value)
 
@@ -766,6 +778,7 @@ class Expression(models.Model):
         return Operator(type=self.operator).get_operator_mapping()
 
 
+@python_2_unicode_compatible
 class Filter(models.Model):
     """One or more expressions that are combined with an and operation.
 
@@ -778,10 +791,10 @@ class Filter(models.Model):
     class Meta(object):
         db_table = u'filter'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
-    def check(self, alert):
+    def verify(self, alert):
         """Combines expressions to an ORM query that will tell us if an alert
         matched.
 
@@ -886,6 +899,7 @@ class Filter(models.Model):
         return False
 
 
+@python_2_unicode_compatible
 class FilterGroup(models.Model):
     """A set of filters group contents that an account can subscribe to or be
     given permission to.
@@ -901,10 +915,11 @@ class FilterGroup(models.Model):
     class Meta(object):
         db_table = u'filtergroup'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
+@python_2_unicode_compatible
 class MatchField(models.Model):
     """Defines which fields can be matched upon and how"""
 
@@ -1069,7 +1084,7 @@ class MatchField(models.Model):
     class Meta(object):
         db_table = u'matchfield'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def get_lookup_mapping(self):
@@ -1095,6 +1110,7 @@ class MatchField(models.Model):
 #######################################################################
 ### AlertEngine models
 
+@python_2_unicode_compatible
 class SMSQueue(models.Model):
     """Queue of messages that should be sent or have been sent by SMSd"""
 
@@ -1121,7 +1137,7 @@ class SMSQueue(models.Model):
     class Meta(object):
         db_table = u'smsq'
 
-    def __unicode__(self):
+    def __str__(self):
         return '"%s" to %s, sent: %s' % (self.message, self.phone, self.sent)
 
     def save(self, *args, **kwargs):
@@ -1202,13 +1218,14 @@ class AccountAlertQueue(models.Model):
 LINK_TYPES = (2, 'Layer 2'), (3, 'Layer 3')
 
 
+@python_2_unicode_compatible
 class NetmapView(models.Model):
     """Properties for a specific view in Netmap"""
     viewid = models.AutoField(primary_key=True)
     owner = models.ForeignKey(Account, db_column='owner')
     title = models.TextField()
     description = models.TextField()
-    topology = models.CharField(choices=LINK_TYPES)
+    topology = models.IntegerField(choices=LINK_TYPES)
     # picke x,y,scale (translate(x,y) , scale(scale)
     zoom = models.CharField(max_length=255)
     last_modified = models.DateTimeField(auto_now_add=True)
@@ -1217,7 +1234,7 @@ class NetmapView(models.Model):
     display_orphans = models.BooleanField(default=False)
     location_room_filter = models.CharField(max_length=255, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s (%s)' % (self.viewid, self.title)
 
     def topology_unicode(self):
@@ -1275,6 +1292,7 @@ class NetmapViewDefaultView(models.Model):
         db_table = u'netmap_view_defaultview'
 
 
+@python_2_unicode_compatible
 class NetmapViewCategories(models.Model):
     """Saved categories for a selected view in Netmap"""
     id = models.AutoField(primary_key=True)  # Serial for faking a primary key
@@ -1283,7 +1301,7 @@ class NetmapViewCategories(models.Model):
     category = models.ForeignKey(
         Category, db_column='catid', related_name='netmapview_set')
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s in category %s' % (self.view, self.category)
 
     class Meta(object):
@@ -1305,6 +1323,7 @@ class NetmapViewNodePosition(models.Model):
         db_table = u'netmap_view_nodeposition'
 
 
+@python_2_unicode_compatible
 class AccountTool(models.Model):
     """Link between tool and account"""
     id = models.AutoField(primary_key=True, db_column='account_tool_id')
@@ -1313,13 +1332,14 @@ class AccountTool(models.Model):
     display = models.BooleanField(default=True)
     priority = models.IntegerField(default=0)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.toolname, self.account)
 
     class Meta(object):
         db_table = u'accounttool'
 
 
+@python_2_unicode_compatible
 class AccountDashboard(models.Model):
     """Stores dashboards for each user"""
     name = VarcharField()
@@ -1327,7 +1347,7 @@ class AccountDashboard(models.Model):
     num_columns = models.IntegerField(default=3)
     account = models.ForeignKey(Account)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def get_absolute_url(self):
@@ -1350,6 +1370,7 @@ class AccountDashboard(models.Model):
         ordering = ('name',)
 
 
+@python_2_unicode_compatible
 class AccountNavlet(models.Model):
     """Store information about a users navlets"""
     navlet = VarcharField()
@@ -1359,7 +1380,7 @@ class AccountNavlet(models.Model):
     column = models.IntegerField(db_column='col')
     dashboard = models.ForeignKey(AccountDashboard, related_name='widgets')
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.navlet, self.account)
 
     def to_json_dict(self):

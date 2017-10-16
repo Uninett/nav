@@ -14,6 +14,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """OID manipulation"""
+from __future__ import absolute_import
+
+from django.utils import six
 
 SEPARATOR = '.'
 
@@ -40,7 +43,7 @@ class OID(tuple):
 
     """
     def __new__(cls, oid):
-        if isinstance(oid, basestring):
+        if isinstance(oid, six.string_types):
             # pylint: disable=W0141  (timeit proves map to be faster here)
             oid = map(int, oid.strip(SEPARATOR).split(SEPARATOR))
         elif isinstance(oid, OID):

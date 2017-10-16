@@ -29,6 +29,7 @@ from nav.web.utils import create_title
 
 _logger = logging.getLogger(__name__)
 
+
 def get_path():
     """Get the path for this subsystem"""
     return [('Home', '/'), ('Search', reverse('info-search'))]

@@ -11,7 +11,7 @@ gosu root:root make install
 gosu root:root chown -R $uid "${BUILDDIR}/var" "${BUILDDIR}/etc"
 
 # Make Python libraries available for everyone
-gosu root:root ln -fs "${BUILDDIR}/lib/python/nav" /usr/local/lib/python2.7/
+gosu root:root ln -fs "${BUILDDIR}/lib/python/nav" $(python -c 'import site;print(site.getsitepackages()[0])')
 
 # Since we're testing, let's debug log everything we can
 cat > "${BUILDDIR}/etc/logging.conf" <<EOF

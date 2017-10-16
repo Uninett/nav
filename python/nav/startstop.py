@@ -15,12 +15,15 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """NAV Service start/stop library."""
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 import os
 import subprocess
 import sys
 import time
 import re
+
+from django.utils import six
+
 import nav.config
 from nav.errors import GeneralException
 
@@ -341,7 +344,7 @@ class Crontab(object):
     def __setitem__(self, key, content):
 
         block = ['##block %s##' % key, '##end##']
-        if isinstance(content, basestring):
+        if isinstance(content, six.string_types):
             block[1:1] = content.split('\n')
         else:
             block[1:1] = content

@@ -16,10 +16,7 @@
 """Feed reader widget"""
 
 import feedparser
-from django.http import HttpResponse
-from nav.django.utils import get_account
-from nav.models.profiles import AccountNavlet
-from nav.web.navlets import Navlet, NAVLET_MODE_VIEW
+from nav.web.navlets import Navlet
 
 
 class NavBlogNavlet(Navlet):

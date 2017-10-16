@@ -53,9 +53,7 @@ class Modules(Plugin):
             physical_table = (
                 yield self.entitymib.get_entity_physical_table())
 
-            alias_mapping = yield self.entitymib.retrieve_column(
-                'entAliasMappingIdentifier')
-            self.alias_mapping = self._process_alias_mapping(alias_mapping)
+            self.alias_mapping = yield self.entitymib.get_alias_mapping()
             self._process_entities(physical_table)
         self.stampcheck.save()
 
@@ -147,7 +145,7 @@ class Modules(Plugin):
 
         if module_ifindex_map:
             self._logger.debug("module/ifindex mapping: %r",
-                              module_ifindex_map)
+                               module_ifindex_map)
 
     def _process_entities(self, result):
         """Process the list of collected entities."""
@@ -156,16 +154,3 @@ class Modules(Plugin):
 
         module_containers = self._process_modules(entities)
         self._process_ports(entities, module_containers)
-
-    def _process_alias_mapping(self, alias_mapping):
-        mapping = {}
-        for (phys_index, _logical), rowpointer in alias_mapping.items():
-            # Last element is ifindex. Preceding elements is an OID.
-            ifindex = OID(rowpointer)[-1]
-
-            if phys_index not in mapping:
-                mapping[phys_index] = []
-            mapping[phys_index].append(ifindex)
-
-        self._logger.debug("alias mapping: %r", mapping)
-        return mapping

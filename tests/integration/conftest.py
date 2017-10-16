@@ -1,5 +1,5 @@
-import pytest
 import os
+import io
 import re
 import shlex
 from nav.buildconf import bindir
@@ -17,11 +17,13 @@ def pytest_generate_tests(metafunc):
         ids = [b[0] for b in binaries]
         metafunc.parametrize("binary", _nav_binary_tests(), ids=ids)
 
+
 def _nav_binary_tests():
     for binary in _nav_binary_list():
         for args in _scan_testargs(binary):
             if args:
                 yield args
+
 
 def _nav_binary_list():
     files = sorted(os.path.join(bindir, f)
@@ -40,7 +42,7 @@ def _scan_testargs(filename):
     Scans filename for testargs comments and returns a list of elements
     suitable for invocation of this binary with the given testargs
     """
-    contents = open(filename, "rb").read()
+    contents = io.open(filename, encoding="utf-8").read()
     matches = TESTARGS_PATTERN.findall(contents)
     if matches:
         retval = []

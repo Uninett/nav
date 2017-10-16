@@ -27,8 +27,9 @@ create_nav_db() {
     gosu postgres:postgres psql -c "UPDATE account SET name = 'Administrator ÆØÅ' WHERE login = 'admin'" nav
 }
 
-gosu root pg_dropcluster --stop 9.4 main || true
-gosu root pg_createcluster --locale=C.UTF-8 --start 9.4 main
+PGVERSION=$(gosu root pg_lsclusters -h|awk '{print $1}')
+gosu root pg_dropcluster --stop ${PGVERSION} main || true
+gosu root pg_createcluster --locale=C.UTF-8 --start ${PGVERSION}  main
 
 update_nav_db_conf
 create_nav_db

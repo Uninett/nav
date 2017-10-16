@@ -23,7 +23,7 @@
 
             <tbody>
             {% for detention in detentions %}
-                <tr class="$rowcycler">
+                <tr>
                     <td>
                         <a href="{% url 'machinetracker-ip_short_search' detention.ip 100 'on' %}"
                            title="Link to Machine Tracker" target="_blank">

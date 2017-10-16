@@ -5,6 +5,7 @@ from nav.ipdevpoll.shadows import Netbox
 from nav.ipdevpoll.storage import ContainerRepository
 from nav.ipdevpoll.plugins.dnsname import DnsName
 
+
 class StrangeDnsResponsesTest(TestCase):
     def test_empty_result_should_not_set_sysname(self):
         containers = ContainerRepository()

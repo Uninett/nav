@@ -3,11 +3,7 @@
 """
 The ipdevpoll deamon
 Start the ipdevpoll daemon
-But first, make sure this daemon is using pysnmp-se (v3 API)
 """
-
-import os
-os.environ['PYSNMP_API_VERSION'] = 'v3'
 
 # Assuming a production environment, we don't want to raise exceptions
 # while logging
