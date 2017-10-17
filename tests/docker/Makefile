@@ -27,7 +27,7 @@ lint: build
 	docker run -t -u $(uid):$(gid) -v $(top_srcdir):/source $(name) /pylint.sh
 
 shell:
-	docker run -t --rm -u $(uid):$(gid) -v $(top_srcdir):/source $(name) /bin/bash
+	docker run -ti --rm -u $(uid):$(gid) -v $(top_srcdir):/source $(name) /bin/bash
 
 name:
 	echo Image name: $(name)
