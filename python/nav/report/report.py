@@ -295,14 +295,10 @@ class Report(object):
                     links = link_pattern.findall(uri)
                     if links:
                         for link in links:
-                            href = line[self.field_name_map[link]]
-                            if href:
-                                href = unicode(href).encode('utf-8')
-                            else:
-                                href = ""
-                            hei = re.compile(r"\$" + link)
+                            href = line[self.field_name_map[link]] or ""
+                            pattern = re.compile(r"\$" + link)
                             try:
-                                uri = hei.sub(href, uri)
+                                uri = pattern.sub(href, uri)
                             except TypeError:
                                 uri += href
                     newfield.set_hyperlink(uri)
