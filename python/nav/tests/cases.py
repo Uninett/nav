@@ -19,11 +19,3 @@ import django.test
 
 class DjangoTransactionTestCase(django.test.TestCase):
     serialized_rollback = True
-
-    def _pre_setup(self):
-        print "PRE SETUP!!!!"
-        return super(DjangoTransactionTestCase, self)._pre_setup()
-
-    def _fixture_setup(self):
-        print "LOADING FIXTURES!! " + repr(self.fixtures)
-        return super(DjangoTransactionTestCase, self)._fixture_setup()
