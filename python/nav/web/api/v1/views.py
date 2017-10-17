@@ -370,6 +370,9 @@ class MachineTrackerViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 class CamViewSet(MachineTrackerViewSet):
     """Lists all cam records.
 
+    *Because the number of cam records often is huge, the API does not support
+    fetching all and will ask you to use a filter if you try.*
+
     Filters
     -------
     - `active`: *set this to list only records that has not ended. This will
@@ -387,15 +390,25 @@ class CamViewSet(MachineTrackerViewSet):
     doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>.
     `end_time` timestamps shown as `"9999-12-31T23:59:59.999"` denote records
     that are still active.
-
     """
     model_class = manage.Cam
     serializer_class = serializers.CamSerializer
     filter_fields = ('mac', 'netbox', 'ifindex', 'port')
 
+    def list(self, request):
+        """Override list so that we can control what is returned"""
+        if not request.QUERY_PARAMS:
+            return Response("Cam records are numerous - use a filter",
+                            status=status.HTTP_400_BAD_REQUEST)
+        return super(CamViewSet, self).list(request)
+
+
 
 class ArpViewSet(MachineTrackerViewSet):
     """Lists all arp records.
+
+    *Because the number of arp records often is huge, the API does not support
+    fetching all and will ask you to use a filter if you try.*
 
     Filters
     -------
@@ -415,11 +428,17 @@ class ArpViewSet(MachineTrackerViewSet):
     doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>.
     `end_time` timestamps shown as `"9999-12-31T23:59:59.999"` denote records
     that are still active.
-
     """
     model_class = manage.Arp
     serializer_class = serializers.ArpSerializer
     filter_fields = ('mac', 'netbox', 'prefix')
+
+    def list(self, request):
+        """Override list so that we can control what is returned"""
+        if not request.QUERY_PARAMS:
+            return Response("Arp records are numerous - use a filter",
+                            status=status.HTTP_400_BAD_REQUEST)
+        return super(ArpViewSet, self).list(request)
 
     def get_queryset(self):
         """Customizes handling of the ip address filter"""

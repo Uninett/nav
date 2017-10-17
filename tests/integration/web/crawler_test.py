@@ -26,6 +26,8 @@ from django.utils.six.moves.urllib.request import (urlopen, build_opener,
                                                    HTTPCookieProcessor)
 from django.utils.six.moves.urllib.error import HTTPError, URLError
 from django.utils.six.moves.urllib.parse import urlsplit, urlencode
+from mock import Mock
+
 
 HOST_URL = os.environ.get('TARGETURL', None)
 USERNAME = os.environ.get('ADMINUSERNAME', 'admin')
@@ -52,11 +54,6 @@ BLACKLISTED_PATHS = [
     '/index/logout',
     '/doc',
 ]
-
-if not HOST_URL:
-    pytest.skip(msg="Missing environment variable TARGETURL "
-                    "(ADMINUSERNAME, ADMINPASSWORD) , skipping crawler tests!")
-
 
 #
 # Web Crawler code and related utility functions
@@ -114,7 +111,7 @@ class WebCrawler(object):
         if self._is_seen(url):
             return
 
-        resp = urlopen(url, timeout=TIMEOUT)
+        resp = urlopen(url.encode('utf-8'), timeout=TIMEOUT)
         content_type = resp.info()['Content-type']
 
         if 'html' in content_type.lower():
@@ -173,7 +170,11 @@ class WebCrawler(object):
 
 # just one big, global crawler instance to ensure it's results are cached
 # throughout all the tests in a single session
-crawler = WebCrawler(HOST_URL, USERNAME, PASSWORD)
+if HOST_URL:
+    crawler = WebCrawler(HOST_URL, USERNAME, PASSWORD)
+else:
+    crawler = Mock()
+    crawler.crawl.return_value = []
 
 
 def page_id(page):
@@ -181,6 +182,10 @@ def page_id(page):
     return normalize_path(page.url)
 
 
+@pytest.mark.skipif(not HOST_URL,
+                    reason="Missing environment variable TARGETURL "
+                           "(ADMINUSERNAME, ADMINPASSWORD) , skipping crawler "
+                           "tests!")
 @pytest.mark.parametrize("page", crawler.crawl(), ids=page_id)
 def test_link_should_be_reachable(page):
     assert page.response == 200, _content_as_string(page.content)
@@ -193,6 +198,10 @@ def _content_as_string(content):
         return content.decode('utf-8')
 
 
+@pytest.mark.skipif(not HOST_URL,
+                    reason="Missing environment variable TARGETURL "
+                           "(ADMINUSERNAME, ADMINPASSWORD) , skipping crawler "
+                           "tests!")
 @pytest.mark.parametrize("page", crawler.crawl(), ids=page_id)
 def test_page_should_be_valid_html(page):
     if page.response != 200:

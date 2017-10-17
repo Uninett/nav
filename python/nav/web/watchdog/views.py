@@ -16,6 +16,7 @@
 """Controllers for WatchDog requests"""
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.db import connection
 
 from nav.models.fields import INFINITY
 from nav.models.manage import Arp, Device
@@ -47,6 +48,34 @@ def get_active_addresses(_):
         'ipv6': num_active_ipv6,
         'ipv4': num_active_ipv4
     })
+
+
+def get_cam_and_arp(_request):
+    """Get cam and arp numbers"""
+    cursor = connection.cursor()
+    return JsonResponse({
+        'cam': get_cam(cursor),
+        'arp': get_arp(cursor)
+    })
+
+
+def get_cam(cursor):
+    query = """SELECT n_live_tup
+               FROM pg_stat_all_tables
+               WHERE relname = 'cam'"""
+    cursor.execute(query)
+    row = cursor.fetchone()
+    return row[0]
+
+
+def get_arp(cursor):
+    """Gets number of arp records"""
+    query = """SELECT n_live_tup
+               FROM pg_stat_all_tables
+               WHERE relname = 'arp'"""
+    cursor.execute(query)
+    row = cursor.fetchone()
+    return row[0]
 
 
 def get_serial_numbers(_):
