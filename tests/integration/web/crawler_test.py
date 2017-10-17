@@ -111,7 +111,10 @@ class WebCrawler(object):
         if self._is_seen(url):
             return
 
-        resp = urlopen(url.encode('utf-8'), timeout=TIMEOUT)
+        if six.PY3:
+            resp = urlopen(url, timeout=TIMEOUT)
+        else:
+            resp = urlopen(url.encode('utf-8'), timeout=TIMEOUT)
         content_type = resp.info()['Content-type']
 
         if 'html' in content_type.lower():
