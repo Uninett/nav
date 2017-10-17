@@ -7,7 +7,6 @@ from nav.web.networkexplorer.views import (
     SearchView,
 )
 
-from django.db import transaction
 from django.test.client import RequestFactory
 
 
@@ -18,14 +17,6 @@ class NetworkExplorerSearchTest(TestCase):
     Will not cover all code paths on an empty database.
 
     """
-    def setUp(self):
-        transaction.enter_transaction_management()
-        transaction.managed(True)
-
-    def tearDown(self):
-        transaction.rollback()
-        transaction.leave_transaction_management()
-
     def test_search_expand_swport(self):
         search.search_expand_swport(1)
 
