@@ -19,11 +19,13 @@
 from django.template.loader import get_template
 from django.template import Context
 from django.utils.six import iteritems
+from django.utils.encoding import python_2_unicode_compatible
 
 from nav.models.manage import Location, Room, Netbox, Module, NetboxGroup
 from nav.models.service import Service
 
 
+@python_2_unicode_compatible
 class QuickSelect(object):
     """Class for presenting and handling a quickselect form"""
 
@@ -251,9 +253,4 @@ class QuickSelect(object):
         template = get_template('webfront/quickselect.html')
         context = Context({'output': self.output})
 
-        result = template.render(context)
-
-        if isinstance(result, unicode):
-            result = result.encode('utf-8')
-
-        return result
+        return template.render(context)
