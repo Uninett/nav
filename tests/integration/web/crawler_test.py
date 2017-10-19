@@ -25,7 +25,8 @@ from django.utils.six.moves.urllib.request import (urlopen, build_opener,
                                                    install_opener,
                                                    HTTPCookieProcessor)
 from django.utils.six.moves.urllib.error import HTTPError, URLError
-from django.utils.six.moves.urllib.parse import urlsplit, urlencode
+from django.utils.six.moves.urllib.parse import (urlsplit, urlencode,
+                                                 urlunparse, urlparse, quote)
 from mock import Mock
 
 
@@ -111,10 +112,7 @@ class WebCrawler(object):
         if self._is_seen(url):
             return
 
-        if six.PY3:
-            resp = urlopen(url, timeout=TIMEOUT)
-        else:
-            resp = urlopen(url.encode('utf-8'), timeout=TIMEOUT)
+        resp = urlopen(_quote_url(url), timeout=TIMEOUT)
         content_type = resp.info()['Content-type']
 
         if 'html' in content_type.lower():
@@ -166,6 +164,19 @@ class WebCrawler(object):
     def _is_blacklisted(self, url):
         return normalize_path(url) in self.blacklist
 
+
+def _quote_url(url):
+    """Ensures non-ascii URL paths are quoted"""
+    parsed = urlparse(url)
+    try:
+        parsed.path.encode('ascii')
+    except UnicodeError:
+        path = quote(parsed.path.encode('utf-8'))
+    else:
+        path = parsed.path
+    quoted = (parsed.scheme, parsed.netloc, path, parsed.params,
+              parsed.query, parsed.fragment)
+    return urlunparse(quoted)
 
 #
 # test functions
