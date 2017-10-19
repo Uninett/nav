@@ -7,9 +7,6 @@ from .metaclass_testcase import MetaClassTestCase
 
 
 class MetaClassesTests(MetaClassTestCase):
-    def setUp(self):
-        super(MetaClassTestCase, self).setUp()
-
     def test_group_does_not_raise_exception_when_interface_is_none(self):
         foo  = Group(Mock(name='netbox', spec=Netbox), None)
 
@@ -28,9 +25,6 @@ class MetaClassesTests(MetaClassTestCase):
 
 
 class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
-    def setUp(self):
-        super(Layer2NetworkXMetadataTests, self).setUp()
-
     def _get_metadata(self, node_a, node_b, metadata_key='metadata'):
         return self.netmap_graph.get_edge_data(node_a, node_b).get(metadata_key)
 
@@ -78,9 +72,6 @@ class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
 
 
 class Layer3NetworkXMetadataTests(TopologyLayer3TestCase):
-    def setUp(self):
-        super(Layer3NetworkXMetadataTests, self).setUp()
-
     def test_link_between_a_and_c_contains_both_v4_and_v6_prefix(self):
         prefixes = {
             edge.prefix for edge in self.netmap_graph.get_edge_data(
