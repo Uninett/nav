@@ -18,6 +18,8 @@
 
 import re
 
+from django.utils import six
+
 
 class Field(object):
 
@@ -474,12 +476,12 @@ class Footers(object):
 
 
 def unicode_utf8(thing):
-    """Casts thing to unicode, assuming utf-8 encoding if a string.
+    """Casts thing to unicode, assuming utf-8 encoding if a binary string.
 
     If the argument is None, it is returned unchanged.
 
     """
-    if isinstance(thing, str):
+    if isinstance(thing, six.binary_type):
         return thing.decode('utf-8')
     elif thing is not None:
-        return unicode(thing)
+        return six.text_type(thing)
