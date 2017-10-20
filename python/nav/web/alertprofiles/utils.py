@@ -111,7 +111,7 @@ def read_time_period_templates():
     for template_file in template_configs:
         if '.conf' in template_file:
             file = os.path.join(template_dir, template_file)
-            key = hashlib.md5(file).hexdigest()
+            key = hashlib.md5(file.encode('utf-8')).hexdigest()
             config = nav.config.getconfig(file)
             templates[key] = config
 
