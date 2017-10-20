@@ -39,7 +39,10 @@ class BulkParser(six.Iterator):
             self.data = data
         else:
             if six.PY3:
-                self.data = io.StringIO(data.decode('utf-8'))
+                if isinstance(data, six.binary_type):
+                    self.data = io.StringIO(data.decode('utf-8'))
+                else:
+                    self.data = io.StringIO(data)
             else:
                 self.data = io.BytesIO(data)
 
