@@ -187,6 +187,7 @@ class Edge(object):
     """Represent either a edge pair in Layer2 or Layer3"""
     link_speed = None
     vlans = None
+    layer = None
 
     @staticmethod
     def _valid_layer2(edge):
