@@ -24,6 +24,7 @@ from django.db.models import Model
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db.models.fields import FieldDoesNotExist
+from django.utils.six import iteritems
 
 from nav.django.utils import get_verbose_name
 
@@ -107,7 +108,7 @@ def _process_objects(queryset, value_list, edit_url=None, edit_url_attr=None):
             value = _getattr(obj, attr)
             if isinstance(value, dict):
                 datakeys[attr].update(value)
-    datakeys = dict([(k, list(sorted(v))) for k, v in datakeys.iteritems()])
+    datakeys = {k: list(sorted(v)) for k, v in iteritems(datakeys)}
 
     def _getvalues(obj):
         for attr in value_list:
