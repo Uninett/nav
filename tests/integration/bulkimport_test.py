@@ -4,6 +4,8 @@
 
 from unittest import TestCase
 
+from django.utils import six
+
 from nav.models import manage
 from nav.tests.cases import DjangoTransactionTestCase
 from nav import bulkimport, bulkparse
@@ -12,8 +14,8 @@ from nav import bulkimport, bulkparse
 class TestGenericBulkImport(TestCase):
     def test_is_generator(self):
         importer = bulkimport.BulkImporter(None)
-        self.assertTrue(hasattr(importer, 'next'))
-        self.assertTrue(callable(getattr(importer, 'next')))
+        self.assertTrue(hasattr(importer, '__next__'))
+        self.assertTrue(callable(getattr(importer, '__next__')))
         self.assertTrue(iter(importer) == importer)
 
 
@@ -22,7 +24,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         data = 'myroom:10.0.90.252:myorg:SW:1:public::'
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = importer.next()
+        _line_num, objects = six.next(importer)
 
         self.assertTrue(isinstance(objects, list), repr(objects))
         self.assertTrue(len(objects) == 1, repr(objects))
@@ -32,7 +34,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         data = 'myroom:10.0.90.252:myorg:SW:1:public::'
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = importer.next()
+        _line_num, objects = six.next(importer)
 
         (netbox, ) = objects
         self.assertEquals(netbox.ip, '10.0.90.252')
@@ -46,14 +48,14 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         data = 'invalid:10.0.90.252:myorg:SW:1:public::'
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = importer.next()
+        _line_num, objects = six.next(importer)
         self.assertTrue(isinstance(objects, bulkimport.DoesNotExist))
 
     def test_netbox_function_is_set(self):
         data = 'myroom:10.0.90.252:myorg:SW:1:public:::does things:'
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = importer.next()
+        _line_num, objects = six.next(importer)
 
         types = dict((type(c), c) for c in objects)
         self.assertTrue(manage.NetboxInfo in types, types)
@@ -71,7 +73,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         data = 'myroom:10.0.90.10:myorg:SRV:::::fileserver::WEB:UNIX:MAIL'
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = importer.next()
+        _line_num, objects = six.next(importer)
 
         netboxgroups = [o for o in objects
                         if isinstance(o, manage.NetboxCategory)]
@@ -103,7 +105,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         data = 'myroom:10.1.0.1:myorg:SRV:::::fileserver::WEB:UNIX:MAIL'
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = importer.next()
+        _line_num, objects = six.next(importer)
 
         self.assertTrue(isinstance(objects, bulkimport.AlreadyExists))
 
@@ -111,7 +113,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         data = 'myroom:10.0.90.10:myorg:SRV::::fileserver::WEB:UNIX:MAIL'
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = importer.next()
+        _line_num, objects = six.next(importer)
 
         for obj in objects:
             bulkimport.reset_object_foreignkeys(obj)
@@ -122,7 +124,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         data = 'myroom:10.0.90.10:myorg:SW::::badmaster:functionality'
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = importer.next()
+        _line_num, objects = six.next(importer)
         self.assertTrue(isinstance(objects, bulkimport.DoesNotExist))
 
 
@@ -131,7 +133,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
         data = "somewhere::Over the rainbow"
         parser = bulkparse.LocationBulkParser(data)
         importer = bulkimport.LocationImporter(parser)
-        _line_num, objects = importer.next()
+        _line_num, objects = six.next(importer)
 
         self.assertTrue(len(objects) == 1, repr(objects))
         self.assertTrue(isinstance(objects[0], manage.Location))
@@ -142,7 +144,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
         data = "somewhere"
         parser = bulkparse.LocationBulkParser(data)
         importer = bulkimport.LocationImporter(parser)
-        _line_num, objects = importer.next()
+        _line_num, objects = six.next(importer)
 
         self.assertTrue(len(objects) == 1, repr(objects))
         self.assertTrue(isinstance(objects[0], manage.Location))
@@ -152,7 +154,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
         data = "somewhere::Over the rainbow"
         parser = bulkparse.LocationBulkParser(data)
         importer = bulkimport.LocationImporter(parser)
-        _line_num, objects = importer.next()
+        _line_num, objects = six.next(importer)
 
         for obj in objects:
             bulkimport.reset_object_foreignkeys(obj)
@@ -166,7 +168,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
         data = "somewhere::Over the rainbow"
         parser = bulkparse.LocationBulkParser(data)
         importer = bulkimport.LocationImporter(parser)
-        _line_num, objects = importer.next()
+        _line_num, objects = six.next(importer)
 
         self.assertTrue(isinstance(objects, bulkimport.AlreadyExists))
 
@@ -177,7 +179,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
         data = "otherplace:somewhere:descr"
         parser = bulkparse.LocationBulkParser(data)
         importer = bulkimport.LocationImporter(parser)
-        _line_num, objects = importer.next()
+        _line_num, objects = six.next(importer)
         self.assertEquals(len(objects), 1)
         self.assertEquals(objects[0].pk, 'otherplace')
         self.assertEquals(objects[0].parent, parent)
@@ -190,7 +192,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
         data = "otherplace:somewhere"
         parser = bulkparse.LocationBulkParser(data)
         importer = bulkimport.LocationImporter(parser)
-        _line_num, objects = importer.next()
+        _line_num, objects = six.next(importer)
         self.assertEquals(len(objects), 1)
         self.assertEquals(objects[0].pk, 'otherplace')
         self.assertEquals(objects[0].parent, parent)
@@ -209,7 +211,7 @@ class TestPrefixImporter(DjangoTransactionTestCase):
         data = "10.0.1.0/24:lan:uninett:here-there:employee:Employee LAN:20"
         parser = bulkparse.PrefixBulkParser(data)
         importer = bulkimport.PrefixImporter(parser)
-        _line_num, objects = importer.next()
+        _line_num, objects = six.next(importer)
 
         if isinstance(objects, Exception):
             raise objects
