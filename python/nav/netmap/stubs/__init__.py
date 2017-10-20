@@ -21,6 +21,8 @@
 
 class Netbox(object):
     """Netbox stub"""
+    id = None  # we need this, but it should always be empty
+
     def __str__(self):
         return str(self.sysname)
 
