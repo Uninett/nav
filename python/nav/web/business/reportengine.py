@@ -26,6 +26,7 @@ from django.template.loader import render_to_string
 
 from nav.web.business import utils
 from nav.models.profiles import ReportSubscription
+from nav.django.settings import DEFAULT_FROM_EMAIL
 
 _logger = logging.getLogger(__name__)
 Report = namedtuple('Report', ['subject', 'period', 'text_message',
@@ -57,7 +58,7 @@ def send_report(report, to_address):
     send_mail(
         report.subject,
         report.text_message,
-        'noreply@example.com',
+        DEFAULT_FROM_EMAIL,
         [to_address],
         html_message=report.html_message
     )
