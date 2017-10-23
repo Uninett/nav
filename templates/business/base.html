@@ -4,6 +4,11 @@
 
 {% block base_header_additional_head %}
   <script>require(['src/business']);</script>
+  <script>
+   NAV.urls.render_report_subscriptions = "{% url 'render-report-subscriptions' %}";
+   NAV.urls.remove_report_subscription = "{% url 'remove-report-subscription' %}";
+   NAV.urls.save_report_subscription = "{% url 'save-report-subscription' %}";
+  </script>
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/business.css">
 {% endblock %}
 
@@ -25,6 +30,55 @@
         </li>
       {% endfor %}
     </ul>
+
+
+    <div class="panel white">
+
+      <h4>Subscribe to email reports</h4>
+      <p class="alert-box info">
+        The first day of a new period an email containing last periods report will be sent to you.
+      </p>
+      <form id="subscription-form" class="inline-form" method="post" action="{% url 'save-report-subscription' %}">
+        <input type="hidden" name="report_type" value="{{ report_type }}"/>
+        Send
+        <select name="period">
+          {% for period in subscription_periods  %}
+            <option value="{{ period.0 }}">{{ period.1 }}</option>
+          {% endfor %}
+        </select>
+        reports for
+        <select name="report_type">
+          {% for report_type in report_types  %}
+            <option value="{{ report_type.0 }}">{{ report_type.1 }}</option>
+          {% endfor %}
+        </select>
+        to
+        {% if request.account.get_email_addresses|length %}
+          <select name="address">
+            {% for address in request.account.get_email_addresses  %}
+              <option value="{{ address.pk }}">{{ address.address }}</option>
+            {% endfor %}
+          </select>
+        {% else %}
+          <input type="email" name="new_address" placeholder="email address">
+        {% endif %}
+        <input type="submit" class="button small" value="Subscribe">
+      </form>
+
+      <h5>Your subscriptions</h5>
+      <ul id="subscription-list">
+        {% include 'business/frag-report-items.html' %}
+      </ul>
+
+      <p id="undounsubscribe"
+         class="alert-box warning"
+         style="max-width: 30em; display: none; justify-content: space-between; align-items: center;">
+        Subscription removed.
+        <button class="tiny" style="margin-bottom: 0">Undo</button>
+      </p>
+
+
+    </div>
   {% endblock %}
 
 

@@ -1,0 +1,12 @@
+{% for subscription in request.account.reportsubscription_set.all  %}
+  <li>
+    {{ subscription }}
+    <button class="table-button secondary"
+            data-subscription-object='{{ subscription.serialize }}'
+            data-subscription-id="{{ subscription.pk }}">
+      Unsubscribe
+    </button>
+  </li>
+{% empty %}
+  <li>You have no subscriptions</li>
+{% endfor %}
