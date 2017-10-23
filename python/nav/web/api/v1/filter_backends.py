@@ -15,28 +15,79 @@
 #
 """Custom filter backends"""
 
+import operator
+# reduce is removed in python 3, import it from functools
+from functools import reduce as reduce3
 from . import alert_serializers
 from rest_framework import filters
+from django.db.models import Q
 
 from nav import natsort
 from nav.models.manage import Location
 
+__all__ = ['NaturalIfnameFilter', 'IfClassFilter', 'AlertHistoryFilterBackend']
 
-class NaturalIfnameFilter(filters.BaseFilterBackend):
+
+class IfClassFilter(filters.BaseFilterBackend):
+    """Filter on ifclasses
+
+    An ifclass is a fantasy construct that tells you if this interface is a
+    swport, gwport or physical port (can be zero or more)
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        """Filter on interface class/type
+
+        NB: Needs a Queryset as queryset, other filters that return lists will
+        break this.
+
+        Using the methods (is_swport, is_gwport etc) on the Interface model
+        means doing everything in python in stead of letting the database do it,
+        so we reimplement them here with Q-objects.
+        """
+        filters = {
+            'swport': Q(baseport__isnull=False),
+            'gwport': Q(gwportprefix__isnull=False),
+            'physicalport': Q(ifconnectorpresent=True),
+            'trunk': Q(trunk=True)
+        }
+
+        if 'ifclass[]' in request.QUERY_PARAMS:
+            matching_filters = (set(request.QUERY_PARAMS.getlist('ifclass[]'))
+                                & set(filters))
+            if matching_filters:
+                q = reduce3(operator.or_, [filters[f] for f in matching_filters])
+                queryset = queryset.filter(q).distinct()
+
+        return queryset
+
+
+class NaturalIfnameFilter(filters.OrderingFilter):
     """Filter naturally on interface ifname"""
 
     def filter_queryset(self, request, queryset, view):
-        """Filter on interface__ifname if it exists in GET-request"""
+        """Filter on ifname if it exists as an ordering parameter"""
 
-        to_match = ['interface__ifname', '-interface__ifname']
-        intersection = (set(request.GET.get('ordering', '').split(',')) &
-                        set(to_match))
-        if intersection:
+        interface_ifnames = ['interface__ifname', '-interface__ifname']
+        ifnames = ['ifname', '-ifname']
+        ordering = self.get_ordering(request)
+        if not ordering:
+            return queryset
+
+        intersection = (set(ordering) & set(interface_ifnames + ifnames))
+
+        try:
             match_field = intersection.pop()
+        except KeyError:
+            return queryset
+        else:
+            if match_field in interface_ifnames:
+                lookup = lambda x: natsort.split(x.interface.ifname)
+            if match_field in ifnames:
+                lookup = lambda x: natsort.split(x.ifname)
             return sorted(queryset,
-                          key=lambda x: natsort.split(x.interface.ifname),
+                          key=lookup,
                           reverse=match_field.startswith('-'))
-        return queryset
 
 
 class AlertHistoryFilterBackend(filters.BaseFilterBackend):
@@ -71,7 +122,7 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
             if values:
                 # Locations are hierarchial - must include descendants
                 if arg == 'location':
-                    values = get_descendants(values)
+                    values = _get_descendants(values)
                 filtr = field + '__in'
                 queryset = queryset.filter(**{filtr: values})
 
@@ -80,7 +131,7 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
             if values:
                 # Locations are hierarchial - must include descendants
                 if arg == 'not_location':
-                    values = get_descendants(values)
+                    values = _get_descendants(values)
                 filtr = field + '__in'
                 queryset = queryset.exclude(**{filtr: values})
 
@@ -100,7 +151,7 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
         return queryset
 
 
-def get_descendants(parents):
+def _get_descendants(parents):
     """Returns a list of all descendants for the parents including themselves"""
     locations = []
     for parent in parents:

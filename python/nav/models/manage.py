@@ -1617,6 +1617,10 @@ class Interface(models.Model):
         """
         return (self.gwportprefix_set.count() > 0)
 
+    def is_physical_port(self):
+        """Returns true if this interface has a physical connector present"""
+        return self.ifconnectorpresent
+
     def is_admin_up(self):
         """Returns True if interface is administratively up"""
         return self.ifadminstatus == self.ADM_UP

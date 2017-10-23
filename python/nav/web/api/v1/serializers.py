@@ -31,6 +31,12 @@ class EntitySerializer(serializers.ModelSerializer):
                   'mfg_name', 'model_name', 'fru', 'mfg_date')
 
 
+class SubNetboxSerializer(serializers.ModelSerializer):
+    object_url = serializers.CharField(source='get_absolute_url')
+    class Meta(object):
+        model = manage.Netbox
+
+
 class NetboxSerializer(serializers.ModelSerializer):
     """Serializer for the netbox model"""
     chassis = EntitySerializer(source='get_chassis', many=True)
@@ -55,12 +61,30 @@ class SpecificPatchSerializer(serializers.ModelSerializer):
         fields = ('id', 'cabling', 'split')
 
 
+class ModuleSerializer(serializers.ModelSerializer):
+    """Serializer for the module model"""
+    object_url = serializers.CharField(source='get_absolute_url')
+
+    class Meta(object):
+        model = manage.Module
+
+
+class SubInterfaceSerializer(serializers.ModelSerializer):
+    object_url = serializers.CharField(source='get_absolute_url')
+    class Meta(object):
+        model = manage.Interface
+
 class InterfaceSerializer(serializers.ModelSerializer):
     """Serializer for the interface model"""
     patches = SpecificPatchSerializer()
+    module = ModuleSerializer()
+    object_url = serializers.CharField(source='get_absolute_url')
+    to_netbox = SubNetboxSerializer()
+    to_interface = SubInterfaceSerializer()
 
     class Meta(object):
         model = manage.Interface
+        depth = 1
 
 
 class CablingSerializer(serializers.ModelSerializer):

@@ -47,7 +47,7 @@ from nav.web.servicecheckers import load_checker_classes
 from nav.web.api.v1 import serializers, alert_serializers
 from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
 from .helpers import prefix_collector
-from .filter_backends import AlertHistoryFilterBackend, NaturalIfnameFilter
+from .filter_backends import *
 from nav.web.status2 import STATELESS_THRESHOLD
 
 EXPIRE_DELTA = timedelta(days=365)
@@ -277,12 +277,19 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     - iftype
     - netbox
     - trunk
+    - module__name
+    - ifclass[swport, gwport, physicalport, trunk]
+
+    Example: `/api/1/interface/?netbox=91&ifclass[]=trunk&ifclass[]=swport`
     """
     queryset = manage.Interface.objects.all()
     serializer_class = serializers.InterfaceSerializer
     filter_fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
-                     'ifadminstatus', 'iftype', 'baseport')
+                     'ifadminstatus', 'iftype', 'baseport', 'module__name')
     search_fields = ('ifalias', 'ifdescr', 'ifname')
+
+    # NaturalIfnameFilter returns a list, so IfClassFilter needs to come first
+    filter_backends = NAVAPIMixin.filter_backends + (IfClassFilter, NaturalIfnameFilter)
 
 
 class PatchViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
