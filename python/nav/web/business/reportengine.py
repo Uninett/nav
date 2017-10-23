@@ -87,7 +87,8 @@ def build_context(period, report_type):
         'start': start,
         'end': end,
         'today': midnight,
-        'records': sorted_records
+        'records': sorted_records,
+        'subject_format': "-{}s".format(max([len(str(r.subject)) for r in records]))
     }
 
 
