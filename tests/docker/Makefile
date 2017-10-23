@@ -21,12 +21,10 @@ buildnocache:
 	docker build --no-cache -t $(name) -f $(dockerfile) $(top_srcdir)
 
 check: build
-	/usr/bin/env
-	docker run -u $(uid):$(gid) -v $(top_srcdir):/source $(name) /source/tests/docker/test.sh
+	docker run -t -u $(uid):$(gid) -v $(top_srcdir):/source $(name) /source/tests/docker/test.sh
 
 lint: build
-	/usr/bin/env
-	docker run -u $(uid):$(gid) -v $(top_srcdir):/source $(name) /pylint.sh
+	docker run -t -u $(uid):$(gid) -v $(top_srcdir):/source $(name) /pylint.sh
 
 shell:
 	docker run -ti --rm -u $(uid):$(gid) -v $(top_srcdir):/source $(name) /bin/bash

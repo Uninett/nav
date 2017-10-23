@@ -17,6 +17,13 @@
 
 import json
 from .tests import Test
+from django.core.cache import cache
+
+import logging
+_logger = logging.getLogger(__name__)
+
+
+HALF_HOUR = 60 * 30
 
 
 def get_statuses():
@@ -26,8 +33,14 @@ def get_statuses():
     test_results = []
     for cls in Test.__subclasses__():
         if cls.active:
-            test = cls()
-            test.run()
+            testname = cls.__name__
+            test = cache.get(testname)
+            if test is None:
+                test = cls()
+                test.run()
+                cache.set(testname, test, HALF_HOUR)
+            else:
+                _logger.debug('%s was in cache', testname)
             test_results.append(test)
 
     return test_results

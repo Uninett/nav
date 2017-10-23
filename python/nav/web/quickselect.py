@@ -18,11 +18,14 @@
 
 from django.template.loader import get_template
 from django.template import Context
+from django.utils.six import iteritems
+from django.utils.encoding import python_2_unicode_compatible
 
 from nav.models.manage import Location, Room, Netbox, Module, NetboxGroup
 from nav.models.service import Service
 
 
+@python_2_unicode_compatible
 class QuickSelect(object):
     """Class for presenting and handling a quickselect form"""
 
@@ -150,7 +153,7 @@ class QuickSelect(object):
                         'multi': self.location_multi,
                         'name': 'loc',
                         'collapse': True,
-                        'objects': sorted(locations.iteritems()),
+                        'objects': sorted(iteritems(locations)),
                     })
 
             if self.room:
@@ -170,7 +173,7 @@ class QuickSelect(object):
                         'multi': self.room_multi,
                         'name': 'room',
                         'collapse': True,
-                        'objects': sorted(rooms.iteritems()),
+                        'objects': sorted(iteritems(rooms)),
                     })
 
             if self.netbox:
@@ -190,7 +193,7 @@ class QuickSelect(object):
                         'button': self.button % 'IP device',
                         'multi': self.netbox_multi,
                         'name': 'netbox',
-                        'objects': sorted(netboxes.iteritems()),
+                        'objects': sorted(iteritems(netboxes)),
                     })
 
             if self.netboxgroup:
@@ -204,7 +207,7 @@ class QuickSelect(object):
                         'multi': self.netboxgroup_multi,
                         'name': 'netboxgroup',
                         'collapse': True,
-                        'objects': sorted(netboxgroups.iteritems()),
+                        'objects': sorted(iteritems(netboxgroups)),
                     })
 
             if self.service:
@@ -223,7 +226,7 @@ class QuickSelect(object):
                         'multi': self.service_multi,
                         'name': 'service',
                         'collapse': True,
-                        'objects': sorted(services.iteritems()),
+                        'objects': sorted(iteritems(services)),
                     })
 
             if self.module:
@@ -242,7 +245,7 @@ class QuickSelect(object):
                         'multi': self.module_multi,
                         'name': 'module',
                         'collapse': True,
-                        'objects': sorted(modules.iteritems()),
+                        'objects': sorted(iteritems(modules)),
                     })
 
             self.output = output
@@ -250,9 +253,4 @@ class QuickSelect(object):
         template = get_template('webfront/quickselect.html')
         context = Context({'output': self.output})
 
-        result = template.render(context)
-
-        if isinstance(result, unicode):
-            result = result.encode('utf-8')
-
-        return result
+        return template.render(context)

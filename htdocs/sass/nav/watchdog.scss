@@ -16,4 +16,13 @@
         line-height: 1.4em;
         width: 60px;
     }
+    .wd-test-description {
+        i {
+            color: gainsboro;
+            transition: color .5s;
+            &:hover {
+                color: black;
+            }
+        }
+    }
 }

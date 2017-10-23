@@ -34,6 +34,7 @@ from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.utils.six import iteritems
 
 from nav.models.manage import Prefix
 
@@ -111,7 +112,7 @@ def _strip_empty_arguments(request):
     """
     query = request.GET.copy()
 
-    deletable = [key for key, value in query.iteritems() if not value.strip()]
+    deletable = [key for key, value in iteritems(query) if not value.strip()]
     for key in deletable:
         del query[key]
         if "op_{0}".format(key) in query:
@@ -289,7 +290,7 @@ def make_report(request, report_name, export_delimiter, query_dict,
     page_size = get_page_size(request)
 
     query_string = "&".join(["%s=%s" % (x, y)
-                             for x, y in query_dict.iteritems()
+                             for x, y in iteritems(query_dict)
                              if x != 'page_number'])
 
     # Deleting meta variables and empty values from uri to help verifying

@@ -265,7 +265,7 @@ def main():
                 queue.setsentstatus(msgid, 'Y', smsid)
             for msgid in ignored:
                 queue.setsentstatus(msgid, 'I', smsid)
-            logger.info("%d messages was sent and %d ignored.",
+            logger.info("%d messages were sent and %d ignored.",
                         len(sent), len(ignored))
 
         # Sleep a bit before the next run

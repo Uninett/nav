@@ -91,17 +91,13 @@ class Layer3MultiGraphToUndirectTests(TopologyLayer3TestCase):
         self.assertEqual(6, len(self.netmap_graph.edges()))
 
     def test_layer3_edges_is_as_expected_in_netmap_graph(self):
-        self.assertEqual(
-            [
-                (self.a, self.b),
-                (self.a, self.c),
-                (self.b, self.d),
-                (self.b, self.e),
-                (self.d, self.e),
-                (self.f, self.unknown)
-            ],
-            self.netmap_graph.edges()
-        )
+        for edge in [(self.a, self.b),
+                     (self.a, self.c),
+                     (self.b, self.d),
+                     (self.b, self.e),
+                     (self.d, self.e),
+                     (self.f, self.unknown)]:
+            self.assertTrue(self.netmap_graph.has_edge(*edge))
 
     def test_layer3_only_one_vlan_on_all_edges(self):
         """

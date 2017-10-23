@@ -32,9 +32,10 @@ from nav.bulkparse import BulkParseError
 
 from nav.models.manage import models
 from django.core.exceptions import ValidationError
+from django.utils import six
 
 
-class BulkImporter(object):
+class BulkImporter(six.Iterator):
     """Abstract bulk import iterator"""
     def __init__(self, parser):
         self.parser = parser
@@ -42,10 +43,10 @@ class BulkImporter(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         """Parses and returns next line"""
         try:
-            row = self.parser.next()
+            row = six.next(self.parser)
             row = self._decode_as_utf8(row)
             objects = self._create_objects_from_row(row)
         except BulkParseError as error:
@@ -56,7 +57,7 @@ class BulkImporter(object):
     def _decode_as_utf8(row):
         """Decodes all unicode values in row as utf-8 strings"""
         for key, value in row.items():
-            if isinstance(value, str):
+            if isinstance(value, six.binary_type):
                 row[key] = value.decode('utf-8')
         return row
 

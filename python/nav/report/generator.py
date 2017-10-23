@@ -18,6 +18,7 @@
 import io
 import re
 
+from django.utils import six
 from django.utils.six.moves.urllib.parse import unquote_plus
 
 import nav
@@ -434,8 +435,6 @@ class ReportConfig(object):
         def _transform(arg):
             if arg.startswith("-"):
                 arg = "%s DESC" % arg.replace("-", "")
-            if isinstance(arg, unicode):
-                return arg.encode('utf-8')
             return arg
 
         sort = [_transform(s) for s in self.order_by]

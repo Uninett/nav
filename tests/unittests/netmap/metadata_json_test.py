@@ -26,9 +26,6 @@ from .topology_layer2_testcase import TopologyLayer2TestCase
 
 class MetaClassesJsonTests(MetaClassTestCase):
 
-    def setUp(self):
-        super(MetaClassesJsonTests, self).setUp()
-
     def test_allow_group_interface_to_be_none(self):
         json = Group(self.netbox).to_json()
         self.assertFalse('interface' in json['netbox'])
