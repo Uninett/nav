@@ -50,7 +50,7 @@
 
 /* Status table */
 ul {
-    &.normalize-font-size{ 
+    &.normalize-font-size{
         font-size: rem-calc(14);
     }
 }
@@ -223,4 +223,8 @@ table.module td div.portcell span.oplayer {
         padding: 20px;
         list-style-type: none;
     }
+}
+
+#portlist_wrapper {
+    input[name='portgroup'] { margin-right: .3rem; }
 }
