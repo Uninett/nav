@@ -24,12 +24,14 @@ import logging
 import os
 from datetime import datetime
 import re
+import json
 
 from django.views.decorators.debug import sensitive_variables
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
 from django.utils.encoding import python_2_unicode_compatible
 from django_hstore import hstore
+from django.forms.models import model_to_dict
 
 import nav.buildconf
 import nav.pwhash
@@ -229,6 +231,9 @@ class Account(models.Model):
             self.password = self.password[1:]
         elif value and not self.password.startswith('!'):
             self.password = '!' + self.password
+
+    def get_email_addresses(self):
+        return self.alertaddress_set.filter(type__name=AlertSender.EMAIL)
 
 
 @python_2_unicode_compatible
@@ -1391,3 +1396,45 @@ class AccountNavlet(models.Model):
     class Meta(object):
         db_table = 'account_navlet'
         ordering = ['order']
+
+
+class ReportSubscription(models.Model):
+    """Subscriptions for availability reports"""
+
+    MONTH = 'month'
+    WEEK = 'week'
+    DAY = 'day'
+    PERIODS = ((MONTH, 'monthly'), (WEEK, 'weekly'), (DAY, 'daily'))
+
+    DEVICE = 'device'
+    LINK = 'link'
+    TYPES = ((DEVICE, 'device availability'), (LINK, 'link availability'))
+
+    account = models.ForeignKey(Account)
+    address = models.ForeignKey(AlertAddress)
+    period = VarcharField(choices=PERIODS)
+    report_type = VarcharField(choices=TYPES)
+
+    class Meta(object):
+        db_table = u'report_subscription'
+
+    def __unicode__(self):
+        return u"{} report for {} sent to {}".format(
+            self.get_period_description(self.period),
+            self.get_type_description(self.report_type),
+            self.address.address)
+
+    def serialize(self):
+        keys = ['report_type', 'period', 'address']
+        filtered = {k:v for k, v in model_to_dict(self).items() if k in keys}
+        return json.dumps(filtered)
+
+    @staticmethod
+    def get_period_description(period):
+        return next(v for k, v in ReportSubscription.PERIODS
+                    if k == period)
+
+    @staticmethod
+    def get_type_description(report_type):
+        return next(v for k, v in ReportSubscription.TYPES
+                    if k == report_type)

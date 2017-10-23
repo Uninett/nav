@@ -1,5 +1,8 @@
 require(['libs/jquery'], function() {
 
+    var subscriptionReloadEvent = "nav.events.reload-subscription-list";
+    var storageKey = 'nav-business-deleted-subscription';
+    var $undoContainer = $("#undounsubscribe");
 
     /**
      * Set even height on all report cards
@@ -47,10 +50,71 @@ require(['libs/jquery'], function() {
                    $target.text('Hide');
                } else {
                    $incident.addClass('hidden');
-                   $target.text('Show');                   
+                   $target.text('Show');
                }
            }
-       });
+        });
+
+
+        addSubscriptionListener();
+        addRefreshSubscriptionListListener();
+        addRemoveSubscriptionListener();
+        addUndoUnsubscribeListener();
     });
+
+    /**
+     * Listen to form submits for adding subscriptions. Submit form by ajax and
+     * reload subscription list
+     */
+    function addSubscriptionListener() {
+        $('#subscription-form').on('submit', function(event) {
+            event.preventDefault();
+            var $form = $(this);
+            $.post($form.attr("action"), $form.serialize())
+             .then(function() {
+                 if (_.has($form.get(0).elements, 'new_address')) {
+                     window.location.reload();
+                 } else {
+                     $('body').trigger(subscriptionReloadEvent);
+                 }
+             });
+        })
+    }
+
+    /** Reload subscription list when subscription reload events are triggered */
+    function addRefreshSubscriptionListListener() {
+        var $subscriptionList = $('#subscription-list');
+        $('body').on(subscriptionReloadEvent, function() {
+            $.get(NAV.urls.render_report_subscriptions, function(html) {
+                $subscriptionList.html(html);
+            })
+        })
+    }
+
+    /** Remove subscription when unsubscribe button is clicked, then reload subscription list */
+    function addRemoveSubscriptionListener() {
+        var $subscriptionList = $('#subscription-list');
+        $subscriptionList.on('click', 'button', function(event) {
+            var serializedSubscription = $(this).data('subscriptionObject');
+            $.post(NAV.urls.remove_report_subscription, {
+                subscriptionId: $(this).data('subscriptionId')
+            }).then(function() {
+                localStorage.setItem(storageKey, JSON.stringify(serializedSubscription));
+                $('body').trigger(subscriptionReloadEvent);
+                $undoContainer.css('display', 'flex');
+            })
+        })
+    }
+
+    function addUndoUnsubscribeListener() {
+        $undoContainer.on('click', 'button', function() {
+            var data = JSON.parse(localStorage.getItem(storageKey));
+            $.post(NAV.urls.save_report_subscription, data)
+             .then(function() {
+                 $('body').trigger(subscriptionReloadEvent);
+                 $undoContainer.hide();
+             })
+        })
+    }
 
 });

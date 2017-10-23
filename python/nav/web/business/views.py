@@ -6,9 +6,11 @@ from operator import attrgetter
 
 from django.core.urlresolvers import reverse
 from django.views.generic import TemplateView
+from django.shortcuts import get_object_or_404, render
+from django.http import HttpResponse
 
 from nav.models.event import AlertHistory
-from nav.models.manage import Interface
+from nav.models.profiles import AlertAddress, ReportSubscription, AlertSender
 from nav.web.business import utils
 from nav.web.utils import create_title
 
@@ -34,6 +36,8 @@ class BusinessView(TemplateView):
         context['title'] = create_title(navpath)
         context['available_reports'] = [DeviceAvailabilityReport,
                                         LinkAvailabilityReport]
+        context['subscription_periods'] = ReportSubscription.PERIODS
+        context['report_types'] = ReportSubscription.TYPES
 
         return context
 
@@ -51,7 +55,7 @@ class AvailabilityReportView(BusinessView):
             year, month = [int(x) for x in
                            self.request.GET.get('report-month').split('-')]
             sometime = datetime(year, month, 1)
-            start, end = utils.get_interval(sometime)
+            start, end = utils.get_interval(sometime, ReportSubscription.MONTH)
             context['start'] = start
             context['end'] = end
             context['records'] = sorted(self.get_records(start, end),
@@ -62,8 +66,7 @@ class AvailabilityReportView(BusinessView):
 
         return context
 
-    def get_records(self, start, end,
-                    eventtype='boxState', alerttype='boxDown'):
+    def get_records(self, start, end):
         """Get records for the specified event and alert types"""
         from django.db.models import Q
 
@@ -105,6 +108,10 @@ class DeviceAvailabilityReport(AvailabilityReportView):
     def get_url(self):
         return reverse('business-report-device-availability')
 
+    def get_records(self, start, end):
+        """Get records for the specified event and alert types"""
+        return utils.get_netbox_records(start, end)
+
 
 class LinkAvailabilityReport(AvailabilityReportView):
     """Availability for links"""
@@ -115,20 +122,47 @@ class LinkAvailabilityReport(AvailabilityReportView):
     def get_url(self):
         return reverse('business-report-link-availability')
 
-    def get_records(self, start, end, **_kwargs):
+    def get_records(self, start, end):
         """Gets all records regarding links for this period"""
-        return super(LinkAvailabilityReport, self).get_records(
-            start, end, 'linkState', 'linkDown')
+        return utils.get_interface_records(start, end)
 
-    @staticmethod
-    def group_alerts(alerts):
-        grouped_alerts = defaultdict(list)
-        for alert in alerts:
-            try:
-                interface = Interface.objects.get(pk=alert.subid)
-            except Interface.DoesNotExist:
-                continue
-            else:
-                grouped_alerts[interface].append(alert)
 
-        return grouped_alerts
+def save_report_subscription(request):
+    """Saves a report subscription"""
+
+    new_address = request.POST.get('new_address')
+    address_id = request.POST.get('address')
+    period = request.POST.get('period')
+    report_type = request.POST.get('report_type')
+    if new_address:
+        email_sender = AlertSender.objects.get(name=AlertSender.EMAIL)
+        address = AlertAddress(account=request.account,
+                               type=email_sender,
+                               address=new_address)
+        address.save()
+    else:
+        address = get_object_or_404(AlertAddress,
+                                    pk=int(request.POST.get('address')))
+
+    ReportSubscription(
+        account=request.account,
+        address=address,
+        period=period,
+        report_type=report_type).save()
+
+    return HttpResponse()
+
+
+def render_report_subscriptions(request):
+    """Renders the report subscriptions"""
+    return render(request, 'business/frag-report-items.html')
+
+
+def remove_report_subscription(request):
+    """Remove a report subscription"""
+    subscription_id = request.POST.get('subscriptionId')
+    subscription = get_object_or_404(
+        ReportSubscription, account=request.account, pk=subscription_id)
+    subscription.delete()
+
+    return HttpResponse()

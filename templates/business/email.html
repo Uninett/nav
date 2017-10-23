@@ -1,0 +1,36 @@
+<style>
+ td, th { padding-right: 1em; }
+ th { text-align: left; }
+ table { margin-bottom: 2em; }
+</style>
+
+<table>
+  <caption>Downtime for period {{ start }} - {{ end }}</caption>
+  <thead>
+    <tr>
+      <th>Subject</th>
+      <th>Incidents</th>
+      <th>Downtime</th>
+      <th>Availability</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for record in records %}
+      <tr>
+        <td>{{ record.subject }}</td>
+        <td>{{ record.incidents|length }}</td>
+        <td>{{ record.downtime }}</td>
+        <td>{{ record.availability }}</td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td>No downtime this period</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p>
+  {% include 'business/frag-unsubscribe.html' %}
+</p>
