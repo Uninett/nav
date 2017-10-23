@@ -110,8 +110,8 @@ define(function(require) {
     function createClassFilters(selector) {
         var $form = $("<form>").appendTo(selector);
         $form.append('<label><input type="radio" name="portgroup" value="all" checked>All ports</label>');
-        $form.append('<label><input type="radio" name="portgroup" value="swport">Swports</label>');
-        $form.append('<label><input type="radio" name="portgroup" value="gwport">Gwports</label>');
+        $form.append('<label><input type="radio" name="portgroup" value="swport">Switch ports</label>');
+        $form.append('<label><input type="radio" name="portgroup" value="gwport">Router ports</label>');
         $form.append('<label><input type="radio" name="portgroup" value="physicalport">Physical ports</label>');
         $form.append('<label><input type="radio" name="portgroup" value="trunk">Trunks</label>');
         return $form;
