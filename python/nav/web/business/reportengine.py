@@ -20,6 +20,7 @@ from __future__ import print_function
 import logging
 from collections import namedtuple
 from datetime import date, datetime, timedelta
+from operator import attrgetter
 
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -82,10 +83,10 @@ def build_context(period, report_type):
         ReportSubscription.LINK: utils.get_interface_records,
     }
     records = lookup[report_type](start, end)
-    sorted_records = sorted(records, key=lambda x: x.downtime, reverse=True)
+    sorted_records = sorted(records, key=attrgetter('downtime'), reverse=True)
     max_length = 30
     if records:
-        max_length = max([len(str(r.subject)) for r in records])
+        max_length = max(len(str(r.subject)) for r in records)
 
     return {
         'start': start,
