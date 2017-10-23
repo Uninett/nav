@@ -297,7 +297,8 @@ class Report(object):
                     links = link_pattern.findall(uri)
                     if links:
                         for link in links:
-                            href = line[self.field_name_map[link]] or ""
+                            href = six.text_type(
+                                line[self.field_name_map[link]]) or ""
                             pattern = re.compile(r"\$" + link)
                             try:
                                 uri = pattern.sub(href, uri)
