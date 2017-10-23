@@ -761,5 +761,8 @@ def save_port_layout_pref(request):
     key = Account.PREFERENCE_KEY_IPDEVINFO_PORT_LAYOUT
     account.preferences[key] = request.GET.get('layout')
     account.save()
-    return redirect('ipdevinfo-details-by-id',
-                    netbox_id=request.GET.get('netboxid'))
+
+    # To use hashes we need to do append it after finding the url
+    url = reverse('ipdevinfo-details-by-id',
+                  kwargs={'netbox_id': request.GET.get('netboxid')})
+    return redirect("{}#!ports".format(url))
