@@ -82,11 +82,12 @@ def build_context(period, report_type):
         ReportSubscription.LINK: utils.get_interface_records,
     }
     records = lookup[report_type](start, end)
+    sorted_records = sorted(records, key=lambda x: x.downtime, reverse=True)
     return {
         'start': start,
         'end': end,
         'today': midnight,
-        'records': records
+        'records': sorted_records
     }
 
 
