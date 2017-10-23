@@ -126,7 +126,8 @@ def convert_to_datetime(*dates):
 
 def get_email_subject(period, report_type):
     """Creates an email subject for the report"""
-    return "{} {} report from NAV".format(
+    title = "{} {}".format(
         ReportSubscription.get_period_description(period),
         ReportSubscription.get_type_description(report_type)
     ).title()
+    return "{} report from NAV".format(title)
