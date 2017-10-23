@@ -18,6 +18,7 @@
 from datetime import datetime
 from collections import defaultdict
 from functools import partial
+from django.shortcuts import get_object_or_404
 
 from nav.netmap.metadata import (
     node_to_json_layer2,
@@ -219,9 +220,9 @@ def get_layer3_traffic(location_or_room_id=None):
         # Sanity check: Does the room exist?
         room = Room.objects.filter(id=location_or_room_id)
         if room.exists():
-            location = Room.objects.get(id=location_or_room_id)
+            location = get_object_or_404(Room, id=location_or_room_id)
         else:
-            location = Location.objects.get(id=location_or_room_id)
+            location = get_object_or_404(Location, id=location_or_room_id)
 
         router_ports = GwPortPrefix.objects.filter(
             prefix__in=prefixes,
