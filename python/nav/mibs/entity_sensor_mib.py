@@ -67,7 +67,6 @@ class EntitySensorMib(mibretriever.MibRetriever):
     PRECISION_COLUMN = 'entPhySensorPrecision'
     VALUE_COLUMN = 'entPhySensorValue'
     STATUS_COLUMN = 'entPhySensorOperStatus'
-    UNITS_DISPLAY_COLUMN = 'entPhySensorUnitsDisplay'
 
     def __init__(self, agent_proxy):
         """Good old constructor..."""
@@ -82,7 +81,6 @@ class EntitySensorMib(mibretriever.MibRetriever):
                 self.PRECISION_COLUMN,
                 self.VALUE_COLUMN,
                 self.STATUS_COLUMN,
-                self.UNITS_DISPLAY_COLUMN,
                 ])
         df.addCallback(reduce_index)
         return df
