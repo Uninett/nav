@@ -29,7 +29,6 @@ from django.db.models.fields import FieldDoesNotExist
 from datetime import datetime, timedelta
 import iso8601
 
-from provider.utils import long_token
 from rest_framework import status, filters, viewsets, exceptions
 from rest_framework.decorators import api_view, renderer_classes, list_route
 from rest_framework.reverse import reverse_lazy
@@ -43,6 +42,7 @@ from nav.models.api import APIToken
 from nav.models import manage, event, cabling, rack
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
+from nav.util import oauth_token
 
 from nav.web.api.v1 import serializers, alert_serializers
 from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
@@ -783,7 +783,7 @@ def get_or_create_token(request):
     if request.account.is_admin():
         token, _ = APIToken.objects.get_or_create(
             client=request.account, expires__gte=datetime.now(),
-            defaults={'token': long_token(),
+            defaults={'token': oauth_token(),
                       'expires': datetime.now() + EXPIRE_DELTA})
         return HttpResponse(str(token))
     else:
