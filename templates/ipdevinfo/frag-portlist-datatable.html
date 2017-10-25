@@ -1,6 +1,7 @@
 <table id="portlist" class="listtable hover">
   <thead>
     <tr>
+      <th>&nbsp;</th>
       <th>Name</th>
       <th>Port name</th>
       <th>Module</th>
@@ -29,7 +30,7 @@
 
 <script>
  $(function() {
-     console.log('Rendering port overview');
+     NAV.urls.portadmin_index = "{% url 'portadmin-index' %}interfaceid=";
      require(['src/porttable'], function(PortTable) {
          new PortTable('#portlist', {{netbox.id}});
      });

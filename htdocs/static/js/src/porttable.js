@@ -19,6 +19,13 @@ define(function(require) {
      */
     var dtColumns = [
         {
+            render: function(data, type, row, meta) {
+                return '<a href="' + NAV.urls.portadmin_index + row.id + '" title="Configure port in Portadmin"><img src="/static/images/toolbox/portadmin.svg" style="height: 1em; width: 1em" /></a>';
+            },
+            orderable: false
+        },
+
+        {
             data: "ifname",
             type: "module",
             render: function(data, type, row, meta) {
@@ -160,7 +167,6 @@ define(function(require) {
         };
     }
 
-
     /**
      * The table to be instantiated
      * @param {string} selector - the jQuery selector for the table
@@ -179,6 +185,7 @@ define(function(require) {
 
     PortTable.prototype = {
         createDataTable: function() {
+            // https://datatables.net/reference/option/
             return $(this.selector).DataTable({
                 autoWidth: false,
                 paging: false,
@@ -188,6 +195,7 @@ define(function(require) {
                     dataFilter: translateData
                 },
                 columns: dtColumns,
+                order: [[1, 'asc']],
                 dom: "f<'#ifclasses'><'#infoprocessing'ir>t",
                 language: {
                     info: "_TOTAL_ entries",
