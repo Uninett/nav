@@ -11,5 +11,5 @@ py.test --junitxml=functional-results.xml \
         --driver-path=/usr/local/bin/geckodriver \
         --base-url "$TARGETURL" \
         --sensitive-url "nothing to see here" \
-        --html functional-report.html --self-contained-html \
+        --html functional-report.html \
         functional
