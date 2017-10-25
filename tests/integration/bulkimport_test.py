@@ -110,10 +110,13 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertTrue(isinstance(objects, AlreadyExists))
 
     def test_created_objects_can_be_saved(self):
-        data = 'myroom:10.0.90.10:myorg:SRV::::fileserver::WEB:UNIX:MAIL'
+        data = 'myroom:10.0.90.10:myorg:SRV:::::fileserver::WEB:UNIX:MAIL'
         parser = NetboxBulkParser(data)
         importer = NetboxImporter(parser)
         _line_num, objects = importer.next()
+
+        self.assertNotIsInstance(objects, Exception,
+                                 msg='Got exception instead of object list')
 
         for obj in objects:
             reset_object_foreignkeys(obj)
