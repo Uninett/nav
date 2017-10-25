@@ -67,8 +67,10 @@ define(function(require) {
         {
             data: "speed",
             render: function(data, type, row, meta) {
-                var duplex = duplexMap[row.duplex] || ''
-                return data + " " + duplex;
+                if (row.duplex === 'h') {
+                    return data + '<span class="label warning" title="Half duplex" style="margin-left: .3rem">HD</span>';
+                }
+                return row.speed ? data : "";
             }
         },
 
@@ -91,10 +93,6 @@ define(function(require) {
         },
 
     ];
-
-
-    // Text mapping for duplex
-    var duplexMap = {'f': 'FD', 'h': 'HD'};
 
 
     /** Renders a light indicating status (red or green) */
