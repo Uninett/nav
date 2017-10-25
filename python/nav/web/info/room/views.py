@@ -126,7 +126,7 @@ def render_deviceinfo(request, roomid):
     """Controller for rendering device info"""
     room = get_object_or_404(Room, id=roomid)
     all_netboxes = room.netbox_set.select_related(
-        'type', 'category', 'organization', 'interface').order_by('sysname')
+        'type', 'category', 'organization').order_by('sysname')
     return render(request, 'info/room/roominfo_devices.html', {
         'netboxes': all_netboxes,
         'availabilities': get_netboxes_availability(
