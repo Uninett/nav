@@ -17,7 +17,8 @@
 
 import select
 import logging
-from socket import AF_INET, AF_INET6, inet_ntop, EINTR
+from socket import AF_INET, AF_INET6, inet_ntop
+from errno import EINTR
 from ctypes import (c_ushort, c_char, POINTER, cast, c_long)
 
 from IPy import IP

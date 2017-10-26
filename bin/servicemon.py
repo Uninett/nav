@@ -174,8 +174,9 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="Service monitor for NAV (Network Administration "
                     "Visualized)",
-        version="NAV " + buildconf.VERSION,
     )
+    parser.add_argument('--version', action='version',
+                        version='NAV ' + buildconf.VERSION)
     parser.add_argument('-n', '--nofork', action="store_true",
                         help="run in foreground")
     return parser.parse_args()

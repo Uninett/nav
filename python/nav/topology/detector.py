@@ -77,11 +77,11 @@ def int_list(value):
 def make_option_parser():
     """Sets up and returns a command line option parser."""
     parser = ArgumentParser(
-        version="NAV " + buildconf.VERSION,
         description=("Detects and updates the network topology in your NAV "
                      "database")
         )
-
+    parser.add_argument('--version', action='version',
+                        version='NAV ' + buildconf.VERSION)
     parser.add_argument("--l2", action="store_true",
                         help="Detect physical topology")
     parser.add_argument("--vlan", action="store_true",
