@@ -174,7 +174,7 @@ class Snmp(object):
             response = self.handle.sgetnext(current_oid)
             if response is None:
                 break
-            response_oid, value = response.items()[0]
+            response_oid, value = list(response.items())[0]
             if value is None:
                 break
 
