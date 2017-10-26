@@ -25,6 +25,7 @@ from subprocess import Popen, PIPE
 from nav.models.manage import Arp, Netbios
 from nav.macaddress import MacAddress
 from django.db import transaction
+from django.utils import six
 
 SPLITCHAR = '!'
 
@@ -81,6 +82,9 @@ def scan(addresses):
     if stderr:
         raise Exception(stderr)
 
+    if isinstance(stdout, six.binary_type):
+        stdout = stdout.decode('cp850')  # cp850 seems like netbios' standard
+
     _logger.debug('Result from scan:\n%s', stdout)
     return stdout
 
@@ -94,7 +98,7 @@ def parse(output, encoding=None):
     for result in results:
         if result:
             try:
-                args = [wash(x, encoding) for x in result.split(SPLITCHAR)]
+                args = [x.strip() for x in result.split(SPLITCHAR)]
                 netbiosresult = NetbiosResult(*args)
                 # Handle mac address with "-" separator (FreeBSD nbtscan).
                 netbiosresult = netbiosresult._replace(
@@ -105,11 +109,6 @@ def parse(output, encoding=None):
                 parsed_results.append(netbiosresult)
 
     return parsed_results
-
-
-def wash(string, encoding='cp850'):
-    """Strip and convert the string to correct encoding"""
-    return unicode(string.strip(), encoding).encode('utf8')
 
 
 @timed
