@@ -30,7 +30,7 @@ from nav.django.templatetags.thresholds import find_rules
 from nav.metrics.errors import GraphiteUnreachableError
 
 from nav.models.manage import (Netbox, Module, Interface, Prefix, Arp, Cam,
-                               Sensor, POEGroup)
+                               Sensor, POEGroup, Category)
 from nav.models.msgmaint import MaintenanceTask
 from nav.models.arnold import Identity
 from nav.models.service import Service
@@ -713,7 +713,7 @@ def unrecognized_neighbors(request, netboxid):
     """Render unrecognized neighbors tab"""
     netbox = get_object_or_404(Netbox, pk=netboxid)
     return render(request, 'ipdevinfo/frag-neighbors.html',
-                  {'netbox': netbox})
+                  {'netbox': netbox, 'categories': Category.objects.all()})
 
 
 def sensor_details(request, identifier):

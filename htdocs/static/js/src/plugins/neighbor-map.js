@@ -37,9 +37,7 @@ define(function (require, exports, module) {
             linkLabelToCenter: '.linkLabelToCenter'
         };
 
-        this.unrecognized = 'UNRECOGNIZED';
-
-        this.unrecognizedToggler = d3.select('#unrecognized');
+        this.filterForm = $('#neighbor-category-filters');
         this.initialize();
         this.activatePanel();
         this.fetchData();
@@ -49,13 +47,19 @@ define(function (require, exports, module) {
         /** Create svg element */
         initialize: function () {
             this.svg = this.motherNode.append("svg")
-                .attr("width", this.width)
-                .attr("height", this.height)
-                .style("border", '1px solid black');
+                           .attr("width", this.width)
+                           .attr("height", this.height)
+                           .style("border", '1px solid black');
+            /* The order of the elements in the dom determines what is drawn
+            above other stuff. To make sure nodes always are at the top and
+            links always are on the bottom we put them into groups.*/
+            this.svg.append("g").attr("id", "links");
+            this.svg.append("g").attr("id", "linklabels");
+            this.svg.append("g").attr("id", "nodes");
         },
 
         activatePanel: function () {
-            this.unrecognizedToggler.on('change', this.render.bind(this));
+            this.filterForm.on('change', this.render.bind(this));
         },
 
         /** Fetch neighbourhood data for this netbox */
@@ -81,19 +85,25 @@ define(function (require, exports, module) {
         render: function () {
             var data = this.data;
 
-            if (!this.unrecognizedToggler.property('checked')) {
-                data = this.filterUncategorized(data);
-            }
+            data = this.filterByCategories(data, this.getCategories());
 
             this.setCenterNode(data.nodes);
+            this.createSvgNodes(data.nodes);
             this.createSvgLinks(data.links);
             this.createLinkLabels(data.links);
-            this.createSvgNodes(data.nodes);
             this.createSimulation(data);
         },
 
-        /** Filter out unrecognized nodes based on checkbox */
-        filterUncategorized: function (data) {
+        getCategories: function() {
+            var categories = []
+            this.filterForm.find('[type=checkbox]:checked').each(function(index, element) {
+                categories.push(element.value);
+            });
+            return categories;
+        },
+
+        /** Filter nodes based on categories */
+        filterByCategories: function (data, categories) {
             var self = this;
 
             var nodeLookup = {};  // Temporary lookup for nodes
@@ -103,13 +113,13 @@ define(function (require, exports, module) {
 
             return {
                 'nodes': data.nodes.filter(function(node) {
-                    return node.category !== self.unrecognized;
+                    return _.contains(categories, node.category) || node.netboxid === self.netboxid;
                 }),
                 'links': data.links.filter(function(link) {
                     if (link.target.category) {
-                        return link.target.category !== self.unrecognized;
+                        return _.contains(categories, link.target.category);
                     } else {
-                        return nodeLookup[link.target].category !== self.unrecognized;
+                        return _.contains(categories, nodeLookup[link.target].category);
                     }
                 })
             };
@@ -124,7 +134,13 @@ define(function (require, exports, module) {
 
         /** Create all the visible links between the nodes */
         createSvgLinks: function (dataLinks) {
-            var svgLinks = this.svg.selectAll(this.selectors.links).data(dataLinks);
+            var svgLinks = this
+                .svg
+                .select('#links')
+                .selectAll(this.selectors.links)
+                .data(dataLinks, function(d) {
+                    return d.target.netboxid ? d.target.netboxid : d.target;
+                });
             var svgLinksEnter = svgLinks
                 .enter()
                 .append('line')
@@ -138,6 +154,7 @@ define(function (require, exports, module) {
                 })
                 .style('stroke', '#ddd');
             svgLinks.exit().remove();
+
             this.svgLinks = svgLinks.merge(svgLinksEnter);
         },
 
@@ -145,9 +162,13 @@ define(function (require, exports, module) {
         createLinkLabels: function (dataLinks) {
             var svgLinkLabelFromCenter, svgLinkLabelToCenter;
 
-            svgLinkLabelFromCenter = this.svg
+            svgLinkLabelFromCenter = this
+                .svg
+                .select('#linklabels')
                 .selectAll(this.selectors.linkLabelFromCenter)
-                .data(dataLinks);
+                .data(dataLinks, function(d) {
+                    return d.target.netboxid ? d.target.netboxid : d.target;
+                });
 
             svgLinkLabelFromCenter
                 .enter()
@@ -161,9 +182,13 @@ define(function (require, exports, module) {
                 });
             svgLinkLabelFromCenter.exit().remove();
 
-            svgLinkLabelToCenter = this.svg
+            svgLinkLabelToCenter = this
+                .svg
+                .select('#linklabels')
                 .selectAll(this.selectors.linkLabelToCenter)
-                .data(dataLinks);
+                .data(dataLinks, function(d) {
+                    return d.target.netboxid;
+                });
 
             svgLinkLabelToCenter
                 .enter()
@@ -184,7 +209,9 @@ define(function (require, exports, module) {
         /** Create all the visible nodes */
         createSvgNodes: function (dataNodes) {
             var self = this,
-                svgNodes = this.svg.selectAll(this.selectors.nodes)
+                svgNodes = this
+                    .svg.select('#nodes')
+                    .selectAll(this.selectors.nodes)
                     .data(dataNodes, function (node) {
                         return node.netboxid;
                     }),

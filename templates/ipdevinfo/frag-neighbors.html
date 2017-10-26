@@ -1,9 +1,20 @@
 <div id="neighbors">
   <div class="map_panel">
-    <label style="display: inline">
-      <input id="unrecognized" type="checkbox" />
-      Show unrecognized neighbors
-    </label>
+    <form id="neighbor-category-filters">
+      <h5>Filter by category</h5>
+      <div style="display: flex">
+        <label style="margin-right: 1em">
+          <input type="checkbox" value="UNRECOGNIZED">
+          UNRECOGNIZED
+        </label>
+        {% for category in categories %}
+          <label style="margin-right: 1em">
+            <input type="checkbox" value="{{ category.pk }}" checked>
+            {{ category.pk }}
+          </label>
+        {% endfor %}
+      </div>
+    </form>
   </div>
   <div class="neighbormap" data-netboxid="{{ netbox.id }}"></div>
 
