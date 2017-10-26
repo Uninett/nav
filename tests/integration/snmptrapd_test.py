@@ -60,6 +60,7 @@ class SnmptrapdSignalTest(TestCase):
 
     def tearDown(self):
         signal.signal(signal.SIGALRM, signal.SIG_DFL)
+        signal.alarm(0)
 
     def test_traplistener_does_not_raise_error_on_signals(self):
         from nav.snmptrapd.agent_pynetsnmp import TrapListener
