@@ -21,6 +21,8 @@ import re
 import stat
 import socket
 import datetime
+import uuid
+import hashlib
 from functools import wraps
 from itertools import chain, tee
 try:
@@ -29,6 +31,7 @@ except ImportError:
     ifilter = filter
 
 from django.utils import six
+from django.conf import settings
 
 import IPy
 
@@ -451,3 +454,10 @@ def address_to_string(ip, port):
     ip = IPy.IP(ip)
     ip = str(ip) if ip.version() == 4 else "[%s]" % ip
     return "%s:%s" % (ip, port)
+
+
+def auth_token():
+    """Generates a hash that can be used as an OAuth API token"""
+    _hash = hashlib.sha1(six.text_type(uuid.uuid4()).encode('utf-8'))
+    _hash.update(settings.SECRET_KEY.encode('utf-8'))
+    return _hash.hexdigest()

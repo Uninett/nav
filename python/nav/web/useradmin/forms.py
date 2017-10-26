@@ -16,7 +16,6 @@
 # pylint: disable=R0903
 """Forms for the user admin system"""
 from datetime import date, timedelta
-from provider.utils import long_token
 
 from django import forms
 
@@ -24,6 +23,7 @@ from nav.models.profiles import Account, AccountGroup, PrivilegeType
 from nav.models.manage import Organization
 from nav.models.api import APIToken
 from nav.web.api.v1.views import get_endpoints as get_api_endpoints
+from nav.util import auth_token
 
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Fieldset, Submit, Row,
@@ -224,7 +224,7 @@ class ReadonlyField(forms.CharField):
 class TokenForm(forms.ModelForm):
     """Form for creating a new token"""
 
-    token = ReadonlyField(initial=long_token)
+    token = ReadonlyField(initial=auth_token)
     available_endpoints = get_api_endpoints()
     endpoints = forms.MultipleChoiceField(
         required=False,

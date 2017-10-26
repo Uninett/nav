@@ -18,11 +18,17 @@ Dependency changes
 NAV 4.8 introduces a new dependency on dnspython *1.15.0* for the DNS
 service checker.
 
+Removed dependencies
+~~~~~~~~~~~~~~~~~~~~
+
 The support for the old PySNMP v2 and PySNMP-SE libraries (and consequently,
 the pure-Python TwistedSNMP library) has been removed, since they are outdated
 and do not provide the full feature set used by NAV and provided by our
 preferred library: :mod:`pynetsnmp`.
 
+There is no longer a dependency to the Python module
+:mod:`django-oauth2-provider`, as NAV's usage of this non-maintained module
+was severely limited.
 
 
 NAV 4.7

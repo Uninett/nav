@@ -20,7 +20,6 @@ markdown==2.5.1
 dnspython==1.15.0
 
 # REST framework
-django-oauth2-provider>=0.2.6
 djangorestframework==2.4.4
 django-filter>=0.7,<0.8
 iso8601
