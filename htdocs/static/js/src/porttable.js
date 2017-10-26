@@ -86,9 +86,6 @@ define(function(require) {
             render: function(data, type, row, meta) {
                 if (row.last_used) {
                     var date = new Date(row.last_used.end_time);
-                    if (date.getYear() < 5000) {
-                        console.log(row.last_used.end_time);
-                    }
                     return date.getYear() > 5000 ? "Now" : Moment(row.last_used.end_time).format('YYYY-MM-DD HH:mm:ss');
                 } else {
                     return '<span class="dim">Never</span>';
