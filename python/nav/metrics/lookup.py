@@ -17,7 +17,7 @@
 
 import re
 from nav.models.manage import Netbox, Interface, Prefix, Sensor
-from django.utils.functional import memoize
+from django.utils.lru_cache import lru_cache
 
 __all__ = ['reverses', 'lookup']
 _reverse_handlers = []
@@ -38,7 +38,7 @@ def _lookup(metric):
         if match:
             return func(**match.groupdict())
 # pylint: disable=C0103
-lookup = memoize(_lookup, {}, 1)
+lookup = lru_cache(maxsize=200)(_lookup)
 
 
 def reverses(pattern):
