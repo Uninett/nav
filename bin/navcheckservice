@@ -29,8 +29,12 @@ import argparse
 import IPy
 import logging
 
+from django.utils.six.moves import input
+
 from nav.logs import init_stderr_logging
 from nav.statemon import checkermap
+import nav.statemon.checker  # necessary for relative imports on python3
+
 
 _logger = logging.getLogger('nav.checkservice')
 
@@ -80,7 +84,7 @@ def read_checker_args():
     print("Input additional arguments (key=val), empty line to continue:")
     while True:
         try:
-            line = raw_input()
+            line = input()
         except EOFError:
             line = ""
         if not line:
