@@ -20,7 +20,7 @@ from __future__ import absolute_import, print_function
 import logging
 import pprint
 from traceback import print_stack
-from cStringIO import StringIO
+from io import StringIO
 
 
 def calltracer(function, logfunction=print):
