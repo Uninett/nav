@@ -106,7 +106,8 @@ try {
         }
     }
 
-    archiveArtifacts artifacts: 'tests/*-report.html'
+    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'tests', reportFiles: 'functional-report.html', reportName: 'Functional report'])
+    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'tests', reportFiles: 'integration-report.html', reportName: 'Integration report'])
 
 } catch (e) {
     currentBuild.result = "FAILED"

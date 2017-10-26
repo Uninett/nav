@@ -6,6 +6,6 @@ export APACHE_PORT=8000
 export TARGETURL=http://$TARGETHOST:$APACHE_PORT/
 
 py.test --junitxml=integration-results.xml \
-	--html integration-report.html --self-contained-html \
+	--html integration-report.html \
 	--verbose \
 	integration

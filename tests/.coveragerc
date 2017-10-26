@@ -1,0 +1,4 @@
+[run]
+omit =
+    */python/nav/enterprise/ids.py
+    */python/nav/smidumps/*
