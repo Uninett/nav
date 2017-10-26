@@ -26,4 +26,4 @@ django-filter>=0.7,<0.8
 iso8601
 
 # NAV team's own, patched version of pynetsnmp
-git+https://github.com/lunkwill42/pynetsnmp
+git+https://github.com/lunkwill42/pynetsnmp@develop
