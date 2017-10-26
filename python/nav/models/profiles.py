@@ -709,6 +709,7 @@ class Operator(models.Model):
     # cased.
     OPERATOR_MAPPING = {
         EQUALS: '__exact',
+        NOT_EQUAL: '',  # exclusion is special-cased by Filter.check()
         GREATER: '__gt',
         GREATER_EQ: '__gte',
         LESS: '__lt',
