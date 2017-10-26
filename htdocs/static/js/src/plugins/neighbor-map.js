@@ -187,7 +187,7 @@ define(function (require, exports, module) {
                 .select('#linklabels')
                 .selectAll(this.selectors.linkLabelToCenter)
                 .data(dataLinks, function(d) {
-                    return d.target.netboxid;
+                    return d.target.netboxid ? d.target.netboxid : d.target;
                 });
 
             svgLinkLabelToCenter
