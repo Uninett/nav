@@ -129,7 +129,8 @@ def _socktype_from_addr(addr):
 
 def _metric_to_line(metric_tuple):
     path, (timestamp, value) = metric_tuple
-    return str("%s %s %s\n" % (path, value, long(timestamp)))
+    line = "%s %s %s\n" % (path, value, int(timestamp))
+    return line.encode('utf-8')
 
 
 def metrics_to_packets(metric_tuples):
@@ -144,19 +145,16 @@ def metrics_to_packets(metric_tuples):
              Carbon backend.
 
     """
-    output = []
-    size = 0
+    output = bytearray()
     for metric in metric_tuples:
         line = _metric_to_line(metric)
-        if size + len(line) > MAX_UDP_PAYLOAD:
-            packet = "".join(output)
+        if len(output) + len(line) > MAX_UDP_PAYLOAD:
+            packet = bytes(output)
             yield packet
-            output = []
-            size = 0
+            del output[:]
 
-        output.append(line)
-        size += len(line)
+        output.extend(line)
 
     if output:
-        packet = "".join(output)
+        packet = bytes(output)
         yield packet
