@@ -42,7 +42,7 @@ from nav.models.api import APIToken
 from nav.models import manage, event, cabling, rack
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
-from nav.util import oauth_token
+from nav.util import auth_token
 
 from nav.web.api.v1 import serializers, alert_serializers
 from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
@@ -783,7 +783,7 @@ def get_or_create_token(request):
     if request.account.is_admin():
         token, _ = APIToken.objects.get_or_create(
             client=request.account, expires__gte=datetime.now(),
-            defaults={'token': oauth_token(),
+            defaults={'token': auth_token(),
                       'expires': datetime.now() + EXPIRE_DELTA})
         return HttpResponse(str(token))
     else:

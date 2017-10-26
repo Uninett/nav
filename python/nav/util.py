@@ -456,7 +456,7 @@ def address_to_string(ip, port):
     return "%s:%s" % (ip, port)
 
 
-def oauth_token():
+def auth_token():
     """Generates a hash that can be used as an OAuth API token"""
     _hash = hashlib.sha1(six.text_type(uuid.uuid4()).encode('utf-8'))
     _hash.update(settings.SECRET_KEY.encode('utf-8'))
