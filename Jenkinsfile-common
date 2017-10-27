@@ -106,14 +106,16 @@ try {
         }
     }
 
-    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'tests', reportFiles: 'functional-report.html', reportName: 'Functional report'])
-    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'tests', reportFiles: 'integration-report.html', reportName: 'Integration report'])
-
 } catch (e) {
     currentBuild.result = "FAILED"
     echo "Build FAILED set status ${currentBuild.result}"
     throw e
 } finally {
+
+    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'tests', reportFiles: 'functional-report.html', reportName: 'Functional report'])
+    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'tests', reportFiles: 'integration-report.html', reportName: 'Integration report'])
+
+
     notifyBuild(currentBuild.result)
 }
 
