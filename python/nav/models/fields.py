@@ -155,6 +155,7 @@ class LegacyGenericForeignKey(object):
             self.many_to_many = False
             self.one_to_many = True
             self.related_model = None
+            self.auto_created = False
 
     def contribute_to_class(self, cls, name):
         """Add things to the model class using this descriptor"""
