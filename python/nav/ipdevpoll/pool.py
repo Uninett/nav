@@ -39,7 +39,7 @@ def initialize_worker():
 class Cancel(amp.Command):
     """Represent a cancel message for sending to workers"""
     arguments = [
-        ('serial', amp.Integer()),
+        (b'serial', amp.Integer()),
     ]
     response = []
 
@@ -53,17 +53,17 @@ class Shutdown(amp.Command):
 class Job(amp.Command):
     """Represent a job for sending to a worker"""
     arguments = [
-        ('netbox', amp.Integer()),
-        ('job', amp.String()),
-        ('plugins', amp.ListOf(amp.String())),
-        ('interval', amp.Integer()),  # Needs to be included in database record.
+        (b'netbox', amp.Integer()),
+        (b'job', amp.String()),
+        (b'plugins', amp.ListOf(amp.String())),
+        (b'interval', amp.Integer()),  # Needs to be included in database record.
                                       # Not used for scheduling
-        ('serial', amp.Integer()),  # Serial number needed for cancelling
+        (b'serial', amp.Integer()),  # Serial number needed for cancelling
     ]
-    response = [('result', amp.Boolean())]
+    response = [(b'result', amp.Boolean())]
     errors = {
-        jobs.AbortedJobError: 'AbortedJob',
-        jobs.SuggestedReschedule: 'SuggestedReschedule',
+        jobs.AbortedJobError: b'AbortedJob',
+        jobs.SuggestedReschedule: b'SuggestedReschedule',
     }
 
 
