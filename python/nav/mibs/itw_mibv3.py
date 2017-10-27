@@ -27,19 +27,7 @@ from nav.mibs import mibretriever
 from nav.models.manage import Sensor
 from nav.oids import OID
 
-
-def for_table(table_name):
-    """Used for annotating functions to process the returned
-    tables"""
-    if not hasattr(for_table, 'map'):
-        for_table.map = {}
-
-    def decorate(method):
-        """Setup link between table and function"""
-        for_table.map[table_name] = method.func_name
-        return method
-
-    return decorate
+from .itw_mib import for_table
 
 
 class ItWatchDogsMibV3(mibretriever.MibRetriever):

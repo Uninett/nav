@@ -22,6 +22,7 @@ Uses the vendor-specifica IT-WATCHDOGS-MIB to detect and collect
 sensor-information.
 """
 from twisted.internet import defer
+from django.utils import six
 
 from nav.mibs import reduce_index
 from nav.mibs import mibretriever
@@ -37,7 +38,8 @@ def for_table(table_name):
 
     def decorate(method):
         """Setup link between table and function"""
-        for_table.map[table_name] = method.func_name
+        name = method.func_name if six.PY2 else method.__name__
+        for_table.map[table_name] = name
         return method
 
     return decorate
