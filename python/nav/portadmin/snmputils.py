@@ -738,7 +738,7 @@ class Cisco(SNMPHandler):
                     self.TRUNKPORTVLANSENABLED2K,
                     self.TRUNKPORTVLANSENABLED3K,
                     self.TRUNKPORTVLANSENABLED4K]:
-            bitvector_chunk = chunks.next()
+            bitvector_chunk = next(chunks)
             try:
                 self._set_netbox_value(oid, ifindex, 's',
                                        bitvector_chunk.to_bytes())

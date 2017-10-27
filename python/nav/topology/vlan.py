@@ -572,7 +572,7 @@ def filter_active_router_addresses(gwportprefixes):
     # wonderfully complex SQL needed for this, so we do it by hand.
     raddrs = gwportprefixes.order_by('prefix__id', '-virtual', 'gw_ip')
     grouper = groupby(raddrs, attrgetter('prefix_id'))
-    return [group.next() for _key, group in grouper]
+    return [next(group) for _key, group in grouper]
 
 
 def get_routed_vlan_addresses():

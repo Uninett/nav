@@ -102,7 +102,7 @@ class JobHandler(object):
             self.agent = None
             return
 
-        port = ports.next()
+        port = next(ports)
         self.agent = AgentProxy(
             self.netbox.ip, 161,
             community=self.netbox.read_only,
@@ -212,7 +212,7 @@ class JobHandler(object):
         def next_plugin(result=None):
             self._raise_if_cancelled()
             try:
-                plugin_instance = plugins.next()
+                plugin_instance = next(plugins)
             except StopIteration:
                 return result
 
