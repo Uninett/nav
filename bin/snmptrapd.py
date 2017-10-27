@@ -27,6 +27,7 @@ import sys
 import argparse
 import configparser
 import signal
+from functools import reduce
 
 # Import NAV libraries
 from nav import daemon
