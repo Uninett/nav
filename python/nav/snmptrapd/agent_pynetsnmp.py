@@ -180,9 +180,11 @@ class TrapSession(netsnmp.Session):
         """Starts dispatch of incoming traps to the registered callback"""
         addr = address_to_string(self.addr, self.port)
         if IP(self.addr).version() == 6:
-            addr = "udp6:" + addr
+            tdomain = 'udp6:'
             self._initv6()
-        return self.awaitTraps(addr)
+        else:
+            tdomain = "udp:"
+        return self.awaitTraps((tdomain + addr).encode('ascii'))
 
     def _initv6(self):
         lib = netsnmp.lib
