@@ -94,11 +94,14 @@ class InterfaceSerializer(serializers.ModelSerializer):
     object_url = serializers.CharField(source='get_absolute_url')
     to_netbox = SubNetboxSerializer()
     to_interface = SubInterfaceSerializer()
-    last_used = CamSerializer(source='get_last_cam_record')
 
     class Meta(object):
         model = manage.Interface
         depth = 1
+
+
+class InterfaceWithCamSerializer(InterfaceSerializer):
+    last_used = CamSerializer(source='get_last_cam_record')
 
 
 class CablingSerializer(serializers.ModelSerializer):

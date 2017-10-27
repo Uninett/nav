@@ -279,17 +279,24 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     - trunk
     - module__name
     - ifclass[swport, gwport, physicalport, trunk]
+    - last_used (set this to for instance 1 to embed last used cam record)
 
     Example: `/api/1/interface/?netbox=91&ifclass[]=trunk&ifclass[]=swport`
     """
     queryset = manage.Interface.objects.all()
-    serializer_class = serializers.InterfaceSerializer
     filter_fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
                      'ifadminstatus', 'iftype', 'baseport', 'module__name')
     search_fields = ('ifalias', 'ifdescr', 'ifname')
 
     # NaturalIfnameFilter returns a list, so IfClassFilter needs to come first
     filter_backends = NAVAPIMixin.filter_backends + (IfClassFilter, NaturalIfnameFilter)
+
+    def get_serializer_class(self):
+        request = self.request
+        if request.QUERY_PARAMS.get('last_used'):
+            return serializers.InterfaceWithCamSerializer
+        else:
+            return serializers.InterfaceSerializer
 
 
 class PatchViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
