@@ -42,7 +42,7 @@
     {% if netbox %}
       <ul>
         <li><a href="#deviceinfo">Device Info</a></li>
-        <li>
+        <li aria-controls="neighbors">
           <a href="{% url 'ipdevinfo-unrecognized_neighbors' netbox.pk %}">
             Neighbors
           </a>
@@ -56,18 +56,19 @@
         <li><a href="#sensors">Sensors</a></li>
         <li><a href="#services">Services</a></li>
         <li><a href="#poe">PoE</a></li>
-        <li>
+        <li aria-controls="dns">
           <a href="{% url 'ipdevinfo-hostinfo' netbox.sysname %}">
             DNS
           </a>
         </li>
-        <li>
+        <li aria-controls="affected">
           <a href="{% url 'ipdevinfo-affected' netbox.id %}">
             What if
           </a>
         </li>
       </ul>
       {% include "ipdevinfo/frag-ipdevinfo.html" %}
+      <div id="neighbors"></div>
       {% include "ipdevinfo/frag-ports.html" %}
       {% include "ipdevinfo/frag-port-metrics.html" %}
       {% include "ipdevinfo/frag-sysmetrics.html" %}
@@ -75,6 +76,8 @@
       {% include "ipdevinfo/frag-sensors.html" %}
       {% include "ipdevinfo/frag-services.html" %}
       {% include "ipdevinfo/frag-poe.html" %}
+      <div id="dns"></div>
+      <div id="affected"></div>
     {% else %}
 
       <ul>

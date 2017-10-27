@@ -20,6 +20,7 @@ define(['libs/jquery-ui.min'], function () {
             $parent = typeof(parent) === 'string' ? $(parent) : parent;
         }
 
+        /* Set hash fragment based on what tab was activated */
         $selector.bind('tabsactivate', function (event, ui) {
             //* Check if this is the tabs we're hooked to *//
             if (event.target.id === $selector.attr('id')) {
@@ -38,32 +39,33 @@ define(['libs/jquery-ui.min'], function () {
             }
         });
 
+        /* Runs on load of page only */
         function navigate() {
             var hashes = window.location.hash.split('!');
             var tabIndex = 0;
             var tabLabel = null;
 
             if (hashes.length === 1 && !parent) {
+                console.log('There was no hash parameter');
                 $selector.tabs('option', 'active', tabIndex);
             } else if (hashes.length === 2 && !parent) {
-                tabLabel = $('#' + hashes[1], $selector).attr('aria-labelledby');
-                tabIndex = $('.ui-tabs-nav [aria-labelledby='+tabLabel+']', $selector).index();
-                $selector.tabs('option', 'active', tabIndex);
+                console.log('There was one hash parameters');
+                console.log('Navigating to', hashes[1]);
+                selectedTab = $selector.find('[aria-controls=' + hashes[1] + ']');
+                $selector.tabs('option', 'active', selectedTab.index());
             } else if (hashes.length === 3 && parent) {
-                tabLabel = $('#' + hashes[2], $selector).attr('aria-labelledby');
-                tabIndex = $('.ui-tabs-nav [aria-labelledby='+tabLabel+']', $selector).index();
-                if (tabIndex >= 0) {
-                    var parentLabel = $('#' + hashes[1], $parent).attr('aria-labelledby');
-                    var parentIndex = $('.ui-tabs-nav [aria-labelledby='+parentLabel+']', $parent).index();
-                    $parent.tabs('option', 'active', parentIndex);
-                    $selector.tabs('option', 'active', tabIndex);
+                console.log('There were two hash parameters');
+                selectedTab = $selector.find('[aria-controls=' + hashes[2] + ']');
+                if (selectedTab.length >= 0) {
+                    selectedParentTab = $parent.find('[aria-controls=' + hashes[1] + ']');
+                    console.log('Navigating to', hashes[1]);
+                    console.log('and to', hashes[2]);
+
+                    $selector.tabs('option', 'active', selectedTab.index());
+                    $parent.tabs('option', 'active', selectedParentTab.index());
                 }
             }
         }
-
-        $(window).on('hashchange', function (e) {
-            navigate();
-        });
 
         navigate();
 
