@@ -82,15 +82,25 @@ define(function(require) {
             }
         },
 
+        // Last used
         {
             render: function(data, type, row, meta) {
                 if (row.last_used) {
                     var date = new Date(row.last_used.end_time);
                     return date.getYear() > 5000 ? "Now" : Moment(row.last_used.end_time).format('YYYY-MM-DD HH:mm:ss');
                 } else {
-                    return '<span class="dim">Never</span>';
+                    if (row.last_used === undefined) {
+                        // Display this when no data loaded
+                        return ''
+                    }
+                    if (row.last_used === null) {
+                        // Display this for no last used in dataset
+                        return '<span class="dim">Never</span>';
+                    }
+                    return '';
                 }
-            }
+            },
+            visible: false
         },
 
         {
@@ -124,13 +134,19 @@ define(function(require) {
     /**
      * Creates the checkboxes for filtering on ifclasses (swport, gwport, physicalport)
      */
-    function createClassFilters(selector) {
-        var $form = $("<form>").appendTo(selector);
-        $form.append('<label><input type="radio" name="portgroup" value="all" checked>All ports</label>');
-        $form.append('<label><input type="radio" name="portgroup" value="swport">Switch ports</label>');
-        $form.append('<label><input type="radio" name="portgroup" value="gwport">Router ports</label>');
-        $form.append('<label><input type="radio" name="portgroup" value="physicalport">Physical ports</label>');
-        $form.append('<label><input type="radio" name="portgroup" value="trunk">Trunks</label>');
+    function createFilters(selector) {
+        var $form = $("<form id='portlistform'>").appendTo(selector);
+        var fs1 = $('<fieldset>').appendTo($form);
+        var fs2 = $('<fieldset>').appendTo($form);
+        fs1.append('<legend>Port filters</legend>')
+        fs1.append('<label><input type="radio" name="portgroup" value="all" checked>All ports</label>');
+        fs1.append('<label><input type="radio" name="portgroup" value="swport">Switch ports</label>');
+        fs1.append('<label><input type="radio" name="portgroup" value="gwport">Router ports</label>');
+        fs1.append('<label><input type="radio" name="portgroup" value="physicalport">Physical ports</label>');
+        fs1.append('<label><input type="radio" name="portgroup" value="trunk">Trunks</label>');
+
+        fs2.append('<legend>Optional</legend>')
+        fs2.append('<label><input type="checkbox" name="last_used">Last used</label>');
         return $form;
     }
 
@@ -185,11 +201,20 @@ define(function(require) {
      * @param {int} netboxid - the netboxid of the device to list ports for
      */
     function PortTable(selector, netboxid) {
+        this.lastUsedCol = 8;
+
         this.netboxid = netboxid;
         this.selector = selector;
         this.formContainerSelector = '#ifclasses';
         this.dataTable = this.createDataTable();
-        this.addPortGroupListeners(createClassFilters(this.formContainerSelector));
+        this.addFormListener(createFilters(this.formContainerSelector));
+        $(this.selector).on('processing.dt', function(event, settings, processing) {
+            if (processing) {
+                $(this).css('opacity', .5);
+            } else {
+                $(this).css('opacity', 1);
+            }
+        })
 
         addCustomOrdering();
         fixSearchDelay(this.dataTable);
@@ -202,6 +227,7 @@ define(function(require) {
                 autoWidth: false,
                 paging: false,
                 processing: true,
+                orderClasses: false,
                 ajax: {
                     url: this.getUrl().toString(),
                     dataFilter: translateData
@@ -237,12 +263,20 @@ define(function(require) {
             $.get(this.getUrl(), loadMoreData)
         },
 
-        /** Listen to changes on port groups */
-        addPortGroupListeners: function($form) {
+        /** Listen to changes in form */
+        addFormListener: function($form) {
             var self = this;
+            var column = self.dataTable.column(this.lastUsedCol);
             $form.on('change', function() {
-                var selectedGroup = $form.find('[name=portgroup]:checked').val();
-                var newUrl = self.getUrl().setSearch('ifclass[]', selectedGroup);
+                var newUrl = self
+                    .getUrl()
+                    .setSearch('ifclass[]', $form.find('[name=portgroup]:checked').val())
+                if ($form.get(0).elements.last_used.checked) {
+                    newUrl.setSearch('last_used', 1);
+                    column.visible(true);
+                } else {
+                    column.visible(false);
+                }
                 console.log(newUrl.toString());
                 self.dataTable.ajax.url(newUrl.toString()).load();
             });
