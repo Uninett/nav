@@ -216,6 +216,27 @@ define(function(require) {
             });
         },
 
+        /**
+         * Load data using custom request because of chunked loading
+         * I'm leaving this here as an example although it's not in use
+         * Remember to adjust page_size
+         */
+        loadData: function() {
+            var self = this;
+
+            function loadMoreData(data) {
+                self.dataTable.rows.add(data.results).draw();
+                if (data.next) {
+                    $.get(data.next, loadMoreData);
+                } else {
+                    $('#portlist_processing').hide();
+                }
+            }
+
+            $('#portlist_processing').show();
+            $.get(this.getUrl(), loadMoreData)
+        },
+
         /** Listen to changes on port groups */
         addPortGroupListeners: function($form) {
             var self = this;
@@ -229,7 +250,7 @@ define(function(require) {
 
         getUrl: function() {
             return URI("/api/1/interface/")
-                .addSearch('page_size', 1000)
+                .addSearch('page_size', 10000)
                 .addSearch('netbox', this.netboxid);
         }
 
