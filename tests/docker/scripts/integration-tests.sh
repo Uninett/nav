@@ -5,7 +5,10 @@ export TARGETHOST="localhost"
 export APACHE_PORT=8000
 export TARGETURL=http://$TARGETHOST:$APACHE_PORT/
 
-py.test --junitxml=integration-results.xml \
-	--html integration-report.html \
-	--verbose \
-	integration
+py.test \
+    --cov=/opt/nav/lib/python --cov-append --cov-report=xml:coverage.xml\
+    --junitxml=integration-results.xml \
+    --html integration-report.html \
+    --verbose \
+    integration
+sed -i 's!filename="nav/!filename="python/nav/!' coverage.xml
