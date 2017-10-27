@@ -268,10 +268,11 @@ class CommandProcessor(object):
     def make_option_parser(self):
         """Sets up and returns a command line option parser."""
         parser = argparse.ArgumentParser(
-            version="NAV " + buildconf.VERSION,
             epilog="This program runs SNMP polling jobs for IP devices "
             "monitored by NAV")
         opt = parser.add_argument
+
+        opt('--version', action='version', version='NAV ' + buildconf.VERSION)
         opt("-f", "--foreground", action="store_true", dest="foreground",
             help="run in foreground instead of daemonizing")
         opt("-s", "--log-stderr", action="store_true", dest="logstderr",
