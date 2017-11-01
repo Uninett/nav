@@ -17,11 +17,10 @@
 # pylint: disable=C0103,C0111,W0703,R0903,W0611
 
 from __future__ import absolute_import
-from IPy import IP
 import sys
 import inspect
 
-from pynetsnmp import twistedsnmp, netsnmp, version
+from pynetsnmp import twistedsnmp, netsnmp
 from pynetsnmp.twistedsnmp import snmpprotocol
 
 from . import common
@@ -44,34 +43,9 @@ def pynetsnmp_limits_results():
         return 'limit' in args
 
 
-def pynetsnmp_supports_ipv6():
-    """
-    Returns True if the available pynetsnmp version is known to support
-    IPv6 addresses without modification
-    """
-    ver = [int(i) for i in version.VERSION.split('.')]
-    return ver >= [0, 29, 2]
-
-
 class AgentProxy(common.AgentProxyMixIn, twistedsnmp.AgentProxy):
     """pynetsnmp AgentProxy derivative to adjust the silly 1000 value
     limit imposed in getTable calls"""
-
-    def __init__(self, *args, **kwargs):
-        super(AgentProxy, self).__init__(*args, **kwargs)
-        self._ipv6_check()
-
-    if pynetsnmp_supports_ipv6():
-        def _ipv6_check(self):
-            pass
-    else:
-        def _ipv6_check(self):
-            try:
-                address = IP(self.ip)
-            except ValueError:
-                return
-            if address.version() == 6:
-                self.ip = 'udp6:[%s]' % self.ip
 
     if pynetsnmp_limits_results():
         def getTable(self, *args, **kwargs):
