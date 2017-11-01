@@ -127,8 +127,11 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         return HttpResponseRedirect(netbox.get_absolute_url())
 
     def get_netbox(name=None, addr=None):
-        """Lookup IP device in NAV by either hostname or IP address"""
+        """Lookup IP device in NAV by either hostname or IP address.
 
+        :rtype: nav.models.manage.Netbox
+
+        """
         # Prefetch related objects as to reduce number of database queries
         netboxes = Netbox.objects.select_related()
         netbox = None
