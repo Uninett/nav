@@ -18,6 +18,8 @@
 from __future__ import absolute_import
 from pprint import pformat
 import logging
+
+from django.utils.six import iteritems
 from twisted.internet import defer
 from twisted.internet.defer import returnValue
 
@@ -77,7 +79,7 @@ class BGP4Mib(mibretriever.MibRetriever):
                                 if self.LOCAL_AS_COLUMN else local_as),
                                row[self.REMOTE_AS_COLUMN],
                                )
-                  for key, row in rows.iteritems()}
+                  for key, row in iteritems(rows)}
 
         if self._logger.isEnabledFor(logging.DEBUG):
             self._logger.debug("Found BGP peers:\n%s", pformat(result))

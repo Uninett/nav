@@ -28,6 +28,7 @@ from django.http import Http404
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.utils.six import itervalues
 
 import nav.db
 from nav.django.utils import get_account
@@ -221,7 +222,7 @@ def _attach_traffic_load(graph,
 
     :type graph: nav.web.geomap.graph.Graph
     """
-    subedges = (edge for combo_edge in graph.edges.itervalues()
+    subedges = (edge for combo_edge in itervalues(graph.edges)
                 for edge in (combo_edge.source_data['subedges'],
                              combo_edge.target_data['subedges']))
     needs_traffic_data = {(d['local_sysname'], d['local_interface']): d
@@ -239,7 +240,7 @@ def _attach_cpu_load(graph, time_interval={'start': '-10min', 'end': 'now'}):
 
     :type graph: nav.web.geomap.graph.Graph
     """
-    netboxes = (netbox for node in graph.nodes.itervalues()
+    netboxes = (netbox for node in itervalues(graph.nodes)
                 for room in node.properties['rooms']
                 for netbox in room['netboxes'])
     needs_cpu_data = {netbox['real_sysname']: netbox for netbox in netboxes}

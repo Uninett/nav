@@ -16,8 +16,11 @@
 """Functions for reverse-mapping metric names to NAV objects"""
 
 import re
+
 from nav.models.manage import Netbox, Interface, Prefix, Sensor
 from django.utils.lru_cache import lru_cache
+from django.utils.six import iteritems
+
 
 __all__ = ['reverses', 'lookup']
 _reverse_handlers = []
@@ -101,7 +104,7 @@ def _reverse_prefix(netaddr):
 
 def _single_like_match(model, related=None, **kwargs):
     args = [("{field}::TEXT LIKE %s".format(field=key), value)
-            for key, value in kwargs.iteritems()]
+            for key, value in iteritems(kwargs)]
     where, params = zip(*args)
     qset = model.objects.extra(where=where, params=params)
     if related:

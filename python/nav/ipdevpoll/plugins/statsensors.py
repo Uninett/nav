@@ -15,8 +15,11 @@
 #
 """Sensors collection and logging to graphite"""
 
-from twisted.internet import defer
 import time
+
+from twisted.internet import defer
+from django.utils.six import iteritems
+
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import db
 from nav.ipdevpoll.db import run_in_thread
@@ -69,7 +72,7 @@ class StatSensors(Plugin):
     def _response_to_metrics(self, result, sensors, netboxes):
         metrics = []
         timestamp = time.time()
-        data = ((sensors[oid], value) for oid, value in result.iteritems()
+        data = ((sensors[oid], value) for oid, value in iteritems(result)
                 if oid in sensors)
         for sensor, value in data:
             value = convert_to_precision(value, sensor)

@@ -19,6 +19,7 @@ from collections import defaultdict
 from itertools import chain
 from collections import namedtuple
 
+from django.utils.six import iteritems
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from . import mibretriever
@@ -68,7 +69,7 @@ class IpForwardMib(mibretriever.MibRetriever):
         protos = yield self.retrieve_column('inetCidrRouteProto')
 
         by_proto = defaultdict(list)
-        for index, proto in protos.iteritems():
+        for index, proto in iteritems(protos):
             name = IANA_IP_ROUTE_PROTOCOLS.get(proto, proto)
             by_proto[name].append(index)
 

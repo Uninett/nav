@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """A class for extracting information from APC devices"""
+from django.utils.six import iteritems
 from twisted.internet import defer
 from nav.mibs import reduce_index
 from nav.mibs.ups_mib import UpsMib
@@ -103,7 +104,7 @@ class PowerNetMib(UpsMib):
 
         result = []
         column = self.nodes.get(R_PDU_LOAD_STATUS_LOAD, None)
-        for index, row in banks.iteritems():
+        for index, row in iteritems(banks):
             oid = str(column.oid + str(index))
 
             bank_number = row.get(R_PDU_LOAD_STATUS_BANK_NUMBER, None)

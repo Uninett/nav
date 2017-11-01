@@ -15,6 +15,8 @@
 #
 """Collects port traffic counters and pushes to Graphite"""
 import time
+
+from django.utils.six import itervalues
 from twisted.internet import defer
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import db
@@ -106,7 +108,7 @@ class StatPorts(Plugin):
         timestamp = timestamp or time.time()
         hc_counters = False
 
-        for row in stats.itervalues():
+        for row in itervalues(stats):
             hc_counters = use_hc_counters(row) or hc_counters
             for key in LOGGED_COUNTERS:
                 if key not in row:

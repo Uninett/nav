@@ -16,6 +16,7 @@
 """Serializer classes for netmap"""
 from django.forms.widgets import SelectMultiple, Textarea
 from django.shortcuts import get_object_or_404
+from django.utils.six import iteritems
 
 from rest_framework import serializers
 
@@ -81,7 +82,7 @@ class NetmapViewSerializer(serializers.Serializer):
 
         if instance is not None:
 
-            for key, value in attrs.iteritems():
+            for key, value in iteritems(attrs):
                 setattr(instance, key, value)
             return instance
 

@@ -18,6 +18,9 @@
 from __future__ import absolute_import
 from collections import defaultdict
 from datetime import datetime
+
+from django.utils.six import iteritems, itervalues
+
 from nav.toposort import build_graph, topological_sort
 
 from nav.ipdevpoll.storage import Shadow, DefaultManager
@@ -212,7 +215,7 @@ class NetboxEntity(Shadow):
         :type containers: nav.ipdevpoll.storage.ContainerRepository
         """
         if cls in containers:
-            entities = containers[cls].itervalues()
+            entities = itervalues(containers[cls])
             return [e for e in entities
                     if e.physical_class == manage.NetboxEntity.CLASS_CHASSIS]
         else:
@@ -225,7 +228,7 @@ class NetboxEntity(Shadow):
         :type containers: nav.ipdevpoll.storage.ContainerRepository
         """
         if cls in containers:
-            entities = containers[cls].itervalues()
+            entities = itervalues(containers[cls])
             return [e for e in entities
                     if e.contained_in is None or e.contained_in == -1]
         else:
@@ -278,7 +281,7 @@ class EntityIndex(object):
         for ent in self.entities:
             if ent.device and ent.device.serial:
                 by_serial[(ent.source, ent.device.serial)].append(ent)
-        by_serial = {k: v[0] for k, v in by_serial.iteritems() if len(v) == 1}
+        by_serial = {k: v[0] for k, v in iteritems(by_serial) if len(v) == 1}
         return by_serial
 
     def index_by_name(self):
@@ -290,5 +293,5 @@ class EntityIndex(object):
         for ent in self.entities:
             if ent.name:
                 by_name[(ent.source, ent.name)].append(ent)
-        by_name = {k: v[0] for k, v in by_name.iteritems() if len(v) == 1}
+        by_name = {k: v[0] for k, v in iteritems(by_name) if len(v) == 1}
         return by_name

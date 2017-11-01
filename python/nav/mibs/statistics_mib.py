@@ -16,6 +16,7 @@
 """HP STATISTICS-MIB"""
 from collections import namedtuple
 from IPy import IP
+from django.utils.six import iteritems
 from twisted.internet import defer
 
 from nav.mibs import mibretriever, reduce_index
@@ -58,4 +59,4 @@ class StatisticsMib(mibretriever.MibRetriever):
             return MulticastStat(IP('.'.join(str(i) for i in group)), ifindex,
                                  vlan, access)
 
-        defer.returnValue([_split(i) for i in ports.iteritems()])
+        defer.returnValue([_split(i) for i in iteritems(ports)])

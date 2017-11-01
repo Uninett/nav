@@ -28,6 +28,8 @@ from twisted.internet import task, reactor
 from twisted.internet.defer import Deferred
 from twisted.internet.task import LoopingCall
 
+from django.utils.six import iteritems
+
 from nav import ipdevpoll
 from nav.ipdevpoll import db
 from nav.ipdevpoll.snmp import SnmpError, AgentProxy
@@ -486,7 +488,7 @@ class CounterFlusher(defaultdict):
         _logger.debug("flushing %d counters to graphite", len(self))
         metrics = []
         timestamp = time.time()
-        for counter, count in self.iteritems():
+        for counter, count in iteritems(self):
             metrics.append((counter, (timestamp, count)))
             self[counter] = 0
 

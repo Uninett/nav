@@ -14,7 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """A class for extracting sensors from RFC1628 compatible UPSes"""
-
+from django.utils.six import itervalues
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
@@ -129,7 +129,7 @@ class UpsMib(mibretriever.MibRetriever):
         self._logger.debug('_get_sensors: %s; %s = %s',
                            self.agent_proxy.ip, object_name, sensor_params)
 
-        for row in sensor_params.itervalues():
+        for row in itervalues(sensor_params):
             row_oid = row.get(0, None)
             mibobject = self.nodes.get(object_name, None)
             oid = str(mibobject.oid) + str(row_oid)

@@ -13,6 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+from django.utils.six import itervalues, iteritems
 from twisted.internet import defer
 from nav.mibs import mibretriever, reduce_index
 from nav.mibs.entity_mib import EntityMib
@@ -34,12 +35,12 @@ class CiscoProcessMib(mibretriever.MibRetriever):
             TOTAL_1_MIN_REV,
         ])
         self._logger.debug("cpu load results: %r", load)
-        physindexes = [row[PHYSICAL_INDEX] for row in load.itervalues()
+        physindexes = [row[PHYSICAL_INDEX] for row in itervalues(load)
                        if row[PHYSICAL_INDEX]]
         names = yield self._get_cpu_names(physindexes)
 
         result = {}
-        for index, row in load.iteritems():
+        for index, row in iteritems(load):
             name = names.get(row[PHYSICAL_INDEX], str(index[-1]))
             result[name] = [(5, row[TOTAL_5_MIN_REV]),
                             (1, row[TOTAL_1_MIN_REV])]

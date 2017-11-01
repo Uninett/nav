@@ -24,6 +24,7 @@ This implementation sticks with the easily graphable sensors,
 like temperature, humidity, voltages and currents.
 
 """
+from django.utils.six import iteritems
 from twisted.internet import defer
 from nav.mibs import reduce_index
 from nav.mibs.mibretriever import MibRetriever
@@ -83,7 +84,7 @@ class SPAgentMib(MibRetriever):
     def get_all_sensors(self):
         """Returns a Deferred whose result is a list of sensor dictionaries"""
         result = []
-        for table, config in SENSOR_TABLES.iteritems():
+        for table, config in iteritems(SENSOR_TABLES):
             sensors = yield self._get_sensors(config)
             result.extend(sensors)
         defer.returnValue(result)
@@ -103,7 +104,7 @@ class SPAgentMib(MibRetriever):
             self.translate_result).addCallback(reduce_index)
 
         sensors = (self._row_to_sensor(config, index, row)
-                   for index, row in result.iteritems())
+                   for index, row in iteritems(result))
 
         defer.returnValue([s for s in sensors if s])
 

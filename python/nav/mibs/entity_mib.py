@@ -22,6 +22,7 @@ from datetime import datetime
 import struct
 
 from django.utils import six
+from django.utils.six import iteritems
 from twisted.internet import defer
 
 from nav.oids import OID
@@ -302,7 +303,7 @@ class EntityTable(dict):
         for ent in self.values():
             if not self.is_chassis(ent):
                 dupes[ent['entPhysicalName']].append(ent)
-        dupes = dict((key, value) for key, value in dupes.iteritems()
+        dupes = dict((key, value) for key, value in iteritems(dupes)
                      if len(value) > 1)
         return dupes
 
