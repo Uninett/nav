@@ -21,7 +21,10 @@ define(function(require) {
     var dtColumns = [
         {
             render: function(data, type, row, meta) {
-                return '<a href="' + NAV.urls.portadmin_index + row.id + '" title="Configure port in Portadmin"><img src="/static/images/toolbox/portadmin.svg" style="height: 1em; width: 1em" /></a>';
+                if (isSwPort(row)) {
+                    return '<a href="' + NAV.urls.portadmin_index + row.id + '" title="Configure port in Portadmin"><img src="/static/images/toolbox/portadmin.svg" style="height: 1em; width: 1em" /></a>';
+                }
+                return '';
             },
             orderable: false
         },
@@ -86,7 +89,7 @@ define(function(require) {
         {
             render: function(data, type, row, meta) {
                 // If this is not a swport last_used is meaningless
-                if (row.baseport === null) {
+                if (!isSwPort(row)) {
                     return '';
                 }
 
@@ -133,6 +136,12 @@ define(function(require) {
     function renderStatus(data, type, row, meta) {
         var color = data === 2 ? 'red' : 'green';
         return '<img src="/static/images/lys/' + color + '.png">';
+    }
+
+
+    /* Returns if this is a swport or not */
+    function isSwPort(row) {
+        return row.baseport !== null;
     }
 
 
