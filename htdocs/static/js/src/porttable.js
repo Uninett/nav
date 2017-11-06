@@ -10,13 +10,9 @@ define(function(require) {
      * dtColumns defines the data we want to use from the result set from the
      * api. They are in order of appearance in the table - changes here may need
      * changes in the template aswell.
-
-     * _data_ defines what key to look up for the value in the column
      *
-     * _type_ defines a type needed for using the correct sorting function
-     *        (added by adding functions to $.fn.dataTable.ext.type.order)
-     **
-     * _render_ completely overrides the default rendering of the value
+     * More information about the options for each column can be seen at
+     * https://datatables.net/reference/option/ -> columns
      */
     var dtColumns = [
         {
