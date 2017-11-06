@@ -278,10 +278,10 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     - netbox
     - trunk
     - module__name
-    - ifclass[swport, gwport, physicalport, trunk]
+    - ifclass=[swport, gwport, physicalport, trunk]
     - last_used (set this to for instance 1 to embed last used cam record)
 
-    Example: `/api/1/interface/?netbox=91&ifclass[]=trunk&ifclass[]=swport`
+    Example: `/api/1/interface/?netbox=91&ifclass=trunk&ifclass=swport`
     """
     queryset = manage.Interface.objects.all()
     filter_fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',

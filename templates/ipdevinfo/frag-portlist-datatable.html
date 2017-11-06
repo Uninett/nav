@@ -44,6 +44,7 @@
          try {
              new PortTable('#portlist', {{netbox.id}});
          } catch (e) {
+             console.error(e);
              $("#portlist").css('visibility', 'hidden');
              $("#ports").append($('<div class="alert-box error">Error initializing port table</div>'))
          }

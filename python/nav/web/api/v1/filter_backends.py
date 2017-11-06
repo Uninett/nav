@@ -52,8 +52,8 @@ class IfClassFilter(filters.BaseFilterBackend):
             'trunk': Q(trunk=True)
         }
 
-        if 'ifclass[]' in request.QUERY_PARAMS:
-            matching_filters = (set(request.QUERY_PARAMS.getlist('ifclass[]'))
+        if 'ifclass' in request.QUERY_PARAMS:
+            matching_filters = (set(request.QUERY_PARAMS.getlist('ifclass'))
                                 & set(filters))
             if matching_filters:
                 q = reduce3(operator.or_, [filters[f] for f in matching_filters])

@@ -85,6 +85,11 @@ define(function(require) {
         // Last used
         {
             render: function(data, type, row, meta) {
+                // If this is not a swport last_used is meaningless
+                if (row.baseport === null) {
+                    return '';
+                }
+
                 if (row.last_used) {
                     var date = new Date(row.last_used.end_time);
                     return date.getYear() > 5000 ? "Now" : Moment(row.last_used.end_time).format('YYYY-MM-DD HH:mm:ss');
@@ -131,23 +136,171 @@ define(function(require) {
     }
 
 
+
     /**
-     * Creates the checkboxes for filtering on ifclasses (swport, gwport, physicalport)
+     * The table to be instantiated
+     * @param {string} selector - the jQuery selector for the table
+     * @param {int} netboxid - the netboxid of the device to list ports for
      */
-    function createFilters(selector) {
-        var $form = $("<form id='portlistform'>").appendTo(selector);
+    function PortTable(selector, netboxid) {
+        this.netboxid = netboxid;
+
+        this.selectors = {
+            table: selector,
+            formContainer: '#ifclasses',
+            form: 'portlistform'
+        }
+
+        // Initialize dataTable and add all custom stuff
+        this.dataTable = this.createDataTable();
+        addLoadingIndicator(this.selectors.table);
+        addCustomOrdering();
+        fixSearchDelay(this.dataTable);
+
+        // Special treatment for the last used column that is an optional column
+        var lastUsedColIndex = 8;
+        var lastUsedColumn = this.dataTable.column(lastUsedColIndex);
+
+        // Create form, add handlers
+        var $form = createForm(this.selectors.form, this.selectors.formContainer);
+        setFormFields($form);
+        formListener(this, $form);
+        toggleLastUsedOnXHR(this.selectors.table, lastUsedColumn, $form);
+    }
+
+    PortTable.prototype = {
+        createDataTable: function() {
+            // https://datatables.net/reference/option/
+            return $(this.selectors.table).DataTable({
+                autoWidth: false,
+                paging: false,
+                processing: true,
+                orderClasses: false,
+                ajax: {
+                    url: this.getUrl(),
+                    dataFilter: translateData
+                },
+                columns: dtColumns,
+                order: [[1, 'asc']],
+                dom: "f<'#ifclasses'><'#infoprocessing'ir>t",
+                language: {
+                    info: "_TOTAL_ entries",
+                    processing: "Loading...",
+                }
+            });
+        },
+
+        getUrl: function() {
+            return URI("/api/1/interface/")
+                .addSearch('page_size', 10000)
+                .addSearch('netbox', this.netboxid)
+                .addSearch(getLocalStorageValues())
+                .toString();
+        },
+
+        /**
+         * Load data using custom request because of chunked loading
+         * I'm leaving this here as an example although it's not in use
+         * Remember to adjust page_size
+         */
+        loadData: function() {
+            var self = this;
+
+            function loadMoreData(data) {
+                self.dataTable.rows.add(data.results).draw();
+                if (data.next) {
+                    $.get(data.next, loadMoreData);
+                } else {
+                    $('#portlist_processing').hide();
+                }
+            }
+
+            $('#portlist_processing').show();
+            $.get(this.getUrl(), loadMoreData)
+        }
+    }
+
+
+    /**
+     *
+     * Form related stuff
+     *
+     */
+
+    var localStorageKey = 'nav.porttable.filters'; // Key for local storage of form values
+
+    /**
+     * The form for filtering data
+     */
+    function createForm(formID, formContainer) {
+        var $form = $("<form id='" + formID + "'>").appendTo(formContainer);
         var fs1 = $('<fieldset>').appendTo($form);
         var fs2 = $('<fieldset>').appendTo($form);
         fs1.append('<legend>Port filters</legend>')
-        fs1.append('<label><input type="radio" name="portgroup" value="all" checked>All ports</label>');
-        fs1.append('<label><input type="radio" name="portgroup" value="swport">Switch ports</label>');
-        fs1.append('<label><input type="radio" name="portgroup" value="gwport">Router ports</label>');
-        fs1.append('<label><input type="radio" name="portgroup" value="physicalport">Physical ports</label>');
-        fs1.append('<label><input type="radio" name="portgroup" value="trunk">Trunks</label>');
+        fs1.append('<label><input type="radio" name="ifclass" value="all" checked>All ports</label>');
+        fs1.append('<label><input type="radio" name="ifclass" value="swport">Switch ports</label>');
+        fs1.append('<label><input type="radio" name="ifclass" value="gwport">Router ports</label>');
+        fs1.append('<label><input type="radio" name="ifclass" value="physicalport">Physical ports</label>');
+        fs1.append('<label><input type="radio" name="ifclass" value="trunk">Trunks</label>');
 
         fs2.append('<legend>Optional</legend>')
         fs2.append('<label><input type="checkbox" name="last_used">Last used</label>');
         return $form;
+    }
+
+    // Set form values based on localstorage values
+    function setFormFields($form) {
+        var form = $form.get(0);
+        var localStorageValues = getLocalStorageValues();
+        if (localStorageValues) {
+            form.elements['ifclass'].value = localStorageValues.ifclass;
+            form.elements['last_used'].checked = localStorageValues.last_used;
+        }
+    }
+
+    function getLocalStorageValues() {
+        return JSON.parse(localStorage.getItem(localStorageKey));
+    }
+
+    function setLocalStorageValues($form) {
+        var formData = $form.serializeObject();
+        localStorage.setItem(localStorageKey, JSON.stringify(formData));
+        return formData;
+    }
+
+    function formListener(dt, $form) {
+        $form.on('change', function() {
+            var formData = setLocalStorageValues($form);
+            dt.dataTable.ajax.url(dt.getUrl()).load();
+        });
+    }
+
+
+    function addLoadingIndicator(tableSelector) {
+        $(tableSelector).on('processing.dt', function(event, settings, processing) {
+            if (processing) {
+                $(this).css('opacity', .5);
+            } else {
+                $(this).css('opacity', 1);
+            }
+        })
+    }
+
+    /** Custom ordering for statuslight as it cant sort on html elements */
+    function addCustomOrdering() {
+        $.fn.dataTable.ext.type.order['statuslight-pre'] = function ( data ) {
+            return data;
+        };
+    }
+
+    /**
+     * Translate data keys from response to something datatables understand
+     */
+    function translateData(data) {
+        var json = jQuery.parseJSON( data );
+        json.recordsTotal = json.count;
+        json.data = json.results;
+        return JSON.stringify( json );
     }
 
 
@@ -176,118 +329,10 @@ define(function(require) {
         });
     }
 
-
-    /**
-     * Translate data keys from response to something datatables understand
-     */
-    function translateData(data) {
-        var json = jQuery.parseJSON( data );
-        json.recordsTotal = json.count;
-        json.data = json.results;
-        return JSON.stringify( json );
-    }
-
-
-    /** Custom ordering for statuslight as it cant sort on html elements */
-    function addCustomOrdering() {
-        $.fn.dataTable.ext.type.order['statuslight-pre'] = function ( data ) {
-            return data;
-        };
-    }
-
-    /**
-     * The table to be instantiated
-     * @param {string} selector - the jQuery selector for the table
-     * @param {int} netboxid - the netboxid of the device to list ports for
-     */
-    function PortTable(selector, netboxid) {
-        this.lastUsedCol = 8;
-
-        this.netboxid = netboxid;
-        this.selector = selector;
-        this.formContainerSelector = '#ifclasses';
-        this.dataTable = this.createDataTable();
-        this.addFormListener(createFilters(this.formContainerSelector));
-        $(this.selector).on('processing.dt', function(event, settings, processing) {
-            if (processing) {
-                $(this).css('opacity', .5);
-            } else {
-                $(this).css('opacity', 1);
-            }
-        })
-
-        addCustomOrdering();
-        fixSearchDelay(this.dataTable);
-    }
-
-    PortTable.prototype = {
-        createDataTable: function() {
-            // https://datatables.net/reference/option/
-            return $(this.selector).DataTable({
-                autoWidth: false,
-                paging: false,
-                processing: true,
-                orderClasses: false,
-                ajax: {
-                    url: this.getUrl().toString(),
-                    dataFilter: translateData
-                },
-                columns: dtColumns,
-                order: [[1, 'asc']],
-                dom: "f<'#ifclasses'><'#infoprocessing'ir>t",
-                language: {
-                    info: "_TOTAL_ entries",
-                    processing: "Loading...",
-                }
-            });
-        },
-
-        /**
-         * Load data using custom request because of chunked loading
-         * I'm leaving this here as an example although it's not in use
-         * Remember to adjust page_size
-         */
-        loadData: function() {
-            var self = this;
-
-            function loadMoreData(data) {
-                self.dataTable.rows.add(data.results).draw();
-                if (data.next) {
-                    $.get(data.next, loadMoreData);
-                } else {
-                    $('#portlist_processing').hide();
-                }
-            }
-
-            $('#portlist_processing').show();
-            $.get(this.getUrl(), loadMoreData)
-        },
-
-        /** Listen to changes in form */
-        addFormListener: function($form) {
-            var self = this;
-            var column = self.dataTable.column(this.lastUsedCol);
-            $form.on('change', function() {
-                var newUrl = self
-                    .getUrl()
-                    .setSearch('ifclass[]', $form.find('[name=portgroup]:checked').val())
-                if ($form.get(0).elements.last_used.checked) {
-                    newUrl.setSearch('last_used', 1);
-                    column.visible(true);
-                } else {
-                    column.visible(false);
-                }
-                console.log(newUrl.toString());
-                self.dataTable.ajax.url(newUrl.toString()).load();
-            });
-        },
-
-        getUrl: function() {
-            return URI("/api/1/interface/")
-                .addSearch('page_size', 10000)
-                .addSearch('netbox', this.netboxid);
-        }
-
+    function toggleLastUsedOnXHR(tableSelector, column, $form) {
+        $(tableSelector).on('xhr.dt', function(e, settings, json, xhr) {
+            column.visible($form.get(0).elements.last_used.checked);
+        });
     }
 
 
