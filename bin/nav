@@ -23,6 +23,7 @@ import os
 import os.path
 import argparse
 import textwrap
+from nav import colors
 
 try:
     from nav.startstop import ServiceRegistry, CommandFailedError
@@ -111,7 +112,8 @@ def action_iterator(query_list, action, ok_string, fail_string, verbose=False):
                     if not any_ok:
                         any_ok = True
                         print(ok_string + ":", end=' ')
-                    print(name, end=' ')
+                    colors.print_color(name + ' ',
+                                       colors.COLOR_GREEN, newline=False)
                     sys.stdout.flush()
                 else:
                     failed.append(name)
@@ -123,7 +125,8 @@ def action_iterator(query_list, action, ok_string, fail_string, verbose=False):
         print()
 
     if len(failed):
-        print("%s: %s" % (fail_string, " ".join(failed)))
+        print("%s:" % fail_string, end=' ')
+        colors.print_color(" ".join(failed), colors.COLOR_RED)
     if len(unknowns):
         print("Unknown: %s" % " ".join(unknowns))
     if len(errors):
@@ -133,14 +136,35 @@ def action_iterator(query_list, action, ok_string, fail_string, verbose=False):
 
 def c_info(args):
     """lists each service and their associated description"""
-    def _helper(service):
+    matched_services = []
+    max_length = 0
+    terminal_width = colors.get_terminal_width() or 79
+
+    def _service_printer(service):
+        name = ("{:<%s} " % max_length).format(service.name)
+        colors.print_color(name, colors.COLOR_GREEN, newline=False)
+
         kind = service.__class__.__name__
         if kind.endswith("Service"):
             kind = kind[:-7].lower()
-        output = "%-18s %8s: %s" % (service.name, "(%s)" % kind, service.info)
-        print('\n'.join(textwrap.wrap(output, width=79,
-                                      subsequent_indent=" "*29)))
-    service_iterator(args.service, _helper)
+        kind = "({})".format(kind)
+        kind = "{:>8}".format(kind)
+        colors.print_color(kind, colors.COLOR_YELLOW, newline=False)
+
+        indent = " "*(max_length + 11)
+        info = textwrap.wrap(service.info or "N/A", width=terminal_width,
+                             initial_indent=indent, subsequent_indent=indent)
+        info = "\n".join(info)
+        print(": " + info.strip())
+
+    def _append_to_service_list(service):
+        matched_services.append(service)
+
+    service_iterator(args.service, _append_to_service_list)
+    max_length = (max(len(s.name) for s in matched_services)
+                  if matched_services else 0)
+    for svc in matched_services:
+        _service_printer(svc)
 
 
 def c_list(args):
