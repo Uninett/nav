@@ -17,6 +17,7 @@
 
 from __future__ import print_function, absolute_import
 
+import os
 import sys
 from functools import wraps
 import curses
@@ -88,3 +89,16 @@ def reset_foreground():
     if _is_term:
         _term.write(_reset_color)
         _term.flush()
+
+
+def get_terminal_width():
+    """
+    Attempts to return the current terminal width, independent of the
+    current curses screen.
+    """
+    try:
+        height, width = os.popen(
+            'stty size 2>/dev/null', 'r').read().strip().split(' ')
+        return int(width)
+    except Exception:
+        pass
