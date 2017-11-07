@@ -86,7 +86,7 @@ define(function (require, exports, module) {
             /* Create gradient to indicate severity of value */
             var gradient = this.container
                 .append("svg:defs").append("svg:linearGradient")
-                .attr("id", this.gradientId + "gradient").attr("x1", "100%").attr("y1", "100%")
+                .attr("id", this.gradientId).attr("x1", "100%").attr("y1", "100%")
                 .attr("x2", "100%").attr("y2", "0%").attr('gradientUnits', 'userSpaceOnUse');
             gradient.append("svg:stop").attr("offset", "0%").attr("stop-color", "lightgreen");
             gradient.append("svg:stop").attr("offset", "50%").attr("stop-color", "yellow");
