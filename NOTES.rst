@@ -15,20 +15,43 @@ NAV 4.8
 Dependency changes
 ------------------
 
-NAV 4.8 introduces a new dependency on dnspython *1.15.0* for the DNS
-service checker.
+The NAV team is currently working on removing some bundled libraries and
+porting the NAV code to Python 3. Some previously bundled libraries have been
+added to the dependency list, while others have had their required versions
+changed.
+
+
+New dependencies
+~~~~~~~~~~~~~~~~
+
+* :mod:`dnspython` == *1.15.0*
+* :mod:`asciitree` == *0.3.3*
+* :mod:`configparser` == *3.5.0*
+
+Upgraded dependencies
+~~~~~~~~~~~~~~~~~~~~~
+
+The version requirements have changed for these dependencies:
+
+* :mod:`IPy` == *0.83*
+* Also, any version of :mod:`twisted` between *14.0.1* and *17.9.0* should work.
 
 Removed dependencies
 ~~~~~~~~~~~~~~~~~~~~
 
-The support for the old PySNMP v2 and PySNMP-SE libraries (and consequently,
-the pure-Python TwistedSNMP library) has been removed, since they are outdated
-and do not provide the full feature set used by NAV and provided by our
-preferred library: :mod:`pynetsnmp`.
+* The support for the old **PySNMP v2** and **PySNMP-SE** libraries (and
+  consequently, the pure-Python **TwistedSNMP** library) has been removed, since
+  they are outdated and do not provide the full feature set used by NAV and
+  provided by our preferred library: :mod:`pynetsnmp`.
 
-There is no longer a dependency to the Python module
-:mod:`django-oauth2-provider`, as NAV's usage of this non-maintained module
-was severely limited.
+* There is no longer a dependency to the Python module
+  :mod:`django-oauth2-provider`, as NAV's usage of this non-maintained module
+  was severely limited.
+
+* :mod:`ipaddr` was removed. It was never a direct requirement of NAV. It only
+  mentioned in the requirements list to satisfy a missing dependency of
+  :mod:`pynetsnmp`, which has been rectified upstream, so it is still needed in
+  a complete system.
 
 
 NAV 4.7
