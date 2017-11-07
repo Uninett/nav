@@ -55,6 +55,9 @@ def make_argparser():
     )
     parser.add_argument("--nonroot", action="store_true",
                         help="don't complain about not having root privileges")
+    parser.add_argument("--verbose", "-V", action="store_true",
+                        help="let output from subcommands pass through")
+
 
     self = sys.modules[__name__]
     commands = sorted((name.replace('c_', ''), func)
@@ -91,7 +94,7 @@ def service_iterator(query_list, func):
         sys.stderr.write("Unknown services: %s\n" % " ".join(unknowns))
 
 
-def action_iterator(query_list, action, ok_string, fail_string):
+def action_iterator(query_list, action, ok_string, fail_string, verbose=False):
     """Iterates through a list of service names, performing an action on each
     of them.
     """
@@ -104,7 +107,7 @@ def action_iterator(query_list, action, ok_string, fail_string):
         if name in SERVICES:
             method = getattr(SERVICES[name], action)
             try:
-                if method(silent=True):
+                if method(silent=not verbose):
                     if not any_ok:
                         any_ok = True
                         print(ok_string + ":", end=' ')
@@ -149,14 +152,16 @@ def c_start(args):
     """starts services"""
     if not args.nonroot:
         verify_root()
-    action_iterator(args.service, "start", "Starting", "Failed")
+    action_iterator(args.service, "start", "Starting", "Failed",
+                    verbose=args.verbose)
 
 
 def c_stop(args):
     """stops services"""
     if not args.nonroot:
         verify_root()
-    action_iterator(args.service, "stop", "Stopping", "Failed")
+    action_iterator(args.service, "stop", "Stopping", "Failed",
+                    verbose=args.verbose)
 
 
 def c_restart(args):
@@ -171,7 +176,7 @@ def c_status(args):
     """reports the status of services"""
     if not args.nonroot:
         verify_root()
-    action_iterator(args.service, "is_up", "Up", "Down")
+    action_iterator(args.service, "is_up", "Up", "Down", verbose=args.verbose)
 
 
 def c_version(_):
