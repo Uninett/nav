@@ -18,7 +18,7 @@
 Extracts closed issues from a NAV milestone on GitHub to produce a list of
 fixed issues for a release changelog entry.
 """
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 import sys
 import textwrap
@@ -52,7 +52,7 @@ def main():
 
     issues = repo.get_issues(state='closed', milestone=mstone)
     for issue in sorted(issues, key=operator.attrgetter('number')):
-        print(format_issue(issue))
+        print(format_issue(issue).encode('utf-8'))
 
 
 def format_issue(issue):
