@@ -38,7 +38,7 @@ except curses.error:
     _reset_color = ''
     _is_term = False
 else:
-    _is_term = True
+    _is_term = sys.stdout.isatty()
 
 if six.PY3:
     _term = sys.stdout.buffer
