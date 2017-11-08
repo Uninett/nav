@@ -167,6 +167,8 @@ class RoomForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(RoomForm, self).__init__(*args, **kwargs)
         self.fields['location'].choices = create_hierarchy(Location)
+        if self.instance and self.instance.pk:
+            self.fields['id'].widget.attrs['readonly'] = True
 
     class Meta(object):
         model = Room
