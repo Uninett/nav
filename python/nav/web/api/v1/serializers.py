@@ -70,7 +70,6 @@ class SubNetboxSerializer(serializers.ModelSerializer):
 class NetboxSerializer(serializers.ModelSerializer):
     """Serializer for the netbox model"""
     chassis = EntitySerializer(source='get_chassis', many=True, read_only=True)
-    type = NetboxTypeSerializer(read_only=True)
 
     # We need two fields for related fields that are required: one for reading
     # (room) and one for writing (roomid).
@@ -96,6 +95,11 @@ class NetboxSerializer(serializers.ModelSerializer):
                                                   required=False,
                                                   write_only=True)
     master = SubNetboxSerializer(required=False)
+    typeid = serializers.PrimaryKeyRelatedField(source='type',
+                                                required=False,
+                                                write_only=True)
+    type = NetboxTypeSerializer(read_only=True)
+
 
     class Meta(object):
         model = manage.Netbox
