@@ -198,7 +198,7 @@ def task_component_trails(component_keys, components):
                 trail.append({
                     'url': None,
                     'title': None,
-                    'name': "ID %s (Details not available)" % pkey,
+                    'name': "ID %s (Component was deleted)" % pkey,
                 })
             else:
                 if key in ('location', 'room', 'netbox', 'service'):
