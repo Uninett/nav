@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Functions for updating the database's layer 2 topology"""
+import logging
 
 from nav.topology.analyze import AdjacencyReducer, build_candidate_graph_from_db
 from nav.topology.analyze import Port
@@ -21,6 +22,9 @@ from nav.topology.analyze import Port
 from nav.models.manage import Interface, Netbox
 from django.db import transaction
 from django.db.models import Q
+
+
+_logger = logging.getLogger(__name__)
 
 
 @transaction.atomic()
@@ -35,6 +39,7 @@ def update_layer2_topology(links):
 
     touched_ifc_ids = [source[1] for source, _dest in links]
     _clear_topology_for_nontouched(touched_ifc_ids)
+    _clear_topology_for_mismatched_state_links()
 
 
 def _update_interface_topology(source_node, dest_node):
@@ -77,3 +82,22 @@ def _clear_topology_for_nontouched(touched_ifc_ids):
     nontouched_ifcs = up_or_disabled_ifcs.exclude(id__in=touched_ifc_ids)
     clearable_ifcs = nontouched_ifcs.exclude(to_netbox__isnull=True)
     clearable_ifcs.update(to_netbox=None, to_interface=None)
+
+
+def _clear_topology_for_mismatched_state_links():
+    """
+    Clears topology for all interfaces that are down, but where the link
+    partner is still up.
+
+    This is a clear indication that the topology for an Interface has gone
+    stale.
+    """
+    mismatched = Interface.objects.filter(
+        ifoperstatus=Interface.OPER_DOWN,
+        to_interface__ifoperstatus=Interface.OPER_UP,
+    )
+    count = mismatched.count()
+    if count > 0:
+        _logger.debug("deleting stale topology for %d operDown interfaces",
+                      count)
+    mismatched.update(to_netbox=None, to_interface=None)
