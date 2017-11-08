@@ -213,9 +213,13 @@ ul.ui-tabs-nav {
 /* List styles */
 
 ul.errorlist {
-    font-size: inherit;
-    margin-bottom: 0;
+    background-color: $alert-color;
+    color: white;
+    font-size: .7rem;
+    font-style: italic;
     list-style-type: none;
+    margin: 0;
+    padding: 0.375rem 0.5625rem 0.5625rem;
 }
 
 small.error ul.errorlist {
