@@ -7,6 +7,19 @@
     <td>{{ port.trunk|yesno:"Yes,No,N/A" }}</td>
   </tr>
 
+  {% if port.trunk %}
+      <tr>
+          <th>Allowed trunk VLANs</th>
+          <td>
+              <ul style="margin-left: 0; list-style-type: none; max-height: 10em; overflow: auto;">
+                  {% for range in port.get_allowed_vlan_ranges %}
+                  <li>{{ range }}</li>
+                  {% endfor %}
+              </ul>
+          </td>
+      </tr>
+  {% endif %}
+
   <tr>
     <th>Configured VLAN</th>
     <td>
