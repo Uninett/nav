@@ -728,8 +728,7 @@ class Room(models.Model):
     server room."""
 
     id = models.CharField(db_column='roomid', max_length=30, primary_key=True)
-    location = models.ForeignKey('Location', db_column='locationid',
-                                 blank=True, null=True)
+    location = models.ForeignKey('Location', db_column='locationid')
     description = VarcharField(db_column='descr', blank=True)
     position = PointField(null=True, blank=True, default=None)
     data = hstore.DictionaryField(blank=True)
