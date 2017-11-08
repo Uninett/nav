@@ -27,6 +27,7 @@ import re
 
 import IPy
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
@@ -118,6 +119,13 @@ class Netbox(models.Model):
 
     def __str__(self):
         return self.get_short_sysname()
+
+    def clean(self):
+        """Custom validation"""
+
+        # Make sure master cannot be set to self
+        if self.master and self.pk == self.master.pk:
+            raise ValidationError('You cannot be your own master')
 
     @property
     def device(self):
