@@ -34,7 +34,7 @@ working, use curl::
   curl -H 'Authorization: Token <token>' https://<host>/api/netboxes/
 
 As you see, we use the ``Authorization`` header field to include the token. When
-doing your requests, make sure to add the header field to all requests. 
+doing your requests, make sure to add the header field to all requests.
 
 **NB: These requests should never, ever be done unencrypted.** Do not use this
 on NAV installations that do not have SSL enabled, you are potentially giving
@@ -66,7 +66,7 @@ The available endpoints is listed if you go to the root of the api -
 - "room": "http://<host>/api/room/"
 - "netbox": "http://<host>/api/netbox/"
 - "interface": "http://<host>/api/interface/"
-- "prefix": "http://<host>/api/prefix/" 
+- "prefix": "http://<host>/api/prefix/"
 - "prefix_usage": "http://<host>/api/prefix/usage"
 - "prefix_routed": "http://<host>/api/prefix/routed"
 
@@ -113,6 +113,53 @@ you are using and exactly the value it should have::
   /api/netbox/?category=GSW
 
 At the moment there is no way of specifying wildcards in the filter.
+
+
+Using POST, PUT, PATCH and DELETE
+---------------------------------
+
+To use these request methods you need a write-enabled token. Go to `User and API
+Administration </useradmin/tokens/>`_ to set token attributes.
+
+CRUD-methods are enabled for a limited number of endpoints. These endpoints can
+be found by querying the endpoint with the ``OPTIONS`` header and see if POST is
+in the ``Allow`` header. You will also see what fields are required.
+
+POST
+^^^^
+
+Used to create new entries. Operates on the list of entries::
+
+  curl -i -H 'Content-Type: application/json' -H 'Authorization: Token <token>' -XPOST 'http://localhost/api/1/netbox/' -d '{
+        "ip": "158.38.xxx.xxx",
+        "roomid": "teknobyen",
+        "organizationid": "uninett",
+        "categoryid": "SW",
+        "snmp_version": 2}'
+
+
+PUT
+^^^
+
+Used on single entries to create or update. PUT needs all required fields for
+each request::
+
+  curl -i -H 'Content-Type: application/json' -H 'Authorization: Token <token>' -XPUT 'http://localhost/api/1/room/<id>/' -d '{"id": "<id>", "location": "trondheim"}'
+
+PATCH
+^^^^^
+
+Used to update single entries::
+
+  curl -i -H 'Content-Type: application/json' -H 'Authorization: Token <token>' -XPATCH 'http://localhost/api/1/netbox/<id>/' -d '{"roomid": "teknobyen"}'
+
+DELETE
+^^^^^^
+
+Used to delete single entries::
+
+  curl -i -H 'Authorization: Token <token>' -XDELETE 'http://localhost/api/1/netbox/<id>/'
+
 
 
 A specific scenario
@@ -208,4 +255,4 @@ use that to find the correct interface::
   }
 
 We now have the correct interface that the computer is connected to right
-now. 
+now.
