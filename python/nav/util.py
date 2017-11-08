@@ -24,7 +24,9 @@ import datetime
 import uuid
 import hashlib
 from functools import wraps
-from itertools import chain, tee
+from itertools import chain, tee, groupby
+from operator import itemgetter
+
 try:
     from itertools import ifilter
 except ImportError:
@@ -461,3 +463,39 @@ def auth_token():
     _hash = hashlib.sha1(six.text_type(uuid.uuid4()).encode('utf-8'))
     _hash.update(settings.SECRET_KEY.encode('utf-8'))
     return _hash.hexdigest()
+
+
+def consecutive(seq):
+    """Yields a series of ranges found in the number sequence.
+
+    :param seq: A sequence of numbers.
+    """
+    data = ((y - x, y) for x, y in enumerate(sorted(seq)))
+    for key, group in groupby(data, itemgetter(0)):
+        group = [item[1] for item in group]
+        yield group[0], group[-1]
+
+
+class NumberRange(object):
+    """
+    Represents a sequence of numbers that can be compacted to a series of
+    number ranges.
+    """
+    def __init__(self, sequence):
+        self.ranges = list(consecutive(sequence))
+
+    def __iter__(self):
+        return iter(self._range_to_str(x,y) for x, y in self.ranges)
+
+    def __str__(self):
+        return ", ".join(self)
+
+    def __repr__(self):
+        return "<{} {}>".format(self.__class__.__name__, self)
+
+    @staticmethod
+    def _range_to_str(x, y):
+        if x == y:
+            return str(x)
+        else:
+            return "{}-{}".format(x,y)
