@@ -92,7 +92,10 @@ class NetboxSerializer(serializers.ModelSerializer):
     categoryid = serializers.PrimaryKeyRelatedField(source='category',
                                                     write_only=True)
     category = CategorySerializer(required=False)
-
+    masterid = serializers.PrimaryKeyRelatedField(source='master',
+                                                  required=False,
+                                                  write_only=True)
+    master = SubNetboxSerializer(required=False)
 
     class Meta(object):
         model = manage.Netbox
