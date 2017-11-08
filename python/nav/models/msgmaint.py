@@ -136,6 +136,8 @@ class MaintenanceTask(models.Model):
                 for location in component.get_descendants(include_self=True):
                     subjects.extend(manage.Netbox.objects.filter(
                         room__location=location))
+            elif component is None:
+                continue  # no use in including deleted components
             else:
                 subjects.append(component)
 
