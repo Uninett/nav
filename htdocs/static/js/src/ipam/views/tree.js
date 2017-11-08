@@ -89,6 +89,25 @@ define(function(require, exports, module) {
         self.collection.queryParams = params;
         self.refetch();
       });
+      var scrolltoHandler = function(node) {
+        self.debug("Trying to scroll to", node);
+        var elem = $("#prefix-" + node.pk);
+        // Element not found in DOM
+        if (!elem.length && node.parent_pk) {
+          globalCh.vent.trigger("open_node", node.parent_pk);
+          setTimeout(function(){
+            scrolltoHandler(node);
+          }, 1000);
+          return;
+        }
+        // Calculate offset and move to the desired node
+        globalCh.vent.trigger("open_node", node.pk);
+        self.debug("Scrolling to", node.pk);
+        $("html, body").animate({
+          scrollTop: elem.offset().top
+        }, "slow");
+      };
+      globalCh.vent.on("scrollto", scrolltoHandler);
     },
 
     /* Whether or not we're currently fetching some data */
@@ -172,7 +191,7 @@ define(function(require, exports, module) {
   // toggling them open/closed and so on.
   var NodeView = Marionette.LayoutView.extend({
     tagName: "li",
-    className: "prefix-tree-item",
+    className: "prefix-tree-item prefix-tree-item-closed",
     template: "#prefix-tree-node",
 
     regions: {
@@ -203,6 +222,9 @@ define(function(require, exports, module) {
       // Remove marker class for open node in tree, so new results (upon
       // searching/filtering) aren't blurred.
       this.$el.parent().removeClass("prefix-tree-open");
+      if (this.ch) {
+        this.ch.vent.off("open_node");
+      }
     },
 
     initialize: function() {
@@ -214,6 +236,14 @@ define(function(require, exports, module) {
       this.debug("Mounted node #", pk);
       this.fsm.onChange(function(nextState) {
         self.debug("Moving into state", nextState);
+      });
+      var self = this;
+      this.ch = Backbone.Wreqr.radio.channel("global");
+      this.ch.vent.on("open_node", function(__pk) {
+        if (__pk !== pk) {
+          return;
+        }
+        self.fsm.step("TOGGLE_OPEN");
       });
     },
 
@@ -230,7 +260,8 @@ define(function(require, exports, module) {
       self.fsm.step("OPENED_NODE");
       // mark parent tree as having open node
       self.$el.addClass("prefix-tree-item-open");
-      self.$el.trigger("open");
+      self.$el.removeClass("prefix-tree-item-closed");
+      self.trigger("open_node");
       // open the node itself
       var content = self.$el.find(".prefix-tree-item-content:first");
       var title = self.$el.find(".prefix-tree-item-title:first");
@@ -248,7 +279,8 @@ define(function(require, exports, module) {
       self.fsm.step("CLOSED_NODE");
       // TODO replace this with message passing and parent.mode.("hasopenchildren")
       self.$el.removeClass("prefix-tree-item-open");
-      self.$el.trigger("close");
+      self.$el.addClass("prefix-tree-item-closed");
+      self.trigger("close_node");
       // close the node itself
       var content = self.$el.find(".prefix-tree-item-content:first");
       var title = self.$el.find(".prefix-tree-item-title:first");
@@ -312,7 +344,7 @@ define(function(require, exports, module) {
     }
   });
 
-  // Dumb container for prefix nodes, nested or otherwise
+  // Container for prefix nodes, nested or otherwise
   var TreeView = Marionette.CompositeView.extend({
     debug: debug.new("views:treeview"),
     template: "#prefix-children",
@@ -320,9 +352,12 @@ define(function(require, exports, module) {
     childViewContainer: ".prefix-tree-children",
     reorderOnSort: true,
 
+    childEvents: {
+      "open_node": "incrementOpenNodes",
+      "close_node": "decrementOpenNodes"
+    },
+
     events: {
-      "open .prefix-tree-item": "incrementOpenNodes",
-      "close .prefix-tree-item": "decrementOpenNodes",
       "change .sort-by": "onSortBy",
       "click .close-all": "resetOpenNodes"
     },
@@ -345,15 +380,15 @@ define(function(require, exports, module) {
       var self = this;
       // Reset sort to default when we fetch new tree data
       this.collection.bind("sync", this.resetSort.bind(this, this));
+      // Default state: No nodes are open
+      this.$el.addClass("has_no_open_nodes");
     },
 
     // Handle open nodes, i.e. blur all non-open nodes if one or more nodes are open
     incrementOpenNodes: function(evt) {
-      evt.stopPropagation();
       this.updateOpenNodes(1);
     },
     decrementOpenNodes: function(evt) {
-      evt.stopPropagation();
       this.updateOpenNodes(-1);
     },
     updateOpenNodes: function(delta) {
@@ -361,11 +396,12 @@ define(function(require, exports, module) {
       var newCount = currentCount + delta;
       this.model.set("open_nodes", newCount);
       this.debug("Current open nodes", newCount);
-      var childElem = this.$el.find(".prefix-tree-children");
       if (newCount > 0) {
-        childElem.addClass("has_open_nodes");
+        this.$el.addClass("has_open_nodes");
+        this.$el.removeClass("has_no_open_nodes");
       } else {
-        childElem.removeClass("has_open_nodes");
+        this.$el.addClass("has_no_open_nodes");
+        this.$el.removeClass("has_open_nodes");
       }
     },
     resetOpenNodes: function() {

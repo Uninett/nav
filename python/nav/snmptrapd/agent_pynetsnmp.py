@@ -17,7 +17,8 @@
 
 import select
 import logging
-from socket import AF_INET, AF_INET6, inet_ntop, EINTR
+from socket import AF_INET, AF_INET6, inet_ntop
+from errno import EINTR
 from ctypes import (c_ushort, c_char, POINTER, cast, c_long)
 
 from IPy import IP
@@ -179,9 +180,11 @@ class TrapSession(netsnmp.Session):
         """Starts dispatch of incoming traps to the registered callback"""
         addr = address_to_string(self.addr, self.port)
         if IP(self.addr).version() == 6:
-            addr = "udp6:" + addr
+            tdomain = 'udp6:'
             self._initv6()
-        return self.awaitTraps(addr)
+        else:
+            tdomain = "udp:"
+        return self.awaitTraps((tdomain + addr).encode('ascii'))
 
     def _initv6(self):
         lib = netsnmp.lib

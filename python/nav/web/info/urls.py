@@ -21,7 +21,9 @@ from nav.web.info.views import index
 urlpatterns = patterns('',
     url(r'^$', index, name="info-search"),
     url(r'^room/', include('nav.web.info.room.urls')),
+    url(r'^location/', include('nav.web.info.location.urls')),
     url(r'^vlan/', include('nav.web.info.vlan.urls')),
     url(r'^prefix/', include('nav.web.info.prefix.urls')),
     url(r'^devicegroup/', include('nav.web.info.netboxgroup.urls')),
+    url(r'^image/', include('nav.web.info.images.urls')),
 )

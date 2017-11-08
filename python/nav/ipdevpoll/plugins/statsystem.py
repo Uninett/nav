@@ -20,6 +20,7 @@ from twisted.internet import defer
 from twisted.internet.error import TimeoutError
 
 from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import db
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import (
     metric_path_for_bandwith,
@@ -27,6 +28,7 @@ from nav.metrics.templates import (
     metric_path_for_cpu_load,
     metric_path_for_cpu_utilization,
     metric_path_for_sysuptime,
+    metric_path_for_power,
     metric_prefix_for_memory
 )
 from nav.mibs.cisco_memory_pool_mib import CiscoMemoryPoolMib
@@ -40,6 +42,7 @@ from nav.mibs.cisco_process_mib import CiscoProcessMib
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.mibs.statistics_mib import StatisticsMib
 from nav.mibs.juniper_mib import JuniperMib
+from nav.mibs.power_ethernet_mib import PowerEthernetMib
 from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
                                 VENDOR_ID_HEWLETT_PACKARD,
                                 VENDOR_ID_JUNIPER_NETWORKS_INC)
@@ -65,20 +68,24 @@ class StatSystem(Plugin):
     """Collects system statistics and pushes to Graphite"""
     @defer.inlineCallbacks
     def handle(self):
-        bandwidth = yield self._collect_bandwidth()
-        cpu = yield self._collect_cpu()
-        sysuptime = yield self._collect_sysuptime()
-        memory = yield self._collect_memory()
+        if self.netbox.master:
+            defer.returnValue(None)
+        netboxes = yield db.run_in_thread(self._get_netbox_list)
+        bandwidth = yield self._collect_bandwidth(netboxes)
+        cpu = yield self._collect_cpu(netboxes)
+        sysuptime = yield self._collect_sysuptime(netboxes)
+        memory = yield self._collect_memory(netboxes)
+        power = yield self._collect_power(netboxes)
 
-        metrics = bandwidth + cpu + sysuptime + memory
+        metrics = bandwidth + cpu + sysuptime + memory + power
         if metrics:
             send_metrics(metrics)
 
     @defer.inlineCallbacks
-    def _collect_bandwidth(self):
+    def _collect_bandwidth(self, netboxes):
         for mib in self._mibs_for_me(BANDWIDTH_MIBS):
             try:
-                metrics = yield self._collect_bandwidth_from_mib(mib)
+                metrics = yield self._collect_bandwidth_from_mib(mib, netboxes)
             except (TimeoutError, defer.TimeoutError):
                 self._logger.debug("collect_bandwidth: ignoring timeout in %s",
                                    mib.mib['moduleName'])
@@ -88,7 +95,7 @@ class StatSystem(Plugin):
         defer.returnValue([])
 
     @defer.inlineCallbacks
-    def _collect_bandwidth_from_mib(self, mib):
+    def _collect_bandwidth_from_mib(self, mib, netboxes):
         try:
             bandwidth = yield mib.get_bandwidth()
             bandwidth_peak = yield mib.get_bandwidth_peak()
@@ -103,20 +110,22 @@ class StatSystem(Plugin):
                                mib.mib['moduleName'], bandwidth,
                                bandwidth_peak)
             timestamp = time.time()
-            metrics = [
-                (metric_path_for_bandwith(self.netbox, percent),
-                 (timestamp, bandwidth)),
-                (metric_path_for_bandwith_peak(self.netbox, percent),
-                 (timestamp, bandwidth_peak)),
-            ]
+            metrics = []
+            for netbox in netboxes:
+                metrics += [
+                    (metric_path_for_bandwith(netbox, percent),
+                     (timestamp, bandwidth)),
+                    (metric_path_for_bandwith_peak(netbox, percent),
+                     (timestamp, bandwidth_peak)),
+                ]
             defer.returnValue(metrics)
 
     @defer.inlineCallbacks
-    def _collect_cpu(self):
+    def _collect_cpu(self, netboxes):
         for mib in self._mibs_for_me(CPU_MIBS):
             try:
-                load = yield self._get_cpu_loadavg(mib)
-                utilization = yield self._get_cpu_utilization(mib)
+                load = yield self._get_cpu_loadavg(mib, netboxes)
+                utilization = yield self._get_cpu_utilization(mib, netboxes)
             except (TimeoutError, defer.TimeoutError):
                 self._logger.debug("collect_cpu: ignoring timeout in %s",
                                    mib.mib['moduleName'])
@@ -125,7 +134,7 @@ class StatSystem(Plugin):
         defer.returnValue([])
 
     @defer.inlineCallbacks
-    def _get_cpu_loadavg(self, mib):
+    def _get_cpu_loadavg(self, mib, netboxes):
         load = yield mib.get_cpu_loadavg()
         timestamp = time.time()
         metrics = []
@@ -135,13 +144,14 @@ class StatSystem(Plugin):
                                mib.mib['moduleName'], load)
             for cpuname, loadlist in load.items():
                 for interval, value in loadlist:
-                    path = metric_path_for_cpu_load(self.netbox, cpuname,
-                                                    interval)
-                    metrics.append((path, (timestamp, value)))
+                    for netbox in netboxes:
+                        path = metric_path_for_cpu_load(netbox, cpuname,
+                                                        interval)
+                        metrics.append((path, (timestamp, value)))
         defer.returnValue(metrics)
 
     @defer.inlineCallbacks
-    def _get_cpu_utilization(self, mib):
+    def _get_cpu_utilization(self, mib, netboxes):
         utilization = yield mib.get_cpu_utilization()
         timestamp = time.time()
         metrics = []
@@ -150,8 +160,9 @@ class StatSystem(Plugin):
             self._logger.debug("Found CPU utilization from %s: %s",
                                mib.mib['moduleName'], utilization)
             for cpuname, value in utilization.items():
-                path = metric_path_for_cpu_utilization(self.netbox, cpuname)
-                metrics.append((path, (timestamp, value)))
+                for netbox in netboxes:
+                    path = metric_path_for_cpu_utilization(netbox, cpuname)
+                    metrics.append((path, (timestamp, value)))
         defer.returnValue(metrics)
 
     def _mibs_for_me(self, mib_class_dict):
@@ -163,19 +174,42 @@ class StatSystem(Plugin):
             yield mib_class(self.agent)
 
     @defer.inlineCallbacks
-    def _collect_sysuptime(self):
+    def _collect_sysuptime(self, netboxes):
         mib = Snmpv2Mib(self.agent)
         uptime = yield mib.get_sysUpTime()
         timestamp = time.time()
 
         if uptime:
-            path = metric_path_for_sysuptime(self.netbox)
-            defer.returnValue([(path, (timestamp, uptime))])
+            metrics = []
+            for netbox in netboxes:
+                path = metric_path_for_sysuptime(netbox)
+                metrics.append((path, (timestamp, uptime)))
+            defer.returnValue(metrics)
         else:
             defer.returnValue([])
 
     @defer.inlineCallbacks
-    def _collect_memory(self):
+    def _collect_power(self, netboxes):
+        mib = PowerEthernetMib(self.agent)
+        power = yield mib.get_groups_table()
+        self._logger.debug("Got poe data %s", power)
+        power = {key: val['pethMainPseConsumptionPower']
+                 for key, val in power.items()
+                 if val['pethMainPseOperStatus'] == 1}
+        timestamp = time.time()
+
+        if power:
+            metrics = []
+            for netbox in netboxes:
+                for index, power in power.items():
+                    path = metric_path_for_power(netbox, index)
+                    metrics.append((path, (timestamp, power)))
+            defer.returnValue(metrics)
+        else:
+            defer.returnValue([])
+
+    @defer.inlineCallbacks
+    def _collect_memory(self, netboxes):
         memory = dict()
         for mib in self._mibs_for_me(MEMORY_MIBS):
             try:
@@ -192,9 +226,10 @@ class StatSystem(Plugin):
         timestamp = time.time()
         result = []
         for name, (used, free) in memory.items():
-            prefix = metric_prefix_for_memory(self.netbox, name)
-            result.extend([
-                (prefix + '.used', (timestamp, used)),
-                (prefix + '.free', (timestamp, free)),
-            ])
+            for netbox in netboxes:
+                prefix = metric_prefix_for_memory(netbox, name)
+                result.extend([
+                    (prefix + '.used', (timestamp, used)),
+                    (prefix + '.free', (timestamp, free)),
+                ])
         defer.returnValue(result)

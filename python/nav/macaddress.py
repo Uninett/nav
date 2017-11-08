@@ -28,10 +28,14 @@ order.
 
 """
 
+from __future__ import absolute_import
+
 import re
 # This module is NOT deprecated, even though many of the functions in it are
 # pylint: disable=W0402
 import string
+
+from django.utils import six
 
 # A range of left shift values for the 6 bytes in a MAC address
 _SHIFT_RANGE = tuple(x*8 for x in reversed(range(6)))
@@ -44,6 +48,9 @@ MAC_ADDRESS_PATTERN = re.compile('^[a-fA-F0-9]+$')
 MAC_ADDR_NYBBLES = 12
 # Obviously number of bits for a nybble.
 NUM_BITS_IN_NYBBLE = 4
+
+if six.PY3:
+    long = int
 
 
 class MacAddress(object):
@@ -62,11 +69,11 @@ class MacAddress(object):
         # pylint: disable=W0212
         if isinstance(addr, MacAddress):
             self._addr = addr._addr
-        elif isinstance(addr, (int, long)):
+        elif isinstance(addr, six.integer_types):
             self._addr = long(addr)
             if self._addr < 0 or self._addr > self.MAX_MAC_ADDR_VALUE:
                 raise ValueError('Illegal value for MacAddress')
-        elif isinstance(addr, (str, unicode)):
+        elif isinstance(addr, six.string_types):
             self._addr = self._parse_address_string(addr)
         else:
             raise ValueError('Illegal parameter-type')
@@ -87,7 +94,7 @@ class MacAddress(object):
         representation of it
 
         """
-        if not isinstance(addr, (str, unicode)):
+        if not isinstance(addr, six.string_types):
             raise TypeError('addr argument must be string or unicode')
         addr = _clean_hexstring(addr)
         if len(addr) != MAC_ADDR_NYBBLES:
@@ -192,7 +199,7 @@ class MacPrefix(object):
     MIN_PREFIX_LEN = 6
 
     def __init__(self, prefix):
-        prefix = _clean_hexstring(unicode(prefix))
+        prefix = _clean_hexstring(six.text_type(prefix))
 
         self._mask_len = len(prefix)
         if self._mask_len < self.MIN_PREFIX_LEN:
@@ -245,7 +252,7 @@ class MacPrefix(object):
         >>> ma[-1]
         MacAddress('e4:23:1d:ff:ff:ff')
         """
-        if not isinstance(key, (int, long)):
+        if not isinstance(key, six.integer_types):
             raise TypeError
         if key < 0:
             if abs(key) <= len(self):
@@ -258,7 +265,7 @@ class MacPrefix(object):
         return MacAddress(self._base.tolong() + long(key))
 
     def __unicode__(self):
-        base = unicode(self._base)
+        base = six.text_type(self._base)
         digitpos = [pos for pos, char in enumerate(base)
                     if char in string.hexdigits]
         digitpos = digitpos[self._mask_len - 1]
@@ -291,4 +298,4 @@ def _int_to_delimited_hexstring(mac_addr, delim, step):
 
 def octets_to_hexstring(octets):
     """Converts an octet string to a printable hexadecimal string"""
-    return ''.join("%02x" % ord(x) for x in octets)
+    return ''.join("%02x" % byte for byte in six.iterbytes(octets))

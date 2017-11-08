@@ -2,30 +2,22 @@
   {% if netbox %}
     {% if netbox.module_set.count or netbox.interface_set.count %}
 
-      <div id="moduletabs">
-        <ul>
-          <li>
-            <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'swportstatus' %}">
-              Switch port status
-            </a>
-          </li>
-          <li id="swportactivetab">
-            <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'swportactive' %}">
-              Switch port activity
-            </a>
-          </li>
-          <li>
-            <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'gwportstatus' %}">
-              Router port status
-            </a>
-          </li>
-          <li>
-            <a href="{% url 'ipdevinfo-get-port-view' netbox.sysname 'physportstatus' %}">
-              Physical ports
-            </a>
-          </li>
-        </ul>
-      </div>
+      <form action="{% url 'ipdevinfo-save-port-layout' %}">
+        <input type="hidden" name="netboxid" value="{{ netbox.pk }}">
+        {% if request.account.preferences.ipdevinfo_port_layout == 'old' %}
+          <input type="hidden" name="layout" value="new">
+          <input type="submit" class="button small right" value="Try the new layout" />
+        {% else %}
+          <input type="hidden" name="layout" value="old">
+          <input type="submit" class="button small right" value="Revert to old layout" />
+        {% endif %}
+      </form>
+
+      {% if request.account.preferences.ipdevinfo_port_layout == 'old' %}
+        {% include 'ipdevinfo/frag-portlist-tabs.html' %}
+      {% else %}
+        {% include 'ipdevinfo/frag-portlist-datatable.html' %}
+      {% endif %}
 
     {% else %}
       <div class="alert-box info">
@@ -33,4 +25,5 @@
       </div>
     {% endif %}
   {% endif %}
+
 </div>

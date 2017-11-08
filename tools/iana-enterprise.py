@@ -22,7 +22,10 @@ from __future__ import print_function
 import sys
 import os
 from collections import namedtuple, Counter
-import urllib2
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
 import re
 import string
 from datetime import datetime
@@ -42,7 +45,7 @@ STRIP_MULTI_UNDERSCORES = re.compile(r'__+')
 
 
 def main():
-    req = urllib2.urlopen(IANA_URL)
+    req = urlopen(IANA_URL)
     enterprises = list(parse_enterprises(req))
     print("# IANA assigned enterprise numbers")
     print("# As published at {}".format(IANA_URL))

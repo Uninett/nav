@@ -16,7 +16,6 @@
 """POP3 service checker"""
 import socket
 import poplib
-from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
@@ -64,14 +63,11 @@ class Pop3Checker(AbstractChecker):
 
 class PopConnection(poplib.POP3):
     """Customized POP3 protocol interface"""
-    #pylint: disable=W0231
+    # pylint: disable=W0231
     def __init__(self, timeout, ip, port):
         self.ip = ip
         self.port = port
-        self.sock = socket.socket(socktype_from_addr(self.ip),
-                                  socket.SOCK_STREAM)
-        self.sock.settimeout(timeout)
-        self.sock.connect((self.ip, self.port))
+        self.sock = socket.create_connection((self.ip, self.port), timeout)
         self.file = self.sock.makefile('rb')
         self._debugging = 0
         self.welcome = self._getresp()

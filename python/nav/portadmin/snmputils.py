@@ -19,13 +19,17 @@ import time
 import logging
 from operator import attrgetter
 
-from nav.Snmp import Snmp
+from django.utils import six
+from django.utils.encoding import python_2_unicode_compatible
+
+from nav import Snmp
 from nav.errors import NoNetboxTypeError
 from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
                              NoSuchObjectError)
 from nav.bitvector import BitVector
 from nav.models.manage import Vlan, SwPortAllowedVlan
 from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
+                                VENDOR_ID_H3C,
                                 VENDOR_ID_HEWLETT_PACKARD)
 
 
@@ -35,6 +39,7 @@ CHARS_IN_1024_BITS = 128
 # TODO: Fix get_vlans as it does not return all vlans, see get_available_vlans
 
 
+@python_2_unicode_compatible
 class FantasyVlan(object):
     """A container object for storing vlans for a netbox
 
@@ -49,7 +54,7 @@ class FantasyVlan(object):
         self.net_ident = netident
         self.descr = descr
 
-    def __unicode__(self):
+    def __str__(self):
         if self.net_ident:
             return "%s (%s)" % (self.vlan, self.net_ident)
         else:
@@ -58,16 +63,25 @@ class FantasyVlan(object):
     def __hash__(self):
         return hash(self.vlan)
 
+    def __lt__(self, other):
+        return self.vlan < other.vlan
+
+    def __eq__(self, other):
+        return self.vlan == other.vlan
+
     def __cmp__(self, other):
         return cmp(self.vlan, other.vlan)
 
 
+@python_2_unicode_compatible
 class SNMPHandler(object):
     """A basic class for SNMP-read and -write to switches."""
 
     from nav.smidumps.qbridge_mib import MIB as qbridgemib
     QBRIDGENODES = qbridgemib['nodes']
 
+    SYSOBJECTID = '.1.3.6.1.2.1.1.2.0'
+    SYSLOCATION = '1.3.6.1.2.1.1.6.0'
     IF_ALIAS_OID = '1.3.6.1.2.1.31.1.1.1.18'  # From IF-MIB
     IF_ADMIN_STATUS = '1.3.6.1.2.1.2.2.1.7'
     IF_ADMIN_STATUS_UP = 1
@@ -99,7 +113,7 @@ class SNMPHandler(object):
         self.timeout = kwargs.get('timeout', 3)
         self.retries = kwargs.get('retries', 3)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.netbox.type.vendor.id
 
     def _bulkwalk(self, oid):
@@ -137,7 +151,7 @@ class SNMPHandler(object):
     def _get_read_only_handle(self):
         """Get a read only SNMP-handle."""
         if self.read_only_handle is None:
-            self.read_only_handle = Snmp(self.netbox.ip, self.netbox.read_only,
+            self.read_only_handle = Snmp.Snmp(self.netbox.ip, self.netbox.read_only,
                                          self.netbox.snmp_version,
                                          retries=self.retries,
                                          timeout=self.timeout)
@@ -154,13 +168,15 @@ class SNMPHandler(object):
         return result
 
     def _get_read_write_handle(self):
-        """Get a read and write SNMP-handle."""
+        """Get a read and write SNMP-handle.
+
+        :rtype: nav.Snmp.Snmp
+        """
         if self.read_write_handle is None:
-            self.read_write_handle = Snmp(self.netbox.ip,
-                                          self.netbox.read_write,
-                                          self.netbox.snmp_version,
-                                          retries=self.retries,
-                                          timeout=self.timeout)
+            self.read_write_handle = Snmp.Snmp(
+                self.netbox.ip, self.netbox.read_write,
+                self.netbox.snmp_version, retries=self.retries,
+                timeout=self.timeout)
         return self.read_write_handle
 
     def _set_netbox_value(self, oid, if_index, value_type, value):
@@ -176,9 +192,28 @@ class SNMPHandler(object):
 
         """
         hexes = bitvector.to_hex()
-        chunksize = len(bitvector.to_hex()) / chunks
-        for i in xrange(0, len(hexes), chunksize):
+        chunksize = len(bitvector.to_hex()) // chunks
+        for i in range(0, len(hexes), chunksize):
             yield BitVector.from_hex(hexes[i:i + chunksize])
+
+    def test_read(self):
+        """Test if read works"""
+        handle = self._get_read_only_handle()
+        try:
+            handle.get(self.SYSOBJECTID)
+            return True
+        except SnmpError as error:
+            return False
+
+    def test_write(self):
+        """Test if write works"""
+        handle = self._get_read_write_handle()
+        try:
+            value = handle.get(self.SYSLOCATION)
+            handle.set(self.SYSLOCATION, 's', value)
+            return True
+        except SnmpError as error:
+            return False
 
     def get_if_alias(self, if_index):
         """ Get alias on a specific interface """
@@ -190,14 +225,14 @@ class SNMPHandler(object):
 
     def set_if_alias(self, if_index, if_alias):
         """Set alias on a specific interface."""
-        if isinstance(if_alias, unicode):
+        if isinstance(if_alias, six.text_type):
             if_alias = if_alias.encode('utf8')
         return self._set_netbox_value(self.IF_ALIAS_OID, if_index, "s",
                                       if_alias)
 
-    def get_vlan(self, base_port):
+    def get_vlan(self, interface):
         """Get vlan on a specific interface."""
-        return self._query_netbox(self.VlAN_OID, base_port)
+        return self._query_netbox(self.VlAN_OID, interface.baseport)
 
     def get_all_vlans(self):
         """Get all vlans on the switch"""
@@ -216,17 +251,18 @@ class SNMPHandler(object):
             bit[port] = 1
         else:
             bit[port] = 0
-        return str(bit)
+        return bit.to_bytes()
 
-    def set_vlan(self, base_port, vlan):
+    def set_vlan(self, interface, vlan):
         """Set a new vlan on the given interface and remove
         the previous vlan"""
+        base_port = interface.baseport
         try:
             vlan = int(vlan)
         except ValueError:
             raise TypeError('Not a valid vlan %s' % vlan)
         # Fetch current vlan
-        fromvlan = self.get_vlan(base_port)
+        fromvlan = self.get_vlan(interface)
         # fromvlan and vlan is the same, there's nothing to do
         if fromvlan == vlan:
             _logger.debug('fromvlan and vlan is the same - skip')
@@ -244,7 +280,7 @@ class SNMPHandler(object):
 
     def set_native_vlan(self, interface, vlan):
         """Set native vlan on a trunk interface"""
-        self.set_vlan(interface.base_port, vlan)
+        self.set_vlan(interface, vlan)
 
     def set_if_up(self, if_index):
         """Set interface.to up"""
@@ -377,7 +413,7 @@ class SNMPHandler(object):
         :returns native vlan + list of trunked vlan
 
         """
-        native_vlan = self.get_vlan(interface.baseport)
+        native_vlan = self.get_vlan(interface)
 
         bitvector_index = interface.baseport - 1
         vlans = []
@@ -406,7 +442,7 @@ class SNMPHandler(object):
 
         """
         base_port = interface.baseport
-        native_vlan = self.get_vlan(base_port)
+        native_vlan = self.get_vlan(interface)
         bitvector_index = base_port - 1
 
         _logger.debug('base_port: %s, native_vlan: %s, trunk_vlans: %s',
@@ -439,7 +475,7 @@ class SNMPHandler(object):
             _logger.debug('Setting egress ports for vlan %s, set bits: %s',
                           vlan, bitvector.get_set_bits())
             self._set_netbox_value(self.VLAN_EGRESS_PORTS,
-                                   vlan, 's', str(bitvector))
+                                   vlan, 's', bitvector.to_bytes())
         except SnmpError as error:
             _logger.error("Error setting egress ports: %s", error)
             raise error
@@ -451,7 +487,7 @@ class SNMPHandler(object):
         """
         _logger.debug('Setting access mode vlan %s on interface %s',
                       access_vlan, interface)
-        self.set_vlan(interface.baseport, access_vlan)
+        self.set_vlan(interface, access_vlan)
         self.set_trunk_vlans(interface, [])
         interface.vlan = access_vlan
         interface.trunk = False
@@ -459,7 +495,7 @@ class SNMPHandler(object):
 
     def set_trunk(self, interface, native_vlan, trunk_vlans):
         """Set this port in trunk mode and set native vlan"""
-        self.set_vlan(interface.baseport, native_vlan)
+        self.set_vlan(interface, native_vlan)
         self.set_trunk_vlans(interface, trunk_vlans)
         self._save_trunk_interface(interface, native_vlan, trunk_vlans)
 
@@ -536,18 +572,19 @@ class Cisco(SNMPHandler):
         self.write_mem_oid = '1.3.6.1.4.1.9.2.1.54.0'
         self.voice_vlan_oid = '1.3.6.1.4.1.9.9.68.1.5.1.1.1'
 
-    def get_vlan(self, if_index):
-        return self._query_netbox(self.vlan_oid, if_index)
+    def get_vlan(self, interface):
+        return self._query_netbox(self.vlan_oid, interface.ifindex)
 
-    def set_vlan(self, if_index, vlan):
+    def set_vlan(self, interface, vlan):
         """Set a new vlan for a specified interface,- and
         remove the previous vlan."""
+        if_index = interface.ifindex
         try:
             vlan = int(vlan)
         except ValueError:
             raise TypeError('Not a valid vlan %s' % vlan)
         # Fetch current vlan
-        fromvlan = self.get_vlan(if_index)
+        fromvlan = self.get_vlan(interface)
         # fromvlan and vlan is the same, there's nothing to do
         if fromvlan == vlan:
             return None
@@ -647,7 +684,7 @@ class Cisco(SNMPHandler):
             self._set_access_mode(interface)
         self.set_trunk_vlans(interface, [])
         self.set_native_vlan(interface, access_vlan)
-        self.set_vlan(interface.ifindex, access_vlan)
+        self.set_vlan(interface, access_vlan)
         interface.trunk = False # Make sure database is updated
         interface.vlan = access_vlan
         interface.save()
@@ -701,9 +738,10 @@ class Cisco(SNMPHandler):
                     self.TRUNKPORTVLANSENABLED2K,
                     self.TRUNKPORTVLANSENABLED3K,
                     self.TRUNKPORTVLANSENABLED4K]:
-            bitvector_chunk = chunks.next()
+            bitvector_chunk = next(chunks)
             try:
-                self._set_netbox_value(oid, ifindex, 's', str(bitvector_chunk))
+                self._set_netbox_value(oid, ifindex, 's',
+                                       bitvector_chunk.to_bytes())
             except SnmpError as error:
                 _logger.error('Error setting trunk vlans on %s ifindex %s: %s',
                               self.netbox, ifindex, error)
@@ -739,6 +777,39 @@ class HP(SNMPHandler):
                 for oid, state in self._bulkwalk(self.dot1xPortAuth)}
 
 
+class H3C(SNMPHandler):
+    """HP Comware Platform Software handler"""
+
+    hh3cCfgOperateType = '1.3.6.1.4.1.25506.2.4.1.2.4.1.2'
+    hh3cCfgOperateRowStatus = '1.3.6.1.4.1.25506.2.4.1.2.4.1.9'
+
+    def __init__(self, netbox, **kwargs):
+        super(H3C, self).__init__(netbox, **kwargs)
+
+    def write_mem(self):
+        """Use hh3c-config-man-mib to save running config to startup"""
+
+        running_to_startup = 1
+        create_and_go = 4
+
+        # Find the next available row for configuring and store it as a suffix
+        active_rows = [self._extract_index_from_oid(o[0])
+                       for o in self._bulkwalk(self.hh3cCfgOperateRowStatus)]
+        try:
+            suffix = str(max(active_rows) + 1)
+        except ValueError:
+            suffix = '1'
+
+        operation_type_oid = '.'.join([self.hh3cCfgOperateType, suffix])
+        operation_status_oid = '.'.join([self.hh3cCfgOperateRowStatus, suffix])
+
+        handle = self._get_read_write_handle()
+        handle.multi_set([
+            Snmp.PDUVarbind(operation_type_oid, 'i', running_to_startup),
+            Snmp.PDUVarbind(operation_status_oid, 'i', create_and_go)
+        ])
+
+
 class SNMPFactory(object):
     """Factory class for returning SNMP-handles depending
     on a netbox' vendor identification."""
@@ -752,6 +823,8 @@ class SNMPFactory(object):
             return Cisco(netbox, **kwargs)
         if vendor_id == VENDOR_ID_HEWLETT_PACKARD:
             return HP(netbox, **kwargs)
+        if vendor_id == VENDOR_ID_H3C:
+            return H3C(netbox, **kwargs)
         return SNMPHandler(netbox, **kwargs)
 
     def __init__(self):

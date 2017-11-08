@@ -19,9 +19,7 @@ from unittest import TestCase
 from mock import Mock, patch
 from datetime import datetime, timedelta
 
-from nav.watchdog.tests import (TestResult, TestDuplicateHostnameForIP,
-                                TestNewCamAndArpRecords,
-                                STATUS_UNKNOWN, STATUS_NOT_OK, STATUS_OK)
+from nav.watchdog import tests
 
 
 class TestDuplicateHostname(TestCase):
@@ -42,17 +40,17 @@ class TestDuplicateHostname(TestCase):
         n2 = Mock()
         n2.ip = '129.241.23.24'
         netbox.objects.all = Mock(return_value=[n1, n2])
-        self.test = TestDuplicateHostnameForIP()
+        self.test = tests.TestDuplicateHostnameForIP()
 
     def tearDown(self):
         self.netbox_patcher.stop()
         self.lookup_patcher.stop()
 
     def test_get_status(self):
-        self.assertEqual(self.test.get_status(), STATUS_NOT_OK)
+        self.assertEqual(self.test.get_status(), tests.STATUS_NOT_OK)
 
     def test_status_when_initialized_is_unknown(self):
-        self.assertEqual(self.test.status, STATUS_UNKNOWN)
+        self.assertEqual(self.test.status, tests.STATUS_UNKNOWN)
 
     def test_length_of_errors_when_initialized_is_zero(self):
         self.assertEqual(len(self.test.errors), 0)
@@ -63,7 +61,7 @@ class TestDuplicateHostname(TestCase):
 
     def test_errors_should_be_of_type_testresult(self):
         self.test.run()
-        self.assertIsInstance(self.test.errors.pop(), TestResult)
+        self.assertIsInstance(self.test.errors.pop(), tests.TestResult)
 
 
 @patch('nav.watchdog.tests.TestNewCamAndArpRecords.get_latest')
@@ -77,44 +75,43 @@ class TestNewCamAndArp(TestCase):
 
     def test_no_arp_or_cam_records(self, get_latest):
         get_latest.return_value = None
-        test = TestNewCamAndArpRecords()
-        self.assertEqual(test.get_status(), STATUS_OK)
+        test = tests.TestNewCamAndArpRecords()
+        self.assertEqual(test.get_status(), tests.STATUS_OK)
 
     def test_cam_not_collected(self, get_latest):
         get_latest.return_value = self.create_mock_time(
-            TestNewCamAndArpRecords.slack + 10)
-        test = TestNewCamAndArpRecords()
-        self.assertIsInstance(test.test_cam(), TestResult)
+            tests.TestNewCamAndArpRecords.slack + 10)
+        test = tests.TestNewCamAndArpRecords()
+        self.assertIsInstance(test.test_cam(), tests.TestResult)
 
     def test_cam_collected(self, get_latest):
         get_latest.return_value = self.create_mock_time(
-            TestNewCamAndArpRecords.slack - 10)
-        test = TestNewCamAndArpRecords()
+            tests.TestNewCamAndArpRecords.slack - 10)
+        test = tests.TestNewCamAndArpRecords()
         self.assertIsNone(test.test_cam())
 
     def test_arp_not_collected(self, get_latest):
         get_latest.return_value = self.create_mock_time(
-            TestNewCamAndArpRecords.slack + 10)
-        test = TestNewCamAndArpRecords()
-        self.assertIsInstance(test.test_arp(), TestResult)
+            tests.TestNewCamAndArpRecords.slack + 10)
+        test = tests.TestNewCamAndArpRecords()
+        self.assertIsInstance(test.test_arp(), tests.TestResult)
 
     def test_arp_collected(self, get_latest):
         get_latest.return_value = self.create_mock_time(
-            TestNewCamAndArpRecords.slack - 10)
-        test = TestNewCamAndArpRecords()
+            tests.TestNewCamAndArpRecords.slack - 10)
+        test = tests.TestNewCamAndArpRecords()
         self.assertIsNone(test.test_arp())
 
     def test_both_collected(self, get_latest):
         get_latest.return_value = self.create_mock_time(
-            TestNewCamAndArpRecords.slack - 10)
-        test = TestNewCamAndArpRecords()
-        self.assertEqual(test.get_status(), STATUS_OK)
+            tests.TestNewCamAndArpRecords.slack - 10)
+        test = tests.TestNewCamAndArpRecords()
+        self.assertEqual(test.get_status(), tests.STATUS_OK)
         self.assertEqual(len(test.errors), 0)
 
     def test_none_collected(self, get_latest):
         get_latest.return_value = self.create_mock_time(
-            TestNewCamAndArpRecords.slack + 10)
-        test = TestNewCamAndArpRecords()
-        self.assertEqual(test.get_status(), STATUS_NOT_OK)
+            tests.TestNewCamAndArpRecords.slack + 10)
+        test = tests.TestNewCamAndArpRecords()
+        self.assertEqual(test.get_status(), tests.STATUS_NOT_OK)
         self.assertEqual(len(test.errors), 2)
-

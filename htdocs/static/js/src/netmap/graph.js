@@ -18,9 +18,13 @@ define([
             nodeCollection: new Collections.NodeCollection(),
             linkCollection: new Collections.LinkCollection(),
             vlanCollection: new Collections.VlanCollection(),
+            // Determines what locations we fetch traffic data for, as this is a
+            // somewhat expensive operation.
+            locations: [],
             filter_categories: [
-                {name: 'GSW', checked: true},
-                {name: 'GW', checked: true},
+            // temp deactivating to avoid overhead
+                {name: 'GSW', checked: false},
+                {name: 'GW', checked: false},
                 {name: 'SW', checked: true},
                 {name: 'OTHER', checked: true},
                 {name: 'WLAN', checked: true},
@@ -52,6 +56,8 @@ define([
 
         parse: function (response, options) {
 
+            console.log("Got response". response);
+
             var nodes = this.get('nodeCollection').populate(response.nodes);
             var links = this.get('linkCollection').populate(response.links);
             var vlans = this.get('vlanCollection').populate(response.vlans);
@@ -81,25 +87,44 @@ define([
         },
 
         /**
-         * Load traffic data from the server. This is a HUGE bottleneck
-         * and is therefore done asynchronously after page load.
+         * Load traffic data from the server for nodes matching the
+         * filterStrings. If the filterStrings is empty (e.g. a null list), get
+         * traffic data for all netboxes found in NAV (this is a HUGE
+         * bottleneck). Done asynchronously after page load to reduce perceived
+         * slowness of the app.
          */
-        loadTraffic: function () {
+        loadTraffic: function (filterStrings) {
             var self = this;
+            var layer = this.get("layer");
+
+            if (!filterStrings.length) {
+                $.getJSON('traffic/layer' + layer + '/')
+                    .done(function (data) {
+                        self.trafficSuccess.call(self, "all", data);
+                    })
+                    .fail(this.trafficError)
+                    .always(function() {
+                        self.set('loadingTraffic', false);
+                    });
+                return;
+            }
+
             this.set('loadingTraffic', true);
             console.log('Start fetching traffic data');
-            $.getJSON('traffic/layer' + this.get('layer') + '/')
-                .done(function (data) {
-                    self.trafficSuccess.call(self, data);
-                })
-                .fail(this.trafficError)
-                .always(function() {
-                    self.set('loadingTraffic', false);
-                });
+            _.each(filterStrings, function(location) {
+                $.getJSON('traffic/layer' + layer + '/' + location)
+                    .done(function (data) {
+                        self.trafficSuccess.call(self, location, data);
+                    })
+                    .fail(this.trafficError)
+                    .always(function() {
+                        self.set('loadingTraffic', false);
+                    });
+            });
         },
 
-        trafficSuccess: function (data) {
-            console.log('Traffic data received, processing.');
+        trafficSuccess: function (location, data) {
+            console.log('Traffic data received for', location, '- processing.');
             var links = this.get('linkCollection');
 
             // Extend the link-objects with traffic data
@@ -120,7 +145,6 @@ define([
             });
 
             Backbone.EventBroker.trigger('netmap:updateGraph');
-            console.log('Traffic data refreshed');
         },
 
         trafficError: function (jqXHR, textStatus, errorThrown) {

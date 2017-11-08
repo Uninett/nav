@@ -2,83 +2,158 @@
 
 {% block content %}
 
-<table class="vertitable">
-    <caption>
-        Module {{ module.name }}<br />
-        at {{ module.netbox.get_short_sysname }}
-    </caption>
-    <tr>
-        <th>At IP device</th>
-        <td><a href="{{ module.netbox.get_absolute_url }}">
-            {{ module.netbox }}</a></td>
-    </tr>
-    <tr>
-        <th>Model</th>
-        <td>{{ module.model }}</td>
-    </tr>
-    <tr>
-        <th>Description</th>
-        <td>{{ module.description }}</td>
-    </tr>
-    <tr>
-        <th>Status</th>
-        <td>
-            {% ifequal module.up module.UP_UP %}
-                Up
-            {% else %}
-                Down for {{ module.down_since|timesince }}
-            {% endifequal %}
-        </td>
-    </tr>
-    <tr>
-        <th>Switch ports</th>
-        <td><a href="{% url 'report-swport-module' netbox_id=module.netbox.id module_name=module.name %}">
-            {{ module.get_swports.count }}</a></td>
-    </tr>
-    <tr>
-        <th>Router ports</th>
-        <td><a href="{% url 'report-gwport-module' netbox_id=module.netbox.id module_name=module.name %}">
-            {{ module.get_gwports.count }}</a></td>
-    </tr>
-</table>
+  <p>
+    <a href="{% url 'ipdevinfo-details-by-name' module.netbox.sysname %}">
+      Back to {{ module.netbox.sysname }}
+    </a>
+  </p>
 
-{% if swportstatus_view.ports|length %}
-    <h3>Switch port status</h3>
-    {% with swportstatus_view as module %}
-        {% include "ipdevinfo/module-port-view.html" %}
-    {% endwith %}
-{% endif %}
+  <div id="module-details-tabs" class="notvisible">
 
-{% if swportactive_view.ports|length %}
-    <h3>Switch port activity</h3>
-    {% with swportactive_view as module %}
-        <form action="" method="get">
-            <p class="infobox">
-                Activity based on CAM records since
-                {{ module.activity_interval_start|date }}.
-                {{ activity_interval_form.interval.label }}:
-                {{ activity_interval_form.interval }}
-                <button type="submit">Recheck activity</button>
-                {% if not module.activity_complete_data %}
+    <ul>
+      <li><a href="#module-details-infotables">Details</a></li>
+      {% if swportstatus_view.ports|length %}
+        <li><a href="#module-details-swport-status">Switch port status</a></li>
+      {% endif %}
+      {% if swportactive_view.ports|length %}
+        <li><a href="#module-details-swport-activity">Switch port activity</a></li>
+      {% endif %}
+      {% if gwportstatus_view.ports|length %}
+        <li><a href="#module-details-gwport-status">Router port status</a></li>
+      {% endif %}
+    </ul>
+
+    <div id="module-details-infotables">
+      <div class="row">
+        <div class="large-12 column">
+          <table class="vertitable">
+            <caption>
+              Module {{ module.name }}<br />
+              at {{ module.netbox.get_short_sysname }}
+            </caption>
+            <tr>
+              <th>At IP device</th>
+              <td><a href="{{ module.netbox.get_absolute_url }}">
+                {{ module.netbox }}</a></td>
+            </tr>
+            <tr>
+              <th>Model</th>
+              <td>{{ module.model }}</td>
+            </tr>
+            <tr>
+              <th>Description</th>
+              <td>{{ module.description }}</td>
+            </tr>
+            <tr>
+              <th>Status</th>
+              <td>
+                {% ifequal module.up module.UP_UP %}
+                  Up
+                {% else %}
+                  Down for {{ module.down_since|timesince }}
+                {% endifequal %}
+              </td>
+            </tr>
+            <tr>
+              <th>Switch ports</th>
+              <td><a href="{% url 'report-swport-module' netbox_id=module.netbox.id module_name=module.name %}">
+                {{ module.get_swports.count }}</a></td>
+            </tr>
+            <tr>
+              <th>Router ports</th>
+              <td><a href="{% url 'report-gwport-module' netbox_id=module.netbox.id module_name=module.name %}">
+                {{ module.get_gwports.count }}</a></td>
+            </tr>
+            {% if module.poegroup_set.all|length == 1 %}
+              <tr>
+                <th>Active PoE ports</th>
+                {% with module.poegroup_set.first as poegroup %}
+                  <td>
+                    <a href="{% url 'ipdevinfo-poegroup-details' module.netbox.sysname poegroup.index %}">
+                      {{poegroup.get_active_ports|length}}
+                    </a>
+                  </td>
+                {% endwith %}
+              </tr>
+            {% endif %}
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="module-details-swport-status">
+      <div class="row">
+        <div class="large-12 columns">
+          {% if swportstatus_view.ports|length %}
+            {% with swportstatus_view as module %}
+              {% include "ipdevinfo/module-port-view.html" %}
+            {% endwith %}
+          {% endif %}
+          {% include "ipdevinfo/port-legend.html" %}
+        </div>
+      </div>
+    </div>
+
+    <div id="module-details-swport-activity">
+      <div class="row">
+        <div class="large-12 columns">
+          {% if swportactive_view.ports|length %}
+            {% with swportactive_view as module %}
+              <form action="" method="get">
+                <p class="infobox">
+                  Activity based on CAM records since
+                  {{ module.activity_interval_start|date }}.
+                  {{ activity_interval_form.interval.label }}:
+                  {{ activity_interval_form.interval }}
+                  <button type="submit">Recheck activity</button>
+                  {% if not module.activity_complete_data %}
                     <em>
-                        Warning: CAM data is only available for
-                        {{ module.activity_data_interval }}
-                        day{{ module.activity_data_interval|pluralize }}.
+                      Warning: CAM data is only available for
+                      {{ module.activity_data_interval }}
+                      day{{ module.activity_data_interval|pluralize }}.
                     </em>
-                {% endif %}
-            </p>
-        </form>
-        {% include "ipdevinfo/module-port-view.html" %}
-    {% endwith %}
-{% endif %}
+                  {% endif %}
+                </p>
+              </form>
+              {% include "ipdevinfo/module-port-view.html" %}
+            {% endwith %}
+          {% endif %}
+          {% include "ipdevinfo/port-legend.html" %}
+        </div>
+      </div>
+    </div>
 
-{% if gwportstatus_view.ports|length %}
-    <h3>Router port status</h3>
-    {% with gwportstatus_view as module %}
-        {% include "ipdevinfo/module-port-view.html" %}
-    {% endwith %}
-{% endif %}
+    <div id="module-details-gwport-status">
+      <div class="row">
+        <div class="large-12 columns">
+          {% if gwportstatus_view.ports|length %}
+            {% with gwportstatus_view as module %}
+              {% include "ipdevinfo/module-port-view.html" %}
+            {% endwith %}
+          {% endif %}
+          {% include "ipdevinfo/port-legend.html" %}
+        </div>
+      </div>
+    </div>
 
-{% include "ipdevinfo/port-legend.html" %}
+  </div>
+{% endblock %}
 
+{% block footer_scripts %}
+  <script>
+   require(["libs/jquery-ui.min"], function () {
+       var tabs = $('#module-details-tabs').tabs({
+           activate: function (event, ui) {
+               // Resize graphs when tab is shown
+               if (ui.newPanel.selector === "#port-details-activity-graphs") {
+                   $(window).trigger('resize');
+               }
+           }
+       });
+       tabs.removeClass('notvisible').show();
+        $('.portlegendToggler').on('click', function () {
+            $(this).next().toggle();
+        });
+   });
+  </script>
 {% endblock %}

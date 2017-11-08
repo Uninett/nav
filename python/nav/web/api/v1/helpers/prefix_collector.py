@@ -37,6 +37,8 @@ class UsageResult(object):
         self.max_hosts = self.max_addresses - 2
         self.usage = self.active_addresses / float(self.max_hosts) * 100
         self.starttime = starttime
+        self.net_ident = prefix.vlan.net_ident
+        self.vlan_id = prefix.vlan.vlan
         self.endtime = endtime if self.starttime else None
         self.url_machinetracker = reverse(
             'machinetracker-prefixid_search_active', args=[prefix.pk])

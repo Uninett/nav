@@ -16,10 +16,11 @@
 """Storage layer for ipdevpoll"""
 
 import django.db.models
+from django.db import transaction
+from django.utils import six
 
 from nav import toposort
 from nav import ipdevpoll
-from django.db import transaction
 
 
 class MetaShadow(type):
@@ -102,6 +103,7 @@ class DefaultManager(object):
                                     self.containers.__class__.__name__)
 
 
+@six.add_metaclass(MetaShadow)
 class Shadow(object):
     """Base class to shadow Django model classes.
 
@@ -122,7 +124,6 @@ class Shadow(object):
     >>>
 
     """
-    __metaclass__ = MetaShadow
     __lookups__ = []
     manager = DefaultManager
 

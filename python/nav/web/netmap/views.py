@@ -44,6 +44,8 @@ from .graph import (
     get_layer2_traffic,
     get_layer3_traffic,
 )
+from .cache import update_cached_node_positions, cache_exists
+
 # Ignore linting errors from DRF class hierarchy
 # pylint: disable=R0901,R0904
 
@@ -96,10 +98,16 @@ class TrafficView(views.APIView):
 
     renderer_classes = (JSONRenderer,)
 
+    # TODO: add location filter
     def get(self, _request, *args, **kwargs):
         """Controller for GET-requests for Traffic data"""
         layer = int(kwargs.pop('layer', 2))
-        traffic = get_layer3_traffic() if layer is 3 else get_layer2_traffic()
+        # TODO: should probably use id
+        roomid = kwargs.pop('roomid')
+        if layer == 3:
+            traffic = get_layer3_traffic(roomid)
+        else:
+            traffic = get_layer2_traffic(roomid)
         return Response(traffic)
 
 
@@ -259,7 +267,8 @@ class NodePositionUpdate(generics.UpdateAPIView):
 
         viewid = kwargs.pop('viewid')
         data = request.DATA.get('data', [])
-
+        # nodes to be updated in the topology cache
+        cache_updates = []
         for d in data:
             defaults = {
                 'x': int(d['x']),
@@ -274,7 +283,18 @@ class NodePositionUpdate(generics.UpdateAPIView):
                 obj.x = defaults['x']
                 obj.y = defaults['y']
                 obj.save()
-        return Response()
+            cache_updates.append({
+                "id": str(obj.netbox.id),
+                "x": defaults["x"],
+                "y": defaults["y"],
+                "new_node": created
+            })
+        # Invalidate cached position
+        if cache_exists("topology", viewid, "layer 2"):
+            update_cached_node_positions(viewid, "layer 2", cache_updates)
+        if cache_exists("topology", viewid, "layer 3"):
+            update_cached_node_positions(viewid, "layer 3", cache_updates)
+        return Response({"status": "OK"})
 
 
 class NetmapGraph(views.APIView):

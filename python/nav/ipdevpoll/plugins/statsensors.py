@@ -15,9 +15,13 @@
 #
 """Sensors collection and logging to graphite"""
 
-from twisted.internet import defer
 import time
+
+from twisted.internet import defer
+from django.utils.six import iteritems
+
 from nav.ipdevpoll import Plugin
+from nav.ipdevpoll import db
 from nav.ipdevpoll.db import run_in_thread
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_path_for_sensor
@@ -48,6 +52,9 @@ class StatSensors(Plugin):
 
     @defer.inlineCallbacks
     def handle(self):
+        if self.netbox.master:
+            defer.returnValue(None)
+        netboxes = yield db.run_in_thread(self._get_netbox_list)
         sensors = yield run_in_thread(self._get_sensors)
         self._logger.debug("retrieving data from %d sensors", len(sensors))
         oids = sensors.keys()
@@ -55,23 +62,24 @@ class StatSensors(Plugin):
                     for x in range(0, len(oids), MAX_SENSORS_PER_REQUEST)]
         for req in requests:
             data = yield self.agent.get(req).addCallback(
-                self._response_to_metrics, sensors)
+                self._response_to_metrics, sensors, netboxes)
             self._logger.debug("got data from sensors: %r", data)
 
     def _get_sensors(self):
         sensors = Sensor.objects.filter(netbox=self.netbox.id).values()
         return dict((row['oid'], row) for row in sensors)
 
-    def _response_to_metrics(self, result, sensors):
+    def _response_to_metrics(self, result, sensors, netboxes):
         metrics = []
         timestamp = time.time()
-        data = ((sensors[oid], value) for oid, value in result.iteritems()
+        data = ((sensors[oid], value) for oid, value in iteritems(result)
                 if oid in sensors)
         for sensor, value in data:
             value = convert_to_precision(value, sensor)
-            path = metric_path_for_sensor(self.netbox,
-                                          sensor['internal_name'])
-            metrics.append((path, (timestamp, value)))
+            for netbox in netboxes:
+                path = metric_path_for_sensor(netbox,
+                                              sensor['internal_name'])
+                metrics.append((path, (timestamp, value)))
         send_metrics(metrics)
         return metrics
 

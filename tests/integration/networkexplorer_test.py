@@ -7,7 +7,6 @@ from nav.web.networkexplorer.views import (
     SearchView,
 )
 
-from django.db import transaction
 from django.test.client import RequestFactory
 
 
@@ -18,14 +17,6 @@ class NetworkExplorerSearchTest(TestCase):
     Will not cover all code paths on an empty database.
 
     """
-    def setUp(self):
-        transaction.enter_transaction_management()
-        transaction.managed(True)
-
-    def tearDown(self):
-        transaction.rollback()
-        transaction.leave_transaction_management()
-
     def test_search_expand_swport(self):
         search.search_expand_swport(1)
 
@@ -103,11 +94,12 @@ class ViewsTest(TestDataMixin, TestCase):
             self.valid_data,
         )
         response = SearchView.as_view()(request)
+        content = response.content.decode('utf-8')
 
         self.assertEqual(response.status_code, 200)
-        self.assertTrue('routers' in response.content)
-        self.assertTrue('gwports' in response.content)
-        self.assertTrue('swports' in response.content)
+        self.assertTrue('routers' in content)
+        self.assertTrue('gwports' in content)
+        self.assertTrue('swports' in content)
 
     def test_search_view_with_invalid_query(self):
         request = self.factory.get(
@@ -115,11 +107,13 @@ class ViewsTest(TestDataMixin, TestCase):
             self.invalid_data,
         )
         response = SearchView.as_view()(request)
+        content = response.content.decode('utf-8')
 
         self.assertEqual(response.status_code, 200)
-        self.assertFalse('routers' in response.content)
-        self.assertFalse('gwports' in response.content)
-        self.assertFalse('swports' in response.content)
+        self.assertFalse('routers' in content)
+        self.assertFalse('gwports' in content)
+        self.assertFalse('swports' in content)
+
 
 class FormsTest(TestDataMixin, TestCase):
 

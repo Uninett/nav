@@ -25,12 +25,6 @@ http://code.google.com/apis/kml/
 import json
 from django.template.loader import render_to_string
 
-from nav.web.geomap.utils import (
-    union_dict,
-    lazy_dict,
-    numeric,
-)
-
 # GeoJSON:
 
 
@@ -53,17 +47,18 @@ def make_geojson_feature(feature):
                  'size': feature.popup.size,
                  'content': feature.popup.content,
                  'closable': feature.popup.closable}
+    properties = {'type': feature.type,
+                  'color': feature.color,
+                  'size': feature.size,
+                  'popup': popup}
+    properties.update(feature.properties)
     return {'type': 'Feature',
             'id': feature.id,
-            'geometry':
-                {'type': feature.geometry.type,
-                 'coordinates': feature.geometry.coordinates},
-            'properties':
-                union_dict({'type': feature.type,
-                            'color': feature.color,
-                            'size': feature.size,
-                            'popup': popup},
-                           feature.properties)}
+            'geometry': {
+                'type': feature.geometry.type,
+                'coordinates': feature.geometry.coordinates
+            },
+            'properties': properties}
 
 # KML
 

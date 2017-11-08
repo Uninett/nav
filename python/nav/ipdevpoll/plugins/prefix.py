@@ -146,7 +146,7 @@ class Prefix(Plugin):
             prefix.net_address = str(net_prefix)
             # Host masks aren't included when IPy converts to string
             if '/' not in prefix.net_address:
-                prefix.net_address += "/%s"  % net_prefix.prefixlen()
+                prefix.net_address += "/%s" % net_prefix.prefixlen()
             port_prefix.prefix = prefix
 
             # Always associate prefix with a VLAN record, but set a
@@ -204,7 +204,7 @@ class Prefix(Plugin):
 def get_ignored_prefixes(config):
     """Returns a list of ignored prefixes from a ConfigParser instance"""
     if config is not None:
-        raw_string = config.get('prefix', 'ignored', '')
+        raw_string = config.get('prefix', 'ignored', fallback='')
     else:
         return []
     items = raw_string.split(',')

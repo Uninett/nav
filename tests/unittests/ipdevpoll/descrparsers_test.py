@@ -19,6 +19,7 @@ import unittest
 
 from nav.ipdevpoll import descrparsers
 
+
 class NtnuConventionTest(unittest.TestCase):
 
     def setUp(self):
@@ -122,18 +123,18 @@ class NtnuConventionTest(unittest.TestCase):
         d = descrparsers.parse_ntnu_convention(self.sysname, 'foobar,bar,baz')
         self.assertEquals(d, None)
 
+
 class UninettConventionTest(unittest.TestCase):
     def test_simple(self):
         d = descrparsers.parse_uninett_convention(
             'foo-sw', 'lokal link, uninett-gw.teknobyen-gw2')
         self.assertEquals(d['comment'], 'lokal link')
         self.assertEquals(d['netident'], 'uninett-gw.teknobyen-gw2')
-        
+
     def test_invalid(self):
         d = descrparsers.parse_uninett_convention(
             'foo-sw', 'KX182')
         self.assertEquals(d, None)
- 
+
 if __name__ == '__main__':
         unittest.main()
-

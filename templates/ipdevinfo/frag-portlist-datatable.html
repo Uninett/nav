@@ -1,0 +1,53 @@
+<table id="portlist" class="listtable hover">
+  <thead>
+    <tr>
+      <th>&nbsp;</th>
+      <th>Port</th>
+      <th>Port description</th>
+      <th>Module</th>
+      <th title="Administrative status - is enabled or not">Admin</th>
+      <th title="Operational status - has link or not">Link</th>
+      <th>Vlan</th>
+      <th title="Speed in Mbit/s and duplex (full or half)">Speed</th>
+      <th title="Last time a mac-address was seen behind this port" class="last_used">
+          Last used
+      </th>
+      <th >To Device</th>
+      <th>To Port</th>
+    </tr>
+  </thead>
+</table>
+
+<style>
+ #portlist th {cursor: pointer;}
+ #portlist td:nth-child(7) { text-align: center; }
+ #portlist td:nth-child(8) { text-align: right; }
+ #portlist .dim {opacity: .4;}
+
+ #portlistform label { margin-right: 1em; }
+ #portlistform input { margin-right: .3rem; margin-bottom: 0; }
+ #portlistform fieldset { margin: 0 .5rem .5rem 0; padding: 0 0 0.6em 0.8em; display: inline-block; }
+ #portlistform fieldset legend { font-size: .8rem; font-weight: normal}
+
+ #portlist_filter { max-width: 30em; }
+
+ #infoprocessing { overflow: auto; }
+
+ .dataTables_info { font-size: small; float: left; margin-right: 1em; }
+ .dataTables_processing { font-size: small; }
+</style>
+
+<script>
+ $(function() {
+     NAV.urls.portadmin_index = "{% url 'portadmin-index' %}interfaceid=";
+     require(['src/porttable'], function(PortTable) {
+         try {
+             new PortTable('#portlist', {{netbox.id}});
+         } catch (e) {
+             console.error(e);
+             $("#portlist").css('visibility', 'hidden');
+             $("#ports").append($('<div class="alert-box error">Error initializing port table</div>'))
+         }
+     });
+ });
+</script>

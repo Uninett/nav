@@ -14,7 +14,7 @@ pylint.txt
 tests/*-results.xml
 tests/assets/*
 tests/geckodriver.log
-tests/functional-report.html
+tests/*-report.html
 htdocs/static/js/**/javascript-*.xml
 tools/virtual-appliance/nav-virtual-appliance.tar*
 

@@ -21,10 +21,10 @@ from logging import getLogger
 from nav.models.profiles import Account
 from nav.django.utils import is_admin, get_account
 
-from django.http import (HttpResponseForbidden, HttpResponseRedirect,
-                         HttpResponse)
+from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.sessions.backends.db import SessionStore
 from django.conf import settings
+from django.utils.encoding import python_2_unicode_compatible
 
 
 _logger = getLogger(__name__)
@@ -138,17 +138,19 @@ def get_sudoer(request):
         return Account.objects.get(id=request.session[SUDOER_ID_VAR])
 
 
+@python_2_unicode_compatible
 class SudoRecursionError(Exception):
     msg = u"Already posing as another user"
 
-    def __unicode__(self):
+    def __str__(self):
         return self.msg
 
 
+@python_2_unicode_compatible
 class SudoNotAdminError(Exception):
     msg = u"Not admin"
 
-    def __unicode__(self):
+    def __str__(self):
         return self.msg
 
 

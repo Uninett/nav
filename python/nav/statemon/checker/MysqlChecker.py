@@ -16,7 +16,6 @@
 #
 """A MySQL service checker"""
 import socket
-from nav.statemon.DNS import socktype_from_addr
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 
@@ -61,7 +60,7 @@ class MysqlChecker(AbstractChecker):
             return Event.DOWN, str(err)
 
 
-class MysqlConnection:
+class MysqlConnection(object):
     """Very minimal implementation of MySQL protocol. (Packet layer only.)
 
     Error messages from the server raise MysqlError exceptions.
@@ -69,10 +68,7 @@ class MysqlConnection:
     """
     def __init__(self, addr, timeout=None):
         host, _port = addr
-        sock = socket.socket(socktype_from_addr(host), socket.SOCK_STREAM)
-        if timeout is not None:
-            sock.settimeout(timeout)
-        sock.connect(addr)
+        sock = socket.create_connection(addr, timeout)
         self.file = sock.makefile('r+')
 
         self.seqno = 0

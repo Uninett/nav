@@ -15,8 +15,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """View controller for PortAdmin"""
-import ConfigParser
+import configparser
 import logging
+import json
 
 from operator import or_ as OR
 
@@ -27,6 +28,9 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.views.decorators.http import require_POST
+
+from nav.auditlog.models import LogEntry
+from nav.auditlog.utils import get_auditlog_entries
 
 from nav.django.utils import get_account
 from nav.web.utils import create_title
@@ -140,8 +144,13 @@ def search_by_kwargs(request, **kwargs):
             return default_render(request)
 
         interfaces = netbox.get_swports_sorted()
+        if len(interfaces) == 0:
+            messages.error(request, 'IP device has no ports (yet)')
+            return default_render(request)
+        auditlog_entries = get_auditlog_entries(interfaces)
         return render(request, 'portadmin/netbox.html',
-                      populate_infodict(request, netbox, interfaces))
+                      populate_infodict(request, netbox, interfaces,
+                                        auditlog_entries))
 
 
 def search_by_interfaceid(request, interfaceid):
@@ -162,16 +171,19 @@ def search_by_interfaceid(request, interfaceid):
             return default_render(request)
 
         interfaces = [interface]
+        auditlog_entries = get_auditlog_entries(interfaces)
         return render(request, 'portadmin/netbox.html',
-                      populate_infodict(request, netbox, interfaces))
+                      populate_infodict(request, netbox, interfaces,
+                                        auditlog_entries))
 
 
-def populate_infodict(request, netbox, interfaces):
+def populate_infodict(request, netbox, interfaces, auditlog_entries=None):
     """Populate a dictionary used in every http response"""
     allowed_vlans = []
     voice_vlan = None
     readonly = False
     config = read_config()
+    auditlog_entries = {} if auditlog_entries is None else auditlog_entries
 
     try:
         fac = get_and_populate_livedata(netbox, interfaces)
@@ -209,12 +221,19 @@ def populate_infodict(request, netbox, interfaces):
     save_to_database(interfaces)
 
     info_dict = get_base_context([(netbox.sysname, )], form=get_form(request))
-    info_dict.update({'interfaces': interfaces,
-                      'netbox': netbox,
-                      'voice_vlan': voice_vlan,
-                      'allowed_vlans': allowed_vlans,
-                      'readonly': readonly,
-                      'aliastemplate': aliastemplate})
+    info_dict.update(
+        {
+            'interfaces': interfaces,
+            'auditmodel': netbox.sysname,
+            'netbox': netbox,
+            'voice_vlan': voice_vlan,
+            'allowed_vlans': allowed_vlans,
+            'readonly': readonly,
+            'aliastemplate': aliastemplate,
+            'auditlog_api_parameters': json.dumps({'subsystem': 'portadmin'}),
+            'auditlog_entries': auditlog_entries,
+        }
+    )
     return info_dict
 
 
@@ -368,6 +387,13 @@ def set_ifalias(account, fac, interface, request):
             try:
                 fac.set_if_alias(interface.ifindex, ifalias)
                 interface.ifalias = ifalias
+                LogEntry.add_log_entry(
+                    account,
+                    u'set-ifalias',
+                    u'{actor}: {object} - ifalias set to "%s"' % ifalias,
+                    subsystem=u'portadmin',
+                    object=interface,
+                )
                 _logger.info('%s: %s:%s - ifalias set to "%s"', account.login,
                              interface.netbox.get_short_sysname(),
                              interface.ifname, ifalias)
@@ -375,7 +401,7 @@ def set_ifalias(account, fac, interface, request):
                 _logger.error('Error setting ifalias: %s', error)
                 messages.error(request, "Error setting ifalias: %s" % error)
         else:
-            messages.error(request, "Wrong format on ifalias")
+            messages.error(request, "Wrong format on port description")
 
 
 def set_vlan(account, fac, interface, request):
@@ -392,11 +418,18 @@ def set_vlan(account, fac, interface, request):
                 if not is_cisco_voice_enabled(config) and voice_activated:
                     fac.set_native_vlan(interface, vlan)
                 else:
-                    fac.set_vlan(interface.ifindex, vlan)
+                    fac.set_vlan(interface, vlan)
             else:
-                fac.set_vlan(interface.ifindex, vlan)
+                fac.set_vlan(interface, vlan)
 
             interface.vlan = vlan
+            LogEntry.add_log_entry(
+                account,
+                u'set-vlan',
+                u'{actor}: {object} - vlan set to "%s"' % vlan,
+                subsystem=u'portadmin',
+                object=interface,
+            )
             _logger.info('%s: %s:%s - vlan set to %s', account.login,
                          interface.netbox.get_short_sysname(),
                          interface.ifname, vlan)
@@ -458,10 +491,24 @@ def set_admin_status(fac, interface, request):
         adminstatus = request.POST['ifadminstatus']
         try:
             if adminstatus == status_up:
+                LogEntry.add_log_entry(
+                    account,
+                    u'change status to up',
+                    u'change status to up',
+                    subsystem=u'portadmin',
+                    object=interface,
+                )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'up')
                 fac.set_if_up(interface.ifindex)
             elif adminstatus == status_down:
+                LogEntry.add_log_entry(
+                    account,
+                    u'change status to down',
+                    u'change status to down',
+                    subsystem=u'portadmin',
+                    object=interface,
+                )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'down')
                 fac.set_if_down(interface.ifindex)
@@ -546,6 +593,13 @@ def handle_trunk_edit(request, agent, interface):
 
     _logger.info('Interface %s - native: %s, trunk: %s', interface,
                  native_vlan, trunked_vlans)
+    LogEntry.add_log_entry(
+        request.account,
+        u'set-vlan',
+        u'{actor}: {object} - native vlan: "%s", trunk vlans: "%s"' % (native_vlan, trunked_vlans),
+        subsystem=u'portadmin',
+        object=interface,
+    )
 
     if trunked_vlans:
         agent.set_trunk(interface, native_vlan, trunked_vlans)
@@ -602,6 +656,11 @@ def write_mem(request):
                 fac.netbox, error)
             _logger.error(error_message)
             return HttpResponse(error_message, status=500)
+        except AttributeError:
+            error_message = 'Error doing write mem on {}: {}'.format(
+                fac.netbox, 'Write to memory not supported')
+            _logger.error(error_message)
+            return HttpResponse(error_message, status=500)
 
         return HttpResponse()
     else:
@@ -626,5 +685,5 @@ def get_config_value(config, section, key, fallback=None):
     """Get the value of key from a ConfigParser object, with fallback"""
     try:
         return config.get(section, key)
-    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+    except (configparser.NoOptionError, configparser.NoSectionError):
         return fallback

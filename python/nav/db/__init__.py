@@ -20,14 +20,16 @@ Provides common database functionality for NAV.
 from __future__ import absolute_import
 import atexit
 from functools import wraps
+import logging
 import os
 import sys
 import time
+
 import psycopg2
 import psycopg2.extensions
+
 import nav
 from nav import config
-import logging
 
 _logger = logging.getLogger('nav.db')
 _connection_cache = nav.ObjectCache()
@@ -82,9 +84,8 @@ def escape(string):
     ..warning:: You should be using parameterized queries if you can!
 
     """
-    if isinstance(string, unicode):
-        string = string.encode("utf-8")
-    return str(psycopg2.extensions.QuotedString(string))
+    quoted = psycopg2.extensions.QuotedString(string)
+    return quoted.getquoted()
 
 
 def get_connection_parameters(script_name='default', database='nav'):
@@ -180,6 +181,13 @@ def closeConnections():
             connection.object.close()
         except psycopg2.InterfaceError:
             pass
+
+
+def commit_all_connections():
+    """Attempts to commit the current transactions on all cached connections"""
+    conns = (v.object for v in _connection_cache.values())
+    for conn in conns:
+        conn.commit()
 
 
 def retry_on_db_loss(count=3, delay=2, fallback=None, also_handled=None):

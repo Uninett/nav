@@ -20,6 +20,7 @@ A class that tries to retrieve all sensors from WeatherGoose II.
 Uses the vendor-specifica IT-WATCHDOGS-MIB-V3 to detect and collect
 sensor-information.
 """
+from django.utils.six import itervalues
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
@@ -27,19 +28,7 @@ from nav.mibs import mibretriever
 from nav.models.manage import Sensor
 from nav.oids import OID
 
-
-def for_table(table_name):
-    """Used for annotating functions to process the returned
-    tables"""
-    if not hasattr(for_table, 'map'):
-        for_table.map = {}
-
-    def decorate(method):
-        """Setup link between table and function"""
-        for_table.map[table_name] = method.func_name
-        return method
-
-    return decorate
+from .itw_mib import for_table
 
 
 class ItWatchDogsMibV3(mibretriever.MibRetriever):
@@ -93,7 +82,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     def _get_climate_sensors_params(self, climate_sensors):
         """ Collect all climate sensors and corresponding parameters"""
         sensors = []
-        for climate_sensor in climate_sensors.itervalues():
+        for climate_sensor in itervalues(climate_sensors):
             available = climate_sensor.get('climateAvail', None)
             if available:
                 climate_oid = climate_sensor.get(0, None)
@@ -152,7 +141,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('powMonTable')
     def _get_pow_mon_sensors_params(self, pow_mon_sensors):
         sensors = []
-        for pow_mon_sensor in pow_mon_sensors.itervalues():
+        for pow_mon_sensor in itervalues(pow_mon_sensors):
             pow_mon_avail = pow_mon_sensor.get('powMonAvail', None)
             if pow_mon_avail:
                 pow_mon_oid = pow_mon_sensor.get(0, None)
@@ -198,7 +187,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('tempSensorTable')
     def _get_temp_sensors_params(self, temp_sensors):
         sensors = []
-        for temp_sensor in temp_sensors.itervalues():
+        for temp_sensor in itervalues(temp_sensors):
             temp_avail = temp_sensor.get('tempSensorAvail', None)
             if temp_avail:
                 temp_oid = temp_sensor.get(0, None)
@@ -214,7 +203,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('airFlowSensorTable')
     def _get_air_flow_sensors_params(self, air_flow_sensors):
         sensors = []
-        for air_flow_sensor in air_flow_sensors.itervalues():
+        for air_flow_sensor in itervalues(air_flow_sensors):
             air_flow_avail = air_flow_sensor.get('airFlowSensorAvail', None)
             if air_flow_avail:
                 air_flow_oid = air_flow_sensor.get(0, None)
@@ -244,7 +233,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('powerTable')
     def _get_power_sensors_params(self, power_sensors):
         sensors = []
-        for power_sensor in power_sensors.itervalues():
+        for power_sensor in itervalues(power_sensors):
             power_sensor_avail = power_sensor.get('powerAvail', None)
             if power_sensor_avail:
                 power_sensor_oid = power_sensor.get(0, None)
@@ -280,7 +269,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('doorSensorTable')
     def _get_door_sensors_params(self, door_sensors):
         sensors = []
-        for door_sensor in door_sensors.itervalues():
+        for door_sensor in itervalues(door_sensors):
             door_sensor_avail = door_sensor.get('doorSensorAvail', None)
             if door_sensor_avail:
                 door_sensor_oid = door_sensor.get(0, None)
@@ -295,7 +284,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('waterSensorTable')
     def _get_water_sensors_params(self, water_sensors):
         sensors = []
-        for water_sensor in water_sensors.itervalues():
+        for water_sensor in itervalues(water_sensors):
             water_sensor_avail = water_sensor.get('waterSensorAvail', None)
             if water_sensor_avail:
                 water_sensor_oid = water_sensor.get(0, None)
@@ -310,7 +299,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('currentMonitorTable')
     def _get_current_monitors_params(self, current_monitors):
         sensors = []
-        for current_mon in current_monitors.itervalues():
+        for current_mon in itervalues(current_monitors):
             current_mon_avail = current_mon.get('currentMonitorAvail', None)
             if current_mon_avail:
                 current_mon_oid = current_mon.get(0, None)
@@ -326,7 +315,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('millivoltMonitorTable')
     def _get_millivolt_monitors_params(self, millivolts_monitors):
         sensors = []
-        for mvolts_mon in millivolts_monitors.itervalues():
+        for mvolts_mon in itervalues(millivolts_monitors):
             mvolts_mon_avail = mvolts_mon.get('millivoltMonitorAvail', None)
             if mvolts_mon_avail:
                 mvolts_mon_oid = mvolts_mon.get(0, None)
@@ -342,14 +331,14 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('pow3ChTable')
     def _get_pow3_ch_params(self, pow3_chs):
         sensors = []
-        for pow3_ch in pow3_chs.itervalues():
+        for pow3_ch in itervalues(pow3_chs):
             pow3_ch_avail = pow3_ch.get('pow3ChAvail', None)
             if pow3_ch_avail:
                 pow3_ch_oid = pow3_ch.get(0, None)
                 serial = pow3_ch.get('pow3ChSerial', None)
                 name = pow3_ch.get('pow3ChName', None)
                 # sensors iwith postfix A - C
-                ports = [chr(i) for i in xrange(ord('A'), ord('D'))]
+                ports = [chr(i) for i in range(ord('A'), ord('D'))]
                 for port in ports:
                     sensors.append(self._make_result_dict(
                         pow3_ch_oid,
@@ -402,7 +391,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('outletTable')
     def _get_outlet_params(self, outlets):
         sensors = []
-        for outlet in outlets.itervalues():
+        for outlet in itervalues(outlets):
             outlet_avail = outlet.get('outletAvail', None)
             if outlet_avail:
                 outlet_oid = outlet.get(0, None)
@@ -421,7 +410,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('vsfcTable')
     def _get_vsfc_params(self, vsfcs):
         sensors = []
-        for vsfc in vsfcs.itervalues():
+        for vsfc in itervalues(vsfcs):
             vsfc_avail = vsfc.get('vsfcAvail', None)
             if vsfc_avail:
                 vsfc_oid = vsfc.get(0, None)
@@ -454,14 +443,14 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('ctrl3ChTable')
     def _get_ctrl3_ch_params(self, ctrl3_chs):
         sensors = []
-        for ctrl3_ch in ctrl3_chs.itervalues():
+        for ctrl3_ch in itervalues(ctrl3_chs):
             ctrl3_ch_avail = ctrl3_ch.get('ctrl3ChAvail', None)
             if ctrl3_ch_avail:
                 ctrl3_ch_oid = ctrl3_ch.get(0, None)
                 serial = ctrl3_ch.get('ctrl3ChSerial', None)
                 name = ctrl3_ch.get('ctrl3ChName', None)
                 # sensors A - C
-                postfixes = [chr(i) for i in xrange(ord('A'), ord('D'))]
+                postfixes = [chr(i) for i in range(ord('A'), ord('D'))]
                 for pfix in postfixes:
                     sensors.append(self._make_result_dict(
                         ctrl3_ch_oid,
@@ -503,13 +492,13 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('ctrlGrpAmpsTable')
     def _get_ctrl_grp_amps_params(self, ctrl_grp_amps):
         sensors = []
-        for ctrl_grp_amp in ctrl_grp_amps.itervalues():
+        for ctrl_grp_amp in itervalues(ctrl_grp_amps):
             ctrl_grp_amp_avail = ctrl_grp_amp.get('ctrlGrpAmpsAvail', None)
             if ctrl_grp_amp_avail:
                 ctrl_grp_amp_oid = ctrl_grp_amp.get(0, None)
                 serial = ctrl_grp_amp.get('ctrlGrpAmpsSerial', None)
                 name = ctrl_grp_amp_avail.get('ctrlGrpAmpsName', None)
-                postfixes = [chr(i) for i in xrange(ord('A'), ord('I'))]
+                postfixes = [chr(i) for i in range(ord('A'), ord('I'))]
                 for pfix in postfixes:
                     sensors.append(self._make_result_dict(
                         ctrl_grp_amp_oid,
@@ -525,7 +514,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('ctrlOutletTable')
     def _get_ctrl_outlet_params(self, ctrl_outlets):
         sensors = []
-        for ctrl_outlet in ctrl_outlets.itervalues():
+        for ctrl_outlet in itervalues(ctrl_outlets):
             ctrl_outlet_oid = ctrl_outlet.get(0, None)
             serial = ctrl_outlet.get('ctrlOutletIndex', None),
             group = ctrl_outlet.get('ctrlOutletGroup', None)
@@ -580,7 +569,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('dewPointSensorTable')
     def _get_dewpoint_sensors_params(self, dewpoint_sensors):
         sensors = []
-        for dewpoint_sensor in dewpoint_sensors.itervalues():
+        for dewpoint_sensor in itervalues(dewpoint_sensors):
             dewpoint_sensor_avail = dewpoint_sensor.get('dewPointSensorAvail',
                                                         None)
             if dewpoint_sensor_avail:
@@ -608,7 +597,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('digitalSensorTable')
     def _get_digital_sensors_params(self, digital_sensors):
         sensors = []
-        for digital_sensor in digital_sensors.itervalues():
+        for digital_sensor in itervalues(digital_sensors):
             digital_avail = digital_sensor.get('digitalSensorAvail', None)
             if digital_avail:
                 digital_sensor_oid = digital_sensor.get(0, None)
@@ -623,13 +612,13 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('dstsTable')
     def _get_dsts_params(self, dsts_sensors):
         sensors = []
-        for dsts_sensor in dsts_sensors.itervalues():
+        for dsts_sensor in itervalues(dsts_sensors):
             dsts_sensor_avail = dsts_sensor.get('dstsAvail', None)
             if dsts_sensor_avail:
                 dsts_sensor_oid = dsts_sensor.get(0, None)
                 serial = dsts_sensor.get('dstsSerial', None)
                 name = dsts_sensor.get('dstsName', None)
-                postfixes = [chr(i) for i in xrange(ord('A'), ord('C'))]
+                postfixes = [chr(i) for i in range(ord('A'), ord('C'))]
                 for pfix in postfixes:
                     sensors.append(self._make_result_dict(
                         dsts_sensor_oid,
@@ -661,7 +650,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('cpmSensorTable')
     def _get_cpm_params(self, cpm_sensors):
         sensors = []
-        for cpm_sensor in cpm_sensors.itervalues():
+        for cpm_sensor in itervalues(cpm_sensors):
             cpm_sensor_avail = cpm_sensor.get('cpmSensorAvail', None)
             if cpm_sensor_avail:
                 cpm_sensor_oid = cpm_sensor.get(0, None)
@@ -676,7 +665,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('smokeAlarmTable')
     def _get_smoke_alarms_params(self, smoke_alarms):
         sensors = []
-        for smoke_alarm in smoke_alarms.itervalues():
+        for smoke_alarm in itervalues(smoke_alarms):
             smoke_alarm_avail = smoke_alarm.get('smokeAlarmAvail', None)
             if smoke_alarm_avail:
                 smoke_alarm_oid = smoke_alarm.get(0, None)
@@ -691,7 +680,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('neg48VdcSensorTable')
     def _get_neg48vdc_sensors_params(self, neg48vdc_sensors):
         sensors = []
-        for neg48vdc_sensor in neg48vdc_sensors.itervalues():
+        for neg48vdc_sensor in itervalues(neg48vdc_sensors):
             neg48vdc_sensor_avail = neg48vdc_sensor.get('neg48VdcSensorAvail',
                                                         None)
             if neg48vdc_sensor_avail:
@@ -708,7 +697,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('pos30VdcSensorTable')
     def _get_pos30vdc_sensors_params(self, pos30vdc_sensors):
         sensors = []
-        for pos30vdc_sensor in pos30vdc_sensors.itervalues():
+        for pos30vdc_sensor in itervalues(pos30vdc_sensors):
             pos30vdc_sensor_avail = pos30vdc_sensor.get('pos30VdcSensorAvail',
                                                         None)
             if pos30vdc_sensor_avail:
@@ -725,7 +714,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('analogSensorTable')
     def _get_analog_sensors_params(self, analog_sensors):
         sensors = []
-        for analog_sensor in analog_sensors.itervalues():
+        for analog_sensor in itervalues(analog_sensors):
             analog_avail = analog_sensor.get('analogSensorAvail', None)
             if analog_avail:
                 analog_sensor_oid = analog_sensor.get(0, None)
@@ -740,13 +729,13 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('ctrl3ChIECTable')
     def _get_ctrl3_chiects_params(self, ctrl3_chiects):
         sensors = []
-        for ctrl3_chiect in ctrl3_chiects.itervalues():
+        for ctrl3_chiect in itervalues(ctrl3_chiects):
             ctrl3_chiect_avail = ctrl3_chiect.get('ctrl3ChIECAvail', None)
             if ctrl3_chiect_avail:
                 ctrl3_chiect_oid = ctrl3_chiect.get(0, None)
                 serial = ctrl3_chiect.get('ctrl3ChIECSerial', None)
                 name = ctrl3_chiect.get('ctrl3ChIECName', None)
-                postfixes = [chr(i) for i in xrange(ord('A'), ord('D'))]
+                postfixes = [chr(i) for i in range(ord('A'), ord('D'))]
                 for pfix in postfixes:
                     sensors.append(self._make_result_dict(
                         ctrl3_chiect_oid,
@@ -796,7 +785,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('climateRelayTable')
     def _get_climate_relays_params(self, climate_relays):
         sensors = []
-        for climate_relay in climate_relays.itervalues():
+        for climate_relay in itervalues(climate_relays):
             climate_relay_avail = climate_relay.get('climateRelayAvail', None)
             if climate_relay_avail:
                 climate_relay_oid = climate_relay.get(0, None)
@@ -817,7 +806,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('ctrlRelayTable')
     def _get_ctrl_relays_params(self, ctrl_relays):
         sensors = []
-        for ctrl_relay in ctrl_relays.itervalues():
+        for ctrl_relay in itervalues(ctrl_relays):
             ctrl_relay_oid = ctrl_relay.get(0, None)
             serial = ctrl_relay.get('ctrlRelayIndex', None)
             name = ctrl_relay.get('ctrlRelayName', None)
@@ -842,7 +831,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('airSpeedSwitchSensorTable')
     def _get_airspeed_switch_sensors_params(self, airspeed_switch_sensors):
         sensors = []
-        for airspeed_sensor in airspeed_switch_sensors.itervalues():
+        for airspeed_sensor in itervalues(airspeed_switch_sensors):
             airspeed_avail = airspeed_sensor.get('airSpeedSwitchSensorAvail',
                                                  None)
             if airspeed_avail:
@@ -859,7 +848,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('powerDMTable')
     def _get_power_dms_params(self, power_dms):
         sensors = []
-        for power_dm in power_dms.itervalues():
+        for power_dm in itervalues(power_dms):
             power_dm_avail = power_dm.get('powerDMAvail', None)
             if power_dm_avail:
                 power_dm_oid = power_dm.get(0, None)
@@ -886,7 +875,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
     @for_table('ioExpanderTable')
     def _get_io_expanders_params(self, io_expanders):
         sensors = []
-        for io_expander in io_expanders.itervalues():
+        for io_expander in itervalues(io_expanders):
             io_expander_avail = io_expander.get('ioExpanderAvail', 0)
             if io_expander_avail:
                 io_expander_oid = io_expander.get(0, None)

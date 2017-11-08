@@ -20,7 +20,7 @@ from operator import itemgetter
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
-                                            HTML, Div, Fieldset)
+                                            HTML, Fieldset)
 
 from . import STATELESS_THRESHOLD
 from nav.models.event import EventType, AlertType
@@ -89,7 +89,7 @@ class StatusPanelForm(forms.Form):
             required=False
         )
         self.fields['not_device_group'] = forms.MultipleChoiceField(
-            choices=get_locations(),
+            choices=get_device_groups(),
             required=False
         )
         self.fields['not_location'] = forms.MultipleChoiceField(

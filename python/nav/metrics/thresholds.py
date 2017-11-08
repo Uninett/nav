@@ -64,6 +64,8 @@ from functools import partial
 import logging
 import re
 
+from django.utils.six import iteritems, iterkeys
+
 from nav.metrics.data import get_metric_average
 from nav.metrics.graphs import get_metric_meta, extract_series_name
 
@@ -138,7 +140,7 @@ class ThresholdEvaluator(object):
                       "period %s: %r",
                       len(averages), self.target, self.period, averages)
         self.result = dict((extract_series_name(key), dict(value=value))
-                           for key, value in averages.iteritems())
+                           for key, value in iteritems(averages))
         return self.result
 
     def evaluate(self, expression, invert=False):
@@ -156,7 +158,7 @@ class ThresholdEvaluator(object):
         """
         matcher = self._get_matcher(expression)
         result = [(metric, self.result[metric]['value'])
-                  for metric in self.result.iterkeys()
+                  for metric in iterkeys(self.result)
                   if bool(matcher(metric)) ^ bool(invert)]
         return result
 

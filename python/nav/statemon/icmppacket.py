@@ -52,7 +52,7 @@ class Packet(object):
             self.checksum = 0
             self.id = 0
             self.sequence = 0
-            self.data = ''
+            self.data = b''
 
     def __repr__(self):
         return "<ICMP %s type=%s code=%s id=%s sequence=%s>" % (
@@ -159,7 +159,7 @@ def inet_checksum(packet):
 
     # add byte if not dividable by 2
     if len(packet) & 1:
-        packet = packet + '\0'
+        packet = packet + b'\0'
 
     # split into 16-bit word and insert into a binary array
     words = array.array('h', packet)
@@ -174,4 +174,4 @@ def inet_checksum(packet):
     sum_ = high + low
     sum_ = sum_ + (sum_ >> 16)
 
-    return (~sum_) & 0xffff # return ones complement
+    return (~sum_) & 0xffff  # return ones complement

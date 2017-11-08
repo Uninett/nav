@@ -28,17 +28,20 @@ from twisted.internet import task, reactor
 from twisted.internet.defer import Deferred
 from twisted.internet.task import LoopingCall
 
+from django.utils.six import iteritems
+
 from nav import ipdevpoll
 from nav.ipdevpoll import db
 from nav.ipdevpoll.snmp import SnmpError, AgentProxy
-from . import shadows, config, signals
-from .dataloader import NetboxLoader
-from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_prefix_for_ipdevpoll_job
 from nav.tableformat import SimpleTableFormatter
 
 from nav.ipdevpoll.utils import log_unhandled_failure
+
+from . import shadows, config, signals
+from .dataloader import NetboxLoader
+from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
 
 _logger = logging.getLogger(__name__)
 
@@ -379,6 +382,7 @@ class JobScheduler(object):
         deferred = self.netboxes.load_all()
         deferred.addCallbacks(self._process_reloaded_netboxes,
                               self._handle_reload_failures)
+        db.django_debug_cleanup()
         return deferred
 
     def _process_reloaded_netboxes(self, result):
@@ -484,7 +488,7 @@ class CounterFlusher(defaultdict):
         _logger.debug("flushing %d counters to graphite", len(self))
         metrics = []
         timestamp = time.time()
-        for counter, count in self.iteritems():
+        for counter, count in iteritems(self):
             metrics.append((counter, (timestamp, count)))
             self[counter] = 0
 

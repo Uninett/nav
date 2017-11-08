@@ -1,4 +1,3 @@
-# Copyright (C) 2010, 2011 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -12,33 +11,31 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
-import os.path
-
-from nav import db
-from nav.report.generator import ReportList, Generator
-from nav.buildconf import sysconfdir
-from django.http import QueryDict
-
-'''
+"""
 Test report generators for basic errors.
 
 These tests simply enumerate all known reports and ensure that the dbresult is
 error free. This only ensures that the SQL can be run, no further verification
 is performed.
-'''
-
+"""
+import os.path
+import pytest
+from nav import db
+from nav.report.generator import ReportList, Generator
+from nav.buildconf import sysconfdir
+from django.http import QueryDict
 
 config_file = os.path.join(sysconfdir, 'report', 'report.conf')
 config_file_local = os.path.join(sysconfdir, 'report', 'report.local.conf')
 
-def test_report_generator():
-    report_list = ReportList(config_file)
-    for report in report_list.reports:
-        report_name = report[0]
-        yield report_name, check_report, report_name
 
-def check_report(report_name):
+def report_list():
+    result = ReportList(config_file)
+    return [report[0] for report in result.reports]
+
+
+@pytest.mark.parametrize("report_name", report_list())
+def test_report(report_name):
     #uri = 'http://example.com/report/%s/' % report_name
     uri = QueryDict('').copy()
     db.closeConnections() # Ensure clean connection for each test

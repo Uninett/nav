@@ -1,0 +1,46 @@
+<form id="uploadform" method="POST" enctype="multipart/form-data">
+  <input id="file" type="file" name="images" multiple class="inputfile" data-multiple-caption="{count} files selected">
+  <label for="file" class="button small"><i class="fa fa-upload"></i><span>Select images to upload</span></label>
+  <input type="submit" class="button small secondary" value="Upload selected images">
+</form>
+
+<div class="user-feedback">
+  {% for message in messages %}
+  <div class="alert-box {{ message.tags }}" data-alert>
+    {{ message|safe }}
+  </div>
+  {% endfor %}
+</div>
+
+<ul id="editimages" class="large-block-grid-4">
+  {% for image in object.image_set.all %}
+  <li class="imagecardcontainer">
+    <div data-imageid="{{ image.id }}" class="imagecard">
+      <div class="actions">
+        <i class="fa fa-times right delete" title="Delete image"></i>
+        <i class="fa fa-edit right edit" title="Edit image caption"></i>
+        <i class="fa fa-arrows right drag"
+           title="Change display order by dragging the image"></i>
+      </div>
+      <h5 class="heading">{{ image.title|safe }}</h5>
+
+      {% if image.image_exists and image.is_readable %}
+      <img src="{{ image.thumb_url }}">
+      {% else %}
+      {% if not image.image_exists %}
+      <span class="alert-box alert">Image does not exist</span>
+      {% else %}
+      <span class="alert-box alert">Image exists but is not readable</span>
+      {% endif %}
+      {% endif %}
+
+      <div class="meta">
+        <div class="left">{{ image.uploader.name }}</div>
+        <div class="right">{{ image.created }}</div>
+      </div>
+      <div class="float-clear"></div>
+    </div>
+  </li>
+
+  {% endfor %}
+</ul>

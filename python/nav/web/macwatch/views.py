@@ -18,13 +18,12 @@
 import logging
 
 from django.http import HttpResponseRedirect
-from django.template import RequestContext, Context
+from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 from nav.django.utils import get_account
 
 from nav.web.macwatch.forms import MacWatchForm
-from nav.models.profiles import Account
 from nav.web.macwatch.models import MacWatch
 
 

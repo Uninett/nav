@@ -1,0 +1,57 @@
+{% extends "info/base.html" %}
+{% load crispy_forms_tags %}
+{% load silent_include %}
+
+{% block base_header_additional_head %}
+  {{ block.super }}
+  <link href="{{ STATIC_URL }}css/nav/info_room.css"  rel="stylesheet">
+  <script>require(["src/info_location"]);</script>
+  {% try_to_include 'info/room/header_extras.html' %}
+{% endblock %}
+
+{% block content %}
+  {% block locationinfo %}
+
+    <h3>Location search</h3>
+    {% crispy searchform %}
+
+    {% if searchform.is_bound %}
+
+      {% if locations %}
+        <table class="listtable">
+          <caption>{{ locations|length }} result{{ locations|pluralize:",s" }}
+            for "{{ searchform.data.query }}"
+          </caption>
+
+          <thead>
+            <tr>
+              <th>Location</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for location in locations %}
+              <tr>
+                <td>
+                  <a href="{% url 'location-info' location.id %}">{{ location.id }}</a>
+                </td>
+                <td>
+                  {{ location.description }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="messages">No location found</p>
+      {% endif %}
+
+    {% endif %}  {# bound check #}
+
+    <div id="mapcontainer" class="mapwrapper smallmap"></div>
+    <div id="coordinates"></div>
+
+  {% endblock %}
+
+{% endblock %}

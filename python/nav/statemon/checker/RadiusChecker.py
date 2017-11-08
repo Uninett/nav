@@ -77,7 +77,7 @@ class RadiusChecker(AbstractChecker):
 
     def execute(self):
         args = self.args
-        #pylint: disable=W0703
+        # pylint: disable=W0703
         try:
             username = args.get("username", "")
             password = args.get("password", "")

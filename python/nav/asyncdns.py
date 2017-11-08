@@ -24,9 +24,10 @@ support.
 """
 
 import socket
-from IPy import IP
 from itertools import cycle
 from collections import defaultdict
+
+from IPy import IP
 from twisted.names import dns
 from twisted.names import client
 from twisted.internet import defer
@@ -130,7 +131,7 @@ class ForwardResolver(Resolver):
         if type(name) is unicode:
             name = name.encode('idna')
 
-        resolver = self._resolvers.next()
+        resolver = next(self._resolvers)
         return [resolver.lookupAddress(name), resolver.lookupIPV6Address(name)]
 
     @staticmethod
@@ -156,7 +157,7 @@ class ReverseResolver(Resolver):
     """Reverse resolver implementation for PTR record lookups"""
     def lookup(self, address):
         """Returns a deferred object which tries to get the hostname from ip"""
-        resolver = self._resolvers.next()
+        resolver = next(self._resolvers)
         ip = IP(address)
         return [resolver.lookupPointer(ip.reverseName())]
 

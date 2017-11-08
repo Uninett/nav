@@ -208,10 +208,13 @@ def find_colspan(view, form):
     colspan = defaults[view]
     netbios = form.data.get('netbios', False)
     dns = form.data.get('dns', False)
+    source = form.data.get('source', False)
 
     if netbios:
         colspan += 1
     if dns:
+        colspan += 1
+    if source:
         colspan += 1
     return colspan
 

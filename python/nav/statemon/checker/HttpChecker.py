@@ -15,7 +15,6 @@
 #
 """HTTP Service Checker"""
 from nav import buildconf
-from nav.statemon.DNS import socktype_from_addr
 
 from nav.statemon.event import Event
 from nav.statemon.abstractchecker import AbstractChecker
@@ -32,10 +31,8 @@ class HTTPConnection(httplib.HTTPConnection):
         self.connect()
 
     def connect(self):
-        self.sock = socket.socket(socktype_from_addr(self.host),
-                                  socket.SOCK_STREAM)
-        self.sock.settimeout(self.timeout)
-        self.sock.connect((self.host, self.port))
+        self.sock = socket.create_connection((self.host, self.port),
+                                             self.timeout)
 
 
 class HttpChecker(AbstractChecker):
@@ -44,21 +41,30 @@ class HttpChecker(AbstractChecker):
     DESCRIPTION = "HTTP"
     OPTARGS = (
         ('url', ''),
+        ('username', ''),
+        ('password', ''),
         ('port', ''),
         ('timeout', ''),
     )
+    PORT = 80
 
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, service, port=0, **kwargs)
 
+    def connect(self, ip, port):
+        return HTTPConnection(self.timeout, ip, port)
+
     def execute(self):
         ip, port = self.get_address()
         url = self.args.get('url', '')
+        username = self.args.get('username')
+        password = self.args.get('password', '')
         if not url:
             url = "/"
         _protocol, vhost, path, query, _fragment = urlsplit(url)
 
-        i = HTTPConnection(self.timeout, ip, port or 80)
+        i = self.connect(ip, port or self.PORT)
+
         if vhost:
             i.host = vhost
 
@@ -67,9 +73,12 @@ class HttpChecker(AbstractChecker):
         i.putrequest('GET', path)
         i.putheader('User-Agent',
                     'NAV/servicemon; version %s' % buildconf.VERSION)
+        if username:
+            auth = "%s:%s" % (username, password)
+            i.putheader("Authorization", "Basic %s" % auth.encode("base64"))
         i.endheaders()
         response = i.getresponse()
-        if 200 <= response.status < 400:
+        if 200 <= response.status < 400 or (response.status == 401 and not username):
             status = Event.UP
             version = response.getheader('SERVER')
             self.version = version

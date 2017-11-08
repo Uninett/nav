@@ -18,6 +18,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+
 def test_simple_ip_search_should_return_result(selenium, base_url):
     """Tests a search for an IP address"""
     selenium.get('{}/'.format(base_url))

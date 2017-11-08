@@ -46,7 +46,7 @@ class IgnoredPrefixConfigTest(TestCase):
         self.assertEquals(len(result), 1)
         self.assertEquals(result[0], IP('10.0.0.0/23'))
 
-    def test_prefix_with_match_specifier_should_parse(self):
+    def test_prefix_with_match_specifier_should_parse2(self):
         config = Mock()
         config.get.return_value = '=10.0.0.0/23, <<=10.1.0.0/23'
 

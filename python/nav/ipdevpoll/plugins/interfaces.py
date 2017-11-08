@@ -20,6 +20,7 @@ The plugin uses IF-MIB to retrieve generic interface data, and
 EtherLike-MIB to retrieve duplex status for ethernet interfaces.
 
 """
+from django.utils import six
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
@@ -178,4 +179,4 @@ def decode_to_unicode(string):
     except UnicodeDecodeError:
         return string.decode('latin-1')
     except AttributeError:
-        return unicode(string)
+        return six.text_type(string)

@@ -61,6 +61,12 @@ class CategorySerializer(serializers.ModelSerializer):
         model = manage.Category
 
 
+class SubNetboxSerializer(serializers.ModelSerializer):
+    object_url = serializers.CharField(source='get_absolute_url')
+    class Meta(object):
+        model = manage.Netbox
+
+
 class NetboxSerializer(serializers.ModelSerializer):
     """Serializer for the netbox model"""
     chassis = EntitySerializer(source='get_chassis', many=True, read_only=True)
@@ -108,18 +114,12 @@ class SpecificPatchSerializer(serializers.ModelSerializer):
         fields = ('id', 'cabling', 'split')
 
 
-class InterfaceSerializer(serializers.ModelSerializer):
-    """Serializer for the interface model"""
-    patches = SpecificPatchSerializer()
+class ModuleSerializer(serializers.ModelSerializer):
+    """Serializer for the module model"""
+    object_url = serializers.CharField(source='get_absolute_url')
 
     class Meta(object):
-        model = manage.Interface
-
-
-class CablingSerializer(serializers.ModelSerializer):
-    """Serializer for the cabling model"""
-    class Meta(object):
-        model = cabling.Cabling
+        model = manage.Module
 
 
 class CamSerializer(serializers.ModelSerializer):
@@ -132,6 +132,35 @@ class ArpSerializer(serializers.ModelSerializer):
     """Serializer for the arp model"""
     class Meta(object):
         model = manage.Arp
+
+
+class SubInterfaceSerializer(serializers.ModelSerializer):
+    object_url = serializers.CharField(source='get_absolute_url')
+    class Meta(object):
+        model = manage.Interface
+
+
+class InterfaceSerializer(serializers.ModelSerializer):
+    """Serializer for the interface model"""
+    patches = SpecificPatchSerializer()
+    module = ModuleSerializer()
+    object_url = serializers.CharField(source='get_absolute_url')
+    to_netbox = SubNetboxSerializer()
+    to_interface = SubInterfaceSerializer()
+
+    class Meta(object):
+        model = manage.Interface
+        depth = 1
+
+
+class InterfaceWithCamSerializer(InterfaceSerializer):
+    last_used = CamSerializer(source='get_last_cam_record')
+
+
+class CablingSerializer(serializers.ModelSerializer):
+    """Serializer for the cabling model"""
+    class Meta(object):
+        model = cabling.Cabling
 
 
 class UnrecognizedNeighborSerializer(serializers.ModelSerializer):
@@ -191,6 +220,8 @@ class PrefixUsageSerializer(serializers.Serializer):
     active_addresses = serializers.IntegerField()
     max_addresses = serializers.IntegerField()
     max_hosts = serializers.IntegerField()
+    vlan_id = serializers.IntegerField()
+    net_ident = serializers.CharField()
     url_machinetracker = serializers.CharField()
     url_report = serializers.CharField()
     url_vlan = serializers.CharField()

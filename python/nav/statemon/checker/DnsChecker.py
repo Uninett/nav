@@ -15,9 +15,14 @@
 #
 """DNS service checker"""
 
+import socket
+
+import dns.exception
+import dns.message
+import dns.query
+
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
-from nav.statemon import DNS
 
 
 class DnsChecker(AbstractChecker):
@@ -38,41 +43,48 @@ class DnsChecker(AbstractChecker):
 
     def execute(self):
         ip, _port = self.get_address()
-        dns = DNS.DnsRequest(server=ip, timeout=self.timeout)
-
         request = self.args.get("request", "").strip()
-        timeout = 0
+        timeout = False
+        error = False
         if not request:
             return Event.UP, "Argument request must be supplied"
         else:
             answer = ""
             try:
-                reply = dns.req(name=request)
-            except DNS.Error:
-                timeout = 1
+                query = dns.message.make_query(request, "ANY")
+                reply = dns.query.udp(query, ip, timeout=self.timeout)
+            except dns.exception.Timeout:
+                timeout = True
+                error = True
+            except socket.error:
+                error = True
 
-            if not timeout and len(reply.answers) > 0:
+            if not error and reply.rcode() != dns.rcode.NOERROR:
+                error = True
+
+            if not error and len(reply.answer) > 0:
                 answer = 1
-            elif not timeout and len(reply.answers) == 0:
+            elif not error and len(reply.answers) == 0:
                 answer = 0
 
             # This breaks on windows dns servers and probably other not bind
             # servers. We just put a exception handler around it, and ignore
             # the resulting timeout.
             try:
-                ver = dns.req(name="version.bind", qclass="chaos",
-                              qtype='txt').answers
-                if len(ver) > 0:
-                    self.version = ver[0]['data'][0]
-            except DNS.Base.DNSError as err:
-                if str(err) == 'Timeout':
-                    pass  # Ignore timeout
-                else:
-                    raise
+                query = dns.message.make_query("version.bind", rdclass="CH",
+                                               rdtype='txt')
+                response = dns.query.udp(query, ip, timeout=self.timeout)
+                if (response.rcode() == dns.rcode.NOERROR and
+                        len(response.answer) > 1):
+                    self.version = response.answer[0][0]
+            except dns.exception.Timeout:
+                pass
 
-            if not timeout and answer == 1:
+            if not error and answer == 1:
                 return Event.UP, "Ok"
-            elif not timeout and answer == 0:
+            elif not error and answer == 0:
                 return Event.UP, "No record found, request=%s" % request
+            elif error and not timeout:
+                return Event.DOWN, "Other error while requesting %s" % request
             else:
                 return Event.DOWN, "Timeout while requesting %s" % request

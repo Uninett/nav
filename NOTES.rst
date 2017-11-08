@@ -9,19 +9,102 @@ To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
 
-Known problems
-==============
+NAV 4.8
+========
 
-The recommended SNMP library for use with ipdevpoll is `pynetsnmp`.  If you
-choose to go with the original TwistedSNMP, the latest version (0.3.13)
-contains a bug that manifests in table retrieval operations.  Timeouts and
-retries aren't handled properly, and this may cause slow or otherwise busy
-devices to be bombarded with requests from NAV.  The `contrib/patches`
-directory contains a patch for TwistedSNMP that solves this problem.  The
-patch has been submitted upstream, but not yet accepted into a new release.
+Dependency changes
+------------------
+
+The NAV team is currently working on removing some bundled libraries and
+porting the NAV code to Python 3. Some previously bundled libraries have been
+added to the dependency list, while others have had their required versions
+changed.
+
+
+New dependencies
+~~~~~~~~~~~~~~~~
+
+* :mod:`dnspython` == *1.15.0*
+* :mod:`asciitree` == *0.3.3*
+* :mod:`configparser` == *3.5.0*
+
+Upgraded dependencies
+~~~~~~~~~~~~~~~~~~~~~
+
+The version requirements have changed for these dependencies:
+
+* :mod:`IPy` == *0.83*
+* Also, any version of :mod:`twisted` between *14.0.1* and *17.9.0* should work.
+
+Removed dependencies
+~~~~~~~~~~~~~~~~~~~~
+
+* The support for the old **PySNMP v2** and **PySNMP-SE** libraries (and
+  consequently, the pure-Python **TwistedSNMP** library) has been removed, since
+  they are outdated and do not provide the full feature set used by NAV and
+  provided by our preferred library: :mod:`pynetsnmp`.
+
+* There is no longer a dependency to the Python module
+  :mod:`django-oauth2-provider`, as NAV's usage of this non-maintained module
+  was severely limited.
+
+* :mod:`ipaddr` was removed. It was never a direct requirement of NAV. It only
+  mentioned in the requirements list to satisfy a missing dependency of
+  :mod:`pynetsnmp`, which has been rectified upstream, so it is still needed in
+  a complete system.
+
 
 NAV 4.7
 ========
+
+Dependency changes
+------------------
+
+NAV 4.7 changes the minimum version requirement for three of its dependencies:
+
+* PostgreSQL must now be at least version *9.4*.
+* :mod:`psycopg2` must now be at least version *2.4.5*.
+* :mod:`twisted` must now be at least version *14.0.1*.
+
+Support for monitoring BGP sessions
+-----------------------------------
+
+BGP session monitoring has been added as part of :program:`ipdevpoll`'s
+``statuscheck`` job. BGP4-MIB (:rfc:`4273` is supported), as well as the draft
+versions of BGP4V2-MIB that Cisco and Juniper have implemented in their own
+enterprise trees (which means IPv6 BGP sessions are supported on Cisco and
+Juniper).
+
+Please ensure your :file:`ipdevpoll.conf` is updated to take advantage of the
+new functionality.
+
+A ``[bgp]`` section has been added to :file:`ipdevpoll.conf`, where the
+``alert_ibgp`` option can be used to toggle whether BGP events should be
+generated for iBGP sessions. Its default value is `True`, but this may not be
+desirable in a full mesh network.
+
+The new ``bgpState`` event includes the ``bgpDown`` and ``bgpEstablished``
+alert types, which can be subscribed to in your alert profile.
+
+There is no bespoke UI for listing known BGP sessions in 4.7.0, but there is a
+BGP session report in the report tool.
+
+
+ipdevpoll multiprocess mode rewritten
+-------------------------------------
+
+When monitoring a large enough network, ipdevpoll may not be able to perform
+all its work using a single process. To take advantage of modern
+multi-processor and multi-core systems, using ipdevpoll's multiprocess mode
+may be an advantage.
+
+The multiprocess mode has been rewritten so that instead of starting a
+dedicated process for each job type, an arbitratry number of generic worker
+processes can be started, and jobs are assigned to these in a round-robin
+fashion.
+
+The multiprocess option ``-m`` can be added to the ``OPTIONS`` variable of the
+ipdevpoll startup script (:file:`etc/init.d/ipdevpoll`).
 
 Support for more infrastructure monitoring
 ------------------------------------------
@@ -51,6 +134,80 @@ are:
 .. _`Rittal power distribution units (PDU)`: https://www.rittal.com/com-en/product/list.action?categoryPath=/PG0001/PG0229STV1/PG7274STV1/PGR11260STV1
 .. _`Rittal liquid cooling package (in-row liquid coolers)`: http://www.rittal.com/com-en/product/list.action?categoryPath=/PG0001/PG0168KLIMA1/PGR1951KLIMA1/PG1023KLIMA1
 
+Improved user interfaces for sensor/environment monitoring
+----------------------------------------------------------
+
+Device "Sensors" tab
+~~~~~~~~~~~~~~~~~~~~
+
+The ipdevinfo tab previously known as "*Power and fans*" is now named
+"*Sensors*". The tab now includes a comprehensive listing of all the sensors
+NAV has discovered on a device, regardless of whether it is able to collect
+any data from them. Charts and thresholds are available for each one.
+
+Room "Sensors in Racks" tab
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The room view now includes the new tab "Sensors in Racks". In this tab, you
+can create customized groupings of environment sensors present in a single
+communications room.
+
+At UNINETT, this view is used to get an overview of the power load and cooling
+water temperature on a per-rack basis in large HPC installations. PDU sensors
+can nbe added to the left and right side of each "rack", and arbitrary sensors
+from other types of devices can be added to the center column.
+
+
+Avoiding redundant SNMP polling for virtual device contexts
+-----------------------------------------------------------
+
+A new feature enables you to use SeedDB to specify that an IP device is a
+virtual instance of a physical "master" device. This can be useful if you use
+Cisco VRF or VDC technologies extensively.
+
+NAV will avoid polling interface counters, system and sensor data from the
+virtual devices, but will instead duplicate the data collected from the master
+device - thus avoiding overloading the physical device with redundant SNMP
+requests.
+
+This feature was sponsored by the University of Basel, Switzerland.
+
+
+Changes to bulk import formats
+------------------------------
+
+The IP Device (Netbox) bulk import format has changed. Two new columns have
+been added, so that the format is now specified as::
+
+    roomid:ip:orgid:catid[:snmp_version:ro:rw:master:function:data:netboxgroup:...]
+
+The new columns are:
+
+snmp_version
+  Selecting an explicit SNMP version was made compulsory in NAV 4.6, but the
+  bulk import format was not updated in the same release, so any device added
+  through the SeedDB bulk import function would default to SNMP v2c. Valid
+  values here are 1 or 2.
+
+master
+  If this device is a virtual instance on another physical device, specify the
+  sysname or IP address of the master in this column. You may have to bulk
+  import multiple times if the master devices are part of the same bulk import
+  file.
+
+Support for dashboard export/import
+-----------------------------------
+
+Dashboard configurations can now be exported as JSON strings and shared with
+other NAV users. Want to copy your colleagues fancy dashboard without putting
+in all the work of setting it up manually? Now you can!
+
+Audit logging
+-------------
+
+The beginnings of a full fledged audit logging system is included in NAV 4.7.
+As of NAV 4.7.0, only changes made by users of PortAdmin will be audited.
+Audit logging from more parts of NAV will follow.
 
 
 NAV 4.6
@@ -776,7 +933,7 @@ Removed dependencies:
 - Cricket
 - rrdtool
 
-.. _Graphite: http://graphite.wikidot.com/
+.. _Graphite: http://graphiteapp.org/
 .. _Sass: http://sass-lang.com/
 
 Major changes to statistics collection

@@ -44,7 +44,7 @@ class DnsName(Plugin):
         ip = IP(self.netbox.ip)
         self._logger.debug("Doing DNS PTR lookup for %s", ip.reverseName())
         # Use the OS configured DNS resolver method
-        resolver = _resolvers.next()
+        resolver = next(_resolvers)
         df = resolver.lookupPointer(ip.reverseName())
         df.addCallbacks(self._find_ptr_response, self._handle_failure,
                         errbackArgs=ip)

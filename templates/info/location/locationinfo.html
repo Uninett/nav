@@ -1,0 +1,59 @@
+{% extends "info/location/base.html" %}
+
+{% block base_content %}
+
+    <h4>Location view for {{ location.id }}</h4>
+
+    <ul class="button-group">
+        <li>
+            <a href="{% url 'seeddb-location-edit' location.id %}" class="button secondary small">
+                Edit location
+                <i class="fa fa-edit"></i>
+            </a>
+        </li>
+
+        <li>
+          <a href="{% url 'location-info-upload' location.id %}" class="button secondary small">
+            Edit images
+            <i class="fa fa-camera"></i>
+          </a>
+        </li>
+
+        <li>
+            <a href="{% url 'devicehistory-view-location' location.id %}" class="button secondary small">
+                View location history
+                <i class="fa fa-clock-o"></i>
+            </a>
+        </li>
+
+    </ul>
+
+    <div id="infotabs" class="ui-helper-hidden">
+        <ul>
+            <li aria-controls="locationinfo">
+              <a href="#locationinfo">Location info</a>
+            </li>
+            <li aria-controls="sublocations">
+              <a href="#sublocations">Sub-Locations</a>
+            </li>
+            <li aria-controls="rooms">
+              <a href="#rooms">Rooms</a>
+            </li>
+
+        </ul>
+
+        <div id="locationinfo">
+          {% include 'info/location/locationinfo_main.html' %}
+        </div>
+
+        <div id="sublocations">
+          {% include 'info/location/locationinfo_sublocations.html' %}
+        </div>
+
+        <div id="rooms">
+          {% include 'info/location/locationinfo_rooms.html' %}
+        </div>
+
+    </div>
+
+{% endblock %}

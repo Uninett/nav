@@ -15,13 +15,23 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """General utility functions for Network Administration Visualized"""
+from __future__ import absolute_import
 import os
 import re
 import stat
 import socket
 import datetime
+import uuid
+import hashlib
 from functools import wraps
-from itertools import chain, tee, ifilter
+from itertools import chain, tee
+try:
+    from itertools import ifilter
+except ImportError:
+    ifilter = filter
+
+from django.utils import six
+from django.conf import settings
 
 import IPy
 
@@ -37,7 +47,7 @@ def gradient(start, stop, steps):
     steps = steps > 1 and steps-1 or 1
     increment = distance / float(steps)
     grad = []
-    for i in xrange(steps):
+    for i in range(steps):
         grad.append(int(round(start + i*increment)))
     grad.append(stop)
     return grad
@@ -95,7 +105,7 @@ def _is_valid_ip_ipy(ip):
     A cleaned up version of the IP address string is returned if it is verified,
     otherwise a false value is returned.
     """
-    if isinstance(ip, (str, unicode)) and not ip.isdigit():
+    if isinstance(ip, six.string_types) and not ip.isdigit():
         try:
             valid_ip = IPy.IP(ip)
             if valid_ip.len() == 1:
@@ -113,9 +123,10 @@ def is_valid_cidr(cidr):
 
     Uses the IPy library to verify addresses.
     """
-    if isinstance(cidr, basestring) and not cidr.isdigit() and '/' in cidr:
+    if (isinstance(cidr, six.string_types) and
+            not cidr.isdigit() and '/' in cidr):
         try:
-            valid_cidr = IPy.IP(cidr)
+            valid_cidr = IPy.IP(cidr) is not None
         except (ValueError, TypeError):
             return False
         else:
@@ -443,3 +454,10 @@ def address_to_string(ip, port):
     ip = IPy.IP(ip)
     ip = str(ip) if ip.version() == 4 else "[%s]" % ip
     return "%s:%s" % (ip, port)
+
+
+def auth_token():
+    """Generates a hash that can be used as an OAuth API token"""
+    _hash = hashlib.sha1(six.text_type(uuid.uuid4()).encode('utf-8'))
+    _hash.update(settings.SECRET_KEY.encode('utf-8'))
+    return _hash.hexdigest()

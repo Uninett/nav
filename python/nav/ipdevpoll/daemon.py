@@ -23,7 +23,6 @@ This is the daemon program that runs the IP device poller.
 from __future__ import print_function
 
 import sys
-from twisted.python.failure import Failure
 import os
 import logging
 from multiprocessing import cpu_count
@@ -33,6 +32,7 @@ import argparse
 
 from twisted.internet import reactor
 from twisted.internet.defer import maybeDeferred, setDebugging
+from twisted.python.failure import Failure
 
 from nav import buildconf
 from nav.util import is_valid_ip
@@ -40,10 +40,9 @@ import nav.daemon
 from nav.daemon import signame
 import nav.logs
 from nav.models import manage
-from django.db.models import Q
 
-from . import plugins, pool
 from nav.ipdevpoll import ContextFormatter, schedule, db
+from . import plugins, pool
 
 
 class NetboxAction(argparse.Action):
@@ -269,10 +268,11 @@ class CommandProcessor(object):
     def make_option_parser(self):
         """Sets up and returns a command line option parser."""
         parser = argparse.ArgumentParser(
-            version="NAV " + buildconf.VERSION,
             epilog="This program runs SNMP polling jobs for IP devices "
             "monitored by NAV")
         opt = parser.add_argument
+
+        opt('--version', action='version', version='NAV ' + buildconf.VERSION)
         opt("-f", "--foreground", action="store_true", dest="foreground",
             help="run in foreground instead of daemonizing")
         opt("-s", "--log-stderr", action="store_true", dest="logstderr",
@@ -349,7 +349,7 @@ class CommandProcessor(object):
 
         nav.logs.init_generic_logging(
             logfile=logfile_name,
-            stderr=True,
+            stderr=stderr_only,
             formatter=formatter,
             read_config=True,
         )

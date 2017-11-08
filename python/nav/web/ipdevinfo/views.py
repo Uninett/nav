@@ -30,10 +30,11 @@ from nav.django.templatetags.thresholds import find_rules
 from nav.metrics.errors import GraphiteUnreachableError
 
 from nav.models.manage import (Netbox, Module, Interface, Prefix, Arp, Cam,
-                               Sensor)
+                               Sensor, POEGroup, Category)
 from nav.models.msgmaint import MaintenanceTask
 from nav.models.arnold import Identity
 from nav.models.service import Service
+from nav.models.profiles import Account
 from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import create_combined_urls
@@ -126,8 +127,11 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         return HttpResponseRedirect(netbox.get_absolute_url())
 
     def get_netbox(name=None, addr=None):
-        """Lookup IP device in NAV by either hostname or IP address"""
+        """Lookup IP device in NAV by either hostname or IP address.
 
+        :rtype: nav.models.manage.Netbox
+
+        """
         # Prefetch related objects as to reduce number of database queries
         netboxes = Netbox.objects.select_related()
         netbox = None
@@ -468,7 +472,11 @@ def module_details(request, netbox_sysname, module_name):
         module, 'swportactive', activity_interval)
     gwportstatus_view = get_module_view(module, 'gwportstatus')
 
-    navpath = NAVPATH + [('Module Details',)]
+    navpath = NAVPATH + [
+        (netbox_sysname,
+         reverse('ipdevinfo-details-by-name',
+                 kwargs={'name': netbox_sysname})),
+        ('Module Details',)]
 
     return render_to_response(
         'ipdevinfo/module-details.html',
@@ -482,6 +490,30 @@ def module_details(request, netbox_sysname, module_name):
             'navpath': navpath,
             'heading': navpath[-1][0],
             'title': create_title(navpath)
+        },
+        context_instance=RequestContext(
+            request, processors=[search_form_processor]))
+
+
+def poegroup_details(request, netbox_sysname, grpindex):
+    """Show detailed view of one IP device power over ethernet group"""
+
+    poegroup = get_object_or_404(POEGroup.objects.select_related(),
+                                 netbox__sysname=netbox_sysname, index=grpindex)
+
+    navpath = NAVPATH + [
+        (netbox_sysname,
+         reverse('ipdevinfo-details-by-name',
+                 kwargs={'name': netbox_sysname})),
+        ('PoE Details for ' + poegroup.name,)]
+
+    return render_to_response(
+        'ipdevinfo/poegroup-details.html',
+        {
+            'poegroup': poegroup,
+            'navpath': navpath,
+            'heading': navpath[-1][0],
+            'title': create_title(navpath),
         },
         context_instance=RequestContext(
             request, processors=[search_form_processor]))
@@ -518,6 +550,17 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
         port_metrics = []
         graphite_error = True
 
+    sensor_metrics = []
+    for sensor in port.sensor_set.all():
+        metric_id = sensor.get_metric_name()
+        metric = {
+            'id': metric_id,
+            'sensor': sensor,
+            'graphite_data_url': Graph(
+                magic_targets=[metric_id], format='json'),
+        }
+        sensor_metrics.append(metric)
+    find_rules(sensor_metrics)
     # If interface is detained in Arnold, this should be visible on the
     # port details view
     try:
@@ -543,6 +586,7 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             'port_metrics': port_metrics,
             'graphite_error': graphite_error,
             'detention': detention,
+            'sensor_metrics': sensor_metrics,
         },
         context_instance=RequestContext(
             request, processors=[search_form_processor]))
@@ -668,6 +712,13 @@ def render_host_info(request, identifier):
     })
 
 
+def unrecognized_neighbors(request, netboxid):
+    """Render unrecognized neighbors tab"""
+    netbox = get_object_or_404(Netbox, pk=netboxid)
+    return render(request, 'ipdevinfo/frag-neighbors.html',
+                  {'netbox': netbox, 'categories': Category.objects.all()})
+
+
 def sensor_details(request, identifier):
     """Controller for getting sensor info"""
     sensor = get_object_or_404(Sensor, pk=identifier)
@@ -705,3 +756,16 @@ def sensor_details(request, identifier):
         'graphite_data_url': Graph(magic_targets=[sensor.get_metric_name()],
                                    format='json')
     })
+
+
+def save_port_layout_pref(request):
+    """Save the ipdevinfo port layout preference"""
+    account = request.account
+    key = Account.PREFERENCE_KEY_IPDEVINFO_PORT_LAYOUT
+    account.preferences[key] = request.GET.get('layout')
+    account.save()
+
+    # To use hashes we need to do append it after finding the url
+    url = reverse('ipdevinfo-details-by-id',
+                  kwargs={'netbox_id': request.GET.get('netboxid')})
+    return redirect("{}#!ports".format(url))

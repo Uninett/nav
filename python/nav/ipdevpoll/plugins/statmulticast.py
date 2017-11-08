@@ -19,6 +19,7 @@ import logging
 from collections import Counter
 from pprint import pformat
 
+from django.utils.six import iteritems
 from twisted.internet import defer
 
 from nav.ipdevpoll import Plugin
@@ -70,4 +71,4 @@ class StatMulticast(Plugin):
         timestamp = timestamp or time.time()
         return [(metric_path_for_multicast_usage(group, self.netbox),
                  (timestamp, count))
-                for group, count in count_report.iteritems()]
+                for group, count in iteritems(count_report)]

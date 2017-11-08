@@ -20,6 +20,7 @@ from datetime import datetime
 import logging
 
 from django.db.models import Q
+from django.utils.encoding import python_2_unicode_compatible
 
 from nav.web import webfrontConfig
 from nav.models.msgmaint import Message
@@ -30,6 +31,7 @@ from nav.models.profiles import AccountTool
 _logger = logging.getLogger('nav.web.tools.utils')
 
 
+@python_2_unicode_compatible
 class Tool(object):
     """Class representing a tool"""
     def __init__(self, name, uri, icon, description, priority=0, display=True,
@@ -42,14 +44,14 @@ class Tool(object):
         self.display = display
         self.doclink = doclink
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def __eq__(self, other):
         return self.name == other.name
 
-    def __cmp__(self, other):
-        return cmp(self.priority, other.priority)
+    def __lt__(self, other):
+        return self.priority < other.priority
 
     def __repr__(self):
         return "Tool('%s')" % self.name
@@ -59,7 +61,7 @@ def quick_read(filename):
     """Read and return the contents of a file, or None if something went wrong.
     """
     try:
-        return file(filename).read().strip()
+        return open(filename).read().strip()
     except IOError:
         return None
 
@@ -144,7 +146,7 @@ def get_account_tools(account, all_tools):
 def split_tools(tools, parts=3):
     """Split tools into even parts for megadropdown"""
     columns = []
-    tools_in_column = len(tools) / parts
+    tools_in_column = len(tools) // parts
     remainder = len(tools) % parts
     first_index = 0
     for _column in range(parts):

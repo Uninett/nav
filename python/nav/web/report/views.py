@@ -34,7 +34,7 @@ from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.http import HttpResponse, Http404, HttpResponseRedirect
-from django.db import connection
+from django.utils.six import iteritems
 
 from nav.models.manage import Prefix
 
@@ -43,16 +43,17 @@ from nav.report.generator import Generator, ReportList
 from nav.report.matrixIPv4 import MatrixIPv4
 from nav.report.matrixIPv6 import MatrixIPv6
 from nav.report.metaIP import MetaIP
-import nav.path
+import nav.buildconf
 
 from nav.web.navlets import add_navlet
 
 
 IpGroup = namedtuple('IpGroup', 'private ipv4 ipv6')
-CONFIG_FILE_PACKAGE = os.path.join(nav.path.sysconfdir, "report/report.conf")
-CONFIG_FILE_LOCAL = os.path.join(nav.path.sysconfdir,
+CONFIG_FILE_PACKAGE = os.path.join(nav.buildconf.sysconfdir,
+                                   "report/report.conf")
+CONFIG_FILE_LOCAL = os.path.join(nav.buildconf.sysconfdir,
                                  "report/report.local.conf")
-FRONT_FILE = os.path.join(nav.path.sysconfdir, "report/front.html")
+FRONT_FILE = os.path.join(nav.buildconf.sysconfdir, "report/front.html")
 DEFAULT_PAGE_SIZE = 25
 PAGE_SIZES = [25, 50, 100, 500, 1000]
 
@@ -111,7 +112,7 @@ def _strip_empty_arguments(request):
     """
     query = request.GET.copy()
 
-    deletable = [key for key, value in query.iteritems() if not value.strip()]
+    deletable = [key for key, value in iteritems(query) if not value.strip()]
     for key in deletable:
         del query[key]
         if "op_{0}".format(key) in query:
@@ -232,7 +233,7 @@ def create_matrix(scope, show_unused):
             max_leaf = get_max_leaf(tree)
             bits_in_matrix = max_leaf.prefixlen() - scope.prefixlen()
             matrix = MatrixIPv4(scope, show_unused, end_net=max_leaf,
-                bits_in_matrix=bits_in_matrix)
+                                bits_in_matrix=bits_in_matrix)
     else:
         raise UnknownNetworkTypeException(
             'version: ' + str(scope.version))
@@ -289,7 +290,7 @@ def make_report(request, report_name, export_delimiter, query_dict,
     page_size = get_page_size(request)
 
     query_string = "&".join(["%s=%s" % (x, y)
-                             for x, y in query_dict.iteritems()
+                             for x, y in iteritems(query_dict)
                              if x != 'page_number'])
 
     # Deleting meta variables and empty values from uri to help verifying

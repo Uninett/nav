@@ -20,6 +20,7 @@ define(['libs/jquery-ui.min'], function () {
             $parent = typeof(parent) === 'string' ? $(parent) : parent;
         }
 
+        /* Set hash fragment based on what tab was activated */
         $selector.bind('tabsactivate', function (event, ui) {
             //* Check if this is the tabs we're hooked to *//
             if (event.target.id === $selector.attr('id')) {
@@ -38,28 +39,26 @@ define(['libs/jquery-ui.min'], function () {
             }
         });
 
+        /* Runs on load of page only */
         function navigate() {
             var hashes = window.location.hash.split('!');
             var tabIndex = 0;
+            var tabLabel = null;
 
             if (hashes.length === 1 && !parent) {
                 $selector.tabs('option', 'active', tabIndex);
             } else if (hashes.length === 2 && !parent) {
-                tabIndex = $('#' + hashes[1], $selector).index() - 1;
-                $selector.tabs('option', 'active', tabIndex);
+                selectedTab = $selector.find('[aria-controls=' + hashes[1] + ']');
+                $selector.tabs('option', 'active', selectedTab.index());
             } else if (hashes.length === 3 && parent) {
-                tabIndex = $('#' + hashes[2], $selector).index() - 1;
-                if (tabIndex >= 0) {
-                    var parentIndex = $('#' + hashes[1], $parent).index() - 1;
-                    $parent.tabs('option', 'active', parentIndex);
-                    $selector.tabs('option', 'active', tabIndex);
+                selectedTab = $selector.find('[aria-controls=' + hashes[2] + ']');
+                if (selectedTab.length > 0) {
+                    selectedParentTab = $parent.find('[aria-controls=' + hashes[1] + ']');
+                    $parent.tabs('option', 'active', selectedParentTab.index());
+                    $selector.tabs('option', 'active', selectedTab.index());
                 }
             }
         }
-
-        $(window).on('hashchange', function (e) {
-            navigate();
-        });
 
         navigate();
 

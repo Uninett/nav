@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # -*- testargs: -c -*-
 #
-# Copyright (C) 2006-2008 UNINETT AS
+# Copyright (C) 2006-2008, 2017 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,41 +16,14 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""The NAV SMS daemon (smsd)
-
-smsd dispatches SMS messages from the database to users' phones with the help
-of plugins using Gammu and a cell on the COM port, or free SMS services on the
-web.
-
-Usage: smsd [-h] [-c] [-d sec] [-f factor] [-m maxdelay] [-l limit] [-a action] [-tT phone no.] [-u user ID]
-
-  -h, --help            Show this help text
-  -c, --cancel          Cancel (mark as ignored) all unsent messages
-  -d, --delay           Set delay (in seconds) between queue checks
-  -f, --factor          Set the factor delay will be multiplied with
-  -m, --maxdelay        Maximum delay (in seconds)
-  -l, --limit           Set the limit of retries
-  -a, --action          The action to perform when reaching limit (0 or 1)
-                          0: Messages in queue are marked as ignored and error
-                             details are logged and mailed to admin. Deamon
-                             resumes running and checking the message queue.
-                          1: Error details are logged and mailed to admin. The
-                             deamon shuts down.
-  -u, --uid             User/account ID
-  -t, --test            Send a test message to <phone no.>
-  -T, --TEST            Put a test message to <phone no.> into the SMS queue
-  -n, --nofork          Run process in the foreground
-
-"""
-
+"""The NAV SMS daemon"""
 from __future__ import print_function
 
-import getopt
+import argparse
 import logging
 import logging.handlers
 import os
 import os.path
-import pwd
 import signal
 import socket
 import sys
@@ -59,7 +32,7 @@ import time
 import nav.config
 import nav.daemon
 import nav.logs
-import nav.path
+import nav.buildconf
 import nav.smsd.navdbqueue
 from nav import buildconf
 from nav.smsd.dispatcher import DispatcherError, PermanentDispatcherError
@@ -67,55 +40,25 @@ from nav.config import getconfig
 # Dispatchers are imported later according to config
 
 
-### PATHS
+#
+#  PATHS
+#
+configfile = os.path.join(nav.buildconf.sysconfdir, 'smsd.conf')
+logfile = os.path.join(nav.buildconf.localstatedir, 'log', 'smsd.log')
+pidfile = os.path.join(nav.buildconf.localstatedir, 'run', 'smsd.pid')
 
-configfile = os.path.join(nav.path.sysconfdir, 'smsd.conf')
-logfile = os.path.join(nav.path.localstatedir, 'log', 'smsd.log')
-pidfile = os.path.join(nav.path.localstatedir, 'run', 'smsd.pid')
+#
+# Globals
+#
+logger = config = delay = failed = defaults = None
 
-### MAIN FUNCTION
+#
+#  MAIN FUNCTION
+#
 
 
-def main(args):
-    # Get command line arguments
-    optcancel = False
-    optdelay = False
-    optfactor = False
-    optmaxdelay = False
-    optlimit = False
-    optaction = False
-    opttest = False
-    optforeground = False
-    optuid = False
-    try:
-        opts, args = getopt.getopt(args, 'hcd:f:m:l:a:t:T:nu:',
-         ['help', 'cancel', 'delay=', 'test=', 'TEST=', 'nofork', 'uid='])
-    except getopt.GetoptError, error:
-        print("%s\nTry `%s --help' for more information." % (
-            error, sys.argv[0]), file=sys.stderr)
-        sys.exit(1)
-    for opt, val in opts:
-        if opt in ('-h', '--help'):
-            usage()
-            sys.exit(0)
-        if opt in ('-c', '--cancel'):
-            optcancel = True
-        if opt in ('-d', '--delay'):
-            optdelay = int(val)
-        if opt in ('-f', '--factor'):
-            optfactor = int(val)
-        if opt in ('-m', '--maxdelay'):
-            optmaxdelay = int(val)
-        if opt in ('-l', '--limit'):
-            optlimit = int(val)
-        if opt in ('-a', '--action'):
-            optaction = int(val)
-        if opt in ('-t', '--test', '-T', '--TEST'):
-            opttest = {'opt': opt, 'val': val}
-        if opt in ('-n', '--nofork'):
-            optforeground = True
-        if opt in ('-u', '--uid'):
-            optuid = int(val)
+def main():
+    args = parse_args()
 
     # Set config defaults
     global defaults
@@ -177,49 +120,49 @@ def main(args):
     logger.info('Starting smsd.')
 
     # Set custom loop delay
-    if optdelay:
-        setdelay(optdelay)
+    if args.delay:
+        setdelay(args.delay)
 
     # Ignore unsent messages
-    if optcancel:
+    if args.cancel:
         queue = nav.smsd.navdbqueue.NAVDBQueue()
-        ignCount = queue.cancel()
-        logger.info("All %d unsent messages ignored.", ignCount)
+        ignored_count = queue.cancel()
+        logger.info("All %d unsent messages ignored.", ignored_count)
         sys.exit(0)
 
-    if optfactor:
-        retryvars['delayfactor'] = optfactor
-    if optmaxdelay:
-        retryvars['maxdelay'] = optmaxdelay
-    if optlimit:
-        retryvars['retrylimit'] = optlimit
-    if optaction:
-        retryvars['retrylimitaction'] = optaction
+    if args.factor:
+        retryvars['delayfactor'] = args.factor
+    if args.maxdelay:
+        retryvars['maxdelay'] = args.maxdelay
+    if args.limit:
+        retryvars['retrylimit'] = args.limit
+    if args.action:
+        retryvars['retrylimitaction'] = args.action
 
     # Let the dispatcherhandler take care of our dispatchers
     try:
         dh = nav.smsd.dispatcher.DispatcherHandler(config)
-    except PermanentDispatcherError, error:
+    except PermanentDispatcherError as error:
         logger.critical("Dispatcher configuration failed. Exiting. (%s)", error)
         sys.exit(1)
 
     # Send test message (in other words: test the dispatcher)
-    if opttest:
+    if args.test or args.TEST:
         msg = [(0, "This is a test message from NAV smsd.", 0)]
 
-        if opttest['opt'] in ('-t', '--test'):
+        if args.test:
             try:
-                (sms, sent, ignored, smsid) = dh.sendsms(opttest['val'], msg)
-            except DispatcherError, error:
+                (sms, sent, ignored, smsid) = dh.sendsms(args.test, msg)
+            except DispatcherError as error:
                 logger.critical("Sending failed. Exiting. (%s)", error)
                 sys.exit(1)
 
             logger.info("SMS sent. Dispatcher returned reference %d.", smsid)
 
-        elif opttest['opt'] in ('-T', '--TEST') and optuid:
+        elif args.TEST and args.uid:
             queue = nav.smsd.navdbqueue.NAVDBQueue()
-            rowsinserted = queue.inserttestmsgs(optuid, opttest['val'],
-                'This is a test message from NAV smsd.')
+            rowsinserted = queue.inserttestmsgs(
+                args.uid, args.TEST, 'This is a test message from NAV smsd.')
             if rowsinserted:
                 logger.info("SMS put in queue. %d row(s) inserted.",
                             rowsinserted)
@@ -246,7 +189,7 @@ def main(args):
         sys.exit(1)
 
     # Daemonize
-    if not optforeground:
+    if not args.nofork:
         try:
             nav.daemon.daemonize(pidfile,
                                  stderr=nav.logs.get_logfile_from_logger())
@@ -273,9 +216,9 @@ def main(args):
 
     # Automatically cancel unsent messages older than a given interval
     if autocancel != '0':
-        ignCount = queue.cancel(autocancel)
+        ignored_count = queue.cancel(autocancel)
         logger.info("%d unsent messages older than '%s' autocanceled.",
-                    ignCount, autocancel)
+                    ignored_count, autocancel)
 
     # Loop forever
     while True:
@@ -295,11 +238,11 @@ def main(args):
             # Dispatcher: Format and send SMS
             try:
                 (sms, sent, ignored, smsid) = dh.sendsms(user, msgs)
-            except PermanentDispatcherError, error:
+            except PermanentDispatcherError as error:
                 logger.critical("Sending failed permanently. Exiting. (%s)",
                                 error)
                 sys.exit(1)
-            except DispatcherError, error:
+            except DispatcherError as error:
                 try:
                     # Dispatching failed. Backing off.
                     backoff(delay, error, retryvars)
@@ -308,7 +251,7 @@ def main(args):
                 except:
                     logger.exception("")
                     raise
-            except Exception, error:
+            except Exception as error:
                 logger.exception("Unknown exception: %s", error)
 
             logger.info("SMS sent to %s.", user)
@@ -322,7 +265,7 @@ def main(args):
                 queue.setsentstatus(msgid, 'Y', smsid)
             for msgid in ignored:
                 queue.setsentstatus(msgid, 'I', smsid)
-            logger.info("%d messages was sent and %d ignored.",
+            logger.info("%d messages were sent and %d ignored.",
                         len(sent), len(ignored))
 
         # Sleep a bit before the next run
@@ -332,11 +275,53 @@ def main(args):
         # Devel only
         # break
 
-    # Exit nicely
-    sys.exit(0)
+#
+# HELPER FUNCTIONS
+#
 
 
-### HELPER FUNCTIONS
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="The NAV SMS daemon",
+        epilog="smsd dispatches SMS messages from the database to users' "
+               "phones with the help of plugins, such as one using Gammu and "
+               "a locally connected GSM unit, or possibly web based SMS "
+               "services."
+    )
+    arg = parser.add_argument
+    arg("-c", "--cancel", action="store_true",
+        help="cancel (mark as ignored) all unsent messages")
+    arg("-d", "--delay", type=int,
+        help="set delay (in seconds) between queue checks")
+    arg("-f", "--factor", type=int,
+        help="set the factor DELAY will be multiplied with for each attempt")
+    arg("-m", "--maxdelay", type=int,
+        help="maximum delay (in seconds)")
+    arg("-l", "--limit", type=int,
+        help="set the limit of retries")
+    arg("-a", "--action", type=int, choices=[0, 1],
+        help="the action to perform when reaching limit (0 or 1). 0 means "
+             "messages in queue are marked as ignored and error details are "
+             "logged and mailed to admin, while daemon resumes running and "
+             "checking the message queue. 1 means error details are logged and "
+             "mailed to admin, while the daemon shuts down.")
+    arg("-t", "--test", metavar="PHONENO",
+        help="send a test message to PHONENO")
+    arg("-T", "--TEST", metavar="PHONENO",
+        help="puts a test message to PHONENO into the SMS queue. use the --uid "
+             "option to specify which NAV user account id to associate with "
+             "the queued message")
+    arg("-u", "--uid", type=int, help="NAV user/account id to queue message to")
+    arg("-n", "--nofork", action="store_true",
+        help="run process in the foreground")
+
+    args = parser.parse_args()
+    if args.test and args.TEST:
+        parser.error("-t and -T are mutually exclusive, please pick one")
+    if args.TEST and args.uid is None:
+        parser.error("Please provide an account id using the --uid option")
+    return args
+
 
 def setdelay(seconds):
     """Set delay (in seconds) between queue checks."""
@@ -367,12 +352,13 @@ def increasedelay(seconds, delayfactor, maxdelay):
 def backoff(seconds, error, retryvars):
     """Delay next loop if dispatching SMS fails."""
 
-    # Function is invoked with the assumption that there are unsent messages in queue.
+    # Function is invoked with the assumption that there are unsent messages
+    # in queue.
     global failed
 
-    maxdelay, delayfactor, retrylimit, retrylimitaction = retryvars['maxdelay'], \
-        retryvars['delayfactor'], retryvars['retrylimit'], \
-        retryvars['retrylimitaction']
+    maxdelay, delayfactor, retrylimit, retrylimitaction = (
+        retryvars['maxdelay'], retryvars['delayfactor'],
+        retryvars['retrylimit'], retryvars['retrylimitaction'])
 
     failed += 1
     logger.debug("Dispatcher failed %d time(s).", failed)
@@ -388,8 +374,9 @@ def backoff(seconds, error, retryvars):
     # If limit is disabled, report error and continue
     elif retrylimit == 0 and delay >= maxdelay:
         if len(msgs):
-            logger.critical("Dispatching SMS fails. %d unsent message(s),"
-                " the oldest from %s. (%s)", len(msgs), msgs[0]['time'], error)
+            logger.critical("Dispatching SMS fails. %d unsent message(s), "
+                            "the oldest from %s. (%s)",
+                            len(msgs), msgs[0]['time'], error)
         else:
             logger.critical("Dispatching SMS fails. (%s)", error)
 
@@ -422,14 +409,16 @@ def backoffaction(error, retrylimitaction):
     elif retrylimitaction == "shutdown":
         # Logs the number of unsent messages and time of the oldest in queue
         # before shutting down daemon.
-        logger.critical("Dispatch retry limit has been reached."
-            " Dispatching SMS has failed %d times. %d unsent message(s), the oldest from %s."
-            " \nError message: %s \nShutting down daemon.\n",
-            failed, len(msgs), msgs[0]["time"], error)
+        logger.critical("Dispatch retry limit has been reached. Dispatching "
+                        "SMS has failed %d times. %d unsent message(s), the "
+                        "oldest from %s. \nError message: %s \nShutting down "
+                        "daemon.\n",
+                        failed, len(msgs), msgs[0]["time"], error)
         sys.exit(0)
 
     else:
-        logger.warning("No retry limit action is set or the configured option is not valid.")
+        logger.warning("No retry limit action is set or the configured option "
+                       "is not valid.")
 
 
 def signalhandler(signum, _):
@@ -455,14 +444,16 @@ def loginitfile(loglevel, filename):
 
     try:
         filehandler = logging.FileHandler(filename, 'a')
-        fileformat = '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s'
+        fileformat = (
+            '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] '
+            '%(message)s')
         fileformatter = logging.Formatter(fileformat)
         filehandler.setFormatter(fileformatter)
         filehandler.setLevel(loglevel)
         logger = logging.getLogger()
         logger.addHandler(filehandler)
         return True
-    except IOError, error:
+    except IOError as error:
         print("Failed creating file loghandler. Daemon mode disabled. (%s)"
               % error, file=sys.stderr)
         return False
@@ -480,7 +471,7 @@ def loginitstderr(loglevel):
         logger = logging.getLogger()
         logger.addHandler(stderrhandler)
         return True
-    except IOError, error:
+    except IOError as error:
         print("Failed creating stderr loghandler. Daemon mode disabled. (%s)"
               % error, file=sys.stderr)
         return False
@@ -489,7 +480,8 @@ def loginitstderr(loglevel):
 def loguninitstderr():
     """Remove the stderr StreamHandler from the root logger."""
     for hdlr in logging.root.handlers:
-        if isinstance(hdlr, logging.StreamHandler) and hdlr.stream is sys.stderr:
+        if (isinstance(hdlr, logging.StreamHandler)
+                and hdlr.stream is sys.stderr):
             logging.root.removeHandler(hdlr)
             return True
 
@@ -499,26 +491,22 @@ def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
 
     try:
         hostname = socket.gethostname()
-        mailhandler = logging.handlers.SMTPHandler(mailserver, fromaddr,
-            mailaddr, 'NAV smsd warning from ' + hostname)
-        mailformat = '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s'
+        mailhandler = logging.handlers.SMTPHandler(
+            mailserver, fromaddr, mailaddr, 'NAV smsd warning from ' + hostname)
+        mailformat = (
+            '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] '
+            '%(message)s')
         mailformatter = logging.Formatter(mailformat)
         mailhandler.setFormatter(mailformatter)
         mailhandler.setLevel(loglevel)
         logger = logging.getLogger()
         logger.addHandler(mailhandler)
         return True
-    except Exception, error:
+    except Exception as error:
         print("Failed creating SMTP loghandler. Daemon mode disabled. (%s)"
               % error, file=sys.stderr)
         return False
 
 
-def usage():
-    """Print a usage screen to stderr."""
-
-    print(__doc__, file=sys.stderr)
-
-### BEGIN
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

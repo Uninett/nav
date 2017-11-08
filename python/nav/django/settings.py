@@ -16,12 +16,12 @@
 
 """Django configuration wrapper around the NAV configuration files"""
 
+import os
+import sys
+
 from nav.config import read_flat_config, getconfig
 from nav.db import get_connection_parameters
 import nav.buildconf
-import nav.path
-import sys
-import os
 
 ALLOWED_HOSTS = ['*']
 
@@ -32,12 +32,13 @@ except IOError:
 
 try:
     webfront_config = getconfig('webfront/webfront.conf',
-                                configfolder=nav.path.sysconfdir)
+                                configfolder=nav.buildconf.sysconfdir)
 except IOError:
     webfront_config = {}
 
 DEBUG = nav_config.get('DJANGO_DEBUG', 'False').upper() in ('TRUE', 'YES', 'ON')
-TEMPLATE_DEBUG = DEBUG
+
+TEMPLATE_DEBUG = DEBUG # XXX Pre Django 1.8
 
 # Admins
 ADMINS = (
@@ -72,7 +73,7 @@ ROOT_URLCONF = 'nav.django.urls'
 
 #Static files
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(nav.path.webrootdir, 'static')
+STATIC_ROOT = os.path.join(nav.buildconf.webrootdir, 'static')
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
@@ -80,21 +81,34 @@ STATICFILES_FINDERS = (
 
 
 # Templates
-TEMPLATE_DIRS = (
-    os.path.join(nav.path.sysconfdir, 'templates'),
-    nav.path.djangotmpldir
-)
 
-# Context processors
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.core.context_processors.request',
-    'django.contrib.messages.context_processors.messages',
-    'nav.django.context_processors.debug',
-    'nav.django.context_processors.account_processor',
-    'nav.django.context_processors.nav_version',
-    'nav.django.context_processors.graphite_base',
-    'nav.django.context_processors.footer_info',
-    'django.core.context_processors.static',
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            os.path.join(nav.buildconf.sysconfdir, 'templates'),
+            nav.buildconf.djangotmpldir,
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.core.context_processors.request',
+                'django.contrib.messages.context_processors.messages',
+                'nav.django.context_processors.debug',
+                'nav.django.context_processors.account_processor',
+                'nav.django.context_processors.nav_version',
+                'nav.django.context_processors.graphite_base',
+                'nav.django.context_processors.footer_info',
+                'django.core.context_processors.static',
+            ],
+            'debug': DEBUG,
+        },
+    }
+]
+
+TEMPLATE_DIRS = tuple(TEMPLATES[0]['DIRS']) # XXX Pre Django 1.8
+TEMPLATE_CONTEXT_PROCESSORS = tuple(        # XXX Pre Django 1.8
+    TEMPLATES[0]['OPTIONS']['context_processors']
 )
 
 # Middleware
@@ -177,6 +191,7 @@ NAVLETS = (
     'nav.web.navlets.ups.UpsWidget',
     'nav.web.navlets.pdu.PduWidget',
     'nav.web.navlets.roomstatus.RoomStatus',
+    'nav.web.navlets.locationstatus.LocationStatus',
     'nav.web.navlets.env_rack.EnvironmentRackWidget',
 )
 
@@ -192,6 +207,7 @@ INSTALLED_APPS = (
     'crispy_forms_foundation',
     'django_hstore',
     'rest_framework',
+    'nav.auditlog',
 )
 
 REST_FRAMEWORK = {
@@ -199,6 +215,18 @@ REST_FRAMEWORK = {
     'PAGINATE_BY': 100,
     'PAGINATE_BY_PARAM': 'page_size',
 }
+
+# Classes that implement a search engine for the web navbar
+SEARCHPROVIDERS = [
+    'nav.web.info.searchproviders.RoomSearchProvider',
+    'nav.web.info.searchproviders.LocationSearchProvider',
+    'nav.web.info.searchproviders.NetboxSearchProvider',
+    'nav.web.info.searchproviders.InterfaceSearchProvider',
+    'nav.web.info.searchproviders.VlanSearchProvider',
+    'nav.web.info.searchproviders.PrefixSearchProvider',
+    'nav.web.info.searchproviders.DevicegroupSearchProvider',
+    'nav.web.info.searchproviders.UnrecognizedNeighborSearchProvider',
+]
 
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)

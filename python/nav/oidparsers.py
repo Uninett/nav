@@ -95,13 +95,13 @@ def oid_to_ipv4(oid):
 
 def Unsigned32(iterator):
     """Consume a single element"""
-    return iterator.next()
+    return next(iterator)
 
 
 def String(iterator, length=None):
     """Consume a string of a length specified by the next iteration"""
     if length is None:
-        length = iterator.next()
+        length = next(iterator)
     return OID(islice(iterator, length))
 
 ObjectIdentifier = String
@@ -129,7 +129,7 @@ def TypedFixedInetAddress(iterator):
     Consumes and parses a InetAddressType.InetAddress combo, where there is
     no length specifier in the InetAddress string, into an IPy.IP host address.
     """
-    addr_type = iterator.next()
+    addr_type = next(iterator)
     if addr_type == IPV4_ID:
         addr, = consume(iterator, InetAddressIPv4)
         return oid_to_ipv4(addr)

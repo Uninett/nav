@@ -16,7 +16,7 @@
 """Configparser for Netbiostracker"""
 
 import logging
-from ConfigParser import NoSectionError, NoOptionError
+from configparser import NoSectionError, NoOptionError
 from IPy import IP
 from nav.config import NAVConfigParser
 
@@ -26,7 +26,7 @@ _logger = logging.getLogger('netbiostrackerconfig')
 class NetbiosTrackerConfig(NAVConfigParser):
     """Configparser for Netbiostracker"""
     DEFAULT_CONFIG_FILES = ('netbiostracker.conf',)
-    DEFAULT_CONFIG = """
+    DEFAULT_CONFIG = u"""
 [main]
 encoding = cp850
 """

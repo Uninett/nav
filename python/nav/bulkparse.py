@@ -15,19 +15,19 @@
 #
 """Bulk import format parsers."""
 
+from __future__ import absolute_import
+
 import csv
 import re
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+import io
 
+from django.utils import six
 from IPy import IP
 
 from nav.errors import GeneralException
 
 
-class BulkParser(object):
+class BulkParser(six.Iterator):
     """Abstract base class for bulk parsers"""
     format = ()
     required = 0
@@ -38,7 +38,13 @@ class BulkParser(object):
         if hasattr(data, 'seek'):
             self.data = data
         else:
-            self.data = StringIO(data)
+            if six.PY3:
+                if isinstance(data, six.binary_type):
+                    self.data = io.StringIO(data.decode('utf-8'))
+                else:
+                    self.data = io.StringIO(data)
+            else:
+                self.data = io.BytesIO(data)
 
         if delimiter is None:
             try:
@@ -61,9 +67,9 @@ class BulkParser(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         """Generate next parsed row"""
-        row = self.reader.next()
+        row = six.next(self.reader)
         # although the DictReader doesn't return blank lines, we want
         # to count them so we can pinpoint errors exactly within the
         # source file.
@@ -119,7 +125,7 @@ class BulkParser(object):
 
 # don't complain about simple iterators, mr. Pylint!
 # pylint: disable=R0903
-class CommentStripper(object):
+class CommentStripper(six.Iterator):
     """Iterator that strips comments from the input iterator"""
     COMMENT_PATTERN = re.compile(r'\W*#[^\n\r]*')
 
@@ -129,15 +135,33 @@ class CommentStripper(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         """Returns next line"""
-        line = self.source_iterator.next()
+        line = six.next(self.source_iterator)
         return self.COMMENT_PATTERN.sub('', line)
+
+
+def validate_attribute_list(value):
+    """Validates simple attribute lists.
+
+    Any 'restkey' column that has the required 'variable=value' format can be
+    validated by this function. Variable names and variable values themselves
+    are not validated in any way, just that there is a minimum of one equals
+    sign in there.
+    """
+    if not isinstance(value, list):
+        return False
+    for arg in value:
+        items = arg.split('=', 1)
+        if len(items) < 2:
+            return False
+    return True
 
 
 class NetboxBulkParser(BulkParser):
     """Parses the netbox bulk format"""
-    format = ('roomid', 'ip', 'orgid', 'catid', 'ro', 'rw', 'function', 'data')
+    format = ('roomid', 'ip', 'orgid', 'catid', 'snmp_version', 'ro', 'rw',
+              'master', 'function', 'data')
     required = 4
     restkey = 'netboxgroup'
 
@@ -149,6 +173,15 @@ class NetboxBulkParser(BulkParser):
             return False
         else:
             return True
+
+    @staticmethod
+    def _validate_snmp_version(value):
+        if not value:
+            return True  # empty values are ok
+        try:
+            return int(value) in (1, 2)
+        except ValueError:
+            return False
 
     @staticmethod
     def _validate_data(datastring):
@@ -181,6 +214,7 @@ class OrgBulkParser(BulkParser):
     format = ('orgid', 'parent', 'description')
     restkey = 'attr'
     required = 1
+    _validate_attr = staticmethod(validate_attribute_list)
 
 
 class PrefixBulkParser(BulkParser):
@@ -214,6 +248,7 @@ class RoomBulkParser(BulkParser):
     format = ('roomid', 'locationid', 'descr', 'position')
     restkey = 'attr'
     required = 2
+    _validate_attr = staticmethod(validate_attribute_list)
 
 
 class ServiceBulkParser(BulkParser):
@@ -221,16 +256,7 @@ class ServiceBulkParser(BulkParser):
     format = ('host', 'service')
     restkey = 'arg'
     required = 2
-
-    @staticmethod
-    def _validate_arg(value):
-        if not isinstance(value, list):
-            return False
-        for arg in value:
-            items = arg.split('=', 1)
-            if len(items) < 2:
-                return False
-        return True
+    _validate_arg = staticmethod(validate_attribute_list)
 
 
 class NetboxGroupBulkParser(BulkParser):

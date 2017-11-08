@@ -82,7 +82,7 @@ def endit(_result):
 
 
 def parse_args():
-    """Builds an OptionParser and returns parsed program arguments"""
+    """Parses the command line arguments"""
     parser = ArgumentParser(
         description=
         "Verifies SNMP sub-tree support on a set of NAV-monitored devices",
@@ -113,7 +113,7 @@ def _create_agentproxy(netbox):
     if not netbox.read_only:
         return
 
-    port = _ports.next()
+    port = next(_ports)
     agent = AgentProxy(
         netbox.ip, 161,
         community=netbox.read_only,

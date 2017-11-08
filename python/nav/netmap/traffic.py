@@ -17,6 +17,8 @@
 import logging
 from collections import defaultdict
 
+from django.utils.six import iteritems
+
 from nav.metrics.data import get_metric_average
 from nav.metrics.graphs import get_metric_meta
 from nav.metrics.templates import metric_path_for_interface
@@ -103,7 +105,7 @@ def get_traffic_for(interfaces):
             targets.append(target)
 
     data = get_metric_average(sorted(targets), start=TRAFFIC_TIMEPERIOD)
-    for metric, value in data.iteritems():
+    for metric, value in iteritems(data):
         interface = metric_mapping[metric]
         if INOCTETS in metric:
             traffic[interface].update({INOCTETS: value})
@@ -156,7 +158,7 @@ def get_interface_data(interface):
                for counter in (INOCTETS, OUTOCTETS)]
     targets = [get_metric_meta(t)['target'] for t in targets]
     data = get_metric_average(targets, start=TRAFFIC_TIMEPERIOD)
-    for key, value in data.iteritems():
+    for key, value in iteritems(data):
         if 'ifInOctets' in key:
             in_bps = value
         elif 'ifOutOctets' in key:

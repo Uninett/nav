@@ -1,0 +1,34 @@
+{% extends "seeddb/list.html" %}
+{% load crispy_forms_tags %}
+
+{% block row %}
+
+  {% for element in object.values_list %}
+    <td {% if object.description %}title="{{ object.description }}"{% endif %}
+        style="white-space: nowrap">
+      {% if forloop.first %}  {# first column is always sysname #}
+
+        {% if object.model.deleted_at %}
+        <a href="{{ object.url }}"><del>{{ element }}</del> {{object.master }}</a>
+        {% else %}
+        <a href="{{ object.url }}">{{ element }} {{object.master }}</a>
+        {% endif %}
+          {% if object.model.master %}
+              <span class="label secondary"
+                    title="This is a virtual instance of {{ object.model.master }}">V</span>
+          {% elif object.model.instances.all|length > 0 %}
+              <span class="label secondary"
+                    title="This is a master with virtual instances">M</span>
+          {% endif %}
+
+      {% else %}
+        {% if element and forloop.counter0 in censor_list %}
+          ******
+        {% else %}
+          {{ element|default_if_none:"" }}
+        {% endif %}
+      {% endif %}
+
+    </td>
+  {% endfor %}
+{% endblock %}

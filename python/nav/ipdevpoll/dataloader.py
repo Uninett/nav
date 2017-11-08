@@ -42,9 +42,17 @@ import django.db
 
 
 def load_netbox(netbox_id):
+    """Loads a single Netbox from the database, converted to a Shadow object.
+
+    :param netbox_id: A Netbox integer primary key.
+    :type netbox_id: int
+    :rtype: nav.ipdevpoll.shadows.netbox.Netbox
+
+    """
     related = ('room__location', 'type__vendor',
                'category', 'organization')
-    return manage.Netbox.objects.select_related(*related).get(id=netbox_id)
+    netbox = manage.Netbox.objects.select_related(*related).get(id=netbox_id)
+    return storage.shadowify(netbox)
 
 
 class NetboxLoader(dict):

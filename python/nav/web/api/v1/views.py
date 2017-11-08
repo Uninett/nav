@@ -17,17 +17,20 @@
 
 import logging
 from IPy import IP
+import django
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.db.models import Q
-from django.db.models.related import RelatedObject
+if django.VERSION < (1, 8):
+    from django.db.models.related import RelatedObject as _RelatedObject
+else:
+    from django.db.models.fields.related import ManyToOneRel as _RelatedObject
 from django.db.models.fields import FieldDoesNotExist
 from datetime import datetime, timedelta
 import iso8601
 
-from provider.utils import long_token
 from rest_framework import status, filters, viewsets, exceptions
-from rest_framework.decorators import api_view, renderer_classes
+from rest_framework.decorators import api_view, renderer_classes, list_route
 from rest_framework.reverse import reverse_lazy
 from rest_framework.renderers import (JSONRenderer, BrowsableAPIRenderer,
                                       TemplateHTMLRenderer)
@@ -39,11 +42,12 @@ from nav.models.api import APIToken
 from nav.models import manage, event, cabling, rack
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
+from nav.util import auth_token
 
 from nav.web.api.v1 import serializers, alert_serializers
 from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
 from .helpers import prefix_collector
-from .filter_backends import AlertHistoryFilterBackend, NaturalIfnameFilter
+from .filter_backends import *
 from nav.web.status2 import STATELESS_THRESHOLD
 
 EXPIRE_DELTA = timedelta(days=365)
@@ -114,6 +118,7 @@ def get_endpoints(request=None, version=1):
 
     return {
         'alert': reverse_lazy('{}alerthistory-list'.format(prefix), **kwargs),
+        'auditlog': reverse_lazy('{}auditlog-list'.format(prefix), **kwargs),
         'arp': reverse_lazy('{}arp-list'.format(prefix), **kwargs),
         'cabling': reverse_lazy('{}cabling-list'.format(prefix), **kwargs),
         'cam': reverse_lazy('{}cam-list'.format(prefix), **kwargs),
@@ -151,7 +156,7 @@ class RelatedOrderingFilter(filters.OrderingFilter):
                 model._meta.get_field_by_name(components[0])
 
             # reverse relation
-            if isinstance(field, RelatedObject):
+            if isinstance(field, _RelatedObject):
                 return self.is_valid_field(field.model, components[1])
 
             # foreign key
@@ -306,12 +311,26 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     - iftype
     - netbox
     - trunk
+    - module__name
+    - ifclass=[swport, gwport, physicalport, trunk]
+    - last_used (set this to for instance 1 to embed last used cam record)
+
+    Example: `/api/1/interface/?netbox=91&ifclass=trunk&ifclass=swport`
     """
     queryset = manage.Interface.objects.all()
-    serializer_class = serializers.InterfaceSerializer
     filter_fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
-                     'ifadminstatus', 'iftype', 'baseport')
+                     'ifadminstatus', 'iftype', 'baseport', 'module__name')
     search_fields = ('ifalias', 'ifdescr', 'ifname')
+
+    # NaturalIfnameFilter returns a list, so IfClassFilter needs to come first
+    filter_backends = NAVAPIMixin.filter_backends + (IfClassFilter, NaturalIfnameFilter)
+
+    def get_serializer_class(self):
+        request = self.request
+        if request.QUERY_PARAMS.get('last_used'):
+            return serializers.InterfaceWithCamSerializer
+        else:
+            return serializers.InterfaceSerializer
 
 
 class PatchViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
@@ -399,6 +418,9 @@ class MachineTrackerViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 class CamViewSet(MachineTrackerViewSet):
     """Lists all cam records.
 
+    *Because the number of cam records often is huge, the API does not support
+    fetching all and will ask you to use a filter if you try.*
+
     Filters
     -------
     - `active`: *set this to list only records that has not ended. This will
@@ -416,15 +438,25 @@ class CamViewSet(MachineTrackerViewSet):
     doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>.
     `end_time` timestamps shown as `"9999-12-31T23:59:59.999"` denote records
     that are still active.
-
     """
     model_class = manage.Cam
     serializer_class = serializers.CamSerializer
     filter_fields = ('mac', 'netbox', 'ifindex', 'port')
 
+    def list(self, request):
+        """Override list so that we can control what is returned"""
+        if not request.QUERY_PARAMS:
+            return Response("Cam records are numerous - use a filter",
+                            status=status.HTTP_400_BAD_REQUEST)
+        return super(CamViewSet, self).list(request)
+
+
 
 class ArpViewSet(MachineTrackerViewSet):
     """Lists all arp records.
+
+    *Because the number of arp records often is huge, the API does not support
+    fetching all and will ask you to use a filter if you try.*
 
     Filters
     -------
@@ -444,11 +476,17 @@ class ArpViewSet(MachineTrackerViewSet):
     doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>.
     `end_time` timestamps shown as `"9999-12-31T23:59:59.999"` denote records
     that are still active.
-
     """
     model_class = manage.Arp
     serializer_class = serializers.ArpSerializer
     filter_fields = ('mac', 'netbox', 'prefix')
+
+    def list(self, request):
+        """Override list so that we can control what is returned"""
+        if not request.QUERY_PARAMS:
+            return Response("Arp records are numerous - use a filter",
+                            status=status.HTTP_400_BAD_REQUEST)
+        return super(ArpViewSet, self).list(request)
 
     def get_queryset(self):
         """Customizes handling of the ip address filter"""
@@ -502,6 +540,21 @@ class PrefixViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     queryset = manage.Prefix.objects.all()
     serializer_class = serializers.PrefixSerializer
     filter_fields = ('vlan', 'net_address', 'vlan__vlan')
+
+    @list_route()
+    def search(self, request):
+        """Do string-like prefix searching. Currently only supports net_address.
+
+        """
+        net_address = request.GET.get('net_address', None)
+        if not net_address or net_address is None:
+            return Response("Empty search", status=status.HTTP_400_BAD_REQUEST)
+        query = "SELECT * FROM prefix WHERE text(netaddr) LIKE %s"
+        # Note: We assume people always know the beginning of a prefix, and
+        # need to drill down further. Hence the wildcard ("%") at the end.
+        queryset = manage.Prefix.objects.raw(query, [net_address + "%"])
+        results = self.get_serializer(queryset, many=True)
+        return Response(results.data)
 
 
 class RoutedPrefixList(NAVAPIMixin, ListAPIView):
@@ -771,7 +824,7 @@ def get_or_create_token(request):
     if request.account.is_admin():
         token, _ = APIToken.objects.get_or_create(
             client=request.account, expires__gte=datetime.now(),
-            defaults={'token': long_token(),
+            defaults={'token': auth_token(),
                       'expires': datetime.now() + EXPIRE_DELTA})
         return HttpResponse(str(token))
     else:

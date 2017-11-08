@@ -25,8 +25,7 @@ from django.db.models import Q
 from datetime import datetime, timedelta
 
 from nav.arnold import (open_port, disable, quarantine, GeneralException,
-                        find_id_information, find_input_type, check_target,
-                        NoDatabaseInformationError)
+                        find_id_information, find_input_type, check_target)
 from nav.models.arnold import (Identity, Justification, QuarantineVlan,
                                DetentionProfile)
 from nav.models.manage import Cam, Interface
@@ -49,7 +48,8 @@ def create_context(path, context):
         'navpath': navpath,
         'title': create_title(navpath)
     }
-    return dict(path_context.items() + context.items())
+    path_context.update(context)
+    return path_context
 
 
 def render_history(request):

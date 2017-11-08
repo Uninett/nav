@@ -31,7 +31,9 @@ this to allow asynchronous data retrieval.
 """
 
 import logging
-import operator
+
+from django.utils import six
+
 from twisted.internet import defer, reactor
 from twisted.internet.defer import returnValue
 from twisted.internet.error import TimeoutError
@@ -41,7 +43,7 @@ from nav.ipdevpoll.utils import fire_eventually
 from nav.errors import GeneralException
 from nav.oids import OID
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class MibRetrieverError(GeneralException):
@@ -324,11 +326,11 @@ class MibRetrieverMaker(type):
                          for node_name in cls.mib['nodes'].keys())
 
 
+@six.add_metaclass(MibRetrieverMaker)
 class MibRetriever(object):
     """Base class for functioning MIB retriever classes."""
     mib = None
     nodes = None
-    __metaclass__ = MibRetrieverMaker
     _logger = ContextLogger()
 
     def __init__(self, agent_proxy):
@@ -345,6 +347,7 @@ class MibRetriever(object):
 
     @defer.inlineCallbacks
     def get_next(self, object_name):
+        """Gets next sub-object of the named object"""
         oid = self.nodes[object_name].oid
         result = yield self.agent_proxy.walk(str(oid))
         if hasattr(result, 'items'):
@@ -365,7 +368,7 @@ class MibRetriever(object):
         if node.raw_mib_data['nodetype'] != 'column':
             self._logger.debug("%s is not a table column", column_name)
 
-        def resultFormatter(result):
+        def _result_formatter(result):
             formatted_result = {}
             # result keys may be OID objects/tuples or strings, depending on
             # snmp library used
@@ -392,7 +395,7 @@ class MibRetriever(object):
             return {}  # alternative is to retry or raise a Timeout exception
 
         deferred = self.agent_proxy.getTable([str(node.oid)])
-        deferred.addCallbacks(resultFormatter, _valueerror_handler)
+        deferred.addCallbacks(_result_formatter, _valueerror_handler)
         return deferred
 
     def retrieve_columns(self, column_names):
@@ -406,14 +409,14 @@ class MibRetriever(object):
           { row_index: MibTableResultRow instance }
 
         """
-        def sortkey(col):
+        def _sortkey(col):
             return self.nodes[col].oid
-        columns = iter(sorted(column_names, key=sortkey))
+        columns = iter(sorted(column_names, key=_sortkey))
 
         final_result = {}
         my_deferred = defer.Deferred()
 
-        def result_aggregate(result, column):
+        def _result_aggregate(result, column):
             for row_index, value in result.items():
                 if row_index not in final_result:
                     final_result[row_index] = \
@@ -422,18 +425,18 @@ class MibRetriever(object):
             return True
 
         # schedule the next iteration (i.e. collect next column)
-        def schedule_next(_result=None):
+        def _schedule_next(_result=None):
             try:
-                column = columns.next()
+                column = next(columns)
             except StopIteration:
                 my_deferred.callback(final_result)
                 return
             deferred = self.retrieve_column(column)
-            deferred.addCallback(result_aggregate, column)
-            deferred.addCallback(schedule_next)
+            deferred.addCallback(_result_aggregate, column)
+            deferred.addCallback(_schedule_next)
             deferred.addErrback(my_deferred.errback)
 
-        reactor.callLater(0, schedule_next)
+        reactor.callLater(0, _schedule_next)
         return my_deferred
 
     def retrieve_table(self, table_name):
@@ -451,7 +454,7 @@ class MibRetriever(object):
         """
         table = self.tables[table_name]
 
-        def resultFormatter(result):
+        def _result_formatter(result):
             formatted_result = {}
             for varlist in result.values():
                 # Build a table structure
@@ -481,7 +484,7 @@ class MibRetriever(object):
             return formatted_result
 
         deferred = self.agent_proxy.getTable([str(table.table.oid)])
-        deferred.addCallback(resultFormatter)
+        deferred.addCallback(_result_formatter)
         return deferred
 
     @classmethod
@@ -502,7 +505,7 @@ class MibRetriever(object):
         return result
 
     @defer.inlineCallbacks
-    def retrieve_column_by_index(self, column, index, translate=True):
+    def retrieve_column_by_index(self, column, index):
         """Retrieves the value of a specific column for a given row index"""
         if column not in self.nodes:
             raise ValueError("No such object in %s: %s",
@@ -620,7 +623,7 @@ class MultiMibMixIn(MibRetriever):
 
         """
         merged_dict = {}
-        for instance, result in results:
+        for _instance, result in results:
             if result is not None:
                 merged_dict.update(result)
         return merged_dict
@@ -681,6 +684,6 @@ def convert_oids(mib):
     """
     for node_name in mib['nodes']:
         node = mib['nodes'][node_name]
-        if isinstance(node['oid'], basestring):
+        if isinstance(node['oid'], six.string_types):
             #oid_tuple = tuple(int(i) for i in node['oid'].split('.'))
             node['oid'] = OID(node['oid'])

@@ -17,6 +17,7 @@ installdirs-local:
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/uploads
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/uploads/images
 	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/uploads/images/rooms
+	$(INSTALL) -m 2775 -d $(DESTDIR)$(localstatedir)/uploads/images/locations
 
 pyclean:
 	make -C bin pyclean

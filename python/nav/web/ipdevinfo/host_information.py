@@ -17,7 +17,7 @@
 
 
 import IPy
-from django.utils.functional import memoize
+from django.utils.lru_cache import lru_cache
 from nav import asyncdns
 
 from nav.util import is_valid_ip
@@ -56,4 +56,4 @@ def _get_host_info(host):
             addresses = list(reverse_lookup(addresses))
 
     return {'host': host, 'addresses': addresses}
-get_host_info = memoize(_get_host_info, {}, 1)
+get_host_info = lru_cache()(_get_host_info)

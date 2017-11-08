@@ -49,7 +49,6 @@ class MachineTrackerForm(forms.Form):
 
 class IpTrackerForm(MachineTrackerForm):
     """Form for searching by IP-address"""
-    # IPAddressField only supports IPv4 as of Django 1.1
     choices = [('active', 'Active'), ('inactive', 'Inactive'),
                ('both', 'Both')]
 
@@ -60,6 +59,9 @@ class IpTrackerForm(MachineTrackerForm):
                                       initial='active')
     netbios = forms.BooleanField(required=False, initial=False,
                                  help_text="Show netbios name (if any)")
+
+    source = forms.BooleanField(required=False, initial=False,
+                                help_text="Show which router the data is retrieved from")
 
     def clean_ip_range(self):
         """Clean the ip_range field"""

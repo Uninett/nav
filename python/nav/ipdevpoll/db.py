@@ -50,8 +50,10 @@ def django_debug_cleanup():
     query_count = len(django.db.connection.queries)
     if query_count:
         runtime = sum_django_queries_runtime()
-        _logger.debug("Removing %d logged Django queries "
+        thread= threading.current_thread()
+        _logger.debug("Thread %s/%s: Removing %d logged Django queries "
                       "(total time %.03f):\n%s",
+                      thread.ident, thread.name,
                       query_count, runtime,
                       pformat(django.db.connection.queries))
         django.db.reset_queries()

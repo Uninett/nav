@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """"linkState event plugin"""
+import copy
 
 from nav.config import ConfigurationError
 from nav.eventengine.alerts import AlertGenerator
@@ -43,6 +44,11 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
     def get_link_partner(self):
         """Returns the link partner of the target interface"""
         return self.get_target().to_netbox
+
+    def handle(self):
+        if self._is_a_master_for_virtualized_instances():
+            self._copy_event_for_instances()
+        return super(LinkStateHandler, self).handle()
 
     def _handle_end(self):
         self._post_event_if_aggregate_restored()  # always verify aggregates
@@ -159,6 +165,39 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
                  value=target.ifname).save()
         EventVar(event_queue=event, variable='aggregate_ifalias',
                  value=target.ifalias or '').save()
+
+    #
+    # Methods to handle duplication of events for virtualized netbox instances
+    #
+
+    def _is_a_master_for_virtualized_instances(self):
+        ifc = self.get_target()
+        return ifc and ifc.netbox and ifc.netbox.instances.count() > 0
+
+    def _copy_event_for_instances(self):
+        ifc = self.get_target()
+        netbox = ifc.netbox
+        for instance in netbox.instances.all():
+            self._copy_event_for_instance(netbox, instance, ifc)
+
+    def _copy_event_for_instance(self, netbox, instance, ifc):
+        try:
+            other_ifc = Interface.objects.get(netbox=instance,
+                                              ifname=ifc.ifname)
+        except Interface.DoesNotExist:
+            self._logger.info("interface %s does not exist on instance %s",
+                              ifc.ifname, instance)
+            return
+
+        new_event = copy.copy(self.event)  # type: nav.models.event.EventQueue
+        new_event.pk = None
+        new_event.netbox = instance
+        new_event.device = None
+        new_event.subid = other_ifc.pk
+
+        self._logger.info('duplicating linkState event for %s to %s',
+                          ifc, instance)
+        new_event.save()
 
 
 class LinkStateConfiguration(object):

@@ -22,17 +22,17 @@ from __future__ import print_function
 
 import sys
 import logging
-import ConfigParser
+import configparser
 from os.path import join
-from StringIO import StringIO
+from io import StringIO
 
-from nav.path import sysconfdir
+from nav.buildconf import sysconfdir
 import nav.errors
 
 _logger = logging.getLogger("nav.web.ldapauth")
 
 # Set default config params and read rest from file
-_default_config = StringIO("""
+_default_config = StringIO(u"""
 [ldap]
 enabled=no
 port=389
@@ -50,7 +50,7 @@ group_search=(member=%%s)
 encoding=utf-8
 """)
 
-_config = ConfigParser.SafeConfigParser()
+_config = configparser.SafeConfigParser()
 _config.readfp(_default_config)
 _default_config.close()
 _config.read(join(sysconfdir, 'webfront', 'webfront.conf'))
@@ -293,7 +293,7 @@ class LDAPUser(object):
         objects, the latter should work for posixGroup objects.
         """
         encoding = _config.get('ldap', 'encoding')
-        group_search = _config.get('ldap', 'group_search')
+        group_search = _config.get('ldap', 'group_search').encode(encoding)
         user_dn = self.get_user_dn().encode(encoding)
         # Match groupOfNames/groupOfUniqueNames objects
         try:

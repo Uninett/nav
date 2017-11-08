@@ -16,9 +16,8 @@
 """Module comment"""
 
 import os
-from django.shortcuts import render_to_response
 
-from nav.path import sysconfdir
+from nav.buildconf import sysconfdir
 from nav.web.navlets import Navlet
 from nav.web.webfront.utils import quick_read
 

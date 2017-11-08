@@ -17,14 +17,10 @@
 
 from datetime import datetime
 from django import forms
-from collections import defaultdict
 from itertools import groupby
 from operator import attrgetter
 
 from nav.models.event import AlertHistory
-from nav.models.fields import INFINITY
-from nav.models.manage import Room
-from . import Navlet
 
 from nav.web.navlets.status2 import Status2Widget
 
@@ -38,7 +34,7 @@ class RoomStatus(Status2Widget):
     is_title_editable = False
 
     def get_template_basename(self):
-        return 'roomstatus'
+        return 'room_location_status'
 
     def get_context_data_view(self, context):
         context = super(RoomStatus, self).get_context_data_view(context)
@@ -56,8 +52,12 @@ class RoomStatus(Status2Widget):
                                                        language='en')
             rooms.append(room)
 
-        context['rooms'] = rooms
+        context['items'] = rooms
         context['last_update'] = datetime.now()
+        context['name'] = 'room'
+        context['name_plural'] = 'rooms'
+        context['history_route'] = 'devicehistory-view-room'
+        context['info_route'] = 'room-info'
         return context
 
     def get_context_data_edit(self, context):

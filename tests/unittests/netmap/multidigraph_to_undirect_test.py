@@ -1,11 +1,14 @@
 from __future__ import print_function
 
 import unittest
+
+from django.utils import six
+
 from nav.netmap import topology
 from nav.netmap.topology import build_netmap_layer2_graph
 
-from topology_layer2_testcase import TopologyLayer2TestCase
-from topology_layer3_testcase import TopologyLayer3TestCase
+from .topology_layer2_testcase import TopologyLayer2TestCase
+from .topology_layer3_testcase import TopologyLayer3TestCase
 
 
 class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
@@ -19,13 +22,11 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
 
     # [1 / 2]
     def test_nodes_length_of_orignal_graph_consists_with_nav_topology_behavior(self):
-        self.assertEquals(4, len(self.nav_graph.nodes()), msg="Original NAV graph should only contain 2 nodes, it contains: "+unicode(self.nav_graph.nodes()))
+        self.assertEquals(4, len(self.nav_graph.nodes()), msg="Original NAV graph should only contain 2 nodes, it contains: "+six.text_type(self.nav_graph.nodes()))
 
     # [2 / 2]
     def test_edges_length_of_orginal_graph_consists_with_nav_topology_behavior(self):
         self.assertEquals(6, len(self.nav_graph.edges()))
-
-
 
     # netmap graphs tests below
 
@@ -71,6 +72,7 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
                              self.b
                          ).get('metadata', [])))
 
+
 class Layer3MultiGraphToUndirectTests(TopologyLayer3TestCase):
 
     def test_nodes_length_of_orignal_graph_consists_with_nav_topology_behavior(self):
@@ -89,17 +91,13 @@ class Layer3MultiGraphToUndirectTests(TopologyLayer3TestCase):
         self.assertEqual(6, len(self.netmap_graph.edges()))
 
     def test_layer3_edges_is_as_expected_in_netmap_graph(self):
-        self.assertEqual(
-            [
-                (self.a, self.b),
-                (self.a, self.c),
-                (self.b, self.d),
-                (self.b, self.e),
-                (self.d, self.e),
-                (self.f, self.unknown)
-            ],
-            self.netmap_graph.edges()
-        )
+        for edge in [(self.a, self.b),
+                     (self.a, self.c),
+                     (self.b, self.d),
+                     (self.b, self.e),
+                     (self.d, self.e),
+                     (self.f, self.unknown)]:
+            self.assertTrue(self.netmap_graph.has_edge(*edge))
 
     def test_layer3_only_one_vlan_on_all_edges(self):
         """

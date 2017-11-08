@@ -18,7 +18,7 @@
 import datetime
 from django.db import transaction
 
-from nav.models.manage import Category, Room, Organization, Netbox
+from nav.models.manage import Netbox
 from nav.bulkparse import NetboxBulkParser
 from nav.bulkimport import NetboxImporter
 
@@ -26,7 +26,6 @@ from nav.web.seeddb import SeeddbInfo, reverse_lazy
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher
 from nav.web.seeddb.utils.list import render_list
-from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 from nav.web.seeddb.utils.bulk import render_bulkimport
@@ -64,6 +63,7 @@ def netbox_list(request):
     return render_list(request, query, value_list, 'seeddb-netbox-edit',
                        edit_url_attr='pk',
                        filter_form=filter_form,
+                       template='seeddb/list_netbox.html',
                        extra_context=info.template_context,
                        censor_list=create_index_list(
                            value_list,
@@ -81,7 +81,8 @@ def netbox_delete(request):
     return render_delete(request, Netbox, 'seeddb-netbox',
                          whitelist=SEEDDB_EDITABLE_MODELS,
                          extra_context=info.template_context,
-                         pre_delete_operation=netbox_pre_deletion_mark)
+                         pre_delete_operation=netbox_pre_deletion_mark,
+                         delete_operation=None)
 
 
 @transaction.atomic

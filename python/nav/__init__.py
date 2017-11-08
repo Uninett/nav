@@ -47,7 +47,7 @@ class ObjectCache(dict):
 
         """
         count = 0
-        for key in self.keys():
+        for key in list(self.keys()):
             if self[key].is_invalid():
                 del self[key]
                 count += 1

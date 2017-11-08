@@ -1,12 +1,12 @@
 {% if event.state == event.STATE_START %}
 Subject: Weathergoose {{ goosename }}: temperature threshold exceeded
 
-Sensorname: {% firstof sensorname "N/A" %}
+Sensorname: {{ sensorname|default:"N/A" }}
 Threshold: {{ triptype }}
 {{ climatedescr }}: {{ climatevalue }}
 {% else %}
 Subject: Weathergoose {{ goosename }}: temperature threshold clear
 
-Sensorname: {% firstof sensorname "N/A" %}
+Sensorname: {{ sensorname|default:"N/A" }}
 {{ climatedescr }}: {{ climatevalue }}
 {% endif %}

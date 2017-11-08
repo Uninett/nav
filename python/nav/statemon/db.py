@@ -24,7 +24,10 @@ is used at a time.
 from __future__ import absolute_import
 
 import threading
-import Queue
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 import time
 import atexit
 from collections import defaultdict
@@ -65,7 +68,7 @@ class _DB(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.setDaemon(1)
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
         self._hosts_to_ping = []
         self._checkers = []
         self.db = None
@@ -80,7 +83,7 @@ class _DB(threading.Thread):
             LOGGER.info("Successfully (re)connected to NAVdb")
             # Set transaction isolation level to READ COMMITTED
             self.db.set_isolation_level(1)
-        except Exception as err:
+        except Exception:
             LOGGER.critical("Couldn't connect to db.", exc_info=True)
             self.db = None
 
@@ -123,8 +126,9 @@ class _DB(threading.Thread):
                                     err.pgcode)
                     raise
         except Exception as err:
-            LOGGER.critical("Could not get cursor. Trying to reconnect...",
-                            exc_info=True)
+            if self.db is not None:
+                LOGGER.critical("Could not get cursor. Trying to reconnect...",
+                                exc_info=True)
             self.close()
             self.connect()
             cursor = self.db.cursor()
@@ -161,7 +165,7 @@ class _DB(threading.Thread):
             if commit:
                 self.db.commit()
             return cursor.fetchall()
-        except Exception as err:
+        except Exception:
             LOGGER.critical("Failed to execute query: %s",
                             cursor.query if cursor else statement,
                             exc_info=True)
@@ -189,13 +193,13 @@ class _DB(threading.Thread):
                     self.db.commit()
                 except Exception:
                     LOGGER.critical("Failed to commit")
-        except psycopg2.IntegrityError as err:
+        except psycopg2.IntegrityError:
             LOGGER.critical("Database integrity error, throwing away update",
                             exc_info=True)
             LOGGER.debug("Tried to execute: %s", cursor.query)
             if commit:
                 self.db.rollback()
-        except Exception as err:
+        except Exception:
             LOGGER.critical("Could not execute statement: %s",
                             cursor.query if cursor else statement,
                             exc_info=True)
@@ -308,7 +312,7 @@ class _DB(threading.Thread):
                 new_checker = checker(service, **kwargs)
             except Exception:
                 LOGGER.critical("Checker %s (%s) failed to init. This checker "
-                                "will remain DISABLED:\n%s",  handler, checker,
+                                "will remain DISABLED:",  handler, checker,
                                 exc_info=True)
                 continue
 
@@ -318,5 +322,5 @@ class _DB(threading.Thread):
                 setattr(new_checker, 'active', active)
 
             self._checkers += [new_checker]
-        LOGGER.info("Returned %s checkers" , len(self._checkers))
+        LOGGER.info("Returned %s checkers", len(self._checkers))
         return self._checkers

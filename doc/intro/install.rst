@@ -18,7 +18,7 @@ To build NAV, you need at least the following:
  * make
  * automake
  * autoconf
- * Python >= 2.7.0
+ * Python >= 2.7.0 < 3
  * Sphinx >= 1.0 (for building this documentation)
  * A `sass` compiler >= 3.2.12, < 3.4 to build the NAV web interface's stylesheets.
    Installing the rubygem `sass` or using the package `ruby-sass` from the
@@ -61,7 +61,7 @@ follows:
           forced to resort to using :mod:`twistedsnmp`, the :file:`contrib/patches`
           directory contains a recommended patch for this problem.
 
-.. _Graphite: http://graphite.wikidot.com/
+.. _Graphite: http://graphiteapp.org/
 
 Recommended add-ons
 -------------------

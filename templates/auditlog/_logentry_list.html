@@ -1,0 +1,56 @@
+{% if object_list.exists %}
+<table id="auditlog" class="listtable full-width">
+<thead>
+<tr>
+    <th>Timestamp</th>
+    <th>Actor</th>
+    <th>Verb</th>
+    <th>Object</th>
+    <th>Target</th>
+    <th>Summary</th>
+</tr>
+</thead>
+</table>
+{% else %}
+No auditlog for {{ auditmodel }}.
+{% endif %}
+<script type="text/javascript">
+    require(['libs/datatables.min'], function(){
+        var dt_config = {
+            ajax: {
+                url: '/api/1/auditlog/',
+                dataSrc: 'results',
+                {% if auditlog_api_parameters %}data: {{ auditlog_api_parameters|safe }}{% endif %}
+            },
+            columns: [
+                { 'data': 'timestamp' },
+                { 'data': 'actor' },
+                { 'data': 'verb' },
+                { 'data': 'object' },
+                { 'data': 'target' },
+                { 'data': 'summary' }
+            ],
+            bAutoWidth: false,
+            bFilter: false,
+            bInfo: false,
+            bSort: true,
+            order: [[0, 'desc']],
+            paging: true,
+            pagingType: 'full_numbers',
+            lengthChange: true,  // Change number of visible rows
+            lengthMenu: [
+                [10, 25, 50, -1],   // Choices for number of rows to display
+                [10, 25, 50, "All"] // Text for the choices
+            ],
+            drawCallback: drawCallback,
+        };
+
+        $('table#auditlog').DataTable(dt_config);
+        function drawCallback(oSettings) {
+            $('.paginate_button').removeClass('secondary').addClass('button tiny');
+            $('.paginate_button.current').addClass('secondary');
+            $('.ellipsis').addClass('button tiny secondary disabled paginate_button');
+        }
+
+    });
+</script>

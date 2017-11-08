@@ -168,7 +168,7 @@ def user_exists(username):
     except subprocess.CalledProcessError:
         die("Failed checking for the existence of user %s" % username)
 
-    return username in output
+    return username in output.decode('UTF-8')
 
 
 def create_user(username, password):
@@ -201,7 +201,7 @@ def install_pl_pgsql(dbname):
         popen, ["createlang", "-l", dbname],
         stdout=subprocess.PIPE)
 
-    output = process.communicate()[0]
+    output = process.communicate()[0].decode('UTF-8')
     if 'plpgsql' not in output.lower():
         trap_and_die(
             subprocess.CalledProcessError,
@@ -271,11 +271,12 @@ class Synchronizer(object):
         )
 
     schemas = [
-        ('manage', 'manage.sql', 'types.sql', 'snmpoid.sql'),
+        ('manage', 'manage.sql', 'types.sql'),
         ('profiles', 'navprofiles.sql'),
         ('logger', 'logger.sql'),
         ('arnold', 'arnold.sql'),
         ('radius', 'radius.sql'),
+        ('manage', 'manage2.sql'),
         (None, 'indexes.sql'),
         ]
 
@@ -321,11 +322,11 @@ class Synchronizer(object):
                        if wanted not in schemas]
 
         if add_schemas:
+            print(("Existing namespaces in %s search path: %s. Adding %s." %
+                   (self.connect_options.dbname, ", ".join(schemas), ", ".join(add_schemas))))
             schemas.extend(add_schemas)
-            print(("Adding namespaces to %s search_path: %s" %
-                   (self.connect_options.dbname, ", ".join(add_schemas))))
             sql = ('ALTER DATABASE "%s" SET search_path TO %s' %
-                   (self.connect_options.dbname, ", ".join(add_schemas)))
+                   (self.connect_options.dbname, ", ".join(schemas)))
             self.cursor.execute(sql)
         self.connection.commit()
         self.connect() # must reconnect to activate the new search path
@@ -390,7 +391,8 @@ class Synchronizer(object):
                      "Failed to install the hstore extension, maybe you need "
                      "to run as the postgres superuser?",
                      check_call,
-                     ["psql", "--quiet", "-c", "CREATE EXTENSION hstore;",
+                     ["psql", "--quiet", "-c", "CREATE EXTENSION hstore "
+                                               "WITH SCHEMA manage;",
                       self.connect_options.dbname])
 
     def install_baseline(self):
@@ -502,7 +504,7 @@ class Synchronizer(object):
         Terminates the process if there are errors.
 
         """
-        sql = file(filename, 'rb').read()
+        sql = open(filename, 'rb').read()
         print_color("%-20s " % (filename + ":"), COLOR_CYAN, newline=False)
         try:
             self.cursor.execute(sql)

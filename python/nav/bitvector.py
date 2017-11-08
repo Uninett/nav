@@ -14,8 +14,11 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Bit vector manipulation."""
+from __future__ import absolute_import
 import array
 import re
+
+from django.utils import six
 
 
 class BitVector(object):
@@ -31,14 +34,14 @@ class BitVector(object):
     def __init__(self, octetstring):
         self.vector = array.array("B", octetstring)
 
-    def __str__(self):
+    def to_bytes(self):
         return self.vector.tostring()
 
     def __len__(self):
         return len(self.vector)*8
 
     def __repr__(self):
-        return "<%s %s>" % (self.__class__.__name__, repr(str(self)))
+        return "%s(%s)" % (self.__class__.__name__, repr(self.to_bytes()))
 
     def __setitem__(self, posn, val):
         """
@@ -46,7 +49,7 @@ class BitVector(object):
         significant bit is regarded as bit 0 in this context.
         """
         val = val and 1 or 0
-        block = posn / 8
+        block = posn // 8
         shift = posn & 7
         block_value = self.vector[block]
         if (block_value << shift) & 128 and 1 or 0 != val:
@@ -66,7 +69,7 @@ class BitVector(object):
                 result.append(self[i])
             return result
         else:
-            block = posn / 8
+            block = posn // 8
             shift = posn & 7
             return (self.vector[block] << shift) & 128 and 1 or 0
 
@@ -79,7 +82,7 @@ class BitVector(object):
         if len(hexstring) % 2 != 0:
             raise ValueError("hexstring must contain an even number of digits")
         hex_octets = [hexstring[i:i+2] for i in range(0, len(hexstring), 2)]
-        octetstring = ''.join([chr(int(octet, 16)) for octet in hex_octets])
+        octetstring = b''.join([six.int2byte(int(octet, 16)) for octet in hex_octets])
         return cls(octetstring)
 
     def to_binary(self):

@@ -22,20 +22,21 @@ from __future__ import absolute_import
 
 import re
 import os
-import ConfigParser
+import configparser
+
 import logging
 import socket
 from datetime import datetime, timedelta
-from IPy import IP
 from subprocess import Popen, PIPE
 from collections import namedtuple
 from smtplib import SMTPException
+
+from IPy import IP
 
 import nav.Snmp
 from nav.Snmp.errors import AgentError
 import nav.bitvector
 import nav.buildconf
-from nav import logs
 from nav.errors import GeneralException
 from nav.models.arnold import Identity, Event
 from nav.models.manage import Interface, Prefix
@@ -454,13 +455,13 @@ def change_port_vlan(identity, vlan):
 
     agent = SNMPFactory().get_instance(netbox)
     try:
-        fromvlan = agent.get_vlan(interface.ifindex)
+        fromvlan = agent.get_vlan(interface)
     except Exception as error:
         raise ChangePortVlanError(error)
     else:
         LOGGER.info('Setting vlan %s on interface %s', vlan, interface)
         try:
-            agent.set_vlan(interface.ifindex, vlan)
+            agent.set_vlan(interface, vlan)
             agent.restart_if(interface.ifindex)
         except Exception as error:
             raise ChangePortVlanError(error)
@@ -549,7 +550,7 @@ def compute_octet_string(hexstring, port, action='enable'):
     else:
         bit[port] = 0
 
-    return str(bit)
+    return bit.to_bytes()
 
 
 @Memo
@@ -586,7 +587,7 @@ def parse_nonblock_file(filename):
 @Memo
 def get_config(configfile):
     """Get config from file"""
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(configfile)
     return config
 

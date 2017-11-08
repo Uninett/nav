@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # -*- notest -*-
 #
-# Copyright 2008 University of Tromsø 
+# Copyright 2008 University of Tromsø
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -41,7 +41,6 @@ import os
 
 import re
 from time import mktime, strptime
-import glob
 import datetime
 
 # Configuration settings.
@@ -63,7 +62,7 @@ def main(args):
         db_params = (dbhost, dbport, dbname, dbuser, dbpasswd)
         connection = psycopg2.connect("host=%s port=%s dbname=%s user=%s "
                                       "password=%s" % db_params)
-    except psycopg2.OperationalError, e:
+    except psycopg2.OperationalError as e:
         print("An error occured while connecting to the database:\n\n\'%s\'" % (str(e)[:-1]))
         sys.exit(1)
 
@@ -84,7 +83,7 @@ def main(args):
 
     try:
         # Open DEBUG Logfile.
-        f = file(my_logfile, 'w+')
+        f = open(my_logfile, 'w+')
         f.write("\n\n\n\n****************** Script restarted *****************\n")
 
         for line in t:
@@ -92,7 +91,7 @@ def main(args):
             # Check if the line is parseable
             try:
                 row = Row(parse_line(line))
-            except AttributeError, e:
+            except AttributeError as e:
                 print("AttributeError: " + line)
 
             # We want to look for octals in the messages
@@ -143,7 +142,7 @@ def main(args):
                     sqlParameters = (row.time, row.type, row.message, row.status, row.user, row.client, row.port)
                     try:
                         database.execute(sqlQuery, sqlParameters)
-                    except psycopg2.ProgrammingError, e:
+                    except psycopg2.ProgrammingError as e:
                         # Write error to log
                         f.write("Query failed:\n")
                         f.write(str(e) + "\n\n\n")
@@ -176,7 +175,7 @@ def pid_running(pidfile="/tmp/radiusparser_po.pid"):
 
     try:
         # Read pid from pidfile
-        pf = file(pidfile, 'r')
+        pf = open(pidfile, 'r')
         pid = int(pf.read().strip())
         pf.close()
     except (IOError, ValueError):
@@ -192,7 +191,7 @@ def pid_running(pidfile="/tmp/radiusparser_po.pid"):
 
     except (OSError, TypeError):
         # Create/update PID-file
-        pf = file(pidfile, 'w')
+        pf = open(pidfile, 'w')
         pf.write(str(os.getpid()))
 
         return False

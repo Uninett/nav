@@ -35,6 +35,11 @@ class BridgeMib(mibretriever.MibRetriever):
         return df.addCallback(reduce_index)
 
     @defer.inlineCallbacks
+    def get_base_bridge_address(self):
+        addr = yield self.retrieve_column_by_index('dot1dBaseBridgeAddress', (0,))
+        defer.returnValue(addr)
+
+    @defer.inlineCallbacks
     def get_forwarding_database(self):
         """Retrieves the forwarding database of the device."""
         columns = yield self.retrieve_columns(['dot1dTpFdbPort',

@@ -5,6 +5,7 @@
 # similar to Python to make it beneficial to edit the file in Python
 # mode.
 
+
 def variant(normal, "Map with sensitive information"):
 
     template_file(node_popup, "popup_place.html")
@@ -52,7 +53,7 @@ def variant(normal, "Map with sensitive information"):
         if True:
             (10, "> 20")
 
-    
+
 def variant(open, "Map with open information"):
 
     template_file(node_popup, "popup_place_open.html")

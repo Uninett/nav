@@ -2,13 +2,18 @@
 
 import calendar
 from datetime import datetime, timedelta
-from collections import namedtuple
+from collections import defaultdict, namedtuple
+
+from nav.models.event import AlertHistory
+from nav.models.manage import Interface
+from nav.models.profiles import ReportSubscription
+from django.db.models import Q
 
 AvailabilityRecord = namedtuple(
     'AvailabilityRecord', ['subject', 'incidents', 'downtime', 'availability'])
 
 
-def get_interval(sometime, _interval='month'):
+def get_interval(sometime, interval):
     """Gets the interval for some time
 
     :param sometime: A datetime.datetime object
@@ -18,9 +23,17 @@ def get_interval(sometime, _interval='month'):
     """
     year = sometime.year
     month = sometime.month
-    _day, days = calendar.monthrange(year, month)
-    start = datetime(year, month, 1)
-    end = datetime(year, month, days) + timedelta(days=1)
+    if interval == ReportSubscription.MONTH:
+        _day, days = calendar.monthrange(year, month)
+        start = datetime(year, month, 1)
+        end = datetime(year, month, days) + timedelta(days=1)
+    elif interval == ReportSubscription.WEEK:
+        start = sometime - timedelta(days=sometime.weekday())
+        end = start + timedelta(days=7)
+    else:
+        # interval is one day
+        start = sometime
+        end = start + timedelta(days=1)
     return start, end
 
 
@@ -81,3 +94,48 @@ def create_record(subject, alerts, start, end):
     downtime = downtime - timedelta(microseconds=downtime.microseconds)
 
     return AvailabilityRecord(subject, alerts, downtime, availability)
+
+
+def get_alerts(start, end, eventtype='boxState', alerttype='boxDown'):
+    """Gets the alerts for the given start-end interval"""
+    return AlertHistory.objects.filter(
+        event_type=eventtype, end_time__isnull=False,
+        alert_type__name=alerttype).filter(
+            Q(end_time__range=(start, end)) |
+            Q(start_time__range=(start, end)) |
+            (Q(start_time__lte=start) & Q(end_time__gte=end)
+            )).order_by('-start_time')
+
+
+def group_by_netbox(alerts):
+    """Group alerts by netbox"""
+    grouped_alerts = defaultdict(list)
+    for alert in alerts:
+        grouped_alerts[alert.netbox].append(alert)
+    return grouped_alerts
+
+
+def group_by_interface(alerts):
+    grouped_alerts = defaultdict(list)
+    for alert in alerts:
+        try:
+            interface = Interface.objects.get(pk=alert.subid)
+        except Interface.DoesNotExist:
+            continue
+        else:
+            grouped_alerts[interface].append(alert)
+    return grouped_alerts
+
+
+def get_netbox_records(start, end):
+    alerts = get_alerts(start, end, 'boxState', 'boxDown')
+    grouped_alerts = group_by_netbox(alerts)
+    return [create_record(subject, alerts, start, end)
+            for subject, alerts in grouped_alerts.items()]
+
+
+def get_interface_records(start, end):
+    alerts = get_alerts(start, end, 'linkState', 'linkDown')
+    grouped_alerts = group_by_interface(alerts)
+    return [create_record(subject, alerts, start, end)
+            for subject, alerts in grouped_alerts.items()]

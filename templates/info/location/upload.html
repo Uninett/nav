@@ -1,0 +1,53 @@
+{% extends "info/location/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block base_header_additional_head %}
+  <link href="{{ STATIC_URL }}css/nav/info_room.css" rel="stylesheet">
+  <link href="{{ STATIC_URL }}css/nav/jquery-ui-1.8.21.custom.css"
+        rel="stylesheet">
+  <script>require(["src/image_upload"]);</script>
+  <script>
+    NAV.urls['image-update-title'] = "{% url 'image-update-title' %}";
+    NAV.urls['image-delete-image'] = "{% url 'image-delete-image' %}";
+    NAV.urls['image-update-priority'] = "{% url 'image-update-priority' %}";
+  </script>
+  <style>
+    {# Styles for the form file input #}
+    .inputfile {
+      width: 0.1px;
+      height: 0.1px;
+      opacity: 0;
+      overflow: hidden;
+      position: absolute;
+      z-index: -1;
+    }
+
+    .fa.fa-upload { margin-right: .8em; }
+
+  </style>
+{% endblock %}
+
+{% block base_content %}
+
+  <div class="row">
+    <div class="column small-12">
+      <a href="#" data-reveal-id="add_image_help" class="small secondary button right" data-reveal>Help</a>
+      <h3>Images for &laquo;{{ object.id }}&raquo;</h3>
+    </div>
+  </div>
+
+  <div id="add_image_help" class="reveal-modal" data-reveal>
+    <ul class="inside">
+      <li>
+        Add an image by clicking the file dialog, locating the image you want and clicking "Upload image"
+      </li>
+      <li>
+        Sort the images by dragging the <i class="fa fa-arrows"></i> (if more than 1 image)
+      </li>
+    </ul>
+  </div>
+
+  <p><a href="{% url 'location-info' object.id %}">Back to location</a></p>
+
+  {% include 'info/images/upload.html' %}
+{% endblock %}

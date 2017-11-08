@@ -241,7 +241,7 @@ def set_active_profile(request, profile):
     preference.active_profile = profile
     preference.save()
     new_message(request,
-                'Active profile automatically set to {}'.format(profile.name),
+                u'Active profile automatically set to {}'.format(profile.name),
                 Messages.NOTICE)
 
 

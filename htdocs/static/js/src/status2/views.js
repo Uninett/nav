@@ -36,6 +36,7 @@ define([
             this.setDefaultButton = this.$el.find('.set-default');
             this.toggleButton = this.$('.toggle-panel');
             this.checkStorage();
+            $('#status-page').show();
 
         },
 

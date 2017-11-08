@@ -1,0 +1,81 @@
+{% extends 'navlets/base.html' %}
+
+{% block navlet-content %}
+
+  {% if items %}
+
+    <div class="accordion">
+      {% for item in items %}
+        <h3 data-itemid="{{ item.pk }}">
+          {{ item }}
+          <small class="label radius alert"
+                 title="{{ item.alerts|length }} alerts in {{ item.pk }}">
+            {{ item.alerts|length }}
+          </small>
+        </h3>
+        <div>
+          <a href="{% url history_route item.pk %}"
+             title="Go to device history for this {{name}}">Alerts</a>
+          in
+          <a href="{% url info_route item.pk %}"
+             title="Go to {{name}} info for this {{name}}">{{ item.pk }}</a>
+
+          <ul>
+            {% for alert in item.alerts %}
+              <li>
+                {{ alert.start_time }} &ndash;
+                <a href="{{ alert.netbox.get_absolute_url }}"
+                   title="Go to device info for this device">
+                  {{ alert.sms_message.message }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endfor %}
+    </div>
+
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui.css">
+    <script>
+      require(['libs/jquery-ui.min'], function () {
+        var $navlet = $('[data-id={{ navlet.navlet_id }}]');
+
+        $navlet.find('.accordion').accordion({
+          active: getActiveHeaderIndex(),
+          collapsible: true,
+          heightStyle: 'content',
+          activate: function (event, ui) {
+            if (ui.newHeader.length) {
+              $navlet.data('active-header', ui.newHeader.data('itemid'));
+            } else {
+              $navlet.data('active-header', null);
+            }
+          }
+        });
+
+        function getActiveHeaderIndex() {
+          var activeHeader = $navlet.data('active-header');
+          var active = false;
+          if (activeHeader) {
+            $navlet.find('.accordion h3').each(function (index, element) {
+              if ($(element).data('itemid') === activeHeader) {
+                active = index;
+              }
+            });
+          }
+          return active;
+        }
+
+      });
+    </script>
+
+
+  {% else %}
+    <div class="alert-box success with-icon">No alerts in any {{name_plural}}</div>
+  {% endif %}
+
+  <small class="right">
+    Last update: <span class="last-update">{{ last_update }}</span>
+  </small>
+
+{% endblock %}

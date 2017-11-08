@@ -23,7 +23,7 @@ import logging
 from datetime import datetime
 
 from django.db import transaction, reset_queries
-from django.utils.functional import memoize
+from django.utils.lru_cache import lru_cache
 
 from nav.models.profiles import (Account, AccountAlertQueue, AlertSubscription,
                                  AlertAddress, FilterGroup, AlertPreference,
@@ -122,8 +122,7 @@ def check_alerts(debug=False):
 @transaction.atomic()
 def handle_new_alerts(new_alerts):
     """Handles new alerts on the queue"""
-    memoized_check_alert = memoize(check_alert_against_filtergroupcontents, {},
-                                   2)
+    memoized_check_alert = lru_cache()(check_alert_against_filtergroupcontents)
     logger = logging.getLogger('nav.alertengine.handle_new_alerts')
     accounts = []
 
@@ -447,7 +446,7 @@ def check_alert_against_filtergroupcontents(alert, filtergroupcontents, atype):
 
         # If we have not matched the message see if we can match it
         if not matches and content.include:
-            matches = content.filter.check(alert) == content.positive
+            matches = content.filter.verify(alert) == content.positive
 
             if matches:
                 logger.debug('alert %d: got included by filter %d in %s',
@@ -455,7 +454,7 @@ def check_alert_against_filtergroupcontents(alert, filtergroupcontents, atype):
 
         # If the alert has been matched try excluding it
         elif matches and not content.include:
-            matches = content.filter.check(alert) != content.positive
+            matches = content.filter.verify(alert) != content.positive
 
             # Log that we excluded the alert
             if not matches:

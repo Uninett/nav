@@ -17,13 +17,10 @@
 
 import httplib
 import socket
-from urlparse import urlsplit
-from nav import buildconf
-from nav.statemon.DNS import socktype_from_addr
-from nav.statemon.event import Event
-from nav.statemon.abstractchecker import AbstractChecker
 
 from ssl import wrap_socket
+
+from nav.statemon.checker.HttpChecker import HttpChecker
 
 
 class HTTPSConnection(httplib.HTTPSConnection):
@@ -34,59 +31,14 @@ class HTTPSConnection(httplib.HTTPSConnection):
         self.connect()
 
     def connect(self):
-        self.sock = socket.socket(socktype_from_addr(self.host),
-                                  socket.SOCK_STREAM)
-        self.sock.settimeout(self.timeout)
-        self.sock.connect((self.host, self.port))
+        self.sock = socket.create_connection((self.host, self.port),
+                                             self.timeout)
         self.sock = wrap_socket(self.sock)
 
 
-class HttpsChecker(AbstractChecker):
+class HttpsChecker(HttpChecker):
     """HTTPS"""
-    IPV6_SUPPORT = True
-    DESCRIPTION = "HTTPS"
-    OPTARGS = (
-        ('url', ''),
-        ('username', ''),
-        ('password', ''),
-        ('port', ''),
-        ('timeout', ''),
-    )
+    PORT = 443
 
-    def __init__(self, service, **kwargs):
-        AbstractChecker.__init__(self, service, port=0, **kwargs)
-
-    def execute(self):
-        ip, port = self.get_address()
-        url = self.args.get('url', '')
-        username = self.args.get('username')
-        password = self.args.get('password', '')
-        if not url:
-            url = "/"
-        _protocol, vhost, path, query, _fragment = urlsplit(url)
-
-        i = HTTPSConnection(self.timeout, ip, port or 443)
-
-        if vhost:
-            i.host = vhost
-
-        if '?' in url:
-            path = path + '?' + query
-        i.putrequest('GET', path)
-        i.putheader('User-Agent',
-                    'NAV/servicemon; version %s' % buildconf.VERSION)
-        if username:
-            auth = "%s:%s" % (username, password)
-            i.putheader("Authorization", "Basic %s" % auth.encode("base64"))
-        i.endheaders()
-        response = i.getresponse()
-        if 200 <= response.status < 400:
-            status = Event.UP
-            version = response.getheader('SERVER')
-            self.version = version
-            info = 'OK (%s) %s' % (str(response.status), version)
-        else:
-            status = Event.DOWN
-            info = 'ERROR (%s) %s' % (str(response.status), url)
-
-        return status, info
+    def connect(self, ip, port):
+        return HTTPSConnection(self.timeout, ip, port)

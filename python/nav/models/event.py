@@ -24,6 +24,7 @@ import datetime as dt
 
 from django.db import models
 from django.db.models import Q
+from django.utils.encoding import python_2_unicode_compatible
 
 from nav.models.fields import VarcharField, DateTimeInfinityField, UNRESOLVED
 
@@ -40,6 +41,7 @@ STATE_CHOICES = (
 )
 
 
+@python_2_unicode_compatible
 class Subsystem(models.Model):
     """From NAV Wiki: Defines the subsystems that post or receives an event."""
 
@@ -49,7 +51,7 @@ class Subsystem(models.Model):
     class Meta(object):
         db_table = 'subsystem'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 #######################################################################
@@ -182,6 +184,7 @@ class StateVariableMap(VariableMapBase):
                     variable.save()
 
 
+@python_2_unicode_compatible
 class UnknownEventSubject(object):
     """Representation of unknown alert/event subjects"""
     def __init__(self, alert):
@@ -194,7 +197,7 @@ class UnknownEventSubject(object):
         if self.netbox:
             return self.netbox.get_absolute_url()
 
-    def __unicode__(self):
+    def __str__(self):
         descr = self._get_description_from_message()
         if descr:
             return descr
@@ -272,6 +275,7 @@ class EventMixIn(object):
         return self.netbox or u"N/A"
 
 
+@python_2_unicode_compatible
 class ThresholdEvent(object):
     """
     Magic class to act as a threshold event subject that produces useful
@@ -289,7 +293,7 @@ class ThresholdEvent(object):
         from nav.metrics.lookup import lookup
         self.subject = lookup(self.metric)
 
-    def __unicode__(self):
+    def __str__(self):
         subject = self.subject or self.metric
         if self.rule:
             descr = self.rule.description or self.rule.alert
@@ -312,6 +316,7 @@ class ThresholdEvent(object):
                 return self.subject.netbox.get_absolute_url()
 
 
+@python_2_unicode_compatible
 class EventQueue(models.Model, EventMixIn):
     """From NAV Wiki: The event queue. Additional data in eventqvar. Different
     subsystem (specified in source) post events on the event queue. Normally
@@ -349,7 +354,7 @@ class EventQueue(models.Model, EventMixIn):
             for attr in ('id', 'event_type_id', 'source_id', 'target_id',
                          'netbox', 'subid', 'state', 'time'))
 
-    def __unicode__(self):
+    def __str__(self):
         string = ("{self.event_type} {state} event for {self.netbox} "
                   "(subid={self.subid}) from {self.source} to {self.target} "
                   "at {self.time}")
@@ -364,6 +369,7 @@ class EventQueue(models.Model, EventMixIn):
             self.varmap = self.varmap
 
 
+@python_2_unicode_compatible
 class EventType(models.Model):
     """From NAV Wiki: Defines event types."""
 
@@ -382,16 +388,17 @@ class EventType(models.Model):
     class Meta(object):
         db_table = 'eventtype'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.id
 
 
+@python_2_unicode_compatible
 class EventQueueVar(models.Model):
     """From NAV Wiki: Defines additional (key,value) tuples that follow
     events."""
 
     event_queue = models.ForeignKey('EventQueue', db_column='eventqid',
-        related_name='variables')
+                                    related_name='variables')
     variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 
@@ -399,13 +406,14 @@ class EventQueueVar(models.Model):
         db_table = 'eventqvar'
         unique_together = (('event_queue', 'variable'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s=%s' % (self.variable, self.value)
 
 #######################################################################
 ### Alert system
 
 
+@python_2_unicode_compatible
 class AlertQueue(models.Model, EventMixIn):
     """From NAV Wiki: The alert queue. Additional data in alertqvar and
     alertmsg. Event engine posts alerts on the alert queue (and in addition on
@@ -441,7 +449,7 @@ class AlertQueue(models.Model, EventMixIn):
     class Meta(object):
         db_table = 'alertq'
 
-    def __unicode__(self):
+    def __str__(self):
         return u'Source %s, state %s, severity %d' % (
             self.source, self.get_state_display(), self.severity)
 
@@ -453,6 +461,7 @@ class AlertQueue(models.Model, EventMixIn):
             self.varmap = self.varmap
 
 
+@python_2_unicode_compatible
 class AlertType(models.Model):
     """From NAV Wiki: Defines the alert types. An event type may have many alert
     types."""
@@ -466,10 +475,11 @@ class AlertType(models.Model):
         db_table = 'alerttype'
         unique_together = (('event_type', 'name'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s, of event type %s' % (self.name, self.event_type)
 
 
+@python_2_unicode_compatible
 class AlertQueueMessage(models.Model):
     """From NAV Wiki: Event engine will, based on alertmsg.conf, preformat the
     alarm messages, one message for each configured alert channel (email, sms),
@@ -487,10 +497,11 @@ class AlertQueueMessage(models.Model):
         db_table = 'alertqmsg'
         unique_together = (('alert_queue', 'type', 'language'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s message in language %s' % (self.type, self.language)
 
 
+@python_2_unicode_compatible
 class AlertQueueVariable(models.Model):
     """From NAV Wiki: Defines additional (key,value) tuples that follow alert.
     Note: the eventqvar tuples are passed along to the alertqvar table so that
@@ -506,7 +517,7 @@ class AlertQueueVariable(models.Model):
         db_table = 'alertqvar'
         unique_together = (('alert_queue', 'variable'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s=%s' % (self.variable, self.value)
 
 
@@ -527,6 +538,7 @@ class AlertHistoryManager(models.Manager):
         return self.filter(filtr)
 
 
+@python_2_unicode_compatible
 class AlertHistory(models.Model, EventMixIn):
     """From NAV Wiki: The alert history. Simular to the alert queue with one
     important distinction; alert history stores stateful events as one row,
@@ -551,7 +563,7 @@ class AlertHistory(models.Model, EventMixIn):
     class Meta(object):
         db_table = 'alerthist'
 
-    def __unicode__(self):
+    def __str__(self):
         return u'Source %s, severity %d' % (self.source, self.severity)
 
     def is_stateful(self):
@@ -615,6 +627,7 @@ class AlertHistory(models.Model, EventMixIn):
             self.varmap = self.varmap
 
 
+@python_2_unicode_compatible
 class AlertHistoryMessage(models.Model):
     """From NAV Wiki: To have a history of the formatted messages too, they are
     stored in alerthistmsg."""
@@ -637,10 +650,11 @@ class AlertHistoryMessage(models.Model):
         db_table = 'alerthistmsg'
         unique_together = (('alert_history', 'state', 'type', 'language'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s message in language %s' % (self.type, self.language)
 
 
+@python_2_unicode_compatible
 class AlertHistoryVariable(models.Model):
     """From NAV Wiki: Defines additional (key,value) tuples that follow the
     alerthist record."""
@@ -662,10 +676,11 @@ class AlertHistoryVariable(models.Model):
         db_table = 'alerthistvar'
         unique_together = (('alert_history', 'state', 'variable'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s=%s' % (self.variable, self.value)
 
 
+@python_2_unicode_compatible
 class Acknowledgement(models.Model):
     """Alert acknowledgements"""
     alert = models.OneToOneField('AlertHistory', null=False, blank=False,
@@ -677,6 +692,6 @@ class Acknowledgement(models.Model):
     class Meta(object):
         db_table = 'alerthist_ack'
 
-    def __unicode__(self):
+    def __str__(self):
         return u"%r acknowledged by %s at %s" % (self.alert, self.account,
                                                  self.date)

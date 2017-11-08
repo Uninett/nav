@@ -22,7 +22,7 @@ from django.db.models import Q, Count
 
 from IPy import IP
 
-from nav.models.manage import (Room, Netbox, Interface, Vlan,
+from nav.models.manage import (Room, Location, Netbox, Interface, Vlan,
                                UnrecognizedNeighbor, NetboxGroup)
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.views import is_valid_hostname
@@ -69,6 +69,24 @@ class RoomSearchProvider(SearchProvider):
         for result in results:
             self.results.append(SearchResult(
                 reverse('room-info', kwargs={'roomid': result.id}),
+                result)
+            )
+
+
+class LocationSearchProvider(SearchProvider):
+    """Searchprovider for locations"""
+    name = "Locations"
+    headers = [
+        ('Locationid', 'id'),
+        ('Description', 'description')
+    ]
+    link = 'Locationid'
+
+    def fetch_results(self):
+        results = Location.objects.filter(id__icontains=self.query).order_by("id")
+        for result in results:
+            self.results.append(SearchResult(
+                reverse('location-info', kwargs={'locationid': result.id}),
                 result)
             )
 

@@ -22,6 +22,7 @@
 
 from __future__ import print_function
 import argparse
+import sys
 
 from nav.models.event import EventQueue as Event, Subsystem, EventType
 from nav.models.manage import Netbox
@@ -41,8 +42,13 @@ def main():
     args = create_parser().parse_args()
 
     for sysname in args.sysname:
-        for netbox in Netbox.objects.filter(sysname__icontains=sysname):
-            send_event(netbox, args.event, send=args.dry_run)
+        boxes = Netbox.objects.filter(sysname__icontains=sysname)
+        if boxes.exists():
+            for netbox in boxes:
+                send_event(netbox, args.event, send=args.dry_run)
+        else:
+            print("No netboxes matched: %r" % args.sysname, file=sys.stderr)
+            exit(1)
 
 
 def create_parser():

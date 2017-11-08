@@ -36,9 +36,9 @@ the name for historical reasons.
 """
 
 import operator
-from IPy import IP
 from datetime import datetime, timedelta
 
+from IPy import IP
 from twisted.internet import defer
 
 from nav.mibs.ip_mib import IpMib

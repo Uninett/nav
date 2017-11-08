@@ -23,6 +23,8 @@ library.
 import math
 from itertools import groupby
 
+from django.utils.six import iteritems
+
 
 def identity(obj):
     """identity(obj) == obj for all obj"""
@@ -165,7 +167,7 @@ def filter_dict(fun, dct):
     true.
 
     """
-    return subdict(dct, [key for key, val in dct.iteritems() if fun(val)])
+    return subdict(dct, [key for key, val in iteritems(dct) if fun(val)])
 
 
 def map_dict(fun, dct):
@@ -175,7 +177,7 @@ def map_dict(fun, dct):
     replaced by the result of applying fun to it.
 
     """
-    return {k: fun(v) for k, v in dct.iteritems()}
+    return {k: fun(v) for k, v in iteritems(dct)}
 
 
 def union_dict(*dicts):
