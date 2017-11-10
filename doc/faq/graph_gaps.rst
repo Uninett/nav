@@ -3,8 +3,8 @@ Debugging "gaps in graphs" syndrome
 ===================================
 
 This document discusses various causes of missing Graphite data, AKA gappy
-graphs AKA holy graphs. You should verify each issue in the order they are
-listed.
+graphs AKA holy graphs (or even completely blank graphs). You should verify
+each issue in the order they are listed.
 
 
 Problems at the Graphite end of things
@@ -132,13 +132,87 @@ effectively stop collecting traffic counters from its interfaces.
 Problems at the NAV end of things
 =================================
 
+.. note::
+
+   Unless you have been changing the job configurations of
+   :program:`ipdevpoll` considerably, there are two main jobs that collect
+   statistics using SNMP: ``1minstats`` and ``5minstats`` - the former running
+   on a 1 minute interval, the latter on 5 minute intervals. The `1minstats`
+   job primarily collects all system stats and sensor values, whereas the
+   `5minstats` job typically collects interface counters.
+
 
 ipdevpoll stats jobs are failing
 --------------------------------
 
-``TODO: write more here``
+If any of ipdevpoll's metric collection jobs are failing for a device, the
+metrics collected by that job may either have incomplete or missing data,
+depending on how/when the jobs are failing. There are several ways to check
+how the jobs are doing for one or more devices:
+
+1. Go to the device's IP Device Info page (e.g. search for the device name in
+   the nav bar at the top of every NAV web page). Check the job status
+   listings (at the lower right of the page). If the `5minstats` or
+   `1minstats` job are marked as red, the last time this job was run, it
+   failed. If the jobs are marked yellow, they have not been run or completed
+   within the expected time interval.
+
+2. Grep the logs for errors (for any device)::
+
+     grep 'ERROR.*minstats' /var/log/nav/ipdevpoll.log
+
+3. Open the Watchdog tool from the Toolbox menu. Any ipdevpoll jobs that are
+   repeatedly failing will show as errors here.
+
+Stats jobs failing due to timeout errors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Do the devices that are timing out have any common factors? Same model,
+vendor, software?
+
+Some devices are particularly slow to respond to SNMP requests at large, while
+some are slow to respond to particular SNMP requests - in particular, we often
+see agents that are slow to build large responses to ``GET-BULK`` requests,
+which NAV always uses in a SNMP *v2c* session.
+
+You can try to alleviate the timeout problems by increasing ipdevpoll's SNMP
+request timeout, alternatively in conjunction with reducing the
+``max-repetitions`` value (which is the maximum number of consecutive values
+ipdevpoll asks an agent to return in a single SNMP response packet when
+employing `GET-BULK`_ requests).
+
 
 ipdevpoll stats jobs aren't running at the correct interval
 -----------------------------------------------------------
 
-``TODO: write more here``
+The Whisper round robin database format expects data points to come in at the
+same rate as specified in its first retention archive. If ipdevpoll does not
+send metrics to carbon at the rate expected for the given metric's schema,
+gaps may occur in the data.
+
+If the device ``example-gw`` is missing data in its port counter metrics, you
+can attempt to verify that the `5minstats` job for ``example-gw`` is actually
+running on the configured 5 minute interval by grepping the logs and checking
+the timestamps of job completion (when you have already confirmed the jobs
+themselves aren't failing):
+
+.. code-block:: console
+
+    # grep 'INFO.*5minstats example-gw.*completed' /var/log/nav/ipdevpoll.log
+    2017-11-10 13:46:21,400 [INFO schedule.netboxjobscheduler] [5minstats example-gw.example.org] 5minstats for example-gw.example.org completed in 0:00:06.151333. next run in 0:04:53.848691.
+    2017-11-10 13:51:21,510 [INFO schedule.netboxjobscheduler] [5minstats example-gw.example.org] 5minstats for example-gw.example.org completed in 0:00:06.259981. next run in 0:04:53.740050.
+    2017-11-10 13:56:21,293 [INFO schedule.netboxjobscheduler] [5minstats example-gw.example.org] 5minstats for example-gw.example.org completed in 0:00:06.042444. next run in 0:04:53.957581.
+    2017-11-10 14:01:21,747 [INFO schedule.netboxjobscheduler] [5minstats example-gw.example.org] 5minstats for example-gw.example.org completed in 0:00:06.476202. next run in 0:04:53.523833.
+
+This example shows that the `5minstats` is consistently running on 5 minute intervals.
+
+Once you cross a certain threshold, depending on your hardware setup and the
+number of nodes/ports you are monitoring with NAV, you may find that ipdevpoll
+is having issues scheduling its jobs in a timely fashion: There's too much
+work, and too little resources to complete it on time.
+
+This is when you should start experimenting with ipdevpoll's
+:ref:`multiprocess mode <ipdevpoll-multiprocess>`.
+
+
+.. _`GET-BULK`: https://tools.ietf.org/html/rfc1448#section-4.2.3
