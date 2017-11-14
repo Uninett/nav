@@ -636,7 +636,7 @@ CREATE TABLE eventq (
   target VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  subid VARCHAR,
+  subid VARCHAR NOT NULL DEFAULT '',
   time TIMESTAMP NOT NULL DEFAULT NOW (),
   eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
   state CHAR(1) NOT NULL DEFAULT 'x' CHECK (state='x' OR state='s' OR state='e'), -- x = stateless, s = start, e = end
@@ -741,7 +741,7 @@ CREATE TABLE alerthist (
   source VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
-  subid VARCHAR,
+  subid VARCHAR NOT NULL DEFAULT '',
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP DEFAULT 'infinity',
   eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
@@ -785,7 +785,7 @@ CREATE TABLE alertq (
   source VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  subid VARCHAR,
+  subid VARCHAR NOT NULL DEFAULT '',
   time TIMESTAMP NOT NULL,
   eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
   alerttypeid INT4 REFERENCES alerttype ON UPDATE CASCADE ON DELETE CASCADE,
@@ -1033,7 +1033,8 @@ CREATE TABLE manage.unrecognized_neighbor (
   remote_id VARCHAR NOT NULL,
   remote_name VARCHAR NOT NULL,
   source VARCHAR NOT NULL,
-  since TIMESTAMP NOT NULL DEFAULT NOW()
+  since TIMESTAMP NOT NULL DEFAULT NOW(),
+  ignored_since TIMESTAMP DEFAULT NULL
 );
 
 COMMENT ON TABLE unrecognized_neighbor IS 'Unrecognized neighboring devices reported by support discovery protocols';
@@ -1048,7 +1049,7 @@ CREATE TABLE manage.ipdevpoll_job_log (
   job_name VARCHAR NOT NULL,
   end_time TIMESTAMP NOT NULL,
   duration DOUBLE PRECISION,
-  success BOOLEAN NOT NULL,
+  success BOOLEAN,
   "interval" INTEGER,
 
   CONSTRAINT ipdevpoll_job_log_netbox_fkey FOREIGN KEY (netboxid)
@@ -1168,24 +1169,10 @@ CREATE OR REPLACE VIEW manage.prefix_active_ip_cnt AS
 -- Create a table for interface stacking information
 CREATE TABLE manage.interface_stack (
   id SERIAL PRIMARY KEY, -- dummy primary key for Django
-  higher INTEGER REFERENCES interface(interfaceid),
-  lower INTEGER REFERENCES interface(interfaceid),
+  higher INTEGER REFERENCES interface(interfaceid) ON DELETE CASCADE ON UPDATE CASCADE,
+  lower INTEGER REFERENCES interface(interfaceid) ON DELETE CASCADE ON UPDATE CASCADE,
   UNIQUE (higher, lower)
 );
-
--- Fix cascading deletes in interface_stack foreign keys (LP#1246226)
-
-ALTER TABLE interface_stack DROP CONSTRAINT interface_stack_higher_fkey;
-ALTER TABLE interface_stack ADD CONSTRAINT interface_stack_higher_fkey
-  FOREIGN KEY (higher)
-  REFERENCES interface(interfaceid)
-  ON DELETE CASCADE ON UPDATE CASCADE;
-
-ALTER TABLE interface_stack DROP CONSTRAINT interface_stack_lower_fkey;
-ALTER TABLE interface_stack ADD CONSTRAINT interface_stack_lower_fkey
-  FOREIGN KEY (lower)
-  REFERENCES interface(interfaceid)
-  ON DELETE CASCADE ON UPDATE CASCADE;
 
 
 INSERT INTO vendor (
@@ -1248,19 +1235,6 @@ SET precision=2, data_scale=NULL
 WHERE mib = 'PowerNet-MIB'
       AND data_scale = 'centi';
 
-ALTER TABLE eventq ALTER COLUMN subid SET NOT NULL;
-ALTER TABLE eventq ALTER COLUMN subid SET DEFAULT '';
-
-ALTER TABLE alertq ALTER COLUMN subid SET NOT NULL;
-ALTER TABLE alertq ALTER COLUMN subid SET DEFAULT '';
-
-ALTER TABLE alerthist ALTER COLUMN subid SET NOT NULL;
-ALTER TABLE alerthist ALTER COLUMN subid SET DEFAULT '';
-
--- allow jobs to be logged with no success indicator, i.e. the job was
--- checked but nothing ran.
-ALTER TABLE ipdevpoll_job_log ALTER COLUMN success DROP NOT NULL;
-
 CREATE OR REPLACE FUNCTION never_use_null_subid()
 RETURNS trigger AS $$
   BEGIN
@@ -1282,7 +1256,7 @@ CREATE TABLE netboxentity (
   netboxentityid SERIAL NOT NULL,
   netboxid INTEGER NOT NULL,
 
-  index VARCHAR NOT NULL,
+  index INTEGER NOT NULL,
   source VARCHAR NOT NULL,
   descr VARCHAR,
   vendor_type VARCHAR,
@@ -1302,6 +1276,7 @@ CREATE TABLE netboxentity (
   mfg_date TIMESTAMP WITH TIME ZONE,
   uris VARCHAR,
   data hstore NOT NULL DEFAULT hstore(''),
+  gone_since TIMESTAMP,
 
   CONSTRAINT netboxentity_pkey PRIMARY KEY (netboxentityid),
   CONSTRAINT netboxentity_netboxid_fkey
@@ -1320,9 +1295,6 @@ CREATE TABLE netboxentity (
              UNIQUE (netboxid, source, index) INITIALLY DEFERRED
 
 );
-
-ALTER TABLE netboxentity
-    ADD COLUMN gone_since TIMESTAMP;
 
 -- Modernize existing close_alerthist_modules rule
 
@@ -1351,17 +1323,6 @@ CREATE OR REPLACE RULE close_alerthist_interface AS ON DELETE TO interface
        AND end_time >= 'infinity'
        AND netboxid = OLD.netboxid
        AND subid = OLD.interfaceid::text;
-
----
--- Add field to unrecognized_neighbor indicating ignored state
----
-ALTER TABLE unrecognized_neighbor ADD ignored_since TIMESTAMP DEFAULT NULL;
-
--- Fix data type of netboxentity.index, which, for mysterious reasons, was
--- defined as varchar in 4.3.0
-ALTER TABLE netboxentity
-    ALTER COLUMN index TYPE INTEGER
-    USING index::INT;
 
 CREATE VIEW enterprise_number AS
 

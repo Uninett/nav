@@ -22,6 +22,8 @@ orgid VARCHAR,
 determined CHAR(1), -- set to y if this is mac/port combo is blocked with the -d option.
 fromvlan INT, -- original vlan on port before change (only on vlanchange)
 tovlan INT, -- vlan on port after change (only on vlanchange)
+textual_interface VARCHAR DEFAULT '', -- for storing textual representation of the interface when detaining
+
 UNIQUE (mac,swportid)
 );
 
@@ -41,7 +43,9 @@ username VARCHAR NOT NULL
 CREATE TABLE quarantine_vlans (
 quarantineid SERIAL PRIMARY KEY,
 vlan INT,
-description VARCHAR
+description VARCHAR,
+
+CONSTRAINT quarantine_vlan_unique UNIQUE (vlan)
 );
 
 -- A block, of lack of better name, is a run where we do automatic blocking 
@@ -64,10 +68,6 @@ detainmenttype VARCHAR CHECK (detainmenttype='disable' OR detainmenttype='quaran
 quarantineid INT REFERENCES quarantine_vlans ON UPDATE CASCADE ON DELETE CASCADE
 );
 
--- Create field for storing textual representation of the interface when detaining
-
-ALTER table arnold.identity ADD textual_interface VARCHAR DEFAULT '';
-
 
 -- Fix uniqueness on quarantine vlans
 
@@ -77,5 +77,3 @@ DELETE FROM quarantine_vlans WHERE quarantineid in (
   JOIN quarantine_vlans q2
     ON (q1.vlan = q2.vlan AND q1.quarantineid < q2.quarantineid)
     ORDER BY q1.quarantineid);
-
-ALTER TABLE quarantine_vlans ADD CONSTRAINT quarantine_vlan_unique UNIQUE (vlan);
