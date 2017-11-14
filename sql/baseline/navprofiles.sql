@@ -1058,6 +1058,10 @@ INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUE
 INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (3, 'IP devices on maintenance', 3, 'netbox_maintenance', 0, 'y,n,s');
 INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (4, 'Modules down/in shadow', 4, 'module', 0, 'n,s');
 INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (5, 'Services down', 5, 'service', 0, 'n,s');
+INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (6, 'Thresholds exceeded', 6, 'threshold', 0);
+INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (7, 'SNMP agents down', 7, 'snmpagent', 0);
+INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (8, 'Links down', 8, 'linkstate', 0);
+
 
 -- netmap_view
 CREATE TABLE profiles.netmap_view (
@@ -1275,10 +1279,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER add_default_dashboard_on_account_create AFTER INSERT ON account
   FOR EACH ROW
   EXECUTE PROCEDURE create_new_dashboard();
-
-INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (6, 'Thresholds exceeded', 6, 'threshold', 0);
-INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (7, 'SNMP agents down', 7, 'snmpagent', 0);
-INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (8, 'Links down', 8, 'linkstate', 0);
 
 
 /*
