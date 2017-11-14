@@ -176,11 +176,11 @@ CREATE TABLE alertaddress (
 		  FOREIGN KEY(accountid) REFERENCES Account(id)
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE,
-       CONSTRAINT alertaddress_type_fkey 
+       CONSTRAINT alertaddress_type_fkey
                   FOREIGN KEY(type) REFERENCES alertsender(id)
                   ON DELETE CASCADE
                   ON UPDATE CASCADE
-         
+
 );
 ALTER SEQUENCE alertaddress_id_seq OWNED BY alertaddress.id;
 
@@ -193,7 +193,7 @@ A table for alertprofile. Only one profile can be active simultanously. It is po
 name		The name of the profile
 daily_dispatch_time		Related to queueing. When daily queueing is selected, this attrubute specify when on a day
             enqueued alerts will be sent.
-weekly_dispatch_day		Related to queueing. When weekly queueing is selected, this attribute specify which 
+weekly_dispatch_day		Related to queueing. When weekly queueing is selected, this attribute specify which
             weekday enqueued alerts will be sent on. 0 is monday, 6 is sunday.
 weekly_dispatch_time		Related to queueing. When weekly queueing is selected, this attribute specify which time
             on the day enqueued alerts will be sent.
@@ -249,7 +249,7 @@ CREATE TABLE alertpreference (
 
 A table specifying a time period. This could be though of as an element in a timetable. A time period is related to a set of relation between equipmentgroups and alertaddresses.
 
-start_time	this attribute speficies the start time of this time period. The time period end time is 
+start_time	this attribute speficies the start time of this time period. The time period end time is
             implicit given by the start time by the next time period.
 
 valid_during		Speficies wether this time period is for weekdays or weekend or both.
@@ -275,7 +275,7 @@ ALTER SEQUENCE timeperiod_id_seq OWNED BY timeperiod.id;
 /*
 -- 9 FILTERGROUP
 
-Equipment group. An equipment is a composite of equipment filters. Equipment group is specified by a 
+Equipment group. An equipment is a composite of equipment filters. Equipment group is specified by a
 ennumerated (by priority) list of equipment filters. An equipment group could either be owned by an user, or shared among administrators.
 
 name	The name of the equipment group
@@ -343,8 +343,8 @@ ALTER SEQUENCE alertsubscription_id_seq OWNED BY alertsubscription.id;
 
 Permissions.
 
-This table contatins a relation from a user group to an equipment group. It gives all members of the 
-actual user group permission to set up notofication for alerts matching this filter. The relation 
+This table contatins a relation from a user group to an equipment group. It gives all members of the
+actual user group permission to set up notofication for alerts matching this filter. The relation
 usergroup <-> equipment group is many to many.
 */
 CREATE SEQUENCE filtergroup_group_permission_id_seq;
@@ -400,7 +400,7 @@ means that each row has a priority.
 include.    If true the related filter is included in the group.
 positive.   If this is false, the filter is inverted, which implies that true is false, and
             false is true.
-priority.   The list will be traversed in ascending priority order. Which means that the higher 
+priority.   The list will be traversed in ascending priority order. Which means that the higher
             number, the higher priority.
 */
 CREATE SEQUENCE filtergroupcontent_id_seq;
@@ -805,37 +805,37 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap)/?');
 
 -- Give alert_by privilege to SMS group
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
        VALUES ((SELECT id FROM AccountGroup WHERE name='SMS'), 3, 'sms');
 
 -- Alert senders
 INSERT INTO alertsender VALUES (1, 'Email', 'email');
 INSERT INTO alertsender VALUES (2, 'SMS', 'sms');
-INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber'); 
+INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber');
 
 
 -- Matchfields
-/* 
+/*
 Matchfield.Datatype
 	string:  0
 	integer: 1
 	ip adr:  2
 */
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
-(10, 0, 'Event type', 'eventtype.eventtypeid', 'eventtype.eventtypedesc', 'eventtype.eventtypeid', true, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
+(10, 0, 'Event type', 'eventtype.eventtypeid', 'eventtype.eventtypedesc', 'eventtype.eventtypeid', true,
 'Event type: An event type describes a category of alarms. (Please note that alarm type is a more refined attribute. There are a set of alarm types within an event type.)');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 10);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 10);
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
-(11, 0, 'Alert type', 'alerttype.alerttype', 'alerttype.alerttypedesc', 'alerttype.alerttypeid', true, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
+(11, 0, 'Alert type', 'alerttype.alerttype', 'alerttype.alerttypedesc', 'alerttype.alerttypeid', true,
 'Alert type: An alert type describes the various values an event type may take.');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 11);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 11);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description, value_help) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description, value_help) VALUES
 (12, 1, 'Severity', 'alertq.severity', null, null, false,
 'Severity: Limit your alarms based on severity.',
 'Range: Severities are in the range 0-100, where 100 is most severe.');
@@ -847,19 +847,19 @@ INSERT INTO Operator (operator_id, match_field_id) VALUES (4, 12);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (5, 12);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
 (13, 0, 'Category', 'cat.catid', 'cat.descr', 'cat.catid', true,
 'Category: All equipment is categorized in 7 main categories.');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 13);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 13);
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
 (14, 0, 'Sub category', 'subcat.subcatid', 'subcat.descr', 'subcat.descr', true,
 'Sub category: Within a catogory user-defined subcategories may exist.');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 14);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 14);
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description, value_help) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description, value_help) VALUES
 (15, 0, 'Sysname', 'netbox.sysname', null, null, false,
 'Sysname: Limit your alarms based on sysname.',
 E'Sysname examples:<blockquote>
@@ -875,7 +875,7 @@ INSERT INTO Operator (operator_id, match_field_id) VALUES (8, 15);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (9, 15);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description, value_help) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description, value_help) VALUES
 (16, 2, 'IP address', 'netbox.ip', null, null, false,
 'Limit your alarms based on an IP address/range (prefix)',
 'examples:<blockquote>
@@ -886,42 +886,42 @@ INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 16);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 16);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
 (17, 0, 'Room', 'room.roomid', 'room.descr', 'room.roomid', true,
 'Room: Limit your alarms based on room.');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 17);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 17);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
-(18, 0, 'Location', 'location.locationid', 'location.descr', 'location.descr', true, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
+(18, 0, 'Location', 'location.locationid', 'location.descr', 'location.descr', true,
 'Location: Limit your alarms based on location (a location contains a set of rooms) ');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 18);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 18);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
 (19, 0, 'Organization', 'org.orgid', 'org.descr', 'org.descr', true,
 'Organization: Limit your alarms based on the organization ownership of the alarm in question.');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 19);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 19);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
 (20, 0, 'Usage', 'usage.usageid', 'usage.descr', 'usage.descr', true,
 'Usage: Different network prefixes are mapped to usage areas.');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 20);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 20);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
 (21, 0, 'Type', 'type.typename', 'type.descr', 'type.descr', true,
 'Type: Limit your alarms equipment type');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 21);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 21);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
 (22, 0, 'Equipment vendor', 'vendor.vendorid', 'vendor.vendorid', 'vendor.vendorid', true,
 'Equipment vendor: Limit alert by the vendor of the netbox.');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 22);
