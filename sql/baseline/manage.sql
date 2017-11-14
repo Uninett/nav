@@ -580,6 +580,9 @@ INSERT INTO subsystem (name) VALUES ('getDeviceData');
 INSERT INTO subsystem (name) VALUES ('devBrowse');
 INSERT INTO subsystem (name) VALUES ('maintenance');
 INSERT INTO subsystem (name) VALUES ('snmptrapd');
+INSERT INTO subsystem (name) VALUES ('powersupplywatch');
+INSERT INTO subsystem (name) VALUES ('ipdevpoll');
+
 
 
 ------------------------------------------------------------------------------------------
@@ -978,9 +981,6 @@ INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
 INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
   ('snmpAgentState', 'snmpAgentUp', 'SNMP agent is up.');
 
-INSERT INTO subsystem (name) VALUES ('ipdevpoll');
-
-
 -- Ensure any associated service alerts are closed when a service is deleted
 CREATE RULE close_alerthist_services
   AS ON DELETE TO service DO
@@ -1073,8 +1073,6 @@ WHERE eventtypeid='snmpAgentState'
   AND end_time >= 'infinity'
   AND alerthist.netboxid = netbox.netboxid
   AND COALESCE(netbox.ro, '') = '';
-
-INSERT INTO subsystem VALUES ('powersupplywatch');
 
 -- create new event and alert types for fan and psu alerts
 
