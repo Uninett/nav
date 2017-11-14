@@ -1,3 +1,26 @@
+Version 4.7.3
+(released 09 Nov 2017)
+
+ Fixed GitHub issues in this release:
+
+  * #1402 (Maintenance alerts about non existing devices)
+  * #1590 (IPAM: Add quickfix, logging for prefixes with no VLAN)
+  * #1592 (Report crashes when attempting to sort a column filtered on a
+           non-ASCII value)
+  * #1593 (Logengine inserts quoted log messages into database)
+  * #1595 (Drawing sensor graphs fail for sensors that have no human
+           readable description)
+  * #1601 (Updating room id creates a new room)
+  * #1603 (AlertEngine crashes when processing filters containing "not
+           equals" matches)
+  * #1604 (Running ipdevpoll in multiprocess mode will delay resolving
+           of snmpAgentDown alerts)
+  * #1605 (Log output from ipdevpoll multiprocess workers is lost)
+  * #1606 (linear gauge does not fill with gradient)
+  * #1610 (Remove stale topology information from ports that are down,
+           where the assumed link partner is still up )
+
+
 Version 4.7.2
 (released 28 Sep 2017)
 
