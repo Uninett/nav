@@ -120,7 +120,7 @@ NAV's database.
 Verifying that collection is working
 ------------------------------------
 
-Within two minutes, NAV's SNMP collection engine should launch a job to poll
+Within two minutes, NAV's :doc:`SNMP collection engine </reference/ipdevpoll>` should launch a job to poll
 your newly added device for information. The grey navigation bar features a
 search field; search for your newly entered device's IP address or DNS name to
 show its `IP Device Info` page. The resulting page should look something like
