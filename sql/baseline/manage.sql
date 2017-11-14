@@ -1314,7 +1314,7 @@ CREATE TABLE manage.interface_aggregate (
 
 
 -- Create table for storing prefix tags
-CREATE TABLE IF NOT EXISTS prefix_usage (
+CREATE TABLE prefix_usage (
     prefix_usage_id SERIAL PRIMARY KEY,
     prefixid        INTEGER REFERENCES prefix (prefixid)
                     ON UPDATE CASCADE ON DELETE CASCADE,
