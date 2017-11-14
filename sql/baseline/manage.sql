@@ -4,18 +4,18 @@
     SQL Initialization script for NAV's
     manage database.  Read the README file
     for more info.
-    
+
     Run the command:
     psql manage -f manage.sql
-    
+
 	!! WARNING !!
 
 	This SQL script is encoded as unicode (UTF-8), before you do make
 	changes and commit, be 100% sure that your editor does not mess it up.
-    
+
     Check 1 : These norwegian letters looks nice:
     ! æøåÆØÅ !
-    Check 2 : This is the Euro currency sign: 
+    Check 2 : This is the Euro currency sign:
     ! € !
 =============================================
 */
@@ -79,7 +79,7 @@ CREATE TABLE vlan (
   usageid VARCHAR(30) REFERENCES usage,
   netident VARCHAR,
   description VARCHAR
-);  
+);
 
 CREATE TABLE prefix (
   prefixid SERIAL PRIMARY KEY,
@@ -139,7 +139,7 @@ CREATE TABLE netbox (
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n' OR up='s'), -- y=up, n=down, s=shadow
   snmp_version INT4 NOT NULL DEFAULT 2,
   upsince TIMESTAMP NOT NULL DEFAULT NOW(),
-  uptodate BOOLEAN NOT NULL DEFAULT false, 
+  uptodate BOOLEAN NOT NULL DEFAULT false,
   discovered TIMESTAMP NULL DEFAULT NOW(),
   data hstore DEFAULT hstore('') NOT NULL,
   UNIQUE(ip)
@@ -250,40 +250,40 @@ CREATE TABLE interface (
   ifalias VARCHAR,
 
   -- non IF-MIB values
-  baseport INT4,  -- baseport number from BRIDGE-MIB, if any. 
+  baseport INT4,  -- baseport number from BRIDGE-MIB, if any.
                   -- A non-null value should be a good indicator that this is a switch port.
   media VARCHAR,
   vlan INT4,
   trunk BOOLEAN,
   duplex CHAR(1) CHECK (duplex='f' OR duplex='h'), -- f=full, h=half
 
-  to_netboxid INT4, 
-  to_interfaceid INT4, 
+  to_netboxid INT4,
+  to_interfaceid INT4,
 
   gone_since TIMESTAMP,
-  
+
   CONSTRAINT interface_pkey PRIMARY KEY (interfaceid),
-  CONSTRAINT interface_netboxid_fkey 
+  CONSTRAINT interface_netboxid_fkey
              FOREIGN KEY (netboxid)
              REFERENCES netbox (netboxid)
              ON UPDATE CASCADE ON DELETE CASCADE,
-  CONSTRAINT interface_moduleid_fkey 
+  CONSTRAINT interface_moduleid_fkey
              FOREIGN KEY (moduleid)
              REFERENCES module (moduleid)
              ON UPDATE CASCADE ON DELETE SET NULL,
-  CONSTRAINT interface_to_netboxid_fkey 
-             FOREIGN KEY (to_netboxid) 
+  CONSTRAINT interface_to_netboxid_fkey
+             FOREIGN KEY (to_netboxid)
              REFERENCES netbox (netboxid)
              ON UPDATE CASCADE ON DELETE SET NULL,
-  CONSTRAINT interface_to_interfaceid_fkey 
-             FOREIGN KEY (to_interfaceid) 
+  CONSTRAINT interface_to_interfaceid_fkey
+             FOREIGN KEY (to_interfaceid)
              REFERENCES interface (interfaceid)
              ON UPDATE CASCADE ON DELETE SET NULL,
   CONSTRAINT interface_netboxid_ifindex_unique
              UNIQUE (netboxid, ifindex)
 );
 
--- this should be populated with entries parsed from 
+-- this should be populated with entries parsed from
 -- http://www.iana.org/assignments/ianaiftype-mib
 CREATE TABLE iana_iftype (
   iftype INT4 NOT NULL,
@@ -308,7 +308,7 @@ CREATE TABLE rproto_attr (
   protoname VARCHAR NOT NULL, -- bgp/ospf/isis
   metric INT4,
 
-  CONSTRAINT rproto_attr_pkey 
+  CONSTRAINT rproto_attr_pkey
              PRIMARY KEY (id),
   CONSTRAINT rproto_attr_interfaceid_fkey
              FOREIGN KEY (interfaceid)
@@ -338,7 +338,7 @@ CREATE TABLE swportblocked (
 
 -- View to mimic old swport table
 CREATE VIEW swport AS (
-  SELECT 
+  SELECT
     interfaceid AS swportid,
     moduleid,
     ifindex,
@@ -365,7 +365,7 @@ CREATE VIEW swport AS (
 
 -- View to mimic old gwport table
 CREATE VIEW gwport AS (
-  SELECT 
+  SELECT
     i.interfaceid AS gwportid,
     moduleid,
     ifindex,
@@ -480,7 +480,7 @@ CREATE TABLE arp (
 
 -- Rule to automatically close open arp entries related to a given prefix
 CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
-  DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
+  DO UPDATE arp SET end_time=NOW(), prefixid=NULL
      WHERE prefixid=OLD.prefixid AND end_time='infinity';
 
 -- View for listing all IP addresses that appear to be alive at the moment.
@@ -532,17 +532,17 @@ CREATE VIEW prefix_max_ip_cnt AS
 
 -- This view gives the allowed vlan for a given hexstring i swportallowedvlan
 CREATE VIEW allowedvlan AS (
-  SELECT 
-    interfaceid, vlan AS allowedvlan 
-  FROM 
-    (SELECT interfaceid, decode(hexstring, 'hex') AS octetstring 
+  SELECT
+    interfaceid, vlan AS allowedvlan
+  FROM
+    (SELECT interfaceid, decode(hexstring, 'hex') AS octetstring
      FROM swportallowedvlan) AS allowed_octets
   CROSS JOIN
     generate_series(0, 4095) AS vlan
   WHERE
     vlan < length(octetstring)*8 AND
-    (CASE 
-       WHEN length(octetstring)>=128 
+    (CASE
+       WHEN length(octetstring)>=128
          THEN get_bit(octetstring, (vlan/8)*8+7-(vlan%8))
        ELSE get_bit(octetstring,(length(octetstring)*8-vlan+7>>3<<3)-8+(vlan%8))
      END) = 1
@@ -588,9 +588,9 @@ CREATE TABLE eventtype (
   eventtypedesc VARCHAR,
   stateful CHAR(1) NOT NULL CHECK (stateful='y' OR stateful='n')
 );
-INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES 
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('boxState','Tells us whether a network-unit is down or up.','y');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES 
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('serviceState','Tells us whether a service on a server is up or down.','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('moduleState','Tells us whether a module in a device is working or not.','y');
@@ -724,7 +724,7 @@ CREATE TABLE alerthist (
 -- Rule to automatically close module related alert states when modules are
 -- deleted.
 CREATE OR REPLACE RULE close_alerthist_modules AS ON DELETE TO module
-  DO UPDATE alerthist SET end_time=NOW() 
+  DO UPDATE alerthist SET end_time=NOW()
      WHERE eventtypeid IN ('moduleState', 'linkState')
        AND end_time='infinity'
        AND deviceid=OLD.deviceid;
