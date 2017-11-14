@@ -1163,11 +1163,6 @@ CREATE TABLE manage.interface_stack (
 );
 
 
-INSERT INTO vendor (
-  SELECT 'unknown' AS vendorid
-  WHERE NOT EXISTS (
-    SELECT vendorid FROM vendor WHERE vendorid='unknown'));
-
 CREATE OR REPLACE VIEW manage.netboxmac AS
 
 SELECT DISTINCT ON (mac) netboxid, mac FROM (

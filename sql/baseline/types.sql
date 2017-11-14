@@ -7,6 +7,7 @@
 
 
 -- First, vendors
+INSERT INTO vendor (vendorid) VALUES ('unknown');
 INSERT INTO vendor (vendorid) VALUES ('alcatel');
 INSERT INTO vendor (vendorid) VALUES ('allied');
 INSERT INTO vendor (vendorid) VALUES ('avaya');
