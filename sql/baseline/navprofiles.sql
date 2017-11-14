@@ -1075,6 +1075,7 @@ CREATE TABLE profiles.netmap_view (
   display_elinks BOOLEAN NOT NULL DEFAULT false,
   display_orphans BOOLEAN NOT NULL DEFAULT false,
   description TEXT DEFAULT null,
+  location_room_filter varchar NOT NULL DEFAULT '',
 
   PRIMARY KEY (viewid)
 );
@@ -1208,9 +1209,6 @@ SELECT insert_default_navlets_for_existing_users();
 ---
 DELETE FROM account_navlet WHERE account=0 AND navlet='nav.web.navlets.gettingstarted.GettingStartedWidget';
 
-
-
-ALTER TABLE netmap_view ADD COLUMN location_room_filter varchar NOT NULL DEFAULT '';
 
 ---
 -- Replace old status widget with new one.
