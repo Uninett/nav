@@ -801,9 +801,17 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/maintenance/(calendar|active|historic|planned|view)\\b');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/geomap$');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/geomap/open');
+-- Grant web access to unauthorized ajax requests
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/ajax/open/?');
+-- Grant web access to osm map redirects
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/search/osm_map_redirect/?');
+-- Give everyone access to navlets
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/navlets/.*');
+
 
 -- Define minimum privileges for authenticated users
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap)/?');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap|info|netmap|graphite|search|index/dashboard)/?');
+
 
 -- Give alert_by privilege to SMS group
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
@@ -1124,34 +1132,6 @@ CREATE TABLE IF NOT EXISTS profiles.account_navlet (
   preferences VARCHAR
 );
 
--- Grant web access to unauthorized ajax requests
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
-  SELECT 2, 2, '^/ajax/open/?' WHERE NOT EXISTS (
-    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid=2 AND privilegeid=2 AND target='^/ajax/open/?'
-  )
-;
-
--- Grant web access to osm map redirects
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
-  SELECT 2, 2, '^/info/osm_map_redirect/?' WHERE NOT EXISTS (
-    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid=2 AND privilegeid=2 AND target = '^/info/osm_map_redirect/?'
-  )
-;
-
--- Grant web access to /info for authenticated users
-UPDATE AccountGroupPrivilege SET
-        target = '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap|info|netmap)/?'
-  WHERE target = '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap)/?'
-;
-
----
--- Give everyone access to navlets
----
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
-  SELECT 2, 2, '^/navlets/.*' WHERE NOT EXISTS (
-    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 2 AND privilegeid = 2 AND target = '^/navlets/.*'
-  );
-
 
 ---
 -- Insert default navlets for every existing user
@@ -1185,8 +1165,6 @@ I600000
 s.');
   END LOOP;
 END$$;
-
-UPDATE accountgroupprivilege SET target = '^/search/osm_map_redirect/?' WHERE target = '^/info/osm_map_redirect/?';
 
 ALTER TABLE account_navlet DROP CONSTRAINT account_navlet_account_fkey;
 ALTER TABLE account_navlet ADD CONSTRAINT account_navlet_account_fkey
@@ -1226,22 +1204,6 @@ SELECT insert_default_navlets_for_existing_users();
 DELETE FROM account_navlet WHERE account=0 AND navlet='nav.web.navlets.gettingstarted.GettingStartedWidget';
 
 
----
--- Give authenticated users access to Graphite graphs and stuffz
----
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
-  SELECT 3, 2, '^/graphite/?' WHERE NOT EXISTS (
-    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 3 AND privilegeid = 2 AND target = '^/graphite/?'
-  );
-
-
----
--- Give authenticated users access to search
----
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
-  SELECT 3, 2, '^/search/?' WHERE NOT EXISTS (
-    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 3 AND privilegeid = 2 AND target = '^/search/?'
-  );
 
 ALTER TABLE netmap_view ADD COLUMN location_room_filter varchar NOT NULL DEFAULT '';
 
@@ -1314,14 +1276,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER add_default_dashboard_on_account_create AFTER INSERT ON account
   FOR EACH ROW
   EXECUTE PROCEDURE create_new_dashboard();
-
----
--- Give authenticated users access to dashboard urls
----
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
-  SELECT 3, 2, '^/index/dashboard/?' WHERE NOT EXISTS (
-    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 3 AND privilegeid = 2 AND target = '^/index/dashboard/?'
-  );
 
 ---
 -- Sort Alert Types when modifying Alert Profiles
