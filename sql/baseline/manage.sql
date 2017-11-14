@@ -621,6 +621,14 @@ INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('maintenanceState','Tells us if something is set on maintenance','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('apState','Tells us whether an access point has disassociated or associated from the controller','y');
+INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
+  ('snmpAgentState', 'Tells us whether the SNMP agent on a device is down or up.', 'y');
+INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
+  ('chassisState', 'The state of this chassis has changed', 'y');
+INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
+  ('aggregateLinkState', 'The state of this aggregated link changed', 'y');
+
+
 
 CREATE TABLE eventq (
   eventqid SERIAL PRIMARY KEY,
@@ -694,13 +702,13 @@ INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('info','serialChanged','Serial number for the device has changed.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
-  ('boxRestart','coldStart','Tells us that a network-unit has done a coldstart.');
+  ('boxRestart','coldStart','The IP device has coldstarted');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
-  ('boxRestart','warmStart','Tells us that a network-unit has done a warmstart.');
+  ('boxRestart','warmStart','The IP device has warmstarted');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
-  ('deviceState','deviceInIPOperation','Device is in operation as a box.');
+  ('deviceState','deviceInIPOperation','The device is now in operation with an active IP address');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
-  ('deviceState','deviceInStack','Device is in operation as a module.');
+  ('deviceState','deviceInStack','The device is now in operation as a chassis module');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('deviceState','deviceRMA','RMA event for device.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
@@ -713,6 +721,20 @@ INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('apState','apUp','AP associated with controller');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('apState','apDown','AP disassociated from controller');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('snmpAgentState', 'snmpAgentDown', 'SNMP agent is down or unreachable due to misconfiguration.');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('snmpAgentState', 'snmpAgentUp', 'SNMP agent is up.');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('chassisState', 'chassisDown', 'This chassis is no longer visible in the stack');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('chassisState', 'chassisUp', 'This chassis is visible in the stack again');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('aggregateLinkState', 'linkDegraded', 'This aggregate link has been degraded');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('aggregateLinkState', 'linkRestored', 'This aggregate link has been restored');
+
+
 
 CREATE TABLE alerthist (
   alerthistid SERIAL PRIMARY KEY,
@@ -972,14 +994,6 @@ CREATE TABLE manage.powersupply_or_fan (
     up CHAR(1) NOT NULL DEFAULT 'u' CHECK (up='y' OR up='n' or up='u' or up='w')
 );
 
-INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
-  ('snmpAgentState', 'Tells us whether the SNMP agent on a device is down or up.', 'y');
-
-INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
-  ('snmpAgentState', 'snmpAgentDown', 'SNMP agent is down or unreachable due to misconfiguration.');
-
-INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
-  ('snmpAgentState', 'snmpAgentUp', 'SNMP agent is up.');
 
 -- Ensure any associated service alerts are closed when a service is deleted
 CREATE RULE close_alerthist_services
@@ -1234,19 +1248,6 @@ SET precision=2, data_scale=NULL
 WHERE mib = 'PowerNet-MIB'
       AND data_scale = 'centi';
 
--- clean up some alert- and event-type descriptions
-UPDATE alerttype SET alerttypedesc = 'The IP device has coldstarted'
-WHERE alerttype='coldStart';
-
-UPDATE alerttype SET alerttypedesc = 'The IP device has warmstarted'
-WHERE alerttype='warmStart';
-
-UPDATE alerttype SET alerttypedesc = 'The device is now in operation with an active IP address'
-WHERE alerttype='deviceInIPOperation';
-
-UPDATE alerttype SET alerttypedesc = 'The device is now in operation as a chassis module'
-WHERE alerttype='deviceInStack';
-
 ALTER TABLE eventq ALTER COLUMN subid SET NOT NULL;
 ALTER TABLE eventq ALTER COLUMN subid SET DEFAULT '';
 
@@ -1323,26 +1324,6 @@ CREATE TABLE netboxentity (
 ALTER TABLE netboxentity
     ADD COLUMN gone_since TIMESTAMP;
 
----
--- Insert new event and alert types for stack state events
----
-INSERT INTO eventtype (
-  SELECT 'chassisState', 'The state of this chassis has changed', 'y'
-  WHERE NOT EXISTS (SELECT * FROM eventtype WHERE eventtypeid = 'chassisState'));
-
----
--- Insert new alerttypes for chassie state alerts
----
-INSERT INTO alerttype (
-  SELECT nextval('alerttype_alerttypeid_seq'), 'chassisState', 'chassisDown',
-         'This chassis is no longer visible in the stack'
-  WHERE NOT EXISTS (SELECT * FROM alerttype WHERE alerttype = 'chassisDown'));
-
-INSERT INTO alerttype (
-  SELECT nextval('alerttype_alerttypeid_seq'), 'chassisState', 'chassisUp',
-         'This chassis is visible in the stack again'
-  WHERE NOT EXISTS (SELECT * FROM alerttype WHERE alerttype = 'chassisUp'));
-
 -- Modernize existing close_alerthist_modules rule
 
 CREATE OR REPLACE RULE close_alerthist_modules AS ON DELETE TO module
@@ -1404,25 +1385,6 @@ CREATE TABLE manage.interface_aggregate (
   UNIQUE (aggregator, interface)
 );
 
----
--- Insert new event and alert types for degraded link events
----
-INSERT INTO eventtype (
-  SELECT 'aggregateLinkState', 'The state of this aggregated link changed', 'y'
-  WHERE NOT EXISTS (SELECT * FROM eventtype WHERE eventtypeid = 'aggregateLinkState'));
-
----
--- Insert new alerttypes for degradation and restoration of aggregated links
----
-INSERT INTO alerttype (
-  SELECT nextval('alerttype_alerttypeid_seq'), 'aggregateLinkState', 'linkDegraded',
-         'This aggregate link has been degraded'
-  WHERE NOT EXISTS (SELECT * FROM alerttype WHERE alerttype = 'linkDegraded'));
-
-INSERT INTO alerttype (
-  SELECT nextval('alerttype_alerttypeid_seq'), 'aggregateLinkState', 'linkRestored',
-         'This aggregate link has been restored'
-  WHERE NOT EXISTS (SELECT * FROM alerttype WHERE alerttype = 'linkRestored'));
 
 -- Create table for storing prefix tags
 CREATE TABLE IF NOT EXISTS prefix_usage (
