@@ -821,6 +821,7 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
 INSERT INTO alertsender VALUES (1, 'Email', 'email');
 INSERT INTO alertsender VALUES (2, 'SMS', 'sms');
 INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber');
+INSERT INTO alertsender VALUES (4, 'Slack', 'slack');
 
 
 -- Matchfields
@@ -1214,8 +1215,6 @@ UPDATE account_navlet
   SET navlet='nav.web.navlets.status2.Status2Widget',
       preferences = '{"status_filter": "event_type=boxState&stateless_threshold=24", "refresh_interval": 60000}'
   WHERE navlet='nav.web.navlets.status.StatusNavlet';
-
-INSERT INTO alertsender (id, name, handler) VALUES (4, 'Slack', 'slack');
 
 -- Set refresh interval on existing message widgets
 UPDATE account_navlet
