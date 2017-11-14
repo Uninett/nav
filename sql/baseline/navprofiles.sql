@@ -1123,62 +1123,31 @@ CREATE TABLE profiles.django_session (
     "expire_date" timestamp with time zone NOT NULL
 );
 
+--- Create table for storing multiple dashboards
+CREATE TABLE profiles.account_dashboard (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR DEFAULT 'My dashboard',
+  is_default BOOLEAN DEFAULT FALSE,
+  num_columns INT,
+  account_id INT REFERENCES account(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
 
 -- Create table for storing navlet information for a user
 
 CREATE TABLE IF NOT EXISTS profiles.account_navlet (
   id SERIAL PRIMARY KEY,
+  dashboard_id INT REFERENCES account_dashboard(id) ON UPDATE CASCADE ON DELETE CASCADE,
   navlet VARCHAR NOT NULL,
-  account INT REFERENCES profiles.account(id),
+  account INT,
   col INT,
   displayorder INT NOT NULL,
-  preferences VARCHAR
+  preferences VARCHAR,
+
+  CONSTRAINT account_navlet_account_fkey
+    FOREIGN KEY (account) REFERENCES account(id)
+    ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-
----
--- Insert default navlets for every existing user
----
-CREATE OR REPLACE FUNCTION insert_default_navlets_for_existing_users() RETURNS void AS $$
-DECLARE
-  account RECORD;
-BEGIN
-  FOR account IN SELECT * FROM account LOOP
-    RAISE NOTICE 'Adding default navlets for %s', quote_ident(account.login);
-    INSERT INTO account_navlet (navlet, account, displayorder, col) VALUES
-      ('nav.web.navlets.welcome.WelcomeNavlet', account.id, 0, 1),
-      ('nav.web.navlets.linklist.LinkListNavlet', account.id, 0, 2),
-      ('nav.web.navlets.messages.MessagesNavlet', account.id, 1, 2);
-  END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-SELECT insert_default_navlets_for_existing_users();
-
-
--- Add new blog navlet to all users. Exclude those that have already activated it.
-DO $$DECLARE account_record RECORD;
-BEGIN
-  FOR account_record IN SELECT * FROM account WHERE id NOT IN (SELECT account FROM account_navlet WHERE navlet = 'nav.web.navlets.navblog.NavBlogNavlet') LOOP
-    INSERT INTO account_navlet (navlet, account, col, displayorder, preferences) VALUES
-    ('nav.web.navlets.navblog.NavBlogNavlet', account_record.id, 2, 0, '(dp0
-S''refresh_interval''
-p1
-I600000
-s.');
-  END LOOP;
-END$$;
-
-ALTER TABLE account_navlet DROP CONSTRAINT account_navlet_account_fkey;
-ALTER TABLE account_navlet ADD CONSTRAINT account_navlet_account_fkey
-  FOREIGN KEY (account)
-  REFERENCES account(id)
-  ON DELETE CASCADE ON UPDATE CASCADE;
-
----
--- Delete all widgets from all users
----
-DELETE FROM account_navlet;
 
 ---
 -- Insert default widgets for every existing user
@@ -1189,12 +1158,12 @@ DECLARE
 BEGIN
   FOR account IN SELECT * FROM account LOOP
     RAISE NOTICE 'Adding default navlets for %s', quote_ident(account.login);
-    INSERT INTO account_navlet (navlet, account, displayorder, col) VALUES
-      ('nav.web.navlets.gettingstarted.GettingStartedWidget', account.id, 0, 1),
-      ('nav.web.navlets.status.StatusNavlet', account.id, 1, 1),
-      ('nav.web.navlets.messages.MessagesNavlet', account.id, 2, 1),
-      ('nav.web.navlets.navblog.NavBlogNavlet', account.id, 0, 2),
-      ('nav.web.navlets.linklist.LinkListNavlet', account.id, 1, 2);
+    INSERT INTO account_navlet (navlet, account, displayorder, col, preferences) VALUES
+      ('nav.web.navlets.gettingstarted.GettingStartedWidget', account.id, 0, 1, NULL),
+      ('nav.web.navlets.status2.Status2Widget', account.id, 1, 1, '{"status_filter": "event_type=boxState&stateless_threshold=24", "refresh_interval": 60000}'),
+      ('nav.web.navlets.messages.MessagesNavlet', account.id, 2, 1, NULL),
+      ('nav.web.navlets.navblog.NavBlogNavlet', account.id, 0, 2, NULL),
+      ('nav.web.navlets.linklist.LinkListNavlet', account.id, 1, 2, NULL);
   END LOOP;
 END;
 $$ LANGUAGE plpgsql;
@@ -1205,36 +1174,6 @@ SELECT insert_default_navlets_for_existing_users();
 -- Remove GettingStartedWidget for default user.
 ---
 DELETE FROM account_navlet WHERE account=0 AND navlet='nav.web.navlets.gettingstarted.GettingStartedWidget';
-
-
----
--- Replace old status widget with new one.
----
-UPDATE account_navlet
-  SET navlet='nav.web.navlets.status2.Status2Widget',
-      preferences = '{"status_filter": "event_type=boxState&stateless_threshold=24", "refresh_interval": 60000}'
-  WHERE navlet='nav.web.navlets.status.StatusNavlet';
-
--- Set refresh interval on existing message widgets
-UPDATE account_navlet
-SET preferences = '{"refresh_interval": 60000}'
-WHERE navlet = 'nav.web.navlets.messages.MessagesNavlet';
-
---- Create table for storing multiple dashboards
-CREATE TABLE profiles.account_dashboard (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR DEFAULT 'My dashboard',
-  is_default BOOLEAN DEFAULT FALSE,
-  num_columns INT,
-  account_id INT REFERENCES account(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-
---- Widgets should now be a part of a dashboard
-ALTER TABLE account_navlet
-  ADD dashboard_id INT
-    REFERENCES account_dashboard(id)
-    ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --- Create a dashboard for each user and move all widgets there
