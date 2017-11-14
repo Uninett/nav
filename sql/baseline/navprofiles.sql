@@ -1256,6 +1256,11 @@ BEGIN
   END LOOP;
 END$$;
 
+--
+-- Function and trigger to ensure the default account's dashboard setup is
+-- copied to every new account that is created
+--
+
 -- Create a new dashboard and copy all the widgets from the default user to
 -- the dashboard
 CREATE OR REPLACE FUNCTION create_new_dashboard() RETURNS trigger AS $$
