@@ -217,8 +217,8 @@ CREATE TABLE module (
   descr VARCHAR,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n'), -- y=up, n=down
   downsince TIMESTAMP,
-  CONSTRAINT module_netboxid_key UNIQUE (netboxid, name),
-  UNIQUE(deviceid)
+
+  CONSTRAINT module_netboxid_key UNIQUE (netboxid, name)
 );
 
 CREATE TABLE mem (
@@ -1375,10 +1375,6 @@ CREATE OR REPLACE RULE close_alerthist_interface AS ON DELETE TO interface
 -- Add field to unrecognized_neighbor indicating ignored state
 ---
 ALTER TABLE unrecognized_neighbor ADD ignored_since TIMESTAMP DEFAULT NULL;
-
---- Remove unique constraints for devices in module table
-
-ALTER TABLE module DROP CONSTRAINT IF EXISTS module_deviceid_key;
 
 -- Fix data type of netboxentity.index, which, for mysterious reasons, was
 -- defined as varchar in 4.3.0
