@@ -32,6 +32,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils.encoding import python_2_unicode_compatible
 
+from nav import util
 from nav.bitvector import BitVector
 from nav.metrics.data import get_netboxes_availability
 from nav.metrics.graphs import get_simple_graph_url
@@ -1519,6 +1520,18 @@ class Interface(models.Model):
             vlans.append(self.vlan)
         vlans.sort()
         return vlans
+
+    def get_allowed_vlan_ranges(self):
+        """Returns the set of allowed vlans as a list of ranges
+
+        :rtype: nav.util.NumberRange
+        """
+        try:
+            allowed = self.swportallowedvlan.get_allowed_vlans()
+        except SwPortAllowedVlan.DoesNotExist:
+            pass
+        else:
+            return util.NumberRange(allowed)
 
     def get_last_cam_record(self):
         """Returns the newest cam record gotten from this switch port."""
