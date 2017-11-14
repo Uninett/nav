@@ -1078,7 +1078,6 @@ CREATE TABLE profiles.netmap_view_nodeposition (
   PRIMARY KEY (viewid, netboxid)
 );
 
-TRUNCATE TABLE netmap_view CASCADE;
 ALTER TABLE netmap_view ADD COLUMN topology INT4 NOT NULL;
 ALTER TABLE netmap_view DROP COLUMN link_types;
 ALTER TABLE netmap_view ADD COLUMN display_elinks BOOLEAN NOT NULL DEFAULT false;
