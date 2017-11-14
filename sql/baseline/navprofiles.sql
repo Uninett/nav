@@ -839,7 +839,7 @@ INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 10);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 10);
 
 INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
-(11, 0, 'Alert type', 'alerttype.alerttype', 'alerttype.alerttypedesc', 'alerttype.alerttypeid', true,
+(11, 0, 'Alert type', 'alerttype.alerttype', 'alerttype.alerttypedesc', 'alerttype.alerttype', true,
 'Alert type: An alert type describes the various values an event type may take.');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 11);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 11);
@@ -864,8 +864,8 @@ INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 13);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 13);
 
 INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
-(14, 0, 'Sub category', 'subcat.subcatid', 'subcat.descr', 'subcat.descr', true,
-'Sub category: Within a catogory user-defined subcategories may exist.');
+(14, 0, 'Group', 'netboxgroup.netboxgroupid', 'netboxgroup.descr', 'netboxgroup.descr', true,
+'Group: netboxes may belong to a group that is independent of type and category');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 14);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 14);
 
@@ -1276,23 +1276,11 @@ CREATE TRIGGER add_default_dashboard_on_account_create AFTER INSERT ON account
   FOR EACH ROW
   EXECUTE PROCEDURE create_new_dashboard();
 
----
--- Sort Alert Types when modifying Alert Profiles
----
-UPDATE MatchField SET value_sort='alerttype.alerttype' WHERE id=11 AND value_sort='alerttype.alerttypeid';
-
 INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (6, 'Thresholds exceeded', 6, 'threshold', 0);
 INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (7, 'SNMP agents down', 7, 'snmpagent', 0);
 INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (8, 'Links down', 8, 'linkstate', 0);
 
 
-UPDATE matchfield SET
-  name='Group',
-  value_id='netboxgroup.netboxgroupid',
-  value_name='netboxgroup.descr',
-  value_sort='netboxgroup.descr',
-  description='Group: netboxes may belong to a group that is independent of type and category'
-  WHERE id=14;
 /*
 ------------------------------------------------------
  EOF
