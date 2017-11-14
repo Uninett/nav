@@ -627,6 +627,10 @@ INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
   ('chassisState', 'The state of this chassis has changed', 'y');
 INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
   ('aggregateLinkState', 'The state of this aggregated link changed', 'y');
+INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
+  ('psuState', 'Reports state changes in power supply units', 'y');
+INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
+  ('fanState', 'Reports state changes in fan units', 'y');
 
 
 
@@ -733,6 +737,16 @@ INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
   ('aggregateLinkState', 'linkDegraded', 'This aggregate link has been degraded');
 INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
   ('aggregateLinkState', 'linkRestored', 'This aggregate link has been restored');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('info','macWarning','Mac appeared on port');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('psuState', 'psuNotOK', 'A PSU has entered a non-OK state');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('psuState', 'psuOK', 'A PSU has returned to an OK state');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('fanState', 'fanNotOK', 'A fan unit has entered a non-OK state');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('fanState', 'fanOK', 'A fan unit has returned to an OK state');
 
 
 
@@ -957,10 +971,6 @@ CREATE TABLE schema_change_log (
     date_applied TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
-  ('info','macWarning','Mac appeared on port');
-
-
 
 CREATE OR REPLACE RULE netbox_status_close_arp AS ON UPDATE TO netbox
    WHERE NEW.up='n'
@@ -1079,28 +1089,6 @@ CREATE TRIGGER trig_close_snmpagentstates_on_community_clear
     AFTER UPDATE ON netbox
     FOR EACH ROW
     EXECUTE PROCEDURE close_snmpagentstates_on_community_clear();
-
--- create new event and alert types for fan and psu alerts
-
-INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
-  ('psuState', 'Reports state changes in power supply units', 'y');
-
-INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
-  ('psuState', 'psuNotOK', 'A PSU has entered a non-OK state');
-
-INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
-  ('psuState', 'psuOK', 'A PSU has returned to an OK state');
-
-
-INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
-  ('fanState', 'Reports state changes in fan units', 'y');
-
-INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
-  ('fanState', 'fanNotOK', 'A fan unit has entered a non-OK state');
-
-INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
-  ('fanState', 'fanOK', 'A fan unit has returned to an OK state');
-
 
 
 -- Notify the eventEngine immediately as new events are inserted in the queue
