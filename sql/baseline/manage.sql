@@ -1080,15 +1080,6 @@ CREATE TRIGGER trig_close_snmpagentstates_on_community_clear
     FOR EACH ROW
     EXECUTE PROCEDURE close_snmpagentstates_on_community_clear();
 
--- also close any currently wrongfully open SNMP states
-UPDATE alerthist
-SET end_time=NOW()
-FROM netbox
-WHERE eventtypeid='snmpAgentState'
-  AND end_time >= 'infinity'
-  AND alerthist.netboxid = netbox.netboxid
-  AND COALESCE(netbox.ro, '') = '';
-
 -- create new event and alert types for fan and psu alerts
 
 INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
@@ -1109,9 +1100,6 @@ INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
 
 INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
   ('fanState', 'fanOK', 'A fan unit has returned to an OK state');
-
--- rename logging jobs to ip2mac in ipdevpoll job log table
-UPDATE ipdevpoll_job_log SET job_name = 'ip2mac' WHERE job_name = 'logging';
 
 
 
@@ -1180,11 +1168,6 @@ INSERT INTO vendor (
   WHERE NOT EXISTS (
     SELECT vendorid FROM vendor WHERE vendorid='unknown'));
 
--- Fix maintenance tasks that are open "until the end of time" (LP#1273706)
-UPDATE maint_task
-SET maint_end = 'infinity'
-WHERE extract(year from maint_end) = 9999;
-
 CREATE OR REPLACE VIEW manage.netboxmac AS
 
 SELECT DISTINCT ON (mac) netboxid, mac FROM (
@@ -1222,18 +1205,6 @@ SELECT DISTINCT ON (mac) netboxid, mac FROM (
 ) AS foo
 WHERE mac <> '00:00:00:00:00:00' -- exclude invalid MACs
 ORDER BY mac, netboxid;
-
--- Clean up scale/precision problems of already known APC sensors (LP#1270095)
-
-UPDATE sensor
-SET precision=1, data_scale=NULL
-WHERE mib = 'PowerNet-MIB'
-      AND data_scale = 'deci';
-
-UPDATE sensor
-SET precision=2, data_scale=NULL
-WHERE mib = 'PowerNet-MIB'
-      AND data_scale = 'centi';
 
 CREATE OR REPLACE FUNCTION never_use_null_subid()
 RETURNS trigger AS $$
