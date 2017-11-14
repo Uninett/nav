@@ -450,7 +450,7 @@ CREATE TABLE MatchField (
     value_id varchar,
     value_name varchar,
     value_sort varchar,
-    list_limit integer DEFAULT 300,
+    list_limit integer DEFAULT 1000,
     data_type integer NOT NULL DEFAULT 0,
     show_list boolean,
 
@@ -1332,7 +1332,6 @@ INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (6, 'T
 INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (7, 'SNMP agents down', 7, 'snmpagent', 0);
 INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (8, 'Links down', 8, 'linkstate', 0);
 
-UPDATE matchfield SET list_limit=1000 WHERE list_limit < 1000;
 
 UPDATE matchfield SET
   name='Group',
