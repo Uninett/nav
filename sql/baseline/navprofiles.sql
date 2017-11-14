@@ -57,6 +57,7 @@ CREATE TABLE Account (
     name varchar DEFAULT 'Noname',
     password varchar,
     ext_sync varchar,
+    preferences manage.hstore DEFAULT manage.hstore(''),
 
     CONSTRAINT account_pkey PRIMARY KEY(id),
     CONSTRAINT account_login_key UNIQUE(login)
@@ -1253,18 +1254,6 @@ UPDATE account_navlet
   WHERE navlet='nav.web.navlets.status.StatusNavlet';
 
 INSERT INTO alertsender (id, name, handler) VALUES (4, 'Slack', 'slack');
-
-ALTER TABLE account ADD COLUMN preferences manage.hstore DEFAULT manage.hstore('');
-
--- Save all properties from accountproperty as preferences in account table.
-DO $$DECLARE accountproperty RECORD;
-BEGIN
-  FOR accountproperty IN SELECT * FROM accountproperty LOOP
-    UPDATE account
-      SET preferences = preferences || manage.hstore(accountproperty.property, accountproperty.value)
-      WHERE account.id = accountproperty.accountid;
-  END LOOP;
-END$$;
 
 -- Set refresh interval on existing message widgets
 UPDATE account_navlet
