@@ -333,9 +333,11 @@ CREATE TABLE swportallowedvlan (
 
 
 CREATE TABLE swportblocked (
+  swportblockedid SERIAL PRIMARY KEY,
   interfaceid INT4 NOT NULL REFERENCES interface ON UPDATE CASCADE ON DELETE CASCADE,
   vlan INT4 NOT NULL,
-  PRIMARY KEY(interfaceid, vlan)
+
+  CONSTRAINT swportblocked_uniq UNIQUE (interfaceid, vlan)
 );
 
 -- View to mimic old swport table
@@ -1433,16 +1435,6 @@ CREATE TABLE IF NOT EXISTS prefix_usage (
                     ON UPDATE CASCADE ON DELETE CASCADE,
     UNIQUE (prefixid, usageid)
 );
-
-ALTER TABLE swportblocked
-  DROP CONSTRAINT swportblocked_pkey;
-
-ALTER TABLE swportblocked
-  ADD CONSTRAINT swportblocked_uniq UNIQUE (interfaceid, vlan);
-
-ALTER TABLE swportblocked
-  ADD COLUMN swportblockedid SERIAL PRIMARY KEY;
-
 
 INSERT INTO schema_change_log (major, minor, point, script_name)
     VALUES (4, 6, 56, 'initial install');
