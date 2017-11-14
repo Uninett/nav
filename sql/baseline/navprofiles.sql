@@ -1054,10 +1054,14 @@ CREATE TABLE profiles.netmap_view (
   viewid SERIAL,
   owner INT4 NOT NULL REFERENCES account ON UPDATE CASCADE ON DELETE CASCADE,
   title VARCHAR NOT NULL,
-  link_types VARCHAR NOT NULL,
   zoom VARCHAR NOT NULL,
   is_public BOOLEAN NOT NULL DEFAULT FALSE,
   last_modified TIMESTAMP NOT NULL DEFAULT NOW(),
+  topology INT4 NOT NULL,
+  display_elinks BOOLEAN NOT NULL DEFAULT false,
+  display_orphans BOOLEAN NOT NULL DEFAULT false,
+  description TEXT DEFAULT null,
+
   PRIMARY KEY (viewid)
 );
 COMMENT ON TABLE netmap_view IS 'Stored views with settings for NetMap';
@@ -1078,12 +1082,6 @@ CREATE TABLE profiles.netmap_view_nodeposition (
   PRIMARY KEY (viewid, netboxid)
 );
 
-ALTER TABLE netmap_view ADD COLUMN topology INT4 NOT NULL;
-ALTER TABLE netmap_view DROP COLUMN link_types;
-ALTER TABLE netmap_view ADD COLUMN display_elinks BOOLEAN NOT NULL DEFAULT false;
-ALTER TABLE netmap_view ADD COLUMN display_orphans BOOLEAN NOT NULL DEFAULT false;
-ALTER TABLE netmap_view ADD COLUMN description TEXT DEFAULT null;
-
 -- netmap_view_defaultview
 CREATE TABLE profiles.netmap_view_defaultview (
   id SERIAL,
@@ -1096,9 +1094,11 @@ COMMENT ON TABLE netmap_view_defaultview IS 'Stores default views for users in N
 CREATE TABLE profiles.accounttool(
   account_tool_id SERIAL PRIMARY KEY,
   toolname VARCHAR,
-  accountid INTEGER NOT NULL REFERENCES account(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  accountid INTEGER NOT NULL,
   display BOOLEAN DEFAULT TRUE,
-  priority INTEGER DEFAULT 0
+  priority INTEGER DEFAULT 0,
+
+  FOREIGN KEY (accountid) REFERENCES account(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- Django database-backed sessions are now being used by NAV.
@@ -1171,14 +1171,6 @@ $$ LANGUAGE plpgsql;
 
 SELECT insert_default_navlets_for_existing_users();
 
-
--- Fix cascading deletes in accounttool foreign keys (LP#1293621)
-
-ALTER TABLE accounttool DROP CONSTRAINT accounttool_accountid_fkey;
-ALTER TABLE accounttool ADD CONSTRAINT accounttool_accountid_fkey
-  FOREIGN KEY (accountid)
-  REFERENCES account(id)
-  ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- Add new blog navlet to all users. Exclude those that have already activated it.
 DO $$DECLARE account_record RECORD;
