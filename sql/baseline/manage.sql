@@ -168,33 +168,32 @@ CREATE TABLE netbox_vtpvlan (
   UNIQUE(netboxid, vtpvlan)
 );
 
-CREATE TABLE subcat (
-    subcatid VARCHAR,
+CREATE TABLE netboxgroup (
+    netboxgroupid VARCHAR,
     descr VARCHAR NOT NULL,
-    catid VARCHAR(8) NOT NULL REFERENCES cat(catid),
-    PRIMARY KEY (subcatid)
+
+    PRIMARY KEY (netboxgroupid)
 );
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('AD','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('ADC','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('BACKUP','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('DNS','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('FS','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('LDAP','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('MAIL','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('NOTES','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('STORE','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('TEST','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('UNIX','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('UNIX-STUD','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('WEB','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('WIN','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('WIN-STUD','Description','SRV'
-);
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('AD','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('ADC','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('BACKUP','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('DNS','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('FS','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('LDAP','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('MAIL','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('NOTES','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('STORE','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('TEST','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('UNIX','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('UNIX-STUD','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('WEB','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('WIN','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('WIN-STUD','Description');
 
 CREATE TABLE netboxcategory (
   id SERIAL,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  category VARCHAR NOT NULL REFERENCES subcat ON UPDATE CASCADE ON DELETE CASCADE,
+  category VARCHAR NOT NULL REFERENCES netboxgroup ON UPDATE CASCADE ON DELETE CASCADE,
   PRIMARY KEY(netboxid, category)
 );
 
@@ -1159,11 +1158,6 @@ CREATE TABLE manage.interface_stack (
   lower INTEGER REFERENCES interface(interfaceid),
   UNIQUE (higher, lower)
 );
-
-ALTER TABLE subcat DROP catid;
-ALTER TABLE subcat RENAME TO netboxgroup;
-ALTER TABLE netboxgroup RENAME subcatid TO netboxgroupid;
-
 
 -- Fix cascading deletes in interface_stack foreign keys (LP#1246226)
 
