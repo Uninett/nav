@@ -105,6 +105,9 @@ INSERT INTO cat values ('EDGE','Edge switch without vlans (layer 2)','t');
 INSERT INTO cat values ('WLAN','Wireless equipment','t');
 INSERT INTO cat values ('SRV','Server','f');
 INSERT INTO cat values ('OTHER','Other equipment','f');
+INSERT INTO cat VALUES ('ENV', 'Environmental probes', true);
+INSERT INTO cat VALUES ('POWER', 'Power distribution equipment', true);
+
 
 CREATE TABLE device (
   deviceid SERIAL PRIMARY KEY,
@@ -1236,9 +1239,6 @@ UPDATE sensor
 SET precision=2, data_scale=NULL
 WHERE mib = 'PowerNet-MIB'
       AND data_scale = 'centi';
-
-INSERT INTO manage.cat (catid, descr, req_snmp) VALUES ('ENV', 'Environmental probes', true);
-INSERT INTO manage.cat (catid, descr, req_snmp) VALUES ('POWER', 'Power distribution equipment', true);
 
 -- clean up some alert- and event-type descriptions
 UPDATE alerttype SET alerttypedesc = 'The IP device has coldstarted'
