@@ -35,7 +35,7 @@ class Poe(Plugin):
             returnValue(None)
 
         poemib = PowerEthernetMib(self.agent)
-        if self.netbox.type.vendor.id == 'cisco':
+        if self.netbox.type and self.netbox.type.vendor.id == 'cisco':
             cisco_mib = CiscoPowerEthernetExtMib(self.agent)
             port_phy_index = yield cisco_mib.retrieve_column(
                 "cpeExtPsePortEntPhyIndex")
