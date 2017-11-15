@@ -36,12 +36,6 @@ CREATE TABLE image (
   priority INT
 );
 
-
-INSERT INTO subsystem (
-  SELECT 'macwatch' AS name
-  WHERE NOT EXISTS (
-    SELECT name FROM subsystem WHERE name='macwatch'));
-
 -- Added because macwatch may use mac-address prefixes
 CREATE TABLE macwatch_match(
   id SERIAL PRIMARY KEY,

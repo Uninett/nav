@@ -581,6 +581,7 @@ INSERT INTO subsystem (name) VALUES ('maintenance');
 INSERT INTO subsystem (name) VALUES ('snmptrapd');
 INSERT INTO subsystem (name) VALUES ('powersupplywatch');
 INSERT INTO subsystem (name) VALUES ('ipdevpoll');
+INSERT INTO subsystem (name) VALUES ('macwatch');
 
 
 
