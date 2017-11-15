@@ -1,4 +1,4 @@
-CREATE TABLE poegroup (
+CREATE TABLE manage.poegroup (
        poegroupid SERIAL PRIMARY KEY,
        netboxid INTEGER NOT NULL REFERENCES netbox ON DELETE CASCADE,
        moduleid INTEGER REFERENCES module ON DELETE CASCADE,
@@ -8,7 +8,7 @@ CREATE TABLE poegroup (
        UNIQUE (netboxid, index)
 );
 
-CREATE TABLE poeport (
+CREATE TABLE manage.poeport (
        poeportid SERIAL PRIMARY KEY,
        netboxid INTEGER NOT NULL REFERENCES netbox ON DELETE CASCADE,
        poegroupid INTEGER NOT NULL REFERENCES poegroup ON DELETE CASCADE,

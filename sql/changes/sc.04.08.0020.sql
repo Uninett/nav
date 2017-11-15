@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW netboxmac as
+CREATE OR REPLACE VIEW manage.netboxmac as
  SELECT DISTINCT ON (foo.mac) foo.netboxid,
     foo.mac
    FROM ( SELECT DISTINCT netbox.netboxid,
