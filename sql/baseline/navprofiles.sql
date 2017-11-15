@@ -57,6 +57,7 @@ CREATE TABLE Account (
     name varchar DEFAULT 'Noname',
     password varchar,
     ext_sync varchar,
+    preferences manage.hstore DEFAULT manage.hstore(''),
 
     CONSTRAINT account_pkey PRIMARY KEY(id),
     CONSTRAINT account_login_key UNIQUE(login)
@@ -176,11 +177,11 @@ CREATE TABLE alertaddress (
 		  FOREIGN KEY(accountid) REFERENCES Account(id)
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE,
-       CONSTRAINT alertaddress_type_fkey 
+       CONSTRAINT alertaddress_type_fkey
                   FOREIGN KEY(type) REFERENCES alertsender(id)
                   ON DELETE CASCADE
                   ON UPDATE CASCADE
-         
+
 );
 ALTER SEQUENCE alertaddress_id_seq OWNED BY alertaddress.id;
 
@@ -193,7 +194,7 @@ A table for alertprofile. Only one profile can be active simultanously. It is po
 name		The name of the profile
 daily_dispatch_time		Related to queueing. When daily queueing is selected, this attrubute specify when on a day
             enqueued alerts will be sent.
-weekly_dispatch_day		Related to queueing. When weekly queueing is selected, this attribute specify which 
+weekly_dispatch_day		Related to queueing. When weekly queueing is selected, this attribute specify which
             weekday enqueued alerts will be sent on. 0 is monday, 6 is sunday.
 weekly_dispatch_time		Related to queueing. When weekly queueing is selected, this attribute specify which time
             on the day enqueued alerts will be sent.
@@ -249,7 +250,7 @@ CREATE TABLE alertpreference (
 
 A table specifying a time period. This could be though of as an element in a timetable. A time period is related to a set of relation between equipmentgroups and alertaddresses.
 
-start_time	this attribute speficies the start time of this time period. The time period end time is 
+start_time	this attribute speficies the start time of this time period. The time period end time is
             implicit given by the start time by the next time period.
 
 valid_during		Speficies wether this time period is for weekdays or weekend or both.
@@ -275,7 +276,7 @@ ALTER SEQUENCE timeperiod_id_seq OWNED BY timeperiod.id;
 /*
 -- 9 FILTERGROUP
 
-Equipment group. An equipment is a composite of equipment filters. Equipment group is specified by a 
+Equipment group. An equipment is a composite of equipment filters. Equipment group is specified by a
 ennumerated (by priority) list of equipment filters. An equipment group could either be owned by an user, or shared among administrators.
 
 name	The name of the equipment group
@@ -343,8 +344,8 @@ ALTER SEQUENCE alertsubscription_id_seq OWNED BY alertsubscription.id;
 
 Permissions.
 
-This table contatins a relation from a user group to an equipment group. It gives all members of the 
-actual user group permission to set up notofication for alerts matching this filter. The relation 
+This table contatins a relation from a user group to an equipment group. It gives all members of the
+actual user group permission to set up notofication for alerts matching this filter. The relation
 usergroup <-> equipment group is many to many.
 */
 CREATE SEQUENCE filtergroup_group_permission_id_seq;
@@ -400,7 +401,7 @@ means that each row has a priority.
 include.    If true the related filter is included in the group.
 positive.   If this is false, the filter is inverted, which implies that true is false, and
             false is true.
-priority.   The list will be traversed in ascending priority order. Which means that the higher 
+priority.   The list will be traversed in ascending priority order. Which means that the higher
             number, the higher priority.
 */
 CREATE SEQUENCE filtergroupcontent_id_seq;
@@ -449,7 +450,7 @@ CREATE TABLE MatchField (
     value_id varchar,
     value_name varchar,
     value_sort varchar,
-    list_limit integer DEFAULT 300,
+    list_limit integer DEFAULT 1000,
     data_type integer NOT NULL DEFAULT 0,
     show_list boolean,
 
@@ -800,42 +801,51 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/maintenance/(calendar|active|historic|planned|view)\\b');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/geomap$');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, E'^/geomap/open');
+-- Grant web access to unauthorized ajax requests
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/ajax/open/?');
+-- Grant web access to osm map redirects
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/search/osm_map_redirect/?');
+-- Give everyone access to navlets
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/navlets/.*');
+
 
 -- Define minimum privileges for authenticated users
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap)/?');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap|info|netmap|graphite|search|index/dashboard)/?');
+
 
 -- Give alert_by privilege to SMS group
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
        VALUES ((SELECT id FROM AccountGroup WHERE name='SMS'), 3, 'sms');
 
 -- Alert senders
 INSERT INTO alertsender VALUES (1, 'Email', 'email');
 INSERT INTO alertsender VALUES (2, 'SMS', 'sms');
-INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber'); 
+INSERT INTO alertsender VALUES (3, 'Jabber', 'jabber');
+INSERT INTO alertsender VALUES (4, 'Slack', 'slack');
 
 
 -- Matchfields
-/* 
+/*
 Matchfield.Datatype
 	string:  0
 	integer: 1
 	ip adr:  2
 */
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
-(10, 0, 'Event type', 'eventtype.eventtypeid', 'eventtype.eventtypedesc', 'eventtype.eventtypeid', true, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
+(10, 0, 'Event type', 'eventtype.eventtypeid', 'eventtype.eventtypedesc', 'eventtype.eventtypeid', true,
 'Event type: An event type describes a category of alarms. (Please note that alarm type is a more refined attribute. There are a set of alarm types within an event type.)');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 10);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 10);
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
-(11, 0, 'Alert type', 'alerttype.alerttype', 'alerttype.alerttypedesc', 'alerttype.alerttypeid', true, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
+(11, 0, 'Alert type', 'alerttype.alerttype', 'alerttype.alerttypedesc', 'alerttype.alerttype', true,
 'Alert type: An alert type describes the various values an event type may take.');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 11);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 11);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description, value_help) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description, value_help) VALUES
 (12, 1, 'Severity', 'alertq.severity', null, null, false,
 'Severity: Limit your alarms based on severity.',
 'Range: Severities are in the range 0-100, where 100 is most severe.');
@@ -847,19 +857,19 @@ INSERT INTO Operator (operator_id, match_field_id) VALUES (4, 12);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (5, 12);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
 (13, 0, 'Category', 'cat.catid', 'cat.descr', 'cat.catid', true,
 'Category: All equipment is categorized in 7 main categories.');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 13);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 13);
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
-(14, 0, 'Sub category', 'subcat.subcatid', 'subcat.descr', 'subcat.descr', true,
-'Sub category: Within a catogory user-defined subcategories may exist.');
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
+(14, 0, 'Group', 'netboxgroup.netboxgroupid', 'netboxgroup.descr', 'netboxgroup.descr', true,
+'Group: netboxes may belong to a group that is independent of type and category');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 14);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 14);
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description, value_help) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description, value_help) VALUES
 (15, 0, 'Sysname', 'netbox.sysname', null, null, false,
 'Sysname: Limit your alarms based on sysname.',
 E'Sysname examples:<blockquote>
@@ -875,7 +885,7 @@ INSERT INTO Operator (operator_id, match_field_id) VALUES (8, 15);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (9, 15);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description, value_help) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description, value_help) VALUES
 (16, 2, 'IP address', 'netbox.ip', null, null, false,
 'Limit your alarms based on an IP address/range (prefix)',
 'examples:<blockquote>
@@ -886,42 +896,42 @@ INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 16);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 16);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
 (17, 0, 'Room', 'room.roomid', 'room.descr', 'room.roomid', true,
 'Room: Limit your alarms based on room.');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 17);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 17);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
-(18, 0, 'Location', 'location.locationid', 'location.descr', 'location.descr', true, 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
+(18, 0, 'Location', 'location.locationid', 'location.descr', 'location.descr', true,
 'Location: Limit your alarms based on location (a location contains a set of rooms) ');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 18);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 18);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
 (19, 0, 'Organization', 'org.orgid', 'org.descr', 'org.descr', true,
 'Organization: Limit your alarms based on the organization ownership of the alarm in question.');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 19);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 19);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
 (20, 0, 'Usage', 'usage.usageid', 'usage.descr', 'usage.descr', true,
 'Usage: Different network prefixes are mapped to usage areas.');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 20);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 20);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
 (21, 0, 'Type', 'type.typename', 'type.descr', 'type.descr', true,
 'Type: Limit your alarms equipment type');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 21);
 INSERT INTO Operator (operator_id, match_field_id) VALUES (11, 21);
 
 
-INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES 
+INSERT INTO MatchField (id, data_type, name, value_id, value_name, value_sort, show_list, description) VALUES
 (22, 0, 'Equipment vendor', 'vendor.vendorid', 'vendor.vendorid', 'vendor.vendorid', true,
 'Equipment vendor: Limit alert by the vendor of the netbox.');
 INSERT INTO Operator (operator_id, match_field_id) VALUES (0, 22);
@@ -1048,16 +1058,25 @@ INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUE
 INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (3, 'IP devices on maintenance', 3, 'netbox_maintenance', 0, 'y,n,s');
 INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (4, 'Modules down/in shadow', 4, 'module', 0, 'n,s');
 INSERT INTO statuspreference (id, name, position, type, accountid, states) VALUES (5, 'Services down', 5, 'service', 0, 'n,s');
+INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (6, 'Thresholds exceeded', 6, 'threshold', 0);
+INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (7, 'SNMP agents down', 7, 'snmpagent', 0);
+INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (8, 'Links down', 8, 'linkstate', 0);
+
 
 -- netmap_view
 CREATE TABLE profiles.netmap_view (
   viewid SERIAL,
   owner INT4 NOT NULL REFERENCES account ON UPDATE CASCADE ON DELETE CASCADE,
   title VARCHAR NOT NULL,
-  link_types VARCHAR NOT NULL,
   zoom VARCHAR NOT NULL,
   is_public BOOLEAN NOT NULL DEFAULT FALSE,
   last_modified TIMESTAMP NOT NULL DEFAULT NOW(),
+  topology INT4 NOT NULL,
+  display_elinks BOOLEAN NOT NULL DEFAULT false,
+  display_orphans BOOLEAN NOT NULL DEFAULT false,
+  description TEXT DEFAULT null,
+  location_room_filter varchar NOT NULL DEFAULT '',
+
   PRIMARY KEY (viewid)
 );
 COMMENT ON TABLE netmap_view IS 'Stored views with settings for NetMap';
@@ -1078,13 +1097,6 @@ CREATE TABLE profiles.netmap_view_nodeposition (
   PRIMARY KEY (viewid, netboxid)
 );
 
-TRUNCATE TABLE netmap_view CASCADE;
-ALTER TABLE netmap_view ADD COLUMN topology INT4 NOT NULL;
-ALTER TABLE netmap_view DROP COLUMN link_types;
-ALTER TABLE netmap_view ADD COLUMN display_elinks BOOLEAN NOT NULL DEFAULT false;
-ALTER TABLE netmap_view ADD COLUMN display_orphans BOOLEAN NOT NULL DEFAULT false;
-ALTER TABLE netmap_view ADD COLUMN description TEXT DEFAULT null;
-
 -- netmap_view_defaultview
 CREATE TABLE profiles.netmap_view_defaultview (
   id SERIAL,
@@ -1097,9 +1109,11 @@ COMMENT ON TABLE netmap_view_defaultview IS 'Stores default views for users in N
 CREATE TABLE profiles.accounttool(
   account_tool_id SERIAL PRIMARY KEY,
   toolname VARCHAR,
-  accountid INTEGER NOT NULL REFERENCES account(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  accountid INTEGER NOT NULL,
   display BOOLEAN DEFAULT TRUE,
-  priority INTEGER DEFAULT 0
+  priority INTEGER DEFAULT 0,
+
+  FOREIGN KEY (accountid) REFERENCES account(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- Django database-backed sessions are now being used by NAV.
@@ -1108,177 +1122,6 @@ CREATE TABLE profiles.django_session (
     "session_data" text NOT NULL,
     "expire_date" timestamp with time zone NOT NULL
 );
-
--- Map topology id to match OSI layer number
-UPDATE profiles.netmap_view SET topology = 3 where topology = 2;
-UPDATE profiles.netmap_view SET topology = 2 where topology = 1;
-
--- Create table for storing navlet information for a user
-
-CREATE TABLE IF NOT EXISTS profiles.account_navlet (
-  id SERIAL PRIMARY KEY,
-  navlet VARCHAR NOT NULL,
-  account INT REFERENCES profiles.account(id),
-  col INT,
-  displayorder INT NOT NULL,
-  preferences VARCHAR
-);
-
--- Grant web access to unauthorized ajax requests
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
-  SELECT 2, 2, '^/ajax/open/?' WHERE NOT EXISTS (
-    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid=2 AND privilegeid=2 AND target='^/ajax/open/?'
-  )
-;
-
--- Grant web access to osm map redirects
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
-  SELECT 2, 2, '^/info/osm_map_redirect/?' WHERE NOT EXISTS (
-    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid=2 AND privilegeid=2 AND target = '^/info/osm_map_redirect/?'
-  )
-;
-
--- Grant web access to /info for authenticated users
-UPDATE AccountGroupPrivilege SET
-        target = '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap|info|netmap)/?'
-  WHERE target = '^/(report|status|alertprofiles|machinetracker|browse|preferences|cricket|stats|ipinfo|l2trace|logger|ipdevinfo|geomap)/?'
-;
-
----
--- Give everyone access to navlets
----
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
-  SELECT 2, 2, '^/navlets/.*' WHERE NOT EXISTS (
-    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 2 AND privilegeid = 2 AND target = '^/navlets/.*'
-  );
-
-
----
--- Insert default navlets for every existing user
----
-CREATE OR REPLACE FUNCTION insert_default_navlets_for_existing_users() RETURNS void AS $$
-DECLARE
-  account RECORD;
-BEGIN
-  FOR account IN SELECT * FROM account LOOP
-    RAISE NOTICE 'Adding default navlets for %s', quote_ident(account.login);
-    INSERT INTO account_navlet (navlet, account, displayorder, col) VALUES
-      ('nav.web.navlets.welcome.WelcomeNavlet', account.id, 0, 1),
-      ('nav.web.navlets.linklist.LinkListNavlet', account.id, 0, 2),
-      ('nav.web.navlets.messages.MessagesNavlet', account.id, 1, 2);
-  END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-SELECT insert_default_navlets_for_existing_users();
-
-
--- Fix cascading deletes in accounttool foreign keys (LP#1293621)
-
-ALTER TABLE accounttool DROP CONSTRAINT accounttool_accountid_fkey;
-ALTER TABLE accounttool ADD CONSTRAINT accounttool_accountid_fkey
-  FOREIGN KEY (accountid)
-  REFERENCES account(id)
-  ON DELETE CASCADE ON UPDATE CASCADE;
-
--- Add new blog navlet to all users. Exclude those that have already activated it.
-DO $$DECLARE account_record RECORD;
-BEGIN
-  FOR account_record IN SELECT * FROM account WHERE id NOT IN (SELECT account FROM account_navlet WHERE navlet = 'nav.web.navlets.navblog.NavBlogNavlet') LOOP
-    INSERT INTO account_navlet (navlet, account, col, displayorder, preferences) VALUES
-    ('nav.web.navlets.navblog.NavBlogNavlet', account_record.id, 2, 0, '(dp0
-S''refresh_interval''
-p1
-I600000
-s.');
-  END LOOP;
-END$$;
-
-UPDATE accountgroupprivilege SET target = '^/search/osm_map_redirect/?' WHERE target = '^/info/osm_map_redirect/?';
-
-ALTER TABLE account_navlet DROP CONSTRAINT account_navlet_account_fkey;
-ALTER TABLE account_navlet ADD CONSTRAINT account_navlet_account_fkey
-  FOREIGN KEY (account)
-  REFERENCES account(id)
-  ON DELETE CASCADE ON UPDATE CASCADE;
-
----
--- Delete all widgets from all users
----
-DELETE FROM account_navlet;
-
----
--- Insert default widgets for every existing user
----
-CREATE OR REPLACE FUNCTION insert_default_navlets_for_existing_users() RETURNS void AS $$
-DECLARE
-  account RECORD;
-BEGIN
-  FOR account IN SELECT * FROM account LOOP
-    RAISE NOTICE 'Adding default navlets for %s', quote_ident(account.login);
-    INSERT INTO account_navlet (navlet, account, displayorder, col) VALUES
-      ('nav.web.navlets.gettingstarted.GettingStartedWidget', account.id, 0, 1),
-      ('nav.web.navlets.status.StatusNavlet', account.id, 1, 1),
-      ('nav.web.navlets.messages.MessagesNavlet', account.id, 2, 1),
-      ('nav.web.navlets.navblog.NavBlogNavlet', account.id, 0, 2),
-      ('nav.web.navlets.linklist.LinkListNavlet', account.id, 1, 2);
-  END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-SELECT insert_default_navlets_for_existing_users();
-
----
--- Remove GettingStartedWidget for default user.
----
-DELETE FROM account_navlet WHERE account=0 AND navlet='nav.web.navlets.gettingstarted.GettingStartedWidget';
-
-
----
--- Give authenticated users access to Graphite graphs and stuffz
----
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
-  SELECT 3, 2, '^/graphite/?' WHERE NOT EXISTS (
-    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 3 AND privilegeid = 2 AND target = '^/graphite/?'
-  );
-
-
----
--- Give authenticated users access to search
----
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
-  SELECT 3, 2, '^/search/?' WHERE NOT EXISTS (
-    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 3 AND privilegeid = 2 AND target = '^/search/?'
-  );
-
-ALTER TABLE netmap_view ADD COLUMN location_room_filter varchar NOT NULL DEFAULT '';
-
----
--- Replace old status widget with new one.
----
-UPDATE account_navlet
-  SET navlet='nav.web.navlets.status2.Status2Widget',
-      preferences = '{"status_filter": "event_type=boxState&stateless_threshold=24", "refresh_interval": 60000}'
-  WHERE navlet='nav.web.navlets.status.StatusNavlet';
-
-INSERT INTO alertsender (id, name, handler) VALUES (4, 'Slack', 'slack');
-
-ALTER TABLE account ADD COLUMN preferences manage.hstore DEFAULT manage.hstore('');
-
--- Save all properties from accountproperty as preferences in account table.
-DO $$DECLARE accountproperty RECORD;
-BEGIN
-  FOR accountproperty IN SELECT * FROM accountproperty LOOP
-    UPDATE account
-      SET preferences = preferences || manage.hstore(accountproperty.property, accountproperty.value)
-      WHERE account.id = accountproperty.accountid;
-  END LOOP;
-END$$;
-
--- Set refresh interval on existing message widgets
-UPDATE account_navlet
-SET preferences = '{"refresh_interval": 60000}'
-WHERE navlet = 'nav.web.navlets.messages.MessagesNavlet';
 
 --- Create table for storing multiple dashboards
 CREATE TABLE profiles.account_dashboard (
@@ -1289,12 +1132,48 @@ CREATE TABLE profiles.account_dashboard (
   account_id INT REFERENCES account(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+-- Create table for storing navlet information for a user
 
---- Widgets should now be a part of a dashboard
-ALTER TABLE account_navlet
-  ADD dashboard_id INT
-    REFERENCES account_dashboard(id)
-    ON UPDATE CASCADE ON DELETE CASCADE;
+CREATE TABLE IF NOT EXISTS profiles.account_navlet (
+  id SERIAL PRIMARY KEY,
+  dashboard_id INT REFERENCES account_dashboard(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  navlet VARCHAR NOT NULL,
+  account INT,
+  col INT,
+  displayorder INT NOT NULL,
+  preferences VARCHAR,
+
+  CONSTRAINT account_navlet_account_fkey
+    FOREIGN KEY (account) REFERENCES account(id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+---
+-- Insert default widgets for every existing user
+---
+CREATE OR REPLACE FUNCTION insert_default_navlets_for_existing_users() RETURNS void AS $$
+DECLARE
+  account RECORD;
+BEGIN
+  FOR account IN SELECT * FROM account LOOP
+    RAISE NOTICE 'Adding default navlets for %s', quote_ident(account.login);
+    INSERT INTO account_navlet (navlet, account, displayorder, col, preferences) VALUES
+      ('nav.web.navlets.gettingstarted.GettingStartedWidget', account.id, 0, 1, NULL),
+      ('nav.web.navlets.status2.Status2Widget', account.id, 1, 1, '{"status_filter": "event_type=boxState&stateless_threshold=24", "refresh_interval": 60000}'),
+      ('nav.web.navlets.messages.MessagesNavlet', account.id, 2, 1, NULL),
+      ('nav.web.navlets.navblog.NavBlogNavlet', account.id, 0, 2, NULL),
+      ('nav.web.navlets.linklist.LinkListNavlet', account.id, 1, 2, NULL);
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT insert_default_navlets_for_existing_users();
+
+---
+-- Remove GettingStartedWidget for default user.
+---
+DELETE FROM account_navlet WHERE account=0 AND navlet='nav.web.navlets.gettingstarted.GettingStartedWidget';
 
 
 --- Create a dashboard for each user and move all widgets there
@@ -1312,6 +1191,11 @@ BEGIN
       WHERE account=thisaccount.id;
   END LOOP;
 END$$;
+
+--
+-- Function and trigger to ensure the default account's dashboard setup is
+-- copied to every new account that is created
+--
 
 -- Create a new dashboard and copy all the widgets from the default user to
 -- the dashboard
@@ -1335,32 +1219,7 @@ CREATE TRIGGER add_default_dashboard_on_account_create AFTER INSERT ON account
   FOR EACH ROW
   EXECUTE PROCEDURE create_new_dashboard();
 
----
--- Give authenticated users access to dashboard urls
----
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target)
-  SELECT 3, 2, '^/index/dashboard/?' WHERE NOT EXISTS (
-    SELECT * FROM AccountGroupPrivilege WHERE accountgroupid = 3 AND privilegeid = 2 AND target = '^/index/dashboard/?'
-  );
 
----
--- Sort Alert Types when modifying Alert Profiles
----
-UPDATE MatchField SET value_sort='alerttype.alerttype' WHERE id=11 AND value_sort='alerttype.alerttypeid';
-
-INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (6, 'Thresholds exceeded', 6, 'threshold', 0);
-INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (7, 'SNMP agents down', 7, 'snmpagent', 0);
-INSERT INTO statuspreference (id, name, position, type, accountid) VALUES (8, 'Links down', 8, 'linkstate', 0);
-
-UPDATE matchfield SET list_limit=1000 WHERE list_limit < 1000;
-
-UPDATE matchfield SET
-  name='Group',
-  value_id='netboxgroup.netboxgroupid',
-  value_name='netboxgroup.descr',
-  value_sort='netboxgroup.descr',
-  description='Group: netboxes may belong to a group that is independent of type and category'
-  WHERE id=14;
 /*
 ------------------------------------------------------
  EOF

@@ -4,18 +4,18 @@
     SQL Initialization script for NAV's
     manage database.  Read the README file
     for more info.
-    
+
     Run the command:
     psql manage -f manage.sql
-    
+
 	!! WARNING !!
 
 	This SQL script is encoded as unicode (UTF-8), before you do make
 	changes and commit, be 100% sure that your editor does not mess it up.
-    
+
     Check 1 : These norwegian letters looks nice:
     ! æøåÆØÅ !
-    Check 2 : This is the Euro currency sign: 
+    Check 2 : This is the Euro currency sign:
     ! € !
 =============================================
 */
@@ -79,7 +79,7 @@ CREATE TABLE vlan (
   usageid VARCHAR(30) REFERENCES usage,
   netident VARCHAR,
   description VARCHAR
-);  
+);
 
 CREATE TABLE prefix (
   prefixid SERIAL PRIMARY KEY,
@@ -105,6 +105,9 @@ INSERT INTO cat values ('EDGE','Edge switch without vlans (layer 2)','t');
 INSERT INTO cat values ('WLAN','Wireless equipment','t');
 INSERT INTO cat values ('SRV','Server','f');
 INSERT INTO cat values ('OTHER','Other equipment','f');
+INSERT INTO cat VALUES ('ENV', 'Environmental probes', true);
+INSERT INTO cat VALUES ('POWER', 'Power distribution equipment', true);
+
 
 CREATE TABLE device (
   deviceid SERIAL PRIMARY KEY,
@@ -139,7 +142,7 @@ CREATE TABLE netbox (
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n' OR up='s'), -- y=up, n=down, s=shadow
   snmp_version INT4 NOT NULL DEFAULT 2,
   upsince TIMESTAMP NOT NULL DEFAULT NOW(),
-  uptodate BOOLEAN NOT NULL DEFAULT false, 
+  uptodate BOOLEAN NOT NULL DEFAULT false,
   discovered TIMESTAMP NULL DEFAULT NOW(),
   data hstore DEFAULT hstore('') NOT NULL,
   UNIQUE(ip)
@@ -165,33 +168,32 @@ CREATE TABLE netbox_vtpvlan (
   UNIQUE(netboxid, vtpvlan)
 );
 
-CREATE TABLE subcat (
-    subcatid VARCHAR,
+CREATE TABLE netboxgroup (
+    netboxgroupid VARCHAR,
     descr VARCHAR NOT NULL,
-    catid VARCHAR(8) NOT NULL REFERENCES cat(catid),
-    PRIMARY KEY (subcatid)
+
+    PRIMARY KEY (netboxgroupid)
 );
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('AD','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('ADC','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('BACKUP','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('DNS','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('FS','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('LDAP','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('MAIL','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('NOTES','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('STORE','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('TEST','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('UNIX','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('UNIX-STUD','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('WEB','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('WIN','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('WIN-STUD','Description','SRV'
-);
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('AD','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('ADC','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('BACKUP','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('DNS','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('FS','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('LDAP','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('MAIL','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('NOTES','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('STORE','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('TEST','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('UNIX','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('UNIX-STUD','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('WEB','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('WIN','Description');
+INSERT INTO netboxgroup (netboxgroupid,descr) VALUES ('WIN-STUD','Description');
 
 CREATE TABLE netboxcategory (
   id SERIAL,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  category VARCHAR NOT NULL REFERENCES subcat ON UPDATE CASCADE ON DELETE CASCADE,
+  category VARCHAR NOT NULL REFERENCES netboxgroup ON UPDATE CASCADE ON DELETE CASCADE,
   PRIMARY KEY(netboxid, category)
 );
 
@@ -215,8 +217,8 @@ CREATE TABLE module (
   descr VARCHAR,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n'), -- y=up, n=down
   downsince TIMESTAMP,
-  CONSTRAINT module_netboxid_key UNIQUE (netboxid, name),
-  UNIQUE(deviceid)
+
+  CONSTRAINT module_netboxid_key UNIQUE (netboxid, name)
 );
 
 CREATE TABLE mem (
@@ -250,40 +252,40 @@ CREATE TABLE interface (
   ifalias VARCHAR,
 
   -- non IF-MIB values
-  baseport INT4,  -- baseport number from BRIDGE-MIB, if any. 
+  baseport INT4,  -- baseport number from BRIDGE-MIB, if any.
                   -- A non-null value should be a good indicator that this is a switch port.
   media VARCHAR,
   vlan INT4,
   trunk BOOLEAN,
   duplex CHAR(1) CHECK (duplex='f' OR duplex='h'), -- f=full, h=half
 
-  to_netboxid INT4, 
-  to_interfaceid INT4, 
+  to_netboxid INT4,
+  to_interfaceid INT4,
 
   gone_since TIMESTAMP,
-  
+
   CONSTRAINT interface_pkey PRIMARY KEY (interfaceid),
-  CONSTRAINT interface_netboxid_fkey 
+  CONSTRAINT interface_netboxid_fkey
              FOREIGN KEY (netboxid)
              REFERENCES netbox (netboxid)
              ON UPDATE CASCADE ON DELETE CASCADE,
-  CONSTRAINT interface_moduleid_fkey 
+  CONSTRAINT interface_moduleid_fkey
              FOREIGN KEY (moduleid)
              REFERENCES module (moduleid)
              ON UPDATE CASCADE ON DELETE SET NULL,
-  CONSTRAINT interface_to_netboxid_fkey 
-             FOREIGN KEY (to_netboxid) 
+  CONSTRAINT interface_to_netboxid_fkey
+             FOREIGN KEY (to_netboxid)
              REFERENCES netbox (netboxid)
              ON UPDATE CASCADE ON DELETE SET NULL,
-  CONSTRAINT interface_to_interfaceid_fkey 
-             FOREIGN KEY (to_interfaceid) 
+  CONSTRAINT interface_to_interfaceid_fkey
+             FOREIGN KEY (to_interfaceid)
              REFERENCES interface (interfaceid)
              ON UPDATE CASCADE ON DELETE SET NULL,
   CONSTRAINT interface_netboxid_ifindex_unique
              UNIQUE (netboxid, ifindex)
 );
 
--- this should be populated with entries parsed from 
+-- this should be populated with entries parsed from
 -- http://www.iana.org/assignments/ianaiftype-mib
 CREATE TABLE iana_iftype (
   iftype INT4 NOT NULL,
@@ -308,7 +310,7 @@ CREATE TABLE rproto_attr (
   protoname VARCHAR NOT NULL, -- bgp/ospf/isis
   metric INT4,
 
-  CONSTRAINT rproto_attr_pkey 
+  CONSTRAINT rproto_attr_pkey
              PRIMARY KEY (id),
   CONSTRAINT rproto_attr_interfaceid_fkey
              FOREIGN KEY (interfaceid)
@@ -331,14 +333,16 @@ CREATE TABLE swportallowedvlan (
 
 
 CREATE TABLE swportblocked (
+  swportblockedid SERIAL PRIMARY KEY,
   interfaceid INT4 NOT NULL REFERENCES interface ON UPDATE CASCADE ON DELETE CASCADE,
   vlan INT4 NOT NULL,
-  PRIMARY KEY(interfaceid, vlan)
+
+  CONSTRAINT swportblocked_uniq UNIQUE (interfaceid, vlan)
 );
 
 -- View to mimic old swport table
 CREATE VIEW swport AS (
-  SELECT 
+  SELECT
     interfaceid AS swportid,
     moduleid,
     ifindex,
@@ -365,7 +369,7 @@ CREATE VIEW swport AS (
 
 -- View to mimic old gwport table
 CREATE VIEW gwport AS (
-  SELECT 
+  SELECT
     i.interfaceid AS gwportid,
     moduleid,
     ifindex,
@@ -480,7 +484,7 @@ CREATE TABLE arp (
 
 -- Rule to automatically close open arp entries related to a given prefix
 CREATE OR REPLACE RULE close_arp_prefices AS ON DELETE TO prefix
-  DO UPDATE arp SET end_time=NOW(), prefixid=NULL 
+  DO UPDATE arp SET end_time=NOW(), prefixid=NULL
      WHERE prefixid=OLD.prefixid AND end_time='infinity';
 
 -- View for listing all IP addresses that appear to be alive at the moment.
@@ -499,8 +503,7 @@ CREATE TABLE cam (
   mac MACADDR NOT NULL,
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL DEFAULT 'infinity',
-  misscnt INT4 DEFAULT '0',
-  UNIQUE(netboxid,sysname,module,port,mac,start_time)
+  misscnt INT4 DEFAULT '0'
 );
 
 
@@ -532,17 +535,17 @@ CREATE VIEW prefix_max_ip_cnt AS
 
 -- This view gives the allowed vlan for a given hexstring i swportallowedvlan
 CREATE VIEW allowedvlan AS (
-  SELECT 
-    interfaceid, vlan AS allowedvlan 
-  FROM 
-    (SELECT interfaceid, decode(hexstring, 'hex') AS octetstring 
+  SELECT
+    interfaceid, vlan AS allowedvlan
+  FROM
+    (SELECT interfaceid, decode(hexstring, 'hex') AS octetstring
      FROM swportallowedvlan) AS allowed_octets
   CROSS JOIN
     generate_series(0, 4095) AS vlan
   WHERE
     vlan < length(octetstring)*8 AND
-    (CASE 
-       WHEN length(octetstring)>=128 
+    (CASE
+       WHEN length(octetstring)>=128
          THEN get_bit(octetstring, (vlan/8)*8+7-(vlan%8))
        ELSE get_bit(octetstring,(length(octetstring)*8-vlan+7>>3<<3)-8+(vlan%8))
      END) = 1
@@ -576,6 +579,10 @@ INSERT INTO subsystem (name) VALUES ('getDeviceData');
 INSERT INTO subsystem (name) VALUES ('devBrowse');
 INSERT INTO subsystem (name) VALUES ('maintenance');
 INSERT INTO subsystem (name) VALUES ('snmptrapd');
+INSERT INTO subsystem (name) VALUES ('powersupplywatch');
+INSERT INTO subsystem (name) VALUES ('ipdevpoll');
+INSERT INTO subsystem (name) VALUES ('macwatch');
+
 
 
 ------------------------------------------------------------------------------------------
@@ -588,9 +595,9 @@ CREATE TABLE eventtype (
   eventtypedesc VARCHAR,
   stateful CHAR(1) NOT NULL CHECK (stateful='y' OR stateful='n')
 );
-INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES 
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('boxState','Tells us whether a network-unit is down or up.','y');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES 
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('serviceState','Tells us whether a service on a server is up or down.','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('moduleState','Tells us whether a module in a device is working or not.','y');
@@ -614,6 +621,18 @@ INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('maintenanceState','Tells us if something is set on maintenance','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('apState','Tells us whether an access point has disassociated or associated from the controller','y');
+INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
+  ('snmpAgentState', 'Tells us whether the SNMP agent on a device is down or up.', 'y');
+INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
+  ('chassisState', 'The state of this chassis has changed', 'y');
+INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
+  ('aggregateLinkState', 'The state of this aggregated link changed', 'y');
+INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
+  ('psuState', 'Reports state changes in power supply units', 'y');
+INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
+  ('fanState', 'Reports state changes in fan units', 'y');
+
+
 
 CREATE TABLE eventq (
   eventqid SERIAL PRIMARY KEY,
@@ -621,7 +640,7 @@ CREATE TABLE eventq (
   target VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  subid VARCHAR,
+  subid VARCHAR NOT NULL DEFAULT '',
   time TIMESTAMP NOT NULL DEFAULT NOW (),
   eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
   state CHAR(1) NOT NULL DEFAULT 'x' CHECK (state='x' OR state='s' OR state='e'), -- x = stateless, s = start, e = end
@@ -687,13 +706,13 @@ INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('info','serialChanged','Serial number for the device has changed.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
-  ('boxRestart','coldStart','Tells us that a network-unit has done a coldstart.');
+  ('boxRestart','coldStart','The IP device has coldstarted');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
-  ('boxRestart','warmStart','Tells us that a network-unit has done a warmstart.');
+  ('boxRestart','warmStart','The IP device has warmstarted');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
-  ('deviceState','deviceInIPOperation','Device is in operation as a box.');
+  ('deviceState','deviceInIPOperation','The device is now in operation with an active IP address');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
-  ('deviceState','deviceInStack','Device is in operation as a module.');
+  ('deviceState','deviceInStack','The device is now in operation as a chassis module');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('deviceState','deviceRMA','RMA event for device.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
@@ -706,13 +725,37 @@ INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('apState','apUp','AP associated with controller');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('apState','apDown','AP disassociated from controller');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('snmpAgentState', 'snmpAgentDown', 'SNMP agent is down or unreachable due to misconfiguration.');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('snmpAgentState', 'snmpAgentUp', 'SNMP agent is up.');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('chassisState', 'chassisDown', 'This chassis is no longer visible in the stack');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('chassisState', 'chassisUp', 'This chassis is visible in the stack again');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('aggregateLinkState', 'linkDegraded', 'This aggregate link has been degraded');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('aggregateLinkState', 'linkRestored', 'This aggregate link has been restored');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('info','macWarning','Mac appeared on port');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('psuState', 'psuNotOK', 'A PSU has entered a non-OK state');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('psuState', 'psuOK', 'A PSU has returned to an OK state');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('fanState', 'fanNotOK', 'A fan unit has entered a non-OK state');
+INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
+  ('fanState', 'fanOK', 'A fan unit has returned to an OK state');
+
+
 
 CREATE TABLE alerthist (
   alerthistid SERIAL PRIMARY KEY,
   source VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
-  subid VARCHAR,
+  subid VARCHAR NOT NULL DEFAULT '',
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP DEFAULT 'infinity',
   eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
@@ -724,7 +767,7 @@ CREATE TABLE alerthist (
 -- Rule to automatically close module related alert states when modules are
 -- deleted.
 CREATE OR REPLACE RULE close_alerthist_modules AS ON DELETE TO module
-  DO UPDATE alerthist SET end_time=NOW() 
+  DO UPDATE alerthist SET end_time=NOW()
      WHERE eventtypeid IN ('moduleState', 'linkState')
        AND end_time='infinity'
        AND deviceid=OLD.deviceid;
@@ -756,7 +799,7 @@ CREATE TABLE alertq (
   source VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  subid VARCHAR,
+  subid VARCHAR NOT NULL DEFAULT '',
   time TIMESTAMP NOT NULL,
   eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
   alerttypeid INT4 REFERENCES alerttype ON UPDATE CASCADE ON DELETE CASCADE,
@@ -928,10 +971,6 @@ CREATE TABLE schema_change_log (
     date_applied TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
-  ('info','macWarning','Mac appeared on port');
-
-
 
 CREATE OR REPLACE RULE netbox_status_close_arp AS ON UPDATE TO netbox
    WHERE NEW.up='n'
@@ -964,17 +1003,6 @@ CREATE TABLE manage.powersupply_or_fan (
     sensor_oid VARCHAR,
     up CHAR(1) NOT NULL DEFAULT 'u' CHECK (up='y' OR up='n' or up='u' or up='w')
 );
-
-INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
-  ('snmpAgentState', 'Tells us whether the SNMP agent on a device is down or up.', 'y');
-
-INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
-  ('snmpAgentState', 'snmpAgentDown', 'SNMP agent is down or unreachable due to misconfiguration.');
-
-INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
-  ('snmpAgentState', 'snmpAgentUp', 'SNMP agent is up.');
-
-INSERT INTO subsystem (name) VALUES ('ipdevpoll');
 
 
 -- Ensure any associated service alerts are closed when a service is deleted
@@ -1015,7 +1043,8 @@ CREATE TABLE manage.unrecognized_neighbor (
   remote_id VARCHAR NOT NULL,
   remote_name VARCHAR NOT NULL,
   source VARCHAR NOT NULL,
-  since TIMESTAMP NOT NULL DEFAULT NOW()
+  since TIMESTAMP NOT NULL DEFAULT NOW(),
+  ignored_since TIMESTAMP DEFAULT NULL
 );
 
 COMMENT ON TABLE unrecognized_neighbor IS 'Unrecognized neighboring devices reported by support discovery protocols';
@@ -1030,7 +1059,7 @@ CREATE TABLE manage.ipdevpoll_job_log (
   job_name VARCHAR NOT NULL,
   end_time TIMESTAMP NOT NULL,
   duration DOUBLE PRECISION,
-  success BOOLEAN NOT NULL,
+  success BOOLEAN,
   "interval" INTEGER,
 
   CONSTRAINT ipdevpoll_job_log_netbox_fkey FOREIGN KEY (netboxid)
@@ -1061,71 +1090,9 @@ CREATE TRIGGER trig_close_snmpagentstates_on_community_clear
     FOR EACH ROW
     EXECUTE PROCEDURE close_snmpagentstates_on_community_clear();
 
--- also close any currently wrongfully open SNMP states
-UPDATE alerthist
-SET end_time=NOW()
-FROM netbox
-WHERE eventtypeid='snmpAgentState'
-  AND end_time >= 'infinity'
-  AND alerthist.netboxid = netbox.netboxid
-  AND COALESCE(netbox.ro, '') = '';
-
-INSERT INTO subsystem VALUES ('powersupplywatch');
-
--- create new event and alert types for fan and psu alerts
-
-INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
-  ('psuState', 'Reports state changes in power supply units', 'y');
-
-INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
-  ('psuState', 'psuNotOK', 'A PSU has entered a non-OK state');
-
-INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
-  ('psuState', 'psuOK', 'A PSU has returned to an OK state');
-
-
-INSERT INTO eventtype (eventtypeid, eventtypedesc, stateful) VALUES
-  ('fanState', 'Reports state changes in fan units', 'y');
-
-INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
-  ('fanState', 'fanNotOK', 'A fan unit has entered a non-OK state');
-
-INSERT INTO alerttype (eventtypeid, alerttype, alerttypedesc) VALUES
-  ('fanState', 'fanOK', 'A fan unit has returned to an OK state');
-
--- rename logging jobs to ip2mac in ipdevpoll job log table
-UPDATE ipdevpoll_job_log SET job_name = 'ip2mac' WHERE job_name = 'logging';
-
-
 
 -- Notify the eventEngine immediately as new events are inserted in the queue
 CREATE OR REPLACE RULE eventq_notify AS ON INSERT TO eventq DO ALSO NOTIFY new_event;
-
--- remove useless cam constraints/indexes to prevent index bloat
--- On some installs, the index may already have been manually removed. "DROP
--- CONSTRAINT IF EXISTS" wasn't introduced until PostgreSQL 9,
--- so we make a conditional drop function to accomplish this without errors
--- here:
-
-CREATE OR REPLACE FUNCTION manage.drop_constraint(tbl_schema VARCHAR, tbl_name VARCHAR, const_name VARCHAR) RETURNS void AS $$
-DECLARE
-    exec_string TEXT;
-BEGIN
-    exec_string := 'ALTER TABLE ';
-    IF tbl_schema != NULL THEN
-        exec_string := exec_string || quote_ident(tbl_schema) || '.';
-    END IF;
-    exec_string := exec_string || quote_ident(tb_name)
-        || ' DROP CONSTRAINT '
-        || quote_ident(const_name);
-    EXECUTE exec_string;
-EXCEPTION
-    WHEN OTHERS THEN
-        NULL;
-END;
-$$ LANGUAGE plpgsql;
-
-SELECT drop_constraint('manage', 'cam', 'cam_netboxid_key');
 
 
 -- Create table for netbios names
@@ -1152,40 +1119,11 @@ CREATE OR REPLACE VIEW manage.prefix_active_ip_cnt AS
 -- Create a table for interface stacking information
 CREATE TABLE manage.interface_stack (
   id SERIAL PRIMARY KEY, -- dummy primary key for Django
-  higher INTEGER REFERENCES interface(interfaceid),
-  lower INTEGER REFERENCES interface(interfaceid),
+  higher INTEGER REFERENCES interface(interfaceid) ON DELETE CASCADE ON UPDATE CASCADE,
+  lower INTEGER REFERENCES interface(interfaceid) ON DELETE CASCADE ON UPDATE CASCADE,
   UNIQUE (higher, lower)
 );
 
-ALTER TABLE subcat DROP catid;
-ALTER TABLE subcat RENAME TO netboxgroup;
-ALTER TABLE netboxgroup RENAME subcatid TO netboxgroupid;
-
-
--- Fix cascading deletes in interface_stack foreign keys (LP#1246226)
-
-ALTER TABLE interface_stack DROP CONSTRAINT interface_stack_higher_fkey;
-ALTER TABLE interface_stack ADD CONSTRAINT interface_stack_higher_fkey
-  FOREIGN KEY (higher)
-  REFERENCES interface(interfaceid)
-  ON DELETE CASCADE ON UPDATE CASCADE;
-
-ALTER TABLE interface_stack DROP CONSTRAINT interface_stack_lower_fkey;
-ALTER TABLE interface_stack ADD CONSTRAINT interface_stack_lower_fkey
-  FOREIGN KEY (lower)
-  REFERENCES interface(interfaceid)
-  ON DELETE CASCADE ON UPDATE CASCADE;
-
-
-INSERT INTO vendor (
-  SELECT 'unknown' AS vendorid
-  WHERE NOT EXISTS (
-    SELECT vendorid FROM vendor WHERE vendorid='unknown'));
-
--- Fix maintenance tasks that are open "until the end of time" (LP#1273706)
-UPDATE maint_task
-SET maint_end = 'infinity'
-WHERE extract(year from maint_end) = 9999;
 
 CREATE OR REPLACE VIEW manage.netboxmac AS
 
@@ -1225,47 +1163,6 @@ SELECT DISTINCT ON (mac) netboxid, mac FROM (
 WHERE mac <> '00:00:00:00:00:00' -- exclude invalid MACs
 ORDER BY mac, netboxid;
 
--- Clean up scale/precision problems of already known APC sensors (LP#1270095)
-
-UPDATE sensor
-SET precision=1, data_scale=NULL
-WHERE mib = 'PowerNet-MIB'
-      AND data_scale = 'deci';
-
-UPDATE sensor
-SET precision=2, data_scale=NULL
-WHERE mib = 'PowerNet-MIB'
-      AND data_scale = 'centi';
-
-INSERT INTO manage.cat (catid, descr, req_snmp) VALUES ('ENV', 'Environmental probes', true);
-INSERT INTO manage.cat (catid, descr, req_snmp) VALUES ('POWER', 'Power distribution equipment', true);
-
--- clean up some alert- and event-type descriptions
-UPDATE alerttype SET alerttypedesc = 'The IP device has coldstarted'
-WHERE alerttype='coldStart';
-
-UPDATE alerttype SET alerttypedesc = 'The IP device has warmstarted'
-WHERE alerttype='warmStart';
-
-UPDATE alerttype SET alerttypedesc = 'The device is now in operation with an active IP address'
-WHERE alerttype='deviceInIPOperation';
-
-UPDATE alerttype SET alerttypedesc = 'The device is now in operation as a chassis module'
-WHERE alerttype='deviceInStack';
-
-ALTER TABLE eventq ALTER COLUMN subid SET NOT NULL;
-ALTER TABLE eventq ALTER COLUMN subid SET DEFAULT '';
-
-ALTER TABLE alertq ALTER COLUMN subid SET NOT NULL;
-ALTER TABLE alertq ALTER COLUMN subid SET DEFAULT '';
-
-ALTER TABLE alerthist ALTER COLUMN subid SET NOT NULL;
-ALTER TABLE alerthist ALTER COLUMN subid SET DEFAULT '';
-
--- allow jobs to be logged with no success indicator, i.e. the job was
--- checked but nothing ran.
-ALTER TABLE ipdevpoll_job_log ALTER COLUMN success DROP NOT NULL;
-
 CREATE OR REPLACE FUNCTION never_use_null_subid()
 RETURNS trigger AS $$
   BEGIN
@@ -1287,7 +1184,7 @@ CREATE TABLE netboxentity (
   netboxentityid SERIAL NOT NULL,
   netboxid INTEGER NOT NULL,
 
-  index VARCHAR NOT NULL,
+  index INTEGER NOT NULL,
   source VARCHAR NOT NULL,
   descr VARCHAR,
   vendor_type VARCHAR,
@@ -1307,6 +1204,7 @@ CREATE TABLE netboxentity (
   mfg_date TIMESTAMP WITH TIME ZONE,
   uris VARCHAR,
   data hstore NOT NULL DEFAULT hstore(''),
+  gone_since TIMESTAMP,
 
   CONSTRAINT netboxentity_pkey PRIMARY KEY (netboxentityid),
   CONSTRAINT netboxentity_netboxid_fkey
@@ -1325,29 +1223,6 @@ CREATE TABLE netboxentity (
              UNIQUE (netboxid, source, index) INITIALLY DEFERRED
 
 );
-
-ALTER TABLE netboxentity
-    ADD COLUMN gone_since TIMESTAMP;
-
----
--- Insert new event and alert types for stack state events
----
-INSERT INTO eventtype (
-  SELECT 'chassisState', 'The state of this chassis has changed', 'y'
-  WHERE NOT EXISTS (SELECT * FROM eventtype WHERE eventtypeid = 'chassisState'));
-
----
--- Insert new alerttypes for chassie state alerts
----
-INSERT INTO alerttype (
-  SELECT nextval('alerttype_alerttypeid_seq'), 'chassisState', 'chassisDown',
-         'This chassis is no longer visible in the stack'
-  WHERE NOT EXISTS (SELECT * FROM alerttype WHERE alerttype = 'chassisDown'));
-
-INSERT INTO alerttype (
-  SELECT nextval('alerttype_alerttypeid_seq'), 'chassisState', 'chassisUp',
-         'This chassis is visible in the stack again'
-  WHERE NOT EXISTS (SELECT * FROM alerttype WHERE alerttype = 'chassisUp'));
 
 -- Modernize existing close_alerthist_modules rule
 
@@ -1377,21 +1252,6 @@ CREATE OR REPLACE RULE close_alerthist_interface AS ON DELETE TO interface
        AND netboxid = OLD.netboxid
        AND subid = OLD.interfaceid::text;
 
----
--- Add field to unrecognized_neighbor indicating ignored state
----
-ALTER TABLE unrecognized_neighbor ADD ignored_since TIMESTAMP DEFAULT NULL;
-
---- Remove unique constraints for devices in module table
-
-ALTER TABLE module DROP CONSTRAINT IF EXISTS module_deviceid_key;
-
--- Fix data type of netboxentity.index, which, for mysterious reasons, was
--- defined as varchar in 4.3.0
-ALTER TABLE netboxentity
-    ALTER COLUMN index TYPE INTEGER
-    USING index::INT;
-
 CREATE VIEW enterprise_number AS
 
 WITH enterprise AS (
@@ -1414,28 +1274,9 @@ CREATE TABLE manage.interface_aggregate (
   UNIQUE (aggregator, interface)
 );
 
----
--- Insert new event and alert types for degraded link events
----
-INSERT INTO eventtype (
-  SELECT 'aggregateLinkState', 'The state of this aggregated link changed', 'y'
-  WHERE NOT EXISTS (SELECT * FROM eventtype WHERE eventtypeid = 'aggregateLinkState'));
-
----
--- Insert new alerttypes for degradation and restoration of aggregated links
----
-INSERT INTO alerttype (
-  SELECT nextval('alerttype_alerttypeid_seq'), 'aggregateLinkState', 'linkDegraded',
-         'This aggregate link has been degraded'
-  WHERE NOT EXISTS (SELECT * FROM alerttype WHERE alerttype = 'linkDegraded'));
-
-INSERT INTO alerttype (
-  SELECT nextval('alerttype_alerttypeid_seq'), 'aggregateLinkState', 'linkRestored',
-         'This aggregate link has been restored'
-  WHERE NOT EXISTS (SELECT * FROM alerttype WHERE alerttype = 'linkRestored'));
 
 -- Create table for storing prefix tags
-CREATE TABLE IF NOT EXISTS prefix_usage (
+CREATE TABLE prefix_usage (
     prefix_usage_id SERIAL PRIMARY KEY,
     prefixid        INTEGER REFERENCES prefix (prefixid)
                     ON UPDATE CASCADE ON DELETE CASCADE,
@@ -1443,16 +1284,6 @@ CREATE TABLE IF NOT EXISTS prefix_usage (
                     ON UPDATE CASCADE ON DELETE CASCADE,
     UNIQUE (prefixid, usageid)
 );
-
-ALTER TABLE swportblocked
-  DROP CONSTRAINT swportblocked_pkey;
-
-ALTER TABLE swportblocked
-  ADD CONSTRAINT swportblocked_uniq UNIQUE (interfaceid, vlan);
-
-ALTER TABLE swportblocked
-  ADD COLUMN swportblockedid SERIAL PRIMARY KEY;
-
 
 INSERT INTO schema_change_log (major, minor, point, script_name)
     VALUES (4, 6, 56, 'initial install');
