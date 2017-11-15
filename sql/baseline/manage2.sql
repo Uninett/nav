@@ -23,8 +23,20 @@ CREATE TABLE manage.macwatch (
   CONSTRAINT macwatch_unique_mac UNIQUE (mac)
 );
 
--- Create table for images
 
+-- Registry of macwatch matches
+-- (since watch rules may have wildcards and/or mac prefixes)
+CREATE TABLE macwatch_match (
+  id SERIAL PRIMARY KEY,
+  macwatch INT NOT NULL REFERENCES macwatch(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  cam INT NOT NULL REFERENCES cam(camid) ON DELETE CASCADE ON UPDATE CASCADE,
+  posted TIMESTAMP DEFAULT NOW()
+);
+
+
+------------------------------------------------------------------------------
+-- Create table for room images
+------------------------------------------------------------------------------
 CREATE TABLE image (
   imageid SERIAL PRIMARY KEY,
   roomid VARCHAR REFERENCES room(roomid) NOT NULL,
@@ -36,16 +48,9 @@ CREATE TABLE image (
   priority INT
 );
 
--- Added because macwatch may use mac-address prefixes
-CREATE TABLE macwatch_match(
-  id SERIAL PRIMARY KEY,
-  macwatch INT NOT NULL REFERENCES macwatch(id) ON DELETE CASCADE ON UPDATE CASCADE,
-  cam INT NOT NULL REFERENCES cam(camid) ON DELETE CASCADE ON UPDATE CASCADE,
-  posted TIMESTAMP DEFAULT NOW()
-);
-
+------------------------------------------------------------------------------
 -- Create basic token storage for api tokens
-
+------------------------------------------------------------------------------
 CREATE TABLE apitoken (
   id SERIAL PRIMARY KEY,
   token VARCHAR not null,
@@ -55,10 +60,14 @@ CREATE TABLE apitoken (
   created TIMESTAMP DEFAULT now(),
   last_used TIMESTAMP,
   comment TEXT,
-  revoked BOOLEAN default FALSE
+  revoked BOOLEAN default FALSE,
+  endpoints hstore
 );
 
 
+------------------------------------------------------------------------------
+-- Threshold rules and related functions
+------------------------------------------------------------------------------
 CREATE TABLE manage.thresholdrule (
   id SERIAL PRIMARY KEY,
   target VARCHAR NOT NULL,
@@ -73,22 +82,6 @@ CREATE TABLE manage.thresholdrule (
   CONSTRAINT thresholdrule_creator_fkey FOREIGN KEY (creator_id)
              REFERENCES profiles.account (id)
              ON UPDATE CASCADE ON DELETE SET NULL
-
-);
-
-CREATE TABLE manage.alerthist_ack (
-  alert_id INTEGER PRIMARY KEY NOT NULL,
-  account_id INTEGER NOT NULL,
-  comment VARCHAR DEFAULT NULL,
-  date TIMESTAMPTZ DEFAULT NOW(),
-
-  CONSTRAINT alerthistory_ack_alert FOREIGN KEY (alert_id)
-             REFERENCES manage.alerthist (alerthistid)
-             ON UPDATE CASCADE ON DELETE CASCADE,
-
-  CONSTRAINT alerthistory_ack_user FOREIGN KEY (account_id)
-             REFERENCES profiles.account (id)
-             ON UPDATE CASCADE ON DELETE CASCADE
 
 );
 
@@ -114,4 +107,23 @@ CREATE TRIGGER trig_close_thresholdstate_on_thresholdrule_delete
     AFTER UPDATE OR DELETE ON manage.thresholdrule
     FOR EACH ROW
     EXECUTE PROCEDURE close_thresholdstate_on_thresholdrule_delete();
-ALTER TABLE apitoken ADD COLUMN endpoints hstore;
+
+
+------------------------------------------------------------------------------
+-- Alerthist acknowledgements
+------------------------------------------------------------------------------
+CREATE TABLE manage.alerthist_ack (
+  alert_id INTEGER PRIMARY KEY NOT NULL,
+  account_id INTEGER NOT NULL,
+  comment VARCHAR DEFAULT NULL,
+  date TIMESTAMPTZ DEFAULT NOW(),
+
+  CONSTRAINT alerthistory_ack_alert FOREIGN KEY (alert_id)
+             REFERENCES manage.alerthist (alerthistid)
+             ON UPDATE CASCADE ON DELETE CASCADE,
+
+  CONSTRAINT alerthistory_ack_user FOREIGN KEY (account_id)
+             REFERENCES profiles.account (id)
+             ON UPDATE CASCADE ON DELETE CASCADE
+
+);
