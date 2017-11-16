@@ -44,6 +44,7 @@ See also :doc:`the release notes <release-notes>` for this version (|version|).
   :doc:`Troubleshooting topology problems <howto/debugging-topology>` |
   :doc:`faq/graph_gaps` |
   :doc:`Migrating data between NAV installations <howto/migrate-data>` |
+  :doc:`Using the REST API <howto/using_the_api>` |
   :doc:`howto/migrate-rrd-to-graphite`
 
 
