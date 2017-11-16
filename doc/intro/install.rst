@@ -52,15 +52,6 @@ follows:
 .. literalinclude:: ../../requirements/base.txt
    :language: text
 
-.. note:: The :mod:`pynetsnmp` module is preferred over :mod:`twistedsnmp` for
-          SNMP communication. The former is a Python binding to the well-known
-          NetSNMP C library, whereas the latter is a pure-Python SNMP
-          implementation. :mod:`pynetsnmp` will give better performance *and*
-          IPv6-support. :mod:`twistedsnmp` also has a known, unfixed bug with
-          table retrievals on slow SNMP agents. If, for some reason, you are
-          forced to resort to using :mod:`twistedsnmp`, the :file:`contrib/patches`
-          directory contains a recommended patch for this problem.
-
 .. _Graphite: http://graphiteapp.org/
 
 Recommended add-ons
