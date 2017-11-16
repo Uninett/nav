@@ -2,8 +2,12 @@
 various pping integration tests
 """
 import os
-from subprocess32 import (STDOUT, check_output, TimeoutExpired,
-                          CalledProcessError)
+try:
+    from subprocess32 import (STDOUT, check_output, TimeoutExpired,
+                              CalledProcessError)
+except ImportError:
+    from subprocess import (STDOUT, check_output, TimeoutExpired,
+                            CalledProcessError)
 
 import pytest
 
