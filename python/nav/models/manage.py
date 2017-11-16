@@ -127,6 +127,10 @@ class Netbox(models.Model):
         if self.master and self.pk == self.master.pk:
             raise ValidationError('You cannot be your own master')
 
+        # Make sure sysname is set
+        if not self.sysname:
+            self.sysname = str(self.ip)
+
     @property
     def device(self):
         """Property to access the former device-field

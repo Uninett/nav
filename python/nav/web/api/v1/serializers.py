@@ -70,6 +70,7 @@ class SubNetboxSerializer(serializers.ModelSerializer):
 class NetboxSerializer(serializers.ModelSerializer):
     """Serializer for the netbox model"""
     chassis = EntitySerializer(source='get_chassis', many=True, read_only=True)
+    sysname = serializers.CharField(required=False, blank=True)
 
     # We need two fields for related fields that are required: one for reading
     # (room) and one for writing (roomid).
