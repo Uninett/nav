@@ -70,7 +70,8 @@ class IPParseError(exceptions.ParseError):
 @renderer_classes((JSONRenderer, BrowsableAPIRenderer))
 def api_root(request):
     """
-    The NAV API is currently read only.
+    Some endpoints support write operations. They have a POST in the
+    Allow-header.
 
     To get programmatic access to the API you need a token. Read more
     in the official [documentation][1].
@@ -206,7 +207,37 @@ class ServiceHandlerViewSet(NAVAPIMixin, ViewSet):
         }
 
 
-class RoomViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+class LoggerMixin(object):
+    """Mixin for logging API-calls"""
+
+    def create(self, request, *args, **kwargs):
+        """Log POST requests that create new objects"""
+        response = super(LoggerMixin, self).create(request, *args, **kwargs)
+        if response.status_code == status.HTTP_201_CREATED:
+            _logger.info('Token %s created %r', self.request.auth, self.object)
+        return response
+
+    def update(self, request, *args, **kwargs):
+        """Log successful update (PUT and PATCH) requests
+
+        Remember - update can create new objects with PUT
+        """
+        response = super(LoggerMixin, self).update(request, *args, **kwargs)
+        if response.status_code in [status.HTTP_200_OK, status.HTTP_201_CREATED]:
+            _logger.info('Token %s updated %r with %s', self.request.auth,
+                         self.object, dict(self.request.DATA))
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        """Log successful DELETE requests"""
+        obj = self.get_object()
+        response = super(LoggerMixin, self).destroy(request, *args, **kwargs)
+        if response.status_code == status.HTTP_204_NO_CONTENT:
+            _logger.info('Token %s deleted %r', self.request.auth, obj)
+        return response
+
+
+class RoomViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     """Lists all rooms.
 
     Filters
@@ -237,7 +268,7 @@ class UnrecognizedNeighborViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     search_fields = ('remote_name', )
 
 
-class NetboxViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     """Lists all netboxes.
 
     Search
@@ -258,6 +289,18 @@ class NetboxViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.NetboxSerializer
     filter_fields = ('ip', 'sysname', 'room', 'organization', 'category')
     search_fields = ('sysname', )
+
+    def destroy(self, request, *args, **kwargs):
+        """Override the deletion process
+
+        The background processes of NAV will execute the deletion if deleted_at
+        is set
+        """
+        obj = self.get_object()
+        obj.deleted_at = datetime.now()
+        obj.save()
+        _logger.info('Token %s set deleted at for %r', self.request.auth, obj)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):

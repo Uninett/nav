@@ -29,6 +29,15 @@
           <code>{{ object.token }}</code>
         </p>
 
+        <p>
+          Permission:
+          {{ object.permission }}
+          <i class="fa fa-info-circle"
+             title="{{ object.permission_help_text }}"
+             style="cursor: pointer"
+          ></i>
+        </p>
+
         <div class="alert-box {% if object.is_expired %}warning with-icon{% endif %}">
           {% if object.is_expired %}
             Expired

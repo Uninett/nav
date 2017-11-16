@@ -225,6 +225,9 @@ class TokenForm(forms.ModelForm):
     """Form for creating a new token"""
 
     token = ReadonlyField(initial=auth_token)
+    permission = forms.ChoiceField(choices=APIToken.permission_choices,
+                                   help_text=APIToken.permission_help_text,
+                                   initial='read')
     available_endpoints = get_api_endpoints()
     endpoints = forms.MultipleChoiceField(
         required=False,
@@ -247,7 +250,8 @@ class TokenForm(forms.ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
-                Column(Fieldset('Token details', 'token', 'expires', 'comment'),
+                Column(Fieldset('Token details', 'token', 'permission',
+                                'expires', 'comment'),
                        css_class='large-4 small-12'),
                 Column(Fieldset('Token endpoints', 'endpoints'),
                        css_class='large-8 small-12'),
@@ -261,4 +265,4 @@ class TokenForm(forms.ModelForm):
 
     class Meta(object):
         model = APIToken
-        fields = ['token', 'expires', 'comment', 'endpoints']
+        fields = ['token', 'permission', 'expires', 'comment', 'endpoints']

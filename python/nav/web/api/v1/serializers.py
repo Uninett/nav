@@ -31,6 +31,36 @@ class EntitySerializer(serializers.ModelSerializer):
                   'mfg_name', 'model_name', 'fru', 'mfg_date')
 
 
+class NetboxTypeSerializer(serializers.ModelSerializer):
+    """Serializer for the type model"""
+
+    class Meta(object):
+        model = manage.NetboxType()
+
+
+class RoomSerializer(serializers.ModelSerializer):
+    """Serializer for the room model"""
+    @staticmethod
+    def transform_position(obj, _value):
+        """Returns string versions of the coordinates"""
+        if hasattr(obj, 'position') and obj.position:
+            lat, lon = obj.position
+            return str(lat), str(lon)
+
+    class Meta(object):
+        model = manage.Room
+
+
+class OrganizationSerializer(serializers.ModelSerializer):
+    class Meta(object):
+        model = manage.Organization
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta(object):
+        model = manage.Category
+
+
 class SubNetboxSerializer(serializers.ModelSerializer):
     object_url = serializers.CharField(source='get_absolute_url')
     class Meta(object):
@@ -39,7 +69,38 @@ class SubNetboxSerializer(serializers.ModelSerializer):
 
 class NetboxSerializer(serializers.ModelSerializer):
     """Serializer for the netbox model"""
-    chassis = EntitySerializer(source='get_chassis', many=True)
+    chassis = EntitySerializer(source='get_chassis', many=True, read_only=True)
+    sysname = serializers.CharField(required=False, blank=True)
+
+    # We need two fields for related fields that are required: one for reading
+    # (room) and one for writing (roomid).
+    #
+    # The reason for this is that if we try to create a netbox by POSTing, it
+    # will try to create a new room aswell (giving an existing roomid will make
+    # it complain about already existing rooms). Not giving a room is impossible
+    # as it is required.
+    #
+    # Thus we need a PrimaryKeyRelatedField where the source defines the key
+    # that we use to find the related room when creating a new netbox
+
+    roomid = serializers.PrimaryKeyRelatedField(source='room', write_only=True)
+    room = RoomSerializer(required=False)
+
+    organizationid = serializers.PrimaryKeyRelatedField(source='organization',
+                                                        write_only=True)
+    organization = OrganizationSerializer(required=False)
+    categoryid = serializers.PrimaryKeyRelatedField(source='category',
+                                                    write_only=True)
+    category = CategorySerializer(required=False)
+    masterid = serializers.PrimaryKeyRelatedField(source='master',
+                                                  required=False,
+                                                  write_only=True)
+    master = SubNetboxSerializer(required=False)
+    typeid = serializers.PrimaryKeyRelatedField(source='type',
+                                                required=False,
+                                                write_only=True)
+    type = NetboxTypeSerializer(read_only=True)
+
 
     class Meta(object):
         model = manage.Netbox
@@ -114,19 +175,6 @@ class UnrecognizedNeighborSerializer(serializers.ModelSerializer):
     """Serializer for the arp model"""
     class Meta(object):
         model = manage.UnrecognizedNeighbor
-
-
-class RoomSerializer(serializers.ModelSerializer):
-    """Serializer for the room model"""
-    @staticmethod
-    def transform_position(obj, _value):
-        """Returns string versions of the coordinates"""
-        if obj.position:
-            lat, lon = obj.position
-            return str(lat), str(lon)
-
-    class Meta(object):
-        model = manage.Room
 
 
 class RackItemSerializer(serializers.Serializer):

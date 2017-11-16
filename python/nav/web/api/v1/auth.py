@@ -18,7 +18,7 @@
 import logging
 from datetime import datetime
 from django.utils.six.moves.urllib.parse import urlparse
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authentication import (TokenAuthentication,
                                            BaseAuthentication)
@@ -26,9 +26,6 @@ from rest_framework.authentication import (TokenAuthentication,
 from nav.models.api import APIToken
 
 _logger = logging.getLogger(__name__)
-
-
-ALLOWED_METHODS = ['GET']
 
 
 class APIAuthentication(TokenAuthentication):
@@ -61,55 +58,70 @@ class NavBaseAuthentication(BaseAuthentication):
             return request.account, None
 
 
+class LoggedInPermission(BasePermission):
+    """Checks if the user is logged in"""
+
+    def has_permission(self, request, _view):
+        """If user is logged in, it is authorized"""
+        return not request.account.is_default_account()
+
+
+class TokenPermission(BasePermission):
+    """Checks if the token has correct permissions"""
+
+    def has_permission(self, request, _view):
+        token = request.auth  # type: APIToken
+        if not token:
+            return False
+
+        endpoints_ok = self._check_endpoints(request)
+        req_method_ok = self._check_read_write(request)
+        permissions_ok = endpoints_ok and req_method_ok
+
+        if permissions_ok:
+            token.last_used = datetime.now()
+            token.save()
+        else:
+            _logger.warning(
+                'Token %s not permitted to access endpoint %s',
+                token, request.path)
+        return permissions_ok
+
+    def _check_endpoints(self, request):
+        """Verify that this token has permission to access the request path
+        :type request: rest_framework.request.Request
+        :type token: APIToken
+
+        NB: This will fail if the version is not specified in the request url
+        """
+        token = request.auth
+        if not token.endpoints:
+            return False
+
+        request_path = self._ensure_trailing_slash(request.path)
+        return any([request_path.startswith(
+            self._ensure_trailing_slash(urlparse(endpoint).path))
+                    for endpoint in token.endpoints.values()])
+
+    def _check_read_write(self, request):
+        """Verify that the token permission matches the method"""
+        token = request.auth
+        return token.permission == 'write' or request.method in SAFE_METHODS
+
+    @staticmethod
+    def _ensure_trailing_slash(path):
+        """Ensure that the path ends with a slash
+        :type path: str
+        """
+        return path if path.endswith('/') else path + '/'
+
+
 class APIPermission(BasePermission):
     """Checks for correct permissions when accessing the API"""
 
-    def has_permission(self, request, _):
+    def has_permission(self, request, view):
         """Checks if request is permissable
         :type request: rest_framework.request.Request
         """
-        if request.method not in ALLOWED_METHODS:
-            _logger.warning('API access with forbidden method - %s',
-                            request.method)
-            return False
-
-        # If user is logged in, it is authorized
-        if not request.account.is_default_account():
-            _logger.debug('User is logged in and thus authorized')
-            return True
-
-        token = request.auth  # type: APIToken
-        _logger.debug('Token: %r', token)
-        if token:
-            if token_has_permission(request, token):
-                token.last_used = datetime.now()
-                token.save()
-                return True
-            else:
-                _logger.warning(
-                    'Token %s not permitted to access endpoint %s',
-                    token, request.path)
-
-        return False
-
-
-def token_has_permission(request, token):
-    """Verify that this token has permission to access the request path
-    :type request: rest_framework.request.Request
-    :type token: APIToken
-
-    NB: This will fail if the version is not specified in the request url
-    """
-    if token.endpoints:
-        request_path = ensure_trailing_slash(request.path)
-        return any([request_path.startswith(
-            ensure_trailing_slash(urlparse(endpoint).path))
-                    for endpoint in token.endpoints.values()])
-    return False
-
-
-def ensure_trailing_slash(path):
-    """Ensure that the path ends with a slash
-    :type path: str
-    """
-    return path if path.endswith('/') else path + '/'
+        return (LoggedInPermission().has_permission(request, view) or
+                TokenPermission().has_permission(request, view))

@@ -12,11 +12,11 @@
         var $table = $('#token-list-table');
         if ($table.length && $table.find('tbody tr').length > 0) {
           $table.tablesorter({
-            sortList: [[1, 0]],
+            sortList: [[2, 0]],
             headers: {
-              4: {sorter: false},
               5: {sorter: false},
-              6: {sorter: false}
+              6: {sorter: false},
+              7: {sorter: false}
             }
           });
         }
@@ -47,6 +47,7 @@
           <thead>
             <tr>
               <th>Token</th>
+              <th>Permission</th>
               <th>Expires</th>
               <th class="show-for-large-up">Created</th>
               <th class="show-for-large-up">Last used</th>
@@ -64,6 +65,9 @@
                      title="See details for this token">
                     {{ token.token|truncatechars:10 }}
                   </a>
+                </td>
+                <td>
+                  {{ token.permission }}
                 </td>
                 <td>
                   {% if token.is_expired %}

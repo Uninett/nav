@@ -27,6 +27,7 @@ import re
 
 import IPy
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
@@ -89,7 +90,7 @@ class Netbox(models.Model):
     room = models.ForeignKey('Room', db_column='roomid')
     type = models.ForeignKey('NetboxType', db_column='typeid',
                              blank=True, null=True)
-    sysname = VarcharField(unique=True)
+    sysname = VarcharField(unique=True, blank=True)
     category = models.ForeignKey('Category', db_column='catid')
     groups = models.ManyToManyField(
         'NetboxGroup', through='NetboxCategory', blank=True, null=True)
@@ -107,7 +108,7 @@ class Netbox(models.Model):
                                blank=True, default=None,
                                related_name='instances')
 
-    data = hstore.DictionaryField()
+    data = hstore.DictionaryField(blank=True)
     objects = hstore.HStoreManager()
     ups_objects = UpsManager()
 
@@ -119,6 +120,17 @@ class Netbox(models.Model):
 
     def __str__(self):
         return self.get_short_sysname()
+
+    def clean(self):
+        """Custom validation"""
+
+        # Make sure master cannot be set to self
+        if self.master and self.pk == self.master.pk:
+            raise ValidationError('You cannot be your own master')
+
+        # Make sure sysname is set
+        if not self.sysname:
+            self.sysname = str(self.ip)
 
     @property
     def device(self):
@@ -295,7 +307,7 @@ class Netbox(models.Model):
             and self.sysname.endswith(settings.DOMAIN_SUFFIX)):
             return self.sysname[:-len(settings.DOMAIN_SUFFIX)]
         else:
-            return self.sysname
+            return self.sysname or self.ip
 
     def is_on_maintenance(self):
         """Returns True if this netbox is currently on maintenance"""
@@ -729,11 +741,10 @@ class Room(models.Model):
     server room."""
 
     id = models.CharField(db_column='roomid', max_length=30, primary_key=True)
-    location = models.ForeignKey('Location', db_column='locationid',
-                                 blank=True, null=True)
+    location = models.ForeignKey('Location', db_column='locationid')
     description = VarcharField(db_column='descr', blank=True)
     position = PointField(null=True, blank=True, default=None)
-    data = hstore.DictionaryField()
+    data = hstore.DictionaryField(blank=True)
 
     objects = hstore.HStoreManager()
 
