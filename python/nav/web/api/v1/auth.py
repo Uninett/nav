@@ -123,6 +123,5 @@ class APIPermission(BasePermission):
         """Checks if request is permissable
         :type request: rest_framework.request.Request
         """
-        return any(
-            [LoggedInPermission().has_permission(request, view),
-             TokenPermission().has_permission(request, view)])
+        return (LoggedInPermission().has_permission(request, view) or
+                TokenPermission().has_permission(request, view))
