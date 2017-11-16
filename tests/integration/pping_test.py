@@ -69,10 +69,10 @@ def get_pping_output(timeout=5):
         output = check_output(cmd, stderr=STDOUT, timeout=timeout)
     except TimeoutExpired as error:
         # this is the normal case, since we need to kill pping after the timeout
-        print(error.output)
-        return error.output
+        print(error.output.decode('utf-8'))
+        return error.output.decode('utf-8')
     except CalledProcessError as error:
-        print(error.output)
+        print(error.output.decode('utf-8'))
         raise
     else:
         print(output)
