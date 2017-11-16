@@ -35,6 +35,7 @@ The version requirements have changed for these dependencies:
 
 * :mod:`IPy` == *0.83*
 * Also, any version of :mod:`twisted` between *14.0.1* and *17.9.0* should work.
+* :mod:`pynetsnmp` has been replaced with the :mod:`pynetsnmp-2` fork, which has better support for Python 3.
 
 Removed dependencies
 ~~~~~~~~~~~~~~~~~~~~
@@ -42,7 +43,7 @@ Removed dependencies
 * The support for the old **PySNMP v2** and **PySNMP-SE** libraries (and
   consequently, the pure-Python **TwistedSNMP** library) has been removed, since
   they are outdated and do not provide the full feature set used by NAV and
-  provided by our preferred library: :mod:`pynetsnmp`.
+  provided by our preferred library: :mod:`pynetsnmp-2`.
 
 * There is no longer a dependency to the Python module
   :mod:`django-oauth2-provider`, as NAV's usage of this non-maintained module
@@ -52,6 +53,112 @@ Removed dependencies
   mentioned in the requirements list to satisfy a missing dependency of
   :mod:`pynetsnmp`, which has been rectified upstream, so it is still needed in
   a complete system.
+
+
+News
+----
+
+Digital Optical Monitoring data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Retrieving data from optical transmit/receive sensors are now supported for
+Cisco and Juniper devices. The values are graphed on the interface details
+page for each applicable interface.
+
+Power-over-Ethernet (PoE)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Power-over-Ethernet data is now collected and summarized for devices that
+support the ``POWER-ETHERNET-MIB`` (:rfc:`3621`).
+
+PoE information is found on a separate *PoE* tab on each device's IP Device
+Info page, where an heuristic attempts to map PoE groups to modules within the
+device.
+
+There is still more work to be done on PoE-reporting, which will likely
+require use of proprietary MIBs (which are also required for definitive
+mapping between PoE groups and modules/interfaces, without using heuristics).
+
+Topology improvements
+~~~~~~~~~~~~~~~~~~~~~
+
+The topology algorithm has been rewritten for improved processing of LLDP and
+CDP topology information.
+
+The topology detector now also supports detection of unrouted VLAN topologies.
+One *caveat* of this, though, is that VLANs are now also discovered on
+switches, using the VLAN names configured there. If your VLAN names aren't
+consistent between your switches and routers, you may find multiple instances
+of the same VLAN in your NAV (as the names are mapped to *netidents* in NAV,
+where differing netidents imply separate broadcast domains).
+
+New port listing in IP Device info
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The old "module-matrix" based port layout in IP Device Info has been replaced
+with a more dynamic table listing of all interfaces. This table can be
+searched, sorted and filtered dynamically on many interface parameters.
+
+Users who prefer the old layout can choose switch back to it if they want, but
+it will be removed in a later NAV version. Do not forget to give feedback to
+you nearest friendly NAV developer :-)
+
+
+Writable APIs
+~~~~~~~~~~~~~
+
+The API endpoints for netboxes and rooms have been write-enabled. When issuing
+API tokens through the Useradmin panel, you can select the access level of any
+token (all pre-existing tokens will be read-only until you say otherwise).
+
+Check out the :doc:`REST API documentation </howto/using_the_api>` for more.
+
+Mitigating slow IP Device deletion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It has been a known issue for years that a device that has been monitored by
+NAV for a long time, will take an equally long time to delete from NAV. Old
+devices have accrued lots and lots of related data in the PostgreSQL database,
+and by not deleting old ARP and CAM logs, PostgreSQL essentially needs to
+remove the IP device relation from all the old log entries, rather than delete
+the log entries themselves. This gets slower the more data needs to be updated.
+
+Deletion of IP Devices from SeedDB now runs as a background job (the
+``navclean`` cron job, running by default every 5 minutes). SeedDB will only
+mark a device as *"to be deleted"*, meaning it will still be visible in parts
+of the interface until the PostgreSQL delete transaction has completed in the
+background.
+
+E-Mail reports
+~~~~~~~~~~~~~~
+
+The business reports tool now has the option to add e-mail subscriptions to
+the available reports. Very good for people wearing neckties (or who need to
+report to people wearing neckties on a regular basis).
+
+Other improvements
+~~~~~~~~~~~~~~~~~~
+
+* Locations now have their own details page, with a image upload function,
+  analogous to rooms.
+
+* A new widget for showing active alerts grouped by location, analogous to the
+  room alerts widgets, has been added.
+
+* The source of any ARP record will now be reported in a separate column of
+  Machine Tracker IP search results, if the *"source"* checkbox was checked.
+  This can be helpful if you are experience "duplicate" entries, such as in
+  HSRP/VRRP LANs.
+
+* Removing a trunk from PortAdmin has been made into a much simpler,
+  one-button operation.
+
+* The HTTP and HTTPS service checkers will accept 401 responses as OK if no
+  authentication credentials were given in the service checker's
+  configuration.
+
+* Neighboring nodes can now be filtered based on category from the Neighbors
+  tab of IP Device Info.
 
 
 NAV 4.7
