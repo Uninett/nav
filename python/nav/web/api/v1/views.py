@@ -289,9 +289,17 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     filter_fields = ('ip', 'sysname', 'room', 'organization', 'category')
     search_fields = ('sysname', )
 
-    def pre_delete(self, obj):
+    def destroy(self, request, *args, **kwargs):
+        """Override the deletion process
+
+        The background processes of NAV will execute the deletion if deleted_at
+        is set
+        """
+        obj = self.get_object()
         obj.deleted_at = datetime.now()
         obj.save()
+        _logger.info('Token %s set deleted at for %r', self.request.auth, obj)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
