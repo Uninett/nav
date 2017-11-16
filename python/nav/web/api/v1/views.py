@@ -70,7 +70,8 @@ class IPParseError(exceptions.ParseError):
 @renderer_classes((JSONRenderer, BrowsableAPIRenderer))
 def api_root(request):
     """
-    The NAV API is currently read only.
+    Some endpoints support write operations. They have a POST in the
+    Allow-header.
 
     To get programmatic access to the API you need a token. Read more
     in the official [documentation][1].

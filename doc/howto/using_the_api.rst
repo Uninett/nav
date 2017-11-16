@@ -13,16 +13,16 @@ good to go.
 Tokens
 ======
 
-Authentication and authorization is done by tokens. Currently the API is very
-simple - either you have access (a token) or you do not. Depending on the needs
-that occur this may or may not change. The API is currently read-only.
+Authentication and authorization is done by tokens. A token gives you access to
+zero or more endpoints and read or read and write permissions. *Not all endpoints
+support write operations*.
 
 
 How to get a token
 ------------------
 
-You need to log in to the NAV installation you want data from as an
-administrator. Then go to ``/api/token``. The string you see then is your token.
+Tokens are administrated from the `User and API Administration
+</useradmin/tokens/>`_ page in NAV.
 
 
 How to use the token
