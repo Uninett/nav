@@ -146,8 +146,8 @@ class Pinger(object):
 
         LOGGER.debug("No answer from %i hosts", len(down_now))
         # Detect state changes since last run
-        report_down = filter(lambda x: x not in self.down, down_now)
-        report_up = filter(lambda x: x not in down_now, self.down)
+        report_down = set(down_now) - set(self.down)
+        report_up = set(self.down) - set(down_now)
         self.down = down_now
 
         # Reporting netboxes as down
