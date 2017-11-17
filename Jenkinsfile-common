@@ -4,7 +4,6 @@
  * -*- tab-width: 4 -*-
  * Work in tandem with tests/docker/Dockerfile & Co to run a full CI run in
  * Jenkins.
- * TODO: SLOCCount plugin doesn't support publishing results in pipelines yet.
 */
 
 try {
@@ -84,6 +83,7 @@ try {
 
 	stage("Lines of code") {
             sh "/count-lines-of-code.sh"
+	    sloccountPublish encoding: '', pattern: '**/cloc.xml'
         }
 
     }
