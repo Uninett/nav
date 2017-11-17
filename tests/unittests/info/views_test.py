@@ -23,6 +23,11 @@ from nav.web.info.views import has_results, has_only_one_result
 from nav.web.info.forms import SearchForm
 
 
+class TestProvider(SearchProvider):
+    def fetch_results(self):
+        return []
+
+
 class ViewsTest(unittest.TestCase):
     """ Testclass for helperfunctions in info's views module """
 
@@ -30,9 +35,9 @@ class ViewsTest(unittest.TestCase):
         """ Test setup """
 
         searchresult = SearchResult('test', None)
-        self.searchprovider0 = SearchProvider()
-        self.searchprovider1 = SearchProvider()
-        self.searchprovider2 = SearchProvider()
+        self.searchprovider0 = TestProvider()
+        self.searchprovider1 = TestProvider()
+        self.searchprovider2 = TestProvider()
 
         self.searchprovider1.results.append(searchresult)
         self.searchprovider2.results.extend([searchresult, searchresult])
