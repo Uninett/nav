@@ -63,6 +63,11 @@
       {% else %}
         N/A
       {% endif %}
+
+      <a href="{% url 'report-topology-candidates-port' port.netbox.sysname port.ifname %}"
+         title="Show the collected candidate neighbor information that was used to arrive at this value">
+          <i class="fa fa-external-link right"></i>
+      </a>
     </td>
   </tr>
 
