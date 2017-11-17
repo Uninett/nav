@@ -12,4 +12,5 @@
    javascript
    release-procedure
    writing-a-servicemon-plugin
+   /api/searchproviders
    adding-environment-probe-support
