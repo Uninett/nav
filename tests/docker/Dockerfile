@@ -21,7 +21,7 @@ RUN echo "\n\
 deb-src http://security.debian.org/ $DISTRO/updates main\n\
 deb-src http://deb.debian.org/debian $DISTRO main contrib non-free\n\
 deb-src http://deb.debian.org/debian $DISTRO-updates main contrib non-free\n\
-
+\
 deb http://dl.google.com/linux/chrome/deb/ stable main\n\
 \
 " > /etc/apt/sources.list.d/pkg-sources.list
