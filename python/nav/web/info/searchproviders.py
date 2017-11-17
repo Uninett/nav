@@ -33,26 +33,41 @@ SearchResult = namedtuple("SearchResult", ['href', 'inst'])
 
 
 class SearchProvider(object):
-    """Searchprovider interface
+    """Search provider interface.
 
-    name: displayed as table caption
-    headers: object attrs to display as headers and cell content
-    headertext: text lookup for headers
-    link: attr to create a link on
+    To implement this interface, all that is needed is to inherit from this
+    class, set some class attributes and override the fetch_results() method.
+    The query, as entered by the end-user will be available in the
+    ``self.query`` variable.
     """
+
     name = "SearchProvider"
-    headers = ['id']
-    headertext = {'id': 'Id'}
+    """Used as the caption of results from this provider"""
+
+    headers = (
+        ('Column title', 'result instance attribute name'),
+    )
+    """Defines the result table columns; what the column titles should be,
+    and which attribute from the SearchResult.inst object to extract the
+    values for this column from. """
+
     link = 'id'
+    """The title of the result column to put hyperlinks in"""
 
     def __init__(self, query=""):
+        """
+        :param query: The search query string, as entered by the user.
+        """
         self.results = []
         self.query = query
         self.fetch_results()
 
     def fetch_results(self):
-        """ Fetch results for the query """
-        pass
+        """Fetches and returns results based on ``self.query``.
+
+        :returns: A list of :py:class:`nav.web.info.searchproviders.SearchResult` instances.
+        """
+        raise NotImplementedError
 
 
 class RoomSearchProvider(SearchProvider):
