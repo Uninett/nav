@@ -198,13 +198,13 @@ class Edge(object):
         return isinstance(edge, GwPortPrefix) or isinstance(edge,
                                                             stubs.GwPortPrefix)
 
-    def _get_layer(self, source, target):
-        if (self._valid_layer2(source) or source is None
-                and self._valid_layer2(target) or target is None):
+    def _get_layer(self, u, v):
+        if ((self._valid_layer2(u) or u is None)
+                and (self._valid_layer2(v) or v is None)):
             return 2
 
-        elif (self._valid_layer3(source) or source is None
-              and self._valid_layer3(target) or target is None):
+        elif ((self._valid_layer3(u) or u is None)
+              and (self._valid_layer3(v) or v is None)):
             return 3
         else:
             raise NetmapException("Could not determine layer for this edge."
@@ -212,47 +212,47 @@ class Edge(object):
 
     def _same_layer(self, source, target):
         return (
-            self._valid_layer2(source) and self._valid_layer2(target)
-            or self._valid_layer3(source) and self._valid_layer3(target)
+            (self._valid_layer2(source) and self._valid_layer2(target))
+            or (self._valid_layer3(source) and self._valid_layer3(target))
         )
 
-    def __init__(self, nx_edge, source, target, traffic=None):
+    def __init__(self, nx_edge, meta_edge, traffic=None):
         """
 
-        :param nx_edge: NetworkX edge representing (source,target) in a tuple
-        .(they be nav.models.Netbox or nav.netmap.stubs.Netbox)
-        :param source: source, where it is either of type Interface or type
-         GwPortPrefix.
-        :param target: target, where it is either of type Interface or type
-         GwPortPrefix
+        :param nx_edge: NetworkX edge representing (u,v) in a tuple
+                        (they be nav.models.Netbox or nav.netmap.stubs.Netbox).
+        :param meta_edge: An edge tuple representing the edge as a pair of
+                          either Interface or GwPortPrefix objects.
         :return:
         """
-        if source is not None and target is not None:
-            if not self._same_layer(source, target):
+        meta_u, meta_v = meta_edge
+        if meta_u is not None and meta_v is not None:
+            if not self._same_layer(meta_u, meta_v):
                 raise GraphException(
-                    "Source and target has to be of same type, typically "
+                    "meta_u and meta_v have to be of same type, typically "
                     "Interfaces in layer2 graph or"
                     "GwPortPrefixes in layer3 graph")
-        elif source is None and target is None:
-            raise GraphException("Source & target can't both be None! Bailing!")
+        elif meta_u is None and meta_v is None:
+            raise GraphException("meta_u and meta_v can't both be None! "
+                                 "Bailing!")
 
         self.errors = []
-        self.source = self.target = self.vlan = self.prefix = None
-        nx_source, nx_target = nx_edge
+        self.u = self.v = self.vlan = self.prefix = None
+        nx_u, nx_v = nx_edge
 
-        if self._valid_layer2(source):
-            self.source = Group(source.netbox, source)
-        elif self._valid_layer3(source):
-            self.source = Group(source.interface.netbox, source.interface)
-            self.source.gw_ip = source.gw_ip
-            self.source.virtual = source.virtual
+        if self._valid_layer2(meta_u):
+            self.u = Group(meta_u.netbox, meta_u)
+        elif self._valid_layer3(meta_u):
+            self.u = Group(meta_u.interface.netbox, meta_u.interface)
+            self.u.gw_ip = meta_u.gw_ip
+            self.u.virtual = meta_u.virtual
 
-        if self._valid_layer2(target):
-            self.target = Group(target.netbox, target)
-        elif self._valid_layer3(target):
-            self.target = Group(target.interface.netbox, target.interface)
-            self.target.gw_ip = target.gw_ip
-            self.target.virtual = target.virtual
+        if self._valid_layer2(meta_v):
+            self.v = Group(meta_v.netbox, meta_v)
+        elif self._valid_layer3(meta_v):
+            self.v = Group(meta_v.interface.netbox, meta_v.interface)
+            self.v.gw_ip = meta_v.gw_ip
+            self.v.virtual = meta_v.virtual
 
         # Basic metadata validation, lets copy over Netbox data which is valid
         # as metadata if metadata building didn't manage to fetch it's data.
@@ -262,71 +262,64 @@ class Edge(object):
         # This could also be the case for L3, but since the topology method
         # stubs.Netbox and stubs.Interface, we don't really have the same issue
         # in an L3 graph.
-        if self.source is None:
-            self.source = Group(nx_source)
-        if self.target is None:
-            self.target = Group(nx_target)
+        if self.u is None:
+            self.u = Group(nx_u)
+        if self.v is None:
+            self.v = Group(nx_v)
 
-        # Swap directional metadata to follow nx graph edge.
-        if (self.source.netbox.id != nx_source.id) and (
-                self.source.netbox.id == nx_target.id):
-            tmp = self.source
-            self.source = self.target
-            self.target = tmp
-
-        self.layer = self._get_layer(source, target)
+        self.layer = self._get_layer(meta_u, meta_v)
 
         if self.layer == 3:
-            assert source.prefix.vlan.id == target.prefix.vlan.id, (
+            assert meta_u.prefix.vlan.id == meta_v.prefix.vlan.id, (
                 "Source and target GwPortPrefix must reside in same VLan for "
                 "Prefix! Bailing")
 
-            self.prefix = source.prefix
-            self.vlan = source.prefix.vlan
+            self.prefix = meta_u.prefix
+            self.vlan = meta_u.prefix.vlan
 
         self.traffic = traffic
 
-        if (self.source and self.source.interface is not None) and (
-                self.target and self.target.interface is not None):
-            if self.source.interface.speed == self.target.interface.speed:
-                self.link_speed = self.source.interface.speed
+        if (self.u and self.u.interface is not None) and (
+                self.v and self.v.interface is not None):
+            if self.u.interface.speed == self.v.interface.speed:
+                self.link_speed = self.u.interface.speed
             else:
                 self.errors.append("Mismatch between interface speed")
-                if self.source.interface.speed < self.target.interface.speed:
-                    self.link_speed = self.source.interface.speed
+                if self.u.interface.speed < self.v.interface.speed:
+                    self.link_speed = self.u.interface.speed
                 else:
-                    self.link_speed = self.target.interface.speed
-        elif self.source and self.source.interface is not None:
-            self.link_speed = self.source.interface.speed
-        elif self.target and self.target.interface is not None:
-            self.link_speed = self.target.interface.speed
+                    self.link_speed = self.v.interface.speed
+        elif self.u and self.u.interface is not None:
+            self.link_speed = self.u.interface.speed
+        elif self.v and self.v.interface is not None:
+            self.link_speed = self.v.interface.speed
 
         self.vlans = []
 
     def __hash__(self):
-        return hash(self.source) + hash(self.target)
+        return hash(frozenset((self.u, self.v)))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return False
         else:
-            return self.source == other.source and self.target == other.target
+            return frozenset((self.u, self.v)) == frozenset((other.u, other.v))
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __repr__(self):
-        return ("netmap.Edge(layer={0!r}, source={1!r}, target={2!r},"
-                "link_speed={3!r}, vlans={4!r}, vlan={5!r},"
-                "prefix={6!r})").format(self.layer, self.source, self.target,
+        return ("netmap.Edge(layer={0!r}, u={1!r}, v={2!r}, "
+                "link_speed={3!r}, vlans={4!r}, vlan={5!r}, "
+                "prefix={6!r})").format(self.layer, self.u, self.v,
                                         self.link_speed, self.vlans, self.vlan,
                                         self.prefix)
 
     def to_json(self):
         """json presentation of Edge"""
         json = {
-            'source': self.source.to_json() or 'null',
-            'target': self.target.to_json() or 'null',
+            'source': self.u.to_json() or 'null',
+            'target': self.v.to_json() or 'null',
         }
         if self.layer == 3:
             json.update({'prefix': {
@@ -446,49 +439,46 @@ def edge_to_json_layer3(nx_edge, nx_metadata):
     return json
 
 
-def edge_metadata_layer3(nx_edge, source, target, traffic):
+def edge_metadata_layer3(nx_edge, gwportprefix_u, gwportprefix_v, traffic):
     """
 
-    :param nx_edge tuple containing source and target
+    :param nx_edge: tuple describing the edge between two netboxes
       (nav.models.manage.Netbox or nav.netmap.stubs.Netbox)
-    :param source nav.models.manage.GwPortPrefix
-    :param target nav.models.manage.GwPortPrefix
-    :param prefixes list of prefixes (Prefix)
-    :returns metadata to attach to netmap graph
+    :param gwportprefix_u: nav.models.manage.GwPortPrefix
+    :param gwportprefix_v: nav.models.manage.GwPortPrefix
+    :param traffic: A Traffic() instance for this edge
+    :returns: metadata to attach to netmap graph
     """
 
     # Note about GwPortPrefix and L3 graph: We always have interface.netbox
     # avaiable under L3 topology graph due to stubbing Netboxes etc for
     # elinks.
-    edge = Edge((nx_edge), source, target, traffic)
+    edge = Edge(nx_edge, (gwportprefix_u, gwportprefix_v), traffic)
     return edge
 
-    #return metadata
 
-
-def edge_metadata_layer2(nx_edge, source, target, vlans_by_interface, traffic):
+def edge_metadata_layer2(nx_edge, meta_u, meta_v, vlans_by_interface, traffic):
     """
     Adds edge meta data with python types for given edge (layer2)
 
     :param nx_edge tuple containing source and target
       (nav.models.manage.Netbox or nav.netmap.stubs.Netbox)
-    :param source nav.models.manage.Interface (from port_pairs nx metadata)
-    :param target nav.models.manage.Interface (from port_pairs nx metadata)
+    :param meta_u nav.models.manage.Interface (from port_pairs nx metadata)
+    :param meta_v nav.models.manage.Interface (from port_pairs nx metadata)
     :param vlans_by_interface VLAN dict access for fetching SwPortVlan list
 
     :returns metadata to attach to netmap graph as metadata.
     """
-    edge = Edge(nx_edge, source, target, traffic)
+    edge = Edge(nx_edge, (meta_u, meta_v), traffic)
 
     source_vlans = target_vlans = []
-    if vlans_by_interface and source in vlans_by_interface:
-        source_vlans = tuple(vlans_by_interface.get(source))
+    if vlans_by_interface and meta_u in vlans_by_interface:
+        source_vlans = tuple(vlans_by_interface.get(meta_u))
 
-    if vlans_by_interface and target in vlans_by_interface:
-        target_vlans = tuple(vlans_by_interface.get(target))
+    if vlans_by_interface and meta_v in vlans_by_interface:
+        target_vlans = tuple(vlans_by_interface.get(meta_v))
 
-#key=lambda x: x.vlan.vlan)
-    edge.source.vlans = set(source_vlans) - set(target_vlans)
-    edge.target.vlans = set(target_vlans) - set(source_vlans)
+    edge.u.vlans = set(source_vlans) - set(target_vlans)
+    edge.v.vlans = set(target_vlans) - set(source_vlans)
     edge.vlans = set(source_vlans) | set(target_vlans)
     return edge
