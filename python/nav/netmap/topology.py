@@ -81,8 +81,6 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
     _LOGGER.debug("_build_netmap_layer2_graph()")
     netmap_graph = nx.Graph()
 
-    interfaces = set()
-
     # basically loops over the whole MultiDiGraph from nav.topology and make
     # sure we fetch all 'loose' ends and makes sure they get attached as
     # metadata into netmap_graph
@@ -96,19 +94,13 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
                     target
                 ) or {}
                 port_pairs = existing_metadata.setdefault('port_pairs', set())
-                port_pair = tuple(
-                    sorted(
-                        (interface, interface.to_interface),
-                        key=lambda i: i and i.pk or None
-                    )
-                )
+                port_pair = frozenset((interface, interface.to_interface))
+                if len(port_pair) < 2:
+                    _LOGGER.warning("Wonky self-loop at %r", port_pair)
+                    continue  # ignore wonk!
                 port_pairs.add(port_pair)
-                if port_pair[0] is not None:
-                    interfaces.add(port_pair[0])
-                if port_pair[1] is not None:
-                    interfaces.add(port_pair[1])
 
-                netmap_graph.add_edge(source, target,
+                netmap_graph.add_edge(target, source,
                                       attr_dict=existing_metadata)
 
     _LOGGER.debug(
@@ -165,51 +157,40 @@ def build_netmap_layer3_graph(topology_without_metadata, load_traffic=False,
 
     # Make a copy of the graph, and add edge meta data
     graph = nx.Graph()
-    interfaces = set()
-    for gwpp_a, gwpp_b, prefix in topology_without_metadata.edges_iter(
+    for gwpp_u, gwpp_v, prefix in topology_without_metadata.edges_iter(
             keys=True):
 
-        netbox_a = gwpp_a.interface.netbox
-        netbox_b = gwpp_b.interface.netbox
+        netbox_u = gwpp_u.interface.netbox
+        netbox_v = gwpp_v.interface.netbox
 
-        existing_metadata = graph.get_edge_data(netbox_a, netbox_b) or {}
+        existing_metadata = graph.get_edge_data(netbox_u, netbox_v) or {}
         gwportprefix_pairs = existing_metadata.setdefault('gwportprefix_pairs',
                                                           set())
-        gwportprefix = tuple(
-            sorted(
-                (gwpp_a, gwpp_b),
-                key=lambda gwpprefix: gwpprefix and gwpprefix.gw_ip or None
-            )
-        )
+        gwportprefix = frozenset((gwpp_u, gwpp_v))
         gwportprefix_pairs.add(gwportprefix)
-        if gwpp_a.interface is not None:
-            interfaces.add(gwpp_a.interface)
-        if gwpp_b.interface is not None:
-            interfaces.add(gwpp_b.interface)
 
         graph.add_edge(
-            netbox_a,
-            netbox_b,
+            netbox_v,
+            netbox_u,
             key=prefix.vlan,
             attr_dict=existing_metadata)
 
     _LOGGER.debug("build_netmap_layer3_graph() graph copy with metadata done")
 
     empty_traffic = Traffic()
-    for source, target, metadata_dict in graph.edges_iter(data=True):
-        for gwpp_a, gwpp_b in metadata_dict.get('gwportprefix_pairs'):
+    for u, v, metadata_dict in graph.edges_iter(data=True):
+        for gwpp_u, gwpp_v in metadata_dict.get('gwportprefix_pairs'):
             traffic = get_traffic_data(
-                (gwpp_a.interface, gwpp_b.interface)
+                (gwpp_u.interface, gwpp_v.interface)
             ) if load_traffic else empty_traffic
-            additional_metadata = edge_metadata_layer3((source, target),
-                                                       gwpp_a,
-                                                       gwpp_b,
+            additional_metadata = edge_metadata_layer3((u, v),
+                                                       gwpp_u, gwpp_v,
                                                        traffic)
-            assert gwpp_a.prefix.vlan.id == gwpp_b.prefix.vlan.id, (
+            assert gwpp_u.prefix.vlan.id == gwpp_v.prefix.vlan.id, (
                 "GwPortPrefix must reside inside VLan for given Prefix, "
                 "bailing!")
             metadata = metadata_dict.setdefault('metadata', defaultdict(list))
-            metadata[gwpp_a.prefix.vlan.id].append(additional_metadata)
+            metadata[gwpp_u.prefix.vlan.id].append(additional_metadata)
 
     if view:
         graph = _attach_node_positions(graph, view.node_position_set.all())
