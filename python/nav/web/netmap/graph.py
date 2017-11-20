@@ -73,11 +73,15 @@ def _json_layer2(load_traffic=False, view=None):
                                       vlan_by_interface, vlan_by_netbox,
                                       load_traffic, view)
 
+    def get_edge_from_meta(meta):
+        edge = meta['metadata'][0]
+        return edge.u.netbox, edge.v.netbox
+
     result = {
         'vlans': get_vlan_lookup_json(vlan_by_interface),
         'nodes': _get_nodes(node_to_json_layer2, graph),
-        'links': [edge_to_json_layer2((node_a, node_b), nx_metadata) for
-                  node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
+        'links': [edge_to_json_layer2(get_edge_from_meta(meta), meta) for
+                  u, v, meta in graph.edges_iter(data=True)]
     }
     return result
 
@@ -92,11 +96,17 @@ def _json_layer3(load_traffic=False, view=None):
 
     graph = build_netmap_layer3_graph(topology_without_metadata, load_traffic,
                                       view)
+
+    def get_edge_from_meta(meta):
+        edges = next(iter(meta['metadata'].values()))
+        first = next(iter(edges))
+        return first.u.netbox, first.v.netbox
+
     result = {
         'vlans': [vlan_to_json(prefix.vlan) for prefix in vlans_map],
         'nodes': _get_nodes(node_to_json_layer3, graph),
-        'links': [edge_to_json_layer3((node_a, node_b), nx_metadata) for
-                  node_a, node_b, nx_metadata in graph.edges_iter(data=True)]
+        'links': [edge_to_json_layer3(get_edge_from_meta(meta), meta) for
+                  u, v, meta in graph.edges_iter(data=True)]
     }
     return result
 
