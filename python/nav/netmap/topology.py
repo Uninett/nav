@@ -81,8 +81,6 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
     _LOGGER.debug("_build_netmap_layer2_graph()")
     netmap_graph = nx.Graph()
 
-    interfaces = set()
-
     # basically loops over the whole MultiDiGraph from nav.topology and make
     # sure we fetch all 'loose' ends and makes sure they get attached as
     # metadata into netmap_graph
@@ -103,10 +101,6 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
                     )
                 )
                 port_pairs.add(port_pair)
-                if port_pair[0] is not None:
-                    interfaces.add(port_pair[0])
-                if port_pair[1] is not None:
-                    interfaces.add(port_pair[1])
 
                 netmap_graph.add_edge(source, target,
                                       attr_dict=existing_metadata)
@@ -165,7 +159,6 @@ def build_netmap_layer3_graph(topology_without_metadata, load_traffic=False,
 
     # Make a copy of the graph, and add edge meta data
     graph = nx.Graph()
-    interfaces = set()
     for gwpp_a, gwpp_b, prefix in topology_without_metadata.edges_iter(
             keys=True):
 
@@ -182,10 +175,6 @@ def build_netmap_layer3_graph(topology_without_metadata, load_traffic=False,
             )
         )
         gwportprefix_pairs.add(gwportprefix)
-        if gwpp_a.interface is not None:
-            interfaces.add(gwpp_a.interface)
-        if gwpp_b.interface is not None:
-            interfaces.add(gwpp_b.interface)
 
         graph.add_edge(
             netbox_a,
