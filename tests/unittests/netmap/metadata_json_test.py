@@ -57,14 +57,14 @@ class SharedJsonMetadataTests():
     def test_not_failing_when_both_interface_speed_is_undefined(self):
         self.a1.speed = None
         self.b1.speed = None
-        results = Edge((self.a, self.b), self.a1, self.b1)
+        results = Edge((self.a, self.b), (self.a1, self.b1))
         self.assertTrue(results.link_speed is None)
 
     def test_json_edge_is_NA_if_speed_is_undefined(self):
         self.a1.speed = None
         self.b1.speed = None
 
-        results = Edge((self.a, self.b), self.a1, self.b1).to_json()
+        results = Edge((self.a, self.b), (self.a1, self.b1)).to_json()
 
         self.assertEquals(results['link_speed'], 'N/A')
 

@@ -21,7 +21,7 @@ class MetaClassesTests(MetaClassTestCase):
         b = Mock(name='interface b', spec=Interface)
         b.speed = None
 
-        foo = Edge((netbox_a, netbox_b), a, b)
+        foo = Edge((netbox_a, netbox_b), (a, b))
 
 
 class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
@@ -47,28 +47,26 @@ class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
         self.assertEqual(2, len(edge_meta))
 
     def test_edge_between_a_and_b_contains_a1_b1__and__a2_b2_uplinks(self):
-        pairs = list(self._get_metadata(self.a, self.b))
+        first, second = list(self._get_metadata(self.a, self.b))
+        self.assertEqual(
+            frozenset((self.a1, self.b1)),
+            frozenset((first.u.interface, first.v.interface)))
 
-        self.assertEqual(self.a1, pairs[0].source.interface)
-        self.assertEqual(self.b1, pairs[0].target.interface)
-        self.assertEqual(self.a2, pairs[1].source.interface)
-        self.assertEqual(self.b2, pairs[1].target.interface)
+        self.assertEqual(
+            frozenset((self.a2, self.b2)),
+            frozenset((second.u.interface, second.v.interface)))
 
     def test_netmap_metadata_shows_2_links_for_edge_between_a_and_b(self):
         self.assertEquals(2, len(self._get_metadata(self.a, self.b)))
 
     def test_netmap_metadata_is_correct_for_2_links_edge_between_a_and_b(self):
         self.maxDiff = None
-        assert [
-                   Edge(nx_edge=(self.a, self.b),
-                        source=self.a1,
-                        target=self.b1,
-                        ),
-                   Edge(nx_edge=(self.a, self.b),
-                        source=self.a2,
-                        target=self.b2)
-               ] == (self.netmap_graph.get_edge_data(self.a, self.b) or {}).get(
+        metadata = (self.netmap_graph.get_edge_data(self.a, self.b) or {}).get(
             'metadata')
+        assert Edge(nx_edge=(self.a, self.b),
+                    meta_edge=(self.a1, self.b1)) in metadata
+        assert Edge(nx_edge=(self.a, self.b),
+                    meta_edge=(self.a2, self.b2)) in metadata
 
 
 class Layer3NetworkXMetadataTests(TopologyLayer3TestCase):
@@ -103,29 +101,29 @@ class Layer3NetworkXMetadataTests(TopologyLayer3TestCase):
         # in an undirected graph. this test will work around that fact,
         # but the code still needs to be fixed.
         metadata = self.netmap_graph.get_edge_data(self.a, self.b)
-        a = metadata.get('metadata').get(2111)[0].source
-        b = metadata.get('metadata').get(2111)[0].target
+        edge = metadata.get('metadata').get(2111)[0]
+        u, v = (edge.u, edge.v)
 
-        if self.a == b:
-            # there is no source and target in an undirected graph, you moron!
-            a, b = b, a
+        if self.a == v or self.a == getattr(v, 'netbox', None):
+            # there is no source and target in an undirected graph
+            u, v = v, u
 
-        self.assertEqual(a.interface, self.a1)
-        self.assertEqual(a.netbox, self.a)
-        self.assertEqual(a.gw_ip, '158.38.0.1')
-        self.assertFalse(a.virtual)
+        self.assertEqual(u.interface, self.a1)
+        self.assertEqual(u.netbox, self.a)
+        self.assertEqual(u.gw_ip, '158.38.0.1')
+        self.assertFalse(u.virtual)
 
-        self.assertEqual(b.interface, self.b1)
-        self.assertEqual(b.netbox, self.b)
-        self.assertEqual(b.gw_ip, '158.38.0.2')
-        self.assertFalse(b.virtual)
+        self.assertEqual(v.interface, self.b1)
+        self.assertEqual(v.netbox, self.b)
+        self.assertEqual(v.gw_ip, '158.38.0.2')
+        self.assertFalse(v.virtual)
 
     def test_uplink_has_all_layer3_properties_it_should_for_source(self):
         should_have = ('gw_ip', 'virtual')
 
         for edge in self.netmap_graph.get_edge_data(self.a, self.b).get('metadata').get(2111):
             self.assertTrue(
-                all([hasattr(edge.source, attribute) for attribute in should_have]),
+                all([hasattr(edge.u, attribute) for attribute in should_have]),
                 msg="Didn't find all keys {0}, only found: {1}".format(
                     should_have,
                     edge.__dict__.keys()
@@ -138,7 +136,7 @@ class Layer3NetworkXMetadataTests(TopologyLayer3TestCase):
         for edge in self.netmap_graph.get_edge_data(self.a, self.b).get('metadata').get(
             2111):
             self.assertTrue(
-                all([hasattr(edge.target, attribute) for attribute in should_have]),
+                all([hasattr(edge.v, attribute) for attribute in should_have]),
                 msg="Didn't find all keys {0}, only found: {1}".format(
                     should_have,
                     edge.__dict__.keys()
