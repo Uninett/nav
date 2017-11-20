@@ -95,6 +95,9 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
                 ) or {}
                 port_pairs = existing_metadata.setdefault('port_pairs', set())
                 port_pair = frozenset((interface, interface.to_interface))
+                if len(port_pair) < 2:
+                    _LOGGER.warning("Wonky self-loop at %r", port_pair)
+                    continue  # ignore wonk!
                 port_pairs.add(port_pair)
 
                 netmap_graph.add_edge(target, source,
