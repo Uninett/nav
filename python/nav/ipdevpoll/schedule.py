@@ -159,8 +159,8 @@ class NetboxJobScheduler(object):
 
     @classmethod
     def _adjust_intensity_on_snmperror(cls, failure):
-        if (failure.check(AbortedJobError)
-            and isinstance(failure.value.cause, SnmpError)):
+        if (failure.check(AbortedJobError) and
+                isinstance(failure.value.cause, SnmpError)):
 
             open_sessions = AgentProxy.count_open_sessions()
             new_limit = int(ceil(open_sessions * 0.90))
