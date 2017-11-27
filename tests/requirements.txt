@@ -7,6 +7,7 @@ pytest
 pytest-catchlog
 pytest-cov
 pytest-selenium
+pytest-twisted
 pytidylib==0.2.4
 selenium>=3.0.0,<3.2.0
 whisper>=0.9.9
