@@ -54,8 +54,8 @@ class Job(amp.Command):
     """Represent a job for sending to a worker"""
     arguments = [
         (b'netbox', amp.Integer()),
-        (b'job', amp.String()),
-        (b'plugins', amp.ListOf(amp.String())),
+        (b'job', amp.Unicode()),
+        (b'plugins', amp.ListOf(amp.Unicode())),
         (b'interval', amp.Integer()),  # Needs to be included in database record.
                                       # Not used for scheduling
         (b'serial', amp.Integer()),  # Serial number needed for cancelling
