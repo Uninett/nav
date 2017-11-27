@@ -60,10 +60,10 @@ class Job(amp.Command):
                                       # Not used for scheduling
         (b'serial', amp.Integer()),  # Serial number needed for cancelling
     ]
-    response = [(b'result', amp.Boolean())]
+    response = [(b'result', amp.Boolean()),
+                (b'reschedule', amp.Integer())]
     errors = {
         jobs.AbortedJobError: b'AbortedJob',
-        jobs.SuggestedReschedule: b'SuggestedReschedule',
     }
 
 
@@ -97,7 +97,13 @@ class JobHandler(amp.CommandLocator):
         self.jobs[serial] = job
         deferred = job.run()
         deferred.addBoth(self.job_done, serial)
-        deferred.addCallback(lambda x: {'result': x})
+        deferred.addCallback(lambda x: {'result': x, 'reschedule': 0})
+
+        def handle_reschedule(failure):
+            failure.trap(jobs.SuggestedReschedule)
+            return {'reschedule': failure.value.delay, "result": False}
+
+        deferred.addErrback(handle_reschedule)
         return deferred
 
     @Cancel.responder
@@ -287,6 +293,14 @@ class WorkerPool(object):
     def execute_job(self, job, netbox, plugins=None, interval=None):
         deferred = self._execute(Job, job=job, netbox=netbox,
                                  plugins=plugins, interval=interval)
+
+        def handle_reschedule(result):
+            reschedule = result.get('reschedule', 0)
+            if reschedule:
+                raise jobs.SuggestedReschedule(delay=reschedule)
+            return result
+
+        deferred.addCallback(handle_reschedule)
         deferred.addCallback(lambda x: x['result'])
         return deferred
 
