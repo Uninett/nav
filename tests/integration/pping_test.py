@@ -80,17 +80,6 @@ def get_pping_output(timeout=5):
 
 
 @pytest.fixture()
-def localhost():
-    box = Netbox(ip='127.0.0.1', sysname='localhost.example.org',
-                 organization_id='myorg', room_id='myroom', category_id='SRV',
-                 snmp_version=2)
-    box.save()
-    yield box
-    print("teardown test device")
-    box.delete()
-
-
-@pytest.fixture()
 def host_expected_to_be_down():
     box = Netbox(ip='10.254.254.254', sysname='downhost.example.org',
                  organization_id='myorg', room_id='myroom', category_id='SRV',

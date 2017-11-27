@@ -2,7 +2,11 @@ import os
 import io
 import re
 import shlex
+
+import pytest
+
 from nav.buildconf import bindir
+from nav.models.manage import Netbox
 
 TESTARGS_PATTERN = re.compile(
     r'^# +-\*-\s*testargs:\s*(?P<args>.*?)\s*(-\*-)?\s*$',
@@ -56,3 +60,14 @@ def _scan_testargs(filename):
             return [[filename]]
         else:
             return []
+
+
+@pytest.fixture()
+def localhost():
+    box = Netbox(ip='127.0.0.1', sysname='localhost.example.org',
+                 organization_id='myorg', room_id='myroom', category_id='SRV',
+                 read_only='public', snmp_version=2)
+    box.save()
+    yield box
+    print("teardown test device")
+    box.delete()
