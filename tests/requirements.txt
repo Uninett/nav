@@ -4,7 +4,7 @@ lxml==4.0.0
 mock==2.0.0
 pylint==1.7.2
 pytest
-pytest-capturelog
+pytest-catchlog
 pytest-cov
 pytest-selenium
 pytidylib==0.2.4
