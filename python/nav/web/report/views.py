@@ -15,7 +15,9 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Handling web requests for the Report subsystem."""
-
+import logging
+import hashlib
+from functools import wraps
 
 from IPy import IP
 
@@ -34,7 +36,7 @@ from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.http import HttpResponse, Http404, HttpResponseRedirect
-from django.utils.six import iteritems
+from django.utils.six import iteritems, text_type
 
 from nav.models.manage import Prefix
 
@@ -48,6 +50,7 @@ import nav.buildconf
 from nav.web.navlets import add_navlet
 
 
+_logger = logging.getLogger(__name__)
 IpGroup = namedtuple('IpGroup', 'private ipv4 ipv6')
 CONFIG_FILE_PACKAGE = os.path.join(nav.buildconf.sysconfdir,
                                    "report/report.conf")
@@ -293,19 +296,10 @@ def make_report(request, report_name, export_delimiter, query_dict,
                              for x, y in iteritems(query_dict)
                              if x != 'page_number'])
 
-    # Deleting meta variables and empty values from uri to help verifying
-    # that the requested report is in the cache
-    meta_to_delete = ['offset', 'limit', 'export', 'exportcsv', 'page_number',
-                      'page_size']
-    uri_strip = {key: value
-                 for key, value in query_dict.items()
-                 if key not in meta_to_delete and value != ""}
-
-    mtime_config = (os.stat(CONFIG_FILE_PACKAGE).st_mtime +
-                    os.stat(CONFIG_FILE_LOCAL).st_mtime)
-    cache_name = 'report_%s__%s%s' % (request.account.login,
-                                      report_name, mtime_config)
-
+    @report_cache((request.account.login, report_name,
+                   os.stat(CONFIG_FILE_PACKAGE).st_mtime,
+                   os.stat(CONFIG_FILE_LOCAL).st_mtime),
+                  query_dict)
     def _fetch_data_from_db():
         (report, contents, neg, operator, adv, config, dbresult) = (
             gen.make_report(report_name, CONFIG_FILE_PACKAGE,
@@ -313,26 +307,11 @@ def make_report(request, report_name, export_delimiter, query_dict,
         if not report:
             raise Http404
         result_time = strftime("%H:%M:%S", localtime())
-        cache.set(cache_name,
-                  (uri_strip, report, contents, neg, operator, adv, config,
-                   dbresult, result_time))
         return report, contents, neg, operator, adv, result_time
 
     gen = Generator()
-    # Caching. Checks if cache exists for this user, that the cached report is
-    # the one requested and that config files are unchanged.
-    report_cache = cache.get(cache_name)
-    if report_cache and report_cache[0] == uri_strip:
-        dbresult_cache = report_cache[7]
-        config_cache = report_cache[6]
-        (report, contents, neg, operator, adv) = (
-            gen.make_report(report_name, None, None, query_dict,
-                            config_cache, dbresult_cache))
-        result_time = cache.get(cache_name)[8]
 
-    else:  # Report not in cache, fetch data from DB
-        (report, contents, neg, operator, adv,
-         result_time) = _fetch_data_from_db()
+    report, contents, neg, operator, adv, result_time = _fetch_data_from_db()
 
     if export_delimiter:
         return generate_export(report, report_name, export_delimiter)
@@ -501,6 +480,58 @@ def add_report_widget(request):
     add_navlet(request.account, navlet, preferences)
 
     return HttpResponse()
+
+
+def report_cache(key_items, query_dict):
+    """Report caching decorator.
+
+    Any exception that occurs while attempting to get or set cache items are
+    logged and subsequently ignored. We can still do our work, albeit slower.
+
+    :param key_items: A list of values that make up the request key
+
+    :param query_dict: The request query parameter dictionary; used to
+                       extract the "advanced search" parameters used in the
+                       request, so these can be included in the cache key
+    """
+    keys = ['report'] + list(key_items) + [_query_dict_hash(query_dict)]
+    cache_key = ':'.join(text_type(k) for k in keys)
+
+    def _decorator(func):
+        def _cache_lookup(*args, **kwargs):
+            try:
+                data = cache.get(cache_key)
+            except Exception:
+                _logger.exception("Exception occurred while hitting the cache")
+                data = None
+
+            if not data:
+                data = func(*args, **kwargs)
+                try:
+                    cache.set(cache_key, data)
+                except Exception:
+                    _logger.exception("Exception occurred while caching")
+
+            return data
+        return wraps(func)(_cache_lookup)
+
+    return _decorator
+
+
+def _query_dict_hash(query_dict):
+    """Makes a unique hash from a report query_dict, excluding every known
+    parameter that is not related to filtering the report contents (i.e.
+    arguments that do not affect the SQL result itself should not be part of
+    the cache key).
+
+    """
+    non_key_args = ['offset', 'limit', 'export', 'exportcsv', 'page_number',
+                    'page_size']
+    stripped_dict = {key: value
+                     for key, value in query_dict.items()
+                     if key not in non_key_args and value != ""}
+    data = repr(stripped_dict).encode('utf-8')
+    return hashlib.sha256(data).hexdigest()
 
 
 class UnknownNetworkTypeException(Exception):
