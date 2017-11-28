@@ -30,6 +30,7 @@ from nav.bitvector import BitVector
 from nav.models.manage import Vlan, SwPortAllowedVlan
 from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
                                 VENDOR_ID_H3C,
+                                VENDOR_ID_DELL_INC,
                                 VENDOR_ID_HEWLETT_PACKARD)
 
 
@@ -413,7 +414,7 @@ class SNMPHandler(object):
         :returns native vlan + list of trunked vlan
 
         """
-        native_vlan = self.get_vlan(interface)
+        native_vlan = self.get_native_vlan(interface)
 
         bitvector_index = interface.baseport - 1
         vlans = []
@@ -431,6 +432,9 @@ class SNMPHandler(object):
         octet_string = self._query_netbox(self.VLAN_EGRESS_PORTS, vlan)
         return BitVector(octet_string)
 
+    def get_native_vlan(self, interface):
+        return self.get_vlan(interface)
+
     def set_trunk_vlans(self, interface, vlans):
         """Trunk the vlans on interface
 
@@ -442,7 +446,7 @@ class SNMPHandler(object):
 
         """
         base_port = interface.baseport
-        native_vlan = self.get_vlan(interface)
+        native_vlan = self.get_native_vlan(interface)
         bitvector_index = base_port - 1
 
         _logger.debug('base_port: %s, native_vlan: %s, trunk_vlans: %s',
@@ -810,6 +814,74 @@ class H3C(SNMPHandler):
         ])
 
 
+class Dell(SNMPHandler):
+    """Dell INC handler
+
+    Uses DNOS-SWITCHING-MIB
+    """
+
+    from nav.smidumps.dnos_switching_mib import MIB as mib
+
+    switch_port_modes = {
+        'access': 1,
+        'trunk': 2,
+        'general': 3
+    }
+
+    PORT_MODE_OID = mib['nodes']['agentPortSwitchportMode']['oid']
+    NATIVE_VLAN_ID = mib['nodes']['agentPortNativeVlanID']['oid']
+    # Overriding members
+    VlAN_OID = mib['nodes']['agentPortAccessVlanID']['oid']
+    VLAN_EGRESS_PORTS = mib['nodes']['agentVlanSwitchportTrunkStaticEgressPorts']['oid']
+
+    def __init__(self, netbox, **kwargs):
+        super(Dell, self).__init__(netbox, **kwargs)
+
+    def set_vlan(self, interface, vlan):
+        baseport = interface.baseport
+        try:
+            vlan = int(vlan)
+        except ValueError:
+            raise TypeError('Not a valid vlan %s' % vlan)
+        # Fetch current vlan
+        fromvlan = self.get_vlan(interface)
+        # fromvlan and vlan is the same, there's nothing to do
+        if fromvlan == vlan:
+            _logger.debug('fromvlan and vlan is the same - skip')
+            return None
+
+        self._set_netbox_value(self.VlAN_OID, baseport, "i", vlan)
+
+    def set_access(self, interface, access_vlan):
+        self._set_swport_mode(interface, 'access')
+        self.set_vlan(interface, access_vlan)
+        interface.vlan = access_vlan
+        interface.trunk = False
+        interface.save()
+
+    def set_trunk(self, interface, native_vlan, trunk_vlans):
+        self._set_swport_mode(interface, 'trunk')
+        self.set_trunk_vlans(interface, trunk_vlans)
+        self.set_native_vlan(interface, native_vlan)
+        interface.vlan = native_vlan
+        interface.trunk = True
+        interface.save()
+
+    def _set_swport_mode(self, interface, mode):
+        baseport = interface.baseport
+        self._set_netbox_value(self.PORT_MODE_OID, baseport, 'i',
+                               self.switch_port_modes[mode])
+
+    def get_native_vlan(self, interface):
+        baseport = interface.baseport
+        self._query_netbox(self.NATIVE_VLAN_ID, baseport)
+
+    def set_native_vlan(self, interface, vlan):
+        """Set native vlan on a trunk interface"""
+        baseport = interface.baseport
+        self._set_netbox_value(self.NATIVE_VLAN_ID, baseport, "i", vlan)
+
+
 class SNMPFactory(object):
     """Factory class for returning SNMP-handles depending
     on a netbox' vendor identification."""
@@ -825,6 +897,8 @@ class SNMPFactory(object):
             return HP(netbox, **kwargs)
         if vendor_id == VENDOR_ID_H3C:
             return H3C(netbox, **kwargs)
+        if vendor_id == VENDOR_ID_DELL_INC:
+            return Dell(netbox, **kwargs)
         return SNMPHandler(netbox, **kwargs)
 
     def __init__(self):
