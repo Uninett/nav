@@ -66,9 +66,8 @@ class VariableMapBase(object):
     assigned a dict value for a db update to take place.
 
     """
-    def __init__(self, variables='variables'):
-        self.variables = variables
-        self.cachename = "_cached_%s" % variables
+    def __init__(self):
+        self.cachename = "_cached_variables"
 
     def __get__(self, obj, obj_type=None):
         if obj is None:
@@ -91,7 +90,7 @@ class VariableMapBase(object):
             raise ValueError("value must be a dict")
 
         if obj.pk:
-            variables = getattr(obj, self.variables)
+            variables = obj.variables
             if vardict:
                 self._delete_missing_variables(vardict, variables)
 
@@ -102,12 +101,6 @@ class VariableMapBase(object):
     def _as_dict(self, obj):
         raise NotImplementedError
 
-    def _get_model_and_related_field(self, obj):
-        _rel_manager = getattr(obj.__class__, self.variables)
-        var_model = _rel_manager.related.model
-        related_field = _rel_manager.related.field.name
-        return related_field, var_model
-
     def _delete_missing_variables(self, vardict, variables):
         raise NotImplementedError
 
@@ -117,7 +110,7 @@ class VariableMapBase(object):
 
 class VariableMap(VariableMapBase):
     def _as_dict(self, obj):
-        variables = getattr(obj, self.variables)
+        variables = obj.variables
         return dict((var.variable, var.value) for var in variables.all())
 
     def _delete_missing_variables(self, vardict, variables):
@@ -126,7 +119,6 @@ class VariableMap(VariableMapBase):
 
     def _update_variables(self, obj, vardict):
         varmap = self._as_dict(obj)
-        related_field, var_model = self._get_model_and_related_field(obj)
 
         for key, value in vardict.items():
             if key in varmap:
@@ -134,12 +126,10 @@ class VariableMap(VariableMapBase):
                     varmap[key] = value
                     varmap[key].save()
             else:
-                variable = var_model(**{
-                    related_field: obj,
-                    'variable': key,
-                    'value': value,
-                    })
-                variable.save()
+                obj.variables.create(
+                    variable=key,
+                    value=value,
+                )
 
 
 class StateVariableMap(VariableMapBase):
@@ -151,7 +141,7 @@ class StateVariableMap(VariableMapBase):
 
     """
     def _as_dict(self, obj):
-        variables = getattr(obj, self.variables)
+        variables = obj.variables
         varmap = defaultdict(dict)
         for var in variables.all():
             varmap[var.state][var.variable] = var.value
@@ -166,7 +156,6 @@ class StateVariableMap(VariableMapBase):
 
     def _update_variables(self, obj, vardict):
         varmap = self._as_dict(obj)
-        related_field, var_model = self._get_model_and_related_field(obj)
 
         for state, vars in vardict.items():
             for key, value in vars.items():
@@ -175,13 +164,11 @@ class StateVariableMap(VariableMapBase):
                         varmap[state][key] = value
                         varmap[state][key].save()
                 else:
-                    variable = var_model(**{
-                        related_field: obj,
-                        'state': state,
-                        'variable': key,
-                        'value': value,
-                    })
-                    variable.save()
+                    obj.variables.create(
+                        state=state,
+                        variable=key,
+                        value=value,
+                    )
 
 
 @python_2_unicode_compatible
