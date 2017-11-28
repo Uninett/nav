@@ -32,6 +32,7 @@ from nav.metrics.lookup import lookup
 
 import django
 from django.db import transaction
+from django.utils import six
 
 LOGFILE_NAME = 'thresholdmon.log'
 LOGFILE_PATH = os.path.join(buildconf.localstatedir, 'log', LOGFILE_NAME)
@@ -165,9 +166,10 @@ def make_event(start, rule, metric, value):
     event.subid = "{rule}:{metric}".format(rule=rule.id, metric=metric)
 
     varmap = dict(metric=metric, alert=rule.alert,
-                  ruleid=unicode(rule.id), measured_value=unicode(value))
+                  ruleid=six.text_type(rule.id),
+                  measured_value=six.text_type(value))
     if rule.clear:
-        varmap['clear'] = unicode(rule.clear)
+        varmap['clear'] = six.text_type(rule.clear)
     _add_subject_details(event, metric, varmap)
 
     event.save()
