@@ -55,6 +55,13 @@ Removed dependencies
   a complete system.
 
 
+Other changes
+-------------
+
+The :program:`navclean.py` program changed its name to simply
+:program:`navclean`. If you were using it in any cron jobs or other scripts,
+they will need to be updated.
+
 News
 ----
 

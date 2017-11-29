@@ -3,6 +3,7 @@ bin_SCRIPTS = $(wildcard *.py) $(wildcard *.sh) \
               ipdevpolld \
               nav \
               navcheckservice \
+              navclean \
               navdf \
               navdump \
               naventity \
