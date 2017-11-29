@@ -298,8 +298,7 @@ class ThresholdEvent(object):
             if hasattr(self.subject, 'get_absolute_url'):
                 return self.subject.get_absolute_url()
             elif (hasattr(self.subject, 'netbox') and
-                  hasattr(self.subject.netbox, 'get_absolute_url')
-            ):
+                  hasattr(self.subject.netbox, 'get_absolute_url')):
                 return self.subject.netbox.get_absolute_url()
 
 

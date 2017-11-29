@@ -74,6 +74,7 @@ class NetboxJobScheduler(object):
         self.running = False
         self._start_time = None
         self._current_job = None
+        self.callLater = reactor.callLater
 
     def get_current_runtime(self):
         """Returns time elapsed since the start of the job as a timedelta."""
@@ -81,7 +82,7 @@ class NetboxJobScheduler(object):
 
     def start(self):
         """Start polling schedule."""
-        self._next_call = reactor.callLater(0, self.run_job)
+        self._next_call = self.callLater(0, self.run_job)
         return self._deferred
 
     def cancel(self):
@@ -159,8 +160,8 @@ class NetboxJobScheduler(object):
 
     @classmethod
     def _adjust_intensity_on_snmperror(cls, failure):
-        if (failure.check(AbortedJobError)
-            and isinstance(failure.value.cause, SnmpError)):
+        if (failure.check(AbortedJobError) and
+                isinstance(failure.value.cause, SnmpError)):
 
             open_sessions = AgentProxy.count_open_sessions()
             new_limit = int(ceil(open_sessions * 0.90))
@@ -240,7 +241,7 @@ class NetboxJobScheduler(object):
         if self._next_call.active():
             self._next_call.reset(delay)
         else:
-            self._next_call = reactor.callLater(delay, self.run_job)
+            self._next_call = self.callLater(delay, self.run_job)
 
     def _log_unhandled_error(self, failure):
         if not failure.check(db.ResetDBConnectionError):
