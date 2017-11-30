@@ -1,3 +1,14 @@
+Version 4.8.1
+(released 30 Nov 2017)
+
+ Fixed GitHub issues in this release:
+
+  * #1618 (ipdevpoll multiprocess mode broken in v4.8.0)
+    + #1620 (ipdevpoll multiprocess bug fixes and tests)
+  * #1621 (refactor cache handling in report to separate concerns)
+  * #1627 (The navclean command isn't installed in NAV 4.8.0)
+
+
 Version 4.8.0
 (released 23 Nov 2017)
 
