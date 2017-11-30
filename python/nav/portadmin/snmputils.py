@@ -822,15 +822,9 @@ class Dell(SNMPHandler):
 
     from nav.smidumps.dnos_switching_mib import MIB as mib
 
-    PORT_MODE_ACCESS = 'access'
-    PORT_MODE_TRUNK = 'trunk'
-    PORT_MODE_GENERAL = 'general'
-
-    switch_port_modes = {
-        PORT_MODE_ACCESS: 1,
-        PORT_MODE_TRUNK: 2,
-        PORT_MODE_GENERAL: 3
-    }
+    PORT_MODE_ACCESS = 1
+    PORT_MODE_TRUNK = 2
+    PORT_MODE_GENERAL = 3
 
     PORT_MODE_OID = mib['nodes']['agentPortSwitchportMode']['oid']
     NATIVE_VLAN_ID = mib['nodes']['agentPortNativeVlanID']['oid']
