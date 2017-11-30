@@ -822,10 +822,14 @@ class Dell(SNMPHandler):
 
     from nav.smidumps.dnos_switching_mib import MIB as mib
 
+    PORT_MODE_ACCESS = 'access'
+    PORT_MODE_TRUNK = 'trunk'
+    PORT_MODE_GENERAL = 'general'
+
     switch_port_modes = {
-        'access': 1,
-        'trunk': 2,
-        'general': 3
+        PORT_MODE_ACCESS: 1,
+        PORT_MODE_TRUNK: 2,
+        PORT_MODE_GENERAL: 3
     }
 
     PORT_MODE_OID = mib['nodes']['agentPortSwitchportMode']['oid']
@@ -853,14 +857,14 @@ class Dell(SNMPHandler):
         self._set_netbox_value(self.VlAN_OID, baseport, "i", vlan)
 
     def set_access(self, interface, access_vlan):
-        self._set_swport_mode(interface, 'access')
+        self._set_swport_mode(interface, self.PORT_MODE_ACCESS)
         self.set_vlan(interface, access_vlan)
         interface.vlan = access_vlan
         interface.trunk = False
         interface.save()
 
     def set_trunk(self, interface, native_vlan, trunk_vlans):
-        self._set_swport_mode(interface, 'trunk')
+        self._set_swport_mode(interface, self.PORT_MODE_TRUNK)
         self.set_trunk_vlans(interface, trunk_vlans)
         self.set_native_vlan(interface, native_vlan)
         interface.vlan = native_vlan
