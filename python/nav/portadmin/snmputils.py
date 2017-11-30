@@ -867,8 +867,7 @@ class Dell(SNMPHandler):
 
     def _set_swport_mode(self, interface, mode):
         baseport = interface.baseport
-        self._set_netbox_value(self.PORT_MODE_OID, baseport, 'i',
-                               self.switch_port_modes[mode])
+        self._set_netbox_value(self.PORT_MODE_OID, baseport, 'i', mode)
 
     def get_native_vlan(self, interface):
         baseport = interface.baseport
