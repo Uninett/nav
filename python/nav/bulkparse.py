@@ -25,6 +25,7 @@ from django.utils import six
 from IPy import IP
 
 from nav.errors import GeneralException
+from nav.models.manage import Location, Room, Organization, Vendor, Usage
 
 
 class BulkParser(six.Iterator):
@@ -201,12 +202,22 @@ class UsageBulkParser(BulkParser):
     format = ('usageid', 'descr')
     required = 2
     restkey = None
+    usageid_maxlength = getattr(Usage, '_meta').get_field('id').max_length
+
+    @classmethod
+    def _validate_usageid(cls, value):
+        return len(value) <= cls.usageid_maxlength
 
 
 class LocationBulkParser(BulkParser):
     """Parses the location bulk format"""
     format = ('locationid', 'parent', 'descr')
     required = 1
+    locationid_maxlength = getattr(Location, '_meta').get_field('id').max_length
+
+    @classmethod
+    def _validate_locationid(cls, value):
+        return len(value) <= cls.locationid_maxlength
 
 
 class OrgBulkParser(BulkParser):
@@ -215,6 +226,11 @@ class OrgBulkParser(BulkParser):
     restkey = 'attr'
     required = 1
     _validate_attr = staticmethod(validate_attribute_list)
+    orgid_maxlength = getattr(Organization, '_meta').get_field('id').max_length
+
+    @classmethod
+    def _validate_orgid(cls, value):
+        return len(value) <= cls.orgid_maxlength
 
 
 class PrefixBulkParser(BulkParser):
@@ -249,6 +265,11 @@ class RoomBulkParser(BulkParser):
     restkey = 'attr'
     required = 2
     _validate_attr = staticmethod(validate_attribute_list)
+    roomid_maxlength = getattr(Room, '_meta').get_field('id').max_length
+
+    @classmethod
+    def _validate_roomid(cls, value):
+        return len(value) <= cls.roomid_maxlength
 
 
 class ServiceBulkParser(BulkParser):
@@ -276,6 +297,11 @@ class VendorBulkParser(BulkParser):
     """Parses the vendor bulk format"""
     format = ('vendorid',)
     required = 1
+    vendorid_maxlength = getattr(Vendor, '_meta').get_field('id').max_length
+
+    @classmethod
+    def _validate_vendorid(cls, value):
+        return len(value) <= cls.vendorid_maxlength
 
 
 class CablingBulkParser(BulkParser):
