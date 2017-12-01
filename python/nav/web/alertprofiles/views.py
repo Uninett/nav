@@ -465,7 +465,11 @@ def profile_deactivate(request):
 
 def profile_time_period(request, time_period_id, time_period_form=None):
     """Shows a form to edit a timeperiod of a profile"""
-    time_period = TimePeriod.objects.get(pk=time_period_id)
+    try:
+        time_period = TimePeriod.objects.get(pk=time_period_id)
+    except TimePeriod.DoesNotExist:
+        return alertprofiles_response_not_found(
+            request, message=_('Requested time period does not exist'))
     profile = time_period.profile
 
     if not time_period_form:
@@ -658,7 +662,11 @@ def profile_time_period_setup(request, time_period_id=None):
 
     account = get_account(request)
 
-    time_period = TimePeriod.objects.get(pk=time_period_id)
+    try:
+        time_period = TimePeriod.objects.get(pk=time_period_id)
+    except TimePeriod.DoesNotExist:
+        return alertprofiles_response_not_found(
+            request, message=_('Requested time period does not exist'))
     subscriptions = AlertSubscription.objects.select_related(
         'alert_address', 'filter_group'
     ).filter(time_period=time_period).order_by('alert_address', 'filter_group')
