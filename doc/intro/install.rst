@@ -72,12 +72,10 @@ Installing NAV
 
 To build and install NAV::
 
+  ./autogen.sh
   ./configure
   make
   make install
-
-.. NOTE:: If you obtained your copy of NAV directly from a Git
-          repository, you may need to run ``./autogen.sh`` first.
 
 If you wish to configure NAV to run from a different location than the default
 :file:`/usr/local/nav` you should specify a new directory using the

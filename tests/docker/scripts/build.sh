@@ -4,6 +4,7 @@ BUILDDIR=${BUILDDIR:-/opt/nav}
 
 echo "Building and installing NAV..."
 make distclean || true
+./version.sh -d  # set a dev version number
 ./autogen.sh
 ./configure --prefix "${BUILDDIR}" NAV_USER=build
 make

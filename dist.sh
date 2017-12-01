@@ -1,43 +1,43 @@
 #!/bin/sh -e
 
-# Simple shell script to create a tarball source distribution of NAV
+show_help() {
+    cat <<EOF
+$0 [-r revision]
 
-USAGE="dist.sh [-r revision]
+Simple shell script to create and sign tarball source distribution of NAV
 
-Invokation with no arguments will create a tarball from the HEAD of the
-current repository."
+Invocation with no arguments will create a tarball from the HEAD of the
+current repository.
+EOF
+}
 
 REVISION=$(git describe)
 
 # Parse arguments
-ARG_PREV=""
-for ARG in $@
-do
-  if [ "$ARG_PREV" ]; then
-
-    case $ARG_PREV in
-         -r)  REVISION="$ARG" ;;
-          *)  ARG_PREV=$ARG ;;
+OPTIND=1
+while getopts "hr:" opt; do
+    case $opt in
+        h) show_help
+           exit 0;
+           ;;
+        r) REVISION="$OPTARG"
+           ;;
+        *)
+            show_help >&2
+            exit 1
+            ;;
     esac
-
-    ARG_PREV=""
-
-  else
-
-    case $ARG in
-      -r)
-        ARG_PREV=$ARG
-        ;;
-      *)
-        echo " $USAGE"
-        exit 1
-        ;;
-    esac
-  fi
 done
 
 DIST_NAME="nav-$REVISION"
 TARBALL="${DIST_NAME}.tar.gz"
+
+archive() {
+    umask 0022
+    git rev-parse "$REVISION" >/dev/null || return 1
+    git archive --format=tar --prefix="$DIST_NAME/" "$REVISION" \
+        | gzip - > "$TARBALL"
+}
 
 if [ -f $TARBALL ]; then
     echo "Tarball already exists: $TARBALL"
@@ -45,27 +45,14 @@ if [ -f $TARBALL ]; then
     exit 1
 fi
 
-echo "Exporting archive of NAV revision $REVISION ..." 
-if git archive --format=tar --prefix="$DIST_NAME/" "$REVISION" | tar x; then
-    # Do the magic dance required to get a few generated files into the
-    # archive
-    ./autogen.sh
-    cp version.m4 "$DIST_NAME/"
-    ( cd "$DIST_NAME" && ./autogen.sh )
-
-    echo "Creating tarball ($TARBALL) ..."
-    tar czf "$TARBALL" "$DIST_NAME"
-
-    rm -rf "$DIST_NAME"
-    
-    echo "md5sum:"
-    md5sum "$TARBALL"
-    echo "sha1sum:"
-    sha1sum "$TARBALL"
+echo "Exporting archive of NAV revision $REVISION ..."
+if archive; then
+    echo "MD5SUM:"; md5sum "$TARBALL"
+    echo "SHA1SUM:"; sha1sum "$TARBALL"
 
     echo "Please sign the tarball"
     gpg --armor --detach-sign "$TARBALL"
-    
+
     echo "All done.  Enjoy your tarball:."
     ls -la "$TARBALL"*
 fi
