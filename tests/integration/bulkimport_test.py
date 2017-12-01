@@ -103,17 +103,13 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         netbox.save()
 
         data = 'myroom:10.1.0.1:myorg:SRV:::::fileserver::WEB:UNIX:MAIL'
-        parser = bulkparse.NetboxBulkParser(data)
-        importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = six.next(importer)
+        objects = self.parse_to_objects(data)
 
         self.assertTrue(isinstance(objects, bulkimport.AlreadyExists))
 
     def test_created_objects_can_be_saved(self):
         data = 'myroom:10.0.90.10:myorg:SRV:::::fileserver::WEB:UNIX:MAIL'
-        parser = bulkparse.NetboxBulkParser(data)
-        importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = six.next(importer)
+        objects = self.parse_to_objects(data)
 
         self.assertNotIsInstance(objects, Exception,
                                  msg='Got exception instead of object list')
@@ -125,19 +121,21 @@ class TestNetboxImporter(DjangoTransactionTestCase):
 
     def test_invalid_master_should_give_error(self):
         data = 'myroom:10.0.90.10:myorg:SW::::badmaster:functionality'
+        objects = self.parse_to_objects(data)
+        self.assertTrue(isinstance(objects, bulkimport.DoesNotExist))
+
+    @staticmethod
+    def parse_to_objects(data):
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
         _line_num, objects = six.next(importer)
-        self.assertTrue(isinstance(objects, bulkimport.DoesNotExist))
+        return objects
 
 
 class TestLocationImporter(DjangoTransactionTestCase):
     def test_import(self):
         data = "somewhere::Over the rainbow"
-        parser = bulkparse.LocationBulkParser(data)
-        importer = bulkimport.LocationImporter(parser)
-        _line_num, objects = six.next(importer)
-
+        objects = self.parse_to_objects(data)
         self.assertTrue(len(objects) == 1, repr(objects))
         self.assertTrue(isinstance(objects[0], manage.Location))
         self.assertEquals(objects[0].id, 'somewhere')
@@ -145,20 +143,14 @@ class TestLocationImporter(DjangoTransactionTestCase):
     def test_import_no_description(self):
         """Description field was previously mandatory, not optional"""
         data = "somewhere"
-        parser = bulkparse.LocationBulkParser(data)
-        importer = bulkimport.LocationImporter(parser)
-        _line_num, objects = six.next(importer)
-
+        objects = self.parse_to_objects(data)
         self.assertTrue(len(objects) == 1, repr(objects))
         self.assertTrue(isinstance(objects[0], manage.Location))
         self.assertEquals(objects[0].id, 'somewhere')
 
     def test_imported_objects_can_be_saved(self):
         data = "somewhere::Over the rainbow"
-        parser = bulkparse.LocationBulkParser(data)
-        importer = bulkimport.LocationImporter(parser)
-        _line_num, objects = six.next(importer)
-
+        objects = self.parse_to_objects(data)
         for obj in objects:
             bulkimport.reset_object_foreignkeys(obj)
             print(repr(obj))
@@ -169,10 +161,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
             id='somewhere', description='original somewhere')
 
         data = "somewhere::Over the rainbow"
-        parser = bulkparse.LocationBulkParser(data)
-        importer = bulkimport.LocationImporter(parser)
-        _line_num, objects = six.next(importer)
-
+        objects = self.parse_to_objects(data)
         self.assertTrue(isinstance(objects, bulkimport.AlreadyExists))
 
     def test_location_can_have_parent(self):
@@ -180,9 +169,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
             id='somewhere', description='original somewhere')
 
         data = "otherplace:somewhere:descr"
-        parser = bulkparse.LocationBulkParser(data)
-        importer = bulkimport.LocationImporter(parser)
-        _line_num, objects = six.next(importer)
+        objects = self.parse_to_objects(data)
         self.assertEquals(len(objects), 1)
         self.assertEquals(objects[0].pk, 'otherplace')
         self.assertEquals(objects[0].parent, parent)
@@ -193,13 +180,24 @@ class TestLocationImporter(DjangoTransactionTestCase):
             id='somewhere', description='original somewhere')
 
         data = "otherplace:somewhere"
-        parser = bulkparse.LocationBulkParser(data)
-        importer = bulkimport.LocationImporter(parser)
-        _line_num, objects = six.next(importer)
+        objects = self.parse_to_objects(data)
         self.assertEquals(len(objects), 1)
         self.assertEquals(objects[0].pk, 'otherplace')
         self.assertEquals(objects[0].parent, parent)
         self.assertFalse(objects[0].description)
+
+    def test_too_long_locationid_should_raise_error(self):
+        data = 'this-id-is-simply-too-long-according-to-the-schema-but-lets-try'
+        objects = self.parse_to_objects(data)
+        self.assertIsInstance(objects, Exception,
+                              msg="Too long id didn't raise exception")
+
+    @staticmethod
+    def parse_to_objects(data):
+        parser = bulkparse.LocationBulkParser(data)
+        importer = bulkimport.LocationImporter(parser)
+        _line_num, objects = six.next(importer)
+        return objects
 
 
 class TestPrefixImporter(DjangoTransactionTestCase):
