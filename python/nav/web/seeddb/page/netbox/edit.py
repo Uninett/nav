@@ -24,7 +24,7 @@ from socket import error as SocketError
 from django.core.urlresolvers import reverse
 
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.db import transaction
 from django.contrib import messages
 
@@ -43,7 +43,7 @@ def netbox_edit(request, netbox_id=None):
     """Controller for edit or create of netbox"""
     netbox = None
     if netbox_id:
-        netbox = Netbox.objects.get(pk=netbox_id)
+        netbox = get_object_or_404(Netbox, pk=netbox_id)
 
     if request.method == 'POST':
         form = NetboxModelForm(request.POST, instance=netbox)
