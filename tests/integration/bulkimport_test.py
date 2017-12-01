@@ -201,6 +201,14 @@ class TestLocationImporter(DjangoTransactionTestCase):
         self.assertEquals(objects[0].parent, parent)
         self.assertFalse(objects[0].description)
 
+    def test_too_long_locationid_should_raise_error(self):
+        data = 'this-id-is-simply-too-long-according-to-the-schema-but-lets-try'
+        parser = bulkparse.LocationBulkParser(data)
+        importer = bulkimport.LocationImporter(parser)
+        _line_num, objects = six.next(importer)
+        self.assertIsInstance(objects, Exception,
+                              msg="Too long id didn't raise exception")
+
 
 class TestPrefixImporter(DjangoTransactionTestCase):
     def setUp(self):
