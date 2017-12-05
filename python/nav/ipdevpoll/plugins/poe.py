@@ -83,7 +83,8 @@ class Poe(Plugin):
         port.detection_status = row['pethPsePortDetectionStatus']
         port.priority = row['pethPsePortPowerPriority']
         port.classification = row['pethPsePortPowerClassifications']
-        if not ifindex and self.netbox.type.vendor.id == 'hp':
+        vendor = self.netbox.type.vendor.id if self.netbox.type else ''
+        if not ifindex and vendor == 'hp':
             ifindex = portindex
         if ifindex:
             port.interface = self.containers.factory(ifindex,
