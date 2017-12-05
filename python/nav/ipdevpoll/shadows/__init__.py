@@ -684,6 +684,7 @@ class POEPort(Shadow):
 class POEGroup(Shadow):
     __shadowclass__ = manage.POEGroup
     __lookups__ = [('netbox', 'index')]
+    phy_index = None
 
     @classmethod
     def cleanup_after_save(cls, containers):
