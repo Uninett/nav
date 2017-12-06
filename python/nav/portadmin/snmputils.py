@@ -874,7 +874,7 @@ class Dell(SNMPHandler):
 
     def get_native_vlan(self, interface):
         baseport = interface.baseport
-        self._query_netbox(self.NATIVE_VLAN_ID, baseport)
+        return self._query_netbox(self.NATIVE_VLAN_ID, baseport)
 
     def set_native_vlan(self, interface, vlan):
         """Set native vlan on a trunk interface"""
