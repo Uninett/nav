@@ -98,6 +98,9 @@ class SNMPHandler(object):
     # List of all ports on a vlan as a hexstring (including native vlan)
     VLAN_EGRESS_PORTS = QBRIDGENODES['dot1qVlanStaticEgressPorts']['oid']
 
+    # The .0 is the timefilter that we set to 0 to (hopefully) deactivate the filter
+    CURRENT_VLAN_EGRESS_PORTS = QBRIDGENODES['dot1qVlanCurrentEgressPorts']['oid'] + '.0'
+
     # dot1x
 
     # dot1xPaeSystemAuthControl: The administrative enable/ disable state for
@@ -422,14 +425,14 @@ class SNMPHandler(object):
             if vlan == native_vlan:
                 continue
             octet_string = self._query_netbox(
-                self.VLAN_EGRESS_PORTS, vlan)
+                self.CURRENT_VLAN_EGRESS_PORTS, vlan)
             bitvector = BitVector(octet_string)
             if bitvector[bitvector_index]:
                 vlans.append(vlan)
         return native_vlan, vlans
 
     def _get_egress_interfaces_as_bitvector(self, vlan):
-        octet_string = self._query_netbox(self.VLAN_EGRESS_PORTS, vlan)
+        octet_string = self._query_netbox(self.CURRENT_VLAN_EGRESS_PORTS, vlan)
         return BitVector(octet_string)
 
     def get_native_vlan(self, interface):
