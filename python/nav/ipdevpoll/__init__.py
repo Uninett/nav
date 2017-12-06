@@ -35,6 +35,13 @@ class Plugin(object):
     RESTRICT_TO_VENDORS = []
 
     def __init__(self, netbox, agent, containers, config=None):
+        """
+
+        :type netbox: nav.ipdevpoll.shadows.Netbox
+        :type agent: nav.ipdevpoll.snmp.AgentProxy
+        :type containers: nav.ipdevpoll.storage.ContainerRepository
+        :type config: configparser.ConfigParser
+        """
         self.netbox = netbox
         self.agent = agent
         self.containers = containers
