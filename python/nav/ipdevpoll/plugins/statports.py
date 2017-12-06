@@ -15,6 +15,7 @@
 #
 """Collects port traffic counters and pushes to Graphite"""
 import time
+import logging
 
 from django.utils.six import itervalues
 from twisted.internet import defer
@@ -25,6 +26,7 @@ from nav.metrics.templates import metric_path_for_interface
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
 from nav.mibs.ip_mib import IpMib
+from nav.models import manage
 
 
 NON_HC_COUNTERS = (
@@ -75,7 +77,7 @@ class StatPorts(Plugin):
     @defer.inlineCallbacks
     def handle(self):
         if self.netbox.master:
-            yield db.run_in_thread(self._log_instance_details)
+            yield self._log_instance_details()
             defer.returnValue(None)
 
         timestamp = time.time()
@@ -127,16 +129,21 @@ class StatPorts(Plugin):
             else:
                 self._logger.debug("High Capacity counters NOT used")
 
+    @defer.inlineCallbacks
     def _log_instance_details(self):
-        netbox = self.netbox
+        def _get_master_and_instance_list():
+            netbox = manage.Netbox.objects.get(id=self.netbox.id)
 
-        my_ifcs = netbox.interface_set.values_list('ifname', flat=True)
-        masters_ifcs = netbox.master.interface_set.values_list('ifname',
-                                                               flat=True)
-        local_ifcs = set(masters_ifcs) - set(my_ifcs)
+            my_ifcs = netbox.interface_set.values_list('ifname', flat=True)
+            masters_ifcs = netbox.master.interface_set.values_list(
+                'ifname', flat=True)
+            local_ifcs = set(masters_ifcs) - set(my_ifcs)
+            return netbox.master.sysname, local_ifcs
 
-        self._logger.debug("local interfaces (that do not exist on master "
-                           "%s): %r", self.netbox.master, local_ifcs)
+        if self._logger.isEnabledFor(logging.DEBUG):
+            master, ifcs = yield db.run_in_thread(_get_master_and_instance_list)
+            self._logger.debug("local interfaces (that do not exist on master "
+                               "%s): %r", master, ifcs)
 
 
 def use_hc_counters(row):

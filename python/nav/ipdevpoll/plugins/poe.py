@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Collects power over ethernet information"""
+from collections import defaultdict
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.mibs.power_ethernet_mib import PowerEthernetMib
@@ -26,6 +27,9 @@ from nav.ipdevpoll import shadows
 
 class Poe(Plugin):
     """Monitors power over ethernet status"""
+    def __init__(self, *args, **kwargs):
+        super(Poe, self).__init__(*args, **kwargs)
+        self.invalid_groups = defaultdict(list)
 
     @inlineCallbacks
     def handle(self):
@@ -53,6 +57,7 @@ class Poe(Plugin):
 
         ports = yield poemib.get_ports_table()
         self._process_ports(ports, port_ifindices)
+        self._log_invalid_portgroups()
 
     def _process_groups(self, groups, phy_indices):
         netbox = self.containers.factory(None, shadows.Netbox)
@@ -75,15 +80,20 @@ class Poe(Plugin):
 
     def _update_port(self, netbox, index, row, ifindex):
         grpindex, portindex = index
+        poegroup = self.containers.get(grpindex, shadows.POEGroup)
+        if not poegroup:
+            self.invalid_groups[grpindex].append(portindex)
+            return
         port = self.containers.factory((grpindex, portindex), shadows.POEPort)
         port.netbox = self.netbox
         port.index = portindex
-        port.poegroup = self.containers.factory(grpindex, shadows.POEGroup)
+        port.poegroup = poegroup
         port.admin_enable = row['pethPsePortAdminEnable']
         port.detection_status = row['pethPsePortDetectionStatus']
         port.priority = row['pethPsePortPowerPriority']
         port.classification = row['pethPsePortPowerClassifications']
-        if not ifindex and self.netbox.type.vendor.id == 'hp':
+        vendor = self.netbox.type.vendor.id if self.netbox.type else ''
+        if not ifindex and vendor == 'hp':
             ifindex = portindex
         if ifindex:
             port.interface = self.containers.factory(ifindex,
@@ -103,3 +113,18 @@ class Poe(Plugin):
                     continue
                 result[portindex] = ifindices[0]
         return result
+
+    def _log_invalid_portgroups(self):
+        if not self.invalid_groups:
+            return
+
+        valid_groups = (list(self.containers[shadows.POEGroup].keys())
+                        if shadows.POEGroup in self.containers else [])
+
+        for group in self.invalid_groups:
+            self.invalid_groups[group].sort()
+            self._logger.info(
+                "ignoring PoE ports in invalid PoE groups: group=%s ports=%s",
+                group, self.invalid_groups[group])
+        self._logger.info("Valid PoE groups for this device are: %s",
+                          valid_groups)

@@ -201,9 +201,9 @@ class StatSystem(Plugin):
         if power:
             metrics = []
             for netbox in netboxes:
-                for index, power in power.items():
+                for index, value in power.items():
                     path = metric_path_for_power(netbox, index)
-                    metrics.append((path, (timestamp, power)))
+                    metrics.append((path, (timestamp, value)))
             defer.returnValue(metrics)
         else:
             defer.returnValue([])

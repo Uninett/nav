@@ -684,6 +684,7 @@ class POEPort(Shadow):
 class POEGroup(Shadow):
     __shadowclass__ = manage.POEGroup
     __lookups__ = [('netbox', 'index')]
+    phy_index = None
 
     @classmethod
     def cleanup_after_save(cls, containers):
@@ -698,7 +699,8 @@ class POEGroup(Shadow):
                 netbox=self.netbox.id, index=self.phy_index).first()
             if entity and entity.device:
                 self.module = entity.device.module_set.first()
-        if self.netbox.type.vendor.id == 'hp' and not self.module:
+        vendor = self.netbox.type.vendor.id if self.netbox.type else ''
+        if vendor == 'hp' and not self.module:
             module = manage.Module.objects.filter(
                 netbox=self.netbox.id,
                 name=chr(ord('A') + self.index - 1),
