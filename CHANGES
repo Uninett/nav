@@ -1,3 +1,26 @@
+Version 4.8.2
+(released 07 Dec 2017)
+
+ Fixed GitHub issues in this release:
+
+  * #1591 (SeedDB does not warn about too long room ids or location ids
+           when bulk importing, it just crashes)
+  * #1628 (Room status widget crash with MultipleObjectsReturned in some
+           cases)
+  * #1629 (Following a link to edit an IP Device that has been deleted
+           crashes SeedDB)
+  * #1631 (ipdevpoll statuscheck job crashes in poe plugin)
+  * #1632 (The ipdevpoll 5minstats job crashes with an AttributeError in
+           the statports plugin)
+  * #1633 (The ipdevpoll 5minstats job crashes in the statsystem plugin
+           on VRF master devices)
+  * #1634 (The poe plugin still crashes on devices that have no set
+           type)
+  * #1635 (The statuscheck ipdevpoll job crashes with an AttributeError
+           if device reports inconsistent PoE Group indexes in POWER-
+           ETHERNET-MIB)
+
+
 Version 4.8.1
 (released 30 Nov 2017)
 

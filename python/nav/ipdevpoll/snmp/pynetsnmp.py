@@ -19,6 +19,13 @@
 from __future__ import absolute_import
 import sys
 import inspect
+import os
+
+# pylint: disable=wrong-import-position
+# don't have NET-SNMP load and parse MIB modules, we don't use them
+# and we don't need all the parsing errors in our logs
+os.environ['MIBS'] = ''
+os.environ['MIBDIRS'] = ''
 
 from pynetsnmp import twistedsnmp, netsnmp
 from pynetsnmp.twistedsnmp import snmpprotocol
