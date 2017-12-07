@@ -242,7 +242,7 @@ define(function(require) {
         var fs1 = $('<fieldset>').appendTo($form);
         var fs2 = $('<fieldset>').appendTo($form);
         fs1.append('<legend>Port filters</legend>')
-        fs1.append('<label><input type="radio" name="ifclass" value="all" checked>All ports</label>');
+        fs1.append('<label><input type="radio" name="ifclass" value="all">All ports</label>');
         fs1.append('<label><input type="radio" name="ifclass" value="swport">Switch ports</label>');
         fs1.append('<label><input type="radio" name="ifclass" value="gwport">Router ports</label>');
         fs1.append('<label><input type="radio" name="ifclass" value="physicalport">Physical ports</label>');
@@ -255,11 +255,12 @@ define(function(require) {
 
     // Set form values based on localstorage values
     function setFormFields($form) {
-        var form = $form.get(0);
         var localStorageValues = getLocalStorageValues();
         if (localStorageValues) {
-            form.elements['ifclass'].value = localStorageValues.ifclass;
-            form.elements['last_used'].checked = localStorageValues.last_used;
+            $form.find('[value="' + localStorageValues.ifclass + '"]').prop('checked', true);
+            $form.find('[name="last_used"]').prop('checked', localStorageValues.last_used);
+        } else {
+            $form.find('[value="all"]').prop('checked', true);
         }
     }
 
