@@ -29,9 +29,9 @@ Getting the code
 ----------------
 
 * Start by cloning the latest stable branch (or use ``git fetch; git checkout
-  4.7.x`` to update your existing clone), e.g. 4.7.x::
+  4.8.x`` to update your existing clone), e.g. 4.8.x::
 
-    git clone -b 4.7.x git@github.com:UNINETT/nav.git
+    git clone -b 4.8.x git@github.com:UNINETT/nav.git
     cd nav
 
 
@@ -40,20 +40,17 @@ Updating changelog and release notes
 
 * Generate a list of referenced issues from the GitHub milestone::
 
-    ./tools/buglog.py 4.7.3
+    ./tools/buglog.py 4.8.3
 
 * Add a new entry to the CHANGES file for for the new release and paste the
-  list produced by the above command.
-
-* Verify that all the issues in this list are in the list of bugs targeted to
-  the milestone, and vice versa.  Any differences need to be
-  resolved manually.
-
-* Once the CHANGES file has been properly updated, commit it, tag and sign the new
-  release and push changes back to the official repository::
+  list produced by the above command. Commit the changes::
 
     git commit -m 'Update changelog for the upcoming X.Y.Z release'
-    git tag -as X.Y.Z
+
+* Bump and tag the version number (and sign the tag) using ``version.sh``, and
+  push the changes back to the official repository::
+
+    ./version.sh -t
     git push --tags
 
 
@@ -74,5 +71,5 @@ Announcing the release
   https://nav.uninett.no/admin
 * Change the topic of the #nav freenode IRC channel to reference the new
   release + GitHub URL.
-* Send email announcement to nav-users. Use previous release announcements as
-  your template.
+* Send email announcement to the ``nav-users`` mailing list. Use previous
+  release announcements as your template.
