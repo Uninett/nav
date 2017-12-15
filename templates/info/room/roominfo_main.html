@@ -26,6 +26,19 @@
             {% if room.position %}{{ room.position|join:', ' }}{% endif %}
           </td>
         </tr>
+        <tr>
+          <th>Room summary</th>
+          <td>
+            <ul>
+              <li>Devices: <strong>{{ room.meta_data.devices }}</strong></li>
+              <li>
+                Interfaces: <strong>{{ room.meta_data.interfaces }}</strong>
+              </li>
+              <li>Interfaces with link: <strong>{{ room.meta_data.interfaces_with_link }}</strong></li>
+              <li>Trunk interfaces: <strong>{{ room.meta_data.trunk_interfaces }}</strong></li>
+            </ul>
+          </td>
+        </tr>
         {% for key, value in room.sorted_data %}
           <tr>
             <th>{{ key }}</th>
