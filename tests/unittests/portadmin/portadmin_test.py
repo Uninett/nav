@@ -66,28 +66,6 @@ class PortadminResponseTest(unittest.TestCase):
         self.assertEqual(six.text_type(self.handler),  u'hp',
                           'Wrong handler-type')
 
-    def test_get_ifalias_hp(self):
-        self.handler = SNMPFactory.get_instance(self.netboxHP)
-        # get hold of the read-only Snmp-object
-        self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
-        # replace get-method on Snmp-object with a mock-method
-        # this get-method returns a ifalias
-        self.snmpReadOnlyHandler.get = Mock(return_value="pkt: 999")
-        self.assertEqual(self.handler.get_if_alias(1), "pkt: 999",
-                          "getIfAlias-test failed")
-
-    def test_get_vlan_hp(self):
-        self.handler = SNMPFactory.get_instance(self.netboxHP)
-        # get hold of the read-only Snmp-object
-        self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
-        # replace get-method on Snmp-object with a mock-method
-        # this get-method returns a vlan-number
-        self.snmpReadOnlyHandler.get = Mock(return_value=666)
-        ifc = Mock(baseport=1)
-        self.assertEqual(self.handler.get_vlan(ifc), 666,
-                                "getVlan-test failed")
-        self.snmpReadOnlyHandler.get.assert_called_with('1.3.6.1.2.1.17.7.1.4.5.1.1.1')
-
     def test_get_ifaliases_hp(self):
         self.handler = SNMPFactory.get_instance(self.netboxHP)
         # get hold of the read-only Snmp-object
@@ -95,7 +73,7 @@ class PortadminResponseTest(unittest.TestCase):
         # replace get-method on Snmp-object with a mock-method
         # for getting all IfAlias
         self.snmpReadOnlyHandler.bulkwalk = Mock(return_value=['hjalmar', 'snorre', 'bjarne'])
-        self.assertEqual(self.handler.get_all_if_alias(),
+        self.assertEqual(self.handler._get_all_if_alias(),
                          ['hjalmar', 'snorre', 'bjarne'],
                          "getAllIfAlias failed.")
 
@@ -127,35 +105,10 @@ class PortadminResponseTest(unittest.TestCase):
     #  CISCO-netbox
 
     def test_snmp_factory_get_cisco(self):
-        ####################################################################
-        #  cisco-netbox
         self.handler = SNMPFactory.get_instance(self.netboxCisco)
         self.assertNotEqual(self.handler, None, 'Could not get handler-object')
         self.assertEqual(six.text_type(self.handler),  u'cisco', 'Wrong handler-type')
         self.assertEqual(type(self.handler), Cisco, 'Wrong handler-type')
-
-    def test_get_ifalias_cisco(self):
-        self.handler = SNMPFactory.get_instance(self.netboxCisco)
-        # get hold of the read-only Snmp-object
-        self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
-        # replace get-method on Snmp-object with a mock-method
-        # this get-method returns a ifalias
-        self.snmpReadOnlyHandler.get = Mock(return_value="pkt: 88")
-        self.assertEqual(self.handler.get_if_alias(1), "pkt: 88",
-                          "getIfAlias-test failed")
-
-    def test_get_vlan_cisco(self):
-        self.handler = SNMPFactory.get_instance(self.netboxCisco)
-        assert type(self.handler) == Cisco
-        # get hold of the read-only Snmp-object
-        self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
-        # replace get-method on Snmp-object with a mock-method
-        # this get-method returns a vlan-number
-        self.snmpReadOnlyHandler.get = Mock(return_value=77)
-        ifc = Mock(ifindex=1)
-        self.assertEqual(self.handler.get_vlan(ifc), 77,
-                                "getVlan-test failed")
-        self.snmpReadOnlyHandler.get.assert_called_with('1.3.6.1.4.1.9.9.68.1.2.2.1.2.1')
 
     def test_get_ifaliases_cisco(self):
         self.handler = SNMPFactory.get_instance(self.netboxCisco)
@@ -164,7 +117,7 @@ class PortadminResponseTest(unittest.TestCase):
         # replace get-method on Snmp-object with a mock-method
         # for getting all IfAlias
         self.snmpReadOnlyHandler.bulkwalk = Mock(return_value=['jomar', 'knut', 'hjallis'])
-        self.assertEqual(self.handler.get_all_if_alias(),
+        self.assertEqual(self.handler._get_all_if_alias(),
                          ['jomar', 'knut', 'hjallis'], "getAllIfAlias failed.")
 
 

@@ -14,6 +14,50 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Shared code for portadmin"""
+import configparser
+from operator import attrgetter
+from os.path import join
+
+from django.utils.encoding import python_2_unicode_compatible
+
+from nav.config import find_configfile
+from nav.models.manage import Vlan
+
+CONFIGFILE = find_configfile(join("portadmin", "portadmin.conf")) or ''
+
+
+@python_2_unicode_compatible
+class FantasyVlan(object):
+    """A container object for storing vlans for a netbox
+
+    This object is needed because we mix "real" vlans that NAV know about
+    and "fake" vlan that NAV does not know about but exists on the switch.
+    They need to be compared and sorted, and this class does that.
+
+    """
+
+    def __init__(self, vlan, netident=None, descr=None):
+        self.vlan = vlan
+        self.net_ident = netident
+        self.descr = descr
+
+    def __str__(self):
+        if self.net_ident:
+            return "%s (%s)" % (self.vlan, self.net_ident)
+        else:
+            return str(self.vlan)
+
+    def __hash__(self):
+        return hash(self.vlan)
+
+    def __lt__(self, other):
+        return self.vlan < other.vlan
+
+    def __eq__(self, other):
+        return self.vlan == other.vlan
+
+    def __cmp__(self, other):
+        return cmp(self.vlan, other.vlan)
 
 
 class BaseHandler(object):
@@ -31,24 +75,12 @@ class BaseHandler(object):
         """Test if write works"""
         return False
 
-    def get_if_alias(self, if_index):
-        """ Get alias on a specific interface """
-        raise NotImplementedError
-
-    def get_all_if_alias(self):
-        """Get all aliases for all interfaces."""
+    def get_interface_livedata(self, interfaces):
+        """ Update *interfaces* with livedata """
         raise NotImplementedError
 
     def set_if_alias(self, interface, if_alias):
         """Set alias on a specific interface."""
-        raise NotImplementedError
-
-    def get_vlan(self, interface):
-        """Get vlan on a specific interface."""
-        raise NotImplementedError
-
-    def get_all_vlans(self):
-        """Get all vlans on the switch"""
         raise NotImplementedError
 
     def set_vlan(self, interface, vlan):
@@ -77,25 +109,28 @@ class BaseHandler(object):
         """ Do a write memory on netbox if available"""
         raise NotImplementedError
 
-    def get_if_admin_status(self, if_index):
+    def get_if_admin_status(self, interface):
         """Query administration status for a given interface."""
-        raise NotImplementedError
-
-    def get_if_oper_status(self, if_index):
-        """Query operational status of a given interface."""
-        raise NotImplementedError
-
-    def get_netbox_admin_status(self):
-        """Walk all ports and get their administration status."""
-        raise NotImplementedError
-
-    def get_netbox_oper_status(self):
-        """Walk all ports and get their operational status."""
         raise NotImplementedError
 
     def get_netbox_vlans(self):
         """Create Fantasyvlans for all vlans on this netbox"""
-        raise NotImplementedError
+        numerical_vlans = self.get_available_vlans()
+        vlan_objects = Vlan.objects.filter(
+            swportvlan__interface__netbox=self.netbox)
+        vlans = []
+        for numerical_vlan in numerical_vlans:
+            try:
+                vlan_object = vlan_objects.get(vlan=numerical_vlan)
+            except (Vlan.DoesNotExist, Vlan.MultipleObjectsReturned):
+                fantasy_vlan = FantasyVlan(numerical_vlan)
+            else:
+                fantasy_vlan = FantasyVlan(numerical_vlan,
+                                           netident=vlan_object.net_ident,
+                                           descr=vlan_object.description)
+            vlans.append(fantasy_vlan)
+
+        return sorted(list(set(vlans)), key=attrgetter('vlan'))
 
     def get_available_vlans(self):
         """Get available vlans from the box
@@ -137,18 +172,6 @@ class BaseHandler(object):
         """
         raise NotImplementedError
 
-    def set_trunk_vlans(self, interface, vlans):
-        """Trunk the vlans on interface
-
-        Egress_Ports includes native vlan. Be sure to not alter that.
-
-        Get all available vlans. For each available vlan fetch list of
-        interfaces that forward this vlan. Set or remove the interface from
-        this list based on if it is in the vlans list.
-
-        """
-        raise NotImplementedError
-
     def set_access(self, interface, access_vlan):
         """Set this port in access mode and set access vlan
 
@@ -160,14 +183,26 @@ class BaseHandler(object):
         """Set this port in trunk mode and set native vlan"""
         raise NotImplementedError
 
-    def is_dot1x_enabled(self, interfaces):
-        """Explicitly returns None as we do not know"""
-        raise NotImplementedError
-
     def get_dot1x_enabled_interfaces(self):
         """"""
         raise NotImplementedError
 
     def is_port_access_control_enabled(self):
         """Returns state of port access control"""
-        raise NotImplementedError
+        raise False
+
+
+def get_handler(netbox, **kwargs):
+    from .snmputils import SNMPFactory
+
+    if netbox.readwrite_connection_profile.is_snmp:
+        return SNMPFactory(netbox, **kwargs)
+    return None
+
+
+def read_config():
+    """Read the config"""
+    config = configparser.ConfigParser()
+    config.read(CONFIGFILE)
+
+    return config

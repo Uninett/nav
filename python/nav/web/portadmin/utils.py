@@ -15,74 +15,32 @@
 #
 """Util functions for the PortAdmin"""
 import re
-import configparser
 import logging
 
 from django.template import loader
 
-from nav.config import find_configfile
 from nav.django.utils import is_admin
-from nav.portadmin.snmputils import SNMPFactory, FantasyVlan
+from nav.portadmin import get_handler, read_config
+from nav.portadmin.snmputils import FantasyVlan
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 from operator import attrgetter
 from os.path import join
-
-CONFIGFILE = find_configfile(join("portadmin", "portadmin.conf")) or ''
 
 _logger = logging.getLogger("nav.web.portadmin")
 
 
 def get_and_populate_livedata(netbox, interfaces):
     """Fetch live data from netbox"""
-    handler = SNMPFactory.get_instance(netbox)
-    live_ifaliases = create_dict_from_tuplelist(handler.get_all_if_alias())
-    live_vlans = create_dict_from_tuplelist(handler.get_all_vlans())
-    live_operstatus = dict(handler.get_netbox_oper_status())
-    live_adminstatus = dict(handler.get_netbox_admin_status())
-    update_interfaces_with_snmpdata(interfaces, live_ifaliases, live_vlans,
-                                    live_operstatus, live_adminstatus)
+    handler = get_handler(netbox)
+    handler.get_interface_livedata(interfaces)
 
     return handler
 
 
-def create_dict_from_tuplelist(tuplelist):
-    """
-    The input is a list from a snmp bulkwalk or walk.
-    Extract ifindex from oid and use that as key in the dict.
-    """
-    pattern = re.compile(r"(\d+)$")
-    result = []
-    # Extract ifindex from oid
-    for key, value in tuplelist:
-        match_object = pattern.search(key)
-        if match_object:
-            ifindex = int(match_object.groups()[0])
-            result.append((ifindex, value))
-
-    # Create dict from modified list
-    return dict(result)
-
-
-def update_interfaces_with_snmpdata(interfaces, ifalias, vlans, operstatus,
-                                    adminstatus):
-    """
-    Update the interfaces with data gathered via snmp.
-    """
-    for interface in interfaces:
-        if interface.ifindex in ifalias:
-            interface.ifalias = ifalias[interface.ifindex]
-        if interface.ifindex in vlans:
-            interface.vlan = vlans[interface.ifindex]
-        if interface.ifindex in operstatus:
-            interface.ifoperstatus = operstatus[interface.ifindex]
-        if interface.ifindex in adminstatus:
-            interface.ifadminstatus = adminstatus[interface.ifindex]
-
-
-def find_and_populate_allowed_vlans(account, netbox, interfaces, factory):
+def find_and_populate_allowed_vlans(account, netbox, interfaces, handler):
     """Find allowed vlans and indicate which interface can be edited"""
     allowed_vlans = find_allowed_vlans_for_user_on_netbox(account, netbox,
-                                                          factory)
+                                                          handler)
     set_editable_on_interfaces(netbox, interfaces, allowed_vlans)
     return allowed_vlans
 
@@ -137,7 +95,7 @@ def is_restart_interface_enabled():
     return True
 
 
-def find_vlans_on_netbox(netbox, factory=None):
+def find_vlans_on_netbox(netbox, handler=None):
     """Find all the vlans on this netbox
 
     fac: already instantiated factory instance. Use this if possible
@@ -146,8 +104,8 @@ def find_vlans_on_netbox(netbox, factory=None):
     :returns: list of FantasyVlans
     :rtype: list
     """
-    if not factory:
-        factory = SNMPFactory.get_instance(netbox)
+    if not handler:
+        factory = get_handler(netbox)
     return factory.get_netbox_vlans()
 
 
@@ -199,14 +157,6 @@ def fetch_voice_vlans(config=None):
             except ValueError:
                 pass
     return []
-
-
-def read_config():
-    """Read the config"""
-    config = configparser.ConfigParser()
-    config.read(CONFIGFILE)
-
-    return config
 
 
 def set_editable_on_interfaces(netbox, interfaces, vlans):
@@ -303,8 +253,8 @@ def mark_detained_interfaces(interfaces):
     """
     for interface in interfaces:
         # If interface is administratively down, check if Arnold is the source
-        if interface.ifadminstatus == 2 and interface.identity_set.filter(
-                status='disabled').count() > 0:
+        if (interface.ifadminstatus == interface.ADM_DOWN and
+                interface.identity_set.filter(status='disabled').count() > 0):
             interface.detained = True
         if interface.identity_set.filter(status='quarantined').count() > 0:
             interface.detained = True

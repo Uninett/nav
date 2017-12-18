@@ -14,9 +14,10 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """This is a utility library made especially for PortAdmin."""
+import configparser
+import re
 import time
 import logging
-from operator import attrgetter
 
 from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible
@@ -26,12 +27,12 @@ from nav.errors import NoNetboxTypeError
 from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
                              NoSuchObjectError)
 from nav.bitvector import BitVector
-from nav.models.manage import Vlan, SwPortAllowedVlan
+from nav.models.manage import SwPortAllowedVlan
 from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
                                 VENDOR_ID_H3C,
                                 VENDOR_ID_DELL_INC,
                                 VENDOR_ID_HEWLETT_PACKARD)
-from . import BaseHandler
+from . import BaseHandler, FantasyVlan, read_config
 
 _logger = logging.getLogger("nav.portadmin.snmputils")
 CHARS_IN_1024_BITS = 128
@@ -39,35 +40,38 @@ CHARS_IN_1024_BITS = 128
 # TODO: Fix get_vlans as it does not return all vlans, see get_available_vlans
 
 
-@python_2_unicode_compatible
-class FantasyVlan(object):
-    """A container object for storing vlans for a netbox
-
-    This object is needed because we mix "real" vlans that NAV know about
-    and "fake" vlan that NAV does not know about but exists on the switch.
-    They need to be compared and sorted, and this class does that.
-
+def create_dict_from_tuplelist(tuplelist):
     """
+    The input is a list from a snmp bulkwalk or walk.
+    Extract ifindex from oid and use that as key in the dict.
+    """
+    pattern = re.compile(r"(\d+)$")
+    result = []
+    # Extract ifindex from oid
+    for key, value in tuplelist:
+        match_object = pattern.search(key)
+        if match_object:
+            ifindex = int(match_object.groups()[0])
+            result.append((ifindex, value))
 
-    def __init__(self, vlan, netident=None, descr=None):
-        self.vlan = vlan
-        self.net_ident = netident
-        self.descr = descr
+    # Create dict from modified list
+    return dict(result)
 
-    def __str__(self):
-        if self.net_ident:
-            return "%s (%s)" % (self.vlan, self.net_ident)
-        else:
-            return str(self.vlan)
 
-    def __hash__(self):
-        return hash(self.vlan)
-
-    def __lt__(self, other):
-        return self.vlan < other.vlan
-
-    def __eq__(self, other):
-        return self.vlan == other.vlan
+def update_interfaces_with_snmpdata(interfaces, ifalias, vlans, operstatus,
+                                    adminstatus):
+    """
+    Update the interfaces with data gathered via snmp.
+    """
+    for interface in interfaces:
+        if interface.ifindex in ifalias:
+            interface.ifalias = ifalias[interface.ifindex]
+        if interface.ifindex in vlans:
+            interface.vlan = vlans[interface.ifindex]
+        if interface.ifindex in operstatus:
+            interface.ifoperstatus = operstatus[interface.ifindex]
+        if interface.ifindex in adminstatus:
+            interface.ifadminstatus = adminstatus[interface.ifindex]
 
 
 @python_2_unicode_compatible
@@ -81,8 +85,6 @@ class SNMPHandler(BaseHandler):
     SYSLOCATION = '1.3.6.1.2.1.1.6.0'
     IF_ALIAS_OID = '1.3.6.1.2.1.31.1.1.1.18'  # From IF-MIB
     IF_ADMIN_STATUS = '1.3.6.1.2.1.2.2.1.7'
-    IF_ADMIN_STATUS_UP = 1
-    IF_ADMIN_STATUS_DOWN = 2
     IF_OPER_STATUS = '1.3.6.1.2.1.2.2.1.8'
 
     # The VLAN ID assigned to untagged frames
@@ -110,6 +112,14 @@ class SNMPHandler(BaseHandler):
         self.available_vlans = None
         self.timeout = kwargs.get('timeout', 3)
         self.retries = kwargs.get('retries', 3)
+
+    def get_interface_livedata(self, interfaces):
+        live_ifaliases = create_dict_from_tuplelist(self._get_all_if_alias())
+        live_vlans = create_dict_from_tuplelist(self._get_all_vlans())
+        live_operstatus = dict(self._get_netbox_oper_status())
+        live_adminstatus = dict(self._get_netbox_admin_status())
+        update_interfaces_with_snmpdata(interfaces, live_ifaliases, live_vlans,
+                                        live_operstatus, live_adminstatus)
 
     def __str__(self):
         return self.netbox.type.vendor.id
@@ -211,11 +221,7 @@ class SNMPHandler(BaseHandler):
         except SnmpError as error:
             return False
 
-    def get_if_alias(self, if_index):
-        """ Get alias on a specific interface """
-        return self._query_netbox(self.IF_ALIAS_OID, if_index)
-
-    def get_all_if_alias(self):
+    def _get_all_if_alias(self):
         """Get all aliases for all interfaces."""
         return self._bulkwalk(self.IF_ALIAS_OID)
 
@@ -226,11 +232,11 @@ class SNMPHandler(BaseHandler):
         return self._set_netbox_value(self.IF_ALIAS_OID, interface.ifindex, "s",
                                       if_alias)
 
-    def get_vlan(self, interface):
+    def _get_vlan(self, interface):
         """Get vlan on a specific interface."""
         return self._query_netbox(self.VlAN_OID, interface.baseport)
 
-    def get_all_vlans(self):
+    def _get_all_vlans(self):
         """Get all vlans on the switch"""
         return self._bulkwalk(self.VlAN_OID)
 
@@ -258,7 +264,7 @@ class SNMPHandler(BaseHandler):
         except ValueError:
             raise TypeError('Not a valid vlan %s' % vlan)
         # Fetch current vlan
-        fromvlan = self.get_vlan(interface)
+        fromvlan = self._get_vlan(interface)
         # fromvlan and vlan is the same, there's nothing to do
         if fromvlan == vlan:
             _logger.debug('fromvlan and vlan is the same - skip')
@@ -282,13 +288,13 @@ class SNMPHandler(BaseHandler):
         """Set interface.to up"""
         if_index = interface.ifindex
         return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i",
-                                      self.IF_ADMIN_STATUS_UP)
+                                      interface.ADM_UP)
 
     def set_if_down(self, interface):
         """Set interface.to down"""
         if_index = interface.ifindex
         return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i",
-                                      self.IF_ADMIN_STATUS_DOWN)
+                                      interface.ADM_DOWN)
 
     def restart_if(self, interface, wait=5):
         """ Take interface down and up.
@@ -305,13 +311,9 @@ class SNMPHandler(BaseHandler):
         """ Do a write memory on netbox if available"""
         pass
 
-    def get_if_admin_status(self, if_index):
+    def get_if_admin_status(self, interface):
         """Query administration status for a given interface."""
-        return self._query_netbox(self.IF_ADMIN_STATUS, if_index)
-
-    def get_if_oper_status(self, if_index):
-        """Query operational status of a given interface."""
-        return self._query_netbox(self.IF_OPER_STATUS, if_index)
+        return self._query_netbox(self.IF_ADMIN_STATUS, interface.ifindex)
 
     @staticmethod
     def _get_last_number(oid):
@@ -335,34 +337,15 @@ class SNMPHandler(BaseHandler):
                 available_stats.append((if_index, stat))
         return available_stats
 
-    def get_netbox_admin_status(self):
+    def _get_netbox_admin_status(self):
         """Walk all ports and get their administration status."""
         if_admin_stats = self._bulkwalk(self.IF_ADMIN_STATUS)
         return self._get_if_stats(if_admin_stats)
 
-    def get_netbox_oper_status(self):
+    def _get_netbox_oper_status(self):
         """Walk all ports and get their operational status."""
         if_oper_stats = self._bulkwalk(self.IF_OPER_STATUS)
         return self._get_if_stats(if_oper_stats)
-
-    def get_netbox_vlans(self):
-        """Create Fantasyvlans for all vlans on this netbox"""
-        numerical_vlans = self.get_available_vlans()
-        vlan_objects = Vlan.objects.filter(
-            swportvlan__interface__netbox=self.netbox)
-        vlans = []
-        for numerical_vlan in numerical_vlans:
-            try:
-                vlan_object = vlan_objects.get(vlan=numerical_vlan)
-            except (Vlan.DoesNotExist, Vlan.MultipleObjectsReturned):
-                fantasy_vlan = FantasyVlan(numerical_vlan)
-            else:
-                fantasy_vlan = FantasyVlan(numerical_vlan,
-                                           netident=vlan_object.net_ident,
-                                           descr=vlan_object.description)
-            vlans.append(fantasy_vlan)
-
-        return sorted(list(set(vlans)), key=attrgetter('vlan'))
 
     def get_available_vlans(self):
         """Get available vlans from the box
@@ -436,9 +419,9 @@ class SNMPHandler(BaseHandler):
         return BitVector(octet_string)
 
     def get_native_vlan(self, interface):
-        return self.get_vlan(interface)
+        return self._get_vlan(interface)
 
-    def set_trunk_vlans(self, interface, vlans):
+    def _set_trunk_vlans(self, interface, vlans):
         """Trunk the vlans on interface
 
         Egress_Ports includes native vlan. Be sure to not alter that.
@@ -495,7 +478,7 @@ class SNMPHandler(BaseHandler):
         _logger.debug('Setting access mode vlan %s on interface %s',
                       access_vlan, interface)
         self.set_vlan(interface, access_vlan)
-        self.set_trunk_vlans(interface, [])
+        self._set_trunk_vlans(interface, [])
         interface.vlan = access_vlan
         interface.trunk = False
         interface.save()
@@ -503,7 +486,7 @@ class SNMPHandler(BaseHandler):
     def set_trunk(self, interface, native_vlan, trunk_vlans):
         """Set this port in trunk mode and set native vlan"""
         self.set_vlan(interface, native_vlan)
-        self.set_trunk_vlans(interface, trunk_vlans)
+        self._set_trunk_vlans(interface, trunk_vlans)
         self._save_trunk_interface(interface, native_vlan, trunk_vlans)
 
     def _save_trunk_interface(self, interface, native_vlan, trunk_vlans):
@@ -535,10 +518,6 @@ class SNMPHandler(BaseHandler):
         elif interface.vlan:
             vlans = [FantasyVlan(vlan=interface.vlan)]
         return vlans
-
-    def is_dot1x_enabled(self, interfaces):
-        """Explicitly returns None as we do not know"""
-        return None
 
     def get_dot1x_enabled_interfaces(self):
         """"""
@@ -579,7 +558,7 @@ class Cisco(SNMPHandler):
         self.write_mem_oid = '1.3.6.1.4.1.9.2.1.54.0'
         self.voice_vlan_oid = '1.3.6.1.4.1.9.9.68.1.5.1.1.1'
 
-    def get_vlan(self, interface):
+    def _get_vlan(self, interface):
         return self._query_netbox(self.vlan_oid, interface.ifindex)
 
     def set_vlan(self, interface, vlan):
@@ -591,7 +570,7 @@ class Cisco(SNMPHandler):
         except ValueError:
             raise TypeError('Not a valid vlan %s' % vlan)
         # Fetch current vlan
-        fromvlan = self.get_vlan(interface)
+        fromvlan = self._get_vlan(interface)
         # fromvlan and vlan is the same, there's nothing to do
         if fromvlan == vlan:
             return None
@@ -689,7 +668,7 @@ class Cisco(SNMPHandler):
         _logger.debug("set_access: %s %s", interface, access_vlan)
         if self._is_trunk(interface):
             self._set_access_mode(interface)
-        self.set_trunk_vlans(interface, [])
+        self._set_trunk_vlans(interface, [])
         self.set_native_vlan(interface, access_vlan)
         self.set_vlan(interface, access_vlan)
         interface.trunk = False  # Make sure database is updated
@@ -710,7 +689,7 @@ class Cisco(SNMPHandler):
         if not self._is_trunk(interface):
             self._set_trunk_mode(interface)
 
-        self.set_trunk_vlans(interface, trunk_vlans)
+        self._set_trunk_vlans(interface, trunk_vlans)
         self.set_native_vlan(interface, native_vlan)
         self._save_trunk_interface(interface, native_vlan, trunk_vlans)
 
@@ -725,7 +704,7 @@ class Cisco(SNMPHandler):
         interface.trunk = True
         interface.save()
 
-    def set_trunk_vlans(self, interface, vlans):
+    def _set_trunk_vlans(self, interface, vlans):
         """Set trunk vlans
 
         Initialize a BitVector with all 4096 vlans set to 0. Then fill in all
@@ -768,11 +747,6 @@ class HP(SNMPHandler):
 
     def __init__(self, netbox, **kwargs):
         super(HP, self).__init__(netbox, **kwargs)
-
-    def is_dot1x_enabled(self, interface):
-        """Returns True or False based on state of dot1x"""
-        return int(self._query_netbox(
-            self.dot1xPortAuth, interface.ifindex)) == 1
 
     def get_dot1x_enabled_interfaces(self):
         """Fetches a dict mapping ifindex to enabled state
@@ -893,8 +867,14 @@ class SNMPFactory(object):
     """Factory class for returning SNMP-handles depending
     on a netbox' vendor identification."""
     @classmethod
-    def get_instance(cls, netbox, **kwargs):
+    def get_instance(cls, netbox):
         """Get and SNMP-handle depending on vendor type"""
+
+        config = read_config()
+        timeout = get_config_value(config, 'general', 'timeout', fallback=3)
+        retries = get_config_value(config, 'general', 'retries', fallback=3)
+        kwargs = dict(timeout=timeout, retries=retries)
+
         if not netbox.type:
             raise NoNetboxTypeError()
         vendor_id = netbox.type.get_enterprise_id()
@@ -910,3 +890,11 @@ class SNMPFactory(object):
 
     def __init__(self):
         pass
+
+
+def get_config_value(config, section, key, fallback=None):
+    """Get the value of key from a ConfigParser object, with fallback"""
+    try:
+        return config.get(section, key)
+    except (configparser.NoOptionError, configparser.NoSectionError):
+        return fallback

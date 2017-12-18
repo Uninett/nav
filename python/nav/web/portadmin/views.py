@@ -14,7 +14,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """View controller for PortAdmin"""
-import configparser
 import logging
 import json
 
@@ -49,7 +48,7 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      is_restart_interface_enabled,
                                      is_write_mem_enabled, get_trunk_edit)
 from nav.Snmp.errors import SnmpError, TimeOutException
-from nav.portadmin.snmputils import SNMPFactory, SNMPHandler
+from nav.portadmin import get_handler
 from .forms import SearchForm
 
 _logger = logging.getLogger("nav.web.portadmin")
@@ -181,18 +180,18 @@ def populate_infodict(request, netbox, interfaces):
     config = read_config()
 
     try:
-        fac = get_and_populate_livedata(netbox, interfaces)
+        handler = get_and_populate_livedata(netbox, interfaces)
         allowed_vlans = find_and_populate_allowed_vlans(
-            request.account, netbox, interfaces, fac)
-        voice_vlan = fetch_voice_vlan_for_netbox(request, fac, config)
+            request.account, netbox, interfaces, handler)
+        voice_vlan = fetch_voice_vlan_for_netbox(request, handler, config)
         if voice_vlan:
             if is_cisco_voice_enabled(config) and is_cisco(netbox):
-                set_voice_vlan_attribute_cisco(voice_vlan, interfaces, fac)
+                set_voice_vlan_attribute_cisco(voice_vlan, interfaces, handler)
             else:
                 set_voice_vlan_attribute(voice_vlan, interfaces)
         mark_detained_interfaces(interfaces)
         if is_dot1x_enabled:
-            add_dot1x_info(interfaces, fac)
+            add_dot1x_info(interfaces, handler)
     except TimeOutException:
         readonly = True
         messages.error(request, "Timeout when contacting %s. Values displayed "
@@ -260,7 +259,7 @@ def is_cisco_voice_enabled(config):
     return False
 
 
-def fetch_voice_vlan_for_netbox(request, factory, config=None):
+def fetch_voice_vlan_for_netbox(request, handler, config=None):
     """Fetch the voice vlan for this netbox
 
     There may be multiple voice vlans configured. Pick the one that exists
@@ -275,7 +274,7 @@ def fetch_voice_vlan_for_netbox(request, factory, config=None):
         return
 
     voice_vlans_on_netbox = list(set(voice_vlans) &
-                                 set(factory.get_available_vlans()))
+                                 set(handler.get_available_vlans()))
     if not voice_vlans_on_netbox:
         # Should this be reported? At the moment I do not think so.
         return
@@ -298,9 +297,9 @@ def set_voice_vlan_attribute(voice_vlan, interfaces):
                                          voice_vlan in allowed_vlans)
 
 
-def set_voice_vlan_attribute_cisco(voice_vlan, interfaces, fac):
+def set_voice_vlan_attribute_cisco(voice_vlan, interfaces, handler):
     """Set voice vlan attribute for Cisco voice vlan"""
-    voice_mapping = fac.get_cisco_voice_vlans()
+    voice_mapping = handler.get_cisco_voice_vlans()
     for interface in interfaces:
         voice_activated = voice_mapping.get(interface.ifindex) == voice_vlan
         interface.voice_activated = voice_activated
@@ -354,14 +353,14 @@ def save_interfaceinfo(request):
 def set_interface_values(account, interface, request):
     """Use snmp to set the values in the request on the netbox"""
 
-    fac = get_factory(interface.netbox)
+    handler = get_handler(interface.netbox)
 
-    if fac:
+    if handler:
         # Order is important here, set_voice need to be before set_vlan
-        set_voice_vlan(fac, interface, request)
-        set_ifalias(account, fac, interface, request)
-        set_vlan(account, fac, interface, request)
-        set_admin_status(fac, interface, request)
+        set_voice_vlan(handler, interface, request)
+        set_ifalias(account, handler, interface, request)
+        set_vlan(account, handler, interface, request)
+        set_admin_status(handler, interface, request)
         save_to_database([interface])
     else:
         messages.info(request, 'Could not connect to netbox')
@@ -379,13 +378,13 @@ def build_ajax_messages(request):
     return ajax_messages
 
 
-def set_ifalias(account, fac, interface, request):
+def set_ifalias(account, handler, interface, request):
     """Set ifalias on netbox if it is requested"""
     if 'ifalias' in request.POST:
         ifalias = request.POST.get('ifalias')
         if check_format_on_ifalias(ifalias):
             try:
-                fac.set_if_alias(interface, ifalias)
+                handler.set_if_alias(interface, ifalias)
                 interface.ifalias = ifalias
                 LogEntry.add_log_entry(
                     account,
@@ -404,7 +403,7 @@ def set_ifalias(account, fac, interface, request):
             messages.error(request, "Wrong format on port description")
 
 
-def set_vlan(account, fac, interface, request):
+def set_vlan(account, handler, interface, request):
     """Set vlan on netbox if it is requested"""
     if 'vlan' in request.POST:
         try:
@@ -421,11 +420,11 @@ def set_vlan(account, fac, interface, request):
                 config = read_config()
                 voice_activated = request.POST.get('voice_activated', False)
                 if not is_cisco_voice_enabled(config) and voice_activated:
-                    fac.set_native_vlan(interface, vlan)
+                    handler.set_native_vlan(interface, vlan)
                 else:
-                    fac.set_vlan(interface, vlan)
+                    handler.set_vlan(interface, vlan)
             else:
-                fac.set_vlan(interface, vlan)
+                handler.set_vlan(interface, vlan)
 
             interface.vlan = vlan
             LogEntry.add_log_entry(
@@ -443,7 +442,7 @@ def set_vlan(account, fac, interface, request):
             messages.error(request, "Error setting vlan: %s" % error)
 
 
-def set_voice_vlan(fac, interface, request):
+def set_voice_vlan(handler, interface, request):
     """Set voicevlan on interface
 
     A voice vlan is a normal vlan that is defined by the user of NAV as
@@ -455,7 +454,7 @@ def set_voice_vlan(fac, interface, request):
     """
     if 'voicevlan' in request.POST:
         config = read_config()
-        voice_vlan = fetch_voice_vlan_for_netbox(request, fac, config)
+        voice_vlan = fetch_voice_vlan_for_netbox(request, handler, config)
         use_cisco_voice_vlan = (is_cisco_voice_enabled(config) and
                                 is_cisco(interface.netbox))
 
@@ -465,17 +464,17 @@ def set_voice_vlan(fac, interface, request):
         try:
             if turn_on_voice_vlan:
                 if use_cisco_voice_vlan:
-                    fac.set_cisco_voice_vlan(interface, voice_vlan)
+                    handler.set_cisco_voice_vlan(interface, voice_vlan)
                 else:
-                    fac.set_voice_vlan(interface, voice_vlan)
+                    handler.set_voice_vlan(interface, voice_vlan)
                 _logger.info('%s: %s:%s - %s', account.login,
                              interface.netbox.get_short_sysname(),
                              interface.ifname, 'voice vlan enabled')
             else:
                 if use_cisco_voice_vlan:
-                    fac.disable_cisco_voice_vlan(interface)
+                    handler.disable_cisco_voice_vlan(interface)
                 else:
-                    fac.set_access(interface, interface.vlan)
+                    handler.set_access(interface, interface.vlan)
                 _logger.info('%s: %s:%s - %s', account.login,
                              interface.netbox.get_short_sysname(),
                              interface.ifname, 'voice vlan disabled')
@@ -483,9 +482,9 @@ def set_voice_vlan(fac, interface, request):
             messages.error(request, "Error setting voicevlan: %s" % error)
 
 
-def set_admin_status(fac, interface, request):
+def set_admin_status(handler, interface, request):
     """Set admin status for the interface
-    :type fac: nav.portadmin.snmputils.SNMPFactory
+    :type handler: nav.portadmin.snmputils.BaseHandler
     :type request: django.http.HttpRequest
     """
     status_up = '1'
@@ -505,7 +504,7 @@ def set_admin_status(fac, interface, request):
                 )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'up')
-                fac.set_if_up(interface)
+                handler.set_if_up(interface)
             elif adminstatus == status_down:
                 LogEntry.add_log_entry(
                     account,
@@ -516,7 +515,7 @@ def set_admin_status(fac, interface, request):
                 )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'down')
-                fac.set_if_down(interface)
+                handler.set_if_down(interface)
         except (SnmpError, ValueError) as error:
             messages.error(request, "Error setting ifadminstatus: %s" % error)
 
@@ -538,10 +537,10 @@ def render_trunk_edit(request, interfaceid):
 
     config = read_config()
     interface = Interface.objects.get(pk=interfaceid)
-    agent = get_factory(interface.netbox)
+    handler = get_handler(interface.netbox)
     if request.method == 'POST':
         try:
-            handle_trunk_edit(request, agent, interface)
+            handle_trunk_edit(request, handler, interface)
         except SnmpError as error:
             messages.error(request, 'Error editing trunk: %s' % error)
         else:
@@ -551,8 +550,8 @@ def render_trunk_edit(request, interfaceid):
     netbox = interface.netbox
     check_read_write(netbox, request)
     try:
-        vlans = agent.get_netbox_vlans()  # All vlans on this netbox
-        native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(
+        vlans = handler.get_netbox_vlans()  # All vlans on this netbox
+        native_vlan, trunked_vlans = handler.get_native_and_trunked_vlans(
             interface)
     except SnmpError:
         vlans = native_vlan = trunked_vlans = allowed_vlans = None
@@ -560,7 +559,7 @@ def render_trunk_edit(request, interfaceid):
     else:
         if should_check_access_rights(account):
             allowed_vlans = find_allowed_vlans_for_user_on_netbox(
-                account, interface.netbox, agent)
+                account, interface.netbox, handler)
         else:
             allowed_vlans = vlans
 
@@ -578,7 +577,7 @@ def render_trunk_edit(request, interfaceid):
     return render(request, 'portadmin/trunk_edit.html', context)
 
 
-def handle_trunk_edit(request, agent, interface):
+def handle_trunk_edit(request, handler, interface):
     """Edit a trunk"""
 
     native_vlan = int(request.POST.get('native_vlan', 1))
@@ -588,7 +587,8 @@ def handle_trunk_edit(request, agent, interface):
         # A user can avoid the form restrictions by sending a forged post
         # request Make sure only the allowed vlans are set
 
-        old_native, old_trunked = agent.get_native_and_trunked_vlans(interface)
+        old_native, old_trunked = handler.get_native_and_trunked_vlans(
+            interface)
         allowed_vlans = [v.vlan for v in
                          find_allowed_vlans_for_user(get_account(request))]
 
@@ -607,9 +607,9 @@ def handle_trunk_edit(request, agent, interface):
     )
 
     if trunked_vlans:
-        agent.set_trunk(interface, native_vlan, trunked_vlans)
+        handler.set_trunk(interface, native_vlan, trunked_vlans)
     else:
-        agent.set_access(interface, native_vlan)
+        handler.set_access(interface, native_vlan)
 
 
 @require_POST
@@ -622,17 +622,17 @@ def restart_interface(request):
     interface = get_object_or_404(
         Interface, pk=request.POST.get('interfaceid'))
 
-    fac = get_factory(interface.netbox)
-    if fac:
-        adminstatus = fac.get_if_admin_status(interface.ifindex)
-        if adminstatus == SNMPHandler.IF_ADMIN_STATUS_DOWN:
+    handler = get_handler(interface.netbox)
+    if handler:
+        adminstatus = handler.get_if_admin_status(interface)
+        if adminstatus == interface.ADM_DOWN:
             _logger.debug('Not restarting %s as it is down', interface)
             return HttpResponse()
 
         _logger.debug('Restarting interface %s', interface)
         try:
             # Restart interface so that client fetches new address
-            fac.restart_if(interface)
+            handler.restart_if(interface)
         except TimeOutException:
             # Swallow this exception as it is not important. Others should
             # create an error
@@ -652,43 +652,21 @@ def write_mem(request):
     interface = get_object_or_404(
         Interface, pk=request.POST.get('interfaceid'))
 
-    fac = get_factory(interface.netbox)
-    if fac:
+    handler = get_handler(interface.netbox)
+    if handler:
         try:
-            fac.write_mem()
+            handler.write_mem()
         except SnmpError as error:
             error_message = 'Error doing write mem on {}: {}'.format(
-                fac.netbox, error)
+                handler.netbox, error)
             _logger.error(error_message)
             return HttpResponse(error_message, status=500)
         except AttributeError:
             error_message = 'Error doing write mem on {}: {}'.format(
-                fac.netbox, 'Write to memory not supported')
+                handler.netbox, 'Write to memory not supported')
             _logger.error(error_message)
             return HttpResponse(error_message, status=500)
 
         return HttpResponse()
     else:
         return HttpResponse(status=500)
-
-
-def get_factory(netbox):
-    """Get a SNMP factory instance"""
-    config = read_config()
-    timeout = get_config_value(config, 'general', 'timeout', fallback=3)
-    retries = get_config_value(config, 'general', 'retries', fallback=3)
-
-    try:
-        return SNMPFactory.get_instance(netbox, timeout=timeout,
-                                        retries=retries)
-    except SnmpError as error:
-        _logger.error('Error getting snmpfactory instance %s: %s',
-                      netbox, error)
-
-
-def get_config_value(config, section, key, fallback=None):
-    """Get the value of key from a ConfigParser object, with fallback"""
-    try:
-        return config.get(section, key)
-    except (configparser.NoOptionError, configparser.NoSectionError):
-        return fallback
