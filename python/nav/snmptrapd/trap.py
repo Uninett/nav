@@ -17,8 +17,12 @@
 import string
 
 
-class SNMPTrap:
-    """Generic trap-class"""
+class SNMPTrap(object):
+    """Represents an SNMP trap or notification, in a structure agnostic to
+    SNMP v1 and v2c differences.
+
+    :
+    """
 
     def __init__(self, src, agent, type, genericType, snmpTrapOID, uptime,
                  community, version, varbinds):
@@ -38,15 +42,6 @@ class SNMPTrap:
                 self.varbinds[key] = val
 
     def __str__(self):
-        text = self.trapText()
-        return text
-
-    def trapText(self):
-        """
-        Creates a textual description of the trap suitable for
-        printing to log or stdout.
-        """
-
         text = "Got snmp version %s trap\n" % self.version
         text = (text + "Src: %s, Community: %s, Uptime: %s\n") % (
             self.src, self.community, self.uptime)

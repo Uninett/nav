@@ -206,7 +206,7 @@ def trap_handler(trap):
     :type trap: nav.snmptrapd.trap.SNMPTrap
 
     """
-    traplogger.debug(trap.trapText())
+    traplogger.debug("%s", trap)
     connection = getConnection('default')
     handled_by = []
 
