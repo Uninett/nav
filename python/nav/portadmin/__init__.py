@@ -191,9 +191,13 @@ class BaseHandler(object):
 
 def get_handler(netbox, **kwargs):
     from .snmputils import SNMPFactory
+    from .netconfhandler import NetconfHandler
 
     if netbox.readwrite_connection_profile.is_snmp:
         return SNMPFactory(netbox, **kwargs)
+    if (netbox.readwrite_connection_profile.protocol ==
+            netbox.readwrite_connection_profile.PROTOCOL_NETCONF):
+        return NetconfHandler(netbox, **kwargs)
     return None
 
 

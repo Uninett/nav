@@ -82,11 +82,13 @@ class ConnectionProfile(models.Model):
     PROTOCOL_SNMP_V1 = 1
     PROTOCOL_SNMP_V2C = 2
     PROTOCOL_RESTCONF = 4
+    PROTOCOL_NETCONF = 5
     PROTOCOL_CHOICES = (
         (PROTOCOL_NOOP, "No management connection"),
         (PROTOCOL_SNMP_V1, "SNMP v1"),
         (PROTOCOL_SNMP_V2C, "SNMP v2c"),
         (PROTOCOL_RESTCONF, "RESTConf"),
+        (PROTOCOL_NETCONF, "NetConf"),
     )
     protocol = models.IntegerField(choices=PROTOCOL_CHOICES)
 
@@ -129,6 +131,8 @@ class ConnectionProfile(models.Model):
             return False
         if self.is_snmp:
             return bool(self.snmp_community)
+        if self.protocol == self.PROTOCOL_NETCONF:
+            return self.username and self.password
         return False
 
 

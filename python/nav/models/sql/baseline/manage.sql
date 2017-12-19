@@ -1070,17 +1070,10 @@ CREATE TABLE manage.ipdevpoll_job_log (
 
 -- automatically close snmpAgentStates when community is removed.
 
+-- FIXME: This needs update to deal with connection profiles
 CREATE OR REPLACE FUNCTION close_snmpagentstates_on_community_clear()
 RETURNS TRIGGER AS E'
     BEGIN
-        IF COALESCE(OLD.ro, \'\') IS DISTINCT FROM COALESCE(NEW.ro, \'\')
-           AND COALESCE(NEW.ro, \'\') = \'\' THEN
-            UPDATE alerthist
-            SET end_time=NOW()
-            WHERE netboxid=NEW.netboxid
-              AND eventtypeid=\'snmpAgentState\'
-              AND end_time >= \'infinity\';
-        END IF;
         RETURN NULL;
     END;
     ' language 'plpgsql';

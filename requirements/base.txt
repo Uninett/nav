@@ -20,6 +20,7 @@ sphinx>=1.8.0
 feedparser>=5.2.1,<5.3
 markdown==2.5.1
 dnspython==1.15.0
+ncclient
 
 # REST framework
 iso8601
