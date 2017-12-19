@@ -33,8 +33,7 @@ from nav.django.utils import get_account
 from nav.util import is_valid_ip
 from nav.web.utils import create_title
 from nav.models.manage import Netbox, Interface
-from nav.web.portadmin.utils import (get_and_populate_livedata,
-                                     find_and_populate_allowed_vlans,
+from nav.web.portadmin.utils import (find_and_populate_allowed_vlans,
                                      get_aliastemplate, get_ifaliasformat,
                                      save_to_database,
                                      check_format_on_ifalias,
@@ -180,7 +179,8 @@ def populate_infodict(request, netbox, interfaces):
     config = read_config()
 
     try:
-        handler = get_and_populate_livedata(netbox, interfaces)
+        handler = get_handler(netbox)
+        handler.get_interface_livedata(interfaces)
         allowed_vlans = find_and_populate_allowed_vlans(
             request.account, netbox, interfaces, handler)
         voice_vlan = fetch_voice_vlan_for_netbox(request, handler, config)

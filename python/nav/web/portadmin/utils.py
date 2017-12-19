@@ -20,21 +20,13 @@ import logging
 from django.template import loader
 
 from nav.django.utils import is_admin
-from nav.portadmin import get_handler, read_config
+from nav.portadmin import read_config
 from nav.portadmin.snmputils import FantasyVlan
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 from operator import attrgetter
 from os.path import join
 
 _logger = logging.getLogger("nav.web.portadmin")
-
-
-def get_and_populate_livedata(netbox, interfaces):
-    """Fetch live data from netbox"""
-    handler = get_handler(netbox)
-    handler.get_interface_livedata(interfaces)
-
-    return handler
 
 
 def find_and_populate_allowed_vlans(account, netbox, interfaces, handler):
