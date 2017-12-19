@@ -356,14 +356,6 @@ class SNMPHandler(BaseHandler):
                 if status == 1]
         return self.available_vlans
 
-    def set_voice_vlan(self, interface, voice_vlan):
-        """Activate voice vlan on this interface
-
-        Use set_trunk to make sure the interface is put in trunk mode
-
-        """
-        self.set_trunk(interface, interface.vlan, [voice_vlan])
-
     @staticmethod
     def _extract_index_from_oid(oid):
         return int(oid.split('.')[-1])

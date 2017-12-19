@@ -142,7 +142,7 @@ class BaseHandler(object):
         Use set_trunk to make sure the interface is put in trunk mode
 
         """
-        raise NotImplementedError
+        self.set_trunk(interface, interface.vlan, [voice_vlan])
 
     def disable_voice_vlan(self, interface):
         self.set_access(interface, interface.vlan)
