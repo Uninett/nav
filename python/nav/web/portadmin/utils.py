@@ -45,13 +45,13 @@ def find_and_populate_allowed_vlans(account, netbox, interfaces, handler):
     return allowed_vlans
 
 
-def find_allowed_vlans_for_user_on_netbox(account, netbox, factory=None):
+def find_allowed_vlans_for_user_on_netbox(account, netbox, handler):
     """Find allowed vlans for this user on this netbox
 
     ::returns list of Fantasyvlans
 
     """
-    netbox_vlans = find_vlans_on_netbox(netbox, factory=factory)
+    netbox_vlans = handler.get_netbox_vlans()
 
     if is_vlan_authorization_enabled():
         if is_admin(account):
@@ -93,20 +93,6 @@ def is_restart_interface_enabled():
         return config.getboolean("general", "restart_interface")
 
     return True
-
-
-def find_vlans_on_netbox(netbox, handler=None):
-    """Find all the vlans on this netbox
-
-    fac: already instantiated factory instance. Use this if possible
-    to enable use of cached values
-
-    :returns: list of FantasyVlans
-    :rtype: list
-    """
-    if not handler:
-        factory = get_handler(netbox)
-    return factory.get_netbox_vlans()
 
 
 def find_allowed_vlans_for_user(account):

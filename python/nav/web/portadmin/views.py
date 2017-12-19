@@ -330,19 +330,20 @@ def save_interfaceinfo(request):
     if request.method == 'POST':
         interface = Interface.objects.get(pk=request.POST.get('interfaceid'))
         account = get_account(request)
+        handler = get_handler(interface.netbox)
 
         # Skip a lot of queries if access_control is not turned on
         if should_check_access_rights(account):
             _logger.info('Checking access rights for %s', account)
             if interface.vlan in [v.vlan for v in
                                   find_allowed_vlans_for_user_on_netbox(
-                                      account, interface.netbox)]:
-                set_interface_values(account, interface, request)
+                                      account, interface.netbox, handler)]:
+                set_interface_values(account, interface, request, handler)
             else:
                 # Should only happen if user tries to avoid gui restrictions
                 messages.error(request, 'Not allowed to edit this interface')
         else:
-            set_interface_values(account, interface, request)
+            set_interface_values(account, interface, request, handler)
     else:
         messages.error(request, 'Wrong request type')
 
@@ -350,10 +351,8 @@ def save_interfaceinfo(request):
     return response_based_on_result(result)
 
 
-def set_interface_values(account, interface, request):
+def set_interface_values(account, interface, request, handler):
     """Use snmp to set the values in the request on the netbox"""
-
-    handler = get_handler(interface.netbox)
 
     if handler:
         # Order is important here, set_voice need to be before set_vlan
