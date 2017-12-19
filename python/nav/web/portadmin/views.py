@@ -42,12 +42,10 @@ from nav.web.portadmin.utils import (find_and_populate_allowed_vlans,
                                      filter_vlans, fetch_voice_vlans,
                                      should_check_access_rights,
                                      mark_detained_interfaces,
-                                     read_config, is_cisco,
+                                     read_config,
                                      add_dot1x_info,
                                      is_restart_interface_enabled,
                                      is_write_mem_enabled,
-                                     get_trunk_edit,
-                                     is_cisco_voice_enabled,
                                      is_dot1x_enabled)
 from nav.Snmp.errors import SnmpError, TimeOutException
 from nav.portadmin import get_handler
@@ -188,10 +186,7 @@ def populate_infodict(request, netbox, interfaces):
             request.account, netbox, interfaces, handler)
         voice_vlan = fetch_voice_vlan_for_netbox(request, handler, config)
         if voice_vlan:
-            if is_cisco_voice_enabled(config) and is_cisco(netbox):
-                set_voice_vlan_attribute_cisco(voice_vlan, interfaces, handler)
-            else:
-                set_voice_vlan_attribute(voice_vlan, interfaces)
+            handler.set_voice_vlan_attribute(voice_vlan, interfaces)
         mark_detained_interfaces(interfaces)
         if is_dot1x_enabled:
             add_dot1x_info(interfaces, handler)
@@ -264,25 +259,6 @@ def fetch_voice_vlan_for_netbox(request, handler, config=None):
         return
 
     return voice_vlans_on_netbox[0]
-
-
-def set_voice_vlan_attribute(voice_vlan, interfaces):
-    """Set an attribute on the interfaces to indicate voice vlan behavior"""
-    if voice_vlan:
-        for interface in interfaces:
-            if not interface.trunk:
-                continue
-            allowed_vlans = interface.swportallowedvlan.get_allowed_vlans()
-            interface.voice_activated = (len(allowed_vlans) == 1 and
-                                         voice_vlan in allowed_vlans)
-
-
-def set_voice_vlan_attribute_cisco(voice_vlan, interfaces, handler):
-    """Set voice vlan attribute for Cisco voice vlan"""
-    voice_mapping = handler.get_cisco_voice_vlans()
-    for interface in interfaces:
-        voice_activated = voice_mapping.get(interface.ifindex) == voice_vlan
-        interface.voice_activated = voice_activated
 
 
 def check_read_write(netbox, request):
@@ -393,17 +369,8 @@ def set_vlan(account, handler, interface, request):
             return
 
         try:
-            if is_cisco(interface.netbox):
-                # If Cisco and trunk voice vlan (not Cisco voice vlan),
-                # we have to set native vlan instead of access vlan
-                config = read_config()
-                voice_activated = request.POST.get('voice_activated', False)
-                if not is_cisco_voice_enabled(config) and voice_activated:
-                    handler.set_native_vlan(interface, vlan)
-                else:
-                    handler.set_vlan(interface, vlan)
-            else:
-                handler.set_vlan(interface, vlan)
+            voice_activated = request.POST.get('voice_activated', False)
+            handler.set_vlan(interface, vlan, voice_activated)
 
             interface.vlan = vlan
             LogEntry.add_log_entry(
@@ -434,26 +401,18 @@ def set_voice_vlan(handler, interface, request):
     if 'voicevlan' in request.POST:
         config = read_config()
         voice_vlan = fetch_voice_vlan_for_netbox(request, handler, config)
-        use_cisco_voice_vlan = (is_cisco_voice_enabled(config) and
-                                is_cisco(interface.netbox))
 
         # Either the voicevlan is turned off or turned on
         turn_on_voice_vlan = request.POST.get('voicevlan') == 'true'
         account = get_account(request)
         try:
             if turn_on_voice_vlan:
-                if use_cisco_voice_vlan:
-                    handler.set_cisco_voice_vlan(interface, voice_vlan)
-                else:
-                    handler.set_voice_vlan(interface, voice_vlan)
+                handler.set_voice_vlan(interface, voice_vlan)
                 _logger.info('%s: %s:%s - %s', account.login,
                              interface.netbox.get_short_sysname(),
                              interface.ifname, 'voice vlan enabled')
             else:
-                if use_cisco_voice_vlan:
-                    handler.disable_cisco_voice_vlan(interface)
-                else:
-                    handler.set_access(interface, interface.vlan)
+                handler.disable_voice_vlan(interface)
                 _logger.info('%s: %s:%s - %s', account.login,
                              interface.netbox.get_short_sysname(),
                              interface.ifname, 'voice vlan disabled')

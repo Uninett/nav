@@ -22,7 +22,6 @@ from django.template import loader
 from nav.django.utils import is_admin
 from nav.portadmin import read_config
 from nav.portadmin.snmputils import FantasyVlan
-from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 from operator import attrgetter
 from os.path import join
 
@@ -97,16 +96,6 @@ def is_dot1x_enabled(config):
     except ValueError:
         pass
 
-    return False
-
-
-def is_cisco_voice_enabled(config):
-    """Checks if the Cisco config option is enabled"""
-    section = 'general'
-    option = 'cisco_voice_vlan'
-    if config.has_section(section):
-        if config.has_option(section, option):
-            return config.getboolean(section, option)
     return False
 
 
@@ -275,22 +264,3 @@ def add_dot1x_info(interfaces, handler):
 
     for interface in interfaces:
         interface.dot1xenabled = dot1x_states.get(interface.ifindex)
-
-
-def is_cisco(netbox):
-    """Returns true if netbox is of vendor cisco
-    :type netbox: manage.Netbox
-    """
-    return netbox.type.get_enterprise_id() == VENDOR_ID_CISCOSYSTEMS
-
-
-def get_trunk_edit(config):
-    """Gets config option for trunk edit
-
-    Default is to allow trunk edit
-    """
-    section = 'general'
-    option = 'trunk_edit'
-    if config.has_section(section) and config.has_option(section, option):
-        return config.getboolean(section, option)
-    return True

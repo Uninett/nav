@@ -255,7 +255,7 @@ class SNMPHandler(BaseHandler):
             bit[port] = 0
         return bit.to_bytes()
 
-    def set_vlan(self, interface, vlan):
+    def set_vlan(self, interface, vlan, voice_activated=False):
         """Set a new vlan on the given interface and remove
         the previous vlan"""
         base_port = interface.baseport
@@ -367,18 +367,6 @@ class SNMPHandler(BaseHandler):
 
         """
         self.set_trunk(interface, interface.vlan, [voice_vlan])
-
-    def get_cisco_voice_vlans(self):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
-
-    def set_cisco_voice_vlan(self, interface, voice_vlan):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
-
-    def disable_cisco_voice_vlan(self, interface):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
 
     @staticmethod
     def _extract_index_from_oid(oid):
@@ -561,9 +549,16 @@ class Cisco(SNMPHandler):
     def _get_vlan(self, interface):
         return self._query_netbox(self.vlan_oid, interface.ifindex)
 
-    def set_vlan(self, interface, vlan):
+    def set_vlan(self, interface, vlan, voice_activated=False):
         """Set a new vlan for a specified interface,- and
         remove the previous vlan."""
+        # If Cisco and trunk voice vlan (not Cisco voice vlan),
+        # we have to set native vlan instead of access vlan
+        if voice_activated:
+            return self.set_native_vlan(interface, vlan)
+        self._set_vlan(interface, vlan)
+
+    def _set_vlan(self, interface, vlan):
         if_index = interface.ifindex
         try:
             vlan = int(vlan)
@@ -605,31 +600,6 @@ class Cisco(SNMPHandler):
     def get_cisco_voice_vlans(self):
         """Returns a dict of ifIndex:vmVoiceVlanId entries"""
         return {int(x): y for x, y in self._jog(self.voice_vlan_oid)}
-
-    def set_cisco_voice_vlan(self, interface, voice_vlan):
-        """Set a voice vlan using Cisco specific oid"""
-        status = None
-        try:
-            voice_vlan = int(voice_vlan)
-            status = self._set_netbox_value(
-                self.voice_vlan_oid, interface.ifindex, 'i', voice_vlan)
-        except SnmpError as error:
-            _logger.error('Error setting voice vlan: %s', error)
-        except ValueError as error:
-            _logger.error('%s is not a valid voice vlan', voice_vlan)
-
-        return status
-
-    def disable_cisco_voice_vlan(self, interface):
-        """Disable the Cisco Voice vlan on this interface"""
-        status = None
-        try:
-            status = self._set_netbox_value(
-                self.voice_vlan_oid, interface.ifindex, 'i', 4096)
-        except SnmpError as error:
-            _logger.error('Error disabling voice vlan: %s', error)
-
-        return status
 
     def write_mem(self):
         """Use OLD-CISCO-SYS-MIB (v1) writeMem to write tomemory.
@@ -736,6 +706,44 @@ class Cisco(SNMPHandler):
     def _is_trunk(self, interface):
         state = int(self._query_netbox(self.TRUNKPORTSTATE, interface.ifindex))
         return state in [1, 5]
+
+
+class CiscoVoice(Cisco):
+
+    def set_voice_vlan_attribute(self, voice_vlan, interfaces):
+        """Set voice vlan attribute for Cisco voice vlan"""
+        voice_mapping = self.get_cisco_voice_vlans()
+        for interface in interfaces:
+            voice_activated = voice_mapping.get(interface.ifindex) == voice_vlan
+            interface.voice_activated = voice_activated
+
+    def set_vlan(self, interface, vlan, voice_activated=False):
+        return self._set_vlan(interface, vlan)
+
+    def set_voice_vlan(self, interface, voice_vlan):
+        """Set a voice vlan using Cisco specific oid"""
+        status = None
+        try:
+            voice_vlan = int(voice_vlan)
+            status = self._set_netbox_value(
+                self.voice_vlan_oid, interface.ifindex, 'i', voice_vlan)
+        except SnmpError as error:
+            _logger.error('Error setting voice vlan: %s', error)
+        except ValueError as error:
+            _logger.error('%s is not a valid voice vlan', voice_vlan)
+
+        return status
+
+    def disable_voice_vlan(self, interface):
+        """Disable the Cisco Voice vlan on this interface"""
+        status = None
+        try:
+            status = self._set_netbox_value(
+                self.voice_vlan_oid, interface.ifindex, 'i', 4096)
+        except SnmpError as error:
+            _logger.error('Error disabling voice vlan: %s', error)
+
+        return status
 
 
 class HP(SNMPHandler):
@@ -879,6 +887,8 @@ class SNMPFactory(object):
             raise NoNetboxTypeError()
         vendor_id = netbox.type.get_enterprise_id()
         if vendor_id == VENDOR_ID_CISCOSYSTEMS:
+            if is_cisco_voice_enabled(config):
+                return CiscoVoice(netbox, **kwargs)
             return Cisco(netbox, **kwargs)
         if vendor_id == VENDOR_ID_HEWLETT_PACKARD:
             return HP(netbox, **kwargs)
@@ -890,6 +900,16 @@ class SNMPFactory(object):
 
     def __init__(self):
         pass
+
+
+def is_cisco_voice_enabled(config):
+    """Checks if the Cisco config option is enabled"""
+    section = 'general'
+    option = 'cisco_voice_vlan'
+    if config.has_section(section):
+        if config.has_option(section, option):
+            return config.getboolean(section, option)
+    return False
 
 
 def get_config_value(config, section, key, fallback=None):

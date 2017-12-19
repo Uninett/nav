@@ -83,7 +83,7 @@ class BaseHandler(object):
         """Set alias on a specific interface."""
         raise NotImplementedError
 
-    def set_vlan(self, interface, vlan):
+    def set_vlan(self, interface, vlan, voice_activated=False):
         """Set a new vlan on the given interface and remove
         the previous vlan"""
         raise NotImplementedError
@@ -148,17 +148,8 @@ class BaseHandler(object):
         """
         raise NotImplementedError
 
-    def get_cisco_voice_vlans(self):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
-
-    def set_cisco_voice_vlan(self, interface, voice_vlan):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
-
-    def disable_cisco_voice_vlan(self, interface):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
+    def disable_voice_vlan(self, interface):
+        self.set_access(interface, interface.vlan)
 
     def get_native_and_trunked_vlans(self, interface):
         """Get the trunked vlans on this interface
@@ -190,6 +181,16 @@ class BaseHandler(object):
     def is_port_access_control_enabled(self):
         """Returns state of port access control"""
         raise False
+
+    def set_voice_vlan_attribute(self, voice_vlan, interfaces):
+        """Set an attribute on the interfaces to indicate voice vlan behavior"""
+        if voice_vlan:
+            for interface in interfaces:
+                if not interface.trunk:
+                    continue
+                allowed_vlans = interface.swportallowedvlan.get_allowed_vlans()
+                interface.voice_activated = (len(allowed_vlans) == 1 and
+                                             voice_vlan in allowed_vlans)
 
 
 def get_handler(netbox, **kwargs):
