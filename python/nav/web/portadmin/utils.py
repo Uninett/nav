@@ -87,6 +87,29 @@ def is_restart_interface_enabled():
     return True
 
 
+def is_dot1x_enabled(config):
+    """Checks of dot1x config option is true"""
+    section = 'general'
+    option = 'enabledot1x'
+    try:
+        return (config.has_option(section, option) and
+                config.getboolean(section, option))
+    except ValueError:
+        pass
+
+    return False
+
+
+def is_cisco_voice_enabled(config):
+    """Checks if the Cisco config option is enabled"""
+    section = 'general'
+    option = 'cisco_voice_vlan'
+    if config.has_section(section):
+        if config.has_option(section, option):
+            return config.getboolean(section, option)
+    return False
+
+
 def find_allowed_vlans_for_user(account):
     """Find the allowed vlans for this user based on organization"""
     allowed_vlans = []

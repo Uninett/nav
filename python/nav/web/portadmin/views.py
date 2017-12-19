@@ -45,7 +45,10 @@ from nav.web.portadmin.utils import (find_and_populate_allowed_vlans,
                                      read_config, is_cisco,
                                      add_dot1x_info,
                                      is_restart_interface_enabled,
-                                     is_write_mem_enabled, get_trunk_edit)
+                                     is_write_mem_enabled,
+                                     get_trunk_edit,
+                                     is_cisco_voice_enabled,
+                                     is_dot1x_enabled)
 from nav.Snmp.errors import SnmpError, TimeOutException
 from nav.portadmin import get_handler
 from .forms import SearchForm
@@ -234,29 +237,6 @@ def populate_infodict(request, netbox, interfaces):
         }
     )
     return info_dict
-
-
-def is_dot1x_enabled(config):
-    """Checks of dot1x config option is true"""
-    section = 'general'
-    option = 'enabledot1x'
-    try:
-        return (config.has_option(section, option) and
-                config.getboolean(section, option))
-    except ValueError:
-        pass
-
-    return False
-
-
-def is_cisco_voice_enabled(config):
-    """Checks if the Cisco config option is enabled"""
-    section = 'general'
-    option = 'cisco_voice_vlan'
-    if config.has_section(section):
-        if config.has_option(section, option):
-            return config.getboolean(section, option)
-    return False
 
 
 def fetch_voice_vlan_for_netbox(request, handler, config=None):
