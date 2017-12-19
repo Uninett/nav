@@ -9,6 +9,7 @@
    .alert-message-container p {
        font-size: 80%;
    }
+   .action-container { display: none; }
   </style>
 {% endblock %}
 
@@ -16,6 +17,11 @@
   <script>
    $('.toggle-messages').on('click', function() {
        $(this).next().slideToggle() ;
+   });
+
+   $('#action-chooser').on('change', function() {
+       $('.action-container').hide();
+       $('#' + this.value).show();
    });
   </script>
 {% endblock %}
@@ -39,7 +45,7 @@
     </div>
 
     <div class="column large-4 medium-6">
-      <div class="panel white">
+      <div id="user-actions" class="panel white" style="overflow: auto;">
         {% block user_actions %}{% endblock %}
       </div>
     </div>

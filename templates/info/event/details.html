@@ -115,8 +115,16 @@
 {% block user_actions %}
   <h4>Available actions</h4>
 
+  <select id="action-chooser" name="action">
+    <option value="">----------</option>
+    <option value="actions-acknowledge">Acknowledge alert</option>
+    <option value="actions-resolve">Clear alert</option>
+    <option value="actions-maintenance">Put on maintenance</option>
+    <option value="actions-delete">Delete module or chassis</option>
+  </select>
+
   {# Acknowledge alert #}
-  <div id="actions-acknowledge">
+  <div id="actions-acknowledge" class="action-container">
     <form action="{% url 'status2_acknowledge_alert' %}">
       <input type="hidden" name="id[]" value="{{ event.pk }}" />
 
@@ -141,10 +149,8 @@
 
   </div>
 
-  <hr/>
-
   {# Resolve/clear alert #}
-  <div id="actions-resolve-alert">
+  <div id="actions-resolve" class="action-container">
     <form action="{% url 'status2_clear_alert' %}">
       <input type="hidden" name="id[]" value="{{ event.pk }}" />
       <a data-dropdown="resolve-info" aria-controls="resolve-info" aria-expanded="false">About clearing alerts</a>
@@ -168,10 +174,8 @@
 
   </div>
 
-  <hr/>
-
   {# Put on maintenance #}
-  <div id="actions-put-on-maintenance">
+  <div id="actions-maintenance" class="action-container">
     <form action="{% url 'status2_put_on_maintenance' %}">
       <input type="hidden" name="id[]" value="{{ event.pk }}" />
       <label>
@@ -197,10 +201,8 @@
 
   </div>
 
-  <hr/>
-
   {# Delete module or chassis #}
-  <div id="actions-delete-module-or-chassis">
+  <div id="actions-delete" class="action-container">
     <form action="{% url 'status2_delete_module_or_chassis' %}">
       <input type="hidden" name="id[]" value="{{ event.pk }}" />
       <input type="submit" class="button small secondary full-width" value="Delete module or chassis" />
@@ -221,6 +223,6 @@
       </p>
 
     </div>
-
   </div>
+
 {% endblock %}
