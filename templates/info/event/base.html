@@ -1,6 +1,14 @@
 {% extends 'base.html' %}
 
 
+{% block base_header_additional_head %}
+  <style>
+   .alert-message-container p {
+       font-size: 80%;
+   }
+  </style>
+{% endblock %}
+
 {% block footer_scripts %}
   <script>
    $('.toggle-messages').on('click', function() {

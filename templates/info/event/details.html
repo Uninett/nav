@@ -43,8 +43,10 @@
       {% endif %}
 
       <tr>
-        <th>Device</th>
-        <td>{{ event.netbox }}</td>
+        <th>Subject</th>
+        <td>
+          <a href="{{ event.get_subject.get_absolute_url }}">{{ event.get_subject }}</a>
+        </td>
       </tr>
     </tbody>
   </table>
@@ -73,11 +75,13 @@
       </ul>
 
       <button class="tiny secondary toggle-messages">Show alert messages</button>
-      <div style="display: none">
+      <div class="alert-message-container" style="display: none">
         {% for message in alert.messages.all %}
           <dl>
             <dt>{{ message.type }}</dt>
-            <dd>{{ message.message }}</dd>
+            <dd>
+              {{ message.message|linebreaks }}
+            </dd>
           </dl>
         {% endfor %}
       </div>
