@@ -45,14 +45,8 @@ def render_event(request, event_id):
 
     event = get_object_or_404(AlertHistory, pk=event_id)
 
-    # alerts that was sent
-    for alertqueue in event.alertqueue_set.all():
-        for accountqueue in alertqueue.accountalertqueue_set.all():
-            accountqueue
-
     context = get_context()
     context.update({
         'event': event,
-
     })
     return render(request, 'info/event/details.html', context)
