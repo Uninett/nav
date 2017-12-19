@@ -2,15 +2,12 @@
  snmptrapd
 ===========
 
-This file contains instructions on how to use the SNMP Trap Daemon NAV
-and how to add trap handlers to it.
+What is the SNMP trap daemon?
+=============================
 
-What is the snmptrapd?
-======================
-
-snmptrapd is a program written in Python, designed to receive traps
-sent to the NAV server and handing them off to trap handler plugins,
-which will process them.  Anyone with some knowledge of Python should
+:program:`snmptrapd` is a program written in Python, designed to receive traps
+sent to the NAV server, and handing them off to trap handler plugins,
+which will process them.  Anyone with some knowledge of Python and SNMP should
 be able to write a new trap handler plugin.
 
 snmptrapd uses the :mod:`pynetsnmp-2` library (via NAV's own ``nav.Snmp``
@@ -26,23 +23,44 @@ snmptrapd can be started and stopped using the regular `nav start` and
 the foreground on the command line, logging all its activites to the
 standard output instead of the log file.
 
-snmptrapd must be started as root, as it will bind to the default SNMP
-Trap port (UDP port 162). It will drop privileges to the `navcron`
-user as soon as the port is bound.
+snmptrapd must be started as root, as it will bind to the default SNMP trap
+port (UDP port 162). It will drop privileges to the ``navcron`` user as soon as
+the port is bound.
+
+::
+
+    usage: snmptrapd.py [-h] [-d] [-c COMMUNITY] [address [address ...]]
+
+    NAV SNMP Trap daemon
+
+    positional arguments:
+      address
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -d, --daemon          Run as daemon
+      -c COMMUNITY, --community COMMUNITY
+			    Which SNMP community incoming traps must use. The
+			    default is 'public'
+
+    One or more address specifications can be given to tell the trap daemon which
+    interface/port combinations it should listen to. The default is 0.0.0.0:162,
+    and, if the system appears to support IPv6, also [::]:162, which means the
+    daemon will accept traps on any IPv4/IPv6 interface, UDP port 162.
 
 
 Logging
 =======
 
-snmptrapd, when daemonized, logs to two separate files:
+snmptrapd, when daemonized, logs to :file:`snmptrapd.log`.
 
-`snmptrapd.log`
-  Generic log output fra snmptrapd.
+When developing new handler modules, or otherwise debugging trap reception in
+NAV, it may be desirable to log full dumps of the trap packet contents. This
+can be done by setting the loglevel ``nav.snmptrapd.traplog = DEBUG`` in NAV's
+logging configuration (:file:`logging.conf`).
 
-`snmptraps.log`
-  Details on every trap received, including unrecognized/unprocessed
-  ones.
-
+.. note:: ``nav.snmptrapd.traplog`` will log the full contents of any received
+          trap, whether any handler modules decided to act on the trap or not.
 
 Configuration
 =============
@@ -56,9 +74,11 @@ Trap handlers
 =============
 
 When snmptrapd receives a trap, it is stored in generic trap object
+(:class:`nav.snmptrapd.trap.SNMPTrap`).
+
 and offered to each of the trap handlers (that are configured in
-`snmptrapd.conf`) in turn.  Each trap handler can inspect the offered
-trap and decide to either process it or discard it.
+`snmptrapd.conf`) in turn.  Each trap handler can inspect the offered trap and
+decide to either process it or discard it.
 
 A trap handler plugin is a Python module that must provide a function
 called ``handleTrap()``.
@@ -74,3 +94,17 @@ you need to write your own trap handler.
 
 .. NOTE::
    For a trap handler to take effect, snmptrapd must first be restarted.
+
+
+nav.snmptrapd.trap.SNMPTrap
+---------------------------
+
+.. warning:: This class interface is subject to change in the future, as the
+             member naming is not according to our :pep:`8`-based naming
+             standard (``camelCase`` vs. ``under_score``)
+
+
+.. autoclass:: nav.snmptrapd.trap.SNMPTrap
+   :members:
+   :show-inheritance:
+

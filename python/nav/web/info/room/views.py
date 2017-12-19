@@ -29,7 +29,7 @@ from django.template import RequestContext
 
 from nav.django.decorators import require_admin
 
-from nav.models.manage import Room, Sensor
+from nav.models.manage import Room, Sensor, Interface
 from nav.models.rack import (Rack, SensorRackItem, SensorsDiffRackItem,
                              SensorsSumRackItem)
 from nav.web.info.forms import SearchForm
@@ -113,13 +113,24 @@ def roominfo(request, roomid):
     images = room.image_set.all()
     navpath = get_path() + [(room.id,)]
     room.sorted_data = sorted(room.data.items())
-
+    room.meta_data = get_room_meta(room)
     return render_to_response("info/room/roominfo.html",
                               {"room": room,
                                "navpath": navpath,
                                "title": create_title(navpath),
                                "images": images},
                               context_instance=RequestContext(request))
+
+
+def get_room_meta(room):
+    """Find meta data for the room"""
+    room_interfaces = Interface.objects.filter(netbox__room=room)
+    return {
+        'devices': room.netbox_set.count(),
+        'interfaces': room_interfaces.count(),
+        'interfaces_with_link': room_interfaces.filter(ifoperstatus=Interface.OPER_UP).count(),
+        'trunk_interfaces': room_interfaces.filter(trunk=True).count()
+    }
 
 
 def render_deviceinfo(request, roomid):
