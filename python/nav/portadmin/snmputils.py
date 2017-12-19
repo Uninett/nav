@@ -280,10 +280,6 @@ class SNMPHandler(BaseHandler):
         return self._set_netbox_value(self.VLAN_EGRESS_PORTS,
                                       fromvlan, 's', modified_hexport)
 
-    def set_native_vlan(self, interface, vlan):
-        """Set native vlan on a trunk interface"""
-        self.set_vlan(interface, vlan)
-
     def set_if_up(self, interface):
         """Set interface.to up"""
         if_index = interface.ifindex
@@ -555,7 +551,7 @@ class Cisco(SNMPHandler):
         # If Cisco and trunk voice vlan (not Cisco voice vlan),
         # we have to set native vlan instead of access vlan
         if voice_activated:
-            return self.set_native_vlan(interface, vlan)
+            return self._set_native_vlan(interface, vlan)
         self._set_vlan(interface, vlan)
 
     def _set_vlan(self, interface, vlan):
@@ -583,7 +579,7 @@ class Cisco(SNMPHandler):
             status = self._set_netbox_value(self.vlan_oid, if_index, "u", vlan)
         return status
 
-    def set_native_vlan(self, interface, vlan):
+    def _set_native_vlan(self, interface, vlan):
         """Set native vlan on a trunk interface"""
         if_index = interface.ifindex
         try:
@@ -639,7 +635,7 @@ class Cisco(SNMPHandler):
         if self._is_trunk(interface):
             self._set_access_mode(interface)
         self._set_trunk_vlans(interface, [])
-        self.set_native_vlan(interface, access_vlan)
+        self._set_native_vlan(interface, access_vlan)
         self.set_vlan(interface, access_vlan)
         interface.trunk = False  # Make sure database is updated
         interface.vlan = access_vlan
@@ -660,7 +656,7 @@ class Cisco(SNMPHandler):
             self._set_trunk_mode(interface)
 
         self._set_trunk_vlans(interface, trunk_vlans)
-        self.set_native_vlan(interface, native_vlan)
+        self._set_native_vlan(interface, native_vlan)
         self._save_trunk_interface(interface, native_vlan, trunk_vlans)
 
     def _set_trunk_mode(self, interface):

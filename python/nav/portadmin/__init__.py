@@ -88,10 +88,6 @@ class BaseHandler(object):
         the previous vlan"""
         raise NotImplementedError
 
-    def set_native_vlan(self, interface, vlan):
-        """Set native vlan on a trunk interface"""
-        raise NotImplementedError
-
     def set_if_up(self, interface):
         """Set interface.to up"""
         raise NotImplementedError
