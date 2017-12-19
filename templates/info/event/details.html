@@ -79,7 +79,7 @@
   {% for alert in event.alertqueue_set.all %}
     <div>
       {{ alert.time }}
-      <ul style="margin-bottom: .5rem">
+      <ul class="alert-recipient-list" style="margin-bottom: .5rem">
         {% for accountalert in alert.accountalertqueue_set.all %}
           <li>
             <span data-tooltip title="{{ accountalert.subscription.alert_address.address }}" class="has-tip">
