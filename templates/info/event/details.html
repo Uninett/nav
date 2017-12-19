@@ -1,0 +1,87 @@
+{% extends 'info/event/base.html' %}
+{% load date_and_time %}
+
+
+{# EVENT DETAILS #}
+
+{% block event_details %}
+  <h4> {{ event.alert_type.name }} event </h4>
+  <small>{{ event.alert_type.description }}</small>
+
+  <table class="table vertitable full-width">
+    <tbody>
+
+      <tr>
+        <th>Source</th>
+        <td>{{ event.source }}</td>
+      </tr>
+
+
+      {% if event.is_stateful %}
+        <tr>
+          <th>Start</th>
+          <td>{{ event.start_time }}</td>
+        </tr>
+
+        <tr>
+          <th>End</th>
+          <td>{{ event.end_time|default_if_none:'Not ended' }}</td>
+        </tr>
+
+        <tr>
+          <th>Duration</th>
+          <td>{{ event.get_downtime|remove_microseconds }}</td>
+        </tr>
+
+      {% else %}
+
+        <tr>
+          <th>Issued</th>
+          <td>{{ event.start_time }}</td>
+        </tr>
+
+      {% endif %}
+
+      <tr>
+        <th>Device</th>
+        <td>{{ event.netbox }}</td>
+      </tr>
+    </tbody>
+  </table>
+{% endblock %}
+
+
+{# EVENT MESSAGES #}
+
+{% block event_messages %}
+  <h4>Alerts that were sent</h4>
+  {% for alert in event.alertqueue_set.all %}
+    <div>
+      {{ alert.time }}
+      <ul style="margin-bottom: .5rem">
+        {% for accountalert in alert.accountalertqueue_set.all %}
+          <li>
+            <span data-tooltip title="{{ accountalert.subscription.alert_address.address }}" class="has-tip">
+              {{ accountalert.account.name }}
+            </span>
+            got
+            <span>
+              {{ accountalert.subscription.alert_address.type.name|lower }}
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
+
+      <button class="tiny secondary toggle-messages">Show alert messages</button>
+      <div style="display: none">
+        {% for message in alert.messages.all %}
+          <dl>
+            <dt>{{ message.type }}</dt>
+            <dd>{{ message.message }}</dd>
+          </dl>
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+
+{% block footer_scripts %}
+  <script>
+   $('.toggle-messages').on('click', function() {
+       $(this).next().slideToggle() ;
+   });
+  </script>
+{% endblock %}
+
+
+{% block base_content %}
+
+  <h1>Event details</h1>
+
+  <div class="row">
+    <div class="column large-4 medium-6">
+      <div class="panel white">
+        {% block event_details %}{% endblock %}
+      </div>
+    </div>
+
+    <div class="column large-4 medium-6">
+      <div class="panel white">
+        {% block event_messages %}{% endblock %}
+      </div>
+    </div>
+
+    <div class="column large-4 medium-6">
+
+    </div>
+
+
+  </div>
+
+
+
+{% endblock %}
