@@ -199,7 +199,7 @@ def get_handler(netbox, **kwargs):
     from .netconfhandler import NetconfHandler
 
     if netbox.readwrite_connection_profile.is_snmp:
-        return SNMPFactory(netbox, **kwargs)
+        return SNMPFactory.get_instance(netbox, **kwargs)
     if (netbox.readwrite_connection_profile.protocol ==
             netbox.readwrite_connection_profile.PROTOCOL_NETCONF):
         return NetconfHandler(netbox, **kwargs)
