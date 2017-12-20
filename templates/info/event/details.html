@@ -240,15 +240,30 @@
 
 {% block footer_scripts %}
   <script>
+   {# Toggle show alert messages #}
    $('.toggle-messages').on('click', function() {
        $(this).next().slideToggle() ;
    });
 
+   {# Shows the correct action form #}
    $('#action-chooser').on('change', function() {
        $('.action-container').hide();
        $('#' + this.value).show();
    });
 
+   {# submits the action  #}
+   $('.action-container form').on('submit', function(e) {
+       e.preventDefault();
+       var request = $.post(this.action, $(this).serialize());
+       request.done(function() {
+           window.location = {% url 'status2-index' %}
+       })
+       request.fail(function(error) {
+           alert('Error submitting form');
+       });
+   });
+
+   {# Fetches any custom alert template and displays it #}
    var request = $.ajax('/api/1/alert/{{event.pk}}', {
        method: 'GET',
        headers: {Accept: 'text/x-nav-html'}
