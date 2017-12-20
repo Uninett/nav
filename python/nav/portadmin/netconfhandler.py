@@ -83,13 +83,25 @@ class NetconfHandler(BaseHandler):
         self._update_ifaliases(interfaces)
         self._update_statuses(interfaces)
 
+    def _get_interface(self, interface):
+        interfaces_config = self._config_data().xpath('./interfaces')[0]
+        basename, unit = interface.ifname.split('.')
+        interface_config = interfaces_config.xpath(
+            './interface[normalize-space(name)="{}"]'.format(basename))
+        if len(interface_config) < 1:
+            return None, None
+        interface_config = interface_config[0]
+        unit = interface_config.xpath('unit[name="{}"]'.format(unit))
+        if len(unit) < 1:
+            return None, None
+        return interface_config, unit[0]
+
     def _update_ifaliases(self, interfaces):
-        iface_config = self._config_data().xpath('./interfaces')[0]
         for interface in interfaces:
             if "." not in interface.ifname:
                 continue
-            basename, unit = interface.ifname.split('.')
-            for alias in iface_config.xpath('./interface[normalize-space(name)="{}"]/unit[name="{}"]/alias'.format(basename, unit)):
+            _, unit = self._get_interface(interface)
+            for alias in unit.xpath('alias'):
                 interface.ifalias = alias.text
 
     def _update_statuses(self, interfaces):
@@ -106,10 +118,7 @@ class NetconfHandler(BaseHandler):
 
     def set_if_alias(self, interface, if_alias):
         """Set alias on a specific interface."""
-        basename, unit = interface.ifname.split('.')
-        iface_config = self._config_data().xpath('./interfaces')[0]
-        top_interface_config = iface_config.xpath('./interface[normalize-space(name)="{}"]'.format(basename))[0]
-        unit = top_interface_config.xpath('unit[name="{}"]'.format(unit))[0]
+        interface_config, unit = self._get_interface(interface)
         aliases = unit.xpath('alias')
         if len(aliases) > 0:
             alias = aliases[0]
@@ -118,10 +127,21 @@ class NetconfHandler(BaseHandler):
             unit.append(alias)
         alias.text = if_alias
 
-    def set_vlan(self, interface, vlan):
+    def set_vlan(self, interface, vlan, voice_activated=False):
         """Set a new vlan on the given interface and remove
         the previous vlan"""
-        raise NotImplementedError
+        interface_config, unit = self._get_interface(interface)
+        vlans = self._get_vlans()
+        previous_vlan_nane = vlans[interface.vlan]
+        if_vlan_config = unit.xpath('family/ethernet-switching/vlan')
+        if len(if_vlan_config) < 1:
+            raise RuntimeError("Missing expected interface configuration")
+        if_vlan_config = if_vlan_config[0]
+        for prev in if_vlan_config.xpath('members[text()="{name}"]'.format(name=previous_vlan_nane)):
+            prev.getparent().remove(prev)
+        m = etree.Element('members')
+        m.text = vlans[vlan]
+        if_vlan_config.append(m)
 
     def set_if_up(self, interface):
         """Set interface.to up"""
@@ -158,14 +178,21 @@ class NetconfHandler(BaseHandler):
         """Query administration status for a given interface."""
         raise NotImplementedError
 
+    def _get_vlans(self):
+        vlans = {}
+        for vlan in self._config_data().xpath('vlans/vlan'):
+            (vlan_id,) = vlan.xpath('vlan-id/text()')
+            (name,) = vlan.xpath('name/text()')
+            vlans[int(vlan_id)] = str(name)
+        return vlans
+
     def get_available_vlans(self):
         """Get available vlans from the box
 
         This is similar to the terminal command "show vlans"
 
         """
-        return [int(x.strip()) for x in
-                self._config_data().xpath('vlans/vlan/vlan-id/text()')]
+        return list(self._get_vlans().keys())
 
     def get_native_and_trunked_vlans(self, interface):
         """Get the trunked vlans on this interface
