@@ -316,6 +316,7 @@ def set_interface_values(account, interface, request, handler):
         set_ifalias(account, handler, interface, request)
         set_vlan(account, handler, interface, request)
         set_admin_status(handler, interface, request)
+        handler.commit()
         save_to_database([interface])
     else:
         messages.info(request, 'Could not connect to netbox')
@@ -548,6 +549,7 @@ def handle_trunk_edit(request, handler, interface):
         handler.set_trunk(interface, native_vlan, trunked_vlans)
     else:
         handler.set_access(interface, native_vlan)
+    handler.commit()
 
 
 @require_POST

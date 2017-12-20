@@ -75,6 +75,11 @@ class BaseHandler(object):
         """Test if write works"""
         return False
 
+    def commit(self):
+        """Activate all changes added. Default implementation does nothing,
+        assuming the handler activates changes continuously"""
+        return
+
     def get_interface_livedata(self, interfaces):
         """ Update *interfaces* with livedata """
         raise NotImplementedError

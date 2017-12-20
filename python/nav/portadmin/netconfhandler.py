@@ -136,9 +136,9 @@ class NetconfHandler(BaseHandler):
             wait = number of seconds to wait between down and up."""
         raise NotImplementedError
 
-    def write_mem(self):
-        """ Do a write memory on netbox if available"""
-        logger.debug("Saving updated config")
+    def commit(self):
+        """Enable all pending changes"""
+        logger.warning("Saving updated config")
         save = etree.Element("config")
         save.append(deepcopy(self._config_data()))
         logger.debug(etree.tostring(save, pretty_print=True))
@@ -149,6 +149,10 @@ class NetconfHandler(BaseHandler):
             except Exception as exception:
                 logger.exception("Error saving configuration")
                 raise exception
+
+    def write_mem(self):
+        """ Do a write memory on netbox if available. Not implemented yet"""
+        return
 
     def get_if_admin_status(self, if_index):
         """Query administration status for a given interface."""
