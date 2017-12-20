@@ -13,19 +13,6 @@
   </style>
 {% endblock %}
 
-{% block footer_scripts %}
-  <script>
-   $('.toggle-messages').on('click', function() {
-       $(this).next().slideToggle() ;
-   });
-
-   $('#action-chooser').on('change', function() {
-       $('.action-container').hide();
-       $('#' + this.value).show();
-   });
-  </script>
-{% endblock %}
-
 
 {% block base_content %}
 
@@ -50,9 +37,7 @@
       </div>
     </div>
 
-
   </div>
-
 
 
 {% endblock %}

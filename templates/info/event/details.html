@@ -226,3 +226,27 @@
   </div>
 
 {% endblock %}
+
+
+{% block footer_scripts %}
+  <script>
+   $('.toggle-messages').on('click', function() {
+       $(this).next().slideToggle() ;
+   });
+
+   $('#action-chooser').on('change', function() {
+       $('.action-container').hide();
+       $('#' + this.value).show();
+   });
+
+   var request = $.ajax('/api/1/alert/{{event.pk}}', {
+       method: 'GET',
+       headers: {Accept: 'text/x-nav-html'}
+   });
+   request.done(function(response) {
+       if (response) {
+           $('.navbody').append($('<div class="panel white">').html(response));
+       }
+   });
+  </script>
+{% endblock %}
