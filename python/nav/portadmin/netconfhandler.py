@@ -192,6 +192,9 @@ class NetconfHandler(BaseHandler):
     def write_mem(self):
         """ Do a write memory on netbox if available. Not implemented yet"""
         return
+        # Probably something like this depending on device support:
+        # with self._connection() as m:
+        #     m.copy_config('running', 'startup')
 
     def get_if_admin_status(self, interface):
         """Query administration status for a given interface."""
