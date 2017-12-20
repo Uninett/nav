@@ -61,12 +61,20 @@
 
       {% endif %}
 
-      <tr>
-        <th>Subject</th>
-        <td>
-          <a href="{{ event.get_subject.get_absolute_url }}">{{ event.get_subject }}</a>
-        </td>
-      </tr>
+      {% with subject=event.get_subject %}
+        <tr>
+          <th>Subject</th>
+          <td>
+            {% with subject_url=subject.get_absolute_url %}
+              {% if subject_url %}
+                <a href="{{ subject_url }}">{{ subject }}</a>
+              {% else %}
+                {{ subject }}
+              {% endif %}
+            {% endwith %}
+          </td>
+        </tr>
+      {% endwith %}
     </tbody>
   </table>
 {% endblock %}
@@ -105,6 +113,8 @@
         {% endfor %}
       </div>
     </div>
+  {% empty %}
+    <p>No alerts were sent</p>
   {% endfor %}
 
 {% endblock %}
