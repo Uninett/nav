@@ -21,7 +21,7 @@ from os.path import join
 from django.utils.encoding import python_2_unicode_compatible
 
 from nav.config import find_configfile
-from nav.models.manage import Vlan
+from nav.models.manage import SwPortAllowedVlan, Vlan
 
 CONFIGFILE = find_configfile(join("portadmin", "portadmin.conf")) or ''
 
@@ -58,6 +58,23 @@ class FantasyVlan(object):
 
     def __cmp__(self, other):
         return cmp(self.vlan, other.vlan)
+
+
+def save_trunk_interface(interface, native_vlan, trunk_vlans):
+    interface.vlan = native_vlan
+    interface.trunk = True
+    _set_interface_hex(interface, trunk_vlans)
+    interface.save()
+
+
+def _set_interface_hex(interface, trunk_vlans):
+    try:
+        allowedvlan = interface.swportallowedvlan
+    except SwPortAllowedVlan.DoesNotExist:
+        allowedvlan = SwPortAllowedVlan(interface=interface)
+
+    allowedvlan.set_allowed_vlans(trunk_vlans)
+    allowedvlan.save()
 
 
 class BaseHandler(object):
@@ -148,9 +165,12 @@ class BaseHandler(object):
 
         """
         self.set_trunk(interface, interface.vlan, [voice_vlan])
+        save_trunk_interface(interface, interface.vlan, [voice_vlan])
 
     def disable_voice_vlan(self, interface):
         self.set_access(interface, interface.vlan)
+        interface.trunk = False
+        interface.save()
 
     def get_native_and_trunked_vlans(self, interface):
         """Get the trunked vlans on this interface

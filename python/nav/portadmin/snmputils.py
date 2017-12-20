@@ -455,31 +455,11 @@ class SNMPHandler(BaseHandler):
                       access_vlan, interface)
         self.set_vlan(interface, access_vlan)
         self._set_trunk_vlans(interface, [])
-        interface.vlan = access_vlan
-        interface.trunk = False
-        interface.save()
 
     def set_trunk(self, interface, native_vlan, trunk_vlans):
         """Set this port in trunk mode and set native vlan"""
         self.set_vlan(interface, native_vlan)
         self._set_trunk_vlans(interface, trunk_vlans)
-        self._save_trunk_interface(interface, native_vlan, trunk_vlans)
-
-    def _save_trunk_interface(self, interface, native_vlan, trunk_vlans):
-        interface.vlan = native_vlan
-        interface.trunk = True
-        self._set_interface_hex(interface, trunk_vlans)
-        interface.save()
-
-    @staticmethod
-    def _set_interface_hex(interface, trunk_vlans):
-        try:
-            allowedvlan = interface.swportallowedvlan
-        except SwPortAllowedVlan.DoesNotExist:
-            allowedvlan = SwPortAllowedVlan(interface=interface)
-
-        allowedvlan.set_allowed_vlans(trunk_vlans)
-        allowedvlan.save()
 
     @staticmethod
     def _find_vlans_for_interface(interface):
@@ -629,16 +609,11 @@ class Cisco(SNMPHandler):
         self._set_trunk_vlans(interface, [])
         self._set_native_vlan(interface, access_vlan)
         self.set_vlan(interface, access_vlan)
-        interface.trunk = False  # Make sure database is updated
-        interface.vlan = access_vlan
-        interface.save()
 
     def _set_access_mode(self, interface):
         _logger.debug("set_access_mode: %s", interface)
         self._set_netbox_value(self.TRUNKPORTSTATE, interface.ifindex, 'i',
                                self.TRUNKSTATE_OFF)
-        interface.trunk = False
-        interface.save()
 
     def set_trunk(self, interface, native_vlan, trunk_vlans):
         """Check for trunk, set native vlan, set trunk vlans"""
@@ -649,7 +624,6 @@ class Cisco(SNMPHandler):
 
         self._set_trunk_vlans(interface, trunk_vlans)
         self._set_native_vlan(interface, native_vlan)
-        self._save_trunk_interface(interface, native_vlan, trunk_vlans)
 
     def _set_trunk_mode(self, interface):
         _logger.debug("_set_trunk_mode %s", interface)
@@ -659,8 +633,6 @@ class Cisco(SNMPHandler):
         # Set encapsulation to dot1Q TODO: Support other encapsulations
         self._set_netbox_value(self.TRUNKPORTENCAPSULATION, ifindex, 'i',
                                self.ENCAPSULATION_DOT1Q)
-        interface.trunk = True
-        interface.save()
 
     def _set_trunk_vlans(self, interface, vlans):
         """Set trunk vlans

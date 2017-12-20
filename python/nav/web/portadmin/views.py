@@ -48,7 +48,7 @@ from nav.web.portadmin.utils import (find_and_populate_allowed_vlans,
                                      is_write_mem_enabled,
                                      is_dot1x_enabled)
 from nav.Snmp.errors import SnmpError, TimeOutException
-from nav.portadmin import get_handler
+from nav.portadmin import get_handler, save_trunk_interface
 from .forms import SearchForm
 
 _logger = logging.getLogger("nav.web.portadmin")
@@ -547,8 +547,12 @@ def handle_trunk_edit(request, handler, interface):
 
     if trunked_vlans:
         handler.set_trunk(interface, native_vlan, trunked_vlans)
+        save_trunk_interface(interface, native_vlan, trunked_vlans)
     else:
         handler.set_access(interface, native_vlan)
+        interface.vlan = native_vlan
+        interface.trunk = False
+        interface.save()
     handler.commit()
 
 
