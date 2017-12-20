@@ -220,25 +220,66 @@ class NetconfHandler(BaseHandler):
     def get_native_and_trunked_vlans(self, interface):
         """Get the trunked vlans on this interface
 
-        For each available vlan, fetch list of interfaces that forward this
-        vlan. If the interface index is in this list, add the vlan to the
-        return list.
-
         :returns native vlan + list of trunked vlan
 
         """
-        raise NotImplementedError
+        interface_config, unit = self._get_interface(interface)
+        switching_config = unit.xpath('family/ethernet-switching')
+        if not switching_config:
+            raise RuntimeError("Missing expected interface configuration")
+        switching_config = switching_config[0]
+        vlan_mapping = {name: vlan_id for vlan_id, name in
+                        self._get_vlans().items()}
+        if switching_config.xpath('port-mode[text()="trunk"]'):
+            native_vlan = None
+            vlans = []
+            for nvi in switching_config.xpath('native-vlan-id'):
+                native_vlan = int(nvi.text)
+            for vlan in switching_config.xpath('vlan/members'):
+                vlans.append(int(vlan_mapping.get(vlan.text, vlan.text)))
+            return native_vlan, vlans
+        for vlan in switching_config.xpath('vlan/members'):
+            return int(vlan_mapping.get(vlan.text, vlan.text)), []
+        return None, []
+
+    def _set_port(self, interface, mode, native_vlan_id, vlans):
+        interface_config, unit = self._get_interface(interface)
+        switching_config = unit.xpath('family/ethernet-switching')
+        if not switching_config:
+            raise RuntimeError("Missing expected interface configuration")
+        switching_config = switching_config[0]
+        for pm in switching_config.xpath('port-mode'):
+            pm.getparent().remove(pm)
+        pm = etree.Element('port-mode')
+        pm.text = mode
+        switching_config.append(pm)
+        for vlan in switching_config.xpath('vlan'):
+            vlan.clear()
+        else:
+            vlan = etree.Element('vlan')
+            switching_config.append(vlan)
+        for nvi in switching_config.xpath('native-vlan-id'):
+            nvi.getparent().remove(nvi)
+        if native_vlan_id:
+            nvi = etree.Element('native-vlan-id')
+            nvi.text = str(native_vlan_id)
+            switching_config.append(nvi)
+        vlan_map = self._get_vlans()
+        for vlan_id in vlans:
+            member = etree.Element('members')
+            member.text = vlan_map.get(vlan_id, str(vlan_id))
+            vlan.append(member)
 
     def set_access(self, interface, access_vlan):
         """Set this port in access mode and set access vlan
 
         Means - remove all vlans except access vlan from this interface
         """
-        raise NotImplementedError
+        self._set_port(interface, 'access', None, [access_vlan])
 
     def set_trunk(self, interface, native_vlan, trunk_vlans):
         """Set this port in trunk mode and set native vlan"""
-        raise NotImplementedError
+        self._set_port(interface, 'trunk', native_vlan, trunk_vlans)
 
     def get_dot1x_enabled_interfaces(self):
         """"""
