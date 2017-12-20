@@ -41,7 +41,10 @@ class AcknowledgementSerializer(serializers.ModelSerializer):
     def transform_comment_html(_obj, value):
         """Urlize content, but make sure other tags are stripped as we need
         to output this raw"""
-        return urlize(strip_tags(value))
+        try:
+            return urlize(strip_tags(value))
+        except TypeError:
+            return ''
 
     class Meta(object):
         model = event.Acknowledgement
