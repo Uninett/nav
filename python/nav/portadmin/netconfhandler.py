@@ -118,7 +118,7 @@ class NetconfHandler(BaseHandler):
             if "." not in interface.ifname:
                 continue
             basename, unit = interface.ifname.split('.')
-            iface_data = self._interface_data().xpath('./physical-interface[name="{basename}"]'.format(basename=basename))
+            iface_data = self._interface_data().xpath('./physical-interface[normalize-space(name)="{basename}"]'.format(basename=basename))
             if len(iface_data) < 1:
                 continue
             iface_data = iface_data[0]
