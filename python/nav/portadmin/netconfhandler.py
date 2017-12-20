@@ -81,6 +81,7 @@ class NetconfHandler(BaseHandler):
 
     def get_interface_livedata(self, interfaces):
         self._update_ifaliases(interfaces)
+        self._update_vlans(interfaces)
         self._update_statuses(interfaces)
 
     def _get_interface(self, interface):
@@ -103,6 +104,14 @@ class NetconfHandler(BaseHandler):
             _, unit = self._get_interface(interface)
             for alias in unit.xpath('alias'):
                 interface.ifalias = alias.text
+
+    def _update_vlans(self, interfaces):
+        vlans = {name: vlan_id for vlan_id, name in self._get_vlans().items()}
+        for interface in interfaces:
+            _, unit = self._get_interface(interface)
+            for vlan in unit.xpath('family/ethernet-switching/vlan[port-mode="access"]'):
+                for member in vlan.xpath('members'):
+                    interface.vlan = vlans.get(int(member.text), interface.vlan)
 
     def _update_statuses(self, interfaces):
         for interface in interfaces:
