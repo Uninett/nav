@@ -178,7 +178,7 @@ class NetconfHandler(BaseHandler):
 
     def commit(self):
         """Enable all pending changes"""
-        logger.warning("Saving updated config")
+        logger.debug("Saving updated config")
         save = etree.Element("config")
         save.append(deepcopy(self._config_data()))
         logger.debug(etree.tostring(save, pretty_print=True))
