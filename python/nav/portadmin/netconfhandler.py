@@ -17,6 +17,7 @@
 
 from copy import deepcopy
 import logging
+import time
 
 from lxml import etree
 from ncclient import manager
@@ -154,16 +155,25 @@ class NetconfHandler(BaseHandler):
 
     def set_if_up(self, interface):
         """Set interface.to up"""
-        raise NotImplementedError
+        interface_config, _ = self._get_interface(interface)
+        for disable in interface_config.xpath('disable'):
+            disable.getparent().remove(disable)
 
     def set_if_down(self, interface):
         """Set interface.to down"""
-        raise NotImplementedError
+        self.set_if_up(interface)
+        interface_config, _ = self._get_interface(interface)
+        disable = etree.Element('disable')
+        interface_config.append(disable)
 
     def restart_if(self, interface, wait=5):
         """ Take interface down and up.
             wait = number of seconds to wait between down and up."""
-        raise NotImplementedError
+        self.set_if_down(interface)
+        self.commit()
+        time.sleep(wait)
+        self.set_if_up(interface)
+        self.commit()
 
     def commit(self):
         """Enable all pending changes"""
@@ -183,9 +193,10 @@ class NetconfHandler(BaseHandler):
         """ Do a write memory on netbox if available. Not implemented yet"""
         return
 
-    def get_if_admin_status(self, if_index):
+    def get_if_admin_status(self, interface):
         """Query administration status for a given interface."""
-        raise NotImplementedError
+        self._update_statuses([interface])
+        return interface.ifadminstatus
 
     def _get_vlans(self):
         vlans = {}
