@@ -12,12 +12,12 @@
 
   {% with ack=event.is_acknowledged %}
     {% if ack %}
-      <p>
-        <span title="Acknowledged {{ ack.date }} by {{ ack.account.name }}" class="label">
-          <i class="fa fa-check-circle-o"></i>
-          Acknowledged
-        </span>
-      </p>
+      <div class="alert-box info">
+        Acknowledged {{ ack.date }} by {{ ack.account.name }}
+        {% if ack.comment %}
+          <div>"{{ ack.comment }}"</div>
+        {% endif %}
+      </div>
     {% endif %}
   {% endwith %}
 
