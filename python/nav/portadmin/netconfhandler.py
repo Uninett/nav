@@ -48,6 +48,7 @@ class NetconfHandler(BaseHandler):
             password=profile.password,
             unknown_host_cb=host_key_callback,
             device_params={'name': 'junos'},
+            timeout=60,
         )
 
     def test_read(self):
