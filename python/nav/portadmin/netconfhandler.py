@@ -144,7 +144,7 @@ class NetconfHandler(BaseHandler):
         logger.debug(etree.tostring(save, pretty_print=True))
         with self._connection() as m:
             try:
-                m.edit_config(config=save)
+                m.edit_config(config=save, default_operation="replace")
                 m.commit()
             except Exception as exception:
                 logger.exception("Error saving configuration")
