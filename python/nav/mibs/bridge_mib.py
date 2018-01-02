@@ -36,7 +36,7 @@ class BridgeMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_base_bridge_address(self):
-        addr = yield self.retrieve_column_by_index('dot1dBaseBridgeAddress', (0,))
+        addr = yield self.get_next('dot1dBaseBridgeAddress')
         defer.returnValue(addr)
 
     @defer.inlineCallbacks
