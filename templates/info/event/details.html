@@ -72,6 +72,10 @@
                 {{ subject }}
               {% endif %}
             {% endwith %}
+
+            {% if event.is_open and subject.is_on_maintenance %}
+              <span class="label warning">On maintenance</span>
+            {% endif %}
           </td>
         </tr>
       {% endwith %}
