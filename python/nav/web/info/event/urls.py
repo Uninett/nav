@@ -22,5 +22,5 @@ from nav.web.info.event import views
 urlpatterns = patterns(
     '',
     url(r'^$', views.main),
-    url(r'^(?P<event_id>\d+)', views.render_event),
+    url(r'^(?P<event_id>\d+)', views.render_event, name='event-details'),
 )
