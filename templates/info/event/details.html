@@ -61,66 +61,144 @@
 
       {% endif %}
 
-      {% with subject=event.get_subject %}
-        <tr>
-          <th>Subject</th>
-          <td>
-            {% with subject_url=subject.get_absolute_url %}
-              {% if subject_url %}
-                <a href="{{ subject_url }}">{{ subject }}</a>
-              {% else %}
-                {{ subject }}
-              {% endif %}
-            {% endwith %}
+      <tr>
+        <th>
+          Subject
+        </th>
+        <td>
+          {% with subject=event.get_subject %}
+            {% include 'info/event/frag_subject_details.html' %}
+          {% endwith %}
+        </td>
+      </tr>
 
-            {% if event.is_open and subject.is_on_maintenance %}
-              <span class="label warning">On maintenance</span>
-            {% endif %}
+      {% if event.netbox %}
+        <tr>
+          <th>Links</th>
+          <td>
+            <ul>
+              <li>
+                <a href="{% url 'ipdevinfo-details-by-id' event.netbox.pk %}">
+                  Device Info
+                </a>
+              </li>
+              <li>
+                <a href="{% url 'devicehistory-view-netbox' event.netbox.pk %}">
+                  Device History
+                </a>
+              </li>
+            </ul>
           </td>
         </tr>
-      {% endwith %}
+      {% endif %}
+
     </tbody>
   </table>
+{% endblock %}
+
+
+{# RELATED NETBOX EVENTS #}
+{% block related_netbox_events %}
+  <h4>
+    Last 10 events for {{ event.netbox }}
+  </h4>
+  <div id="related-events-container">
+    <table class="listtable">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Duration</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for event in related_netbox_events %}
+          <tr>
+            <td>
+              <a href="{% url 'event-details' event.pk %}" title="{{ event.alert_type.description }}">
+                {{ event.alert_type.name }}
+              </a>
+            </td>
+            <td>{{ event.start_time }}</td>
+            <td>
+              {% if event.is_open %}
+                Still active
+              {% else %}
+                {{ event.end_time|default:'' }}
+              {% endif %}
+            </td>
+            <td>
+              {{ event.get_downtime|remove_microseconds|default:'' }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
+
+
+{# RELATED EVENT TYPE EVENTS #}
+{% block related_type_events %}
+  <h4>
+    Last 10 {{ event.alert_type.name }} events
+  </h4>
+  <div id="related-type-container">
+    <table class="listtable">
+      <thead>
+        <tr>
+          <th>Start</th>
+          <th>End</th>
+          <th>Duration</th>
+          <th>Subject</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for event in related_type_events %}
+          <tr>
+            <td>
+              <a href="{% url 'event-details' event.pk %}">
+                {{ event.start_time }}
+              </a>
+            </td>
+            <td>
+              {% if event.is_open %}
+                Still active
+              {% else %}
+                {{ event.end_time|default:'' }}
+              {% endif %}
+            </td>
+            <td>
+              {{ event.get_downtime|remove_microseconds|default:'' }}
+            </td>
+            <td>
+              {% with subject=event.get_subject %}
+                {% include 'info/event/frag_subject_details.html' %}
+              {% endwith %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 {% endblock %}
 
 
 {# EVENT MESSAGES #}
 
 {% block event_messages %}
-  <h4>Alerts that were sent</h4>
-  {% for alert in event.alertqueue_set.all %}
-    <div>
-      {{ alert.time }}
-      <ul class="alert-recipient-list" style="margin-bottom: .5rem">
-        {% for accountalert in alert.accountalertqueue_set.all %}
-          <li>
-            <span data-tooltip title="{{ accountalert.subscription.alert_address.address }}" class="has-tip">
-              {{ accountalert.account.name }}
-            </span>
-            got
-            <span>
-              {{ accountalert.subscription.alert_address.type.name|lower }}
-            </span>
-          </li>
-        {% endfor %}
-      </ul>
-
-      <button class="tiny secondary toggle-messages">Show alert messages</button>
-      <div class="alert-message-container" style="display: none">
-        {% for message in alert.messages.all %}
-          <dl>
-            <dt>{{ message.type }}</dt>
-            <dd>
-              {{ message.message|linebreaks }}
-            </dd>
-          </dl>
-        {% endfor %}
-      </div>
-    </div>
-  {% empty %}
-    <p>No alerts were sent</p>
+  <h4>Alert messages</h4>
+  {% for message in event.messages.all|dictsort:'type' %}
+    <dl>
+      <dt>{{ message.type }}</dt>
+      <dd>
+        {{ message.message|linebreaks }}
+      </dd>
+    </dl>
   {% endfor %}
-
 {% endblock %}
 
 

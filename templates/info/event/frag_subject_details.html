@@ -1,0 +1,11 @@
+{% with subject_url=subject.get_absolute_url %}
+  {% if subject_url %}
+    <a href="{{ subject_url }}">{{ subject }}</a>
+  {% else %}
+    {{ subject }}
+  {% endif %}
+{% endwith %}
+
+{% if event.is_open and subject.is_on_maintenance %}
+  <span class="label warning">On maintenance</span>
+{% endif %}

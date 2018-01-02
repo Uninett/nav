@@ -45,8 +45,15 @@ def render_event(request, event_id):
 
     event = get_object_or_404(AlertHistory, pk=event_id)
 
+    related_netbox_events = AlertHistory.objects.filter(
+        netbox=event.netbox).order_by('-start_time')[:10]
+    related_type_events = AlertHistory.objects.filter(
+        alert_type=event.alert_type).order_by('-start_time')[:10]
+
     context = get_context()
     context.update({
         'event': event,
+        'related_netbox_events': related_netbox_events,
+        'related_type_events': related_type_events
     })
     return render(request, 'info/event/details.html', context)
