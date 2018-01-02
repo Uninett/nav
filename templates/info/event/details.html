@@ -229,7 +229,9 @@
         <input type="text" name="description" placeholder="" />
       </label>
 
-      <a data-dropdown="acknowledge-info" aria-controls="acknowledge-info" aria-expanded="false">About acknowledging</a>
+      <a data-dropdown="acknowledge-info" aria-controls="acknowledge-info" aria-expanded="false">
+        About
+      </a>
 
       <input type="submit" class="button small secondary right" value="Acknowledge alert" />
     </form>
@@ -249,7 +251,7 @@
   <div id="actions-resolve" class="action-container">
     <form action="{% url 'status2_clear_alert' %}">
       <input type="hidden" name="id[]" value="{{ event.pk }}" />
-      <a data-dropdown="resolve-info" aria-controls="resolve-info" aria-expanded="false">About clearing alerts</a>
+      <a data-dropdown="resolve-info" aria-controls="resolve-info" aria-expanded="false">About</a>
       <input type="submit" class="button small secondary right" value="Clear alert" />
     </form>
 
@@ -282,7 +284,7 @@
     </form>
 
     <a data-dropdown="maintenance-info" aria-controls="maintenance-info" aria-expanded="false">
-      About putting on maintenance
+      About
     </a>
 
     <div id="maintenance-info" data-dropdown-content class="f-dropdown content small" aria-hidden="true" tabindex="-1">
@@ -305,7 +307,7 @@
     </form>
 
     <a data-dropdown="delete-info" aria-controls="delete-info" aria-expanded="false">
-      About deleting module or chassis
+      About
     </a>
 
     <div id="delete-info" data-dropdown-content class="f-dropdown content small" aria-hidden="true" tabindex="-1">
