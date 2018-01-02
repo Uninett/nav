@@ -128,8 +128,12 @@
   <select id="action-chooser" name="action">
     <option value="">----------</option>
     <option value="actions-acknowledge">Acknowledge alert</option>
-    <option value="actions-resolve">Clear alert</option>
-    <option value="actions-maintenance">Put on maintenance</option>
+    {% if event.is_open %}
+      <option value="actions-resolve">Clear alert</option>
+    {% endif %}
+    {% if event.get_subject.pk %}
+      <option value="actions-maintenance">Put on maintenance</option>
+    {% endif %}
     <option value="actions-delete">Delete module or chassis</option>
   </select>
 
