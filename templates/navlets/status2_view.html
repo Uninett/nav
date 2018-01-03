@@ -33,7 +33,11 @@
               {% if result.on_maintenance %}<i class="fa fa-wrench" title="On maintenance"></i>{% endif %}
               {% if result.acknowledgement %}<i class="fa fa-check-circle-o" title="Acknowledged"></i>{% endif %}
             </td>
-            <td>{{ result.alert_type.name }}</td>
+            <td>
+              <a href="{{ result.event_details_url }}" title="See event details">
+                {{ result.alert_type.name }}
+              </a>
+            </td>
             <td class="alerttime">
               {{ result.formatted_time }}
               {% if not result.end_time %}<i class="fa fa-warning" title="Stateless" style="color: #FF8F00"></i>{% endif %}
