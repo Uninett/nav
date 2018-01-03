@@ -218,7 +218,9 @@
     {% if event.get_subject.pk %}
       <option value="actions-maintenance">Put on maintenance</option>
     {% endif %}
-    <option value="actions-delete">Delete module or chassis</option>
+    {% if is_module_or_chassis %}
+      <option value="actions-delete">Delete module or chassis</option>
+    {% endif %}
   </select>
 
   {# Acknowledge alert #}

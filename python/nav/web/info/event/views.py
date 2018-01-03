@@ -53,7 +53,13 @@ def render_event(request, event_id):
     context = get_context()
     context.update({
         'event': event,
+        'is_module_or_chassis': is_module_or_chassis(event),
         'related_netbox_events': related_netbox_events,
         'related_type_events': related_type_events
     })
     return render(request, 'info/event/details.html', context)
+
+
+def is_module_or_chassis(event):
+    return (event.event_type.pk == 'moduleState' or
+            event.event_type.pk == 'chassisState')
