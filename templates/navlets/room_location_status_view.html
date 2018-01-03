@@ -24,8 +24,8 @@
             {% for alert in item.alerts %}
               <li>
                 {{ alert.start_time }} &ndash;
-                <a href="{{ alert.netbox.get_absolute_url }}"
-                   title="Go to device info for this device">
+                <a href="{% url 'event-details' alert.pk %}"
+                   title="See alert details">
                   {{ alert.sms_message.message }}
                 </a>
               </li>
