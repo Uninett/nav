@@ -40,7 +40,7 @@
           <th>End</th>
           <td>
             {% if event.is_open %}
-              Still active
+              Unresolved
             {% else %}
               {{ event.end_time }}
             {% endif %}
@@ -124,7 +124,7 @@
             <td>{{ event.start_time }}</td>
             <td>
               {% if event.is_open %}
-                Still active
+                Unresolved
               {% else %}
                 {{ event.end_time|default:'' }}
               {% endif %}
@@ -166,7 +166,7 @@
             </td>
             <td>
               {% if event.is_open %}
-                Still active
+                Unresolved
               {% else %}
                 {{ event.end_time|default:'' }}
               {% endif %}
