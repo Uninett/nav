@@ -1,25 +1,41 @@
 <td class="action-cell">
   <label>
-    <input class='alert-action' type="checkbox">
+    <input class='alert-action' type="checkbox" />
   </label>
 </td>
+
 <td>
   {{#if on_maintenance}}<i class="fa fa-wrench fa-lg" title="On maintenance"></i>{{/if}}
   {{#if acknowledgement}}<i class="fa fa-check-circle-o fa-lg" title="Acknowledged"></i>{{/if}}
 </td>
+
+<td class="toggle-info-cell">
+  <a data-dropdown="drop-{{id}}">Details</a>
+  <div id="drop-{{id}}" data-dropdown-content class="f-dropdown content medium">
+    <ul>
+      <li><a href="/search/event/{{ id }}">Event details</a></li>
+      <li><a href="/">History for {{alert_type.name}}</a></li>
+      {{#if netbox_history_url}}
+      <li><a href="{{netbox_history_url}}">History for {{subject}}</a></li>
+      {{/if}}
+    </ul>
+    <div class='api-html'></div>
+  </div>
+</td>
+
 <td>
   {{#if subject_url }}<a href="{{ subject_url }}">{{ subject }}</a>
   {{else}}{{ subject }}{{/if}}
 </td>
-<td>{{ alert_type.name }}</td>
+
+<td><span title="{{ alert_type.description }}">{{ alert_type.name }}</span></td>
+
 <td>
     {{ dateFormat start_time }}
 </td>
+
 <td>
     {{#if end_time}}
         {{ timeSince start_time }}
     {{/if}}
-</td>
-<td class="toggle-info-cell">
- <a href="javascript:void(0);" title="More information"><i class="fa fa-caret-down fa-lg"></i></a>  
 </td>

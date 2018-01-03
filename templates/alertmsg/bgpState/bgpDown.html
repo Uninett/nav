@@ -1,5 +1,5 @@
 {% extends "alertmsg/base.html" %}
-{% block left-content %}
+{% block event-content %}
     {% with session=alert.get_subject %}
 
         <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a>
