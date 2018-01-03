@@ -16,6 +16,8 @@
 """Controllers for the event info pages"""
 
 import datetime
+import operator
+import itertools
 
 from django.shortcuts import get_object_or_404, render
 
@@ -55,7 +57,8 @@ def render_event(request, event_id):
         'event': event,
         'is_module_or_chassis': is_module_or_chassis(event),
         'related_netbox_events': related_netbox_events,
-        'related_type_events': related_type_events
+        'related_type_events': related_type_events,
+        'messages': get_messages(event)
     })
     return render(request, 'info/event/details.html', context)
 
@@ -63,3 +66,11 @@ def render_event(request, event_id):
 def is_module_or_chassis(event):
     return (event.event_type.pk == 'moduleState' or
             event.event_type.pk == 'chassisState')
+
+
+def get_messages(event):
+    """Filter messages and group by type"""
+    msgs = event.messages.filter(language='en')
+    keyfunc = operator.attrgetter('state')
+    return {k: sorted(g, key=operator.attrgetter('type'))
+            for k, g in itertools.groupby(msgs, key=keyfunc)}

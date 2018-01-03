@@ -1,6 +1,6 @@
 {% extends 'info/event/base.html' %}
 {% load date_and_time %}
-
+{% load info %}
 
 {# EVENT DETAILS #}
 
@@ -193,14 +193,29 @@
 
 {% block event_messages %}
   <h4>Alert messages</h4>
-  {% for message in event.messages.all|dictsort:'type' %}
-    <dl>
-      <dt>{{ message.type }}</dt>
-      <dd>
-        {{ message.message|linebreaks }}
-      </dd>
-    </dl>
-  {% endfor %}
+
+  {% if event.is_stateful %}
+
+    <h5>Start messages</h5>
+    {% for m in messages|lookup:'s' %}
+      {% include 'info/event/frag_event_message.html' %}
+    {% endfor %}
+
+    {% if not event.is_open %}
+      <hr/>
+
+      <h5>End messages</h5>
+      {% for m in messages|lookup:'e' %}
+        {% include 'info/event/frag_event_message.html' %}
+      {% endfor %}
+    {% endif %}
+
+  {% else %}
+    {% for m in messages|lookup:'x' %}
+      {% include 'info/event/frag_event_message.html' %}
+    {% endfor %}
+  {% endif %}
+
 {% endblock %}
 
 
@@ -332,11 +347,6 @@
 
 {% block footer_scripts %}
   <script>
-   {# Toggle show alert messages #}
-   $('.toggle-messages').on('click', function() {
-       $(this).next().slideToggle() ;
-   });
-
    {# Shows the correct action form #}
    $('#action-chooser').on('change', function() {
        $('.action-container').hide();
