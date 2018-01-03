@@ -78,6 +78,7 @@ class AlertHistorySerializer(serializers.ModelSerializer):
         'get_event_history_url')
     netbox_history_url = serializers.SerializerMethodField(
         'get_netbox_history_url')
+    event_details_url = serializers.SerializerMethodField('get_event_details_url')
     device_groups = serializers.SerializerMethodField('get_device_groups')
 
     alert_type = AlertTypeSerializer()
@@ -120,6 +121,11 @@ class AlertHistorySerializer(serializers.ModelSerializer):
         if AlertHistorySerializer.get_subject_type(obj) == 'Netbox':
             return reverse('devicehistory-view-netbox',
                            kwargs={'netbox_id': obj.get_subject().id})
+
+    @staticmethod
+    def get_event_details_url(obj):
+        """Returns the url to the details page for this event"""
+        return reverse('event-details', kwargs={'event_id': obj.pk})
 
     @staticmethod
     def get_subject_type(obj):
