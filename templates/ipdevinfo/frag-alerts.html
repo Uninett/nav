@@ -40,7 +40,11 @@
             {% if alert_info.count %}
                 {% for a in alert_info.alerts %}
                     <tr>
-                        <td>{{ a.type }}</td>
+                        <td>
+                            <a href="{% url 'event-details' a.alert.pk %}" title="See event details">
+                              {{ a.type }}
+                            </a>
+                        </td>
                         <td>{{ a.message|default:"" }}</td>
                         <td>{{ a.alert.start_time|date|default:"N/A" }}
                             {{ a.alert.start_time|time }}</td>
