@@ -1,5 +1,8 @@
 {% extends "alertmsg/base.html" %}
 {% block event-content %}
+
+  <pre style="font-size: 12px"> {% filter force_escape %} {% debug %} {% endfilter %} </pre>
+
     {% with session=alert.get_subject %}
 
         <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a>

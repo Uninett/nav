@@ -12,6 +12,7 @@ This section contains reference material for end-users.
 
    arnold
    cabling_and_patch
+   event-templates
    geomap
    ipam
    ipdevpoll
