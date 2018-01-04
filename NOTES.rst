@@ -9,6 +9,28 @@ To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
 
+NAV 4.9
+========
+
+News
+----
+
+Support for DNOS-SWITCHING MIB in PortAdmin
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With great support from Marcus Westin from the Linnaeus University who made
+available equipment for testing, and Ludovic Vinsonnaud from Institut Optique
+Graduate School who requested and supplied documentation from Dell, there is now
+support for the DNOS-SWITCHING-MIB. This means that most Dell-devices now can be
+configured using PortAdmin.
+
+With Dell devices you can specify three modes for an interface - General, Access
+and Trunk. NAV uses by default Q-BRIDGE-MIB to configure interfaces, but this
+does not work for interfaces in Access mode - which is the default mode for the
+interfaces. Thus to properly interact with Access mode support for Dells
+DNOS-SWITCHING-MIB was implemented.
+
+
 NAV 4.8
 ========
 

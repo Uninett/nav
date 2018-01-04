@@ -576,7 +576,7 @@ def render_trunk_edit(request, interfaceid):
 def handle_trunk_edit(request, agent, interface):
     """Edit a trunk"""
 
-    native_vlan = int(request.POST.get('native_vlan'))
+    native_vlan = int(request.POST.get('native_vlan', 1))
     trunked_vlans = [int(vlan) for vlan in request.POST.getlist('trunk_vlans')]
 
     if should_check_access_rights(get_account(request)):
