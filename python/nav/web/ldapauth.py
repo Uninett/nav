@@ -266,7 +266,7 @@ class LDAPUser(object):
         """
         encoding = _config.get('ldap', 'encoding')
         user_dn = self.get_user_dn().encode(encoding)
-        name_attr = _config.get('ldap', 'name_attr')
+        name_attr = _config.get('ldap', 'name_attr').encode(encoding)
         try:
             res = self.ldap.search_s(user_dn, ldap.SCOPE_BASE,
                                      '(objectClass=*)', [name_attr])

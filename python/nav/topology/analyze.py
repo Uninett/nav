@@ -194,6 +194,11 @@ class AdjacencyReducer(AdjacencyAnalyzer):
                 if (not type(source) is Port or not type(dest) is Port or
                         proto != sourcetype):
                     continue
+                if source == dest:
+                    _logger.info("Ignoring apparent %s self-loop on %s",
+                                 proto, source)
+                    self.graph.remove_edge(source, dest, proto)
+                    continue
                 if self.graph.has_edge(dest, source, proto):
                     _logger.debug("Found connection from %s to %s", source,
                                   dest)
