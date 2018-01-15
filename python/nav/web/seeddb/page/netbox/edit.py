@@ -46,31 +46,13 @@ def log_netbox_change(account, old, new):
 
     # If this is a new netbox
     if not old:
-        LogEntry.add_log_entry(
-            account,
-            u'create-netbox',
-            u'{actor} created {object}',
-            object=new
-        )
+        LogEntry.add_create_entry(account, new)
         return
 
     # Compare changes from old to new
     attribute_list = ['read_only', 'read_write', 'category', 'ip',
                       'room', 'organization', 'snmp_version']
-    for attribute in attribute_list:
-        old_value = getattr(old, attribute)
-        new_value = getattr(new, attribute)
-        if old_value != new_value:
-            change_text = "{} changed from '{}' to '{}'".format(
-                attribute, old_value, new_value)
-
-            # create one logentry for each changed attribute
-            prefix = u'{actor} changed {object}: '
-            LogEntry.add_log_entry(
-                account,
-                u'edit-netbox-{}'.format(attribute),
-                u'{}{}'.format(prefix, change_text),
-                object=new)
+    LogEntry.add_edit_entry(account, old, new, attribute_list)
 
 
 def netbox_edit(request, netbox_id=None):

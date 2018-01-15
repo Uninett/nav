@@ -96,17 +96,20 @@ class LogEntry(models.Model):
             actor,
             u'create-{}'.format(model),
             u'{actor} created {object}',
+            after=obj,
             object=obj
         )
 
     @staticmethod
-    def add_delete_entry(actor, obj):
+    def add_delete_entry(actor, obj, template=None):
         """Create log entry for deleted objects"""
         model = obj.__class__.__name__.lower()
+        template = template or u'{actor} deleted {object}'
         LogEntry.add_log_entry(
             actor,
             u'delete-{}'.format(model),
-            u'{actor} deleted {object}',
+            template,
+            before=obj,
             object=obj
         )
 
@@ -136,10 +139,10 @@ class LogEntry(models.Model):
                     actor,
                     u'edit-{}-{}'.format(model, attribute),
                     u'{}: {}'.format(prefix, change_text),
+                    before=old,
+                    after=new,
                     object=new
                 )
-
-
 
     def __str__(self):
         return self.summary

@@ -121,12 +121,7 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None,
 def log_deleted(account, objects, template):
     """Log the deletion of each object"""
     for obj in objects:
-        LogEntry.add_log_entry(
-            account,
-            u'delete-{}'.format(obj.__class__.__name__.lower()),
-            template,
-            object=obj
-        )
+        LogEntry.add_delete_entry(account, obj, template=template)
 
 
 def dependencies(queryset, whitelist):
