@@ -28,6 +28,18 @@ from . import find_modelname
 
 @python_2_unicode_compatible
 class LogEntry(models.Model):
+    """
+    Logs mostly user actions in NAV
+
+    Example logentry:
+    LogEntry.add_log_entry(
+        account,           # actor
+        u'set-ifalias',    # verb
+        u'{actor}: {object} - ifalias set to "%s"' % ifalias,  # template
+        subsystem=u'portadmin',                                # optional
+        object=interface,                                      # optional
+    )
+    """
     actor_model = VarcharField()
     actor_pk = VarcharField()
     actor = LegacyGenericForeignKey('actor_model', 'actor_pk')
