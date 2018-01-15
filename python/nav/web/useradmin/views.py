@@ -554,4 +554,4 @@ def log_account_change(actor, old, new):
         return
 
     attribute_list = ['login', 'name', 'password', 'ext_sync']
-    LogEntry.add_edit_entry(actor, old, new, attribute_list)
+    LogEntry.compare_objects(actor, old, new, attribute_list)

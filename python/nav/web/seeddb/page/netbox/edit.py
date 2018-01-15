@@ -52,7 +52,7 @@ def log_netbox_change(account, old, new):
     # Compare changes from old to new
     attribute_list = ['read_only', 'read_write', 'category', 'ip',
                       'room', 'organization', 'snmp_version']
-    LogEntry.add_edit_entry(account, old, new, attribute_list)
+    LogEntry.compare_objects(account, old, new, attribute_list)
 
 
 def netbox_edit(request, netbox_id=None):
