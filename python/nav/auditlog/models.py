@@ -85,5 +85,61 @@ class LogEntry(models.Model):
         self.save()
         return self
 
+    @staticmethod
+    def add_create_entry(actor, obj):
+        """Create log entry for created objects
+
+        :type actor: nav.models.profiles.Account
+        """
+        model = obj.__class__.__name__.lower()
+        LogEntry.add_log_entry(
+            actor,
+            u'create-{}'.format(model),
+            u'{actor} created {object}',
+            object=obj
+        )
+
+    @staticmethod
+    def add_delete_entry(actor, obj):
+        """Create log entry for deleted objects"""
+        model = obj.__class__.__name__.lower()
+        LogEntry.add_log_entry(
+            actor,
+            u'delete-{}'.format(model),
+            u'{actor} deleted {object}',
+            object=obj
+        )
+
+
+    @staticmethod
+    def add_edit_entry(actor, old, new, attribute_list):
+        """Checks for differences in two objects given an attribute-list
+
+        :type actor: nav.models.profiles.Account
+        :type old: models.Model
+        :type new: models.Model
+        :type attribute_list: list[str]
+        :type verb_prefix: str
+
+        Adds a log entry for each attribute the two objects differ.
+        """
+        model = new.__class__.__name__.lower()
+        prefix = u'{actor} edited {object}'
+        for attribute in attribute_list:
+            old_value = getattr(old, attribute)
+            new_value = getattr(new, attribute)
+            if old_value != new_value:
+                change_text = "{} changed from '{}' to '{}'".format(
+                    attribute, old_value, new_value)
+
+                LogEntry.add_log_entry(
+                    actor,
+                    u'edit-{}-{}'.format(model, attribute),
+                    u'{}: {}'.format(prefix, change_text),
+                    object=new
+                )
+
+
+
     def __str__(self):
         return self.summary
