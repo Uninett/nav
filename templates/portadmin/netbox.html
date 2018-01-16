@@ -8,9 +8,8 @@
     </h4>
     <div class="latest-changes-content row" style="display: none">
       <div class="small-12 column">
-        {% with object_list=auditlog_entries %}
-          {% include "auditlog/_logentry_list.html" %}
-        {% endwith %}
+        <h3>AuditLog</h3>
+        {% include "auditlog/_logentry_list.html" %}
       </div>
     </div>
     <script>

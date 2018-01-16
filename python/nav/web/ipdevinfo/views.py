@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Views for ipdevinfo"""
+import json
 import re
 import logging
 import datetime as dt
@@ -322,9 +323,13 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         interface.combined_data_urls = create_combined_urls(
             interface, COUNTER_TYPES)
 
+    auditlog_api_parameters = json.dumps(
+        {'object_model': 'netbox', 'object_pk': netbox.pk})
+
     return render_to_response(
         'ipdevinfo/ipdev-details.html',
         {
+            'auditlog_api_parameters': auditlog_api_parameters,
             'host_info': host_info,
             'netbox': netbox,
             'interfaces': interfaces,

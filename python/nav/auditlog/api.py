@@ -13,7 +13,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 
 from rest_framework import serializers
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 
 from nav.web.api.v1.views import NAVAPIMixin
 
@@ -50,6 +50,14 @@ class LogEntrySerializer(serializers.ModelSerializer):
         return obj.target
 
 
+class MultipleFilter(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        if 'object_pk[]' in request.QUERY_PARAMS:
+            ids = request.QUERY_PARAMS.getlist('object_pk[]')
+            queryset = queryset.filter(object_pk__in=ids)
+        return queryset
+
+
 class NAVDefaultsMixin(object):
     authentication_classes = NAVAPIMixin.authentication_classes
     permission_classes = NAVAPIMixin.permission_classes
@@ -62,6 +70,7 @@ class LogEntryViewSet(NAVDefaultsMixin, viewsets.ReadOnlyModelViewSet):
 
     Logentries are created behind the scenes by the subsystems themselves."""
 
+    filter_backends = NAVDefaultsMixin.filter_backends + (MultipleFilter, )
     queryset = LogEntry.objects.all()
     serializer_class = LogEntrySerializer
-    filter_fields = ('subsystem',)
+    filter_fields = ('subsystem', 'object_pk', 'object_model')

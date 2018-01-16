@@ -1,6 +1,11 @@
-
 <div id="alerts">
   {% if netbox %}
+    {# Table for listing auditlog for this netbox #}
+    {% with object_list=auditlog_entries %}
+      {% include "auditlog/_logentry_list.html" %}
+    {% endwith %}
+
+    {# Table for listing recent alerts #}
     <table class="listtable">
       <caption>
         Alerts last {{ alert_info.days_back }}
@@ -69,5 +74,6 @@
         {% endif %}
       </tbody>
     </table>
+
   {% endif %}
 </div>
