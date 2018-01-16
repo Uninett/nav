@@ -214,6 +214,12 @@ def populate_infodict(request, netbox, interfaces):
 
     save_to_database(interfaces)
 
+    auditlog_api_parameters = {
+        'object_model': 'interface',
+        'object_pks': ','.join([str(i.pk) for i in interfaces]),
+        'subsystem': 'portadmin'
+    }
+
     info_dict = get_base_context([(netbox.sysname, )], form=get_form(request))
     info_dict.update(
         {
@@ -223,9 +229,7 @@ def populate_infodict(request, netbox, interfaces):
             'allowed_vlans': allowed_vlans,
             'readonly': readonly,
             'aliastemplate': aliastemplate,
-            'auditlog_api_parameters': json.dumps(
-                {'object_model': 'interface', 'object_pk': [i.pk for i in interfaces],
-                 'subsystem': 'portadmin'})
+            'auditlog_api_parameters': json.dumps(auditlog_api_parameters)
         }
     )
     return info_dict

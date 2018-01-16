@@ -52,8 +52,8 @@ class LogEntrySerializer(serializers.ModelSerializer):
 
 class MultipleFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        if 'object_pk[]' in request.QUERY_PARAMS:
-            ids = request.QUERY_PARAMS.getlist('object_pk[]')
+        if 'object_pks' in request.QUERY_PARAMS:
+            ids = request.QUERY_PARAMS.get('object_pks').split(',')
             queryset = queryset.filter(object_pk__in=ids)
         return queryset
 
