@@ -9,16 +9,15 @@ from .models import LogEntry
 LATEST_N_AUDITLOG_ENTRIES = 15
 
 
-def get_auditlog_entries(iterable, limit=LATEST_N_AUDITLOG_ENTRIES):
+def get_auditlog_entries(iterable, limit=LATEST_N_AUDITLOG_ENTRIES, subsystem=None):
     modelname = find_modelname(list(iterable)[0])
     pks = [force_text(i.pk) for i in iterable]
     object_query = Q(object_pk__in=pks, object_model=modelname)
     target_query = Q(target_pk__in=pks, object_model=modelname)
     actor_query = Q(actor_pk__in=pks, object_model=modelname)
     filter_query = object_query | target_query | actor_query
-    entries = (LogEntry.objects
-               .filter(filter_query)
-               .distinct()
-               .order_by('-timestamp')[:limit]
-    )
+    qs = LogEntry.objects.filter(filter_query)
+    if subsystem:
+        qs = qs.filter(subsystem=subsystem)
+    entries = qs.distinct().order_by('-timestamp')[:limit]
     return entries
