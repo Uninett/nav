@@ -38,19 +38,10 @@ class AuditlogOverview(AuditlogViewMixin, TemplateView):
     template_name = 'auditlog/overview.html'
 
     def get_context_data(self, **kwargs):
-        qs = self.model.objects.values('actor_model', 'object_model',
-                                       'target_model')
-        actors, objects, targets = set(), set(), set()
-        for row in qs:
-            actors.add(row['actor_model'])
-            objects.add(row['object_model'])
-            targets.add(row['target_model'])
-        objects.discard(None)
-        targets.discard(None)
+        verbs = list(LogEntry.objects.order_by().values_list('verb', flat=True).distinct())
+        verbs.sort()
         context = {
-            'actors': actors,
-            'objects': objects,
-            'targets': targets,
+            'auditlog_verbs': verbs
         }
         context.update(**kwargs)
         return super(AuditlogOverview, self).get_context_data(**context)

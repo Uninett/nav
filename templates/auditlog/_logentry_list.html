@@ -1,3 +1,13 @@
+<label id="filter-verb-label" style="display:none">
+  Filter by verb
+  <select id="filter-verb">
+    <option value="">------------</option>
+    {% for verb in auditlog_verbs %}
+      <option value="{{ verb }}">{{ verb }}</option>
+    {% endfor %}
+  </select>
+</label>
+
 <table id="auditlog" class="listtable full-width">
   <thead>
     <tr>
@@ -10,8 +20,15 @@
     </tr>
   </thead>
 </table>
+
+<style>
+ #auditlog-top > div { display: inline-block; margin-right: 1em; }
+ #auditlog-top label { display: inline-block; }
+ #auditlog-top input, #auditlog-top select { display: block; max-width: 15em; }
+</style>
+
 <script type="text/javascript">
- require(['libs/datatables.min'], function(){
+ require(['libs/urijs/URI', 'libs/datatables.min'], function(Uri) {
      var api_parameters = {{ auditlog_api_parameters|safe|default:'{}' }};
      var columns = {
          0: 'timestamp',
@@ -22,13 +39,14 @@
          5: 'summary'
      };
      var dt_config = {
-         serverSide: true,
+         serverSide: true,  // Everything is done serverside - sorting, filtering, etc.
          ajax: {
              url: '/api/1/auditlog/',
              data: function(d) {
                  // Override the original parameters that we get when using serverSide rendering
                  var parameters = {
                      page: d.start / d.length + 1,
+                     search: d.search.value,
                      page_size: d.length,
                      ordering: d.order.map(function(order) {
                          var direction = order.dir === 'asc' ? '' : '-';
@@ -55,9 +73,10 @@
              { 'data': columns[5] }
          ],
          bAutoWidth: false,
-         bFilter: false,
          bInfo: false,
+         searching: true,
          bSort: true,
+         dom: '<"#auditlog-top"l<"#dataTables_verbs">f>t<p>',
          order: [[0, 'desc']],
          paging: true,
          pagingType: 'full_numbers',
@@ -66,10 +85,26 @@
              [10, 25, 50, -1],   // Choices for number of rows to display
              [10, 25, 50, "All"] // Text for the choices
          ],
+         language: {
+             lengthMenu: "Rows _MENU_",
+             search: "Search in summary"
+         },
          drawCallback: drawCallback,
      };
 
-     $('table#auditlog').DataTable(dt_config);
+     var dataTable = $('table#auditlog').DataTable(dt_config);
+
+
+     {% if auditlog_verbs %}
+     // Add form for filtering on verbs
+     $('#filter-verb-label').appendTo('#dataTables_verbs').show();
+     $('#filter-verb').on('change', function(e) {
+         var url = Uri(dataTable.ajax.url()).setQuery('verb', e.target.value);
+         dataTable.ajax.url(url).load()
+     });
+     {% endif %}
+
+
      function drawCallback(oSettings) {
          $('.paginate_button').removeClass('secondary').addClass('button tiny');
          $('.paginate_button.current').addClass('secondary');
