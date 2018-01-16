@@ -75,6 +75,7 @@
          autowidth: false,
          info: false,
          searching: true,
+         searchDelay: 350,
          ordering: true,
          dom: '<"#auditlog-top"l<"#dataTables_verbs">f>t<p>',
          order: [[0, 'desc']],
@@ -94,6 +95,10 @@
 
      var dataTable = $('table#auditlog').DataTable(dt_config);
 
+     // Listen to an event for reloading of data
+     $(document).on('nav-portadmin-ajax-success', function(){
+         dataTable.ajax.reload();
+     });
 
      {% if auditlog_verbs %}
      // Add form for filtering on verbs
