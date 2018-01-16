@@ -323,8 +323,9 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         interface.combined_data_urls = create_combined_urls(
             interface, COUNTER_TYPES)
 
+
     auditlog_api_parameters = json.dumps(
-        {'object_model': 'netbox', 'object_pk': netbox.pk})
+        {'object_model': 'netbox', 'object_pk': netbox.pk}) if netbox else {}
 
     return render_to_response(
         'ipdevinfo/ipdev-details.html',
