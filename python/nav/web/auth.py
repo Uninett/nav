@@ -19,7 +19,6 @@ Contains web authentication functionality for NAV.
 """
 import logging
 
-from nav.auditlog.models import LogEntry
 from nav.web import ldapauth
 from nav.models.profiles import Account
 
@@ -77,8 +76,6 @@ def authenticate(username, password):
         auth = account.check_password(password)
 
     if auth and account:
-        LogEntry.add_log_entry(account, 'log-in', '{actor} logged in',
-                               before=account)
         return account
     else:
         return None

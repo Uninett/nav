@@ -219,6 +219,9 @@ def do_login(request):
             errors.append('Error while talking to LDAP:\n%s' % error)
         else:
             if account:
+                LogEntry.add_log_entry(
+                    account, 'log-in', '{actor} logged in', before=account)
+
                 try:
                     request.session[ACCOUNT_ID_VAR] = account.id
                     request.account = account
