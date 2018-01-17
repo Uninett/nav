@@ -53,10 +53,14 @@ def custom_processor(_request):
 def account_list(request):
     """Controller for displaying the account list"""
     accounts = Account.objects.all()
-    return render_to_response('useradmin/account_list.html',
-                              {'active': {'account_list': 1},
-                               'accounts': accounts},
-                              UserAdminContext(request))
+    return render_to_response(
+        'useradmin/account_list.html',
+        {
+            'active': {'account_list': 1},
+            'accounts': accounts,
+            'auditlog_api_parameters': {'object_model': 'account'}
+        },
+        UserAdminContext(request))
 
 
 @sensitive_post_parameters('password1', 'password2')
@@ -92,9 +96,14 @@ def account_detail(request, account_id=None):
             return sudo_to_user(request)
 
     active = {'account_detail': True} if account else {'account_new': True}
+    auditlog_api_parameters = {
+        'object_model': 'account',
+        'object_pk': account.pk
+    } if account else {}
 
     return render_to_response('useradmin/account_detail.html',
                   {
+                      'auditlog_api_parameters': auditlog_api_parameters,
                       'active': active,
                       'account': account,
                       'account_form': account_form,

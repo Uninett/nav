@@ -25,7 +25,7 @@
       {% comment %} ACTION BUTTONS {% endcomment %}
       <div class="column large-6">
 
-        <ul class="inline-list">
+        <ul class="inline-list action-list">
           {% if account and current_user_data.is_admin and not current_user_data.sudoer %}
             {% ifnotequal current_user_data.account.id account.id %}
               <li>
@@ -52,6 +52,11 @@
 
     </div> {# row #}
 
+
+    {# AUDITLOG #}
+    {% if account %}
+      {% include 'useradmin/frag-auditlog.html' %}
+    {% endif %}
 
     <div class="row">
 
