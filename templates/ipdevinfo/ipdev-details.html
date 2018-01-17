@@ -61,11 +61,6 @@
         {% endif %}
 
         <li><a href="#poe">PoE</a></li>
-        <li aria-controls="dns">
-          <a href="{% url 'ipdevinfo-hostinfo' netbox.sysname %}">
-            DNS
-          </a>
-        </li>
         <li aria-controls="affected">
           <a href="{% url 'ipdevinfo-affected' netbox.id %}">
             What if
@@ -85,7 +80,6 @@
       {% endif %}
 
       {% include "ipdevinfo/frag-poe.html" %}
-      <div id="dns"></div>
       <div id="affected"></div>
     {% else %}
 

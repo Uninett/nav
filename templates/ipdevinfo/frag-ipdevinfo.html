@@ -18,7 +18,14 @@
           <tbody>
             <tr>
               <th>Full sysname</th>
-              <td>{{ netbox.sysname }}</td>
+              <td>
+                {{ netbox.sysname }}
+                <button class="table-button secondary right"
+                        data-reveal-id="dns-modal"
+                        data-reveal-ajax="{% url 'ipdevinfo-hostinfo' netbox.sysname %}" >
+                  DNS
+                </button>
+              </td>
             </tr>
 
             {% if netbox.master %}
@@ -607,3 +614,6 @@
 
   </div>
 </div>
+
+
+<div id="dns-modal" class="reveal-modal small" data-reveal aria-hidden="true" role="dialog"></div>
