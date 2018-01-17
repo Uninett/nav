@@ -54,7 +54,12 @@
           <a href="#alerts">Recent alerts</a>
         </li>
         <li><a href="#sensors">Sensors</a></li>
-        <li><a href="#services">Services</a></li>
+
+        {# Only display services for certain instances #}
+        {% if display_services_tab %}
+          <li><a href="#services">Services</a></li>
+        {% endif %}
+
         <li><a href="#poe">PoE</a></li>
         <li aria-controls="dns">
           <a href="{% url 'ipdevinfo-hostinfo' netbox.sysname %}">
@@ -74,7 +79,11 @@
       {% include "ipdevinfo/frag-sysmetrics.html" %}
       {% include "ipdevinfo/frag-alerts.html" %}
       {% include "ipdevinfo/frag-sensors.html" %}
-      {% include "ipdevinfo/frag-services.html" %}
+
+      {% if display_services_tab %}
+        {% include "ipdevinfo/frag-services.html" %}
+      {% endif %}
+
       {% include "ipdevinfo/frag-poe.html" %}
       <div id="dns"></div>
       <div id="affected"></div>
