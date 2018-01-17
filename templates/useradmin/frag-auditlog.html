@@ -1,0 +1,16 @@
+<h5 class="latest-changes-heading" style="display: inline-block; cursor: pointer">
+  AuditLog <i class="fa fa-caret-square-o-right"></i>
+</h5>
+<div class="latest-changes-content row" style="display: none">
+  <div class="small-12 column">
+    {% include "auditlog/_logentry_list.html" %}
+  </div>
+</div>
+<script>
+ $(function(){
+     $('.latest-changes-heading').click(function(){
+         $('.latest-changes-content').slideToggle();
+         $('.latest-changes-heading i').toggleClass('fa-caret-square-o-right fa-caret-square-o-down');
+     });
+ });
+</script>
