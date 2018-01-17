@@ -323,14 +323,9 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         interface.combined_data_urls = create_combined_urls(
             interface, COUNTER_TYPES)
 
-
-    auditlog_api_parameters = json.dumps(
-        {'object_model': 'netbox', 'object_pk': netbox.pk}) if netbox else {}
-
     return render_to_response(
         'ipdevinfo/ipdev-details.html',
         {
-            'auditlog_api_parameters': auditlog_api_parameters,
             'host_info': host_info,
             'netbox': netbox,
             'interfaces': interfaces,
@@ -715,6 +710,15 @@ def render_host_info(request, identifier):
     """Controller for getting host info"""
     return render(request, 'ipdevinfo/frag-hostinfo.html', {
         'host_info': get_host_info(identifier)
+    })
+
+
+def auditlog(request, netboxid):
+    netbox = get_object_or_404(Netbox, pk=netboxid)
+    auditlog_api_parameters = json.dumps(
+        {'object_model': 'netbox', 'object_pk': netbox.pk})
+    return render(request, 'ipdevinfo/frag-auditlog.html', {
+        'auditlog_api_parameters': auditlog_api_parameters
     })
 
 
