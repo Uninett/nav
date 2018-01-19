@@ -39,7 +39,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.generics import ListAPIView
 from nav.models.api import APIToken
-from nav.models import manage, event, cabling, rack
+from nav.models import manage, event, cabling, rack, profiles
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
 from nav.util import auth_token
@@ -118,6 +118,8 @@ def get_endpoints(request=None, version=1):
     kwargs = {'request': request}
 
     return {
+        'account': reverse_lazy('{}account-list'.format(prefix), **kwargs),
+        'accountgroup': reverse_lazy('{}accountgroup-list'.format(prefix), **kwargs),
         'alert': reverse_lazy('{}alerthistory-list'.format(prefix), **kwargs),
         'auditlog': reverse_lazy('{}auditlog-list'.format(prefix), **kwargs),
         'arp': reverse_lazy('{}arp-list'.format(prefix), **kwargs),
@@ -235,6 +237,38 @@ class LoggerMixin(object):
         if response.status_code == status.HTTP_204_NO_CONTENT:
             _logger.info('Token %s deleted %r', self.request.auth, obj)
         return response
+
+
+class AccountViewSet(NAVAPIMixin, viewsets.ModelViewSet):
+    """Lists all accounts
+
+    Filters
+    -------
+    - login
+    - ext_sync
+
+    Search
+    ------
+    Searches in *name*
+    """
+
+    queryset = profiles.Account.objects.all()
+    serializer_class = serializers.AccountSerializer
+    filter_fields = ('login', 'ext_sync')
+    search_fields = ('name',)
+
+
+class AccountGroupViewSet(NAVAPIMixin, viewsets.ModelViewSet):
+    """Lists all accountgroups
+
+    Search
+    ------
+    Searches in *name* and *description*
+    """
+
+    queryset = profiles.AccountGroup.objects.all()
+    serializer_class = serializers.AccountGroupSerializer
+    search_fields = ('name', 'description')
 
 
 class RoomViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):

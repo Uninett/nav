@@ -23,6 +23,8 @@ from rest_framework import routers
 from nav.auditlog import api as auditlogapi
 
 router = routers.SimpleRouter()
+router.register(r'account', views.AccountViewSet)
+router.register(r'accountgroup', views.AccountGroupViewSet)
 router.register(r'rack', views.RackViewSet)
 router.register(r'room', views.RoomViewSet)
 router.register(r'netbox', views.NetboxViewSet)
