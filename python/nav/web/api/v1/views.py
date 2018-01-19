@@ -261,14 +261,27 @@ class AccountViewSet(NAVAPIMixin, viewsets.ModelViewSet):
 class AccountGroupViewSet(NAVAPIMixin, viewsets.ModelViewSet):
     """Lists all accountgroups
 
+    Filters
+    -------
+    - account - filter by one or more accounts
+
     Search
     ------
     Searches in *name* and *description*
+
+    Example: `accountgroup?account=abcd&account=bcde`
     """
 
-    queryset = profiles.AccountGroup.objects.all()
     serializer_class = serializers.AccountGroupSerializer
     search_fields = ('name', 'description')
+
+    def get_queryset(self):
+        queryset = profiles.AccountGroup.objects.all()
+        accounts = self.request.QUERY_PARAMS.getlist('account')
+        if accounts:
+            queryset = queryset.filter(accounts__in=accounts).distinct()
+        return queryset
+
 
 
 class RoomViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
