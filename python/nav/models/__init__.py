@@ -25,6 +25,3 @@ from django.apps import apps as _apps
 # module while having no interest in Django voodoo.
 if 'DJANGO_SETTINGS_MODULE' not in os.environ:
     os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
-
-if not _apps.ready:
-    django.setup()
