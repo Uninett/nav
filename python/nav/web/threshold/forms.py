@@ -76,6 +76,11 @@ class ThresholdForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(ThresholdForm, self).clean()
+        try:
+            target = cleaned_data['target']
+        except KeyError:
+            raise forms.ValidationError('Target is required')
+
         period = cleaned_data.get('period')
         if not period and is_interface(cleaned_data['target']):
             cleaned_data['period'] = parse_interval('15m')

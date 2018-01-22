@@ -427,8 +427,14 @@ class SNMPHandler(object):
             octet_string = self._query_netbox(
                 self.CURRENT_VLAN_EGRESS_PORTS, vlan)
             bitvector = BitVector(octet_string)
-            if bitvector[bitvector_index]:
-                vlans.append(vlan)
+
+            try:
+                if bitvector[bitvector_index]:
+                    vlans.append(vlan)
+            except IndexError:
+                _logger.error('Baseport index was out of bounds '
+                              'for StaticEgressPorts')
+
         return native_vlan, vlans
 
     def _get_egress_interfaces_as_bitvector(self, vlan):

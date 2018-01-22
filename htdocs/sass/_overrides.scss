@@ -28,6 +28,10 @@
     }
 }
 
+small.errorField {
+    @include form-error-message;
+}
+
 // Main configuration for alert-box class
 .alert-box {
     @include alert;
