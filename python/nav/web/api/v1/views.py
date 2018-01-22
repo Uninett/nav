@@ -368,6 +368,17 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class InterfaceFilterClass(filters.FilterSet):
+    """Exists only to have a sane implementation of multiple choice filters"""
+    netbox = filters.django_filters.ModelMultipleChoiceFilter(
+        queryset=manage.Netbox.objects.all())
+
+    class Meta(object):
+        model = manage.Interface
+        fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
+                  'ifadminstatus', 'iftype', 'baseport', 'module__name')
+
+
 class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Lists all interfaces.
 
@@ -392,12 +403,11 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     Example: `/api/1/interface/?netbox=91&ifclass=trunk&ifclass=swport`
     """
     queryset = manage.Interface.objects.all()
-    filter_fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
-                     'ifadminstatus', 'iftype', 'baseport', 'module__name')
     search_fields = ('ifalias', 'ifdescr', 'ifname')
 
     # NaturalIfnameFilter returns a list, so IfClassFilter needs to come first
     filter_backends = NAVAPIMixin.filter_backends + (IfClassFilter, NaturalIfnameFilter)
+    filter_class = InterfaceFilterClass
 
     def get_serializer_class(self):
         request = self.request
