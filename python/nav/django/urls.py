@@ -61,6 +61,7 @@ urlpatterns += [
     url(r'^styleguide/', styleguide_index),
     url(r'^refresh_session/', refresh_session, name='refresh-session'),
     url(r'^auditlog/', include('nav.auditlog.urls')),
+    url(r'^portlist/', include('nav.web.portlist.urls')),
 ]
 
 # Load local url-config
