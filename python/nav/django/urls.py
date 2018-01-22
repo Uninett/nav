@@ -17,11 +17,14 @@
 
 import sys
 import os
+import logging
 import nav
 from django.conf.urls import patterns, include
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from nav.web.webfront.urls import urlpatterns
 from nav.web.styleguide import styleguide_index
+
+_logger = logging.getLogger(__name__)
 
 urlpatterns += patterns(
     '',
@@ -62,14 +65,17 @@ urlpatterns += patterns(
 )
 
 # Load local url-config
-_local_url_filepath = os.path.join(nav.buildconf.sysconfdir, 'python',
-                                   'local_urls.py')
+_local_python_dir = os.path.join(nav.buildconf.sysconfdir, 'python')
+_local_url_filepath = os.path.join(_local_python_dir, 'local_urls.py')
+
 if os.path.isfile(_local_url_filepath):
-    sys.path.append(_local_url_filepath)
+    if _local_python_dir not in sys.path:
+        sys.path.append(_local_python_dir)
     try:
         import local_urls
         urlpatterns += local_urls.urlpatterns
     except (ImportError, TypeError):
+        _logger.exception("failed to import urlpatterns from local_urls.py")
         pass
 
 handler500 = 'nav.django.views.custom_500'
