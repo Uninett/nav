@@ -1,7 +1,10 @@
 {% extends 'base.html' %}
+{% load tools %}
 
 {% block base_content %}
 
-  <h1>PortList</h1>
+  {% with tool=current_user_data.tools|get_tool:'PortList' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
 
 {% endblock %}

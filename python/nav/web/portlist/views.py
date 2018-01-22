@@ -16,6 +16,17 @@
 
 from django.shortcuts import render
 
+from nav.web import utils
+
+
+def default_context():
+    navpath = (('Home', '/'), ('PortList',))
+    return {
+        'navpath': navpath,
+        'title': utils.create_title(navpath)
+    }
+
 
 def index(request):
-    return render(request, 'portlist/base.html')
+    context = default_context()
+    return render(request, 'portlist/base.html', context)
