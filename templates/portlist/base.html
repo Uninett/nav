@@ -7,4 +7,61 @@
     {% include 'nav_header.html' %}
   {% endwith %}
 
+  <form id="filters" style="display: flex">
+    <label>
+      Device
+      <div>
+        <select>
+          <option>Not implemented</option>
+        </select>
+      </div>
+    </label>
+
+    <label>
+      Port Filters
+      <div>
+        <select id="ifclassfilter">
+          <option value="">----------</option>
+          <option value="swport" selected>Swport</option>
+          <option value="gwport">Gwport</option>
+          <option value="trunk">Trunk</option>
+        </select>
+      </div>
+    </label>
+
+    <label>
+      Search
+      <div>
+        <input id="queryfilter" name="query" placeholder="Search in ifalias, ifdescr and ifname"/>
+      </div>
+    </label>
+  </form>
+
+  <table id="portlist-table">
+    <thead>
+      <tr>
+        <th>&nbsp;</th>
+        <th>Device</th>
+        <th>Port</th>
+        <th>Port description</th>
+        <th>Module</th>
+        <th title="Administrative status - is enabled or not">Admin</th>
+        <th title="Operational status - has link or not">Link</th>
+        <th>Vlan</th>
+        <th title="Speed in Mbit/s and duplex (full or half)">Speed</th>
+        <th>To Device</th>
+        <th>To Port</th>
+      </tr>
+    </thead>
+  </table>
+
+{% endblock %}
+
+
+{% block footer_scripts %}
+  <script>
+   require(['src/portlist'], function(PortList) {
+       PortList();
+   })
+  </script>
 {% endblock %}
