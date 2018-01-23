@@ -131,6 +131,10 @@ define(function(require) {
         console.log('creating table');
         var table = createTable();
 
+        reloadOnChange(table);
+    }
+
+    function reloadOnChange(table) {
         // Reload at most every reloadInterval ms
         var reloadInterval = 500  // ms
         var throttled = _.throttle(reload.bind(this, table), reloadInterval, {leading: false});
