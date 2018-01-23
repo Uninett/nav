@@ -120,16 +120,3 @@ button, .button {
         height: auto;
     }
 }
-
-
-/**
- * Set default style for dataTables pagination (in this case simple only)
- */
-.dataTables_paginate.paging_simple {
-    .paginate_button {
-        @include button($padding:$button-tny);
-        &.disabled {
-            @include button-style($disabled:true);
-        }
-    }
-}

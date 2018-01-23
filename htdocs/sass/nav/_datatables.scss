@@ -39,14 +39,15 @@
     .dataTables_paginate {
         @include common_header_styles;
         float: right;
-        a {
-            &.paginate_button,
-            &.paginate_active {
-                margin-left: 2px;
-                cursor: pointer;
+        .paginate_button {
+            @include button($padding:$button-tny);
+            &.disabled {
+                @include button-style($disabled:true);
             }
-            &.paginate_button_disabled {
-                cursor: default;
+            &.current {
+                @include button-style($bg:$secondary-color,
+                                      $bg-hover:$secondary-button-bg-hover,
+                                      $border-color:$secondary-button-border-color);
             }
         }
         .button {
