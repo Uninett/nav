@@ -145,6 +145,7 @@ define(function(require) {
         return $(selectors.table).DataTable({
             autoWidth: false,
             paging: true,
+            pagingType: 'simple',
             orderClasses: false,
             ajax: {
                 url: getUrl(),
