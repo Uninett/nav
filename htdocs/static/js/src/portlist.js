@@ -4,6 +4,7 @@ define(function(require) {
     var moduleSort = require('dt_plugins/modulesort');
     var URI = require('libs/urijs/URI');
     var Moment = require('moment');
+    var SparkLine = require('');
 
     var selectors = {
         table: '#portlist-table',
@@ -23,6 +24,7 @@ define(function(require) {
      */
     var dtColumns = [
         {
+            name: 'portadmin-link',
             render: function(data, type, row, meta) {
                 if (isSwPort(row)) {
                     return '<a href="' + NAV.urls.portadmin_index + row.id + '" title="Configure port in Portadmin"><img src="/static/images/toolbox/portadmin.svg" style="height: 1em; width: 1em" /></a>';
@@ -34,10 +36,12 @@ define(function(require) {
 
         {
             data: "netbox.sysname"
+            name: 'netbox',
         },
 
         {
             data: "ifname",
+            name: 'ifname',
             type: "module",
             render: function(data, type, row, meta) {
                 return '<a href="' + row.object_url + '">' + data + '</a>';
@@ -46,6 +50,7 @@ define(function(require) {
 
         {
             data: "ifalias",
+            name: 'ifalias',
             render: function(data, type, row, meta) {
                 return '<a href="' + row.object_url + '">' + data + '</a>';
             }
@@ -53,6 +58,7 @@ define(function(require) {
 
         {
             data: 'module',
+            name: 'module',
             render: function(data, type, row, meta) {
                 return data
                      ? '<a href="' + data.object_url + '">' + data.name + '</a>'
@@ -62,18 +68,21 @@ define(function(require) {
 
         {
             data: "ifadminstatus",
+            name: 'adminstatus',
             type: "statuslight",
             render: renderStatus
         },
 
         {
             data: "ifoperstatus",
+            name: 'operstatus',
             type: "statuslight",
             render: renderStatus
         },
 
         {
             data: "vlan",
+            name: 'vlan',
             render: function(data, type, row, meta) {
                 if (row['trunk']) {
                     return "<span title='Trunk' style='border: 3px double black; padding: 0 5px'>" + data + "</span>"
@@ -84,6 +93,7 @@ define(function(require) {
 
         {
             data: "speed",
+            name: 'speed',
             render: function(data, type, row, meta) {
                 if (row.duplex === 'h') {
                     return data + '<span class="label warning" title="Half duplex" style="margin-left: .3rem">HD</span>';
@@ -94,6 +104,7 @@ define(function(require) {
 
         {
             data: 'to_netbox',
+            name: 'to-netbox',
             render: function(data, type, row, meta) {
                 return data
                      ? '<a href="' + data.object_url + '">' + data.sysname + '</a>'
@@ -103,6 +114,7 @@ define(function(require) {
 
         {
             data: 'to_interface',
+            name: 'to-interface',
             render: function(data, type, row, meta) {
                 return data
                      ? '<a href="' + data.object_url + '">' + data.ifname + '</a>'
@@ -112,6 +124,7 @@ define(function(require) {
 
         {
             data: null,
+            name: 'traffic-sparkline',
             render: function(data, type, row, meta) {
                 return "Fake";
             }
