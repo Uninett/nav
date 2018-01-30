@@ -110,6 +110,13 @@ define(function(require) {
             }
         },
 
+        {
+            data: null,
+            render: function(data, type, row, meta) {
+                return "Fake";
+            }
+        },
+
     ];
 
 
@@ -130,8 +137,34 @@ define(function(require) {
     function PortList() {
         console.log('creating table');
         var table = createTable();
-
+        renderColumnSwitchers(table);
+        addColumnSwitcherListener(table);
         reloadOnChange(table);
+    }
+
+    function renderColumnSwitchers(table) {
+        var $container = $('#column-switchers');
+        dtColumns.forEach(function(column, index) {
+            var $switcher = $('<li data-name="' + index + '">' + index + '</li>');
+            $container.append($switcher);
+        });
+        $container.on('click', function(e) {
+            var index = $container.find('li').index(e.target);
+            var column = table.column(index);
+            column.visible(!column.visible());
+        })
+    }
+
+
+    function addColumnSwitcherListener(table) {
+        // column: index of column
+        // state: false if hidden, true if shown
+        table.on('column-visibility.dt', function(e, settings, column, state) {
+            console.log("visibility changed");
+            console.log(settings);
+            console.log(column);
+            console.log(state);
+        })
     }
 
     function reloadOnChange(table) {
