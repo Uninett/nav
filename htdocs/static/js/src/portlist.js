@@ -185,11 +185,18 @@ define(function(require) {
         table.cells(null, column, {page: 'current'}).every(function() {
             var cell = this;
             var metricRequest = $.getJSON('/api/interface/' + getInterfaceId(table, this) + '/metrics/');
-            metricRequest.done(function(metrics) {
-                getGraphiteUri(metrics, suffix).forEach(function(uri) {
-                    fetchInterfaceData(uri, cell);
-                });
-            });
+            metricRequest
+                .then(function(metrics) {
+                    return getGraphiteUri(metrics, suffix)[0];
+                })
+                .then(function(uri) {
+                    return uri ? $.getJSON(uri.toString()) : [];
+                })
+                .then(function(response) {
+                    response.forEach(function(data) {
+                        createSparkLine(createSparkContainer(cell), convertToSparkLine(data));
+                    });
+                })
         });
     }
 
@@ -200,7 +207,6 @@ define(function(require) {
 
     /*
      * Finds the correct url based on the suffix and modifies it for fetching data
-     * Returns a list of one uri
      */
     function getGraphiteUri(metrics, suffix) {
         return metrics.filter(function(m) {
@@ -209,16 +215,6 @@ define(function(require) {
             return new URI(m.url)
                 .removeSearch(['height', 'width', 'template', 'vtitle'])
                 .addSearch('format', 'json');
-        });
-    }
-
-    /* Fetches the data for this interface and creates a sparkline */
-    function fetchInterfaceData(uri, cell) {
-        return $.getJSON(uri.toString(), function(response) {
-            // Response is a list for each target, in this case one
-            response.forEach(function(data) {
-                createSparkLine(createSparkContainer(cell), convertToSparkLine(data));
-            });
         });
     }
 
