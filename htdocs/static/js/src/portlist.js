@@ -4,7 +4,7 @@ define(function(require) {
     var moduleSort = require('dt_plugins/modulesort');
     var URI = require('libs/urijs/URI');
     var Moment = require('moment');
-    var SparkLine = require('');
+    require('libs/jquery.sparkline');
 
     var selectors = {
         table: '#portlist-table',
@@ -35,8 +35,8 @@ define(function(require) {
         },
 
         {
-            data: "netbox.sysname"
-            name: 'netbox',
+            data: "netbox.sysname",
+            name: 'netbox'
         },
 
         {
@@ -123,10 +123,10 @@ define(function(require) {
         },
 
         {
-            data: null,
+            data: 'metrics',
             name: 'traffic-sparkline',
             render: function(data, type, row, meta) {
-                return "Fake";
+                return '';
             }
         },
 
@@ -158,7 +158,7 @@ define(function(require) {
     function renderColumnSwitchers(table) {
         var $container = $('#column-switchers');
         dtColumns.forEach(function(column, index) {
-            var $switcher = $('<li data-name="' + index + '">' + index + '</li>');
+            var $switcher = $('<li data-name="' + index + '">' + column.name + '</li>');
             $container.append($switcher);
         });
         $container.on('click', function(e) {
@@ -177,7 +177,77 @@ define(function(require) {
             console.log(settings);
             console.log(column);
             console.log(state);
+            if (column === 11 && state) {
+                addSparklines(table, 11, 'ifOutOctets')
+            }
         })
+    }
+
+    function addSparklines(table, column, suffix) {
+        function getInterfaceId(cell) {
+            var row = table.row(cell.index().row);
+            var data = row.data();
+            return data.id;
+        }
+
+        table.cells(null, column, {page: 'current'}).every(function() {
+            // 'this' is the datatable cell
+            var cell = this;
+            var id = getInterfaceId(this);
+
+            var metricRequest = $.getJSON('/api/interface/' + id + '/metrics/');
+            metricRequest.done(function(response) {
+                console.log(response);
+                fetchCellData(cell, response, suffix);
+            });
+        });
+    }
+
+    function fetchCellData(cell, metrics, suffix) {
+        var uri = getGraphiteUri(metrics, suffix);
+        if (uri) {
+            console.log(uri.toString());
+            var request = $.getJSON(uri.toString());
+            request.done(function(response) {
+                createSparkLine(createSparkContainer(cell), response)
+            });
+        }
+    }
+
+    function getGraphiteUri(metrics, suffix) {
+        var obj = metrics.filter(function(m) {
+            return m.suffix === suffix;
+        }).map(function(m) {
+            return m.url;
+        });
+        if (obj.length) {
+            var uri = new URI(obj[0]);
+            uri.removeSearch('height')
+               .removeSearch('width')
+               .removeSearch('template')
+               .removeSearch('vtitle')
+               .addSearch('format', 'json');
+            return uri;
+        }
+    }
+
+    function createSparkContainer(cell) {
+        var $cell = $(cell.node());
+        var $container = $('<div>').addClass('sparkline');
+        $cell.append($container);
+        return $container;
+    }
+
+    function createSparkLine($container, response) {
+        var data = response[0];
+        var dataPoints = data.datapoints.map(function(point) {
+                return [point[1], Number(point[0]).toFixed()];
+            });
+        $container.sparkline(dataPoints, {
+            tooltipFormatter: self.formatter,
+            type: 'line',
+            width: '100%'
+        });
     }
 
     function reloadOnChange(table) {
