@@ -123,8 +123,16 @@ define(function(require) {
         },
 
         {
-            data: 'metrics',
-            name: 'traffic-sparkline',
+            data: null,
+            name: 'traffic-ifoutoctets',
+            render: function(data, type, row, meta) {
+                return '';
+            }
+        },
+
+        {
+            data: null,
+            name: 'traffic-ifinoctets',
             render: function(data, type, row, meta) {
                 return '';
             }
@@ -174,72 +182,14 @@ define(function(require) {
         // state: false if hidden, true if shown
         table.on('column-visibility.dt', function(e, settings, column, state) {
             if (column === 11 && state) {
-                addSparklines(table, 11, 'ifOutOctets')
+                addSparklines(table, column, 'ifOutOctets')
+            }
+            if (column === 12 && state) {
+                addSparklines(table, column, 'ifInOctets')
             }
         })
     }
 
-
-    /* Adds sparklines to the cells in this column on the current page */
-    function addSparklines(table, column, suffix) {
-        table.cells(null, column, {page: 'current'}).every(function() {
-            var cell = this;
-            var metricRequest = $.getJSON('/api/interface/' + getInterfaceId(table, this) + '/metrics/');
-            metricRequest
-                .then(function(metrics) {
-                    return getGraphiteUri(metrics, suffix)[0];
-                })
-                .then(function(uri) {
-                    return uri ? $.getJSON(uri.toString()) : [];
-                })
-                .then(function(response) {
-                    response.forEach(function(data) {
-                        createSparkLine(createSparkContainer(cell), convertToSparkLine(data));
-                    });
-                })
-        });
-    }
-
-    /* Gets the interface id from the row-data of this cell */
-    function getInterfaceId(table, cell) {
-        return table.row(cell.index().row).data().id;
-    }
-
-    /*
-     * Finds the correct url based on the suffix and modifies it for fetching data
-     */
-    function getGraphiteUri(metrics, suffix) {
-        return metrics.filter(function(m) {
-            return m.suffix === suffix;
-        }).map(function(m) {
-            return new URI(m.url)
-                .removeSearch(['height', 'width', 'template', 'vtitle'])
-                .addSearch('format', 'json');
-        });
-    }
-
-    /* Creates a container for a sparkline inside a cell */
-    function createSparkContainer(cell) {
-        var $cell = $(cell.node());
-        var $container = $('<div>').addClass('sparkline');
-        $cell.append($container);
-        return $container;
-    }
-
-    /* Maps data from graphite to format jquery.sparkline understands */
-    function convertToSparkLine(data) {
-        return data.datapoints.map(function(point) {
-            return [point[1], Number(point[0]).toFixed()];
-        });
-    }
-
-    function createSparkLine($container, dataPoints) {
-        $container.sparkline(dataPoints, {
-            tooltipFormatter: self.formatter,
-            type: 'line',
-            width: '100%'
-        });
-    }
 
     function reloadOnChange(table) {
         // Reload at most every reloadInterval ms
@@ -289,7 +239,9 @@ define(function(require) {
     }
 
 
+    /*****************/
     /** FILTER STUFF */
+    /*****************/
 
 
     /* Create url based on filter functions. Each filter is responsible for
@@ -314,6 +266,80 @@ define(function(require) {
     function queryFilter() {
         return { search: $(selectors.queryfilter).val() }
     }
+
+
+    /********************/
+    /** SPARKLINE STUFF */
+    /********************/
+
+
+    /* Adds sparklines to the cells in this column on the current page */
+    function addSparklines(table, column, suffix) {
+        table.cells(null, column, {page: 'current'}).every(function() {
+            var cell = this;
+            if (!hasSparkline(cell)) {
+                var metricRequest = $.getJSON('/api/interface/' + getInterfaceId(table, this) + '/metrics/');
+                metricRequest
+                    .then(function(metrics) {
+                        return getGraphiteUri(metrics, suffix)[0];
+                    })
+                    .then(function(uri) {
+                        return uri ? $.getJSON(uri.toString()) : [];
+                    })
+                    .then(function(response) {
+                        response.forEach(function(data) {
+                            createSparkLine(createSparkContainer(cell), convertToSparkLine(data));
+                        });
+                    })
+            }
+        });
+    }
+
+    function hasSparkline(cell) {
+        return $(cell.node()).find('div').length;
+    }
+
+    /* Gets the interface id from the row-data of this cell */
+    function getInterfaceId(table, cell) {
+        return table.row(cell.index().row).data().id;
+    }
+
+    /*
+     * Finds the correct url based on the suffix and modifies it for fetching data
+     */
+    function getGraphiteUri(metrics, suffix) {
+        return metrics.filter(function(m) {
+            return m.suffix === suffix;
+        }).map(function(m) {
+            return new URI(m.url)
+                .removeSearch(['height', 'width', 'template', 'vtitle'])
+                .addSearch('format', 'json');
+        });
+    }
+
+    /* Creates a container for a sparkline inside a cell */
+    function createSparkContainer(cell) {
+        var $cell = $(cell.node());
+        var $container = $('<div>').addClass('sparkline');
+        $cell.append($container);
+        return $container;
+    }
+
+    /* Maps data from graphite to format jquery.sparkline understands */
+    function convertToSparkLine(data) {
+        return data.datapoints.map(function(point) {
+            return [point[1], Number(point[0]).toFixed()];
+        });
+    }
+
+    function createSparkLine($container, dataPoints) {
+        $container.sparkline(dataPoints, {
+            tooltipFormatter: self.formatter,
+            type: 'line',
+            width: '100%'
+        });
+    }
+
 
     return PortList
 
