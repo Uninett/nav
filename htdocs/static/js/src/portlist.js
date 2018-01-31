@@ -173,64 +173,56 @@ define(function(require) {
         // column: index of column
         // state: false if hidden, true if shown
         table.on('column-visibility.dt', function(e, settings, column, state) {
-            console.log("visibility changed");
-            console.log(settings);
-            console.log(column);
-            console.log(state);
             if (column === 11 && state) {
                 addSparklines(table, 11, 'ifOutOctets')
             }
         })
     }
 
+
+    /* Adds sparklines to the cells in this column on the current page */
     function addSparklines(table, column, suffix) {
-        function getInterfaceId(cell) {
-            var row = table.row(cell.index().row);
-            var data = row.data();
-            return data.id;
-        }
-
         table.cells(null, column, {page: 'current'}).every(function() {
-            // 'this' is the datatable cell
             var cell = this;
-            var id = getInterfaceId(this);
-
-            var metricRequest = $.getJSON('/api/interface/' + id + '/metrics/');
-            metricRequest.done(function(response) {
-                console.log(response);
-                fetchCellData(cell, response, suffix);
+            var metricRequest = $.getJSON('/api/interface/' + getInterfaceId(table, this) + '/metrics/');
+            metricRequest.done(function(metrics) {
+                getGraphiteUri(metrics, suffix).forEach(function(uri) {
+                    fetchInterfaceData(uri, cell);
+                });
             });
         });
     }
 
-    function fetchCellData(cell, metrics, suffix) {
-        var uri = getGraphiteUri(metrics, suffix);
-        if (uri) {
-            console.log(uri.toString());
-            var request = $.getJSON(uri.toString());
-            request.done(function(response) {
-                createSparkLine(createSparkContainer(cell), response)
-            });
-        }
+    /* Gets the interface id from the row-data of this cell */
+    function getInterfaceId(table, cell) {
+        return table.row(cell.index().row).data().id;
     }
 
+    /*
+     * Finds the correct url based on the suffix and modifies it for fetching data
+     * Returns a list of one uri
+     */
     function getGraphiteUri(metrics, suffix) {
-        var obj = metrics.filter(function(m) {
+        return metrics.filter(function(m) {
             return m.suffix === suffix;
         }).map(function(m) {
-            return m.url;
+            return new URI(m.url)
+                .removeSearch(['height', 'width', 'template', 'vtitle'])
+                .addSearch('format', 'json');
         });
-        if (obj.length) {
-            var uri = new URI(obj[0]);
-            uri.removeSearch('height')
-               .removeSearch('width')
-               .removeSearch('template')
-               .removeSearch('vtitle')
-               .addSearch('format', 'json');
-            return uri;
-        }
     }
 
+    /* Fetches the data for this interface and creates a sparkline */
+    function fetchInterfaceData(uri, cell) {
+        return $.getJSON(uri.toString(), function(response) {
+            // Response is a list for each target, in this case one
+            response.forEach(function(data) {
+                createSparkLine(createSparkContainer(cell), convertToSparkLine(data));
+            });
+        });
+    }
+
+    /* Creates a container for a sparkline inside a cell */
     function createSparkContainer(cell) {
         var $cell = $(cell.node());
         var $container = $('<div>').addClass('sparkline');
@@ -238,11 +230,14 @@ define(function(require) {
         return $container;
     }
 
-    function createSparkLine($container, response) {
-        var data = response[0];
-        var dataPoints = data.datapoints.map(function(point) {
-                return [point[1], Number(point[0]).toFixed()];
-            });
+    /* Maps data from graphite to format jquery.sparkline understands */
+    function convertToSparkLine(data) {
+        return data.datapoints.map(function(point) {
+            return [point[1], Number(point[0]).toFixed()];
+        });
+    }
+
+    function createSparkLine($container, dataPoints) {
         $container.sparkline(dataPoints, {
             tooltipFormatter: self.formatter,
             type: 'line',
