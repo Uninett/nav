@@ -30,7 +30,8 @@ from datetime import datetime, timedelta
 import iso8601
 
 from rest_framework import status, filters, viewsets, exceptions, pagination
-from rest_framework.decorators import api_view, renderer_classes, list_route
+from rest_framework.decorators import (api_view, renderer_classes, list_route,
+                                       detail_route)
 from rest_framework.reverse import reverse_lazy
 from rest_framework.renderers import (JSONRenderer, BrowsableAPIRenderer,
                                       TemplateHTMLRenderer)
@@ -415,6 +416,15 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
             return serializers.InterfaceWithCamSerializer
         else:
             return serializers.InterfaceSerializer
+
+    @detail_route()
+    def metrics(self, _request, pk=None):
+        """List all metrics for this interface
+
+        We don't want to include this by default as that will spam the Graphite
+        backend with requests.
+        """
+        return Response(self.get_object().get_port_metrics())
 
 
 class PatchViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
