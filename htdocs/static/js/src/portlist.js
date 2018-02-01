@@ -180,7 +180,7 @@ define(function(require) {
         }
     }
 
-    function renderColumnSwitchers(table) {
+    function renderColumnTogglers(table) {
         var $container = $('#column-switchers');
         $('#portlist-table th').each(function(index, element) {
             var $switcher = $('<li><div class="button tiny">' + element.innerHTML + '</div></li>');
@@ -189,10 +189,9 @@ define(function(require) {
 
         $container.on('click', function(e) {
             var index = $container.find('li').index($(e.target).closest('li'));
-            var button = $(e.target)
-            button.toggleClass('disabled');
             var column = table.column(index);
             column.visible(!column.visible());
+            $(e.target).toggleClass('disabled', !column.visible());  // Toggle button class
         })
     }
 
@@ -388,7 +387,7 @@ define(function(require) {
 
 
     function addColumnSwitcherStuff(table) {
-        renderColumnSwitchers(table);
+        renderColumnTogglers(table);
         addColumnSwitcherListener(table);
         table.on('draw.dt', function() {
             checkDynamicColumns(table);
