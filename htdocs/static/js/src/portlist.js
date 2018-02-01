@@ -125,17 +125,13 @@ define(function(require) {
         {
             data: null,
             name: 'traffic-ifoutoctets',
-            render: function(data, type, row, meta) {
-                return '';
-            }
+            render: function() { return ''; }
         },
 
         {
             data: null,
             name: 'traffic-ifinoctets',
-            render: function(data, type, row, meta) {
-                return '';
-            }
+            render: function() { return ''; }
         },
 
     ];
@@ -156,11 +152,34 @@ define(function(require) {
     /** TABLE INITIATION */
 
     function PortList() {
-        console.log('creating table');
         var table = createTable();
+        table.on('draw.dt', function() {
+            checkDynamicColumns(table);
+        });
         renderColumnSwitchers(table);
         addColumnSwitcherListener(table);
         reloadOnChange(table);
+    }
+
+    /** Check columns with dynamic content */
+    function checkDynamicColumns(table) {
+
+        // Map column names to actions
+        var columnActions = {
+            'traffic-ifoutoctets:name': function() {
+                addSparklines(table, 'traffic-ifoutoctets:name', 'ifOutOctets');
+            },
+            'traffic-ifinoctets:name': function() {
+                addSparklines(table, 'traffic-ifinoctets:name', 'ifInOctets');
+            }
+        }
+
+        for (var selector in columnActions) {
+            var column = table.column(selector);
+            if (column.visible()) {
+                columnActions[selector]();
+            }
+        }
     }
 
     function renderColumnSwitchers(table) {
@@ -181,12 +200,7 @@ define(function(require) {
         // column: index of column
         // state: false if hidden, true if shown
         table.on('column-visibility.dt', function(e, settings, column, state) {
-            if (column === 11 && state) {
-                addSparklines(table, column, 'ifOutOctets')
-            }
-            if (column === 12 && state) {
-                addSparklines(table, column, 'ifInOctets')
-            }
+            checkDynamicColumns(table);
         })
     }
 
