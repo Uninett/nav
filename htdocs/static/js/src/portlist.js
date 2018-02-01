@@ -4,6 +4,7 @@ define(function(require) {
     var moduleSort = require('dt_plugins/modulesort');
     var URI = require('libs/urijs/URI');
     var Moment = require('moment');
+    require('libs/select2.min');
     require('libs/jquery.sparkline');
 
     var selectors = {
@@ -155,18 +156,6 @@ define(function(require) {
     }
 
 
-    /** TABLE INITIATION */
-
-    function PortList() {
-        var table = createTable();
-        renderColumnSwitchers(table);
-        addColumnSwitcherListener(table);
-        table.on('draw.dt', function() {
-            checkDynamicColumns(table);
-        });
-        reloadOnFilterChange(table);
-    }
-
     /** Check columns with dynamic content */
     function checkDynamicColumns(table) {
 
@@ -218,7 +207,8 @@ define(function(require) {
         // Reload at most every reloadInterval ms
         var reloadInterval = 500  // ms
         var throttled = _.throttle(reload.bind(this, table), reloadInterval, {leading: false});
-        $(selectors.filterForm).on('change keyup', throttled);
+        $(selectors.filterForm).on('change keyup', 'select, #queryfilter', throttled);
+        $(selectors.filterForm).on('select2-selecting', throttled);
     }
 
     function reload(table) {
@@ -279,7 +269,8 @@ define(function(require) {
     }
 
     function netboxFilter() {
-        return {};
+        var value = $('#netbox-filter').val();
+        return value ? { netbox: value.split(',') } : {};
     }
 
     function ifClassFilter() {
@@ -287,7 +278,8 @@ define(function(require) {
     }
 
     function queryFilter() {
-        return { search: $(selectors.queryfilter).val() }
+        var search = $(selectors.queryfilter).val()
+        return search ? { search: search } : search;
     }
 
 
@@ -391,6 +383,42 @@ define(function(require) {
         });
     }
 
+
+    function addColumnSwitcherStuff(table) {
+        renderColumnSwitchers(table);
+        addColumnSwitcherListener(table);
+        table.on('draw.dt', function() {
+            checkDynamicColumns(table);
+        });
+    }
+
+    function addFilterStuff(table) {
+        var netboxFilter = $('#netbox-filter').select2({
+            ajax: {
+                url: '/api/netbox/',
+                dataType: 'json',
+                quietMillis: 500,
+                data: function(term, page) {
+                    return { search: term }
+                },
+                results: function(data, page) {
+                    return {results: data.results.map(function(d) {
+                        return {text: d.sysname, id: d.id}
+                    })};
+                }
+            },
+            multiple: true
+        });
+        reloadOnFilterChange(table);
+    }
+
+    /** TABLE INITIATION */
+
+    function PortList() {
+        var table = createTable();
+        addColumnSwitcherStuff(table);
+        addFilterStuff(table);
+    }
 
     return PortList
 
