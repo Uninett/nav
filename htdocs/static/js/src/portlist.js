@@ -273,13 +273,20 @@ define(function(require) {
     /********************/
 
 
-    /* Adds sparklines to the cells in this column on the current page */
+    /** Adds sparklines to the cells in this column on the current page
+
+       - For each cell, fetch the metrics for that interface.
+       - Then find and modify the url for the metric/suffix we are looking for.
+       - Use this url to fetch data.
+       - Create a sparkline showing these data.
+
+     */
     function addSparklines(table, column, suffix) {
         table.cells(null, column, {page: 'current'}).every(function() {
             var cell = this;
             if (!hasSparkline(cell)) {
-                var metricRequest = $.getJSON('/api/interface/' + getInterfaceId(table, this) + '/metrics/');
-                metricRequest
+                var fetchMetrics = $.getJSON('/api/interface/' + getInterfaceId(table, this) + '/metrics/');
+                fetchMetrics
                     .then(function(metrics) {
                         return getGraphiteUri(metrics, suffix)[0];
                     })
