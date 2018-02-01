@@ -357,7 +357,7 @@ define(function(require) {
         $container.sparkline(dataPoints, {
             tooltipFormatter: self.formatter,
             type: 'line',
-            width: '100%'
+            width: '100px'
         });
     }
 
