@@ -134,6 +134,12 @@ define(function(require) {
             render: function() { return ''; }
         },
 
+        {
+            data: null,
+            name: 'last_used',
+            render: function() { return ''; }
+        }
+
     ];
 
 
@@ -171,6 +177,9 @@ define(function(require) {
             },
             'traffic-ifinoctets:name': function() {
                 addSparklines(table, 'traffic-ifinoctets:name', 'ifInOctets');
+            },
+            'last_used:name': function() {
+                addLastUsed(table, 'last_used:name')
             }
         }
 
@@ -282,6 +291,31 @@ define(function(require) {
     }
 
 
+    /*******************/
+    /* DYNAMIC COLUMNS */
+    /*******************/
+
+
+    function isEmpty(cell) {
+        return $(cell.node()).is(':empty');
+    }
+
+    function addLastUsed(table, column) {
+        table.cells(null, column, {page: 'current'}).every(function() {
+            var cell = this;
+            if (isEmpty(cell)) {
+                var fetchLastUsed = $.getJSON('/api/interface/' + getInterfaceId(table, cell) + '/last_used/');
+                fetchLastUsed.then(function(response) {
+                    var timestamp = response.last_used;
+                    if (timestamp) {
+                        var formatted = Moment(timestamp).format('YYYY-MM-DD HH:mm:ss')
+                        cell.node().innerHTML = formatted;
+                    }
+                });
+            }
+        });
+    }
+
     /********************/
     /** SPARKLINE STUFF */
     /********************/
@@ -298,7 +332,7 @@ define(function(require) {
     function addSparklines(table, column, suffix) {
         table.cells(null, column, {page: 'current'}).every(function() {
             var cell = this;
-            if (!hasSparkline(cell)) {
+            if (isEmpty(cell)) {
                 var fetchMetrics = $.getJSON('/api/interface/' + getInterfaceId(table, this) + '/metrics/');
                 fetchMetrics
                     .then(function(metrics) {
@@ -314,10 +348,6 @@ define(function(require) {
                     })
             }
         });
-    }
-
-    function hasSparkline(cell) {
-        return $(cell.node()).find('div').length;
     }
 
     /* Gets the interface id from the row-data of this cell */
