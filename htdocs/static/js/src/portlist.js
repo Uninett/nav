@@ -126,18 +126,21 @@ define(function(require) {
         {
             data: null,
             name: 'traffic-ifoutoctets',
+            orderable: false,
             render: function() { return ''; }
         },
 
         {
             data: null,
             name: 'traffic-ifinoctets',
+            orderable: false,
             render: function() { return ''; }
         },
 
         {
             data: null,
             name: 'last_used',
+            orderable: false,
             render: function() { return ''; }
         }
 
