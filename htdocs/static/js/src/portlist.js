@@ -407,7 +407,8 @@ define(function(require) {
                     })};
                 }
             },
-            multiple: true
+            multiple: true,
+            width: 'off'
         });
         reloadOnFilterChange(table);
     }
