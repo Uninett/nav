@@ -2,7 +2,8 @@
     height: 33px;
 }
 
-#column-switchers {
+#column-toggler-header { cursor: pointer; }
+#column-togglers {
     margin: 0;
     .button { margin: 0 }
     .button.disabled {

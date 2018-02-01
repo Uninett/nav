@@ -181,7 +181,7 @@ define(function(require) {
     }
 
     function renderColumnTogglers(table) {
-        var $container = $('#column-switchers');
+        var $container = $('#column-togglers');
         $('#portlist-table th').each(function(index, element) {
             var $switcher = $('<li><div class="button tiny">' + element.innerHTML + '</div></li>');
             $container.append($switcher);
@@ -387,6 +387,12 @@ define(function(require) {
 
 
     function addColumnSwitcherStuff(table) {
+        var $header = $('#column-toggler-header');
+        $header.on('click', function() {
+            $('#column-toggler-container').slideToggle(function() {
+                $header.find('i').toggleClass('fa-caret-right fa-caret-down');
+            });
+        });
         renderColumnTogglers(table);
         addColumnSwitcherListener(table);
         table.on('draw.dt', function() {
