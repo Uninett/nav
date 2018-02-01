@@ -182,12 +182,15 @@ define(function(require) {
 
     function renderColumnSwitchers(table) {
         var $container = $('#column-switchers');
-        dtColumns.forEach(function(column, index) {
-            var $switcher = $('<li data-name="' + index + '">' + column.name + '</li>');
+        $('#portlist-table th').each(function(index, element) {
+            var $switcher = $('<li><div class="button tiny">' + element.innerHTML + '</div></li>');
             $container.append($switcher);
         });
+
         $container.on('click', function(e) {
-            var index = $container.find('li').index(e.target);
+            var index = $container.find('li').index($(e.target).closest('li'));
+            var button = $(e.target)
+            button.toggleClass('disabled');
             var column = table.column(index);
             column.visible(!column.visible());
         })
