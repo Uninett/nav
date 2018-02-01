@@ -2,6 +2,12 @@
     height: 33px;
 }
 
+.navbody .dataTables_wrapper .dataTables_paginate {
+    float: none;
+    padding: 0;
+    .paginate_button { margin: 0; }
+}
+
 #column-toggler-header { cursor: pointer; }
 #column-togglers {
     margin: 0;

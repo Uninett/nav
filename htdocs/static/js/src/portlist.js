@@ -229,7 +229,7 @@ define(function(require) {
             },
             columns: dtColumns,
             order: [[1, 'asc']],
-            dom: "<><'#infoprocessing'ir>t<p>",
+            dom: "<pirl>t",
             language: {
                 info: "_TOTAL_ entries",
                 processing: "Loading...",
