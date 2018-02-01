@@ -426,6 +426,20 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         """
         return Response(self.get_object().get_port_metrics())
 
+    @detail_route()
+    def last_used(self, _request, pk=None):
+        """Return last used timestamp for this interface
+
+        If still in use this will return datetime.max as per
+        DateTimeInfinityField
+        """
+        try:
+            serialized = serializers.CamSerializer(
+                self.get_object().get_last_cam_record())
+            return Response({'last_used': serialized.data.get('end_time')})
+        except manage.Cam.DoesNotExist:
+            return Response({'last_used': None})
+
 
 class PatchViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Lists all patches
