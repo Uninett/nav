@@ -416,6 +416,7 @@ define(function(require) {
                 }
             },
             multiple: true,
+            minimumInputLength: 2,
             width: 'off'
         });
         reloadOnFilterChange(table);
