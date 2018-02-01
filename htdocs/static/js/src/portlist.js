@@ -159,12 +159,12 @@ define(function(require) {
 
     function PortList() {
         var table = createTable();
+        renderColumnSwitchers(table);
+        addColumnSwitcherListener(table);
         table.on('draw.dt', function() {
             checkDynamicColumns(table);
         });
-        renderColumnSwitchers(table);
-        addColumnSwitcherListener(table);
-        reloadOnChange(table);
+        reloadOnFilterChange(table);
     }
 
     /** Check columns with dynamic content */
@@ -214,7 +214,7 @@ define(function(require) {
     }
 
 
-    function reloadOnChange(table) {
+    function reloadOnFilterChange(table) {
         // Reload at most every reloadInterval ms
         var reloadInterval = 500  // ms
         var throttled = _.throttle(reload.bind(this, table), reloadInterval, {leading: false});
