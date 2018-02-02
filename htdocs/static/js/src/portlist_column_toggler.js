@@ -28,8 +28,10 @@ define([], function() {
 
 
     function ColumnToggler(config) {
-        addContainerToggler(config.containerToggler, config.container);
-        createColumnTogglers(config.table, config.container);
+        var containerToggler = config.container.find('.toggle-header');
+        var container = config.container.find('.toggle-container');
+        addContainerToggler(containerToggler, container);
+        createColumnTogglers(config.table, container);
     }
 
     return ColumnToggler;

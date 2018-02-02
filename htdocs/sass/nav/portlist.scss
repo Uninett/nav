@@ -8,23 +8,25 @@
     .paginate_button { margin: 0; }
 }
 
-#column-toggler-header {
-    cursor: pointer;
-    display: inline-block;
+#column-toggler {
+    .toggle-header {
+        cursor: pointer;
+        display: inline-block;
+    }
+    .toggle-container > ul {
+        margin: 0;
+        .button { margin: 0 }
+        .button.disabled {
+            cursor: pointer;
+            opacity: 0.5;
+        }
+        > li {
+            margin-left: 0;
+            margin-right: .3em;
+        }
+    }
 }
 
-#column-togglers {
-    margin: 0;
-    .button { margin: 0 }
-    .button.disabled {
-        cursor: pointer;
-        opacity: 0.5;
-    }
-    > li {
-        margin-left: 0;
-        margin-right: .3em;
-    }
-}
 #filters {
     display: flex;
     > * { margin-right: 1em; }

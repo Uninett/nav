@@ -413,8 +413,7 @@ define(function(require) {
         var table = createTable();
         columnToggler({
             table: table,
-            containerToggler: $('#column-toggler-header'),
-            container: $('#column-toggler-container'),
+            container: $('#column-toggler')
         });
         updateDynamicColumns(table)
         addFilterStuff(table);
