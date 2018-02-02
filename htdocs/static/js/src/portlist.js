@@ -10,6 +10,7 @@ define(function(require) {
     require('libs/select2.min');
     require('libs/jquery.sparkline');
 
+
     var selectors = {
         table: '#portlist-table'
     }
@@ -32,12 +33,14 @@ define(function(require) {
                 }
                 return '';
             },
-            orderable: false
+            orderable: false,
+            title: '&nbsp;'
         },
 
         {
             data: "netbox.sysname",
-            name: 'netbox'
+            name: 'netbox',
+            title: 'Device'
         },
 
         {
@@ -46,7 +49,8 @@ define(function(require) {
             type: "module",
             render: function(data, type, row, meta) {
                 return '<a href="' + row.object_url + '">' + data + '</a>';
-            }
+            },
+            title: 'Port'
         },
 
         {
@@ -54,7 +58,8 @@ define(function(require) {
             name: 'ifalias',
             render: function(data, type, row, meta) {
                 return '<a href="' + row.object_url + '">' + data + '</a>';
-            }
+            },
+            title: 'Port Description'
         },
 
         {
@@ -64,21 +69,24 @@ define(function(require) {
                 return data
                      ? '<a href="' + data.object_url + '">' + data.name + '</a>'
                      : '';
-            }
+            },
+            title: 'Module'
         },
 
         {
             data: "ifadminstatus",
             name: 'adminstatus',
             type: "statuslight",
-            render: renderStatus
+            render: renderStatus,
+            title: 'Admin'
         },
 
         {
             data: "ifoperstatus",
             name: 'operstatus',
             type: "statuslight",
-            render: renderStatus
+            render: renderStatus,
+            title: 'Link'
         },
 
         {
@@ -89,7 +97,8 @@ define(function(require) {
                     return "<span title='Trunk' style='border: 3px double black; padding: 0 5px'>" + data + "</span>"
                 }
                 return data;
-            }
+            },
+            title: 'Vlan'
         },
 
         {
@@ -100,7 +109,8 @@ define(function(require) {
                     return data + '<span class="label warning" title="Half duplex" style="margin-left: .3rem">HD</span>';
                 }
                 return row.speed ? data : "";
-            }
+            },
+            title: 'Speed'
         },
 
         {
@@ -110,7 +120,8 @@ define(function(require) {
                 return data
                      ? '<a href="' + data.object_url + '">' + data.sysname + '</a>'
                      : '';
-            }
+            },
+            title: 'To Device'
         },
 
         {
@@ -120,7 +131,8 @@ define(function(require) {
                 return data
                      ? '<a href="' + data.object_url + '">' + data.ifname + '</a>'
                      : '';
-            }
+            },
+            title: 'To Port'
         },
 
         {
@@ -128,7 +140,8 @@ define(function(require) {
             name: 'traffic-ifoutoctets',
             orderable: false,
             render: function() { return ''; },
-            visible: false
+            visible: false,
+            title: 'OutOctets'
         },
 
         {
@@ -136,7 +149,8 @@ define(function(require) {
             name: 'traffic-ifinoctets',
             orderable: false,
             render: function() { return ''; },
-            visible: false
+            visible: false,
+            title: 'InOctets'
         },
 
         {
@@ -144,8 +158,9 @@ define(function(require) {
             name: 'last_used',
             orderable: false,
             render: function() { return ''; },
-            visible: false
-        }
+            visible: false,
+            title: 'Last Used'
+        },
 
     ];
 
@@ -193,7 +208,6 @@ define(function(require) {
         json.data = json.results;
         return JSON.stringify( json );
     }
-
 
     /** TABLE INITIATION */
 
