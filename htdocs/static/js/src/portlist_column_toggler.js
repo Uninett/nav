@@ -12,8 +12,9 @@ define([], function() {
     /** Create a toggler for each th in the table */
     function createColumnTogglers(table, $container) {
         var $buttonList = $container.find('ul');
-        $(table.table().header()).find('th').each(function(index, element) {
-            var $switcher = $('<li><div class="button tiny">' + element.innerHTML + '</div></li>');
+        table.columns().every(function() {
+            var klass = this.visible() ? '': 'disabled';
+            var $switcher = $('<li><div class="button tiny ' + klass + '">' + this.header().innerHTML + '</div></li>');
             $buttonList.append($switcher);
         });
 
