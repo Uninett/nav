@@ -303,10 +303,12 @@ define(function(require) {
             if (isEmpty(cell)) {
                 var fetchLastUsed = $.getJSON('/api/interface/' + getInterfaceId(table, cell) + '/last_used/');
                 fetchLastUsed.then(function(response) {
-                    var timestamp = response.last_used;
-                    if (timestamp) {
-                        var formatted = Moment(timestamp).format('YYYY-MM-DD HH:mm:ss')
-                        cell.node().innerHTML = formatted;
+                    var hasLink = table.row(cell.index().row).data().ifoperstatus === 1;
+                    var timestamp = response.last_used ? Moment(response.last_used) : null;
+                    if ((timestamp && timestamp.year() === 9999) || hasLink) {
+                        cell.node().innerHTML = 'In use';
+                    } else if (timestamp) {
+                        cell.node().innerHTML = moment.format('YYYY-MM-DD HH:mm:ss');
                     }
                 });
             }
