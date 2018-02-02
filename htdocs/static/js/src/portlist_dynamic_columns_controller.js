@@ -1,6 +1,8 @@
 define(function(require) {
 
     var URI = require('libs/urijs/URI');
+    var Moment = require('moment');
+    require('libs/jquery.sparkline');
 
     function isEmpty(cell) {
         return $(cell.node()).is(':empty');
@@ -89,7 +91,7 @@ define(function(require) {
                     if ((timestamp && timestamp.year() === 9999) || hasLink) {
                         cell.node().innerHTML = 'In use';
                     } else if (timestamp) {
-                        cell.node().innerHTML = moment.format('YYYY-MM-DD HH:mm:ss');
+                        cell.node().innerHTML = Moment().format('YYYY-MM-DD HH:mm:ss');
                     }
                 });
             }

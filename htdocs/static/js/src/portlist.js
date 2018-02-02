@@ -1,15 +1,9 @@
 define(function(require) {
 
     var DataTables = require('libs/datatables.min');
-    var moduleSort = require('dt_plugins/modulesort');
-    var URI = require('libs/urijs/URI');
-    var Moment = require('moment');
     var columnToggler = require('src/portlist_column_toggler');
     var filterController = require('src/portlist_filter_controller');
     var dynamicColumnsController = require('src/portlist_dynamic_columns_controller');
-    require('libs/select2.min');
-    require('libs/jquery.sparkline');
-
 
     var selectors = {
         table: '#portlist-table'

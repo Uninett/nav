@@ -1,6 +1,7 @@
 define(function(require) {
 
     var URI = require('libs/urijs/URI');
+    require('libs/select2.min');
 
     var selectors = {
         ifclassfilter: '#ifclassfilter',
