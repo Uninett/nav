@@ -11,6 +11,8 @@ define(function(require) {
         table: '#portlist-table',
         ifclassfilter: '#ifclassfilter',
         queryfilter: '#queryfilter',
+        netboxfilter: '#netbox-filter',
+        operstatusfilter: '#operstatus-filter',
         filterForm: '#filters'
     }
 
@@ -127,21 +129,24 @@ define(function(require) {
             data: null,
             name: 'traffic-ifoutoctets',
             orderable: false,
-            render: function() { return ''; }
+            render: function() { return ''; },
+            visible: false
         },
 
         {
             data: null,
             name: 'traffic-ifinoctets',
             orderable: false,
-            render: function() { return ''; }
+            render: function() { return ''; },
+            visible: false
         },
 
         {
             data: null,
             name: 'last_used',
             orderable: false,
-            render: function() { return ''; }
+            render: function() { return ''; },
+            visible: false
         }
 
     ];
@@ -265,7 +270,7 @@ define(function(require) {
     /* Create url based on filter functions. Each filter is responsible for
     creating a parameter and value */
     function addFilterParameters(uri) {
-        filters = [netboxFilter, ifClassFilter, queryFilter];
+        filters = [netboxFilter, ifClassFilter, queryFilter, linkFilter];
         uri.addSearch(filters.reduce(function(obj, func) {
             return Object.assign(obj, func());
         }, {}));
@@ -273,8 +278,12 @@ define(function(require) {
         return uri;
     }
 
+    function linkFilter() {
+        return { ifoperstatus: $(selectors.operstatusfilter).val() }
+    }
+
     function netboxFilter() {
-        var value = $('#netbox-filter').val();
+        var value = $(selectors.netboxfilter).val();
         return value ? { netbox: value.split(',') } : {};
     }
 
