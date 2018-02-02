@@ -70,9 +70,17 @@ define(function(require) {
     /* Adds listeners for reloading when the filters change */
     function reloadOnFilterChange(table) {
         var reloadInterval = 500  // ms
-        var throttled = _.throttle(reload.bind(this, table), reloadInterval, {leading: false});
-        $(selectors.filterForm).on('change keyup', 'select, #queryfilter', throttled);
-        $(selectors.filterForm).on('select2-selecting', throttled);
+        var _reload = reload.bind(this, table)
+        var throttledReload = _.throttle(_reload, reloadInterval, {leading: false});
+
+        $(selectors.filterForm).on('change', _reload);
+        $(selectors.filterForm).on('keyup', '#queryfilter', function(event) {
+            var isWordCharacter = event.key.length === 1;
+            var isBackspaceOrDelete = (event.keyCode === 8 || event.keyCode === 46);
+            if (isWordCharacter || isBackspaceOrDelete) {
+                throttledReload();
+            }
+        });
     }
 
     /* Initialize everything with given config */
