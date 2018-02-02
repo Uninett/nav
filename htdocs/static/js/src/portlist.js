@@ -5,16 +5,12 @@ define(function(require) {
     var URI = require('libs/urijs/URI');
     var Moment = require('moment');
     var columnToggler = require('src/portlist_column_toggler');
+    var filterController = require('src/portlist_filter_controller');
     require('libs/select2.min');
     require('libs/jquery.sparkline');
 
     var selectors = {
-        table: '#portlist-table',
-        ifclassfilter: '#ifclassfilter',
-        queryfilter: '#queryfilter',
-        netboxfilter: '#netbox-filter',
-        operstatusfilter: '#operstatus-filter',
-        filterForm: '#filters'
+        table: '#portlist-table'
     }
 
 
@@ -189,18 +185,6 @@ define(function(require) {
         }
     }
 
-    function reloadOnFilterChange(table) {
-        // Reload at most every reloadInterval ms
-        var reloadInterval = 500  // ms
-        var throttled = _.throttle(reload.bind(this, table), reloadInterval, {leading: false});
-        $(selectors.filterForm).on('change keyup', 'select, #queryfilter', throttled);
-        $(selectors.filterForm).on('select2-selecting', throttled);
-    }
-
-    function reload(table) {
-        table.ajax.url(getUrl()).load();
-    }
-
     function createTable() {
         return $(selectors.table).DataTable({
             autoWidth: false,
@@ -208,7 +192,7 @@ define(function(require) {
             pagingType: 'simple',
             orderClasses: false,
             ajax: {
-                url: getUrl(),
+                url: filterController.getUrl(),
                 dataFilter: translateData
             },
             columns: dtColumns,
@@ -229,47 +213,6 @@ define(function(require) {
         json.recordsTotal = json.count;
         json.data = json.results;
         return JSON.stringify( json );
-    }
-
-    function getUrl() {
-        var baseUri = URI("/api/1/interface/");
-        var uri = addFilterParameters(baseUri);
-        return uri.toString();
-    }
-
-
-    /*****************/
-    /** FILTER STUFF */
-    /*****************/
-
-
-    /* Create url based on filter functions. Each filter is responsible for
-    creating a parameter and value */
-    function addFilterParameters(uri) {
-        filters = [netboxFilter, ifClassFilter, queryFilter, linkFilter];
-        uri.addSearch(filters.reduce(function(obj, func) {
-            return Object.assign(obj, func());
-        }, {}));
-        console.log(uri.toString());
-        return uri;
-    }
-
-    function linkFilter() {
-        return { ifoperstatus: $(selectors.operstatusfilter).val() }
-    }
-
-    function netboxFilter() {
-        var value = $(selectors.netboxfilter).val();
-        return value ? { netbox: value.split(',') } : {};
-    }
-
-    function ifClassFilter() {
-        return { ifclass: $(selectors.ifclassfilter).val() }
-    }
-
-    function queryFilter() {
-        var search = $(selectors.queryfilter).val()
-        return search ? { search: search } : search;
     }
 
 
@@ -376,28 +319,6 @@ define(function(require) {
     }
 
 
-    function addFilterStuff(table) {
-        var netboxFilter = $('#netbox-filter').select2({
-            ajax: {
-                url: '/api/netbox/',
-                dataType: 'json',
-                quietMillis: 500,
-                data: function(term, page) {
-                    return { search: term }
-                },
-                results: function(data, page) {
-                    return {results: data.results.map(function(d) {
-                        return {text: d.sysname, id: d.id}
-                    })};
-                }
-            },
-            multiple: true,
-            minimumInputLength: 2,
-            width: 'off'
-        });
-        reloadOnFilterChange(table);
-    }
-
     function updateDynamicColumns(table) {
         table.on('column-visibility.dt', function(e, settings, column, state) {
             checkDynamicColumns(table);
@@ -408,15 +329,14 @@ define(function(require) {
     }
 
     /** TABLE INITIATION */
-
     function PortList() {
         var table = createTable();
         columnToggler({
             table: table,
             container: $('#column-toggler')
         });
+        filterController.controller(table);
         updateDynamicColumns(table)
-        addFilterStuff(table);
     }
 
     return PortList
