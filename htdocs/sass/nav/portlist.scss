@@ -8,7 +8,11 @@
     .paginate_button { margin: 0; }
 }
 
-#column-toggler-header { cursor: pointer; }
+#column-toggler-header {
+    cursor: pointer;
+    display: inline-block;
+}
+
 #column-togglers {
     margin: 0;
     .button { margin: 0 }
