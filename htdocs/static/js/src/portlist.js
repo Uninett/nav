@@ -4,6 +4,7 @@ define(function(require) {
     var moduleSort = require('dt_plugins/modulesort');
     var URI = require('libs/urijs/URI');
     var Moment = require('moment');
+    var columnToggler = require('src/portlist_column_toggler');
     require('libs/select2.min');
     require('libs/jquery.sparkline');
 
@@ -187,31 +188,6 @@ define(function(require) {
             }
         }
     }
-
-    function renderColumnTogglers(table) {
-        var $container = $('#column-togglers');
-        $('#portlist-table th').each(function(index, element) {
-            var $switcher = $('<li><div class="button tiny">' + element.innerHTML + '</div></li>');
-            $container.append($switcher);
-        });
-
-        $container.on('click', function(e) {
-            var index = $container.find('li').index($(e.target).closest('li'));
-            var column = table.column(index);
-            column.visible(!column.visible());
-            $(e.target).toggleClass('disabled', !column.visible());  // Toggle button class
-        })
-    }
-
-
-    function addColumnSwitcherListener(table) {
-        // column: index of column
-        // state: false if hidden, true if shown
-        table.on('column-visibility.dt', function(e, settings, column, state) {
-            checkDynamicColumns(table);
-        })
-    }
-
 
     function reloadOnFilterChange(table) {
         // Reload at most every reloadInterval ms
@@ -400,20 +376,6 @@ define(function(require) {
     }
 
 
-    function addColumnSwitcherStuff(table) {
-        var $header = $('#column-toggler-header');
-        $header.on('click', function() {
-            $('#column-toggler-container').slideToggle(function() {
-                $header.find('i').toggleClass('fa-caret-right fa-caret-down');
-            });
-        });
-        renderColumnTogglers(table);
-        addColumnSwitcherListener(table);
-        table.on('draw.dt', function() {
-            checkDynamicColumns(table);
-        });
-    }
-
     function addFilterStuff(table) {
         var netboxFilter = $('#netbox-filter').select2({
             ajax: {
@@ -436,11 +398,25 @@ define(function(require) {
         reloadOnFilterChange(table);
     }
 
+    function updateDynamicColumns(table) {
+        table.on('column-visibility.dt', function(e, settings, column, state) {
+            checkDynamicColumns(table);
+        })
+        table.on('draw.dt', function() {
+            checkDynamicColumns(table);
+        });
+    }
+
     /** TABLE INITIATION */
 
     function PortList() {
         var table = createTable();
-        addColumnSwitcherStuff(table);
+        columnToggler({
+            table: table,
+            containerToggler: $('#column-toggler-header'),
+            container: $('#column-toggler-container'),
+        });
+        updateDynamicColumns(table)
         addFilterStuff(table);
     }
 
