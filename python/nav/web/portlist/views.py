@@ -30,3 +30,9 @@ def default_context():
 def index(request):
     context = default_context()
     return render(request, 'portlist/base.html', context)
+
+
+def by_netboxid(request, netboxid):
+    context = default_context()
+    context.update({'netboxid': netboxid})
+    return render(request, 'portlist/base.html', context)

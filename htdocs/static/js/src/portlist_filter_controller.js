@@ -42,9 +42,10 @@ define(function(require) {
 
     /** Adds select2 component to netboxfilter */
     function addNetboxFilter() {
+        var url = "/api/netbox/";
         var netboxFilter = $(selectors.netboxfilter).select2({
             ajax: {
-                url: '/api/netbox/',
+                url: url,
                 dataType: 'json',
                 quietMillis: 500,
                 data: function(term, page) {
@@ -54,6 +55,16 @@ define(function(require) {
                     return {results: data.results.map(function(d) {
                         return {text: d.sysname, id: d.id}
                     })};
+                }
+            },
+            initSelection: function(element, callback) {
+                var id = $(element).val();
+                if (id) {
+                    $.ajax(url + id, {
+                        dataType: "json"
+                    }).done(function(data) {
+                        callback({text: data.sysname, id: data.id});
+                    });
                 }
             },
             multiple: true,
