@@ -21,7 +21,7 @@ define(function (require, exports, module) {
             value = config.value || 0,
             url = config.url || null,
             refreshInterval = config.refreshInterval || 60, // seconds
-            invertScale = config.invertScale || false,
+            invertScale = config.invertScale,
             thresholds = config.thresholds || [];
 
         this.symbol = config.symbol || '\u00B0';  // Default is degrees
@@ -163,17 +163,27 @@ define(function (require, exports, module) {
             return text;
         },
         createColorScale: function (min, max, thresholds, invert) {
-            if (thresholds.length === 1) {
-                max = thresholds[0];
+            if (typeof invert === 'undefined' && thresholds.length) {
+                // Check thresholds to find invert value
+                if (thresholds.length === 1) {
+                    invert = thresholds[0].substr(0, 1) === '<';
+                }
             }
+
+            if (thresholds.length === 1) {
+                max = this.trimThreshold(thresholds[0]);
+            }
+
             var colors = ['#7FDBFF', '#2ECC40', '#FFDC00', '#FF4136'],
                 step = (max - min) / 4,
                 domain = [min, step, 2 * step, max];
+
             if (min < 0) {
                 colors = ['#001f3f', '#0074D9', '#7FDBFF', '#2ECC40', '#FFDC00', '#FF4136'];
                 step = (max - min) / 6;
                 domain = [min, min + step, min + step * 2, min + step * 3, min + step * 4, max];
             }
+
             if (invert) {
                 colors.reverse();
             }
@@ -200,16 +210,21 @@ define(function (require, exports, module) {
             return gradientId;
         },
         drawThresholds: function (thresholds) {
-            for (var i = 0, l = thresholds.length; i < l; i++) {
-                this.createLineFromValue(thresholds[i]);
-            }
+            var self = this;
+            thresholds
+                .map(this.trimThreshold)
+                .forEach(this.createLineFromValue, this);
         },
         createLineFromValue: function (value) {
-            var points = this.getLineCoords(value);
-            this.vis.append("line")
-                .attr('stroke-width', 1).attr('stroke', 'black')
-                .attr("x1", points.x1).attr("y1", points.y1)
-                .attr("x2", points.x2).attr("y2", points.y2);
+            try {
+                var points = this.getLineCoords(value);
+                this.vis.append("line")
+                    .attr('stroke-width', 1).attr('stroke', 'black')
+                    .attr("x1", points.x1).attr("y1", points.y1)
+                    .attr("x2", points.x2).attr("y2", points.y2);
+            } catch (error) {
+                console.log("Value outside max, cant draw threshold");
+            }
         },
         getLineCoords: function (value) {
             /* Get x and y coordinates for a specific value */
@@ -220,6 +235,9 @@ define(function (require, exports, module) {
                 endPoint = lineCoords[1].split(',');
 
             return { x1: startPoint[0], y1: startPoint[1], x2: endPoint[0], y2: endPoint[1]};
+        },
+        trimThreshold: function(threshold) {
+            return threshold.replace(/\D/, '');
         }
     };
 
