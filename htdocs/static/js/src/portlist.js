@@ -28,7 +28,7 @@ define(function(require) {
                 return '';
             },
             orderable: false,
-            title: '&nbsp;'
+            title: '<img src="' + NAV.imagePath + '/toolbox/portadmin.svg" style="height: 1em; width: 1em" />'
         },
 
         {
