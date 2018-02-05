@@ -162,36 +162,60 @@ define(function (require, exports, module) {
             }
             return text;
         },
+        getDomain: function(min, max, steps) {
+            step = (max - min) / (steps - 1);
+            return _.range(steps).map(function(m) {
+                return min + (step * m);
+            });
+        },
         createColorScale: function (min, max, thresholds, invert) {
-            if (typeof invert === 'undefined' && thresholds.length) {
-                // Check thresholds to find invert value
-                if (thresholds.length === 1) {
-                    invert = thresholds[0].substr(0, 1) === '<';
+            console.log('Min', min, 'Max', max);
+            console.log('Thresholds', thresholds);
+
+            var colors = ['#2ECC40', '#FFDC00', '#FF4136'];
+            if (thresholds.length === 2) {
+                /* Create special range where the mid-range between the > and <
+                   is considered "green" and the rest is considered out of
+                   bounds - "red" */
+                min = this.trimThreshold(_.find(thresholds, function(t) {
+                    return t.substr(0, 1) === '>';
+                }));
+                max = this.trimThreshold(_.find(thresholds, function(t) {
+                    return t.substr(0, 1) === '<';
+                }));
+                step = (max - min) / 4;
+                domain = [min, step, 2 * step, max];
+                colors = ['#FF4136', '#FFDC00', '#2ECC40', '#FFDC00', '#FF4136']
+            } else if (thresholds.length === 1) {
+                invert = typeof invert === 'undefined' ? thresholds[0].substr(0, 1) === '<' : invert;
+                if (invert) {
+                    min = this.trimThreshold(thresholds[0])
+                } else {
+                    max = this.trimThreshold(thresholds[0]);
                 }
             }
 
-            if (thresholds.length === 1) {
-                max = this.trimThreshold(thresholds[0]);
-            }
-
-            var colors = ['#7FDBFF', '#2ECC40', '#FFDC00', '#FF4136'],
-                step = (max - min) / 4,
-                domain = [min, step, 2 * step, max];
-
             if (min < 0) {
-                colors = ['#001f3f', '#0074D9', '#7FDBFF', '#2ECC40', '#FFDC00', '#FF4136'];
-                step = (max - min) / 6;
-                domain = [min, min + step, min + step * 2, min + step * 3, min + step * 4, max];
+                colors = ['#001f3f', '#0074D9', '#2ECC40', '#FFDC00', '#FF4136'];
             }
+
+            console.log('Setting min to', min);
+            console.log('Setting max to', max);
+
+            var domain = this.getDomain(min, max, colors.length);
+            console.log(domain);
 
             if (invert) {
                 colors.reverse();
             }
+            console.log(colors);
 
-            return d3.scale.linear()
-                .domain(domain)
-                .interpolate(d3.interpolateRgb)
-                .range(colors);
+            var scale = d3.scale.linear()
+                          .domain(domain)
+                          .interpolate(d3.interpolateRgb)
+                          .range(colors);
+            scale.clamp(true);  // Dont extrapolate
+            return scale;
         },
         createGradient: function (node) {
             /* Greate gradient for background arc */
@@ -237,7 +261,7 @@ define(function (require, exports, module) {
             return { x1: startPoint[0], y1: startPoint[1], x2: endPoint[0], y2: endPoint[1]};
         },
         trimThreshold: function(threshold) {
-            return threshold.replace(/\D/, '');
+            return +threshold.replace(/\D/, '');
         }
     };
 
