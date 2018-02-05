@@ -24,7 +24,7 @@ define(function (require, exports, module) {
             invertScale = config.invertScale,
             thresholds = config.thresholds || [];
 
-        this.symbol = config.symbol || '\u00B0';  // Default is degrees
+        this.symbol = config.symbol || '';
         this.unit = config.unit || '';
         this.animationSpeed = 1000;  // Speed of value transitions
 
