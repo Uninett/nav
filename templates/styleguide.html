@@ -3,10 +3,13 @@
 
 {% block base_header_additional_head %}
   <style>
-  h3.underline {
-    border-bottom: 1px solid #cccccc;
-  }
+   h3.underline {
+       border-bottom: 1px solid #cccccc;
+   };
   </style>
+{% endblock %}
+
+{% block footer_scripts %}
   <script>
    require(['plugins/gauge', 'libs/jquery-ui.min'], function (JohnGauge) {
       $(function () {
@@ -20,45 +23,30 @@
               $(document).foundation('dropdown', 'close', $(this).parents('.f-dropdown:first'));
           });
 
+
           // Draw the gauge tests
-          [5, 25, 50, 75, 95, 100, 150].forEach(function(value) {
-              new JohnGauge(Object.assign({
-                  node: document.querySelector('#normal-gauges').appendChild(document.createElement('div')),
-                  value: value
-              }));
-          });
+          var element = document.querySelector('#gauges');
 
-          var coldConfig = {min: -20};
-          [-20, -10, 0, 25, 75, 100].forEach(function(value) {
-              new JohnGauge(Object.assign(
-                  {node: document.querySelector('#cold-gauges').appendChild(document.createElement('div')),
-                   value: value},
-                  coldConfig));
-          });
+          function createGauges(values, config) {
+              element.appendChild(document.createElement('h5')).innerHTML = "Config: " + JSON.stringify(config);
+              var container = document.createElement('div');
+              container.style.cssText = "display: flex; flex-wrap: wrap; margin-bottom: 1em";
+              var gauges = element.appendChild(container);
+              values.forEach(function(value) {
+                  new JohnGauge(Object.assign(
+                      {node: gauges.appendChild(document.createElement('div')),
+                       value: value},
+                      config
+                  ));
+              });
+          }
 
-          var thresholdConfig = {thresholds: ['>50']};
-          [5, 25, 45, 50, 55].forEach(function(value) {
-              new JohnGauge(Object.assign(
-                  {node: document.querySelector('#t1-gauges').appendChild(document.createElement('div')),
-                   value: value},
-                  thresholdConfig));
-          });
+          createGauges([5, 25, 50, 75, 95, 100, 150], {});
+          createGauges([-20, -10, 0, 25, 75, 100], {min: -20});
+          createGauges([5, 25, 45, 50, 55], {thresholds: ['>50']});
+          createGauges([45, 50, 55, 75, 95], {thresholds: ['<50']});
+          createGauges([25, 35, 45, 55, 65], {thresholds: ['>30','<60']});
 
-          thresholdConfig = {thresholds: ['<50']};
-          [45, 50, 55, 75, 95].forEach(function(value) {
-              new JohnGauge(Object.assign(
-                  {node: document.querySelector('#t2-gauges').appendChild(document.createElement('div')),
-                   value: value},
-                  thresholdConfig));
-          });
-
-          thresholdConfig = {thresholds: ['>30','<60']};
-          [25, 35, 45, 55, 65].forEach(function(value) {
-              new JohnGauge(Object.assign(
-                  {node: document.querySelector('#t3-gauges').appendChild(document.createElement('div')),
-                   value: value},
-                  thresholdConfig));
-          });
       });
     });
   </script>
@@ -89,20 +77,7 @@
   <div class="panel white">
     <h3>Gauge ranges</h3>
 
-    <h5>No additional config</h5>
-    <div id="normal-gauges" style="display: flex"></div>
-
-    <h5>Min [-20]</h5>
-    <div id="cold-gauges" style="display: flex"></div>
-
-    <h5>Thresholds: ['>50']</h5>
-    <div id="t1-gauges" style="display: flex"></div>
-
-    <h5>Thresholds: ['<50']</h5>
-    <div id="t2-gauges" style="display: flex"></div>
-
-    <h5>Thresholds: ['>30', '<60']</h5>
-    <div id="t3-gauges" style="display: flex"></div>
+    <div id="gauges"></div>
   </div>
 
   {# Page headers #}
