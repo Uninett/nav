@@ -168,52 +168,66 @@ define(function (require, exports, module) {
                 return min + (step * m);
             });
         },
-        createColorScale: function (min, max, thresholds, invert) {
-            console.log('Min', min, 'Max', max);
-            console.log('Thresholds', thresholds);
-
-            var colors = ['#2ECC40', '#FFDC00', '#FF4136'];
-            if (thresholds.length === 2) {
-                /* Create special range where the mid-range between the > and <
-                   is considered "green" and the rest is considered out of
-                   bounds - "red" */
-                min = this.trimThreshold(_.find(thresholds, function(t) {
+        /** Create special range where the mid-range between the > and < is
+           considered "green" and the rest is considered out of bounds - "red"
+           */
+        getConfigTwoThresholds: function(values) {
+            return {
+                min: this.trimThreshold(_.find(values.thresholds, function(t) {
                     return t.substr(0, 1) === '>';
-                }));
-                max = this.trimThreshold(_.find(thresholds, function(t) {
+                })),
+                max: this.trimThreshold(_.find(values.thresholds, function(t) {
                     return t.substr(0, 1) === '<';
-                }));
-                step = (max - min) / 4;
-                domain = [min, step, 2 * step, max];
-                colors = ['#FF4136', '#FFDC00', '#2ECC40', '#FFDC00', '#FF4136']
-            } else if (thresholds.length === 1) {
-                invert = typeof invert === 'undefined' ? thresholds[0].substr(0, 1) === '<' : invert;
-                if (invert) {
-                    min = this.trimThreshold(thresholds[0])
-                } else {
-                    max = this.trimThreshold(thresholds[0]);
-                }
+                })),
+                colors: ['#FF4136', '#FFDC00', '#2ECC40', '#FFDC00', '#FF4136']
+            }
+        },
+        getConfigOneThreshold: function(values) {
+            var invert = values.thresholds[0].substr(0, 1) === '<';
+            var thresholds = values.thresholds;
+            return {
+                min: invert ? this.trimThreshold(thresholds[0]) : values.min,
+                max: invert ? values.max : this.trimThreshold(thresholds[0]),
+                colors: invert ? values.colors.reverse() : values.colors
+            }
+        },
+        getConfigZeroThreshold: function(values) {
+            return values;
+        },
+        createColorScale: function (min, max, thresholds, invert) {
+            var defaults = {
+                min: min,
+                max: max,
+                colors: ['#2ECC40', '#FFDC00', '#FF4136'],
+                thresholds: thresholds
             }
 
-            if (min < 0) {
-                colors = ['#001f3f', '#0074D9', '#2ECC40', '#FFDC00', '#FF4136'];
+            // Colorscale greatly varies based on thresholds.
+            var lookup = {
+                2: this.getConfigTwoThresholds.bind(this, defaults),
+                1: this.getConfigOneThreshold.bind(this, defaults),
+                0: this.getConfigZeroThreshold.bind(this, defaults)
             }
 
-            console.log('Setting min to', min);
-            console.log('Setting max to', max);
+            var config = Object.assign({}, defaults, lookup[thresholds.length]());
+            var domain = this.getDomain(config.min, config.max, config.colors.length);
 
-            var domain = this.getDomain(min, max, colors.length);
-            console.log(domain);
+            /* Special case for negative minimum - let it start blue and then
+               continue as normal after 0. This really doesn't work well with
+               inverse or several thresholds */
+            if (config.min < 0) {
+                config.colors = ['#0000FF'].concat(defaults.colors);
+                domain = [config.min, 0, config.max / 2, config.max];
+            }
 
             if (invert) {
                 colors.reverse();
             }
-            console.log(colors);
 
             var scale = d3.scale.linear()
                           .domain(domain)
                           .interpolate(d3.interpolateRgb)
-                          .range(colors);
+                          .range(config.colors);
             scale.clamp(true);  // Dont extrapolate
             return scale;
         },
