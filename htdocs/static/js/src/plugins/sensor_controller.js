@@ -86,11 +86,7 @@ define(function(require) {
         },
         parseThresholds: function () {
             var input = this.$node.attr('data-thresholds');
-            if (input) {
-                return input.split(',');
-            } else {
-                return null;
-            }
+            return input ? input.split(',') : null;
         },
         update: function () {
             this.loadData();

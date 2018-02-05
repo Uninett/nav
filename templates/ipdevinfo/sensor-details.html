@@ -24,7 +24,7 @@
  ], function(graphfetcher_controller, Gauge) {
      $(function() {
          var $gauge = $('.sensor-gauge');
-         var thresholds = $gauge.data('thresholds').split(',');
+         var thresholds = $gauge.data('thresholds') ? $gauge.data('thresholds').split(',') : [];
          var _gauge = new Gauge({
              node: $gauge[0],
              min: {{sensor.get_display_range.0}},
