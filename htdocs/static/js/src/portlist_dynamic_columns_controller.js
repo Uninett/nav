@@ -4,6 +4,9 @@ define(function(require) {
     var Moment = require('moment');
     require('libs/jquery.sparkline');
 
+    var storedMetricsRequests = {};
+    var storedDataRequests = {};
+
     function isEmpty(cell) {
         return $(cell.node()).is(':empty');
     }
@@ -20,26 +23,47 @@ define(function(require) {
         table.cells(null, column, {page: 'current'}).every(function() {
             var cell = this;
             if (isEmpty(cell)) {
-                var fetchMetrics = $.getJSON(NAV.urls.api_interface_list + getInterfaceId(table, this) + '/metrics/');
-                fetchMetrics
-                    .then(function(metrics) {
-                        return getGraphiteUri(metrics, suffix)[0];
-                    })
-                    .then(function(uri) {
-                        return uri ? $.getJSON(uri.toString()) : [];
-                    })
-                    .then(function(response) {
-                        response.forEach(function(data) {
-                            createSparkLine(createSparkContainer(cell), convertToSparkLine(data));
-                        });
-                    })
+                addSparkLine(table, cell, suffix);
             }
         });
     }
 
+    function addSparkLine(table, cell, suffix) {
+        var interfaceId = getInterfaceId(table, cell);
+
+        if (!storedMetricsRequests[interfaceId]) {
+            storedMetricsRequests[interfaceId] = $.getJSON(NAV.urls.api_interface_list + interfaceId + '/metrics/');
+        }
+
+        storedMetricsRequests[interfaceId]
+         .then(function(metrics) {
+             return getGraphiteUri(metrics, suffix)[0];
+         })
+         .then(function(uri) {
+             if (uri) {
+                 var requestKey = [interfaceId, suffix].join(':');
+                 if (!storedDataRequests[requestKey]) {
+                     storedDataRequests[requestKey] = $.getJSON(uri.toString());
+                 }
+                 return storedDataRequests[requestKey];
+             }
+             return [];
+         })
+         .then(function(response) {
+             response.forEach(function(data) {
+                 createSparkLine(createSparkContainer(cell), convertToSparkLine(data));
+             });
+         })
+
+    }
+
+    function getRow(table, cell) {
+        return table.row(cell.index().row);
+    }
+
     /* Gets the interface id from the row-data of this cell */
     function getInterfaceId(table, cell) {
-        return table.row(cell.index().row).data().id;
+        return getRow(table, cell).data().id;
     }
 
     /*
@@ -49,6 +73,7 @@ define(function(require) {
         return metrics.filter(function(m) {
             return m.suffix === suffix;
         }).map(function(m) {
+            console.log(m.url);
             return new URI(m.url)
                 .removeSearch(['height', 'width', 'template', 'vtitle'])
                 .addSearch('format', 'json');
