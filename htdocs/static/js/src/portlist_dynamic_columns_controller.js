@@ -112,6 +112,12 @@ define(function(require) {
             'traffic-ifinoctets:name': function() {
                 addSparklines(table, 'traffic-ifinoctets:name', 'ifInOctets');
             },
+            'traffic-ifouterrors:name': function() {
+                addSparklines(table, 'traffic-ifouterrors:name', 'ifOutErrors');
+            },
+            'traffic-ifinerrors:name': function() {
+                addSparklines(table, 'traffic-ifinerrors:name', 'ifInErrors');
+            },
             'last_used:name': function() {
                 addLastUsed(table, 'last_used:name')
             }

@@ -149,6 +149,24 @@ define(function(require) {
 
         {
             data: null,
+            name: 'traffic-ifouterrors',
+            orderable: false,
+            render: function() { return ''; },
+            visible: false,
+            title: 'OutErrors'
+        },
+
+        {
+            data: null,
+            name: 'traffic-ifinerrors',
+            orderable: false,
+            render: function() { return ''; },
+            visible: false,
+            title: 'InErrors'
+        },
+
+        {
+            data: null,
             name: 'last_used',
             orderable: false,
             render: function() { return ''; },
