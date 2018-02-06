@@ -20,7 +20,7 @@ define(function(require) {
         table.cells(null, column, {page: 'current'}).every(function() {
             var cell = this;
             if (isEmpty(cell)) {
-                var fetchMetrics = $.getJSON('/api/interface/' + getInterfaceId(table, this) + '/metrics/');
+                var fetchMetrics = $.getJSON(NAV.urls.api_interface_list + getInterfaceId(table, this) + '/metrics/');
                 fetchMetrics
                     .then(function(metrics) {
                         return getGraphiteUri(metrics, suffix)[0];
@@ -84,7 +84,7 @@ define(function(require) {
         table.cells(null, column, {page: 'current'}).every(function() {
             var cell = this;
             if (isEmpty(cell)) {
-                var fetchLastUsed = $.getJSON('/api/interface/' + getInterfaceId(table, cell) + '/last_used/');
+                var fetchLastUsed = $.getJSON(NAV.urls.api_interface_list + getInterfaceId(table, cell) + '/last_used/');
                 fetchLastUsed.then(function(response) {
                     var hasLink = table.row(cell.index().row).data().ifoperstatus === 1;
                     var timestamp = response.last_used ? Moment(response.last_used) : null;

@@ -23,7 +23,7 @@ define(function(require) {
             name: 'portadmin-link',
             render: function(data, type, row, meta) {
                 if (isSwPort(row)) {
-                    return '<a href="' + NAV.urls.portadmin_index + row.id + '" title="Configure port in Portadmin"><img src="/static/images/toolbox/portadmin.svg" style="height: 1em; width: 1em" /></a>';
+                    return '<a href="' + NAV.urls.portadmin_index + row.id + '" title="Configure port in Portadmin"><img src="' + NAV.imagePath + '/toolbox/portadmin.svg" style="height: 1em; width: 1em" /></a>';
                 }
                 return '';
             },
@@ -183,7 +183,7 @@ define(function(require) {
     /** Renders a light indicating status (red or green) */
     function renderStatus(data, type, row, meta) {
         var color = data === 2 ? 'red' : 'green';
-        return '<img src="/static/images/lys/' + color + '.png">';
+        return '<img src="' + NAV.imagePath + '/lys/' + color + '.png">';
     }
 
     /* Returns if this is a swport or not */

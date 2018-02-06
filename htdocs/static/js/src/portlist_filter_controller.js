@@ -42,7 +42,7 @@ define(function(require) {
 
     /** Adds select2 component to netboxfilter */
     function addNetboxFilter() {
-        var url = "/api/netbox/";
+        var url = NAV.urls.api_netbox_list;
         var netboxFilter = $(selectors.netboxfilter).select2({
             ajax: {
                 url: url,
@@ -102,7 +102,7 @@ define(function(require) {
 
     /* Creates the url for fetching data from the API*/
     function getUrl() {
-        var baseUri = URI("/api/1/interface/");
+        var baseUri = URI(NAV.urls.api_interface_list);
         var uri = addFilterParameters(baseUri);
         return uri.toString();
     }
