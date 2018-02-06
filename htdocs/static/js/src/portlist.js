@@ -34,6 +34,9 @@ define(function(require) {
         {
             data: "netbox.sysname",
             name: 'netbox',
+            render: function(data, type, row, meta) {
+                return '<a href="' + row.netbox.object_url + '">' + data + '</a>';
+            },
             title: 'Device'
         },
 
