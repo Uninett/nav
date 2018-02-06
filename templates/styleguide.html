@@ -45,7 +45,7 @@
           createGauges([-20, -10, 0, 25, 75, 100], {min: -20});
           createGauges([5, 25, 45, 50, 55], {thresholds: ['>50']});
           createGauges([45, 50, 55, 75, 95], {thresholds: ['<50']});
-          createGauges([25, 35, 45, 55, 65], {thresholds: ['>30','<60']});
+          createGauges([25, 35, 45, 55, 65], {thresholds: ['<30','>60']});
 
       });
     });
@@ -72,12 +72,6 @@
       the components <a href="http://foundation.zurb.com/docs/" title="Foundation 5 documentation">available there</a>
       will not be listed unless there is relevant information regarding the component and how we use it.
     </p>
-  </div>
-
-  <div class="panel white">
-    <h3>Gauge ranges</h3>
-
-    <div id="gauges"></div>
   </div>
 
   {# Page headers #}
@@ -533,7 +527,11 @@
 
   </div> {# row #}
 
+  <div class="panel white">
+    <h3>Gauge ranges</h3>
 
+    <div id="gauges"></div>
+  </div>
 
   <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
 

@@ -174,10 +174,10 @@ define(function (require, exports, module) {
         getConfigTwoThresholds: function(values) {
             return {
                 min: this.trimThreshold(_.find(values.thresholds, function(t) {
-                    return t.substr(0, 1) === '>';
+                    return t.substr(0, 1) === '<';
                 })),
                 max: this.trimThreshold(_.find(values.thresholds, function(t) {
-                    return t.substr(0, 1) === '<';
+                    return t.substr(0, 1) === '>';
                 })),
                 colors: ['#FF4136', '#FFDC00', '#2ECC40', '#FFDC00', '#FF4136']
             }
