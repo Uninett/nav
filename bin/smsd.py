@@ -148,9 +148,10 @@ def main():
 
     # Send test message (in other words: test the dispatcher)
     if args.test or args.TEST:
-        msg = [(0, "This is a test message from NAV smsd.", 0)]
+        text = args.message or "This is a test message from NAV smsd."
 
         if args.test:
+            msg = [(0, text, 0)]
             try:
                 (sms, sent, ignored, smsid) = dh.sendsms(args.test, msg)
             except DispatcherError as error:
@@ -161,8 +162,7 @@ def main():
 
         elif args.TEST and args.uid:
             queue = nav.smsd.navdbqueue.NAVDBQueue()
-            rowsinserted = queue.inserttestmsgs(
-                args.uid, args.TEST, 'This is a test message from NAV smsd.')
+            rowsinserted = queue.inserttestmsgs(args.uid, args.TEST, text)
             if rowsinserted:
                 logger.info("SMS put in queue. %d row(s) inserted.",
                             rowsinserted)
@@ -311,6 +311,8 @@ def parse_args():
         help="puts a test message to PHONENO into the SMS queue. use the --uid "
              "option to specify which NAV user account id to associate with "
              "the queued message")
+    arg("--message", metavar="MESSAGE",
+        help="Used in combination with -t or -T to specify the message content")
     arg("-u", "--uid", type=int, help="NAV user/account id to queue message to")
     arg("-n", "--nofork", action="store_true",
         help="run process in the foreground")
@@ -320,6 +322,9 @@ def parse_args():
         parser.error("-t and -T are mutually exclusive, please pick one")
     if args.TEST and args.uid is None:
         parser.error("Please provide an account id using the --uid option")
+    if args.message and not (args.test or args.TEST):
+        parser.error("--message can only be used in combination with either "
+                     "-t or -T")
     return args
 
 
