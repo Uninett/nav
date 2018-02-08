@@ -39,6 +39,7 @@ require([
         $('.sensor-value').each(function(i, element) {
             metricMap[$(element).data('metric')] = element;
         });
+        if (_.isEmpty(metricMap)) { return; }
         getSensorData(metricMap, function(data, metricMap) {
             $.each(data, function(i, metricData) {
                 var target = metricData.target;
