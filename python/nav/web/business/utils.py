@@ -10,7 +10,13 @@ from nav.models.profiles import ReportSubscription
 from django.db.models import Q
 
 AvailabilityRecord = namedtuple(
-    'AvailabilityRecord', ['subject', 'incidents', 'downtime', 'availability'])
+    'AvailabilityRecord',
+    ['subject', 'incidents', 'downtime', 'availability', 'maintenances'])
+
+
+import logging
+_logger = logging.getLogger(__name__)
+
 
 
 class LinkSubject(object):
@@ -89,24 +95,38 @@ def compute_downtime(alerts, start, end):
 
 def compute_availability(downtime, interval):
     """Computes the availability given downtime and interval"""
+    if downtime.total_seconds() == 0 or not interval:
+        return 100
     availability = 1.0
     fraction = downtime.total_seconds() / interval.total_seconds()
     availability = availability - fraction
 
+    # For special cases this may go in the negative, fix that.
+    if availability < 0:
+        availability = 0;
+
     return availability * 100
 
 
-def create_record(subject, alerts, start, end):
+def create_record(subject, alerts, start, end, exclude_maintenance=False):
     """Creates an availability record based on a subject' alerts in a period"""
-    downtime = compute_downtime(alerts, start, end)
-    interval = end - start
-    availability = compute_availability(downtime, interval)
+    now = datetime.now()
+    if end > now:
+        end = now
+
+    maintenances = (get_maintenances(start, end, subject)
+                    if exclude_maintenance else [])
+    intervals = find_intervals(start, end, maintenances)
+    downtimes = [compute_downtime(alerts, *interval) for interval in intervals]
+    downtime = sum(downtimes, timedelta(0))
+    total_interval = sum([e-s for s, e in intervals], timedelta(0))
+    availability = compute_availability(downtime, total_interval)
 
     # Cheekily remove microseconds
     downtime = downtime - timedelta(microseconds=downtime.microseconds)
 
     return AvailabilityRecord(get_subject(subject), alerts, downtime,
-                              availability)
+                              availability, maintenances)
 
 
 def get_subject(subject):
@@ -117,8 +137,20 @@ def get_subject(subject):
     return subject
 
 
+def get_maintenances(start, end, subject):
+    subject = subject.netbox if isinstance(subject, Interface) else subject
+    return AlertHistory.objects.filter(
+        netbox=subject, event_type='maintenanceState',
+        end_time__isnull=False).filter(
+            Q(end_time__range=(start, end)) |
+            Q(start_time__range=(start, end)) |
+            (Q(start_time__lte=start) & Q(end_time__gte=end)
+            )).order_by('-start_time')
+
+
 def get_alerts(start, end, eventtype='boxState', alerttype='boxDown'):
     """Gets the alerts for the given start-end interval"""
+
     return AlertHistory.objects.filter(
         event_type=eventtype, end_time__isnull=False,
         alert_type__name=alerttype).filter(
@@ -126,6 +158,29 @@ def get_alerts(start, end, eventtype='boxState', alerttype='boxDown'):
             Q(start_time__range=(start, end)) |
             (Q(start_time__lte=start) & Q(end_time__gte=end)
             )).order_by('-start_time')
+
+
+def find_intervals(start, end, maintenances):
+    """Assert that maintenances are sorted"""
+    intervals = []
+    temp_start = start
+    temp_end = end
+    for maintenance in maintenances:
+        # If a maintenance overlaps the whole interval, there is no downtime
+        if maintenance.start_time <= start and maintenance.end_time >= end:
+            return []
+
+        if maintenance.start_time > start and maintenance.end_time < end:
+            intervals.append((temp_start, maintenance.start_time))
+            temp_start = maintenance.end_time
+
+        if maintenance.start_time < start:
+            temp_start = maintenance.end_time
+        if maintenance.end_time > end:
+            temp_end = maintenance.start_time
+
+    intervals.append((temp_start, temp_end))
+    return intervals
 
 
 def group_by_netbox(alerts):
@@ -148,15 +203,15 @@ def group_by_interface(alerts):
     return grouped_alerts
 
 
-def get_netbox_records(start, end):
+def get_netbox_records(start, end, exclude_maintenance=False):
     alerts = get_alerts(start, end, 'boxState', 'boxDown')
     grouped_alerts = group_by_netbox(alerts)
-    return [create_record(subject, alerts, start, end)
-            for subject, alerts in grouped_alerts.items()]
+    return [create_record(subject, alerts, start, end, exclude_maintenance)
+            for subject, alerts in grouped_alerts.items() if subject]
 
 
-def get_interface_records(start, end):
+def get_interface_records(start, end, exclude_mainteannce=False):
     alerts = get_alerts(start, end, 'linkState', 'linkDown')
     grouped_alerts = group_by_interface(alerts)
     return [create_record(subject, alerts, start, end)
-            for subject, alerts in grouped_alerts.items()]
+            for subject, alerts in grouped_alerts.items() if subject]

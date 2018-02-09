@@ -44,10 +44,10 @@ def send_reports(period):
     for report_type in report_types:
         _logger.debug('Sending reports for period %s, type %s',
                       period, report_type)
-        report = build_report(period, report_type)
         subscriptions = ReportSubscription.objects.filter(
             period=period, report_type=report_type)
         for subscription in subscriptions:
+            report = build_report(period, report_type, subscription.exclude_maintenance)
             send_report(report, subscription.address.address)
         _logger.info('%s %s availability: Sent %s reports',
                      period, report_type, subscriptions.count())
@@ -65,16 +65,16 @@ def send_report(report, to_address):
     )
 
 
-def build_report(period, report_type):
+def build_report(period, report_type, exclude_maintenance=False):
     """Builds a report for a given subscription period"""
-    context = build_context(period, report_type)
+    context = build_context(period, report_type, exclude_maintenance)
     html_message = render_to_string('business/email.html', context)
     text_message = render_to_string('business/email.txt', context)
     return Report(get_email_subject(period, report_type),
                   period, text_message, html_message)
 
 
-def build_context(period, report_type):
+def build_context(period, report_type, exclude_maintenance=False):
     """Builds a context for the given subscription"""
     midnight = date.today()
     start, end = get_last_interval(midnight, period)
@@ -82,7 +82,7 @@ def build_context(period, report_type):
         ReportSubscription.DEVICE: utils.get_netbox_records,
         ReportSubscription.LINK: utils.get_interface_records,
     }
-    records = lookup[report_type](start, end)
+    records = lookup[report_type](start, end, exclude_maintenance)
     sorted_records = sorted(records, key=attrgetter('downtime'), reverse=True)
     max_length = 30
     if records:
@@ -93,6 +93,7 @@ def build_context(period, report_type):
         'end': end,
         'today': midnight,
         'records': sorted_records,
+        'exclude_maintenance': exclude_maintenance,
         'subject_format': "-{}s".format(max_length)
     }
 
