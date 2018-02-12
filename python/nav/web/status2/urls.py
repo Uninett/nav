@@ -14,10 +14,12 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Django URL configuration for new status tool"""
-from django.conf.urls import url, patterns
+
+from django.conf.urls import url
 from nav.web.status2 import views
 
-urlpatterns = patterns('',
+
+urlpatterns = [
     url(r'^$', views.StatusView.as_view(),
         name='status2-index'),
     url(r'^save_preferences/', views.save_status_preferences,
@@ -30,4 +32,4 @@ urlpatterns = patterns('',
         name='status2_put_on_maintenance'),
     url(r'^alert/delete_module_or_chassis/', views.delete_module_or_chassis,
         name='status2_delete_module_or_chassis'),
-)
+]

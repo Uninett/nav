@@ -15,10 +15,12 @@
 #
 """Django URL config for geomap"""
 
-from django.conf.urls import url, patterns
+from django.conf.urls import url
+from nav.web.geomap import views
 
-urlpatterns = patterns('nav.web.geomap.views',
-    url(r'^$', 'forward_to_default_variant', name='geomap-forward'),
-    url(r'^([^/]+)/$', 'geomap', name='geomap'),
-    url(r'^([^/]+)/data$', 'data', name='geomap-data'),
-)
+
+urlpatterns = [
+    url(r'^$', views.forward_to_default_variant, name='geomap-forward'),
+    url(r'^([^/]+)/$', views.geomap, name='geomap'),
+    url(r'^([^/]+)/data$', views.data, name='geomap-data'),
+]

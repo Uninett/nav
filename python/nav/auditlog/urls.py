@@ -14,26 +14,30 @@
 
 from __future__ import unicode_literals, absolute_import
 
-from django.conf.urls import patterns, url
-
-from .views import (AuditlogOverview, AuditlogObjectListView,
-                    AuditlogActorListView, AuditlogTargetListView)
+from django.conf.urls import url
+from nav.auditlog import views
 
 
-urlpatterns = patterns(
-    '',
-    url(r'^$', AuditlogOverview.as_view(), name='auditlog-home'),
-
-    url(r'^object/*/$', AuditlogObjectListView.as_view(),
+urlpatterns = [
+    url(r'^$',
+        views.AuditlogOverview.as_view(),
+        name='auditlog-home'),
+    url(r'^object/*/$',
+        views.AuditlogObjectListView.as_view(),
         name='auditlog-object-list-all'),
-    url(r'^object/(?P<auditmodel>[-\w]+)/$', AuditlogObjectListView.as_view(),
+    url(r'^object/(?P<auditmodel>[-\w]+)/$',
+        views.AuditlogObjectListView.as_view(),
         name='auditlog-object-list'),
-    url(r'^actor/*/$', AuditlogActorListView.as_view(),
+    url(r'^actor/*/$',
+        views.AuditlogActorListView.as_view(),
         name='auditlog-actor-list-all'),
-    url(r'^actor/(?P<auditmodel>[-\w]+)/$', AuditlogActorListView.as_view(),
+    url(r'^actor/(?P<auditmodel>[-\w]+)/$',
+        views.AuditlogActorListView.as_view(),
         name='auditlog-actor-list'),
-    url(r'^target/*/$', AuditlogTargetListView.as_view(),
+    url(r'^target/*/$',
+        views.AuditlogTargetListView.as_view(),
         name='auditlog-target-list-all'),
-    url(r'^target/(?P<auditmodel>[-\w]+)/$', AuditlogTargetListView.as_view(),
+    url(r'^target/(?P<auditmodel>[-\w]+)/$',
+        views.AuditlogTargetListView.as_view(),
         name='auditlog-target-list'),
-)
+]

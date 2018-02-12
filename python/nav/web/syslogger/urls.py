@@ -16,18 +16,17 @@
 #
 """syslogger Django URL config"""
 
-from django.conf.urls import patterns, url
-from nav.web.syslogger.views import index
-from nav.web.syslogger.views import exceptions_response
-from nav.web.syslogger.views import errors_response
-from nav.web.syslogger.views import group_search
+from django.conf.urls import url
+from nav.web.syslogger import views
 
 
-urlpatterns = patterns('nav.web.syslogger.views',
-    # Default view
-    url(r'^$', index, name='logger_index'),
-    url(r'^search/group/$', group_search, name='logger_search_group'),
-    url(r'^exceptions/$', exceptions_response,
+urlpatterns = [
+    url(r'^$', views.index,
+        name='logger_index'),
+    url(r'^search/group/$', views.group_search,
+        name='logger_search_group'),
+    url(r'^exceptions/$', views.exceptions_response,
         name='logger_priority_exceptions'),
-    url(r'^errors/$', errors_response, name='logger_errors'),
-)
+    url(r'^errors/$', views.errors_response,
+        name='logger_errors'),
+]

@@ -15,11 +15,10 @@
 #
 """URL configuration for l2trace"""
 
-from django.conf.urls import patterns, url
-
+from django.conf.urls import url
 from nav.web.l2trace.views import index
 
-urlpatterns = patterns('',
-    url(r'^$', index,
-        name='l2trace'),
-)
+
+urlpatterns = [
+    url(r'^$', index, name='l2trace'),
+]

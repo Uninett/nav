@@ -16,36 +16,39 @@
 """Report backend URL config."""
 
 
-from django.conf.urls import url, patterns
-from nav.web.report.views import (get_report, matrix_report, index,
-                                  report_list, get_report_for_widget,
-                                  add_report_widget)
+from django.conf.urls import url
+from nav.web.report import views
+
 
 # Subsystem: Report
 # Naming convention: report-<result>-<query>
-urlpatterns = patterns('nav.web.report.views',
-    url(r'^$', index, name='report-index'),
-    url(r'^matrix$',
-        matrix_report, name='report-matrix'),
-    url(r'^matrix\?scope=(?P<scope>[^&]+)$',
-        matrix_report, name='report-matrix-scope'),
+urlpatterns = [
+    url(r'^$', views.index,
+        name='report-index'),
+    url(r'^matrix$', views.matrix_report,
+        name='report-matrix'),
+    url(r'^matrix\?scope=(?P<scope>[^&]+)$', views.matrix_report,
+        name='report-matrix-scope'),
     url(r'^matrix\?scope=(?P<scope>[^&]+)'
         r'&show_unused_addresses=(?P<show_unused_addresses>True|False)',
-        matrix_report, name='report-matrix-scope-show_unused'),
-    url(r'^reportlist$',
-        report_list, name='report-reportlist'),
-    url(r'^(?P<report_name>[^/]+)$', get_report, name='report-by-name'),
-    url(r'^widget/add/', add_report_widget, name='report-add-widget'),
-    url(r'^widget/(?P<report_name>[^/]+)$', get_report_for_widget,
+        views.matrix_report,
+        name='report-matrix-scope-show_unused'),
+    url(r'^reportlist$', views.report_list,
+        name='report-reportlist'),
+    url(r'^(?P<report_name>[^/]+)$', views.get_report,
+        name='report-by-name'),
+    url(r'^widget/add/', views.add_report_widget,
+        name='report-add-widget'),
+    url(r'^widget/(?P<report_name>[^/]+)$', views.get_report_for_widget,
         name='widget-report-by-name'),
-)
+]
 
 dummy = lambda *args, **kwargs: None
 
 # Reverse urls for known reports shipped by NAV
 # .* wildcard match for unknown reports but is hopefully defined
 # in report.conf
-urlpatterns += patterns('nav.web.report.views',
+urlpatterns += [
     # Subsystem: Report
     # Naming convention: report-<result>-<query>
 
@@ -120,4 +123,4 @@ urlpatterns += patterns('nav.web.report.views',
         r'from_interface=(?P<ifname>[^&]+)$',
         dummy, name='report-topology-candidates-port'),
 
-)
+]

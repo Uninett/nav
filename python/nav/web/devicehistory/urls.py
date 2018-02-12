@@ -15,32 +15,27 @@
 #
 """Django URL configuration for devicehistory."""
 
-from django.conf.urls import url, patterns
+from django.conf.urls import url
+from nav.web.devicehistory import views
 
-from nav.web.devicehistory.views import (devicehistory_search,
-                                         devicehistory_view, error_form,
-                                         register_error, delete_module,
-                                         do_delete_module)
 
-# The patterns are relative to the base URL of the subsystem
-urlpatterns = patterns('',
-    url(r'^$', devicehistory_search, name='devicehistory-search'),
-
-    url(r'^history/$', devicehistory_view, name='devicehistory-view'),
-    url(r'^history/\?netbox=(?P<netbox_id>\d+)$', devicehistory_view,
+urlpatterns = [
+    url(r'^$', views.devicehistory_search,
+        name='devicehistory-search'),
+    url(r'^history/$', views.devicehistory_view,
+        name='devicehistory-view'),
+    url(r'^history/\?netbox=(?P<netbox_id>\d+)$', views.devicehistory_view,
         name='devicehistory-view-netbox'),
-    url(r'^history/\?room=(?P<room_id>.+)$', devicehistory_view,
+    url(r'^history/\?room=(?P<room_id>.+)$', views.devicehistory_view,
         name='devicehistory-view-room'),
-    url(r'^history/\?loc=(?P<location_id>.+)$', devicehistory_view,
+    url(r'^history/\?loc=(?P<location_id>.+)$', views.devicehistory_view,
         name='devicehistory-view-location'),
-
-    url(r'^registererror/$', error_form,
+    url(r'^registererror/$', views.error_form,
         name='devicehistory-registererror'),
-    url(r'^do_registererror/$', register_error,
+    url(r'^do_registererror/$', views.register_error,
         name='devicehistory-do-registererror'),
-
-    url(r'^delete_module/$', delete_module,
+    url(r'^delete_module/$', views.delete_module,
         name='devicehistory-module'),
-    url(r'^do_delete_module/$', do_delete_module,
+    url(r'^do_delete_module/$', views.do_delete_module,
         name='devicehistory-do_delete_module'),
-)
+]
