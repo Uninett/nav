@@ -14,12 +14,11 @@
 #
 """URL-config for PortList tool"""
 
-from django.conf.urls import url, patterns
-
+from django.conf.urls import url
 from nav.web.portlist import views
 
-urlpatterns = patterns(
-    '',
+
+urlpatterns = [
     url(r'^$', views.index),
     url(r'^(?P<netboxid>\d+)', views.by_netboxid, name='portlist-netbox')
-)
+]
