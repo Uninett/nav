@@ -15,10 +15,10 @@
 #
 """Django URL configuration"""
 
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from nav.web.info.views import index
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^$', index, name="info-search"),
     url(r'^room/', include('nav.web.info.room.urls')),
     url(r'^location/', include('nav.web.info.location.urls')),
@@ -27,4 +27,4 @@ urlpatterns = patterns('',
     url(r'^devicegroup/', include('nav.web.info.netboxgroup.urls')),
     url(r'^image/', include('nav.web.info.images.urls')),
     url(r'^event/', include('nav.web.info.event.urls')),
-)
+]
