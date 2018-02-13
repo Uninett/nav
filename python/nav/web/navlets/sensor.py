@@ -35,7 +35,12 @@ class SensorWidget(Navlet):
 
     def get_context_data(self, *args, **kwargs):
         context = super(SensorWidget, self).get_context_data(*args, **kwargs)
-        sensor_id = self.preferences.get('sensor_id')
+        try:
+            sensor = Sensor.objects.get(pk=self.preferences.get('sensor_id'))
+        except Sensor.DoesNotExist:
+            sensor = None
+
+        context['sensor'] = sensor
 
         if self.mode == NAVLET_MODE_EDIT:
             if 'show_graph' in self.preferences:
@@ -44,8 +49,6 @@ class SensorWidget(Navlet):
                 context['form'] = SensorForm()
 
         self.title = self.preferences.get('title', SensorWidget.title)
-        context['sensor'] = Sensor.objects.get(pk=sensor_id)
-
         return context
 
     def post(self, request, **kwargs):

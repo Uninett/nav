@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011,2012 UNINETT AS
+# Copyright (C) 2011, 2012, 2015, 2017, 2018 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -193,6 +193,11 @@ class AdjacencyReducer(AdjacencyAnalyzer):
             for source, dest, proto in self.graph.edges(keys=True):
                 if (not type(source) is Port or not type(dest) is Port or
                         proto != sourcetype):
+                    continue
+                if source == dest:
+                    _logger.info("Ignoring apparent %s self-loop on %s",
+                                 proto, source)
+                    self.graph.remove_edge(source, dest, proto)
                     continue
                 if self.graph.has_edge(dest, source, proto):
                     _logger.debug("Found connection from %s to %s", source,

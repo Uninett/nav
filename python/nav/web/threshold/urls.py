@@ -15,21 +15,30 @@
 #
 """url config for thresholds app"""
 
-from django.conf.urls import url, patterns
-from nav.web.threshold.views import (index, threshold_search, get_graph_url,
-                                     add_threshold, edit_threshold,
-                                     delete_threshold)
+from django.conf.urls import url
+from nav.web.threshold import views
 
-# The patterns are relative to the base URL of the subsystem
-urlpatterns = patterns('',
-    url(r'^$', index, name='threshold-index'),
-    url(r'^add$', add_threshold, name='threshold-add'),
-    url(r'^add/(?P<metric>.*)$', add_threshold,
+
+urlpatterns = [
+    url(r'^$',
+        views.index,
+        name='threshold-index'),
+    url(r'^add$',
+        views.add_threshold,
         name='threshold-add'),
-    url(r'^edit/(?P<rule_id>\d+)$', edit_threshold,
+    url(r'^add/(?P<metric>.*)$',
+        views.add_threshold,
+        name='threshold-add'),
+    url(r'^edit/(?P<rule_id>\d+)$',
+        views.edit_threshold,
         name='threshold-edit'),
-    url(r'^delete/(?P<rule_id>\d+)$', delete_threshold,
+    url(r'^delete/(?P<rule_id>\d+)$',
+        views.delete_threshold,
         name='threshold-delete'),
-    url(r'^search/$', threshold_search, name='threshold-search'),
-    url(r'^graph_url/$', get_graph_url, name='threshold-graph'),
-)
+    url(r'^search/$',
+        views.threshold_search,
+        name='threshold-search'),
+    url(r'^graph_url/$',
+        views.get_graph_url,
+        name='threshold-graph'),
+]

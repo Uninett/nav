@@ -322,6 +322,10 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         interface.combined_data_urls = create_combined_urls(
             interface, COUNTER_TYPES)
 
+    # Only display services tab for certain instances
+    display_services_tab = netbox and (
+        netbox.category.is_srv() or netbox.service_set.count())
+
     return render_to_response(
         'ipdevinfo/ipdev-details.html',
         {
@@ -342,6 +346,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'current_maintenance_tasks': relevant_current_tasks,
             'future_maintenance_tasks': relevant_future_tasks,
             'sensor_metrics': sensor_metrics,
+            'display_services_tab': display_services_tab
         },
         context_instance=RequestContext(request,
                                         processors=[search_form_processor]))

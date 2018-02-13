@@ -15,12 +15,13 @@
 #
 """Django URL configuration"""
 
-
-from django.conf.urls import url, patterns
+from django.conf.urls import url
 from nav.web.info.room import  views
 
-urlpatterns = patterns('',
-    url(r'^$', views.search, name='room-search'),
+
+urlpatterns = [
+    url(r'^$', views.search,
+        name='room-search'),
     url(r'^(?P<roomid>.+)/netboxes/', views.render_netboxes,
         name='room-info-netboxes'),
     url(r'^(?P<roomid>.+)/deviceinfo/', views.render_deviceinfo,
@@ -47,8 +48,10 @@ urlpatterns = patterns('',
         name='room-info-racks-save-rack-color'),
     url(r'^(?P<roomid>.+)/racks/save_sensor', views.save_sensor,
         name='room-info-racks-save-sensor'),
-    url(r'^(?P<roomid>.+)/racks/', views.render_racks, name='room-info-racks'),
-    url(r'^(?P<roomid>.+)/$', views.roominfo, name='room-info'),
-    url(r'^csv-download$', views.create_csv, name='room-csv'),
-
-)
+    url(r'^(?P<roomid>.+)/racks/', views.render_racks,
+        name='room-info-racks'),
+    url(r'^(?P<roomid>.+)/$', views.roominfo,
+        name='room-info'),
+    url(r'^csv-download$', views.create_csv,
+        name='room-csv'),
+]

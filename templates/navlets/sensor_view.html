@@ -17,7 +17,10 @@
     </div>
 
   {% else %}
-    <span class="alert-box">No sensor to show</span>
+    <span class="alert-box">
+      Sensor is missing. The sensor or the device in which it was located might
+      have been deleted.
+    </span>
   {% endif %}
 
 {% endblock %}

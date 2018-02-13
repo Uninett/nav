@@ -9,7 +9,7 @@ define([
     var template = Handlebars.compile(Template);
     var resizeTimeout = 250;  // resize throttled at resizeTimeout ms
 
-    function RickshawGraph(container, data, url) {
+    function RickshawGraph(container, data, url, minValue) {
         container.innerHTML = template({
             graph_title: container.dataset.title,
             graph_unit: container.dataset.unit,
@@ -21,6 +21,7 @@ define([
             element: element,
             series: RickshawUtils.createSeries(data),
             renderer: 'line',
+            min: typeof minValue === 'undefined' ? 0 : minValue,
             stack: false  // Need to set this so that data is not stacked
         });
 

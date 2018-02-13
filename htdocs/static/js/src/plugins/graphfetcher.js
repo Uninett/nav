@@ -205,9 +205,25 @@ define([
                 };
             } else {
                 $.get(url, function (data) {
-                    self.rickshawgraph = new RickshawGraph(self.graphContainer, data, url);
+                    self.rickshawgraph = self.getMin(data) < 0 ?
+                                         new RickshawGraph(self.graphContainer, data, url, 'auto'):
+                                         new RickshawGraph(self.graphContainer, data, url);
                 });
             }
+        },
+
+        /**
+         * Find minimum value for a dataset from Graphite
+         */
+        getMin: function(data) {
+            return _.min(data.map(function(d) {
+                return _.min(
+                    d.datapoints.filter(function(point) {
+                        return point[0] !== null;
+                    }).map(function(point) {
+                        return point[0];
+                    }));
+            }));
         },
 
         /**

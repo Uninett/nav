@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
-# Copyright (C) 2008, 2009 UNINETT AS
+# Copyright (C) 2008, 2009, 2013, 2017, 2018 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,7 +16,7 @@
 #
 """Utility functions for NAV configuration file parsing."""
 from __future__ import absolute_import
-from io import StringIO
+import io
 import logging
 
 import os
@@ -77,10 +77,10 @@ def getconfig(configfile, defaults=None, configfolder=None):
     if isinstance(configfile, six.string_types):
         if configfolder:
             configfile = os.path.join(configfolder, configfile)
-        configfile = open(configfile, 'r')
+        configfile = io.open(configfile, encoding='utf-8')
 
     config = configparser.RawConfigParser(defaults)
-    config.readfp(configfile)
+    config.read_file(configfile)
 
     sections = config.sections()
     configdict = {}
@@ -116,7 +116,7 @@ class NAVConfigParser(configparser.ConfigParser):
 
         configparser.ConfigParser.__init__(self)
         # TODO: perform sanity check on config settings
-        faked_default_file = StringIO(self.DEFAULT_CONFIG)
+        faked_default_file = io.StringIO(self.DEFAULT_CONFIG)
         self.readfp(faked_default_file)
         self.read_all()
 

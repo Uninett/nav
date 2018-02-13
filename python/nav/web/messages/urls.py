@@ -15,44 +15,22 @@
 #
 """Django URL configuration for messages tool"""
 
-from django.conf.urls import url, patterns
+from django.conf.urls import url
 
-from nav.web.messages.views import active, historic, planned
-from nav.web.messages.views import save, followup, redirect_to_active
-from nav.web.messages.views import view, expire
+from nav.web.messages import views
 from nav.web.messages.feeds import ActiveMessagesFeed
 
-urlpatterns = patterns('',
-
-    url(r'^$', redirect_to_active),
-
-    url(r'^active/$', active,
-        name='messages-home'),
-
-    url(r'^create/$', save,
-        name='messages-create'),
-
-    url(r'^edit/(?P<message_id>\d+)$', save,
-        name='messages-edit'),
-
-    url(r'^active/$', active,
-        name='messages-active'),
-
-    url(r'^scheduled/$', planned,
-        name='messages-planned'),
-
-    url(r'^archive/$', historic,
-        name='messages-historic'),
-
-    url(r'^view/(?P<message_id>\d+)$', view,
-        name='messages-view'),
-
-    url(r'^expire/(?P<message_id>\d+)$', expire,
-        name='messages-expire'),
-
-    url(r'^followup/(?P<message_id>\d+)$', followup,
+urlpatterns = [
+    url(r'^$', views.redirect_to_active),
+    url(r'^active/$', views.active, name='messages-home'),
+    url(r'^create/$', views.save, name='messages-create'),
+    url(r'^edit/(?P<message_id>\d+)$', views.save, name='messages-edit'),
+    url(r'^active/$', views.active, name='messages-active'),
+    url(r'^scheduled/$', views.planned, name='messages-planned'),
+    url(r'^archive/$', views.historic, name='messages-historic'),
+    url(r'^view/(?P<message_id>\d+)$', views.view, name='messages-view'),
+    url(r'^expire/(?P<message_id>\d+)$', views.expire, name='messages-expire'),
+    url(r'^followup/(?P<message_id>\d+)$', views.followup,
         name='messages-followup'),
-
-    url(r'^rss/$', ActiveMessagesFeed(),
-        name='messages-rss'),
-    )
+    url(r'^rss/$', ActiveMessagesFeed(), name='messages-rss'),
+]

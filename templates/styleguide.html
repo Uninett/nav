@@ -3,22 +3,49 @@
 
 {% block base_header_additional_head %}
   <style>
-  h3.underline {
-    border-bottom: 1px solid #cccccc;
-  }
+   h3.underline {
+       border-bottom: 1px solid #cccccc;
+   };
   </style>
+{% endblock %}
+
+{% block footer_scripts %}
   <script>
-    require(['libs/jquery-ui.min'], function () {
+   require(['plugins/gauge', 'libs/jquery-ui.min'], function (JohnGauge) {
       $(function () {
 
-        /* Code for activating jquery ui tabs. We usually hide the tabs until
-           they are rendered to avoid screen jumping */
-        $('#jqueryuitabs').tabs().show();
+          /* Code for activating jquery ui tabs. We usually hide the tabs until
+             they are rendered to avoid screen jumping */
+          $('#jqueryuitabs').tabs().show();
 
-        /* This is the code for closing the content dropdown */
-        $('.f-dropdown .close-button').click(function () {
-          $(document).foundation('dropdown', 'close', $(this).parents('.f-dropdown:first'));
-        });
+          /* This is the code for closing the content dropdown */
+          $('.f-dropdown .close-button').click(function () {
+              $(document).foundation('dropdown', 'close', $(this).parents('.f-dropdown:first'));
+          });
+
+
+          // Draw the gauge tests
+          var element = document.querySelector('#gauges');
+
+          function createGauges(values, config) {
+              element.appendChild(document.createElement('h5')).innerHTML = "Config: " + JSON.stringify(config);
+              var container = document.createElement('div');
+              container.style.cssText = "display: flex; flex-wrap: wrap; margin-bottom: 1em";
+              var gauges = element.appendChild(container);
+              values.forEach(function(value) {
+                  new JohnGauge(Object.assign(
+                      {node: gauges.appendChild(document.createElement('div')),
+                       value: value},
+                      config
+                  ));
+              });
+          }
+
+          createGauges([5, 25, 50, 75, 95, 100, 150], {});
+          createGauges([-20, -10, 0, 25, 75, 100], {min: -20});
+          createGauges([5, 25, 45, 50, 55], {thresholds: ['>50']});
+          createGauges([45, 50, 55, 75, 95], {thresholds: ['<50']});
+          createGauges([25, 35, 45, 55, 65], {thresholds: ['<30','>60']});
 
       });
     });
@@ -46,9 +73,6 @@
       will not be listed unless there is relevant information regarding the component and how we use it.
     </p>
   </div>
-
-
-
 
   {# Page headers #}
   <h3 class="underline">Page headers</h3>
@@ -503,7 +527,11 @@
 
   </div> {# row #}
 
+  <div class="panel white">
+    <h3>Gauge ranges</h3>
 
+    <div id="gauges"></div>
+  </div>
 
   <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
 

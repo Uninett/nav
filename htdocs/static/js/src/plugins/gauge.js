@@ -21,10 +21,10 @@ define(function (require, exports, module) {
             value = config.value || 0,
             url = config.url || null,
             refreshInterval = config.refreshInterval || 60, // seconds
-            invertScale = config.invertScale || false,
+            invertScale = config.invertScale,
             thresholds = config.thresholds || [];
 
-        this.symbol = config.symbol || '\u00B0';  // Default is degrees
+        this.symbol = config.symbol || '';
         this.unit = config.unit || '';
         this.animationSpeed = 1000;  // Speed of value transitions
 
@@ -162,26 +162,74 @@ define(function (require, exports, module) {
             }
             return text;
         },
+        getDomain: function(min, max, steps) {
+            step = (max - min) / (steps - 1);
+            return _.range(steps).map(function(m) {
+                return min + (step * m);
+            });
+        },
+        /** Create special range where the mid-range between the > and < is
+           considered "green" and the rest is considered out of bounds - "red"
+           */
+        getConfigTwoThresholds: function(values) {
+            return {
+                min: this.trimThreshold(_.find(values.thresholds, function(t) {
+                    return t.substr(0, 1) === '<';
+                })),
+                max: this.trimThreshold(_.find(values.thresholds, function(t) {
+                    return t.substr(0, 1) === '>';
+                })),
+                colors: ['#FF4136', '#FFDC00', '#2ECC40', '#FFDC00', '#FF4136']
+            }
+        },
+        getConfigOneThreshold: function(values) {
+            var invert = values.thresholds[0].substr(0, 1) === '<';
+            var thresholds = values.thresholds;
+            return {
+                min: invert ? this.trimThreshold(thresholds[0]) : values.min,
+                max: invert ? values.max : this.trimThreshold(thresholds[0]),
+                colors: invert ? values.colors.reverse() : values.colors
+            }
+        },
+        getConfigZeroThreshold: function(values) {
+            return values;
+        },
         createColorScale: function (min, max, thresholds, invert) {
-            if (thresholds.length === 1) {
-                max = thresholds[0];
+            var defaults = {
+                min: min,
+                max: max,
+                colors: ['#2ECC40', '#FFDC00', '#FF4136'],
+                thresholds: thresholds
             }
-            var colors = ['#7FDBFF', '#2ECC40', '#FFDC00', '#FF4136'],
-                step = (max - min) / 4,
-                domain = [min, step, 2 * step, max];
-            if (min < 0) {
-                colors = ['#001f3f', '#0074D9', '#7FDBFF', '#2ECC40', '#FFDC00', '#FF4136'];
-                step = (max - min) / 6;
-                domain = [min, min + step, min + step * 2, min + step * 3, min + step * 4, max];
+
+            // Colorscale greatly varies based on thresholds.
+            var lookup = {
+                2: this.getConfigTwoThresholds.bind(this, defaults),
+                1: this.getConfigOneThreshold.bind(this, defaults),
+                0: this.getConfigZeroThreshold.bind(this, defaults)
             }
+
+            var config = Object.assign({}, defaults, lookup[thresholds.length]());
+            var domain = this.getDomain(config.min, config.max, config.colors.length);
+
+            /* Special case for negative minimum - let it start blue and then
+               continue as normal after 0. This really doesn't work well with
+               inverse or several thresholds */
+            if (config.min < 0) {
+                config.colors = ['#0000FF'].concat(defaults.colors);
+                domain = [config.min, 0, config.max / 2, config.max];
+            }
+
             if (invert) {
                 colors.reverse();
             }
 
-            return d3.scale.linear()
-                .domain(domain)
-                .interpolate(d3.interpolateRgb)
-                .range(colors);
+            var scale = d3.scale.linear()
+                          .domain(domain)
+                          .interpolate(d3.interpolateRgb)
+                          .range(config.colors);
+            scale.clamp(true);  // Dont extrapolate
+            return scale;
         },
         createGradient: function (node) {
             /* Greate gradient for background arc */
@@ -200,16 +248,21 @@ define(function (require, exports, module) {
             return gradientId;
         },
         drawThresholds: function (thresholds) {
-            for (var i = 0, l = thresholds.length; i < l; i++) {
-                this.createLineFromValue(thresholds[i]);
-            }
+            var self = this;
+            thresholds
+                .map(this.trimThreshold)
+                .forEach(this.createLineFromValue, this);
         },
         createLineFromValue: function (value) {
-            var points = this.getLineCoords(value);
-            this.vis.append("line")
-                .attr('stroke-width', 1).attr('stroke', 'black')
-                .attr("x1", points.x1).attr("y1", points.y1)
-                .attr("x2", points.x2).attr("y2", points.y2);
+            try {
+                var points = this.getLineCoords(value);
+                this.vis.append("line")
+                    .attr('stroke-width', 1).attr('stroke', 'black')
+                    .attr("x1", points.x1).attr("y1", points.y1)
+                    .attr("x2", points.x2).attr("y2", points.y2);
+            } catch (error) {
+                console.log("Value outside max, cant draw threshold");
+            }
         },
         getLineCoords: function (value) {
             /* Get x and y coordinates for a specific value */
@@ -220,6 +273,9 @@ define(function (require, exports, module) {
                 endPoint = lineCoords[1].split(',');
 
             return { x1: startPoint[0], y1: startPoint[1], x2: endPoint[0], y2: endPoint[1]};
+        },
+        trimThreshold: function(threshold) {
+            return +threshold.replace(/\D/, '');
         }
     };
 

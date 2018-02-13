@@ -15,15 +15,17 @@
 #
 """URL config for WatchDog"""
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
+from nav.web.watchdog import views
 
-urlpatterns = patterns(
-    'nav.web.watchdog.views',
-    url(r'^$', 'render_index', name='watchdog-index'),
-    url(r'^active_addresses', 'get_active_addresses',
+
+urlpatterns = [
+    url(r'^$', views.render_index,
+        name='watchdog-index'),
+    url(r'^active_addresses', views.get_active_addresses,
         name='watchdog-active-addresses'),
-    url(r'^serial_numbers', 'get_serial_numbers',
+    url(r'^serial_numbers', views.get_serial_numbers,
         name='watchdog-serial-numbers'),
-    url(r'^cam_and_arp', 'get_cam_and_arp',
+    url(r'^cam_and_arp', views.get_cam_and_arp,
         name='watchdog-cam-and-arp')
-)
+]

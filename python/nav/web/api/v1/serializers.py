@@ -16,8 +16,22 @@
 # pylint: disable=R0903
 """Serializers for the NAV REST api"""
 
-from nav.models import manage, cabling, rack
+from nav.models import manage, cabling, rack, profiles
 from rest_framework import serializers
+
+
+class AccountSerializer(serializers.ModelSerializer):
+    """Serializer for accounts"""
+    class Meta(object):
+        model = profiles.Account
+        fields = ('id', 'login', 'name', 'ext_sync', 'preferences', 'organizations')
+
+
+class AccountGroupSerializer(serializers.ModelSerializer):
+    """Serializer for accountgroups"""
+    class Meta(object):
+        model = profiles.AccountGroup
+        fields = ('id', 'name', 'description', 'accounts')
 
 
 class EntitySerializer(serializers.ModelSerializer):

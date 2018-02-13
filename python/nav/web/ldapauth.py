@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2004 Norwegian University of Science and Technology
-# Copyright (C) 2007, 2010, 2011, 2014 UNINETT AS
+# Copyright (C) 2007, 2010, 2011, 2014, 2015, 2017, 2018 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -266,7 +266,7 @@ class LDAPUser(object):
         """
         encoding = _config.get('ldap', 'encoding')
         user_dn = self.get_user_dn().encode(encoding)
-        name_attr = _config.get('ldap', 'name_attr')
+        name_attr = _config.get('ldap', 'name_attr').encode(encoding)
         try:
             res = self.ldap.search_s(user_dn, ldap.SCOPE_BASE,
                                      '(objectClass=*)', [name_attr])

@@ -30,7 +30,7 @@ class LocationStatus(RoomStatus):
     title = 'Locations with active alerts'
     description = 'Displays a list of locations with active alerts'
     refresh_interval = 30000  # 30 seconds
-    is_title_editable = False
+    is_title_editable = True
 
     def get_template_basename(self):
         return 'room_location_status'

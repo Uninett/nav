@@ -31,7 +31,7 @@ class RoomStatus(Status2Widget):
     title = 'Rooms with active alerts'
     description = 'Displays a list of rooms with active alerts'
     refresh_interval = 30000  # 30 seconds
-    is_title_editable = False
+    is_title_editable = True
 
     def get_template_basename(self):
         return 'room_location_status'
