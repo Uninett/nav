@@ -39,6 +39,7 @@ require([
         $('.sensor-value').each(function(i, element) {
             metricMap[$(element).data('metric')] = element;
         });
+        if (_.isEmpty(metricMap)) { return; }
         getSensorData(metricMap, function(data, metricMap) {
             $.each(data, function(i, metricData) {
                 var target = metricData.target;
@@ -56,14 +57,13 @@ require([
 
     function getSensorData(metricMap, updateFunc) {
         var url = NAV.graphiteRenderUrl;
-        var request = $.post(url,
-            {
-                target: _.keys(metricMap),
-                format: 'json',
-                from: '-5min',
-                until: 'now'
-            }
-        );
+        var data = $.param({
+            target: _.keys(metricMap),
+            format: 'json',
+            from: '-5min',
+            until: 'now'
+        }, true);
+        var request = $.post(url, data);
 
         request.done(function (data) {
             updateFunc(data, metricMap);

@@ -13,6 +13,18 @@ AvailabilityRecord = namedtuple(
     'AvailabilityRecord', ['subject', 'incidents', 'downtime', 'availability'])
 
 
+class LinkSubject(object):
+    """Adapter for link subjects"""
+    def __init__(self, subject):
+        self.subject = subject
+
+    def get_absolute_url(self):
+        return self.subject.get_absolute_url()
+
+    def __str__(self):
+        return "{o.ifname} ({o.ifalias}) on {o.netbox}".format(o=self.subject)
+
+
 def get_interval(sometime, interval):
     """Gets the interval for some time
 
@@ -93,7 +105,16 @@ def create_record(subject, alerts, start, end):
     # Cheekily remove microseconds
     downtime = downtime - timedelta(microseconds=downtime.microseconds)
 
-    return AvailabilityRecord(subject, alerts, downtime, availability)
+    return AvailabilityRecord(get_subject(subject), alerts, downtime,
+                              availability)
+
+
+def get_subject(subject):
+    """Get the string representation of this subject"""
+    if isinstance(subject, Interface):
+        return LinkSubject(subject)
+
+    return subject
 
 
 def get_alerts(start, end, eventtype='boxState', alerttype='boxDown'):
