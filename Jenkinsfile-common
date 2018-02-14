@@ -16,46 +16,15 @@ try {
         env.BUILDDIR = "/opt/nav"
         env.TARGETURL = "http://localhost:8000/"
 
-        stage("Build NAV") {
+        stage("Prepare build") {
+	    sh "env"  // debug print environment
             sh "git fetch --tags" // seems tags arent't cloned by Jenkins :P
-            sh "/build.sh"
         }
 
         try {
             stage("Run Python unit tests") {
                 ansiColor('xterm') {
-		    sh "/python-unit-tests.sh"
-		}
-            }
-
-            stage("Create database and start services") {
-                ansiColor('xterm') {
-		    sh "/create-db.sh"
-		    sh "/start-services.sh"
-		}
-            }
-
-            stage("Run Django checks") {
-		ansiColor('xterm') {
-		    sh "python -m nav.django.manage check"
-		}
-            }
-
-            stage("Run integration tests") {
-                ansiColor('xterm') {
-		    sh "/integration-tests.sh"
-		}
-            }
-
-            stage("Run Selenium tests") {
-                ansiColor('xterm') {
-		    sh "/functional-tests.sh"
-		}
-            }
-
-            stage("Run JavaScript tests") {
-                ansiColor('xterm') {
-		    sh "/javascript-tests.sh"
+		    sh "tox"
 		}
             }
         } finally {
