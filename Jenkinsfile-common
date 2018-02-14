@@ -59,8 +59,8 @@ try {
 		}
             }
         } finally {
-            junit "**/*-results.xml"
-            step([$class: 'CoberturaPublisher', coberturaReportFile: 'tests/coverage.xml'])
+            junit "reports/**/*-results.xml"
+            step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/**/coverage.xml'])
         }
 
         stage("PyLint") {
