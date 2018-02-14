@@ -94,17 +94,15 @@ RUN set -x \
 # Add a build user
 RUN adduser --system --group --home=/home/build --shell=/bin/bash build
 
-# Build and install Python requirements
-COPY requirements.txt /runtime-requirements.txt
-COPY requirements/ /requirements
-COPY tests/requirements.txt /test-requirements.txt
-RUN pip install --upgrade pip wheel && \
-    pip install -r /runtime-requirements.txt -r /test-requirements.txt
+# Install our primary test runner
+RUN pip install tox
 
 
 ENV WORKSPACE /source
 ENV BUILDDIR /opt/nav
 ENV HOME /home/build
+ENV PYTHONPATH /source/python
+
 COPY tests/docker/scripts/ /
 WORKDIR /source
 ENTRYPOINT ["/entrypoint.sh"]
