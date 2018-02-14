@@ -107,3 +107,4 @@ ENV BUILDDIR /opt/nav
 ENV HOME /home/build
 COPY tests/docker/scripts/ /
 WORKDIR /source
+ENTRYPOINT ["/entrypoint.sh"]
