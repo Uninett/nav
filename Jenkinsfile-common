@@ -8,9 +8,6 @@
 
 try {
     def dockerfile = 'tests/docker/Dockerfile'
-    if (env.PYTHON_VERSION == '3') {
-        dockerfile = 'tests/docker/Dockerfile3'
-    }
 
     def imageTag = "nav/${env.JOB_NAME}:${env.BUILD_NUMBER}".toLowerCase()
     echo "Docker image tag: ${imageTag}"
