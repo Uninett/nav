@@ -14,7 +14,8 @@ RUN apt-get update && \
     apt-get -y install --no-install-recommends \
       curl gnupg dirmngr \
       git \
-      python python-dev python-pip build-essential
+      python python-dev python-pip build-essential \
+      python3 python3-dev python3-pip
 
 RUN echo "\n\
 \
