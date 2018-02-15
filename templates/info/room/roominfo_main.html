@@ -23,7 +23,12 @@
         <tr>
           <th>Position</th>
           <td class="position" data-roomname="{{ room.id }}">
-            {% if room.position %}{{ room.position|join:', ' }}{% endif %}
+            {% if room.position %}
+              <div class="geo">
+                <span class="latitude">{{ room.latitude }}</span>
+                <span class="longitude">{{ room.longitude }}</span>
+              </div>
+            {% endif %}
           </td>
         </tr>
         <tr>

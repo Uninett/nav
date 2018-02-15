@@ -762,6 +762,16 @@ class Room(models.Model):
     def get_absolute_url(self):
         return reverse('room-info', kwargs={'roomid': self.pk})
 
+    @property
+    def latitude(self):
+        if self.position:
+            return self.position[0]
+
+    @property
+    def longitude(self):
+        if self.position:
+            return self.position[1]
+
 
 class TreeMixin(object):
     """A mixin that provides methods for models that use parenting hierarchy"""
