@@ -7,8 +7,6 @@ import subprocess
 
 import pytest
 
-from nav.models.manage import Netbox
-
 ########################################################################
 #                                                                      #
 # Set up the required components for an integration test. Components   #
@@ -98,6 +96,7 @@ def _scan_testargs(filename):
 
 @pytest.fixture()
 def localhost():
+    from nav.models.manage import Netbox
     box = Netbox(ip='127.0.0.1', sysname='localhost.example.org',
                  organization_id='myorg', room_id='myroom', category_id='SRV',
                  read_only='public', snmp_version=2)
