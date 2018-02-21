@@ -106,7 +106,6 @@ RUN pip install tox
 
 
 ENV WORKSPACE /source
-ENV BUILDDIR /opt/nav
 ENV HOME /home/build
 
 COPY tests/docker/scripts/ /
