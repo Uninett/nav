@@ -1,12 +1,40 @@
+from __future__ import print_function
 import os
 import io
 import re
 import shlex
+import subprocess
 
 import pytest
 
 from nav.models.manage import Netbox
 
+########################################################################
+#                                                                      #
+# Set up the required components for an integration test. Components   #
+# such as PostgreSQL and Apache are assumed to already be installed on #
+# the system. The system is assumed to be Debian. See                  #
+# tests/docker/Dockerfile.                                             #
+#                                                                      #
+########################################################################
+
+
+def pytest_configure(config):
+    subprocess.check_call(['/create-db.sh'])
+    subprocess.check_call(['env'])
+    os.environ['TARGETURL'] = "http://localhost:8000/"
+    subprocess.check_call(['/start-services.sh'])
+
+def pytest_unconfigure(config):
+    subprocess.check_call(['/stop-services.sh'])
+
+
+########################################################################
+#                                                                      #
+# All to do with discovering all NAV binaries and building fixtures to #
+# generate tests for each of them                                      #
+#                                                                      #
+########################################################################
 TESTARGS_PATTERN = re.compile(
     r'^# +-\*-\s*testargs:\s*(?P<args>.*?)\s*(-\*-)?\s*$',
     re.MULTILINE)
@@ -62,6 +90,11 @@ def _scan_testargs(filename):
         else:
             return []
 
+##################
+#                #
+# Other fixtures #
+#                #
+##################
 
 @pytest.fixture()
 def localhost():
