@@ -5,7 +5,6 @@ import shlex
 
 import pytest
 
-from nav.buildconf import bindir
 from nav.models.manage import Netbox
 
 TESTARGS_PATTERN = re.compile(
@@ -13,6 +12,7 @@ TESTARGS_PATTERN = re.compile(
     re.MULTILINE)
 NOTEST_PATTERN = re.compile(
     r'^# +-\*-\s*notest\s*(-\*-)?\s*$', re.MULTILINE)
+BINDIR = './bin'
 
 
 def pytest_generate_tests(metafunc):
@@ -30,8 +30,8 @@ def _nav_binary_tests():
 
 
 def _nav_binary_list():
-    files = sorted(os.path.join(bindir, f)
-                   for f in os.listdir(bindir)
+    files = sorted(os.path.join(BINDIR, f)
+                   for f in os.listdir(BINDIR)
                    if not _is_excluded(f))
     return (f for f in files if os.path.isfile(f))
 
@@ -46,6 +46,7 @@ def _scan_testargs(filename):
     Scans filename for testargs comments and returns a list of elements
     suitable for invocation of this binary with the given testargs
     """
+    print("Getting test args from {}".format(filename))
     contents = io.open(filename, encoding="utf-8").read()
     matches = TESTARGS_PATTERN.findall(contents)
     if matches:
