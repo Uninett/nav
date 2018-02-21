@@ -13,8 +13,6 @@ try {
     echo "Docker image tag: ${imageTag}"
     docker.build("${imageTag}", "-f ${dockerfile} .").inside() {
         env.WORKSPACE = "${WORKSPACE}"
-        env.BUILDDIR = "/opt/nav"
-        env.TARGETURL = "http://localhost:8000/"
 
         stage("Prepare build") {
 	    sh "env"  // debug print environment
