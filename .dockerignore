@@ -1,4 +1,5 @@
 .git
+.tox
 tools/virtual-appliance
 build/
 htdocs/static/js/node_modules
