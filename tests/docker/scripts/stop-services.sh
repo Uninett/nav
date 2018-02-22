@@ -19,4 +19,4 @@ stop_xvfb() {
 }
 
 stop_apache
-stop_xvfb
+#stop_xvfb

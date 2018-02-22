@@ -52,3 +52,9 @@ def selenium(selenium, base_url):
 @pytest.fixture(scope="session")
 def base_url():
     return os.environ.get('TARGETURL', 'http://localhost:8000')
+
+@pytest.fixture
+def chrome_options(chrome_options):
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--headless')
+    return chrome_options

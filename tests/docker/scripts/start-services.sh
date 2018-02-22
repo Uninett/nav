@@ -22,4 +22,4 @@ start_xvfb() {
 }
 
 (start_apache)  # run in subprocess b/c of call to wait
-start_xvfb
+#start_xvfb
