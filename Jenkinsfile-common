@@ -20,11 +20,18 @@ try {
         }
 
         try {
-            stage("Run Python unit tests") {
+            stage("Run unit tests") {
                 ansiColor('xterm') {
-		    sh "tox"
+		    sh "tox -e \$(tox -a | grep '^unit-' | paste -sd ,)"
 		}
             }
+
+            stage("Run integration tests") {
+                ansiColor('xterm') {
+		    sh "tox -e \$(tox -a | grep '^integration-' | paste -sd ,)"
+		}
+            }
+
         } finally {
             junit "reports/**/*-results.xml"
             step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/**/coverage.xml'])
