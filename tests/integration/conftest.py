@@ -16,15 +16,22 @@ import pytest
 #                                                                      #
 ########################################################################
 
+if os.environ.get('WORKSPACE'):
+    SCRIPT_PATH = os.path.join(os.environ['WORKSPACE'], 'tests/docker/scripts')
+else:
+    SCRIPT_PATH = '/'
+SCRIPT_CREATE_DB = os.path.join(SCRIPT_PATH, 'create-db.sh')
+SCRIPT_START_SERVICES = os.path.join(SCRIPT_PATH, 'start-services.sh')
+SCRIPT_STOP_SERVICES = os.path.join(SCRIPT_PATH, 'stop-services.sh')
+
 
 def pytest_configure(config):
-    subprocess.check_call(['/create-db.sh'])
-    subprocess.check_call(['env'])
+    subprocess.check_call([SCRIPT_CREATE_DB])
     os.environ['TARGETURL'] = "http://localhost:8000/"
-    subprocess.check_call(['/start-services.sh'])
+    subprocess.check_call([SCRIPT_START_SERVICES])
 
 def pytest_unconfigure(config):
-    subprocess.check_call(['/stop-services.sh'])
+    subprocess.check_call([SCRIPT_STOP_SERVICES])
 
 
 ########################################################################
