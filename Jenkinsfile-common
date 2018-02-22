@@ -32,6 +32,12 @@ try {
 		}
             }
 
+            stage("Run functional tests") {
+                ansiColor('xterm') {
+		    sh "tox -e \$(tox -a | grep '^functional-' | paste -sd ,)"
+		}
+            }
+
         } finally {
             junit "reports/**/*-results.xml"
             step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/**/coverage.xml'])
