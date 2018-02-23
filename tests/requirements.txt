@@ -1,5 +1,6 @@
 astroid==1.5.3
 coverage>=3.6
+gunicorn
 lxml==4.0.0
 mock==2.0.0
 pylint==1.7.2
@@ -11,4 +12,5 @@ pytest-twisted>=1.6
 pytidylib==0.2.4
 selenium==3.4.3
 whisper>=0.9.9
+whitenoise
 subprocess32  ; python_version < '3'
