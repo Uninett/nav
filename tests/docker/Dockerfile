@@ -36,7 +36,6 @@ RUN apt-get update && \
     apt-get -y --no-install-recommends install \
 	libsnmp30 \
 	cron \
-	apache2 libapache2-mod-wsgi \
 	rubygems \
 	python-cairo \
 	postgresql postgresql-contrib postgresql-client \
