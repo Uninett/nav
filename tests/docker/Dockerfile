@@ -112,3 +112,4 @@ ENV HOME /home/build
 COPY tests/docker/scripts/ /
 WORKDIR /source
 ENTRYPOINT ["/entrypoint.sh"]
+RUN chmod 755 /entrypoint.sh
