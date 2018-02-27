@@ -38,6 +38,12 @@ try {
 		}
             }
 
+            stage("Run JavaScript tests") {
+                ansiColor('xterm') {
+		    sh "tox -e javascript"
+		}
+            }
+
         } finally {
             junit "reports/**/*-results.xml"
             step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/**/coverage.xml'])
