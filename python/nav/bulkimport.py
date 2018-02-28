@@ -16,7 +16,10 @@
 """Import seed data in bulk."""
 # no importer implementations have public methods, disable R0903 warning
 # pylint: disable=R0903
+
 from __future__ import absolute_import
+
+import django
 
 from nav.models.manage import Netbox, Room, Organization
 from nav.models.manage import Category, NetboxInfo, NetboxGroup
@@ -390,9 +393,19 @@ def reset_object_foreignkeys(obj):
     before obj.save() is attempted.
 
     """
-    foreign_fields = [field for field in obj._meta.fields
-                      if isinstance(field, models.fields.related.ForeignKey)]
-    for field in foreign_fields:
+    for field in get_foreign_key_fields(obj):
         value = getattr(obj, field.name)
         if value:
             setattr(obj, field.name, value)
+
+
+def get_foreign_key_fields(obj):
+    """Gets foreign key fields from this object"""
+    if django.VERSION >= (1, 8):
+        foreign_fields = [field for field in obj._meta.get_fields()
+                          if field.many_to_one]
+    else:
+        foreign_fields = [field for field in obj._meta.fields
+                          if
+                          isinstance(field, models.fields.related.ForeignKey)]
+    return foreign_fields
