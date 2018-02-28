@@ -69,7 +69,7 @@ node {
 
 	stage("Lines of code") {
             sh "/count-lines-of-code.sh"
-	    sloccountPublish encoding: '', pattern: '**/cloc.xml'
+	    sloccountPublish encoding: '', pattern: 'reports/cloc.xml'
         }
 
     }

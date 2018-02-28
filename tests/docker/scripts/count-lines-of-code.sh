@@ -1,5 +1,5 @@
 #!/bin/bash -x
-cd ${WORKSPACE}
+cd "${WORKSPACE}"
 cloc \
     --list-file=tests/.clocinclude \
     --exclude-list-file=tests/.clocignore \
