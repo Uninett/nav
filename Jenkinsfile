@@ -98,8 +98,8 @@ node {
     throw e
 } finally {
 
-    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'tests', reportFiles: 'functional-report.html', reportName: 'Functional report'])
-    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'tests', reportFiles: 'integration-report.html', reportName: 'Integration report'])
+    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports', reportFiles: 'functional-report.html', reportName: 'Functional report'])
+    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports', reportFiles: 'integration-report.html', reportName: 'Integration report'])
 
 
     notifyBuild(currentBuild.result)
