@@ -155,8 +155,7 @@ class RelatedOrderingFilter(filters.OrderingFilter):
         """
         components = field.split('__', 1)
         try:
-            field, _parent_model, _direct, _m2m = \
-                model._meta.get_field_by_name(components[0])
+            field = model._meta.get_field(components[0])
 
             # reverse relation
             if isinstance(field, _RelatedObject):
