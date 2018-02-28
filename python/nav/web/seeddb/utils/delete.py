@@ -16,8 +16,10 @@
 
 """Functions for deleting objects from seeddb.
 """
+
 import logging
 
+import django
 from django.db import connection, transaction, IntegrityError
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
@@ -125,18 +127,17 @@ def dependencies(queryset, whitelist):
     to nothing, which will probably cause the delete statement to fail.
     """
     primary_keys = [obj.pk for obj in queryset]
-    related = queryset.model._meta.get_all_related_objects()
-#    related += queryset.model._meta.get_all_related_many_to_many_objects()
+    related = get_all_related_objects(queryset)
 
     related_objects = {}
     for rel in related:
-        if rel.model not in whitelist:
+        model, name = get_model_and_name(rel)
+        if model not in whitelist:
             continue
-        name = rel.var_name
         field = rel.field.name
         lookup = "%s__in" % field
         params = {lookup: primary_keys}
-        objects = rel.model.objects.filter(**params)
+        objects = model.objects.filter(**params)
         for obj in objects:
             obj.object_name = name
             attr = getattr(obj, '%s_id' % field)
@@ -145,3 +146,27 @@ def dependencies(queryset, whitelist):
             related_objects[attr].append(obj)
 
     return related_objects
+
+
+def get_model_and_name(rel):
+    """Gets model and name based on django version
+
+    rel in 1.7 is a RelatedObject
+    rel in 1.8 is either ManyToOneRel or OneToOneRel
+    """
+    if django.VERSION >= (1, 8):
+        return rel.related_model, rel.name
+    else:
+        return rel.model, rel.var_name
+
+
+def get_all_related_objects(queryset):
+    """Gets all related objects based on django version"""
+    if django.VERSION >= (1, 8):
+        return [
+            f for f in queryset.model._meta.get_fields()
+            if (f.one_to_many or f.one_to_one)
+               and f.auto_created and not f.concrete
+        ]
+    else:
+        return queryset.model._meta.get_all_related_objects()
