@@ -6,10 +6,149 @@
  * Jenkins.
 */
 node {
-    stage("Checkout") {
-        checkout scm
+  stage("Checkout") {
+      checkout scm
+  }
+
+  try {
+    def dockerfile = 'tests/docker/Dockerfile'
+
+    def imageTag = "nav/${env.JOB_NAME}:${env.BUILD_NUMBER}".toLowerCase()
+    echo "Docker image tag: ${imageTag}"
+    docker.build("${imageTag}", "-f ${dockerfile} .").inside("--tmpfs /var/lib/postgresql --volume ${WORKSPACE}:/source:rw,z") {
+        env.WORKSPACE = "${WORKSPACE}"
+
+        stage("Prepare build") {
+	    sh "env"  // debug print environment
+            sh "git fetch --tags" // seems tags arent't cloned by Jenkins :P
+        }
+
+        try {
+            stage("Run unit tests") {
+                ansiColor('xterm') {
+		    sh "tox -e \$(tox -a | grep '^unit-' | paste -sd ,)"
+		}
+            }
+
+            stage("Run integration tests") {
+                ansiColor('xterm') {
+		    sh "tox -e \$(tox -a | grep '^integration-' | paste -sd ,)"
+		}
+            }
+
+            stage("Run functional tests") {
+                ansiColor('xterm') {
+		    sh "tox -e \$(tox -a | grep '^functional-' | paste -sd ,)"
+		}
+            }
+
+            stage("Run JavaScript tests") {
+                ansiColor('xterm') {
+		    sh "tox -e javascript"
+		}
+            }
+
+        } finally {
+            junit "reports/**/*-results.xml"
+            step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/**/coverage.xml'])
+        }
+
+        stage("PyLint") {
+	    sh "tox -e pylint"
+            step([
+                $class                     : 'WarningsPublisher',
+                parserConfigurations       : [[
+                                              parserName: 'PYLint',
+                                                pattern   : 'pylint.txt'
+                                            ]],
+                unstableTotalAll           : '1680',
+                failedTotalAll             : '1730',
+                usePreviousBuildAsReference: true
+            ])
+        }
+
+	stage("Lines of code") {
+            sh "/count-lines-of-code.sh"
+	    sloccountPublish encoding: '', pattern: '**/cloc.xml'
+        }
+
     }
-    withEnv(["PYTHON_VERSION=2"]) {
-        load 'Jenkinsfile-common'
+
+    stage("Publish documentation") {
+        echo "This job is ${JOB_BASE_NAME}"
+        // publish dev docs and stable branch docs, but nothing else
+        if (env.JOB_BASE_NAME == 'master' || env.JOB_BASE_NAME.endsWith('.x')) {
+            VERSION = sh (
+                script: 'cd ${WORKSPACE}/doc; python -c "import conf; print conf.version"',
+                returnStdout: true
+            ).trim()
+            if (VERSION == '') {
+                echo "VERSION is empty, not publishing docs"
+            }
+            else {
+                echo "Publishing docs for ${VERSION}"
+                sh "rsync -av --delete --no-perms --chmod=Dog+rx,Fog+r '${WORKSPACE}/doc/html/' 'doc@nav.uninett.no:/var/www/doc/${VERSION}/'"
+            }
+        }
     }
+
+} catch (e) {
+    currentBuild.result = "FAILED"
+    echo "Build FAILED set status ${currentBuild.result}"
+    throw e
+} finally {
+
+    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'tests', reportFiles: 'functional-report.html', reportName: 'Functional report'])
+    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'tests', reportFiles: 'integration-report.html', reportName: 'Integration report'])
+
+
+    notifyBuild(currentBuild.result)
+  }
+}
+
+
+
+def notifyBuild(String buildStatus = 'STARTED') {
+  // build status of null means successful
+  buildStatus =  buildStatus ?: 'SUCCESS'
+
+  // Default values
+  def colorName = 'RED'
+  def colorCode = '#FF0000'
+  def subject = "${buildStatus}: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+  def summary = "${subject} (<${env.BUILD_URL}|Open>)"
+
+  // Override default values based on build status
+  if (buildStatus == 'STARTED') {
+    color = 'YELLOW'
+    colorCode = '#FFFF00'
+  } else if (buildStatus == 'SUCCESS') {
+    color = 'GREEN'
+    colorCode = '#00FF00'
+  } else {
+    color = 'RED'
+    colorCode = '#FF0000'
+  }
+
+  teststatus = testStatuses()
+  // Send notifications
+  slackSend (color: colorCode, message: "${summary}\n${teststatus}")
+
+}
+
+import hudson.tasks.test.AbstractTestResultAction
+
+@NonCPS
+def testStatuses() {
+    def testStatus = ""
+    AbstractTestResultAction testResultAction = currentBuild.rawBuild.getAction(AbstractTestResultAction.class)
+    if (testResultAction != null) {
+        def total = testResultAction.totalCount
+        def failed = testResultAction.failCount
+        def skipped = testResultAction.skipCount
+        def passed = total - failed - skipped
+        testStatus = "*Tests*\nPassed: ${passed}, Failed: ${failed} ${testResultAction.failureDiffString}, Skipped: ${skipped}"
+
+    }
+    return testStatus
 }
