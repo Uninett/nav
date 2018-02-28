@@ -98,15 +98,14 @@ RUN set -x \
 	&& chmod +sx /usr/local/bin/gosu \
 	&& gosu nobody true
 
-# Add a build user
-RUN adduser --system --group --home=/home/build --shell=/bin/bash build
-
 # Install our primary test runner
 RUN pip install tox
 
+# Add a build user
+RUN adduser --system --group --home=/source --shell=/bin/bash build
 
 ENV WORKSPACE /source
-ENV HOME /home/build
+ENV HOME /source
 
 COPY tests/docker/scripts/ /
 WORKDIR /source
