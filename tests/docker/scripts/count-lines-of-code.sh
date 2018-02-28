@@ -6,5 +6,5 @@ cloc \
     --not-match-f='(configure|config.status)$' \
     --by-file \
     --xml \
-    --out="${WORKSPACE}/cloc.xml" \
+    --out="${WORKSPACE}/reports/cloc.xml" \
     .
