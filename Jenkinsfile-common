@@ -11,7 +11,7 @@ try {
 
     def imageTag = "nav/${env.JOB_NAME}:${env.BUILD_NUMBER}".toLowerCase()
     echo "Docker image tag: ${imageTag}"
-    docker.build("${imageTag}", "-f ${dockerfile} .").inside() {
+    docker.build("${imageTag}", "-f ${dockerfile} .").inside("--tmpfs /var/lib/postgresql") {
         env.WORKSPACE = "${WORKSPACE}"
 
         stage("Prepare build") {
