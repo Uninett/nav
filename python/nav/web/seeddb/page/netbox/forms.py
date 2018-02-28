@@ -35,13 +35,9 @@ _logger = logging.getLogger(__name__)
 
 
 class MyModelMultipleChoiceField(forms.ModelMultipleChoiceField):
-    def __init__(self, queryset, cache_choices=False, required=True,
-                 widget=None, label=None, initial=None, help_text='', *args,
-                 **kwargs):
-        super(MyModelMultipleChoiceField, self).__init__(
-            queryset, cache_choices, required, widget, label, initial,
-            help_text, *args, **kwargs)
-        self.help_text = help_text
+    def __init__(self, *args, **kwargs):
+        super(MyModelMultipleChoiceField, self).__init__(*args, **kwargs)
+        self.help_text = kwargs.get('help_text', '')
 
 
 class NetboxModelForm(forms.ModelForm):
