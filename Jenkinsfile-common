@@ -50,8 +50,7 @@ try {
         }
 
         stage("PyLint") {
-            env.PYLINTHOME = "${WORKSPACE}"
-            sh """/pylint.sh > "${WORKSPACE}/pylint.txt" """
+	    sh "tox -e pylint"
             step([
                 $class                     : 'WarningsPublisher',
                 parserConfigurations       : [[
