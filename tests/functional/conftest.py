@@ -56,7 +56,8 @@ def selenium(selenium, base_url):
 
     selenium.implicitly_wait(10)
     cookie = create_session_cookie(USERNAME)
-    selenium.get('{}/400'.format(base_url))
+    print("cookie: {!r}".format(cookie))
+    selenium.get('{}'.format(base_url))
     selenium.add_cookie(cookie)
     selenium.refresh()
     return selenium
@@ -66,8 +67,8 @@ def selenium(selenium, base_url):
 def base_url():
     return os.environ.get('TARGETURL', 'http://localhost:8000')
 
+
 @pytest.fixture
 def chrome_options(chrome_options):
     chrome_options.add_argument('--no-sandbox')
-    chrome_options.add_argument('--headless')
     return chrome_options
