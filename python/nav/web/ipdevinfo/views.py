@@ -138,7 +138,10 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
         if name:
             try:
-                netbox = netboxes.get(Q(sysname=name) | Q(ip=name))
+                if is_valid_ip(name):
+                    netbox = netboxes.get(Q(sysname=name) | Q(ip=name))
+                else:
+                    netbox = netboxes.get(sysname=name)
             except Netbox.DoesNotExist:
                 pass
         elif addr:
