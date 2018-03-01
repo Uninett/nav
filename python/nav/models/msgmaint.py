@@ -17,6 +17,7 @@
 """Django ORM wrapper for the NAV manage database"""
 
 from django.db import models
+from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 
 from datetime import datetime, timedelta
@@ -35,7 +36,7 @@ class Message(models.Model):
     title = VarcharField()
     description = models.TextField()
     tech_description = models.TextField(null=True, blank=True)
-    publish_start = models.DateTimeField(default=datetime.now())
+    publish_start = models.DateTimeField(default=timezone.now)
     publish_end = models.DateTimeField(
         default=datetime.now() + timedelta(days=7))
     author = VarcharField()
@@ -44,8 +45,7 @@ class Message(models.Model):
         'self', db_column='replaces_message',
         related_name='replaced_by', null=True)
     maintenance_tasks = models.ManyToManyField(
-        'MaintenanceTask', through='MessageToMaintenanceTask',
-        null=True, blank=True)
+        'MaintenanceTask', through='MessageToMaintenanceTask', blank=True)
 
     class Meta(object):
         db_table = 'message'

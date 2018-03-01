@@ -86,14 +86,14 @@ class Netbox(models.Model):
     )
 
     id = models.AutoField(db_column='netboxid', primary_key=True)
-    ip = models.IPAddressField(unique=True)
+    ip = models.GenericIPAddressField(unique=True)
     room = models.ForeignKey('Room', db_column='roomid')
     type = models.ForeignKey('NetboxType', db_column='typeid',
                              blank=True, null=True)
     sysname = VarcharField(unique=True, blank=True)
     category = models.ForeignKey('Category', db_column='catid')
     groups = models.ManyToManyField(
-        'NetboxGroup', through='NetboxCategory', blank=True, null=True)
+        'NetboxGroup', through='NetboxCategory', blank=True)
     groups.help_text = ''
     organization = models.ForeignKey('Organization', db_column='orgid')
     read_only = VarcharField(db_column='ro', blank=True, null=True)
@@ -1219,7 +1219,7 @@ class Arp(models.Model):
     netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
     prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
     sysname = VarcharField()
-    ip = models.IPAddressField()
+    ip = models.GenericIPAddressField()
     # TODO: Create MACAddressField in Django
     mac = models.CharField(max_length=17)
     start_time = models.DateTimeField(auto_now_add=True)
@@ -1759,7 +1759,7 @@ class GatewayPeerSession(models.Model):
     id = models.AutoField(primary_key=True, db_column='peersessionid')
     netbox = models.ForeignKey('Netbox', db_column='netboxid')
     protocol = models.IntegerField(choices=PROTOCOL_CHOICES)
-    peer = models.IPAddressField()
+    peer = models.GenericIPAddressField()
     state = VarcharField()
     local_as = models.IntegerField(null=True)
     remote_as = models.IntegerField(null=True)
@@ -2144,7 +2144,7 @@ class Netbios(models.Model):
     import datetime
 
     id = models.AutoField(db_column='netbiosid', primary_key=True)
-    ip = models.IPAddressField()
+    ip = models.GenericIPAddressField()
     mac = models.CharField(max_length=17, blank=False, null=True)
     name = VarcharField()
     server = VarcharField()

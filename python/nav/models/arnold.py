@@ -49,7 +49,7 @@ class Identity(models.Model):
     justification = models.ForeignKey('Justification',
                                       db_column='blocked_reasonid')
     interface = models.ForeignKey(Interface, db_column='swportid')
-    ip = models.IPAddressField(null=True, default='0.0.0.0')
+    ip = models.GenericIPAddressField(null=True, default='0.0.0.0')
     dns = VarcharField(blank=True)
     netbios = VarcharField(blank=True)
     first_offence = models.DateTimeField(db_column='starttime',
