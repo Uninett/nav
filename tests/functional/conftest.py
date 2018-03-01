@@ -57,11 +57,13 @@ def selenium(selenium, base_url):
 
     selenium.implicitly_wait(10)
     cookie = create_session_cookie(USERNAME)
-    print("cookie: {!r}".format(cookie))
-    selenium.get('{}'.format(base_url))
+    print("Adding session cookie for {}: {!r}".format(USERNAME, cookie))
+    # visit a non-existent URL just to set the site context for cookies
+    selenium.get('{}/400'.format(base_url))
     selenium.add_cookie(cookie)
     selenium.refresh()
-    return selenium
+    yield selenium
+    print("Cookies after test: {!r}".format(selenium.get_cookies()))
 
 
 @pytest.fixture(scope="session")
