@@ -612,7 +612,7 @@ class AlertSubscription(models.Model):
     filter_group = models.ForeignKey('FilterGroup')
     type = models.IntegerField(db_column='subscription_type',
                                choices=SUBSCRIPTION_TYPES, default=NOW)
-    ignore_resolved_alerts = models.BooleanField()
+    ignore_resolved_alerts = models.BooleanField(default=False)
 
     class Meta(object):
         db_table = u'alertsubscription'
@@ -645,8 +645,8 @@ class FilterGroupContent(models.Model):
     # subsystem in an attempt to keep most of the alerteninge code simple and
     # in one place.
 
-    include = models.BooleanField()
-    positive = models.BooleanField()
+    include = models.BooleanField(default=False)
+    positive = models.BooleanField(default=False)
     priority = models.IntegerField()
 
     filter = models.ForeignKey('Filter')
@@ -1079,6 +1079,7 @@ class MatchField(models.Model):
     )
     show_list = models.BooleanField(
         blank=True,
+        default=False,
         help_text=_(u'If unchecked values can be entered into a text input. '
                     u'If checked values must be selected from a list '
                     u'populated by data from the match field selected above.')

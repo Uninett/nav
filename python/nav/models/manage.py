@@ -856,7 +856,7 @@ class Category(models.Model):
 
     id = models.CharField(db_column='catid', max_length=8, primary_key=True)
     description = VarcharField(db_column='descr')
-    req_snmp = models.BooleanField()
+    req_snmp = models.BooleanField(default=False)
 
     class Meta(object):
         db_table = 'cat'
@@ -1472,14 +1472,14 @@ class Interface(models.Model):
     ifadminstatus = models.IntegerField(choices=ADM_STATUS_CHOICES)
     ifoperstatus = models.IntegerField(choices=OPER_STATUS_CHOICES)
     iflastchange = models.IntegerField()
-    ifconnectorpresent = models.BooleanField()
-    ifpromiscuousmode = models.BooleanField()
+    ifconnectorpresent = models.BooleanField(default=False)
+    ifpromiscuousmode = models.BooleanField(default=False)
     ifalias = VarcharField()
 
     baseport = models.IntegerField()
     media = VarcharField(null=True)
     vlan = models.IntegerField()
-    trunk = models.BooleanField()
+    trunk = models.BooleanField(default=False)
     duplex = models.CharField(max_length=1, choices=DUPLEX_CHOICES, null=True)
 
     to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid', null=True,
@@ -2205,7 +2205,7 @@ class POEPort(models.Model):
     poegroup = models.ForeignKey('POEGroup', db_column='poegroupid')
     interface = models.ForeignKey('Interface', db_column='interfaceid',
                                   null=True)
-    admin_enable = models.BooleanField()
+    admin_enable = models.BooleanField(default=False)
     index = models.IntegerField()
 
     STATUS_DISABLED = 1
