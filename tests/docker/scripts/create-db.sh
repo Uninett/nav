@@ -2,6 +2,7 @@
 update_nav_db_conf() {
     # Update db config
     DBCONF="${BUILDDIR}/etc/db.conf"
+    echo "Updating $DBCONF"
     gosu root tee "$DBCONF" <<EOF
 dbhost=${PGHOST:-localhost}
 dbport=${PGPORT:-5432}

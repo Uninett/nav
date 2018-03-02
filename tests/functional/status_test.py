@@ -21,7 +21,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
 
-@pytest.fixture()
+@pytest.fixture
 def statuspage(selenium, base_url):
     selenium.get('{}/status/'.format(base_url))
     panel = selenium.find_element_by_id('status-panel')

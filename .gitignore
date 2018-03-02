@@ -19,6 +19,7 @@ tests/geckodriver.log
 tests/*-report.html
 tests/coverage.xml
 htdocs/static/js/**/javascript-*.xml
+reports/*
 
 # Generated doc and build dirs
 doc/_build

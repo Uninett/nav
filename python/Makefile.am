@@ -13,13 +13,6 @@ nobase_python_DATA = $(sort $(wildcard nav/*.py) \
 
 all: $(pathmodule)
 
-check: all
-	PYTHONPATH=. ./runtests.py $(top_srcdir)/tests/unittests
-	@echo
-	@echo "*** Remember to also run the integration ***"
-	@echo "*** tests on a fully installed system    ***"
-	@echo
-
 clean-local:
 	find . -name __pycache__ -exec rm -rf '{}' +
 	find . -name '*.pyc' -exec rm -f '{}' +

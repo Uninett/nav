@@ -162,7 +162,11 @@ class WebCrawler(object):
         return normalize_path(url) in self.seen_pages
 
     def _is_blacklisted(self, url):
-        return normalize_path(url) in self.blacklist
+        path = normalize_path(url)
+        for url in self.blacklist:
+            if path.startswith(url):
+                return True
+        return False
 
 
 def _quote_url(url):

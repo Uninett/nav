@@ -1,8 +1,5 @@
 # Full integration test image for NAV
 #
-# A more or less identical image exists for Python 3, don't forget to
-# update also that one.
-#
 FROM debian:stretch
 
 ENV DISTRO stretch
@@ -14,7 +11,8 @@ RUN apt-get update && \
     apt-get -y install --no-install-recommends \
       curl gnupg dirmngr \
       git \
-      python python-dev python-pip build-essential
+      python python-dev python-pip build-essential \
+      python3 python3-dev python3-pip
 
 RUN echo "\n\
 \
@@ -35,13 +33,12 @@ RUN apt-get update && \
     apt-get -y --no-install-recommends install \
 	libsnmp30 \
 	cron \
-	apache2 libapache2-mod-wsgi \
 	rubygems \
 	python-cairo \
 	postgresql postgresql-contrib postgresql-client \
 	libxml2-dev libxslt1-dev \
 	libwww-perl \
-	iceweasel xvfb curl \
+	firefox-esr xvfb curl \
 	imagemagick \
 	x11vnc google-chrome-stable cloc \
 	cmake nbtscan python-gammu
@@ -63,17 +60,18 @@ RUN cd /tmp && \
     make && make install && echo tidy5 installed
 
 # Install geckodriver to properly run Selenium tests in Firefox versions>=47
-ENV GECKOVERSION=0.11.1
+ENV GECKOVERSION=0.17.0
 RUN cd /tmp && \
     wget https://github.com/mozilla/geckodriver/releases/download/v$GECKOVERSION/geckodriver-v$GECKOVERSION-linux64.tar.gz && \
     tar xvzf geckodriver-v$GECKOVERSION-linux64.tar.gz && \
     mv geckodriver /usr/local/bin/
 
 # Install chromedriver to properly run Selenium tests in Chrome, if need be
+ENV CHROMEDRIVERVERSION=2.35
 RUN cd /tmp && \
     apt-get update && \
     apt-get -y --no-install-recommends install unzip && \
-    wget http://chromedriver.storage.googleapis.com/2.24/chromedriver_linux64.zip && \
+    wget http://chromedriver.storage.googleapis.com/$CHROMEDRIVERVERSION/chromedriver_linux64.zip && \
     unzip chromedriver_linux64.zip && \
     mv chromedriver /usr/local/bin/
 
@@ -85,25 +83,28 @@ RUN set -x \
 	&& wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" \
 	&& wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc" \
 	&& export GNUPGHOME="$(mktemp -d)" \
-	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+	&& for server in $(shuf -e ha.pool.sks-keyservers.net \
+				    hkp://p80.pool.sks-keyservers.net:80 \
+				    keyserver.ubuntu.com \
+				    hkp://keyserver.ubuntu.com:80 \
+				    pgp.mit.edu) ; do \
+		gpg --keyserver "$server" --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 && break || : ; \
+	    done \
 	&& gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
 	&& rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc \
 	&& chmod +sx /usr/local/bin/gosu \
 	&& gosu nobody true
 
+# Install our primary test runner
+RUN pip install tox
+
 # Add a build user
-RUN adduser --system --group --home=/home/build --shell=/bin/bash build
-
-# Build and install Python requirements
-COPY requirements.txt /runtime-requirements.txt
-COPY requirements/ /requirements
-COPY tests/requirements.txt /test-requirements.txt
-RUN pip install --upgrade pip wheel && \
-    pip install -r /runtime-requirements.txt -r /test-requirements.txt
-
+RUN adduser --system --group --home=/source --shell=/bin/bash build
 
 ENV WORKSPACE /source
-ENV BUILDDIR /opt/nav
-ENV HOME /home/build
+ENV HOME /source
+
 COPY tests/docker/scripts/ /
 WORKDIR /source
+ENTRYPOINT ["/entrypoint.sh"]
+RUN chmod 755 /*.sh
