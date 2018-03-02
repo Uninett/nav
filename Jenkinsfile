@@ -22,27 +22,14 @@ node {
         }
 
         try {
-            stage("Run unit tests") {
-                ansiColor('xterm') {
-                    sh "tox -e \$(tox -a | grep '^unit-' | paste -sd ,)"
-                }
-            }
-
-            stage("Run integration tests") {
-                ansiColor('xterm') {
-                    sh "tox -e \$(tox -a | grep '^integration-' | paste -sd ,)"
-                }
-            }
-
-            stage("Run functional tests") {
-                ansiColor('xterm') {
-                    sh "tox -e \$(tox -a | grep '^functional-' | paste -sd ,)"
-                }
-            }
-
-            stage("Run JavaScript tests") {
-                ansiColor('xterm') {
-                    sh "tox -e javascript"
+            def toxEnvirons = sh(returnStdout: true,
+                                 script: "tox -a tox -a | egrep '^(unit|integration|functional|javascript)' | paste -sd ,").trim().split(',')
+            echo "Found these tox environments: ${toxEnvirons}"
+            for (int i = 0; i < toxEnvirons.length; i++) {
+                stage("Tox ${toxEnvirons[i]}") {
+                    ansiColor('xterm') {
+                        sh "tox -e ${toxEnvirons[i]}"
+                    }
                 }
             }
 
