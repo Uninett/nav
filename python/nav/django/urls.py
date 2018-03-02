@@ -21,6 +21,7 @@ import logging
 import nav
 from django.conf.urls import include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from nav.web import refresh_session
 from nav.web.webfront.urls import urlpatterns
 from nav.web.styleguide import styleguide_index
 
@@ -58,6 +59,7 @@ urlpatterns += [
     url(r'^watchdog/', include('nav.web.watchdog.urls')),
     url(r'^useradmin/', include('nav.web.useradmin.urls')),
     url(r'^styleguide/', styleguide_index),
+    url(r'^refresh_session/', refresh_session, name='refresh-session'),
     url(r'^auditlog/', include('nav.auditlog.urls')),
 ]
 

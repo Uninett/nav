@@ -32,6 +32,10 @@ require([
 
     }
 
+    function refreshSession() {
+        $.post(NAV.urls.refresh_session);
+    }
+
 
     /** Should we put polyfills here maybe? Lets try */
     $.fn.serializeObject = function()
@@ -67,5 +71,9 @@ require([
 
         // addSearchFocusHandlers();  Fix this to not grab every / before activating
 
+        // Refresh session on page load and then periodically
+        var ten_minutes = 10 * 60 * 1000;
+        refreshSession();
+        setInterval(refreshSession, ten_minutes);
     });
 });

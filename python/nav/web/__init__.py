@@ -20,7 +20,8 @@ import os.path
 import cgi
 import logging
 
-import nav
+from django.http import HttpResponse
+
 import nav.buildconf
 from nav.models.profiles import Account
 
@@ -66,3 +67,9 @@ def escape(s):
         return cgi.escape(str(s))
     else:
         return ''
+
+
+def refresh_session(request):
+    """Forces a refresh of the session by setting the modified flag"""
+    request.session.modified = True
+    return HttpResponse()
