@@ -6,7 +6,7 @@ fi
 
 WORKSPACE=$1
 JSDIR="htdocs/static/js"
-
+REPORTDIR="$WORKSPACE/reports"
 
 NPM=`which npm`
 
@@ -28,16 +28,15 @@ jshint() {
     done
     echo "jshint executable was not found"
 }
-jshint --config ${JSDIR}/.jshintrc ${JAVASCRIPT_FILES[@]} --jslint-reporter > ${JSDIR}/javascript-jshint.xml || true
+jshint --config ${JSDIR}/.jshintrc ${JAVASCRIPT_FILES[@]} --jslint-reporter > "${REPORTDIR}/javascript-jshint.xml" || true
 
 # Verify that jshint was running as jshint will have non-zero exit if ANY linting errors is found.
-[ -s "${JSDIR}/javascript-jshint.xml" ]
+[ -s "${REPORTDIR}/javascript-jshint.xml" ]
 
 echo "Running tests"
-cd ${JSDIR}
-./node_modules/karma/bin/karma start test/karma.conf.buildserver.js
+"${JSDIR}/node_modules/karma/bin/karma" start "${JSDIR}/test/karma.conf.buildserver.js"
 
 if [ "$?" -eq 1 ]; then
     echo "Error when testing, taking screenshot"
-    import -window root ${WORKSPACE}/test-error.png
+    import -window root "${REPORTDIR}/javascript-test-error.png"
 fi

@@ -40,7 +40,7 @@ node {
 
         } finally {
             junit "reports/**/*-results.xml"
-            step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/**/coverage.xml'])
+            step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/**/*-coverage.xml'])
         }
 
         stage("PyLint") {
@@ -50,7 +50,7 @@ node {
                 $class                     : 'WarningsPublisher',
                 parserConfigurations       : [[
                                               parserName: 'PYLint',
-                                                pattern   : 'pylint.txt'
+                                                pattern   : 'reports/pylint.txt'
                                             ]],
                 unstableTotalAll           : '1680',
                 failedTotalAll             : '1730',
@@ -91,8 +91,12 @@ node {
     throw e
 } finally {
 
-    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports', reportFiles: 'functional-report.html', reportName: 'Functional report'])
-    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports', reportFiles: 'integration-report.html', reportName: 'Integration report'])
+    def testReports = sh (
+        script: 'cd reports; find . -name "*-report.html" | paste -sd ,',
+        returnStdout: true
+    ).trim()
+    echo "Found test reports: ${testReports}"
+    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports', reportFiles: testReports, reportName: 'HTML test reports'])
 
     notifyBuild(currentBuild.result, lastStage)
 
