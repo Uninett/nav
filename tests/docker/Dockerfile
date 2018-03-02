@@ -1,8 +1,5 @@
 # Full integration test image for NAV
 #
-# A more or less identical image exists for Python 3, don't forget to
-# update also that one.
-#
 FROM debian:stretch
 
 ENV DISTRO stretch
