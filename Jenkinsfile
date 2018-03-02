@@ -1,7 +1,5 @@
 #!groovy
 /**
- * -*- indent-tabs-mode: nil -*-
- * -*- tab-width: 4 -*-
  * Work in tandem with tests/docker/Dockerfile & Co to run a full CI run in
  * Jenkins.
 */
@@ -19,33 +17,33 @@ node {
         env.WORKSPACE = "${WORKSPACE}"
 
         stage("Prepare build") {
-	    sh "env"  // debug print environment
+            sh "env"  // debug print environment
             sh "git fetch --tags" // seems tags arent't cloned by Jenkins :P
         }
 
         try {
             stage("Run unit tests") {
                 ansiColor('xterm') {
-		    sh "tox -e \$(tox -a | grep '^unit-' | paste -sd ,)"
-		}
+                    sh "tox -e \$(tox -a | grep '^unit-' | paste -sd ,)"
+                }
             }
 
             stage("Run integration tests") {
                 ansiColor('xterm') {
-		    sh "tox -e \$(tox -a | grep '^integration-' | paste -sd ,)"
-		}
+                    sh "tox -e \$(tox -a | grep '^integration-' | paste -sd ,)"
+                }
             }
 
             stage("Run functional tests") {
                 ansiColor('xterm') {
-		    sh "tox -e \$(tox -a | grep '^functional-' | paste -sd ,)"
-		}
+                    sh "tox -e \$(tox -a | grep '^functional-' | paste -sd ,)"
+                }
             }
 
             stage("Run JavaScript tests") {
                 ansiColor('xterm') {
-		    sh "tox -e javascript"
-		}
+                    sh "tox -e javascript"
+                }
             }
 
         } finally {
@@ -54,7 +52,7 @@ node {
         }
 
         stage("PyLint") {
-	    sh "tox -e pylint"
+            sh "tox -e pylint"
             step([
                 $class                     : 'WarningsPublisher',
                 parserConfigurations       : [[
@@ -67,9 +65,9 @@ node {
             ])
         }
 
-	stage("Lines of code") {
+        stage("Lines of code") {
             sh "/count-lines-of-code.sh"
-	    sloccountPublish encoding: '', pattern: 'reports/cloc.xml'
+            sloccountPublish encoding: '', pattern: 'reports/cloc.xml'
         }
 
     }
@@ -152,3 +150,7 @@ def testStatuses() {
     }
     return testStatus
 }
+// Local Variables:
+// indent-tabs-mode: nil
+// tab-width: 4
+// End:
