@@ -45,7 +45,7 @@ node {
                 $class                     : 'WarningsPublisher',
                 parserConfigurations       : [[
                                               parserName: 'PYLint',
-                                                pattern   : 'pylint.txt'
+                                                pattern   : 'reports/pylint.txt'
                                             ]],
                 unstableTotalAll           : '1680',
                 failedTotalAll             : '1730',
