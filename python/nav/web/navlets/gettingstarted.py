@@ -23,7 +23,6 @@ class GettingStartedWidget(Navlet):
 
     title = 'Getting started with NAV'
     description = 'Displays a tour and information for new users'
-    can_be_added = False
 
     def get_template_basename(self):
         return 'getting_started'

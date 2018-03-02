@@ -455,3 +455,12 @@ select[multiple] {
  * Fix padding for buttons in graphitegraphs
  */
 .graphitegraph button { margin-bottom: 0; }
+
+
+/* Geo is a microformat standard
+ * https://en.wikipedia.org/wiki/Geo_(microformat)
+ */
+.geo:before {
+    font-family: FontAwesome;
+    content: "\f0ac";
+}
