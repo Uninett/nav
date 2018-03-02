@@ -19,6 +19,7 @@ node {
         stage("Prepare build") {
             sh "env"  // debug print environment
             sh "git fetch --tags" // seems tags arent't cloned by Jenkins :P
+            sh "rm -rf ${WORKSPACE}/reports/*"  // remove old, potentially stale reports
         }
 
         try {
