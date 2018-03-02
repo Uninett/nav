@@ -3,8 +3,10 @@
  * Work in tandem with tests/docker/Dockerfile & Co to run a full CI run in
  * Jenkins.
 */
+def lastStage = ''
 node {
   stage("Checkout") {
+      lastStage = env.STAGE_NAME
       checkout scm
   }
 
@@ -17,6 +19,7 @@ node {
         env.WORKSPACE = "${WORKSPACE}"
 
         stage("Prepare build") {
+            lastStage = env.STAGE_NAME
             sh "env"  // debug print environment
             sh "git fetch --tags" // seems tags arent't cloned by Jenkins :P
             sh "rm -rf ${WORKSPACE}/reports/*"  // remove old, potentially stale reports
@@ -28,6 +31,7 @@ node {
             echo "Found these tox environments: ${toxEnvirons}"
             for (int i = 0; i < toxEnvirons.length; i++) {
                 stage("Tox ${toxEnvirons[i]}") {
+                    lastStage = env.STAGE_NAME
                     ansiColor('xterm') {
                         sh "tox -e ${toxEnvirons[i]}"
                     }
@@ -40,6 +44,7 @@ node {
         }
 
         stage("PyLint") {
+            lastStage = env.STAGE_NAME
             sh "tox -e pylint"
             step([
                 $class                     : 'WarningsPublisher',
@@ -54,6 +59,7 @@ node {
         }
 
         stage("Lines of code") {
+            lastStage = env.STAGE_NAME
             sh "/count-lines-of-code.sh"
             sloccountPublish encoding: '', pattern: 'reports/cloc.xml'
         }
@@ -61,6 +67,7 @@ node {
     }
 
     stage("Publish documentation") {
+        lastStage = env.STAGE_NAME
         echo "This job is ${JOB_BASE_NAME}"
         // publish dev docs and stable branch docs, but nothing else
         if (env.JOB_BASE_NAME == 'master' || env.JOB_BASE_NAME.endsWith('.x')) {
@@ -80,21 +87,21 @@ node {
 
 } catch (e) {
     currentBuild.result = "FAILED"
-    echo "Build FAILED set status ${currentBuild.result}"
+    echo "Build FAILED set status ${currentBuild.result} in ${lastStage}"
     throw e
 } finally {
 
     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports', reportFiles: 'functional-report.html', reportName: 'Functional report'])
     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports', reportFiles: 'integration-report.html', reportName: 'Integration report'])
 
+    notifyBuild(currentBuild.result, lastStage)
 
-    notifyBuild(currentBuild.result)
   }
 }
 
 
 
-def notifyBuild(String buildStatus = 'STARTED') {
+def notifyBuild(String buildStatus = 'STARTED', lastStage = 'N/A') {
   // build status of null means successful
   buildStatus =  buildStatus ?: 'SUCCESS'
 
@@ -103,6 +110,7 @@ def notifyBuild(String buildStatus = 'STARTED') {
   def colorCode = '#FF0000'
   def subject = "${buildStatus}: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
   def summary = "${subject} (<${env.BUILD_URL}|Open>)"
+  def testStatus = ''
 
   // Override default values based on build status
   if (buildStatus == 'STARTED') {
@@ -114,11 +122,12 @@ def notifyBuild(String buildStatus = 'STARTED') {
   } else {
     color = 'RED'
     colorCode = '#FF0000'
+    testStatus += "Failed in stage: _${lastStage}_\n"
   }
 
-  teststatus = testStatuses()
+  testStatus += testStatuses()
   // Send notifications
-  slackSend (color: colorCode, message: "${summary}\n${teststatus}")
+  slackSend (color: colorCode, message: "${summary}\n${testStatus}")
 
 }
 
