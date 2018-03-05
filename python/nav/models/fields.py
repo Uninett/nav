@@ -36,19 +36,19 @@ UNRESOLVED = Q(end_time__gte=INFINITY)
 
 
 class DateTimeInfinityField(models.DateTimeField):
-    def get_db_prep_value(self, value, connection=None, prepared=False):
+    def get_db_prep_value(self, value, connection, prepared=False):
         if value == datetime.max:
             value = u'infinity'
         elif value == datetime.min:
             value = u'-infinity'
         else:
             return super(DateTimeInfinityField, self).get_db_prep_value(
-                value, connection=connection, prepared=prepared)
+                value, connection, prepared=prepared)
         return connection.ops.value_to_db_datetime(value)
 
 
 class VarcharField(models.TextField):
-    def db_type(self, connection=None):
+    def db_type(self, connection):
         return 'varchar'
 
     def formfield(self, **kwargs):
@@ -66,7 +66,7 @@ class DictAsJsonField(models.TextField):
 
     description = "Field for storing json structure"
 
-    def db_type(self, connection=None):
+    def db_type(self, connection):
         return 'varchar'
 
     def to_python(self, value):
@@ -106,7 +106,7 @@ class PointField(models.CharField):
         kwargs['max_length'] = 100
         super(PointField, self).__init__(*args, **kwargs)
 
-    def db_type(self, connection=None):
+    def db_type(self, connection):
         return 'point'
 
     def to_python(self, value):
@@ -123,7 +123,7 @@ class PointField(models.CharField):
         raise exceptions.ValidationError(
             "This value must be a point-string.")
 
-    def get_db_prep_value(self, value, connection=None, prepared=False):
+    def get_db_prep_value(self, value, connection, prepared=False):
         if value is None:
             return None
         if isinstance(value, tuple):
