@@ -2,6 +2,7 @@
 
 from datetime import datetime as dt
 from decimal import Decimal
+import pickle
 from unittest import TestCase
 
 from django.core import exceptions
@@ -9,6 +10,7 @@ from django.db import connection
 
 from nav.models.fields import CIDRField
 from nav.models.fields import DateTimeInfinityField
+from nav.models.fields import DictAsJsonField
 from nav.models.fields import PointField
 
 
@@ -73,6 +75,44 @@ class DateTimeInfinityFieldTestCase(TestCase):
         test_val = dt(2018, 3, 5)
         result = field.get_db_prep_value(test_val, connection, prepared=False)
         self.assertEqual(result, u'2018-03-05 00:00:00')
+
+
+class DictAsJsonFieldTest(TestCase):
+
+    def test_to_python_dict(self):
+        field = DictAsJsonField()
+        value = {'a': 'b'}
+        result = field.to_python(value)
+        self.assertEqual(result, value)
+
+    def test_to_python_json(self):
+        field = DictAsJsonField()
+        value = u'{"a": "b"}'
+        result = field.to_python(value)
+        self.assertEqual(result, {"a": "b"})
+        value = u'[1, 2, 3]'
+        result = field.to_python(value)
+        self.assertEqual(result, [1, 2, 3])
+        value = b'[1, 2, 3]'
+        result = field.to_python(value)
+        self.assertEqual(result, [1, 2, 3])
+
+    def test_to_python_pickle(self):
+        field = DictAsJsonField()
+        orig_value = 2
+        value = pickle.dumps(orig_value)
+        result = field.to_python(value)
+        self.assertEqual(result, orig_value)
+
+    def test_get_prep_value_empty(self):
+        field = DictAsJsonField()
+        result = field.get_prep_value(None)
+        self.assertEqual(result, None)
+
+    def test_get_prep_value_filled(self):
+        field = DictAsJsonField()
+        result = field.get_prep_value({'a': 'b'})
+        self.assertEqual(result, u'{"a": "b"}')
 
 
 class PointFieldTest(TestCase):
