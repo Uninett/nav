@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime as dt
 from decimal import Decimal
 from unittest import TestCase
 
 from django.core import exceptions
+from django.db import connection
 
 from nav.models.fields import CIDRField
+from nav.models.fields import DateTimeInfinityField
 from nav.models.fields import PointField
 
 
@@ -49,12 +52,27 @@ class CIDRFieldTestCase(TestCase):
             with self.assertRaises(exceptions.ValidationError):
                 field.to_python(value)
 
-    def test_to_python_seemingly_valid(self):
-        # IPY works on CIDRs for networks, not hosts
-        field = CIDRField()
-        ip6 = u'1234:dead:beef::63/23'
-        with self.assertRaises(exceptions.ValidationError):
-            result6 = field.to_python(ip6)
+
+class DateTimeInfinityFieldTestCase(TestCase):
+
+    def test_get_db_prep_value_infinity(self):
+        field = DateTimeInfinityField()
+        result_min = field.get_db_prep_value(dt.min, connection)
+        self.assertEqual(result_min, u'-infinity')
+        result_max = field.get_db_prep_value(dt.max, connection)
+        self.assertEqual(result_max, u'infinity')
+
+    def test_get_db_prep_value_prepared_other(self):
+        field = DateTimeInfinityField()
+        test_val = dt(2018, 3, 5)
+        result = field.get_db_prep_value(test_val, connection, prepared=True)
+        self.assertEqual(result, u'2018-03-05 00:00:00')
+
+    def test_get_db_prep_value_unprepared_other(self):
+        field = DateTimeInfinityField()
+        test_val = dt(2018, 3, 5)
+        result = field.get_db_prep_value(test_val, connection, prepared=False)
+        self.assertEqual(result, u'2018-03-05 00:00:00')
 
 
 class PointFieldTest(TestCase):
