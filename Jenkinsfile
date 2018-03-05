@@ -40,7 +40,7 @@ node {
 
         } finally {
             junit "reports/**/*-results.xml"
-            step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/**/*-coverage.xml'])
+            step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/**/*coverage.xml'])
         }
 
         stage("PyLint") {
