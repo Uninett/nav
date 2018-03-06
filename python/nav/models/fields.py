@@ -74,6 +74,8 @@ class DictAsJsonField(models.TextField):
             if isinstance(value, dict):
                 return value
             try:
+                if isinstance(value, six.binary_type):
+                    value = six.text_type(value, encoding='utf-8')
                 return json.loads(value)
             except ValueError:
                 try:
