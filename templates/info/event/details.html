@@ -372,7 +372,7 @@
    });
    request.done(function(response) {
        if ($(response).html()) {
-           $('.navbody').append($('<div class="panel white">').html(response));
+           $('#api-event-details').append($('<div class="panel white">').html(response));
        }
    });
   </script>
