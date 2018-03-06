@@ -65,9 +65,6 @@
           {% for h in group %}
             <tr>
               <td>
-                <a href="{% url 'event-details' h.pk %}" title="See event details">
-                  <i class="fa fa-info-circle"></i>
-                </a>
                 <a href="{{ h.netbox.get_absolute_url }}">
                   <span title="
                                &lt;strong&gt;Location: &lt;/strong&gt;{{ h.netbox.room.location }}&lt;br /&gt;
@@ -96,7 +93,11 @@
                     {% for state,m in h.extra_messages.items %}
                       <li class="sms_message" id="sms_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
                         <i class="fa fa-envelope" title="{{ m.email|linebreaks }}"></i>
-                        <span>{{ m.sms }}</span>
+                        <span>
+                          <a href="{% url 'event-details' h.pk %}" title="See event details">
+                            {{ m.sms }}
+                          </a>
+                        </span>
                       </li>
                     {% endfor %}
                   </ul>
