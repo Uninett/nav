@@ -371,7 +371,7 @@
        headers: {Accept: 'text/x-nav-html'}
    });
    request.done(function(response) {
-       if (response) {
+       if ($(response).html()) {
            $('.navbody').append($('<div class="panel white">').html(response));
        }
    });
