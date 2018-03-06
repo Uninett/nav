@@ -90,6 +90,9 @@ def get_metric_data(target, start="-5min", end="now"):
                   [{'target': 'x', 'datapoints': [(value, timestamp), ...]}]
 
     """
+    if not target:
+        return []  # no point in wasting time on http requests for no data
+
     base = CONFIG.get("graphiteweb", "base")
     url = urljoin(base, "/render/")
 
