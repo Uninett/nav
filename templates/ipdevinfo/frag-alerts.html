@@ -42,8 +42,9 @@
             <tr>
               <td>
                 <a href="{% url 'event-details' a.alert.pk %}" title="See event details">
-                  {{ a.type }}
+                  <i class="fa fa-info-circle"></i>
                 </a>
+                {{ a.type }}
               </td>
               <td>{{ a.message|default:"" }}</td>
               <td>{{ a.alert.start_time|date|default:"N/A" }}
