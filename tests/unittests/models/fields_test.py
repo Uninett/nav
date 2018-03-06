@@ -101,6 +101,16 @@ class DictAsJsonFieldTest(TestCase):
         result = field.to_python(value)
         self.assertEqual(result, orig_value)
 
+    def test_get_prep_value_empty(self):
+        field = DictAsJsonField()
+        result = field.get_prep_value(None)
+        self.assertEqual(result, None)
+
+    def test_get_prep_value_filled(self):
+        field = DictAsJsonField()
+        result = field.get_prep_value({'a': 'b'})
+        self.assertEqual(result, u'{"a": "b"}')
+
 
 class PointFieldTest(TestCase):
     def test_to_python_from_string(self):
