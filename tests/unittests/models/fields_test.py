@@ -87,10 +87,13 @@ class DictAsJsonFieldTest(TestCase):
 
     def test_to_python_json(self):
         field = DictAsJsonField()
-        value = '{"a": "b"}'
+        value = u'{"a": "b"}'
         result = field.to_python(value)
         self.assertEqual(result, {"a": "b"})
-        value = '[1, 2, 3]'
+        value = u'[1, 2, 3]'
+        result = field.to_python(value)
+        self.assertEqual(result, [1, 2, 3])
+        value = b'[1, 2, 3]'
         result = field.to_python(value)
         self.assertEqual(result, [1, 2, 3])
 
