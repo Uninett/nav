@@ -39,13 +39,13 @@ class CIDRFieldTestCase(TestCase):
         self.assertEqual(ip4, result4)
         bip4 = b'192.168.0.0'
         bresult4 = field.to_python(bip4)
-        self.assertEqual(bip4, bresult4)
+        self.assertEqual(ip4, bresult4)
         ip6 = u'1234:dead:beef::63'
         result6 = field.to_python(ip6)
         self.assertEqual(ip6, result6)
         bip6 = b'1234:dead:beef::63'
         bresult6 = field.to_python(bip6)
-        self.assertEqual(bip6, bresult6)
+        self.assertEqual(ip6, bresult6)
 
     def test_to_python_invalid(self):
         field = CIDRField()
