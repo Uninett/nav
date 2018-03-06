@@ -65,6 +65,9 @@
           {% for h in group %}
             <tr>
               <td>
+                <a href="{% url 'event-details' h.pk %}" title="See event details">
+                  <i class="fa fa-info-circle"></i>
+                </a>
                 <a href="{{ h.netbox.get_absolute_url }}">
                   <span title="
                                &lt;strong&gt;Location: &lt;/strong&gt;{{ h.netbox.room.location }}&lt;br /&gt;
