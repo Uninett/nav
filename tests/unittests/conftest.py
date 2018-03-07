@@ -1,4 +1,4 @@
 # nothing to see here, move along
-import django
-import nav.models
-django.setup()
+from nav.bootstrap import bootstrap_django
+
+bootstrap_django(__file__)
