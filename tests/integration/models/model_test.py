@@ -19,11 +19,15 @@ themselves.
 """
 import os
 
-import nav.models
-
 from django.db import connection
 from django.db.models import get_models
+
 import pytest
+
+from nav.bootstrap import bootstrap_django
+bootstrap_django(__file__)
+
+import nav.models
 
 # Ensure that all modules are loaded
 for file_name in os.listdir(os.path.dirname(nav.models.__file__)):
