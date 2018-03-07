@@ -114,7 +114,7 @@ class LogEntry(models.Model):
         )
 
     @staticmethod
-    def add_edit_entry(actor, old, new, attribute):
+    def add_edit_entry(actor, old, new, attribute, include_values=True):
         """Add log entry for edited objects
 
         :type attribute: str
@@ -123,8 +123,11 @@ class LogEntry(models.Model):
         prefix = u'{actor} edited {object}'
         old_value = getattr(old, attribute)
         new_value = getattr(new, attribute)
-        summary = "{} changed from '{}' to '{}'".format(
-            attribute, old_value, new_value)
+        if include_values:
+            summary = "{} changed from '{}' to '{}'".format(
+                attribute, old_value, new_value)
+        else:
+            summary = "{} changed".format(attribute)
 
         LogEntry.add_log_entry(
             actor,
@@ -136,7 +139,7 @@ class LogEntry(models.Model):
         )
 
     @staticmethod
-    def compare_objects(actor, old, new, attribute_list):
+    def compare_objects(actor, old, new, attribute_list, censored_attributes=None):
         """Checks for differences in two objects given an attribute-list
 
         :type actor: nav.models.profiles.Account
@@ -146,13 +149,16 @@ class LogEntry(models.Model):
 
         Adds a log entry for each attribute where the two objects differ.
         """
-        model = new.__class__.__name__.lower()
-        prefix = u'{actor} edited {object}'
+        if censored_attributes is None:
+            censored_attributes = []
+
         for attribute in attribute_list:
             old_value = getattr(old, attribute)
             new_value = getattr(new, attribute)
             if old_value != new_value:
-                LogEntry.add_edit_entry(actor, old, new, attribute)
+                include_values = attribute not in censored_attributes
+                LogEntry.add_edit_entry(actor, old, new, attribute,
+                                        include_values=include_values)
 
 
     def __str__(self):
