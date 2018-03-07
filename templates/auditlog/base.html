@@ -8,7 +8,9 @@
 
 {% block base_content %}
 
-  {% include 'nav_header.html' %}
+  {% with tool=current_user_data.tools|get_tool:"Audit Log" %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
 
   {% if messages %}
     {% for message in messages %}

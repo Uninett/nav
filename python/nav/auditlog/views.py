@@ -16,24 +16,12 @@
 
 from __future__ import unicode_literals, absolute_import
 
-from django.views.generic import ListView, TemplateView
+from django.views.generic import TemplateView
 
 from .models import LogEntry
 
 
-class AuditlogViewMixin(object):
-
-    def get_context_data(self, **kwargs):
-        tool = {
-            'name': 'Auditlog',
-            'description': 'Look up who/what did what with what',
-        }
-        context = {'tool': tool}
-        context.update(**kwargs)
-        return super(AuditlogViewMixin, self).get_context_data(**context)
-
-
-class AuditlogOverview(AuditlogViewMixin, TemplateView):
+class AuditlogOverview(TemplateView):
     model = LogEntry
     template_name = 'auditlog/overview.html'
 

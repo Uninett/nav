@@ -1,4 +1,4 @@
-name=Auditlog
+name=Audit Log
 uri=/auditlog/
 icon=/static/images/toolbox/auditlog.png
-description=See who/what changed what where when
+description=See who changed what when
