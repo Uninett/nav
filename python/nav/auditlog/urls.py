@@ -14,26 +14,11 @@
 
 from __future__ import unicode_literals, absolute_import
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
-from .views import (AuditlogOverview, AuditlogObjectListView,
-                    AuditlogActorListView, AuditlogTargetListView)
+from .views import AuditlogOverview
 
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$', AuditlogOverview.as_view(), name='auditlog-home'),
-
-    url(r'^object/*/$', AuditlogObjectListView.as_view(),
-        name='auditlog-object-list-all'),
-    url(r'^object/(?P<auditmodel>[-\w]+)/$', AuditlogObjectListView.as_view(),
-        name='auditlog-object-list'),
-    url(r'^actor/*/$', AuditlogActorListView.as_view(),
-        name='auditlog-actor-list-all'),
-    url(r'^actor/(?P<auditmodel>[-\w]+)/$', AuditlogActorListView.as_view(),
-        name='auditlog-actor-list'),
-    url(r'^target/*/$', AuditlogTargetListView.as_view(),
-        name='auditlog-target-list-all'),
-    url(r'^target/(?P<auditmodel>[-\w]+)/$', AuditlogTargetListView.as_view(),
-        name='auditlog-target-list'),
-)
+]

@@ -25,6 +25,7 @@ from django.template import RequestContext
 from django.http import HttpResponseRedirect
 
 from nav.web.message import new_message, Messages
+from nav.auditlog.models import LogEntry
 
 LOGGER = logging.getLogger(__name__)
 
@@ -101,9 +102,11 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None,
             if delete_operation:
                 new_message(request,
                             "Deleted %i rows" % len(objects), Messages.SUCCESS)
+                log_deleted(request.account, objects, template='{actor} deleted {object}')
             else:
                 new_message(request,
                             "Scheduled %i rows for deletion" % len(objects), Messages.SUCCESS)
+                log_deleted(request.account, objects, template='{actor} scheduled {object} for deletion')
             return HttpResponseRedirect(reverse(redirect))
 
     info_dict = {
@@ -113,6 +116,12 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None,
     extra_context.update(info_dict)
     return render_to_response('seeddb/delete.html',
         extra_context, RequestContext(request))
+
+
+def log_deleted(account, objects, template):
+    """Log the deletion of each object"""
+    for obj in objects:
+        LogEntry.add_delete_entry(account, obj, template=template)
 
 
 def dependencies(queryset, whitelist):

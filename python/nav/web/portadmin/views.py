@@ -30,7 +30,6 @@ from django.db.models import Q
 from django.views.decorators.http import require_POST
 
 from nav.auditlog.models import LogEntry
-from nav.auditlog.utils import get_auditlog_entries
 
 from nav.django.utils import get_account
 from nav.web.utils import create_title
@@ -147,10 +146,8 @@ def search_by_kwargs(request, **kwargs):
         if len(interfaces) == 0:
             messages.error(request, 'IP device has no ports (yet)')
             return default_render(request)
-        auditlog_entries = get_auditlog_entries(interfaces)
         return render(request, 'portadmin/netbox.html',
-                      populate_infodict(request, netbox, interfaces,
-                                        auditlog_entries))
+                      populate_infodict(request, netbox, interfaces))
 
 
 def search_by_interfaceid(request, interfaceid):
@@ -171,19 +168,16 @@ def search_by_interfaceid(request, interfaceid):
             return default_render(request)
 
         interfaces = [interface]
-        auditlog_entries = get_auditlog_entries(interfaces)
         return render(request, 'portadmin/netbox.html',
-                      populate_infodict(request, netbox, interfaces,
-                                        auditlog_entries))
+                      populate_infodict(request, netbox, interfaces))
 
 
-def populate_infodict(request, netbox, interfaces, auditlog_entries=None):
+def populate_infodict(request, netbox, interfaces):
     """Populate a dictionary used in every http response"""
     allowed_vlans = []
     voice_vlan = None
     readonly = False
     config = read_config()
-    auditlog_entries = {} if auditlog_entries is None else auditlog_entries
 
     try:
         fac = get_and_populate_livedata(netbox, interfaces)
@@ -220,18 +214,22 @@ def populate_infodict(request, netbox, interfaces, auditlog_entries=None):
 
     save_to_database(interfaces)
 
+    auditlog_api_parameters = {
+        'object_model': 'interface',
+        'object_pks': ','.join([str(i.pk) for i in interfaces]),
+        'subsystem': 'portadmin'
+    }
+
     info_dict = get_base_context([(netbox.sysname, )], form=get_form(request))
     info_dict.update(
         {
             'interfaces': interfaces,
-            'auditmodel': netbox.sysname,
             'netbox': netbox,
             'voice_vlan': voice_vlan,
             'allowed_vlans': allowed_vlans,
             'readonly': readonly,
             'aliastemplate': aliastemplate,
-            'auditlog_api_parameters': json.dumps({'subsystem': 'portadmin'}),
-            'auditlog_entries': auditlog_entries,
+            'auditlog_api_parameters': json.dumps(auditlog_api_parameters)
         }
     )
     return info_dict
@@ -493,7 +491,7 @@ def set_admin_status(fac, interface, request):
             if adminstatus == status_up:
                 LogEntry.add_log_entry(
                     account,
-                    u'change status to up',
+                    u'change-status-to-up',
                     u'change status to up',
                     subsystem=u'portadmin',
                     object=interface,
@@ -504,7 +502,7 @@ def set_admin_status(fac, interface, request):
             elif adminstatus == status_down:
                 LogEntry.add_log_entry(
                     account,
-                    u'change status to down',
+                    u'change-status-to-down',
                     u'change status to down',
                     subsystem=u'portadmin',
                     object=interface,

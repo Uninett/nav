@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Views for ipdevinfo"""
+import json
 import re
 import logging
 import datetime as dt
@@ -709,6 +710,15 @@ def render_host_info(request, identifier):
     """Controller for getting host info"""
     return render(request, 'ipdevinfo/frag-hostinfo.html', {
         'host_info': get_host_info(identifier)
+    })
+
+
+def auditlog(request, netboxid):
+    netbox = get_object_or_404(Netbox, pk=netboxid)
+    auditlog_api_parameters = json.dumps(
+        {'object_model': 'netbox', 'object_pk': netbox.pk})
+    return render(request, 'ipdevinfo/frag-auditlog.html', {
+        'auditlog_api_parameters': auditlog_api_parameters
     })
 
 

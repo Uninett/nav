@@ -8,18 +8,11 @@
     </h4>
     <div class="latest-changes-content row" style="display: none">
       <div class="small-12 column">
-        {% with object_list=auditlog_entries %}
-          {% include "auditlog/_logentry_list.html" %}
-        {% endwith %}
+        {% include "auditlog/_logentry_list.html" %}
       </div>
     </div>
     <script>
      require(['libs/datatables.min'], function(){
-         var table = $('table#auditlog').DataTable();
-         $(document).on('nav-portadmin-ajax-success', function(){
-             table.ajax.reload();
-         });
-
          $('.latest-changes-heading').click(function(){
              $('.latest-changes-content').slideToggle();
              $('.latest-changes-heading i').toggleClass('fa-caret-square-o-right fa-caret-square-o-down');

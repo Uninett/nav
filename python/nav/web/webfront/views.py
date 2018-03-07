@@ -34,6 +34,7 @@ from django.utils.http import urlquote
 
 from django.utils import six
 
+from nav.auditlog.models import LogEntry
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.buildconf import sysconfdir
 from nav.django.utils import get_account
@@ -218,6 +219,9 @@ def do_login(request):
             errors.append('Error while talking to LDAP:\n%s' % error)
         else:
             if account:
+                LogEntry.add_log_entry(
+                    account, 'log-in', '{actor} logged in', before=account)
+
                 try:
                     request.session[ACCOUNT_ID_VAR] = account.id
                     request.account = account
@@ -251,10 +255,13 @@ def logout(request):
         desudo(request)
         return HttpResponseRedirect(reverse('webfront-index'))
     else:
+        account = request.account
         del request.session[ACCOUNT_ID_VAR]
         del request.account
         request.session.set_expiry(datetime.now())
         request.session.save()
+        LogEntry.add_log_entry(account, 'log-out', '{actor} logged out',
+                               before=account)
     return HttpResponseRedirect('/')
 
 

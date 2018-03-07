@@ -12,8 +12,10 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 
+import operator
+
 from rest_framework import serializers
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 
 from nav.web.api.v1.views import NAVAPIMixin
 
@@ -50,6 +52,28 @@ class LogEntrySerializer(serializers.ModelSerializer):
         return obj.target
 
 
+class MultipleFilter(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        if 'object_pks' in request.QUERY_PARAMS:
+            ids = request.QUERY_PARAMS.get('object_pks').split(',')
+            queryset = queryset.filter(object_pk__in=ids)
+        return queryset
+
+
+class CustomOrderingFilter(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        """Order by actor login
+
+        Sad things happen if the actor is not an account
+        """
+        ordering = request.QUERY_PARAMS.get('ordering')
+        if ordering in ['-actor', 'actor']:
+            return sorted(queryset,
+                          key=operator.attrgetter('actor.login'),
+                          reverse=ordering.startswith('-'))
+        return queryset
+
+
 class NAVDefaultsMixin(object):
     authentication_classes = NAVAPIMixin.authentication_classes
     permission_classes = NAVAPIMixin.permission_classes
@@ -62,6 +86,8 @@ class LogEntryViewSet(NAVDefaultsMixin, viewsets.ReadOnlyModelViewSet):
 
     Logentries are created behind the scenes by the subsystems themselves."""
 
+    filter_backends = NAVDefaultsMixin.filter_backends + (MultipleFilter, CustomOrderingFilter)
     queryset = LogEntry.objects.all()
     serializer_class = LogEntrySerializer
-    filter_fields = ('subsystem',)
+    filter_fields = ('subsystem', 'object_pk', 'object_model', 'verb')
+    search_fields = ('summary', )
