@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+
+{% block base_header_additional_head %}
+  <style>
+
+   #user-actions {
+       overflow: auto;
+   }
+   #event-messages {
+       max-height: 30vh;
+       overflow: auto;
+   }
+   #event-messages p {
+       font-size: 80%;
+   }
+   .action-container {
+       display: none;
+   }
+   #related-events-container {
+       max-height: 70vh;
+       overflow: auto;
+   }
+  </style>
+{% endblock %}
+
+
+{% block base_content %}
+
+  <h1>Event details</h1>
+
+  <div id="api-event-details"> </div>
+
+  <div class="row">
+    <div class="column large-4">
+
+      <div class="panel white">
+        {% block event_details %}{% endblock %}
+
+      </div>
+
+      <div class="panel white">
+        <div id="user-actions">
+          {% block user_actions %}{% endblock %}
+        </div>
+      </div>
+
+
+      <div id="event-messages" class="panel white">
+        {% block event_messages %}{% endblock %}
+      </div>
+
+    </div>
+
+    {% if event.netbox %}
+      <div class="column large-8">
+        <div class="panel white">
+          {% block related_netbox_events %}{% endblock %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="column large-8">
+      <div class="panel white">
+        {% block related_type_events %}{% endblock %}
+      </div>
+    </div>
+
+
+  </div>
+
+{% endblock %}

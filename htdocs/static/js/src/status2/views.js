@@ -155,6 +155,8 @@ define([
             var request = this.collection.fetch({ reset: true });
             request.done(function () {
                 console.log('data fetched');
+                // Reflow for foundation to enable dropdown content
+                $(document).foundation('dropdown', 'reflow');
             });
             request.fail(function () {
                 console.log('Failed to fetch data');
@@ -364,9 +366,9 @@ define([
 
         // Map columnindex to model attribute for sorting
         sortMap: {
-            2: 'subject',
-            3: 'alert_type.name',
-            4: 'start_time'
+            3: 'subject',
+            4: 'alert_type.name',
+            5: 'start_time'
         },
 
         initialize: function () {
@@ -464,46 +466,6 @@ define([
     });
 
 
-    var EventInfoView = Backbone.View.extend({
-        tagName: 'tr',
-
-        attributes: {
-            class: 'expanded hidden'
-        },
-
-        initialize: function () {
-            this.listenTo(this.model, 'remove', this.unRender);
-            this.listenTo(this.model, 'change', this.render);
-        },
-
-        render: function () {
-            var self = this;
-            var url = NAV.urls.alert_endpoint + this.model.get('id');
-            var request = $.ajax(url, {
-                headers: { accept: 'text/x-nav-html' }
-            });
-            var $cell = $('<td colspan="7"></td>');
-            request.done(function (response) {
-                $cell.html(response);
-            });
-            request.error(function () {
-                $cell.html('<div class="alert-box alert">Error fetching status details</div>');
-            });
-            self.$el.html($cell);
-        },
-
-        unRender: function (model, collection) {
-            /* Remove the html element associated with the view. We need to
-               check that the correct collection sends the event */
-            if (collection.constructor === Collections.EventCollection) {
-                console.log('Unrender for subview called');
-                this.remove();
-            }
-        },
-
-    });
-
-
     /** The view displaying a single status event */
     var compiledEventTemplate = Handlebars.compile(EventTemplate);
     var EventView = Backbone.View.extend({
@@ -524,8 +486,6 @@ define([
             this.render();
             this.markStatus();
 
-            this.infoView = new EventInfoView({ model: this.model });
-
             this.listenTo(this.model, 'remove', this.unRender);
             this.listenTo(this.model, 'change', this.render);
             this.listenTo(alertsToChange, 'reset', this.toggleSelect);
@@ -542,14 +502,23 @@ define([
         },
 
         renderExpandedInfo: function () {
-            if (!this.$el.next().hasClass('expanded')) {
-                console.log('Adding new row after this one');
-                this.infoView.render();
-                this.$el.after(this.infoView.el);
-                this.infoView.$el.fadeIn();
-            } else {
-                this.infoView.$el.fadeToggle();
+            var $container = this.$el.find('.api-html');
+            if ($container.is(':empty')) {
+                this.loadApiHtml($container).show();
             }
+        },
+
+        loadApiHtml: function($container) {
+            var url = NAV.urls.alert_endpoint + this.model.get('id') + '/';
+            var request = $.ajax(url, {
+                headers: { accept: 'text/x-nav-html' }
+            });
+            request.done(function (response) {
+                $container.html(response);
+            });
+            request.error(function () {
+                $container.html('<div class="alert-box alert">Error fetching status details</div>');
+            });
         },
 
         toggleChangeState: function (event) {

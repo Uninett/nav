@@ -1,0 +1,379 @@
+{% extends 'info/event/base.html' %}
+{% load date_and_time %}
+{% load info %}
+
+{# EVENT DETAILS #}
+
+{% block event_details %}
+  <h4> {{ event.alert_type.name }} event </h4>
+  <p>
+    <small>{{ event.alert_type.description }}</small>
+  </p>
+
+  {% with ack=event.is_acknowledged %}
+    {% if ack %}
+      <div class="alert-box info">
+        Acknowledged {{ ack.date }} by {{ ack.account.name }}
+        {% if ack.comment %}
+          <div>"{{ ack.comment }}"</div>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <table class="vertitable full-width">
+    <tbody>
+
+      <tr>
+        <th>Source</th>
+        <td>{{ event.source }}</td>
+      </tr>
+
+
+      {% if event.is_stateful %}
+        <tr>
+          <th>Start</th>
+          <td>{{ event.start_time }}</td>
+        </tr>
+
+        <tr>
+          <th>End</th>
+          <td>
+            {% if event.is_open %}
+              Unresolved
+            {% else %}
+              {{ event.end_time }}
+            {% endif %}
+          </td>
+        </tr>
+
+        <tr>
+          <th>Duration</th>
+          <td>{{ event.get_downtime|remove_microseconds }}</td>
+        </tr>
+
+      {% else %}
+
+        <tr>
+          <th>Time</th>
+          <td>{{ event.start_time }}</td>
+        </tr>
+
+      {% endif %}
+
+      <tr>
+        <th>
+          Subject
+        </th>
+        <td>
+          {% with subject=event.get_subject %}
+            {% include 'info/event/frag_subject_details.html' %}
+          {% endwith %}
+        </td>
+      </tr>
+
+      {% if event.netbox %}
+        <tr>
+          <th>Links</th>
+          <td>
+            <ul>
+              <li>
+                <a href="{% url 'ipdevinfo-details-by-id' event.netbox.pk %}">
+                  Device Info
+                </a>
+              </li>
+              <li>
+                <a href="{% url 'devicehistory-view-netbox' event.netbox.pk %}">
+                  Device History
+                </a>
+              </li>
+            </ul>
+          </td>
+        </tr>
+      {% endif %}
+
+    </tbody>
+  </table>
+{% endblock %}
+
+
+{# RELATED NETBOX EVENTS #}
+{% block related_netbox_events %}
+  <h4>
+    Last 10 events for {{ event.netbox }}
+  </h4>
+  <div id="related-events-container">
+    <table class="listtable">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Duration</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for event in related_netbox_events %}
+          <tr>
+            <td>
+              <a href="{% url 'event-details' event.pk %}" title="{{ event.alert_type.description }}">
+                {{ event.alert_type.name }}
+              </a>
+            </td>
+            <td>{{ event.start_time }}</td>
+            <td>
+              {% if event.is_open %}
+                Unresolved
+              {% else %}
+                {{ event.end_time|default:'' }}
+              {% endif %}
+            </td>
+            <td>
+              {{ event.get_downtime|remove_microseconds|default:'' }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <a href="{% url 'devicehistory-view-netbox' event.netbox.pk %}">See more in Device History</a>
+  </div>
+{% endblock %}
+
+
+{# RELATED EVENT TYPE EVENTS #}
+{% block related_type_events %}
+  <h4>
+    Last 10 {{ event.alert_type.name }} events
+  </h4>
+  <div id="related-type-container">
+    <table class="listtable">
+      <thead>
+        <tr>
+          <th>Start</th>
+          <th>End</th>
+          <th>Duration</th>
+          <th>Subject</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for event in related_type_events %}
+          <tr>
+            <td>
+              <a href="{% url 'event-details' event.pk %}">
+                {{ event.start_time }}
+              </a>
+            </td>
+            <td>
+              {% if event.is_open %}
+                Unresolved
+              {% else %}
+                {{ event.end_time|default:'' }}
+              {% endif %}
+            </td>
+            <td>
+              {{ event.get_downtime|remove_microseconds|default:'' }}
+            </td>
+            <td>
+              {% with subject=event.get_subject %}
+                {% include 'info/event/frag_subject_details.html' %}
+              {% endwith %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <a href="{% url 'devicehistory-view' %}?eventtype=a_{{ event.alert_type.name }}">See more in Device History</a>
+  </div>
+{% endblock %}
+
+
+{# EVENT MESSAGES #}
+
+{% block event_messages %}
+  <h4>Alert messages</h4>
+
+  {% if event.is_stateful %}
+
+    <h5>Start messages</h5>
+    {% for m in messages|lookup:'s' %}
+      {% include 'info/event/frag_event_message.html' %}
+    {% endfor %}
+
+    {% if not event.is_open %}
+      <hr/>
+
+      <h5>End messages</h5>
+      {% for m in messages|lookup:'e' %}
+        {% include 'info/event/frag_event_message.html' %}
+      {% endfor %}
+    {% endif %}
+
+  {% else %}
+    {% for m in messages|lookup:'x' %}
+      {% include 'info/event/frag_event_message.html' %}
+    {% endfor %}
+  {% endif %}
+
+{% endblock %}
+
+
+{# ACTIONS #}
+
+{% block user_actions %}
+  <h4>Available actions</h4>
+
+  <select id="action-chooser" name="action">
+    <option value="">----------</option>
+    <option value="actions-acknowledge">Acknowledge alert</option>
+    {% if event.is_open %}
+      <option value="actions-resolve">Clear alert</option>
+    {% endif %}
+    {% if event.get_subject.pk %}
+      <option value="actions-maintenance">Put on maintenance</option>
+    {% endif %}
+    {% if is_module_or_chassis %}
+      <option value="actions-delete">Delete module or chassis</option>
+    {% endif %}
+  </select>
+
+  {# Acknowledge alert #}
+  <div id="actions-acknowledge" class="action-container">
+    <form action="{% url 'status2_acknowledge_alert' %}">
+      <input type="hidden" name="id[]" value="{{ event.pk }}" />
+
+      <label>
+        Description
+        <input type="text" name="description" placeholder="" />
+      </label>
+
+      <a data-dropdown="acknowledge-info" aria-controls="acknowledge-info" aria-expanded="false">
+        About
+      </a>
+
+      <input type="submit" class="button small secondary right" value="Acknowledge alert" />
+    </form>
+
+    <div id="acknowledge-info" data-dropdown-content class="f-dropdown content small" aria-hidden="true" tabindex="-1">
+      <h5>About acknowledging</h5>
+
+      <p>
+        Acknowledged alerts will be hidden for all users, but not removed. When
+        an end event arrives the alert will be cleared normally.
+      </p>
+    </div>
+
+  </div>
+
+  {# Resolve/clear alert #}
+  <div id="actions-resolve" class="action-container">
+    <form action="{% url 'status2_clear_alert' %}">
+      <input type="hidden" name="id[]" value="{{ event.pk }}" />
+      <a data-dropdown="resolve-info" aria-controls="resolve-info" aria-expanded="false">About</a>
+      <input type="submit" class="button small secondary right" value="Clear alert" />
+    </form>
+
+    <div id="resolve-info" data-dropdown-content class="f-dropdown content small" aria-hidden="true" tabindex="-1">
+      <h5>About clearing alerts</h5>
+
+      <p>
+        Clearing an alert will set its end time, thereby closing it and removing
+        it from the list of problems. Use this to remove alerts that have become
+        invalid, where there is no way for NAV to automatically detect this.
+      </p>
+
+      <p>
+        Be aware that if the root cause of the alert is still there, NAV may end
+        up posting a new alert for the same issue.
+      </p>
+    </div>
+
+  </div>
+
+  {# Put on maintenance #}
+  <div id="actions-maintenance" class="action-container">
+    <form action="{% url 'status2_put_on_maintenance' %}">
+      <input type="hidden" name="id[]" value="{{ event.pk }}" />
+      <label>
+        Description
+        <input type="text" name="description" placeholder="" />
+      </label>
+      <input type="submit" class="button small secondary right" value="Put on maintenance" />
+    </form>
+
+    <a data-dropdown="maintenance-info" aria-controls="maintenance-info" aria-expanded="false">
+      About
+    </a>
+
+    <div id="maintenance-info" data-dropdown-content class="f-dropdown content small" aria-hidden="true" tabindex="-1">
+      <h5>Put on maintenance</h5>
+
+      <p>
+        Putting an alert on maintenance only makes sense if the subject can be
+        put on maintenance, for instance IP Devices and Services.
+      </p>
+
+    </div>
+
+  </div>
+
+  {# Delete module or chassis #}
+  <div id="actions-delete" class="action-container">
+    <form action="{% url 'status2_delete_module_or_chassis' %}">
+      <input type="hidden" name="id[]" value="{{ event.pk }}" />
+      <input type="submit" class="button small secondary full-width" value="Delete module or chassis" />
+    </form>
+
+    <a data-dropdown="delete-info" aria-controls="delete-info" aria-expanded="false">
+      About
+    </a>
+
+    <div id="delete-info" data-dropdown-content class="f-dropdown content small" aria-hidden="true" tabindex="-1">
+      <h5>About deleting module or chassis</h5>
+
+      <p>
+        NAV does not know if a module or chassis that has disappeared did so
+        because of an error or because it was removed on purpose. Thus, modules
+        and chassis that disappear are all listed in status until manually
+        deleted from NAV by a manual module/chassis delete.
+      </p>
+
+    </div>
+  </div>
+
+{% endblock %}
+
+
+{% block footer_scripts %}
+  <script>
+   {# Shows the correct action form #}
+   $('#action-chooser').on('change', function() {
+       $('.action-container').hide();
+       $('#' + this.value).show();
+   });
+
+   {# submits the action  #}
+   $('.action-container form').on('submit', function(e) {
+       e.preventDefault();
+       var request = $.post(this.action, $(this).serialize());
+       request.done(function() {
+           window.location = {% url 'status2-index' %}
+       })
+       request.fail(function(error) {
+           alert('Error submitting form');
+       });
+   });
+
+   {# Fetches any custom alert template and displays it #}
+   var request = $.ajax('/api/1/alert/{{event.pk}}', {
+       method: 'GET',
+       headers: {Accept: 'text/x-nav-html'}
+   });
+   request.done(function(response) {
+       if ($(response).html()) {
+           $('#api-event-details').append($('<div class="panel white">').html(response));
+       }
+   });
+  </script>
+{% endblock %}

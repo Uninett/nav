@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012 UNINETT AS
+# Copyright (C) 2017 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -12,19 +12,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
-#
-"""Django URL configuration"""
 
-from django.conf.urls import include, url
-from nav.web.info.views import index
+"""URL-config for event details"""
+
+from django.conf.urls import url
+from nav.web.info.event import views
+
 
 urlpatterns = [
-    url(r'^$', index, name="info-search"),
-    url(r'^room/', include('nav.web.info.room.urls')),
-    url(r'^location/', include('nav.web.info.location.urls')),
-    url(r'^vlan/', include('nav.web.info.vlan.urls')),
-    url(r'^prefix/', include('nav.web.info.prefix.urls')),
-    url(r'^devicegroup/', include('nav.web.info.netboxgroup.urls')),
-    url(r'^image/', include('nav.web.info.images.urls')),
-    url(r'^event/', include('nav.web.info.event.urls')),
+    url(r'^$', views.main),
+    url(r'^(?P<event_id>\d+)', views.render_event, name='event-details'),
 ]

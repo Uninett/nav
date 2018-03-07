@@ -41,7 +41,10 @@ class AcknowledgementSerializer(serializers.ModelSerializer):
     def transform_comment_html(_obj, value):
         """Urlize content, but make sure other tags are stripped as we need
         to output this raw"""
-        return urlize(strip_tags(value))
+        try:
+            return urlize(strip_tags(value))
+        except TypeError:
+            return ''
 
     class Meta(object):
         model = event.Acknowledgement
@@ -75,6 +78,7 @@ class AlertHistorySerializer(serializers.ModelSerializer):
         'get_event_history_url')
     netbox_history_url = serializers.SerializerMethodField(
         'get_netbox_history_url')
+    event_details_url = serializers.SerializerMethodField('get_event_details_url')
     device_groups = serializers.SerializerMethodField('get_device_groups')
 
     alert_type = AlertTypeSerializer()
@@ -117,6 +121,11 @@ class AlertHistorySerializer(serializers.ModelSerializer):
         if AlertHistorySerializer.get_subject_type(obj) == 'Netbox':
             return reverse('devicehistory-view-netbox',
                            kwargs={'netbox_id': obj.get_subject().id})
+
+    @staticmethod
+    def get_event_details_url(obj):
+        """Returns the url to the details page for this event"""
+        return reverse('event-details', kwargs={'event_id': obj.pk})
 
     @staticmethod
     def get_subject_type(obj):
