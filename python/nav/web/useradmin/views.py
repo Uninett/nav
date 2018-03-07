@@ -142,13 +142,7 @@ def save_account_org(request, account, org_form):
             'Organization was not added as it has already been added.')
     except Organization.DoesNotExist:
         account.organizations.add(organization)
-
-        LogEntry.add_log_entry(
-            request.account,
-            u'edit-account-add-org',
-            u'{actor} added organization {target} to {object}',
-            target=organization,
-            object=account)
+        log_add_account_to_org(request, organization, account)
         messages.success(request, 'Added organization "%s" to account "%s"' %
                          (organization, account))
 
@@ -176,13 +170,7 @@ def save_account_group(request, account, group_form):
             account.accountgroup_set.add(group)
             messages.success(
                 request, 'Added "%s" to group "%s"' % (account, group))
-
-            LogEntry.add_log_entry(
-                request.account,
-                u'edit-account-add-group',
-                u'{actor} added group {target} to {object}',
-                target=group,
-                object=account)
+            log_add_account_to_group(request, group, account)
 
     return HttpResponseRedirect(reverse('useradmin-account_detail',
                                         args=[account.id]))
@@ -258,7 +246,7 @@ def account_organization_remove(request, account_id, org_id):
         LogEntry.add_log_entry(
             request.account,
             u'edit-account-remove-org',
-            u'{actor} removed org {target} from {object}',
+            u'{actor} removed user {object} from organization {target}',
             target=organization,
             object=account)
 
@@ -323,7 +311,7 @@ def account_group_remove(request, account_id, group_id, caller='account'):
         LogEntry.add_log_entry(
             request.account,
             u'edit-account-remove-group',
-            u'{actor} removed group {target} from {object}',
+            u'{actor} removed user {object} from group {target}',
             target=group,
             object=account)
 
@@ -399,6 +387,7 @@ def group_detail(request, group_id=None):
                         'a member of the group.' % account)
                 except Account.DoesNotExist:
                     group.accounts.add(account)
+                    log_add_account_to_group(request, group, account)
                     messages.success(request,
                                      'Account %s has been added.' % account)
 
@@ -564,3 +553,21 @@ def log_account_change(actor, old, new):
 
     attribute_list = ['login', 'name', 'password', 'ext_sync']
     LogEntry.compare_objects(actor, old, new, attribute_list)
+
+
+def log_add_account_to_group(request, group, account):
+    LogEntry.add_log_entry(
+        request.account,
+        u'edit-account-add-group',
+        u'{actor} added user {object} to group {target}',
+        target=group,
+        object=account)
+
+
+def log_add_account_to_org(request, organization, account):
+    LogEntry.add_log_entry(
+        request.account,
+        u'edit-account-add-org',
+        u'{actor} added user {object} to organization {target}',
+        target=organization,
+        object=account)
