@@ -7,14 +7,13 @@ from collections import defaultdict, namedtuple
 from nav.models.event import AlertHistory
 from nav.models.manage import Interface, Netbox
 from nav.models.profiles import ReportSubscription
-AvailabilityRecord = namedtuple(
-    'AvailabilityRecord',
-    ['subject', 'incidents', 'downtime', 'availability', 'maintenances'])
-
 
 import logging
 _logger = logging.getLogger(__name__)
 
+AvailabilityRecord = namedtuple(
+    'AvailabilityRecord',
+    ['subject', 'incidents', 'downtime', 'availability', 'maintenances'])
 
 
 class LinkSubject(object):
