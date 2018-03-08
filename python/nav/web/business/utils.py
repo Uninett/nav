@@ -107,16 +107,19 @@ def get_subject(subject):
     return subject
 
 
-def group_by_subject(alerts):
+def group_by_subject(alerts, subject_filter=None):
     grouped_alerts = defaultdict(list)
     for alert in alerts:
-        grouped_alerts[alert.get_subject()].append(alert)
+        subject = alert.get_subject()
+        if subject_filter and not isinstance(subject, subject_filter):
+            continue
+        grouped_alerts[subject].append(alert)
     return grouped_alerts
 
 
 def get_netbox_records(start, end, exclude_maintenance=False):
     alerts = get_alert_periods_by_type(start, end, 'boxState', ['boxDown'])
-    grouped_alerts = group_by_subject(alerts)
+    grouped_alerts = group_by_subject(alerts, Netbox)
 
     if exclude_maintenance:
         maintenances = get_alert_periods_by_type(start, end, 'maintenanceState',
@@ -133,7 +136,7 @@ def get_netbox_records(start, end, exclude_maintenance=False):
 
 def get_interface_records(start, end, exclude_maintenance=False):
     alerts = get_alert_periods_by_type(start, end, 'linkState', ['linkDown'])
-    grouped_alerts = group_by_subject(alerts)
+    grouped_alerts = group_by_subject(alerts, Interface)
     return [create_record(subject, alerts, start, end)
             for subject, alerts in grouped_alerts.items() if subject]
 
