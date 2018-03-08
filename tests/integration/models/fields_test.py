@@ -17,6 +17,7 @@ class LegacyGenericForeignKeyTest(TestCase):
 
         self.task = MaintenanceTask(
             start_time=dt(2018,1,1),
+            end_time=dt(2018,12,1),
             description='blbl',
             author='barbar',
             state=MaintenanceTask.STATE_ACTIVE,
