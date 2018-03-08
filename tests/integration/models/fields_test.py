@@ -39,7 +39,7 @@ class LegacyGenericForeignKeyTest(TestCase):
     def test_set_get_via_lgfk(self):
         mc = MaintenanceComponent(
             maintenance_task=self.task,
-            component=elf.ee1,
+            component=self.ee1,
         )
         mc.save()
         self.assertEqual(mc.component, self.ee1)
