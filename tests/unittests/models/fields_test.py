@@ -11,6 +11,7 @@ from django.db import connection
 from nav.models.fields import CIDRField
 from nav.models.fields import DateTimeInfinityField
 from nav.models.fields import DictAsJsonField
+from nav.models.fields import LegacyGenericForeignKey
 from nav.models.fields import PointField
 
 
@@ -113,6 +114,18 @@ class DictAsJsonFieldTest(TestCase):
         field = DictAsJsonField()
         result = field.get_prep_value({'a': 'b'})
         self.assertEqual(result, u'{"a": "b"}')
+
+
+class LegacyGenericForeignKeyTest(TestCase):
+
+    def test_get_model_class_unknown_model(self):
+        mc = LegacyGenericForeignKey.get_model_class('doesnotexistindb')
+        self.assertEqual(mc, None)
+
+    def test_get_model_class_known_model(self):
+        # use existing class
+        mc = LegacyGenericForeignKey.get_model_class('subsystem')
+        self.assertTrue(bool(mc))
 
 
 class PointFieldTest(TestCase):
