@@ -49,7 +49,7 @@ def get_interval(sometime, interval):
         # interval is one day
         start = sometime
         end = start + timedelta(days=1)
-    return start, end
+    return start, min(end, datetime.now())
 
 
 def get_months(number_of_months=12):
@@ -82,10 +82,6 @@ def compute_availability(downtime, interval):
 
 def create_record(subject, alerts, start, end, maintenances=None):
     """Creates an availability record based on a subject's alerts in a period"""
-    now = datetime.now()
-    if end > now:
-        end = now
-
     def duration(alert):
         return alert.end_within - alert.start_within
 
