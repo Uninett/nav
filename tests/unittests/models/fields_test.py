@@ -123,7 +123,8 @@ class LegacyGenericForeignKeyTest(TestCase):
         self.assertEqual(mc, None)
 
     def test_get_model_class_known_model(self):
-        mc = LegacyGenericForeignKey.get_model_class(self.tablename1)
+        # use existing class
+        mc = LegacyGenericForeignKey.get_model_class('subsystem')
         self.assertTrue(bool(mc))
 
 
