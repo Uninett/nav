@@ -208,6 +208,7 @@ INSTALLED_APPS = (
     'django_hstore',
     'rest_framework',
     'nav.auditlog',
+    'nav.web.macwatch',
 )
 
 REST_FRAMEWORK = {

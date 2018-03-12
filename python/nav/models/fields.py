@@ -27,6 +27,14 @@ from django.db import models
 from django.core import exceptions
 from django.db.models import Q
 from django.utils import six
+try:
+    # Django < 1.9
+    from django.db.models import get_models
+except ImportError:
+    # Django >= 1.8
+    from django.apps import apps
+    get_models = apps.get_models()
+    del apps
 
 from nav.util import is_valid_cidr, is_valid_ip
 from nav.django import validators, forms as navforms
@@ -36,19 +44,19 @@ UNRESOLVED = Q(end_time__gte=INFINITY)
 
 
 class DateTimeInfinityField(models.DateTimeField):
-    def get_db_prep_value(self, value, connection=None, prepared=False):
+    def get_db_prep_value(self, value, connection, prepared=False):
         if value == datetime.max:
             value = u'infinity'
         elif value == datetime.min:
             value = u'-infinity'
         else:
             return super(DateTimeInfinityField, self).get_db_prep_value(
-                value, connection=connection, prepared=prepared)
+                value, connection, prepared=prepared)
         return connection.ops.value_to_db_datetime(value)
 
 
 class VarcharField(models.TextField):
-    def db_type(self, connection=None):
+    def db_type(self, connection):
         return 'varchar'
 
     def formfield(self, **kwargs):
@@ -66,7 +74,7 @@ class DictAsJsonField(models.TextField):
 
     description = "Field for storing json structure"
 
-    def db_type(self, connection=None):
+    def db_type(self, connection):
         return 'varchar'
 
     def to_python(self, value):
@@ -74,6 +82,8 @@ class DictAsJsonField(models.TextField):
             if isinstance(value, dict):
                 return value
             try:
+                if isinstance(value, six.binary_type):
+                    value = six.text_type(value, encoding='utf-8')
                 return json.loads(value)
             except ValueError:
                 try:
@@ -92,11 +102,13 @@ class CIDRField(VarcharField):
 
     def to_python(self, value):
         """Verifies that the value is a string with a valid CIDR IP address"""
-        if value and not is_valid_cidr(value) and not is_valid_ip(value):
-            raise exceptions.ValidationError(
-                "Value must be a valid CIDR address")
-        else:
-            return value
+        if value:
+            if isinstance(value, six.binary_type):
+                value = six.text_type(value, encoding='utf-8')
+            if not is_valid_cidr(value) and not is_valid_ip(value):
+                raise exceptions.ValidationError(
+                    "Value must be a valid CIDR address")
+        return value
 
 
 @six.add_metaclass(models.SubfieldBase)
@@ -106,7 +118,7 @@ class PointField(models.CharField):
         kwargs['max_length'] = 100
         super(PointField, self).__init__(*args, **kwargs)
 
-    def db_type(self, connection=None):
+    def db_type(self, connection):
         return 'point'
 
     def to_python(self, value):
@@ -123,7 +135,7 @@ class PointField(models.CharField):
         raise exceptions.ValidationError(
             "This value must be a point-string.")
 
-    def get_db_prep_value(self, value, connection=None, prepared=False):
+    def get_db_prep_value(self, value, connection, prepared=False):
         if value is None:
             return None
         if isinstance(value, tuple):
@@ -208,6 +220,6 @@ class LegacyGenericForeignKey(object):
     @staticmethod
     def get_model_class(table_name):
         """Returns a Model class based on a database table name"""
-        classmap = dict((m._meta.db_table, m) for m in models.get_models())
+        classmap = dict((m._meta.db_table, m) for m in get_models())
         if table_name in classmap:
             return classmap[table_name]
