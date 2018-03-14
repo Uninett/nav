@@ -23,14 +23,15 @@ import sys
 import argparse
 from getpass import getpass
 
+from nav.bootstrap import bootstrap_django
+bootstrap_django(__file__)
+
 from nav.models.profiles import Account, AccountGroup
-import django
 
 
 def main():
     """Main program"""
     args = parse_args()
-    django.setup()
 
     args.func(args)
 

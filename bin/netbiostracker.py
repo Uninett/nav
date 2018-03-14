@@ -19,11 +19,16 @@
 import logging
 import time
 from os.path import join
+
+import django
+
+from nav.bootstrap import bootstrap_django
+bootstrap_django(__file__)
+
 from nav.netbiostracker import tracker
 from nav.netbiostracker.config import NetbiosTrackerConfig
 from nav.buildconf import localstatedir
 from nav.logs import init_generic_logging
-import django
 
 _logger = logging.getLogger('netbiostracker')
 LOGFILE = 'netbiostracker.log'
@@ -33,7 +38,6 @@ def main():
     """Main controller"""
     init_generic_logging(logfile=join(localstatedir, 'log', LOGFILE),
                          stderr=False)
-    django.setup()
     config = NetbiosTrackerConfig()
 
     start = time.time()

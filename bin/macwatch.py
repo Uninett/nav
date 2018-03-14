@@ -25,6 +25,9 @@ import re
 import time
 import logging
 
+from nav.bootstrap import bootstrap_django
+bootstrap_django(__file__)
+
 # import NAV libraries
 import nav.logs
 
