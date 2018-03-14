@@ -1,5 +1,8 @@
 from datetime import datetime, timedelta
 
+from nav.bootstrap import bootstrap_django
+bootstrap_django(__file__)
+
 from nav.web.navlets.roomstatus import RoomStatus
 from nav.models.event import AlertHistory, AlertHistoryMessage
 from nav.models.fields import INFINITY

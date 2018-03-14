@@ -4,6 +4,9 @@ import pytest
 
 from mock import patch
 
+from nav.bootstrap import bootstrap_django
+bootstrap_django(__file__)
+
 from nav.buildconf import bindir, sysconfdir
 from nav.ipdevpoll import config, jobs, plugins
 from nav.ipdevpoll.pool import InlinePool, WorkerPool
