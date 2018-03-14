@@ -21,6 +21,15 @@ from django.http import HttpResponse
 from django.views.generic.list import ListView
 
 
+def get_navpath_root():
+    """Returns the default navpath root
+
+    To be used in the navpath argument to the base template
+    navpath = [get_navpath_root(), ('Tool', )]
+    """
+    return 'Home', '/'
+
+
 def create_title(navpath):
     """Create title from navpath (or any other array of tuples)"""
     return " - ".join([x[0] for x in navpath])

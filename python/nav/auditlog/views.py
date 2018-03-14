@@ -19,6 +19,7 @@ from __future__ import unicode_literals, absolute_import
 from django.views.generic import TemplateView
 
 from .models import LogEntry
+from nav.web.utils import create_title, get_navpath_root
 
 
 class AuditlogOverview(TemplateView):
@@ -28,8 +29,11 @@ class AuditlogOverview(TemplateView):
     def get_context_data(self, **kwargs):
         verbs = list(LogEntry.objects.order_by().values_list('verb', flat=True).distinct())
         verbs.sort()
+        navpath = (get_navpath_root(), ('Audit Log', ))
         context = {
-            'auditlog_verbs': verbs
+            'auditlog_verbs': verbs,
+            'navpath': navpath,
+            'title': create_title(navpath)
         }
         context.update(**kwargs)
         return super(AuditlogOverview, self).get_context_data(**context)
