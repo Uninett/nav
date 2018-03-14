@@ -7,7 +7,7 @@ register = template.Library()
 
 
 @register.filter
-def shorten_ifname(ifname):
+def shorten_ifname(ifname):  # pragma: nocover
     """Shorten ifname and indicate shortening with ellipsis"""
     matchobject = re.match(r'([a-zA-Z]{2})\D+(.*/\d+)$', ifname)
     if matchobject:
