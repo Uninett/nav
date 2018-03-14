@@ -35,6 +35,13 @@
         </li>
       {% endif %}
 
+      <li>
+        <a href="{% url 'auditlog-netbox-detail' netbox.pk %}"
+           class="button small secondary">
+          View audit log
+        </a>
+      </li>
+
       {% try_to_include 'ipdevinfo/custom-header-button-extras.html' %}
 
     </ul>

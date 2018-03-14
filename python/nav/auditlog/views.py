@@ -16,9 +16,13 @@
 
 from __future__ import unicode_literals, absolute_import
 
+import json
+
+from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 
 from .models import LogEntry
+from nav.models.manage import Netbox
 from nav.web.utils import create_title, get_navpath_root
 
 
@@ -33,7 +37,28 @@ class AuditlogOverview(TemplateView):
         context = {
             'auditlog_verbs': verbs,
             'navpath': navpath,
-            'title': create_title(navpath)
+            'title': create_title(navpath),
         }
         context.update(**kwargs)
         return super(AuditlogOverview, self).get_context_data(**context)
+
+
+class AuditlogNetboxDetail(AuditlogOverview):
+    """Displays all log entries for a netbox"""
+
+    def get_context_data(self, **kwargs):
+        context = super(AuditlogNetboxDetail, self).get_context_data(**kwargs)
+        context.update({
+            'auditlog_api_parameters': self.get_api_parameters(),
+            'netbox': get_object_or_404(Netbox, pk=self.kwargs.get('netboxid'))
+        })
+        return context
+
+    def get_api_parameters(self):
+        """Creates api parameters"""
+        api_parameters = {}
+        netboxid = self.kwargs.get('netboxid')
+        if netboxid:
+            api_parameters = {'netboxid': netboxid}
+        return json.dumps(api_parameters)
+

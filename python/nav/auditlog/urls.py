@@ -16,9 +16,11 @@ from __future__ import unicode_literals, absolute_import
 
 from django.conf.urls import url
 
-from .views import AuditlogOverview
+from .views import AuditlogOverview, AuditlogNetboxDetail
 
 
 urlpatterns = [
     url(r'^$', AuditlogOverview.as_view(), name='auditlog-home'),
+    url(r'^netbox/(?P<netboxid>\d+)$', AuditlogNetboxDetail.as_view(),
+        name='auditlog-netbox-detail'),
 ]

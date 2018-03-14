@@ -713,15 +713,6 @@ def render_host_info(request, identifier):
     })
 
 
-def auditlog(request, netboxid):
-    netbox = get_object_or_404(Netbox, pk=netboxid)
-    auditlog_api_parameters = json.dumps(
-        {'object_model': 'netbox', 'object_pk': netbox.pk})
-    return render(request, 'ipdevinfo/frag-auditlog.html', {
-        'auditlog_api_parameters': auditlog_api_parameters
-    })
-
-
 def unrecognized_neighbors(request, netboxid):
     """Render unrecognized neighbors tab"""
     netbox = get_object_or_404(Netbox, pk=netboxid)
