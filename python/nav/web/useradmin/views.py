@@ -496,9 +496,11 @@ class TokenCreate(generic.CreateView):
     form_class = forms.TokenForm
     template_name = 'useradmin/token_edit.html'
 
-    def get_success_url(self):
-        messages.success(self.request, 'New token created')
-        return super(TokenCreate, self).get_success_url()
+    def post(self, request, *args, **kwargs):
+        response = super(TokenCreate, self).post(request, *args, **kwargs)
+        messages.success(request, 'New token created')
+        LogEntry.add_create_entry(request.account, self.object)
+        return response
 
 
 class TokenEdit(generic.UpdateView):
@@ -508,9 +510,14 @@ class TokenEdit(generic.UpdateView):
     form_class = forms.TokenForm
     template_name = 'useradmin/token_edit.html'
 
-    def get_success_url(self):
-        messages.success(self.request, 'Token saved')
-        return super(TokenEdit, self).get_success_url()
+    def post(self, request, *args, **kwargs):
+        old_object = copy.deepcopy(self.get_object())
+        response = super(TokenEdit, self).post(request, *args, **kwargs)
+        messages.success(request, 'Token saved')
+        LogEntry.compare_objects(
+            request.account, old_object, self.get_object(),
+            ['expires', 'permission', 'endpoints', 'comment'])
+        return response
 
 
 class TokenDelete(generic.DeleteView):
@@ -519,8 +526,15 @@ class TokenDelete(generic.DeleteView):
     model = APIToken
 
     def get_success_url(self):
-        messages.success(self.request, 'Token deleted')
         return reverse_lazy('useradmin-token_list')
+
+    def delete(self, request, *args, **kwargs):
+        old_object = copy.deepcopy(self.get_object())
+        response = super(TokenDelete, self).delete(
+            self, request, *args, **kwargs)
+        messages.success(request, 'Token deleted')
+        LogEntry.add_delete_entry(request.account, old_object)
+        return response
 
 
 class TokenDetail(generic.DetailView):
@@ -541,6 +555,9 @@ def token_expire(request, pk):
     token.expires = datetime.now()
     token.save()
 
+    LogEntry.add_log_entry(
+        request.account, 'edit-apitoken-expiry',
+        '{actor} expired {object}', object=token)
     messages.success(request, 'Token has been manually expired')
     return redirect(token)
 
