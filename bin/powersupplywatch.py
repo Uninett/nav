@@ -28,6 +28,9 @@ from os.path import join
 from datetime import datetime
 import argparse
 
+from nav.bootstrap import bootstrap_django
+bootstrap_django(__file__)
+
 # import NAV libraries
 from nav import buildconf
 from nav.event import Event

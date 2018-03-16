@@ -43,6 +43,9 @@ from operator import methodcaller
 import argparse
 from os.path import join
 
+from nav.bootstrap import bootstrap_django
+bootstrap_django(__file__)
+
 import nav.buildconf
 from nav.logs import init_generic_logging
 from nav.arnold import (find_computer_info, is_inside_vlans,

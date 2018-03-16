@@ -26,6 +26,9 @@ import os.path
 import time
 import logging
 
+from nav.bootstrap import bootstrap_django
+bootstrap_django(__file__)
+
 import nav.buildconf
 from nav.logs import init_generic_logging
 from nav.maintengine import check_devices_on_maintenance

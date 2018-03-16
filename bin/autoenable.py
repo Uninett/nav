@@ -32,6 +32,9 @@ import logging
 import sys
 from datetime import datetime
 
+from nav.bootstrap import bootstrap_django
+bootstrap_django(__file__)
+
 import nav.buildconf
 from nav.logs import init_generic_logging
 from nav.arnold import (open_port, GeneralException)

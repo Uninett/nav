@@ -25,6 +25,9 @@ import configparser
 
 import argparse
 
+from nav.bootstrap import bootstrap_django
+bootstrap_django(__file__)
+
 import nav
 import nav.mailin
 from nav import logs

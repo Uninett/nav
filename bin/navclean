@@ -21,7 +21,9 @@ from __future__ import print_function
 
 import sys
 import argparse
-from nav.models import manage as _manage  # Just to init Django stuff
+
+from nav.bootstrap import bootstrap_django
+bootstrap_django(__file__)
 
 import psycopg2
 from django.db.transaction import atomic

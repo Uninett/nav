@@ -59,6 +59,9 @@ def selenium(selenium, base_url):
     in as the admin user.
 
     """
+    from nav.bootstrap import bootstrap_django
+    bootstrap_django(__file__)
+
     from nav.django.auth import create_session_cookie
 
     selenium.implicitly_wait(10)
