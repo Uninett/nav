@@ -6,9 +6,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from nav.bootstrap import bootstrap_django
-bootstrap_django(__file__)
-
 USERNAME = 'admin'
 gunicorn = None
 
@@ -62,6 +59,9 @@ def selenium(selenium, base_url):
     in as the admin user.
 
     """
+    from nav.bootstrap import bootstrap_django
+    bootstrap_django(__file__)
+
     from nav.django.auth import create_session_cookie
 
     selenium.implicitly_wait(10)
