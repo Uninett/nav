@@ -15,6 +15,7 @@
 #
 """Controller functions for the useradmin interface"""
 
+import copy
 from datetime import datetime
 
 from django.contrib import messages
@@ -26,6 +27,7 @@ from django.views import generic
 from django.views.decorators.http import require_POST
 from django.views.decorators.debug import sensitive_post_parameters
 
+from nav.auditlog.models import LogEntry
 from nav.models.profiles import Account, AccountGroup, Privilege
 from nav.models.manage import Organization
 from nav.models.api import APIToken
@@ -51,10 +53,14 @@ def custom_processor(_request):
 def account_list(request):
     """Controller for displaying the account list"""
     accounts = Account.objects.all()
-    return render_to_response('useradmin/account_list.html',
-                              {'active': {'account_list': 1},
-                               'accounts': accounts},
-                              UserAdminContext(request))
+    return render_to_response(
+        'useradmin/account_list.html',
+        {
+            'active': {'account_list': 1},
+            'accounts': accounts,
+            'auditlog_api_parameters': {'object_model': 'account'}
+        },
+        UserAdminContext(request))
 
 
 @sensitive_post_parameters('password1', 'password2')
@@ -65,6 +71,7 @@ def account_detail(request, account_id=None):
     except Account.DoesNotExist:
         account = None
 
+    old_account = copy.deepcopy(account)
     account_form = forms.AccountForm(instance=account)
     org_form = forms.OrganizationAddForm(account)
     group_form = forms.GroupAddForm(account)
@@ -73,7 +80,7 @@ def account_detail(request, account_id=None):
         if 'submit_account' in request.POST:
             account_form = forms.AccountForm(request.POST, instance=account)
             if account_form.is_valid():
-                return save_account(request, account_form)
+                return save_account(request, account_form, old_account)
 
         elif 'submit_org' in request.POST:
             org_form = forms.OrganizationAddForm(account, request.POST)
@@ -89,9 +96,14 @@ def account_detail(request, account_id=None):
             return sudo_to_user(request)
 
     active = {'account_detail': True} if account else {'account_new': True}
+    auditlog_api_parameters = {
+        'object_model': 'account',
+        'object_pk': account.pk
+    } if account else {}
 
     return render_to_response('useradmin/account_detail.html',
                   {
+                      'auditlog_api_parameters': auditlog_api_parameters,
                       'active': active,
                       'account': account,
                       'account_form': account_form,
@@ -100,7 +112,7 @@ def account_detail(request, account_id=None):
                   }, UserAdminContext(request))
 
 
-def save_account(request, account_form):
+def save_account(request, account_form, old_account):
     """Save an account based on post data"""
     account = account_form.save(commit=False)
 
@@ -113,6 +125,7 @@ def save_account(request, account_form):
         account.set_password(account_form.cleaned_data['password1'])
 
     account.save()
+    log_account_change(request.account, old_account, account)
 
     messages.success(request, '"%s" has been saved.' % (account))
     return HttpResponseRedirect(reverse('useradmin-account_detail',
@@ -129,6 +142,7 @@ def save_account_org(request, account, org_form):
             'Organization was not added as it has already been added.')
     except Organization.DoesNotExist:
         account.organizations.add(organization)
+        log_add_account_to_org(request, organization, account)
         messages.success(request, 'Added organization "%s" to account "%s"' %
                          (organization, account))
 
@@ -156,6 +170,7 @@ def save_account_group(request, account, group_form):
             account.accountgroup_set.add(group)
             messages.success(
                 request, 'Added "%s" to group "%s"' % (account, group))
+            log_add_account_to_group(request, group, account)
 
     return HttpResponseRedirect(reverse('useradmin-account_detail',
                                         args=[account.id]))
@@ -190,6 +205,7 @@ def account_delete(request, account_id):
 
     if request.method == 'POST':
         account.delete()
+        LogEntry.add_delete_entry(request.account, account)
         messages.success(request,
                          'Account %s has been deleted.' % (account.name))
         return HttpResponseRedirect(reverse('useradmin-account_list'))
@@ -226,6 +242,14 @@ def account_organization_remove(request, account_id, org_id):
         messages.success(request,
                     'Organization %s has been removed from account %s.' %
                     (organization, account))
+
+        LogEntry.add_log_entry(
+            request.account,
+            u'edit-account-remove-org',
+            u'{actor} removed user {object} from organization {target}',
+            target=organization,
+            object=account)
+
         return HttpResponseRedirect(reverse('useradmin-account_detail',
                                             args=[account.id]))
 
@@ -283,6 +307,14 @@ def account_group_remove(request, account_id, group_id, caller='account'):
         account.accountgroup_set.remove(group)
         messages.success(
             request, '%s has been removed from %s.' % (account, group))
+
+        LogEntry.add_log_entry(
+            request.account,
+            u'edit-account-remove-group',
+            u'{actor} removed user {object} from group {target}',
+            target=group,
+            object=account)
+
         return detail_redirect
 
     return render_to_response('useradmin/delete.html',
@@ -355,6 +387,7 @@ def group_detail(request, group_id=None):
                         'a member of the group.' % account)
                 except Account.DoesNotExist:
                     group.accounts.add(account)
+                    log_add_account_to_group(request, group, account)
                     messages.success(request,
                                      'Account %s has been added.' % account)
 
@@ -463,9 +496,11 @@ class TokenCreate(generic.CreateView):
     form_class = forms.TokenForm
     template_name = 'useradmin/token_edit.html'
 
-    def get_success_url(self):
-        messages.success(self.request, 'New token created')
-        return super(TokenCreate, self).get_success_url()
+    def post(self, request, *args, **kwargs):
+        response = super(TokenCreate, self).post(request, *args, **kwargs)
+        messages.success(request, 'New token created')
+        LogEntry.add_create_entry(request.account, self.object)
+        return response
 
 
 class TokenEdit(generic.UpdateView):
@@ -475,9 +510,14 @@ class TokenEdit(generic.UpdateView):
     form_class = forms.TokenForm
     template_name = 'useradmin/token_edit.html'
 
-    def get_success_url(self):
-        messages.success(self.request, 'Token saved')
-        return super(TokenEdit, self).get_success_url()
+    def post(self, request, *args, **kwargs):
+        old_object = copy.deepcopy(self.get_object())
+        response = super(TokenEdit, self).post(request, *args, **kwargs)
+        messages.success(request, 'Token saved')
+        LogEntry.compare_objects(
+            request.account, old_object, self.get_object(),
+            ['expires', 'permission', 'endpoints', 'comment'])
+        return response
 
 
 class TokenDelete(generic.DeleteView):
@@ -486,8 +526,15 @@ class TokenDelete(generic.DeleteView):
     model = APIToken
 
     def get_success_url(self):
-        messages.success(self.request, 'Token deleted')
         return reverse_lazy('useradmin-token_list')
+
+    def delete(self, request, *args, **kwargs):
+        old_object = copy.deepcopy(self.get_object())
+        response = super(TokenDelete, self).delete(
+            self, request, *args, **kwargs)
+        messages.success(request, 'Token deleted')
+        LogEntry.add_delete_entry(request.account, old_object)
+        return response
 
 
 class TokenDetail(generic.DetailView):
@@ -508,5 +555,36 @@ def token_expire(request, pk):
     token.expires = datetime.now()
     token.save()
 
+    LogEntry.add_log_entry(
+        request.account, 'edit-apitoken-expiry',
+        '{actor} expired {object}', object=token)
     messages.success(request, 'Token has been manually expired')
     return redirect(token)
+
+
+def log_account_change(actor, old, new):
+    """Log change to account"""
+    if not old:
+        LogEntry.add_create_entry(actor, new)
+        return
+
+    attribute_list = ['login', 'name', 'password', 'ext_sync']
+    LogEntry.compare_objects(actor, old, new, attribute_list)
+
+
+def log_add_account_to_group(request, group, account):
+    LogEntry.add_log_entry(
+        request.account,
+        u'edit-account-add-group',
+        u'{actor} added user {object} to group {target}',
+        target=group,
+        object=account)
+
+
+def log_add_account_to_org(request, organization, account):
+    LogEntry.add_log_entry(
+        request.account,
+        u'edit-account-add-org',
+        u'{actor} added user {object} to organization {target}',
+        target=organization,
+        object=account)

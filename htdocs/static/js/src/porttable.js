@@ -316,13 +316,13 @@ define(function(require) {
      * done typing.
      */
     function fixSearchDelay(dataTable) {
-        $('div.dataTables_filter input').off('keyup.DT input.DT');
+        $('#ports div.dataTables_filter input').off('keyup.DT input.DT');
 
         var searchDelay = null,
             prevSearch = null;
 
-        $('div.dataTables_filter input').on('keyup', function() {
-            var search = $('div.dataTables_filter input').val();
+        $('#ports div.dataTables_filter input').on('keyup', function() {
+            var search = $('#ports div.dataTables_filter input').val();
 
             clearTimeout(searchDelay);
 

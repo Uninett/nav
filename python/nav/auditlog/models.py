@@ -28,6 +28,18 @@ from . import find_modelname
 
 @python_2_unicode_compatible
 class LogEntry(models.Model):
+    """
+    Logs mostly user actions in NAV
+
+    Example logentry:
+    LogEntry.add_log_entry(
+        account,           # actor
+        u'set-ifalias',    # verb
+        u'{actor}: {object} - ifalias set to "%s"' % ifalias,  # template
+        subsystem=u'portadmin',                                # optional
+        object=interface,                                      # optional
+    )
+    """
     actor_model = VarcharField()
     actor_pk = VarcharField()
     actor = LegacyGenericForeignKey('actor_model', 'actor_pk')
@@ -72,6 +84,92 @@ class LogEntry(models.Model):
         self.after = force_text(after)
         self.save()
         return self
+
+    @staticmethod
+    def add_create_entry(actor, obj):
+        """Add log entry for created objects
+
+        :type actor: nav.models.profiles.Account
+        """
+        model = obj.__class__.__name__.lower()
+        LogEntry.add_log_entry(
+            actor,
+            u'create-{}'.format(model),
+            u'{actor} created {object}',
+            after=obj,
+            object=obj
+        )
+
+    @staticmethod
+    def add_delete_entry(actor, obj, template=None):
+        """Add log entry for deleted objects"""
+        model = obj.__class__.__name__.lower()
+        template = template or u'{actor} deleted {object}'
+        LogEntry.add_log_entry(
+            actor,
+            u'delete-{}'.format(model),
+            template,
+            before=obj,
+            object=obj
+        )
+
+    @staticmethod
+    def add_edit_entry(actor, old, new, attribute, include_values=True):
+        """Add log entry for edited objects
+
+        :type attribute: str
+        """
+        def dict_to_string(d):
+            """
+            {"a": "b", "c": "d"} => "a=b, c=d"
+            """
+            return ", ".join("{}={}".format(x, y) for x, y in d.items())
+
+        model = new.__class__.__name__.lower()
+        prefix = u'{actor} edited {object}'
+        old_value = getattr(old, attribute)
+        new_value = getattr(new, attribute)
+        if include_values:
+            # Dicts fucks up the template, try to intervene
+            if isinstance(old_value, dict):
+                old_value = dict_to_string(old_value)
+            if isinstance(new_value, dict):
+                new_value = dict_to_string(new_value)
+            summary = "{} changed from '{}' to '{}'".format(
+                attribute, old_value, new_value)
+        else:
+            summary = "{} changed".format(attribute)
+
+        LogEntry.add_log_entry(
+            actor,
+            u'edit-{}-{}'.format(model, attribute),
+            u'{}: {}'.format(prefix, summary),
+            before=old,
+            after=new,
+            object=new
+        )
+
+    @staticmethod
+    def compare_objects(actor, old, new, attribute_list, censored_attributes=None):
+        """Checks for differences in two objects given an attribute-list
+
+        :type actor: nav.models.profiles.Account
+        :type old: models.Model
+        :type new: models.Model
+        :type attribute_list: list[str]
+
+        Adds a log entry for each attribute where the two objects differ.
+        """
+        if censored_attributes is None:
+            censored_attributes = []
+
+        for attribute in attribute_list:
+            old_value = getattr(old, attribute)
+            new_value = getattr(new, attribute)
+            if old_value != new_value:
+                include_values = attribute not in censored_attributes
+                LogEntry.add_edit_entry(actor, old, new, attribute,
+                                        include_values=include_values)
 
     def __str__(self):
         return self.summary

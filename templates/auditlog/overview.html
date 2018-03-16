@@ -1,28 +1,5 @@
 {% extends "auditlog/base.html" %}
 
 {% block content %}
-{% if actors %}
-<h3>Who/what did something</h3>
-<ul>
-{% for actor in actors %}
-<li><a href="{% url 'auditlog-actor-list' auditmodel=actor %}">{{ actor }}</a></li>
-{% endfor %}
-</ul>
-{% endif %}
-{% if objects %}
-<h3>What was done to what</h3>
-<ul>
-{% for object in objects %}
-<li><a href="{% url 'auditlog-object-list' auditmodel=object %}">{{ object }}</a></li>
-{% endfor %}
-</ul>
-{% endif %}
-{% if targets %}
-<h3>What was affected by what</h3>
-<ul>
-{% for target in targets %}
-<li><a href="{% url 'auditlog-target-list' auditmodel=target %}">{{ target }}</a></li>
-{% endfor %}
-</ul>
-{% endif %}
+  {% include "auditlog/_logentry_list.html" %}
 {% endblock content %}

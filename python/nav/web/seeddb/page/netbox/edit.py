@@ -18,6 +18,7 @@
 
 # pylint: disable=F0401
 
+import copy
 import json
 import socket
 from socket import error as SocketError
@@ -28,6 +29,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.db import transaction
 from django.contrib import messages
 
+from nav.auditlog.models import LogEntry
 from nav.models.manage import Netbox, NetboxCategory, NetboxType
 from nav.models.manage import NetboxInfo
 from nav.Snmp import Snmp
@@ -39,17 +41,35 @@ from nav.web.seeddb.page.netbox import NetboxInfo as NI
 from nav.web.seeddb.page.netbox.forms import NetboxModelForm
 
 
+def log_netbox_change(account, old, new):
+    """Log specific user initiated changes to netboxes"""
+
+    # If this is a new netbox
+    if not old:
+        LogEntry.add_create_entry(account, new)
+        return
+
+    # Compare changes from old to new
+    attribute_list = ['read_only', 'read_write', 'category', 'ip',
+                      'room', 'organization', 'snmp_version']
+    LogEntry.compare_objects(account, old, new, attribute_list,
+                             censored_attributes=['read_only', 'read_write'])
+
+
 def netbox_edit(request, netbox_id=None):
     """Controller for edit or create of netbox"""
     netbox = None
     if netbox_id:
         netbox = get_object_or_404(Netbox, pk=netbox_id)
 
+    old_netbox = copy.deepcopy(netbox)
+
     if request.method == 'POST':
         form = NetboxModelForm(request.POST, instance=netbox)
         if form.is_valid():
             netbox = netbox_do_save(form)
             messages.add_message(request, messages.SUCCESS, 'IP Device saved')
+            log_netbox_change(request.account, old_netbox, netbox)
             return redirect(reverse('seeddb-netbox-edit', args=[netbox.pk]))
         else:
             messages.add_message(request, messages.ERROR, 'Form was not valid')

@@ -16,74 +16,49 @@
 
 from __future__ import unicode_literals, absolute_import
 
-from django.views.generic import ListView, TemplateView
+import json
+
+from django.shortcuts import get_object_or_404
+from django.views.generic import TemplateView
 
 from .models import LogEntry
+from nav.models.manage import Netbox
+from nav.web.utils import create_title, get_navpath_root
 
 
-class AuditlogViewMixin(object):
-
-    def get_context_data(self, **kwargs):
-        tool = {
-            'name': 'Auditlog',
-            'description': 'Look up who/what did what with what',
-        }
-        context = {'tool': tool}
-        context.update(**kwargs)
-        return super(AuditlogViewMixin, self).get_context_data(**context)
-
-
-class AuditlogOverview(AuditlogViewMixin, TemplateView):
+class AuditlogOverview(TemplateView):
     model = LogEntry
     template_name = 'auditlog/overview.html'
 
     def get_context_data(self, **kwargs):
-        qs = self.model.objects.values('actor_model', 'object_model',
-                                       'target_model')
-        actors, objects, targets = set(), set(), set()
-        for row in qs:
-            actors.add(row['actor_model'])
-            objects.add(row['object_model'])
-            targets.add(row['target_model'])
-        objects.discard(None)
-        targets.discard(None)
+        verbs = list(LogEntry.objects.order_by().values_list('verb', flat=True).distinct())
+        verbs.sort()
+        navpath = (get_navpath_root(), ('Audit Log', ))
         context = {
-            'actors': actors,
-            'objects': objects,
-            'targets': targets,
+            'auditlog_verbs': verbs,
+            'navpath': navpath,
+            'title': create_title(navpath),
         }
         context.update(**kwargs)
         return super(AuditlogOverview, self).get_context_data(**context)
 
 
-class AbstractAuditlogListView(AuditlogViewMixin, ListView):
-    slug_url_kwarg = 'auditmodel'
-    model = LogEntry
-    template_name = 'auditlog/logentry_list.html'
-    limit_to = None
+class AuditlogNetboxDetail(AuditlogOverview):
+    """Displays all log entries for a netbox"""
 
     def get_context_data(self, **kwargs):
-        context = {'auditmodel': self.kwargs.get(self.slug_url_kwarg, None)}
-        context.update(**kwargs)
-        return super(AbstractAuditlogListView, self).get_context_data(**context)
+        context = super(AuditlogNetboxDetail, self).get_context_data(**kwargs)
+        context.update({
+            'auditlog_api_parameters': self.get_api_parameters(),
+            'netbox': get_object_or_404(Netbox, pk=self.kwargs.get('netboxid'))
+        })
+        return context
 
-    def get_queryset(self):
-        # Show only logs for specific object type
-        qs = super(AbstractAuditlogListView, self).get_queryset()
-        auditmodel = self.kwargs.get(self.slug_url_kwarg, None)
-        if auditmodel and self.limit_to:
-            kwargs = {self.limit_to: auditmodel}
-            qs = qs.filter(**kwargs)
-        return qs
+    def get_api_parameters(self):
+        """Creates api parameters"""
+        api_parameters = {}
+        netboxid = self.kwargs.get('netboxid')
+        if netboxid:
+            api_parameters = {'netboxid': netboxid}
+        return json.dumps(api_parameters)
 
-
-class AuditlogObjectListView(AbstractAuditlogListView):
-    limit_to = 'object_model'
-
-
-class AuditlogActorListView(AbstractAuditlogListView):
-    limit_to = 'actor_model'
-
-
-class AuditlogTargetListView(AbstractAuditlogListView):
-    limit_to = 'target_model'
