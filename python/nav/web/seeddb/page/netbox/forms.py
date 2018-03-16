@@ -19,11 +19,11 @@ from socket import error as SocketError
 
 from django import forms
 from django.db.models import Q
-from django_hstore.forms import DictionaryField
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Submit,
                                             Fieldset, Field, Div, HTML)
 
+from nav.django.fields import HStoreField
 from nav.web.crispyforms import LabelSubmit, NavButton
 from nav.models.manage import Room, Category, Organization, Netbox
 from nav.models.manage import NetboxInfo
@@ -44,8 +44,7 @@ class NetboxModelForm(forms.ModelForm):
     """Modelform for netbox for use in SeedDB"""
     ip = forms.CharField()
     function = forms.CharField(required=False)
-    data = DictionaryField(widget=forms.Textarea(), label='Attributes',
-                           required=False)
+    data = HStoreField(label='Attributes', required=False)
     sysname = forms.CharField(required=False)
     snmp_version = forms.ChoiceField(choices=[('1', '1'), ('2', '2c')],
                                      widget=forms.RadioSelect, initial='2')
