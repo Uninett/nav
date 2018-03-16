@@ -119,11 +119,22 @@ class LogEntry(models.Model):
 
         :type attribute: str
         """
+        def dict_to_string(d):
+            """
+            {"a": "b", "c": "d"} => "a=b, c=d"
+            """
+            return ", ".join("{}={}".format(x, y) for x, y in d.items())
+
         model = new.__class__.__name__.lower()
         prefix = u'{actor} edited {object}'
         old_value = getattr(old, attribute)
         new_value = getattr(new, attribute)
         if include_values:
+            # Dicts fucks up the template, try to intervene
+            if isinstance(old_value, dict):
+                old_value = dict_to_string(old_value)
+            if isinstance(new_value, dict):
+                new_value = dict_to_string(new_value)
             summary = "{} changed from '{}' to '{}'".format(
                 attribute, old_value, new_value)
         else:
@@ -159,7 +170,6 @@ class LogEntry(models.Model):
                 include_values = attribute not in censored_attributes
                 LogEntry.add_edit_entry(actor, old, new, attribute,
                                         include_values=include_values)
-
 
     def __str__(self):
         return self.summary
