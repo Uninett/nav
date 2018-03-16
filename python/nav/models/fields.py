@@ -33,7 +33,7 @@ try:
 except ImportError:
     # Django >= 1.8
     from django.apps import apps
-    get_models = apps.get_models()
+    get_models = apps.get_models
     del apps
 
 from nav.util import is_valid_cidr, is_valid_ip
