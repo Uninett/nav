@@ -37,11 +37,18 @@ def bootstrap_django(caller=None):
 
     mydir = dirname(dirname(realpath(__file__)))
     sys.path.append(mydir)
-    logmsg = 'Bootstrapped at {}'.format(now())
-    if caller:
-        logmsg = logmsg + ', called by: ' + caller
-    print(logmsg)
 
-    if not RUN and not apps.ready:
-        django.setup()
-        RUN = True
+    print('Attempt to bootstrap by {} at {}'.format(caller, now()))
+    try:
+        if not RUN and not apps.ready:
+            django.setup()
+            RUN = True
+            print('Bootstrap called by {} at {}: SUCCESS'.format(caller,
+                                                                 now()))
+            return
+        else:
+            print('Bootstrap called by {} at {}: duplicate run, FAIL'.format(
+                caller, now()))
+    except Exception as e:
+        print('Bootstrap called by {} at {}: FAIL'.format(caller, now()))
+        raise
