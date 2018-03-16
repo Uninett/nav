@@ -6,6 +6,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+from nav.bootstrap import bootstrap_django
+bootstrap_django(__file__)
+
 USERNAME = 'admin'
 gunicorn = None
 
