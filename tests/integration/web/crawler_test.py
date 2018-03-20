@@ -18,7 +18,10 @@ from __future__ import print_function
 from collections import namedtuple
 from lxml.html import fromstring
 import os
-import httplib
+try:
+    from http.client import BadStatusLine
+except ImportError:
+    from httplib import BadStatusLine
 
 import pytest
 
@@ -109,7 +112,7 @@ class WebCrawler(object):
             page = Page(url, None, error, None)
             self._add_seen(page)
 
-        except httplib.BadStatusLine as error:
+        except BadStatusLine as error:
             content = 'Server abruptly closed connection'
             page = Page(url, 500, error, content)
             self._add_seen(page)
