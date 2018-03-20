@@ -23,7 +23,6 @@ import logging
 from django.http import HttpResponse
 
 import nav.buildconf
-from nav.models.profiles import Account
 
 
 logger = logging.getLogger("nav.web")
@@ -52,6 +51,7 @@ def should_show(url, user):
     starts_with_http = (url.lower().startswith('http://') or
                         url.lower().startswith('https://'))
 
+    from nav.models.profiles import Account
     try:
         return (starts_with_http or
                 Account.objects.get(id=user['id']).has_perm('web_access', url))
