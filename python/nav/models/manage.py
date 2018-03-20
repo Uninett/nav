@@ -108,7 +108,7 @@ class Netbox(models.Model):
                                blank=True, default=None,
                                related_name='instances')
 
-    data = HStoreField(blank=True, null=True)
+    data = HStoreField(blank=True, null=True, default={})
     objects = models.Manager()
     ups_objects = UpsManager()
 
@@ -473,7 +473,7 @@ class NetboxEntity(models.Model):
     mfg_date = models.DateTimeField(null=True)
     uris = VarcharField(null=True)
     gone_since = models.DateTimeField(null=True)
-    data = HStoreField()
+    data = HStoreField(default={})
 
     class Meta:
         db_table = 'netboxentity'
@@ -742,7 +742,7 @@ class Room(models.Model):
     location = models.ForeignKey('Location', db_column='locationid')
     description = VarcharField(db_column='descr', blank=True)
     position = PointField(null=True, blank=True, default=None)
-    data = HStoreField(blank=True)
+    data = HStoreField(blank=True, default={})
 
     class Meta(object):
         db_table = 'room'
@@ -804,7 +804,7 @@ class Location(models.Model, TreeMixin):
     parent = models.ForeignKey('self', db_column='parent',
                                blank=True, null=True)
     description = VarcharField(db_column='descr', blank=True)
-    data = HStoreField()
+    data = HStoreField(default={})
 
     class Meta(object):
         db_table = 'location'
@@ -833,7 +833,7 @@ class Organization(models.Model, TreeMixin):
                                blank=True, null=True)
     description = VarcharField(db_column='descr', blank=True)
     contact = VarcharField(db_column='contact', blank=True)
-    data = HStoreField()
+    data = HStoreField(default={})
 
     class Meta(object):
         db_table = 'org'

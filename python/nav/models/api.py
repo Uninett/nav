@@ -45,7 +45,7 @@ class APIToken(models.Model):
     comment = models.TextField(null=True, blank=True)
     revoked = models.BooleanField(default=False)
     last_used = models.DateTimeField(null=True)
-    endpoints = HStoreField(null=True, blank=True)
+    endpoints = HStoreField(null=True, blank=True, default={})
     permission = VarcharField(choices=permission_choices,
                               help_text=permission_help_text,
                               default='read')
