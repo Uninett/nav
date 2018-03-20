@@ -13,16 +13,14 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import
 
 try:
     from django.contrib.postgres.fields import HStoreField
     DictionaryField = HStoreField
-    print('Using new style hstore: django.contrib.hstore')
 except ImportError as e:
     from django_hstore.hstore import DictionaryField
     HStoreField = DictionaryField
-    print('Using old style hstore: django_hstore, because:', str(e))
 
 __all__ = [
     'DictionaryField',

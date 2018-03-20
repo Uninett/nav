@@ -13,7 +13,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import
 
 from os.path import dirname, realpath
 import os
@@ -38,17 +38,7 @@ def bootstrap_django(caller=None):
     mydir = dirname(dirname(realpath(__file__)))
     sys.path.append(mydir)
 
-    print('Attempt to bootstrap by {} at {}'.format(caller, now()))
-    try:
-        if not RUN and not apps.ready:
-            django.setup()
-            RUN = True
-            print('Bootstrap called by {} at {}: SUCCESS'.format(caller,
-                                                                 now()))
-            return
-        else:
-            print('Bootstrap called by {} at {}: duplicate run, FAIL'.format(
-                caller, now()))
-    except Exception as e:
-        print('Bootstrap called by {} at {}: FAIL'.format(caller, now()))
-        raise
+    if not RUN and not apps.ready:
+        django.setup()
+        RUN = True
+        return
