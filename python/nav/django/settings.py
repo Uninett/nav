@@ -201,7 +201,6 @@ CRISPY_TEMPLATE_PACK = 'foundation'
 INSTALLED_APPS = (
     'nav.models',
     'nav.django',
-    'django.contrib.postgres',
     'django.contrib.staticfiles',
     'django.contrib.sessions',
     'django.contrib.humanize',
@@ -214,6 +213,8 @@ INSTALLED_APPS = (
 
 if tuple(django.VERSION[:2]) == (1, 7):
     INSTALLED_APPS = INSTALLED_APPS + ('django_hstore',)
+else:
+    INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.postgres',)
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
