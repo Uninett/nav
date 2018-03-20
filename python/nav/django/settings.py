@@ -201,6 +201,7 @@ CRISPY_TEMPLATE_PACK = 'foundation'
 INSTALLED_APPS = (
     'nav.models',
     'nav.django',
+    'django.contrib.postgres',
     'django.contrib.staticfiles',
     'django.contrib.sessions',
     'django.contrib.humanize',
