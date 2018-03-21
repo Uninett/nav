@@ -30,7 +30,8 @@ from nav import daemon
 from nav.debug import log_stacktrace, log_last_django_query
 from nav.logs import init_generic_logging
 from nav.topology.layer2 import update_layer2_topology
-from nav.topology.analyze import AdjacencyReducer, build_candidate_graph_from_db
+from nav.topology.analyze import (AdjacencyReducer, build_candidate_graph_from_db,
+                                  get_aggregate_mapping)
 from nav.topology.vlan import VlanGraphAnalyzer, VlanTopologyUpdater
 
 from nav.models.manage import Vlan, Prefix
@@ -114,7 +115,9 @@ def with_exception_logging(func):
 @with_exception_logging
 def do_layer2_detection():
     """Detect and update layer 2 topology"""
-    reducer = AdjacencyReducer(build_candidate_graph_from_db())
+    candidates = build_candidate_graph_from_db()
+    aggregates = get_aggregate_mapping(include_stacks=True)
+    reducer = AdjacencyReducer(candidates, aggregates)
     reducer.reduce()
     links = reducer.get_single_edges_from_ports()
     update_layer2_topology(links)
