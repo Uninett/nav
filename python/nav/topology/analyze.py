@@ -72,8 +72,9 @@ class Port(tuple):
 class AdjacencyAnalyzer(object):
     """Adjacency candidate graph analyzer and manipulator"""
 
-    def __init__(self, graph):
+    def __init__(self, graph, aggregates=None):
         self.graph = graph
+        self.aggregates = aggregates or {}
 
     def get_max_out_degree(self):
         """Returns the port node with the highest outgoing degree"""
@@ -152,6 +153,7 @@ class AdjacencyReducer(AdjacencyAnalyzer):
         self.result = nx.DiGraph(name="network adjacency candidates")
         self._reduce_discovery_protocol(LLDP)
         self._reduce_discovery_protocol(CDP)
+        self._remove_aggregates()
         self._reduce_cam()
         self.graph = self.result
 
@@ -185,6 +187,23 @@ class AdjacencyReducer(AdjacencyAnalyzer):
                 degree += 1
                 continue
         self.result.add_edges_from(self.get_single_edges_from_ports())
+
+    def _remove_aggregates(self):
+        """Removes from the graph LAG ports whose aggregated (physical) ports
+        have already had their topology discovered.
+        """
+        removeable = []
+        for aggregator, aggregated in self.aggregates.items():
+            if aggregator in self.graph:
+                if any(port in self.result for port in aggregated):
+                    removeable.append(aggregator)
+
+        if removeable:
+            for port in sorted(removeable, key=str):
+                _logger.debug(
+                    "Ignoring aggregate %s [%s]",
+                    port, ', '.join(str(s) for s in self.aggregates[port]))
+            self.graph.remove_nodes_from(removeable)
 
     def _reduce_discovery_protocol(self, sourcetype):
         done = False
