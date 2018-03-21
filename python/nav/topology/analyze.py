@@ -39,8 +39,12 @@ Port nodes can have outgoing edges to other Port nodes, or to Netbox nodes
 """
 # pylint: disable=R0903
 
+from collections import defaultdict
+from itertools import chain
+
 import networkx as nx
-from nav.models.manage import AdjacencyCandidate
+from nav.models.manage import (AdjacencyCandidate, InterfaceAggregate,
+                               InterfaceStack)
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -298,6 +302,43 @@ def build_candidate_graph_from_db():
         graph.add_edge(netbox, port)
 
     return graph
+
+
+def get_aggregate_mapping(include_stacks=False):
+    """Returns a dictionary describing each aggregator and its aggregated
+    ports
+
+    :type include_stacks: bool
+    :param include_stacks: Whether to interpret basic interface layering as
+                           evidence for LAG configuration (which isn't always
+                           the case)
+    :returns: { Port: { Port, ... }, ... }
+    """
+    aggregates = _get_aggregates()
+    if include_stacks:
+        aggregates = chain(aggregates, _get_stacks())
+
+    mapping = defaultdict(set)
+    for aggregator, ifc in aggregates:
+        mapping[aggregator].add(ifc)
+
+    return mapping
+
+
+def _get_stacks():
+    stacks = InterfaceStack.objects.select_related(
+        'higher', 'higher__netbox', 'lower', 'lower__netbox')
+    return ((interface_to_port(agg.higher),
+             interface_to_port(agg.lower))
+            for agg in stacks)
+
+
+def _get_aggregates():
+    aggregates = InterfaceAggregate.objects.select_related(
+        'aggregator', 'aggregator__netbox', 'interface', 'interface__netbox')
+    return ((interface_to_port(agg.aggregator),
+             interface_to_port(agg.interface))
+            for agg in aggregates)
 
 
 def interface_to_port(interface):
