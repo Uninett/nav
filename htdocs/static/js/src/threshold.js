@@ -70,7 +70,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         $metricGraph.empty();
         startSpinner();
         var image = new Image();
-        var url = $dataElement.attr('data-renderurl') + '?metric=' + metric;
+        var url = $dataElement.attr('data-renderurl') + '?metric=' + encodeURIComponent(metric);
         if ($rawButton.prop('checked')) {
             url += '&raw=true';
         }

@@ -259,7 +259,7 @@ class EventMixIn(object):
                     return UnknownEventSubject(self)
 
         # catch-all
-        return self.netbox or self.device or None
+        return self.netbox or self.device or UnknownEventSubject(self)
 
 
 @python_2_unicode_compatible
