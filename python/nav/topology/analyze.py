@@ -266,16 +266,12 @@ def build_candidate_graph_from_db():
         if not cand.interface.is_admin_up():
             continue  # ignore data from disabled interfaces
         if cand.to_interface:
-            dest_node = Port((cand.to_netbox.id,
-                              cand.to_interface.id))
-            dest_node.name = "%s (%s)" % (cand.to_netbox.sysname,
-                                          cand.to_interface.ifname)
+            dest_node = interface_to_port(cand.to_interface)
         else:
             dest_node = Box(cand.to_netbox.id)
             dest_node.name = cand.to_netbox.sysname
 
-        port = Port((cand.netbox.id, cand.interface.id))
-        port.name = "%s (%s)" % (cand.netbox.sysname, cand.interface.ifname)
+        port = interface_to_port(cand.interface)
         netbox = Box(cand.netbox.id)
         netbox.name = cand.netbox.sysname
 
@@ -283,3 +279,9 @@ def build_candidate_graph_from_db():
         graph.add_edge(netbox, port)
 
     return graph
+
+
+def interface_to_port(interface):
+    port = Port((interface.netbox.id, interface.id))
+    port.name = "{ifc.netbox.sysname} ({ifc.ifname})".format(ifc=interface)
+    return port
