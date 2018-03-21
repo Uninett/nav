@@ -24,7 +24,7 @@ from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column)
 
 from django.utils import six
 
-from nav.django.fields import HStoreField
+from nav.django.forms import HStoreField
 from nav.web.crispyforms import LabelSubmit
 from nav.models.manage import (Location, Room, Organization, NetboxType,
                                Vendor, NetboxGroup, Netbox)

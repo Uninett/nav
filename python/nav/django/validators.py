@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011, 2018 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,7 +14,14 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import unicode_literals, absolute_import
+
+import json
 from decimal import Decimal, InvalidOperation
+
+from django.utils import six
+from django.utils.translation import ugettext
+from django.core.exceptions import ValidationError
 
 
 def is_valid_point_string(point_string):
@@ -30,3 +37,28 @@ def is_valid_point_string(point_string):
         else:
             return True
     return False
+
+
+def validate_hstore(value):
+    """ HSTORE validation. """
+    # if empty
+    if value is None or value == '' or value == 'null':
+        value = '{}'
+
+    # ensure valid JSON
+    try:
+        # convert strings to dictionaries
+        if isinstance(value, six.string_types):
+            dictionary = json.loads(value)
+
+        # if not a string we'll check at the next control if it's a dict
+        else:
+            dictionary = value
+    except ValueError as e:
+        raise ValidationError(ugettext(u'Invalid JSON: {0}').format(e))
+
+    # ensure is a dictionary
+    if not isinstance(dictionary, dict):
+        raise ValidationError(ugettext(u'No lists or values allowed, only dictionaries'))
+
+    return dictionary

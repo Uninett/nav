@@ -23,7 +23,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Submit,
                                             Fieldset, Field, Div, HTML)
 
-from nav.django.fields import HStoreField
+from nav.django.forms import HStoreField
 from nav.web.crispyforms import LabelSubmit, NavButton
 from nav.models.manage import Room, Category, Organization, Netbox
 from nav.models.manage import NetboxInfo
