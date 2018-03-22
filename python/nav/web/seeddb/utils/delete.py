@@ -50,10 +50,7 @@ def qs_delete(queryset):
         'table': quote_name(table),
         'field': quote_name(primary_key),
     }
-    try:
-        cursor.execute(sql, (pk_list,))
-    finally:
-        transaction.set_dirty()
+    cursor.execute(sql, (pk_list,))
     return cursor.rowcount
 
 

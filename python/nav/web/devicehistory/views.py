@@ -287,8 +287,6 @@ def do_delete_module(request):
             "DELETE FROM netboxentity WHERE netboxid = %s and deviceid = %s",
             [hist.module.netbox.id, hist.module.device.id])
 
-    transaction.set_dirty()
-
     return HttpResponseRedirect(reverse('devicehistory-module'))
 
 

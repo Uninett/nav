@@ -302,7 +302,6 @@ def edit(request, task_id=None, start_time=None):
                     sql = """DELETE FROM maint_component
                                 WHERE maint_taskid = %s"""
                     cursor.execute(sql, (new_task.id,))
-                    transaction.set_dirty()
                 for key in component_data:
                     for component in component_data[key]:
                         task_component = MaintenanceComponent(
