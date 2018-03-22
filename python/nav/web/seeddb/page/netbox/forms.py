@@ -35,6 +35,10 @@ _logger = logging.getLogger(__name__)
 
 
 class MyModelMultipleChoiceField(forms.ModelMultipleChoiceField):
+    """
+    This class only exists to override Django's unwanted default help text
+    for ModelMultipleChoiceField
+    """
     def __init__(self, *args, **kwargs):
         super(MyModelMultipleChoiceField, self).__init__(*args, **kwargs)
         self.help_text = kwargs.get('help_text', '')
