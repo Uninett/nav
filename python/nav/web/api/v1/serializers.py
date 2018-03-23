@@ -84,7 +84,7 @@ class SubNetboxSerializer(serializers.ModelSerializer):
 class NetboxSerializer(serializers.ModelSerializer):
     """Serializer for the netbox model"""
     chassis = EntitySerializer(source='get_chassis', many=True, read_only=True)
-    sysname = serializers.CharField(required=False, blank=True)
+    sysname = serializers.CharField(required=False, allow_blank=True)
 
     # We need two fields for related fields that are required: one for reading
     # (room) and one for writing (roomid).
@@ -97,22 +97,28 @@ class NetboxSerializer(serializers.ModelSerializer):
     # Thus we need a PrimaryKeyRelatedField where the source defines the key
     # that we use to find the related room when creating a new netbox
 
-    roomid = serializers.PrimaryKeyRelatedField(source='room', write_only=True)
+    roomid = serializers.PrimaryKeyRelatedField(
+        source='room', write_only=True, queryset=manage.Room.objects.all())
     room = RoomSerializer(required=False)
 
-    organizationid = serializers.PrimaryKeyRelatedField(source='organization',
-                                                        write_only=True)
+    organizationid = serializers.PrimaryKeyRelatedField(
+        source='organization', write_only=True, queryset=manage.Organization.objects.all())
     organization = OrganizationSerializer(required=False)
-    categoryid = serializers.PrimaryKeyRelatedField(source='category',
-                                                    write_only=True)
+
+    categoryid = serializers.PrimaryKeyRelatedField(
+        source='category', write_only=True, queryset=manage.Category.objects.all())
     category = CategorySerializer(required=False)
+
     masterid = serializers.PrimaryKeyRelatedField(source='master',
                                                   required=False,
-                                                  write_only=True)
+                                                  write_only=True,
+                                                  queryset=manage.Netbox.objects.all()
+                                                  )
     master = SubNetboxSerializer(required=False)
-    typeid = serializers.PrimaryKeyRelatedField(source='type',
-                                                required=False,
-                                                write_only=True)
+
+    typeid = serializers.PrimaryKeyRelatedField(source='type', required=False,
+                                                write_only=True,
+                                                queryset=manage.NetboxType.objects.all())
     type = NetboxTypeSerializer(read_only=True)
 
 
@@ -195,11 +201,11 @@ class RackItemSerializer(serializers.Serializer):
     """Serialize a rack item manually - no models available"""
     id = serializers.Field()
     title = serializers.Field()
-    metric = serializers.Field('get_metric')
+    metric = serializers.ReadOnlyField(source='get_metric')
     unit_of_measurement = serializers.Field()
     human_readable = serializers.Field()
-    absolute_url = serializers.Field('get_absolute_url')
-    display_range = serializers.Field('get_display_range')
+    absolute_url = serializers.ReadOnlyField(source='get_absolute_url')
+    display_range = serializers.ReadOnlyField(source='get_display_range')
 
 
 class RackConfigurationField(serializers.Field):

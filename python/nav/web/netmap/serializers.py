@@ -59,14 +59,15 @@ class InstanceRelatedField(serializers.RelatedField):
 class NetmapViewSerializer(serializers.Serializer):
     """Serializer for NetmapView"""
     viewid = serializers.Field()
-    owner = serializers.RelatedField()
+    owner = serializers.RelatedField(read_only=True)
     title = serializers.CharField()
-    description = serializers.CharField(widget=Textarea, required=False)
+    description = serializers.CharField(required=False)
     topology = serializers.ChoiceField(choices=profiles.LINK_TYPES)
     zoom = serializers.CharField(required=False)
     last_modified = serializers.DateTimeField()
     is_public = serializers.BooleanField()
-    categories = MultipleChoiceField()
+    # Cannot set choices to actual data here, breaks import of models
+    categories = serializers.MultipleChoiceField([])
     location_room_filter = serializers.CharField(max_length=255, required=False)
     display_orphans = serializers.BooleanField()
     display_elinks = serializers.BooleanField()
