@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011, 2018 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,7 +15,14 @@
 #
 """Django form field types for NAV"""
 
+from __future__ import unicode_literals, absolute_import
+
+import json
+
 from django import forms
+from django.forms import Field, Textarea
+from django.utils import six
+from django.core.exceptions import ValidationError
 
 from nav.util import is_valid_cidr
 from nav.django import validators, widgets
@@ -40,3 +47,20 @@ class PointField(forms.CharField):
             return super(PointField, self).clean(value)
         raise forms.ValidationError(
             "Invalid format. Point field format is '(x,y)'.")
+
+
+class HStoreField(Field):
+
+    def __init__(self, **params):
+        params['widget'] = params.get('widget', Textarea)
+        super(HStoreField, self).__init__(**params)
+
+    def to_python(self, value):
+        return validators.validate_hstore(value)
+
+    def render(self, name, value, attrs=None):
+        # return json representation of a meaningful value
+        # doesn't show anything for None, empty strings or empty dictionaries
+        if value and not isinstance(value, six.string_types):
+            value = json.dumps(value, sort_keys=True, indent=4)
+        return super(HStoreField, self).render(name, value, attrs)

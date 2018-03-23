@@ -30,9 +30,9 @@ from django.views.decorators.debug import sensitive_variables
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
 from django.utils.encoding import python_2_unicode_compatible
-from django_hstore import hstore
 from django.forms.models import model_to_dict
 
+from nav.adapters import HStoreField
 import nav.buildconf
 import nav.pwhash
 from nav.config import getconfig as get_alertengine_config
@@ -90,9 +90,7 @@ class Account(models.Model):
     name = VarcharField()
     password = VarcharField()
     ext_sync = VarcharField()
-    preferences = hstore.DictionaryField()
-
-    objects = hstore.HStoreManager()
+    preferences = HStoreField(default={})
 
     organizations = models.ManyToManyField(Organization, db_table='accountorg')
 

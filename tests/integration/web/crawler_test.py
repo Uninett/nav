@@ -18,7 +18,13 @@ from __future__ import print_function
 from collections import namedtuple
 from lxml.html import fromstring
 import os
+try:
+    from http.client import BadStatusLine
+except ImportError:
+    from httplib import BadStatusLine
+
 import pytest
+
 from tidylib import tidy_document
 from django.utils import six
 from django.utils.six.moves.urllib.request import (urlopen, build_opener,
@@ -104,6 +110,11 @@ class WebCrawler(object):
 
         except URLError as error:
             page = Page(url, None, error, None)
+            self._add_seen(page)
+
+        except BadStatusLine as error:
+            content = 'Server abruptly closed connection'
+            page = Page(url, 500, error, content)
             self._add_seen(page)
 
         return page

@@ -18,6 +18,7 @@
 
 import os
 import sys
+import django
 
 from nav.config import read_flat_config, getconfig
 from nav.db import get_connection_parameters
@@ -205,11 +206,15 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'crispy_forms',
     'crispy_forms_foundation',
-    'django_hstore',
     'rest_framework',
     'nav.auditlog',
     'nav.web.macwatch',
 )
+
+if tuple(django.VERSION[:2]) == (1, 7):
+    INSTALLED_APPS = INSTALLED_APPS + ('django_hstore',)
+else:
+    INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.postgres',)
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),

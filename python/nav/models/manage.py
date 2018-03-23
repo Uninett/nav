@@ -34,6 +34,7 @@ from django.db.models import Q
 from django.utils.encoding import python_2_unicode_compatible
 
 from nav import util
+from nav.adapters import HStoreField
 from nav.bitvector import BitVector
 from nav.metrics.data import get_netboxes_availability
 from nav.metrics.graphs import get_simple_graph_url
@@ -50,7 +51,6 @@ from nav.metrics.templates import (
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
-from django_hstore import hstore
 import nav.models.event
 
 
@@ -108,8 +108,8 @@ class Netbox(models.Model):
                                blank=True, default=None,
                                related_name='instances')
 
-    data = hstore.DictionaryField(blank=True)
-    objects = hstore.HStoreManager()
+    data = HStoreField(blank=True, null=True, default={})
+    objects = models.Manager()
     ups_objects = UpsManager()
 
     class Meta(object):
@@ -473,9 +473,7 @@ class NetboxEntity(models.Model):
     mfg_date = models.DateTimeField(null=True)
     uris = VarcharField(null=True)
     gone_since = models.DateTimeField(null=True)
-    data = hstore.DictionaryField()
-
-    objects = hstore.HStoreManager()
+    data = HStoreField(default={})
 
     class Meta:
         db_table = 'netboxentity'
@@ -744,9 +742,7 @@ class Room(models.Model):
     location = models.ForeignKey('Location', db_column='locationid')
     description = VarcharField(db_column='descr', blank=True)
     position = PointField(null=True, blank=True, default=None)
-    data = hstore.DictionaryField(blank=True)
-
-    objects = hstore.HStoreManager()
+    data = HStoreField(blank=True, default={})
 
     class Meta(object):
         db_table = 'room'
@@ -808,8 +804,7 @@ class Location(models.Model, TreeMixin):
     parent = models.ForeignKey('self', db_column='parent',
                                blank=True, null=True)
     description = VarcharField(db_column='descr', blank=True)
-    data = hstore.DictionaryField()
-    objects = hstore.HStoreManager()
+    data = HStoreField(default={})
 
     class Meta(object):
         db_table = 'location'
@@ -838,9 +833,7 @@ class Organization(models.Model, TreeMixin):
                                blank=True, null=True)
     description = VarcharField(db_column='descr', blank=True)
     contact = VarcharField(db_column='contact', blank=True)
-    data = hstore.DictionaryField()
-
-    objects = hstore.HStoreManager()
+    data = HStoreField(default={})
 
     class Meta(object):
         db_table = 'org'

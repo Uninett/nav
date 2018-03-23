@@ -19,9 +19,9 @@ from datetime import datetime
 
 from django.db import models
 from django.core.urlresolvers import reverse
-from django_hstore import hstore
 from django.utils.encoding import python_2_unicode_compatible
 
+from nav.adapters import HStoreField
 from nav.models.fields import VarcharField
 from nav.models.profiles import Account
 
@@ -45,12 +45,10 @@ class APIToken(models.Model):
     comment = models.TextField(null=True, blank=True)
     revoked = models.BooleanField(default=False)
     last_used = models.DateTimeField(null=True)
-    endpoints = hstore.DictionaryField(null=True, blank=True)
+    endpoints = HStoreField(null=True, blank=True, default={})
     permission = VarcharField(choices=permission_choices,
                               help_text=permission_help_text,
                               default='read')
-
-    objects = hstore.HStoreManager()
 
     def __str__(self):
         return self.token
