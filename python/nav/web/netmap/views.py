@@ -21,7 +21,7 @@ from django.shortcuts import get_object_or_404
 
 from rest_framework import status, generics, views
 from rest_framework.response import Response
-from rest_framework.renderers import UnicodeJSONRenderer as JSONRenderer
+from rest_framework.renderers import JSONRenderer
 
 from nav.django.utils import get_account
 from nav.models.profiles import (
