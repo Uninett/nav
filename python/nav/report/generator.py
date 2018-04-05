@@ -18,9 +18,6 @@
 import io
 import re
 
-from django.utils import six
-from django.utils.six.moves.urllib.parse import unquote_plus
-
 import nav
 from nav.report.dbresult import DatabaseResult
 from nav.report.report import Report
@@ -276,8 +273,8 @@ class ArgumentParser(object):
                 match = pattern.search(key)
 
                 if match:
-                    group = unquote_plus(match.group('group'))
-                    group_key = unquote_plus(match.group('groupkey'))
+                    group = match.group('group')
+                    group_key = match.group('groupkey')
                     if group in ("navn", "name"):
                         config.name[group_key] = value
                     elif group in ("url", "uri"):
@@ -293,7 +290,7 @@ class ArgumentParser(object):
 
                 if not match:
                     if value:
-                        fields[unquote_plus(key)] = unquote_plus(value)
+                        fields[key] = value
 
         for key, value in fields.items():
 
