@@ -38,7 +38,6 @@ except IOError:
 
 DEBUG = nav_config.get('DJANGO_DEBUG', 'False').upper() in ('TRUE', 'YES', 'ON')
 
-TEMPLATE_DEBUG = DEBUG # XXX Pre Django 1.8
 
 # Admins
 ADMINS = (
@@ -106,8 +105,9 @@ TEMPLATES = [
     }
 ]
 
-TEMPLATE_DIRS = tuple(TEMPLATES[0]['DIRS']) # XXX Pre Django 1.8
-TEMPLATE_CONTEXT_PROCESSORS = tuple(        # XXX Pre Django 1.8
+TEMPLATE_DEBUG = DEBUG                       # XXX Pre Django 1.8
+TEMPLATE_DIRS = tuple(TEMPLATES[0]['DIRS'])  # XXX Pre Django 1.8
+TEMPLATE_CONTEXT_PROCESSORS = tuple(         # XXX Pre Django 1.8
     TEMPLATES[0]['OPTIONS']['context_processors']
 )
 
