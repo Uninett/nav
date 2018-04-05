@@ -1,3 +1,37 @@
+Version 4.8.4
+(released 05 Apr 2018)
+
+ Fixed GitHub issues in this release:
+
+  * #1638 ('array index out of range' when viewing a trunk port in
+           PortAdmin)
+  * #1643 (Location with active alerts - edit title)
+  * #1650 (Submitting a threshold rule without a target crashes with a
+           KeyError)
+  * #1655 (Auditlog only displaying the first 100 entries in the log)
+    + #1654 (Fix broken auditlog browsing and auditlog more things)
+  * #1656 (Sensor widget crashes when sensor is missing)
+  * #1660 (UninettMailDispatcher does not support non-ASCII characters
+           and requires SMTP server on localhost)
+  * #1661 (Business reports, link availability - want description)
+  * #1664 (Remove bracket syntax for url parameters to Graphite)
+  * #1665 (Interface details tries to get sensor data on empty
+           sensorlist)
+  * #1669 (Shouldn't use CAM to select topology for aggregated ports
+           where LLDP is available on the physical ports)
+    + #1685 (Do not consider CAM data from aggregator ports when there
+             is LLDP/CDP topology available from its aggregated ports)
+  * #1670 (Treshold editor doesn't work for metrics with hash characters
+           in name)
+  * #1673 (Repeated traceback e-mails for Internal Server Error:
+           /netmap/traffic/layer2/)
+  * #1676 (Audit log changes to API tokens)
+  * #1677 (ipdevinfo should link to an IP Device's audit log)
+  * #1678 (EventMixIn.get_subject() should never return a string)
+  * #1680 (SeedDB patch editor only lists switch ports, not physical
+           ports)
+
+
 Version 4.8.3
 (released 11 Jan 2018)
 
