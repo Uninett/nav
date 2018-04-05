@@ -39,8 +39,12 @@ Port nodes can have outgoing edges to other Port nodes, or to Netbox nodes
 """
 # pylint: disable=R0903
 
+from collections import defaultdict
+from itertools import chain
+
 import networkx as nx
-from nav.models.manage import AdjacencyCandidate
+from nav.models.manage import (AdjacencyCandidate, InterfaceAggregate,
+                               InterfaceStack)
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -72,8 +76,9 @@ class Port(tuple):
 class AdjacencyAnalyzer(object):
     """Adjacency candidate graph analyzer and manipulator"""
 
-    def __init__(self, graph):
+    def __init__(self, graph, aggregates=None):
         self.graph = graph
+        self.aggregates = aggregates or {}
 
     def get_max_out_degree(self):
         """Returns the port node with the highest outgoing degree"""
@@ -152,6 +157,7 @@ class AdjacencyReducer(AdjacencyAnalyzer):
         self.result = nx.DiGraph(name="network adjacency candidates")
         self._reduce_discovery_protocol(LLDP)
         self._reduce_discovery_protocol(CDP)
+        self._remove_aggregates()
         self._reduce_cam()
         self.graph = self.result
 
@@ -185,6 +191,23 @@ class AdjacencyReducer(AdjacencyAnalyzer):
                 degree += 1
                 continue
         self.result.add_edges_from(self.get_single_edges_from_ports())
+
+    def _remove_aggregates(self):
+        """Removes from the graph LAG ports whose aggregated (physical) ports
+        have already had their topology discovered.
+        """
+        removeable = []
+        for aggregator, aggregated in self.aggregates.items():
+            if aggregator in self.graph:
+                if any(port in self.result for port in aggregated):
+                    removeable.append(aggregator)
+
+        if removeable:
+            for port in sorted(removeable, key=str):
+                _logger.debug(
+                    "Ignoring aggregate %s [%s]",
+                    port, ', '.join(str(s) for s in self.aggregates[port]))
+            self.graph.remove_nodes_from(removeable)
 
     def _reduce_discovery_protocol(self, sourcetype):
         done = False
@@ -266,16 +289,12 @@ def build_candidate_graph_from_db():
         if not cand.interface.is_admin_up():
             continue  # ignore data from disabled interfaces
         if cand.to_interface:
-            dest_node = Port((cand.to_netbox.id,
-                              cand.to_interface.id))
-            dest_node.name = "%s (%s)" % (cand.to_netbox.sysname,
-                                          cand.to_interface.ifname)
+            dest_node = interface_to_port(cand.to_interface)
         else:
             dest_node = Box(cand.to_netbox.id)
             dest_node.name = cand.to_netbox.sysname
 
-        port = Port((cand.netbox.id, cand.interface.id))
-        port.name = "%s (%s)" % (cand.netbox.sysname, cand.interface.ifname)
+        port = interface_to_port(cand.interface)
         netbox = Box(cand.netbox.id)
         netbox.name = cand.netbox.sysname
 
@@ -283,3 +302,46 @@ def build_candidate_graph_from_db():
         graph.add_edge(netbox, port)
 
     return graph
+
+
+def get_aggregate_mapping(include_stacks=False):
+    """Returns a dictionary describing each aggregator and its aggregated
+    ports
+
+    :type include_stacks: bool
+    :param include_stacks: Whether to interpret basic interface layering as
+                           evidence for LAG configuration (which isn't always
+                           the case)
+    :returns: { Port: { Port, ... }, ... }
+    """
+    aggregates = _get_aggregates()
+    if include_stacks:
+        aggregates = chain(aggregates, _get_stacks())
+
+    mapping = defaultdict(set)
+    for aggregator, ifc in aggregates:
+        mapping[aggregator].add(ifc)
+
+    return mapping
+
+
+def _get_stacks():
+    stacks = InterfaceStack.objects.select_related(
+        'higher', 'higher__netbox', 'lower', 'lower__netbox')
+    return ((interface_to_port(agg.higher),
+             interface_to_port(agg.lower))
+            for agg in stacks)
+
+
+def _get_aggregates():
+    aggregates = InterfaceAggregate.objects.select_related(
+        'aggregator', 'aggregator__netbox', 'interface', 'interface__netbox')
+    return ((interface_to_port(agg.aggregator),
+             interface_to_port(agg.interface))
+            for agg in aggregates)
+
+
+def interface_to_port(interface):
+    port = Port((interface.netbox.id, interface.id))
+    port.name = "{ifc.netbox.sysname} ({ifc.ifname})".format(ifc=interface)
+    return port
