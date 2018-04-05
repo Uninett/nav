@@ -18,6 +18,9 @@
 
 import os
 import sys
+import copy
+
+from django.utils.log import DEFAULT_LOGGING
 
 from nav.config import read_flat_config, getconfig
 from nav.db import get_connection_parameters
@@ -38,6 +41,12 @@ except IOError:
 
 DEBUG = nav_config.get('DJANGO_DEBUG', 'False').upper() in ('TRUE', 'YES', 'ON')
 
+# Copy Django's default logging config, but modify it to enable HTML e-mail
+# part for improved debugging:
+LOGGING = copy.deepcopy(DEFAULT_LOGGING)
+_handlers = LOGGING.get('handlers', {})
+_mail_admin_handler = _handlers.get('mail_admins', {})
+_mail_admin_handler['include_html'] = True
 
 # Admins
 ADMINS = (
