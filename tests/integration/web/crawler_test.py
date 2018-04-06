@@ -29,7 +29,7 @@ from tidylib import tidy_document
 from django.utils import six
 from django.utils.six.moves.urllib.request import (urlopen, build_opener,
                                                    install_opener,
-                                                   HTTPCookieProcessor)
+                                                   HTTPCookieProcessor, Request)
 from django.utils.six.moves.urllib.error import HTTPError, URLError
 from django.utils.six.moves.urllib.parse import (urlsplit, urlencode,
                                                  urlunparse, urlparse, quote)
@@ -60,6 +60,9 @@ BLACKLISTED_PATHS = [
     '/cricket',
     '/index/logout',
     '/doc',
+    # getting these endpoints without args results in 400 bad request
+    '/api/1/cam',
+    '/api/1/arp',
 ]
 
 #
@@ -122,8 +125,8 @@ class WebCrawler(object):
     def _visit(self, url):
         if self._is_seen(url):
             return
-
-        resp = urlopen(_quote_url(url), timeout=TIMEOUT)
+        req = Request(_quote_url(url), headers={'Accept': 'text/html'})
+        resp = urlopen(req, timeout=TIMEOUT)
         content_type = resp.info()['Content-type']
 
         if 'html' in content_type.lower():
