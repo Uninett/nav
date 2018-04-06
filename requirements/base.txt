@@ -23,7 +23,6 @@ dnspython==1.15.0
 
 # REST framework
 djangorestframework==2.4.4
-django-filter>=0.7,<0.8
 iso8601
 
 pynetsnmp-2==0.1.3
