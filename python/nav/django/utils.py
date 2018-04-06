@@ -54,8 +54,8 @@ def get_verbose_name(model, lookup):
     except FieldDoesNotExist:
         pass
 
-    related = model._meta.get_all_related_objects()
-    related += model._meta.get_all_related_many_to_many_objects()
+    related = get_all_related_objects(model)
+    related += get_all_related_many_to_many_objects(model)
     for obj in related:
         if obj.get_accessor_name() == foreign_key:
             return get_verbose_name(obj.model, lookup)
@@ -85,3 +85,14 @@ def get_all_related_objects(model):
         ]
     else:
         return model._meta.get_all_related_objects()
+
+
+def get_all_related_many_to_many_objects(model):
+    """Gets all related many-to-many objects based on django version"""
+    if django.VERSION >= (1, 8):
+        return [
+            f for f in model._meta.get_fields(include_hidden=True)
+            if f.many_to_many and f.auto_created
+        ]
+    else:
+        return model._meta.get_all_related_many_to_many_objects()
