@@ -16,7 +16,7 @@
 #
 
 """Utility methods for django used in NAV"""
-
+import django
 from django.db.models.fields import FieldDoesNotExist
 
 from nav.models.profiles import Account, AccountGroup
@@ -61,3 +61,27 @@ def get_verbose_name(model, lookup):
             return get_verbose_name(obj.model, lookup)
 
     raise FieldDoesNotExist
+
+
+def get_model_and_name(rel):
+    """Gets model and name based on django version
+
+    rel in 1.7 is a RelatedObject
+    rel in 1.8 is either ManyToOneRel or OneToOneRel
+    """
+    if django.VERSION >= (1, 8):
+        return rel.related_model, rel.name
+    else:
+        return rel.model, rel.var_name
+
+
+def get_all_related_objects(model):
+    """Gets all related objects based on django version"""
+    if django.VERSION >= (1, 8):
+        return [
+            f for f in model._meta.get_fields()
+            if (f.one_to_many or f.one_to_one)
+               and f.auto_created and not f.concrete
+        ]
+    else:
+        return model._meta.get_all_related_objects()
