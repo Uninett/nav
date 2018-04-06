@@ -15,7 +15,7 @@ node {
 
     def imageTag = "nav/${env.JOB_NAME}:${env.BUILD_NUMBER}".toLowerCase()
     echo "Docker image tag: ${imageTag}"
-    docker.build("${imageTag}", "-f ${dockerfile} .").inside("--tmpfs /var/lib/postgresql --volume ${WORKSPACE}:/source:rw,z") {
+    docker.build("${imageTag}", "-f ${dockerfile} .").inside("--tmpfs /var/lib/postgresql --volume ${WORKSPACE}:/source:rw,z --volume ${HUDSON_HOME}/.cache:/source/.cache:rw,z") {
         env.WORKSPACE = "${WORKSPACE}"
 
         stage("Prepare build") {
