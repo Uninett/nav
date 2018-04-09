@@ -54,9 +54,11 @@ class JSONWidget(Textarea):
     def _render_value(self, value):
         """Convert the value to JSON
 
-        Falsey values are converted to an empty string"""
+        Falsey values are converted to an empty string. Bytestrings are
+        considered to be encoded as utf-8 and converted to text."""
         if value and not isinstance(value, six.string_types):
-            value = json.dumps(value, sort_keys=True, indent=4)
+            value = json.dumps(value, sort_keys=True, indent=4,
+                               cls=validators.JSONBytesEncoder)
         else:
             value = u''
         return value

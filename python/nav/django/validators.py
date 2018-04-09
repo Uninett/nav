@@ -39,6 +39,13 @@ def is_valid_point_string(point_string):
     return False
 
 
+class JSONBytesEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, six.binary_type):
+            return obj.decode('utf-8')
+        return super(JSONBytesEncoder, self).default(self, obj)
+
+
 def validate_hstore(value):
     """ HSTORE validation. """
     # if empty
@@ -47,8 +54,12 @@ def validate_hstore(value):
 
     # ensure valid JSON
     try:
+        # work on unicode strings only
+        if isinstance(value, six.binary_type):
+            value = value.decode('utf-8')
+
         # convert strings to dictionaries
-        if isinstance(value, six.string_types):
+        if isinstance(value, six.text_type):
             dictionary = json.loads(value)
 
         # if not a string we'll check at the next control if it's a dict
@@ -60,5 +71,8 @@ def validate_hstore(value):
     # ensure is a dictionary
     if not isinstance(dictionary, dict):
         raise ValidationError(ugettext(u'No lists or values allowed, only dictionaries'))
+
+    value = json.dumps(cls=BytesEncoder)
+    dictionary = json.loads(value)
 
     return dictionary
