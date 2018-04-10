@@ -61,12 +61,12 @@ class MultipleFilter(filters.BaseFilterBackend):
     object_model: supports multiple object_models
     """
     def filter_queryset(self, request, queryset, view):
-        if 'object_pks' in request.QUERY_PARAMS:
-            ids = request.QUERY_PARAMS.get('object_pks').split(',')
+        if 'object_pks' in request.query_params:
+            ids = request.query_params.get('object_pks').split(',')
             queryset = queryset.filter(object_pk__in=ids)
-        if 'object_model' in request.QUERY_PARAMS:
+        if 'object_model' in request.query_params:
             queryset = queryset.filter(
-                object_model__in=request.QUERY_PARAMS.getlist('object_model'))
+                object_model__in=request.query_params.getlist('object_model'))
         return queryset
 
 
@@ -76,7 +76,7 @@ class CustomOrderingFilter(filters.BaseFilterBackend):
 
         Sad things happen if the actor is not an account
         """
-        ordering = request.QUERY_PARAMS.get('ordering')
+        ordering = request.query_params.get('ordering')
         if ordering in ['-actor', 'actor']:
             return sorted(queryset,
                           key=operator.attrgetter('actor.login'),
@@ -93,8 +93,8 @@ class NetboxFilter(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
-        if 'netboxid' in request.QUERY_PARAMS:
-            netboxid = request.QUERY_PARAMS.get('netboxid')
+        if 'netboxid' in request.query_params:
+            netboxid = request.query_params.get('netboxid')
             interface_pks = [str(pk) for pk in Interface.objects.filter(
                 netbox__pk=netboxid).values_list('pk', flat=True)]
 
