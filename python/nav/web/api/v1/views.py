@@ -120,7 +120,7 @@ def get_endpoints(request=None, version=1):
     return {
         'account': reverse_lazy('{}account-list'.format(prefix), **kwargs),
         'accountgroup': reverse_lazy('{}accountgroup-list'.format(prefix), **kwargs),
-        'alert': reverse_lazy('{}alerthistory-list'.format(prefix), **kwargs),
+        'alert': reverse_lazy('{}alert-list'.format(prefix), **kwargs),
         'auditlog': reverse_lazy('{}auditlog-list'.format(prefix), **kwargs),
         'arp': reverse_lazy('{}arp-list'.format(prefix), **kwargs),
         'cabling': reverse_lazy('{}cabling-list'.format(prefix), **kwargs),
