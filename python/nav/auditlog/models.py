@@ -75,7 +75,7 @@ class LogEntry(models.Model):
             dict[k] = getattr(v, 'audit_logname', u'%s' % v)
         try:
             self.summary = template.format(**dict)
-        except KeyError, error:
+        except KeyError as error:
             self.summary = 'Error creating summary - see error log'
             _logger.error('KeyError when creating summary: %s', error)
         self.verb = verb
