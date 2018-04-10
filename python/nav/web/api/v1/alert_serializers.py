@@ -67,7 +67,7 @@ class EventTypeSerializer(serializers.ModelSerializer):
 
 class AlertHistorySerializer(serializers.ModelSerializer):
     """Serializer for the AlertHistory model"""
-    subject = serializers.Field(source='get_subject')
+    subject = serializers.ReadOnlyField(source='get_subject')
     subject_url = serializers.SerializerMethodField()
     subject_type = serializers.SerializerMethodField()
 
