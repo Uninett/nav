@@ -43,7 +43,7 @@ class Status2Widget(Navlet):
     def get_context_data_view(self, context):
         self.title = self.preferences.get('title', self.title)
         status_filter = self.preferences.get('status_filter')
-        results = self.do_query(status_filter)
+        results = self.do_query(status_filter) or ()
         self.add_formatted_time(results)
         self.add_netbox(results)
         context['extra_columns'] = self.find_extra_columns(status_filter)
@@ -73,12 +73,16 @@ class Status2Widget(Navlet):
 
     def add_formatted_time(self, results):
         """Adds formatted time to all results"""
+        if not results:
+            results = ()
         for result in results:
             result['formatted_time'] = self.format_time(result['start_time'])
 
     @staticmethod
     def add_netbox(results):
         """Adds the netbox object to the result objects"""
+        if not results:
+            results = ()
         for result in results:
             try:
                 netbox = Netbox.objects.select_related(
