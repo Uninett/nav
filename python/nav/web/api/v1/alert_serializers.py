@@ -149,3 +149,4 @@ class AlertHistorySerializer(serializers.ModelSerializer):
 
     class Meta(object):
         model = event.AlertHistory
+        fields = '__all__'
