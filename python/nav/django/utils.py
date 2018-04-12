@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008-2011 UNINETT AS
+# Copyright (C) 2008-2011, 2018 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -63,36 +63,52 @@ def get_verbose_name(model, lookup):
     raise FieldDoesNotExist
 
 
-def get_model_and_name(rel):
-    """Gets model and name based on django version
+#
+# Django version differentiated helper functions:
+#
 
-    rel in 1.7 is a RelatedObject
-    rel in 1.8 is either ManyToOneRel or OneToOneRel
-    """
-    if django.VERSION >= (1, 8):
+
+if django.VERSION >= (1, 8):
+
+    def get_model_and_name(rel):
+        """Gets model and name based on django version
+
+        rel in 1.8 is either ManyToOneRel or OneToOneRel
+        """
         return rel.related_model, rel.name
-    else:
-        return rel.model, rel.var_name
 
 
-def get_all_related_objects(model):
-    """Gets all related objects based on django version"""
-    if django.VERSION >= (1, 8):
+    def get_all_related_objects(model):
+        """Gets all related objects based on django version"""
         return [
             f for f in model._meta.get_fields()
             if (f.one_to_many or f.one_to_one)
-               and f.auto_created and not f.concrete
+            and f.auto_created and not f.concrete
         ]
-    else:
-        return model._meta.get_all_related_objects()
 
 
-def get_all_related_many_to_many_objects(model):
-    """Gets all related many-to-many objects based on django version"""
-    if django.VERSION >= (1, 8):
+    def get_all_related_many_to_many_objects(model):
+        """Gets all related many-to-many objects based on django version"""
         return [
             f for f in model._meta.get_fields(include_hidden=True)
             if f.many_to_many and f.auto_created
         ]
-    else:
+
+else:  # This section can be removed when support for Django 1.7 is dropped.
+
+    def get_model_and_name(rel):
+        """Gets model and name based on django version
+
+        rel in 1.7 is a RelatedObject
+        """
+        return rel.model, rel.var_name
+
+
+    def get_all_related_objects(model):
+        """Gets all related objects based on django version"""
+        return model._meta.get_all_related_objects()
+
+
+    def get_all_related_many_to_many_objects(model):
+        """Gets all related many-to-many objects based on django version"""
         return model._meta.get_all_related_many_to_many_objects()
