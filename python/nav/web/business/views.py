@@ -63,28 +63,16 @@ class AvailabilityReportView(BusinessView):
 
         context['months'] = utils.get_months()
         context['report'] = self
+        context['exclude_maintenance'] = self.exclude_maintenance()
 
         return context
 
+    def exclude_maintenance(self):
+        return bool(self.request.GET.get('exclude_maintenance'))
+
     def get_records(self, start, end):
         """Get records for the specified event and alert types"""
-        from django.db.models import Q
-
-        # Coarse filtering of alerts
-        alerts = AlertHistory.objects.filter(
-            event_type=eventtype, end_time__isnull=False,
-            alert_type__name=alerttype).filter(
-                Q(end_time__range=(start, end)) |
-                Q(start_time__range=(start, end)) |
-                (Q(start_time__lte=start) & Q(end_time__gte=end))
-            )
-
-        # Group alerts by subject
-        self.grouped_alerts = self.group_alerts(alerts)
-
-        # Create availability records for each subject
-        return [utils.create_record(subject, alerts, start, end)
-                for subject, alerts in self.grouped_alerts.items()]
+        raise NotImplementedError
 
     @staticmethod
     def group_alerts(alerts):
@@ -110,7 +98,7 @@ class DeviceAvailabilityReport(AvailabilityReportView):
 
     def get_records(self, start, end):
         """Get records for the specified event and alert types"""
-        return utils.get_netbox_records(start, end)
+        return utils.get_netbox_records(start, end, self.exclude_maintenance())
 
 
 class LinkAvailabilityReport(AvailabilityReportView):
@@ -134,6 +122,8 @@ def save_report_subscription(request):
     address_id = request.POST.get('address')
     period = request.POST.get('period')
     report_type = request.POST.get('report_type')
+    exclude_maintenance = bool(request.POST.get('exclude_maintenance'))
+
     if new_address:
         email_sender = AlertSender.objects.get(name=AlertSender.EMAIL)
         address = AlertAddress(account=request.account,
@@ -148,6 +138,7 @@ def save_report_subscription(request):
         account=request.account,
         address=address,
         period=period,
+        exclude_maintenance=exclude_maintenance,
         report_type=report_type).save()
 
     return HttpResponse()

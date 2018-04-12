@@ -1,8 +1,10 @@
 Downtime for period {{ start }} - {{ end }}
-
+{% if exclude_maintenance %}
+* Time in maintenance subtracted
+{% endif %}
 {{ 'Subject'|stringformat:subject_format }} {{ 'Incidents'|stringformat:"-10s" }} {{ 'Downtime'|stringformat:"-20s" }} {{ 'Availability' }}
 ------------------------------------------------------------------------------------------{% for record in records %}
-{{ record.subject|stringformat:subject_format }} {{ record.incidents|length|stringformat:"-10s" }} {{ record.downtime|stringformat:"-20s" }} {{ record.availability }}{% empty %}
+{{ record.subject|stringformat:subject_format }} {% if record.maintenances %}*{% else %} {% endif %} {{ record.incidents|length|stringformat:"-10s" }} {{ record.downtime|stringformat:"-20s" }} {{ record.availability }}{% empty %}
 No downtime this period
 {% endfor %}
 

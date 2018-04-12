@@ -5,7 +5,9 @@
 </style>
 
 <table>
-  <caption>Downtime for period {{ start }} - {{ end }}</caption>
+  <caption>
+    Downtime for period {{ start }} - {{ end }}
+  </caption>
   <thead>
     <tr>
       <th>Subject</th>
@@ -18,7 +20,12 @@
   <tbody>
     {% for record in records %}
       <tr>
-        <td>{{ record.subject }}</td>
+        <td>
+          {{ record.subject }}
+          {% if record.maintenances %}
+            *
+          {% endif %}
+        </td>
         <td>{{ record.incidents|length }}</td>
         <td>{{ record.downtime }}</td>
         <td>{{ record.availability }}</td>
@@ -30,6 +37,11 @@
     {% endfor %}
   </tbody>
 </table>
+
+{% if exclude_maintenance %}
+  <p>* = time in maintenance subtracted</p>
+{% endif %}
+
 
 <p>
   {% include 'business/frag-unsubscribe.html' %}

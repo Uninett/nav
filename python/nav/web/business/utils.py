@@ -5,12 +5,15 @@ from datetime import datetime, timedelta
 from collections import defaultdict, namedtuple
 
 from nav.models.event import AlertHistory
-from nav.models.manage import Interface
+from nav.models.manage import Interface, Netbox
 from nav.models.profiles import ReportSubscription
-from django.db.models import Q
+
+import logging
+_logger = logging.getLogger(__name__)
 
 AvailabilityRecord = namedtuple(
-    'AvailabilityRecord', ['subject', 'incidents', 'downtime', 'availability'])
+    'AvailabilityRecord',
+    ['subject', 'incidents', 'downtime', 'availability', 'maintenances'])
 
 
 class LinkSubject(object):
@@ -46,7 +49,7 @@ def get_interval(sometime, interval):
         # interval is one day
         start = sometime
         end = start + timedelta(days=1)
-    return start, end
+    return start, min(end, datetime.now())
 
 
 def get_months(number_of_months=12):
@@ -67,46 +70,33 @@ def get_months(number_of_months=12):
     return months
 
 
-def compute_downtime(alerts, start, end):
-    """Computes the total downtime for the given alerts"""
-    downtime = timedelta()
-    for alert in alerts:
-        start_inside_interval = start <= alert.start_time <= end
-        end_inside_interval = start <= alert.end_time <= end
-
-        if start_inside_interval or end_inside_interval:
-            # I want one liners dammit! :p
-            # pylint: disable=C0301
-            interval_start = alert.start_time if start_inside_interval else start
-            interval_end = alert.end_time if end_inside_interval else end
-            downtime += (interval_end - interval_start)
-        elif alert.start_time <= start and alert.end_time >= end:
-            # If the alert covers the whole interval
-            downtime += (end - start)
-
-    return downtime
-
-
 def compute_availability(downtime, interval):
     """Computes the availability given downtime and interval"""
+    if downtime.total_seconds() == 0 or not interval:
+        return 100
     availability = 1.0
     fraction = downtime.total_seconds() / interval.total_seconds()
-    availability = availability - fraction
-
+    availability = max(availability - fraction, 0.0)
     return availability * 100
 
 
-def create_record(subject, alerts, start, end):
-    """Creates an availability record based on a subject' alerts in a period"""
-    downtime = compute_downtime(alerts, start, end)
-    interval = end - start
-    availability = compute_availability(downtime, interval)
+def create_record(subject, alerts, start, end, maintenances=None):
+    """Creates an availability record based on a subject's alerts in a period"""
+    def duration(alert):
+        return alert.end_within - alert.start_within
+
+    downtime = sum((duration(a) for a in alerts), timedelta())
+    if maintenances:
+        maintenancetime = sum((duration(m) for m in maintenances), timedelta())
+        downtime -= maintenancetime
+
+    availability = compute_availability(downtime, end-start)
 
     # Cheekily remove microseconds
     downtime = downtime - timedelta(microseconds=downtime.microseconds)
 
     return AvailabilityRecord(get_subject(subject), alerts, downtime,
-                              availability)
+                              availability, maintenances)
 
 
 def get_subject(subject):
@@ -117,46 +107,68 @@ def get_subject(subject):
     return subject
 
 
-def get_alerts(start, end, eventtype='boxState', alerttype='boxDown'):
-    """Gets the alerts for the given start-end interval"""
-    return AlertHistory.objects.filter(
-        event_type=eventtype, end_time__isnull=False,
-        alert_type__name=alerttype).filter(
-            Q(end_time__range=(start, end)) |
-            Q(start_time__range=(start, end)) |
-            (Q(start_time__lte=start) & Q(end_time__gte=end)
-            )).order_by('-start_time')
-
-
-def group_by_netbox(alerts):
-    """Group alerts by netbox"""
+def group_by_subject(alerts, subject_filter=None):
     grouped_alerts = defaultdict(list)
     for alert in alerts:
-        grouped_alerts[alert.netbox].append(alert)
-    return grouped_alerts
-
-
-def group_by_interface(alerts):
-    grouped_alerts = defaultdict(list)
-    for alert in alerts:
-        try:
-            interface = Interface.objects.get(pk=alert.subid)
-        except Interface.DoesNotExist:
+        subject = alert.get_subject()
+        if subject_filter and not isinstance(subject, subject_filter):
             continue
-        else:
-            grouped_alerts[interface].append(alert)
+        grouped_alerts[subject].append(alert)
     return grouped_alerts
 
 
-def get_netbox_records(start, end):
-    alerts = get_alerts(start, end, 'boxState', 'boxDown')
-    grouped_alerts = group_by_netbox(alerts)
-    return [create_record(subject, alerts, start, end)
-            for subject, alerts in grouped_alerts.items()]
+def get_netbox_records(start, end, exclude_maintenance=False):
+    alerts = get_alert_periods_by_type(start, end, 'boxState', ['boxDown'])
+    grouped_alerts = group_by_subject(alerts, Netbox)
+
+    if exclude_maintenance:
+        maintenances = get_alert_periods_by_type(start, end, 'maintenanceState',
+                                                 ['onMaintenance'])
+        grouped_maintenance = group_by_subject(maintenances)
+    else:
+        grouped_maintenance = {}
+
+    records = (create_record(netbox, alerts, start, end,
+                             grouped_maintenance.get(netbox))
+               for netbox, alerts in grouped_alerts.items() if netbox)
+    return [record for record in records if record.downtime > timedelta(0)]
 
 
-def get_interface_records(start, end):
-    alerts = get_alerts(start, end, 'linkState', 'linkDown')
-    grouped_alerts = group_by_interface(alerts)
+def get_interface_records(start, end, exclude_maintenance=False):
+    alerts = get_alert_periods_by_type(start, end, 'linkState', ['linkDown'])
+    grouped_alerts = group_by_subject(alerts, Interface)
     return [create_record(subject, alerts, start, end)
-            for subject, alerts in grouped_alerts.items()]
+            for subject, alerts in grouped_alerts.items() if subject]
+
+
+def get_alert_periods_by_type(period_start, period_end, event_type_id,
+                              alert_type_ids):
+    """Returns AlertHistory objects of a specific event type, overlapping with
+    a given time period.
+
+    The AlertHistory objects will be augmented with the attributes
+    `start_within` and `end_within`, which represent the intersection of (
+    `period_start`, `period_end`) and (`start_time`, `end_time`) (for proper
+    calculation of which duration of earch AlertHistory object is inside the
+    specified time period.
+
+    """
+    return AlertHistory.objects.raw("""
+    WITH period AS (
+  SELECT
+    %s AS "start",
+    %s AS "end"
+)
+SELECT
+  alerthist.*,
+  GREATEST("start", start_time) AS start_within,
+  LEAST("end", end_time) AS end_within
+FROM alerthist
+JOIN period ON ((start_time, end_time) OVERLAPS ("start", "end"))
+JOIN alerttype USING (alerttypeid)
+WHERE
+  alerthist.eventtypeid = %s
+  AND end_time IS NOT NULL
+  AND alerttype IN %s
+ORDER BY netboxid, subid, start_time
+    """, [period_start, period_end, event_type_id, tuple(alert_type_ids)])
