@@ -30,6 +30,9 @@ def pytest_configure(config):
     os.environ['TARGETURL'] = "http://localhost:8000/"
     start_gunicorn()
 
+    from nav.bootstrap import bootstrap_django
+    bootstrap_django('pytest')
+
 
 def pytest_unconfigure(config):
     stop_gunicorn()

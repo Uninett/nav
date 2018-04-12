@@ -19,13 +19,13 @@
 
 import logging
 
-import django
 from django.db import connection, transaction, IntegrityError
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
 
+from nav.django.utils import get_model_and_name, get_all_related_objects
 from nav.web.message import new_message, Messages
 from nav.auditlog.models import LogEntry
 
@@ -50,10 +50,7 @@ def qs_delete(queryset):
         'table': quote_name(table),
         'field': quote_name(primary_key),
     }
-    try:
-        cursor.execute(sql, (pk_list,))
-    finally:
-        transaction.set_dirty()
+    cursor.execute(sql, (pk_list,))
     return cursor.rowcount
 
 
@@ -136,7 +133,7 @@ def dependencies(queryset, whitelist):
     to nothing, which will probably cause the delete statement to fail.
     """
     primary_keys = [obj.pk for obj in queryset]
-    related = get_all_related_objects(queryset)
+    related = get_all_related_objects(queryset.model)
 
     related_objects = {}
     for rel in related:
@@ -155,27 +152,3 @@ def dependencies(queryset, whitelist):
             related_objects[attr].append(obj)
 
     return related_objects
-
-
-def get_model_and_name(rel):
-    """Gets model and name based on django version
-
-    rel in 1.7 is a RelatedObject
-    rel in 1.8 is either ManyToOneRel or OneToOneRel
-    """
-    if django.VERSION >= (1, 8):
-        return rel.related_model, rel.name
-    else:
-        return rel.model, rel.var_name
-
-
-def get_all_related_objects(queryset):
-    """Gets all related objects based on django version"""
-    if django.VERSION >= (1, 8):
-        return [
-            f for f in queryset.model._meta.get_fields()
-            if (f.one_to_many or f.one_to_one)
-               and f.auto_created and not f.concrete
-        ]
-    else:
-        return queryset.model._meta.get_all_related_objects()
