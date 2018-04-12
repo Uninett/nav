@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2003, 2004 Norwegian University of Science and Technology
-# Copyright (C) 2006, 2007, 2009, 2011, 2013 UNINETT AS
+# Copyright (C) 2006, 2007, 2009, 2011, 2013, 2018 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,56 +17,15 @@
 """This package encompasses modules with web functionality for NAV"""
 import configparser
 import os.path
-import cgi
-import logging
 
 from django.http import HttpResponse
 
 import nav.buildconf
 
 
-logger = logging.getLogger("nav.web")
 webfrontConfig = configparser.ConfigParser()
 webfrontConfig.read(os.path.join(nav.buildconf.sysconfdir, 'webfront',
                                  'webfront.conf'))
-
-
-def should_show(url, user):
-    """Verifies whether a hyperlink should be shown to a specific user.
-
-    When a user doesn't have the proper permissions to visit a specific NAV
-    URL, it doesn't always make sense to display a link to that URL in the
-    interface. This function can be used to make a decision of whether to
-    display such a link or not.
-
-    Any url that starts with `http://` or `https://` is considered an
-    external link and allowed. Relative URLs are checked against the user's
-    privileges.
-
-    :param url: An URL string to check for access
-    :param user: A user dictionary from a web session
-    :return: True if a hyperlink to `url` should be shown to `user`
-
-    """
-    starts_with_http = (url.lower().startswith('http://') or
-                        url.lower().startswith('https://'))
-
-    from nav.models.profiles import Account
-    try:
-        return (starts_with_http or
-                Account.objects.get(id=user['id']).has_perm('web_access', url))
-    except Account.DoesNotExist:
-        return False
-
-
-def escape(s):
-    """Replace special characters '&', '<' and '>' by SGML entities.
-    Wraps cgi.escape, but allows False values of s to be converted to
-    empty strings."""
-    if s:
-        return cgi.escape(str(s))
-    else:
-        return ''
 
 
 def refresh_session(request):
