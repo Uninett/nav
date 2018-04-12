@@ -1414,14 +1414,22 @@ class ReportSubscription(models.Model):
     address = models.ForeignKey(AlertAddress)
     period = VarcharField(choices=PERIODS)
     report_type = VarcharField(choices=TYPES)
+    exclude_maintenance = models.BooleanField()
 
     class Meta(object):
         db_table = u'report_subscription'
 
     def __unicode__(self):
-        return u"{} report for {} sent to {}".format(
+        if self.report_type == self.LINK:
+            return u"{} report for {} sent to {}".format(
+                self.get_period_description(self.period),
+                self.get_type_description(self.report_type),
+                self.address.address)
+
+        return u"{} report for {} ({} time in maintenance) sent to {}".format(
             self.get_period_description(self.period),
             self.get_type_description(self.report_type),
+            'excluding' if self.exclude_maintenance else 'including',
             self.address.address)
 
     def serialize(self):

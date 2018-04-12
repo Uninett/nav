@@ -27,6 +27,12 @@
       {% endfor %}
     </select>
     <input type="submit" class="button small" value="Fetch report">
+    <label>
+      Exclude maintenance
+      <input name="exclude_maintenance"
+             type="checkbox"
+             {% if exclude_maintenance %}checked="checked"{% endif %}></input>
+    </label>
   </form>
 
 
@@ -92,6 +98,18 @@
                       {% endif %}
                       &mdash;
                       Total downtime: {{ incident.get_downtime|remove_microseconds }}
+                    </li>
+                  {% endfor %}
+                  {% for maintenance in record.maintenances  %}
+                    <li>
+                      <em>On maintenance</em> &mdash;
+                      {{ maintenance.start_time }} -
+                      {% if maintenance.end_time|is_max_timestamp %}
+                        Maintenance has not ended
+                      {% else %}
+                        {{ maintenance.end_time }}
+                      {% endif %}
+
                     </li>
                   {% endfor %}
                 </ul>
