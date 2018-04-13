@@ -70,7 +70,7 @@ class NaturalIfnameFilter(filters.OrderingFilter):
 
         interface_ifnames = ['interface__ifname', '-interface__ifname']
         ifnames = ['ifname', '-ifname']
-        ordering = self.get_ordering(request)
+        ordering = self.get_ordering(request, queryset, view)
         if not ordering:
             return queryset
 
