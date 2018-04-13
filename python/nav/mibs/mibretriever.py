@@ -122,12 +122,19 @@ class MIBObject(object):
             value = self.enum[value]
         return value
 
-    def __cmp__(self, other):
-        """Compare to others based on OID."""
+    def __lt__(self, other):
+        """Compare to other based on OID."""
         if isinstance(other, self.__class__):
-            return cmp(self.oid, other.oid)
+            return self.oid < other.oid
         else:
-            return cmp(self.oid, other)
+            return self.oid < other
+
+    def __eq__(self, other):
+        """Compare to other based on OID."""
+        if isinstance(other, self.__class__):
+            return self.oid == other.oid
+        else:
+            return self.oid == other
 
     def __repr__(self):
         return '<MibObject %r: %r from %r)' % \

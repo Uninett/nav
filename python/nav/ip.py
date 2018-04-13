@@ -32,7 +32,7 @@ class IP(IPy.IP):
         try:
             return super(IP, self).__cmp__(other)
         except TypeError:
-            return cmp(self.ip, other)
+            return (self.ip > other) - (self.ip < other)
 
     def __eq__(self, other):
         try:

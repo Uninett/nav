@@ -231,8 +231,8 @@ class AbstractChecker(object):
         return (self.serviceid == getattr(obj, 'serviceid', None)
                 and self.args == getattr(obj, 'args', None))
 
-    def __cmp__(self, obj):
-        return cmp(self.timestamp, getattr(obj, 'timestamp'), None)
+    def __lt__(self, obj):
+        return self.timestamp < getattr(obj, 'timestamp', None)
 
     def __hash__(self):
         tup = (self.serviceid, unicode(self.args), self.get_address())
