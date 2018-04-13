@@ -25,9 +25,9 @@ from .models import LogEntry
 
 
 class LogEntrySerializer(serializers.ModelSerializer):
-    actor = serializers.SerializerMethodField('get_actor')
-    object = serializers.SerializerMethodField('get_object')
-    target = serializers.SerializerMethodField('get_target')
+    actor = serializers.SerializerMethodField()
+    object = serializers.SerializerMethodField()
+    target = serializers.SerializerMethodField()
 
     class Meta:
         model = LogEntry
