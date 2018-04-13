@@ -49,3 +49,4 @@ def netbox():
     yield box
     print("teardown test device")
     box.delete()
+    device.delete()
