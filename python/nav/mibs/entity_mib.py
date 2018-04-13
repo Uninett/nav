@@ -319,7 +319,7 @@ class EntityTable(dict):
                     try:
                         new_value = value.decode(encoding)
                     except UnicodeDecodeError:
-                        new_value = unicode(repr(value))
+                        new_value = six.text_type(repr(value))
                         _logger.debug(
                             "cannot decode %s value as %s, using python "
                             "string repr instead: %s",

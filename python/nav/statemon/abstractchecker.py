@@ -18,6 +18,8 @@
 import time
 import logging
 
+from django.utils import six
+
 from nav.statemon import config, RunQueue, db, statistics, event
 
 
@@ -235,7 +237,7 @@ class AbstractChecker(object):
         return self.timestamp < getattr(obj, 'timestamp', None)
 
     def __hash__(self):
-        tup = (self.serviceid, unicode(self.args), self.get_address())
+        tup = (self.serviceid, six.text_type(self.args), self.get_address())
         return hash(tup)
 
     def __repr__(self):

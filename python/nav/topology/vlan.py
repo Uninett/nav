@@ -18,6 +18,7 @@
 import logging
 import networkx as nx
 from IPy import IP
+from django.utils import six
 
 from nav.models.manage import (GwPortPrefix, Interface, SwPortVlan,
                                SwPortBlocked, Prefix, Vlan)
@@ -524,7 +525,7 @@ def build_layer3_graph(related_extra=None):
                         _LOGGER.warning(
                             "Topology error? %s classified as elink, "
                             "we know %s GwPortPrefixes ...",
-                            unicode(prefix), len(gwportprefixes))
+                            six.text_type(prefix), len(gwportprefixes))
                         _add_edge(gwportprefixes)
                 else:
 
@@ -532,10 +533,10 @@ def build_layer3_graph(related_extra=None):
                     fictive_netbox = stubs.Netbox()
                     if gwportprefixes[0].prefix.vlan.net_ident:
 
-                        fictive_netbox.sysname = unicode(
+                        fictive_netbox.sysname = six.text_type(
                             gwportprefixes[0].prefix.vlan.net_ident)
                     else:
-                        fictive_netbox.sysname = unicode(
+                        fictive_netbox.sysname = six.text_type(
                             gwportprefixes[0].interface.ifalias)
                     fictive_netbox.category_id = 'elink'
                     fictive_netbox.id = fictive_netbox.sysname

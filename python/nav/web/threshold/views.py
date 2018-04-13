@@ -20,6 +20,7 @@ import json
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import six
 
 from nav.metrics.names import raw_metric_query
 from nav.metrics.graphs import get_simple_graph_url, Graph
@@ -197,7 +198,7 @@ def get_graph_url(request):
         metric = request.GET['metric']
         if 'raw' in request.GET:
             graph = Graph(targets=[metric], **graph_args)
-            return redirect(unicode(graph))
+            return redirect(six.text_type(graph))
         else:
             return redirect(get_simple_graph_url([metric], **graph_args))
 

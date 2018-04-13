@@ -208,7 +208,7 @@ def _get_data_to_search_terms(selection, key_string, model):
     """
     selected_objects = len(selection[key_string])
     if selected_objects == model.objects.all().count():
-        return ["All %s selected." % unicode(model._meta.verbose_name_plural)]
+        return ["All {} selected.".format(model._meta.verbose_name_plural)]
     else:
         return model.objects.filter(id__in=selection[key_string])
 

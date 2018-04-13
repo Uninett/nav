@@ -336,7 +336,7 @@ class LLDPNeighbor(Neighbor):
         return self._interface_query(Q(ifphysaddress=mac))
 
     def _interfaces_from_ip(self, ip):
-        ip = unicode(ip)
+        ip = six.text_type(ip)
         assert ip
         if ip in self._invalid_neighbor_ips:
             return

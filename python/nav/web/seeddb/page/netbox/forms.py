@@ -22,6 +22,7 @@ from django.db.models import Q
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Submit,
                                             Fieldset, Field, Div, HTML)
+from django.utils import six
 
 from nav.django.forms import HStoreField
 from nav.web.crispyforms import LabelSubmit, NavButton
@@ -173,7 +174,7 @@ class NetboxModelForm(forms.ModelForm):
             ip, _ = resolve_ip_and_sysname(name)
         except SocketError:
             raise forms.ValidationError("Could not resolve name %s" % name)
-        return unicode(ip)
+        return six.text_type(ip)
 
     def clean_sysname(self):
         """Resolve sysname if not set"""

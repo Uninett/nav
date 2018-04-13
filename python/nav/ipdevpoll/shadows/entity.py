@@ -19,6 +19,7 @@ from __future__ import absolute_import
 from collections import defaultdict
 from datetime import datetime
 
+from django.utils import six
 from django.utils.six import iteritems, itervalues
 
 from nav.toposort import build_graph, topological_sort
@@ -191,7 +192,7 @@ class NetboxEntity(Shadow):
 
     def __setattr__(self, key, value):
         if key == 'index' and value is not None:
-            value = unicode(value)
+            value = six.text_type(value)
         if key == 'contained_in' and value == 0:
             value = None
         super(NetboxEntity, self).__setattr__(key, value)
