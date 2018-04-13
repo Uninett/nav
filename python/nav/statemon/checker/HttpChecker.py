@@ -18,15 +18,15 @@ from nav import buildconf
 
 from nav.statemon.event import Event
 from nav.statemon.abstractchecker import AbstractChecker
-from urlparse import urlsplit
-import httplib
+from django.utils.six.moves.urllib.parse import urlsplit
+from django.utils.six.moves import http_client
 import socket
 
 
-class HTTPConnection(httplib.HTTPConnection):
+class HTTPConnection(http_client.HTTPConnection):
     """Customized HTTP protocol interface"""
     def __init__(self, timeout, host, port=80):
-        httplib.HTTPConnection.__init__(self, host, port)
+        http_client.HTTPConnection.__init__(self, host, port)
         self.timeout = timeout
         self.connect()
 
