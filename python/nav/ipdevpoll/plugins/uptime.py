@@ -65,6 +65,6 @@ def get_upsince(timestamp, ticks):
     :returns: A datetime object representing the timestamp minus the ticks.
 
     """
-    delta = timedelta(seconds=long(ticks / 100))
+    delta = timedelta(seconds=int(ticks / 100))
     sometime = datetime.fromtimestamp(timestamp)
     return sometime - delta
