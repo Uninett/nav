@@ -180,6 +180,7 @@ class NAVAPIMixin(APIView):
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend,
                        RelatedOrderingFilter)
+    ordering_fields = '__all__'
 
 
 class ServiceHandlerViewSet(NAVAPIMixin, ViewSet):
