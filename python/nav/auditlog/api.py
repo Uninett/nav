@@ -15,19 +15,32 @@
 import operator
 
 from django.db.models import Q
+from django.utils import six
+
 from rest_framework import serializers
 from rest_framework import viewsets, filters
 
 from nav.web.api.v1.views import NAVAPIMixin
 
 from nav.models.manage import Interface
+
 from .models import LogEntry
 
 
+class LGFKRelatedField(serializers.RelatedField):
+    """
+    Custom field for any LegacyGenericForeignKey
+    """
+
+    def to_representation(self, value):
+        return six.text_type(value)
+
+
+
 class LogEntrySerializer(serializers.ModelSerializer):
-    actor = serializers.SerializerMethodField()
-    object = serializers.SerializerMethodField()
-    target = serializers.SerializerMethodField()
+    actor = LGFKRelatedField(read_only=True)
+    object = LGFKRelatedField(read_only=True)
+    target = LGFKRelatedField(read_only=True)
 
     class Meta:
         model = LogEntry
@@ -43,15 +56,6 @@ class LogEntrySerializer(serializers.ModelSerializer):
             'after',
         ]
         read_only_fields = ['timestamp']
-
-    def get_actor(self, obj):
-        return obj.actor
-
-    def get_object(self, obj):
-        return obj.object
-
-    def get_target(self, obj):
-        return obj.target
 
 
 class MultipleFilter(filters.BaseFilterBackend):
