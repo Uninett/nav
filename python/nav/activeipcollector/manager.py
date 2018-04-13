@@ -20,6 +20,8 @@ import logging
 import time
 from IPy import IP
 
+from django.utils.six.moves import range
+
 import nav.activeipcollector.collector as collector
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import metric_path_for_prefix
@@ -34,7 +36,7 @@ def run(days=None):
 
 
 def store(data):
-    """Store data in rrd-files and update rrd-database
+    """Sends data to carbon for storage in Graphite.
 
     :param data: a cursor.fetchall object containing all database rows we
     are to store
@@ -43,7 +45,7 @@ def store(data):
 
     # Suspecting package drop - dividing into chunks and giving some
     # breathing room for each batch of updates.
-    chunks = [data[x:x+100] for x in xrange(0, len(data), 100)]
+    chunks = [data[x:x+100] for x in range(0, len(data), 100)]
     for chunk in chunks:
         for db_tuple in chunk:
             store_tuple(db_tuple)
