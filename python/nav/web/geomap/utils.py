@@ -22,6 +22,7 @@ library.
 """
 import math
 from itertools import groupby
+from functools import reduce
 
 from django.utils.six import iteritems
 from django.utils.six.moves import range

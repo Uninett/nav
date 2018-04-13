@@ -20,6 +20,7 @@ import logging
 import json
 
 from operator import or_ as OR
+from functools import reduce
 
 from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext, Context
