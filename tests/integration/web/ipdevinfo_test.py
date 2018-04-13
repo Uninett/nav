@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.test.client import RequestFactory
 from mock import MagicMock
 
-from nav.models.manage import Netbox
+from nav.models.manage import Netbox, Module, Interface, Device
 from nav.models.profiles import Account
 
 from nav.web.ipdevinfo.views import ipdev_details
@@ -29,12 +29,23 @@ def test_device_details_should_include_sysname(netbox):
 #
 ###
 
+
 @pytest.fixture()
 def netbox():
-    box = Netbox(ip='10.254.254.254', sysname='example-srv.example.org',
-                 organization_id='myorg', room_id='myroom', category_id='SRV',
-                 snmp_version=2)
+    box = Netbox(ip='10.254.254.254', sysname='example-sw.example.org',
+                 organization_id='myorg', room_id='myroom', category_id='SW',
+                 snmp_version=2, read_only='public')
     box.save()
+
+    device = Device(serial="1234test")
+    device.save()
+    module = Module(device=device, netbox=box, name='Module 1', model='')
+    module.save()
+
+    interface = Interface(netbox=box, module=module, ifname='1',
+                          ifdescr='Port 1')
+    interface.save()
+
     yield box
     print("teardown test device")
     box.delete()
