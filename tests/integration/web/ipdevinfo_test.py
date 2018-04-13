@@ -8,6 +8,7 @@ from nav.models.manage import Netbox, Module, Interface, Device
 from nav.models.profiles import Account
 
 from nav.web.ipdevinfo.views import ipdev_details
+from nav.web.ipdevinfo.utils import get_module_view
 
 import pytest
 
@@ -22,6 +23,18 @@ def test_device_details_should_include_sysname(netbox):
     response = ipdev_details(request, name=netbox.sysname)
     assert netbox.sysname in response.content
 
+
+@pytest.mark.parametrize("perspective", [
+    'swportstatus',
+    'swportactive',
+    'gwportstatus',
+    'physportstatus',
+])
+def test_get_module_view(netbox, perspective):
+    module = netbox.module_set.all()[0]
+    result = get_module_view(module, perspective='swportstatus', netbox=netbox)
+    assert result['object'] == module
+    assert 'ports' in result
 
 ###
 #
