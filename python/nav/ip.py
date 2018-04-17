@@ -29,10 +29,13 @@ class IP(IPy.IP):
     # and such nigh-on impossible. Here we make some workarounds for this.
 
     def __cmp__(self, other):
+        """Overrides IPy.IP's __cmp__, which us used by all its rich comparison
+        operators, even though Python no longer consults __cmp__ directly.
+        """
         try:
             return super(IP, self).__cmp__(other)
         except TypeError:
-            return cmp(self.ip, other)
+            return (self.ip > other) - (self.ip < other)
 
     def __eq__(self, other):
         try:

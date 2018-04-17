@@ -22,8 +22,10 @@ library.
 """
 import math
 from itertools import groupby
+from functools import reduce
 
 from django.utils.six import iteritems
+from django.utils.six.moves import range
 
 
 def identity(obj):
@@ -427,5 +429,5 @@ def chunks(lst, size):
     """
     Yields successive `size`-sized chunks from lst.
     """
-    for i in xrange(0, len(lst), size):
+    for i in range(0, len(lst), size):
         yield lst[i:i+size]

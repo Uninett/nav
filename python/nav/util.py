@@ -33,6 +33,7 @@ except ImportError:
     ifilter = filter
 
 from django.utils import six
+from django.utils.six.moves import range
 from django.conf import settings
 
 import IPy
@@ -266,7 +267,7 @@ class IPRange(object):
 
     def __iter__(self):
         count = self.len()
-        for offset in xrange(0, count):
+        for offset in range(0, count):
             yield IPy.IP(self._min.int()+offset)
 
     def __getitem__(self, index):

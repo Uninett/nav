@@ -15,7 +15,7 @@
 #
 """HTTPS Service checker"""
 
-import httplib
+from django.utils.six.moves import http_client
 import socket
 
 from ssl import wrap_socket
@@ -23,10 +23,10 @@ from ssl import wrap_socket
 from nav.statemon.checker.HttpChecker import HttpChecker
 
 
-class HTTPSConnection(httplib.HTTPSConnection):
+class HTTPSConnection(http_client.HTTPSConnection):
     """Customized HTTPS protocol interface"""
     def __init__(self, timeout, host, port=443):
-        httplib.HTTPSConnection.__init__(self, host, port)
+        http_client.HTTPSConnection.__init__(self, host, port)
         self.timeout = timeout
         self.connect()
 

@@ -21,6 +21,7 @@ from datetime import date, timedelta
 from django.db.models import Q
 from django.template import RequestContext
 from django.shortcuts import render_to_response
+from django.utils import six
 from django.utils.datastructures import SortedDict
 
 from nav.models.manage import Arp, Cam, Netbios
@@ -100,8 +101,8 @@ def ip_do_search(request):
         'form_data': form_data,
         'ip_tracker': tracker,
         'ip_tracker_count': row_count,
-        'subnet_start': unicode(from_ip),
-        'subnet_end': unicode(to_ip),
+        'subnet_start': six.text_type(from_ip),
+        'subnet_end': six.text_type(to_ip),
         'colspan': find_colspan('ip', form)
     }
     info_dict.update(IP_DEFAULTS)
@@ -126,7 +127,7 @@ def get_arp_records(days, from_ip, to_ip, get_netbios=False):
     from_time = date.today() - timedelta(days=days)
     extra_args = {
         'where': ['ip BETWEEN %s and %s'],
-        'params': [unicode(from_ip), unicode(to_ip)]
+        'params': [six.text_type(from_ip), six.text_type(to_ip)]
     }
     if get_netbios:
         extra_args['select'] = {'netbiosname': get_netbios_query()}
@@ -173,7 +174,7 @@ def create_tracker(active, dns, inactive, ip_range, ip_result):
 
 def create_active_row(tracker, dns, dns_lookups, ip_key, ip_result):
     """Creates a tracker tuple where the result is active"""
-    ip = unicode(ip_key)
+    ip = six.text_type(ip_key)
     rows = ip_result[ip_key]
     for row in rows:
         row = process_ip_row(row, dns=False)
@@ -191,7 +192,7 @@ def create_active_row(tracker, dns, dns_lookups, ip_key, ip_result):
 
 def create_inactive_row(tracker, dns, dns_lookups, ip_key):
     """Creates a tracker tuple where the result is inactive"""
-    ip = unicode(ip_key)
+    ip = six.text_type(ip_key)
     row = {'ip': ip, 'ip_int_value': normalize_ip_to_string(ip)}
     if dns:
         if (dns_lookups[ip] and not

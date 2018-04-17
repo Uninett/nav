@@ -33,7 +33,7 @@ def split(string):
     """Split a string into digit- and non-digit components."""
     def intcast(n):
         if n.isdigit():
-            return long(n)
+            return int(n)
         else:
             return n
 

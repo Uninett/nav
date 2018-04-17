@@ -20,6 +20,8 @@ from socket import gethostbyaddr, herror
 from IPy import IP
 from collections import namedtuple
 
+from django.utils import six
+
 from nav import asyncdns
 from nav.models.manage import Prefix, Netbox, Interface
 
@@ -38,7 +40,7 @@ def hostname(ip):
     :returns: A hostname string or a False value if the lookup failed.
 
     """
-    addr = unicode(ip)
+    addr = six.text_type(ip)
     if addr in _cached_hostname:
         return _cached_hostname[addr]
 
@@ -140,7 +142,7 @@ def min_max_mac(prefix):
     :returns: A tuple of (min_mac_string, max_mac_string)
 
     """
-    return unicode(prefix[0]), unicode(prefix[-1])
+    return six.text_type(prefix[0]), six.text_type(prefix[-1])
 
 
 def track_mac(keys, resultset, dns):

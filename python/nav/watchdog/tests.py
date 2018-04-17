@@ -19,6 +19,8 @@ import collections
 import itertools
 import logging
 from datetime import datetime, timedelta
+
+from django.utils import six
 from django.utils.timesince import timesince
 from django.db.models import Count
 from django.utils.encoding import python_2_unicode_compatible
@@ -44,7 +46,7 @@ class TestResult(object):
         self.obj = obj  # An optional object representing the test
 
     def __str__(self):
-        return unicode(self.description)
+        return six.text_type(self.description)
 
 
 class Test(object):

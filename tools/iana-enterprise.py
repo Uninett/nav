@@ -22,10 +22,7 @@ from __future__ import print_function
 import sys
 import os
 from collections import namedtuple, Counter
-try:
-    from urllib.request import urlopen
-except ImportError:
-    from urllib2 import urlopen
+from django.utils.six.moves.urllib.request import urlopen
 import re
 import string
 from datetime import datetime

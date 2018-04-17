@@ -18,11 +18,8 @@
 
 import logging
 from operator import itemgetter
-try:
-    from urllib.parse import urlencode
-except:
-    from urllib import urlencode
 
+from django.utils.six.moves.urllib.parse import urlencode
 from django.core.urlresolvers import reverse
 
 from nav.metrics.data import (get_metric_average, get_metric_max,

@@ -30,6 +30,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.shortcuts import render_to_response
+from django.utils import six
+
 from nav.web.utils import SubListView
 
 from nav.models.profiles import (
@@ -701,7 +703,7 @@ def profile_time_period_setup(request, time_period_id=None):
             ('Profiles', reverse('alertprofiles-profile')),
             (profile.name, reverse('alertprofiles-profile-detail',
                                    args=(profile.id,))),
-            (unicode(time_period.start) + u', ' +
+            (six.text_type(time_period.start) + u', ' +
              time_period.get_valid_during_display(), None),
         ],
         'title': 'NAV - Alert profiles',
@@ -792,7 +794,7 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
             (profile.name, reverse('alertprofiles-profile-detail',
                                    args=(profile.id,))),
             (
-                unicode(subscription.time_period.start) + u', ' +
+                six.text_type(subscription.time_period.start) + u', ' +
                 subscription.time_period.get_valid_during_display(),
                 reverse('alertprofiles-profile-timeperiod-setup',
                         args=(subscription.time_period.id,))
@@ -900,7 +902,7 @@ def profile_time_period_subscription_remove(request):
                  reverse('alertprofiles-profile-detail',
                          args=(period.profile.id,))),
                 (
-                    unicode(period.start) + u', ' +
+                    six.text_type(period.start) + u', ' +
                     period.get_valid_during_display(),
                     reverse('alertprofiles-profile-timeperiod-setup',
                             args=(period.id,))

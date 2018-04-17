@@ -17,6 +17,8 @@
 Metric naming templates for various things that NAV sends/retrieves from
 Graphite.
 """
+from django.utils import six
+
 from nav.metrics.names import escape_metric_name
 
 # pylint: disable=C0111
@@ -158,7 +160,7 @@ def metric_prefix_for_system(sysname):
 
 def metric_prefix_for_multicast_group(group):
     tmpl = "nav.multicast.groups.{group}"
-    return tmpl.format(group=escape_metric_name(unicode(group)))
+    return tmpl.format(group=escape_metric_name(six.text_type(group)))
 
 
 def metric_path_for_multicast_usage(group, sysname):

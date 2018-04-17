@@ -6,6 +6,7 @@ from django.core import serializers
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 from django.forms.models import model_to_dict
+from django.utils import six
 
 from nav import natsort
 from nav.models.manage import Cam, Arp, GwPortPrefix, Netbox, SwPortVlan
@@ -183,8 +184,8 @@ class ExpandGWPortMixin(object):
                         'module_netbox_sysname':
                         interface.module.netbox.sysname
                         if interface.module else '',
-                        'subheader_vlan': unicode(vlan.vlan.vlan),
-                        'subheader_netbox': unicode(interface.netbox),
+                        'subheader_vlan': six.text_type(vlan.vlan.vlan),
+                        'subheader_netbox': six.text_type(interface.netbox),
                     }
                     # Check for children, services and connection
                     # to switches
@@ -270,7 +271,7 @@ class ExpandSwitchContextMixin(object):
                 'interface': model_to_dict(interface),
                 'interface_netbox_sysname': interface.netbox.sysname,
                 'interface_netbox_sysname_short':
-                unicode(interface.netbox.sysname),
+                six.text_type(interface.netbox.sysname),
             }
             c.update(_get_connected_sysname(interface))
             if interface.to_interface and switch_has_services:
@@ -334,14 +335,14 @@ def _get_connected_sysname(interface):
         return {
             'connected_to': {
                 'sysname': interface.to_netbox.sysname,
-                'short': unicode(interface.to_netbox)
+                'short': six.text_type(interface.to_netbox)
             }
         }
     elif interface.to_interface:
         return {
             'connected_to': {
                 'sysname': interface.to_interface.netbox.sysname,
-                'short': unicode(interface.to_interface.netbox)
+                'short': six.text_type(interface.to_interface.netbox)
             }
         }
     else:

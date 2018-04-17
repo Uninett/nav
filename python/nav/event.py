@@ -18,16 +18,12 @@
 from __future__ import absolute_import
 import nav.db
 from nav.errors import GeneralException
-try:
-    from collections import UserDict
-except:
-    from UserDict import UserDict
 
 from nav.models.event import EventType, AlertType
 from django.db import transaction
 
 
-class Event(UserDict):
+class Event(dict):
     """Represents a single event on or off the queue.
 
     Use like a dictionary to manipulate event variables (in eventqvar).
@@ -37,7 +33,7 @@ class Event(UserDict):
     def __init__(self, source=None, target=None, deviceid=None, netboxid=None,
                  subid=None, time=None, eventtypeid=None, state=None,
                  value=None, severity=None):
-        UserDict.__init__(self)
+        super(Event, self).__init__()
         self.eventqid = None
 
         self.source = source
@@ -58,7 +54,7 @@ class Event(UserDict):
                                   'state', 'value', 'severity')
                      if getattr(self, attr)]
         attr_list = ", ".join(attr_list)
-        return "<Event %s / %s>" % (attr_list, UserDict.__repr__(self))
+        return "<Event %s / %s>" % (attr_list, super(Event, self).__repr__())
 
     def post(self):
         """Post this event to the eventq"""

@@ -103,7 +103,7 @@ def parallel(iterable, count, func, *args, **kwargs):
     """Limits the number of parallel requests to count"""
     coop = task.Cooperator()
     work = (func(elem, *args, **kwargs) for elem in iterable)
-    return defer.DeferredList([coop.coiterate(work) for _ in xrange(count)],
+    return defer.DeferredList([coop.coiterate(work) for _ in range(count)],
                               consumeErrors=True)
 
 

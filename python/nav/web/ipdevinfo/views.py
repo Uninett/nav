@@ -26,6 +26,7 @@ from django.db.models import Q
 from django.shortcuts import (render_to_response, get_object_or_404, redirect,
                               render)
 from django.template import RequestContext
+from django.utils import six
 
 from nav.django.templatetags.thresholds import find_rules
 from nav.metrics.errors import GraphiteUnreachableError
@@ -550,7 +551,7 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
         (netbox_sysname,
          reverse('ipdevinfo-details-by-name',
                  kwargs={'name': netbox_sysname})), ('Port Details',)]
-    heading = title = 'Port details: ' + unicode(port)
+    heading = title = 'Port details: ' + six.text_type(port)
 
     try:
         port_metrics = port.get_port_metrics()
@@ -746,7 +747,7 @@ def sensor_details(request, identifier):
         (netbox_sysname,
          reverse('ipdevinfo-details-by-name',
                  kwargs={'name': netbox_sysname})), ('Sensor Details',)]
-    heading = title = 'Sensor details: ' + unicode(sensor)
+    heading = title = 'Sensor details: ' + six.text_type(sensor)
 
     metric = dict(id=sensor.get_metric_name())
     find_rules([metric])

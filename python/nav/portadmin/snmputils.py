@@ -70,9 +70,6 @@ class FantasyVlan(object):
     def __eq__(self, other):
         return self.vlan == other.vlan
 
-    def __cmp__(self, other):
-        return cmp(self.vlan, other.vlan)
-
 
 @python_2_unicode_compatible
 class SNMPHandler(object):

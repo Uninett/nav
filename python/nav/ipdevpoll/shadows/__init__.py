@@ -70,7 +70,7 @@ class NetboxType(Shadow):
         if self.sysobjectid.startswith(prefix):
             specific = self.sysobjectid[len(prefix):]
             enterprise = specific.split('.')[0]
-            return long(enterprise)
+            return int(enterprise)
 
 
 class NetboxInfo(Shadow):

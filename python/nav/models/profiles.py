@@ -26,6 +26,7 @@ from datetime import datetime
 import re
 import json
 
+from django.utils import six
 from django.views.decorators.debug import sensitive_variables
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
@@ -1251,7 +1252,7 @@ class NetmapView(models.Model):
 
     def to_json_dict(self):
         """Presents a NetmapView as JSON"""
-        categories = [{'name': unicode(x.category.id), 'is_selected': True}
+        categories = [{'name': six.text_type(x.category.id), 'is_selected': True}
                       for x in self.categories_set.all()]
         if self.display_elinks:
             categories.append({'name': 'ELINK', 'is_selected': True})
@@ -1263,7 +1264,7 @@ class NetmapView(models.Model):
             'description': self.description,
             'topology': self.topology,
             'zoom': self.zoom,
-            'last_modified': unicode(self.last_modified),
+            'last_modified': six.text_type(self.last_modified),
             'is_public': self.is_public,
             'categories': categories,
             'display_orphans': self.display_orphans,

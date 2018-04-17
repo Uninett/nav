@@ -17,6 +17,7 @@
 ipdevpoll plugin to collect information about physical entities, if any,
 within a Netbox, from the ENTITY-MIB::entPhysicalTable (RFC 4133 and RFC 6933)
 """
+from django.utils import six
 from twisted.internet import defer
 from nav.ipdevpoll.shadows.entity import NetboxEntity
 
@@ -72,7 +73,7 @@ class Entity(Plugin):
         ghosts = set()
         for container in containers:
             if container.contained_in:
-                parent_id = unicode(container.contained_in)
+                parent_id = six.text_type(container.contained_in)
                 parent = by_index.get(parent_id)
                 if parent:
                     container.contained_in = parent
