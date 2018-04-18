@@ -40,9 +40,13 @@ def pytest_unconfigure(config):
 
 def start_gunicorn():
     global gunicorn
-    gunicorn = subprocess.Popen(['gunicorn', 'navtest_wsgi:application'],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT)
+    workspace = os.path.join(os.environ.get('WORKSPACE', ''), 'reports')
+    errorlog = os.path.join(workspace, 'gunicorn-error.log')
+    accesslog = os.path.join(workspace, 'gunicorn-access.log')
+    gunicorn = subprocess.Popen(['gunicorn',
+                                 '--error-logfile', errorlog,
+                                 '--access-logfile', accesslog,
+                                 'navtest_wsgi:application'])
 
 
 def stop_gunicorn():
