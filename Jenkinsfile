@@ -77,6 +77,7 @@ node {
     stage("Publish documentation") {
         lastStage = env.STAGE_NAME
         echo "This job is ${JOB_BASE_NAME}"
+        sh "tox -e docs"
         // publish dev docs and stable branch docs, but nothing else
         if (env.JOB_BASE_NAME == 'master' || env.JOB_BASE_NAME.endsWith('.x')) {
             VERSION = sh (
