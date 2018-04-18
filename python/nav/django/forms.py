@@ -49,18 +49,31 @@ class PointField(forms.CharField):
             "Invalid format. Point field format is '(x,y)'.")
 
 
+class JSONWidget(Textarea):
+
+    def _render_value(self, value):
+        """Convert the value to JSON
+
+        Falsey values are converted to an empty string. Bytestrings are
+        considered to be encoded as utf-8 and converted to text."""
+        if value and not isinstance(value, six.string_types):
+            value = json.dumps(value, sort_keys=True, indent=4,
+                               cls=validators.JSONBytesEncoder)
+        else:
+            value = u''
+        return value
+
+    def render(self, name, value, attrs=None):
+        """Convert the value to JSON and render in textarea"""
+        value = self._render_value(value)
+        return super(JSONWidget, self).render(name, value, attrs)
+
+
 class HStoreField(Field):
 
     def __init__(self, **params):
-        params['widget'] = params.get('widget', Textarea)
+        params['widget'] = params.get('widget', JSONWidget)
         super(HStoreField, self).__init__(**params)
 
     def to_python(self, value):
         return validators.validate_hstore(value)
-
-    def render(self, name, value, attrs=None):
-        # return json representation of a meaningful value
-        # doesn't show anything for None, empty strings or empty dictionaries
-        if value and not isinstance(value, six.string_types):
-            value = json.dumps(value, sort_keys=True, indent=4)
-        return super(HStoreField, self).render(name, value, attrs)
