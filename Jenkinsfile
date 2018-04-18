@@ -35,7 +35,7 @@ node {
 
         try {
             def toxEnvirons = sh(returnStdout: true,
-                                 script: "tox -a tox -a | egrep '^(unit|integration|functional|javascript)' | paste -sd ,").trim().split(',')
+                                 script: "tox -a tox -a | egrep '^(unit|integration|functional|javascript|docs)' | paste -sd ,").trim().split(',')
             echo "Found these tox environments: ${toxEnvirons}"
             for (int i = 0; i < toxEnvirons.length; i++) {
                 stage("Tox ${toxEnvirons[i]}") {
@@ -77,7 +77,6 @@ node {
     stage("Publish documentation") {
         lastStage = env.STAGE_NAME
         echo "This job is ${JOB_BASE_NAME}"
-        sh "tox -e docs"
         // publish dev docs and stable branch docs, but nothing else
         if (env.JOB_BASE_NAME == 'master' || env.JOB_BASE_NAME.endsWith('.x')) {
             VERSION = sh (
