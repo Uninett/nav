@@ -1,39 +1,50 @@
 from nav.models.event import EventQueue
-from nav.tests.cases import DjangoTransactionTestCase
+import pytest
 
 
-class VarmapTestCase(DjangoTransactionTestCase):
-    def setUp(self):
-        self.event = EventQueue(source_id='ipdevpoll', target_id='eventEngine',
-                                event_type_id='info')
+def test_plain_event_can_be_posted(simple_event):
+    simple_event.save()
+    assert simple_event.id > 0
 
-    def test_plain_event_can_be_posted(self):
-        self.event.save()
-        self.assertGreater(self.event.id, 0)
 
-    def test_event_varmap_can_be_saved(self):
-        self.event.save()
-        self.event.varmap = {'test': 'value'}
+def test_event_varmap_can_be_saved(simple_event):
+    simple_event.save()
+    simple_event.varmap = {'test': 'value'}
 
-    def test_event_varmap_can_be_retrieved_after_save(self):
-        self.event.save()
-        self.event.varmap = {'test': 'value'}
-        event_copy = EventQueue.objects.get(pk=self.event.pk)
-        self.assertIn('test', event_copy.varmap)
-        self.assertEqual(event_copy.varmap['test'], 'value')
 
-    def test_event_varmap_can_be_replaced(self):
-        self.event.save()
-        self.event.varmap = {'test': 'value'}
-        self.event.varmap = {'something': 'else'}
+def test_event_varmap_can_be_retrieved_after_save(simple_event):
+    simple_event.save()
+    simple_event.varmap = {'test': 'value'}
+    event_copy = EventQueue.objects.get(pk=simple_event.pk)
+    assert 'test' in event_copy.varmap
+    assert event_copy.varmap['test'] == 'value'
 
-    def test_event_varmap_single_key_can_be_updated(self):
-        self.event.save()
-        self.event.varmap = {'test': 'value'}
-        self.event.varmap = {'test': 'new value'}
 
-    def test_event_varmap_single_key_can_be_updated_after_reload(self):
-        self.event.save()
-        self.event.varmap = {'test': 'value'}
-        event_copy = EventQueue.objects.get(pk=self.event.pk)
-        event_copy.varmap = {'test': 'new value'}
+def test_event_varmap_can_be_replaced(simple_event):
+    simple_event.save()
+    simple_event.varmap = {'test': 'value'}
+    simple_event.varmap = {'something': 'else'}
+
+
+def test_event_varmap_single_key_can_be_updated(simple_event):
+    simple_event.save()
+    simple_event.varmap = {'test': 'value'}
+    simple_event.varmap = {'test': 'new value'}
+
+
+def test_event_varmap_single_key_can_be_updated_after_reload(simple_event):
+    simple_event.save()
+    simple_event.varmap = {'test': 'value'}
+    event_copy = EventQueue.objects.get(pk=simple_event.pk)
+    event_copy.varmap = {'test': 'new value'}
+
+
+@pytest.fixture
+def simple_event():
+    event = EventQueue(source_id='ipdevpoll',
+                       target_id='eventEngine',
+                       event_type_id='info')
+    yield event
+    if event.pk:
+        event.delete()
+
