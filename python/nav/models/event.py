@@ -111,19 +111,19 @@ class VariableMapBase(object):
 class VariableMap(VariableMapBase):
     def _as_dict(self, obj):
         variables = obj.variables
-        return dict((var.variable, var.value) for var in variables.all())
+        return {var.variable: var.value for var in variables.all()}
 
     def _delete_missing_variables(self, vardict, variables):
         removed = variables.exclude(variable__in=vardict.keys())
         removed.delete()
 
     def _update_variables(self, obj, vardict):
-        varmap = self._as_dict(obj)
+        varmap = {var.variable: var for var in obj.variables.all()}
 
         for key, value in vardict.items():
             if key in varmap:
                 if varmap[key].value != value:
-                    varmap[key] = value
+                    varmap[key].value = value
                     varmap[key].save()
             else:
                 obj.variables.create(
