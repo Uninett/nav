@@ -25,6 +25,9 @@ from nav.models.fields import VarcharField, LegacyGenericForeignKey
 
 from . import find_modelname
 
+import logging
+_logger = logging.getLogger(__name__)
+
 
 @python_2_unicode_compatible
 class LogEntry(models.Model):
@@ -70,7 +73,11 @@ class LogEntry(models.Model):
         dict = {'actor': actor, 'object': object, 'target': target}
         for k, v in dict.items():
             dict[k] = getattr(v, 'audit_logname', u'%s' % v)
-        self.summary = template.format(**dict)
+        try:
+            self.summary = template.format(**dict)
+        except KeyError as error:
+            self.summary = 'Error creating summary - see error log'
+            _logger.error('KeyError when creating summary: %s', error)
         self.verb = verb
         self.actor_model = find_modelname(actor)
         self.object_model = find_modelname(object) if object else None
