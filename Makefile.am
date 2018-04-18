@@ -1,8 +1,11 @@
 if INSTALL_CONF
     CONF_DIR = etc
 endif
+if BUILD_DOCS
+    DOC_DIR = doc
+endif
 
-SUBDIRS = $(CONF_DIR) sql templates python bin doc htdocs
+SUBDIRS = $(CONF_DIR) sql templates python bin $(DOC_DIR) htdocs
 
 EXTRA_DIST = version.m4
 
@@ -21,5 +24,7 @@ installdirs-local:
 
 pyclean:
 	make -C bin pyclean
+if BUILD_DOCS
 	make -C doc pyclean
+endif
 	make -C python pyclean

@@ -63,10 +63,16 @@ AC_ARG_ENABLE(install-conf,
             [  --disable-install-conf  Do not install config-files from etc/],
             [CONF_FILES="$enableval"],
             [CONF_FILES="yes"])
-
 AC_MSG_RESULT(Install config-files... $CONF_FILES)
-
 AM_CONDITIONAL([INSTALL_CONF], [test "x$CONF_FILES" = "xyes"])
+
+AC_ARG_ENABLE(docs,
+            [  --disable-docs  Do not build Sphinx documentation/],
+            [BUILD_DOCS="$enableval"],
+            [BUILD_DOCS="yes"])
+AC_MSG_RESULT(Build Sphinx documentation... $BUILD_DOCS)
+AM_CONDITIONAL([BUILD_DOCS], [test "x$BUILD_DOCS" = "xyes"])
+
 
 AC_CONFIG_FILES([
     Makefile
