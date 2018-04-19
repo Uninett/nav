@@ -199,22 +199,22 @@ class UnrecognizedNeighborSerializer(serializers.ModelSerializer):
 
 class RackItemSerializer(serializers.Serializer):
     """Serialize a rack item manually - no models available"""
-    id = serializers.Field()
-    title = serializers.Field()
+    id = serializers.ReadOnlyField()
+    title = serializers.ReadOnlyField()
     metric = serializers.ReadOnlyField(source='get_metric')
-    unit_of_measurement = serializers.Field()
-    human_readable = serializers.Field()
+    unit_of_measurement = serializers.ReadOnlyField()
+    human_readable = serializers.ReadOnlyField()
     absolute_url = serializers.ReadOnlyField(source='get_absolute_url')
     display_range = serializers.ReadOnlyField(source='get_display_range')
 
 
-class RackConfigurationField(serializers.Field):
+class RackConfigurationField(serializers.ReadOnlyField):
     """Field representing the configuration of a rack"""
-    def to_native(self, obj):
+    def to_representation(self, value):
         configuration = {}
         for column in ['left', 'center', 'right']:
             configuration[column] = [RackItemSerializer(i).data
-                                     for i in obj[column]]
+                                     for i in value[column]]
         return configuration
 
 
