@@ -45,3 +45,20 @@ def test_alertprofiles_view(client, view):
     url = reverse(view)
     response = client.get(url)
     assert "admin" in response.content
+
+
+def test_alertprofiles_save_profile(db, client):
+    url = reverse('alertprofiles-profile-save')
+    profile_name = 'Catch 22'
+
+    response = client.post(url, follow=True, data={
+        'name': profile_name,
+        'daily_dispatch_time': '08:00',
+        'weekly_dispatch_time': '08:00',
+        'weekly_dispatch_day': AlertProfile.MONDAY,
+    })
+
+    assert response.status_code == 200
+    print(response.content)
+    assert "Saved profile" in response.content
+    assert AlertProfile.objects.filter(name=profile_name).count() > 0
