@@ -29,7 +29,7 @@ from django.db.models.fields import FieldDoesNotExist
 from datetime import datetime, timedelta
 import iso8601
 
-from rest_framework import status, filters, viewsets, exceptions
+from rest_framework import status, filters, viewsets, exceptions, pagination
 from rest_framework.decorators import api_view, renderer_classes, list_route
 from rest_framework.reverse import reverse_lazy
 from rest_framework.renderers import (JSONRenderer, BrowsableAPIRenderer,
@@ -653,6 +653,26 @@ def get_times(request):
     return starttime, endtime
 
 
+
+
+class PrefixUsagePaginator(pagination.LimitOffsetPagination):
+    """Custom pagination for prefix usage
+
+    The queryset contains prefixes, but we use a custom object for representing
+    the usage statistics for the prefix. Thus we need to convert the filtered
+    prefixes to the custom object format.
+
+    Also we need to run the prefix collector after paging to avoid unnecessary
+    usage calculations.
+    """
+
+    def paginate_queryset(self, queryset, request, view=None):
+        prefixes = super(PrefixUsagePaginator, self).paginate_queryset(
+            queryset, request)
+        starttime, endtime = get_times(request)
+        return prefix_collector.fetch_usages(prefixes, starttime, endtime)
+
+
 class PrefixUsageList(NAVAPIMixin, ListAPIView):
     """Lists the usage of prefixes. This means how many addresses are in use
     in the prefix.
@@ -680,6 +700,10 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
     [1]: https://xkcd.com/1179/
     """
     serializer_class = serializers.PrefixUsageSerializer
+    pagination_class = PrefixUsagePaginator
+
+    # RelatedOrderingFilter does not work with the custom pagination
+    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
 
     def get(self, request, *args, **kwargs):
         """Override get method to verify url parameters"""
@@ -704,29 +728,6 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
                    if IP(p.net_address).len() >= MINIMUMPREFIXLENGTH]
 
         return results
-
-    def list(self, request, *args, **kwargs):
-        """Delivers a list of usage objects as a response
-
-        The queryset contains prefixes, but we use a custom object for
-        representing the usage statistics for the prefix. Thus we need to
-        convert the filtered prefixes to the custom object format.
-
-        Also we need to run the prefix collector after paging to avoid
-        unnecessary usage calculations
-        """
-        page = self.paginate_queryset(self.filter_queryset(self.get_queryset()))
-        starttime, endtime = get_times(self.request)
-        prefixes = prefix_collector.fetch_usages(
-            page.object_list, starttime, endtime)
-
-        if page is not None:
-            page.object_list = prefixes
-            serializer = self.get_pagination_serializer(page)
-        else:
-            serializer = self.get_serializer(prefixes, many=True)
-
-        return Response(serializer.data)
 
 
 class PrefixUsageDetail(NAVAPIMixin, APIView):
