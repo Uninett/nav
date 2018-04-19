@@ -147,3 +147,41 @@ def client():
     client_.post(url, {'username': username,
                        'password': password})
     return client_
+
+
+@pytest.fixture(scope='function')
+def db(request):
+    """Ensures db modifications are rolled back after the test ends.
+
+    This is done by disabling transaction management, running everything
+    inside a transaction that is rolled back after the test is done.
+    Effectively, it reuses the functionality of Django's own TestCase
+    implementation, just fitted for pytest.
+
+    This idea is entirely lifted from pytest-django; we can't use
+    pytest-django directly, yet, because it won't work on Django 1.7 (and NAV
+    has fairly non-standard use of Django, anyway)
+
+    """
+    if _is_django_unittest(request):
+        return
+
+    from nav.tests.cases import DjangoTransactionTestCase as django_case
+
+    test_case = django_case(methodName='__init__')
+    test_case._pre_setup()
+    request.addfinalizer(test_case._post_teardown)
+
+
+def _is_django_unittest(request_or_item):
+    """Returns True if the request_or_item is a Django test case, otherwise
+    False
+    """
+    from django.test import SimpleTestCase
+
+    cls = getattr(request_or_item, 'cls', None)
+
+    if cls is None:
+        return False
+
+    return issubclass(cls, SimpleTestCase)
