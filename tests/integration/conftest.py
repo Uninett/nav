@@ -4,6 +4,7 @@ import re
 import shlex
 
 import pytest
+from django.test import Client
 
 from nav.buildconf import bindir
 from nav.models.manage import Netbox
@@ -71,3 +72,18 @@ def localhost():
     yield box
     print("teardown test device")
     box.delete()
+
+
+@pytest.fixture(scope='session')
+def client():
+    """Provides a Django test Client object already logged in to the web UI as
+    an admin"""
+    from django.core.urlresolvers import reverse
+
+    client_ = Client()
+    url = reverse('webfront-login')
+    username = os.environ.get('ADMINUSERNAME', 'admin')
+    password = os.environ.get('ADMINPASSWORD', 'admin')
+    client_.post(url, {'username': username,
+                       'password': password})
+    return client_
