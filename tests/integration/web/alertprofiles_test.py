@@ -88,3 +88,41 @@ def test_alertprofiles_remove_profile(db, client):
     assert "Confirm deletion" in response.content
     assert profile.name in response.content
     assert AlertProfile.objects.filter(pk=profile.pk).count() == 1
+
+
+def test_alertprofiles_activate_profile(db, client):
+    account = Account.objects.get(id=Account.ADMIN_ACCOUNT)
+    profile = AlertProfile(account=account, name='My profile')
+    profile.save()
+
+    # remarkably, activation/deactivation of profiles belong in the remove view!
+    url = reverse('alertprofiles-profile-remove')
+    response = client.post(url, follow=True, data={
+        'activate': profile.id,
+    })
+    assert response.status_code == 200
+    assert "Active profile set" in response.content
+    assert profile.name in response.content
+    preference = AlertPreference.objects.get(account=account)
+    assert preference.active_profile == profile
+
+
+def test_alertprofiles_deactivate_profile(db, client):
+    account = Account.objects.get(id=Account.ADMIN_ACCOUNT)
+    profile = AlertProfile(account=account, name='My profile')
+    profile.save()
+    preference = AlertPreference(account=account, active_profile=profile)
+    preference.save()
+
+    # remarkably, activation/deactivation of profiles belong in the remove view!
+    url = reverse('alertprofiles-profile-remove')
+    response = client.post(url, follow=True, data={
+        'deactivate': profile.id,
+    })
+    assert response.status_code == 200
+    print(response.content)
+    assert "was deactivated" in response.content
+    assert profile.name in response.content
+    preference = AlertPreference.objects.get(account=account)
+    assert preference.active_profile is None
+
