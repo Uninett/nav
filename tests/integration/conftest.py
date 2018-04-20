@@ -33,6 +33,8 @@ def pytest_configure(config):
 
     from nav.bootstrap import bootstrap_django
     bootstrap_django('pytest')
+    from django.test.utils import setup_test_environment
+    setup_test_environment()
 
 
 def pytest_unconfigure(config):
