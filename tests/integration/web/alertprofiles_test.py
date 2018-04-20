@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+from random import randint
+
 from mock import MagicMock
 import pytest
 
 from django.test.client import RequestFactory
 from django.core.urlresolvers import reverse
+from django.utils.encoding import smart_text
 
 from nav.models.profiles import AlertProfile, Account, AlertPreference
 from nav.web.alertprofiles.views import set_active_profile
@@ -39,7 +43,7 @@ def test_alertprofiles_view(client, view):
     """Simple GET tests for various non-modifying alertprofiles views"""
     url = reverse(view)
     response = client.get(url)
-    assert "admin" in response.content
+    assert "admin" in smart_text(response.content)
 
 
 def test_alertprofiles_save_profile(db, client):
@@ -55,74 +59,76 @@ def test_alertprofiles_save_profile(db, client):
 
     assert response.status_code == 200
     print(response.content)
-    assert "Saved profile" in response.content
+    assert "Saved profile" in smart_text(response.content)
     assert AlertProfile.objects.filter(name=profile_name).count() > 0
 
 
-def test_alertprofiles_confirm_remove_profile(db, client):
-    account = Account.objects.get(id=Account.ADMIN_ACCOUNT)
-    profile = AlertProfile(account=account, name='Dead profile')
-    profile.save()
-
+def test_alertprofiles_confirm_remove_profile(db, client, dummy_profile):
     url = reverse('alertprofiles-profile-remove')
     response = client.post(url, follow=True, data={
         'confirm': '1',
-        'element': [profile.id],
+        'element': [dummy_profile.id],
     })
     assert response.status_code == 200
-    assert AlertProfile.objects.filter(pk=profile.pk).count() == 0
+    assert AlertProfile.objects.filter(pk=dummy_profile.pk).count() == 0
 
 
-def test_alertprofiles_remove_profile(db, client):
-    account = Account.objects.get(id=Account.ADMIN_ACCOUNT)
-    profile = AlertProfile(account=account, name='Dead profile')
-    profile.save()
-    preference = AlertPreference(account=account, active_profile=profile)
-    preference.save()
-
+def test_alertprofiles_remove_profile(db, client, activated_dummy_profile):
     url = reverse('alertprofiles-profile-remove')
     response = client.post(url, follow=True, data={
-        'profile': [profile.id],
+        'profile': [activated_dummy_profile.id],
     })
     assert response.status_code == 200
-    assert "Confirm deletion" in response.content
-    assert profile.name in response.content
-    assert AlertProfile.objects.filter(pk=profile.pk).count() == 1
+    assert "Confirm deletion" in smart_text(response.content)
+    assert activated_dummy_profile.name in smart_text(response.content)
+    assert AlertProfile.objects.filter(
+        pk=activated_dummy_profile.pk).count() == 1
 
 
-def test_alertprofiles_activate_profile(db, client):
-    account = Account.objects.get(id=Account.ADMIN_ACCOUNT)
-    profile = AlertProfile(account=account, name='My profile')
-    profile.save()
-
+def test_alertprofiles_activate_profile(db, client, dummy_profile):
     # remarkably, activation/deactivation of profiles belong in the remove view!
     url = reverse('alertprofiles-profile-remove')
     response = client.post(url, follow=True, data={
-        'activate': profile.id,
+        'activate': dummy_profile.id,
     })
     assert response.status_code == 200
-    assert "Active profile set" in response.content
-    assert profile.name in response.content
-    preference = AlertPreference.objects.get(account=account)
-    assert preference.active_profile == profile
+    assert "Active profile set" in smart_text(response.content)
+    assert dummy_profile.name in smart_text(response.content)
+    preference = AlertPreference.objects.get(account=dummy_profile.account)
+    assert preference.active_profile == dummy_profile
 
 
-def test_alertprofiles_deactivate_profile(db, client):
-    account = Account.objects.get(id=Account.ADMIN_ACCOUNT)
-    profile = AlertProfile(account=account, name='My profile')
-    profile.save()
-    preference = AlertPreference(account=account, active_profile=profile)
-    preference.save()
-
+def test_alertprofiles_deactivate_profile(db, client, activated_dummy_profile):
     # remarkably, activation/deactivation of profiles belong in the remove view!
     url = reverse('alertprofiles-profile-remove')
     response = client.post(url, follow=True, data={
-        'deactivate': profile.id,
+        'deactivate': activated_dummy_profile.id,
     })
     assert response.status_code == 200
-    print(response.content)
-    assert "was deactivated" in response.content
-    assert profile.name in response.content
-    preference = AlertPreference.objects.get(account=account)
+    print(type(response.content))
+    assert "was deactivated" in smart_text(response.content)
+    assert activated_dummy_profile.name in smart_text(response.content)
+    preference = AlertPreference.objects.get(
+        account=activated_dummy_profile.account)
     assert preference.active_profile is None
 
+#
+# fixtures and helpers
+#
+
+
+@pytest.fixture(scope='function')
+def dummy_profile():
+    account = Account.objects.get(id=Account.ADMIN_ACCOUNT)
+    profile = AlertProfile(account=account,
+                           name=u'ÆØÅ Profile %d' % randint(1, 1000))
+    profile.save()
+    return profile
+
+
+@pytest.fixture(scope='function')
+def activated_dummy_profile(dummy_profile):
+    preference = AlertPreference(account=dummy_profile.account,
+                                 active_profile=dummy_profile)
+    preference.save()
+    return dummy_profile
