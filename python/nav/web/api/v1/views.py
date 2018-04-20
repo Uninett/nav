@@ -216,7 +216,7 @@ class LoggerMixin(object):
         """Log POST requests that create new objects"""
         response = super(LoggerMixin, self).create(request, *args, **kwargs)
         if response.status_code == status.HTTP_201_CREATED:
-            _logger.info('Token %s created %r', self.request.auth, self.object)
+            _logger.info('Token %s created', self.request.auth)
         return response
 
     def update(self, request, *args, **kwargs):
@@ -226,8 +226,8 @@ class LoggerMixin(object):
         """
         response = super(LoggerMixin, self).update(request, *args, **kwargs)
         if response.status_code in [status.HTTP_200_OK, status.HTTP_201_CREATED]:
-            _logger.info('Token %s updated %r with %s', self.request.auth,
-                         self.object, dict(self.request.DATA))
+            _logger.info('Token %s updated with %s', self.request.auth,
+                         dict(self.request.data))
         return response
 
     def destroy(self, request, *args, **kwargs):
