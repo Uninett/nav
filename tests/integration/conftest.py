@@ -187,3 +187,30 @@ def _is_django_unittest(request_or_item):
         return False
 
     return issubclass(cls, SimpleTestCase)
+
+
+@pytest.fixture(scope='function')
+def token():
+    """Creates a write enabled token for API access but without endpoints
+
+    Tests should manipulate the endpoints as they see fit.
+    """
+    from nav.models.api import APIToken
+    from datetime import datetime, timedelta
+
+    token = APIToken(token='xxxxxx',
+                     expires=datetime.now() + timedelta(days=1),
+                     client_id=1,
+                     permission='write')
+    token.save()
+    return token
+
+
+@pytest.fixture(scope='function')
+def api_client(token):
+    """Creates a client for API access"""
+
+    from rest_framework.test import APIClient
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION='Token ' + token.token)
+    return client
