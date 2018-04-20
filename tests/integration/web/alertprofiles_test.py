@@ -5,7 +5,7 @@ import pytest
 from django.test.client import RequestFactory
 from django.core.urlresolvers import reverse
 
-from nav.models.profiles import AlertProfile, Account
+from nav.models.profiles import AlertProfile, Account, AlertPreference
 from nav.web.alertprofiles.views import set_active_profile
 
 
@@ -57,3 +57,34 @@ def test_alertprofiles_save_profile(db, client):
     print(response.content)
     assert "Saved profile" in response.content
     assert AlertProfile.objects.filter(name=profile_name).count() > 0
+
+
+def test_alertprofiles_confirm_remove_profile(db, client):
+    account = Account.objects.get(id=Account.ADMIN_ACCOUNT)
+    profile = AlertProfile(account=account, name='Dead profile')
+    profile.save()
+
+    url = reverse('alertprofiles-profile-remove')
+    response = client.post(url, follow=True, data={
+        'confirm': '1',
+        'element': [profile.id],
+    })
+    assert response.status_code == 200
+    assert AlertProfile.objects.filter(pk=profile.pk).count() == 0
+
+
+def test_alertprofiles_remove_profile(db, client):
+    account = Account.objects.get(id=Account.ADMIN_ACCOUNT)
+    profile = AlertProfile(account=account, name='Dead profile')
+    profile.save()
+    preference = AlertPreference(account=account, active_profile=profile)
+    preference.save()
+
+    url = reverse('alertprofiles-profile-remove')
+    response = client.post(url, follow=True, data={
+        'profile': [profile.id],
+    })
+    assert response.status_code == 200
+    assert "Confirm deletion" in response.content
+    assert profile.name in response.content
+    assert AlertProfile.objects.filter(pk=profile.pk).count() == 1
