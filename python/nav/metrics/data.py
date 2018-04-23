@@ -112,7 +112,7 @@ def get_metric_data(target, start="-5min", end="now"):
     query = urlencode(query, True)
 
     _logger.debug("get_metric_data%r", (target, start, end))
-    req = Request(url, data=query)
+    req = Request(url, data=query.encode('utf-8'))
     try:
         response = urlopen(req)
         json_data = json.load(response)
