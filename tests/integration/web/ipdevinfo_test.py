@@ -1,27 +1,18 @@
 from __future__ import print_function
 
 from django.core.urlresolvers import reverse
-from django.test.client import RequestFactory
-from mock import MagicMock
+from django.utils.encoding import smart_text
 
 from nav.models.manage import Netbox, Module, Interface, Device
-from nav.models.profiles import Account
-
-from nav.web.ipdevinfo.views import ipdev_details
 from nav.web.ipdevinfo.utils import get_module_view
 
 import pytest
 
 
-def test_device_details_should_include_sysname(netbox):
-    factory = RequestFactory()
+def test_device_details_should_include_sysname(client, netbox):
     url = reverse('ipdevinfo-details-by-name', args=(netbox.sysname,))
-    request = factory.get(url)
-    request.account = Account.objects.get(pk=Account.ADMIN_ACCOUNT)
-    request.session = MagicMock()
-
-    response = ipdev_details(request, name=netbox.sysname)
-    assert netbox.sysname in response.content
+    response = client.get(url)
+    assert netbox.sysname in smart_text(response.content)
 
 
 @pytest.mark.parametrize("perspective", [
@@ -44,7 +35,7 @@ def test_get_module_view(netbox, perspective):
 
 
 @pytest.fixture()
-def netbox():
+def netbox(db):
     box = Netbox(ip='10.254.254.254', sysname='example-sw.example.org',
                  organization_id='myorg', room_id='myroom', category_id='SW',
                  snmp_version=2, read_only='public')
@@ -59,7 +50,4 @@ def netbox():
                           ifdescr='Port 1')
     interface.save()
 
-    yield box
-    print("teardown test device")
-    box.delete()
-    device.delete()
+    return box
