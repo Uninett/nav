@@ -20,6 +20,7 @@ from operator import itemgetter
 
 from django.http import HttpResponse, QueryDict, JsonResponse
 from django.test.client import RequestFactory
+from django.utils.dateparse import parse_datetime
 
 from nav.models.profiles import Account
 from nav.models.manage import Netbox
@@ -43,7 +44,7 @@ class Status2Widget(Navlet):
     def get_context_data_view(self, context):
         self.title = self.preferences.get('title', self.title)
         status_filter = self.preferences.get('status_filter')
-        results = self.do_query(status_filter)
+        results = self.do_query(status_filter) or ()
         self.add_formatted_time(results)
         self.add_netbox(results)
         context['extra_columns'] = self.find_extra_columns(status_filter)
@@ -69,16 +70,20 @@ class Status2Widget(Navlet):
         request = factory.get("?%s" % query_string)
         request.account = Account.objects.get(pk=1)
         response = view(request)
-        return response.data.get('results')
+        return response.data
 
     def add_formatted_time(self, results):
         """Adds formatted time to all results"""
+        if not results:
+            results = ()
         for result in results:
             result['formatted_time'] = self.format_time(result['start_time'])
 
     @staticmethod
     def add_netbox(results):
         """Adds the netbox object to the result objects"""
+        if not results:
+            results = ()
         for result in results:
             try:
                 netbox = Netbox.objects.select_related(
@@ -96,8 +101,9 @@ class Status2Widget(Navlet):
         return [(k, v) for k, v in column_choices if k in chosen_columns]
 
     @staticmethod
-    def format_time(timestamp):
+    def format_time(timestampstring):
         """Format the time based on time back in time"""
+        timestamp = parse_datetime(timestampstring)
         now = datetime.now()
         date_format = '%d.%b %H:%M:%S'
         if now.year != timestamp.year:

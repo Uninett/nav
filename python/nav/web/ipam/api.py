@@ -72,20 +72,20 @@ class PrefixViewSet(viewsets.ViewSet):
 
     def get_queryset(self):
         "Build queryset for API using filters"
-        net_types = self.request.QUERY_PARAMS.getlist("net_type", None)
+        net_types = self.request.query_params.getlist("net_type", None)
         if "all" in net_types:
             net_types = None
-        search = self.request.QUERY_PARAMS.get("search", None)
+        search = self.request.query_params.get("search", None)
         if search is not None and search:
             net_types = None
-        ip = self.request.QUERY_PARAMS.get("ip", None)
+        ip = self.request.query_params.get("ip", None)
         if ip is not None and ip:
             net_types = None
-        organization = self.request.QUERY_PARAMS.get("organization", None)
-        vlan_number = self.request.QUERY_PARAMS.get("vlan", None)
-        description = self.request.QUERY_PARAMS.get("description", None)
-        within = self.request.QUERY_PARAMS.get("within", None)
-        usage = self.request.QUERY_PARAMS.get("usage", None)
+        organization = self.request.query_params.get("organization", None)
+        vlan_number = self.request.query_params.get("vlan", None)
+        description = self.request.query_params.get("description", None)
+        within = self.request.query_params.get("within", None)
+        usage = self.request.query_params.get("usage", None)
         # Build queryset
         queryset = PrefixQuerysetBuilder()
         queryset.within(within)
@@ -102,7 +102,7 @@ class PrefixViewSet(viewsets.ViewSet):
     @list_route(methods=["get"])
     def suggest(self, request, *args, **kwargs):
         "Suggests subnets of size=?number_of_hosts for ?prefix"
-        params = SuggestParams(data=request.QUERY_PARAMS)
+        params = SuggestParams(data=request.query_params)
         if not params.is_valid():
             return Response(data=params.errors,
                             status=status.HTTP_400_BAD_REQUEST)
@@ -134,10 +134,10 @@ class PrefixViewSet(viewsets.ViewSet):
     def list(self, request, *args, **kwargs):
         "List a tree-like structure of all prefixes matching the query"
         prefixes = self.get_queryset()
-        family = self.request.QUERY_PARAMS.getlist("type", ["ipv4", "ipv6",
+        family = self.request.query_params.getlist("type", ["ipv4", "ipv6",
                                                             "rfc1918"])
-        within = self.request.QUERY_PARAMS.get("within", None)
-        show_all = self.request.QUERY_PARAMS.get("show_all", None)
+        within = self.request.query_params.get("within", None)
+        show_all = self.request.query_params.get("show_all", None)
         result = make_tree(prefixes, root_ip=within, family=family,
                            show_all=show_all)
         payload = result.fields["children"]
@@ -159,8 +159,8 @@ class PrefixFinderSet(viewsets.ViewSet):
 
     def get_queryset(self):
         # Extract filters
-        prefix = self.request.QUERY_PARAMS.get("prefix", None)
-        organization = self.request.QUERY_PARAMS.get("organization", None)
+        prefix = self.request.query_params.get("prefix", None)
+        organization = self.request.query_params.get("organization", None)
         # Build queryset
         queryset = PrefixQuerysetBuilder()
         queryset.organization(organization)
@@ -177,9 +177,9 @@ class PrefixFinderSet(viewsets.ViewSet):
         - prefix_size: *The maximum prefix length (mask, e.g. /32)*
 
         """
-        prefix = self.request.QUERY_PARAMS.get("prefix", None)
+        prefix = self.request.query_params.get("prefix", None)
         result = get_available_subnets(prefix)
-        prefix_size = self.request.QUERY_PARAMS.get("prefix_size", None)
+        prefix_size = self.request.query_params.get("prefix_size", None)
         if prefix_size is not None:
             prefix_size = int(prefix_size)
             result = [prefix for prefix in result if prefix.prefixlen() <=

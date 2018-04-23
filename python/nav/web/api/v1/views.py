@@ -120,7 +120,7 @@ def get_endpoints(request=None, version=1):
     return {
         'account': reverse_lazy('{}account-list'.format(prefix), **kwargs),
         'accountgroup': reverse_lazy('{}accountgroup-list'.format(prefix), **kwargs),
-        'alert': reverse_lazy('{}alerthistory-list'.format(prefix), **kwargs),
+        'alert': reverse_lazy('{}alert-list'.format(prefix), **kwargs),
         'auditlog': reverse_lazy('{}auditlog-list'.format(prefix), **kwargs),
         'arp': reverse_lazy('{}arp-list'.format(prefix), **kwargs),
         'cabling': reverse_lazy('{}cabling-list'.format(prefix), **kwargs),
@@ -180,6 +180,7 @@ class NAVAPIMixin(APIView):
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend,
                        RelatedOrderingFilter)
+    ordering_fields = '__all__'
 
 
 class ServiceHandlerViewSet(NAVAPIMixin, ViewSet):
@@ -276,7 +277,7 @@ class AccountGroupViewSet(NAVAPIMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = profiles.AccountGroup.objects.all()
-        accounts = self.request.QUERY_PARAMS.getlist('account')
+        accounts = self.request.query_params.getlist('account')
         if accounts:
             queryset = queryset.filter(accounts__in=accounts).distinct()
         return queryset
@@ -382,7 +383,7 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         request = self.request
-        if request.QUERY_PARAMS.get('last_used'):
+        if request.query_params.get('last_used'):
             return serializers.InterfaceWithCamSerializer
         else:
             return serializers.InterfaceSerializer
@@ -439,7 +440,7 @@ class CablingViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = cabling.Cabling.objects.all()
-        not_patched = self.request.QUERY_PARAMS.get('available', None)
+        not_patched = self.request.query_params.get('available', None)
         if not_patched:
             queryset = queryset.filter(patch=None)
 
@@ -456,7 +457,7 @@ class MachineTrackerViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         """Filter on custom parameters"""
         queryset = self.model_class.objects.all()
-        active = self.request.QUERY_PARAMS.get('active', None)
+        active = self.request.query_params.get('active', None)
         starttime, endtime = get_times(self.request)
 
         if active:
@@ -500,7 +501,7 @@ class CamViewSet(MachineTrackerViewSet):
 
     def list(self, request):
         """Override list so that we can control what is returned"""
-        if not request.QUERY_PARAMS:
+        if not request.query_params:
             return Response("Cam records are numerous - use a filter",
                             status=status.HTTP_400_BAD_REQUEST)
         return super(CamViewSet, self).list(request)
@@ -538,7 +539,7 @@ class ArpViewSet(MachineTrackerViewSet):
 
     def list(self, request):
         """Override list so that we can control what is returned"""
-        if not request.QUERY_PARAMS:
+        if not request.query_params:
             return Response("Arp records are numerous - use a filter",
                             status=status.HTTP_400_BAD_REQUEST)
         return super(ArpViewSet, self).list(request)
@@ -546,7 +547,7 @@ class ArpViewSet(MachineTrackerViewSet):
     def get_queryset(self):
         """Customizes handling of the ip address filter"""
         queryset = super(ArpViewSet, self).get_queryset()
-        ip = self.request.QUERY_PARAMS.get('ip', None)
+        ip = self.request.query_params.get('ip', None)
         if ip:
             try:
                 addr = IP(ip)
@@ -814,13 +815,13 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         """Gets an AlertHistory QuerySet"""
-        if not self.request.QUERY_PARAMS.get('stateless', False):
+        if not self.request.query_params.get('stateless', False):
             return event.AlertHistory.objects.unresolved().select_related()
         else:
             return self._get_stateless_queryset()
 
     def _get_stateless_queryset(self):
-        hours = int(self.request.QUERY_PARAMS.get('stateless_threshold',
+        hours = int(self.request.query_params.get('stateless_threshold',
                                                   STATELESS_THRESHOLD))
         if hours < 1:
             raise ValueError("hours must be at least 1")
