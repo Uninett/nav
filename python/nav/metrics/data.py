@@ -14,7 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Retrieval and calculations on raw numbers from Graphite metrics"""
-
+import codecs
 from datetime import datetime
 import json
 import logging
@@ -115,7 +115,7 @@ def get_metric_data(target, start="-5min", end="now"):
     req = Request(url, data=query.encode('utf-8'))
     try:
         response = urlopen(req)
-        json_data = json.load(response)
+        json_data = json.load(codecs.getreader('utf-8')(response))
         _logger.debug("get_metric_data: returning %d results", len(json_data))
         return json_data
     except HTTPError as err:
