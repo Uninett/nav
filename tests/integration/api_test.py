@@ -141,8 +141,8 @@ def test_delete_room(db, api_client, token):
     endpoint = 'room'
     create_token_endpoint(token, 'room')
     create(api_client, endpoint, _room_data)
-    response1 = api_client.delete('/api/1/room/blapp/')
-    response2 = api_client.get('/api/1/room/blapp/')
+    response1 = delete(api_client, endpoint, 'blapp')
+    response2 = get(api_client, endpoint, 'blapp')
 
     print response1
     assert response1.status_code == 204
