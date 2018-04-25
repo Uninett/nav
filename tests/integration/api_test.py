@@ -29,6 +29,13 @@ def create_token_endpoint(token, name):
     token.save()
 
 
+def get(api_client, endpoint, id=None):
+    endpoint = ENDPOINTS[endpoint]
+    if id:
+        endpoint = endpoint + unicode(id) + '/'
+    return api_client.get(endpoint)
+
+
 def create(api_client, endpoint, data):
     """Sends a post request to endpoint with data"""
     return api_client.post(ENDPOINTS[endpoint], data, format='json')
@@ -37,6 +44,11 @@ def create(api_client, endpoint, data):
 def update(api_client, endpoint, id, data):
     """Sends a patch request to endpoint with data"""
     return api_client.patch(ENDPOINTS[endpoint] + unicode(id) + '/', data, format='json')
+
+
+def delete(api_client, endpoint, id):
+    """Sends a delete request to endpoint"""
+    return api_client.delete(ENDPOINTS[endpoint] + unicode(id) + '/')
 
 
 # Generic tests
