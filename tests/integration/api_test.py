@@ -1,3 +1,5 @@
+import json
+
 from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
@@ -70,9 +72,66 @@ def test_allowed_endpoints(db, api_client, token):
         assert response.status_code == 200
 
 
+# Data for writable endpoints
+
+_account_data = {'login': 'testuser',
+                 'name': 'Test User',
+                 'accountgroups': [2, 3]}
+_netbox_data = {}
+_room_data = {'id': 'blapp', 'location': 'mylocation'}
+
+
+# Account specific tests
+
+def test_create_account(db, api_client, token):
+    endpoint = 'account'
+    create_token_endpoint(token, endpoint)
+    response = create(api_client, endpoint, _account_data)
+    print response
+    assert response.status_code == 201
+
+
+def test_update_org_on_account(db, api_client, token):
+    endpoint = 'account'
+    create_token_endpoint(token, endpoint)
+    data = {"organizations": ["myorg"]}
+    response = update(api_client, endpoint, 1, data)
+    print response
+    assert response.status_code == 200
+
+    data = {"organizations": []}
+    response = update(api_client, endpoint, 1, data)
+    print response
+    assert response.status_code == 200
+
+
+def test_update_group_on_org(db, api_client, token):
+    endpoint = 'account'
+    create_token_endpoint(token, endpoint)
+    # Only admin group
+    data = {"accountgroups": [1]}
+    response = update(api_client, endpoint, 1, data)
+    print response
+    assert response.status_code == 200
+
+
+def test_delete_account(db, api_client, token):
+    endpoint = 'account'
+    create_token_endpoint(token, endpoint)
+    response_create = create(api_client, endpoint, _account_data)
+    res = json.loads(response_create.content)
+    response_delete = delete(api_client, endpoint, res.get('id'))
+    response_get = get(api_client, endpoint, res.get('id'))
+
+    print response_delete
+    assert response_delete.status_code == 204
+
+    print response_get
+    assert response_get.status_code == 404
+
+
 # Room specific tests
 
-_room_data = {'id': 'blapp', 'location': 'mylocation'}
 
 def test_get_wrong_room(db, api_client, token):
     create_token_endpoint(token, 'room')
