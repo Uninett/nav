@@ -50,7 +50,11 @@ def test_forbidden_endpoints(db, api_client):
 def test_allowed_endpoints(db, api_client, token):
     for name, url in ENDPOINTS.items():
         create_token_endpoint(token, name)
-        response = api_client.get(url)
+        if name in ['arp', 'cam']:
+            # ARP and CAM wants filters
+            response = api_client.get("{}?active=1".format(url))
+        else:
+            response = api_client.get(url)
         assert response.status_code == 200
 
 
