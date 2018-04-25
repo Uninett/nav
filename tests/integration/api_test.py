@@ -38,6 +38,11 @@ def create(api_client, endpoint, data):
     return api_client.post(ENDPOINTS[endpoint], data, format='json')
 
 
+def update(api_client, endpoint, id, data):
+    """Sends a patch request to endpoint with data"""
+    return api_client.patch(ENDPOINTS[endpoint] + unicode(id) + '/', data, format='json')
+
+
 # Generic tests
 
 def test_forbidden_endpoints(db, api_client):
