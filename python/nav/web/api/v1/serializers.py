@@ -22,9 +22,14 @@ from rest_framework import serializers
 
 class AccountSerializer(serializers.ModelSerializer):
     """Serializer for accounts"""
+    accountgroups = serializers.PrimaryKeyRelatedField(
+        source='accountgroup_set', many=True,
+        queryset=profiles.AccountGroup.objects.all())
+
     class Meta(object):
         model = profiles.Account
-        fields = ('id', 'login', 'name', 'ext_sync', 'preferences', 'organizations')
+        fields = ('id', 'login', 'name', 'ext_sync', 'preferences', 'organizations',
+                  'accountgroups')
 
 
 class AccountGroupSerializer(serializers.ModelSerializer):
