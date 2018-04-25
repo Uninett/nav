@@ -2,38 +2,59 @@ from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
 
-def test_forbidden_room_endpoint(db, api_client):
-    response = api_client.get('/api/1/room/')
-    assert response.status_code == 403
+ENDPOINTS = {
+    'room': '/api/1/room/'
+}
+
+ENDPOINTS2 = {
+    "arp": "/api/1/arp/",
+    "account": "/api/1/account/",
+    "prefix_routed": "/api/1/prefix/routed",
+    "room": "/api/1/room/",
+    "unrecognized_neighbor": "/api/1/unrecognized-neighbor/",
+    "cabling": "/api/1/cabling/",
+    "vlan": "/api/1/vlan/",
+    "netbox": "/api/1/netbox/",
+    "accountgroup": "/api/1/accountgroup/",
+    "alert": "/api/1/alert/",
+    "prefix_usage": "/api/1/prefix/usage",
+    "prefix": "/api/1/prefix/",
+    "cam": "/api/1/cam/",
+    "interface": "/api/1/interface/",
+    "servicehandler": "/api/1/servicehandler/",
+    "patch": "/api/1/patch/",
+    "auditlog": "/api/1/auditlog/",
+    "rack": "/api/1/rack/"
+}
 
 
-def test_allowed_room_endpoint(db, api_client, token):
-    token.endpoints = {
-        'room': '/api/1/room/'
-    }
+def create_token_endpoint(token, name):
+    token.endpoints = {name: ENDPOINTS.get(name)}
     token.save()
 
-    response = api_client.get('/api/1/room/')
-    assert response.status_code == 200
+
+def test_forbidden_endpoints(db, api_client):
+    for url in ENDPOINTS.values():
+        response = api_client.get(url)
+        assert response.status_code == 403
+
+
+def test_allowed_endpoints(db, api_client, token):
+    for name, url in ENDPOINTS.items():
+        create_token_endpoint(token, name)
+        response = api_client.get(url)
+        assert response.status_code == 200
 
 
 def test_get_wrong_room(db, api_client, token):
-    token.endpoints = {
-        'room': '/api/1/room/'
-    }
-    token.save()
-
+    create_token_endpoint(token, 'room')
     response = api_client.get('/api/1/room/blapp/')
     print response
     assert response.status_code == 404
 
 
 def test_create_new_room(db, api_client, token):
-    token.endpoints = {
-        'room': '/api/1/room/'
-    }
-    token.save()
-
+    create_token_endpoint(token, 'room')
     data = {'id': 'blapp', 'location': 'mylocation'}
     response = api_client.post('/api/1/room/', data, format='json')
     print response
@@ -41,11 +62,7 @@ def test_create_new_room(db, api_client, token):
 
 
 def test_get_new_room(db, api_client, token):
-    token.endpoints = {
-        'room': '/api/1/room/'
-    }
-    token.save()
-
+    create_token_endpoint(token, 'room')
     data = {'id': 'blapp', 'location': 'mylocation'}
     _response = api_client.post('/api/1/room/', data, format='json')
     response = api_client.get('/api/1/room/blapp/')
@@ -54,11 +71,7 @@ def test_get_new_room(db, api_client, token):
 
 
 def test_patch_room_not_found(db, api_client, token):
-    token.endpoints = {
-        'room': '/api/1/room/'
-    }
-    token.save()
-
+    create_token_endpoint(token, 'room')
     data = {'location': 'mylocation'}
     response = api_client.patch('/api/1/room/blapp/', data, format='json')
     print response
@@ -66,11 +79,7 @@ def test_patch_room_not_found(db, api_client, token):
 
 
 def test_patch_room_wrong_location(db, api_client, token):
-    token.endpoints = {
-        'room': '/api/1/room/'
-    }
-    token.save()
-
+    create_token_endpoint(token, 'room')
     data = {'id': 'blapp', 'location': 'mylocation'}
     response = api_client.post('/api/1/room/', data, format='json')
 
@@ -82,11 +91,7 @@ def test_patch_room_wrong_location(db, api_client, token):
 
 
 def test_patch_room(db, api_client, token):
-    token.endpoints = {
-        'room': '/api/1/room/'
-    }
-    token.save()
-
+    create_token_endpoint(token, 'room')
     data = {'id': 'blapp', 'location': 'mylocation'}
     response = api_client.post('/api/1/room/', data, format='json')
 
@@ -98,11 +103,7 @@ def test_patch_room(db, api_client, token):
 
 
 def test_delete_room_wrong_room(db, api_client, token):
-    token.endpoints = {
-        'room': '/api/1/room/'
-    }
-    token.save()
-
+    create_token_endpoint(token, 'room')
     data = {'id': 'blapp', 'location': 'mylocation'}
     response = api_client.post('/api/1/room/', data, format='json')
     response = api_client.delete('/api/1/room/blap/')
@@ -112,11 +113,7 @@ def test_delete_room_wrong_room(db, api_client, token):
 
 
 def test_delete_room(db, api_client, token):
-    token.endpoints = {
-        'room': '/api/1/room/'
-    }
-    token.save()
-
+    create_token_endpoint(token, 'room')
     data = {'id': 'blapp', 'location': 'mylocation'}
     response = api_client.post('/api/1/room/', data, format='json')
     response1 = api_client.delete('/api/1/room/blapp/')
