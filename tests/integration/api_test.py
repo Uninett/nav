@@ -77,7 +77,13 @@ def test_allowed_endpoints(db, api_client, token):
 _account_data = {'login': 'testuser',
                  'name': 'Test User',
                  'accountgroups': [2, 3]}
-_netbox_data = {}
+_netbox_data = {
+    "ip": "158.38.152.169",
+    "roomid": "myroom",
+    "organizationid": "myorg",
+    "categoryid": "SW",
+    "snmp_version": 2
+}
 _room_data = {'id': 'blapp', 'location': 'mylocation'}
 
 
@@ -128,6 +134,43 @@ def test_delete_account(db, api_client, token):
 
     print response_get
     assert response_get.status_code == 404
+
+
+# Netbox specific tests
+
+def test_create_netbox(db, api_client, token):
+    endpoint = 'netbox'
+    create_token_endpoint(token, endpoint)
+    response = create(api_client, endpoint, _netbox_data)
+    print response
+    assert response.status_code == 201
+
+
+def test_update_netbox(db, api_client, token):
+    endpoint = 'netbox'
+    create_token_endpoint(token, endpoint)
+    response_create = create(api_client, endpoint, _netbox_data)
+    res = json.loads(response_create.content)
+    data = {'categoryid': 'GW'}
+    response_update = update(api_client, endpoint, res['id'], data)
+    print response_update
+    assert response_update.status_code == 200
+
+
+def test_delete_netbox(db, api_client, token):
+    endpoint = 'netbox'
+    create_token_endpoint(token, endpoint)
+    response_create = create(api_client, endpoint, _netbox_data)
+    json_create = json.loads(response_create.content)
+    response_delete = delete(api_client, endpoint, json_create['id'])
+    response_get = get(api_client, endpoint, json_create['id'])
+    json_get = json.loads(response_get.content)
+
+    print response_delete
+    print json_get['deleted_at']
+
+    assert response_delete.status_code == 204
+    assert json_get['deleted_at'] != None
 
 
 # Room specific tests
