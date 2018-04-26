@@ -214,6 +214,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.sessions',
     'django.contrib.humanize',
+    'django_filters',
     'crispy_forms',
     'crispy_forms_foundation',
     'rest_framework',
