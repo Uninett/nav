@@ -19,6 +19,8 @@ import sys, os
 sys.path.insert(0, os.path.join(os.path.abspath('..'), 'python'))
 
 from nav import buildconf
+from nav import bootstrap
+bootstrap.bootstrap_django('doc')
 
 # -- General configuration -----------------------------------------------------
 
