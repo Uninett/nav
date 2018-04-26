@@ -128,7 +128,7 @@ def test_delete_account(db, api_client, token):
     endpoint = 'account'
     create_token_endpoint(token, endpoint)
     response_create = create(api_client, endpoint, _account_data)
-    res = json.loads(response_create.content)
+    res = json.loads(response_create.content.decode('utf-8'))
     response_delete = delete(api_client, endpoint, res.get('id'))
     response_get = get(api_client, endpoint, res.get('id'))
 
@@ -153,7 +153,7 @@ def test_update_netbox(db, api_client, token):
     endpoint = 'netbox'
     create_token_endpoint(token, endpoint)
     response_create = create(api_client, endpoint, _netbox_data)
-    res = json.loads(response_create.content)
+    res = json.loads(response_create.content.decode('utf-8'))
     data = {'categoryid': 'GW'}
     response_update = update(api_client, endpoint, res['id'], data)
     print(response_update)
@@ -164,10 +164,10 @@ def test_delete_netbox(db, api_client, token):
     endpoint = 'netbox'
     create_token_endpoint(token, endpoint)
     response_create = create(api_client, endpoint, _netbox_data)
-    json_create = json.loads(response_create.content)
+    json_create = json.loads(response_create.content.decode('utf-8'))
     response_delete = delete(api_client, endpoint, json_create['id'])
     response_get = get(api_client, endpoint, json_create['id'])
-    json_get = json.loads(response_get.content)
+    json_get = json.loads(response_get.content.decode('utf-8'))
 
     print(response_delete)
     print(json_get['deleted_at'])
