@@ -61,7 +61,7 @@ def test_forbidden_endpoints(db, api_client):
         assert response.status_code == 403
 
 
-def test_allowed_endpoints(db, api_client, token):
+def test_allowed_endpoints(db, api_client, token, serializer_models):
     for name, url in ENDPOINTS.items():
         create_token_endpoint(token, name)
         if name in ['arp', 'cam']:
