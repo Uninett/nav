@@ -11,33 +11,6 @@ from nav.web.api.v1.views import get_endpoints
 ENDPOINTS = { name:force_text(url) for name, url in get_endpoints().items() }
 
 
-def create_token_endpoint(token, name):
-    token.endpoints = {name: ENDPOINTS.get(name)}
-    token.save()
-
-
-def get(api_client, endpoint, id=None):
-    endpoint = ENDPOINTS[endpoint]
-    if id:
-        endpoint = endpoint + force_text(id) + '/'
-    return api_client.get(endpoint)
-
-
-def create(api_client, endpoint, data):
-    """Sends a post request to endpoint with data"""
-    return api_client.post(ENDPOINTS[endpoint], data, format='json')
-
-
-def update(api_client, endpoint, id, data):
-    """Sends a patch request to endpoint with data"""
-    return api_client.patch(ENDPOINTS[endpoint] + force_text(id) + '/', data, format='json')
-
-
-def delete(api_client, endpoint, id):
-    """Sends a delete request to endpoint"""
-    return api_client.delete(ENDPOINTS[endpoint] + force_text(id) + '/')
-
-
 # Generic tests
 
 @pytest.mark.parametrize("url", ENDPOINTS.values())
@@ -236,6 +209,36 @@ def test_delete_room(db, api_client, token):
 
     print(response2)
     assert response2.status_code == 404
+
+
+# Helpers
+
+def create_token_endpoint(token, name):
+    token.endpoints = {name: ENDPOINTS.get(name)}
+    token.save()
+
+
+def get(api_client, endpoint, id=None):
+    endpoint = ENDPOINTS[endpoint]
+    if id:
+        endpoint = endpoint + force_text(id) + '/'
+    return api_client.get(endpoint)
+
+
+def create(api_client, endpoint, data):
+    """Sends a post request to endpoint with data"""
+    return api_client.post(ENDPOINTS[endpoint], data, format='json')
+
+
+def update(api_client, endpoint, id, data):
+    """Sends a patch request to endpoint with data"""
+    return api_client.patch(ENDPOINTS[endpoint] + force_text(id) + '/', data, format='json')
+
+
+def delete(api_client, endpoint, id):
+    """Sends a delete request to endpoint"""
+    return api_client.delete(ENDPOINTS[endpoint] + force_text(id) + '/')
+
 
 # Fixtures
 
