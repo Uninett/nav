@@ -2,9 +2,9 @@ from __future__ import print_function
 from django.utils.encoding import force_text
 
 import json
+import pytest
 
-from nav.bootstrap import bootstrap_django
-bootstrap_django(__file__)
+
 
 
 ENDPOINTS = {
@@ -58,21 +58,21 @@ def delete(api_client, endpoint, id):
 
 # Generic tests
 
-def test_forbidden_endpoints(db, api_client):
-    for url in ENDPOINTS.values():
+@pytest.mark.parametrize("url", ENDPOINTS.values())
+def test_forbidden_endpoints(db, api_client, url):
+    response = api_client.get(url)
+    assert response.status_code == 403
+
+
+@pytest.mark.parametrize("name, url", ENDPOINTS.items())
+def test_allowed_endpoints(db, api_client, token, serializer_models, name, url):
+    create_token_endpoint(token, name)
+    if name in ['arp', 'cam']:
+        # ARP and CAM wants filters
+        response = api_client.get("{}?active=1".format(url))
+    else:
         response = api_client.get(url)
-        assert response.status_code == 403
-
-
-def test_allowed_endpoints(db, api_client, token, serializer_models):
-    for name, url in ENDPOINTS.items():
-        create_token_endpoint(token, name)
-        if name in ['arp', 'cam']:
-            # ARP and CAM wants filters
-            response = api_client.get("{}?active=1".format(url))
-        else:
-            response = api_client.get(url)
-        assert response.status_code == 200
+    assert response.status_code == 200
 
 
 # Data for writable endpoints
