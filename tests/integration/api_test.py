@@ -1,6 +1,7 @@
 from __future__ import print_function
 from django.utils.encoding import force_text
 
+import datetime
 import json
 import pytest
 
@@ -235,3 +236,40 @@ def test_delete_room(db, api_client, token):
 
     print(response2)
     assert response2.status_code == 404
+
+# Fixtures
+
+@pytest.fixture()
+def serializer_models():
+    """Fixture for testing API serializers
+
+    - unrecognized_neighbor
+    - auditlog
+    """
+    from nav.models import cabling, event, manage, profiles, rack
+    from nav.auditlog import models as auditlog
+    netbox = manage.Netbox(ip='127.0.0.1', sysname='localhost.example.org',
+                           organization_id='myorg', room_id='myroom', category_id='SRV',
+                           read_only='public', snmp_version=2)
+    netbox.save()
+    interface = manage.Interface(netbox=netbox, ifindex=1, ifname='if1',
+                                 ifdescr='ifdescr', iftype=1, speed=10)
+    interface.save()
+    manage.Cam(sysname='asd', mac='aa:aa:aa:aa:aa:aa', ifindex=1,
+               end_time=datetime.datetime.now()).save()
+    manage.Arp(sysname='asd', mac='aa:bb:cc:dd:ee:ff', ip='123.123.123.123',
+               end_time=datetime.datetime.now()).save()
+    manage.Prefix(net_address='123.123.123.123').save()
+    manage.Vlan(vlan=10, net_type_id='lan').save()
+    rack.Rack(room_id='myroom').save()
+    cabel = cabling.Cabling(room_id='myroom', jack='1')
+    cabel.save()
+    cabling.Patch(interface=interface, cabling=cabel).save()
+
+    source = event.Subsystem.objects.get(pk='pping')
+    target = event.Subsystem.objects.get(pk='eventEngine')
+    event_type = event.EventType.objects.get(pk='boxState')
+
+    event.EventQueue(source=source, target=target, event_type=event_type, netbox=netbox).save()
+    admin = profiles.Account.objects.get(login='admin')
+    auditlog.LogEntry.add_log_entry(admin, verb='verb', template='asd')
