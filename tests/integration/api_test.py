@@ -4,29 +4,10 @@ from django.utils.encoding import force_text
 import json
 import pytest
 
+from nav.web.api.v1.views import get_endpoints
 
 
-
-ENDPOINTS = {
-    "account": "/api/1/account/",
-    "accountgroup": "/api/1/accountgroup/",
-    "alert": "/api/1/alert/",
-    "arp": "/api/1/arp/",
-    "auditlog": "/api/1/auditlog/",
-    "cabling": "/api/1/cabling/",
-    "cam": "/api/1/cam/",
-    "interface": "/api/1/interface/",
-    "netbox": "/api/1/netbox/",
-    "patch": "/api/1/patch/",
-    "prefix": "/api/1/prefix/",
-    "prefix_routed": "/api/1/prefix/routed",
-    "prefix_usage": "/api/1/prefix/usage",
-    "rack": "/api/1/rack/",
-    "room": "/api/1/room/",
-    "servicehandler": "/api/1/servicehandler/",
-    "unrecognized_neighbor": "/api/1/unrecognized-neighbor/",
-    "vlan": "/api/1/vlan/",
-}
+ENDPOINTS = { name:force_text(url) for name, url in get_endpoints().items() }
 
 
 def create_token_endpoint(token, name):
