@@ -9,6 +9,16 @@
   <title>NAV Login</title>
   <link rel="stylesheet" href="/static/css/nav.css"/>
   <link rel="stylesheet" href="/static/css/nav/login.css"/>
+
+  <script src="{{ STATIC_URL }}js/require_config.js"></script>
+  {% if debug %}
+    <script src="{{ STATIC_URL }}js/require_config_dev.js"></script>
+  {% endif %}
+  <script src="{{ STATIC_URL }}js/libs/require.js" data-main='src/main'></script>
+  <script>
+   require.config({ urlArgs: 'bust={{ nav_version }}' });
+  </script>
+
 </head>
 
 <body onload="document.getElementById('id_username').focus();">
@@ -38,6 +48,32 @@
       {% endif %}
 
       {% crispy form %}
+
+      <small>
+        <a href="#" data-reveal-id="auditlog-information">About audit logging in NAV</a>
+      </small>
+
+      <div id="auditlog-information" class="reveal-modal tiny" data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog">
+        <h2 id="modalTitle">Audit logging</h2>
+
+        <p>
+          To ensure tracability of user initiated changes to the NAV database,
+          some user actions are logged. This log is only available to the NAV
+          administrators for your local installation.
+        </p>
+
+        <p>
+          Typical examples are:
+        </p>
+
+        <ul>
+          <li>a user logs in</li>
+          <li>updating IP Device configuration in SeedDB</li>
+          <li>updating an interface in PortAdmin</li>
+        </ul>
+
+        <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+      </div>
     </div>
   </div>
 </div>
