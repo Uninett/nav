@@ -12,9 +12,11 @@
         Create new account
       </a>
 
-      <div>
-        {% include 'useradmin/frag-auditlog.html' %}
-      </div>
+      {% if request.account.is_admin %}
+        <div>
+          {% include 'useradmin/frag-auditlog.html' %}
+        </div>
+      {% endif %}
 
       <table class="listtable">
         <caption>

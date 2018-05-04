@@ -35,12 +35,14 @@
         </li>
       {% endif %}
 
-      <li>
-        <a href="{% url 'auditlog-netbox-detail' netbox.pk %}"
-           class="button small secondary">
-          View audit log
-        </a>
-      </li>
+      {% if request.account.is_admin %}
+        <li>
+          <a href="{% url 'auditlog-netbox-detail' netbox.pk %}"
+             class="button small secondary">
+            View audit log
+          </a>
+        </li>
+      {% endif %}
 
       {% try_to_include 'ipdevinfo/custom-header-button-extras.html' %}
 
