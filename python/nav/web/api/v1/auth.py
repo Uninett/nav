@@ -69,6 +69,9 @@ class LoggedInPermission(BasePermission):
 class TokenPermission(BasePermission):
     """Checks if the token has correct permissions"""
 
+    url_prefix = '/api'
+    version = 1
+
     def has_permission(self, request, _view):
         token = request.auth  # type: APIToken
         if not token:
@@ -87,7 +90,8 @@ class TokenPermission(BasePermission):
                 token, request.path)
         return permissions_ok
 
-    def _check_endpoints(self, request):
+    @staticmethod
+    def _check_endpoints(request):
         """Verify that this token has permission to access the request path
         :type request: rest_framework.request.Request
         :type token: APIToken
@@ -98,15 +102,35 @@ class TokenPermission(BasePermission):
         if not token.endpoints:
             return False
 
-        request_path = self._ensure_trailing_slash(request.path)
-        return any([request_path.startswith(
-            self._ensure_trailing_slash(urlparse(endpoint).path))
-                    for endpoint in token.endpoints.values()])
+        return TokenPermission.is_path_in_endpoints(request.path,
+                                                    token.endpoints)
 
-    def _check_read_write(self, request):
+    @staticmethod
+    def _check_read_write(request):
         """Verify that the token permission matches the method"""
         token = request.auth
         return token.permission == 'write' or request.method in SAFE_METHODS
+
+    @staticmethod
+    def is_path_in_endpoints(request_path, endpoints):
+        """
+        :param str request_path: the request path
+        :param dict endpoints: the endpoints available for a token as a dict
+        :return: if the path is in one of the endpoints for this token
+        """
+        # Create prefix for the current api version
+        prefix = '/'.join([TokenPermission.url_prefix,
+                           str(TokenPermission.version)])
+        # Cut prefix from path
+        request_path = TokenPermission._ensure_trailing_slash(
+            request_path.replace(prefix, '')
+            .replace(TokenPermission.url_prefix, ''))
+        # Create a list of endpoints and remove prefix from them
+        endpoints = [e.replace(prefix, '') for e in endpoints.values()]
+        # Check if path is in one of the endpoints
+        return any([request_path.startswith(
+            TokenPermission._ensure_trailing_slash(urlparse(endpoint).path))
+            for endpoint in endpoints])
 
     @staticmethod
     def _ensure_trailing_slash(path):
