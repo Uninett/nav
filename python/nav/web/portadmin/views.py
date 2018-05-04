@@ -392,6 +392,7 @@ def set_ifalias(account, fac, interface, request):
                     u'{actor}: {object} - ifalias set to "%s"' % ifalias,
                     subsystem=u'portadmin',
                     object=interface,
+                    request=request,
                 )
                 _logger.info('%s: %s:%s - ifalias set to "%s"', account.login,
                              interface.netbox.get_short_sysname(),
@@ -428,6 +429,7 @@ def set_vlan(account, fac, interface, request):
                 u'{actor}: {object} - vlan set to "%s"' % vlan,
                 subsystem=u'portadmin',
                 object=interface,
+                request=request,
             )
             _logger.info('%s: %s:%s - vlan set to %s', account.login,
                          interface.netbox.get_short_sysname(),
@@ -496,6 +498,7 @@ def set_admin_status(fac, interface, request):
                     u'change status to up',
                     subsystem=u'portadmin',
                     object=interface,
+                    request=request,
                 )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'up')
@@ -507,6 +510,7 @@ def set_admin_status(fac, interface, request):
                     u'change status to down',
                     subsystem=u'portadmin',
                     object=interface,
+                    request=request,
                 )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'down')
@@ -598,6 +602,7 @@ def handle_trunk_edit(request, agent, interface):
         u'{actor}: {object} - native vlan: "%s", trunk vlans: "%s"' % (native_vlan, trunked_vlans),
         subsystem=u'portadmin',
         object=interface,
+        request=request,
     )
 
     if trunked_vlans:
