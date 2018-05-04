@@ -220,7 +220,8 @@ def do_login(request):
         else:
             if account:
                 LogEntry.add_log_entry(
-                    account, 'log-in', '{actor} logged in', before=account)
+                    account, 'log-in', '{actor} logged in', before=account,
+                    request=request)
 
                 try:
                     request.session[ACCOUNT_ID_VAR] = account.id
@@ -261,7 +262,7 @@ def logout(request):
         request.session.set_expiry(datetime.now())
         request.session.save()
         LogEntry.add_log_entry(account, 'log-out', '{actor} logged out',
-                               before=account)
+                               before=account, request=request)
     return HttpResponseRedirect('/')
 
 
