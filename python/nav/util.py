@@ -34,7 +34,6 @@ except ImportError:
 
 from django.utils import six
 from django.utils.six.moves import range
-from django.conf import settings
 
 import IPy
 
@@ -461,6 +460,7 @@ def address_to_string(ip, port):
 
 def auth_token():
     """Generates a hash that can be used as an OAuth API token"""
+    from django.conf import settings
     _hash = hashlib.sha1(six.text_type(uuid.uuid4()).encode('utf-8'))
     _hash.update(settings.SECRET_KEY.encode('utf-8'))
     return _hash.hexdigest()

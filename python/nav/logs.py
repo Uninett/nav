@@ -19,6 +19,8 @@
 import sys
 import os
 import logging
+from itertools import chain
+
 import configparser
 import nav.buildconf
 
@@ -135,7 +137,7 @@ def reopen_log_files():
     root = logging.getLogger()
     manager = root.manager
     mylog = logging.getLogger('nav.logs')
-    for logger in [root] + manager.loggerDict.values():
+    for logger in chain([root], manager.loggerDict.values()):
         try:
             for hdl in logger.handlers:
                 if isinstance(hdl, logging.FileHandler):

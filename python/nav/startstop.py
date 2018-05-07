@@ -250,7 +250,7 @@ class Crontab(object):
         """Loads the currently active crontab"""
         try:
             output = subprocess.check_output(["crontab", "-u", self.user, "-l"])
-            self.content = output.splitlines()
+            self.content = output.decode('utf-8').splitlines()
         except subprocess.CalledProcessError:
             # crontab doesn't have very helpful exit codes. if we get here, it
             # may simply be because the user has no defined crontab yet
@@ -274,7 +274,7 @@ class Crontab(object):
         self.update_init()
         proc = subprocess.Popen(["crontab", "-u", self.user, "-"],
                                 stdin=subprocess.PIPE)
-        proc.stdin.write(str(self))
+        proc.stdin.write(str(self).encode('utf-8'))
         proc.stdin.close()
 
         exit_code = proc.wait()

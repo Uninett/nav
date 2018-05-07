@@ -107,12 +107,10 @@ class Controller:
                 sleep(pause)
 
             # extensive debugging
-            dbgthreads = []
-            for i in gc.get_objects():
-                if isinstance(i, threading.Thread):
-                    dbgthreads.append(i)
+            objects = gc.get_objects()
+            dbgthreads = [i for i in objects if isinstance(i, threading.Thread)]
             LOGGER.debug("Garbage: %s Objects: %i Threads: %i", gc.garbage,
-                         len(gc.get_objects()), len(dbgthreads))
+                         len(objects), len(dbgthreads))
 
             wait = self._looptime - (time.time() - start)
             LOGGER.debug("Waiting %i seconds.", wait)
