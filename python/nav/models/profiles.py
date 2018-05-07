@@ -95,12 +95,19 @@ class Account(models.Model):
 
     organizations = models.ManyToManyField(Organization, db_table='accountorg')
 
+    # Set this in order to provide a link to the actual operator when Account
+    # objects are retrieved from session data
+    sudo_operator = None
+
     class Meta(object):
         db_table = u'account'
         ordering = ('login',)
 
     def __str__(self):
-        return self.login
+        if self.sudo_operator and self.sudo_operator != self:
+            return '{} (operated by {})'.format(self.login, self.sudo_operator)
+        else:
+            return self.login
 
     def get_active_profile(self):
         """Returns the account's active alert profile"""
