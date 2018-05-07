@@ -80,7 +80,7 @@ node {
         // publish dev docs and stable branch docs, but nothing else
         if (env.JOB_BASE_NAME == 'master' || env.JOB_BASE_NAME.endsWith('.x')) {
             VERSION = sh (
-                script: 'cd ${WORKSPACE}/doc; python -c "import conf; print conf.version"',
+                script: 'cat ${WORKSPACE}/reports/doc_version || true',
                 returnStdout: true
             ).trim()
             if (VERSION == '') {
