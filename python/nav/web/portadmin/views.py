@@ -492,8 +492,8 @@ def set_admin_status(fac, interface, request):
             if adminstatus == status_up:
                 LogEntry.add_log_entry(
                     account,
-                    u'change-status-to-up',
-                    u'change status to up',
+                    u'enable-interface',
+                    u'{actor} enabled interface {object}',
                     subsystem=u'portadmin',
                     object=interface,
                 )
@@ -503,8 +503,8 @@ def set_admin_status(fac, interface, request):
             elif adminstatus == status_down:
                 LogEntry.add_log_entry(
                     account,
-                    u'change-status-to-down',
-                    u'change status to down',
+                    u'disable-interface',
+                    u'{actor} disabled interface {object}',
                     subsystem=u'portadmin',
                     object=interface,
                 )
