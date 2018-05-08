@@ -12,6 +12,22 @@ please go to https://github.com/uninett/nav/milestones .
 NAV 4.9
 ========
 
+Dependency changes
+------------------
+
+Django Rest Framework is updated to version 3. As a result of this the Django
+Filter library has to be updated aswell.
+
+
+Upgraded dependencies
+~~~~~~~~~~~~~~~~~~~~~
+
+The version requirements have changed for these dependencies:
+
+* :mod:`djangorestframework` must be from version *3.5* to any version of *3.6*
+* :mod:`django-filter` must be any version of *1.1*
+
+
 News
 ----
 
