@@ -41,19 +41,20 @@ from nav.web.seeddb.page.netbox import NetboxInfo as NI
 from nav.web.seeddb.page.netbox.forms import NetboxModelForm
 
 
-def log_netbox_change(account, old, new):
+def log_netbox_change(request, old, new):
     """Log specific user initiated changes to netboxes"""
 
     # If this is a new netbox
     if not old:
-        LogEntry.add_create_entry(account, new)
+        LogEntry.add_create_entry(request.account, new, request=request)
         return
 
     # Compare changes from old to new
     attribute_list = ['read_only', 'read_write', 'category', 'ip',
                       'room', 'organization', 'snmp_version']
-    LogEntry.compare_objects(account, old, new, attribute_list,
-                             censored_attributes=['read_only', 'read_write'])
+    LogEntry.compare_objects(request.account, old, new, attribute_list,
+                             censored_attributes=['read_only', 'read_write'],
+                             request=request)
 
 
 def netbox_edit(request, netbox_id=None):
@@ -69,7 +70,7 @@ def netbox_edit(request, netbox_id=None):
         if form.is_valid():
             netbox = netbox_do_save(form)
             messages.add_message(request, messages.SUCCESS, 'IP Device saved')
-            log_netbox_change(request.account, old_netbox, netbox)
+            log_netbox_change(request, old_netbox, netbox)
             return redirect(reverse('seeddb-netbox-edit', args=[netbox.pk]))
         else:
             messages.add_message(request, messages.ERROR, 'Form was not valid')

@@ -101,11 +101,11 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None,
             if delete_operation:
                 new_message(request,
                             "Deleted %i rows" % len(objects), Messages.SUCCESS)
-                log_deleted(request.account, objects, template='{actor} deleted {object}')
+                log_deleted(request, objects, template='{actor} deleted {object}')
             else:
                 new_message(request,
                             "Scheduled %i rows for deletion" % len(objects), Messages.SUCCESS)
-                log_deleted(request.account, objects, template='{actor} scheduled {object} for deletion')
+                log_deleted(request, objects, template='{actor} scheduled {object} for deletion')
             return HttpResponseRedirect(reverse(redirect))
 
     info_dict = {
@@ -117,10 +117,11 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None,
         extra_context, RequestContext(request))
 
 
-def log_deleted(account, objects, template):
+def log_deleted(request, objects, template):
     """Log the deletion of each object"""
     for obj in objects:
-        LogEntry.add_delete_entry(account, obj, template=template)
+        LogEntry.add_delete_entry(request.account, obj, template=template,
+                                  request=request)
 
 
 def dependencies(queryset, whitelist):

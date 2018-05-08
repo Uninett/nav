@@ -22,11 +22,23 @@ from django.utils.encoding import force_text
 from django.utils.timezone import now as utcnow
 
 from nav.models.fields import VarcharField, LegacyGenericForeignKey
+from nav.models.profiles import Account
+from nav.django.auth import SUDOER_ID_VAR
 
 from . import find_modelname
 
 import logging
 _logger = logging.getLogger(__name__)
+
+class SudoActor(object):
+    def __init__(self, actor, sudoer):
+        self.actor = actor
+        self.sudoer = sudoer
+        self.pk = self.actor.pk
+
+    def __str__(self):
+        return "{} [operating as {}]".format(self.sudoer, self.actor)
+
 
 
 @python_2_unicode_compatible
@@ -67,9 +79,14 @@ class LogEntry(models.Model):
     after = models.TextField(blank=True, null=True)
 
     @classmethod
-    def add_log_entry(cls, actor, verb, template, subsystem=None, object=None, target=None, before=None, after=None):
+    def add_log_entry(cls, actor, verb, template, subsystem=None, object=None, target=None, before=None, after=None, request=None):
         """LogEntry factory"""
         self = cls()
+
+        if request and SUDOER_ID_VAR in request.session:
+            sudoer = Account.objects.get(pk=request.session.get(SUDOER_ID_VAR))
+            actor = SudoActor(actor, sudoer)
+
         dict = {'actor': actor, 'object': object, 'target': target}
         for k, v in dict.items():
             dict[k] = getattr(v, 'audit_logname', u'%s' % v)
@@ -93,7 +110,7 @@ class LogEntry(models.Model):
         return self
 
     @staticmethod
-    def add_create_entry(actor, obj):
+    def add_create_entry(actor, obj, request=None):
         """Add log entry for created objects
 
         :type actor: nav.models.profiles.Account
@@ -104,11 +121,12 @@ class LogEntry(models.Model):
             u'create-{}'.format(model),
             u'{actor} created {object}',
             after=obj,
-            object=obj
+            object=obj,
+            request=request
         )
 
     @staticmethod
-    def add_delete_entry(actor, obj, template=None):
+    def add_delete_entry(actor, obj, template=None, request=None):
         """Add log entry for deleted objects"""
         model = obj.__class__.__name__.lower()
         template = template or u'{actor} deleted {object}'
@@ -117,11 +135,12 @@ class LogEntry(models.Model):
             u'delete-{}'.format(model),
             template,
             before=obj,
-            object=obj
+            object=obj,
+            request=request
         )
 
     @staticmethod
-    def add_edit_entry(actor, old, new, attribute, include_values=True):
+    def add_edit_entry(actor, old, new, attribute, include_values=True, request=None):
         """Add log entry for edited objects
 
         :type attribute: str
@@ -153,11 +172,12 @@ class LogEntry(models.Model):
             u'{}: {}'.format(prefix, summary),
             before=old,
             after=new,
-            object=new
+            object=new,
+            request=request
         )
 
     @staticmethod
-    def compare_objects(actor, old, new, attribute_list, censored_attributes=None):
+    def compare_objects(actor, old, new, attribute_list, censored_attributes=None, request=None):
         """Checks for differences in two objects given an attribute-list
 
         :type actor: nav.models.profiles.Account
@@ -176,6 +196,7 @@ class LogEntry(models.Model):
             if old_value != new_value:
                 include_values = attribute not in censored_attributes
                 LogEntry.add_edit_entry(actor, old, new, attribute,
+                                        request=request,
                                         include_values=include_values)
 
     def __str__(self):

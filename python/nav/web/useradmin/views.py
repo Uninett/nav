@@ -125,7 +125,7 @@ def save_account(request, account_form, old_account):
         account.set_password(account_form.cleaned_data['password1'])
 
     account.save()
-    log_account_change(request.account, old_account, account)
+    log_account_change(request, old_account, account)
 
     messages.success(request, '"%s" has been saved.' % (account))
     return HttpResponseRedirect(reverse('useradmin-account_detail',
@@ -205,7 +205,7 @@ def account_delete(request, account_id):
 
     if request.method == 'POST':
         account.delete()
-        LogEntry.add_delete_entry(request.account, account)
+        LogEntry.add_delete_entry(request.account, account, request=request)
         messages.success(request,
                          'Account %s has been deleted.' % (account.name))
         return HttpResponseRedirect(reverse('useradmin-account_list'))
@@ -248,7 +248,9 @@ def account_organization_remove(request, account_id, org_id):
             u'edit-account-remove-org',
             u'{actor} removed user {object} from organization {target}',
             target=organization,
-            object=account)
+            object=account,
+            request=request
+        )
 
         return HttpResponseRedirect(reverse('useradmin-account_detail',
                                             args=[account.id]))
@@ -313,7 +315,9 @@ def account_group_remove(request, account_id, group_id, caller='account'):
             u'edit-account-remove-group',
             u'{actor} removed user {object} from group {target}',
             target=group,
-            object=account)
+            object=account,
+            request=request
+        )
 
         return detail_redirect
 
@@ -499,7 +503,7 @@ class TokenCreate(generic.CreateView):
     def post(self, request, *args, **kwargs):
         response = super(TokenCreate, self).post(request, *args, **kwargs)
         messages.success(request, 'New token created')
-        LogEntry.add_create_entry(request.account, self.object)
+        LogEntry.add_create_entry(request.account, self.object, request=request)
         return response
 
 
@@ -516,7 +520,8 @@ class TokenEdit(generic.UpdateView):
         messages.success(request, 'Token saved')
         LogEntry.compare_objects(
             request.account, old_object, self.get_object(),
-            ['expires', 'permission', 'endpoints', 'comment'])
+            ['expires', 'permission', 'endpoints', 'comment'],
+            request=request)
         return response
 
 
@@ -533,7 +538,7 @@ class TokenDelete(generic.DeleteView):
         response = super(TokenDelete, self).delete(
             self, request, *args, **kwargs)
         messages.success(request, 'Token deleted')
-        LogEntry.add_delete_entry(request.account, old_object)
+        LogEntry.add_delete_entry(request.account, old_object, request=request)
         return response
 
 
@@ -557,19 +562,20 @@ def token_expire(request, pk):
 
     LogEntry.add_log_entry(
         request.account, 'edit-apitoken-expiry',
-        '{actor} expired {object}', object=token)
+        '{actor} expired {object}', object=token, request=request)
     messages.success(request, 'Token has been manually expired')
     return redirect(token)
 
 
-def log_account_change(actor, old, new):
+def log_account_change(request, old, new):
     """Log change to account"""
     if not old:
-        LogEntry.add_create_entry(actor, new)
+        LogEntry.add_create_entry(request.account, new, request=request)
         return
 
     attribute_list = ['login', 'name', 'password', 'ext_sync']
-    LogEntry.compare_objects(actor, old, new, attribute_list,
+    LogEntry.compare_objects(request.account, old, new, attribute_list,
+                             request=request,
                              censored_attributes=['password'])
 
 
@@ -579,7 +585,9 @@ def log_add_account_to_group(request, group, account):
         u'edit-account-add-group',
         u'{actor} added user {object} to group {target}',
         target=group,
-        object=account)
+        object=account,
+        request=request
+    )
 
 
 def log_add_account_to_org(request, organization, account):
@@ -588,4 +596,6 @@ def log_add_account_to_org(request, organization, account):
         u'edit-account-add-org',
         u'{actor} added user {object} to organization {target}',
         target=organization,
-        object=account)
+        object=account,
+        request=request
+    )
