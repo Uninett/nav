@@ -47,6 +47,9 @@ class AuthenticationMiddleware(object):
         account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
         request.account = account
 
+        if SUDOER_ID_VAR in session:
+            account.sudo_operator = get_sudoer(request)
+
         _logger.debug("Request for %s authenticated as user=%s",
                       request.get_full_path(), account.login)
 
