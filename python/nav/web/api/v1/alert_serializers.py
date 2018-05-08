@@ -67,24 +67,22 @@ class EventTypeSerializer(serializers.ModelSerializer):
 
 class AlertHistorySerializer(serializers.ModelSerializer):
     """Serializer for the AlertHistory model"""
-    subject = serializers.Field(source='get_subject')
-    subject_url = serializers.SerializerMethodField('get_subject_url')
-    subject_type = serializers.SerializerMethodField('get_subject_type')
+    subject = serializers.ReadOnlyField(source='get_subject')
+    subject_url = serializers.SerializerMethodField()
+    subject_type = serializers.SerializerMethodField()
 
     on_maintenance = serializers.SerializerMethodField('is_on_maintenance')
     acknowledgement = AcknowledgementSerializer()
 
-    event_history_url = serializers.SerializerMethodField(
-        'get_event_history_url')
-    netbox_history_url = serializers.SerializerMethodField(
-        'get_netbox_history_url')
-    event_details_url = serializers.SerializerMethodField('get_event_details_url')
-    device_groups = serializers.SerializerMethodField('get_device_groups')
+    event_history_url = serializers.SerializerMethodField()
+    netbox_history_url = serializers.SerializerMethodField()
+    event_details_url = serializers.SerializerMethodField()
+    device_groups = serializers.SerializerMethodField()
 
     alert_type = AlertTypeSerializer()
     event_type = EventTypeSerializer()
     start_time = serializers.DateTimeField()
-    end_time = serializers.SerializerMethodField('get_end_time')
+    end_time = serializers.SerializerMethodField()
 
     @staticmethod
     def get_subject_url(obj):
@@ -151,3 +149,4 @@ class AlertHistorySerializer(serializers.ModelSerializer):
 
     class Meta(object):
         model = event.AlertHistory
+        fields = '__all__'

@@ -22,9 +22,14 @@ from rest_framework import serializers
 
 class AccountSerializer(serializers.ModelSerializer):
     """Serializer for accounts"""
+    accountgroups = serializers.PrimaryKeyRelatedField(
+        source='accountgroup_set', many=True,
+        queryset=profiles.AccountGroup.objects.all())
+
     class Meta(object):
         model = profiles.Account
-        fields = ('id', 'login', 'name', 'ext_sync', 'preferences', 'organizations')
+        fields = ('id', 'login', 'name', 'ext_sync', 'preferences', 'organizations',
+                  'accountgroups')
 
 
 class AccountGroupSerializer(serializers.ModelSerializer):
@@ -50,6 +55,7 @@ class NetboxTypeSerializer(serializers.ModelSerializer):
 
     class Meta(object):
         model = manage.NetboxType()
+        fields = '__all__'
 
 
 class RoomSerializer(serializers.ModelSerializer):
@@ -63,28 +69,32 @@ class RoomSerializer(serializers.ModelSerializer):
 
     class Meta(object):
         model = manage.Room
+        fields = '__all__'
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
     class Meta(object):
         model = manage.Organization
+        fields = '__all__'
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta(object):
         model = manage.Category
+        fields = '__all__'
 
 
 class SubNetboxSerializer(serializers.ModelSerializer):
     object_url = serializers.CharField(source='get_absolute_url')
     class Meta(object):
         model = manage.Netbox
+        fields = '__all__'
 
 
 class NetboxSerializer(serializers.ModelSerializer):
     """Serializer for the netbox model"""
     chassis = EntitySerializer(source='get_chassis', many=True, read_only=True)
-    sysname = serializers.CharField(required=False, blank=True)
+    sysname = serializers.CharField(required=False)
 
     # We need two fields for related fields that are required: one for reading
     # (room) and one for writing (roomid).
@@ -97,28 +107,35 @@ class NetboxSerializer(serializers.ModelSerializer):
     # Thus we need a PrimaryKeyRelatedField where the source defines the key
     # that we use to find the related room when creating a new netbox
 
-    roomid = serializers.PrimaryKeyRelatedField(source='room', write_only=True)
+    roomid = serializers.PrimaryKeyRelatedField(
+        source='room', write_only=True, queryset=manage.Room.objects.all())
     room = RoomSerializer(required=False)
 
-    organizationid = serializers.PrimaryKeyRelatedField(source='organization',
-                                                        write_only=True)
+    organizationid = serializers.PrimaryKeyRelatedField(
+        source='organization', write_only=True, queryset=manage.Organization.objects.all())
     organization = OrganizationSerializer(required=False)
-    categoryid = serializers.PrimaryKeyRelatedField(source='category',
-                                                    write_only=True)
+
+    categoryid = serializers.PrimaryKeyRelatedField(
+        source='category', write_only=True, queryset=manage.Category.objects.all())
     category = CategorySerializer(required=False)
+
     masterid = serializers.PrimaryKeyRelatedField(source='master',
                                                   required=False,
-                                                  write_only=True)
+                                                  write_only=True,
+                                                  queryset=manage.Netbox.objects.all()
+                                                  )
     master = SubNetboxSerializer(required=False)
-    typeid = serializers.PrimaryKeyRelatedField(source='type',
-                                                required=False,
-                                                write_only=True)
+
+    typeid = serializers.PrimaryKeyRelatedField(source='type', required=False,
+                                                write_only=True,
+                                                queryset=manage.NetboxType.objects.all())
     type = NetboxTypeSerializer(read_only=True)
 
 
     class Meta(object):
         model = manage.Netbox
         depth = 1
+        fields = '__all__'
 
 
 class PatchSerializer(serializers.ModelSerializer):
@@ -126,6 +143,7 @@ class PatchSerializer(serializers.ModelSerializer):
     class Meta(object):
         model = cabling.Patch
         depth = 2
+        fields = '__all__'
 
 
 class SpecificPatchSerializer(serializers.ModelSerializer):
@@ -142,24 +160,28 @@ class ModuleSerializer(serializers.ModelSerializer):
 
     class Meta(object):
         model = manage.Module
+        fields = '__all__'
 
 
 class CamSerializer(serializers.ModelSerializer):
     """Serializer for the cam model"""
     class Meta(object):
         model = manage.Cam
+        fields = '__all__'
 
 
 class ArpSerializer(serializers.ModelSerializer):
     """Serializer for the arp model"""
     class Meta(object):
         model = manage.Arp
+        fields = '__all__'
 
 
 class SubInterfaceSerializer(serializers.ModelSerializer):
     object_url = serializers.CharField(source='get_absolute_url')
     class Meta(object):
         model = manage.Interface
+        fields = '__all__'
 
 
 class InterfaceSerializer(serializers.ModelSerializer):
@@ -173,42 +195,50 @@ class InterfaceSerializer(serializers.ModelSerializer):
     class Meta(object):
         model = manage.Interface
         depth = 1
+        fields = '__all__'
 
 
 class InterfaceWithCamSerializer(InterfaceSerializer):
     last_used = CamSerializer(source='get_last_cam_record')
+    class Meta(object):
+        fields = '__all__'
 
 
 class CablingSerializer(serializers.ModelSerializer):
     """Serializer for the cabling model"""
     class Meta(object):
         model = cabling.Cabling
+        fields = '__all__'
 
 
 class UnrecognizedNeighborSerializer(serializers.ModelSerializer):
     """Serializer for the arp model"""
     class Meta(object):
         model = manage.UnrecognizedNeighbor
+        fields = '__all__'
 
 
 class RackItemSerializer(serializers.Serializer):
     """Serialize a rack item manually - no models available"""
-    id = serializers.Field()
-    title = serializers.Field()
-    metric = serializers.Field('get_metric')
-    unit_of_measurement = serializers.Field()
-    human_readable = serializers.Field()
-    absolute_url = serializers.Field('get_absolute_url')
-    display_range = serializers.Field('get_display_range')
+    id = serializers.ReadOnlyField()
+    title = serializers.ReadOnlyField()
+    metric = serializers.ReadOnlyField(source='get_metric')
+    unit_of_measurement = serializers.ReadOnlyField()
+    human_readable = serializers.ReadOnlyField()
+    absolute_url = serializers.ReadOnlyField(source='get_absolute_url')
+    display_range = serializers.ReadOnlyField(source='get_display_range')
+
+    class Meta(object):
+        fields = '__all__'
 
 
-class RackConfigurationField(serializers.Field):
+class RackConfigurationField(serializers.ReadOnlyField):
     """Field representing the configuration of a rack"""
-    def to_native(self, obj):
+    def to_representation(self, value):
         configuration = {}
         for column in ['left', 'center', 'right']:
             configuration[column] = [RackItemSerializer(i).data
-                                     for i in obj[column]]
+                                     for i in value[column]]
         return configuration
 
 
@@ -225,12 +255,14 @@ class VlanSerializer(serializers.ModelSerializer):
     """Serializer for the vlan model"""
     class Meta(object):
         model = manage.Vlan
+        fields = '__all__'
 
 
 class PrefixSerializer(serializers.ModelSerializer):
     """Serializer for prefix model"""
     class Meta(object):
         model = manage.Prefix
+        fields = '__all__'
 
 
 class PrefixUsageSerializer(serializers.Serializer):
@@ -248,6 +280,9 @@ class PrefixUsageSerializer(serializers.Serializer):
     url_report = serializers.CharField()
     url_vlan = serializers.CharField()
 
+    class Meta(object):
+        fields = '__all__'
+
 
 class ServiceHandlerSerializer(serializers.Serializer):
     """Serializer for service handlers.
@@ -261,3 +296,6 @@ class ServiceHandlerSerializer(serializers.Serializer):
     name = serializers.CharField()
     ipv6_support = serializers.BooleanField()
     description = serializers.CharField()
+
+    class Meta(object):
+        fields = '__all__'

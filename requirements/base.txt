@@ -20,7 +20,6 @@ markdown==2.5.1
 dnspython==1.15.0
 
 # REST framework
-djangorestframework==2.4.4
 iso8601
 
 pynetsnmp-2==0.1.3

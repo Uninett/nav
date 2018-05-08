@@ -90,10 +90,11 @@ class Account(models.Model):
     login = VarcharField(unique=True)
     name = VarcharField()
     password = VarcharField()
-    ext_sync = VarcharField()
+    ext_sync = VarcharField(blank=True)
     preferences = HStoreField(default={})
 
-    organizations = models.ManyToManyField(Organization, db_table='accountorg')
+    organizations = models.ManyToManyField(Organization, db_table='accountorg',
+                                           blank=True)
 
     # Set this in order to provide a link to the actual operator when Account
     # objects are retrieved from session data

@@ -20,6 +20,7 @@ from operator import itemgetter
 
 from django.http import HttpResponse, QueryDict, JsonResponse
 from django.test.client import RequestFactory
+from django.utils.dateparse import parse_datetime
 
 from nav.models.profiles import Account
 from nav.models.manage import Netbox
@@ -96,8 +97,9 @@ class Status2Widget(Navlet):
         return [(k, v) for k, v in column_choices if k in chosen_columns]
 
     @staticmethod
-    def format_time(timestamp):
+    def format_time(timestampstring):
         """Format the time based on time back in time"""
+        timestamp = parse_datetime(timestampstring)
         now = datetime.now()
         date_format = '%d.%b %H:%M:%S'
         if now.year != timestamp.year:

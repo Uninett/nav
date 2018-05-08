@@ -214,6 +214,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.sessions',
     'django.contrib.humanize',
+    'django_filters',
     'crispy_forms',
     'crispy_forms_foundation',
     'rest_framework',
@@ -228,7 +229,8 @@ else:
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
-    'PAGINATE_BY': 100,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 100,
     'PAGINATE_BY_PARAM': 'page_size',
 }
 

@@ -29,7 +29,7 @@ from django.db.models.fields import FieldDoesNotExist
 from datetime import datetime, timedelta
 import iso8601
 
-from rest_framework import status, filters, viewsets, exceptions
+from rest_framework import status, filters, viewsets, exceptions, pagination
 from rest_framework.decorators import api_view, renderer_classes, list_route
 from rest_framework.reverse import reverse_lazy
 from rest_framework.renderers import (JSONRenderer, BrowsableAPIRenderer,
@@ -120,7 +120,7 @@ def get_endpoints(request=None, version=1):
     return {
         'account': reverse_lazy('{}account-list'.format(prefix), **kwargs),
         'accountgroup': reverse_lazy('{}accountgroup-list'.format(prefix), **kwargs),
-        'alert': reverse_lazy('{}alerthistory-list'.format(prefix), **kwargs),
+        'alert': reverse_lazy('{}alert-list'.format(prefix), **kwargs),
         'auditlog': reverse_lazy('{}auditlog-list'.format(prefix), **kwargs),
         'arp': reverse_lazy('{}arp-list'.format(prefix), **kwargs),
         'cabling': reverse_lazy('{}cabling-list'.format(prefix), **kwargs),
@@ -180,6 +180,7 @@ class NAVAPIMixin(APIView):
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend,
                        RelatedOrderingFilter)
+    ordering_fields = '__all__'
 
 
 class ServiceHandlerViewSet(NAVAPIMixin, ViewSet):
@@ -215,7 +216,7 @@ class LoggerMixin(object):
         """Log POST requests that create new objects"""
         response = super(LoggerMixin, self).create(request, *args, **kwargs)
         if response.status_code == status.HTTP_201_CREATED:
-            _logger.info('Token %s created %r', self.request.auth, self.object)
+            _logger.info('Token %s created', self.request.auth)
         return response
 
     def update(self, request, *args, **kwargs):
@@ -225,8 +226,8 @@ class LoggerMixin(object):
         """
         response = super(LoggerMixin, self).update(request, *args, **kwargs)
         if response.status_code in [status.HTTP_200_OK, status.HTTP_201_CREATED]:
-            _logger.info('Token %s updated %r with %s', self.request.auth,
-                         self.object, dict(self.request.DATA))
+            _logger.info('Token %s updated with %s', self.request.auth,
+                         dict(self.request.data))
         return response
 
     def destroy(self, request, *args, **kwargs):
@@ -276,7 +277,7 @@ class AccountGroupViewSet(NAVAPIMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = profiles.AccountGroup.objects.all()
-        accounts = self.request.QUERY_PARAMS.getlist('account')
+        accounts = self.request.query_params.getlist('account')
         if accounts:
             queryset = queryset.filter(accounts__in=accounts).distinct()
         return queryset
@@ -382,7 +383,7 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         request = self.request
-        if request.QUERY_PARAMS.get('last_used'):
+        if request.query_params.get('last_used'):
             return serializers.InterfaceWithCamSerializer
         else:
             return serializers.InterfaceSerializer
@@ -439,7 +440,7 @@ class CablingViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = cabling.Cabling.objects.all()
-        not_patched = self.request.QUERY_PARAMS.get('available', None)
+        not_patched = self.request.query_params.get('available', None)
         if not_patched:
             queryset = queryset.filter(patch=None)
 
@@ -456,7 +457,7 @@ class MachineTrackerViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         """Filter on custom parameters"""
         queryset = self.model_class.objects.all()
-        active = self.request.QUERY_PARAMS.get('active', None)
+        active = self.request.query_params.get('active', None)
         starttime, endtime = get_times(self.request)
 
         if active:
@@ -500,7 +501,7 @@ class CamViewSet(MachineTrackerViewSet):
 
     def list(self, request):
         """Override list so that we can control what is returned"""
-        if not request.QUERY_PARAMS:
+        if not request.query_params:
             return Response("Cam records are numerous - use a filter",
                             status=status.HTTP_400_BAD_REQUEST)
         return super(CamViewSet, self).list(request)
@@ -538,7 +539,7 @@ class ArpViewSet(MachineTrackerViewSet):
 
     def list(self, request):
         """Override list so that we can control what is returned"""
-        if not request.QUERY_PARAMS:
+        if not request.query_params:
             return Response("Arp records are numerous - use a filter",
                             status=status.HTTP_400_BAD_REQUEST)
         return super(ArpViewSet, self).list(request)
@@ -546,7 +547,7 @@ class ArpViewSet(MachineTrackerViewSet):
     def get_queryset(self):
         """Customizes handling of the ip address filter"""
         queryset = super(ArpViewSet, self).get_queryset()
-        ip = self.request.QUERY_PARAMS.get('ip', None)
+        ip = self.request.query_params.get('ip', None)
         if ip:
             try:
                 addr = IP(ip)
@@ -652,6 +653,26 @@ def get_times(request):
     return starttime, endtime
 
 
+
+
+class PrefixUsagePaginator(pagination.LimitOffsetPagination):
+    """Custom pagination for prefix usage
+
+    The queryset contains prefixes, but we use a custom object for representing
+    the usage statistics for the prefix. Thus we need to convert the filtered
+    prefixes to the custom object format.
+
+    Also we need to run the prefix collector after paging to avoid unnecessary
+    usage calculations.
+    """
+
+    def paginate_queryset(self, queryset, request, view=None):
+        prefixes = super(PrefixUsagePaginator, self).paginate_queryset(
+            queryset, request)
+        starttime, endtime = get_times(request)
+        return prefix_collector.fetch_usages(prefixes, starttime, endtime)
+
+
 class PrefixUsageList(NAVAPIMixin, ListAPIView):
     """Lists the usage of prefixes. This means how many addresses are in use
     in the prefix.
@@ -679,6 +700,10 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
     [1]: https://xkcd.com/1179/
     """
     serializer_class = serializers.PrefixUsageSerializer
+    pagination_class = PrefixUsagePaginator
+
+    # RelatedOrderingFilter does not work with the custom pagination
+    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
 
     def get(self, request, *args, **kwargs):
         """Override get method to verify url parameters"""
@@ -703,29 +728,6 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
                    if IP(p.net_address).len() >= MINIMUMPREFIXLENGTH]
 
         return results
-
-    def list(self, request, *args, **kwargs):
-        """Delivers a list of usage objects as a response
-
-        The queryset contains prefixes, but we use a custom object for
-        representing the usage statistics for the prefix. Thus we need to
-        convert the filtered prefixes to the custom object format.
-
-        Also we need to run the prefix collector after paging to avoid
-        unnecessary usage calculations
-        """
-        page = self.paginate_queryset(self.filter_queryset(self.get_queryset()))
-        starttime, endtime = get_times(self.request)
-        prefixes = prefix_collector.fetch_usages(
-            page.object_list, starttime, endtime)
-
-        if page is not None:
-            page.object_list = prefixes
-            serializer = self.get_pagination_serializer(page)
-        else:
-            serializer = self.get_serializer(prefixes, many=True)
-
-        return Response(serializer.data)
 
 
 class PrefixUsageDetail(NAVAPIMixin, APIView):
@@ -814,13 +816,13 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         """Gets an AlertHistory QuerySet"""
-        if not self.request.QUERY_PARAMS.get('stateless', False):
+        if not self.request.query_params.get('stateless', False):
             return event.AlertHistory.objects.unresolved().select_related()
         else:
             return self._get_stateless_queryset()
 
     def _get_stateless_queryset(self):
-        hours = int(self.request.QUERY_PARAMS.get('stateless_threshold',
+        hours = int(self.request.query_params.get('stateless_threshold',
                                                   STATELESS_THRESHOLD))
         if hours < 1:
             raise ValueError("hours must be at least 1")
