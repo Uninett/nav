@@ -205,7 +205,7 @@ define(function(require) {
             },
             columns: dtColumns,
             order: [[1, 'asc']],
-            dom: "<pirl>t",
+            dom: '<"#portlist-controls"<pirl><"#columns-controls">>t',
             language: {
                 info: "_TOTAL_ entries",
                 processing: "Loading...",
@@ -232,6 +232,7 @@ define(function(require) {
             table: table,
             container: $('#column-toggler')
         });
+        $('#column-toggler').appendTo('#columns-controls').css('display', 'inline-block');
         filterController.controller(table);
         dynamicColumnsController(table);
 

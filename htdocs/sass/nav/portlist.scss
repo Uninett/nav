@@ -10,16 +10,31 @@
     .paginate_button { margin: 0; }
 }
 
+#portlist-table_wrapper {
+    display: inline-block;
+}
+
+#portlist-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
 #column-toggler {
+    display: none;
+    position: relative;
+    width: 180px;
     .toggle-header {
         cursor: pointer;
-        display: inline-block;
+        margin: 0;
+        width: 100%;
     }
     .toggle-container {
         background-color: white;
         border: 2px solid $dropdown-border-color;
         padding: 1em;
         position: absolute;
+        width: 100%;
         z-index: 10;
         > ul {
             list-style: none;
