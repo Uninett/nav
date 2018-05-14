@@ -15,7 +15,7 @@
 # REQUIREMENT: For the users inside the container to be able to access the
 # source code mounted at /source, the directory and its files on the host must
 # be world-readable!
-# 
+#
 #
 FROM mbrekkevold/navbase-debian:jessie
 

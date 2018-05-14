@@ -98,7 +98,7 @@ RUN adduser --system --group --home=/home/build --shell=/bin/bash build
 COPY requirements.txt /runtime-requirements.txt
 COPY requirements/ /requirements
 COPY tests/requirements.txt /test-requirements.txt
-RUN pip install --upgrade pip wheel && \
+RUN pip install --upgrade 'pip<10' wheel && \
     pip install -r /runtime-requirements.txt -r /test-requirements.txt
 
 
