@@ -1,3 +1,5 @@
+@import '../navsettings';
+
 .navbody .select2-container-multi .select2-choices .select2-search-field input {
     height: 33px;
 }
@@ -13,15 +15,26 @@
         cursor: pointer;
         display: inline-block;
     }
-    .toggle-container > ul {
-        margin: 0;
-        .button { margin: 0 }
-        .button.disabled {
-            cursor: pointer;
-            opacity: 0.5;
-        }
-        > li {
-            margin: 0 .3em .3em 0;
+    .toggle-container {
+        background-color: white;
+        border: 2px solid $dropdown-border-color;
+        padding: 1em;
+        position: absolute;
+        z-index: 10;
+        > ul {
+            list-style: none;
+            margin: 0;
+            > li {
+                border-bottom: 1px solid white;
+                > .button {
+                    margin: 0;
+                    width: 100%;
+                    &.disabled {
+                        cursor: pointer;
+                        opacity: 0.5;
+                    }
+                }
+            }
         }
     }
 }

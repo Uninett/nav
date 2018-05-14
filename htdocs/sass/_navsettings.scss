@@ -61,7 +61,9 @@ $crumb-border-color: #F6F6F6;
 
 $table-border-style: none;
 
-/* Threshold for using alternative font color. 
+$dropdown-border-color: #243640;
+
+/* Threshold for using alternative font color.
 
 NB: This variable is introduced by us because Foundation allowed font color with
 too little contrast according to WCAG2.0. This variable must be manually
