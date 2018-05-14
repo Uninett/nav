@@ -14,6 +14,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 """Generates the query and makes the report."""
+from __future__ import unicode_literals
 
 import io
 import re
@@ -321,17 +322,15 @@ class ArgumentParser(object):
                             neg = ""
                         else:
                             operat = "="
-                        value = intstr(value)
                     elif operator[key] == "like":
                         operat = "ilike"
-                        value = intstr(value.replace("*", "%"))
+                        value = value.replace("*", "%")
                     elif operator[key] == "gt":
                         if neg:
                             operat = "<="
                             neg = ""
                         else:
                             operat = ">"
-                        value = intstr(value)
 
                     elif operator[key] == "geq":
                         if neg:
@@ -339,53 +338,46 @@ class ArgumentParser(object):
                             neg = ""
                         else:
                             operat = ">="
-                        value = intstr(value)
                     elif operator[key] == "lt":
                         if neg:
                             operat = ">="
                             neg = ""
                         else:
                             operat = "<"
-                        value = intstr(value)
                     elif operator[key] == "leq":
                         if neg:
                             operat = ">"
                             neg = ""
                         else:
                             operat = "<="
-                        value = intstr(value)
                     elif operator[key] == "in":
                         operat = "in"
                         inlist = value.split(",")
                         if inlist:
-                            value = "(%s)" % ",".join(intstr(a.strip())
-                                                      for a in inlist)
+                            value = tuple((a.strip() for a in inlist))
                         else:
                             config.error = ("The arguments to 'in' must be "
                                             "comma separated")
 
                     elif operator[key] == "between":
-                        operat = "between"
+                        operat = "between %s and"
                         between = value.split(",")
                         if not len(between) == 2:
                             between = value.split(":")
                         if len(between) == 2:
-                            value = "%s and %s" % (intstr(between[0]),
-                                                   intstr(between[1]))
+                            value = between
                         else:
                             config.error = ("The arguments to 'between' must "
                                             "be comma separated")
+                            value = [None, None]
 
-            # query is now a unicode QueryDict to dict()...
-            # here be DRAGONS, cute shoulder dragons!
-            key = key.encode('UTF8')
-            config.where.append(key + " " + neg + operat + " " + value)
+            config.where.append(key + " " + neg + operat + " %s")
+            if type(value) is list:
+                config.parameters.extend(value)
+            else:
+                config.parameters.append(value)
+
         return fields, nott, operator
-
-
-def intstr(arg):
-    """Escapes a value for use in an SQL query"""
-    return nav.db.escape(arg)
 
 
 class ReportConfig(object):
@@ -405,19 +397,20 @@ class ReportConfig(object):
         self.title = ""
         self.uri = {}
         self.where = []
+        self.parameters = []
         self.report_id = ''
 
     def __repr__(self):
         template = ("<ReportConfig sql={0!r}, sql_select={1!r}, where={2!r}, "
-                    "order_by={3!r} >")
+                    "parameters={3!r}, order_by={4!r} >")
         return template.format(self.sql, self.sql_select, self.where,
-                               self.order_by)
+                               self.parameters, self.order_by)
 
     def make_sql(self):
         sql = "SELECT * FROM (%s) AS foo %s%s" % (self.sql,
                                                   self.wherestring(),
                                                   self.orderstring())
-        return sql
+        return sql, self.parameters
 
     def wherestring(self):
         where = self.where

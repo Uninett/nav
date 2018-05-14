@@ -40,13 +40,13 @@ class DatabaseResult(object):
         connection = db.getConnection('default')
         database = connection.cursor()
 
-        self.sql = report_config.make_sql()
+        self.sql, self.parameters = report_config.make_sql()
 
         ## Make a dictionary of which columns to summarize
         self.sums = dict([(sum_key, '') for sum_key in report_config.sum])
 
         try:
-            database.execute(self.sql)
+            database.execute(self.sql, self.parameters or None)
             self.result = database.fetchall()
 
             # A list of the column headers.
