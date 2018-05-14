@@ -13,12 +13,12 @@ define([], function() {
     function createColumnTogglers(table, $container) {
         var $buttonList = $container.find('ul');
         table.columns().every(function() {
-            var klass = this.visible() ? '': 'disabled';
-            var $switcher = $('<li><div class="button tiny ' + klass + '">' + this.header().innerHTML + '</div></li>');
+            var checked = this.visible() ? 'checked=checked': '';
+            var $switcher = $('<li><label><input type="checkbox" ' + checked + '>' + this.header().innerHTML + '</label></li>');
             $buttonList.append($switcher);
         });
 
-        $buttonList.on('click', function(e) {
+        $container.on('change', function(e) {
             var index = $buttonList.find('li').index($(e.target).closest('li'));
             var column = table.column(index);
             column.visible(!column.visible());
