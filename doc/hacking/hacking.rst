@@ -61,9 +61,6 @@ doc/         User and developer documentation.
 etc/         Example/initial configuration files.
 htdocs/      Static media such as CSS stylesheets, images and JavaScript to be
              served by a webserver.
-packages/    Stuff to help packaging NAV for various platforms, such as
-             RedHat, CentOS, FreeBSD, Debian and soforth. **Much of this is
-             outdated today.**
 python/      Python source code.
 sql/         SQL schema definitions and installation/sync tools.
 templates/   Django HTML templates.
