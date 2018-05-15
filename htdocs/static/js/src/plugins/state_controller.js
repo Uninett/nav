@@ -1,3 +1,6 @@
+/**
+ * Functions for saving form state to localstorage and retrieving and setting it
+ */
 define(function(require) {
 
     // Requires jQuery which is always required in NAV.
