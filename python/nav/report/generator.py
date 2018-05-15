@@ -230,7 +230,6 @@ class ConfigParser(object):
 
 class ArgumentParser(object):
     """Handler of the uri arguments"""
-    SAFE_PATTERN = re.compile("(select|drop|update|delete).*(from|where)", re.I)
     GROUP_PATTERN = re.compile(r"^(?P<group>\S+?)_(?P<groupkey>\S+?)$")
 
     def __init__(self, configuration):
@@ -316,64 +315,60 @@ class ArgumentParser(object):
             else:
                 operat = "is"
         else:
-            if self.SAFE_PATTERN.search(value):
-                self.config.error = ("You are not allowed to make advanced "
-                                     "sql terms")
-            else:
-                if self.operator[field] == "eq":
-                    if neg:
-                        operat = "<>"
-                        neg = ""
-                    else:
-                        operat = "="
-                elif self.operator[field] == "like":
-                    operat = "ilike"
-                    value = value.replace("*", "%")
-                elif self.operator[field] == "gt":
-                    if neg:
-                        operat = "<="
-                        neg = ""
-                    else:
-                        operat = ">"
+            if self.operator[field] == "eq":
+                if neg:
+                    operat = "<>"
+                    neg = ""
+                else:
+                    operat = "="
+            elif self.operator[field] == "like":
+                operat = "ilike"
+                value = value.replace("*", "%")
+            elif self.operator[field] == "gt":
+                if neg:
+                    operat = "<="
+                    neg = ""
+                else:
+                    operat = ">"
 
-                elif self.operator[field] == "geq":
-                    if neg:
-                        operat = "<"
-                        neg = ""
-                    else:
-                        operat = ">="
-                elif self.operator[field] == "lt":
-                    if neg:
-                        operat = ">="
-                        neg = ""
-                    else:
-                        operat = "<"
-                elif self.operator[field] == "leq":
-                    if neg:
-                        operat = ">"
-                        neg = ""
-                    else:
-                        operat = "<="
-                elif self.operator[field] == "in":
-                    operat = "in"
-                    inlist = value.split(",")
-                    if inlist:
-                        value = tuple((a.strip() for a in inlist))
-                    else:
-                        self.config.error = ("The arguments to 'in' must "
-                                             "be comma separated")
+            elif self.operator[field] == "geq":
+                if neg:
+                    operat = "<"
+                    neg = ""
+                else:
+                    operat = ">="
+            elif self.operator[field] == "lt":
+                if neg:
+                    operat = ">="
+                    neg = ""
+                else:
+                    operat = "<"
+            elif self.operator[field] == "leq":
+                if neg:
+                    operat = ">"
+                    neg = ""
+                else:
+                    operat = "<="
+            elif self.operator[field] == "in":
+                operat = "in"
+                inlist = value.split(",")
+                if inlist:
+                    value = tuple((a.strip() for a in inlist))
+                else:
+                    self.config.error = ("The arguments to 'in' must "
+                                         "be comma separated")
 
-                elif self.operator[field] == "between":
-                    operat = "between %s and"
-                    between = value.split(",")
-                    if not len(between) == 2:
-                        between = value.split(":")
-                    if len(between) == 2:
-                        value = between
-                    else:
-                        self.config.error = ("The arguments to 'between' "
-                                             "must be comma separated")
-                        value = [None, None]
+            elif self.operator[field] == "between":
+                operat = "between %s and"
+                between = value.split(",")
+                if not len(between) == 2:
+                    between = value.split(":")
+                if len(between) == 2:
+                    value = between
+                else:
+                    self.config.error = ("The arguments to 'between' "
+                                         "must be comma separated")
+                    value = [None, None]
 
         self.config.where.append(field + " " + neg + operat + " %s")
         if type(value) is list:
