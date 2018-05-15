@@ -59,3 +59,5 @@ class DatabaseResult(object):
             #raise ProblemExistBetweenKeyboardAndChairException
             self.error = ("Configuration error! The report generator is not "
                           "able to do such things. " + str(error))
+        else:
+            self.error = report_config.error

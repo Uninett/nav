@@ -367,7 +367,7 @@ class ArgumentParser(object):
                     value = between
                 else:
                     self.config.error = ("The arguments to 'between' "
-                                         "must be comma separated")
+                                         "must be comma- or colon-separated")
                     value = [None, None]
 
         self.config.where.append(field + " " + neg + operat + " %s")
@@ -396,6 +396,7 @@ class ReportConfig(object):
         self.where = []
         self.parameters = []
         self.report_id = ''
+        self.error = None
 
     def __repr__(self):
         template = ("<ReportConfig sql={0!r}, sql_select={1!r}, where={2!r}, "
