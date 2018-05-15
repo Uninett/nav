@@ -4,9 +4,13 @@ define(function(require) {
     var columnToggler = require('src/portlist_column_toggler');
     var filterController = require('src/portlist_filter_controller');
     var dynamicColumnsController = require('src/portlist_dynamic_columns_controller');
+    var stateController = require('src/plugins/state_controller');
+
+    var storageKey = 'DataTables_portlist-table_/formstate/';
 
     var selectors = {
-        table: '#portlist-table'
+        table: '#portlist-table',
+        filterForm: '#filters',
     }
 
 
@@ -209,7 +213,8 @@ define(function(require) {
             language: {
                 info: "_TOTAL_ entries",
                 processing: "Loading...",
-            }
+            },
+            stateSave: true,
         });
     }
 
@@ -227,16 +232,31 @@ define(function(require) {
     /** TABLE INITIATION */
 
     function PortList() {
+        var form = document.querySelector(selectors.filterForm);
+        /* Set filters based on localstorage. Remember there are two filters,
+        the ones we control and the ones DataTable controls. */
+        stateController.setFormState(form, storageKey);
+
         var table = createTable();
+
         columnToggler({
             table: table,
             container: $('#column-toggler')
         });
+
+        // Move the column toggler to the correct element
         $('#columns-controls').prepend($('#column-toggler').css('display', 'inline-block'));
+
+        // Enable the different filters and column toggle functions
         filterController.controller(table);
         dynamicColumnsController(table);
 
+        // Save form state on datatable state save
+        table.on('stateSaveParams.dt', function() {
+            stateController.setFormStateInStorage(form, storageKey);
+        });
     }
+
 
     return PortList
 
