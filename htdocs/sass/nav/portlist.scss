@@ -20,6 +20,10 @@
     justify-content: space-between;
 }
 
+#columns-controls > div {
+    margin-right: 1em;
+}
+
 #column-toggler {
     display: none;
     position: relative;
