@@ -231,6 +231,7 @@ class ConfigParser(object):
 class ArgumentParser(object):
     """Handler of the uri arguments"""
     SAFE_PATTERN = re.compile("(select|drop|update|delete).*(from|where)", re.I)
+    GROUP_PATTERN = re.compile(r"^(?P<group>\S+?)_(?P<groupkey>\S+?)$")
 
     def __init__(self, configuration):
         """Initializes the configuration"""
@@ -247,54 +248,55 @@ class ArgumentParser(object):
         :param query: a dict representing the argument-part of the uri
 
         """
-        self._parse_operations(query)
+        self._parse_arguments(query)
         self._parse_fields()
 
         return self.fields, self.nott, self.operator
 
-    def _parse_operations(self, query):
-        for key, value in query.items():
+    def _parse_arguments(self, query):
+        for argument, value in query.items():
+            self._parse_single_argument(argument, value)
 
-            if key == "sql" or key == "query":
-                # error("Access to make SQL-querys permitted")
-                pass
-            elif key == "title":
-                self.config.title = value
-            elif key == "order_by" or key == "sort":
-                self.config.order_by = value.split(",") + self.config.order_by
-            elif key == "skjul" or key == "hidden" or key == "hide":
-                self.config.hidden.extend(value.split(","))
-            elif key == "ekstra" or key == "extra":
-                self.config.extra.extend(value.split(","))
-            elif key == "sum" or key == "total":
-                self.config.sum.extend(value.split(","))
-            elif key == "offset":
-                self.config.offset = value
-            elif key == "limit":
-                self.config.limit = value
-            else:
-                pattern = re.compile(r"^(?P<group>\S+?)_(?P<groupkey>\S+?)$")
-                match = pattern.search(key)
+    def _parse_single_argument(self, arg, value):
+        if arg == "title":
+            self.config.title = value
+        elif arg in ("order_by", "sort"):
+            self.config.order_by = value.split(",") + self.config.order_by
+        elif arg in ("skjul", "hidden", "hide"):
+            self.config.hidden.extend(value.split(","))
+        elif arg in ("ekstra", "extra"):
+            self.config.extra.extend(value.split(","))
+        elif arg in ("sum", "total"):
+            self.config.sum.extend(value.split(","))
+        elif arg == "offset":
+            self.config.offset = value
+        elif arg == "limit":
+            self.config.limit = value
+        else:
+            if not self._parse_argument_as_group(arg, value) and value:
+                self.fields[arg] = value
 
-                if match:
-                    group = match.group('group')
-                    group_key = match.group('groupkey')
-                    if group in ("navn", "name"):
-                        self.config.name[group_key] = value
-                    elif group in ("url", "uri"):
-                        self.config.uri[group_key] = value
-                    elif group in ("forklar", "explain", "description"):
-                        self.config.explain[group_key] = value
-                    elif group == "not":
-                        self.nott[group_key] = value
-                    elif group == "op":
-                        self.operator[group_key] = value
-                    else:
-                        match = None
+    def _parse_argument_as_group(self, arg, value):
+        match = self.GROUP_PATTERN.search(arg)
+        if not match:
+            return False
 
-                if not match:
-                    if value:
-                        self.fields[key] = value
+        group = match.group('group')
+        group_key = match.group('groupkey')
+        if group in ("navn", "name"):
+            self.config.name[group_key] = value
+        elif group in ("url", "uri"):
+            self.config.uri[group_key] = value
+        elif group in ("forklar", "explain", "description"):
+            self.config.explain[group_key] = value
+        elif group == "not":
+            self.nott[group_key] = value
+        elif group == "op":
+            self.operator[group_key] = value
+        else:
+            return False
+
+        return True
 
     def _parse_fields(self):
         for key, value in self.fields.items():
