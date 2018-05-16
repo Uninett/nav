@@ -306,6 +306,7 @@ class ArgumentParser(object):
                 neg = ""
 
             if value == "null":
+                value = None
                 if neg:
                     operat = "is not"
                     neg = ""
