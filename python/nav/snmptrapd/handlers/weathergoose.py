@@ -1,6 +1,5 @@
 #
 # Copyright (C) 2011, 2015 Uninett AS
-# Copyright (C) 2011 Narvik University College
 #
 # This file is part of Network Administration Visualized (NAV).
 #
