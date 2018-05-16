@@ -230,10 +230,15 @@ class ConfigParser(object):
 
 class ArgumentParser(object):
     """Handler of the uri arguments"""
+    GROUP_PATTERN = re.compile(r"^(?P<group>\S+?)_(?P<groupkey>\S+?)$")
 
     def __init__(self, configuration):
         """Initializes the configuration"""
-        self.configuration = configuration
+        # config is the config obtained from the config file
+        self.config = configuration
+        self.fields = {}
+        self.negated = {}
+        self.operator = {}
 
     def parse_query(self, query):
         """Parses the arguments of the uri, and modifies the
@@ -242,142 +247,106 @@ class ArgumentParser(object):
         :param query: a dict representing the argument-part of the uri
 
         """
+        self._parse_arguments(query)
+        self._parse_fields()
 
-        ## config is the configuration obtained from the configuration file
-        config = self.configuration
-        fields = {}
-        nott = {}
-        operator = {}
-        safere = re.compile("(select|drop|update|delete).*(from|where)", re.I)
+        return self.fields, self.negated, self.operator
 
-        for key, value in query.items():
+    def _parse_arguments(self, query):
+        for argument, value in query.items():
+            self._parse_single_argument(argument, value)
 
-            if key == "sql" or key == "query":
-                #error("Access to make SQL-querys permitted")
-                pass
-            elif key == "title":
-                config.title = value
-            elif key == "order_by" or key == "sort":
-                config.order_by = value.split(",") + config.order_by
-            elif key == "skjul" or key == "hidden" or key == "hide":
-                config.hidden.extend(value.split(","))
-            elif key == "ekstra" or key == "extra":
-                config.extra.extend(value.split(","))
-            elif key == "sum" or key == "total":
-                config.sum.extend(value.split(","))
-            elif key == "offset":
-                config.offset = value
-            elif key == "limit":
-                config.limit = value
-            else:
-                pattern = re.compile(r"^(?P<group>\S+?)_(?P<groupkey>\S+?)$")
-                match = pattern.search(key)
+    def _parse_single_argument(self, arg, value):
+        if arg == "title":
+            self.config.title = value
+        elif arg in ("order_by", "sort"):
+            self.config.order_by = value.split(",") + self.config.order_by
+        elif arg in ("skjul", "hidden", "hide"):
+            self.config.hidden.extend(value.split(","))
+        elif arg in ("ekstra", "extra"):
+            self.config.extra.extend(value.split(","))
+        elif arg in ("sum", "total"):
+            self.config.sum.extend(value.split(","))
+        elif arg == "offset":
+            self.config.offset = value
+        elif arg == "limit":
+            self.config.limit = value
+        else:
+            if not self._parse_argument_as_group(arg, value) and value:
+                self.fields[arg] = value
 
-                if match:
-                    group = match.group('group')
-                    group_key = match.group('groupkey')
-                    if group in ("navn", "name"):
-                        config.name[group_key] = value
-                    elif group in ("url", "uri"):
-                        config.uri[group_key] = value
-                    elif group in ("forklar", "explain", "description"):
-                        config.explain[group_key] = value
-                    elif group == "not":
-                        nott[group_key] = value
-                    elif group == "op":
-                        operator[group_key] = value
-                    else:
-                        match = None
+    def _parse_argument_as_group(self, arg, value):
+        match = self.GROUP_PATTERN.search(arg)
+        if not match:
+            return False
 
-                if not match:
-                    if value:
-                        fields[key] = value
+        group = match.group('group')
+        group_key = match.group('groupkey')
+        if group in ("navn", "name"):
+            self.config.name[group_key] = value
+        elif group in ("url", "uri"):
+            self.config.uri[group_key] = value
+        elif group in ("forklar", "explain", "description"):
+            self.config.explain[group_key] = value
+        elif group == "not":
+            self.negated[group_key] = value
+        elif group == "op":
+            self.operator[group_key] = value
+        else:
+            return False
 
-        for key, value in fields.items():
+        return True
 
-            if not key in operator:
-                operator[key] = "eq"
-            # Set a default operator
-            operat = "="
+    def _parse_fields(self):
+        for field, value in self.fields.items():
+            self._parse_single_field(field, value)
 
-            if key in nott:
-                neg = "not "
-            else:
-                neg = ""
+    def _parse_single_field(self, field, value):
+        if field not in self.operator:
+            self.operator[field] = "eq"
+        # Set a default operator
+        operat = "="
+        negate = "not " if field in self.negated else ""
 
-            if value == "null":
-                if neg:
-                    operat = "is not"
-                    neg = ""
+        if value == "null":
+            operat, negate = ("is not", "") if negate else ("is", negate)
+        else:
+            fieldoper = self.operator[field]
+            if fieldoper == "eq":
+                operat, negate = ("<>", "") if negate else ("=", negate)
+            elif fieldoper == "like":
+                operat = "ilike"
+                value = value.replace("*", "%")
+            elif fieldoper == "gt":
+                operat, negate = ("<=", "") if negate else (">", negate)
+
+            elif fieldoper == "geq":
+                operat, negate = ("<", "") if negate else (">=", negate)
+            elif fieldoper == "lt":
+                operat, negate = (">=", "") if negate else ("<", negate)
+            elif fieldoper == "leq":
+                operat, negate = (">", "") if negate else ("<=", negate)
+            elif fieldoper == "in":
+                operat = "in"
+                value = tuple(value.split(","))
+
+            elif fieldoper == "between":
+                operat = "between %s and"
+                between = value.split(",")
+                if not len(between) == 2:
+                    between = value.split(":")
+                if len(between) == 2:
+                    value = between
                 else:
-                    operat = "is"
-            else:
-                if safere.search(value):
-                    config.error = ("You are not allowed to make advanced sql"
-                                    " terms")
-                else:
-                    if operator[key] == "eq":
-                        if neg:
-                            operat = "<>"
-                            neg = ""
-                        else:
-                            operat = "="
-                    elif operator[key] == "like":
-                        operat = "ilike"
-                        value = value.replace("*", "%")
-                    elif operator[key] == "gt":
-                        if neg:
-                            operat = "<="
-                            neg = ""
-                        else:
-                            operat = ">"
+                    self.config.error = ("The arguments to 'between' "
+                                         "must be comma- or colon-separated")
+                    value = [None, None]
 
-                    elif operator[key] == "geq":
-                        if neg:
-                            operat = "<"
-                            neg = ""
-                        else:
-                            operat = ">="
-                    elif operator[key] == "lt":
-                        if neg:
-                            operat = ">="
-                            neg = ""
-                        else:
-                            operat = "<"
-                    elif operator[key] == "leq":
-                        if neg:
-                            operat = ">"
-                            neg = ""
-                        else:
-                            operat = "<="
-                    elif operator[key] == "in":
-                        operat = "in"
-                        inlist = value.split(",")
-                        if inlist:
-                            value = tuple((a.strip() for a in inlist))
-                        else:
-                            config.error = ("The arguments to 'in' must be "
-                                            "comma separated")
-
-                    elif operator[key] == "between":
-                        operat = "between %s and"
-                        between = value.split(",")
-                        if not len(between) == 2:
-                            between = value.split(":")
-                        if len(between) == 2:
-                            value = between
-                        else:
-                            config.error = ("The arguments to 'between' must "
-                                            "be comma separated")
-                            value = [None, None]
-
-            config.where.append(key + " " + neg + operat + " %s")
-            if type(value) is list:
-                config.parameters.extend(value)
-            else:
-                config.parameters.append(value)
-
-        return fields, nott, operator
+        self.config.where.append(field + " " + negate + operat + " %s")
+        if type(value) is list:
+            self.config.parameters.extend(value)
+        else:
+            self.config.parameters.append(value)
 
 
 class ReportConfig(object):
@@ -399,6 +368,7 @@ class ReportConfig(object):
         self.where = []
         self.parameters = []
         self.report_id = ''
+        self.error = None
 
     def __repr__(self):
         template = ("<ReportConfig sql={0!r}, sql_select={1!r}, where={2!r}, "
