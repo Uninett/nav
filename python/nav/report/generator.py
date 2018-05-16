@@ -328,12 +328,7 @@ class ArgumentParser(object):
                 operat, neg = (">", "") if neg else ("<=", neg)
             elif fieldoper == "in":
                 operat = "in"
-                inlist = value.split(",")
-                if inlist:
-                    value = tuple((a.strip() for a in inlist))
-                else:
-                    self.config.error = ("The arguments to 'in' must "
-                                         "be comma separated")
+                value = tuple(value.split(","))
 
             elif fieldoper == "between":
                 operat = "between %s and"
