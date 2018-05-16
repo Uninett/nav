@@ -671,26 +671,6 @@ def get_times(request):
     return starttime, endtime
 
 
-
-
-class PrefixUsagePaginator(pagination.LimitOffsetPagination):
-    """Custom pagination for prefix usage
-
-    The queryset contains prefixes, but we use a custom object for representing
-    the usage statistics for the prefix. Thus we need to convert the filtered
-    prefixes to the custom object format.
-
-    Also we need to run the prefix collector after paging to avoid unnecessary
-    usage calculations.
-    """
-
-    def paginate_queryset(self, queryset, request, view=None):
-        prefixes = super(PrefixUsagePaginator, self).paginate_queryset(
-            queryset, request)
-        starttime, endtime = get_times(request)
-        return prefix_collector.fetch_usages(prefixes, starttime, endtime)
-
-
 class PrefixUsageList(NAVAPIMixin, ListAPIView):
     """Lists the usage of prefixes. This means how many addresses are in use
     in the prefix.
@@ -718,7 +698,6 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
     [1]: https://xkcd.com/1179/
     """
     serializer_class = serializers.PrefixUsageSerializer
-    pagination_class = PrefixUsagePaginator
 
     # RelatedOrderingFilter does not work with the custom pagination
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
@@ -746,6 +725,15 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
                    if IP(p.net_address).len() >= MINIMUMPREFIXLENGTH]
 
         return results
+
+    def get_serializer(self, data, *args, **kwargs):
+        """Populate the serializer with usages based on the prefix list"""
+        kwargs['context'] = self.get_serializer_context()
+        starttime, endtime = get_times(self.request)
+        usages = prefix_collector.fetch_usages(data, starttime, endtime)
+        serializer_class = self.get_serializer_class()
+        return serializer_class(
+            usages, *args, context=self.get_serializer_context(), many=True)
 
 
 class PrefixUsageDetail(NAVAPIMixin, APIView):
