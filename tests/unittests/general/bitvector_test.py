@@ -1,4 +1,4 @@
-# Copyright (C) 2009 UNINETT AS
+# Copyright (C) 2009 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #

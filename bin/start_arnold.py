@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- testargs: --list -*-
 #
-# Copyright 2017 (C) UNINETT
+# Copyright 2017 (C) Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #

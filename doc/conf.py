@@ -40,7 +40,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = u'NAV'
-copyright = u'2012-2018, UNINETT AS'
+copyright = u'2012-2018, Uninett AS'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -238,7 +238,7 @@ htmlhelp_basename = 'NAVdoc'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'NAV.tex', u'NAV Documentation',
-   u'UNINETT AS', 'manual'),
+   u'Uninett AS', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

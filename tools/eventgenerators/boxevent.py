@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2015 UNINETT AS
+# Copyright (C) 2015 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #

@@ -5,7 +5,7 @@ AC_CONFIG_AUX_DIR(conf)
 AM_INIT_AUTOMAKE([foreign])
 AC_PREFIX_DEFAULT(/usr/local/nav)
 AC_COPYRIGHT([
-Copyright 2002-2018 UNINETT AS
+Copyright 2002-2018 Uninett AS
 
 See individual source files for more detailed copyright notices.
 ])

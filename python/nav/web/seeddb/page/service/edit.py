@@ -1,6 +1,6 @@
 """Forms and view functions for editing services in SeedDB"""
 #
-# Copyright (C) 2011, 2013-2015 UNINETT AS
+# Copyright (C) 2011, 2013-2015 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #

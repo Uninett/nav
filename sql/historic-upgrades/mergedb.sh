@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright 2008 UNINETT AS
+# Copyright 2008 Uninett AS
 # License: GPLv2
 # Author: Morten Brekkevold <morten.brekkevold@uninett.no>
 #
@@ -25,7 +25,7 @@ do
 	  ;;
 
       ?) cat <<EOF >&2
-Copyright 2008 UNINETT AS
+Copyright 2008 Uninett AS
 
 This script automates the task of merging the four NAV 3.4 databases
 into a single multi-namespaced NAV 3.5 database.

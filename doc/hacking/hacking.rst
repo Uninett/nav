@@ -12,17 +12,17 @@ Contributing to NAV
 
 Originally, NAV was a closed source project, initiated by the
 Norwegian University of Science and Technology (NTNU), and eventually
-sponsored by UNINETT on behalf of the Norwegian higher education
-community.  In 2004, however, NTNU and UNINETT started distributing
+sponsored by Uninett on behalf of the Norwegian higher education
+community.  In 2004, however, NTNU and Uninett started distributing
 NAV under the GNU General Public License, making it a truly free
 software system.
 
-While UNINETT and NTNU are still the main contributors to NAV,
+While Uninett and NTNU are still the main contributors to NAV,
 developing NAV to support the needs of the Norwegian higher education
 community, contributions from third parties is highly appreciated.
 
 We communicate mainly through mailing lists, GitHub_, and the ``#nav`` IRC
-channel on *FreeNode*. At times, UNINETT also arranges workshops and
+channel on *FreeNode*. At times, Uninett also arranges workshops and
 gatherings for its customers: Norwegian universities, university colleges and
 research institutions.
 
@@ -263,7 +263,7 @@ Push access
 -----------
 
 Push access to the official repositories is limited to developers
-employed or commissioned by UNINETT.
+employed or commissioned by Uninett.
 
 Testing and Continuous Integration
 ==================================
