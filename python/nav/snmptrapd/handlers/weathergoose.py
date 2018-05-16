@@ -1,5 +1,4 @@
 #
-# Copyright (C) 2009 Norwegian University of Science and Technology
 # Copyright (C) 2011, 2015 UNINETT AS
 # Copyright (C) 2011 Narvik University College
 #
