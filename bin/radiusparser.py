@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # -*- notest -*-
 #
-# Copyright 2008 University of Tromsø
+# Copyright (C) 2018 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
