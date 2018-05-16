@@ -21,10 +21,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Authors: Roger Kristiansen <roger.kristiansen@gmail.com>
-#          Kai Arne Bjørnenak <kai.bjornenak@cc.uit.no>
-#
-
 """Radius error log parser.
 
 This program was written to run on a radius server, not on the NAV
