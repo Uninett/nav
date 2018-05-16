@@ -237,7 +237,7 @@ class ArgumentParser(object):
         # config is the config obtained from the config file
         self.config = configuration
         self.fields = {}
-        self.nott = {}
+        self.negated = {}
         self.operator = {}
 
     def parse_query(self, query):
@@ -250,7 +250,7 @@ class ArgumentParser(object):
         self._parse_arguments(query)
         self._parse_fields()
 
-        return self.fields, self.nott, self.operator
+        return self.fields, self.negated, self.operator
 
     def _parse_arguments(self, query):
         for argument, value in query.items():
@@ -289,7 +289,7 @@ class ArgumentParser(object):
         elif group in ("forklar", "explain", "description"):
             self.config.explain[group_key] = value
         elif group == "not":
-            self.nott[group_key] = value
+            self.negated[group_key] = value
         elif group == "op":
             self.operator[group_key] = value
         else:
@@ -306,26 +306,26 @@ class ArgumentParser(object):
             self.operator[field] = "eq"
         # Set a default operator
         operat = "="
-        neg = "not " if field in self.nott else ""
+        negate = "not " if field in self.negated else ""
 
         if value == "null":
-            operat, neg = ("is not", "") if neg else ("is", neg)
+            operat, negate = ("is not", "") if negate else ("is", negate)
         else:
             fieldoper = self.operator[field]
             if fieldoper == "eq":
-                operat, neg = ("<>", "") if neg else ("=", neg)
+                operat, negate = ("<>", "") if negate else ("=", negate)
             elif fieldoper == "like":
                 operat = "ilike"
                 value = value.replace("*", "%")
             elif fieldoper == "gt":
-                operat, neg = ("<=", "") if neg else (">", neg)
+                operat, negate = ("<=", "") if negate else (">", negate)
 
             elif fieldoper == "geq":
-                operat, neg = ("<", "") if neg else (">=", neg)
+                operat, negate = ("<", "") if negate else (">=", negate)
             elif fieldoper == "lt":
-                operat, neg = (">=", "") if neg else ("<", neg)
+                operat, negate = (">=", "") if negate else ("<", negate)
             elif fieldoper == "leq":
-                operat, neg = (">", "") if neg else ("<=", neg)
+                operat, negate = (">", "") if negate else ("<=", negate)
             elif fieldoper == "in":
                 operat = "in"
                 value = tuple(value.split(","))
@@ -342,7 +342,7 @@ class ArgumentParser(object):
                                          "must be comma- or colon-separated")
                     value = [None, None]
 
-        self.config.where.append(field + " " + neg + operat + " %s")
+        self.config.where.append(field + " " + negate + operat + " %s")
         if type(value) is list:
             self.config.parameters.extend(value)
         else:
