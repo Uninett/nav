@@ -309,47 +309,24 @@ class ArgumentParser(object):
         neg = "not " if field in self.nott else ""
 
         if value == "null":
-            if neg:
-                operat = "is not"
-                neg = ""
-            else:
-                operat = "is"
+            operat, neg = ("is not", "") if neg else ("is", neg)
         else:
-            if self.operator[field] == "eq":
-                if neg:
-                    operat = "<>"
-                    neg = ""
-                else:
-                    operat = "="
-            elif self.operator[field] == "like":
+            fieldoper = self.operator[field]
+            if fieldoper == "eq":
+                operat, neg = ("<>", "") if neg else ("=", neg)
+            elif fieldoper == "like":
                 operat = "ilike"
                 value = value.replace("*", "%")
-            elif self.operator[field] == "gt":
-                if neg:
-                    operat = "<="
-                    neg = ""
-                else:
-                    operat = ">"
+            elif fieldoper == "gt":
+                operat, neg = ("<=", "") if neg else (">", neg)
 
-            elif self.operator[field] == "geq":
-                if neg:
-                    operat = "<"
-                    neg = ""
-                else:
-                    operat = ">="
-            elif self.operator[field] == "lt":
-                if neg:
-                    operat = ">="
-                    neg = ""
-                else:
-                    operat = "<"
-            elif self.operator[field] == "leq":
-                if neg:
-                    operat = ">"
-                    neg = ""
-                else:
-                    operat = "<="
-            elif self.operator[field] == "in":
+            elif fieldoper == "geq":
+                operat, neg = ("<", "") if neg else (">=", neg)
+            elif fieldoper == "lt":
+                operat, neg = (">=", "") if neg else ("<", neg)
+            elif fieldoper == "leq":
+                operat, neg = (">", "") if neg else ("<=", neg)
+            elif fieldoper == "in":
                 operat = "in"
                 inlist = value.split(",")
                 if inlist:
@@ -358,7 +335,7 @@ class ArgumentParser(object):
                     self.config.error = ("The arguments to 'in' must "
                                          "be comma separated")
 
-            elif self.operator[field] == "between":
+            elif fieldoper == "between":
                 operat = "between %s and"
                 between = value.split(",")
                 if not len(between) == 2:
