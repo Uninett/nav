@@ -1,5 +1,7 @@
 define(['libs/ol-debug'], function (ol) {
 
+    var imagePath = NAV.imagePath + '/openlayers/';
+
     /**
      * Mapper creates an OpenStreetMap on the node given rooms from NAV
      *
@@ -15,18 +17,6 @@ define(['libs/ol-debug'], function (ol) {
         })
 
         this.baseZoomLevel = 17;
-
-        this.imagePath = NAV.imagePath + '/openlayers/';
-        this.okStyle = new ol.style.Style({
-            image: new ol.style.Icon({
-                src: this.imagePath + 'marker-green.png'
-            })
-        });
-        this.faultyStyle = new ol.style.Style({
-            image: new ol.style.Icon({
-                src: this.imagePath + 'marker.png'
-            })
-        });
 
         addCssToHead(NAV.cssPath + '/ol.css');
         this.initialize();
@@ -58,10 +48,13 @@ define(['libs/ol-debug'], function (ol) {
                     var size = features.length;
                     if (size <= 1) {
                         var room = features[0];
+                        var name = room.get('name');
                         if (self.room) {
-                            return room.get('name') === self.room.id ? self.okStyle: self.faultyStyle;
+                            return name === self.room.id ?
+                                   getMainMarkerStyle(name) :
+                                   getSecondaryMarkerStyle(name);
                         } else {
-                            return self.okStyle;
+                            return getMainMarkerStyle(name);
                         }
                     } else {
                         return new ol.style.Style({
@@ -96,6 +89,7 @@ define(['libs/ol-debug'], function (ol) {
 
             this.addMarkerNavigation(map);
         },
+
 
         /* When marker is clicked, go to roominfo for that room */
         addMarkerNavigation: function(map) {
@@ -184,6 +178,30 @@ define(['libs/ol-debug'], function (ol) {
         style.href = src;
         document.getElementsByTagName('head')[0].appendChild(style);
     }
+
+    function getMarkerStyle(text, image) {
+        return new ol.style.Style({
+            image: new ol.style.Icon({
+                src: imagePath + image,
+            }),
+            text: new ol.style.Text({
+                text: text,
+                font: '12px sans-serif',
+                offsetY: 20,
+                backgroundFill: new ol.style.Fill({color: [255, 255, 255, 0.5]}),
+                padding: [0, 3, 0, 3]
+            })
+        });
+    }
+
+    function getMainMarkerStyle(text) {
+        return getMarkerStyle(text, 'marker-green.png');
+    }
+
+    function getSecondaryMarkerStyle(text) {
+        return getMarkerStyle(text, 'marker-red.png');
+    }
+
 
     return RoomMapper;
 
