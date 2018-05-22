@@ -60,12 +60,8 @@ class NetboxTypeSerializer(serializers.ModelSerializer):
 
 class RoomSerializer(serializers.ModelSerializer):
     """Serializer for the room model"""
-    @staticmethod
-    def transform_position(obj, _value):
-        """Returns string versions of the coordinates"""
-        if hasattr(obj, 'position') and obj.position:
-            lat, lon = obj.position
-            return str(lat), str(lon)
+    position = serializers.ListField(
+        child=serializers.DecimalField(max_digits=20, decimal_places=12))
 
     class Meta(object):
         model = manage.Room
