@@ -10,7 +10,10 @@ define(['libs/ol-debug'], function (ol) {
         this.rooms = rooms.filter(function(room) {
             return room.position;  // Filter out rooms with position
         });
-        this.room_id = room_id === 'undefined' ? null : room_id;
+        this.room = _.find(this.rooms, function(room) {
+            return room.id === room_id;
+        })
+
         this.baseZoomLevel = 17;
 
         this.imagePath = NAV.imagePath + '/openlayers/';
@@ -43,8 +46,10 @@ define(['libs/ol-debug'], function (ol) {
             var view = new ol.View({ center: ol.extent.getCenter(extent), zoom: this.baseZoomLevel });
             var map = this.createMap(view, markerLayer);
 
-            if (this.rooms.length > 1) {
+            if (!this.room && this.rooms.length > 1) {
                 view.fit(extent); // Zoom to extent
+            } else if (this.room) {
+                view.setCenter(transformPosition(this.room));
             }
             this.addMarkerNavigation(map);
 
@@ -76,7 +81,8 @@ define(['libs/ol-debug'], function (ol) {
                 name: room.id
             });
 
-            feature.setStyle(this.okStyle);
+            var style = room.id === this.room.id ? this.okStyle: this.faultyStyle;
+            feature.setStyle(style);
             return feature;
         },
 
