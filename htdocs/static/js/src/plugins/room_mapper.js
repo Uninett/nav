@@ -94,20 +94,33 @@ define(['libs/ol-debug'], function (ol) {
                 view.setCenter(transformPosition(this.room));
             }
 
-
             this.addMarkerNavigation(map);
         },
 
         /* When marker is clicked, go to roominfo for that room */
         addMarkerNavigation: function(map) {
             var selectClick = new ol.interaction.Select({
-                condition: ol.events.condition.click
+                condition: ol.events.condition.click,
+                style: new ol.style.Style({
+                    // Set invisible style on select
+                    fill: new ol.style.Fill({color: [255,255,255,0]}),
+                })
             });
             map.addInteraction(selectClick);
             selectClick.on('select', function(e) {
                 if (e.selected.length) {
-                    var feature = e.selected[0];
-                    window.location = NAV.urls.room_info_base + feature.get('name');
+                    var selected = e.selected[0];
+                    var features = selected.get('features');
+                    if (features.length === 1) {
+                        // This is a single marker and should navigate to room on click
+                        window.location = NAV.urls.room_info_base + features[0].get('name');
+                    } else {
+                        // This is a cluster of markers and should zoom to extent of markers in cluster
+                        var collection = new ol.geom.GeometryCollection(features.map(function(feature) {
+                            return feature.getGeometry();
+                        }));
+                        map.getView().fit(collection.getExtent());
+                    }
                 }
             })
         },
