@@ -1,118 +1,134 @@
-define(['plugins/fullscreen', 'libs/OpenLayers'], function (fullscreen) {
+define(['libs/ol-debug'], function (ol) {
 
-    /*
+    /**
      * Mapper creates an OpenStreetMap on the node given rooms from NAV
-     * A room needs a name, position and status
+     *
      */
-    function RoomMapper(node, rooms) {
+    function RoomMapper(node, rooms, room_id) {
+        console.log('RoomMapper', node);
         this.node = node;
-        this.rooms = rooms;
-        this.proxyurl = NAV.osmTileUrl + '/${z}/${x}/${y}.png';
-        this.imagePath = NAV.imagePath + '/openlayers/';
-        this.markerImages = {
-            faulty: this.imagePath + 'marker.png',
-            ok: this.imagePath + 'marker-green.png'
-        };
-        this.options = {
-            theme: NAV.cssPath + '/openlayers.css'
-        };
+        this.rooms = rooms.filter(function(room) {
+            return room.position;  // Filter out rooms with position
+        });
+        this.room = _.find(this.rooms, function(room) {
+            return room.id === room_id;
+        })
 
-        OpenLayers.ImgPath = this.imagePath;
+        this.baseZoomLevel = 17;
+
+        this.imagePath = NAV.imagePath + '/openlayers/';
+        this.okStyle = new ol.style.Style({
+            image: new ol.style.Icon({
+                src: this.imagePath + 'marker-green.png'
+            })
+        });
+        this.faultyStyle = new ol.style.Style({
+            image: new ol.style.Icon({
+                src: this.imagePath + 'marker.png'
+            })
+        });
+
+        addCssToHead(NAV.cssPath + '/ol.css');
+        this.initialize();
     }
 
     RoomMapper.prototype = {
-        createMap: function () {
+        initialize: function () {
             if (this.rooms.length <= 0) {
-                console.log('Mapper: No rooms to put on map');
+                console.log('Mapper: No rooms with position to put on map');
                 return;
             }
-            this.map = new OpenLayers.Map(this.node, this.options);
-            var mapLayer = new OpenLayers.Layer.OSM("OpenStreetMap", this.proxyurl);
-            mapLayer.tileOptions = {'crossOriginKeyword': null};
-            this.map.addLayer(mapLayer);
-            var markers = addMarkers(this.rooms, this.map, this.markerImages);
-            addMarkerControl(markers, this.map);
-            addCoordinatePicker(this.map);
-            fullscreen.createFullscreenToggler(this.map.div, true);
+
+            var markerSource = this.createMarkerSource(),
+                markerLayer = new ol.layer.Vector({ source: markerSource }),
+                extent = markerSource.getExtent();
+
+            var view = new ol.View({ center: ol.extent.getCenter(extent), zoom: this.baseZoomLevel });
+            var map = this.createMap(view, markerLayer);
+
+            if (!this.room && this.rooms.length > 1) {
+                view.fit(extent); // Zoom to extent
+            } else if (this.room) {
+                view.setCenter(transformPosition(this.room));
+            }
+            this.addMarkerNavigation(map);
+
+        },
+
+        /* When marker is clicked, go to roominfo for that room */
+        addMarkerNavigation: function(map) {
+            var selectClick = new ol.interaction.Select({
+                condition: ol.events.condition.click
+            });
+            map.addInteraction(selectClick);
+            selectClick.on('select', function(e) {
+                if (e.selected.length) {
+                    var feature = e.selected[0];
+                    window.location = NAV.urls.room_info_base + feature.get('name');
+                }
+            })
+        },
+
+        createMarkerSource: function () {
+            return new ol.source.Vector({
+                features: this.rooms.map(this.createFeature, this)
+            });
+        },
+
+        createFeature: function (room) {
+            var feature = new ol.Feature({
+                geometry: new ol.geom.Point(transformPosition(room)),
+                name: room.id
+            });
+
+            var style = room.id === this.room.id ? this.okStyle: this.faultyStyle;
+            feature.setStyle(style);
+            return feature;
+        },
+
+        createMap: function (view, markerLayer) {
+            console.log("Creating map on", view);
+            return new ol.Map({
+                target: this.node,
+                view: view,
+                layers: [
+                    new ol.layer.Tile({
+                        source: getOSMsource()
+                    }),
+                    markerLayer
+                ],
+                controls: ol.control.defaults().extend([new ol.control.FullScreen()])
+            });
         }
+
     };
 
-    function addMarkers(rooms, map, images) {
-        var styleMap = new OpenLayers.StyleMap({
-            label: '${name}',
-            externalGraphic: '${image}',
-            graphicHeight: 21,
-            graphicWidth: 16,
-            graphicYOffset: -28
+    function getOSMsource() {
+        /** Return OpenStreeMap source for OpenLayers3 */
+        return new ol.source.OSM({
+            url: NAV.osmTileUrl + '/{z}/{x}/{y}.png',
+            crossOrigin: null
         });
-        var markers = new OpenLayers.Layer.Vector('Rooms', {styleMap: styleMap});
-
-        for (var i = 0; i < rooms.length; i++) {
-            if (!(rooms[i].position && rooms[i].name && rooms[i].status)) {
-                console.log('Room does not have needed members [position, name, status]');
-            }
-            markers.addFeatures(createMarker(rooms[i], images));
-        }
-
-        map.addLayer(markers);
-        map.zoomToExtent(markers.getDataExtent());
-
-        return markers;
     }
 
-    function createMarker(room, images) {
-        var point = new OpenLayers.Geometry.Point(getLong(room.position), getLat(room.position));
-        transform(point);
-
-        return new OpenLayers.Feature.Vector(point,
-            {
-                name: room.name,
-                image: images[room.status]
-            }
-        );
+    function transformPosition(room) {
+        var point = [getLong(room), getLat(room)];
+        return ol.proj.transform(point, 'EPSG:4326', 'EPSG:3857');
     }
 
-    function addMarkerControl(markers, map) {
-        var selectControl = new OpenLayers.Control.SelectFeature(markers, {
-            onSelect: roomClickHandler
-        });
-        map.addControl(selectControl);
-        selectControl.activate();
+    function getLat(room) {
+        return parseFloat(room.position[0]);
     }
 
-    function addCoordinatePicker(map, inputnode) {
-        var node = inputnode || $('#coordinates');
-        if (node.length > 0) {
-            map.events.register('click', map, function (event) {
-                var lonlat = map.getLonLatFromViewPortPx(event.xy);
-                transform(lonlat, true);
-                node.html(lonlat.lat + ',' + lonlat.lon);
-            });
-            node.click(function(){
-                window.prompt('Ctrl-c + Enter', node.html());
-            });
-        }
+    function getLong(room) {
+        return parseFloat(room.position[1]);
     }
 
-    function getLat(position) {
-        return parseFloat(position.split(',')[0]);
-    }
-
-    function getLong(position) {
-        return parseFloat(position.split(',')[1]);
-    }
-
-    function roomClickHandler(feature) {
-        var roomname = feature.attributes.name;
-        window.location = '/search/room/' + roomname;
-    }
-
-    function transform(obj, reverse) {
-        reverse = (typeof reverse !== "undefined");
-        // We use EPSG:4362 for coords. OSM uses EPSG:900913.
-        var EPSG4326 = new OpenLayers.Projection('EPSG:4326');
-        var EPSGMERC = new OpenLayers.Projection('EPSG:900913');
-        return reverse ? obj.transform(EPSGMERC, EPSG4326) : obj.transform(EPSG4326, EPSGMERC);
+    function addCssToHead(src) {
+        var style = document.createElement('link');
+        style.rel = 'stylesheet';
+        style.href = src;
+        document.getElementsByTagName('head')[0].appendChild(style);
     }
 
     return RoomMapper;
