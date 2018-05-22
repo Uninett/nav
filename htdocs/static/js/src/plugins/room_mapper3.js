@@ -7,7 +7,9 @@ define(['libs/ol-debug'], function (ol) {
     function RoomMapper(node, rooms, room_id) {
         console.log('RoomMapper', node);
         this.node = node;
-        this.rooms = rooms;
+        this.rooms = rooms.filter(function(room) {
+            return room.position;  // Filter out rooms with position
+        });
         this.room_id = room_id === 'undefined' ? null : room_id;
         this.baseZoomLevel = 17;
 
@@ -30,7 +32,7 @@ define(['libs/ol-debug'], function (ol) {
     RoomMapper.prototype = {
         initialize: function () {
             if (this.rooms.length <= 0) {
-                console.log('Mapper: No rooms to put on map');
+                console.log('Mapper: No rooms with position to put on map');
                 return;
             }
 
