@@ -43,16 +43,59 @@ define(['libs/ol-debug'], function (ol) {
                 markerLayer = new ol.layer.Vector({ source: markerSource }),
                 extent = markerSource.getExtent();
 
+            var clusterSource = new ol.source.Cluster({
+                source: markerSource,
+                distance: 30
+            });
+
+            console.log(clusterSource);
+            var self = this;
+
+            var clusters = new ol.layer.Vector({
+                source: clusterSource,
+                style: function(feature) {
+                    var features = feature.get('features');
+                    var size = features.length;
+                    if (size <= 1) {
+                        var room = features[0];
+                        if (self.room) {
+                            return room.get('name') === self.room.id ? self.okStyle: self.faultyStyle;
+                        } else {
+                            return self.okStyle;
+                        }
+                    } else {
+                        return new ol.style.Style({
+                            image: new ol.style.Circle({
+                                radius: 15,
+                                stroke: new ol.style.Stroke({
+                                    color: '#fff'
+                                }),
+                                fill: new ol.style.Fill({
+                                    color: '#000'
+                                })
+                            }),
+                            text: new ol.style.Text({
+                                text: size.toString(),
+                                fill: new ol.style.Fill({
+                                    color: '#fff'
+                                })
+                            })
+                        });
+                    }
+                }
+            })
+
             var view = new ol.View({ center: ol.extent.getCenter(extent), zoom: this.baseZoomLevel });
-            var map = this.createMap(view, markerLayer);
+            var map = this.createMap(view, clusters);
 
             if (!this.room && this.rooms.length > 1) {
                 view.fit(extent); // Zoom to extent
             } else if (this.room) {
                 view.setCenter(transformPosition(this.room));
             }
-            this.addMarkerNavigation(map);
 
+
+            this.addMarkerNavigation(map);
         },
 
         /* When marker is clicked, go to roominfo for that room */
@@ -81,16 +124,10 @@ define(['libs/ol-debug'], function (ol) {
                 name: room.id
             });
 
-            if (this.room) {
-                var style = room.id === this.room.id ? this.okStyle: this.faultyStyle;
-                feature.setStyle(style);
-            } else {
-                feature.setStyle(this.okStyle);
-            }
             return feature;
         },
 
-        createMap: function (view, markerLayer) {
+        createMap: function (view, clusters) {
             console.log("Creating map on", view);
             return new ol.Map({
                 target: this.node,
@@ -99,7 +136,7 @@ define(['libs/ol-debug'], function (ol) {
                     new ol.layer.Tile({
                         source: getOSMsource()
                     }),
-                    markerLayer
+                    clusters
                 ],
                 controls: ol.control.defaults().extend([new ol.control.FullScreen()])
             });
