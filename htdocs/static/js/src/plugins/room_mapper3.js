@@ -1,4 +1,4 @@
-define(['libs/OpenLayers3-debug'], function (ol) {
+define(['libs/ol-debug'], function (ol) {
 
     /**
      * Mapper creates an OpenStreetMap on the node given rooms from NAV
@@ -15,7 +15,8 @@ define(['libs/OpenLayers3-debug'], function (ol) {
      * Todo: Display name on hover state
      *
      */
-    function RoomMapper3(node, rooms) {
+    function RoomMapper(node, rooms) {
+        console.log('RoomMapper', node);
         this.node = node;
         this.rooms = rooms;
         this.baseZoomLevel = 17;
@@ -32,11 +33,11 @@ define(['libs/OpenLayers3-debug'], function (ol) {
             })
         });
 
-        addCssToHead(NAV.cssPath + '/openlayers3.css');
+        addCssToHead(NAV.cssPath + '/ol.css');
         this.initialize();
     }
 
-    RoomMapper3.prototype = {
+    RoomMapper.prototype = {
         initialize: function () {
             if (this.rooms.length <= 0) {
                 console.log('Mapper: No rooms to put on map');
@@ -51,15 +52,24 @@ define(['libs/OpenLayers3-debug'], function (ol) {
             var map = this.createMap(view, markerLayer);
 
             if (this.rooms.length > 1) {
-                view.fitExtent(extent, map.getSize()); // Zoom to extent
+                view.fitExtent(extent); // Zoom to extent
             }
+            this.addMarkerNavigation(map);
 
-            map.on('click', function (event) {
-                var feature = map.forEachFeatureAtPixel(event.pixel, function (feature, layer) {
-                    return feature;
-                });
-                window.location = '/search/room/' + feature.get('name');
+        },
+
+        /* When marker is clicked, go to roominfo for that room */
+        addMarkerNavigation: function(map) {
+            var selectClick = new ol.interaction.Select({
+                condition: ol.events.condition.click
             });
+            map.addInteraction(selectClick);
+            selectClick.on('select', function(e) {
+                if (e.selected.length) {
+                    var feature = e.selected[0];
+                    window.location = NAV.urls.room_info_base + feature.get('name');
+                }
+            })
         },
 
         createMarkerSource: function () {
@@ -80,7 +90,7 @@ define(['libs/OpenLayers3-debug'], function (ol) {
         },
 
         createMap: function (view, markerLayer) {
-            console.log("Creating map");
+            console.log("Creating map on", view);
             return new ol.Map({
                 target: this.node,
                 view: view,
@@ -89,7 +99,8 @@ define(['libs/OpenLayers3-debug'], function (ol) {
                         source: getOSMsource()
                     }),
                     markerLayer
-                ]
+                ],
+                controls: ol.control.defaults().extend([new ol.control.FullScreen()])
             });
         }
 
@@ -123,6 +134,6 @@ define(['libs/OpenLayers3-debug'], function (ol) {
         document.getElementsByTagName('head')[0].appendChild(style);
     }
 
-    return RoomMapper3;
+    return RoomMapper;
 
 });
