@@ -3,22 +3,12 @@ define(['libs/ol-debug'], function (ol) {
     /**
      * Mapper creates an OpenStreetMap on the node given rooms from NAV
      *
-     * A room needs a name, position and status
-     * node: id of element containing map (no leading #)
-     * rooms: a list of room objects
-     *   [
-     *     {"status": "faulty",
-     *      "position": "63.4158131020689,10.3950651101694",
-     *      "name": "teknobyen"}
-     *   ]
-     *
-     * Todo: Display name on hover state
-     *
      */
-    function RoomMapper(node, rooms) {
+    function RoomMapper(node, rooms, room_id) {
         console.log('RoomMapper', node);
         this.node = node;
         this.rooms = rooms;
+        this.room_id = room_id === 'undefined' ? null : room_id;
         this.baseZoomLevel = 17;
 
         this.imagePath = NAV.imagePath + '/openlayers/';
@@ -115,16 +105,16 @@ define(['libs/ol-debug'], function (ol) {
     }
 
     function transformPosition(room) {
-        var point = [getLong(room.position), getLat(room.position)];
+        var point = [getLong(room), getLat(room)];
         return ol.proj.transform(point, 'EPSG:4326', 'EPSG:3857');
     }
 
-    function getLat(position) {
-        return parseFloat(position.split(',')[0]);
+    function getLat(room) {
+        return parseFloat(room.position[0]);
     }
 
-    function getLong(position) {
-        return parseFloat(position.split(',')[1]);
+    function getLong(room) {
+        return parseFloat(room.position[1]);
     }
 
     function addCssToHead(src) {
