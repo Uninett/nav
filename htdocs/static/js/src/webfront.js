@@ -11,10 +11,10 @@ require([
     var $dashboardNavigator = $('#dashboard-nav');
 
     function createRoomMap(mapwrapper, room_map) {
-        $.getJSON('/ajax/open/roommapper/rooms/', function (data) {
-            if (data.rooms.length > 0) {
+        $.getJSON('/api/room/', function (data) {
+            if (data.results.length > 0) {
                 mapwrapper.show();
-                new RoomMapper(room_map.get(0), data.rooms).createMap();
+                new RoomMapper(room_map.get(0), data.results);
             }
         });
     }

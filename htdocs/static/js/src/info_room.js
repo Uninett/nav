@@ -3,7 +3,7 @@ require(
         "plugins/tab_navigation",
         "info/global_dt_filters",
         "info/table_info_converter",
-        "plugins/room_mapper3",
+        "plugins/room_mapper",
         "plugins/sensors_controller",
         "plugins/jquery_ui_helpers",
         "dt_plugins/natsort",
@@ -81,9 +81,8 @@ require(
             var position_node = $('#roominfo td.position');
             var roomname = $(position_node).attr('data-roomname');
             if (document.querySelector('#room_map').childElementCount === 0) {
-                $.getJSON('/ajax/open/roommapper/rooms/' + roomname, function (data) {
-                    new RoomMapper('room_map', data.rooms);
-                });
+                $.getJSON('/api/room/' + roomname, function (data) {new RoomMapper('room_map', [data], roomname);});
+                /*                 $.getJSON('/api/room/', function (data) {new RoomMapper('room_map', data.results, roomname);});*/
             }
         }
 
