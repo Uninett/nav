@@ -44,7 +44,7 @@ define(['libs/ol-debug'], function (ol) {
             var map = this.createMap(view, markerLayer);
 
             if (this.rooms.length > 1) {
-                view.fitExtent(extent); // Zoom to extent
+                view.fit(extent); // Zoom to extent
             }
             this.addMarkerNavigation(map);
 
@@ -73,11 +73,10 @@ define(['libs/ol-debug'], function (ol) {
         createFeature: function (room) {
             var feature = new ol.Feature({
                 geometry: new ol.geom.Point(transformPosition(room)),
-                name: room.name
+                name: room.id
             });
 
-            var style = room.status === 'ok' ? this.okStyle: this.faultyStyle;
-            feature.setStyle(style);
+            feature.setStyle(this.okStyle);
             return feature;
         },
 
