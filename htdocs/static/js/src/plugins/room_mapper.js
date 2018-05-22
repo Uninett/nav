@@ -81,8 +81,12 @@ define(['libs/ol-debug'], function (ol) {
                 name: room.id
             });
 
-            var style = room.id === this.room.id ? this.okStyle: this.faultyStyle;
-            feature.setStyle(style);
+            if (this.room) {
+                var style = room.id === this.room.id ? this.okStyle: this.faultyStyle;
+                feature.setStyle(style);
+            } else {
+                feature.setStyle(this.okStyle);
+            }
             return feature;
         },
 
