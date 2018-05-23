@@ -25,9 +25,9 @@ from __future__ import print_function
 import sys
 import argparse
 
+import asciitree
 import networkx
 
-from asciitree import draw_tree
 from nav.util import is_valid_ip
 from nav.ipdevpoll.snmp.common import snmp_parameter_factory, SnmpError
 from nav.ipdevpoll.snmp import AgentProxy, snmpprotocol
@@ -60,6 +60,7 @@ def reactor_main(box):
     df.addBoth(endit)
     return df
 
+
 @defer.inlineCallbacks
 def collect_entities(netbox):
     """Collects the entPhysicalTable"""
@@ -85,20 +86,10 @@ def make_graph(entities, netbox):
 
 def print_graph(graph):
     """Prints an ASCII representation of a NetworkX DiGraph tree to stdout"""
-    def _label(node):
-        ent = graph.node[node]
-        labels = [ent.get('entPhysicalName'),
-                  "[%s]" % ent.get('entPhysicalClass')]
-        serial = ent.get('entPhysicalSerialNum', None)
-        if serial:
-            labels.append('(%s)' % serial)
-        return " ".join(labels)
-
-    roots = [n for n, d in graph.out_degree_iter() if d == 0]
-    for root in roots:
-        print(draw_tree(root,
-                        lambda n: [u for u, v in graph.in_edges_iter(n)],
-                        _label))
+    traversal = GraphTraversal(graph)
+    for root in traversal.get_roots():
+        output = asciitree.LeftAligned(traverse=traversal)(root)
+        print(output)
     return graph
 
 
@@ -177,6 +168,28 @@ def _create_agentproxy(netbox):
         raise
     else:
         return agent
+
+
+class GraphTraversal(asciitree.Traversal):
+    def __init__(self, graph):
+        super(GraphTraversal, self).__init__()
+        self.graph = graph
+
+    def get_children(self, node):
+        return [u for u,v in self.graph.in_edges(node)]
+
+    def get_text(self, node):
+        ent = self.graph.node[node]
+        labels = [ent.get('entPhysicalName'),
+                  "[{}]".format(ent.get('entPhysicalClass'))]
+        serial = ent.get('entPhysicalSerialNum', None)
+        if serial:
+            labels.append('({})'.format(serial))
+
+        return " ".join(labels)
+
+    def get_roots(self):
+        return [n for n, d in self.graph.out_degree_iter() if d == 0]
 
 
 if __name__ == '__main__':
