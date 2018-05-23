@@ -17,6 +17,7 @@
 
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import urlize
+from django.utils.encoding import force_text
 from django.utils.html import strip_tags
 from rest_framework import serializers
 from nav.models import event, profiles
@@ -67,7 +68,7 @@ class EventTypeSerializer(serializers.ModelSerializer):
 
 class AlertHistorySerializer(serializers.ModelSerializer):
     """Serializer for the AlertHistory model"""
-    subject = serializers.ReadOnlyField(source='get_subject')
+    subject = serializers.SerializerMethodField(source='get_subject')
     subject_url = serializers.SerializerMethodField()
     subject_type = serializers.SerializerMethodField()
 
@@ -83,6 +84,12 @@ class AlertHistorySerializer(serializers.ModelSerializer):
     event_type = EventTypeSerializer()
     start_time = serializers.DateTimeField()
     end_time = serializers.SerializerMethodField()
+
+
+    @staticmethod
+    def get_subject(obj):
+        """Return textual description of object"""
+        return force_text(obj.get_subject())
 
     @staticmethod
     def get_subject_url(obj):

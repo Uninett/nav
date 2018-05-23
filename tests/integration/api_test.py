@@ -1,10 +1,11 @@
 from __future__ import print_function
 from django.utils.encoding import force_text
 
-import datetime
+from datetime import datetime, timedelta
 import json
 import pytest
 
+from nav.models.fields import INFINITY
 from nav.web.api.v1.views import get_endpoints
 
 
@@ -259,9 +260,9 @@ def serializer_models():
                                  ifdescr='ifdescr', iftype=1, speed=10)
     interface.save()
     manage.Cam(sysname='asd', mac='aa:aa:aa:aa:aa:aa', ifindex=1,
-               end_time=datetime.datetime.now()).save()
+               end_time=datetime.now()).save()
     manage.Arp(sysname='asd', mac='aa:bb:cc:dd:ee:ff', ip='123.123.123.123',
-               end_time=datetime.datetime.now()).save()
+               end_time=datetime.now()).save()
     manage.Prefix(net_address='123.123.123.123').save()
     manage.Vlan(vlan=10, net_type_id='lan').save()
     rack.Rack(room_id='myroom').save()
@@ -273,6 +274,13 @@ def serializer_models():
     target = event.Subsystem.objects.get(pk='eventEngine')
     event_type = event.EventType.objects.get(pk='boxState')
 
+    boxdown_id = 3
+
     event.EventQueue(source=source, target=target, event_type=event_type, netbox=netbox).save()
+    event.AlertHistory(source=source, event_type=event_type, netbox=netbox,
+                       start_time=datetime.now() - timedelta(days=1),
+                       value=1, severity=50,
+                       alert_type_id=boxdown_id,
+                       end_time=INFINITY).save()
     admin = profiles.Account.objects.get(login='admin')
     auditlog.LogEntry.add_log_entry(admin, verb='verb', template='asd')
