@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # -*- testargs: -h -*-
 #
-# Copyright (C) 2002-2004 Norwegian University of Science and Technology
+# Copyright (C) 2018 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #

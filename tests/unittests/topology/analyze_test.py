@@ -1,4 +1,4 @@
-# Copyright (C) 2017 UNINETT AS
+# Copyright (C) 2017 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #

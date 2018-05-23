@@ -1,5 +1,5 @@
 #
-# Copyright 2013 (C) UNINETT AS
+# Copyright 2013 (C) Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #

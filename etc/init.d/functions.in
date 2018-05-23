@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # This file contains functions to be used by most or all shell scripts
 # in the NAV init.d directory.
 #
 #
-# Copyright 2002-2004 Norwegian University of Science and Technology
+# Copyright (C) 2018 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #

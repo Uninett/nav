@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010 UNINETT AS
+# Copyright (C) 2010 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -87,7 +87,7 @@ UNINETT_PATTERN = re.compile(r"""
 
 
 def parse_uninett_convention(_sysname, ifalias):
-    """Parse router port description, using UNINETT conventions."""
+    """Parse router port description, using Uninett conventions."""
     # Strip leading and trailing whitespace from each part individually
     string = ','.join([s.strip() for s in ifalias.split(',')])
     match = UNINETT_PATTERN.match(string)

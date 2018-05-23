@@ -1,5 +1,5 @@
 
-# Copyright (C) 2006-2008, 2011 UNINETT AS
+# Copyright (C) 2006-2008, 2011 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -393,7 +393,7 @@ def safesleep(delay):
 
     See http://www.tummy.com/journals/entries/jafo_20070110_154659
     and https://bugs.launchpad.net/nav/+bug/352316
-    and https://github.com/UNINETT/nav/issues/462
+    and https://github.com/Uninett/nav/issues/462
 
     """
     try:

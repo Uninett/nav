@@ -14,12 +14,7 @@ License
 NAV is licensed under the GNU GPL version 2.  NAV includes software from third
 parties, which are either licensed under the GPL or compatible licenses.
 
-There are multiple copyright holders to NAV code.  The major copyright holders
-are:
-
-* Copyright 2002-2018 UNINETT AS
-* Copyright 1999-2010 Norwegian University of Science and Technology
-* Copyright 2007-2010 University of Tromsø
+* Copyright 2002-2018 Uninett AS
 
 See individual source files for more detailed copyright notices.
 

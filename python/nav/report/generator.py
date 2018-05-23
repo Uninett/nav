@@ -1,6 +1,5 @@
 #
-# Copyright (C) 2003-2005 Norwegian University of Science and Technology
-# Copyright (C) 2008-2011 UNINETT AS
+# Copyright (C) 2008-2011 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -310,6 +309,7 @@ class ArgumentParser(object):
 
         if value == "null":
             operat, negate = ("is not", "") if negate else ("is", negate)
+            value = None
         else:
             fieldoper = self.operator[field]
             if fieldoper == "eq":

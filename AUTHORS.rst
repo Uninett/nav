@@ -67,7 +67,7 @@ Other contributors and previous maintainers
   Wrote PortAdmin with John-Magne.
 
 * Ole Martin Bjørndalen <ole.martin.bjorndalen at uit.no>
-  Wrote the MailIn system based on a Perl implementation from UNINETT, and
+  Wrote the MailIn system based on a Perl implementation from Uninett, and
   periodically contributes to the service monitor.
 
 * Kai Arne Bjørnenak <kai.bjornenak at cc.uit.no>

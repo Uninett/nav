@@ -115,8 +115,8 @@ UninettMailDispatcher
 
 :description:
 
-	This dispatcher sends SMS via UNINETT's `email-to-SMS` gateway.
-	UNINETT's gateway only works internally, but this plugin can serve as
+	This dispatcher sends SMS via Uninett's `email-to-SMS` gateway.
+	Uninett's gateway only works internally, but this plugin can serve as
 	a proof-of-concept for someone implementing a similar service.  The
 	e-mail adress is configurable in ``smsd.conf``.
 
@@ -134,7 +134,7 @@ UninettMailDispatcher
 :cons:
 
 	Unless you have a similar email-to-SMS gatway, this only works for
-	UNINETT.
+	Uninett.
 
 Extending
 =========

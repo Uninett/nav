@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2008, 2011, 2017 UNINETT AS
+# Copyright (C) 2008, 2011, 2017 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -40,7 +40,7 @@ def main():
     else:
         hub = Github()
 
-    repo = hub.get_user('UNINETT').get_repo('nav')
+    repo = hub.get_user('Uninett').get_repo('nav')
     milestones = [m for m in repo.get_milestones(state='all')
                   if m.title == args.version]
     if milestones:

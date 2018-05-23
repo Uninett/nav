@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013 UNINETT AS
+# Copyright (C) 2013 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,7 +16,7 @@
 """Module comment"""
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2011 UNINETT AS
+# Copyright (C) 2011 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #

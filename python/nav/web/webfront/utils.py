@@ -1,6 +1,6 @@
 """Utility functions for various parts of the frontpage, navbar etc."""
 #
-# Copyright (C) 2009, 2012 UNINETT AS
+# Copyright (C) 2009, 2012 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
