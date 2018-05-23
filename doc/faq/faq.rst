@@ -117,5 +117,5 @@ problems. To do so, get a GSM device that's supported by `Gammu
 
 We've found it's best to avoid handsets, as these are built to be exactly
 that: Handsets. Sometimes, they require some form of user-interaction to
-continue operating, which isn't always feasible in a datacenter. At UNINETT,
+continue operating, which isn't always feasible in a datacenter. At Uninett,
 we've had good results with GSM terminals from Siemens/Cinterion/Gemalto.

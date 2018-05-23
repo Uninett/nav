@@ -1,7 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright (C) 2003, 2004 Norwegian University of Science and Technology
-# Copyright (C) 2007, 2012, 2017 UNINETT AS
+# Copyright (C) 2007, 2012, 2017 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #

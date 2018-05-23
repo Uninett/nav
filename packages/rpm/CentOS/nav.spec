@@ -5,7 +5,7 @@ Summary: Powerful network administration tool
 Name: nav
 Version: %{version}
 Release: 1
-Vendor: UNINETT AS
+Vendor: Uninett AS
 Packager: Alexander Krapivin <kaa@msu.net>
 Distribution: Network Administration Visualized
 URL: http://metanav.ntnu.no/

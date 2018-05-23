@@ -266,7 +266,7 @@ The room view now includes the new tab "Sensors in Racks". In this tab, you
 can create customized groupings of environment sensors present in a single
 communications room.
 
-At UNINETT, this view is used to get an overview of the power load and cooling
+At Uninett, this view is used to get an overview of the power load and cooling
 water temperature on a per-rack basis in large HPC installations. PDU sensors
 can nbe added to the left and right side of each "rack", and arbitrary sensors
 from other types of devices can be added to the center column.
@@ -430,14 +430,14 @@ New dashboard widgets are introduced:
 
 Alert
   This widget can monitor binary sensor values or arbitrary Graphite metrics
-  of a an otherwise boolean nature, to be used as an alert indicator. UNINETT's
+  of a an otherwise boolean nature, to be used as an alert indicator. Uninett's
   use-case for this is showing the status of the server room physical security
   system on the NOC screens.
 
 PDU load
   A very specific plugin to display the power load status of APC power
   distribution units (these are the only PDU units currently known to be
-  supported by NAV) on a room-by-room basis. UNINETT's use-case for this is
+  supported by NAV) on a room-by-room basis. Uninett's use-case for this is
   planning rack placements based on power consumption.
 
 UPS status

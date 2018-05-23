@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2006, 2018 UNINETT AS
+# Copyright (C) 2006, 2018 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -13,9 +13,9 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""A dispatcher for UNINETT's mail-to-SMS gateway.
+"""A dispatcher for Uninett's mail-to-SMS gateway.
 
-This dispatcher sends SMS messages via UNINETT's mail-to-SMS gateway. The
+This dispatcher sends SMS messages via Uninett's mail-to-SMS gateway. The
 gateway accepts e-mails with the recipient's phone number in the subject and
 the text message in the body. The mail must be sent from a uninett.no host,
 so this is of little use for others, unless they have a similar interface.
@@ -31,7 +31,7 @@ from nav.smsd.dispatcher import Dispatcher, DispatcherError
 
 
 class UninettMailDispatcher(Dispatcher):
-    """The smsd dispatcher for UNINETT's mail-to-SMS gateway."""
+    """The smsd dispatcher for Uninett's mail-to-SMS gateway."""
 
     def __init__(self, config):
         """Constructor"""
@@ -45,7 +45,7 @@ class UninettMailDispatcher(Dispatcher):
 
     def sendsms(self, phone, msgs):
         """
-        Sends SMS using UNINETT's mail-to-SMS gateway.
+        Sends SMS using Uninett's mail-to-SMS gateway.
 
         :param phone: The phone number the messages are to be dispatched to.
         :param msgs: A list of message strings, ordered by descending severity.

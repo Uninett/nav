@@ -1,6 +1,5 @@
 #
-# Copyright (C) 2004 Norwegian University of Science and Technology
-# Copyright (C) 2007, 2010, 2011, 2014, 2015, 2017, 2018 UNINETT AS
+# Copyright (C) 2007, 2010, 2011, 2014, 2015, 2017, 2018 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #

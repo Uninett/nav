@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2004 Norwegian University of Science and Technology
-# Copyright 2008 UNINETT AS
+# Copyright 2008 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #

@@ -1,5 +1,5 @@
 #
-# Copyright 2007, 2010 (C) Norwegian University of Science and Technology
+# Copyright (C) 2018 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
