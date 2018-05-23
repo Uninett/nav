@@ -18,7 +18,7 @@ define(['libs/ol-debug'], function (ol) {
         })
 
         this.baseZoomLevel = 17;
-        this.clusterDistance = 40;
+        this.clusterDistance = 30;
 
         addCssToHead(NAV.cssPath + '/ol.css');
         this.initialize();
