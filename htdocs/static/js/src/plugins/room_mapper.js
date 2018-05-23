@@ -31,46 +31,14 @@ define(['libs/ol-debug'], function (ol) {
             var map = createMap(this.node, view, clusters);
 
             markerSource.on('addfeature', this.centerAndFit.bind(this, view, markerSource));
-            this.addClickNavigation(map);
+            addClickNavigation(map);
         },
 
-
-        /**
-         * On click on marker, go to room info for that room
-         * On click on cluster, zoom to rooms in that cluster
-         */
-        addClickNavigation: function(map) {
-            var selectClick = new ol.interaction.Select({
-                condition: ol.events.condition.click,
-                style: new ol.style.Style({
-                    // Set invisible style on select
-                    fill: new ol.style.Fill({color: [255,255,255,0]}),
-                })
-            });
-            map.addInteraction(selectClick);
-            selectClick.on('select', function(e) {
-                if (e.selected.length) {
-                    var selected = e.selected[0];
-                    var features = selected.get('features');
-                    if (features.length === 1) {
-                        // This is a single marker and should navigate to room on click
-                        var feature = features[0];
-                        feature.setStyle(null);  // Otherwise it disappears
-                        window.location = NAV.urls.room_info_base + feature.get('name');
-                    } else {
-                        // This is a cluster of markers and should zoom to extent of markers in cluster
-                        var collection = new ol.geom.GeometryCollection(features.map(function(feature) {
-                            return feature.getGeometry();
-                        }));
-                        map.getView().fit(collection.getExtent());
-                    }
-                }
-            })
-        },
 
         createView: function(center) {
             return new ol.View({
                 zoom: this.baseZoomLevel,
+                maxZoom: 20,
                 center: [0,0]
             });
         },
@@ -219,6 +187,40 @@ define(['libs/ol-debug'], function (ol) {
         style.href = src;
         document.getElementsByTagName('head')[0].appendChild(style);
     }
+
+    /**
+     * On click on marker, go to room info for that room
+     * On click on cluster, zoom to rooms in that cluster
+     */
+    function addClickNavigation(map) {
+        var selectClick = new ol.interaction.Select({
+            condition: ol.events.condition.click,
+            style: new ol.style.Style({
+                // Set invisible style on select
+                fill: new ol.style.Fill({color: [255,255,255,0]}),
+            })
+        });
+        map.addInteraction(selectClick);
+        selectClick.on('select', function(e) {
+            if (e.selected.length) {
+                var selected = e.selected[0];
+                var features = selected.get('features');
+                if (features.length === 1) {
+                    // This is a single marker and should navigate to room on click
+                    var feature = features[0];
+                    feature.setStyle(null);  // Otherwise it disappears
+                    window.location = NAV.urls.room_info_base + feature.get('name');
+                } else {
+                    // This is a cluster of markers and should zoom to extent of markers in cluster
+                    var collection = new ol.geom.GeometryCollection(features.map(function(feature) {
+                        return feature.getGeometry();
+                    }));
+                    map.getView().fit(collection.getExtent());
+                }
+            }
+        })
+    }
+
 
     function getMarkerStyle(text, image) {
         return new ol.style.Style({
