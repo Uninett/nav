@@ -46,7 +46,10 @@ define(['libs/ol-debug'], function (ol) {
         },
 
 
-        /* When marker is clicked, go to roominfo for that room */
+        /**
+         * On click on marker, go to room info for that room
+         * On click on cluster, zoom to rooms in that cluster
+         */
         addClickNavigation: function(map) {
             var selectClick = new ol.interaction.Select({
                 condition: ol.events.condition.click,
@@ -62,7 +65,9 @@ define(['libs/ol-debug'], function (ol) {
                     var features = selected.get('features');
                     if (features.length === 1) {
                         // This is a single marker and should navigate to room on click
-                        window.location = NAV.urls.room_info_base + features[0].get('name');
+                        var feature = features[0];
+                        feature.setStyle(null);  // Otherwise it disappears
+                        window.location = NAV.urls.room_info_base + feature.get('name');
                     } else {
                         // This is a cluster of markers and should zoom to extent of markers in cluster
                         var collection = new ol.geom.GeometryCollection(features.map(function(feature) {
