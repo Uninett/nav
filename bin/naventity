@@ -189,6 +189,10 @@ class GraphTraversal(asciitree.Traversal):
         if serial:
             labels.append('({})'.format(serial))
 
+        software = ent.get('entPhysicalSoftwareRev', None)
+        if software:
+            labels.append('(sw={})'.format(software))
+
         return " ".join(labels)
 
     def get_roots(self):
