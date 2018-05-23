@@ -207,7 +207,8 @@ define(['libs/ol-debug'], function (ol) {
                 text: size.toString(),
                 fill: new ol.style.Fill({
                     color: '#fff'
-                })
+                }),
+                font: '12px sans-serif'
             })
         });
     }
