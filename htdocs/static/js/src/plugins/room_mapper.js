@@ -8,14 +8,7 @@ define(['libs/ol-debug'], function (ol) {
      */
     function RoomMapper(node, rooms, room_id) {
         this.node = node;
-        this.rooms = rooms.filter(function(room) {
-            return room.position;  // Filter out rooms with position
-        });
-
-        // The focusroom should be visibly different from the others
-        this.focusRoom = _.find(this.rooms, function(room) {
-            return room.id === room_id;
-        })
+        this.room_id = room_id;
 
         this.baseZoomLevel = 17;
         this.clusterDistance = 30;
@@ -26,11 +19,6 @@ define(['libs/ol-debug'], function (ol) {
 
     RoomMapper.prototype = {
         initialize: function () {
-            if (this.rooms.length <= 0) {
-                console.log('Mapper: No rooms with position to put on map');
-                return;
-            }
-
             // Create clusters based on all rooms
             var markerSource = this.createMarkerSource();
             var clusterSource = this.createClusterSource(markerSource);
@@ -41,7 +29,8 @@ define(['libs/ol-debug'], function (ol) {
 
             var view = this.createView();
             var map = createMap(this.node, view, clusters);
-            this.centerAndFit(view, markerSource);
+
+            markerSource.on('addfeature', this.centerAndFit.bind(this, view, markerSource));
             this.addClickNavigation(map);
         },
 
@@ -87,8 +76,12 @@ define(['libs/ol-debug'], function (ol) {
         },
 
         centerAndFit: function(view, markerSource) {
-            if (this.focusRoom) {
-                view.setCenter(transformPosition(this.focusRoom));
+            if (this.room_id) {
+                var room_id = this.room_id;
+                var focusRoom = markerSource.getFeatures().find(function(room) {
+                    return room.get('name') === room_id;
+                });
+                view.setCenter(focusRoom.getGeometry().flatCoordinates);
             } else {
                 view.fit(markerSource.getExtent());
             }
@@ -102,17 +95,31 @@ define(['libs/ol-debug'], function (ol) {
             });
         },
 
+        /**
+         * Loads all rooms from API and creates features of those with position
+         */
         createMarkerSource: function () {
-            return new ol.source.Vector({
-                features: this.rooms.map(this.createFeature, this)
-            });
+            var self = this;
+            var source = new ol.source.Vector();
+            var loader = function() {
+                $.getJSON('/api/room/', function (data) {
+                    var features = data.results.filter(function(room) {
+                        return room.position;
+                    }).map(function(room) {
+                        return self.createFeature(room);
+                    });
+                    source.addFeatures(features);
+                });
+            }
+            source.setLoader(loader);
+            return source;
         },
 
         createFeature: function (room) {
             var feature = new ol.Feature({
                 geometry: new ol.geom.Point(transformPosition(room)),
                 name: room.id,
-                focus: this.focusRoom && room.id === this.focusRoom.id
+                focus: this.room_id && room.id === this.room_id
             });
 
             return feature;
