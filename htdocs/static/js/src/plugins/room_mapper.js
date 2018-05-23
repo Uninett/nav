@@ -43,39 +43,7 @@ define(['libs/ol-debug'], function (ol) {
 
             var clusters = new ol.layer.Vector({
                 source: clusterSource,
-                style: function(feature) {
-                    var features = feature.get('features');
-                    var size = features.length;
-                    if (size <= 1) {
-                        var room = features[0];
-                        var name = room.get('name');
-                        if (self.room) {
-                            return name === self.room.id ?
-                                   getMainMarkerStyle(name) :
-                                   getSecondaryMarkerStyle(name);
-                        } else {
-                            return getMainMarkerStyle(name);
-                        }
-                    } else {
-                        return new ol.style.Style({
-                            image: new ol.style.Circle({
-                                radius: 15,
-                                stroke: new ol.style.Stroke({
-                                    color: '#fff'
-                                }),
-                                fill: new ol.style.Fill({
-                                    color: '#000'
-                                })
-                            }),
-                            text: new ol.style.Text({
-                                text: size.toString(),
-                                fill: new ol.style.Fill({
-                                    color: '#fff'
-                                })
-                            })
-                        });
-                    }
-                }
+                style: getComponentStyle
             })
 
             var view = new ol.View({ center: ol.extent.getCenter(extent), zoom: this.baseZoomLevel });
@@ -135,7 +103,6 @@ define(['libs/ol-debug'], function (ol) {
         },
 
         createMap: function (view, clusters) {
-            console.log("Creating map on", view);
             return new ol.Map({
                 target: this.node,
                 view: view,
@@ -151,8 +118,8 @@ define(['libs/ol-debug'], function (ol) {
 
     };
 
+    /** Return OpenStreeMap source for OpenLayers3 */
     function getOSMsource() {
-        /** Return OpenStreeMap source for OpenLayers3 */
         return new ol.source.OSM({
             url: NAV.osmTileUrl + '/{z}/{x}/{y}.png',
             crossOrigin: null
@@ -170,6 +137,59 @@ define(['libs/ol-debug'], function (ol) {
 
     function getLong(room) {
         return parseFloat(room.position[1]);
+    }
+
+    /**
+     * Creates styles for the different cluster components
+     */
+    function getComponentStyle(feature) {
+        var features = feature.get('features');
+        var size = features.length;
+        if (size <= 1) {
+            return getRoomStyle(features[0], self.room);
+        } else {
+            return getClusterStyle(size);
+        }
+    }
+
+    /**
+     * Gets the style for a given room
+     * @param {string} room - the room id/name
+     * @param {object} focusRoom - optional focusRoom, should be visibly distinct from others
+     */
+    function getRoomStyle(room, focusRoom) {
+        var name = room.get('name');
+        if (focusRoom) {
+            return name === focusRoom.id ?
+                   getMainMarkerStyle(name) :
+                   getSecondaryMarkerStyle(name);
+        } else {
+            return getMainMarkerStyle(name);
+        }
+    }
+
+    /**
+     * Gets the style for a cluster
+     * @param {int} size - the number of rooms in the cluster
+     */
+    function getClusterStyle(size) {
+        return new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 15,
+                stroke: new ol.style.Stroke({
+                    color: '#fff'
+                }),
+                fill: new ol.style.Fill({
+                    color: '#000'
+                })
+            }),
+            text: new ol.style.Text({
+                text: size.toString(),
+                fill: new ol.style.Fill({
+                    color: '#fff'
+                })
+            })
+        });
     }
 
     function addCssToHead(src) {
