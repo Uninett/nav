@@ -7,7 +7,6 @@ define(['libs/ol-debug'], function (ol) {
      *
      */
     function RoomMapper(node, rooms, room_id) {
-        console.log('RoomMapper', node);
         this.node = node;
         this.rooms = rooms.filter(function(room) {
             return room.position;  // Filter out rooms with position
@@ -19,6 +18,7 @@ define(['libs/ol-debug'], function (ol) {
         })
 
         this.baseZoomLevel = 17;
+        this.clusterDistance = 40;
 
         addCssToHead(NAV.cssPath + '/ol.css');
         this.initialize();
@@ -40,7 +40,7 @@ define(['libs/ol-debug'], function (ol) {
             })
 
             var view = this.createView();
-            var map = this.createMap(view, clusters);
+            var map = createMap(this.node, view, clusters);
             this.centerAndFit(view, markerSource);
             this.addClickNavigation(map);
         },
@@ -95,6 +95,7 @@ define(['libs/ol-debug'], function (ol) {
         },
 
         createClusterSource: function(markerSource) {
+            console.log(this.clusterDistance);
             return new ol.source.Cluster({
                 source: markerSource,
                 distance: this.clusterDistance
@@ -117,21 +118,21 @@ define(['libs/ol-debug'], function (ol) {
             return feature;
         },
 
-        createMap: function (view, clusters) {
-            return new ol.Map({
-                target: this.node,
-                view: view,
-                layers: [
-                    new ol.layer.Tile({
-                        source: getOSMsource()
-                    }),
-                    clusters
-                ],
-                controls: ol.control.defaults().extend([new ol.control.FullScreen()])
-            });
-        }
-
     };
+
+    function createMap(node, view, clusters) {
+        return new ol.Map({
+            target: node,
+            view: view,
+            layers: [
+                new ol.layer.Tile({
+                    source: getOSMsource()
+                }),
+                clusters
+            ],
+            controls: ol.control.defaults().extend([new ol.control.FullScreen()])
+        });
+    }
 
     /** Return OpenStreeMap source for OpenLayers3 */
     function getOSMsource() {
