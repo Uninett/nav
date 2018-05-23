@@ -200,7 +200,7 @@ define(['libs/ol-debug'], function (ol) {
                     color: '#fff'
                 }),
                 fill: new ol.style.Fill({
-                    color: '#000'
+                    color: '#1976D2'
                 })
             }),
             text: new ol.style.Text({
