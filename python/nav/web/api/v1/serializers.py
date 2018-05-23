@@ -61,7 +61,8 @@ class NetboxTypeSerializer(serializers.ModelSerializer):
 class RoomSerializer(serializers.ModelSerializer):
     """Serializer for the room model"""
     position = serializers.ListField(
-        child=serializers.DecimalField(max_digits=20, decimal_places=12))
+        child=serializers.DecimalField(max_digits=20, decimal_places=12),
+        read_only=True)
 
     class Meta(object):
         model = manage.Room
