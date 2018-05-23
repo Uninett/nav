@@ -221,7 +221,7 @@ define(['libs/ol-debug'], function (ol) {
                 text: text,
                 font: '12px sans-serif',
                 offsetY: 20,
-                backgroundFill: new ol.style.Fill({color: [255, 255, 255, 0.5]}),
+                backgroundFill: new ol.style.Fill({color: [255, 255, 255, 0.7]}),
                 padding: [0, 3, 0, 3]
             })
         });
