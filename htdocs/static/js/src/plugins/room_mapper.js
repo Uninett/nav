@@ -31,38 +31,23 @@ define(['libs/ol-debug'], function (ol) {
                 return;
             }
 
-            var markerSource = this.createMarkerSource(),
-                markerLayer = new ol.layer.Vector({ source: markerSource }),
-                extent = markerSource.getExtent();
-
-            var clusterSource = new ol.source.Cluster({
-                source: markerSource,
-                distance: 30
-            });
-
-            console.log(clusterSource);
-            var self = this;
-
+            // Create clusters based on all rooms
+            var markerSource = this.createMarkerSource();
+            var clusterSource = this.createClusterSource(markerSource);
             var clusters = new ol.layer.Vector({
                 source: clusterSource,
                 style: getComponentStyle
             })
 
-            var view = new ol.View({ center: ol.extent.getCenter(extent), zoom: this.baseZoomLevel });
+            var view = this.createView();
             var map = this.createMap(view, clusters);
-
-            if (this.focusRoom) {
-                view.setCenter(transformPosition(this.focusRoom));
-            } else if (this.rooms.length > 1) {
-                view.fit(extent); // Zoom to extent
-            }
-
-            this.addMarkerNavigation(map);
+            this.centerAndFit(view, markerSource);
+            this.addClickNavigation(map);
         },
 
 
         /* When marker is clicked, go to roominfo for that room */
-        addMarkerNavigation: function(map) {
+        addClickNavigation: function(map) {
             var selectClick = new ol.interaction.Select({
                 condition: ol.events.condition.click,
                 style: new ol.style.Style({
@@ -87,6 +72,28 @@ define(['libs/ol-debug'], function (ol) {
                     }
                 }
             })
+        },
+
+        createView: function(center) {
+            return new ol.View({
+                zoom: this.baseZoomLevel,
+                center: [0,0]
+            });
+        },
+
+        centerAndFit: function(view, markerSource) {
+            if (this.focusRoom) {
+                view.setCenter(transformPosition(this.focusRoom));
+            } else {
+                view.fit(markerSource.getExtent());
+            }
+        },
+
+        createClusterSource: function(markerSource) {
+            return new ol.source.Cluster({
+                source: markerSource,
+                distance: this.clusterDistance
+            });
         },
 
         createMarkerSource: function () {
