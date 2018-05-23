@@ -102,6 +102,9 @@ def failure_handler(failure):
 
 def endit(result):
     """Stops the reactor"""
+    from twisted.python.failure import Failure
+    if isinstance(result, Failure):
+        result.printTraceback(sys.stderr)
     reactor.stop()
     return result
 
