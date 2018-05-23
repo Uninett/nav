@@ -12,7 +12,9 @@ define(['libs/ol-debug'], function (ol) {
         this.rooms = rooms.filter(function(room) {
             return room.position;  // Filter out rooms with position
         });
-        this.room = _.find(this.rooms, function(room) {
+
+        // The focusroom should be visibly different from the others
+        this.focusRoom = _.find(this.rooms, function(room) {
             return room.id === room_id;
         })
 
@@ -49,10 +51,10 @@ define(['libs/ol-debug'], function (ol) {
             var view = new ol.View({ center: ol.extent.getCenter(extent), zoom: this.baseZoomLevel });
             var map = this.createMap(view, clusters);
 
-            if (!this.room && this.rooms.length > 1) {
+            if (this.focusRoom) {
+                view.setCenter(transformPosition(this.focusRoom));
+            } else if (this.rooms.length > 1) {
                 view.fit(extent); // Zoom to extent
-            } else if (this.room) {
-                view.setCenter(transformPosition(this.room));
             }
 
             this.addMarkerNavigation(map);
@@ -96,7 +98,8 @@ define(['libs/ol-debug'], function (ol) {
         createFeature: function (room) {
             var feature = new ol.Feature({
                 geometry: new ol.geom.Point(transformPosition(room)),
-                name: room.id
+                name: room.id,
+                focus: this.focusRoom && room.id === this.focusRoom.id
             });
 
             return feature;
@@ -146,7 +149,7 @@ define(['libs/ol-debug'], function (ol) {
         var features = feature.get('features');
         var size = features.length;
         if (size <= 1) {
-            return getRoomStyle(features[0], self.room);
+            return getRoomStyle(features[0]);
         } else {
             return getClusterStyle(size);
         }
@@ -157,15 +160,12 @@ define(['libs/ol-debug'], function (ol) {
      * @param {string} room - the room id/name
      * @param {object} focusRoom - optional focusRoom, should be visibly distinct from others
      */
-    function getRoomStyle(room, focusRoom) {
+    function getRoomStyle(room) {
         var name = room.get('name');
-        if (focusRoom) {
-            return name === focusRoom.id ?
-                   getMainMarkerStyle(name) :
-                   getSecondaryMarkerStyle(name);
-        } else {
-            return getMainMarkerStyle(name);
-        }
+        var focusRoom = room.get('focus');
+        return focusRoom ?
+               getFocusMarkerStyle(name) :
+               getMainMarkerStyle(name);
     }
 
     /**
@@ -214,12 +214,12 @@ define(['libs/ol-debug'], function (ol) {
         });
     }
 
-    function getMainMarkerStyle(text) {
-        return getMarkerStyle(text, 'marker-green.png');
+    function getFocusMarkerStyle(text) {
+        return getMarkerStyle(text, 'marker-gold.png');
     }
 
-    function getSecondaryMarkerStyle(text) {
-        return getMarkerStyle(text, 'marker-red.png');
+    function getMainMarkerStyle(text) {
+        return getMarkerStyle(text, 'marker-blue.png');
     }
 
 
