@@ -6,12 +6,21 @@ define(['libs/ol-debug'], function (ol) {
     /**
      * Mapper creates an OpenStreetMap on the node given rooms from NAV
      *
+     * @param {string|node} node: the map node
+     * @param {object} options: handled options are {string} 'room' or {string} 'location'
+     *
+     * if room is set it is highlighted and set as center for the map
+     * if location is set only rooms for that location is displayed
+     *
      */
-    function RoomMapper(node, room_id) {
+    function RoomMapper(node, options) {
         this.node = node;
-        this.room_id = room_id;
 
-        this.clusterDistance = 30;
+        this.options = Object.assign({}, options);
+        this.room_id = this.options.room;
+        this.location_id = this.options.location;
+
+        this.clusterDistance = 30; // Distance in pixels for clustering to happen
         this.baseZoomLevel = 18;
         this.maxZoom = 20;
         this.thresholdZoom = 18;  // threshold to show overlapping rooms
@@ -33,7 +42,9 @@ define(['libs/ol-debug'], function (ol) {
             var view = this.createView();
             var map = createMap(this.node, view, clusters);
 
+            // Center and fit when features are loaded
             markerSource.on('addfeature', this.centerAndFit.bind(this, view, markerSource));
+
             addClickNavigation(map);
             addOverlappingNodesDetection(map, clusterSource, this.thresholdZoom);
         },
@@ -73,7 +84,10 @@ define(['libs/ol-debug'], function (ol) {
             var self = this;
             var source = new ol.source.Vector();
             var loader = function() {
-                $.getJSON('/api/room/', function (data) {
+                var url = self.location_id ?
+                          NAV.urls.api_room_list + '?location=' + self.location_id :
+                          NAV.urls.api_room_list;
+                $.getJSON(url, function (data) {
                     var features = data.results.filter(function(room) {
                         return room.position;
                     }).map(function(room) {
@@ -250,7 +264,7 @@ define(['libs/ol-debug'], function (ol) {
 
 
     /**
-     * This detects overlapping nodes on max zoom and creates an overlay
+     * Detects overlapping nodes on threshold zoom and creates an overlay
      * displaying the rooms that overlap.
      */
     function addOverlappingNodesDetection(map, clusterSource, thresholdZoom) {

@@ -50,8 +50,8 @@ require(
             var position_node = $('#locationinfo td.locationid');
             var locationname = $(position_node).attr('data-locationid');
             if (document.querySelector('#room_map').childElementCount === 0) {
-                $.getJSON('/api/room/?location=' + locationname, function (data) {
-                    new RoomMapper('room_map', data.results);
+                new RoomMapper('room_map', {
+                    location: locationname
                 });
             }
         }

@@ -81,8 +81,7 @@ require(
             var position_node = $('#roominfo td.position');
             var roomname = $(position_node).attr('data-roomname');
             if (document.querySelector('#room_map').childElementCount === 0) {
-                /*                 $.getJSON('/api/room/' + roomname, function (data) {new RoomMapper('room_map', [data], roomname);});*/
-                $.getJSON('/api/room/', function (data) {new RoomMapper('room_map', data.results, roomname);});
+                new RoomMapper('room_map', { room: roomname });
             }
         }
 
@@ -143,9 +142,7 @@ require(
         }
 
         function fetchRoomPositions(mapcontainer) {
-            $.getJSON('/api/room/', function (data) {
-                new RoomMapper(mapcontainer.get(0), data.results);
-            });
+            new RoomMapper(mapcontainer.get(0));
         }
 
         function applyEnvironmentHandlers() {

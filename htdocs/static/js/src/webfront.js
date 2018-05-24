@@ -11,12 +11,8 @@ require([
     var $dashboardNavigator = $('#dashboard-nav');
 
     function createRoomMap(mapwrapper, room_map) {
-        $.getJSON('/api/room/', function (data) {
-            if (data.results.length > 0) {
-                mapwrapper.show();
-                new RoomMapper(room_map.get(0), data.results);
-            }
-        });
+        mapwrapper.show();
+        new RoomMapper(room_map.get(0));
     }
 
 
