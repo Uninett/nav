@@ -1,6 +1,7 @@
 define(['libs/ol-debug'], function (ol) {
 
     var imagePath = NAV.imagePath + '/openlayers/';
+    var OVERLAYS = {};
 
     /**
      * Mapper creates an OpenStreetMap on the node given rooms from NAV
@@ -12,6 +13,7 @@ define(['libs/ol-debug'], function (ol) {
 
         this.baseZoomLevel = 17;
         this.clusterDistance = 30;
+        this.maxZoom = 20;
 
         addCssToHead(NAV.cssPath + '/ol.css');
         this.initialize();
@@ -32,13 +34,14 @@ define(['libs/ol-debug'], function (ol) {
 
             markerSource.on('addfeature', this.centerAndFit.bind(this, view, markerSource));
             addClickNavigation(map);
+            addOverlappingNodesDetection(map, clusterSource);
         },
 
 
         createView: function(center) {
             return new ol.View({
                 zoom: this.baseZoomLevel,
-                maxZoom: 20,
+                maxZoom: this.maxZoom,
                 center: [0,0]
             });
         },
@@ -56,7 +59,6 @@ define(['libs/ol-debug'], function (ol) {
         },
 
         createClusterSource: function(markerSource) {
-            console.log(this.clusterDistance);
             return new ol.source.Cluster({
                 source: markerSource,
                 distance: this.clusterDistance
@@ -243,6 +245,82 @@ define(['libs/ol-debug'], function (ol) {
 
     function getMainMarkerStyle(text) {
         return getMarkerStyle(text, 'marker-blue.png');
+    }
+
+
+    /**
+     * This detects overlapping nodes on max zoom and creates an overlay
+     * displaying the rooms that overlap.
+     */
+    function addOverlappingNodesDetection(map, clusterSource) {
+        var view = map.getView();
+        var _detectMaxZoom = function() {
+            if (view.getZoom() >= view.getMaxZoom()) {
+                showOverlays(map, clusterSource)
+            } else {
+                hideOverlays();
+            }
+        }
+
+        // Throttle the zoom detection
+        var throttleInterval = 200;  // ms
+        var detectMaxZoom = _.throttle(_detectMaxZoom, throttleInterval, {leading: false});
+        view.on('change:resolution', detectMaxZoom);
+    }
+
+    /**
+     * Shows overlays for all clusternodes that exist on max zoom
+     */
+    function showOverlays(map, clusterSource) {
+        var view = map.getView();
+        var extent = view.calculateExtent(map.getSize());
+        clusterSource.getFeaturesInExtent(extent).forEach(function(feature) {
+            var features = feature.get('features');
+            if (features.length > 1) {
+                // This is a clusternode as length is > 1
+                var id = feature.get('features').map(function(f) {
+                    return f.get('name');
+                }).join('-');
+                showOverlay(id, map, feature);
+            }
+        });
+    }
+
+    /**
+     * If overlay already exists, display it, otherwise create and display it.
+     */
+    function showOverlay(id, map, feature) {
+        if (id in OVERLAYS) {
+            OVERLAYS[id].setPosition(feature.getGeometry().getCoordinates());
+        } else {
+            OVERLAYS[id] = createOverlay(map, feature);
+        }
+    }
+
+    function hideOverlays() {
+        _.each(OVERLAYS, function(value, key) {
+            OVERLAYS[key].setPosition(undefined);
+        })
+    }
+
+    function createOverlay(map, feature) {
+        var $list = $('<ul class=no-bullet>');
+        $list.css({
+            "background-color": "white",
+            "padding": "0 .5em",
+        })
+        $list.append(feature.get('features').map(function(feature) {
+            var name = feature.get('name');
+            var $link = $('<a>').attr('href', NAV.urls.room_info_base + name).html(name);
+            return $("<li>").append($link);
+        }));
+        var overlay = new ol.Overlay({
+            element: $list.get(0),
+            position: feature.getGeometry().getCoordinates(),
+            positioning: 'bottom-center',
+        });
+        map.addOverlay(overlay);
+        return overlay;
     }
 
 
