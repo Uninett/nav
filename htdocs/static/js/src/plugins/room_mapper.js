@@ -1,6 +1,8 @@
 define(['libs/ol-debug'], function (ol) {
 
     var imagePath = NAV.imagePath + '/openlayers/';
+    var primaryMarkerImage = imagePath + 'marker-blue.png';
+    var focusMarkerImage = imagePath + 'marker-gold.png';
     var OVERLAYS = {};
 
     /**
@@ -245,7 +247,7 @@ define(['libs/ol-debug'], function (ol) {
     function getMarkerStyle(text, image) {
         return new ol.style.Style({
             image: new ol.style.Icon({
-                src: imagePath + image,
+                src: image,
             }),
             text: new ol.style.Text({
                 text: text,
@@ -258,11 +260,11 @@ define(['libs/ol-debug'], function (ol) {
     }
 
     function getFocusMarkerStyle(text) {
-        return getMarkerStyle(text, 'marker-gold.png');
+        return getMarkerStyle(text, focusMarkerImage);
     }
 
     function getMainMarkerStyle(text) {
-        return getMarkerStyle(text, 'marker-blue.png');
+        return getMarkerStyle(text, primaryMarkerImage);
     }
 
 
@@ -339,8 +341,9 @@ define(['libs/ol-debug'], function (ol) {
         });
         $list.append(features.map(function(feature) {
             var name = feature.get('name');
+            var imageSrc = feature.get('focus') ? focusMarkerImage : primaryMarkerImage;
             var $link = $('<a>').attr('href', NAV.urls.room_info_base + name).html(name).css('margin-left', '.5em');
-            var $image = $('<img>').attr('src', imagePath + 'marker-blue.png').css('height', '1em');
+            var $image = $('<img>').attr('src', imageSrc).css('height', '1em');
             return $("<li>").append($image, $link);
         }));
         var overlay = new ol.Overlay({
