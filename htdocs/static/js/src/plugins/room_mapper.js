@@ -7,13 +7,14 @@ define(['libs/ol-debug'], function (ol) {
      * Mapper creates an OpenStreetMap on the node given rooms from NAV
      *
      */
-    function RoomMapper(node, rooms, room_id) {
+    function RoomMapper(node, room_id) {
         this.node = node;
         this.room_id = room_id;
 
-        this.baseZoomLevel = 17;
         this.clusterDistance = 30;
+        this.baseZoomLevel = 18;
         this.maxZoom = 20;
+        this.thresholdZoom = 18;  // threshold to show overlapping rooms
 
         addCssToHead(NAV.cssPath + '/ol.css');
         this.initialize();
@@ -34,7 +35,7 @@ define(['libs/ol-debug'], function (ol) {
 
             markerSource.on('addfeature', this.centerAndFit.bind(this, view, markerSource));
             addClickNavigation(map);
-            addOverlappingNodesDetection(map, clusterSource);
+            addOverlappingNodesDetection(map, clusterSource, this.thresholdZoom);
         },
 
 
@@ -252,10 +253,10 @@ define(['libs/ol-debug'], function (ol) {
      * This detects overlapping nodes on max zoom and creates an overlay
      * displaying the rooms that overlap.
      */
-    function addOverlappingNodesDetection(map, clusterSource) {
+    function addOverlappingNodesDetection(map, clusterSource, thresholdZoom) {
         var view = map.getView();
         var _detectMaxZoom = function() {
-            if (view.getZoom() >= view.getMaxZoom()) {
+            if (view.getZoom() >= thresholdZoom) {
                 showOverlays(map, clusterSource)
             } else {
                 hideOverlays();
@@ -266,6 +267,7 @@ define(['libs/ol-debug'], function (ol) {
         var throttleInterval = 200;  // ms
         var detectMaxZoom = _.throttle(_detectMaxZoom, throttleInterval, {leading: false});
         view.on('change:resolution', detectMaxZoom);
+        detectMaxZoom();
     }
 
     /**
