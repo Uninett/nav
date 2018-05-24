@@ -331,7 +331,13 @@ define(['libs/ol-debug'], function (ol) {
             "padding": "0 .5em",
             "margin": "1em 0 0 0",
         })
-        $list.append(feature.get('features').map(function(feature) {
+        var features = feature.get('features');
+        features.sort(function(a, b) {
+            var nameA = a.get('name');
+            var nameB = b.get('name');
+            return nameA.localeCompare(nameB);
+        });
+        $list.append(features.map(function(feature) {
             var name = feature.get('name');
             var $link = $('<a>').attr('href', NAV.urls.room_info_base + name).html(name).css('margin-left', '.5em');
             var $image = $('<img>').attr('src', imagePath + 'marker-blue.png').css('height', '1em');
