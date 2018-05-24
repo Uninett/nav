@@ -324,17 +324,20 @@ define(['libs/ol-debug'], function (ol) {
         $list.css({
             "background-color": "white",
             "border": "1px solid #ccc",
+            "opacity": ".7",
             "padding": "0 .5em",
+            "margin": "1em 0 0 0",
         })
         $list.append(feature.get('features').map(function(feature) {
             var name = feature.get('name');
-            var $link = $('<a>').attr('href', NAV.urls.room_info_base + name).html(name);
-            return $("<li>").append($link);
+            var $link = $('<a>').attr('href', NAV.urls.room_info_base + name).html(name).css('margin-left', '.5em');
+            var $image = $('<img>').attr('src', imagePath + 'marker-blue.png').css('height', '1em');
+            return $("<li>").append($image, $link);
         }));
         var overlay = new ol.Overlay({
             element: $list.get(0),
             position: feature.getGeometry().getCoordinates(),
-            positioning: 'bottom-center',
+            positioning: 'top-center',
         });
         map.addOverlay(overlay);
         return overlay;
