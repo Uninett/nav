@@ -21,9 +21,7 @@ define(['libs/ol-debug'], function (ol) {
         this.location_id = this.options.location;
 
         this.clusterDistance = 30; // Distance in pixels for clustering to happen
-        this.baseZoomLevel = 18;
         this.maxZoom = 20;
-        this.thresholdZoom = 18;  // threshold to show overlapping rooms
 
         addCssToHead(NAV.cssPath + '/ol.css');
         this.initialize();
@@ -46,7 +44,7 @@ define(['libs/ol-debug'], function (ol) {
             // Center and fit when features are loaded
             $(this.node).on('addfeatures', function() {
                 self.centerAndFit.bind(self, view, markerSource)();
-                addOverlappingNodesDetection(map, clusterSource, self.thresholdZoom);
+                addOverlappingNodesDetection(map, clusterSource);
             });
 
 
@@ -56,7 +54,7 @@ define(['libs/ol-debug'], function (ol) {
 
         createView: function(center) {
             return new ol.View({
-                zoom: this.baseZoomLevel,
+                zoom: this.maxZoom,
                 maxZoom: this.maxZoom,
                 center: [0,0]
             });
@@ -272,10 +270,10 @@ define(['libs/ol-debug'], function (ol) {
      * Detects overlapping nodes on threshold zoom and creates an overlay
      * displaying the rooms that overlap.
      */
-    function addOverlappingNodesDetection(map, clusterSource, thresholdZoom) {
+    function addOverlappingNodesDetection(map, clusterSource) {
         var view = map.getView();
         var _detectMaxZoom = function() {
-            if (view.getZoom() >= thresholdZoom) {
+            if (view.getZoom() >= view.getMaxZoom()) {
                 showOverlays(map, clusterSource)
             } else {
                 hideOverlays();
