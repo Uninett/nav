@@ -309,6 +309,7 @@ define(['libs/ol-debug'], function (ol) {
         var $list = $('<ul class=no-bullet>');
         $list.css({
             "background-color": "white",
+            "border": "1px solid #ccc",
             "padding": "0 .5em",
         })
         $list.append(feature.get('features').map(function(feature) {
