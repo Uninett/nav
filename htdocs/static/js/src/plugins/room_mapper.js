@@ -14,7 +14,7 @@ define(['libs/ol-debug'], function (ol) {
      *
      */
     function RoomMapper(node, options) {
-        this.node = node;
+        this.node = typeof node === 'string' ? document.getElementById(node) : node;
 
         this.options = Object.assign({}, options);
         this.room_id = this.options.room;
@@ -42,11 +42,15 @@ define(['libs/ol-debug'], function (ol) {
             var view = this.createView();
             var map = createMap(this.node, view, clusters);
 
+            var self = this;
             // Center and fit when features are loaded
-            markerSource.on('addfeature', this.centerAndFit.bind(this, view, markerSource));
+            $(this.node).on('addfeatures', function() {
+                self.centerAndFit.bind(self, view, markerSource)();
+                addOverlappingNodesDetection(map, clusterSource, self.thresholdZoom);
+            });
+
 
             addClickNavigation(map);
-            addOverlappingNodesDetection(map, clusterSource, this.thresholdZoom);
         },
 
 
@@ -64,7 +68,7 @@ define(['libs/ol-debug'], function (ol) {
                 var focusRoom = markerSource.getFeatures().find(function(room) {
                     return room.get('name') === room_id;
                 });
-                view.setCenter(focusRoom.getGeometry().flatCoordinates);
+                view.setCenter(focusRoom.getGeometry().getCoordinates());
             } else {
                 view.fit(markerSource.getExtent());
             }
@@ -94,6 +98,7 @@ define(['libs/ol-debug'], function (ol) {
                         return self.createFeature(room);
                     });
                     source.addFeatures(features);
+                    $(self.node).trigger('addfeatures');
                 });
             }
             source.setLoader(loader);
@@ -281,7 +286,7 @@ define(['libs/ol-debug'], function (ol) {
         var throttleInterval = 200;  // ms
         var detectMaxZoom = _.throttle(_detectMaxZoom, throttleInterval, {leading: false});
         view.on('change:resolution', detectMaxZoom);
-        detectMaxZoom();
+        _detectMaxZoom();
     }
 
     /**
