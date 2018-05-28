@@ -91,18 +91,25 @@ define(['libs/ol-debug'], function (ol) {
                 var url = self.location_id ?
                           NAV.urls.api_room_list + '?location=' + self.location_id :
                           NAV.urls.api_room_list;
-                $.getJSON(url, function (data) {
-                    var features = data.results.filter(function(room) {
-                        return room.position;
-                    }).map(function(room) {
-                        return self.createFeature(room);
-                    });
-                    source.addFeatures(features);
-                    $(self.node).trigger('addfeatures');
-                });
+                $.getJSON(url, self.getFeatures.bind(self, source));
             }
             source.setLoader(loader);
             return source;
+        },
+
+        getFeatures: function (source, data) {
+            var self = this;
+            var features = data.results.filter(function(room) {
+                return room.position;
+            }).map(function(room) {
+                return self.createFeature(room);
+            });
+            source.addFeatures(features);
+            if (data.next) {
+                $.getJSON(data.next, this.getFeatures.bind(this, source))
+            } else {
+                $(this.node).trigger('addfeatures');
+            }
         },
 
         createFeature: function (room) {
