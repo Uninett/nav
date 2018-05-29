@@ -41,20 +41,32 @@ define(['libs/ol-debug'], function (ol) {
                 style: getComponentStyle
             })
 
-            var view = this.createView();
-            this.map = createMap(this.node, view, clusters);
+            this.map = this.createMap(clusters);
+            this.view = this.map.getView();
 
             var self = this;
             // Center and fit when features are loaded
             $(this.node).on('addfeatures', function() {
-                self.centerAndFit.bind(self, view, markerSource)();
+                self.centerAndFit.bind(self, markerSource)();
                 self.addOverlappingNodesDetection(clusterSource);
             });
-
 
             addClickNavigation(this.map);
         },
 
+        createMap: function(clusters) {
+            return new ol.Map({
+                target: this.node,
+                view: this.createView(),
+                layers: [
+                    new ol.layer.Tile({
+                        source: getOSMsource()
+                    }),
+                    clusters
+                ],
+                controls: ol.control.defaults().extend([new ol.control.FullScreen()])
+            });
+        },
 
         createView: function(center) {
             return new ol.View({
@@ -64,15 +76,15 @@ define(['libs/ol-debug'], function (ol) {
             });
         },
 
-        centerAndFit: function(view, markerSource) {
+        centerAndFit: function(markerSource) {
             if (this.room_id) {
                 var room_id = this.room_id;
                 var focusRoom = markerSource.getFeatures().find(function(room) {
                     return room.get('name') === room_id;
                 });
-                view.setCenter(focusRoom.getGeometry().getCoordinates());
+                this.view.setCenter(focusRoom.getGeometry().getCoordinates());
             } else {
-                view.fit(markerSource.getExtent());
+                this.view.fit(markerSource.getExtent());
             }
         },
 
@@ -129,10 +141,9 @@ define(['libs/ol-debug'], function (ol) {
          * displaying the rooms that overlap.
          */
         addOverlappingNodesDetection: function(clusterSource) {
-            var view = this.map.getView();
             var self = this;
             var _detectMaxZoom = function() {
-                if (self.overlaysVisible || view.getZoom() >= view.getMaxZoom()) {
+                if (self.overlaysVisible || self.view.getZoom() >= self.view.getMaxZoom()) {
                     self.hideOverlays();
                     self.showOverlays(clusterSource);
                 } else {
@@ -143,7 +154,7 @@ define(['libs/ol-debug'], function (ol) {
             // Throttle the zoom detection
             var throttleInterval = 200;  // ms
             var detectMaxZoom = _.throttle(_detectMaxZoom, throttleInterval, {leading: false});
-            view.on('change:resolution', detectMaxZoom);
+            this.view.on('change:resolution', detectMaxZoom);
             _detectMaxZoom();
         },
 
@@ -152,8 +163,7 @@ define(['libs/ol-debug'], function (ol) {
          */
         showOverlays: function(clusterSource) {
             var self = this;
-            var view = this.map.getView();
-            var extent = view.calculateExtent(this.map.getSize());
+            var extent = this.view.calculateExtent(this.map.getSize());
             clusterSource.getFeaturesInExtent(extent).forEach(function(feature) {
                 var features = feature.get('features');
                 if (features.length > 1) {
@@ -216,20 +226,6 @@ define(['libs/ol-debug'], function (ol) {
         }
 
     };
-
-    function createMap(node, view, clusters) {
-        return new ol.Map({
-            target: node,
-            view: view,
-            layers: [
-                new ol.layer.Tile({
-                    source: getOSMsource()
-                }),
-                clusters
-            ],
-            controls: ol.control.defaults().extend([new ol.control.FullScreen()])
-        });
-    }
 
     /** Return OpenStreeMap source for OpenLayers3 */
     function getOSMsource() {
