@@ -34,10 +34,10 @@ define(['libs/ol-debug'], function (ol) {
     RoomMapper.prototype = {
         initialize: function () {
             // Create clusters based on all rooms
-            var markerSource = this.createMarkerSource();
-            var clusterSource = this.createClusterSource(markerSource);
+            this.markerSource = this.createMarkerSource();
+            this.clusterSource = this.createClusterSource();
             var clusters = new ol.layer.Vector({
-                source: clusterSource,
+                source: this.clusterSource,
                 style: getComponentStyle
             })
 
@@ -47,8 +47,8 @@ define(['libs/ol-debug'], function (ol) {
             var self = this;
             // Center and fit when features are loaded
             $(this.node).on('addfeatures', function() {
-                self.centerAndFit.bind(self, markerSource)();
-                self.addOverlappingNodesDetection(clusterSource);
+                self.centerAndFit.apply(self);
+                self.addOverlappingNodesDetection();
             });
 
             addClickNavigation(this.map);
@@ -64,7 +64,11 @@ define(['libs/ol-debug'], function (ol) {
                     }),
                     clusters
                 ],
-                controls: ol.control.defaults().extend([new ol.control.FullScreen()])
+                controls: ol.control.defaults().extend(
+                    [
+                        new ol.control.FullScreen(),
+                        new OverlayToggler(this)
+                    ])
             });
         },
 
@@ -76,21 +80,21 @@ define(['libs/ol-debug'], function (ol) {
             });
         },
 
-        centerAndFit: function(markerSource) {
+        centerAndFit: function() {
             if (this.room_id) {
                 var room_id = this.room_id;
-                var focusRoom = markerSource.getFeatures().find(function(room) {
+                var focusRoom = this.markerSource.getFeatures().find(function(room) {
                     return room.get('name') === room_id;
                 });
                 this.view.setCenter(focusRoom.getGeometry().getCoordinates());
             } else {
-                this.view.fit(markerSource.getExtent());
+                this.view.fit(this.markerSource.getExtent());
             }
         },
 
-        createClusterSource: function(markerSource) {
+        createClusterSource: function() {
             return new ol.source.Cluster({
-                source: markerSource,
+                source: this.markerSource,
                 distance: this.clusterDistance
             });
         },
@@ -140,12 +144,11 @@ define(['libs/ol-debug'], function (ol) {
          * Detects overlapping nodes on threshold zoom and creates an overlay
          * displaying the rooms that overlap.
          */
-        addOverlappingNodesDetection: function(clusterSource) {
+        addOverlappingNodesDetection: function() {
             var self = this;
             var _detectMaxZoom = function() {
                 if (self.overlaysVisible || self.view.getZoom() >= self.view.getMaxZoom()) {
-                    self.hideOverlays();
-                    self.showOverlays(clusterSource);
+                    self.showOverlays();
                 } else {
                     self.hideOverlays();
                 }
@@ -161,10 +164,11 @@ define(['libs/ol-debug'], function (ol) {
         /**
          * Shows overlays for all clusternodes that exist on max zoom
          */
-        showOverlays: function(clusterSource) {
+        showOverlays: function() {
+            this.hideOverlays();
             var self = this;
             var extent = this.view.calculateExtent(this.map.getSize());
-            clusterSource.getFeaturesInExtent(extent).forEach(function(feature) {
+            this.clusterSource.getFeaturesInExtent(extent).forEach(function(feature) {
                 var features = feature.get('features');
                 if (features.length > 1) {
                     // This is a clusternode as length is > 1
@@ -223,9 +227,44 @@ define(['libs/ol-debug'], function (ol) {
                 positioning: 'top-center',
             });
             return overlay;
-        }
+        },
 
     };
+
+    function OverlayToggler(opt_options) {
+        var roomMapper = opt_options;
+        var active = false;
+
+        var button = document.createElement('button');
+        button.innerHTML = 'O';
+
+        function handleClick(e) {
+            active = !active;
+            roomMapper.overlaysVisible = active;
+            button.style.backgroundColor = active ? '#b8bb6f' : '';
+            if (active) {
+                roomMapper.showOverlays();
+            } else {
+                roomMapper.hideOverlays();
+            }
+        }
+
+        button.addEventListener('click', handleClick, false);
+        button.addEventListener('touchstart', handleClick, false);
+
+        var element = document.createElement('div');
+        element.className = 'toggle-overlay ol-control';
+        element.title = 'Toggle showing overlapping rooms as a list'
+        element.style.top = '65px';
+        element.style.left = '.5em';
+        element.appendChild(button);
+
+        ol.control.Control.call(this, {
+            element: element,
+        });
+    };
+    ol.inherits(OverlayToggler, ol.control.Control);
+
 
     /** Return OpenStreeMap source for OpenLayers3 */
     function getOSMsource() {
