@@ -127,6 +127,7 @@ def get_endpoints(request=None, version=1):
         'cam': reverse_lazy('{}cam-list'.format(prefix), **kwargs),
         'interface': reverse_lazy('{}interface-list'.format(prefix),
                                   **kwargs),
+        'location': reverse_lazy('{}location-list'.format(prefix), **kwargs),
         'netbox': reverse_lazy('{}netbox-list'.format(prefix), **kwargs),
         'patch': reverse_lazy('{}patch-list'.format(prefix), **kwargs),
         'prefix': reverse_lazy('{}prefix-list'.format(prefix), **kwargs),
@@ -283,7 +284,6 @@ class AccountGroupViewSet(NAVAPIMixin, viewsets.ModelViewSet):
         return queryset
 
 
-
 class RoomViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     """Lists all rooms.
 
@@ -295,6 +295,24 @@ class RoomViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     queryset = manage.Room.objects.all()
     serializer_class = serializers.RoomSerializer
     filter_fields = ('location', 'description')
+
+
+class LocationViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
+    """Lists all locations
+
+    Search
+    ------
+    Searches in *description*
+
+    Filters
+    -------
+    - id
+    - parent
+    """
+    queryset = manage.Location.objects.all()
+    serializer_class = serializers.LocationSerializer
+    filter_fields = ('id', 'parent')
+    search_fields = ('description',)
 
 
 class UnrecognizedNeighborViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):

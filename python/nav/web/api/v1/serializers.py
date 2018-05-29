@@ -58,6 +58,13 @@ class NetboxTypeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class LocationSerializer(serializers.ModelSerializer):
+    """Serializer for the location model"""
+    class Meta(object):
+        model = manage.Location
+        fields = '__all__'
+
+
 class RoomSerializer(serializers.ModelSerializer):
     """Serializer for the room model"""
     position = serializers.ListField(

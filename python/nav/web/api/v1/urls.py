@@ -28,6 +28,7 @@ router.register(r'accountgroup', views.AccountGroupViewSet,
                 base_name='accountgroup')
 router.register(r'rack', views.RackViewSet)
 router.register(r'room', views.RoomViewSet)
+router.register(r'location', views.LocationViewSet)
 router.register(r'netbox', views.NetboxViewSet)
 router.register(r'interface', views.InterfaceViewSet)
 router.register(r'prefix', views.PrefixViewSet)
