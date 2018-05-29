@@ -3,7 +3,6 @@ define(['libs/ol-debug'], function (ol) {
     var imagePath = NAV.imagePath + '/openlayers/';
     var primaryMarkerImage = imagePath + 'marker-blue.png';
     var focusMarkerImage = imagePath + 'marker-gold.png';
-    var OVERLAYS = {};
 
     /**
      * Mapper creates an OpenStreetMap on the node given rooms from NAV
@@ -21,6 +20,9 @@ define(['libs/ol-debug'], function (ol) {
         this.options = Object.assign({}, options);
         this.room_id = this.options.room;
         this.location_id = this.options.location;
+
+        this.overlays = {};
+        this.overlaysVisible = false;
 
         this.clusterDistance = 30; // Distance in pixels for clustering to happen
         this.maxZoom = 20;
@@ -40,17 +42,17 @@ define(['libs/ol-debug'], function (ol) {
             })
 
             var view = this.createView();
-            var map = createMap(this.node, view, clusters);
+            this.map = createMap(this.node, view, clusters);
 
             var self = this;
             // Center and fit when features are loaded
             $(this.node).on('addfeatures', function() {
                 self.centerAndFit.bind(self, view, markerSource)();
-                addOverlappingNodesDetection(map, clusterSource);
+                self.addOverlappingNodesDetection(clusterSource);
             });
 
 
-            addClickNavigation(map);
+            addClickNavigation(this.map);
         },
 
 
@@ -121,6 +123,97 @@ define(['libs/ol-debug'], function (ol) {
 
             return feature;
         },
+
+        /**
+         * Detects overlapping nodes on threshold zoom and creates an overlay
+         * displaying the rooms that overlap.
+         */
+        addOverlappingNodesDetection: function(clusterSource) {
+            var view = this.map.getView();
+            var self = this;
+            var _detectMaxZoom = function() {
+                if (self.overlaysVisible || view.getZoom() >= view.getMaxZoom()) {
+                    self.hideOverlays();
+                    self.showOverlays(clusterSource);
+                } else {
+                    self.hideOverlays();
+                }
+            }
+
+            // Throttle the zoom detection
+            var throttleInterval = 200;  // ms
+            var detectMaxZoom = _.throttle(_detectMaxZoom, throttleInterval, {leading: false});
+            view.on('change:resolution', detectMaxZoom);
+            _detectMaxZoom();
+        },
+
+        /**
+         * Shows overlays for all clusternodes that exist on max zoom
+         */
+        showOverlays: function(clusterSource) {
+            var self = this;
+            var view = this.map.getView();
+            var extent = view.calculateExtent(this.map.getSize());
+            clusterSource.getFeaturesInExtent(extent).forEach(function(feature) {
+                var features = feature.get('features');
+                if (features.length > 1) {
+                    // This is a clusternode as length is > 1
+                    var id = feature.get('features').map(function(f) {
+                        return f.get('name');
+                    }).join('-');
+                    self.showOverlay(id, feature);
+                }
+            });
+        },
+
+        /**
+         * If overlay already exists, display it, otherwise create and display it.
+         */
+        showOverlay: function(id, feature) {
+            if (id in this.overlays) {
+                this.overlays[id].setPosition(feature.getGeometry().getCoordinates());
+            } else {
+                var overlay = this.createOverlay(feature);
+                this.overlays[id] = overlay;
+                this.map.addOverlay(overlay);
+            }
+        },
+
+        hideOverlays: function() {
+            _.each(this.overlays, function(overlay) {
+                overlay.setPosition(undefined);
+            })
+        },
+
+        createOverlay: function(feature) {
+            var $list = $('<ul class=no-bullet>');
+            $list.css({
+                "background-color": "white",
+                "border": "1px solid #ccc",
+                "opacity": ".7",
+                "padding": "0 .5em",
+                "margin": "1em 0 0 0",
+            })
+            var features = feature.get('features');
+            features.sort(function(a, b) {
+                var nameA = a.get('name');
+                var nameB = b.get('name');
+                return nameA.localeCompare(nameB);
+            });
+            $list.append(features.map(function(feature) {
+                var name = feature.get('name');
+                var imageSrc = feature.get('focus') ? focusMarkerImage : primaryMarkerImage;
+                var $link = $('<a>').attr('href', NAV.urls.room_info_base + name).html(name).css('margin-left', '.5em');
+                var $image = $('<img>').attr('src', imageSrc).css('height', '1em');
+                return $("<li>").append($image, $link);
+            }));
+            var overlay = new ol.Overlay({
+                element: $list.get(0),
+                position: feature.getGeometry().getCoordinates(),
+                positioning: 'top-center',
+            });
+            return overlay;
+        }
 
     };
 
@@ -273,95 +366,6 @@ define(['libs/ol-debug'], function (ol) {
     function getMainMarkerStyle(text) {
         return getMarkerStyle(text, primaryMarkerImage);
     }
-
-
-    /**
-     * Detects overlapping nodes on threshold zoom and creates an overlay
-     * displaying the rooms that overlap.
-     */
-    function addOverlappingNodesDetection(map, clusterSource) {
-        var view = map.getView();
-        var _detectMaxZoom = function() {
-            if (view.getZoom() >= view.getMaxZoom()) {
-                showOverlays(map, clusterSource)
-            } else {
-                hideOverlays();
-            }
-        }
-
-        // Throttle the zoom detection
-        var throttleInterval = 200;  // ms
-        var detectMaxZoom = _.throttle(_detectMaxZoom, throttleInterval, {leading: false});
-        view.on('change:resolution', detectMaxZoom);
-        _detectMaxZoom();
-    }
-
-    /**
-     * Shows overlays for all clusternodes that exist on max zoom
-     */
-    function showOverlays(map, clusterSource) {
-        var view = map.getView();
-        var extent = view.calculateExtent(map.getSize());
-        clusterSource.getFeaturesInExtent(extent).forEach(function(feature) {
-            var features = feature.get('features');
-            if (features.length > 1) {
-                // This is a clusternode as length is > 1
-                var id = feature.get('features').map(function(f) {
-                    return f.get('name');
-                }).join('-');
-                showOverlay(id, map, feature);
-            }
-        });
-    }
-
-    /**
-     * If overlay already exists, display it, otherwise create and display it.
-     */
-    function showOverlay(id, map, feature) {
-        if (id in OVERLAYS) {
-            OVERLAYS[id].setPosition(feature.getGeometry().getCoordinates());
-        } else {
-            OVERLAYS[id] = createOverlay(map, feature);
-        }
-    }
-
-    function hideOverlays() {
-        _.each(OVERLAYS, function(value, key) {
-            OVERLAYS[key].setPosition(undefined);
-        })
-    }
-
-    function createOverlay(map, feature) {
-        var $list = $('<ul class=no-bullet>');
-        $list.css({
-            "background-color": "white",
-            "border": "1px solid #ccc",
-            "opacity": ".7",
-            "padding": "0 .5em",
-            "margin": "1em 0 0 0",
-        })
-        var features = feature.get('features');
-        features.sort(function(a, b) {
-            var nameA = a.get('name');
-            var nameB = b.get('name');
-            return nameA.localeCompare(nameB);
-        });
-        $list.append(features.map(function(feature) {
-            var name = feature.get('name');
-            var imageSrc = feature.get('focus') ? focusMarkerImage : primaryMarkerImage;
-            var $link = $('<a>').attr('href', NAV.urls.room_info_base + name).html(name).css('margin-left', '.5em');
-            var $image = $('<img>').attr('src', imageSrc).css('height', '1em');
-            return $("<li>").append($image, $link);
-        }));
-        var overlay = new ol.Overlay({
-            element: $list.get(0),
-            position: feature.getGeometry().getCoordinates(),
-            positioning: 'top-center',
-        });
-        map.addOverlay(overlay);
-        return overlay;
-    }
-
 
     return RoomMapper;
 
