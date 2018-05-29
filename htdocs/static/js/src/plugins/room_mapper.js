@@ -134,6 +134,7 @@ define(['libs/ol-debug'], function (ol) {
             var feature = new ol.Feature({
                 geometry: new ol.geom.Point(transformPosition(room)),
                 name: room.id,
+                description: room.description,
                 focus: this.room_id && room.id === this.room_id
             });
 
@@ -217,7 +218,11 @@ define(['libs/ol-debug'], function (ol) {
             $list.append(features.map(function(feature) {
                 var name = feature.get('name');
                 var imageSrc = feature.get('focus') ? focusMarkerImage : primaryMarkerImage;
-                var $link = $('<a>').attr('href', NAV.urls.room_info_base + name).html(name).css('margin-left', '.5em');
+                var $link = $('<a>')
+                    .attr('href', NAV.urls.room_info_base + name)
+                    .attr('title', feature.get('description'))
+                    .html(name)
+                    .css('margin-left', '.5em');
                 var $image = $('<img>').attr('src', imageSrc).css('height', '1em');
                 return $("<li>").append($image, $link);
             }));
