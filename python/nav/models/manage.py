@@ -814,6 +814,7 @@ class Location(models.Model, TreeMixin):
     class Meta(object):
         db_table = 'location'
         verbose_name = 'location'
+        ordering = ['id']
 
     def __str__(self):
         if self.description:
