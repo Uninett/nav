@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 from django.utils.encoding import force_text
 
@@ -10,6 +11,27 @@ from nav.web.api.v1.views import get_endpoints
 
 
 ENDPOINTS = { name:force_text(url) for name, url in get_endpoints().items() }
+
+
+# Data for writable endpoints
+
+_account_data = {'login': 'testuser',
+                 'name': 'Test User',
+                 'accountgroups': [2, 3]}
+_netbox_data = {
+    "ip": "158.38.152.169",
+    "roomid": "myroom",
+    "organizationid": "myorg",
+    "categoryid": "SW",
+    "snmp_version": 2
+}
+_room_data = {'id': 'blapp', 'location': 'mylocation'}
+_location_data = {
+    'id': 'Kulsås',
+    'data': {'a': 'b'},
+    'parent': 'mylocation',
+    'description': 'ÆØÅ descr'
+}
 
 
 # Generic tests
@@ -31,30 +53,39 @@ def test_allowed_endpoints(db, api_client, token, serializer_models, name, url):
     assert response.status_code == 200
 
 
-# Data for writable endpoints
-
-_account_data = {'login': 'testuser',
-                 'name': 'Test User',
-                 'accountgroups': [2, 3]}
-_netbox_data = {
-    "ip": "158.38.152.169",
-    "roomid": "myroom",
-    "organizationid": "myorg",
-    "categoryid": "SW",
-    "snmp_version": 2
-}
-_room_data = {'id': 'blapp', 'location': 'mylocation'}
-
-
-# Account specific tests
-
-def test_create_account(db, api_client, token):
-    endpoint = 'account'
+@pytest.mark.parametrize("endpoint, data", [
+    ('account', _account_data),
+    ('location', _location_data),
+    ('room', _room_data),
+])
+def test_delete(db, api_client, token, endpoint, data):
     create_token_endpoint(token, endpoint)
-    response = create(api_client, endpoint, _account_data)
+    response_create = create(api_client, endpoint, data)
+    res = json.loads(response_create.content.decode('utf-8'))
+    response_delete = delete(api_client, endpoint, res.get('id'))
+    response_get = get(api_client, endpoint, res.get('id'))
+
+    print(response_delete)
+    assert response_delete.status_code == 204
+
+    print(response_get)
+    assert response_get.status_code == 404
+
+
+@pytest.mark.parametrize("endpoint, data", [
+    ('account', _account_data),
+    ('location', _location_data),
+    ('netbox', _netbox_data),
+    ('room', _room_data),
+])
+def test_create(db, api_client, token, endpoint, data):
+    create_token_endpoint(token, endpoint)
+    response = create(api_client, endpoint, data)
     print(response)
     assert response.status_code == 201
 
+
+# Account specific tests
 
 def test_update_org_on_account(db, api_client, token):
     endpoint = 'account'
@@ -80,30 +111,7 @@ def test_update_group_on_org(db, api_client, token):
     assert response.status_code == 200
 
 
-def test_delete_account(db, api_client, token):
-    endpoint = 'account'
-    create_token_endpoint(token, endpoint)
-    response_create = create(api_client, endpoint, _account_data)
-    res = json.loads(response_create.content.decode('utf-8'))
-    response_delete = delete(api_client, endpoint, res.get('id'))
-    response_get = get(api_client, endpoint, res.get('id'))
-
-    print(response_delete)
-    assert response_delete.status_code == 204
-
-    print(response_get)
-    assert response_get.status_code == 404
-
-
 # Netbox specific tests
-
-def test_create_netbox(db, api_client, token):
-    endpoint = 'netbox'
-    create_token_endpoint(token, endpoint)
-    response = create(api_client, endpoint, _netbox_data)
-    print(response)
-    assert response.status_code == 201
-
 
 def test_update_netbox(db, api_client, token):
     endpoint = 'netbox'
@@ -140,14 +148,6 @@ def test_get_wrong_room(db, api_client, token):
     response = api_client.get('{}blapp/'.format(ENDPOINTS['room']))
     print(response)
     assert response.status_code == 404
-
-
-def test_create_new_room(db, api_client, token):
-    endpoint = 'room'
-    create_token_endpoint(token, endpoint)
-    response = create(api_client, endpoint, _room_data)
-    print(response)
-    assert response.status_code == 201
 
 
 def test_get_new_room(db, api_client, token):
@@ -196,20 +196,6 @@ def test_delete_room_wrong_room(db, api_client, token):
 
     print(response)
     assert response.status_code == 404
-
-
-def test_delete_room(db, api_client, token):
-    endpoint = 'room'
-    create_token_endpoint(token, 'room')
-    create(api_client, endpoint, _room_data)
-    response1 = delete(api_client, endpoint, 'blapp')
-    response2 = get(api_client, endpoint, 'blapp')
-
-    print(response1)
-    assert response1.status_code == 204
-
-    print(response2)
-    assert response2.status_code == 404
 
 
 # Helpers
