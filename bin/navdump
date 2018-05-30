@@ -29,6 +29,7 @@ import nav.models.service
 import django_hstore.apps  # pylint: disable=W0611
 
 
+_stdout = sys.stdout
 SEPARATOR = ":"
 
 
@@ -44,6 +45,7 @@ def main():
                 if type(func) is staticmethod and not key.startswith('_')]
         for key in keys:
             filename = key + ".txt"
+            sys.stdout = _stdout
             print("Dumping " + filename)
             try:
                 # We're lazy and are using print all the way
