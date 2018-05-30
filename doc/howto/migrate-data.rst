@@ -59,12 +59,12 @@ Migrating this data is a two-step process:
 2. Bulk import the text files in the receiving installation's SeedDB
    interface.
 
-For dumping seed data to text files, NAV provides the :program:`dump.py`
+For dumping seed data to text files, NAV provides the :program:`navdump`
 program. To dump all seed data to the current working directory:
 
 .. code-block:: console
 
-  $ /usr/lib/nav/dump.py  -a
+  $ /usr/lib/nav/navdump  -a
   Dumping vendor.txt
   Dumping room.txt
   Dumping service.txt
