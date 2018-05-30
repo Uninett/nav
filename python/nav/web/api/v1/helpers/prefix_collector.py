@@ -48,6 +48,8 @@ class UsageResult(object):
 
 def fetch_usages(prefixes, starttime, endtime):
     """Fetch usage for a list of prefixes"""
+    if prefixes is None:
+        prefixes = []
     return [fetch_usage(prefix, starttime, endtime) for prefix in prefixes]
 
 

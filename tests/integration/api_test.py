@@ -85,6 +85,16 @@ def test_create(db, api_client, token, endpoint):
     assert response.status_code == 201
 
 
+def test_page_size(db, api_client, token):
+    endpoint = 'room'
+    create_token_endpoint(token, endpoint)
+    create(api_client, endpoint, {'id': 'blapp1', 'location': 'mylocation'})
+    create(api_client, endpoint, {'id': 'blapp2', 'location': 'mylocation'})
+    response = api_client.get('/api/1/room/?page_size=1')
+    print(response.data)
+    assert len(response.data.get('results')) == 1
+
+
 # Account specific tests
 
 def test_update_org_on_account(db, api_client, token):
