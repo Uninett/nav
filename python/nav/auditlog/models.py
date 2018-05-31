@@ -69,8 +69,6 @@ class LogEntry(models.Model):
     @classmethod
     def add_log_entry(cls, actor, verb, template, subsystem=None, object=None, target=None, before=None, after=None):
         """LogEntry factory"""
-        assert type(template) == unicode
-
         self = cls()
         dict = {'actor': actor, 'object': object, 'target': target}
         for k, v in dict.items():
@@ -112,9 +110,6 @@ class LogEntry(models.Model):
     @staticmethod
     def add_delete_entry(actor, obj, template=None):
         """Add log entry for deleted objects"""
-        if template is not None:
-            assert type(template) == unicode
-
         model = obj.__class__.__name__.lower()
         template = template or u'{actor} deleted {object}'
         LogEntry.add_log_entry(
@@ -135,7 +130,7 @@ class LogEntry(models.Model):
             """
             {"a": "b", "c": "d"} => "a=b, c=d"
             """
-            return ", ".join(u"{}={}".format(x, y) for x, y in d.items())
+            return u", ".join(u"{}={}".format(x, y) for x, y in d.items())
 
         model = new.__class__.__name__.lower()
         prefix = u'{actor} edited {object}'
