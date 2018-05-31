@@ -69,6 +69,8 @@ class LogEntry(models.Model):
     @classmethod
     def add_log_entry(cls, actor, verb, template, subsystem=None, object=None, target=None, before=None, after=None):
         """LogEntry factory"""
+        assert type(template) == unicode
+
         self = cls()
         dict = {'actor': actor, 'object': object, 'target': target}
         for k, v in dict.items():
@@ -110,6 +112,9 @@ class LogEntry(models.Model):
     @staticmethod
     def add_delete_entry(actor, obj, template=None):
         """Add log entry for deleted objects"""
+        if template is not None:
+            assert type(template) == unicode
+
         model = obj.__class__.__name__.lower()
         template = template or u'{actor} deleted {object}'
         LogEntry.add_log_entry(
@@ -130,7 +135,7 @@ class LogEntry(models.Model):
             """
             {"a": "b", "c": "d"} => "a=b, c=d"
             """
-            return ", ".join("{}={}".format(x, y) for x, y in d.items())
+            return ", ".join(u"{}={}".format(x, y) for x, y in d.items())
 
         model = new.__class__.__name__.lower()
         prefix = u'{actor} edited {object}'
@@ -142,10 +147,10 @@ class LogEntry(models.Model):
                 old_value = dict_to_string(old_value)
             if isinstance(new_value, dict):
                 new_value = dict_to_string(new_value)
-            summary = "{} changed from '{}' to '{}'".format(
+            summary = u"{} changed from '{}' to '{}'".format(
                 attribute, old_value, new_value)
         else:
-            summary = "{} changed".format(attribute)
+            summary = u"{} changed".format(attribute)
 
         LogEntry.add_log_entry(
             actor,
