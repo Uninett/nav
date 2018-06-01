@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
 from mock import patch, Mock
-import pytest
+from django.utils import six
 
 import nav.web.ldapauth
 from nav.web import auth
@@ -70,8 +70,6 @@ class NormalAuthenticateTest(TestCase):
             self.assertFalse(auth.authenticate('knight', 'rabbit'))
 
 
-@pytest.mark.skipif(nav.web.ldapauth.ldap is None,
-                    reason="ldap library not available")
 class LdapUserTestCase(TestCase):
     @patch.dict("nav.web.ldapauth._config._sections",
                 {'ldap': {'__name__': 'ldap',
@@ -101,7 +99,7 @@ class LdapUserTestCase(TestCase):
     def test_non_ascii_password_should_work(self):
         """LP#1213818"""
         conn = Mock(**{
-            'simple_bind_s.side_effect': lambda x, y: (str(x), str(y)),
+            'simple_bind_s.side_effect': lambda x, y: (six.text_type(x), six.text_type(y)),
         })
         u = nav.web.ldapauth.LDAPUser(u"zaphod", conn)
         u.bind(u"æøå")
@@ -117,8 +115,8 @@ class LdapUserTestCase(TestCase):
     def test_is_group_member_for_non_ascii_user_should_not_raise(self):
         """LP#1301794"""
         def fake_search(base, scope, filtr):
-            str(base)
-            str(filtr)
+            six.text_type(base)
+            six.text_type(filtr)
             return []
 
         conn = Mock(**{
