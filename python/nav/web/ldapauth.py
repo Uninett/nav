@@ -25,6 +25,8 @@ import configparser
 from os.path import join
 from io import StringIO
 
+from django.utils import six
+
 from nav.buildconf import sysconfdir
 import nav.errors
 
@@ -340,9 +342,10 @@ def __test():
     logging.basicConfig()
     logging.getLogger('').setLevel(logging.DEBUG)
 
-    print("Username: ", end=' ')
-    uid = sys.stdin.readline().strip()
+    uid = six.moves.input("Username: ").strip()
     password = getpass('Password: ')
+    if six.PY2:
+        password = password.decode('utf-8')
 
     user = authenticate(uid, password)
 
@@ -352,6 +355,7 @@ def __test():
         print("User's full name is %s" % user.get_real_name())
     else:
         print("User was not authenticated")
+
 
 if __name__ == '__main__':
     __test()
