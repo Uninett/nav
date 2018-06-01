@@ -183,21 +183,18 @@ class LDAPUser(object):
     def bind(self, password):
         """Performs an authenticated bind for this user using password"""
         encoding = _config.get('ldap', 'encoding')
-        suffix = _config.get('ldap', 'suffix').encode(encoding)
+        suffix = _config.get('ldap', 'suffix')
 
         if not suffix:
             user_dn = self.get_user_dn()
             _logger.debug("Attempting authenticated bind to %s", user_dn)
 
-            self.ldap.simple_bind_s(user_dn.encode(encoding),
-                                    password.encode(encoding))
+            self.ldap.simple_bind_s(user_dn, password)
         if suffix:
             _logger.debug("Attempting authenticated bind as user %s",
                           self.username + suffix)
 
-            self.ldap.simple_bind_s(self.username.encode(encoding) +
-                                   suffix,
-                                   password.encode(encoding))
+            self.ldap.simple_bind_s(self.username + suffix + password)
 
     def get_user_dn(self):
         """
@@ -236,15 +233,13 @@ class LDAPUser(object):
         """
         uid_attr = escape_filter_chars(_config.get('ldap', 'uid_attr'))
         encoding = _config.get('ldap', 'encoding')
-        manager = _config.get('ldap', 'manager').encode(encoding)
-        manager_password = _config.get(
-            'ldap', 'manager_password', raw=True).encode(encoding)
+        manager = _config.get('ldap', 'manager')
+        manager_password = _config.get('ldap', 'manager_password', raw=True)
         if manager:
             _logger.debug("Attempting authenticated bind as manager to %s",
                           manager)
             self.ldap.simple_bind_s(manager, manager_password)
-        filter_ = "(%s=%s)" % (uid_attr, escape_filter_chars(
-            self.username.encode(encoding)))
+        filter_ = "(%s=%s)" % (uid_attr, escape_filter_chars(self.username))
         result = self.ldap.search_s(_config.get('ldap', 'basedn'),
                                     ldap.SCOPE_SUBTREE, filter_)
         if not result or not result[0] or not result[0][0]:
@@ -262,8 +257,8 @@ class LDAPUser(object):
         Attempt to retrieve the LDAP Common Name of the given login name.
         """
         encoding = _config.get('ldap', 'encoding')
-        user_dn = self.get_user_dn().encode(encoding)
-        name_attr = _config.get('ldap', 'name_attr').encode(encoding)
+        user_dn = self.get_user_dn()
+        name_attr = _config.get('ldap', 'name_attr')
         try:
             res = self.ldap.search_s(user_dn, ldap.SCOPE_BASE,
                                      '(objectClass=*)', [name_attr])
@@ -276,7 +271,7 @@ class LDAPUser(object):
         # a specific user
         record = res[0][1]
         name = record[name_attr][0]
-        return name
+        return name.decode(encoding)
 
     def is_group_member(self, group_dn):
         """
@@ -290,8 +285,8 @@ class LDAPUser(object):
         objects, the latter should work for posixGroup objects.
         """
         encoding = _config.get('ldap', 'encoding')
-        group_search = _config.get('ldap', 'group_search').encode(encoding)
-        user_dn = self.get_user_dn().encode(encoding)
+        group_search = _config.get('ldap', 'group_search')
+        user_dn = self.get_user_dn()
         # Match groupOfNames/groupOfUniqueNames objects
         try:
             filterstr = group_search % escape_filter_chars(user_dn)
@@ -300,8 +295,7 @@ class LDAPUser(object):
             if len(result) < 1:
                 # If no match, match posixGroup objects
                 filterstr = (
-                    '(memberUid=%s)' %
-                    escape_filter_chars(self.username.encode(encoding)))
+                    '(memberUid=%s)' % escape_filter_chars(self.username))
                 result = self.ldap.search_s(group_dn, ldap.SCOPE_BASE,
                                             filterstr)
                 _logger.debug("posixGroup results: %s", result)
