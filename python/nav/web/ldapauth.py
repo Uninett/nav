@@ -17,7 +17,7 @@
 Contains ldap authentication functionality for NAV web.
 """
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 import sys
 import logging
@@ -93,12 +93,15 @@ def open_ldap():
     if _config.getboolean('ldap', 'debug'):
         ldap.set_option(ldap.OPT_DEBUG_LEVEL, 255)
 
+    scheme = 'ldaps' if encryption == 'ssl' else 'ldap'
+    uri = '%s://%s:%s' % (scheme, server, port)
+    lconn = ldap.initialize(uri, bytes_mode=False)
+    lconn.timeout = timeout
+
     # Use STARTTLS if enabled, then fail miserably if the server
     # does not support it
     if encryption == 'tls':
         _logger.debug("Using STARTTLS for ldap connection")
-        lconn = ldap.open(server, port)
-        lconn.timeout = timeout
         try:
             lconn.start_tls_s()
         except ldap.PROTOCOL_ERROR:
@@ -108,11 +111,6 @@ def open_ldap():
         except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR):
             _logger.exception("LDAP server is down")
             raise NoAnswerError(server)
-    else:
-        scheme = encryption == 'ssl' and 'ldaps' or 'ldap'
-        uri = '%s://%s:%s' % (scheme, server, port)
-        lconn = ldap.initialize(uri)
-        lconn.timeout = timeout
 
     return lconn
 
