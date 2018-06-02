@@ -186,3 +186,33 @@ class PDU2Mib(MibRetriever):
                 sensor['unit_of_measurement'] = 'boolean'
             result.append(sensor)
         returnValue(result)
+
+    @defer.inlineCallbacks
+    def get_serial_number(self):
+        """Tries to get a serial number from an Raritan device"""
+        candidates = [k for k in self.nodes.keys()
+                      if 'pduSerialNumber' in k]
+        for c in candidates:
+            serial = yield self.get_next(c)
+            if serial:
+                defer.returnValue(serial)
+
+    @defer.inlineCallbacks
+    def get_model_name(self):
+        """Tries to get a model name from an Raritan device"""
+        candidates = [k for k in self.nodes.keys()
+                      if 'pduModel' in k]
+        for c in candidates:
+            model = yield self.get_next(c)
+            if model:
+                defer.returnValue(model)
+
+    @defer.inlineCallbacks
+    def get_firmware_revision(self):
+        """Tries to get a firmware revision from an Raritan device"""
+        candidates = [k for k in self.nodes.keys()
+                      if 'boardFirmwareVersion' in k]
+        for c in candidates:
+            fw_ver = yield self.get_next(c)
+            if fw_ver:
+                defer.returnValue(fw_ver)
