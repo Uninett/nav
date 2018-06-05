@@ -26,6 +26,7 @@ The version requirements have changed for these dependencies:
 
 * :mod:`djangorestframework` must be from version *3.5* to any version of *3.6*
 * :mod:`django-filter` must be any version of *1.1*
+* :mod:`python-ldap` must be any version of *3.0*
 
 
 News
