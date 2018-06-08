@@ -37,6 +37,7 @@ from nav.models.msgmaint import MaintenanceTask
 from nav.models.arnold import Identity
 from nav.models.service import Service
 from nav.models.profiles import Account
+from nav.models.event import AlertHistory
 from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import create_combined_urls
@@ -597,9 +598,32 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             'graphite_error': graphite_error,
             'detention': detention,
             'sensor_metrics': sensor_metrics,
+            'alert_info': get_recent_alerts_interface(port)
         },
         context_instance=RequestContext(
             request, processors=[search_form_processor]))
+
+
+def get_recent_alerts_interface(interface, days_back=7):
+    """Returns the most recent linkState events for this interface"""
+    lowest_end_time = dt.datetime.now() - dt.timedelta(days=days_back)
+    alerts = AlertHistory.objects.filter(
+        event_type='linkState',
+        subid=interface.pk,
+        end_time__gt=lowest_end_time)
+    for alert in alerts:
+        try:
+            message = alert.messages.filter(type='sms')[0].message
+        except IndexError:
+            message = None
+        alert.message = message
+
+    return {
+        'alerts': alerts,
+        'count': alerts.count(),
+        'days_back': days_back,
+        'has_unresolved_alerts': any(a.is_open() for a in alerts),
+    }
 
 
 def port_counter_graph(request, interfaceid, kind='Octets'):
