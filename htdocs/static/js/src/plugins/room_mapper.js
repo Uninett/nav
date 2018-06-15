@@ -166,19 +166,27 @@ define(['libs/ol-debug'], function (ol) {
          * Shows overlays for all clusternodes that exist on max zoom
          */
         showOverlays: function() {
-            this.hideOverlays();
             var self = this;
             var extent = this.view.calculateExtent(this.map.getSize());
-            this.clusterSource.getFeaturesInExtent(extent).forEach(function(feature) {
+
+            // Find features that are clusters
+            var featuresToDraw = this.clusterSource.getFeaturesInExtent(extent).filter(function(feature) {
                 var features = feature.get('features');
-                if (features.length > 1) {
-                    // This is a clusternode as length is > 1
+                return features.length > 1;
+            });
+
+            // Draw the overlay for all the clusters
+            if (featuresToDraw.length >= 1) {
+                this.hideOverlays();
+                featuresToDraw.forEach(function(feature) {
                     var id = feature.get('features').map(function(f) {
                         return f.get('name');
                     }).join('-');
                     self.showOverlay(id, feature);
-                }
-            });
+                })
+                this.overlaysVisible = true;
+                $(this.node).trigger('changeOverlaysVisibility');
+            }
         },
 
         /**
@@ -198,6 +206,8 @@ define(['libs/ol-debug'], function (ol) {
             _.each(this.overlays, function(overlay) {
                 overlay.setPosition(undefined);
             })
+            this.overlaysVisible = false;
+            $(this.node).trigger('changeOverlaysVisibility');
         },
 
         createOverlay: function(feature) {
@@ -238,16 +248,12 @@ define(['libs/ol-debug'], function (ol) {
 
     function OverlayToggler(opt_options) {
         var roomMapper = opt_options;
-        var active = false;
-
         var button = document.createElement('button');
         button.innerHTML = 'O';
 
         function handleClick(e) {
-            active = !active;
-            roomMapper.overlaysVisible = active;
-            button.style.backgroundColor = active ? '#b8bb6f' : '';
-            if (active) {
+            roomMapper.overlaysVisible = !roomMapper.overlaysVisible
+            if (roomMapper.overlaysVisible) {
                 roomMapper.showOverlays();
             } else {
                 roomMapper.hideOverlays();
@@ -256,6 +262,10 @@ define(['libs/ol-debug'], function (ol) {
 
         button.addEventListener('click', handleClick, false);
         button.addEventListener('touchstart', handleClick, false);
+        $(roomMapper.node).on('changeOverlaysVisibility', function() {
+            button.style.backgroundColor = roomMapper.overlaysVisible ? '#b8bb6f' : '';
+        })
+
 
         var element = document.createElement('div');
         element.className = 'toggle-overlay ol-control';
