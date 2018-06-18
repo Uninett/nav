@@ -41,6 +41,8 @@ def main():
     exit_if_already_running()
     if not options.foreground:
         daemonize()
+    else:
+        nav.daemon.writepidfile(PIDFILE)
     start_engine()
 
 
