@@ -127,6 +127,8 @@ def main():
 
         # Reopen log files on SIGHUP
         signal.signal(signal.SIGHUP, signalhandler)
+    else:
+        nav.daemon.writepidfile(pidfile)
 
     # Log reception of SIGTERM before quitting
     signal.signal(signal.SIGTERM, signalhandler)
