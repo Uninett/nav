@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 from django.utils.six.moves.urllib.request import Request, urlopen
+from django.utils.six.moves.urllib.error import HTTPError
 from django.utils.six.moves.urllib.parse import urljoin
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotAllowed
@@ -33,6 +34,7 @@ def index(request, uri):
         query = _inject_default_arguments(request.GET)
         url = urljoin(base, uri + ('?' + query) if query else '')
         req = Request(url)
+        data = None
     elif request.method == 'POST':
         data = _inject_default_arguments(request.POST)
         url = urljoin(base, uri)
@@ -41,15 +43,28 @@ def index(request, uri):
         return HttpResponseNotAllowed(['GET', 'POST', 'HEAD'])
 
     LOGGER.debug("proxying request to %r", url)
-    proxy = urlopen(req)
-    headers = proxy.info()
+    try:
+        proxy = urlopen(req)
+    except HTTPError as error:
+        status = error.code
+        headers = error.hdrs
+        output = error.fp.read()
+
+        LOGGER.error("%s error on graphite render request: "
+                     "%r with arguments: %r", status, url, data)
+
+    else:
+        status = proxy.getcode()
+        headers = proxy.info()
+        output = proxy.read()
+
     content_type = headers.getheader('Content-Type', 'text/html')
 
     if request.method == 'HEAD':
-        response = HttpResponse(content_type=content_type)
+        response = HttpResponse(content_type=content_type, status=status)
         response['Content-Length'] = headers.getheader('Content-Length', '0')
     else:
-        response = HttpResponse(proxy.read(), content_type=content_type)
+        response = HttpResponse(output, content_type=content_type, status=status)
 
     response['X-Where-Am-I'] = request.get_full_path()
     return response
