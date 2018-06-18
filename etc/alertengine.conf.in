@@ -7,9 +7,9 @@
 # Delay in seconds between queue checks
 #delay: 30
 
-# Logging settings
-# Valid options are DEBUG, INFO, WARNING, ERROR, CRITICAL
-#loglevel: INFO
+# Log messages of <mailwarning> level or higher are also sent via e-mail
+# to the nav admin from nav.conf. Generic log levels are set in logging.conf.
+# Valid mailwarnlevels are DEBUG, INFO, WARNING, ERROR, CRITICAL
 #mailwarnlevel: ERROR
 #mailserver: localhost
 
