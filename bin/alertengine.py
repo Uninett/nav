@@ -130,8 +130,9 @@ def main():
     else:
         nav.daemon.writepidfile(pidfile)
 
-    # Log reception of SIGTERM before quitting
+    # Log reception of SIGTERM/SIGINT before quitting
     signal.signal(signal.SIGTERM, signalhandler)
+    signal.signal(signal.SIGINT, signalhandler)
 
     # Loop forever
     logger.info('Starting alertengine loop.')
@@ -204,6 +205,9 @@ def signalhandler(signum, _):
         logger.info('Log files reopened.')
     elif signum == signal.SIGTERM:
         logger.warning('SIGTERM received: Shutting down')
+        sys.exit(0)
+    elif signum == signal.SIGINT:
+        logger.warning('SIGINT received: Shutting down')
         sys.exit(0)
 
 

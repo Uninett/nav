@@ -200,8 +200,9 @@ def main():
     else:
         nav.daemon.writepidfile(pidfile)
 
-    # Exit on SIGTERM
+    # Exit on SIGTERM/SIGINT
     signal.signal(signal.SIGTERM, signalhandler)
+    signal.signal(signal.SIGINT, signalhandler)
 
     # Initialize queue
     # NOTE: If we're initalizing a queue with a DB connection before
@@ -437,6 +438,9 @@ def signalhandler(signum, _):
         logger.info('Log files reopened.')
     elif signum == signal.SIGTERM:
         logger.warning('SIGTERM received: Shutting down.')
+        sys.exit(0)
+    elif signum == signal.SIGINT:
+        logger.warning('SIGINT received: Shutting down.')
         sys.exit(0)
 
 
