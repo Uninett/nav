@@ -53,14 +53,14 @@ def main():
 
     socket = megaping.make_sockets()  # make raw sockets while we have root
     switch_user()
-    start(args.nofork, socket)
+    start(args.foreground, socket)
 
 
 def make_argparser():
     parser = argparse.ArgumentParser(
         description="Parallel pinger daemon (part of NAV)",
     )
-    parser.add_argument("-n", "--nofork", action="store_true",
+    parser.add_argument("-f", "--foreground", action="store_true",
                         help="run in foreground")
     return parser
 
@@ -219,10 +219,10 @@ class Pinger(object):
             LOGGER.critical("Caught %s. Resuming operation.", signum)
 
 
-def start(nofork, socket):
+def start(foreground, socket):
     """
-    Forks a new prosess, letting the service run as
-    a daemon.
+    Starts a new prosess, letting the service run as a daemon if `foreground`
+    is false.
     """
     conf = config.pingconf()
     pidfilename = conf.get(
@@ -239,7 +239,7 @@ def start(nofork, socket):
         sys.stderr.write("%s\n" % error)
         sys.exit(1)
 
-    if not nofork:
+    if not foreground:
         logfile_path = conf.get(
             'logfile',
             os.path.join(buildconf.localstatedir, 'log', 'pping.log'))
