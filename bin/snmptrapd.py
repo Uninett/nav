@@ -124,7 +124,7 @@ def main():
 
     addresses_text = ", ".join(address_to_string(*addr)
                                for addr in opts.address)
-    if opts.daemon:
+    if not opts.foreground:
         # Daemonize and listen for traps
         try:
             logger.debug("Going into daemon mode...")
@@ -177,8 +177,8 @@ def parse_args():
                "appears to support IPv6, also [::]:162, which means the daemon "
                "will accept traps on any IPv4/IPv6 interface, UDP port 162."
     )
-    parser.add_argument("-d", "--daemon", action="store_true",
-                        help="Run as daemon")
+    parser.add_argument("-f", "--foreground", action="store_true",
+                        help="Run in foreground")
     parser.add_argument("-c", "--community", default="public",
                         help="Which SNMP community incoming traps must use. "
                              "The default is 'public'")

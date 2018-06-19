@@ -17,7 +17,7 @@ case "$1" in
 	start)
 		# Start daemons (it will switch to an unprivileged user itself)
 		echo -n "Starting snmptrapd: "
-		daemon "$SNMPTRAPD -d"
+		daemon "$SNMPTRAPD"
 		rc=$?
 		echo
 		exit $rc
