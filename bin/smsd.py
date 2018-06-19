@@ -106,13 +106,20 @@ def main():
     mailaddr = config['main']['mailaddr']
     fromaddr = config['main']['fromaddr']
 
-    # Initialize logger
+    # Switch user to $NAV_USER (only works if we're root)
+    if os.geteuid() == 0:
+        try:
+            nav.daemon.switchuser(username)
+        except nav.daemon.DaemonError as error:
+            print(error, file=sys.stderr)
+            sys.exit(
+                "Run as root or %s. Try `%s --help' for more information." % (
+                 username, sys.argv[0]))
+
+    # Initialize logging
     global logger
-    nav.logs.set_log_levels()
     logger = logging.getLogger('nav.smsd')
-    loginitstderr(loglevel)
-    if not loginitfile(loglevel, logfile):
-        sys.exit('Failed to init file logging.')
+    nav.logs.init_stderr_logging()
     if not loginitsmtp(mailwarnlevel, mailaddr, fromaddr, mailserver):
         sys.exit('Failed to init SMTP logging.')
 
@@ -171,16 +178,6 @@ def main():
 
         sys.exit(0)
 
-    # Switch user to $NAV_USER (only works if we're root)
-    if os.geteuid() == 0:
-        try:
-            nav.daemon.switchuser(username)
-        except nav.daemon.DaemonError as error:
-            logger.error("%s Run as root or %s to enter daemon mode. "
-                         "Try `%s --help' for more information.",
-                         error, username, sys.argv[0])
-            sys.exit(1)
-
     # Check if already running
     try:
         nav.daemon.justme(pidfile)
@@ -191,20 +188,18 @@ def main():
     # Daemonize
     if not args.foreground:
         try:
-            nav.daemon.daemonize(pidfile,
-                                 stderr=nav.logs.get_logfile_from_logger())
+            nav.daemon.daemonize(pidfile, stderr=open(logfile, "a"))
         except nav.daemon.DaemonError as error:
             logger.error(error)
             sys.exit(1)
 
-        # Daemonized; stop logging explicitly to stderr and reopen log files
-        loguninitstderr()
-        nav.logs.reopen_log_files()
-        logger.debug('Daemonization complete; reopened log files.')
+        logger.info('smsd now running in daemon mode')
+        # Reopen log files on SIGHUP
+        logger.debug('Adding signal handler for reopening log files on SIGHUP.')
+        signal.signal(signal.SIGHUP, signalhandler)
+    else:
+        nav.daemon.writepidfile(pidfile)
 
-    # Reopen log files on SIGHUP
-    logger.debug('Adding signal handler for reopening log files on SIGHUP.')
-    signal.signal(signal.SIGHUP, signalhandler)
     # Exit on SIGTERM
     signal.signal(signal.SIGTERM, signalhandler)
 
@@ -434,62 +429,15 @@ def signalhandler(signum, _):
     """
 
     if signum == signal.SIGHUP:
-        global logger
         logger.info("SIGHUP received; reopening log files.")
         nav.logs.reopen_log_files()
-        nav.daemon.redirect_std_fds(
-            stderr=nav.logs.get_logfile_from_logger())
-        logger.info("Log files reopened.")
+        nav.daemon.redirect_std_fds(stderr=open(logfile, "a"))
+        nav.logs.reset_log_levels()
+        nav.logs.set_log_config()
+        logger.info('Log files reopened.')
     elif signum == signal.SIGTERM:
         logger.warning('SIGTERM received: Shutting down.')
         sys.exit(0)
-
-
-def loginitfile(loglevel, filename):
-    """Initalize the logging handler for logfile."""
-
-    try:
-        filehandler = logging.FileHandler(filename, 'a')
-        fileformat = (
-            '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] '
-            '%(message)s')
-        fileformatter = logging.Formatter(fileformat)
-        filehandler.setFormatter(fileformatter)
-        filehandler.setLevel(loglevel)
-        logger = logging.getLogger()
-        logger.addHandler(filehandler)
-        return True
-    except IOError as error:
-        print("Failed creating file loghandler. Daemon mode disabled. (%s)"
-              % error, file=sys.stderr)
-        return False
-
-
-def loginitstderr(loglevel):
-    """Initalize the logging handler for stderr."""
-
-    try:
-        stderrhandler = logging.StreamHandler(sys.stderr)
-        stderrformat = '[%(levelname)s] [pid=%(process)d %(name)s] %(message)s'
-        stderrformatter = logging.Formatter(stderrformat)
-        stderrhandler.setFormatter(stderrformatter)
-        stderrhandler.setLevel(loglevel)
-        logger = logging.getLogger()
-        logger.addHandler(stderrhandler)
-        return True
-    except IOError as error:
-        print("Failed creating stderr loghandler. Daemon mode disabled. (%s)"
-              % error, file=sys.stderr)
-        return False
-
-
-def loguninitstderr():
-    """Remove the stderr StreamHandler from the root logger."""
-    for hdlr in logging.root.handlers:
-        if (isinstance(hdlr, logging.StreamHandler)
-                and hdlr.stream is sys.stderr):
-            logging.root.removeHandler(hdlr)
-            return True
 
 
 def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
