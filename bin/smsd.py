@@ -71,7 +71,6 @@ def main():
         'retrylimitaction': 'ignore',
         'exit_on_permanent_error': 'yes',
         'autocancel': '0',
-        'loglevel': 'INFO',
         'mailwarnlevel': 'ERROR',
         'mailserver': 'localhost',
         'mailaddr': nav.config.read_flat_config('nav.conf')['ADMIN_MAIL'],
@@ -100,7 +99,6 @@ def main():
 
     username = config['main']['username']
     autocancel = config['main']['autocancel']
-    loglevel = logging.getLevelName(config['main']['loglevel'])
     mailwarnlevel = logging.getLevelName(config['main']['mailwarnlevel'])
     mailserver = config['main']['mailserver']
     mailaddr = config['main']['mailaddr']
