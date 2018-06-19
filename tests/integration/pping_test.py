@@ -64,7 +64,7 @@ def get_pping_output(timeout=5):
 
     Also asserts that pping shouldn't unexpectedly exit with a zero exitcode.
     """
-    cmd = get_root_method() + [os.path.join(bindir, 'pping.py'), '-n']
+    cmd = get_root_method() + [os.path.join(bindir, 'pping.py'), '-f']
     try:
         output = check_output(cmd, stderr=STDOUT, timeout=timeout)
     except TimeoutExpired as error:
