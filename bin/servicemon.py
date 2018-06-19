@@ -40,12 +40,11 @@ LOGGER = logging.getLogger('nav.servicemon')
 
 
 class Controller:
-    def __init__(self, **kwargs):
+    def __init__(self, foreground=False):
         signal.signal(signal.SIGHUP, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
         self.conf = config.serviceconf()
         init_generic_logging(stderr=True, read_config=True)
-        self._deamon = kwargs.get("fork", 1)
         self._isrunning = 1
         self._checkers = []
         self._looptime = int(self.conf.get("checkinterval", 60))
@@ -139,7 +138,7 @@ class Controller:
             LOGGER.info("Caught %s. Resuming operation.", signum)
 
 
-def main(fork):
+def main(foreground):
     """Daemon main entry point"""
     conf = config.serviceconf()
     pidfilename = conf.get(
@@ -157,14 +156,14 @@ def main(fork):
         sys.stderr.write("%s\n" % e)
         sys.exit(1)
 
-    if fork:
+    if not foreground:
         logfile_path = conf.get(
             'logfile',
             os.path.join(buildconf.localstatedir, 'log','servicemon.log'))
         logfile = open(logfile_path, 'a')
         nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
 
-    my_controller = Controller(fork=fork)
+    my_controller = Controller(foreground=foreground)
     my_controller.main()
 
 
@@ -175,7 +174,7 @@ def parse_args():
     )
     parser.add_argument('--version', action='version',
                         version='NAV ' + buildconf.VERSION)
-    parser.add_argument('-n', '--nofork', action="store_true",
+    parser.add_argument('-f', '--foreground', action="store_true",
                         help="run in foreground")
     return parser.parse_args()
 
@@ -183,4 +182,4 @@ def parse_args():
 if __name__ == '__main__':
     os.umask(0o0002)
     args = parse_args()
-    main(not args.nofork)
+    main(args.foreground)
