@@ -130,8 +130,8 @@ def main():
         logger.info("All %d unsent messages ignored.", ignored_count)
         sys.exit(0)
 
-    if args.factor:
-        retryvars['delayfactor'] = args.factor
+    if args.delayfactor:
+        retryvars['delayfactor'] = args.delayfactor
     if args.maxdelay:
         retryvars['maxdelay'] = args.maxdelay
     if args.limit:
@@ -189,7 +189,7 @@ def main():
         sys.exit(1)
 
     # Daemonize
-    if not args.nofork:
+    if not args.foreground:
         try:
             nav.daemon.daemonize(pidfile,
                                  stderr=nav.logs.get_logfile_from_logger())
@@ -293,7 +293,7 @@ def parse_args():
         help="cancel (mark as ignored) all unsent messages")
     arg("-d", "--delay", type=int,
         help="set delay (in seconds) between queue checks")
-    arg("-f", "--factor", type=int,
+    arg("-D", "--delayfactor", type=int,
         help="set the factor DELAY will be multiplied with for each attempt")
     arg("-m", "--maxdelay", type=int,
         help="maximum delay (in seconds)")
@@ -314,7 +314,7 @@ def parse_args():
     arg("--message", metavar="MESSAGE",
         help="Used in combination with -t or -T to specify the message content")
     arg("-u", "--uid", type=int, help="NAV user/account id to queue message to")
-    arg("-n", "--nofork", action="store_true",
+    arg("-f", "--foreground", action="store_true",
         help="run process in the foreground")
 
     args = parser.parse_args()
