@@ -393,6 +393,7 @@ def backoffaction(error, retrylimitaction):
     queue = nav.smsd.navdbqueue.NAVDBQueue()
     msgs = queue.getmsgs('N')
 
+    # FIXME This needs a look-over for Python3/unicode issues
     if retrylimitaction == "ignore":
         # Queued messages are marked as ignored, logs a critical error with
         # message details, then resumes run.
