@@ -41,8 +41,11 @@ LOGGER = logging.getLogger('nav.servicemon')
 
 class Controller:
     def __init__(self, foreground=False):
-        signal.signal(signal.SIGHUP, self.signalhandler)
+        if not foreground:
+            signal.signal(signal.SIGHUP, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
+        signal.signal(signal.SIGINT, self.signalhandler)
+
         self.conf = config.serviceconf()
         init_generic_logging(stderr=True, read_config=True)
         self._isrunning = 1
@@ -124,6 +127,10 @@ class Controller:
     def signalhandler(self, signum, _):
         if signum == signal.SIGTERM:
             LOGGER.info("Caught SIGTERM. Exiting.")
+            self._runqueue.terminate()
+            sys.exit(0)
+        elif signum == signal.SIGINT:
+            LOGGER.info("Caught SIGINT. Exiting.")
             self._runqueue.terminate()
             sys.exit(0)
         elif signum == signal.SIGHUP:
