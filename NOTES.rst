@@ -39,6 +39,35 @@ The version requirements have changed for these dependencies:
 * :mod:`python-ldap` must be any version of the *3.0* series.
 
 
+Backwards incompatible changes
+------------------------------
+
+Changed command line options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some of the NAV programs have changed their command line interface:
+
+* :program:`alertengine.py`: The nonworking ``--loglevel`` option was removed.
+* :program:`pping.py`: The ``-n/--nofork`` option was renamed to ``-f/--foreground``.
+* :program:`servicemon.py`: The ``-n/--nofork`` option was renamed to ``-f/--foreground``.
+* :program:`smsd.py`: The ``-n/--nofork`` option was renamed to
+  ``-f/--foreground``, while the ``-f/--factor`` option was renamed to
+  ``-D/--delayfactor``.
+* :program:`snmptrapd.py`: The ``-d/--daemon`` option was changed into a
+  ``-f/--foreground``, while daemon mode was made the default.
+
+
+Changed configuration files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These configuration files changed:
+
+* :file:`smsd.conf`: The ``loglevel`` option is no longer supported. Use
+  :file:`logging.conf` to configure log levels.
+* :file:`alertengine.conf`: The ``loglevel`` option is no longer supported. Use
+  :file:`logging.conf` to configure log levels.
+
+
 News
 ----
 
