@@ -20,8 +20,6 @@ import logging
 import time
 from os.path import join
 
-import django
-
 from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
