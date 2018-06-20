@@ -48,7 +48,7 @@ import django
 
 CONFIGFILE = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
 
-LOGGER = logging.getLogger('t1000')
+LOGGER = logging.getLogger('nav.t1000')
 
 
 def main():

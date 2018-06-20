@@ -34,7 +34,7 @@ from nav.logs import init_generic_logging
 from nav.metrics.carbon import send_metrics
 from nav.metrics.names import escape_metric_name
 
-_logger = logging.getLogger('bin.navstats')
+_logger = logging.getLogger('nav.navstats')
 LOGFILE = 'navstats.log'
 
 

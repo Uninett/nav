@@ -30,7 +30,8 @@ from nav.netbiostracker.config import NetbiosTrackerConfig
 from nav.buildconf import localstatedir
 from nav.logs import init_generic_logging
 
-_logger = logging.getLogger('netbiostracker')
+
+_logger = logging.getLogger('nav.netbiostracker')
 LOGFILE = 'netbiostracker.log'
 
 
