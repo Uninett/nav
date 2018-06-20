@@ -104,7 +104,7 @@ def main():
     mailaddr = config['main']['mailaddr']
     fromaddr = config['main']['fromaddr']
 
-    # Switch user to $NAV_USER (only works if we're root)
+    # Drop privileges if running as root
     if os.geteuid() == 0:
         try:
             nav.daemon.switchuser(username)
