@@ -27,6 +27,7 @@ some other port and detains that port.
 
 """
 
+import os
 import sys
 import logging
 import getpass
@@ -45,7 +46,7 @@ from nav.arnold import (find_computer_info, disable, quarantine,
 from nav.models.arnold import Identity, DetentionProfile
 
 
-CONFIGFILE = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
+CONFIGFILE = os.path.join(nav.buildconf.sysconfdir, "arnold", "arnold.conf")
 
 LOGGER = logging.getLogger('nav.t1000')
 
@@ -53,7 +54,8 @@ LOGGER = logging.getLogger('nav.t1000')
 def main():
     """Main controller"""
     init_generic_logging(
-        logfile=nav.buildconf.localstatedir + "/log/arnold/t1000.log",
+        logfile=os.path.join(nav.buildconf.localstatedir, "log/arnold",
+                             "t1000.log"),
         stderr=False,
         read_config=True,
     )
