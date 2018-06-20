@@ -35,13 +35,9 @@ from nav.models.manage import Cam
 from nav.event import Event
 from nav.web.macwatch.models import MacWatch
 from nav.web.macwatch.models import MacWatchMatch
-import django
 
 
 LOGFILE = join(nav.buildconf.localstatedir, "log/macwatch.log")
-# Loglevel (case-sensitive), may be:
-# DEBUG, INFO, WARNING, ERROR, CRITICAL
-LOGLEVEL = 'INFO'
 
 # Max number of nybbles in a mac-address.
 MAC_ADDR_MAX_LEN = 12
@@ -60,14 +56,9 @@ LOCATION_PRIORITY = {u'GSW': 1, u'GW': 1, u'SW': 2, u'EDGE': 3}
 
 def get_logger():
     """ Return a custom logger """
-    log_format = "[%(asctime)s] [%(levelname)s] %(message)s"
-    filehandler = logging.FileHandler(LOGFILE)
-    formatter = logging.Formatter(log_format)
-    filehandler.setFormatter(formatter)
-    logger = logging.getLogger('macwatch')
-    logger.addHandler(filehandler)
-    logger.setLevel(logging.getLevelName(LOGLEVEL))
-    return logger
+    nav.logs.init_generic_logging(logfile=LOGFILE, stderr=False,
+                                  read_config=True)
+    return logging.getLogger('nav.macwatch')
 
 
 def prioritize_location(cam_objects, logger):
@@ -92,7 +83,7 @@ def prioritize_location(cam_objects, logger):
     for value in LOCATION_PRIORITY.values():
         if prioritized_cams[value] and value > rank:
             rank = value
-    logger.debug('Returning %s' % str(prioritized_cams.get(rank)))
+    logger.debug('Returning %s', prioritized_cams.get(rank))
     return prioritized_cams.get(rank)
 
 
@@ -118,7 +109,7 @@ def post_event(mac_watch, cam, logger):
     try:
         event.post()
     except Exception as why:
-        logger.warning(why)
+        logger.exception("Unhandled exception while posting event")
         return False
     return True
 
@@ -177,9 +168,8 @@ def delete_unwanted_matches(macwatch_matches, logger):
                 match_to_keep.id == macwatch_match.id):
             continue
         else:
-            logger.info('Deleting match %d; macwatch = %d' %
-                        (macwatch_match.id,
-                         macwatch_match.macwatch.id))
+            logger.info('Deleting match %s; macwatch = %s',
+                        macwatch_match.id, macwatch_match.macwatch.id)
             macwatch_match.delete()
 
 
@@ -187,8 +177,7 @@ def main():
     """Start the show.  You haven't seen nothing yet..."""
     # Create logger, start logging
     logger = get_logger()
-    logger.info("--> Starting macwatch. Loglevel: %s <--", LOGLEVEL)
-    django.setup()
+    logger.info("--> Starting macwatch <--")
 
     # For each active macwatch entry, check if mac is active and post event.
     for mac_watch in MacWatch.objects.all():
@@ -202,8 +191,8 @@ def main():
         if mac_watch.prefix_length:
             upper_mac_addr = make_upper_mac_addr(mac_watch.mac,
                                                  mac_watch.prefix_length)
-            logger.debug('Mac-addresses; prefix = %s and upper mac = %s' %
-                         (mac_watch.mac, upper_mac_addr))
+            logger.debug('Mac-addresses; prefix = %s and upper mac = %s',
+                         mac_watch.mac, upper_mac_addr)
             cam_objects = Cam.objects.filter(mac__gte=mac_watch.mac,
                                              mac__lte=upper_mac_addr,
                                              end_time=datetime.max,
@@ -223,8 +212,8 @@ def main():
             cam_by_mac[cam_obj.mac].append(cam_obj)
 
         for cams in cam_by_mac.values():
-            logger.debug('Cam-objects length %d; cam-objects = %s' %
-                         (len(cams), str(cams)))
+            logger.debug('Cam-objects length %s; cam-objects = %s',
+                         len(cams), cams)
             prioritized_cams = prioritize_location(cams, logger)
             for cam in prioritized_cams:
                 macwatch_matches = MacWatchMatch.objects.filter(
@@ -233,34 +222,32 @@ def main():
                 # Check if the mac-address has moved since last time,
                 # continue with next mac if not.
                 if len(macwatch_matches) == 1:
-                    logger.info("Mac-address is active, but have not moved " +
+                    logger.info("Mac-address is active, but have not moved "
                                 "since last check")
                     continue
 
                 if len(macwatch_matches) > 1:
                     # Something strange has happened, delete all but
                     # the match that has posted an event latest in time.
-                    logger.info('%d matches found for macwatch = %d' %
-                                (len(macwatch_matches), mac_watch.id))
+                    logger.info('%s matches found for macwatch = %s',
+                                len(macwatch_matches), mac_watch.id)
                     delete_unwanted_matches(macwatch_matches, logger)
                     continue
 
                 # Mac has moved (or appeared). Post event on eventq
-                logger.info("%s has appeared on %s (%s:%s)" %
-                            (cam.mac, cam.sysname, cam.module, cam.port))
+                logger.info("%s has appeared on %s (%s:%s)",
+                            cam.mac, cam.sysname, cam.module, cam.port)
                 if post_event(mac_watch, cam, logger):
-                    logger.info("Event posted for macwatch = %d" %
-                                mac_watch.id)
+                    logger.info("Event posted for macwatch = %s", mac_watch.id)
                     new_macwatch_match = MacWatchMatch(macwatch=mac_watch,
                                                        cam=cam,
                                                        posted=datetime.now())
                     new_macwatch_match.save()
                 else:
-                    logger.warning("Failed to post event, no alert " +
-                                   "will be given.")
+                    logger.warning("Failed to post event, no alert will be "
+                                   "given.")
 
-    logger.info("--> Done checking for macs in %s seconds <--" %
-                str(time.clock()))
+    logger.info("--> Done checking for macs in %s seconds <--", time.clock())
 
 
 if __name__ == '__main__':
