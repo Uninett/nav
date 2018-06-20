@@ -137,7 +137,6 @@ VENDOR_PSU_STATES = {
 }
 
 LOGFILE = join(buildconf.localstatedir, "log/powersupplywatch.log")
-LOGFORMAT = "[%(asctime)s] [%(levelname)s] %(message)s"
 LOGGER = logging.getLogger('nav.powersupplywatch')
 
 
@@ -146,16 +145,15 @@ def main():
     init_generic_logging(
         logfile=LOGFILE,
         stderr=True,
-        formatter=logging.Formatter(LOGFORMAT),
         read_config=False,
         stderr_level=logging.ERROR if sys.stderr.isatty() else logging.CRITICAL,
     )
-    stderr = logging.getLogger('')
 
     opts = parse_args()
 
     if opts.verify:
         LOGGER.info("-v option used, setting log level to DEBUG")
+        stderr = logging.getLogger('')
         stderr.setLevel(logging.DEBUG)
         LOGGER.setLevel(logging.DEBUG)
 
