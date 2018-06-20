@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011 Uninett AS
+# Copyright (C) 2011, 2018 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,14 +14,13 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""This is a very clever script to find mac-addresses that should
-be under surveillance and report the closest location if the
-mac-address is found."""
+"""Searches NAV's cam logs and reports the closest location of surveilled MAC
+addresses, if found.
+"""
 
 from os.path import join
 from datetime import datetime
 
-import re
 import time
 import logging
 
@@ -38,16 +37,6 @@ from nav.web.macwatch.models import MacWatchMatch
 
 
 LOGFILE = join(nav.buildconf.localstatedir, "log/macwatch.log")
-
-# Max number of nybbles in a mac-address.
-MAC_ADDR_MAX_LEN = 12
-# Used for filling in a max adddress value when
-# only a prefix is given.
-MAC_ADDR_MAX_VAL = 'ffffffffffff'
-# Possible delimiters as regexps
-STRIP_MAC_ADDR_DELIMS = ['-', ':']
-# The returning mac-address will use this as delimiter
-RET_MAC_ADDR_DELIM = ':'
 
 # Occurences of the mac-address nearest to the edges has highest
 # priority
@@ -114,39 +103,6 @@ def post_event(mac_watch, cam, logger):
     return True
 
 
-def strip_delimiters(mac_addr):
-    """Strip mac-address delimiters, legal delimiters are
-    defined in the constant STRIP_MAC_ADDR_DELIMS."""
-    stripped_addr = mac_addr
-    for delim in STRIP_MAC_ADDR_DELIMS:
-        stripped_addr = re.sub(delim, '', stripped_addr)
-    return stripped_addr
-
-
-def insert_addr_delimiters(mac_addr):
-    """Insert mac-address delimiters (:) between every
-    hex-number."""
-    start = end = 0
-    hex_numbers = []
-    while end < (MAC_ADDR_MAX_LEN - 2):
-        end = start + 2
-        hex_numbers.append(mac_addr[start:end])
-        start += 2
-    hex_numbers.append(mac_addr[end:])
-    return RET_MAC_ADDR_DELIM.join(hex_numbers)
-
-
-def make_upper_mac_addr(mac_addr, last_pos):
-    """Replace all nybbles in a mac-address with
-    'f' from a specified index."""
-    filtered_macaddr = strip_delimiters(mac_addr)
-    full_mac_addr = filtered_macaddr
-    if last_pos < MAC_ADDR_MAX_LEN:
-        full_mac_addr = (filtered_macaddr[0:last_pos] +
-                         MAC_ADDR_MAX_VAL[last_pos:])
-    return insert_addr_delimiters(full_mac_addr)
-
-
 def find_the_latest(macwatch_matches):
     """Find the match that have posted an event latest"""
     latest_time = datetime.min
@@ -183,18 +139,12 @@ def main():
     for mac_watch in MacWatch.objects.all():
         logger.info("Checking for activity on %s", mac_watch.mac)
 
-        cam_objects = []
-        # Substitute zeroes in mac-addresses with 'f' if we
-        # are searching for mac-addresses by a prefix.
-        # The search is done with:
-        # mac-addr > prefix:00:00 and mac-address < prefix:ff:ff
         if mac_watch.prefix_length:
-            upper_mac_addr = make_upper_mac_addr(mac_watch.mac,
-                                                 mac_watch.prefix_length)
+            mac = mac_watch.get_mac_prefix()
             logger.debug('Mac-addresses; prefix = %s and upper mac = %s',
-                         mac_watch.mac, upper_mac_addr)
-            cam_objects = Cam.objects.filter(mac__gte=mac_watch.mac,
-                                             mac__lte=upper_mac_addr,
+                         mac[0], mac[-1])
+            cam_objects = Cam.objects.filter(mac__gte=mac[0],
+                                             mac__lte=mac[-1],
                                              end_time=datetime.max,
                                              netbox__isnull=False)
         else:
@@ -207,7 +157,7 @@ def main():
 
         cam_by_mac = {}
         for cam_obj in cam_objects:
-            if not cam_obj.mac in cam_by_mac:
+            if cam_obj.mac not in cam_by_mac:
                 cam_by_mac[cam_obj.mac] = []
             cam_by_mac[cam_obj.mac].append(cam_obj)
 
