@@ -27,7 +27,6 @@ from django.db import connection, DatabaseError
 from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
-import nav.models
 from nav.buildconf import localstatedir
 from nav.config import NAVConfigParser
 from nav.logs import init_generic_logging
