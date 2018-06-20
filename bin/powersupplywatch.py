@@ -38,8 +38,6 @@ from nav.Snmp import Snmp
 from nav.models.manage import PowerSupplyOrFan, Device
 from nav.logs import init_generic_logging
 
-import django
-
 
 VENDOR_CISCO = 9
 VENDOR_HP = 11
@@ -153,7 +151,6 @@ def main():
         stderr_level=logging.ERROR if sys.stderr.isatty() else logging.CRITICAL,
     )
     stderr = logging.getLogger('')
-    django.setup()
 
     opts = parse_args()
 

@@ -22,8 +22,6 @@ from __future__ import print_function
 
 import argparse
 
-import django
-
 from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
@@ -33,7 +31,6 @@ from nav.models.manage import Netbox
 def main():
     """Main program"""
     args = parse_args()
-    django.setup()
     if args.filter:
         qs = eval('Netbox.objects.' + args.filter)
     else:
