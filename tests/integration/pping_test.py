@@ -105,7 +105,7 @@ timeout = 1
 nrping = 2
 delay = 2
 logfile = {localstatedir}/log/pping.log
-pidfile = {localstatedir}run/pping.pid
+pidfile = {localstatedir}/run/pping.pid
 """.format(user=nav_user, localstatedir=localstatedir))
     yield configfile
     print("restoring ping config")
