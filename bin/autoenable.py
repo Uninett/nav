@@ -40,10 +40,8 @@ from nav.logs import init_generic_logging
 from nav.arnold import (open_port, GeneralException)
 from nav.models.arnold import Identity
 
-import django
 
-
-LOGGER = logging.getLogger('autoenable')
+LOGGER = logging.getLogger('nav.autoenable')
 
 
 def main():
@@ -54,7 +52,6 @@ def main():
         read_config=True,
     )
     LOGGER.info("Starting autoenable")
-    django.setup()
 
     candidates = Identity.objects.filter(
         autoenable__lte=datetime.now(), status__in=['disabled', 'quarantined'])
@@ -70,9 +67,9 @@ def main():
                       eventcomment="Opened automatically by autoenable")
             interface = candidate.interface
             netbox = interface.netbox
-            LOGGER.info("Opening %s %s:%s for %s" % (
-                netbox.sysname, interface.module,
-                interface.baseport, candidate.mac))
+            LOGGER.info("Opening %s %s:%s for %s",
+                        netbox.sysname, interface.module, interface.baseport,
+                        candidate.mac)
         except GeneralException as why:
             LOGGER.error(why)
             continue
