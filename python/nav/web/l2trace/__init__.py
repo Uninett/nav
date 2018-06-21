@@ -23,6 +23,8 @@ from nav.models.manage import Netbox, SwPortVlan, GwPortPrefix, Prefix, Arp, Cam
 import datetime
 from IPy import IP
 
+from nav.util import is_valid_ip
+
 INFINITY = datetime.datetime.max
 PATH_NOT_FOUND = None
 LAYER_3_PATH = -1
@@ -254,11 +256,7 @@ class Host(object):
             self.ip = self.get_host_by_name() or None
 
     def is_ip(self):
-        try:
-            IP(self.host)
-            return True
-        except ValueError:
-            return False
+        return is_valid_ip(self.host, use_socket_lib=True)
 
     def get_host_by_name(self):
         if self.host is not None:
