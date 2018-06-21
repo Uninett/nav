@@ -202,7 +202,7 @@ def create_csv(request):
 
     writer = csv.writer(response)
     rows = request.REQUEST.get('rows', '').encode('utf-8')
-    for row in rows.split('\n'):
+    for row in rows.splitlines():
         writer.writerow(row.split(';'))
     return response
 
