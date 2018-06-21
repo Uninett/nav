@@ -59,3 +59,9 @@ class L2TraceForm(forms.Form):
             raise forms.ValidationError(msg)
 
         return cleaned_data
+
+    def clean_host_from(self):
+        return self.cleaned_data['host_from'].strip()
+
+    def clean_host_to(self):
+        return self.cleaned_data['host_to'].strip()
