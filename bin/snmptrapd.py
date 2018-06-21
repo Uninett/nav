@@ -250,7 +250,7 @@ def signal_handler(signum, _):
     if signum == signal.SIGHUP:
         logger.info("SIGHUP received; reopening log files.")
         nav.logs.reopen_log_files()
-        logfile = nav.logs.get_logfile_from_logger()
+        logfile = open(logfile_path, 'a')
         daemon.redirect_std_fds(stdout=logfile, stderr=logfile)
         logger.info("Log files reopened.")
     elif signum == signal.SIGTERM:
