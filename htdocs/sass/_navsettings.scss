@@ -1,112 +1,112 @@
 @import 'foundation/functions';
 
 // Media Query Ranges
-$small-range: (0em, 40em);
-$medium-range: (40.063em, 64em);
-$large-range: (64.063em, 90em);
-$xlarge-range: (90.063em, 120em);
-$xxlarge-range: (120.063em);
+$small-range: (0em, 40em) !global;
+$medium-range: (40.063em, 64em) !global;
+$large-range: (64.063em, 90em) !global;
+$xlarge-range: (90.063em, 120em) !global;
+$xxlarge-range: (120.063em) !global;
 
-$screen: "only screen";
-$landscape: "#{$screen} and (orientation: landscape)";
-$portrait: "#{$screen} and (orientation: portrait)";
-$small-up: $screen;
-$small-only: "#{$screen} and (max-width: #{upper-bound($small-range)})";
-$medium-up: "#{$screen} and (min-width:#{lower-bound($medium-range)})";
-$medium-only: "#{$screen} and (min-width:#{lower-bound($medium-range)}) and (max-width:#{upper-bound($medium-range)})";
-$large-up: "#{$screen} and (min-width:#{lower-bound($large-range)})";
-$large-only: "#{$screen} and (min-width:#{lower-bound($large-range)}) and (max-width:#{upper-bound($large-range)})";
-$xlarge-up: "#{$screen} and (min-width:#{lower-bound($xlarge-range)})";
-$xlarge-only: "#{$screen} and (min-width:#{lower-bound($xlarge-range)}) and (max-width:#{upper-bound($xlarge-range)})";
-$xxlarge-up: "#{$screen} and (min-width:#{lower-bound($xxlarge-range)})";
-$xxlarge-only: "#{$screen} and (min-width:#{lower-bound($xxlarge-range)}) and (max-width:#{upper-bound($xxlarge-range)})";
+$screen: "only screen" !global;
+$landscape: "#{$screen} and (orientation: landscape)" !global;
+$portrait: "#{$screen} and (orientation: portrait)" !global;
+$small-up: $screen !global;
+$small-only: "#{$screen} and (max-width: #{upper-bound($small-range)})" !global;
+$medium-up: "#{$screen} and (min-width:#{lower-bound($medium-range)})" !global;
+$medium-only: "#{$screen} and (min-width:#{lower-bound($medium-range)}) and (max-width:#{upper-bound($medium-range)})" !global;
+$large-up: "#{$screen} and (min-width:#{lower-bound($large-range)})" !global;
+$large-only: "#{$screen} and (min-width:#{lower-bound($large-range)}) and (max-width:#{upper-bound($large-range)})" !global;
+$xlarge-up: "#{$screen} and (min-width:#{lower-bound($xlarge-range)})" !global;
+$xlarge-only: "#{$screen} and (min-width:#{lower-bound($xlarge-range)}) and (max-width:#{upper-bound($xlarge-range)})" !global;
+$xxlarge-up: "#{$screen} and (min-width:#{lower-bound($xxlarge-range)})" !global;
+$xxlarge-only: "#{$screen} and (min-width:#{lower-bound($xxlarge-range)}) and (max-width:#{upper-bound($xxlarge-range)})" !global;
 
 
 // Relative image path
-$image-path: '../../images';
-$image-path-partials: '../images';
+$image-path: '../../images' !global;
+$image-path-partials: '../images' !global;
 
 // Width of a row. To create a limited viewport use em-calc
-// Default from Foundation is $row-width: em-calc(1000);
-$row-width: 100%;
+// Default from Foundation is $row-width: em-calc(1000) !global;
+$row-width: 100% !global;
 
 // NAV color palette
-$body-bg: #EEE;
+$body-bg: #EEE !global;
 
-$primary-color: #027bbb;
-$secondary-color: #DFDFDF;
+$primary-color: #027bbb !global;
+$secondary-color: #DFDFDF !global;
 
-$alert-color: #d2322d;
-$success-color: #5cb85c;
-$warning-color: #ff9233;
+$alert-color: #d2322d !global;
+$success-color: #5cb85c !global;
+$warning-color: #ff9233 !global;
 
-$alert-box-bg: #f2dede;
-$alert-box-color: #a6413f;
-$alert-box-border: #eed3d7;
+$alert-box-bg: #f2dede !global;
+$alert-box-color: #a6413f !global;
+$alert-box-border: #eed3d7 !global;
 
-$success-box-bg: #dff0d8;
-$success-box-color: #3d763e;
-$success-box-border: #d6e9c6;
+$success-box-bg: #dff0d8 !global;
+$success-box-color: #3d763e !global;
+$success-box-border: #d6e9c6 !global;
 
-$info-box-bg: #d9edf7;
-$info-box-color: #2d6886;
-$info-box-border: #bce8f1;
+$info-box-bg: #d9edf7 !global;
+$info-box-color: #2d6886 !global;
+$info-box-border: #bce8f1 !global;
 
-$warning-box-bg: #fff3e0;
-$warning-box-color: #c64500;
-$warning-box-border: #FFE0B2;
+$warning-box-bg: #fff3e0 !global;
+$warning-box-color: #c64500 !global;
+$warning-box-border: #FFE0B2 !global;
 
-$crumb-bg: $secondary-color;
-$crumb-border-color: #F6F6F6;
+$crumb-bg: $secondary-color !global;
+$crumb-border-color: #F6F6F6 !global;
 
-$table-border-style: none;
+$table-border-style: none !global;
 
-/* Threshold for using alternative font color. 
+/* Threshold for using alternative font color.
 
 NB: This variable is introduced by us because Foundation allowed font color with
 too little contrast according to WCAG2.0. This variable must be manually
 introduced in Foundation scss files when updating Foundation.
 
 Currently used in _labels.scss and _buttons.scss, where the it replaces 70% */
-$lightness-threshold: 52%;
+$lightness-threshold: 52% !global;
 
 // Variables
 // -----------------------------------------------------------------------
 
 
 // Button sizes
-$button-tny: rem-calc(7);
-$button-sml: rem-calc(9);
-$button-med: rem-calc(11);
+$button-tny: rem-calc(7) !global;
+$button-sml: rem-calc(9) !global;
+$button-med: rem-calc(11) !global;
 
 // Alerts
-$include-html-alert-classes: false;
+$include-html-alert-classes: false !global;
 
 // Fonts
-$body-font-family: "Open Sans", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
-$body-font-weight: 400;
-$small-font-size: 80%;
+$body-font-family: "Open Sans", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif !global;
+$body-font-weight: 400 !global;
+$small-font-size: 80% !global;
 
 // Menu
-$topbar-bg-color: #243640 !default;
-$topbar-dropdown-bg: #243640 !default;
+$topbar-bg-color: #243640 !default !global;
+$topbar-dropdown-bg: #243640 !default !global;
 
 // Tooltips
-$tooltip-bg: #333 !default;
-$tooltip-font-weight: 400 !default;
-$has-tip-cursor-type: cursor !default;
-$tooltip-padding:20px !default;
-$tooltip-max-width: 500px;
+$tooltip-bg: #333 !default !global;
+$tooltip-font-weight: 400 !default !global;
+$has-tip-cursor-type: cursor !default !global;
+$tooltip-padding:20px !default !global;
+$tooltip-max-width: 500px !global;
 
 // Global padding
-$global-padding: 3.5em;
-$global-padding-small: 0em;
-$body-padding: 3.5em;
-$body-padding-small: 1em;
+$global-padding: 3.5em !global;
+$global-padding-small: 0em !global;
+$body-padding: 3.5em !global;
+$body-padding-small: 1em !global;
 
 // Pagination
-$pagination-link-font-color: #222;
-$pagination-link-active-bg: #bbb;
+$pagination-link-font-color: #222 !global;
+$pagination-link-active-bg: #bbb !global;
 
 // Fieldsets
-$fieldset-border-color: #AAAAAA;
+$fieldset-border-color: #AAAAAA !global;
