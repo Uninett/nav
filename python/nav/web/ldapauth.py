@@ -17,13 +17,15 @@
 Contains ldap authentication functionality for NAV web.
 """
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 import sys
 import logging
 import configparser
 from os.path import join
 from io import StringIO
+
+from django.utils import six
 
 from nav.buildconf import sysconfdir
 import nav.errors
@@ -93,12 +95,15 @@ def open_ldap():
     if _config.getboolean('ldap', 'debug'):
         ldap.set_option(ldap.OPT_DEBUG_LEVEL, 255)
 
+    scheme = 'ldaps' if encryption == 'ssl' else 'ldap'
+    uri = '%s://%s:%s' % (scheme, server, port)
+    lconn = ldap.initialize(uri, bytes_mode=False)
+    lconn.timeout = timeout
+
     # Use STARTTLS if enabled, then fail miserably if the server
     # does not support it
     if encryption == 'tls':
         _logger.debug("Using STARTTLS for ldap connection")
-        lconn = ldap.open(server, port)
-        lconn.timeout = timeout
         try:
             lconn.start_tls_s()
         except ldap.PROTOCOL_ERROR:
@@ -108,11 +113,6 @@ def open_ldap():
         except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR):
             _logger.exception("LDAP server is down")
             raise NoAnswerError(server)
-    else:
-        scheme = encryption == 'ssl' and 'ldaps' or 'ldap'
-        uri = '%s://%s:%s' % (scheme, server, port)
-        lconn = ldap.initialize(uri)
-        lconn.timeout = timeout
 
     return lconn
 
@@ -185,21 +185,18 @@ class LDAPUser(object):
     def bind(self, password):
         """Performs an authenticated bind for this user using password"""
         encoding = _config.get('ldap', 'encoding')
-        suffix = _config.get('ldap', 'suffix').encode(encoding)
+        suffix = _config.get('ldap', 'suffix')
 
         if not suffix:
             user_dn = self.get_user_dn()
             _logger.debug("Attempting authenticated bind to %s", user_dn)
 
-            self.ldap.simple_bind_s(user_dn.encode(encoding),
-                                    password.encode(encoding))
+            self.ldap.simple_bind_s(user_dn, password)
         if suffix:
             _logger.debug("Attempting authenticated bind as user %s",
                           self.username + suffix)
 
-            self.ldap.simple_bind_s(self.username.encode(encoding) +
-                                   suffix,
-                                   password.encode(encoding))
+            self.ldap.simple_bind_s(self.username + suffix + password)
 
     def get_user_dn(self):
         """
@@ -238,15 +235,13 @@ class LDAPUser(object):
         """
         uid_attr = escape_filter_chars(_config.get('ldap', 'uid_attr'))
         encoding = _config.get('ldap', 'encoding')
-        manager = _config.get('ldap', 'manager').encode(encoding)
-        manager_password = _config.get(
-            'ldap', 'manager_password', raw=True).encode(encoding)
+        manager = _config.get('ldap', 'manager')
+        manager_password = _config.get('ldap', 'manager_password', raw=True)
         if manager:
             _logger.debug("Attempting authenticated bind as manager to %s",
                           manager)
             self.ldap.simple_bind_s(manager, manager_password)
-        filter_ = "(%s=%s)" % (uid_attr, escape_filter_chars(
-            self.username.encode(encoding)))
+        filter_ = "(%s=%s)" % (uid_attr, escape_filter_chars(self.username))
         result = self.ldap.search_s(_config.get('ldap', 'basedn'),
                                     ldap.SCOPE_SUBTREE, filter_)
         if not result or not result[0] or not result[0][0]:
@@ -264,8 +259,8 @@ class LDAPUser(object):
         Attempt to retrieve the LDAP Common Name of the given login name.
         """
         encoding = _config.get('ldap', 'encoding')
-        user_dn = self.get_user_dn().encode(encoding)
-        name_attr = _config.get('ldap', 'name_attr').encode(encoding)
+        user_dn = self.get_user_dn()
+        name_attr = _config.get('ldap', 'name_attr')
         try:
             res = self.ldap.search_s(user_dn, ldap.SCOPE_BASE,
                                      '(objectClass=*)', [name_attr])
@@ -278,7 +273,7 @@ class LDAPUser(object):
         # a specific user
         record = res[0][1]
         name = record[name_attr][0]
-        return name
+        return name.decode(encoding)
 
     def is_group_member(self, group_dn):
         """
@@ -292,8 +287,8 @@ class LDAPUser(object):
         objects, the latter should work for posixGroup objects.
         """
         encoding = _config.get('ldap', 'encoding')
-        group_search = _config.get('ldap', 'group_search').encode(encoding)
-        user_dn = self.get_user_dn().encode(encoding)
+        group_search = _config.get('ldap', 'group_search')
+        user_dn = self.get_user_dn()
         # Match groupOfNames/groupOfUniqueNames objects
         try:
             filterstr = group_search % escape_filter_chars(user_dn)
@@ -302,8 +297,7 @@ class LDAPUser(object):
             if len(result) < 1:
                 # If no match, match posixGroup objects
                 filterstr = (
-                    '(memberUid=%s)' %
-                    escape_filter_chars(self.username.encode(encoding)))
+                    '(memberUid=%s)' % escape_filter_chars(self.username))
                 result = self.ldap.search_s(group_dn, ldap.SCOPE_BASE,
                                             filterstr)
                 _logger.debug("posixGroup results: %s", result)
@@ -348,9 +342,10 @@ def __test():
     logging.basicConfig()
     logging.getLogger('').setLevel(logging.DEBUG)
 
-    print("Username: ", end=' ')
-    uid = sys.stdin.readline().strip()
+    uid = six.moves.input("Username: ").strip()
     password = getpass('Password: ')
+    if six.PY2:
+        password = password.decode('utf-8')
 
     user = authenticate(uid, password)
 
@@ -360,6 +355,7 @@ def __test():
         print("User's full name is %s" % user.get_real_name())
     else:
         print("User was not authenticated")
+
 
 if __name__ == '__main__':
     __test()

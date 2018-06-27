@@ -20,7 +20,7 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
         this.container = container;    // Navlet container
         this.renderNode = renderNode;  // The column this navlet should render in
         this.navlet = navlet;          // Object containing navlet information
-        this.spinner = new Spinner();  // Spinner showing on load
+        this.spinner = new Spinner({zIndex: 10});  // Spinner showing on load
         this.forceFirst = typeof forceFirst === 'undefined' ? false : true;
         this.node = this.createNode(); // The complete node for this navlet
         this.removeUrl = this.container.attr('data-remove-navlet');           // Url to use to remove a navlet from this user
