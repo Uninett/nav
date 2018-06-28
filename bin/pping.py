@@ -53,31 +53,33 @@ def main():
 
     socket = megaping.make_sockets()  # make raw sockets while we have root
     switch_user()
-    start(args.nofork, socket)
+    start(args.foreground, socket)
 
 
 def make_argparser():
     parser = argparse.ArgumentParser(
         description="Parallel pinger daemon (part of NAV)",
     )
-    parser.add_argument("-n", "--nofork", action="store_true",
+    parser.add_argument("-f", "--foreground", action="store_true",
                         help="run in foreground")
     return parser
 
 
 class Pinger(object):
 
-    def __init__(self, **kwargs):
-        signal.signal(signal.SIGHUP, self.signalhandler)
+    def __init__(self, socket=None, foreground=False):
+        if not foreground:
+            signal.signal(signal.SIGHUP, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
+        signal.signal(signal.SIGINT, self.signalhandler)
+
         self.config = config.pingconf()
         init_generic_logging(stderr=True, read_config=True)
         self._isrunning = 1
         self._looptime = int(self.config.get("checkinterval", 60))
         LOGGER.info("Setting checkinterval=%i", self._looptime)
         self.db = db.db()
-        sock = kwargs.get("socket", None)
-        self.pinger = megaping.MegaPing(sock)
+        self.pinger = megaping.MegaPing(socket)
         self._nrping = int(self.config.get("nrping", 3))
         # To keep status...
         self.netboxmap = {}  # hash netboxid -> netbox
@@ -203,9 +205,12 @@ class Pinger(object):
                                "Delaying next check for %03.3f secs", wait)
             sleep(wait)
 
-    def signalhandler(self, signum, frame):
+    def signalhandler(self, signum, _frame):
         if signum == signal.SIGTERM:
             LOGGER.critical("Caught SIGTERM. Exiting.")
+            sys.exit(0)
+        elif signum == signal.SIGINT:
+            LOGGER.critical("Caught SIGINT. Exiting.")
             sys.exit(0)
         elif signum == signal.SIGHUP:
             # reopen the logfile
@@ -219,10 +224,10 @@ class Pinger(object):
             LOGGER.critical("Caught %s. Resuming operation.", signum)
 
 
-def start(nofork, socket):
+def start(foreground, socket):
     """
-    Forks a new prosess, letting the service run as
-    a daemon.
+    Starts a new prosess, letting the service run as a daemon if `foreground`
+    is false.
     """
     conf = config.pingconf()
     pidfilename = conf.get(
@@ -239,14 +244,16 @@ def start(nofork, socket):
         sys.stderr.write("%s\n" % error)
         sys.exit(1)
 
-    if not nofork:
+    if not foreground:
         logfile_path = conf.get(
             'logfile',
             os.path.join(buildconf.localstatedir, 'log', 'pping.log'))
         logfile = open(logfile_path, "a")
         nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
+    else:
+        nav.daemon.writepidfile(pidfilename)
 
-    my_pinger = Pinger(socket=socket)
+    my_pinger = Pinger(socket=socket, foreground=foreground)
     my_pinger.main()
 
 
