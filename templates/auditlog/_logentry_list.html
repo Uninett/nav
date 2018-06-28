@@ -57,7 +57,7 @@
                          return direction + columns[order.column];
                      }).join(',')
                  }
-                 return Object.assign({}, parameters, api_parameters);
+                 return _.extend(parameters, api_parameters);
              },
              dataFilter: function(data) {
                  // Map the response to something datatables understands
