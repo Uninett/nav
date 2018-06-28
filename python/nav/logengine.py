@@ -63,7 +63,7 @@ from nav import db
 from nav import daemon
 from nav.buildconf import localstatedir, sysconfdir
 
-_logger = logging.getLogger("logengine")
+_logger = logging.getLogger("nav.logengine")
 
 
 def get_exception_dicts(config):
@@ -502,8 +502,7 @@ def main():
     config = ConfigParser()
     config.read(os.path.join(sysconfdir, 'logger.conf'))
 
-    logging.basicConfig()
-    nav.logs.set_log_config()
+    nav.logs.init_stderr_logging()
 
     if options.delete:
         # get rid of old records

@@ -20,6 +20,7 @@ import re
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
+from nav.macaddress import MacPrefix
 from nav.models.fields import VarcharField
 from nav.models.manage import Cam
 from nav.models.profiles import Account
@@ -46,41 +47,26 @@ class MacWatch(models.Model):
         ordering = ('created',)
 
     def __str__(self):
-        return u'%s' % self.mac
+        return str(self.mac)
 
     def _filtered_mac_addr(self):
-        """Filter delimiters from the mac-address."""
-        return re.sub('-', '', re.sub(':', '', self.mac))
-
-    def _add_separators(self, mac_addr):
-        """Add delimiters between the hex-numbers. Check
-        MAC_ADDR_DELIM_CHAR for delimiter-character."""
-        # Extract every second chars at odd index
-        mac_odds = mac_addr[::2]
-        # Extract every second chars at even index
-        mac_evens = mac_addr[1::2]
-        # Add together one character from odd and one from even list,
-        # and make lists with the strings.
-        # Join the lists of strings with delimiter-character to form
-        # a mac-address string.
-        ret_addr = self.MAC_ADDR_DELIM_CHAR.join(odd_char + even_char
-            for odd_char, even_char in zip(mac_odds, mac_evens))
-        # Sweep up the left-over if length is even,
-        # since zip will only merge a pair.
-        if self.prefix_length % 2:
-            ret_addr += self.MAC_ADDR_DELIM_CHAR + mac_addr[-1]
-        return ret_addr
+        """Returns the MAC address value with delimiters stripped"""
+        return self.mac.replace(':', '').replace('-', '')
 
     def get_mac_addr(self):
-        """Get the current mac-address.  If the stored
-        mac-address is a prefix (i.e. only a partial mac-address)
-        only the prefix will get returned."""
-        if self.prefix_length and self.prefix_length > 0:
-            filtered_mac = self._filtered_mac_addr()
-            prefix_mac = filtered_mac[0:self.prefix_length]
-            return self._add_separators(prefix_mac)
-        else:
-            return self.mac
+        """Returns a string representation of the watched MAC address, whether
+        it is a full or a partial (prefix) address
+        """
+        return str(self.get_mac_prefix())
+
+    def get_mac_prefix(self):
+        """Returns the watched MAC address as a MacPrefix object
+
+        :rtype: nav.macaddress.MacPrefix
+        """
+        filtered_mac = self._filtered_mac_addr()
+        prefix_mac = filtered_mac[0:self.prefix_length]
+        return MacPrefix(prefix_mac)
 
 
 @python_2_unicode_compatible
@@ -96,5 +82,5 @@ class MacWatchMatch(models.Model):
         db_table = u'macwatch_match'
 
     def __str__(self):
-        return (u'id=%d; macwatch = %d; cam = %d; posted = %s' %
-                (self.id, self.macwatch, self.cam, str(self.posted)))
+        return u'id=%s; macwatch = %s; cam = %s; posted = %s' % (
+            self.id, self.macwatch, self.cam, self.posted)
