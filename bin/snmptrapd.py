@@ -249,7 +249,7 @@ def signal_handler(signum, _):
     if signum == signal.SIGHUP:
         logger.info("SIGHUP received; reopening log files.")
         nav.logs.reopen_log_files()
-        logfile = open(logfile_path, "a")
+        logfile = open(logfile_path, 'a')
         daemon.redirect_std_fds(stdout=logfile, stderr=logfile)
         nav.logs.reset_log_levels()
         nav.logs.set_log_config()
