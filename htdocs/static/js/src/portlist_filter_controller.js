@@ -16,7 +16,7 @@ define(function(require) {
     function addFilterParameters(uri) {
         filters = [netboxFilter, ifClassFilter, queryFilter, linkFilter];
         uri.addSearch(filters.reduce(function(obj, func) {
-            return Object.assign(obj, func());
+            return _.extend(obj, func());
         }, {}));
         console.log(uri.toString());
         return uri;
