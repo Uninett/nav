@@ -204,6 +204,7 @@ define(function(require) {
             paging: true,
             pagingType: 'simple',
             orderClasses: false,
+            processing: true,
             ajax: function(data, callback, settings) {
                 if (initialize) {
                     initialize = false;
@@ -224,10 +225,10 @@ define(function(require) {
             },
             columns: dtColumns,
             order: [[1, 'asc']],
-            dom: '<"#portlist-controls"<"#columns-controls"p><irl>>t',
+            dom: '<"#portlist-controls"<"#columns-controls"p>r<il>>t',
             language: {
                 info: "_TOTAL_ entries",
-                processing: "Loading...",
+                processing: "<div class='alert-box inside-table'>Loading...</div>",
             },
             stateSave: true,
         });
