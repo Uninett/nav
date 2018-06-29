@@ -207,11 +207,19 @@ define(function(require) {
             ajax: function(data, callback, settings) {
                 if (initialize) {
                     initialize = false;
-                    callback(translateData({results: []}));
+                    callback({data: []});
                 } else {
-                    $.getJSON(filterController.getUrl()).then(function(_data) {
-                        callback(translateData(_data));
-                    });
+                    var results = [];
+                    function loadMoreData(_data) {
+                        results = results.concat(_data.results);
+                        if (_data.next) {
+                            $.getJSON(_data.next, loadMoreData);
+                        } else {
+                            callback({data: results});
+                        }
+                    }
+
+                    $.getJSON(filterController.getUrl(), loadMoreData)
                 }
             },
             columns: dtColumns,
@@ -225,15 +233,6 @@ define(function(require) {
         });
     }
 
-
-    /**
-     * Translate data keys from response to something datatables understand
-     */
-    function translateData(json) {
-        json.recordsTotal = json.count;
-        json.data = json.results;
-        return json;
-    }
 
     /** TABLE INITIATION */
 
