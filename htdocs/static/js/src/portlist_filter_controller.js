@@ -97,7 +97,15 @@ define(function(require) {
     /* Initialize everything with given config */
     function filterController(table) {
         addNetboxFilter();
-        reloadOnFilterChange(table);
+        addSubmitListener(table);
+        /*         reloadOnFilterChange(table);*/
+    }
+
+    function addSubmitListener(table) {
+        $(selectors.filterForm).on('submit', function(e){
+            e.preventDefault();
+            table.ajax.reload();
+        })
     }
 
     /* Creates the url for fetching data from the API*/
