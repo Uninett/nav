@@ -12,13 +12,27 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""URL-config for PortList tool"""
+"""Controllers and views for PortList tool"""
 
-from django.conf.urls import url
-from nav.web.portlist import views
+from django.shortcuts import render
+
+from nav.web import utils
 
 
-urlpatterns = [
-    url(r'^$', views.index),
-    url(r'^(?P<netboxid>\d+)', views.by_netboxid, name='portlist-netbox')
-]
+def default_context():
+    navpath = (('Home', '/'), ('Interface browser',))
+    return {
+        'navpath': navpath,
+        'title': utils.create_title(navpath)
+    }
+
+
+def index(request):
+    context = default_context()
+    return render(request, 'interface_browser/base.html', context)
+
+
+def by_netboxid(request, netboxid):
+    context = default_context()
+    context.update({'netboxid': netboxid})
+    return render(request, 'interface_browser/base.html', context)

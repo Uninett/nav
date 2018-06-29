@@ -2,13 +2,13 @@
 {% load tools %}
 
 {% block base_header_additional_head %}
-  <link href="{{ STATIC_URL }}css/nav/portlist.css" rel="stylesheet" />
+  <link href="{{ STATIC_URL }}css/nav/interface_browser.css" rel="stylesheet" />
 {% endblock %}
 
 
 {% block base_content %}
 
-  {% with tool=current_user_data.tools|get_tool:'PortList' %}
+  {% with tool=current_user_data.tools|get_tool:'Interface browser' %}
     {% include 'nav_header.html' %}
   {% endwith %}
 
@@ -79,8 +79,8 @@
 
 {% block footer_scripts %}
   <script>
-   require(['src/portlist'], function(PortList) {
-       PortList();
+   require(['src/interface_browser'], function(Browser) {
+       Browser();
    })
   </script>
 {% endblock %}

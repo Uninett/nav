@@ -1,9 +1,9 @@
 define(function(require) {
 
     var DataTables = require('libs/datatables.min');
-    var columnToggler = require('src/portlist_column_toggler');
-    var filterController = require('src/portlist_filter_controller');
-    var dynamicColumnsController = require('src/portlist_dynamic_columns_controller');
+    var columnToggler = require('src/interface_browser_column_toggler');
+    var filterController = require('src/interface_browser_filter_controller');
+    var dynamicColumnsController = require('src/interface_browser_dynamic_columns_controller');
     var stateController = require('src/plugins/state_controller');
 
     var storageKey = 'DataTables_portlist-table_/formstate/';
@@ -236,7 +236,7 @@ define(function(require) {
 
     /** TABLE INITIATION */
 
-    function PortList() {
+    function Browser() {
         var form = document.querySelector(selectors.filterForm);
         /* Set filters based on localstorage. Remember there are two filters,
         the ones we control and the ones DataTable controls. */
@@ -262,7 +262,6 @@ define(function(require) {
         });
     }
 
-
-    return PortList
+    return Browser;
 
 });
