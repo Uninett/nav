@@ -15,8 +15,15 @@ NAV 4.9
 Dependency changes
 ------------------
 
-Django Rest Framework is updated to version 3. As a result of this the Django
-Filter library has to be updated aswell.
+The NAV team is still working on porting the NAV code to Python 3, which
+includes moving to more current (non-deprecated) versions of the Django
+framework.  This means you will need to upgrade various dependencies when
+moving to NAV 4.9.
+
+Unfortunately, Django releases have a tendency to drop backwards compatibility
+with many features, so expect future releases of NAV to move to even more
+recent versions of Django - we expect to land on Django 1.11, which is the last
+long-term support release of Django 1.
 
 
 Upgraded dependencies
@@ -24,8 +31,12 @@ Upgraded dependencies
 
 The version requirements have changed for these dependencies:
 
-* :mod:`djangorestframework` must be from version *3.5* to any version of *3.6*
-* :mod:`django-filter` must be any version of *1.1*
+* :mod:`django` must be any version from the *1.8* series.
+* :mod:`djangorestframework` must be any version in either the *3.5* or *3.6* series.
+* :mod:`django-filter` must be any version of the *1.1* series.
+* :mod:`django-crispy-forms` must be any version of the *1.7* series.
+* :mod:`crispy-forms-foundation` must be any version of the *0.6* series.
+* :mod:`python-ldap` must be any version of the *3.0* series.
 
 
 News

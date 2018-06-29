@@ -302,18 +302,15 @@ Javascript testing
 ------------------
 
 Testing javascript in NAV is straightforward. We use Karma_ as a testrunner,
-Mocha_ as testing framework and Chai_ as assertion library.
+Mocha_ as testing framework and Chai_ as assertion library. Assuming you are
+inside the Docker CI image:
 
 .. code-block:: sh
 
-   cd htdocs/static/js
+   tox -e javascript
 
-   # Install required libs, you need npm installed
-   npm install
-
-   # Run tests. This will start browsers. Karma will make sure that tests will
-   # run on changes in js-files.
-   ./node_modules/karma/bin/karma start test/karma.conf.js
+This will take of installing the required JS modules using npm, and running the
+test suite in three different browsers (Chrome, Firefox and PhantomJS).
 
 All tests are located under :file:`htdocs/statis/js/test/`. Create new tests
 there. For syntax, assertions and related stuff take a look at the tests

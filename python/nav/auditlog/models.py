@@ -130,7 +130,7 @@ class LogEntry(models.Model):
             """
             {"a": "b", "c": "d"} => "a=b, c=d"
             """
-            return ", ".join("{}={}".format(x, y) for x, y in d.items())
+            return u", ".join(u"{}={}".format(x, y) for x, y in d.items())
 
         model = new.__class__.__name__.lower()
         prefix = u'{actor} edited {object}'
@@ -142,10 +142,10 @@ class LogEntry(models.Model):
                 old_value = dict_to_string(old_value)
             if isinstance(new_value, dict):
                 new_value = dict_to_string(new_value)
-            summary = "{} changed from '{}' to '{}'".format(
+            summary = u"{} changed from '{}' to '{}'".format(
                 attribute, old_value, new_value)
         else:
-            summary = "{} changed".format(attribute)
+            summary = u"{} changed".format(attribute)
 
         LogEntry.add_log_entry(
             actor,

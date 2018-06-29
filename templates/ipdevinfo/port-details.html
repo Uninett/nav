@@ -12,6 +12,8 @@
         }
       });
       tabs.removeClass('notvisible').show();
+      // Mark error tab
+      $('li[data-mark-as-error="True"]', tabs).removeClass('ui-state-default').addClass('ui-state-error');
     });
   </script>
 {% endblock %}
@@ -61,6 +63,9 @@
       <li><a href="#port-details-activity-graphs">Activity graphs</a></li>
       <li><a href="#port-details-metrics-list">Metric list</a></li>
       <li><a href="#port-details-sensors-list">Port Sensors</a></li>
+      <li data-mark-as-error="{{ alert_info.has_unresolved_alerts }}">
+        <a href="#port-details-recent-alerts">Recent alerts</a>
+      </li>
     </ul>
 
 
@@ -116,6 +121,11 @@
     <div id="port-details-sensors-list">
       <h3>Metrics</h3>
       {% include 'ipdevinfo/port-details-sensors-frag.html' %}
+    </div>
+
+    {# Recent alerts for this interface #}
+    <div id="port-details-recent-alerts">
+      {% include "ipdevinfo/port-details-recent-alerts-frag.html" %}
     </div>
 
 

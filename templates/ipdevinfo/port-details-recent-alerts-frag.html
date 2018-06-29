@@ -1,0 +1,66 @@
+<div id="alerts">
+  {% if port %}
+
+    {# Table for listing recent alerts #}
+    <h4>
+      Alerts last {{ alert_info.days_back }}
+      day{{ alert_info.days_back|pluralize }}
+    </h4>
+    <table class="listtable">
+      <thead>
+        <tr>
+          <th>Event</th>
+          <th>Message</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Downtime</th>
+        </tr>
+      </thead>
+
+      <tfoot>
+        <tr>
+          <th colspan="5">
+            {{ alert_info.alerts|length }}
+            alert{{ alert_info.alerts|length|pluralize }}
+            found
+          </th>
+        </tr>
+      </tfoot>
+
+      <tbody>
+        {% for a in alert_info.alerts %}
+          <tr>
+            <td>{{ a.event_type }}</td>
+            <td>
+	      <a href="{% url 'event-details' a.pk %}" title="See event details">
+                {{ a.message|default:"N/A" }}
+              </a>
+	    </td>
+            <td>{{ a.start_time|date|default:"N/A" }}
+              {{ a.start_time|time }}</td>
+            {% if a.is_open %}
+              <td class="status_down">Unresolved</td>
+            {% else %}
+              <td>{{ a.end_time|date|default:"N/A" }}
+                {{ a.end_time|time }}</td>
+            {% endif %}
+            <td>
+              {% if a.is_stateful %}
+                {% if a.is_open %}
+                  {{ a.start_time|timesince }}
+                {% else %}
+                  {{ a.start_time|timesince:a.end_time }}
+                {% endif %}
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td>No matching alerts found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  {% endif %}
+</div>
