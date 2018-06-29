@@ -198,14 +198,21 @@ define(function(require) {
 
     /* Create the datatable */
     function createTable() {
+        var initialize = true;  // Stops loading when table is initialized
         return $(selectors.table).DataTable({
             autoWidth: false,
             paging: true,
             pagingType: 'simple',
             orderClasses: false,
-            ajax: {
-                url: filterController.getUrl(),
-                dataFilter: translateData
+            ajax: function(data, callback, settings) {
+                if (initialize) {
+                    initialize = false;
+                    callback(translateData({results: []}));
+                } else {
+                    $.getJSON(filterController.getUrl()).then(function(_data) {
+                        callback(translateData(_data));
+                    });
+                }
             },
             columns: dtColumns,
             order: [[1, 'asc']],
@@ -222,11 +229,10 @@ define(function(require) {
     /**
      * Translate data keys from response to something datatables understand
      */
-    function translateData(data) {
-        var json = jQuery.parseJSON( data );
+    function translateData(json) {
         json.recordsTotal = json.count;
         json.data = json.results;
-        return JSON.stringify( json );
+        return json;
     }
 
     /** TABLE INITIATION */

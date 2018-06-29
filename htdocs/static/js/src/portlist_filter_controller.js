@@ -75,7 +75,7 @@ define(function(require) {
 
     /* Reloads data from the api */
     function reload(table) {
-        table.ajax.url(getUrl()).load();
+        table.ajax.reload();
     }
 
     /* Adds listeners for reloading when the filters change */
