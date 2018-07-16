@@ -1,0 +1,5 @@
+# setuptool_scm takes care of including everything committed to git, while
+# these rules ensure we include generated files into the package
+
+recursive-include nav/web/static/css *
+recursive-include etc *
