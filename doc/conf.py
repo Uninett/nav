@@ -265,7 +265,6 @@ latex_documents = [
 #intersphinx_mapping = {'http://docs.python.org/': None}
 
 rst_epilog = """
-.. |bindir| replace:: :file:`%s`
 .. |sysconfdir| replace:: :file:`%s`
 .. |nav_user| replace:: `%s`
-""" % (buildconf.bindir, buildconf.sysconfdir, buildconf.nav_user)
+""" % (buildconf.sysconfdir, buildconf.nav_user)

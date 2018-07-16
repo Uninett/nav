@@ -50,8 +50,7 @@ Starting NAV
 
 NAV has two parts; one web frontend, and a backend consisting of
 multiple processes.  While Apache serves the frontend, the backend
-processes can be controlled using the :program:`nav` command
-(located in |bindir|).
+processes can be controlled using the :program:`nav` command.
 
 The backend processes consist of some daemon processes, and some cron jobs.
 Running :kbd:`nav start` will start all the daemon processes in the
@@ -215,5 +214,5 @@ preview form, unless you go back and fix it before trying again.
 Further reading
 ===============
 
-Now you know how to monitor things. It's time to 
+Now you know how to monitor things. It's time to
 :doc:`get organized <getting-organized>`!
