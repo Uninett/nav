@@ -40,8 +40,6 @@ etc/snmptrapd.conf
 # The source files to version all end with .in extensions.
 /etc/init.d/*
 !/etc/init.d/*.in
-/etc/cron.d/*
-!/etc/cron.d/*.in
 /build
 /dist
 
