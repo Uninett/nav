@@ -43,7 +43,7 @@ from nav.config import getconfig
 #
 #  PATHS
 #
-configfile = os.path.join(nav.buildconf.sysconfdir, 'smsd.conf')
+configfile = 'smsd.conf'
 logfile = os.path.join(nav.buildconf.localstatedir, 'log', 'smsd.log')
 pidfile = os.path.join(nav.buildconf.localstatedir, 'run', 'smsd.pid')
 
