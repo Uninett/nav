@@ -1,8 +1,8 @@
 ## info: Detects the topology of your network.
 
-35 * * * *              @bindir@/navtopology --l2 --vlan
+35 * * * *              navtopology --l2 --vlan
 
 # If you want to run the old topology detector, uncomment the following lines:
 
-# 35 * * * *              @bindir@/network-discovery topology
-# 38 * * * *              @bindir@/network-discovery vlan
+# 35 * * * *              network-discovery topology
+# 38 * * * *              network-discovery vlan
