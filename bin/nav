@@ -208,6 +208,17 @@ def c_version(_):
     print("NAV %s" % buildconf.VERSION)
 
 
+def c_config(_):
+    """reports the location of NAV's main configuration file"""
+    from nav.config import find_configfile, CONFIG_LOCATIONS
+    path = find_configfile('nav.conf')
+    if path:
+        print(path)
+    else:
+        sys.exit("Could not find nav.conf in any of these locations:\n"
+                 "{}".format('\n'.join(CONFIG_LOCATIONS)))
+
+
 ##############
 # begin here #
 ##############
