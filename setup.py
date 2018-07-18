@@ -1,14 +1,16 @@
 import os
-import subprocess
 from glob import glob
 from setuptools import setup, find_packages
-from setuptools.command.build_py import build_py
-
-TOP_SRCDIR = os.path.abspath(os.path.dirname(__file__))
+from distutils.command.build import build
 
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+
+def etc_files():
+    return [(d, [os.path.join(d,f) for f in files])
+            for d, folders, files in os.walk('etc')]
 
 
 def find_scripts():
@@ -18,14 +20,10 @@ def find_scripts():
                 yield candidate
 
 
-class Build(build_py):
-    def run(self):
-        # customized build commmand
-        if not self.dry_run:
-            if not os.path.exists("nav/buildconf.py"):
-                print("HOLY MACKEREL, BATMAN, NO BUILDCONF EXISTS YET")
-
-        build_py.run(self)
+class NAVBuild(build):
+    sub_commands = [
+        ('build_sass', None),
+    ] + build.sub_commands
 
 
 setup(
@@ -49,7 +47,7 @@ setup(
     ],
 
     cmdclass={
-        'build_py': Build,
+        'build': NAVBuild,
     },
 
     scripts=list(find_scripts()),
@@ -58,10 +56,14 @@ setup(
     package_data={
         '': ['static', 'sql', 'templates'],
     },
+    exclude_package_data={
+        'nav.web': ['*.scss'],  # no need to install source SASS files
+    },
+    data_files=etc_files(),
 
     sass_manifests={
-        'nav': (os.path.join(TOP_SRCDIR, 'nav/web/sass'),
-                os.path.join(TOP_SRCDIR, 'nav/web/static/css')),
+        'nav': ('web/sass',
+                'web/static/css'),
     },
 
     zip_safe=False,

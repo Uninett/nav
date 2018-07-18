@@ -42,15 +42,12 @@ RUN apt-get update \
        sudo \
        apache2 \
        libapache2-mod-wsgi \
-       rubygems \
        inotify-tools \
        postgresql-client \
        vim \
        less \
        nbtscan
 
-RUN gem install --version '3.3.9' sass ;\
-    gem install --version '~> 0.9' rb-inotify
 
 RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav
 
