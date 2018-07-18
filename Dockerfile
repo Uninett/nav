@@ -50,7 +50,6 @@ RUN apt-get update \
 
 RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav
 
-RUN echo "import sys\nsys.path.append('/source/python')" > /etc/python2.7/sitecustomize.py
 
 
 #################################################################################
@@ -75,7 +74,6 @@ RUN a2dissite 000-default; a2ensite nav-site
 ADD tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
 VOLUME ["/source"]
-ENV    PYTHONPATH /source/python
 ENV    PATH /source/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin
 RUN    echo "PATH=$PATH" > /etc/profile.d/navpath.sh
 EXPOSE 80
