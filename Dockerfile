@@ -68,7 +68,10 @@ ADD tools/docker/supervisord.conf /etc/supervisor/conf.d/nav.conf
 COPY requirements/ /requirements
 ADD requirements.txt /
 ADD tests/requirements.txt /test-requirements.txt
-RUN pip install --upgrade pip && hash -r && pip install -r /requirements.txt && pip install -r /test-requirements.txt
+RUN pip install --upgrade 'pip<10' tox setuptools && \
+    hash -r && \
+    pip install -r /requirements.txt && \
+    pip install -r /test-requirements.txt
 
 ADD tools/docker/nav-apache-site.conf /etc/apache2/sites-available/nav-site.conf
 RUN a2dissite 000-default; a2ensite nav-site
