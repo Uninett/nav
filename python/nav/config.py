@@ -194,3 +194,9 @@ def open_configfile(filename):
 class ConfigurationError(GeneralException):
     """Configuration error"""
     pass
+
+
+try:
+    NAV_CONFIG = read_flat_config('nav.conf')
+except OSError:
+    NAV_CONFIG = {}
