@@ -24,13 +24,22 @@ by servicemon and pinger.
 Implements the singleton pattern ensuring only one
 instance created.
 """
-from nav.config import read_flat_config
+import os
+from nav.config import read_flat_config, NAV_CONFIG
 
 
 class Conf(dict):
     def __init__(self, *_args, **_kwargs):
         super(Conf, self).__init__()
         self.update(read_flat_config(self._file))
+
+    @property
+    def logfile(self):
+        logfile = self.get('logfile')
+        if logfile.startswith(os.sep) or not logfile:
+            return logfile
+        else:
+            return os.path.join(NAV_CONFIG['LOG_DIR'], logfile)
 
 
 def dbconf(*args, **kwargs):

@@ -51,13 +51,14 @@ import nav.db
 # These have to be imported after the envrionment is setup
 from django.db import DatabaseError, connection
 from nav.alertengine.base import check_alerts
+from nav.config import NAV_CONFIG
 
 #
 #  PATHS
 #
-configfile = os.path.join(nav.buildconf.sysconfdir, 'alertengine.conf')
-logfile = os.path.join(nav.buildconf.localstatedir, 'log', 'alertengine.log')
-pidfile = os.path.join(nav.buildconf.localstatedir, 'run', 'alertengine.pid')
+configfile = 'alertengine.conf'
+logfile = os.path.join(NAV_CONFIG['LOG_DIR'], 'alertengine.log')
+pidfile = 'alertengine.pid'
 
 logger = None
 
@@ -71,13 +72,12 @@ def main():
 
     # Set config defaults
     defaults = {
-        'username': nav.buildconf.nav_user,
+        'username': nav.config.NAV_CONFIG['NAV_USER'],
         'delay': '30',
         'mailwarnlevel': 'ERROR',
         'mailserver': 'localhost',
-        'mailaddr': nav.config.read_flat_config('nav.conf')['ADMIN_MAIL'],
-        'fromaddr': nav.config.read_flat_config('nav.conf')[
-            'DEFAULT_FROM_EMAIL'],
+        'mailaddr': nav.config.NAV_CONFIG['ADMIN_MAIL'],
+        'fromaddr': nav.config.NAV_CONFIG['DEFAULT_FROM_EMAIL'],
     }
 
     # Read config file

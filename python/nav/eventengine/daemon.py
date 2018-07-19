@@ -25,12 +25,10 @@ from nav import buildconf
 import nav.daemon
 from nav.eventengine.engine import EventEngine
 import nav.logs
+from nav.config import NAV_CONFIG
 
-
-PIDFILE = os.path.join(
-    buildconf.localstatedir, 'run', 'eventengine.pid')
-LOGFILE = os.path.join(
-    buildconf.localstatedir, 'log', 'eventengine.log')
+PIDFILE = 'eventengine.pid'
+LOGFILE = os.path.join(NAV_CONFIG['LOG_DIR'], 'eventengine.log')
 _logger = logging.getLogger(__name__)
 
 

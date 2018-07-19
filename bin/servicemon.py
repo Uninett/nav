@@ -135,12 +135,11 @@ class Controller:
             sys.exit(0)
         elif signum == signal.SIGHUP:
             # reopen the logfile
-            logfile_path = self.conf.get("logfile", "servicemon.log")
             LOGGER.info("Caught SIGHUP. Reopening logfile...")
-            logfile = open(logfile_path, 'a')
+            logfile = open(self.conf.logfile, 'a')
             nav.daemon.redirect_std_fds(stdout=logfile, stderr=logfile)
 
-            LOGGER.info("Reopened logfile: %s", logfile_path)
+            LOGGER.info("Reopened logfile: %s", self.conf.logfile)
         else:
             LOGGER.info("Caught %s. Resuming operation.", signum)
 
@@ -148,9 +147,7 @@ class Controller:
 def main(foreground):
     """Daemon main entry point"""
     conf = config.serviceconf()
-    pidfilename = conf.get(
-        "pidfile",
-        os.path.join(buildconf.localstatedir, "run", "servicemon.pid"))
+    pidfilename = conf.get("pidfile", "servicemon.pid")
 
     # Already running?
     try:
@@ -161,10 +158,7 @@ def main(foreground):
         sys.exit(error)
 
     if not foreground:
-        logfile_path = conf.get(
-            'logfile',
-            os.path.join(buildconf.localstatedir, 'log','servicemon.log'))
-        logfile = open(logfile_path, 'a')
+        logfile = open(conf.logfile, 'a')
         nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
 
     my_controller = Controller(foreground=foreground)
