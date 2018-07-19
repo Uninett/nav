@@ -35,6 +35,7 @@ from twisted.internet.defer import maybeDeferred, setDebugging
 from twisted.python.failure import Failure
 
 from nav import buildconf
+from nav.config import NAV_CONFIG
 from nav.util import is_valid_ip
 import nav.daemon
 from nav.daemon import signame
@@ -237,8 +238,7 @@ class IPDevPollProcess(object):
 
 class CommandProcessor(object):
     """Processes the command line and starts ipdevpoll."""
-    pidfile = os.path.join(
-        nav.buildconf.localstatedir, 'run', 'ipdevpolld.pid')
+    pidfile = 'ipdevpolld.pid'
 
     def __init__(self):
         self.options = self.parse_options()
@@ -343,9 +343,8 @@ class CommandProcessor(object):
             # instead.
             from nav.ipdevpoll import config
             logfile_name = config.ipdevpoll_conf.get('ipdevpoll', 'logfile')
-            if logfile_name[0] not in './':
-                logfile_name = os.path.join(nav.buildconf.localstatedir,
-                                            'log', logfile_name)
+            if not logfile_name.startswith(os.sep):
+                logfile_name = os.path.join(NAV_CONFIG['LOG_DIR'], logfile_name)
 
         nav.logs.init_generic_logging(
             logfile=logfile_name,
