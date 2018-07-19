@@ -25,7 +25,7 @@ Implements the singleton pattern ensuring only one
 instance created.
 """
 import os
-from nav.config import read_flat_config, NAV_CONFIG
+from nav.config import read_flat_config
 
 
 class Conf(dict):
@@ -35,6 +35,7 @@ class Conf(dict):
 
     @property
     def logfile(self):
+        from nav.config import NAV_CONFIG
         logfile = self.get('logfile')
         if logfile.startswith(os.sep) or not logfile:
             return logfile
