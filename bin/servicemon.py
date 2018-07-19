@@ -155,13 +155,10 @@ def main(foreground):
     # Already running?
     try:
         nav.daemon.justme(pidfilename)
-    except nav.daemon.AlreadyRunningError:
-        otherpid = open(pidfilename, "r").read().strip()
-        sys.stderr.write("servicemon is already running (pid: %s)\n" % otherpid)
-        sys.exit(1)
-    except nav.daemon.DaemonError as e:
-        sys.stderr.write("%s\n" % e)
-        sys.exit(1)
+    except nav.daemon.AlreadyRunningError as error:
+        sys.exit("servicemon is already running (pid: %s)" % error.pid)
+    except nav.daemon.DaemonError as error:
+        sys.exit(error)
 
     if not foreground:
         logfile_path = conf.get(

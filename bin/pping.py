@@ -236,13 +236,10 @@ def start(foreground, socket):
     # Already running?
     try:
         nav.daemon.justme(pidfilename)
-    except nav.daemon.AlreadyRunningError:
-        otherpid = open(pidfilename, "r").read().strip()
-        sys.stderr.write("pping is already running (pid: %s)\n" % otherpid)
-        sys.exit(1)
+    except nav.daemon.AlreadyRunningError as error:
+        sys.exit("pping is already running (pid: %s)" % error.pid)
     except nav.daemon.DaemonError as error:
-        sys.stderr.write("%s\n" % error)
-        sys.exit(1)
+        sys.exit(error)
 
     if not foreground:
         logfile_path = conf.get(
