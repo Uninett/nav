@@ -12,10 +12,15 @@ this with whatever hostname you have configured for your NAV server.
 Minimal configuration
 =====================
 
-All configuration files are located below |sysconfdir|.  Default configuration
-files are placed here on your first install.  Most of these are documented
-with comments, so if you want to get advanced you can check each config file
-to see if there are any defaults you'd like to change.
+All configuration files are located in the :file:`etc/` directory. NAV will
+look for these in various locations on your system, so these initial files
+should be copied to a system-wide directory when you first install NAV, either
+by you, or by the packaging system used to distribute NAV. You can use the
+:kbd:`nav config` command to see where NAV looks for these configuration files.
+
+Most of the configuration files are documented with comments, so if you want to
+get advanced you can check each config file to see if there are any defaults
+you'd like to change.
 
 We recommend you at least change the following two options in :file:`nav.conf`
 before running NAV:

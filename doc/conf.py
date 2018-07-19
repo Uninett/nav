@@ -263,8 +263,3 @@ latex_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 #intersphinx_mapping = {'http://docs.python.org/': None}
-
-rst_epilog = """
-.. |sysconfdir| replace:: :file:`%s`
-.. |nav_user| replace:: `%s`
-""" % (buildconf.sysconfdir, buildconf.nav_user)
