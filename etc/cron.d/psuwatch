@@ -1,0 +1,3 @@
+## info: Monitors the state of redundant PSUs and fans
+
+5 * * * *	powersupplywatch.py

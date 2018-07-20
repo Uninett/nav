@@ -1,2 +1,0 @@
-## info: Clean database with navclean
-*/5 * * * * @bindir@/navclean -f -q --netbox --websessions

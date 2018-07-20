@@ -1,0 +1,2 @@
+## info: Regularly fetch netbiosnames from active computers
+*/15 * * * * netbiostracker.py

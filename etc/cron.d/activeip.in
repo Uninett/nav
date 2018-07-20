@@ -1,2 +1,0 @@
-## info: Collect active ip-adresses for all prefixes
-*/30 * * * * @bindir@/collect_active_ip.py

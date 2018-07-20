@@ -1,2 +1,0 @@
-## info: Regularly fetch netbiosnames from active computers
-*/15 * * * * @bindir@/netbiostracker.py
