@@ -35,7 +35,7 @@ from nav.logs import init_generic_logging
 
 PIDFILE = join(localstatedir, 'run', 'collect_active_ip.pid')
 LOGFILE = join(localstatedir, 'log', 'collect_active_ip.log')
-_logger = logging.getLogger('ipcollector')
+_logger = logging.getLogger('nav.ipcollector')
 
 
 def main(days=None):

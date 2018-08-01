@@ -83,15 +83,13 @@ def main():
     minport = min(port for addr, port in opts.address)
     if minport < 1024:
         if os.geteuid() != 0:
-            print("Must be root to bind to ports < 1024, exiting")
-            sys.exit(-1)
+            sys.exit("Must be root to bind to ports < 1024, exiting")
 
     # Check if already running
     try:
         daemon.justme(pidfile)
     except daemon.DaemonError as why:
-        print(why)
-        sys.exit(-1)
+        sys.exit(why)
 
     # Create SNMP agent object
     server = agent.TrapListener(*opts.address)
@@ -103,13 +101,12 @@ def main():
         if os.geteuid() == 0:
             daemon.switchuser(runninguser)
     except daemon.DaemonError as why:
-        print(why)
         server.close()
-        sys.exit(-1)
+        sys.exit(why)
 
     global handlermodules
 
-    nav.logs.init_generic_logging(stderr=True, read_config=True)
+    nav.logs.init_stderr_logging()
 
     logger.debug("using %r as SNMP backend", agent.BACKEND)
 
@@ -124,7 +121,7 @@ def main():
 
     addresses_text = ", ".join(address_to_string(*addr)
                                for addr in opts.address)
-    if opts.daemon:
+    if not opts.foreground:
         # Daemonize and listen for traps
         try:
             logger.debug("Going into daemon mode...")
@@ -135,9 +132,8 @@ def main():
             server.close()
             sys.exit(1)
 
-        # Daemonized; reopen log files
-        nav.logs.reopen_log_files()
-        logger.debug('Daemonization complete; reopened log files.')
+        # Daemonized
+        logger.info('snmptrapd is now running in daemon mode')
 
         # Reopen lost db connection
         # This is a workaround for a double free bug in psycopg 2.0.7
@@ -159,12 +155,13 @@ def main():
             logger.critical("Fatal exception ocurred", exc_info=True)
 
     else:
+        daemon.writepidfile(pidfile)
         # Start listening and exit cleanly if interrupted.
         try:
             logger.info("Listening on %s", addresses_text)
             server.listen(opts.community, trap_handler)
         except KeyboardInterrupt as why:
-            logger.error("Received keyboardinterrupt, exiting.")
+            logger.error("Received keyboard interrupt, exiting.")
             server.close()
 
 
@@ -177,8 +174,8 @@ def parse_args():
                "appears to support IPv6, also [::]:162, which means the daemon "
                "will accept traps on any IPv4/IPv6 interface, UDP port 162."
     )
-    parser.add_argument("-d", "--daemon", action="store_true",
-                        help="Run as daemon")
+    parser.add_argument("-f", "--foreground", action="store_true",
+                        help="Run in foreground")
     parser.add_argument("-c", "--community", default="public",
                         help="Which SNMP community incoming traps must use. "
                              "The default is 'public'")
@@ -252,12 +249,15 @@ def signal_handler(signum, _):
     if signum == signal.SIGHUP:
         logger.info("SIGHUP received; reopening log files.")
         nav.logs.reopen_log_files()
-        logfile = nav.logs.get_logfile_from_logger()
+        logfile = open(logfile_path, 'a')
         daemon.redirect_std_fds(stdout=logfile, stderr=logfile)
-        logger.info("Log files reopened.")
+        nav.logs.reset_log_levels()
+        nav.logs.set_log_config()
+        logger.info('Log files reopened.')
     elif signum == signal.SIGTERM:
         logger.warning('SIGTERM received: Shutting down.')
         sys.exit(0)
+
 
 if __name__ == '__main__':
     main()

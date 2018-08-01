@@ -20,8 +20,6 @@ import logging
 import time
 from os.path import join
 
-import django
-
 from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
@@ -30,7 +28,8 @@ from nav.netbiostracker.config import NetbiosTrackerConfig
 from nav.buildconf import localstatedir
 from nav.logs import init_generic_logging
 
-_logger = logging.getLogger('netbiostracker')
+
+_logger = logging.getLogger('nav.netbiostracker')
 LOGFILE = 'netbiostracker.log'
 
 

@@ -9,9 +9,11 @@
          refresh_session: "{% url 'refresh-session' %}",
          api_netbox_list: "{% url 'api:1:netbox-list' %}",
          api_interface_list: "{% url 'api:1:interface-list' %}",
+         api_room_list: "{% url 'api:1:room-list' %}",
          api_prefix_usage_list: "{% url 'api:1:prefix-usage-list' %}",
          status2_api_alerthistory: "{% url 'api:1:alert-list' %}",
-         set_account_preference: "{% url 'set-account-preference' %}"
+         set_account_preference: "{% url 'set-account-preference' %}",
+         room_info_base: "{% url 'room-search' %}",
      },
      setTitle: function(title) {
          document.title = "NAV - " + title;

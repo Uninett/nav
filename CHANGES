@@ -1,3 +1,33 @@
+Version 4.8.5
+(released 21 Jun 2018)
+
+ Fixed GitHub issues in this release:
+
+  * #1688 (Report crashes when using %, * or non-ASCII characters in
+           filter values)
+  * #1693 (Changing password from "User and API Administration" leads to
+           KeyError)
+  * #1702 (Adding log entries with non-ascii characters crashes page)
+  * #1711 (Regression: Report crashes when attempting to sort a column
+           filtered on a non-ASCII value)
+  * #1719 ('navdump -a' puts status messages into the output files)
+  * #1721 (Widget spinner visible when opening tool-menu)
+  * #1729 (Room search "CSV download" CR in "last active" field)
+  * #1734 (l2trace crashes when searching for invalid IP addresses)
+  * #1735 (HTTP errors from Graphite shouldn't crash NAV's Graphite
+           render proxy)
+
+ Copyright changes:
+
+  Third party copyright owners of NAV code, like The Norwegian University of
+  Science and Technology, and the University of Tromsø, have signed over their
+  copyright for their code contributions to Uninett. NAV 4.8 is still licensed
+  under GPLv2-only, but will be relicensed under GPLv3 in the upcoming 4.9
+  series. This should have no impact on end users; as a company with public
+  ownership, Uninett will always strive to keep NAV under a free and open
+  source license.
+
+
 Version 4.8.4
 (released 05 Apr 2018)
 

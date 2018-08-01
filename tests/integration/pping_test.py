@@ -64,7 +64,7 @@ def get_pping_output(timeout=5):
 
     Also asserts that pping shouldn't unexpectedly exit with a zero exitcode.
     """
-    cmd = get_root_method() + [os.path.join(bindir, 'pping.py'), '-n']
+    cmd = get_root_method() + [os.path.join(bindir, 'pping.py'), '-f']
     try:
         output = check_output(cmd, stderr=STDOUT, timeout=timeout)
     except TimeoutExpired as error:
@@ -105,7 +105,7 @@ timeout = 1
 nrping = 2
 delay = 2
 logfile = {localstatedir}/log/pping.log
-pidfile = {localstatedir}run/pping.pid
+pidfile = {localstatedir}/run/pping.pid
 """.format(user=nav_user, localstatedir=localstatedir))
     yield configfile
     print("restoring ping config")

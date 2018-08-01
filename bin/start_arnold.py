@@ -52,7 +52,7 @@ from nav.arnold import (find_computer_info, is_inside_vlans,
 from nav.models.arnold import DetentionProfile, Identity
 from nav.models.manage import Prefix
 
-LOGGER = logging.getLogger('start_arnold')
+LOGGER = logging.getLogger('nav.start_arnold')
 
 
 def main(args):
