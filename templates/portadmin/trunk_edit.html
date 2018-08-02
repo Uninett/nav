@@ -2,7 +2,7 @@
 
 {% block page_content %}
 
-  {% if interface %}
+  {% if interface and trunk_edit %}
 
     <p>
       <a href="{% url 'portadmin-sysname' interface.netbox.sysname %}"
@@ -94,7 +94,11 @@
 
 
   {% else %}
-    <p class="error">This interface does not exist</p>
+    {% if not trunk_edit %}
+      <div class="alert-box info">Trunk editing is disabled</div>
+    {% else %}
+      <p class="error">This interface does not exist</p>
+    {% endif %}
   {% endif %}
 
 
