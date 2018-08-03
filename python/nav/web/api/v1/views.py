@@ -49,7 +49,7 @@ from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
 from .helpers import prefix_collector
 from .filter_backends import *
 from nav.web.status2 import STATELESS_THRESHOLD
-from nav.macaddress import MacAddress
+from nav.macaddress import MacPrefix
 
 EXPIRE_DELTA = timedelta(days=365)
 MINIMUMPREFIXLENGTH = 4
@@ -422,6 +422,17 @@ class MachineTrackerViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
             queryset = queryset.extra(
                 where=[SQL_OVERLAPS.format(starttime, endtime)])
 
+        # Support wildcard filtering on mac
+        mac = self.request.QUERY_PARAMS.get('mac')
+        if mac:
+            try:
+                mac = MacPrefix(mac, min_prefix_len=2)
+            except ValueError as e:
+                raise exceptions.ParseError("mac: %s" % e)
+            # convert to text and use like to filter
+            queryset = queryset.extra(where=["mac::text like %s"],
+                                      params=[str(mac) + '%'])
+
         return queryset
 
 
@@ -440,7 +451,8 @@ class CamViewSet(MachineTrackerViewSet):
     - `endtime`: *must be set with starttime: lists all active records in the
       period between starttime and endtime*
     - `ifindex`
-    - `mac`
+    - `mac`: *supports prefix filtering - for instance "mac=aa:aa:aa" will
+       return all records where the mac address starts with aa:aa:aa*
     - `netbox`
     - `port`
 
@@ -451,7 +463,7 @@ class CamViewSet(MachineTrackerViewSet):
     """
     model_class = manage.Cam
     serializer_class = serializers.CamSerializer
-    filter_fields = ('mac', 'netbox', 'ifindex', 'port')
+    filter_fields = ('netbox', 'ifindex', 'port')
 
     def list(self, request):
         """Override list so that we can control what is returned"""
@@ -459,12 +471,6 @@ class CamViewSet(MachineTrackerViewSet):
             return Response("Cam records are numerous - use a filter",
                             status=status.HTTP_400_BAD_REQUEST)
         return super(CamViewSet, self).list(request)
-
-    def get_queryset(self):
-        """Validate """
-        queryset = super(CamViewSet, self).get_queryset()
-        validate_mac(self.request)
-        return queryset
 
 
 class ArpViewSet(MachineTrackerViewSet):
@@ -483,7 +489,8 @@ class ArpViewSet(MachineTrackerViewSet):
     - `endtime`: *must be set with starttime: lists all active records in the
       period between starttime and endtime*
     - `ip`
-    - `mac`
+    - `mac`: *supports prefix filtering - for instance "mac=aa:aa:aa" will
+       return all records where the mac address starts with aa:aa:aa*
     - `netbox`
     - `prefix`
 
@@ -494,7 +501,7 @@ class ArpViewSet(MachineTrackerViewSet):
     """
     model_class = manage.Arp
     serializer_class = serializers.ArpSerializer
-    filter_fields = ('mac', 'netbox', 'prefix')
+    filter_fields = ('netbox', 'prefix')
 
     def list(self, request):
         """Override list so that we can control what is returned"""
@@ -515,8 +522,6 @@ class ArpViewSet(MachineTrackerViewSet):
             oper = '=' if addr.len() == 1 else '<<'
             expr = "arp.ip {} '{}'".format(oper, addr)
             queryset = queryset.extra(where=[expr])
-
-        validate_mac(self.request)
 
         return queryset
 
@@ -847,11 +852,3 @@ def get_or_create_token(request):
     else:
         return HttpResponse('You must log in to get a token',
                             status=status.HTTP_403_FORBIDDEN)
-
-def validate_mac(request):
-    mac = request.GET.get('mac')
-    if mac:
-        try:
-            MacAddress(mac)
-        except ValueError as e:
-            raise exceptions.ParseError("mac: %s" % e)
