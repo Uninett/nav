@@ -198,13 +198,13 @@ class MacPrefix(object):
     """
     MIN_PREFIX_LEN = 6
 
-    def __init__(self, prefix):
+    def __init__(self, prefix, min_prefix_len=MIN_PREFIX_LEN):
         prefix = _clean_hexstring(six.text_type(prefix))
 
         self._mask_len = len(prefix)
-        if self._mask_len < self.MIN_PREFIX_LEN:
+        if self._mask_len < min_prefix_len:
             raise ValueError("MacPrefix must be at least %s nybbles long" %
-                             self.MIN_PREFIX_LEN)
+                             min_prefix_len)
         if self._mask_len > MAC_ADDR_NYBBLES:
             raise ValueError("MacPrefix must be no longer than %s nybbles" %
                              MAC_ADDR_NYBBLES)
