@@ -336,3 +336,15 @@ def is_cisco(netbox):
     :type netbox: manage.Netbox
     """
     return netbox.type.get_enterprise_id() == VENDOR_ID_CISCOSYSTEMS
+
+
+def get_trunk_edit(config):
+    """Gets config option for trunk edit
+
+    Default is to allow trunk edit
+    """
+    section = 'general'
+    option = 'trunk_edit'
+    if config.has_section(section) and config.has_option(section, option):
+        return config.getboolean(section, option)
+    return True
