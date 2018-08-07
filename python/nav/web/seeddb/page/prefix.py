@@ -21,8 +21,7 @@ Forms and controllers for the prefix functionality in SeedDB
 from django import forms
 from django.core.urlresolvers import reverse
 from django.db import transaction
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from django.http import HttpResponseRedirect
 
 from nav.web.message import new_message, Messages
@@ -139,8 +138,7 @@ def prefix_edit(request, prefix_id=None):
         'vlan_form': vlan_form,
         'sub_active': prefix and {'edit': True} or {'add': True},
     })
-    return render_to_response('seeddb/edit_prefix.html',
-                              context, RequestContext(request))
+    return render(request, 'seeddb/edit_prefix.html', context)
 
 
 def get_prefix_and_vlan(prefix_id):

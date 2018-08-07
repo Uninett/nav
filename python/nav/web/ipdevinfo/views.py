@@ -415,15 +415,15 @@ def get_port_view(request, netbox_sysname, perspective):
     # Min length of ifname for it to be shortened
     ifname_too_long = 12
 
-    return render_to_response(
+    return render(
+        request,
         'ipdevinfo/modules.html',
         {
             'netbox': netbox,
             'port_view': port_view,
             'ifname_too_long': ifname_too_long,
             'activity_interval_form': activity_interval_form
-        },
-        context_instance=RequestContext(request))
+        })
 
 
 def module_details(request, netbox_sysname, module_name):
@@ -727,7 +727,8 @@ def render_affected(request, netboxid):
     services = Service.objects.filter(netbox__in=unreachable).order_by('netbox')
     affected_hosts = utils.get_affected_host_count(unreachable)
 
-    return render_to_response(
+    return render(
+        request,
         'ipdevinfo/frag-affected.html', {
             'unreachable': unreachable,
             'affected': affected,
@@ -735,8 +736,7 @@ def render_affected(request, netboxid):
             'organizations': organizations,
             'contacts': contacts,
             'affected_hosts': affected_hosts
-        },
-        context_instance=RequestContext(request))
+        })
 
 
 def render_host_info(request, identifier):

@@ -14,8 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Layer 2 trace views"""
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 
 from .forms import L2TraceForm
 
@@ -37,5 +36,4 @@ def index(request):
     if form.is_valid():
         context.update({'l2tracer': form.l2tracer})
 
-    return render_to_response('l2trace/l2trace.html', context,
-                              RequestContext(request))
+    return render(request, 'l2trace/l2trace.html', context)
