@@ -17,8 +17,8 @@ def choice_values(model, field_name):
     :param field_name: field to aggregate on
     :return: values_list based on model and field_name
     """
-    choice_list = model.objects.values_list(
-        field_name).select_related().distinct()
+    choice_list = model.objects.select_related().values_list(
+        field_name).distinct()
     choices = [(choice[0], choice[0]) for choice in choice_list]
     choices.sort()
     choices.insert(0, ('', u'(All)'))
