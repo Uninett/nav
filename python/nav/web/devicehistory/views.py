@@ -82,7 +82,7 @@ def devicehistory_search(request):
     )
 
 
-def devicehistory_view(request):
+def devicehistory_view(request, **_):
     """Device history search results view"""
 
     selection = {
