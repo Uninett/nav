@@ -230,6 +230,7 @@ else:
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
     'DEFAULT_PAGINATION_CLASS': 'nav.web.api.v1.NavPageNumberPagination',
+    'UNAUTHENTICATED_USER': None,
 }
 
 # Classes that implement a search engine for the web navbar
