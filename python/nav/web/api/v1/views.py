@@ -36,7 +36,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.generics import ListAPIView, get_object_or_404
-from nav.models.api import APIToken
 from nav.models import manage, event, cabling, rack, profiles
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
@@ -979,6 +978,7 @@ def get_or_create_token(request):
     :type request: django.http.HttpRequest
     """
     if request.account.is_admin():
+        from nav.models.api import APIToken
         token, _ = APIToken.objects.get_or_create(
             client=request.account, expires__gte=datetime.now(),
             defaults={'token': auth_token(),
