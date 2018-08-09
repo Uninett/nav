@@ -242,7 +242,7 @@ def cancel(request, task_id):
 
 
 @transaction.atomic()
-def edit(request, task_id=None, start_time=None, **kwargs):
+def edit(request, task_id=None, start_time=None, **_):
     account = get_account(request)
     quickselect = QuickSelect(service=True)
     component_trail = None

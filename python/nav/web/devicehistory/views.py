@@ -78,7 +78,7 @@ def devicehistory_search(request):
     return render(request, 'devicehistory/history_search.html', info_dict)
 
 
-def devicehistory_view(request, **kwargs):
+def devicehistory_view(request, **_):
     """Device history search results view"""
 
     selection = {
