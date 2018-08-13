@@ -41,6 +41,18 @@ TEST_DATA = {
 }
 
 
+# Django newer than 1.9 can send a response that lacks the Content-Type header,
+# like for a delete. The __repr__ in django 1.9 and 1.10 directly looks up the
+# Content-Type header, leading to a KeyError. Therefore, don't print()
+# responses, which depends on __repr__.
+#
+# See django bug #27640. Fixed in Django 1.11
+def print_response(response):
+    print('<%(cls)s status_code=%(status_code)d%(content_type)s>' % {
+          'cls': response.__class__.__name__, 'status_code': response.status_code,
+          'content_type': response._headers.get('Content-Type', ''),})
+
+
 # Generic tests
 
 @pytest.mark.parametrize("url", ENDPOINTS.values())
@@ -69,10 +81,10 @@ def test_delete(db, api_client, token, endpoint):
     response_delete = delete(api_client, endpoint, res.get('id'))
     response_get = get(api_client, endpoint, res.get('id'))
 
-    print(response_delete)
+    print_response(response_delete)
     assert response_delete.status_code == 204
 
-    print(response_get)
+    print_response(response_get)
     assert response_get.status_code == 404
 
 
@@ -143,7 +155,7 @@ def test_delete_netbox(db, api_client, token):
     response_get = get(api_client, endpoint, json_create['id'])
     json_get = json.loads(response_get.content.decode('utf-8'))
 
-    print(response_delete)
+    print_response(response_delete)
     print(json_get['deleted_at'])
 
     assert response_delete.status_code == 204

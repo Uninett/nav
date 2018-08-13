@@ -18,14 +18,13 @@
 from datetime import datetime
 from socket import gethostbyaddr, herror
 from IPy import IP
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 from django.utils import six
 
 from nav import asyncdns
 from nav.models.manage import Prefix, Netbox, Interface
 
-from django.utils.datastructures import SortedDict
 from django.db import DatabaseError, transaction
 
 _cached_hostname = {}
@@ -118,7 +117,7 @@ def ip_dict(rows):
     :param rows: IP search result rows.
     :return: A dict mapping IP addresses to matching result rows.
     """
-    result = SortedDict()
+    result = OrderedDict()
     for row in rows:
         ip = IP(row.ip)
         if ip not in result:
@@ -157,7 +156,7 @@ def track_mac(keys, resultset, dns):
         ips_to_lookup = [row.ip for row in resultset]
         dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
 
-    tracker = SortedDict()
+    tracker = OrderedDict()
     for row in resultset:
         if row.end_time > datetime.now():
             row.still_active = "Still active"

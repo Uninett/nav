@@ -16,8 +16,7 @@
 #
 """radius accounting interface views"""
 from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from nav.web.utils import create_title
 from .forms import (AccountChartsForm,
                     AccountLogSearchForm,
@@ -110,8 +109,7 @@ def log_search(request):
         'logsearch': True
     })
 
-    return render_to_response('radius/error_log.html', context,
-                              context_instance=RequestContext(request))
+    return render(request, 'radius/error_log.html', context)
 
 
 def log_detail_page(request, accountid):
@@ -145,8 +143,7 @@ def log_detail(request, accountid, template):
         'fields': fields,
     }
 
-    return render_to_response(template, context,
-                              context_instance=RequestContext(request))
+    return render(request, template, context)
 
 
 def account_charts(request):
@@ -176,8 +173,7 @@ def account_charts(request):
         'acctcharts': True
     })
 
-    return render_to_response('radius/account_charts.html', context,
-                              context_instance=RequestContext(request))
+    return render(request, 'radius/account_charts.html', context)
 
 
 def account_detail_page(request, accountid):
@@ -212,8 +208,7 @@ def account_detail(request, accountid, template):
         'result': query.result
     }
 
-    return render_to_response(template, context,
-                              context_instance=RequestContext(request))
+    return render(request, template, context)
 
 
 def account_search(request):
@@ -269,8 +264,7 @@ def account_search(request):
         'acctsearch': True
     })
 
-    return render_to_response('radius/account_log.html', context,
-                              context_instance=RequestContext(request))
+    return render(request, 'radius/account_log.html', context)
 
 
 def split_time(timestring):

@@ -16,8 +16,7 @@
 #
 
 from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from django.http import HttpResponseRedirect
 
 from nav.django.utils import get_verbose_name
@@ -120,8 +119,7 @@ def move(request, model, form_model, redirect, title_attr='id',
 
     extra_context.update(context)
 
-    return render_to_response('seeddb/move.html',
-        extra_context, RequestContext(request))
+    return render(request, 'seeddb/move.html', extra_context)
 
 
 def _parse_value_differences(values, data, title_attr, fields):

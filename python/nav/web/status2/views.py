@@ -18,9 +18,8 @@ import base64
 import datetime
 import pickle
 
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.core.urlresolvers import reverse
-from django.template import RequestContext
 from django.views.generic import View
 from django.http import HttpResponse, Http404
 
@@ -79,7 +78,8 @@ class StatusView(View):
         else:
             form = forms.StatusPanelForm(self.get_status_preferences())
 
-        return render_to_response(
+        return render(
+            request,
             'status2/status.html',
             {
                 'title': 'NAV - Status',
@@ -87,7 +87,6 @@ class StatusView(View):
                 'form': form,
                 'permits': self.get_permits()
             },
-            RequestContext(request)
         )
 
 

@@ -24,8 +24,7 @@ import datetime
 from configparser import ConfigParser
 
 from django.http import HttpResponseRedirect, HttpResponseForbidden
-from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 
 import nav
 from nav.config import read_flat_config
@@ -194,15 +193,11 @@ def handle_search(request, _searchform, form_target):
 
     context.update({'form_target': form_target})
 
-    return render_to_response('syslogger/frag-search.html',
-                              context,
-                              RequestContext(request))
+    return render(request, 'syslogger/frag-search.html', context)
 
 
 def index(request):
-    return render_to_response('syslogger/index.html',
-                              _build_context(request),
-                              RequestContext(request))
+    return render(request, 'syslogger/index.html', _build_context(request))
 
 
 def group_search(request):
@@ -233,9 +228,7 @@ def exceptions_response(request):
         excepts.append((option, newpriority))
     context['exceptions'] = excepts
     context['exceptions_mode'] = True
-    return render_to_response('syslogger/frag-exceptions.html',
-                              context,
-                              RequestContext(request))
+    return render(request, 'syslogger/frag-exceptions.html', context)
 
 
 def errors_response(request):
@@ -256,6 +249,4 @@ def errors_response(request):
     context['errors'] = errs
     context['errors_count'] = len(errs)
     context['errors_mode'] = True
-    return render_to_response('syslogger/frag-errors.html',
-                                context,
-                                RequestContext(request))
+    return render(request, 'syslogger/frag-errors.html', context)
