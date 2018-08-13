@@ -91,6 +91,16 @@ STATICFILES_FINDERS = (
 
 # Templates
 
+_NAV_CONTEXT_PROCESSORS = [
+                    'nav.django.context_processors.debug',
+                    'nav.django.context_processors.account_processor',
+                    'nav.django.context_processors.nav_version',
+                    'nav.django.context_processors.graphite_base',
+                    'nav.django.context_processors.footer_info',
+]
+
+
+# Django 1.8 or newer
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -101,25 +111,25 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.core.context_processors.request',
-                'django.contrib.messages.context_processors.messages',
-                'nav.django.context_processors.debug',
-                'nav.django.context_processors.account_processor',
-                'nav.django.context_processors.nav_version',
-                'nav.django.context_processors.graphite_base',
-                'nav.django.context_processors.footer_info',
-                'django.core.context_processors.static',
+                'django.template.context_processors.request',
+                'django.contrib.messages.context_processors.messages'
+            ] + _NAV_CONTEXT_PROCESSORS + [
+                'django.template.context_processors.static',
             ],
             'debug': DEBUG,
         },
     }
 ]
 
-TEMPLATE_DEBUG = DEBUG                       # XXX Pre Django 1.8
-TEMPLATE_DIRS = tuple(TEMPLATES[0]['DIRS'])  # XXX Pre Django 1.8
-TEMPLATE_CONTEXT_PROCESSORS = tuple(         # XXX Pre Django 1.8
-    TEMPLATES[0]['OPTIONS']['context_processors']
-)
+if django.VERSION[:2] <= (1, 7): # Django 1.7
+    TEMPLATE_DEBUG = DEBUG                       # XXX Pre Django 1.8
+    TEMPLATE_DIRS = tuple(TEMPLATES[0]['DIRS'])  # XXX Pre Django 1.8
+    TEMPLATE_CONTEXT_PROCESSORS = [              # XXX Pre Django 1.8
+        'django.core.context_processors.request',
+        'django.contrib.messages.context_processors.messages',
+        ] + _NAV_CONTEXT_PROCESSORS + [
+            'django.core.context_processors.static'
+        ]
 
 # Middleware
 MIDDLEWARE_CLASSES = (

@@ -16,7 +16,7 @@ def test_templates_can_be_found():
 
 
 def get_template_list():
-    for tmpldir in settings.TEMPLATE_DIRS:
+    for tmpldir in settings.TEMPLATES[0]['DIRS']:
         for dirname, _subdirs, files in os.walk(tmpldir):
             for name in files:
                 fullpath = join(dirname, name)
