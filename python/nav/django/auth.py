@@ -24,12 +24,12 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.sessions.backends.db import SessionStore
 from django.conf import settings
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.six.moves.urllib import parse
 try:
     from django.utils.deprecation import MiddlewareMixin
 except ImportError:  # Django <= 1.9
     MiddlewareMixin = object
 
-from six.moves.urllib import parse
 
 _logger = getLogger(__name__)
 
