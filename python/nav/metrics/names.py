@@ -15,9 +15,12 @@
 #
 """Search & discovery functions for Graphite metric names and hierarchies"""
 
+import codecs
 from collections import OrderedDict
 import itertools
 import json
+
+
 from django.utils.six.moves.urllib.parse import urlencode, urljoin
 from django.utils.six.moves.urllib.request import Request, urlopen
 from django.utils.six.moves.urllib.error import URLError
@@ -132,7 +135,7 @@ def raw_metric_query(query):
     req = Request(url)
     try:
         response = urlopen(req)
-        return json.load(response)
+        return json.load(codecs.getreader('utf-8')(response))
     except URLError as err:
         raise errors.GraphiteUnreachableError(
             "{0} is unreachable".format(base), err)
