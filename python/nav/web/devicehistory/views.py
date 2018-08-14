@@ -20,8 +20,7 @@ from operator import attrgetter
 from django.core.urlresolvers import reverse
 from django.db import connection, transaction
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 
 from nav.models.fields import INFINITY
 from nav.models.manage import Netbox, Module
@@ -62,8 +61,8 @@ def devicehistory_search(request):
     """Implements the device history landing page / search form"""
     device_quickselect = QuickSelect(**DEVICEQUICKSELECT_VIEW_HISTORY_KWARGS)
 
-    if 'from_date' in request.REQUEST:
-        form = DeviceHistoryViewFilter(request.REQUEST)
+    if 'from_date' in request.GET:
+        form = DeviceHistoryViewFilter(request.GET)
         if form.is_valid():
             return devicehistory_view(request)
     else:
@@ -76,32 +75,32 @@ def devicehistory_search(request):
         'title': 'NAV - Device History',
         'form': form
     }
-    return render_to_response(
+    return render(
+        request,
         'devicehistory/history_search.html',
         info_dict,
-        RequestContext(request)
     )
 
 
-def devicehistory_view(request):
+def devicehistory_view(request, **_):
     """Device history search results view"""
 
     selection = {
-        'organization': request.REQUEST.getlist('org'),
-        'category': request.REQUEST.getlist('cat'),
-        'room__location': request.REQUEST.getlist('loc'),
-        'room': request.REQUEST.getlist('room'),
-        'netbox': request.REQUEST.getlist('netbox'),
-        'groups': request.REQUEST.getlist('netboxgroup'),
-        'module': request.REQUEST.getlist('module'),
-        'mode': request.REQUEST.getlist('mode')
+        'organization': request.GET.getlist('org'),
+        'category': request.GET.getlist('cat'),
+        'room__location': request.GET.getlist('loc'),
+        'room': request.GET.getlist('room'),
+        'netbox': request.GET.getlist('netbox'),
+        'groups': request.GET.getlist('netboxgroup'),
+        'module': request.GET.getlist('module'),
+        'mode': request.GET.getlist('mode')
     }
 
     grouped_history = None
     valid_params = ['to_date', 'from_date', 'eventtype', 'group_by',
                     'netbox', 'room']
-    if len(set(valid_params) & set(request.REQUEST.keys())) >= 1:
-        form = DeviceHistoryViewFilter(request.REQUEST)
+    if len(set(valid_params) & set(request.GET.keys())) >= 1:
+        form = DeviceHistoryViewFilter(request.GET)
     else:
         form = DeviceHistoryViewFilter()
     if form.is_valid():
@@ -132,10 +131,10 @@ def devicehistory_view(request):
         ],
         'form': form
     }
-    return render_to_response(
+    return render(
+        request,
         'devicehistory/history_view.html',
         info_dict,
-        RequestContext(request)
     )
 
 
@@ -144,7 +143,8 @@ def error_form(request):
     device_quickselect = QuickSelect(**DEVICEQUICKSELECT_POST_ERROR_KWARGS)
     error_comment = request.POST.get('error_comment', "")
 
-    return render_to_response(
+    return render(
+        request,
         'devicehistory/register_error.html',
         {
             'active': {'error': True},
@@ -157,7 +157,6 @@ def error_form(request):
                 ('Register error event', ''),
             ]
         },
-        RequestContext(request)
     )
 
 
@@ -173,7 +172,8 @@ def confirm_error_form(request):
     ).filter(id__in=selection['netbox'])
     module = Module.objects.filter(id__in=selection['module'])
 
-    return render_to_response(
+    return render(
+        request,
         'devicehistory/confirm_error.html',
         {
             'active': {'error': True},
@@ -187,7 +187,6 @@ def confirm_error_form(request):
                  reverse('devicehistory-registererror')),
             ],
         },
-        RequestContext(request)
     )
 
 
@@ -249,10 +248,10 @@ def delete_module(request):
         'title': 'NAV - Device History - Delete module',
         'navpath': [('Home', '/'), ('Delete module', '')],
     }
-    return render_to_response(
+    return render(
+        request,
         'devicehistory/delete_module.html',
         info_dict,
-        RequestContext(request)
     )
 
 

@@ -15,22 +15,21 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 
 from nav.web.seeddb.constants import TITLE_DEFAULT
 
 
 def index(request):
     """Index page. Nothing particularly interesting going on."""
-    return render_to_response(
+    return render(
+        request,
         'seeddb/index.html',
         {
             'title': TITLE_DEFAULT,
             'navpath': [('Home', '/'), ('Seed DB', None)],
             'active': {'index': True},
         },
-        RequestContext(request)
     )
 
 

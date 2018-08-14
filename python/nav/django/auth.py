@@ -15,7 +15,6 @@
 #
 """NAV authentication and authorization middleware for Django"""
 import os
-import urllib
 from logging import getLogger
 
 from nav.models.profiles import Account
@@ -25,6 +24,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.sessions.backends.db import SessionStore
 from django.conf import settings
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.six.moves.urllib.parse import quote
 
 
 _logger = getLogger(__name__)
@@ -82,7 +82,7 @@ class AuthorizationMiddleware(object):
 
         new_url = '{0}?origin={1}&noaccess'.format(
             LOGIN_URL,
-            urllib.quote(request.get_full_path()))
+            quote(request.get_full_path()))
         return HttpResponseRedirect(new_url)
 
 

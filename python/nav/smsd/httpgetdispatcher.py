@@ -27,9 +27,10 @@ Oslo, but could be useful for other similar solutions.
 
 """
 
-import urllib
 from django.utils.six.moves.urllib.request import urlopen
 from django.utils.six.moves.urllib.error import HTTPError
+from django.utils.six.moves.urllib.parse import quote_plus
+
 from nav.smsd.dispatcher import Dispatcher, DispatcherError
 
 
@@ -68,7 +69,7 @@ class HttpGetDispatcher(Dispatcher):
 
         # Format SMS
         (sms, sent, ignored) = self.formatsms(msgs)
-        sms = urllib.quote_plus(sms)
+        sms = quote_plus(sms)
 
         # Format HTTP GET request
         get_data = {'phone': phone, 'sms': sms}
