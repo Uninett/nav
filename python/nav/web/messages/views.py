@@ -151,7 +151,7 @@ def save(request, message_id=None, replaces=None):
             info_dict.update(FOLLOWUP)
         else:
             info_dict.update(CREATE)
-            navpath += [("Create message",)]
+            navpath += [("Create message", '')]
 
     form = MessageForm(instance=message)
 

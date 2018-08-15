@@ -21,7 +21,7 @@ from django.db.models import Q
 
 from nav.web.info.forms import SearchForm
 from nav.web.info.views import get_path
-from nav.web.utils import create_title
+from nav.web.utils import create_title, fix_navpath
 from nav.models.manage import NetboxGroup, Netbox, NetboxCategory
 from nav.metrics.data import get_netboxes_availability
 
@@ -44,7 +44,7 @@ def get_netboxgroup_path(other=None):
     """
     navpath = get_path() + [('Device Groups', reverse('netbox-group'))]
     if other:
-        navpath += other
+        navpath += fix_navpath(*other)
     return navpath
 
 

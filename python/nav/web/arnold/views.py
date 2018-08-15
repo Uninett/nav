@@ -42,7 +42,7 @@ LOGGER = logging.getLogger('nav.web.arnold')
 
 def create_context(path, context):
     """Create a dictionary for use in context based on path"""
-    navpath = NAVPATH + [(path,)]
+    navpath = NAVPATH + [(path, '')]
     path_context = {
         'navpath': navpath,
         'title': create_title(navpath)

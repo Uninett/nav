@@ -26,7 +26,7 @@ from nav.watchdog.util import get_statuses
 
 def render_index(request):
     """Controller for WatchDog index"""
-    navpath = [('Home', '/'), ('WatchDog', )]
+    navpath = [('Home', '/'), ('WatchDog', '')]
 
     context = {
         'navpath': navpath,

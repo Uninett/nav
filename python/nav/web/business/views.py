@@ -30,7 +30,7 @@ class BusinessView(TemplateView):
                    ('Business reports', reverse('business-index'))]
 
         if self.report_name:
-            navpath.append((self.report_name,))
+            navpath.append((self.report_name, ''))
 
         context['navpath'] = navpath
         context['title'] = create_title(navpath)

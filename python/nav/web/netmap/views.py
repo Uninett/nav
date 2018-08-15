@@ -87,7 +87,7 @@ class IndexView(DefaultNetmapViewMixin, TemplateView):
             'categories': categories,
             'rooms_locations': rooms_locations,
             'traffic_gradient': get_traffic_gradient(),
-            'navpath': [('Home', '/'), ('Netmap',)]
+            'navpath': [('Home', '/'), ('Netmap', '')]
         })
 
         return context
@@ -133,7 +133,7 @@ class NetmapAdminView(AdminRequiredMixin, ListView):
             'navpath': [
                 ('Home', '/'),
                 ('Netmap', '/netmap/'),
-                ('Netmap admin',)
+                ('Netmap admin', '')
             ],
             'global_default_view': global_default_view
         })

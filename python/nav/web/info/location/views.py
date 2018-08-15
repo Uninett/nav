@@ -84,7 +84,7 @@ def process_searchform(form):
 def locationinfo(request, locationid):
     """Controller for displaying locationinfo"""
     location = get_object_or_404(Location, id=locationid)
-    navpath = get_path() + [(location.id,)]
+    navpath = get_path() + [(location.id, '')]
     location.sorted_data = sorted(location.data.items())
 
     return render(request,
@@ -102,7 +102,7 @@ def upload_image(request, locationid):
     navpath = get_path() + [
         (location.id,
          reverse('location-info', kwargs={'locationid': location.id})),
-        ('Edit images',)
+        ('Edit images', '')
     ]
 
     if request.method == 'POST':

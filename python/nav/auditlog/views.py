@@ -33,7 +33,7 @@ class AuditlogOverview(TemplateView):
     def get_context_data(self, **kwargs):
         verbs = list(LogEntry.objects.order_by().values_list('verb', flat=True).distinct())
         verbs.sort()
-        navpath = (get_navpath_root(), ('Audit Log', ))
+        navpath = (get_navpath_root(), ('Audit Log', ''))
         context = {
             'auditlog_verbs': verbs,
             'navpath': navpath,

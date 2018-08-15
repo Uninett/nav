@@ -19,13 +19,35 @@ from django.http import HttpResponse
 
 
 from django.views.generic.list import ListView
+from django.utils import six
+
+
+def fix_navpath(*pieces):
+    """Turn [('a', 'x), 's', ('x,'), ..] into [('a', 'x'), ('s', ''), ('x', ''), ..]
+
+    For navpaths.
+    """
+    path = []
+    for piece in pieces:
+        if isinstance(piece, six.string_types):
+            path.append((piece, ''))
+        elif isinstance(piece, tuple):
+            if len(piece) == 1:
+                piece = piece + ('',)
+            path.append(piece)
+        elif isinstance(piece[0], list):
+            # recursive, probably a bug
+            path.extend(piece)
+        else:
+            path.append(piece)
+    return path
 
 
 def get_navpath_root():
     """Returns the default navpath root
 
     To be used in the navpath argument to the base template
-    navpath = [get_navpath_root(), ('Tool', )]
+    navpath = [get_navpath_root(), ('Tool', '')]
     """
     return 'Home', '/'
 

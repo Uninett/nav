@@ -640,7 +640,7 @@ def service_list(request, handler=None):
         services = services.filter(handler=handler)
 
     handler_list = Service.objects.values('handler').distinct()
-    navpath = NAVPATH + [('Service List',)]
+    navpath = NAVPATH + [('Service List', '')]
 
     # Pass on to generic view
     return SubListView.as_view(
@@ -680,7 +680,7 @@ def service_matrix(request):
         matrix_dict[service.netbox.id]['services'][index] = service
 
     matrix = matrix_dict.values()
-    navpath = NAVPATH + [('Service Matrix',)]
+    navpath = NAVPATH + [('Service Matrix', '')]
 
     context = {
         'handler_list': handler_list,

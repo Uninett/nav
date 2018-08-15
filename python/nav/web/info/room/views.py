@@ -109,7 +109,7 @@ def roominfo(request, roomid):
     """Controller for displaying roominfo"""
     room = get_object_or_404(Room, id=roomid)
     images = room.image_set.all()
-    navpath = get_path() + [(room.id,)]
+    navpath = get_path() + [(room.id, '')]
     room.sorted_data = sorted(room.data.items())
     room.meta_data = get_room_meta(room)
     return render(request,
@@ -150,7 +150,7 @@ def upload_image(request, roomid):
     room = get_object_or_404(Room, pk=roomid)
     navpath = get_path() + [
         (room.id, reverse('room-info', kwargs={'roomid': room.id})),
-        ('Edit images',)
+        ('Edit images', '')
     ]
 
     if request.method == 'POST':

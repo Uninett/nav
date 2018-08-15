@@ -17,7 +17,7 @@
 """radius accounting interface views"""
 from django.core.urlresolvers import reverse
 from django.shortcuts import render
-from nav.web.utils import create_title
+from nav.web.utils import create_title, fix_navpath
 from .forms import (AccountChartsForm,
                     AccountLogSearchForm,
                     ErrorLogSearchForm)
@@ -39,7 +39,7 @@ def get_navpath(path):
     :type path: tuple
     """
     navpath = [('Home', '/'), ('Radius', reverse('radius-index'))]
-    return navpath + [path]
+    return navpath + fix_navpath(path)
 
 
 def index(request):
@@ -256,7 +256,7 @@ def account_search(request):
     else:
         form = AccountLogSearchForm()
 
-    navpath = get_navpath(('Account Log', ))
+    navpath = get_navpath(('Account Log',))
     context.update({
         'title': create_title(navpath),
         'navpath': navpath,
