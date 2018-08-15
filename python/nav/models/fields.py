@@ -71,7 +71,6 @@ class VarcharField(models.TextField):
         return super(VarcharField, self).formfield(**defaults)
 
 
-@six.add_metaclass(models.SubfieldBase)
 class DictAsJsonField(models.TextField):
     """Serializes value to and from json. Has a fallback to pickle for
     historical reasons"""
@@ -101,7 +100,6 @@ class DictAsJsonField(models.TextField):
             return json.dumps(value)
 
 
-@six.add_metaclass(models.SubfieldBase)
 class CIDRField(VarcharField):
 
     def to_python(self, value):
@@ -115,7 +113,6 @@ class CIDRField(VarcharField):
         return value
 
 
-@six.add_metaclass(models.SubfieldBase)
 class PointField(models.CharField):
 
     def __init__(self, *args, **kwargs):
