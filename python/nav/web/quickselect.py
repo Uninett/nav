@@ -16,6 +16,7 @@
 #
 """QuickSelect widget for use in various web forms."""
 
+import django
 from django.template.loader import get_template
 from django.template import Context
 from django.utils.six import iteritems
@@ -251,6 +252,7 @@ class QuickSelect(object):
             self.output = output
 
         template = get_template('webfront/quickselect.html')
-        context = Context({'output': self.output})
-
+        context = {'output': self.output}
+        if django.VERSION[0:2] <= (1, 7):  # Django < 1.8
+            context = Context(context)
         return template.render(context)

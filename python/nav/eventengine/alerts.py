@@ -20,6 +20,7 @@ import os
 from pprint import pformat
 import re
 
+import django
 from django.template import loader, Context
 
 from nav.models.event import AlertQueue as Alert, EventQueue as Event, AlertType
@@ -239,7 +240,9 @@ def _render_template(details, alert):
 
     _template_logger.debug("rendering alert template with context:\n%s",
                            context['context_dump'])
-    output = template.render(Context(context)).strip()
+    if django.VERSION[:2] < (1, 8):  # Django < 1.8
+        context = Context(context)
+    output = template.render(context).strip()
     _template_logger.debug("rendered as:\n%s", output)
     return details, output
 
