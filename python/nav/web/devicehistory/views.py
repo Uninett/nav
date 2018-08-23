@@ -62,8 +62,8 @@ def devicehistory_search(request):
     """Implements the device history landing page / search form"""
     device_quickselect = QuickSelect(**DEVICEQUICKSELECT_VIEW_HISTORY_KWARGS)
 
-    if 'from_date' in request.REQUEST:
-        form = DeviceHistoryViewFilter(request.REQUEST)
+    if 'from_date' in request.GET:
+        form = DeviceHistoryViewFilter(request.GET)
         if form.is_valid():
             return devicehistory_view(request)
     else:
@@ -87,21 +87,21 @@ def devicehistory_view(request):
     """Device history search results view"""
 
     selection = {
-        'organization': request.REQUEST.getlist('org'),
-        'category': request.REQUEST.getlist('cat'),
-        'room__location': request.REQUEST.getlist('loc'),
-        'room': request.REQUEST.getlist('room'),
-        'netbox': request.REQUEST.getlist('netbox'),
-        'groups': request.REQUEST.getlist('netboxgroup'),
-        'module': request.REQUEST.getlist('module'),
-        'mode': request.REQUEST.getlist('mode')
+        'organization': request.GET.getlist('org'),
+        'category': request.GET.getlist('cat'),
+        'room__location': request.GET.getlist('loc'),
+        'room': request.GET.getlist('room'),
+        'netbox': request.GET.getlist('netbox'),
+        'groups': request.GET.getlist('netboxgroup'),
+        'module': request.GET.getlist('module'),
+        'mode': request.GET.getlist('mode')
     }
 
     grouped_history = None
     valid_params = ['to_date', 'from_date', 'eventtype', 'group_by',
                     'netbox', 'room']
-    if len(set(valid_params) & set(request.REQUEST.keys())) >= 1:
-        form = DeviceHistoryViewFilter(request.REQUEST)
+    if len(set(valid_params) & set(request.GET.keys())) >= 1:
+        form = DeviceHistoryViewFilter(request.GET)
     else:
         form = DeviceHistoryViewFilter()
     if form.is_valid():

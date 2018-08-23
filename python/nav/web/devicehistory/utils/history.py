@@ -14,11 +14,11 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 from functools import reduce
+from collections import OrderedDict
 
 from django.core.paginator import InvalidPage
 
 from django.db.models import Q
-from django.utils.datastructures import SortedDict
 
 from nav.models.event import AlertHistory, AlertHistoryMessage
 from nav.models.manage import (Netbox, Device, Location, Room, Module,
@@ -155,7 +155,7 @@ def get_messages_for_history(alert_history):
 
 
 def group_history_and_messages(history, messages, group_by=None):
-    grouped_history = SortedDict()
+    grouped_history = OrderedDict()
     for a in history:
         a.extra_messages = {}
         for m in messages:

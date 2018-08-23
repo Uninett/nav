@@ -17,12 +17,12 @@
 
 from IPy import IP
 from datetime import date, timedelta
+from collections import OrderedDict
 
 from django.db.models import Q
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.utils import six
-from django.utils.datastructures import SortedDict
 
 from nav.models.manage import Arp, Cam, Netbios
 
@@ -163,7 +163,7 @@ def create_tracker(active, dns, inactive, ip_range, ip_result):
         ips_to_lookup = [str(ip) for ip in ip_range]
         dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
 
-    tracker = SortedDict()
+    tracker = OrderedDict()
     for ip_key in ip_range:
         if active and ip_key in ip_result:
             create_active_row(tracker, dns, dns_lookups, ip_key, ip_result)
