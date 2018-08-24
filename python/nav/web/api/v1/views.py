@@ -578,7 +578,7 @@ class ArpViewSet(MachineTrackerViewSet):
         return queryset
 
 
-class VlanViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+class VlanViewSet(NAVAPIMixin, viewsets.ModelViewSet):
     """Lists all vlans.
 
     Search
@@ -601,7 +601,7 @@ class VlanViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     search_fields = ['net_ident', 'description']
 
 
-class PrefixViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+class PrefixViewSet(NAVAPIMixin, viewsets.ModelViewSet):
     """Lists all prefixes.
 
     Filters
