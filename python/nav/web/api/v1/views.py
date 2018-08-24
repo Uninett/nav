@@ -347,6 +347,7 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     - organization
     - room
     - sysname
+    - type__name (NB: two underscores): ^ indicates starts_with, otherwise exact match
 
     When the filtered item is an object, it will filter on the id.
     """
@@ -366,6 +367,23 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
         obj.save()
         _logger.info('Token %s set deleted at for %r', self.request.auth, obj)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get_queryset(self):
+        """Implement basic filtering on type__name
+
+        If more custom filters are requested create a filterbackend:
+        http://www.django-rest-framework.org/api-guide/filtering/#example
+        """
+        qs = super(NetboxViewSet, self).get_queryset()
+        params = self.request.query_params
+        if 'type__name' in params:
+            value = params.get('type__name')
+            if value.startswith('^'):
+                qs = qs.filter(type__name__istartswith=value[1:])
+            else:
+                qs = qs.filter(type__name=value)
+
+        return qs
 
 
 class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
