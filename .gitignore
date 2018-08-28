@@ -18,7 +18,7 @@ tests/assets/*
 tests/geckodriver.log
 tests/*-report.html
 tests/coverage.xml
-htdocs/static/js/**/javascript-*.xml
+python/nav/web/static/js/**/javascript-*.xml
 reports/*
 
 # Generated doc and build dirs
@@ -57,9 +57,9 @@ Makefile.in
 /tests/docker/*-requirements.txt
 
 # Static files and cached static files genereated
-htdocs/static/css
+python/nav/web/static/css
 
 # Javascript Testing libraries
-htdocs/static/js/node_modules
-htdocs/static/js/require_config.dev.js
-htdocs/static/js/coverage
+python/nav/web/static/js/node_modules
+python/nav/web/static/js/require_config.dev.js
+python/nav/web/static/js/coverage
