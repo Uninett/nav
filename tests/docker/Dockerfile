@@ -97,6 +97,8 @@ RUN set -x \
 
 # Install our primary test runner
 RUN pip install tox
+# Install a temporary build requirement until a new libsass-python release is made
+RUN pip install git+https://github.com/sass/libsass-python
 
 # Add a build user
 RUN adduser --system --group --home=/source --shell=/bin/bash build
