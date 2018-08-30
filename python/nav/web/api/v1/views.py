@@ -377,7 +377,7 @@ class InterfaceFilterClass(filters.FilterSet):
     class Meta(object):
         model = manage.Interface
         fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
-                  'ifadminstatus', 'iftype', 'baseport', 'module__name')
+                  'ifadminstatus', 'iftype', 'baseport', 'module__name', 'vlan')
 
 
 class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
@@ -397,6 +397,7 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     - iftype
     - netbox
     - trunk
+    - vlan
     - module__name
     - ifclass=[swport, gwport, physicalport, trunk]
 
