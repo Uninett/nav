@@ -104,7 +104,12 @@ define(function(require) {
                     return "<span title='Trunk' style='border: 3px double black; padding: 0 5px'>" + data + "</span>"
                 }
 
-                return "<a href='" + NAV.urls.vlan_index + "?query=" + data + "'>" + data + "</a>";
+                if (row['detected_vlans'].length === 1) {
+                    var url = NAV.urls.vlan_index + row['detected_vlans'][0]['vlan']['id'];
+                    return "<a href='" + url + "'>" + data + "</a>";
+                } else {
+                    return "<a href='" + NAV.urls.vlan_index + "?query=" + data + "'>" + data + "</a>";
+                }
             },
             title: 'Vlan'
         },
