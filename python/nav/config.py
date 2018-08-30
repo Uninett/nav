@@ -13,8 +13,10 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Utility functions for NAV configuration file parsing."""
+"""Utility functions for NAV configuration file discovery and parsing."""
 from __future__ import absolute_import
+
+import errno
 import io
 import logging
 
@@ -29,6 +31,15 @@ from . import buildconf
 
 _logger = logging.getLogger(__name__)
 
+# Potential locations to find configuration files
+CONFIG_LOCATIONS = [
+    os.path.expanduser('~/.local/etc/nav'),
+    os.path.expanduser('~/.local/etc'),
+    os.path.expanduser('~/.config/nav'),
+    '/etc/nav',
+    buildconf.sysconfdir,
+]
+
 
 def read_flat_config(config_file, delimiter='='):
     """Reads a key=value type config file into a dictionary.
@@ -42,9 +53,7 @@ def read_flat_config(config_file, delimiter='='):
     """
 
     if isinstance(config_file, six.string_types):
-        if config_file[0] != os.sep:
-            config_file = os.path.join(buildconf.sysconfdir, config_file)
-        config_file = open(config_file, 'r')
+        config_file = open_configfile(config_file)
 
     configuration = {}
     for line in config_file.readlines():
@@ -63,7 +72,7 @@ def read_flat_config(config_file, delimiter='='):
     return configuration
 
 
-def getconfig(configfile, defaults=None, configfolder=None):
+def getconfig(configfile, defaults=None):
     """Reads an INI-style configuration file into a two-level dictionary.
 
     :param configfile: the configuration file to read, either a name or an
@@ -74,9 +83,7 @@ def getconfig(configfile, defaults=None, configfolder=None):
 
     """
     if isinstance(configfile, six.string_types):
-        if configfolder:
-            configfile = os.path.join(configfolder, configfile)
-        configfile = io.open(configfile, encoding='utf-8')
+        configfile = open_configfile(configfile)
 
     config = configparser.RawConfigParser(defaults)
     config.read_file(configfile)
@@ -100,8 +107,9 @@ class NAVConfigParser(configparser.ConfigParser):
     class variables to be mostly self-contained.
 
     Any file listed in the class variable DEFAULT_CONFIG_FILES will be
-    attempted read from NAV's sysconfdir and from the current working
-    directory upon instantation of the parser subclass.
+    attempted read from any of NAV's accepted configuration directories and
+    from the current working directory upon instantation of the parser
+    subclass.
 
     """
     DEFAULT_CONFIG = u""
@@ -121,10 +129,11 @@ class NAVConfigParser(configparser.ConfigParser):
 
     def read_all(self):
         """Reads all config files in DEFAULT_CONFIG_FILES"""
-        filenames = [os.path.join(buildconf.sysconfdir, configfile)
-                     for configfile in self.DEFAULT_CONFIG_FILES]
-        filenames.extend(os.path.join('.', configfile)
-                         for configfile in self.DEFAULT_CONFIG_FILES)
+        filenames = [f for f in (find_configfile(name)
+                                 for name in self.DEFAULT_CONFIG_FILES)
+                     if f]
+        filenames.extend(os.path.join('.', name)
+                         for name in self.DEFAULT_CONFIG_FILES)
         files_read = self.read(filenames)
 
         if files_read:
@@ -155,6 +164,39 @@ class NavConfigParserDefaultSection(object):
         return self.parser.getboolean(self.section, *args)
 
 
+def find_configfile(filename):
+    """Searches for filename in any of the known config file locations
+
+    :returns: The first instance of filename found in the CONFIG_LOCATIONS
+              list, or None if the configfile was not found.
+    """
+    if filename.startswith(os.sep):
+        return filename  # IDGAF, you gave me a fully qualified path
+    candidates = (os.path.join(directory, filename)
+                  for directory in CONFIG_LOCATIONS)
+    for name in candidates:
+        if os.path.exists(name):
+            return name
+
+
+def open_configfile(filename):
+    """Opens and returns a file handle for a given config file.
+
+    The config file will be found using find_configfile()
+    """
+    name = find_configfile(filename)
+    if name:
+        return io.open(name, encoding='utf-8')
+    else:
+        raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
+
+
 class ConfigurationError(GeneralException):
     """Configuration error"""
     pass
+
+
+try:
+    NAV_CONFIG = read_flat_config('nav.conf')
+except OSError:
+    NAV_CONFIG = {}

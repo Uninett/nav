@@ -1,0 +1,30 @@
+# NAV daemons
+daemons:
+    alertengine:
+        description: Dispatches alerts according to individual alert profiles.
+        command: alertengine.py
+
+    eventengine:
+        command: eventengine
+        description: Reacts and creates alerts from events on the event queue.
+
+    ipdevpoll:
+        description: Collects SNMP inventory data from IP devices.
+        command: ipdevpolld
+        pidfile: ipdevpolld.pid
+
+    pping:
+        description: Pings all IP devices for status monitoring.
+        command: pping.py
+
+    servicemon:
+        description: Monitors configured services.
+        command: servicemon.py
+
+    smsd:
+        description: Dispatches queued SMS alerts.
+        command: smsd.py
+
+    snmptrapd:
+        description: Receives and processes SNMP traps and notifications.
+        command: snmptrapd.py

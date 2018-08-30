@@ -30,6 +30,7 @@ import logging
 
 import nav.daemon
 from nav import buildconf
+from nav.config import NAV_CONFIG
 from nav.daemon import safesleep as sleep
 from nav.logs import init_generic_logging
 from nav.statemon import statistics
@@ -52,7 +53,7 @@ def main():
         sys.exit(1)
 
     socket = megaping.make_sockets()  # make raw sockets while we have root
-    switch_user()
+    nav.daemon.switchuser(NAV_CONFIG['NAV_USER'])
     start(args.foreground, socket)
 
 
@@ -214,41 +215,34 @@ class Pinger(object):
             sys.exit(0)
         elif signum == signal.SIGHUP:
             # reopen the logfile
-            logfile_path = self.config.get("logfile", "pping.log")
+            conf = config.pingconf()
             LOGGER.info("Caught SIGHUP. Reopening logfile...")
-            logfile = open(logfile_path, 'a')
+            logfile = open(conf.logfile, 'a')
             nav.daemon.redirect_std_fds(stdout=logfile, stderr=logfile)
 
-            LOGGER.info("Reopened logfile: %s", logfile_path)
+            LOGGER.info("Reopened logfile: %s", conf.logfile)
         else:
             LOGGER.critical("Caught %s. Resuming operation.", signum)
 
 
 def start(foreground, socket):
     """
-    Starts a new prosess, letting the service run as a daemon if `foreground`
+    Starts a new process, letting the service run as a daemon if `foreground`
     is false.
     """
     conf = config.pingconf()
-    pidfilename = conf.get(
-        "pidfile", os.path.join(buildconf.localstatedir, "run", "pping.pid"))
+    pidfilename = "pping.pid"
 
     # Already running?
     try:
         nav.daemon.justme(pidfilename)
-    except nav.daemon.AlreadyRunningError:
-        otherpid = open(pidfilename, "r").read().strip()
-        sys.stderr.write("pping is already running (pid: %s)\n" % otherpid)
-        sys.exit(1)
+    except nav.daemon.AlreadyRunningError as error:
+        sys.exit("pping is already running (pid: %s)" % error.pid)
     except nav.daemon.DaemonError as error:
-        sys.stderr.write("%s\n" % error)
-        sys.exit(1)
+        sys.exit(error)
 
     if not foreground:
-        logfile_path = conf.get(
-            'logfile',
-            os.path.join(buildconf.localstatedir, 'log', 'pping.log'))
-        logfile = open(logfile_path, "a")
+        logfile = open(conf.logfile, "a")
         nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
     else:
         nav.daemon.writepidfile(pidfilename)
@@ -256,11 +250,6 @@ def start(foreground, socket):
     my_pinger = Pinger(socket=socket, foreground=foreground)
     my_pinger.main()
 
-
-def switch_user():
-    conf = config.pingconf()
-    username = conf.get("user", "nobody")
-    nav.daemon.switchuser(username)
 
 if __name__ == '__main__':
     main()

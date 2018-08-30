@@ -35,8 +35,7 @@ except IOError:
     nav_config = {'SECRET_KEY': 'Very bad default value'}
 
 try:
-    webfront_config = getconfig('webfront/webfront.conf',
-                                configfolder=nav.buildconf.sysconfdir)
+    webfront_config = getconfig('webfront/webfront.conf')
 except IOError:
     webfront_config = {}
 
