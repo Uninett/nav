@@ -117,6 +117,8 @@ define(function(require) {
                         cell.node().innerHTML = 'In use';
                     } else if (timestamp) {
                         cell.node().innerHTML = Moment().format('YYYY-MM-DD HH:mm:ss');
+                    } else {
+                        cell.node().innerHTML = "N/A"
                     }
                 });
             }
