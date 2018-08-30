@@ -399,7 +399,11 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     - trunk
     - module__name
     - ifclass=[swport, gwport, physicalport, trunk]
-    - last_used (set this to for instance 1 to embed last used cam record)
+
+    Detail routes
+    -------------
+    - last_used: interface/<id\>/last_used/
+    - metrics: interface/<id\>/metrics/
 
     Example: `/api/1/interface/?netbox=91&ifclass=trunk&ifclass=swport`
     """
