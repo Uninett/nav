@@ -353,7 +353,8 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     """
     queryset = manage.Netbox.objects.all()
     serializer_class = serializers.NetboxSerializer
-    filter_fields = ('ip', 'sysname', 'room', 'organization', 'category')
+    filter_fields = ('ip', 'sysname', 'room', 'organization', 'category',
+                     'room__location')
     search_fields = ('sysname', )
 
     def destroy(self, request, *args, **kwargs):
