@@ -110,6 +110,20 @@ define(function(require) {
         },
 
         {
+            data: "detected_vlans",
+            name: "detected_vlans",
+            render: function(data, type, row, meta) {
+                return data.map(function(vlan) {
+                    var url = NAV.urls.vlan_index + vlan['vlan']['id'];
+                    var vlan_number = vlan['vlan']['vlan'];
+                    var net_type = vlan['vlan']['net_type'];
+                    return "<a href='" + url + "'>" + vlan_number + " (" + net_type + ")" + "</a>";
+                }).join(', ');
+            },
+            title: "Detected vlans"
+        },
+
+        {
             data: "speed",
             name: 'speed',
             render: function(data, type, row, meta) {
