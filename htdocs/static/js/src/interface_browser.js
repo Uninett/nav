@@ -94,6 +94,12 @@ define(function(require) {
             data: "vlan",
             name: 'vlan',
             render: function(data, type, row, meta) {
+                if (isSwPort(row)) {
+                    data = data === null ? "" : data;
+                } else {
+                    data = ""
+                }
+
                 if (row['trunk']) {
                     return "<span title='Trunk' style='border: 3px double black; padding: 0 5px'>" + data + "</span>"
                 }
