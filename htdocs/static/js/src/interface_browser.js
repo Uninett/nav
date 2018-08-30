@@ -103,7 +103,8 @@ define(function(require) {
                 if (row['trunk']) {
                     return "<span title='Trunk' style='border: 3px double black; padding: 0 5px'>" + data + "</span>"
                 }
-                return data;
+
+                return "<a href='" + NAV.urls.vlan_index + "?query=" + data + "'>" + data + "</a>";
             },
             title: 'Vlan'
         },
