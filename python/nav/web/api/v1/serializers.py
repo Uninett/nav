@@ -188,6 +188,21 @@ class SubInterfaceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class VlanSerializer(serializers.ModelSerializer):
+    """Serializer for the vlan model"""
+    class Meta(object):
+        model = manage.Vlan
+        fields = '__all__'
+
+
+class SwportVlanSerializer(serializers.ModelSerializer):
+    vlan = VlanSerializer()
+
+    class Meta(object):
+        model = manage.SwPortVlan
+        fields = '__all__'
+
+
 class InterfaceSerializer(serializers.ModelSerializer):
     """Serializer for the interface model"""
     patches = SpecificPatchSerializer()
@@ -196,6 +211,7 @@ class InterfaceSerializer(serializers.ModelSerializer):
     to_netbox = SubNetboxSerializer()
     to_interface = SubInterfaceSerializer()
     netbox = SubNetboxSerializer()
+    detected_vlans = SwportVlanSerializer(source='get_sorted_vlans', many=True)
 
     class Meta(object):
         model = manage.Interface
@@ -254,13 +270,6 @@ class RackSerializer(serializers.ModelSerializer):
     class Meta(object):
         model = rack.Rack
         exclude = ('_configuration',)
-
-
-class VlanSerializer(serializers.ModelSerializer):
-    """Serializer for the vlan model"""
-    class Meta(object):
-        model = manage.Vlan
-        fields = '__all__'
 
 
 class PrefixSerializer(serializers.ModelSerializer):
