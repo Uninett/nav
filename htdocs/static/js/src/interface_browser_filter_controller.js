@@ -6,6 +6,7 @@ define(function(require) {
     var selectors = {
         ifclassfilter: '#ifclassfilter',
         queryfilter: '#queryfilter',
+        vlanfilter: '#vlanfilter',
         netboxfilter: '#netbox-filter',
         operstatusfilter: '#operstatus-filter',
         filterForm: '#filters'
@@ -14,12 +15,16 @@ define(function(require) {
     /* Create url based on filter functions. Each filter is responsible for
        creating a parameter and value */
     function addFilterParameters(uri) {
-        filters = [netboxFilter, ifClassFilter, queryFilter, linkFilter];
+        filters = [netboxFilter, ifClassFilter, queryFilter, linkFilter, vlanFilter];
         uri.addSearch(filters.reduce(function(obj, func) {
             return _.extend(obj, func());
         }, {}));
         console.log(uri.toString());
         return uri;
+    }
+
+    function vlanFilter() {
+        return { vlan: $(selectors.vlanfilter).val() }
     }
 
     function linkFilter() {
