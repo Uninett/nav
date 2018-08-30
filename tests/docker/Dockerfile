@@ -33,7 +33,6 @@ RUN apt-get update && \
     apt-get -y --no-install-recommends install \
 	libsnmp30 \
 	cron \
-	rubygems \
 	python-cairo \
 	postgresql postgresql-contrib postgresql-client \
 	libxml2-dev libxslt1-dev \
@@ -43,7 +42,6 @@ RUN apt-get update && \
 	x11vnc google-chrome-stable cloc \
 	cmake nbtscan python-gammu
 
-RUN gem install --version '3.3.9' sass
 
 # Now install NodeJS and NPM for Javascript testing needs -
 # Which incidentally includes Python2.7, so we need some selection magic
@@ -98,7 +96,7 @@ RUN set -x \
 # Install our primary test runner
 RUN pip install tox
 # Install a temporary build requirement until a new libsass-python release is made
-RUN pip install git+https://github.com/sass/libsass-python
+RUN pip install git+https://github.com/sass/libsass-python.git@a0308b01c3c9bdab795f5141a4c51b899f7844d0
 
 # Add a build user
 RUN adduser --system --group --home=/source --shell=/bin/bash build
