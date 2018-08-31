@@ -209,6 +209,7 @@ CRISPY_TEMPLATE_PACK = 'foundation-5'
 
 INSTALLED_APPS = (
     'nav.models',
+    'nav.web',
     'nav.django',
     'django.contrib.staticfiles',
     'django.contrib.sessions',
