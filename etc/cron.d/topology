@@ -1,0 +1,8 @@
+## info: Detects the topology of your network.
+
+35 * * * *              navtopology --l2 --vlan
+
+# If you want to run the old topology detector, uncomment the following lines:
+
+# 35 * * * *              network-discovery topology
+# 38 * * * *              network-discovery vlan
