@@ -26,6 +26,8 @@ import configparser
 import argparse
 
 from nav.bootstrap import bootstrap_django
+from nav.config import find_configfile
+
 bootstrap_django(__file__)
 
 import nav
@@ -37,24 +39,24 @@ logging.raiseExceptions = False
 logger = logging.getLogger('nav.mailin')
 conf = None
 
+CONFIG_FILE = 'mailin.conf'
+LOG_FILE = 'mailin.log'
+
 
 def main():
     global conf
 
     args = parse_args()
 
-    configfile = nav.buildconf.sysconfdir + '/mailin.conf'
-    logfile = nav.buildconf.localstatedir + '/log/mailin.log'
-
     # Todo: fail if config file is not found
     conf = configparser.ConfigParser()
-    conf.read(configfile)
+    conf.read(find_configfile(CONFIG_FILE))
 
     # Must do this after config, so logfile can be configurable
     if args.test:
         init_logging('-')
     else:
-        init_logging(logfile)
+        init_logging(LOG_FILE)
 
     add_mailin_subsystem()
 

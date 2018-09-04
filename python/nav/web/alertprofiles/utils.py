@@ -29,7 +29,7 @@ from nav.models.profiles import Filter, FilterGroup, FilterGroupContent, \
     Account, AlertSubscription, TimePeriod
 
 ADMINGROUP = 1
-CONFIGDIR = 'alertprofiles/'
+CONFIGDIR = 'alertprofiles'
 
 
 def account_owns_filters(account, *filters):
@@ -106,14 +106,14 @@ def order_filter_group_content(filter_group):
 
 def read_time_period_templates():
     templates = {}
-    template_dir = os.path.join(nav.buildconf.sysconfdir, CONFIGDIR)
+    template_dir = nav.config.find_configfile(CONFIGDIR)
     template_configs = os.listdir(template_dir)
 
     for template_file in template_configs:
         if '.conf' in template_file:
-            file = os.path.join(template_dir, template_file)
-            key = hashlib.md5(file.encode('utf-8')).hexdigest()
-            config = nav.config.getconfig(file)
+            filename = os.path.join(template_dir, template_file)
+            key = hashlib.md5(filename.encode('utf-8')).hexdigest()
+            config = nav.config.getconfig(filename)
             templates[key] = config
 
     return templates

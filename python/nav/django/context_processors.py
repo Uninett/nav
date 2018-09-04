@@ -22,6 +22,7 @@ from operator import attrgetter
 
 from django.conf import settings
 
+from nav.config import find_configfile
 from nav.django.auth import get_sudoer
 from nav.django.utils import get_account, is_admin
 from nav.web.message import Messages
@@ -31,9 +32,8 @@ from nav.buildconf import VERSION
 from nav.buildconf import sysconfdir
 from nav.metrics import CONFIG
 
-WEBCONF_DIR_PATH = os.path.join(sysconfdir, "webfront")
-CONTACT_INFORMATION_PATH = os.path.join(WEBCONF_DIR_PATH,
-                                        "contact-information.txt")
+CONTACT_INFORMATION_PATH = find_configfile(
+    os.path.join("webfront", "contact-information.txt"))
 
 
 def debug(_request):

@@ -23,18 +23,16 @@ import argparse
 import logging
 import time
 import sys
-from os.path import join
 
 from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
 import nav.daemon
 from nav.activeipcollector import manager
-from nav.buildconf import localstatedir
 from nav.logs import init_generic_logging
 
-PIDFILE = join(localstatedir, 'run', 'collect_active_ip.pid')
-LOGFILE = join(localstatedir, 'log', 'collect_active_ip.log')
+PIDFILE = 'collect_active_ip.pid'
+LOGFILE = 'collect_active_ip.log'
 _logger = logging.getLogger('nav.ipcollector')
 
 

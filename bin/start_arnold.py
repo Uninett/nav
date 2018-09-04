@@ -43,15 +43,18 @@ import argparse
 from os.path import join
 
 from nav.bootstrap import bootstrap_django
+from nav.config import find_configfile
+
 bootstrap_django(__file__)
 
-import nav.buildconf
 from nav.logs import init_generic_logging
+import nav.arnold
 from nav.arnold import (find_computer_info, is_inside_vlans,
                         quarantine, disable, GeneralException)
 from nav.models.arnold import DetentionProfile, Identity
 from nav.models.manage import Prefix
 
+LOG_FILE = "arnold/start_arnold.log"
 LOGGER = logging.getLogger('nav.start_arnold')
 
 
@@ -59,7 +62,7 @@ def main(args):
     """Main controller"""
 
     init_generic_logging(
-        logfile=nav.buildconf.localstatedir + "/log/arnold/start_arnold.log",
+        logfile=LOG_FILE,
         stderr=False,
         read_config=True,
     )
@@ -196,8 +199,8 @@ def report_detentions(profile, detentions):
     emails = find_contact_addresses(detentions)
 
     try:
-        mailfile = join(nav.buildconf.sysconfdir, "/arnold/mailtemplates/",
-                        profile.mailfile)
+        mailfile = find_configfile(
+            join("arnold", "mailtemplates", profile.mailfile))
         message_template = open(mailfile).read()
     except IOError as error:
         LOGGER.error(error)

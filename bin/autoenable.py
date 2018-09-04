@@ -35,7 +35,6 @@ from datetime import datetime
 from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
-import nav.buildconf
 from nav.logs import init_generic_logging
 from nav.arnold import (open_port, GeneralException)
 from nav.models.arnold import Identity
@@ -47,7 +46,7 @@ LOGGER = logging.getLogger('nav.autoenable')
 def main():
     """Main controller"""
     init_generic_logging(
-        logfile=nav.buildconf.localstatedir + "/log/arnold/autoenable.log",
+        logfile="arnold/autoenable.log",
         stderr=False,
         read_config=True,
     )

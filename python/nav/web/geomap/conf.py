@@ -37,7 +37,7 @@ import os
 import re
 import logging
 
-from nav import buildconf
+from nav.config import find_configfile
 from nav.errors import ConfigurationError
 
 _logger = logging.getLogger('nav.web.geomap.conf')
@@ -362,6 +362,6 @@ def read_configuration(filename):
 def get_configuration():
     global _config
     if _config is None:
-        _config = read_configuration(os.path.join(buildconf.sysconfdir,
-                                                  'geomap/config.py'))
+        _config = read_configuration(find_configfile(
+            os.path.join('geomap', 'config.py')))
     return _config

@@ -26,10 +26,10 @@ from nav.models.event import AlertQueue as Alert, EventQueue as Event, AlertType
 from nav.models.event import AlertHistory
 from nav.models.fields import INFINITY
 
-from nav import buildconf
+import nav.config
 from . import unresolved
 
-ALERT_TEMPLATE_DIR = os.path.join(buildconf.sysconfdir, 'alertmsg')
+ALERT_TEMPLATE_DIR = nav.config.find_configfile('alertmsg')
 _logger = logging.getLogger(__name__)
 _template_logger = logging.getLogger(__name__ + '.template')
 
