@@ -265,9 +265,10 @@ def mac_do_search(request):
         arp_result = Arp.objects.select_related('netbox').filter(
             end_time__gt=from_time,
             mac__range=(mac_min, mac_max)
-        ).extra(
-            select={'netbiosname': get_netbios_query()},
         ).order_by('mac', 'ip', '-start_time')
+        if form.cleaned_data['netbios']:
+            arp_result = arp_result.extra(
+                select={'netbiosname': get_netbios_query()})
 
         # Get last ip2mac and topo jobs on netboxes
         netboxes_ip2mac = get_last_job_log_from_netboxes(arp_result, 'ip2mac')
