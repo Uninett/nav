@@ -152,7 +152,7 @@ def track_mac(keys, resultset, dns):
         dns         - should we lookup the hostname?
     """
     if dns:
-        ips_to_lookup = [row.ip for row in resultset]
+        ips_to_lookup = {row.ip for row in resultset}
         dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
 
     tracker = SortedDict()

@@ -159,7 +159,7 @@ def create_tracker(active, dns, inactive, ip_range, ip_result):
     """Creates a result tracker based on form data"""
     dns_lookups = None
     if dns:
-        ips_to_lookup = [str(ip) for ip in ip_range]
+        ips_to_lookup = {str(ip) for ip in ip_range}
         dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
 
     tracker = SortedDict()
