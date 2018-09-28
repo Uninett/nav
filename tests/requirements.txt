@@ -9,6 +9,6 @@ pytest-cov
 pytest-selenium
 pytest-twisted>=1.6
 pytidylib==0.2.4
-selenium>=3.0.0,<3.2.0
+selenium==3.4.3
 whisper>=0.9.9
 subprocess32  ; python_version < '3'

@@ -41,7 +41,7 @@ RUN apt-get update && \
 	postgresql postgresql-contrib postgresql-client \
 	libxml2-dev libxslt1-dev \
 	libwww-perl \
-	iceweasel xvfb curl \
+	firefox-esr xvfb curl \
 	imagemagick \
 	x11vnc google-chrome-stable cloc \
 	cmake nbtscan python-gammu
@@ -63,7 +63,7 @@ RUN cd /tmp && \
     make && make install && echo tidy5 installed
 
 # Install geckodriver to properly run Selenium tests in Firefox versions>=47
-ENV GECKOVERSION=0.11.1
+ENV GECKOVERSION=0.21.0
 RUN cd /tmp && \
     wget https://github.com/mozilla/geckodriver/releases/download/v$GECKOVERSION/geckodriver-v$GECKOVERSION-linux64.tar.gz && \
     tar xvzf geckodriver-v$GECKOVERSION-linux64.tar.gz && \
