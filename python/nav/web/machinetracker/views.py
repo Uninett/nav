@@ -18,6 +18,7 @@
 from IPy import IP
 from datetime import date, timedelta
 from collections import OrderedDict
+import logging
 
 from django.db.models import Q
 from django.template import RequestContext
@@ -48,6 +49,8 @@ NBT_DEFAULTS = {'title': NBT_TITLE, 'navpath': NAVBAR,
                 'active': {'netbios': True}}
 
 ADDRESS_LIMIT = 4096  # Value for when inactive gets disabled
+
+_logger = logging.getLogger(__name__)
 
 
 def ip_search(request):
@@ -160,8 +163,12 @@ def create_tracker(active, dns, inactive, ip_range, ip_result):
     """Creates a result tracker based on form data"""
     dns_lookups = None
     if dns:
-        ips_to_lookup = [str(ip) for ip in ip_range]
+        ips_to_lookup = {str(ip) for ip in ip_range}
+        _logger.debug(
+            "create_tracker: looking up PTR records for %d addresses)",
+            len(ips_to_lookup))
         dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
+        _logger.debug("create_tracker: PTR lookup done")
 
     tracker = OrderedDict()
     for ip_key in ip_range:
@@ -249,6 +256,7 @@ def mac_do_search(request):
         'disable_ip_context': True,
     }
     if form.is_valid():
+        _logger.debug("mac_do_search: form is valid")
         mac = form.cleaned_data['mac']
         days = form.cleaned_data['days']
         dns = form.cleaned_data['dns']
@@ -266,9 +274,10 @@ def mac_do_search(request):
         arp_result = Arp.objects.select_related('netbox').filter(
             end_time__gt=from_time,
             mac__range=(mac_min, mac_max)
-        ).extra(
-            select={'netbiosname': get_netbios_query()},
         ).order_by('mac', 'ip', '-start_time')
+        if form.cleaned_data['netbios']:
+            arp_result = arp_result.extra(
+                select={'netbiosname': get_netbios_query()})
 
         # Get last ip2mac and topo jobs on netboxes
         netboxes_ip2mac = get_last_job_log_from_netboxes(arp_result, 'ip2mac')
@@ -289,8 +298,11 @@ def mac_do_search(request):
 
         mac_count = len(cam_result)
         ip_count = len(arp_result)
+        _logger.debug("mac_do_search: processed %d cam rows and %d arp rows",
+                      mac_count, ip_count)
         mac_tracker = track_mac(('mac', 'sysname', 'module', 'port'),
                                 cam_result, dns=False)
+        _logger.debug("mac_do_search: track_mac finished")
         uplink_tracker = UplinkTracker(mac_min, mac_max)
         interface_tracker = InterfaceTracker(mac_min, mac_max)
         ip_tracker = track_mac(('ip', 'mac'), arp_result, dns)
@@ -307,6 +319,7 @@ def mac_do_search(request):
         })
 
     info_dict.update(MAC_DEFAULTS)
+    _logger.debug("mac_do_search: rendering")
     return render_to_response(
         'machinetracker/mac_search.html',
         info_dict,

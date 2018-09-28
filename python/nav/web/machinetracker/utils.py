@@ -19,6 +19,7 @@ from datetime import datetime
 from socket import gethostbyaddr, herror
 from IPy import IP
 from collections import namedtuple, OrderedDict
+import logging
 
 from django.utils import six
 
@@ -28,6 +29,7 @@ from nav.models.manage import Prefix, Netbox, Interface
 from django.db import DatabaseError, transaction
 
 _cached_hostname = {}
+_logger = logging.getLogger(__name__)
 
 
 def hostname(ip):
@@ -153,8 +155,11 @@ def track_mac(keys, resultset, dns):
         dns         - should we lookup the hostname?
     """
     if dns:
-        ips_to_lookup = [row.ip for row in resultset]
+        ips_to_lookup = {row.ip for row in resultset}
+        _logger.debug("track_mac: looking up PTR records for %d addresses)",
+                      len(ips_to_lookup))
         dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
+        _logger.debug("track_mac: PTR lookup done")
 
     tracker = OrderedDict()
     for row in resultset:
