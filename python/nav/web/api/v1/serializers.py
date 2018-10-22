@@ -195,6 +195,7 @@ class InterfaceSerializer(serializers.ModelSerializer):
     object_url = serializers.CharField(source='get_absolute_url')
     to_netbox = SubNetboxSerializer()
     to_interface = SubInterfaceSerializer()
+    netbox = SubNetboxSerializer()
 
     class Meta(object):
         model = manage.Interface

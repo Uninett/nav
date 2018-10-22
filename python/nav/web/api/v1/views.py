@@ -30,7 +30,8 @@ from datetime import datetime, timedelta
 import iso8601
 
 from rest_framework import status, filters, viewsets, exceptions, pagination
-from rest_framework.decorators import api_view, renderer_classes, list_route
+from rest_framework.decorators import (api_view, renderer_classes, list_route,
+                                       detail_route)
 from rest_framework.reverse import reverse_lazy
 from rest_framework.renderers import (JSONRenderer, BrowsableAPIRenderer,
                                       TemplateHTMLRenderer)
@@ -388,6 +389,17 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
         return qs
 
 
+class InterfaceFilterClass(filters.FilterSet):
+    """Exists only to have a sane implementation of multiple choice filters"""
+    netbox = filters.django_filters.ModelMultipleChoiceFilter(
+        queryset=manage.Netbox.objects.all())
+
+    class Meta(object):
+        model = manage.Interface
+        fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
+                  'ifadminstatus', 'iftype', 'baseport', 'module__name', 'vlan')
+
+
 class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Lists all interfaces.
 
@@ -405,19 +417,23 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     - iftype
     - netbox
     - trunk
+    - vlan
     - module__name
     - ifclass=[swport, gwport, physicalport, trunk]
-    - last_used (set this to for instance 1 to embed last used cam record)
+
+    Detail routes
+    -------------
+    - last_used: interface/<id\>/last_used/
+    - metrics: interface/<id\>/metrics/
 
     Example: `/api/1/interface/?netbox=91&ifclass=trunk&ifclass=swport`
     """
     queryset = manage.Interface.objects.all()
-    filter_fields = ('ifname', 'ifindex', 'ifoperstatus', 'netbox', 'trunk',
-                     'ifadminstatus', 'iftype', 'baseport', 'module__name')
     search_fields = ('ifalias', 'ifdescr', 'ifname')
 
     # NaturalIfnameFilter returns a list, so IfClassFilter needs to come first
     filter_backends = NAVAPIMixin.filter_backends + (IfClassFilter, NaturalIfnameFilter)
+    filter_class = InterfaceFilterClass
 
     def get_serializer_class(self):
         request = self.request
@@ -425,6 +441,29 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
             return serializers.InterfaceWithCamSerializer
         else:
             return serializers.InterfaceSerializer
+
+    @detail_route()
+    def metrics(self, _request, pk=None):
+        """List all metrics for this interface
+
+        We don't want to include this by default as that will spam the Graphite
+        backend with requests.
+        """
+        return Response(self.get_object().get_port_metrics())
+
+    @detail_route()
+    def last_used(self, _request, pk=None):
+        """Return last used timestamp for this interface
+
+        If still in use this will return datetime.max as per
+        DateTimeInfinityField
+        """
+        try:
+            serialized = serializers.CamSerializer(
+                self.get_object().get_last_cam_record())
+            return Response({'last_used': serialized.data.get('end_time')})
+        except manage.Cam.DoesNotExist:
+            return Response({'last_used': None})
 
 
 class PatchViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
