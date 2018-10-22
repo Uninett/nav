@@ -546,7 +546,7 @@ class MachineTrackerViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
                 where=[SQL_OVERLAPS.format(starttime, endtime)])
 
         # Support wildcard filtering on mac
-        mac = self.request.QUERY_PARAMS.get('mac')
+        mac = self.request.query_params.get('mac')
         if mac:
             try:
                 mac = MacPrefix(mac, min_prefix_len=2)
