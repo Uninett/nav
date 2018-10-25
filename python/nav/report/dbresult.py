@@ -58,6 +58,10 @@ class DatabaseResult(object):
             self.rowcount = len(self.result)
 
         except psycopg2.ProgrammingError as error:
-            #raise ProblemExistBetweenKeyboardAndChairException
-            self.error = ("Configuration error! The report generator is not "
-                          "able to do such things. " + str(error))
+            self.error = ("There was an unhandled SQL error! There may be "
+                          "something wrong with the definition of the '{}' "
+                          "report: {}".format(report_config.title, error))
+
+        except psycopg2.DataError as error:
+            self.error = ("Data error! Some of your input data is of an "
+                          "invalid type: {}".format(error))
