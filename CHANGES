@@ -1,3 +1,16 @@
+Version 4.8.6
+(released 25 Oct 2018)
+
+ Fixed GitHub issues in this release:
+
+  * #1738 (snmptrapd stops logging after receiving HUP signal)
+  * #1741 (Use of Object.assign breaks ipdevinfo in Internet Explorer)
+  * #1750 (API arp and cam endpoint crashes on invalid mac query param)
+  * #1780 (Machinetracker MAC search performs unnecessary join with
+           Netbios table)
+  * #1781 (Machinetracker performs unnecessary duplicate DNS lookups)
+
+
 Version 4.8.5
 (released 21 Jun 2018)
 
