@@ -25,6 +25,10 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.sessions.backends.db import SessionStore
 from django.conf import settings
 from django.utils.encoding import python_2_unicode_compatible
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError:  # Django <= 1.9
+    MiddlewareMixin = object
 
 
 _logger = getLogger(__name__)
@@ -38,7 +42,7 @@ SUDOER_ID_VAR = 'sudoer'
 LOGIN_URL = '/index/login/'
 
 
-class AuthenticationMiddleware(object):
+class AuthenticationMiddleware(MiddlewareMixin):
     def process_request(self, request):
         session = request.session
 
@@ -54,7 +58,7 @@ class AuthenticationMiddleware(object):
                       request.get_full_path(), account.login)
 
 
-class AuthorizationMiddleware(object):
+class AuthorizationMiddleware(MiddlewareMixin):
     def process_request(self, request):
         account = request.account
 
