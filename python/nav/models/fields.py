@@ -27,14 +27,15 @@ from django.db import models
 from django.core import exceptions
 from django.db.models import Q
 from django.utils import six
+
 try:
-    # Django < 1.9
-    from django.db.models import get_models
-except ImportError:
     # Django >= 1.8
     from django.apps import apps
     get_models = apps.get_models
     del apps
+except ImportError:
+    # Django < 1.9
+    from django.db.models import get_models
 
 from nav.util import is_valid_cidr, is_valid_ip
 from nav.django import validators, forms as navforms
@@ -52,7 +53,10 @@ class DateTimeInfinityField(models.DateTimeField):
         else:
             return super(DateTimeInfinityField, self).get_db_prep_value(
                 value, connection, prepared=prepared)
-        return connection.ops.value_to_db_datetime(value)
+        try:
+            return connection.ops.value_to_db_datetime(value)  # <= 1.8
+        except AttributeError:
+            return connection.ops.adapt_datetimefield_value(value)  # >= 1.9
 
 
 class VarcharField(models.TextField):

@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Netmap views"""
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.http import Http404
 from django.views.generic import TemplateView, ListView
@@ -104,10 +105,13 @@ class TrafficView(views.APIView):
         layer = int(kwargs.pop('layer', 2))
         # TODO: should probably use id
         roomid = kwargs.pop('roomid')
-        if layer == 3:
-            traffic = get_layer3_traffic(roomid)
-        else:
-            traffic = get_layer2_traffic(roomid)
+        try:
+            if layer == 3:
+                traffic = get_layer3_traffic(roomid)
+            else:
+                traffic = get_layer2_traffic(roomid)
+        except ObjectDoesNotExist:
+            raise Http404()
         return Response(traffic)
 
 

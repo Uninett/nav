@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load tools %}
+
+{% block base_header_additional_head %}
+  <link href="{{ STATIC_URL }}css/nav/interface_browser.css" rel="stylesheet" />
+{% endblock %}
+
+
+{% block base_content %}
+
+  {% with tool=current_user_data.tools|get_tool:'Interface browser' %}
+    {% include 'nav_header.html' %}
+  {% endwith %}
+
+  <form id="filters">
+    <label class="label-netbox-filter">
+      Device
+      <div>
+        <input id="netbox-filter" type="text" value="{{ netboxid }}" />
+      </div>
+    </label>
+
+    <label>
+      Port Filters
+      <div>
+        <select id="ifclassfilter" name="ifclass">
+          <option value="">----------</option>
+          <option value="swport" selected>Swport</option>
+          <option value="gwport">Gwport</option>
+          <option value="trunk">Trunk</option>
+        </select>
+      </div>
+    </label>
+
+    <label class="label-query-filter">
+      Search
+      <div>
+        <input id="queryfilter"
+               name="query"
+               placeholder="Search in ifalias, ifdescr and ifname"
+               type="text"
+               />
+      </div>
+    </label>
+
+    <label>
+      LinkStatus
+      <div>
+        <select id="operstatus-filter" name="operstatus">
+          <option value="">----------</option>
+          <option value="1">Up</option>
+          <option value="2">Down</option>
+        </select>
+      </div>
+    </label>
+
+    <label class="label-vlan-filter">
+      Vlan
+      <div>
+        <input id="vlanfilter"
+               name="vlan"
+               type="text"
+        />
+      </div>
+    </label>
+
+    <label>
+      &nbsp;
+      <div>
+        <input type="submit" value="Fetch interfaces" class="button small" />
+      </div>
+    </label>
+  </form>
+
+  <div id="column-toggler">
+    <button class="toggle-header tiny">
+      <i class="fa fa-caret-right"></i>
+      Column visibility
+    </button>
+    <form class="toggle-container" style="display: none">
+      <ul> </ul>
+    </form>
+  </div>
+
+  <table id="portlist-table"></table>
+
+{% endblock %}
+
+
+{% block footer_scripts %}
+  <script>
+   require(['src/interface_browser'], function(Browser) {
+       Browser();
+   })
+
+   NAV.urls.vlan_index = "{% url 'vlan-index' %}";
+  </script>
+{% endblock %}
