@@ -14,16 +14,21 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Various functionality to bridge legacy NAV code with Django"""
+
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError:  # Django <= 1.9
+    MiddlewareMixin = object
+
 from nav import db
 
 
-class LegacyCleanupMiddleware(object):
+class LegacyCleanupMiddleware(MiddlewareMixin):
     """Django middleware to clean up NAV legacy database connections at the
     end of each request cycle.
 
     """
-    @staticmethod
-    def process_response(_request, response):
+    def process_response(self, _request, response):
         """Rolls back any uncommitted legacy database connections,
         to avoid idling indefinitely in transactions.
 

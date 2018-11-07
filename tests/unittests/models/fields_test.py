@@ -7,6 +7,7 @@ from unittest import TestCase
 
 from django.core import exceptions
 from django.db import connection
+from django.db.models import DateTimeField
 
 from nav.models.fields import CIDRField
 from nav.models.fields import DateTimeInfinityField
@@ -69,13 +70,25 @@ class DateTimeInfinityFieldTestCase(TestCase):
         field = DateTimeInfinityField()
         test_val = dt(2018, 3, 5)
         result = field.get_db_prep_value(test_val, connection, prepared=True)
-        self.assertEqual(result, u'2018-03-05 00:00:00')
+
+        # The actual result here will vary with Django versions and which
+        # database engine has been selected in the Django settings!
+        expected = super(DateTimeInfinityField, field).get_db_prep_value(
+            test_val, connection, prepared=True)
+
+        self.assertEqual(result, expected)
 
     def test_get_db_prep_value_unprepared_other(self):
         field = DateTimeInfinityField()
         test_val = dt(2018, 3, 5)
         result = field.get_db_prep_value(test_val, connection, prepared=False)
-        self.assertEqual(result, u'2018-03-05 00:00:00')
+
+        # The actual result here will vary with Django versions and which
+        # database engine has been selected in the Django settings!
+        expected = super(DateTimeInfinityField, field).get_db_prep_value(
+            test_val, connection, prepared=False)
+
+        self.assertEqual(result, expected)
 
 
 class DictAsJsonFieldTest(TestCase):

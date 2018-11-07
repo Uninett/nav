@@ -50,6 +50,7 @@ from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
 from .helpers import prefix_collector
 from .filter_backends import *
 from nav.web.status2 import STATELESS_THRESHOLD
+from nav.macaddress import MacPrefix
 
 EXPIRE_DELTA = timedelta(days=365)
 MINIMUMPREFIXLENGTH = 4
@@ -348,12 +349,14 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     - organization
     - room
     - sysname
+    - type__name (NB: two underscores): ^ indicates starts_with, otherwise exact match
 
     When the filtered item is an object, it will filter on the id.
     """
     queryset = manage.Netbox.objects.all()
     serializer_class = serializers.NetboxSerializer
-    filter_fields = ('ip', 'sysname', 'room', 'organization', 'category')
+    filter_fields = ('ip', 'sysname', 'room', 'organization', 'category',
+                     'room__location')
     search_fields = ('sysname', )
 
     def destroy(self, request, *args, **kwargs):
@@ -367,6 +370,23 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
         obj.save()
         _logger.info('Token %s set deleted at for %r', self.request.auth, obj)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get_queryset(self):
+        """Implement basic filtering on type__name
+
+        If more custom filters are requested create a filterbackend:
+        http://www.django-rest-framework.org/api-guide/filtering/#example
+        """
+        qs = super(NetboxViewSet, self).get_queryset()
+        params = self.request.query_params
+        if 'type__name' in params:
+            value = params.get('type__name')
+            if value.startswith('^'):
+                qs = qs.filter(type__name__istartswith=value[1:])
+            else:
+                qs = qs.filter(type__name=value)
+
+        return qs
 
 
 class InterfaceFilterClass(filters.FilterSet):
@@ -525,6 +545,17 @@ class MachineTrackerViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
             queryset = queryset.extra(
                 where=[SQL_OVERLAPS.format(starttime, endtime)])
 
+        # Support wildcard filtering on mac
+        mac = self.request.query_params.get('mac')
+        if mac:
+            try:
+                mac = MacPrefix(mac, min_prefix_len=2)
+            except ValueError as e:
+                raise exceptions.ParseError("mac: %s" % e)
+            # convert to text and use like to filter
+            queryset = queryset.extra(where=["mac::text like %s"],
+                                      params=[str(mac) + '%'])
+
         return queryset
 
 
@@ -543,7 +574,8 @@ class CamViewSet(MachineTrackerViewSet):
     - `endtime`: *must be set with starttime: lists all active records in the
       period between starttime and endtime*
     - `ifindex`
-    - `mac`
+    - `mac`: *supports prefix filtering - for instance "mac=aa:aa:aa" will
+       return all records where the mac address starts with aa:aa:aa*
     - `netbox`
     - `port`
 
@@ -554,7 +586,7 @@ class CamViewSet(MachineTrackerViewSet):
     """
     model_class = manage.Cam
     serializer_class = serializers.CamSerializer
-    filter_fields = ('mac', 'netbox', 'ifindex', 'port')
+    filter_fields = ('netbox', 'ifindex', 'port')
 
     def list(self, request):
         """Override list so that we can control what is returned"""
@@ -562,7 +594,6 @@ class CamViewSet(MachineTrackerViewSet):
             return Response("Cam records are numerous - use a filter",
                             status=status.HTTP_400_BAD_REQUEST)
         return super(CamViewSet, self).list(request)
-
 
 
 class ArpViewSet(MachineTrackerViewSet):
@@ -581,7 +612,8 @@ class ArpViewSet(MachineTrackerViewSet):
     - `endtime`: *must be set with starttime: lists all active records in the
       period between starttime and endtime*
     - `ip`
-    - `mac`
+    - `mac`: *supports prefix filtering - for instance "mac=aa:aa:aa" will
+       return all records where the mac address starts with aa:aa:aa*
     - `netbox`
     - `prefix`
 
@@ -592,7 +624,7 @@ class ArpViewSet(MachineTrackerViewSet):
     """
     model_class = manage.Arp
     serializer_class = serializers.ArpSerializer
-    filter_fields = ('mac', 'netbox', 'prefix')
+    filter_fields = ('netbox', 'prefix')
 
     def list(self, request):
         """Override list so that we can control what is returned"""
@@ -617,7 +649,7 @@ class ArpViewSet(MachineTrackerViewSet):
         return queryset
 
 
-class VlanViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+class VlanViewSet(NAVAPIMixin, viewsets.ModelViewSet):
     """Lists all vlans.
 
     Search
@@ -640,7 +672,7 @@ class VlanViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     search_fields = ['net_ident', 'description']
 
 
-class PrefixViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+class PrefixViewSet(NAVAPIMixin, viewsets.ModelViewSet):
     """Lists all prefixes.
 
     Filters

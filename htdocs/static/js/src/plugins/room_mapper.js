@@ -17,7 +17,7 @@ define(['libs/ol-debug'], function (ol) {
     function RoomMapper(node, options) {
         this.node = typeof node === 'string' ? document.getElementById(node) : node;
 
-        this.options = Object.assign({}, options);
+        this.options = _.extend({}, options);
         this.room_id = this.options.room;
         this.location_id = this.options.location;
 
@@ -39,7 +39,7 @@ define(['libs/ol-debug'], function (ol) {
             var clusters = new ol.layer.Vector({
                 source: this.clusterSource,
                 style: getComponentStyle
-            })
+            });
 
             this.map = this.createMap(clusters);
             this.view = this.map.getView();
@@ -72,7 +72,7 @@ define(['libs/ol-debug'], function (ol) {
             });
         },
 
-        createView: function(center) {
+        createView: function() {
             return new ol.View({
                 zoom: this.maxZoom,
                 maxZoom: this.maxZoom,
@@ -110,7 +110,7 @@ define(['libs/ol-debug'], function (ol) {
                           NAV.urls.api_room_list + '?location=' + self.location_id :
                           NAV.urls.api_room_list;
                 $.getJSON(url, self.getFeatures.bind(self, source));
-            }
+            };
             source.setLoader(loader);
             return source;
         },
@@ -131,14 +131,12 @@ define(['libs/ol-debug'], function (ol) {
         },
 
         createFeature: function (room) {
-            var feature = new ol.Feature({
+            return new ol.Feature({
                 geometry: new ol.geom.Point(transformPosition(room)),
                 name: room.id,
                 description: room.description,
                 focus: this.room_id && room.id === this.room_id
             });
-
-            return feature;
         },
 
         /**
@@ -153,7 +151,7 @@ define(['libs/ol-debug'], function (ol) {
                 } else {
                     self.hideOverlays();
                 }
-            }
+            };
 
             // Throttle the zoom detection
             var throttleInterval = 200;  // ms
@@ -183,7 +181,7 @@ define(['libs/ol-debug'], function (ol) {
                         return f.get('name');
                     }).join('-');
                     self.showOverlay(id, feature);
-                })
+                });
                 this.overlaysVisible = true;
                 $(this.node).trigger('changeOverlaysVisibility');
             }
@@ -205,7 +203,7 @@ define(['libs/ol-debug'], function (ol) {
         hideOverlays: function() {
             _.each(this.overlays, function(overlay) {
                 overlay.setPosition(undefined);
-            })
+            });
             this.overlaysVisible = false;
             $(this.node).trigger('changeOverlaysVisibility');
         },
@@ -217,8 +215,8 @@ define(['libs/ol-debug'], function (ol) {
                 "border": "1px solid #ccc",
                 "opacity": ".7",
                 "padding": "0 .5em",
-                "margin": "1em 0 0 0",
-            })
+                "margin": "1em 0 0 0"
+            });
             var features = feature.get('features');
             features.sort(function(a, b) {
                 var nameA = a.get('name');
@@ -236,12 +234,11 @@ define(['libs/ol-debug'], function (ol) {
                 var $image = $('<img>').attr('src', imageSrc).css('height', '1em');
                 return $("<li>").append($image, $link);
             }));
-            var overlay = new ol.Overlay({
+            return new ol.Overlay({
                 element: $list.get(0),
                 position: feature.getGeometry().getCoordinates(),
                 positioning: 'top-center',
             });
-            return overlay;
         },
 
     };
@@ -251,8 +248,8 @@ define(['libs/ol-debug'], function (ol) {
         var button = document.createElement('button');
         button.innerHTML = 'O';
 
-        function handleClick(e) {
-            roomMapper.overlaysVisible = !roomMapper.overlaysVisible
+        function handleClick() {
+            roomMapper.overlaysVisible = !roomMapper.overlaysVisible;
             if (roomMapper.overlaysVisible) {
                 roomMapper.showOverlays();
             } else {
@@ -264,12 +261,12 @@ define(['libs/ol-debug'], function (ol) {
         button.addEventListener('touchstart', handleClick, false);
         $(roomMapper.node).on('changeOverlaysVisibility', function() {
             button.style.backgroundColor = roomMapper.overlaysVisible ? '#b8bb6f' : '';
-        })
+        });
 
 
         var element = document.createElement('div');
         element.className = 'toggle-overlay ol-control';
-        element.title = 'Toggle showing overlapping rooms as a list'
+        element.title = 'Toggle showing overlapping rooms as a list';
         element.style.top = '65px';
         element.style.left = '.5em';
         element.appendChild(button);
@@ -277,7 +274,7 @@ define(['libs/ol-debug'], function (ol) {
         ol.control.Control.call(this, {
             element: element,
         });
-    };
+    }
     ol.inherits(OverlayToggler, ol.control.Control);
 
 
@@ -318,7 +315,6 @@ define(['libs/ol-debug'], function (ol) {
     /**
      * Gets the style for a given room
      * @param {string} room - the room id/name
-     * @param {object} focusRoom - optional focusRoom, should be visibly distinct from others
      */
     function getRoomStyle(room) {
         var name = room.get('name');

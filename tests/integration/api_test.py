@@ -37,6 +37,12 @@ TEST_DATA = {
     'room': {
         'id': 'blapp',
         'location': 'mylocation'
+    },
+    'vlan': {
+        'net_type': 'scope',
+    },
+    'prefix': {
+        'net_address': '158.38.240.0/25'
     }
 }
 
@@ -61,7 +67,7 @@ def test_allowed_endpoints(db, api_client, token, serializer_models, name, url):
 
 
 @pytest.mark.parametrize("endpoint",
-                         ['account', 'location', 'room'])
+                         ['account', 'location', 'room', 'vlan'])
 def test_delete(db, api_client, token, endpoint):
     create_token_endpoint(token, endpoint)
     response_create = create(api_client, endpoint, TEST_DATA.get(endpoint))
@@ -77,7 +83,7 @@ def test_delete(db, api_client, token, endpoint):
 
 
 @pytest.mark.parametrize("endpoint",
-                         ['account', 'netbox', 'location', 'room'])
+                         ['account', 'netbox', 'location', 'room', 'vlan'])
 def test_create(db, api_client, token, endpoint):
     create_token_endpoint(token, endpoint)
     response = create(api_client, endpoint, TEST_DATA.get(endpoint))
@@ -208,6 +214,69 @@ def test_delete_room_wrong_room(db, api_client, token):
     assert response.status_code == 404
 
 
+def test_validate_vlan(db, api_client, token):
+    endpoint = 'vlan'
+    create_token_endpoint(token, 'vlan')
+    testdata = dict(TEST_DATA.get(endpoint))
+    testdata.update({'net_type': 'core'})
+    response = create(api_client, endpoint, testdata)
+
+    print(response)
+    assert response.status_code == 400
+
+
+def prepare_prefix_test(db, api_client, token):
+    token.endpoints = {
+        'prefix': ENDPOINTS.get('prefix'),
+        'vlan': ENDPOINTS.get('vlan')
+    }
+    token.save()
+    testdata = dict(TEST_DATA.get('prefix'))
+
+    vlan_response = create(api_client, 'vlan', TEST_DATA.get('vlan'))
+    vlan = json.loads(vlan_response.content.decode('utf-8'))
+    testdata.update({'vlan': vlan.get('id')})
+    return testdata
+
+
+def test_create_prefix(db, api_client, token):
+    endpoint = 'prefix'
+    testdata = prepare_prefix_test(db, api_client, token)
+    response = create(api_client, endpoint, testdata)
+
+    print(response)
+    assert response.status_code == 201
+
+
+def test_create_prefix_with_usage(db, api_client, token, serializer_models):
+    endpoint = 'prefix'
+    testdata = prepare_prefix_test(db, api_client, token)
+    testdata.update({
+        'usages': ['ans']
+    })
+
+    response = create(api_client, endpoint, testdata)
+    json_response = json.loads(response.content.decode('utf-8'))
+    assert json_response.get('usages') == ['ans']
+
+
+def test_update_prefix_remove_usage(db, api_client, token, serializer_models):
+    endpoint = 'prefix'
+    testdata = prepare_prefix_test(db, api_client, token)
+    testdata.update({
+        'usages': ['ans', 'student']
+    })
+    response = create(api_client, endpoint, testdata)
+    prefix = json.loads(response.content.decode('utf-8'))
+
+    testdata.update({
+        'usages': ['ans']
+    })
+    response = update(api_client, endpoint, prefix.get('id'), testdata)
+    json_response = json.loads(response.content.decode('utf-8'))
+    assert json_response.get('usages') == ['ans']
+
+
 # Helpers
 
 def create_token_endpoint(token, name):
@@ -285,3 +354,5 @@ def serializer_models():
                        end_time=INFINITY).save()
     admin = profiles.Account.objects.get(login='admin')
     auditlog.LogEntry.add_log_entry(admin, verb='verb', template='asd')
+    manage.Usage(id='ans', description='Ansatte').save()
+    manage.Usage(id='student', description='Studenter').save()

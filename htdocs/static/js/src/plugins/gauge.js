@@ -209,7 +209,7 @@ define(function (require, exports, module) {
                 0: this.getConfigZeroThreshold.bind(this, defaults)
             }
 
-            var config = Object.assign({}, defaults, lookup[thresholds.length]());
+            var config = _.extend(defaults, lookup[thresholds.length]());
             var domain = this.getDomain(config.min, config.max, config.colors.length);
 
             /* Special case for negative minimum - let it start blue and then
