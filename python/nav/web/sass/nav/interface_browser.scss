@@ -1,0 +1,68 @@
+@import '../navsettings';
+
+.navbody .select2-container-multi .select2-choices .select2-search-field input {
+    height: 33px;
+}
+
+.navbody .dataTables_wrapper .dataTables_paginate {
+    float: none;
+    padding: 0;
+    .paginate_button { margin: 0; }
+}
+
+#portlist-table_wrapper {
+    display: inline-block;
+}
+
+#portlist-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#columns-controls > div {
+    margin-right: 1em;
+}
+
+#column-toggler {
+    display: none;
+    position: relative;
+    width: 180px;
+    .toggle-header {
+        cursor: pointer;
+        margin: 0;
+        width: 100%;
+    }
+    .toggle-container {
+        background-color: white;
+        border: 2px solid $dropdown-border-color;
+        padding: 1em;
+        position: absolute;
+        width: 100%;
+        z-index: 10;
+        > ul {
+            list-style: none;
+            margin: 0;
+            > li {
+                margin-bottom: .3rem;
+                > label {
+                    display: flex;
+                    align-items: center;
+                    input { margin: 0 .3rem 0 0 ; }
+                }
+            }
+        }
+    }
+}
+
+#filters {
+    display: flex;
+    > * { margin-right: 1em; }
+    .label-netbox-filter { width: 20em; }
+    .label-vlan-filter { width: 4em; }
+    .label-query-filter { width: 20em; }
+    .select2-container-multi {
+        .select2-search-choice { padding: 7px 5px 7px 18px; }
+        .select2-search-choice-close { top: 7px; }
+    }
+}

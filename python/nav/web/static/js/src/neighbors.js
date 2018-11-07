@@ -110,7 +110,7 @@ require(['libs/datatables.min'], function() {
             }
             dataTable.fnDraw();
         });
-        
+
         request.fail(function() {
             feedbackFail('Request failed');
             console.log('Request failed');
@@ -157,8 +157,6 @@ require(['libs/datatables.min'], function() {
             ],
             "fnDrawCallback": function (oSettings) {
                 /* Run this on redraw of table */
-                $('.paginate_button').removeClass('secondary').addClass('button tiny');
-                $('.paginate_button.current').addClass('secondary');
                 $('.ellipsis').addClass('button tiny secondary disabled paginate_button');
             }
         });

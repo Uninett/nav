@@ -195,6 +195,7 @@ class InterfaceSerializer(serializers.ModelSerializer):
     object_url = serializers.CharField(source='get_absolute_url')
     to_netbox = SubNetboxSerializer()
     to_interface = SubInterfaceSerializer()
+    netbox = SubNetboxSerializer()
 
     class Meta(object):
         model = manage.Interface
@@ -257,16 +258,62 @@ class RackSerializer(serializers.ModelSerializer):
 
 class VlanSerializer(serializers.ModelSerializer):
     """Serializer for the vlan model"""
+    VALID_NET_TYPES = ["scope", "reserved"]
+
     class Meta(object):
         model = manage.Vlan
         fields = '__all__'
 
+    def validate_net_type(self, value):
+        """Validate net_type
+
+        :type value: nav.models.manage.NetType
+        """
+        if value.id not in VlanSerializer.VALID_NET_TYPES:
+            raise serializers.ValidationError(
+                "net_type must be {}".format(
+                    ' or '.join(VlanSerializer.VALID_NET_TYPES)))
+        return value
+
 
 class PrefixSerializer(serializers.ModelSerializer):
     """Serializer for prefix model"""
+
+    usages = serializers.PrimaryKeyRelatedField(
+        many=True, read_only=False, required=False,
+        queryset=manage.Usage.objects.all())
+
     class Meta(object):
         model = manage.Prefix
         fields = '__all__'
+
+    def update(self, instance, validated_data):
+        if 'usages' in validated_data:
+            new_usages = set(u.id for u in validated_data.pop('usages'))
+            current_usages = set(u.id for u in instance.usages.all())
+            to_add = new_usages - current_usages
+            to_delete = current_usages - new_usages
+
+            for usage in to_add:
+                manage.PrefixUsage(
+                    prefix=instance,
+                    usage=manage.Usage.objects.get(pk=usage)
+                ).save()
+
+            manage.PrefixUsage.objects.filter(
+                prefix=instance, usage__in=list(to_delete)).delete()
+        return super(PrefixSerializer, self).update(instance, validated_data)
+
+    def create(self, validated_data):
+        usages = validated_data.pop('usages', [])
+        instance = super(PrefixSerializer, self).create(validated_data)
+        for usage in usages:
+            manage.PrefixUsage(
+                prefix=instance,
+                usage=usage
+            ).save()
+
+        return instance
 
 
 class PrefixUsageSerializer(serializers.Serializer):
