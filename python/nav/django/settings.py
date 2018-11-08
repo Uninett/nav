@@ -31,12 +31,12 @@ ALLOWED_HOSTS = ['*']
 
 try:
     nav_config = read_flat_config('nav.conf')
-except IOError:
+except (IOError, OSError):
     nav_config = {'SECRET_KEY': 'Very bad default value'}
 
 try:
     webfront_config = getconfig('webfront/webfront.conf')
-except IOError:
+except (IOError, OSError):
     webfront_config = {}
 
 DEBUG = nav_config.get('DJANGO_DEBUG', 'False').upper() in ('TRUE', 'YES', 'ON')
@@ -73,7 +73,7 @@ try:
 
         }
     }
-except IOError:
+except (IOError, OSError):
     pass
 
 # URLs configuration

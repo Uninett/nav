@@ -22,7 +22,9 @@ from django.http import HttpResponse
 from nav.config import find_configfile
 
 webfrontConfig = configparser.ConfigParser()
-webfrontConfig.read(find_configfile(os.path.join('webfront', 'webfront.conf')))
+_configfile = find_configfile(os.path.join('webfront', 'webfront.conf'))
+if _configfile:
+    webfrontConfig.read(_configfile)
 
 
 def refresh_session(request):
