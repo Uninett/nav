@@ -86,6 +86,12 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+DOC_DIR = os.path.join(BASE_DIR, 'doc/_build/html')
+if os.path.isdir(DOC_DIR):  # No point unless docs have actually been built
+    STATICFILES_DIRS = [
+        ('doc', DOC_DIR),
+    ]
 
 
 # Templates

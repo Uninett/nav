@@ -96,7 +96,7 @@ def authorization_not_required(fullpath):
     Should the user be able to decide this? Currently not.
 
     """
-    auth_not_required = ['/api/']
+    auth_not_required = ['/api/', '/doc/']
     for url in auth_not_required:
         if fullpath.startswith(url):
             return True
