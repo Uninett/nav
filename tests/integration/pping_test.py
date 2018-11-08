@@ -2,6 +2,7 @@
 various pping integration tests
 """
 import os
+import getpass
 try:
     from subprocess32 import (STDOUT, check_output, TimeoutExpired,
                               CalledProcessError)
@@ -12,7 +13,6 @@ except ImportError:
 import pytest
 
 from nav.models.manage import Netbox
-from nav.buildconf import nav_user
 from nav.config import find_configfile
 
 
@@ -105,7 +105,7 @@ packetsize = 64
 timeout = 1
 nrping = 2
 delay = 2
-""".format(user=nav_user))
+""".format(user=getpass.getuser()))
     yield configfile
     print("restoring ping config")
     os.remove(configfile)
