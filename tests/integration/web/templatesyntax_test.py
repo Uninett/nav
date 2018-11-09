@@ -17,7 +17,7 @@ def test_templates_can_be_found():
 
 
 def test_alert_templates_can_be_found():
-    templates = list(get_template_list(ALERT_TEMPLATE_DIR))
+    templates = list(get_template_list([ALERT_TEMPLATE_DIR]))
     assert templates, "Can't find any Django alert message templates"
 
 
