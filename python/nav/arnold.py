@@ -517,7 +517,7 @@ def get_netbios(ip):
 
 def check_non_block(ip):
     """Checks if the ip is in the nonblocklist."""
-    nonblockdict = parse_nonblock_file(NONBLOCKFILE)
+    nonblockdict = parse_nonblock_file(find_configfile(NONBLOCKFILE))
 
     # We have the result of the nonblock.cfg-file in the dict
     # nonblockdict. This dict contains 3 things:
@@ -561,7 +561,6 @@ def parse_nonblock_file(filename):
     nonblockdict = {'ip': {}, 'range': {}}
 
     # Open nonblocklist, parse it.
-    filename = find_configfile(filename)
     try:
         handle = open(filename)
     except IOError as why:
