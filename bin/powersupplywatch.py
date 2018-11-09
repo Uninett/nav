@@ -24,7 +24,6 @@ import logging
 logging.raiseExceptions = False
 
 import sys
-from os.path import join
 from datetime import datetime
 import argparse
 
@@ -32,7 +31,6 @@ from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
 # import NAV libraries
-from nav import buildconf
 from nav.event import Event
 from nav.Snmp import Snmp
 from nav.models.manage import PowerSupplyOrFan, Device
@@ -136,7 +134,7 @@ VENDOR_PSU_STATES = {
     },
 }
 
-LOGFILE = join(buildconf.localstatedir, "log/powersupplywatch.log")
+LOGFILE = "powersupplywatch.log"
 LOGGER = logging.getLogger('nav.powersupplywatch')
 
 

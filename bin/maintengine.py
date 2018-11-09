@@ -21,29 +21,25 @@ schedule in NAVdb.
 """
 
 
-import os.path
 import time
 import logging
 
 from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
-import nav.buildconf
 from nav.logs import init_generic_logging
 from nav.maintengine import check_devices_on_maintenance
 
-
+LOG_FILE = 'maintengine.log'
 LOG_FORMAT = "[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s"
 
 
 def main():
     """Good old main..."""
     before = time.clock()
-    log_file = os.path.join(nav.buildconf.localstatedir,
-                            'log', 'maintengine.log')
     fmt = logging.Formatter(LOG_FORMAT)
     init_generic_logging(
-        logfile=log_file,
+        logfile=LOG_FILE,
         stderr=False,
         formatter=fmt,
         read_config=True,

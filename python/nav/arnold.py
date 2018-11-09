@@ -37,6 +37,7 @@ import nav.Snmp
 from nav.Snmp.errors import AgentError
 import nav.bitvector
 import nav.buildconf
+from nav.config import find_configfile
 from nav.errors import GeneralException
 from nav.models.arnold import Identity, Event
 from nav.models.manage import Interface, Prefix
@@ -45,8 +46,8 @@ from django.db import connection  # import this after any django models
 from django.core.mail import EmailMessage
 from nav.util import is_valid_ip
 
-CONFIGFILE = nav.buildconf.sysconfdir + "/arnold/arnold.conf"
-NONBLOCKFILE = nav.buildconf.sysconfdir + "/arnold/nonblock.conf"
+CONFIGFILE = os.path.join("arnold", "arnold.conf")
+NONBLOCKFILE = os.path.join("arnold", "nonblock.conf")
 LOGGER = logging.getLogger("nav.arnold")
 
 # pylint: disable=C0103
@@ -356,7 +357,7 @@ def create_event(identity, comment, username):
 def raise_if_detainment_not_allowed(interface, trunk_ok=False):
     """Raises an exception if this interface should not be detained"""
     netbox = interface.netbox
-    config = get_config(CONFIGFILE)
+    config = get_config(find_configfile(CONFIGFILE))
     allowtypes = [x.strip()
                   for x in str(config.get('arnold', 'allowtypes')).split(',')]
 
@@ -560,6 +561,7 @@ def parse_nonblock_file(filename):
     nonblockdict = {'ip': {}, 'range': {}}
 
     # Open nonblocklist, parse it.
+    filename = find_configfile(filename)
     try:
         handle = open(filename)
     except IOError as why:

@@ -18,7 +18,7 @@ import math
 
 from nav.config import read_flat_config
 from nav.web.navlets import Navlet
-from nav.web.webfront.views import NAV_LINKS_PATH
+from nav.web.webfront import NAV_LINKS_PATH
 
 
 class LinkListNavlet(Navlet):

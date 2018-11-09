@@ -17,7 +17,6 @@
 
 from __future__ import absolute_import
 
-import os
 import logging
 from optparse import OptionParser
 from collections import defaultdict
@@ -34,8 +33,7 @@ import django
 from django.db import transaction
 from django.utils import six
 
-LOGFILE_NAME = 'thresholdmon.log'
-LOGFILE_PATH = os.path.join(buildconf.localstatedir, 'log', LOGFILE_NAME)
+LOG_FILE = 'thresholdmon.log'
 
 _logger = logging.getLogger('nav.thresholdmon')
 
@@ -46,7 +44,7 @@ def main():
     (_options, _args) = parser.parse_args()
 
     init_generic_logging(
-        logfile=LOGFILE_PATH,
+        logfile=LOG_FILE,
         stderr=False,
         stdout=True,
         read_config=True,

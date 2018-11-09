@@ -27,7 +27,8 @@ import re
 import yaml
 from django.utils import six
 
-from nav.config import read_flat_config, open_configfile, find_configfile
+from nav.config import (read_flat_config, open_configfile, find_configfile,
+                        NAV_CONFIG)
 from nav.errors import GeneralException
 from nav import buildconf
 
@@ -212,7 +213,7 @@ class DaemonService(Service):
 class CronService(Service):
     """ Represents cron based services."""
     crontab = None
-    cronUser = buildconf.nav_user
+    cronUser = NAV_CONFIG['NAV_USER']
 
     def __init__(self, filename):
         self.content = None

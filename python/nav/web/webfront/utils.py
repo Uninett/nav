@@ -102,7 +102,7 @@ def tool_list(account):
         return Tool(**dict(
             [[y.strip() for y in x.split('=')] for x in lines if x]))
 
-    paths = [os.path.join(path, 'tools') for path in CONFIG_LOCATIONS]
+    paths = [os.path.join(path, 'toolbox') for path in CONFIG_LOCATIONS]
     if webfrontConfig.has_option('toolbox', 'path'):
         paths = webfrontConfig.get('toolbox', 'path').split(os.pathsep)
 

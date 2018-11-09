@@ -19,12 +19,12 @@ import os.path
 
 from django.http import HttpResponse
 
-import nav.buildconf
-
+from nav.config import find_configfile
 
 webfrontConfig = configparser.ConfigParser()
-webfrontConfig.read(os.path.join(nav.buildconf.sysconfdir, 'webfront',
-                                 'webfront.conf'))
+_configfile = find_configfile(os.path.join('webfront', 'webfront.conf'))
+if _configfile:
+    webfrontConfig.read(_configfile)
 
 
 def refresh_session(request):

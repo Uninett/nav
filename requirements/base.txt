@@ -26,5 +26,4 @@ iso8601
 pynetsnmp-2==0.1.3
 
 # libsass for compiling scss files to css using distutils/setuptools
-git+https://github.com/sass/libsass-python.git@a0308b01c3c9bdab795f5141a4c51b899f7844d0
-
+libsass==0.15.1

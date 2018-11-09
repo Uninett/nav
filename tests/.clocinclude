@@ -1,5 +1,2 @@
 bin
 python
-templates
-htdocs/static/js/src
-sql

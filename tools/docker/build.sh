@@ -27,6 +27,7 @@ if [[ ! -d "/etc/nav" ]]; then
     chown -R nav:nav /etc/nav
     cd /etc/nav
     sed -e 's/^#\s*\(DJANGO_DEBUG.*\)$/\1/' -i nav.conf  # Enable django debug.
+    sed -e 's/^NAV_USER\s*=.*/NAV_USER=nav/' -i nav.conf  # Set the nav user
     sed -e 's/dbhost=.*/dbhost=postgres/g' -i db.conf  # Set nav as db password.
     sed -e 's/userpw_nav=.*/userpw_nav=nav/g' -i db.conf  # Set nav as db password.
 
