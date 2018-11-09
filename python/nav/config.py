@@ -39,6 +39,13 @@ CONFIG_LOCATIONS = [
     '/etc/nav',
     buildconf.sysconfdir,
 ]
+_venv = os.getenv('VIRTUAL_ENV')
+if _venv:
+    CONFIG_LOCATIONS = [
+        os.path.join(_venv, 'etc'),
+        os.path.join(_venv, 'etc/nav'),
+        os.path.join(_venv, buildconf.sysconfdir),
+    ] + CONFIG_LOCATIONS
 
 
 def read_flat_config(config_file, delimiter='='):

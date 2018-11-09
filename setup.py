@@ -10,6 +10,9 @@ TOP_SRCDIR = os.path.abspath(os.path.dirname(__file__))
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+def etc_files():
+    return [(d, [os.path.join(d,f) for f in files])
+            for d, folders, files in os.walk('etc')]
 
 def find_scripts():
     for candidate in glob('bin/*'):
@@ -49,6 +52,7 @@ setup(
     package_data={
         '': ['static', 'sql', 'templates'],
     },
+    data_files=etc_files(),
 
     sass_manifests={
         'nav.web': {
