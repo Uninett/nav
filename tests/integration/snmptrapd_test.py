@@ -5,7 +5,6 @@ import pytest
 from unittest import TestCase
 import signal
 import time
-from nav.buildconf import sysconfdir
 from nav.config import find_configfile
 from nav.snmptrapd.plugin import load_handler_modules
 

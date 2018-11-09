@@ -23,7 +23,7 @@ import copy
 import django
 from django.utils.log import DEFAULT_LOGGING
 
-from nav.config import read_flat_config, getconfig, find_configfile
+from nav.config import (read_flat_config, getconfig, find_config_dir)
 from nav.db import get_connection_parameters
 import nav.buildconf
 
@@ -100,7 +100,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(nav.buildconf.sysconfdir, 'templates'),
+            os.path.join(find_config_dir(), 'templates'),
             nav.buildconf.djangotmpldir,
         ],
         'APP_DIRS': True,
@@ -252,9 +252,8 @@ SEARCHPROVIDERS = [
 
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
-_nav_conf = find_configfile('nav.conf')
-if _nav_conf:
-    sys.path.append(os.path.join(os.path.dirname(_nav_conf), "python"))
+if find_config_dir():
+    sys.path.append(os.path.join(find_config_dir(), "python"))
 try:
     # pylint: disable=E0602
     LOCAL_SETTINGS

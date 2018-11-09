@@ -19,7 +19,6 @@ import logging
 from django.core.urlresolvers import reverse
 from django.db.models.aggregates import Count
 import json
-import os
 import datetime
 from configparser import ConfigParser
 
@@ -27,8 +26,7 @@ from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
-import nav
-from nav.config import read_flat_config
+from nav.config import NAV_CONFIG, find_configfile
 
 from nav.django.utils import get_account
 
@@ -41,7 +39,7 @@ from nav.web.utils import create_title
 DATEFORMAT = "%Y-%m-%d %H:%M:%S"
 
 try:
-    DOMAIN_SUFFICES = read_flat_config("nav.conf")["DOMAIN_SUFFIX"].split(",")
+    DOMAIN_SUFFICES = NAV_CONFIG.get("DOMAIN_SUFFIX", "").split(",")
 except IOError:
     DOMAIN_SUFFICES = []
 DOMAIN_SUFFICES = [s.strip() for s in DOMAIN_SUFFICES]
@@ -224,7 +222,7 @@ def exceptions_response(request):
     if not account:
         return HttpResponseRedirect('/')
     config = ConfigParser()
-    config.read(os.path.join(nav.buildconf.sysconfdir, 'logger.conf'))
+    config.read(find_configfile('logger.conf'))
     options = config.options("priorityexceptions")
     excepts = []
     context = {}

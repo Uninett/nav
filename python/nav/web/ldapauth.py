@@ -19,15 +19,11 @@ Contains ldap authentication functionality for NAV web.
 
 from __future__ import print_function, unicode_literals
 
-import sys
 import logging
-import configparser
 from os.path import join
-from io import StringIO
 
 from django.utils import six
 
-from nav.buildconf import sysconfdir
 import nav.errors
 from nav.config import NAVConfigParser
 
