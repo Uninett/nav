@@ -35,7 +35,7 @@ def make_geojson(featurelist):
 
     """
     geojson = {'type': 'FeatureCollection',
-               'features': map(make_geojson_feature, featurelist)}
+               'features': [make_geojson_feature(f) for f in featurelist]}
     return json.dumps(geojson)
 
 
