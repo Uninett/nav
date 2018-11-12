@@ -226,6 +226,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'nav.auditlog',
     'nav.web.macwatch',
+    'nav.web.geomap',
 )
 
 if tuple(django.VERSION[:2]) == (1, 7):

@@ -39,7 +39,7 @@ from django import template
 
 from nav.config import open_configfile
 from nav.web.geomap.conf import get_configuration
-from nav.web.geomap.utils import union_dict, subdict, concat_list, is_nan
+from nav.web.geomap.utils import union_dict, subdict, concat_list
 
 _logger = logging.getLogger('nav.web.geomap.features')
 
@@ -74,90 +74,20 @@ def create_features(variant, graph, do_create_edges=True):
     return nodes+edges
 
 
-def filter_nan2none(value):
-    """Convert the NaN value to None, leaving everything else unchanged.
-
-    This function is meant to be used as a Django template filter. It
-    is useful in combination with filters that handle None (or any
-    false value) specially, such as the 'default' filter, when one
-    wants special treatment for the NaN value. It is also useful
-    before the 'format' filter to avoid the NaN value being formatted.
-
-    """
-    if is_nan(value):
-        return None
-    return value
-
-
-def filter_format(value, arg):
-    """Format value according to format string arg.
-
-    This function is meant to be used as a Django template filter.
-
-    """
-    try:
-        return arg % value
-    except TypeError:
-        return ''
-
-
 def load_popup_template(filename):
-    """Load the template for a popup.
+    """Loads the template for a popup.
 
-    Returns a django.template.Template object.
+    :param filename: name of a configuration file containing template source
+                     (relative to the geomap configuration directory)
 
-    """
-    filters = {'nan2none': filter_nan2none,
-               'format': filter_format}
-    return template_from_config(filename, filters)
-
-
-def template_from_config(filename, filters):
-    """Create a Django template from a configuration file.
-
-    Arguments:
-
-    filename -- name of configuration file containing template
-    (relative to the geomap configuration directory)
-
-    filters -- additional template filters (see
-    compile_template_with_filters)
-
+    :returns: A django.template.Template object.
     """
     if filename is None:
         return None
     filename = os.path.join('geomap', filename)
     with open_configfile(filename) as afile:
         content = afile.read()
-    return compile_template_with_filters(content, filters)
-
-
-def compile_template_with_filters(template_string, filters):
-    """Compile a Django template, using additional filters.
-
-    This is like Template(template_string) except that additional
-    filters to be made available to the template may be specified.
-
-    Normally, one would define filters as documented in [1], but this
-    requires the INSTALLED_APPS settings to be set, which is not the
-    case in NAV[2]. This function is just a hack to get around that
-    limitation. The code is based on
-    django.template.compile_string[3].
-
-    filters should be a dictionary mapping filter names to functions.
-
-    [1]: http://docs.djangoproject.com/en/dev/howto/custom-template-tags/
-    [2]: https://nav.uninett.no/wiki/devel:django_introduction#settings
-    [3]: http://code.djangoproject.com/browser/django/trunk/django/template/__init__.py
-
-    """
-    lib = template.Library()
-    for name in filters.keys():
-        lib.filter(name, filters[name])
-    lexer = template.Lexer(template_string, None)
-    parser = template.Parser(lexer.tokenize())
-    parser.add_library(lib)
-    return parser.parse()
+    return template.Template(content)
 
 
 def apply_indicator(ind, properties):
