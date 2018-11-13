@@ -1,5 +1,5 @@
 # for debian build-deps, see the apt-get commands in
-# tools/vagrant-provision.sh
+# Dockerfile
 
 asciitree==0.3.3  # optional, for naventity
 configparser==3.5.0 ; python_version < '3'
