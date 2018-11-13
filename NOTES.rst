@@ -39,6 +39,39 @@ The version requirements have changed for these dependencies:
 * :mod:`python-ldap` must be any version of the *3.0* series.
 
 
+Build system rewrite and source code directory layout
+-----------------------------------------------------
+
+The entire build system has been rewritten, moving from GNU automake to regular
+Python setuptools (since NAV has been mostly Python for years now). This also
+means a lot of files in the source code tree have moved around to suit a more
+Python-centric way of installing things - that is, many "data" files have been
+moved into suitable Python packages:
+
+`templates`
+  The global :file:`templates` directory was moved to
+  :file:`python/nav/web/templates`
+
+`sql`
+  All the SQL related scripts were moved to :file:`python/nav/models/sql`
+
+`htdocs/sass`
+  All SASS source files have moved to :file:`python/nav/web/sass`
+
+`htdocs/static`
+  All static web documents, including JavaScript sources, have
+  been moved to :file:`python/nav/web/static`.
+
+Instead of statically configuring filesystem paths and usernames into the NAV
+code at build time, most of these variables are now configurable from config
+files at runtime. Building and installing NAV now entails a sequence of::
+
+  python ./setup.py build
+  python ./setup.py install
+
+See the updated installation guides for more detailed instructions.
+
+
 Backwards incompatible changes
 ------------------------------
 
