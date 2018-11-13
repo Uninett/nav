@@ -50,7 +50,7 @@ setup(
     packages=find_packages('python'),
     include_package_data=True,
     package_data={
-        '': ['static', 'sql', 'templates'],
+        '': ['static', 'sql', 'templates', 'etc'],
     },
     data_files=etc_files(),
 
