@@ -29,6 +29,7 @@ import nav.buildconf
 
 ALLOWED_HOSTS = ['*']
 
+_config_dir = find_config_dir()
 try:
     nav_config = read_flat_config('nav.conf')
 except (IOError, OSError):
@@ -95,14 +96,13 @@ if os.path.isdir(DOC_DIR):  # No point unless docs have actually been built
 
 
 # Templates
+_global_template_dir = [
+    os.path.join(_config_dir, 'templates')] if _config_dir else []
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            os.path.join(find_config_dir(), 'templates'),
-            nav.buildconf.djangotmpldir,
-        ],
+        'DIRS': _global_template_dir + [nav.buildconf.djangotmpldir],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -253,8 +253,8 @@ SEARCHPROVIDERS = [
 
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
-if find_config_dir():
-    sys.path.append(os.path.join(find_config_dir(), "python"))
+if _config_dir:
+    sys.path.append(os.path.join(_config_dir, "python"))
 try:
     # pylint: disable=E0602
     LOCAL_SETTINGS
