@@ -23,6 +23,7 @@ import logging
 import os
 import sys
 import configparser
+import pkg_resources
 
 from django.utils import six
 
@@ -202,6 +203,60 @@ def open_configfile(filename):
         return io.open(name, encoding='utf-8')
     else:
         raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
+
+
+def install_example_config_files(target_directory, overwrite=False,
+                                 callback=None):
+    """Installs a copy of NAV's example configuration files in
+    target_directory
+
+    :param target_directory: A valid filesystem path to which we have write
+                             access.
+    :param overwrite: Existing files are overwritten if this is true.
+    :param callback: A function that is called with the full path name of each
+                     successfully written file.
+    """
+    for resource in _config_resource_walk():
+        path = _install_single_config_resource_(resource, target_directory,
+                                                overwrite)
+        if callback and path:
+            callback(path)
+
+
+def _config_resource_walk(source=''):
+    """Returns a generator that walks the entire tree of example config files
+    from available nav package resources. All paths returned will be relative to
+    the etc top directory.
+    """
+    current_path = os.path.join('etc', source)
+    for name in pkg_resources.resource_listdir('nav', current_path):
+        full_name = os.path.join(current_path, name)
+        relative_name = os.path.join(source, name)
+        if pkg_resources.resource_isdir('nav', full_name):
+            for path in _config_resource_walk(source=relative_name):
+                yield path
+        else:
+            yield relative_name
+
+
+def _install_single_config_resource_(source, target, overwrite=False):
+    """Installs a single config file resource from the nav packages, rooted at
+    the directory named in target.
+    """
+    resource_path = os.path.join('etc', source)
+    dirname = os.path.dirname(source)
+    target_directory = os.path.join(target, dirname)
+    target_file = os.path.join(target, source)
+    if not os.path.exists(target_directory):
+        os.makedirs(target_directory, mode=0755)
+
+    if not overwrite and os.path.exists(target_file):
+        return False
+
+    content = pkg_resources.resource_string('nav', resource_path)
+    with open(target_file, 'wb') as handle:
+        handle.write(content)
+        return target_file
 
 
 class ConfigurationError(GeneralException):
