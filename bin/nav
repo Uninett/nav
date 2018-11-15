@@ -70,7 +70,39 @@ def make_argparser():
         subp.add_argument("service", nargs="*", default=all_services)
         subp.set_defaults(func=func)
 
+    _add_bespoke_subparsers(subparsers)
+
     return parser
+
+
+def _add_bespoke_subparsers(subparsers):
+    config = subparsers.add_parser("config",
+                                   help="query or manipulate NAV configuration")
+    config_sub = config.add_subparsers()
+    where = config_sub.add_parser("where",
+                                  help="find and report the location of the "
+                                       "main NAV configuration file")
+    where.set_defaults(func=command_config_where)
+
+    path = config_sub.add_parser("path",
+                                 help="prints a list of filesystem locations "
+                                      "where NAV will search for configuration "
+                                      "files")
+    path.set_defaults(func=command_config_path)
+
+    install = config_sub.add_parser("install",
+                                    help="installs a copy of the default NAV "
+                                         "configuration file tree in a target "
+                                         "directory")
+    install.add_argument('target_directory',
+                         help="the directory in which to install the config "
+                              "files")
+    install.add_argument('--overwrite', action="store_true",
+                         help="overwrite existing config files in target "
+                              "directory")
+    install.add_argument('--verbose', '-v', action="store_true",
+                         help="print the full path of all copied files")
+    install.set_defaults(func=command_config_install)
 
 
 def verify_root():
@@ -208,7 +240,7 @@ def c_version(_):
     print("NAV %s" % buildconf.VERSION)
 
 
-def c_config(_):
+def command_config_where(_):
     """reports the location of NAV's main configuration file"""
     from nav.config import find_configfile, CONFIG_LOCATIONS
     path = find_configfile('nav.conf')
@@ -217,6 +249,27 @@ def c_config(_):
     else:
         sys.exit("Could not find nav.conf in any of these locations:\n"
                  "{}".format('\n'.join(CONFIG_LOCATIONS)))
+
+
+def command_config_path(_):
+    """Prints the list of file system locations NAV will search for config"""
+    from nav.config import CONFIG_LOCATIONS
+    for path in CONFIG_LOCATIONS:
+        print(path)
+
+
+def command_config_install(parser):
+    """Installs a copy of the example config files in a target directory"""
+    from nav.config import install_example_config_files
+    callback = print if parser.verbose else None
+
+    try:
+        install_example_config_files(parser.target_directory,
+                                     overwrite=parser.overwrite,
+                                     callback=callback)
+    except (OSError, IOError) as error:
+        sys.exit(error)
+
 
 
 ##############
