@@ -37,7 +37,7 @@ RUN apt-get update && \
 	postgresql postgresql-contrib postgresql-client \
 	libxml2-dev libxslt1-dev \
 	libwww-perl \
-	firefox-esr xvfb curl \
+	firefox-esr xvfb \
 	imagemagick \
 	x11vnc google-chrome-stable cloc \
 	cmake nbtscan python-gammu
