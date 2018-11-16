@@ -25,7 +25,7 @@ deb-src http://deb.debian.org/debian $DISTRO-updates main contrib non-free\n\
 deb http://dl.google.com/linux/chrome/deb/ stable main\n\
 \
 " > /etc/apt/sources.list.d/pkg-sources.list
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A040830F7FAC5991 1397BC53640DB551
+RUN apt-key adv --no-tty --keyserver keyserver.ubuntu.com --recv-keys A040830F7FAC5991 1397BC53640DB551
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends build-dep \
@@ -85,7 +85,7 @@ RUN set -x \
 	&& wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" \
 	&& wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc" \
 	&& export GNUPGHOME="$(mktemp -d)" \
-	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+	&& gpg --no-tty --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
 	&& gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
 	&& rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc \
 	&& chmod +sx /usr/local/bin/gosu \
