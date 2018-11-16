@@ -22,7 +22,7 @@ deb-src http://deb.debian.org/debian $DISTRO-updates main contrib non-free\n\
 deb http://dl.google.com/linux/chrome/deb/ stable main\n\
 \
 " > /etc/apt/sources.list.d/pkg-sources.list
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A040830F7FAC5991 1397BC53640DB551
+RUN apt-key adv --no-tty --keyserver keyserver.ubuntu.com --recv-keys A040830F7FAC5991 1397BC53640DB551
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends build-dep \
