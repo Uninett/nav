@@ -24,7 +24,7 @@ sudo -u nav python setup.py build_sass
 
 if [[ ! -d "/etc/nav" ]]; then
     echo "Copying initial NAV config files into this container"
-    cp -av /source/python/nav/etc /etc/nav
+    nav config install --verbose /etc/nav
     chown -R nav:nav /etc/nav
     cd /etc/nav
     sed -e 's/^#\s*\(DJANGO_DEBUG.*\)$/\1/' -i nav.conf  # Enable django debug.
