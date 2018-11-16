@@ -1,6 +1,6 @@
 # Full integration test image for NAV
 #
-FROM debian:stretch
+FROM mbrekkevold/debian-gosu:stretch
 
 ENV DISTRO stretch
 ENV DISPLAY :99
@@ -9,8 +9,7 @@ ENV ADMINPASSWORD omicronpersei8
 ### Installing packages
 RUN apt-get update && \
     apt-get -y install --no-install-recommends \
-      curl gnupg dirmngr \
-      git \
+      curl git \
       python python-dev python-pip build-essential \
       python3 python3-dev python3-pip
 
@@ -74,26 +73,6 @@ RUN cd /tmp && \
     wget http://chromedriver.storage.googleapis.com/$CHROMEDRIVERVERSION/chromedriver_linux64.zip && \
     unzip chromedriver_linux64.zip && \
     mv chromedriver /usr/local/bin/
-
-# GOSU for our root needs
-ENV GOSU_VERSION 1.10
-RUN set -x \
-	&& apt-get update && apt-get install -y --no-install-recommends ca-certificates \
-	&& dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
-	&& wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" \
-	&& wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc" \
-	&& export GNUPGHOME="$(mktemp -d)" \
-	&& for server in $(shuf -e ha.pool.sks-keyservers.net \
-				    hkp://p80.pool.sks-keyservers.net:80 \
-				    keyserver.ubuntu.com \
-				    hkp://keyserver.ubuntu.com:80 \
-				    pgp.mit.edu) ; do \
-		gpg --keyserver "$server" --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 && break || : ; \
-	    done \
-	&& gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
-	&& rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc \
-	&& chmod +sx /usr/local/bin/gosu \
-	&& gosu nobody true
 
 # Install our primary test runner
 RUN pip install tox
