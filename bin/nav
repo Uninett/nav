@@ -165,6 +165,11 @@ def action_iterator(query_list, action, ok_string, fail_string, verbose=False):
         print(" ".join(["%s (%s)" % error for error in errors]))
 
 
+#
+# This group of commands work with services
+#
+
+
 def c_info(args):
     """lists each service and their associated description"""
     matched_services = []
@@ -234,13 +239,18 @@ def c_status(args):
     action_iterator(args.service, "is_up", "Up", "Down", verbose=args.verbose)
 
 
-def c_version(_):
+#
+# This group of commands do not work with services, and may or may not take
+# arguments from the command line.
+#
+
+def c_version(_args):
     """reports the currently installed NAV version"""
     from nav import buildconf
     print("NAV %s" % buildconf.VERSION)
 
 
-def command_config_where(_):
+def command_config_where(_args):
     """reports the location of NAV's main configuration file"""
     from nav.config import find_configfile, CONFIG_LOCATIONS
     path = find_configfile('nav.conf')
@@ -251,21 +261,21 @@ def command_config_where(_):
                  "{}".format('\n'.join(CONFIG_LOCATIONS)))
 
 
-def command_config_path(_):
+def command_config_path(_args):
     """Prints the list of file system locations NAV will search for config"""
     from nav.config import CONFIG_LOCATIONS
     for path in CONFIG_LOCATIONS:
         print(path)
 
 
-def command_config_install(parser):
+def command_config_install(args):
     """Installs a copy of the example config files in a target directory"""
     from nav.config import install_example_config_files
-    callback = print if parser.verbose else None
+    callback = print if args.verbose else None
 
     try:
-        install_example_config_files(parser.target_directory,
-                                     overwrite=parser.overwrite,
+        install_example_config_files(args.target_directory,
+                                     overwrite=args.overwrite,
                                      callback=callback)
     except (OSError, IOError) as error:
         sys.exit(error)
