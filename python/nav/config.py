@@ -248,7 +248,7 @@ def _install_single_config_resource_(source, target, overwrite=False):
     target_directory = os.path.join(target, dirname)
     target_file = os.path.join(target, source)
     if not os.path.exists(target_directory):
-        os.makedirs(target_directory, mode=0755)
+        os.makedirs(target_directory, mode=0o755)
 
     if not overwrite and os.path.exists(target_file):
         return False
