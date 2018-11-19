@@ -31,7 +31,7 @@ from django.utils.six import iteritems, iterkeys
 from django.utils.six.moves.urllib.error import HTTPError
 
 import nav
-from nav.config import read_flat_config
+from nav.config import NAV_CONFIG
 from nav.metrics.data import get_metric_average
 from nav.metrics.errors import GraphiteUnreachableError
 from nav.metrics.graphs import get_metric_meta
@@ -44,11 +44,7 @@ from django.core.cache import cache
 
 _logger = logging.getLogger(__name__)
 
-try:
-    _nav_conf = read_flat_config('nav.conf')
-except IOError:
-    _nav_conf = {}
-_domain_suffix = _nav_conf.get('DOMAIN_SUFFIX', None)
+_domain_suffix = NAV_CONFIG.get('DOMAIN_SUFFIX')
 
 
 def get_data(db_cursor, bounds, time_interval=None):

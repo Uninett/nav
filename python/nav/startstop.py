@@ -217,7 +217,7 @@ class CronService(Service):
     def __init__(self, filename):
         self.content = None
         if CronService.crontab is None:
-            cron_user = NAV_CONFIG['NAV_USER']
+            cron_user = NAV_CONFIG.get('NAV_USER', 'navcron')
             CronService.crontab = Crontab(cron_user)
         super(CronService, self).__init__(filename)
 
