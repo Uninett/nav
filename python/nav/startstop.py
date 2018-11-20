@@ -213,12 +213,12 @@ class DaemonService(Service):
 class CronService(Service):
     """ Represents cron based services."""
     crontab = None
-    cronUser = NAV_CONFIG['NAV_USER']
 
     def __init__(self, filename):
         self.content = None
         if CronService.crontab is None:
-            CronService.crontab = Crontab(CronService.cronUser)
+            cron_user = NAV_CONFIG.get('NAV_USER', 'navcron')
+            CronService.crontab = Crontab(cron_user)
         super(CronService, self).__init__(filename)
 
     def load_from_file(self, filename):

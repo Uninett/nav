@@ -29,7 +29,7 @@ from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 from operator import attrgetter
 from os.path import join
 
-CONFIGFILE = find_configfile(join("portadmin", "portadmin.conf"))
+CONFIGFILE = find_configfile(join("portadmin", "portadmin.conf")) or ''
 
 _logger = logging.getLogger("nav.web.portadmin")
 

@@ -66,7 +66,7 @@ urlpatterns += [
 ]
 
 # Load local url-config
-_local_python_dir = os.path.join(find_config_dir(), 'python')
+_local_python_dir = os.path.join(find_config_dir() or '.', 'python')
 _local_url_filepath = os.path.join(_local_python_dir, 'local_urls.py')
 
 if os.path.isfile(_local_url_filepath):

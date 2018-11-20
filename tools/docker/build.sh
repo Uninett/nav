@@ -18,12 +18,13 @@ if [ "$uid" -ne 0 ]; then
 fi
 
 cd /source
+sudo -u nav python setup.py build
 python setup.py develop
 sudo -u nav python setup.py build_sass
 
 if [[ ! -d "/etc/nav" ]]; then
     echo "Copying initial NAV config files into this container"
-    cp -av /source/etc /etc/nav
+    nav config install --verbose /etc/nav
     chown -R nav:nav /etc/nav
     cd /etc/nav
     sed -e 's/^#\s*\(DJANGO_DEBUG.*\)$/\1/' -i nav.conf  # Enable django debug.
