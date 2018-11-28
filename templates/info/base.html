@@ -119,6 +119,17 @@
                 <div class="alert-box secondary">No results for "{{ form.data.query }}"</div>
               {% endif %}
             </div>
+            {% if failed_providers %}
+                <div class="alert-box alert">
+                    <p>Additionally, these search providers crashed:</p>
+                    <ul>
+                    {% for provider, error in failed_providers %}
+                        <li><var>{{ provider }}</var>:<br/><blockquote>{{ error|stringformat:'r' }}</blockquote></li>
+                    {% endfor %}
+                    </ul>
+                    <p>Error details have been logged.</p>
+                </div>
+            {% endif %}
           {% endif %}
         </div>
       </div>
