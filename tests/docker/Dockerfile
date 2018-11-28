@@ -3,7 +3,7 @@
 # A more or less identical image exists for Python 3, don't forget to
 # update also that one.
 #
-FROM debian:stretch
+FROM mbrekkevold/debian-gosu:stretch
 
 ENV DISTRO stretch
 ENV DISPLAY :99
@@ -12,8 +12,7 @@ ENV ADMINPASSWORD omicronpersei8
 ### Installing packages
 RUN apt-get update && \
     apt-get -y install --no-install-recommends \
-      curl gnupg dirmngr \
-      git \
+      curl git \
       python python-dev python-pip build-essential
 
 RUN echo "\n\
@@ -76,20 +75,6 @@ RUN cd /tmp && \
     wget http://chromedriver.storage.googleapis.com/2.24/chromedriver_linux64.zip && \
     unzip chromedriver_linux64.zip && \
     mv chromedriver /usr/local/bin/
-
-# GOSU for our root needs
-ENV GOSU_VERSION 1.10
-RUN set -x \
-	&& apt-get update && apt-get install -y --no-install-recommends ca-certificates \
-	&& dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
-	&& wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" \
-	&& wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc" \
-	&& export GNUPGHOME="$(mktemp -d)" \
-	&& gpg --no-tty --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
-	&& gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
-	&& rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc \
-	&& chmod +sx /usr/local/bin/gosu \
-	&& gosu nobody true
 
 # Add a build user
 RUN adduser --system --group --home=/home/build --shell=/bin/bash build
