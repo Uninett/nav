@@ -39,6 +39,7 @@ def index(request):
     """Main controller"""
 
     searchproviders = []
+    failed_providers = []
 
     navpath = [('Home', '/'), ('Search', reverse('info-search'))]
     titles = navpath
@@ -47,8 +48,8 @@ def index(request):
         form = SearchForm(request.GET, auto_id=False)
         if form.is_valid():
             titles.append(('Search for "%s"' % request.GET["query"],))
-            searchproviders = process_form(form)
-            if has_only_one_result(searchproviders):
+            searchproviders, failed_providers = process_form(form)
+            if has_only_one_result(searchproviders) and not failed_providers:
                 return HttpResponseRedirect(searchproviders[0].results[0].href)
     else:
         form = SearchForm()
@@ -56,6 +57,7 @@ def index(request):
     return render_to_response("info/base.html",
                               {"form": form,
                                "searchproviders": searchproviders,
+                               "failed_providers": failed_providers,
                                "navpath": navpath,
                                "title": create_title(titles)},
                               context_instance=RequestContext(request))
@@ -68,6 +70,7 @@ def process_form(form):
     if not query:
         return []
 
+    providers_with_errors = []
     searchproviders = []
     for providerpath in settings.SEARCHPROVIDERS:
         modulestring, functionstring = providerpath.rsplit('.', 1)
@@ -75,16 +78,21 @@ def process_form(form):
             providermodule = importlib.import_module(modulestring)
             provider = getattr(providermodule, functionstring)
             searchproviders.append(provider(query))
-        except (AttributeError, ImportError):
+        except (AttributeError, ImportError) as error:
+            providers_with_errors.append((providerpath, error))
             _logger.error('Could not import %s', providerpath)
+        except Exception as error:
+            providers_with_errors.append((providerpath, error))
+            _logger.exception("Search provider raised unhandled exception: %s",
+                              providerpath)
 
     providers_with_result = has_results(searchproviders)
-    if not providers_with_result:
+    if not providers_with_result and not providers_with_errors:
         fallback = providers.FallbackSearchProvider(query)
         if fallback.results:
             providers_with_result.append(fallback)
 
-    return providers_with_result
+    return providers_with_result, providers_with_errors
 
 
 def has_results(searchproviders):
