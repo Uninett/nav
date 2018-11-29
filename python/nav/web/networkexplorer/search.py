@@ -334,7 +334,7 @@ def room_search(room, exact=False):
     return router_matches, gwport_matches, swport_matches
 
 
-def mac_search(mac):
+def mac_search(mac, exact=False):
     """
     """
     search = search_expand_mac(mac)
