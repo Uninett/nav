@@ -29,7 +29,7 @@ from twisted.names.error import DomainError
 
 from nav.ipdevpoll import Plugin, shadows
 
-_resolvers = cycle([client.Resolver('/etc/resolv.conf') for i in range(3)])
+_resolvers = cycle([client.createResolver() for i in range(3)])
 
 
 class DnsName(Plugin):
