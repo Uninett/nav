@@ -21,6 +21,11 @@ products.
 Uses the vendor-specific GEIST-V4-MIB (derived from the IT-WATCHDOGS-V4-MIB)
 to detect and collect sensor-information.
 
+Please note:
+This is NOT a full implementaion of the GEIST-V4-MIB. Only the internal
+sensors of the box are implemented. The box can be extended with additional
+external sensors, but these are not implemented because we did not have any
+external sensors available at the time of this implementation.
 """
 from nav.oids import OID
 from .itw_mibv4 import ItWatchDogsMibV4
