@@ -354,8 +354,11 @@ def profile_remove(request):
         )
         return HttpResponseRedirect(reverse('alertprofiles-profile'))
     else:
-        active_profile = AlertPreference.objects.get(
-            account=account).active_profile
+        try:
+            active_profile = AlertPreference.objects.get(
+                account=account).active_profile
+        except AlertPreference.DoesNotExist:
+            active_profile = None
         profiles = AlertProfile.objects.filter(
             pk__in=request.POST.getlist('profile'))
 

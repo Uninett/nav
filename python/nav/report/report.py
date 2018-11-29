@@ -295,14 +295,11 @@ class Report(object):
 
                     links = link_pattern.findall(uri)
                     if links:
-                        for link in links:
-                            href = six.text_type(
-                                line[self.field_name_map[link]]) or ""
-                            pattern = re.compile(r"\$" + link)
-                            try:
-                                uri = pattern.sub(href, uri)
-                            except TypeError:
-                                uri += href
+                        for column_ref in links:
+                            value = six.text_type(
+                                line[self.field_name_map[column_ref]]) or ""
+                            pattern = '$' + column_ref
+                            uri = uri.replace(pattern, value)
                     newfield.set_hyperlink(uri)
 
                 newline.append(newfield)

@@ -406,7 +406,12 @@ def set_ifalias(account, fac, interface, request):
 def set_vlan(account, fac, interface, request):
     """Set vlan on netbox if it is requested"""
     if 'vlan' in request.POST:
-        vlan = int(request.POST.get('vlan'))
+        try:
+            vlan = int(request.POST.get('vlan'))
+        except ValueError:
+            messages.error(request, "Ignoring request to set vlan={}".format(
+                request.POST.get('vlan')))
+            return
 
         try:
             if is_cisco(interface.netbox):

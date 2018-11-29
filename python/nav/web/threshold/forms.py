@@ -123,7 +123,7 @@ class ThresholdForm(forms.ModelForm):
 
 def validate_expression(expression, form):
     """Validate the expression"""
-    target = form.cleaned_data['target']
+    target = form.cleaned_data.get('target', '')
     evaluator = ThresholdEvaluator(target)
     try:
         evaluator.evaluate(expression)

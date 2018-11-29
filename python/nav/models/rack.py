@@ -237,26 +237,39 @@ class SensorRackItem(BaseRackItem):
 
     def to_json(self):
         data = super(SensorRackItem, self).to_json()
-        data['sensor'] = self.sensor.pk
+        data['sensor'] = self.sensor.pk if self.sensor_exists() else self.sensor
         return data
 
     def title(self):
-        return str(self.sensor)
+        if self.sensor_exists():
+            return str(self.sensor)
+        else:
+            return "Sensor {} no longer exists".format(self.sensor)
 
     def get_metric(self):
-        return self.sensor.get_metric_name()
+        if self.sensor_exists():
+            return self.sensor.get_metric_name()
 
     def unit_of_measurement(self):
-        return self.sensor.unit_of_measurement
+        if self.sensor_exists():
+            return self.sensor.unit_of_measurement
 
     def get_absolute_url(self):
-        return self.sensor.netbox.get_absolute_url()
+        if self.sensor_exists():
+            return self.sensor.netbox.get_absolute_url()
 
     def human_readable(self):
-        return self.sensor.human_readable
+        if self.sensor_exists():
+            return self.sensor.human_readable
 
     def get_display_range(self):
-        return list(self.sensor.get_display_range())
+        if self.sensor_exists():
+            return list(self.sensor.get_display_range())
+        else:
+            return []
+
+    def sensor_exists(self):
+        return isinstance(self.sensor, Sensor)
 
 
 class SensorsDiffRackItem(BaseRackItem):
