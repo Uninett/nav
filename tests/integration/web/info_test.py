@@ -28,7 +28,7 @@ def test_failures_should_be_mentioned_in_search_page(client,
                                                      failing_searchprovider):
     url = reverse('info-search') + '?query=Da%20Truf'
     response = client.get(url)
-    assert failing_searchprovider in response.content
+    assert failing_searchprovider in response.content.decode('utf-8')
 
 
 ############
