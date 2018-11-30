@@ -6,6 +6,14 @@
 def lastStage = ''
 def requirementsChanged = false
 node {
+
+  if (env.BRANCH_NAME.startsWith('PR')) {
+    def resp = httpRequest url: "https://api.github.com/repos/Uninett/nav/pulls/${env.BRANCH_NAME.substring(3)}"
+    def ttl = getTitle(resp)
+    def itm = getItem(env.BRANCH_NAME)
+    itm.setDisplayName("${env.BRANCH_NAME} ${ttl}")
+  }
+
   stage("Checkout") {
       lastStage = env.STAGE_NAME
       def scmVars = checkout scm
@@ -161,6 +169,19 @@ def testStatuses() {
     }
     return testStatus
 }
+
+@NonCPS
+def getItem(branchName) {
+    return Jenkins.instance.getItemByFullName("nav-pipeline/${branchName}")
+}
+
+@NonCPS
+def getTitle(json) {
+    def slurper = new groovy.json.JsonSlurper()
+    def jsonObject = slurper.parseText(json.content)
+    return jsonObject.title
+}
+
 // Local Variables:
 // indent-tabs-mode: nil
 // tab-width: 4
