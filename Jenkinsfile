@@ -124,8 +124,8 @@ def notifyBuild(String buildStatus = 'STARTED', lastStage = 'N/A') {
   // Default values
   def colorName = 'RED'
   def colorCode = '#FF0000'
-  def subject = "${buildStatus}: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-  def summary = "${subject} (<${env.BUILD_URL}|Open>)"
+  def subject = "*${buildStatus}*: *`<${env.BUILD_URL}|${env.JOB_NAME}>` #${env.BUILD_NUMBER}*"
+  def summary = "${subject} _(${currentBuild.rawBuild.project.displayName})_"
   def testStatus = ''
 
   // Override default values based on build status
