@@ -39,7 +39,7 @@ node {
 
         try {
             def toxEnvirons = sh(returnStdout: true,
-                                 script: "tox -a tox -a | egrep '^(unit|integration|functional|javascript|docs)' | paste -sd ,").trim().split(',')
+                                 script: "tox -a tox -a | egrep '^(unit)' | paste -sd ,").trim().split(',')
             echo "Found these tox environments: ${toxEnvirons}"
             for (int i = 0; i < toxEnvirons.length; i++) {
                 stage("Tox ${toxEnvirons[i]}") {
