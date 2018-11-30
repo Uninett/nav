@@ -6,13 +6,7 @@
 def lastStage = ''
 def requirementsChanged = false
 node {
-
-  if (env.BRANCH_NAME.startsWith('PR')) {
-    def resp = httpRequest url: "https://api.github.com/repos/Uninett/nav/pulls/${env.BRANCH_NAME.substring(3)}"
-    def ttl = getTitle(resp)
-    def itm = getItem(env.BRANCH_NAME)
-    itm.setDisplayName("${env.BRANCH_NAME} ${ttl}")
-  }
+  setDisplayNameIfPullRequest()
 
   stage("Checkout") {
       lastStage = env.STAGE_NAME
@@ -168,6 +162,15 @@ def testStatuses() {
 
     }
     return testStatus
+}
+
+def setDisplayNameIfPullRequest() {
+    if (env.BRANCH_NAME.startsWith('PR')) {
+        def resp = httpRequest url: "https://api.github.com/repos/Uninett/nav/pulls/${env.BRANCH_NAME.substring(3)}"
+        def ttl = getTitle(resp)
+        def itm = getItem(env.BRANCH_NAME)
+        itm.setDisplayName("${env.BRANCH_NAME} ${ttl}")
+    }
 }
 
 @NonCPS
