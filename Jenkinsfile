@@ -17,7 +17,9 @@ node {
   try {
     def dockerfile = 'tests/docker/Dockerfile'
 
-    def imageTag = "nav/${env.JOB_NAME}:${env.BUILD_NUMBER}".toLowerCase()
+    def acceptableName = "${env.JOB_NAME}".replaceAll('/', '-').replaceAll('%2f', '-').replaceAll('%2F', '-')
+    echo "Acceptable image name: ${acceptableName}"
+    def imageTag = "nav/${acceptableName}:${env.BUILD_NUMBER}".toLowerCase()
     echo "Docker image tag: ${imageTag}"
     docker.build("${imageTag}", "-f ${dockerfile} .").inside("--tmpfs /var/lib/postgresql --volume ${WORKSPACE}:/source:rw,z --volume ${HUDSON_HOME}/.cache:/source/.cache:rw,z") {
         env.WORKSPACE = "${WORKSPACE}"
