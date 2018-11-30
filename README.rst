@@ -1,6 +1,6 @@
-===================================
- Network Administration Visualized
-===================================
+==================================================
+ Just Playing Around with Jenkins, don't mind me!
+==================================================
 
 This is NAV - Network Administration Visualized - an advanced software suite
 to monitor small and large computer networks.
