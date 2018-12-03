@@ -22,6 +22,9 @@ sensor-information.
 
 Please note!
 -- not a complete implementation of the mib --
+
+Test
+snmpwalk -v1 -c publik -m /usr/share/snmp/mibs/PWT_3Phase_MIBv1_v2.10.mib rfba032-by-pdu.infra.uit.no .1.3.6.1.4.1.42610.1.4.4.1.6.1.2
 """
 from django.utils import six
 from django.utils.six import itervalues
@@ -50,7 +53,7 @@ def for_table(table_name):
 
 class Pwt3PhaseV1PDU(mibretriever.MibRetriever):
     """A class that tries to retrieve all sensors from Powertek PDU"""
-    from nav.smidumps.pwt_3phase_mibv1 import MIB as mib
+    from nav.smidumps.pwt_3phasev2_10_mibv1 import MIB as mib
 
     oid_name_map = dict((OID(attrs['oid']), name)
                         for name, attrs in mib['nodes'].items())
@@ -157,7 +160,13 @@ class Pwt3PhaseV1PDU(mibretriever.MibRetriever):
                     self._get_oid_for_sensor('inletVoltPhase3'),
                     serial, 'inletVoltPhase3', precision=1, u_o_m=Sensor.UNIT_VOLTS_AC,
                     name=name))
+                sensors.append(self._make_result_dict(
+                    sensor_oid,
+                    self._get_oid_for_sensor('inletLoadBalance'),
+                    serial, 'inletLoadBalance', u_o_m=Sensor.UNIT_PERCENT,
+                    name=name))
         except ValueError:
+            self._error("Unexpected problem in table pduPwrMonitoringInletStatusTable")
             pass
 
         return sensors
