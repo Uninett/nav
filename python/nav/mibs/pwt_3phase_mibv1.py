@@ -17,14 +17,12 @@
 """
 A class that tries to retrieve all sensors from Powertek PDU.
 
-Uses the vendor-specifica PWT_3Phase_MIBv1-MIB to detect and collect
+Uses the vendor-specifica PWT_3Phase_MIBv1_v2.10-MIB to detect and collect
 sensor-information.
 
 Please note!
 -- not a complete implementation of the mib --
 
-Test
-snmpwalk -v1 -c publik -m /usr/share/snmp/mibs/PWT_3Phase_MIBv1_v2.10.mib rfba032-by-pdu.infra.uit.no .1.3.6.1.4.1.42610.1.4.4.1.6.1.2
 """
 from django.utils import six
 from django.utils.six import itervalues
@@ -173,8 +171,8 @@ class Pwt3PhaseV1PDU(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
-        """ Try to retrieve all available sensors in this WxGoose"""
-        # We only implement internalTable because we don't have any more sensors to test on
+        """ Try to retrieve all available sensors in this PDU"""
+        # We only implement pduPwrMonitoringInletStatusTable for now
         tables = ['pduPwrMonitoringInletStatusTable']
 
         result = []
