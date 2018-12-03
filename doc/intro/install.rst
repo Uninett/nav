@@ -15,14 +15,8 @@ Build requirements
 
 To build NAV, you need at least the following:
 
- * make
- * automake
- * autoconf
  * Python >= 2.7.0 < 3
  * Sphinx >= 1.0 (for building this documentation)
- * A `sass` compiler >= 3.2.12, < 3.4 to build the NAV web interface's stylesheets.
-   Installing the rubygem `sass` or using the package `ruby-sass` from Debian
-   8 (Jessie) or newer would satisfy this requirement.
 
 Runtime requirements
 --------------------
@@ -39,12 +33,19 @@ To run NAV, these software packages are required:
 PostgreSQL and Graphite are services that do not necessarily need to run on
 the same server as NAV.
 
-Required Python modules can be installed from source using :kbd:`pip
-install -r requirements.txt` (some of these modules are extensions that will
-require some C libraries to be correctly built. These include the ``psycopg2``
-driver and the ``python-ldap`` module), or you may opt to use your OS' package
-manager to install these dependencies. The current requirements are as
-follows:
+The required Python modules can be installed either from your OS package
+manager, or from the Python Package Index (PyPI_) using the regular ``setup.py``
+method described below. The packages can also be installed from PyPI_ in a
+separate step, using the pip_ tool and the provided requirements files::
+
+  pip install -r requirements.txt
+
+*However*, some of the required modules are C extensions that will require the
+presence of some C libraries to be correctly built (unless PyPI provides binary
+wheels for your platform). These include the ``psycopg2`` driver and the
+``python-ldap`` module).
+
+The current Python requirements are as follows:
 
 .. literalinclude:: ../../requirements/django.txt
    :language: text
@@ -53,6 +54,8 @@ follows:
    :language: text
 
 .. _Graphite: http://graphiteapp.org/
+.. _pip: https://pip.pypa.io/en/stable/
+.. _PyPi: https://pypi.org/
 
 Recommended add-ons
 -------------------
@@ -72,28 +75,58 @@ Installing NAV
 
 To build and install NAV::
 
-  ./autogen.sh
-  ./configure
-  make
-  make install
+  python setup.py install
 
-If you wish to configure NAV to run from a different location than the default
-:file:`/usr/local/nav` you should specify a new directory using the
-``--prefix=`` option of the configure script, e.g. ``./configure
---prefix=/opt/nav``.
+This will build and install NAV in the default system-wide directories for your
+system. If you wish to customize the install locations, please consult the
+output of ``python setup.py install --help``.
 
-If you are building an RPM package (or similar) of NAV, you may wish to have
-the files installed in a physically different location (a temporary build
-directory) than what you configured the package for.  In this case, you should
-specify this build directory by adding
-``DESTDIR=/your/build/directory`` to the ``make install`` command.
+You can also opt to use pip_ instead, to install the source code and
+simultaneously install all the Python package dependencies::
 
+  pip install .
+
+
+On Debian 9 (Stretch)
+---------------------
+
+On Debian 9, a full installation of NAV, mostly via PyPi, and with
+configuration files in :file:`/etc/nav/` can be obtained thus::
+
+  apt-get install -y libldap2-dev libsasl2-dev
+  pip install .
+  nav config install /etc/nav
+
+
+Building the documentation
+--------------------------
+
+This HTML documentation can be built separately using this step::
+
+  python setup.py build_sphinx
+
+Initializing the configuration
+------------------------------
+
+NAV will look for its configuration files in various locations on your file
+system. These locations can be listed by running::
+
+  nav config path
+
+To install a set of pristine NAV configuration into one of these locations,
+e.g. in :file:`/etc/nav`, run::
+
+  nav config install /etc/nav
+
+To verify that NAV can find its main configuration file, run::
+
+  nav config where
 
 Initializing the database
 -------------------------
 
 Before NAV can run, the database schema must be installed in your PostgreSQL
-server.  NAV can create a database user and a database schema for you.  
+server.  NAV can create a database user and a database schema for you.
 
 Choose a password for your NAV database user and set this in the ``userpw_nav``
 in the :file:`db.conf` config file. As the `postgres` superuser, run the following
@@ -107,37 +140,6 @@ it with NAV's schema.
 For more details on setting up PostgreSQL and initializing the schema, please
 refer to the :file:`sql/README` file.
 
-
-Making the Python libraries available system-wide
--------------------------------------------------
-
-By default, NAV's Python libraries are not installed in Python's
-:file:`site-packages` directory.  To make them available system-wide, you need
-to add the path to the libraries to Python's search path.
-
-One way of accomplishing this is altering Python's ``sys.path`` value at
-startup time, by modifying or adding your Python installation's
-:file:`sitecustomize.py` module, which is loaded every time python runs.  Add
-these lines:
-
-.. code-block:: python
-
-  import sys
-  __navpath = "/usr/local/nav/lib/python"
-  if __navpath not in sys.path:
-      sys.path.append(__navpath)
-
-You should now be able to run the python command line interpreter and run
-:kbd:`import nav` without a hitch:
-
-.. code-block:: console
-
-  $ python
-  Python 2.7.3 (default, Sep 26 2013, 20:03:06) 
-  [GCC 4.6.3] on linux2
-  Type "help", "copyright", "credits" or "license" for more information.
-  >>> import nav
-  >>>
 
 Configuring Apache
 ------------------
@@ -161,9 +163,9 @@ included in your virtualhost config, which needn't contain much more than this:
 Create users and groups
 -----------------------
 
-NAV processes should run as the `navcron` user (the name of this user is
-configurable via the :kbd:`./configure` command at build-time), and
-preferably, a separate nav group should be added to the system::
+NAV processes should run as a non-privileged user, whose name is configurable
+in :file:`nav.conf` (the default value being ``navcron``). Preferably, this
+user should also have a separate system group as well::
 
   sudo addgroup --system nav
   sudo adduser --system --no-create-home --home /usr/local/nav \
@@ -178,10 +180,12 @@ to the dialout group::
   sudo addgroup navcron dialout
 
 You should also make sure `navcron` has permission to write log files, pid
-files and various other state information::
+files and various other state information. You can configure the log and pid
+file directories in :file:`nav.conf`. Then make sure these directories exist
+and are writable for the ``navcron`` user::
 
-  cd /usr/local/nav/var
-  sudo chown -R navcron:nav .
+  sudo chown -R navcron:nav /path/to/log/directory
+  sudo chown -R navcron:nav /path/to/pid/directory
 
 .. _integrating-graphite-with-nav:
 
@@ -216,7 +220,7 @@ Installing Graphite_ itself is out of scope for this guide, but you will need
 to configure some options before letting NAV send data to Graphite.
 
 1. First and foremost, you will need to enable the UDP listener in the
-   configuration file :file:`carbon.conf`. 
+   configuration file :file:`carbon.conf`.
 
    For performance reasons, Carbon will also limit the number of new Whisper
    files that can be created per minute. This number is fairly low by default,
