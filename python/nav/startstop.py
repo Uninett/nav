@@ -316,6 +316,11 @@ class Crontab(object):
             # crontab doesn't have very helpful exit codes. if we get here, it
             # may simply be because the user has no defined crontab yet
             self.content = []
+        except OSError as error:
+            if error.errno == errno.ENOENT:
+                raise CrontabError("crontab command was not found")
+            else:
+                raise
 
         # cron often inserts three comment lines in the spooled
         # crontab; the following is an attempt to remove those three

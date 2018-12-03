@@ -25,7 +25,7 @@ import textwrap
 from nav import colors
 
 try:
-    from nav.startstop import ServiceRegistry, CommandFailedError
+    from nav.startstop import ServiceRegistry, CommandFailedError, CrontabError
 except ImportError:
     print("Fatal error: Could not find the nav.startstop module.\nIs your "
           "PYTHONPATH environment correctly set up?", file=sys.stderr)
@@ -33,7 +33,7 @@ except ImportError:
 
 try:
     SERVICES = ServiceRegistry()
-except OSError as _error:
+except (OSError, CrontabError) as _error:
     print("A problem occurred, which prevented this command from running.\n" +
           str(_error), file=sys.stderr)
     sys.exit(1)
