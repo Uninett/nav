@@ -63,7 +63,7 @@ ADD tools/docker/supervisord.conf /etc/supervisor/conf.d/nav.conf
 COPY requirements/ /requirements
 ADD requirements.txt /
 ADD tests/requirements.txt /test-requirements.txt
-RUN pip install --upgrade 'pip<10' tox setuptools && \
+RUN pip install --upgrade pip tox setuptools && \
     hash -r && \
     pip install -r /requirements.txt && \
     pip install -r /test-requirements.txt
