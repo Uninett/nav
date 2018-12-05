@@ -276,6 +276,14 @@ def test_update_prefix_remove_usage(db, api_client, token, serializer_models):
     json_response = json.loads(response.content.decode('utf-8'))
     assert json_response.get('usages') == ['ans']
 
+# Alert specific tests
+
+
+def test_nonexistent_alert_should_give_404(db, api_client, token):
+    create_token_endpoint(token, 'alert')
+    response = api_client.get('{}9999/'.format(ENDPOINTS['alert']))
+    print(response)
+    assert response.status_code == 404
 
 # Helpers
 
