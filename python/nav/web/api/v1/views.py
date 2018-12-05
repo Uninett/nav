@@ -908,8 +908,8 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         return event.AlertHistory.objects.filter(
             stateless | UNRESOLVED).select_related()
 
-    def get_object(self, queryset=None):
-        return super(AlertHistoryViewSet, self).get_object(self.model)
+    def get_object(self):
+        return super(AlertHistoryViewSet, self).get_object()
 
     def get_template_names(self):
         """Get the template name based on the alerthist object"""
