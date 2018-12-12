@@ -893,7 +893,9 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         """Gets an AlertHistory QuerySet"""
-        if not self.request.query_params.get('stateless', False):
+        if self.is_single_alert_by_primary_key():
+            return event.AlertHistory.objects.all().select_related()
+        elif self.request.query_params.get('stateless', False):
             return event.AlertHistory.objects.unresolved().select_related()
         else:
             return self._get_stateless_queryset()
@@ -907,9 +909,6 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         stateless = Q(start_time__gte=threshold) & Q(end_time__isnull=True)
         return event.AlertHistory.objects.filter(
             stateless | UNRESOLVED).select_related()
-
-    def get_object(self, queryset=None):
-        return super(AlertHistoryViewSet, self).get_object(self.model)
 
     def get_template_names(self):
         """Get the template name based on the alerthist object"""
@@ -927,6 +926,10 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
             'alertmsg/base.html'
         ])
         return template_names
+
+    def is_single_alert_by_primary_key(self):
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        return lookup_url_kwarg in self.kwargs
 
 
 class RackViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
