@@ -15,7 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
-A class that tries to retrieve all sensors from Powertek PDU.
+A class that tries to retrieve the most relevant sensors from Powertek PDU.
 
 Uses the vendor-specifica PWT_3Phase_MIBv1_v2.10-MIB to detect and collect
 sensor-information.
@@ -53,20 +53,6 @@ class Pwt3PhaseV1Mib(mibretriever.MibRetriever):
     """A class that tries to retrieve all sensors from Powertek PDU"""
     from nav.smidumps.pwt_3phasev2_10_mibv1 import MIB as mib
 
-    oid_name_map = dict((OID(attrs['oid']), name)
-                        for name, attrs in mib['nodes'].items())
-
-    lowercase_nodes = dict((key.lower(), key)
-                           for key in mib['nodes'])
-
-    def _debug(self, msg, *args, **kwargs):
-        return self._logger.debug(self.__class__.__name__ + ":: " + msg,
-                                  *args, **kwargs)
-
-    def _error(self, msg, *args, **kwargs):
-        return self._logger.error(self.__class__.__name__ + ":: " + msg,
-                                  *args, **kwargs)
-
     def _get_oid_for_sensor(self, sensor_name):
         """Return the OID for the given sensor-name as a string; Return
         None if sensor-name is not found.
@@ -82,10 +68,9 @@ class Pwt3PhaseV1Mib(mibretriever.MibRetriever):
     def _make_result_dict(self, sensor_oid, base_oid, serial, desc,
                           u_o_m=None, precision=0, scale=None, name=None):
         """ Make a simple dictionary to return to plugin"""
-        # if not sensor_oid or not base_oid or not serial or not desc:
-        #     return {}
+
         oid = OID(base_oid) + OID(sensor_oid)
-        # raise ValueError('{}-{}-{}-{}'.format(sensor_oid, base_oid, serial, desc))
+
         internal_name = str(serial) + desc
         return {'oid': oid,
                 'unit_of_measurement': u_o_m,
@@ -167,19 +152,19 @@ class Pwt3PhaseV1Mib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
-        """ Try to retrieve all available sensors in this PDU"""
+        """ Try to retrieve some of the available sensors in this PDU"""
         # We only implement pduPwrMonitoringInletStatusTable for now
         tables = ['pduPwrMonitoringInletStatusTable']
 
         result = []
         for table in tables:
-            self._debug('get_all_sensors: table = %s', table)
+            self._logger.debug('get_all_sensors: table = %s', table)
             sensors = yield self.retrieve_table(
                                         table).addCallback(reduce_index)
-            self._debug('get_all_sensors: %s = %s', table, sensors)
+            self._logger.debug('get_all_sensors: %s = %s', table, sensors)
             handler = for_table.map.get(table, None)
             if not handler:
-                self._error("There is not data handler for %s", table)
+                self._logger.error("There is not data handler for %s", table)
             else:
                 method = getattr(self, handler)
                 result.extend(method(sensors))
