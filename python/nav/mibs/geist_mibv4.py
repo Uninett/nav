@@ -15,7 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
-A class that tries to retrieve all sensors from Geist-branded WeatherGoose
+A class that tries to retrieve all internal sensors from Geist-branded WeatherGoose
 products.
 
 Uses the vendor-specific GEIST-V4-MIB (derived from the IT-WATCHDOGS-V4-MIB)

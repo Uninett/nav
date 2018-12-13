@@ -15,7 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
-A class that tries to retrieve all sensors from WeatherGoose II.
+A class that tries to retrieve all internal sensors from WeatherGoose II.
 
 Uses the vendor-specifica IT-WATCHDOGS-V4-MIB to detect and collect
 sensor-information.
@@ -38,22 +38,8 @@ from .itw_mib import for_table
 
 
 class ItWatchDogsMibV4(mibretriever.MibRetriever):
-    """A class that tries to retrieve all sensors from WeatherGoose II"""
+    """A class that tries to retrieve all internal sensors from WeatherGoose II"""
     from nav.smidumps.itw_mibv4 import MIB as mib
-
-    oid_name_map = dict((OID(attrs['oid']), name)
-                        for name, attrs in mib['nodes'].items())
-
-    lowercase_nodes = dict((key.lower(), key)
-                           for key in mib['nodes'])
-
-    def _debug(self, msg, *args, **kwargs):
-        return self._logger.debug(self.__class__.__name__ + ":: " + msg,
-                                  *args, **kwargs)
-
-    def _error(self, msg, *args, **kwargs):
-        return self._logger.error(self.__class__.__name__ + ":: " + msg,
-                                  *args, **kwargs)
 
     def _get_oid_for_sensor(self, sensor_name):
         """Return the OID for the given sensor-name as a string; Return
@@ -114,19 +100,19 @@ class ItWatchDogsMibV4(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
-        """ Try to retrieve all available sensors in this WxGoose"""
-        # We only implement internalTable because we don't have any more sensors to test on
+        """ Try to retrieve all internal available sensors in this WxGoose"""
+
         tables = ['internalTable']
 
         result = []
         for table in tables:
-            self._debug('get_all_sensors: table = %s', table)
+            self._logger.debug('get_all_sensors: table = %s', table)
             sensors = yield self.retrieve_table(
                                         table).addCallback(reduce_index)
-            self._debug('get_all_sensors: %s = %s', table, sensors)
+            self._logger.debug('get_all_sensors: %s = %s', table, sensors)
             handler = for_table.map.get(table, None)
             if not handler:
-                self._error("There is not data handler for %s", table)
+                self._logger.error("There is not data handler for %s", table)
             else:
                 method = getattr(self, handler)
                 result.extend(method(sensors))
