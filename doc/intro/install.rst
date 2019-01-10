@@ -142,16 +142,19 @@ For more details on setting up PostgreSQL and initializing the schema, please
 refer to the :file:`sql/README` file.
 
 
-Configuring Apache
-------------------
+Configuring the web interface
+-----------------------------
 
-NAV's web interface is implemented using the Django framework,
-and can be served in any web server environment supported by Django.
+NAV's web interface is implemented using the Django framework, and can be
+served in any web server environment supported by Django (chiefly, any
+environment that supports *WSGI*). This guide is primarily concerned with
+Apache 2.
 
-NAV does, however, come with Apache configuration to serve the web interface
-using `mod_wsgi`. For legacy reasons, NAV requires being served at the
-document root of the web server domain. The apache config file can be
-included in your virtualhost config, which needn't contain much more than this:
+An example configuration file for Apache2 is provided the configuration
+directory, :file:`apache/apache.conf.example`. This configuration uses
+``mod_wsgi`` to serve the NAV web application, and can be modified to suit your
+installation paths. Once complete, it can be included in your virtualhost
+config, which needn't contain much more than this:
 
 .. code-block:: apacheconf
 
@@ -159,6 +162,33 @@ included in your virtualhost config, which needn't contain much more than this:
   ServerAdmin webmaster@example.org
 
   Include /usr/local/nav/etc/apache/apache.conf
+
+.. important:: You should always protect your NAV web site using SSL!
+
+Installing static resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You want your web server to be able to serve all of NAV's static resources. You
+can install all of them by issuing the following command:
+
+.. code-block:: console
+
+  # django-admin collectstatic --settings=nav.django.settings
+  You have requested to collect static files at the destination
+  location as specified in your settings:
+
+      /usr/share/nav/www/static
+
+  This will overwrite existing files!
+  Are you sure you want to do this?
+
+  Type 'yes' to continue, or 'no' to cancel:
+
+In this example, type :kbd:`yes`, hit Enter, and ensure your web server's
+document root points to :file:`/usr/share/nav/www`, because that is where the
+:file:`static` directory is located. If that doesn't suit you, you will at
+least need an Alias to point the ``/static`` URL to the :file:`static`
+directory.
 
 
 Create users and groups
