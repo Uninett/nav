@@ -3,6 +3,7 @@
 ================
 
 .. highlight:: sh
+.. contents::
 
 Dependencies
 ============
