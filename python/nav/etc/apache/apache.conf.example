@@ -1,12 +1,25 @@
-# NAV web interface Apache configuration
+# NAV web interface example Apache configuration using mod_wsgi
+#
+# This file should be included from a VirtualHost directive somewhere (or in
+# the global Apache config if you're not using virtualhosts).
+#
+#
+# You should alter these defines according to your installation:
+#
+Define document_root /path/to/your/webroot
+Define documentation_path /path/to/your/installed/nav/documentation
+Define nav_uploads_path /usr/share/nav/var/uploads
+Define nav_python_base /usr/share/pyshared
+# Define nav_virtual_env /path/to/a/python/virtual/env/with/NAV/in/it
+Define nav_user navcron
 
-# For the time being, NAV requires being located at the DocumentRoot, so this
-# file should be included from a VirtualHost directive somewhere (or in the
-# global Apache config if you're not using virtualhosts.
+#
+# Configuration begins here
+#
 
-DocumentRoot @webrootdir@
+DocumentRoot "${document_root}"
 
-<Directory "@webrootdir@">
+<Directory "${document_root}">
     Options Indexes FollowSymlinks ExecCGI
     # Access directives are different from Apache 2.4 and on
     <IfVersion < 2.4>
@@ -18,8 +31,8 @@ DocumentRoot @webrootdir@
     </IfVersion>
 </Directory>
 
-Alias /favicon.ico @imagedir@/main/favicon.ico
-Alias /doc @docdir@/html
+Alias /favicon.ico "${document_root}/static/images/main/favicon.ico"
+Alias /doc "${documentation_path}/html"
 
 <Location /doc>
     # Access directives are different from Apache 2.4 and on
@@ -32,7 +45,7 @@ Alias /doc @docdir@/html
     </IfVersion>
 </Location>
 
-Alias /uploads @localstatedir@/uploads
+Alias /uploads "${nav_uploads_path}"
 <Location /uploads>
     # Files here may be sensitive. Do not allow browsing.
     Options -Indexes
@@ -46,7 +59,7 @@ Alias /uploads @localstatedir@/uploads
     </IfVersion>
 </Location>
 
-AliasMatch (^/static/.*) @webrootdir@/$1
+Alias /static "${document_root}/static"
 
 <Location /api>
     # Make sure WSGI allows the Authorization header to pass through to
@@ -54,11 +67,23 @@ AliasMatch (^/static/.*) @webrootdir@/$1
     WSGIPassAuthorization On
 </Location>
 
-WSGIDaemonProcess NAV user=@nav_user@ processes=2 display-name=%{GROUP}
+# Define the actual WSGI daemon process that runs the NAV web code.
+#
+# It may or may not run in a Python virtualenv. If nav_virtual_env is defined,
+# make sure mod_wsgi was compiled with the same Python interpreter used by this
+# environment.
+#
+<IfDefine nav_virtual_env>
+  WSGIDaemonProcess NAV user=${nav_user} processes=2 display-name=%{GROUP} python-home=${nav_virtual_env}
+</IfDefine>
+<IfDefine !nav_virtual_env>
+  WSGIDaemonProcess NAV user=${nav_user} processes=2 display-name=%{GROUP}
+</IfDefine>
+
 WSGIProcessGroup NAV
 WSGIApplicationGroup %{GLOBAL}
-WSGIScriptAlias / @pythonlibdir@/nav/wsgi.py
-<Directory "@pythonlibdir@/nav">
+WSGIScriptAlias / "${nav_python_base}/nav/wsgi.py"
+<Directory "${nav_python_base}/nav">
     # Access directives are different from Apache 2.4 and on
     <IfVersion < 2.4>
       Order allow,deny
