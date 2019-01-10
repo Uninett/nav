@@ -113,7 +113,7 @@ system. These locations can be listed by running::
 
   nav config path
 
-To install a set of pristine NAV configuration into one of these locations,
+To install a set of pristine NAV configuration files into one of these locations,
 e.g. in :file:`/etc/nav`, run::
 
   nav config install /etc/nav
