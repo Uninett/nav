@@ -12,6 +12,44 @@ please go to https://github.com/uninett/nav/milestones .
 NAV 4.9
 ========
 
+License changes
+---------------
+
+With the 4.9 release, NAV moves from a **GPL v2-only** license to a **GPL v3**
+license. This is strictly to remain compatible with the free licenses of third
+party libraries we wish to utilize in future releases (in particular, *Apache
+2.0-licensed* libraries).
+
+NAV used to have multiple copyright owners, mainly all from the higher
+education sector of Norway. Uninett was able to negotiate the transfer of these
+rights before initiating a license switch. To avoid similar issues in the
+future, if the need to relicense should arise again, we have adopted a
+contributor license agreement.
+
+Contributor License Agreement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Uninett has adopted the Free Software Foundation's `Fiduciary License Agreement
+(FLA) <https://fsfe.org/activities/ftf/fla.en.html>`_ for NAV. Anyone who
+contributes code to NAV must sign this license before the contribution can be
+accepted into NAV.
+
+Our preferred method of receiving contributions is via GitHub pull requests.
+Therefore, to reduce the overhead of the CLA signing process, we have
+implemented an *digital CLA signing process* for GitHub pull requests, by the
+help of `CLA assistant <https://cla-assistant.io/>`_. When submitting your
+first PR against NAV, the CLA Assistant will automatically comment on the PR,
+prompting you to sign the FLA digitally using your GitHub account.
+
+We would like to stress that Uninett is a *not-for-profit*, government-owned
+limited company. It is our intent to continue to keep NAV free and open for the
+lifetime of the project. This is why we choose the GPL license, and this is why
+we choose the FLA. The latter stipulates that our right to use your
+contribution is void if we should ever attempt to relicense it to a non-open
+license (ie. one that isn't approved by FSF or OSI).
+
+
+
 Dependency changes
 ------------------
 
