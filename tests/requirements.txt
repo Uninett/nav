@@ -6,7 +6,7 @@ mock==2.0.0
 pylint==1.7.2
 pytest<3.3.0
 pytest-catchlog
-pytest-cov
+pytest-cov==2.6.0
 pytest-selenium
 pytest-twisted>=1.6
 pytidylib==0.2.4
