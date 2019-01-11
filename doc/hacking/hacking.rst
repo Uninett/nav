@@ -98,7 +98,7 @@ Python boilerplate headers
 --------------------------
 
 We will generally only accept code into NAV if it is licensed under
-GPL v2, but we may make individual exceptions for code licensed under
+GPL v3, but we may make individual exceptions for code licensed under
 compatible licenses.  Each Python source code file should contain the
 following boilerplate at the top::
 

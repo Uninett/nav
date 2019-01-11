@@ -35,14 +35,14 @@ setup(
     author_email="nav-support@uninett.no",
     description=("Network Administration Visualized - A comprehensive, free "
                  "Network Management System"),
-    license="GPLv2",
+    license="GPLv3",
     keywords="nms snmp",
     url="https://nav.uninett.no/",
     long_description=read('README.rst'),
     classifiers=[
         "Development Status :: 6 - Mature",
         "Topic :: System :: Networking :: Monitoring",
-        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     ],
 
     scripts=list(find_scripts()),

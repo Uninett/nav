@@ -11,7 +11,7 @@ to monitor small and large computer networks.
 
 License
 -------
-NAV is licensed under the GNU GPL version 2.  NAV includes software from third
+NAV is licensed under the GNU GPL version 3.  NAV includes software from third
 parties, which are either licensed under the GPL or compatible licenses.
 
 * Copyright 2002-2018 Uninett AS
