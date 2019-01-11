@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2007 USIT, UiO
+# Copyright (C) 2007, 2019 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
 # NAV is free software: you can redistribute it and/or modify it under
-# the terms of the GNU General Public License version 2 as published by
+# the terms of the GNU General Public License version 3 as published by
 # the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
