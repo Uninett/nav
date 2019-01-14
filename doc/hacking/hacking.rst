@@ -5,6 +5,7 @@ Hacker's guide to NAV
 If you are contributing code to Network Administration Visualized,
 please read this first.
 
+.. contents::
 
 
 Contributing to NAV
@@ -14,7 +15,7 @@ Originally, NAV was a closed source project, initiated by the
 Norwegian University of Science and Technology (NTNU), and eventually
 sponsored by Uninett on behalf of the Norwegian higher education
 community.  In 2004, however, NTNU and Uninett started distributing
-NAV under the GNU General Public License, making it a truly free
+NAV under the *GNU General Public License*, making it a truly free
 software system.
 
 While Uninett and NTNU are still the main contributors to NAV,
@@ -42,39 +43,60 @@ Go to https://nav.uninett.no/ and
   oldest project documentation is in Norwegian only. Do not hesitate to ask
   for help on the mailing lists.
 
-If you wish to contribute code to the project, see the
-:ref:`submitting_patches` section.
+.. _submitting_patches:
+
+Submitting patches
+------------------
+
+Unless you are submitting one-off fixes for bugs and small issues,
+please take the time to discuss your change proposals on the
+**nav-dev** mailing list.  This will increase the chances of having
+your patches accepted.
+
+Base your patches on the relevant Git branches. If you are submitting
+a patch for an issue that affects the latest stable series, base your patch
+on that series branch (``<major>.<minor>.x``). If you are submitting
+patches containing new features, base them on the ``master`` branch.
+
+Please submit your changes in the form of a *pull request* against the
+`official NAV Github repository`__. From there, we can review and
+comment on your changes. The entire CI test suite will be automatically
+run against your pull request, and the automatic CLA signing process is
+initiated by the CLA Assistant.
+
+
 
 Directory layout
 ================
 
 A rough guide to the source tree:
 
-===========  =================================================================
-Directory    Description
-===========  =================================================================
-bin/         NAV 'binaries'; executable scripts and programs.
-contrib/     User contributed NAV tools. NAV doesn't depend on these, and any
-             maintenance of them is left up to the original developers. We do
-             not offer support for these tools.
-doc/         User and developer documentation.
-etc/         Example/initial configuration files.
-htdocs/      Static media such as CSS stylesheets, images and JavaScript to be
-             served by a webserver.
-python/      Python source code.
-sql/         SQL schema definitions and installation/sync tools.
-templates/   Django HTML templates.
-tests/       Automated tests.
-tools/       Scripts for aiding in various development, build and release
-             processes.
-===========  =================================================================
+=================================  =================================================================
+Directory                          Description
+=================================  =================================================================
+:file:`bin/`                       NAV 'binaries'; executable scripts and programs.
+:file:`contrib/`                   User contributed NAV tools. NAV doesn't depend on these, and any
+                                   maintenance of them is left up to the original developers. We do
+                                   not offer support for these tools.
+:file:`doc/`                       User and developer documentation.
+:file:`tests/`                     Automated tests.
+:file:`tools/`                     Scripts for aiding in various development, build and release
+                                   processes.
+:file:`python/`                    Python source code.
+:file:`python/nav/etc/`            Example/initial configuration files.
+:file:`python/nav/web/static/`     Static media such as CSS stylesheets, images and JavaScript to be
+                                   served by a webserver.
+:file:`python/nav/web/templates/`  Main/global Django HTML templates. More be located in individual
+                                   sub-packages/Django apps.
+:file:`python/nav/models/sql`      SQL schema definitions.
+=================================  =================================================================
 
 
 Development languages and frameworks
 ====================================
 
 All NAV back-end code is written in **Python**. The web-based user
-interface is implemented using the Python-based **Django** framework. *In
+interface is implemented using the Python-based **Django** framework. In
 addition, there is an increasing amount of **Javascript** in the web-based
 user interface.
 
@@ -97,10 +119,8 @@ will accept patches that clean existing code.
 Python boilerplate headers
 --------------------------
 
-We will generally only accept code into NAV if it is licensed under
-GPL v3, but we may make individual exceptions for code licensed under
-compatible licenses.  Each Python source code file should contain the
-following boilerplate at the top::
+We will only accept code into NAV if it can be licensed under GPL v3.  Each
+Python source code file should contain the following boilerplate at the top::
 
     #
     # Copyright (C) 2008,2009 Somebody
@@ -117,6 +137,9 @@ following boilerplate at the top::
     # more details.  You should have received a copy of the GNU General Public
     # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
     #
+
+In this case, *"Somebody"* is normally you personally, or your employer,
+depending on who legally owns the copyright of your contribution.
 
 If a file uses non-ASCII characters, it **must** be encoded as *UTF-8*, and an
 encoding statement should be inserted at the top::
@@ -156,7 +179,7 @@ repository :file:`.gitignore` file.
 Database
 ========
 
-NAV uses PostgreSQL as its database backend.  Namespaces (schemas) are
+NAV uses *PostgreSQL* as its database backend.  Namespaces (schemas) are
 employed to logically group tables and relations.  NAV versions prior
 to 3.5 employed separate PostgreSQL databases instead of namespaces.
 
@@ -176,23 +199,37 @@ radius     Radius accounting logs, updated directly by FreeRadius' PostgreSQL
            module.
 =========  ===================================================================
 
+.. note:: **Django vs. the database schema**
+
+          NAV existed long before Django, which was "shoe-horned" into the
+          legacy NAV application at a later stage. As a consequence of this,
+          NAV is quite tied to PostgreSQL as the database backend, and does not
+          always present itself as as a typical Django application.
+
+	  The most obvious difference, is that NAV does not employ Django's ORM
+	  for defining the initial schema or the schema migrations. NAV
+	  implements its schema definitions as pure SQL scripts, and implements
+	  a home-grown system for schema migrations, which also written as pure
+	  SQL.
+
 
 Connecting to the database (Python)
 -----------------------------------
 
-Raw SQL
-~~~~~~~
+Raw SQL / Legacy database connections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To obtain a connection to the NAV database, use the API accordingly,
-e.g.::
+To obtain a raw SQL connection to the NAV database, use the legacy API
+accordingly, e.g.::
 
     import nav.db
     # Get a connection to the NAV database
     connection = nav.db.getConnection('default')
 
 The above code will open a connection to NAV's database, or, if a
-previous connection with these parameters is already open, returns the
-already existing connection from a connection cache.
+previous connection with these parameters is already open in the current
+process, returns the already existing connection from a connection
+pool.
 
 The ``default`` parameter is there for legacy reasons; it specifies the
 name of a subsystem. The :file:`db.conf` file allows configuration of
@@ -201,26 +238,28 @@ separate database users for each subsystem (known as a *script* in
 database user for a subsystem called ``default``, and also specifies the
 same database user for all known subsystem names. At present, using a
 subsystem name that is not configured in :file:`db.conf` will cause
-``nav.db.getConnection()`` to revert to using the ``default`` name.
+:py:func:`nav.db.getConnection()` to revert to using the ``default`` name.
 
-Django models
-~~~~~~~~~~~~~
+Django ORM
+~~~~~~~~~~
 
-NAV 3.5 and on includes Django models for most database tables.  If no
-SQL magic is needed to perform your database voodoo, it is recommended
-that you use these models, located in the module ''nav.models''.  You
-do not need to explicitly establish a database connection to use these
-models, as Django takes care of all that.
+Since version 3.5, NAV has provided Django ORM models for its database.
+Unless you have very specific requirements, only solvable by using pure
+SQL, you would be best served by accessing the database via the Django
+ORM.
 
-The models are defined in modules of the ''nav.models'' package.
+Most of these models are defined in submodules in in the
+:model:`nav.models` package (since NAV was not originally divided into
+separate "Django applications").
 
-Changing the schema
--------------------
 
-The baseline schema is located in :file:`sql/baseline/` - the
+Changing the schema / migrations
+--------------------------------
+
+The baseline schema is located in :file:`python/nav/models/sql/baseline/` - the
 :program:`navsyncdb` program is responsible for running this when creating
 a new database. To make a schema change, you **do not** change the
-baseline, but go to the :file:`sql/changes/` directory and create a new
+baseline, but go to the :file:`python/nav/models/sql/changes/` directory and create a new
 schema change script there.
 
 Schema change scripts as numbered, using the following pattern::
@@ -318,13 +357,14 @@ already there and the relevant documentation linked above.
 
 
 
-Jenkins
--------
+Jenkins and Continuous Integration
+----------------------------------
 
-We use Jenkins_ for Continuous Integration testing of
-NAV. All the automated tests are run each time new changesets are pushed to
-the official NAV repositories. Jenkins also runs pylint_ to create stats on
-code quality.
+We use Jenkins_ multibranch pipelines for continuous integration testing
+of NAV. The Jenkins pipeline is defined in :file:`Jenkinsfile`, and is
+automatically run every time a change is pushed to a branch in the
+offical NAV Github repository, or when a pull request is opened against
+this repository.
 
 Our Jenkins installation is available on https://ci.nav.uninett.no/ .
 
@@ -342,40 +382,19 @@ Make fixtures for integration testing
    fixtures = serializers.serialize("xml", Netbox.objects.all()[:2])
 
 Fixtures can so be used in your integration tests by extending
-the test case DjangoTransactionTestCase in :py:mod:`nav.tests.cases`.
+the test case :py:class:`DjangoTransactionTestCase` in :py:mod:`nav.tests.cases`.
 
 See :py:mod:`nav.tests.integration.l2trace_test` for an example on applying
 fixtures for your particular test case.
 
-See https://docs.djangoproject.com/en/1.7/topics/serialization/
+See https://docs.djangoproject.com/en/1.8/topics/serialization/
 
 .. TODO:: Be able to use `django-admin's management command: dumpdata
    <https://docs.djangoproject.com/en/dev/ref/django-admin/#dumpdata-appname-appname-appname-model>`_
    to create fixtures.
 
-
-.. _submitting_patches:
-
-Submitting patches
-==================
-
-Unless you are submitting one-off fixes for bugs and small issues,
-please take the time to discuss your change proposals on the
-**nav-dev** mailing list.  This will increase the chances of having
-your patches accepted.
-
-Base your patches on the relevant Git branches. If you are submitting
-a patch for an issue that affects the latest stable series, base your patch
-on that series branch (``<major>.<minor>.x``). If you are submitting
-patches containing new features, base them on the ``master`` branch.
-
-The **best way** to submit your patches is to use GitHub_: Fork our repository there
-and create a pull request for us to review.
-
-Another option for a simple patch is to attach it to a GitHub_ issue report.
-
-
 .. _GitHub: https://github.com/UNINETT/nav
+__ Github_
 .. _RequireJS: http://requirejs.org/
 .. _Git: https://git-scm.com/
 .. _pytest: http://pytest.org/
