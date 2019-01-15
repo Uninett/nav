@@ -40,6 +40,7 @@ import pwd
 import sys
 import time
 import nav.logs
+from nav.config import NAV_CONFIG
 
 nav.logs.set_log_config()
 _logger = logging.getLogger('nav.daemon')
@@ -200,6 +201,7 @@ def justme(pidfile):
         If pidfile is empty, but unremovable, raises PidFileWriteError.
 
     """
+    pidfile = pidfile_path(pidfile)
 
     # If pidfile exists (is readable)
     if os.access(pidfile, os.R_OK):
@@ -243,6 +245,7 @@ def writepidfile(pidfile):
     Creates or overwrites pidfile with the current process id.
     """
     # Write pidfile
+    pidfile = pidfile_path(pidfile)
     pid = os.getpid()
     try:
         pid_fd = open(pidfile, 'w+')
@@ -253,6 +256,14 @@ def writepidfile(pidfile):
 
     pid_fd.write("%d\n" % pid)
     pid_fd.close()
+
+
+def pidfile_path(pidfile):
+    """Returns a fully qualified path for the given pidfile"""
+    if pidfile.startswith(os.sep):
+        return pidfile
+    else:
+        return os.path.join(NAV_CONFIG['PID_DIR'], pidfile)
 
 
 def redirect_std_fds(stdin=None, stdout=None, stderr=None):
@@ -309,7 +320,7 @@ def daemonize(pidfile, stdin=None, stdout=None, stderr=None):
         If writing of pidfile fails, raises PidFileWriteError.
 
     """
-
+    pidfile = pidfile_path(pidfile)
     # Do first fork
     # (allow shell to return, and permit us to call setsid())
     try:
@@ -368,7 +379,7 @@ def daemonexit(pidfile):
         If removal of pidfile fails, raises PidFileWriteError.
 
     """
-
+    pidfile = pidfile_path(pidfile)
     _logger.debug("Daemon is exiting. Cleaning up...")
 
     try:

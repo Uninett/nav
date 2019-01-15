@@ -5,7 +5,7 @@ if [ ! -n "$1" ]; then
 fi
 
 WORKSPACE=$1
-JSDIR="htdocs/static/js"
+JSDIR="python/nav/web/static/js"
 REPORTDIR="$WORKSPACE/reports"
 
 NPM=`which npm`

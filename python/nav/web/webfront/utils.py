@@ -22,6 +22,7 @@ import logging
 from django.db.models import Q
 from django.utils.encoding import python_2_unicode_compatible
 
+from nav.config import CONFIG_LOCATIONS
 from nav.web import webfrontConfig
 from nav.models.msgmaint import Message
 from nav.models.event import AlertHistory
@@ -101,11 +102,9 @@ def tool_list(account):
         return Tool(**dict(
             [[y.strip() for y in x.split('=')] for x in lines if x]))
 
-    paths = {}
+    paths = [os.path.join(path, 'toolbox') for path in CONFIG_LOCATIONS]
     if webfrontConfig.has_option('toolbox', 'path'):
         paths = webfrontConfig.get('toolbox', 'path').split(os.pathsep)
-    else:
-        return None
 
     _tool_list = []
     for path in paths:

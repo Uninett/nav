@@ -5,7 +5,7 @@ import pytest
 from unittest import TestCase
 import signal
 import time
-from nav.buildconf import sysconfdir
+from nav.config import find_configfile
 from nav.snmptrapd.plugin import load_handler_modules
 
 
@@ -28,7 +28,7 @@ class SnmptrapdPluginTest(TestCase):
         assert not hasattr(loader[0], 'initialize')
 
     def test_plugin_loader_reading_in_modules_from_config_file(self):
-        configfile = sysconfdir + "/snmptrapd.conf"
+        configfile = find_configfile("snmptrapd.conf")
         config = configparser.ConfigParser()
         config.read(configfile)
         list_from_config = config.get('snmptrapd', 'handlermodules').split(',')

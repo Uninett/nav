@@ -42,19 +42,14 @@ RUN apt-get update \
        sudo \
        apache2 \
        libapache2-mod-wsgi \
-       rubygems \
        inotify-tools \
        postgresql-client \
        vim \
        less \
        nbtscan
 
-RUN gem install --version '3.3.9' sass ;\
-    gem install --version '~> 0.9' rb-inotify
-
 RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav
 
-RUN echo "import sys\nsys.path.append('/source/python')" > /etc/python2.7/sitecustomize.py
 
 
 #################################################################################
@@ -68,7 +63,10 @@ ADD tools/docker/supervisord.conf /etc/supervisor/conf.d/nav.conf
 COPY requirements/ /requirements
 ADD requirements.txt /
 ADD tests/requirements.txt /test-requirements.txt
-RUN pip install --upgrade pip && hash -r && pip install -r /requirements.txt && pip install -r /test-requirements.txt
+RUN pip install --upgrade pip tox setuptools && \
+    hash -r && \
+    pip install -r /requirements.txt && \
+    pip install -r /test-requirements.txt
 
 ADD tools/docker/nav-apache-site.conf /etc/apache2/sites-available/nav-site.conf
 RUN a2dissite 000-default; a2ensite nav-site
@@ -76,8 +74,6 @@ RUN a2dissite 000-default; a2ensite nav-site
 ADD tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
 VOLUME ["/source"]
-ENV    PYTHONPATH /source/python
-ENV    PATH /source/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin
-RUN    echo "PATH=$PATH" > /etc/profile.d/navpath.sh
+ENV    DJANGO_SETTINGS_MODULE nav.django.settings
 EXPOSE 80
 CMD    ["/source/tools/docker/run.sh"]

@@ -1,0 +1,2 @@
+## info: Collect active ip-adresses for all prefixes
+*/30 * * * * collect_active_ip.py

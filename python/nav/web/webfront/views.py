@@ -17,7 +17,6 @@
 """Navbar (tools, preferences) and login related controllers"""
 
 
-import os
 from datetime import datetime
 import json
 import logging
@@ -36,7 +35,6 @@ from django.utils import six
 
 from nav.auditlog.models import LogEntry
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
-from nav.buildconf import sysconfdir
 from nav.django.utils import get_account
 from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
 from nav.web import ldapauth, auth
@@ -46,15 +44,11 @@ from nav.web.webfront.forms import (LoginForm, NavbarLinkFormSet,
                                     ChangePasswordForm, ColumnsForm)
 from nav.web.navlets import list_navlets, can_modify_navlet
 from nav.web.message import new_message, Messages
-from nav.web.webfront import get_widget_columns, find_dashboard
+from nav.web.webfront import (get_widget_columns, find_dashboard,
+                              WELCOME_ANONYMOUS_PATH, WELCOME_REGISTERED_PATH)
 
 _logger = logging.getLogger('nav.web.tools')
 
-WEBCONF_DIR_PATH = os.path.join(sysconfdir, "webfront")
-WELCOME_ANONYMOUS_PATH = os.path.join(WEBCONF_DIR_PATH, "welcome-anonymous.txt")
-WELCOME_REGISTERED_PATH = os.path.join(WEBCONF_DIR_PATH,
-                                       "welcome-registered.txt")
-NAV_LINKS_PATH = os.path.join(WEBCONF_DIR_PATH, "nav-links.conf")
 
 
 def index(request, did=None):

@@ -47,7 +47,6 @@ from nav.models.manage import Organization, Prefix, Room, NetboxGroup
 from nav.models.manage import Interface, Usage, Vlan, Vendor
 from nav.models.fields import VarcharField, DictAsJsonField
 
-configfile = os.path.join(nav.buildconf.sysconfdir, 'alertengine.conf')
 
 # This should be the authorative source as to which models alertengine
 # supports.  The acctuall mapping from alerts to data in these models is done
@@ -442,8 +441,7 @@ class AlertSender(models.Model):
     def _load_dispatcher_class(self):
         # Get config
         if not hasattr(AlertSender, 'config'):
-            AlertSender.config = get_alertengine_config(
-                os.path.join(nav.buildconf.sysconfdir, 'alertengine.conf'))
+            AlertSender.config = get_alertengine_config('alertengine.conf')
 
         # Load module
         module = __import__(

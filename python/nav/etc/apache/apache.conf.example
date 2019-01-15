@@ -1,0 +1,95 @@
+# NAV web interface example Apache configuration using mod_wsgi
+#
+# This file should be included from a VirtualHost directive somewhere (or in
+# the global Apache config if you're not using virtualhosts).
+#
+#
+# You should alter these defines according to your installation:
+#
+Define document_root /path/to/your/webroot
+Define documentation_path /path/to/your/installed/nav/documentation
+Define nav_uploads_path /usr/share/nav/var/uploads
+Define nav_python_base /usr/share/pyshared
+# Define nav_virtual_env /path/to/a/python/virtual/env/with/NAV/in/it
+Define nav_user navcron
+
+#
+# Configuration begins here
+#
+
+DocumentRoot "${document_root}"
+
+<Directory "${document_root}">
+    Options Indexes FollowSymlinks ExecCGI
+    # Access directives are different from Apache 2.4 and on
+    <IfVersion < 2.4>
+      Order allow,deny
+      Allow from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+      Require all granted
+    </IfVersion>
+</Directory>
+
+Alias /favicon.ico "${document_root}/static/images/main/favicon.ico"
+Alias /doc "${documentation_path}/html"
+
+<Location /doc>
+    # Access directives are different from Apache 2.4 and on
+    <IfVersion < 2.4>
+      Order allow,deny
+      Allow from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+      Require all granted
+    </IfVersion>
+</Location>
+
+Alias /uploads "${nav_uploads_path}"
+<Location /uploads>
+    # Files here may be sensitive. Do not allow browsing.
+    Options -Indexes
+    # Access directives are different from Apache 2.4 and on
+    <IfVersion < 2.4>
+      Order allow,deny
+      Allow from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+      Require all granted
+    </IfVersion>
+</Location>
+
+Alias /static "${document_root}/static"
+
+<Location /api>
+    # Make sure WSGI allows the Authorization header to pass through to
+    # allow tokens to be used for authorization.
+    WSGIPassAuthorization On
+</Location>
+
+# Define the actual WSGI daemon process that runs the NAV web code.
+#
+# It may or may not run in a Python virtualenv. If nav_virtual_env is defined,
+# make sure mod_wsgi was compiled with the same Python interpreter used by this
+# environment.
+#
+<IfDefine nav_virtual_env>
+  WSGIDaemonProcess NAV user=${nav_user} processes=2 display-name=%{GROUP} python-home=${nav_virtual_env}
+</IfDefine>
+<IfDefine !nav_virtual_env>
+  WSGIDaemonProcess NAV user=${nav_user} processes=2 display-name=%{GROUP}
+</IfDefine>
+
+WSGIProcessGroup NAV
+WSGIApplicationGroup %{GLOBAL}
+WSGIScriptAlias / "${nav_python_base}/nav/wsgi.py"
+<Directory "${nav_python_base}/nav">
+    # Access directives are different from Apache 2.4 and on
+    <IfVersion < 2.4>
+      Order allow,deny
+      Allow from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+      Require all granted
+    </IfVersion>
+</Directory>

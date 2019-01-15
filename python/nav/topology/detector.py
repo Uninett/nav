@@ -22,7 +22,6 @@ from functools import wraps
 import inspect
 import logging
 import sys
-import os
 import atexit
 
 from nav import buildconf
@@ -38,9 +37,8 @@ from nav.models.manage import Vlan, Prefix
 from django.db.models import Q
 import django.db
 
-LOGFILE_NAME = 'navtopology.log'
-LOGFILE_PATH = os.path.join(buildconf.localstatedir, 'log', LOGFILE_NAME)
-PIDFILE_PATH = os.path.join(buildconf.localstatedir, 'run', 'navtopology.pid')
+LOG_FILE = 'navtopology.log'
+PID_FILE = 'navtopology.pid'
 
 _logger = logging.getLogger(__name__)
 
@@ -51,7 +49,7 @@ def main():
     options = parser.parse_args()
 
     init_generic_logging(
-        logfile=LOGFILE_PATH,
+        logfile=LOG_FILE,
         stderr=options.stderr,
         stdout=True,
         read_config=True,
@@ -171,13 +169,13 @@ def verify_singleton():
     """
 
     try:
-        daemon.justme(PIDFILE_PATH)
+        daemon.justme(PID_FILE)
     except daemon.AlreadyRunningError as error:
         print("navtopology is already running (%d)" % error.pid, file=sys.stderr)
         sys.exit(1)
 
-    daemon.writepidfile(PIDFILE_PATH)
-    atexit.register(daemon.daemonexit, PIDFILE_PATH)
+    daemon.writepidfile(PID_FILE)
+    atexit.register(daemon.daemonexit, PID_FILE)
 
 if __name__ == '__main__':
     main()

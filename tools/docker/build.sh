@@ -2,7 +2,7 @@
 
 set -e
 
-if [[ ! -x "/source/autogen.sh" ]]; then
+if [[ ! -f "/source/setup.py" ]]; then
   echo NAV source code does not appear to be mounted at /source
   exit 1
 fi
@@ -18,24 +18,19 @@ if [ "$uid" -ne 0 ]; then
 fi
 
 cd /source
-sudo -u nav ./autogen.sh
-sudo -u nav ./configure NAV_USER="nav" --disable-install-conf --prefix /source --localstatedir /var/lib/nav --sysconfdir /etc/nav --datadir /source --libdir /source
-sudo -u nav make
+sudo -u nav python setup.py build
+python setup.py develop
+sudo -u nav python setup.py build_sass
 
 if [[ ! -d "/etc/nav" ]]; then
-    cd /source/etc
-    sudo -u nav make clean
-    sudo -u nav make
-    make install
+    echo "Copying initial NAV config files into this container"
+    nav config install --verbose /etc/nav
+    chown -R nav:nav /etc/nav
     cd /etc/nav
     sed -e 's/^#\s*\(DJANGO_DEBUG.*\)$/\1/' -i nav.conf  # Enable django debug.
+    sed -e 's/^NAV_USER\s*=.*/NAV_USER=nav/' -i nav.conf  # Set the nav user
     sed -e 's/dbhost=.*/dbhost=postgres/g' -i db.conf  # Set nav as db password.
     sed -e 's/userpw_nav=.*/userpw_nav=nav/g' -i db.conf  # Set nav as db password.
 
     cp /source/tools/docker/graphite.conf /etc/nav/graphite.conf
-
-    cd /source
-    make installdirs-local
-    chown -R nav:nav /etc/nav
-    chown -R nav:nav /var/lib/nav
 fi

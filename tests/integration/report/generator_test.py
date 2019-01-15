@@ -20,7 +20,6 @@ error free. This only ensures that the SQL can be run, no further verification
 is performed.
 """
 from __future__ import unicode_literals
-import os.path
 import pytest
 
 from django.http import QueryDict
@@ -28,10 +27,10 @@ from django.core.urlresolvers import reverse
 
 from nav import db
 from nav.report.generator import ReportList, Generator
-from nav.buildconf import sysconfdir
+from nav.config import find_configfile
 
-config_file = os.path.join(sysconfdir, 'report', 'report.conf')
-config_file_local = os.path.join(sysconfdir, 'report', 'report.local.conf')
+config_file = find_configfile('report/report.conf')
+config_file_local = find_configfile('report/report.local.conf')
 
 
 def report_list():

@@ -21,14 +21,15 @@ import logging
 import django.template
 
 from django.template.loaders.filesystem import Loader
+
+from nav.config import find_configfile
 from nav.django.utils import is_admin
-from nav.buildconf import sysconfdir
 from nav.portadmin.snmputils import SNMPFactory, FantasyVlan
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 from operator import attrgetter
 from os.path import join
 
-CONFIGFILE = join(sysconfdir, "portadmin", "portadmin.conf")
+CONFIGFILE = find_configfile(join("portadmin", "portadmin.conf")) or ''
 
 _logger = logging.getLogger("nav.web.portadmin")
 
@@ -272,7 +273,7 @@ def get_ifaliasformat(config=None):
 
 def get_aliastemplate():
     """Fetch template for displaying ifalias format as help to user"""
-    templatepath = join(sysconfdir, "portadmin")
+    templatepath = find_configfile("portadmin")
     templatename = "aliasformat.html"
     loader = Loader()
     rawdata, _ = loader.load_template_source(templatename, [templatepath])

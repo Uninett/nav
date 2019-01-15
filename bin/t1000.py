@@ -45,17 +45,14 @@ from nav.arnold import (find_computer_info, disable, quarantine,
                         DetainmentNotAllowedError)
 from nav.models.arnold import Identity, DetentionProfile
 
-
-CONFIGFILE = os.path.join(nav.buildconf.sysconfdir, "arnold", "arnold.conf")
-
+LOG_FILE = "arnold/t1000.log"
 LOGGER = logging.getLogger('nav.t1000')
 
 
 def main():
     """Main controller"""
     init_generic_logging(
-        logfile=os.path.join(nav.buildconf.localstatedir, "log/arnold",
-                             "t1000.log"),
+        logfile=LOG_FILE,
         stderr=False,
         read_config=True,
     )

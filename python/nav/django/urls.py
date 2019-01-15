@@ -18,9 +18,10 @@
 import sys
 import os
 import logging
-import nav
 from django.conf.urls import include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
+from nav.config import find_config_dir
 from nav.web import refresh_session
 from nav.web.webfront.urls import urlpatterns
 from nav.web.styleguide import styleguide_index
@@ -65,7 +66,7 @@ urlpatterns += [
 ]
 
 # Load local url-config
-_local_python_dir = os.path.join(nav.buildconf.sysconfdir, 'python')
+_local_python_dir = os.path.join(find_config_dir() or '.', 'python')
 _local_url_filepath = os.path.join(_local_python_dir, 'local_urls.py')
 
 if os.path.isfile(_local_url_filepath):

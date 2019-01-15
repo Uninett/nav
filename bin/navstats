@@ -17,7 +17,6 @@
 """Sends NAV statistics to the Carbon collector"""
 
 import logging
-import os.path
 import time
 from functools import partial
 import configparser
@@ -27,7 +26,6 @@ from django.db import connection, DatabaseError
 from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
-from nav.buildconf import localstatedir
 from nav.config import NAVConfigParser
 from nav.logs import init_generic_logging
 from nav.metrics.carbon import send_metrics
@@ -43,10 +41,7 @@ class NAVStatsConfig(NAVConfigParser):
 
 
 def main():
-    init_generic_logging(
-        logfile=os.path.join(localstatedir, 'log', LOGFILE),
-        stderr=False
-    )
+    init_generic_logging(logfile=LOGFILE, stderr=False)
     config = NAVStatsConfig()
     collect_stats(config)
 

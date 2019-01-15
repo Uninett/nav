@@ -23,21 +23,21 @@ import copy
 import django
 from django.utils.log import DEFAULT_LOGGING
 
-from nav.config import read_flat_config, getconfig
+from nav.config import (read_flat_config, getconfig, find_config_dir)
 from nav.db import get_connection_parameters
 import nav.buildconf
 
 ALLOWED_HOSTS = ['*']
 
+_config_dir = find_config_dir()
 try:
     nav_config = read_flat_config('nav.conf')
-except IOError:
+except (IOError, OSError):
     nav_config = {'SECRET_KEY': 'Very bad default value'}
 
 try:
-    webfront_config = getconfig('webfront/webfront.conf',
-                                configfolder=nav.buildconf.sysconfdir)
-except IOError:
+    webfront_config = getconfig('webfront/webfront.conf')
+except (IOError, OSError):
     webfront_config = {}
 
 DEBUG = nav_config.get('DJANGO_DEBUG', 'False').upper() in ('TRUE', 'YES', 'ON')
@@ -74,7 +74,7 @@ try:
 
         }
     }
-except IOError:
+except (IOError, OSError):
     pass
 
 # URLs configuration
@@ -87,17 +87,22 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
+_base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+_doc_dir = os.path.join(_base_dir, 'build/sphinx/html')
+if os.path.isdir(_doc_dir):  # No point unless docs have actually been built
+    STATICFILES_DIRS = [
+        ('doc', _doc_dir),
+    ]
 
 
 # Templates
+_global_template_dir = [
+    os.path.join(_config_dir, 'templates')] if _config_dir else []
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            os.path.join(nav.buildconf.sysconfdir, 'templates'),
-            nav.buildconf.djangotmpldir,
-        ],
+        'DIRS': _global_template_dir + [nav.buildconf.djangotmpldir],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -210,6 +215,7 @@ CRISPY_TEMPLATE_PACK = 'foundation-5'
 
 INSTALLED_APPS = (
     'nav.models',
+    'nav.web',
     'nav.django',
     'django.contrib.staticfiles',
     'django.contrib.sessions',
@@ -247,7 +253,8 @@ SEARCHPROVIDERS = [
 
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
-sys.path.append(os.path.join(nav.buildconf.sysconfdir, "python"))
+if _config_dir:
+    sys.path.append(os.path.join(_config_dir, "python"))
 try:
     # pylint: disable=E0602
     LOCAL_SETTINGS

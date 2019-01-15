@@ -26,14 +26,11 @@ import subprocess
 from textwrap import wrap
 from errno import ENOENT, EACCES
 import psycopg2
+from pkg_resources import resource_listdir, resource_string
 
 from nav.db import ConnectionParameters
-from nav.util import first_true
-from nav import buildconf
 from nav.colors import colorize, print_color
 from nav.colors import COLOR_CYAN, COLOR_YELLOW, COLOR_RED, COLOR_GREEN
-
-SQL_SEARCH_PATH = ['.', './sql', os.path.join(buildconf.datadir, 'sql')]
 
 
 def main():
@@ -49,24 +46,13 @@ def main():
     if options.restore_file:
         restore_from_dump(options.restore_file)
 
-    sql_dir = first_true(SQL_SEARCH_PATH, pred=_is_sql_dir)
-    if not sql_dir:
-        die("could not find SQL schema files using search path %s" %
-            os.pathsep.join(SQL_SEARCH_PATH))
-
-    sync = Synchronizer(sql_dir, options.apply_out_of_order_changes)
+    sync = Synchronizer('nav.models', options.apply_out_of_order_changes)
     try:
         sync.connect()
     except psycopg2.OperationalError as err:
         die(err)
 
     sync.synchronize()
-
-
-def _is_sql_dir(path):
-    baseline = os.path.join(path, 'baseline')
-    changes = os.path.join(path, 'changes')
-    return os.path.isdir(baseline) and os.path.isdir(changes)
 
 
 def parse_args():
@@ -280,13 +266,13 @@ class Synchronizer(object):
         (None, 'indexes.sql'),
         ]
 
-    def __init__(self, sql_dir, apply_out_of_order_changes=False):
-        self.sql_dir = sql_dir
+    def __init__(self, resource_module, apply_out_of_order_changes=False):
+        self.resource_module = resource_module
         self.connection = None
         self.cursor = None
         self.connect_options = ConnectionParameters.from_config()
         self.apply_out_of_order_changes = apply_out_of_order_changes
-        self.finder = ChangeScriptFinder(self.sql_dir)
+        self.finder = ChangeScriptFinder(self.resource_module)
 
     def connect(self):
         """Connects the synchronizer to the NAV configured database."""
@@ -398,14 +384,13 @@ class Synchronizer(object):
     def install_baseline(self):
         """Installs the baseline NAV schema"""
         print("Installing baseline schema")
-        baseline_dir = os.path.join(self.sql_dir, 'baseline')
         for schema in self.schemas:
             namespace = schema[0]
             files = schema[1:]
             if namespace:
                 self.cursor.execute('SET search_path TO %s' % namespace)
             for filename in files:
-                self.execute_sql_file(os.path.join(baseline_dir, filename))
+                self.execute_sql_file(os.path.join("sql/baseline", filename))
 
             self.cursor.execute('RESET search_path')
         self.connection.commit()
@@ -504,7 +489,7 @@ class Synchronizer(object):
         Terminates the process if there are errors.
 
         """
-        sql = open(filename, 'rb').read()
+        sql = resource_string(self.resource_module, filename)
         print_color("%-20s " % (filename + ":"), COLOR_CYAN, newline=False)
         try:
             self.cursor.execute(sql)
@@ -520,15 +505,15 @@ class ChangeScriptFinder(list):
     script_pattern = re.compile(
         r"^sc\.(?P<major>\d+)\.(?P<minor>\d+)\.(?P<point>\d+)\.(?P<type>sql)$")
 
-    def __init__(self, sql_dir):
+    def __init__(self, resource_module):
         super(ChangeScriptFinder, self).__init__()
-        self.sql_dir = sql_dir
+        self.resource_module = resource_module
         self._find_change_scripts()
 
     def _find_change_scripts(self):
-        changes_dir = os.path.join(self.sql_dir, 'changes')
+        changes_dir = 'sql/changes'
         scripts = [os.path.join(changes_dir, f)
-                   for f in os.listdir(changes_dir)
+                   for f in resource_listdir(self.resource_module, changes_dir)
                    if self.script_pattern.match(f)]
         self[:] = scripts
 

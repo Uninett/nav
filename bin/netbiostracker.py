@@ -35,8 +35,7 @@ LOGFILE = 'netbiostracker.log'
 
 def main():
     """Main controller"""
-    init_generic_logging(logfile=join(localstatedir, 'log', LOGFILE),
-                         stderr=False)
+    init_generic_logging(logfile=LOGFILE, stderr=False)
     config = NetbiosTrackerConfig()
 
     start = time.time()

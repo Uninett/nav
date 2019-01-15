@@ -15,27 +15,26 @@
 #
 """NAV Service start/stop library."""
 from __future__ import absolute_import, print_function
+
+import errno
 import os
+import signal
 import subprocess
 import sys
 import time
 import re
 
+import yaml
 from django.utils import six
 
-import nav.config
+from nav.config import (read_flat_config, open_configfile, find_configfile,
+                        NAV_CONFIG)
 from nav.errors import GeneralException
-
-try:
-    import nav.buildconf
-except ImportError:
-    CRONDIR = 'cron.d'
-    INITDIR = 'init.d'
-else:
-    CRONDIR = nav.buildconf.crondir
-    INITDIR = nav.buildconf.initdir
+from nav import buildconf
 
 INFOHEAD = '## info:'
+DAEMON_CONFIG = 'daemons.yml'
+CRON_DIR = find_configfile('cron.d')
 
 
 def get_info_from_content(content):
@@ -93,73 +92,133 @@ class DaemonService(Service):
     """ Represents daemon based services."""
     status = None
 
-    def load_from_file(self, filename):
-        with open(filename, mode='r') as initfile:
-            self.info = get_info_from_content(initfile)
+    def __init__(self, name, service_dict, source=None):
+        self.name = name
+        self.info = service_dict.get('description')
+        self.source = source
+        self._command = service_dict['command']
+        self.service_dict = service_dict
 
     @classmethod
     def load_services(cls):
-        def _is_blacklisted(fname):
-            return (fname.startswith('.') or fname.endswith('~')
-                    or fname == 'functions'
-                    or '.dpkg-' in fname)
-        filelist = [os.path.join(INITDIR, f)
-                    for f in os.listdir(INITDIR)
-                    if not _is_blacklisted(f)]
-        servicelist = [cls(f) for f in filelist]
-        return servicelist
+        try:
+            with open_configfile(DAEMON_CONFIG) as ymldata:
+                cfg = yaml.load(ymldata)
+        except OSError:
+            cfg = {'daemons': {}}
+
+        daemons = cfg.get('daemons')
+
+        services = [
+            cls(name, service_dict=values, source=DAEMON_CONFIG)
+            for name, values in daemons.items()
+            if values.get('enabled', True)
+        ]
+
+        return services
 
     def start(self, silent=False):
-        if not self.command('start', silent=silent):
-            if self.status >> 8 == 1:
-                return False
-            else:
-                raise CommandFailedError(self.status)
-        else:
-            return True
+        if self.is_up():
+            return False
+
+        return self.execute(self._command, silent=silent)
 
     def stop(self, silent=False):
-        if not self.command('stop', silent=silent):
-            if self.status >> 8 == 1:
-                return False
-            else:
-                raise CommandFailedError(self.status)
+        if not self.is_up():
+            return False
+
+        pid = self.get_pid()
+        for attempt in range(3):
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except OSError as error:
+                if error.errno == errno.ESRCH:  # it's gone
+                    return True
+                else:
+                    raise
+            if self.is_up(pid=pid):
+                time.sleep(1)
         else:
-            return True
+            return False
 
     def restart(self, silent=False):
-        if not self.command('restart', silent=silent):
-            if self.status >> 8 == 1:
+        if self.stop(silent=silent):
+            return self.start(silent=silent)
+        else:
+            return False
+
+    def is_up(self, silent=False, pid=None):
+        if not pid:
+            pid = self.get_pid()
+        if not pid:
+            return False
+
+        try:
+            os.kill(pid, 0)
+        except OSError as error:
+            if error.errno == errno.ESRCH:  # no such process
                 return False
+            elif error.errno == errno.EPERM:  # no permission, but it's there
+                return True
             else:
-                raise CommandFailedError(self.status)
+                raise
         else:
             return True
 
-    def is_up(self, silent=False):
-        if not self.command('status', silent=silent):
-            if self.status >> 8 == 1:
-                return False
-            else:
-                raise CommandFailedError(self.status)
+    def get_pid(self):
+        """Returns the last known pid of this process, if found"""
+        pidfile = self.get_pidfile()
+        if pidfile:
+            with open(pidfile, 'r') as handle:
+                pid = handle.readline().strip()
+                if not pid or not pid.isdigit():
+                    return
+                return int(pid)
+
+    def get_pidfile(self):
+        """Attempts to locate the pidfile of this command"""
+        pidfile = self.service_dict.get('pidfile')
+        if pidfile and os.path.exists(pidfile):
+            return pidfile
+        elif pidfile:
+            nameguess = pidfile
         else:
-            return True
+            nameguess = self.name + '.pid'
+
+        locations = [
+            os.path.join(buildconf.datadir, 'var/run'),
+            '/var/run/nav',
+            '/run/nav',
+            '/tmp',
+        ]
+        for pidfile in [os.path.join(loc, nameguess) for loc in locations]:
+            if os.path.exists(pidfile):
+                return pidfile
 
     def command(self, command, silent=False):
-        silence = silent and ' > /dev/null 2> /dev/null' or ''
-        self.status = os.system(self.source + ' ' + command + silence)
-        return self.status == 0
+        raise CommandNotSupportedError(command)
+
+    def execute(self, command, silent=False):
+        with open(os.devnull, 'w') as DEVNULL:
+            if silent:
+                stdout = stderr = DEVNULL
+            else:
+                stdout = stderr = None
+
+            self.status = subprocess.call(command,
+                                          stdout=stdout, stderr=stderr)
+            return self.status == 0
 
 
 class CronService(Service):
     """ Represents cron based services."""
     crontab = None
-    cronUser = nav.buildconf.nav_user
 
     def __init__(self, filename):
         self.content = None
         if CronService.crontab is None:
-            CronService.crontab = Crontab(CronService.cronUser)
+            cron_user = NAV_CONFIG.get('NAV_USER', 'navcron')
+            CronService.crontab = Crontab(cron_user)
         super(CronService, self).__init__(filename)
 
     def load_from_file(self, filename):
@@ -172,9 +231,12 @@ class CronService(Service):
         def _is_blacklisted(fname):
             return (fname.startswith('.') or fname.endswith('~')
                     or '.dpkg-' in fname)
-        filelist = [os.path.join(CRONDIR, f)
-                    for f in os.listdir(CRONDIR)
-                    if not _is_blacklisted(f)]
+        if CRON_DIR:
+            filelist = [os.path.join(CRON_DIR, f)
+                        for f in os.listdir(CRON_DIR)
+                        if not _is_blacklisted(f)]
+        else:
+            filelist = []
         servicelist = [cls(f) for f in filelist]
         return servicelist
 
@@ -254,6 +316,11 @@ class Crontab(object):
             # crontab doesn't have very helpful exit codes. if we get here, it
             # may simply be because the user has no defined crontab yet
             self.content = []
+        except OSError as error:
+            if error.errno == errno.ENOENT:
+                raise CrontabError("crontab command was not found")
+            else:
+                raise
 
         # cron often inserts three comment lines in the spooled
         # crontab; the following is an attempt to remove those three
@@ -295,7 +362,7 @@ class Crontab(object):
         # Set up a default MAILTO directive
         mailto = 'root@localhost'
         try:
-            nav_conf = nav.config.read_flat_config('nav.conf')
+            nav_conf = read_flat_config('nav.conf')
             if 'ADMIN_MAIN' in nav_conf:
                 mailto = nav_conf['ADMIN_MAIL']
         except IOError:

@@ -36,16 +36,16 @@ import nav.buildconf
 import nav.smsd.navdbqueue
 from nav import buildconf
 from nav.smsd.dispatcher import DispatcherError, PermanentDispatcherError
-from nav.config import getconfig
+from nav.config import getconfig, NAV_CONFIG
 # Dispatchers are imported later according to config
 
 
 #
 #  PATHS
 #
-configfile = os.path.join(nav.buildconf.sysconfdir, 'smsd.conf')
-logfile = os.path.join(nav.buildconf.localstatedir, 'log', 'smsd.log')
-pidfile = os.path.join(nav.buildconf.localstatedir, 'run', 'smsd.pid')
+configfile = 'smsd.conf'
+logfile = os.path.join(NAV_CONFIG['LOG_DIR'], 'smsd.log')
+pidfile = os.path.join(NAV_CONFIG['PID_DIR'], 'smsd.pid')
 
 #
 # Globals
@@ -63,7 +63,7 @@ def main():
     # Set config defaults
     global defaults
     defaults = {
-        'username': buildconf.nav_user,
+        'username': NAV_CONFIG['NAV_USER'],
         'delay': '30',
         'delayfactor': '1.5',
         'maxdelay': '3600',
@@ -73,9 +73,8 @@ def main():
         'autocancel': '0',
         'mailwarnlevel': 'ERROR',
         'mailserver': 'localhost',
-        'mailaddr': nav.config.read_flat_config('nav.conf')['ADMIN_MAIL'],
-        'fromaddr': nav.config.read_flat_config('nav.conf')[
-            'DEFAULT_FROM_EMAIL'],
+        'mailaddr': NAV_CONFIG['ADMIN_MAIL'],
+        'fromaddr': NAV_CONFIG['DEFAULT_FROM_EMAIL'],
     }
 
     # Read config file

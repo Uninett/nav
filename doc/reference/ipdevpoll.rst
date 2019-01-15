@@ -186,4 +186,5 @@ This may provide additional protection against memory leaks or other
 unintended resource leaks. See the :option:`--max-jobs-per-worker` option.
 
 You can make sure ipdevpoll always runs in multiprocess mode by altering the
-:envvar:`OPTIONS` variable in :file:`init.d/ipdevpoll` under |sysconfdir|.
+``command`` option in the ``ipdevpoll`` entry of the configuration file
+:file:`daemons.yml`.

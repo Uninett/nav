@@ -19,21 +19,21 @@ Contains ldap authentication functionality for NAV web.
 
 from __future__ import print_function, unicode_literals
 
-import sys
 import logging
-import configparser
 from os.path import join
-from io import StringIO
 
 from django.utils import six
 
-from nav.buildconf import sysconfdir
 import nav.errors
+from nav.config import NAVConfigParser
 
 _logger = logging.getLogger("nav.web.ldapauth")
 
+
 # Set default config params and read rest from file
-_default_config = StringIO(u"""
+class WebfrontConfigParser(NAVConfigParser):
+    DEFAULT_CONFIG_FILES = [join('webfront', 'webfront.conf')]
+    DEFAULT_CONFIG = u"""
 [ldap]
 enabled=no
 port=389
@@ -49,12 +49,10 @@ manager=
 manager_password=
 group_search=(member=%%s)
 encoding=utf-8
-""")
+"""
 
-_config = configparser.SafeConfigParser()
-_config.readfp(_default_config)
-_default_config.close()
-_config.read(join(sysconfdir, 'webfront', 'webfront.conf'))
+
+_config = WebfrontConfigParser()
 
 # pylint: disable=C0103
 try:

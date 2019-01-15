@@ -24,45 +24,22 @@ by servicemon and pinger.
 Implements the singleton pattern ensuring only one
 instance created.
 """
-
 import os
-import sys
-import re
-
-try:
-    # this module exists in a properly installed enviroment
-    import nav.buildconf
-    CONFIGFILEPATH = [nav.buildconf.sysconfdir]
-except ImportError:
-    # fallback to current dir++
-    CONFIGFILEPATH = ['/usr/local/nav/local/etc/conf/', '.']
+from nav.config import read_flat_config, NAV_CONFIG
 
 
 class Conf(dict):
     def __init__(self, *_args, **_kwargs):
-        dict.__init__(self)
-        self._configfile = None
-        for path in CONFIGFILEPATH:
-            afile = os.path.join(os.path.abspath(path), self._file)
-            try:
-                self._configfile = open(afile, "r")
-                break
-            except IOError:
-                pass
+        super(Conf, self).__init__()
+        self.update(read_flat_config(self._file))
 
-        if self._configfile is None:
-            sys.exit(0)
-        self._regexp = re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)", re.M)
-        self.parsefile()
-        self._configfile.close()
-
-    def parsefile(self):
-        for (key, value) in self._regexp.findall(self._configfile.read()):
-            if self.validoptions:
-                if key.strip() in self.validoptions:
-                    self[key.strip()] = value.strip()
-            else:
-                self[key.strip()] = value.strip()
+    @property
+    def logfile(self):
+        logfile = self.get('logfile')
+        if logfile.startswith(os.sep) or not logfile:
+            return logfile
+        else:
+            return os.path.join(NAV_CONFIG['LOG_DIR'], logfile)
 
 
 def dbconf(*args, **kwargs):
@@ -76,9 +53,7 @@ class _dbconf(Conf):
 
     def __init__(self, *args, **kwargs):
         self._file = kwargs.get('configfile', 'db.conf')
-        # Valid configoptions must be specified in this list
-        self.validoptions = []
-        Conf.__init__(self, *args, **kwargs)
+        super(_dbconf, self).__init__(*args, **kwargs)
 
 
 class _serviceconf(Conf):
@@ -86,9 +61,7 @@ class _serviceconf(Conf):
 
     def __init__(self, *args, **kwargs):
         self._file = kwargs.get('configfile', 'servicemon.conf')
-        self.validoptions = []
-        Conf.__init__(self, *args, **kwargs)
-
+        super(_serviceconf, self).__init__(*args, **kwargs)
 
 def serviceconf(*args, **kwargs):
     if _serviceconf._instance is None:
@@ -101,8 +74,7 @@ class _pingconf(Conf):
 
     def __init__(self, *args, **kwargs):
         self._file = kwargs.get('configfile', 'pping.conf')
-        self.validoptions = []
-        Conf.__init__(self, *args, **kwargs)
+        super(_pingconf, self).__init__(*args, **kwargs)
 
 
 def pingconf(*args, **kwargs):

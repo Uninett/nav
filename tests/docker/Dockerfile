@@ -32,7 +32,6 @@ RUN apt-get update && \
     apt-get -y --no-install-recommends install \
 	libsnmp30 \
 	cron \
-	rubygems \
 	python-cairo \
 	postgresql postgresql-contrib postgresql-client \
 	libxml2-dev libxslt1-dev \
@@ -42,7 +41,6 @@ RUN apt-get update && \
 	x11vnc google-chrome-stable cloc \
 	cmake nbtscan python-gammu
 
-RUN gem install --version '3.3.9' sass
 
 # Now install NodeJS and NPM for Javascript testing needs -
 # Which incidentally includes Python2.7, so we need some selection magic

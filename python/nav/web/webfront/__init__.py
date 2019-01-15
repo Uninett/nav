@@ -1,9 +1,18 @@
 """NAV web common package."""
+import os
 
 from django.db.models import Count
 from django.http import Http404
 
+from nav.config import find_configfile
 from nav.models.profiles import AccountDashboard
+
+WELCOME_ANONYMOUS_PATH = find_configfile(
+    os.path.join("webfront", "welcome-anonymous.txt"))
+WELCOME_REGISTERED_PATH = find_configfile(
+    os.path.join("webfront", "welcome-registered.txt"))
+NAV_LINKS_PATH = find_configfile(
+    os.path.join("webfront", "nav-links.conf"))
 
 DEFAULT_WIDGET_COLUMNS = 2
 

@@ -26,5 +26,5 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./etc/graphite/storage-schemas.conf:/opt/graphite/conf/storage-schemas.conf
-      - ./etc/graphite/storage-aggregation.conf:/opt/graphite/conf/storage-aggregation.conf
+      - ./python/nav/etc/graphite/storage-schemas.conf:/opt/graphite/conf/storage-schemas.conf
+      - ./python/nav/etc/graphite/storage-aggregation.conf:/opt/graphite/conf/storage-aggregation.conf

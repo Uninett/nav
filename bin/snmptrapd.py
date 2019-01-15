@@ -25,12 +25,12 @@ import re
 import socket
 import sys
 import argparse
-import configparser
 import signal
 from functools import reduce
 
 # Import NAV libraries
 from nav import daemon
+from nav.config import NAV_CONFIG, NAVConfigParser
 import nav.buildconf
 from nav.snmptrapd.plugin import load_handler_modules, ModuleLoadError
 from nav.util import is_valid_ip, address_to_string
@@ -41,9 +41,8 @@ import nav.logs
 from nav.snmptrapd import agent
 
 # Paths
-configfile = nav.buildconf.sysconfdir + "/snmptrapd.conf"
-logfile_path = nav.buildconf.localstatedir + "/log/snmptrapd.log"
-pidfile = nav.buildconf.localstatedir + "/run/snmptrapd.pid"
+logfile_path = os.path.join(NAV_CONFIG['LOG_DIR'], 'snmptrapd.log')
+pidfile = 'snmptrapd.pid'
 logging.raiseExceptions = False  # don't raise exceptions for logging issues
 logger = logging.getLogger('nav.snmptrapd')
 traplogger = logging.getLogger('nav.snmptrapd.traplog')
@@ -73,8 +72,7 @@ def main():
 
     # Initialize and read startupconfig
     global config
-    config = configparser.ConfigParser()
-    config.read(configfile)
+    config = SnmptrapdConfig()
 
     # Create parser and define options
     opts = parse_args()
@@ -96,7 +94,7 @@ def main():
     server.open()
 
     # We have bound to a port and can safely drop privileges
-    runninguser = config.get('snmptrapd', 'user')
+    runninguser = NAV_CONFIG['NAV_USER']
     try:
         if os.geteuid() == 0:
             daemon.switchuser(runninguser)
@@ -257,6 +255,11 @@ def signal_handler(signum, _):
     elif signum == signal.SIGTERM:
         logger.warning('SIGTERM received: Shutting down.')
         sys.exit(0)
+
+
+class SnmptrapdConfig(NAVConfigParser):
+    """Configparser for snmptrapd"""
+    DEFAULT_CONFIG_FILES = ['snmptrapd.conf']
 
 
 if __name__ == '__main__':

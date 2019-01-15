@@ -37,7 +37,7 @@ from functools import partial
 from django.template import Context
 from django import template
 
-import nav
+from nav.config import open_configfile
 from nav.web.geomap.conf import get_configuration
 from nav.web.geomap.utils import union_dict, subdict, concat_list
 
@@ -84,11 +84,9 @@ def load_popup_template(filename):
     """
     if filename is None:
         return None
-    confdir = os.path.join(nav.buildconf.sysconfdir, 'geomap')
-    abs_filename = os.path.join(confdir, filename)
-    afile = open(abs_filename, 'r')
-    content = afile.read()
-    afile.close()
+    filename = os.path.join('geomap', filename)
+    with open_configfile(filename) as afile:
+        content = afile.read()
     return template.Template(content)
 
 

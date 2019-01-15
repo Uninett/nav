@@ -2,6 +2,7 @@
 various pping integration tests
 """
 import os
+import getpass
 try:
     from subprocess32 import (STDOUT, check_output, TimeoutExpired,
                               CalledProcessError)
@@ -12,7 +13,7 @@ except ImportError:
 import pytest
 
 from nav.models.manage import Netbox
-from nav.buildconf import sysconfdir, localstatedir, nav_user, bindir
+from nav.config import find_configfile
 
 
 def can_be_root():
@@ -64,7 +65,7 @@ def get_pping_output(timeout=5):
 
     Also asserts that pping shouldn't unexpectedly exit with a zero exitcode.
     """
-    cmd = get_root_method() + [os.path.join(bindir, 'pping.py'), '-f']
+    cmd = get_root_method() + ['pping.py', '-f']
     try:
         output = check_output(cmd, stderr=STDOUT, timeout=timeout)
     except TimeoutExpired as error:
@@ -93,7 +94,7 @@ def host_expected_to_be_down():
 @pytest.fixture(scope="module")
 def pping_test_config():
     print("placing temporary pping config")
-    configfile = os.path.join(sysconfdir, "pping.conf")
+    configfile = find_configfile("pping.conf")
     tmpfile = configfile + '.bak'
     os.rename(configfile, tmpfile)
     with open(configfile, "w") as config:
@@ -104,9 +105,7 @@ packetsize = 64
 timeout = 1
 nrping = 2
 delay = 2
-logfile = {localstatedir}/log/pping.log
-pidfile = {localstatedir}/run/pping.pid
-""".format(user=nav_user, localstatedir=localstatedir))
+""".format(user=getpass.getuser()))
     yield configfile
     print("restoring ping config")
     os.remove(configfile)

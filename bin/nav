@@ -25,7 +25,7 @@ import textwrap
 from nav import colors
 
 try:
-    from nav.startstop import ServiceRegistry, CommandFailedError
+    from nav.startstop import ServiceRegistry, CommandFailedError, CrontabError
 except ImportError:
     print("Fatal error: Could not find the nav.startstop module.\nIs your "
           "PYTHONPATH environment correctly set up?", file=sys.stderr)
@@ -33,7 +33,7 @@ except ImportError:
 
 try:
     SERVICES = ServiceRegistry()
-except OSError as _error:
+except (OSError, CrontabError) as _error:
     print("A problem occurred, which prevented this command from running.\n" +
           str(_error), file=sys.stderr)
     sys.exit(1)
@@ -70,7 +70,39 @@ def make_argparser():
         subp.add_argument("service", nargs="*", default=all_services)
         subp.set_defaults(func=func)
 
+    _add_bespoke_subparsers(subparsers)
+
     return parser
+
+
+def _add_bespoke_subparsers(subparsers):
+    config = subparsers.add_parser("config",
+                                   help="query or manipulate NAV configuration")
+    config_sub = config.add_subparsers()
+    where = config_sub.add_parser("where",
+                                  help="find and report the location of the "
+                                       "main NAV configuration file")
+    where.set_defaults(func=command_config_where)
+
+    path = config_sub.add_parser("path",
+                                 help="prints a list of filesystem locations "
+                                      "where NAV will search for configuration "
+                                      "files")
+    path.set_defaults(func=command_config_path)
+
+    install = config_sub.add_parser("install",
+                                    help="installs a copy of the default NAV "
+                                         "configuration file tree in a target "
+                                         "directory")
+    install.add_argument('target_directory',
+                         help="the directory in which to install the config "
+                              "files")
+    install.add_argument('--overwrite', action="store_true",
+                         help="overwrite existing config files in target "
+                              "directory")
+    install.add_argument('--verbose', '-v', action="store_true",
+                         help="print the full path of all copied files")
+    install.set_defaults(func=command_config_install)
 
 
 def verify_root():
@@ -131,6 +163,11 @@ def action_iterator(query_list, action, ok_string, fail_string, verbose=False):
     if len(errors):
         print("Errors:", end=' ')
         print(" ".join(["%s (%s)" % error for error in errors]))
+
+
+#
+# This group of commands work with services
+#
 
 
 def c_info(args):
@@ -202,10 +239,47 @@ def c_status(args):
     action_iterator(args.service, "is_up", "Up", "Down", verbose=args.verbose)
 
 
-def c_version(_):
+#
+# This group of commands do not work with services, and may or may not take
+# arguments from the command line.
+#
+
+def c_version(_args):
     """reports the currently installed NAV version"""
     from nav import buildconf
     print("NAV %s" % buildconf.VERSION)
+
+
+def command_config_where(_args):
+    """reports the location of NAV's main configuration file"""
+    from nav.config import find_configfile, CONFIG_LOCATIONS
+    path = find_configfile('nav.conf')
+    if path:
+        print(path)
+    else:
+        sys.exit("Could not find nav.conf in any of these locations:\n"
+                 "{}".format('\n'.join(CONFIG_LOCATIONS)))
+
+
+def command_config_path(_args):
+    """Prints the list of file system locations NAV will search for config"""
+    from nav.config import CONFIG_LOCATIONS
+    for path in CONFIG_LOCATIONS:
+        print(path)
+
+
+def command_config_install(args):
+    """Installs a copy of the example config files in a target directory"""
+    from nav.config import install_example_config_files
+    callback = print if args.verbose else None
+
+    try:
+        install_example_config_files(args.target_directory,
+                                     overwrite=args.overwrite,
+                                     callback=callback)
+    except (OSError, IOError) as error:
+        sys.exit(error)
+
 
 
 ##############

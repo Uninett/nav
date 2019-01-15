@@ -1,10 +1,11 @@
 # for debian build-deps, see the apt-get commands in
-# tools/vagrant-provision.sh
+# Dockerfile
 
 asciitree==0.3.3  # optional, for naventity
 configparser==3.5.0 ; python_version < '3'
 psycopg2==2.5.4  # requires libpq to build
 IPy==0.83
+pyaml
 
 twisted>=14.0.1,<18 ; python_version < '3'
 twisted>=16.6.0,<18 ; python_version >= '3'
@@ -23,3 +24,6 @@ dnspython==1.15.0
 iso8601
 
 pynetsnmp-2==0.1.3
+
+# libsass for compiling scss files to css using distutils/setuptools
+libsass==0.15.1

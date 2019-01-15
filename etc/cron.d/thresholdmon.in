@@ -1,3 +1,0 @@
-## info: Monitors your Graphite metrics for exceeded thresholds
-
-*/5 * * * * @bindir@/thresholdmon

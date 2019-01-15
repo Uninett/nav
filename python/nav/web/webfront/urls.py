@@ -16,6 +16,8 @@
 """Django URL configuration for webfront"""
 
 from django.conf.urls import url
+from django.views.generic import RedirectView
+
 from nav.web.webfront import views
 
 
@@ -65,6 +67,10 @@ urlpatterns = [
     url(r'^about/',
         views.about,
         name='webfront-about'),
+    url(r'^doc/(?P<path>.+)$',
+        RedirectView.as_view(url='/static/doc/%(path)s', permanent=True)),
+    url(r'^doc/$',
+        RedirectView.as_view(url='/static/doc/index.html', permanent=True)),
     url(r'^toolbox/$',
         views.toolbox,
         name='webfront-toolbox'),

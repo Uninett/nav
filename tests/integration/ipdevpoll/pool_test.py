@@ -7,7 +7,7 @@ from mock import patch
 from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
-from nav.buildconf import bindir, sysconfdir
+from nav.config import find_configfile
 from nav.ipdevpoll import config, jobs, plugins
 from nav.ipdevpoll.pool import InlinePool, WorkerPool
 
@@ -62,7 +62,7 @@ def test_cancel(localhost, ipdevpoll_test_config, pool):
 def pool(request):
     with patch('nav.ipdevpoll.control.get_process_command') as gpc:
 
-        gpc.return_value = os.path.join(bindir, 'ipdevpolld')
+        gpc.return_value = 'ipdevpolld'
         if request.param == "WorkerPool":
             yield WorkerPool(1, 1)
         elif request.param == "InlinePool":
@@ -72,7 +72,7 @@ def pool(request):
 @pytest.fixture(scope="module")
 def ipdevpoll_test_config():
     print("placing temporary ipdevpoll config")
-    configfile = os.path.join(sysconfdir, "ipdevpoll.conf")
+    configfile = find_configfile("ipdevpoll.conf")
     tmpfile = configfile + '.bak'
     os.rename(configfile, tmpfile)
     with open(configfile, "w") as config_handle:
