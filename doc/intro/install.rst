@@ -97,28 +97,26 @@ configuration files in :file:`/etc/nav/` can be obtained thus::
 Manual install from source on stretch
 .....................................
 
-OS dependencies::
+First get the following OS pacakges::
 
-  apt-get install -y build-essential
-  apt-get install -y nbtscan
-  apt-get install -y libpq-dev postgresql
-  apt-get install -y libldap2-dev libsasl2-dev
-  apt-get install -y apache2 libapache2-mod-wsgi
-  apt-get install -y python-setuptools python-wheel python-dev
+  apt-get install -y python-pip python-wheel git
 
-Python requirements::
-
-  pip install -r requirements.txt
+See the ``Dockerfile`` for other OS dependencies to be installed with ``apt``.
+Note the build dependencies!
 
 Get the source::
 
   git clone https://github.com/Uninett/nav.git
 
+Python requirements::
+
+  pip install -r requirements.txt
+
 Install nav:
 
 cd into the nav directory you got from git then run::
 
-    pip install .
+  pip install .
 
 Building the documentation
 --------------------------
