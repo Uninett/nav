@@ -93,31 +93,6 @@ configuration files in :file:`/etc/nav/` can be obtained thus::
   pip install -r requirements.txt .
   nav config install /etc/nav
 
-
-Manual install from source on stretch
-.....................................
-
-First get the following OS pacakges::
-
-  apt-get install -y python-pip python-wheel git
-
-See the ``Dockerfile`` for other OS dependencies to be installed with ``apt``.
-Note the build dependencies!
-
-Get the source::
-
-  git clone https://github.com/Uninett/nav.git
-
-Python requirements::
-
-  pip install -r requirements.txt
-
-Install nav:
-
-cd into the nav directory you got from git then run::
-
-  pip install .
-
 Building the documentation
 --------------------------
 
