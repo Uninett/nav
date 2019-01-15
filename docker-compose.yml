@@ -28,3 +28,13 @@ services:
     volumes:
       - ./python/nav/etc/graphite/storage-schemas.conf:/opt/graphite/conf/storage-schemas.conf
       - ./python/nav/etc/graphite/storage-aggregation.conf:/opt/graphite/conf/storage-aggregation.conf
+
+  # Add a service to continuously rebuild the Sphinx documentation if the doc
+  # directory is modified:
+  docbuild:
+    build: .
+    volumes_from:
+      - nav
+    command: /source/tools/docker/doc-watch.sh
+    depends_on:
+      - nav
