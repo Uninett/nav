@@ -65,6 +65,48 @@ run against your pull request, and the automatic CLA signing process is
 initiated by the CLA Assistant.
 
 
+Contributor License Agreement
+-----------------------------
+
+To contribute code to NAV, you need to sign our contributor license
+agreement, straightforwardly based on The Free Software Foundation's
+`Fiduciary License Agreement 2.0
+<https://fsfe.org/activities/ftf/fla.en.html>`_.
+
+To streamline the process, we ask that you *sign it digitally*, as part
+of the GitHub pull request process. We have implemented this process
+through the help of `CLA assistant`_. The assistant will allow you to
+digitally sign the agreement using your Github account. If you create a
+pull request against the NAV repository and have not previously signed
+our agreement, the assistant will automatically post a comment on your
+pull request with instructions on how to do so.
+
+`The full agreement text can be read directly from the GitHub gist used
+by the CLA assistant.
+<https://gist.github.com/lunkwill42/0ee830087cb7c4ebfab814d34f406ef5>`_
+
+
+Rationale
+~~~~~~~~~
+
+NAV is a software project primarily made by Uninett AS. Uninett is a
+non-profit, government-owned limited company, who builds and operates
+Norway's national research and education network.
+
+Due to our experiences with FOSS license compatibility issues, and with
+switching the 20-year old NAV project explicitly from the GPLv2 to the
+GPLv3 license, we have decided to implement a *contributor license
+agreement* for NAV. This will help us ease the transition if we in the
+future find we need to switch to yet another FOSS license to keep the
+project going.
+
+For the sake of transparency, we've chosen FLA-2.0, which is a fairly
+standardized agreement. If you already know the terms of the FLA-2.0,
+you won't need to read an entirely new license agreement just to
+contribute to NAV.
+
+.. _CLA assistant: https://cla-assistant.io/
+
 
 Directory layout
 ================
