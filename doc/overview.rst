@@ -44,7 +44,7 @@ development costs in exchange for licensing the software to all universities
 and university colleges in Norway.
 
 In 2004, both parties agreed to release NAV to the world under the GPL
-license, version 2, effectively freeing the software.
+license, effectively freeing the software.
 
 In 2006, Uninett assumed the main responsibility of maintaining and developing
 the software further, and is continually doing so on behalf of its customers,

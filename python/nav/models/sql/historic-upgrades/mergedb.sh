@@ -1,6 +1,6 @@
 #!/bin/sh
 # Copyright 2008 Uninett AS
-# License: GPLv2
+# License: GPLv3
 # Author: Morten Brekkevold <morten.brekkevold@uninett.no>
 #
 newnavdb=nav
