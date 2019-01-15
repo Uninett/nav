@@ -1,8 +1,10 @@
 # NAV web development container
 #
 # This container aims at providing all the build- and runtime dependencies of
-# NAV in a single container, and allowing for running them all directly off
-# the code in your source code checkout.
+# NAV itself in a single container, and allowing for running them all directly
+# off the code in your source code checkout. It is intended to be used as part
+# of the docker-compose.yml file, where the PostgreSQL and Graphite services
+# are defined in separate containers.
 #
 # Run the container with your checked out NAV source code directory mounted on
 # the '/source' volume to build and run all the necessary components inside
@@ -25,18 +27,12 @@ RUN apt-get update \
     && apt-get -y --no-install-recommends build-dep \
        python-psycopg2 \
        python-lxml \
-       librrd-dev \
        python-imaging \
        python-ldap
 
 RUN apt-get update \
     && apt-get -y --no-install-recommends install \
-       mercurial \
-       subversion \
        git-core \
-       librrd-dev \
-       autoconf \
-       automake \
        libsnmp30 \
        cron \
        sudo \
