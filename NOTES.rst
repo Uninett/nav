@@ -61,7 +61,8 @@ moving to NAV 4.9.
 Unfortunately, Django releases have a tendency to drop backwards compatibility
 with many features, so expect future releases of NAV to move to even more
 recent versions of Django - we expect to land on Django 1.11, which is the last
-long-term support release of Django 1.
+long-term support release of Django 1. Django 2 drops support for Python 2, as
+will NAV.
 
 
 Upgraded dependencies
@@ -76,6 +77,11 @@ The version requirements have changed for these dependencies:
 * :mod:`crispy-forms-foundation` must be any version of the *0.6* series.
 * :mod:`python-ldap` must be any version of the *3.0* series.
 
+Obsolete dependencies
+~~~~~~~~~~~~~~~~~~~~~
+
+* :mod:`django-hstore` is no longer needed, as HStore support is included in
+  newer Django versions.
 
 Build system rewrite and source code directory layout
 -----------------------------------------------------

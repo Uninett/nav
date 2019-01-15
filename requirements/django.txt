@@ -1,6 +1,0 @@
-Django==1.7.1
-django-hstore>=1.2.4,<1.3
-django-filter>=0.7,<0.12
-django-crispy-forms>=1.5,<1.6
-crispy-forms-foundation==0.5.4
-djangorestframework>=3.3,<3.4
