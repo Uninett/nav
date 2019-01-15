@@ -94,6 +94,31 @@ configuration files in :file:`/etc/nav/` can be obtained thus::
   nav config install /etc/nav
 
 
+Manual install from source on stretch
+.....................................
+
+OS dependencies::
+
+  apt-get install -y nbtscan
+  apt-get install -y libpq-dev postgresql
+  apt-get install -y libldap2-dev libsasl2-dev
+  apt-get install -y apache2 libapache2-mod-wsgi
+  apt-get install -y python-sphinx python-setuptools python-wheel
+
+Python requirements::
+
+  pip install -r requirements.txt
+
+Get the source::
+
+  git clone https://github.com/Uninett/nav.git
+
+Install nav:
+
+cd into the nav directory you got from git then run::
+
+    pip install .
+
 Building the documentation
 --------------------------
 
