@@ -44,7 +44,7 @@ separate step, using the pip_ tool and the provided requirements files::
 *However*, some of the required modules are C extensions that will require the
 presence of some C libraries to be correctly built (unless PyPI provides binary
 wheels for your platform). These include the ``psycopg2`` driver and the
-``python-ldap`` module).
+``python-ldap`` and ``Pillow`` modules).
 
 The current Python requirements are as follows:
 
@@ -74,18 +74,13 @@ is required.
 Installing NAV
 ==============
 
-To build and install NAV::
+To build and install NAV and all its Python dependencies::
 
-  python setup.py install
+  pip install -r requirements.txt .
 
 This will build and install NAV in the default system-wide directories for your
 system. If you wish to customize the install locations, please consult the
 output of ``python setup.py install --help``.
-
-You can also opt to use pip_ instead, to install the source code and
-simultaneously install all the Python package dependencies::
-
-  pip install .
 
 
 On Debian 9 (Stretch)
@@ -94,8 +89,9 @@ On Debian 9 (Stretch)
 On Debian 9, a full installation of NAV, mostly via PyPi, and with
 configuration files in :file:`/etc/nav/` can be obtained thus::
 
-  apt-get install -y libldap2-dev libsasl2-dev
-  pip install .
+  apt-get install -y python-pip git-core
+  apt-get install -y libpq-dev libjpeg-dev libz-dev libldap2-dev libsasl2-dev
+  pip install -r requirements.txt .
   nav config install /etc/nav
 
 
@@ -122,6 +118,13 @@ e.g. in :file:`/etc/nav`, run::
 To verify that NAV can find its main configuration file, run::
 
   nav config where
+
+
+.. note:: Running the ``nav`` command at this stage may print strange crontab
+          warnings about non-existant users. These can be ignored for now: This
+          is just because you haven't made it to the :ref:`step where the nav
+          system account is created <creating-users-and-groups>` yet.
+
 
 Initializing the database
 -------------------------
@@ -190,6 +193,7 @@ document root points to :file:`/usr/share/nav/www`, because that is where the
 least need an Alias to point the ``/static`` URL to the :file:`static`
 directory.
 
+.. _creating-users-and-groups:
 
 Create users and groups
 -----------------------
