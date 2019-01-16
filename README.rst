@@ -6,12 +6,13 @@ This is NAV - Network Administration Visualized - an advanced software suite
 to monitor small and large computer networks.
 
 :Homepage: https://nav.uninett.no/
-:Bug tracker and release management: https://github.com/UNINETT/nav
+:Documentation: https://nav.uninett.no/latest/
+:Bug tracker and release management: https://github.com/Uninett/nav
 
 
 License
 -------
-NAV is licensed under the GNU GPL version 3.  NAV includes software from third
+NAV is licensed under the *GNU GPL version 3*.  NAV includes software from third
 parties, which are either licensed under the GPL or compatible licenses.
 
 * Copyright 2002-2019 Uninett AS
@@ -37,3 +38,9 @@ Installation
 For detailed instructions on how to install NAV, see
 `<doc/intro/install.rst>`_. See the file `<NOTES.rst>`_ for release notes and
 upgrade instructions.
+
+
+Contributing
+------------
+For instructions on how to contribute to NAV, please read
+`<doc/hacking/hacking.rst>`_ .
