@@ -7,27 +7,19 @@ form of code, documentation or packaging.
 Currently active contributors/maintainers
 -----------------------------------------
 
-* John-Magne Bredal <john.m.bredal at uninett.no>
-  Joined in 2000, and is instrumental in anything related to end user
-  detentions (Arnold), the web interface and the API.
-
 * Morten Brekkevold (formerly Vold) <morten.brekkevold at uninett.no>
-  Joined in 2002 to make NAV useable outside of NTNU.  Has been
-  hacking and improving bits and pieces of NAV ever since.  The
-  project's opinionated know-it-all, working as the current project
-  lead, after taking over for Vidar Faltinsen.
+  NAV's lead developer. Joined in 2002 to make NAV useable outside of NTNU.  Has
+  been hacking and improving bits and pieces of NAV ever since.
 
 * Hanne Moa <hanne.moa at uninett.no>
-  Joined in 2017. An experienced Python developer, still learning the NAV
-  ropes :-)
+  Joined in 2017. An experienced Python developer who contributied the audit
+  logging code, and has put down many hours in migrating to Python 3 and modern
+  Django versions.
 
 * Sigmund Augdal <sigmund.augdal at uninett.no>
-  Joined in 2017. An experienced Python developer, still learning the NAV
-  ropes :-)
-
-* Emil Henry Flakk <emilhf at stud.ntnu.no>
-  Wrote the IPAM tool introduced in NAV 4.6, and continues to work on
-  Netmap/Geomap fixes, among other things.
+  Joined in 2017. An experienced Python developer who, among other things,
+  rewrote the ipdevpoll multiprocess mode. Has since gone a one-year sabbatical
+  :-)
 
 
 Other contributors and previous maintainers
@@ -37,6 +29,22 @@ Other contributors and previous maintainers
   around a network, and has been a NAV mentor for all these years -
   producing documentation and offering keen insight into the problem
   domain.
+
+* John-Magne Bredal <john.m.bredal at uninett.no>
+  Joined in 2000, and was instrumental in anything related to end user
+  detentions (Arnold), the web interface and the API.
+
+* Ruben Andreassen (University of Tromsø)
+  Contributed the initial support for IT-WATCHDOGS-V4-MIB and GEIST-V4-MIB.
+
+* Bård Schjander Flugon <bflugon at gmail.com>
+  During his internship at Uninett, he wrote support for pluggable NAVbar
+  search providers, consolidated a new SQL schema baseline from several years
+  of migration scripts, and contributed multiple other improvements to NAV.
+
+* Emil Henry Flakk <emil.flakk at uninett.no>
+  Wrote the IPAM tool introduced in NAV 4.6, and continues to work on
+  Netmap/Geomap fixes, among other things.
 
 * Pär Stolpe <par at stolpe.se>
   Contributed more flexible LDAP authentication for Microsoft AD servers.
