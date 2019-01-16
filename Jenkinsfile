@@ -92,7 +92,7 @@ node {
             }
             else {
                 echo "Publishing docs for ${VERSION}"
-                sh "rsync -av --delete --no-perms --chmod=Dog+rx,Fog+r '${WORKSPACE}/doc/html/' 'doc@nav.uninett.no:/var/www/doc/${VERSION}/'"
+                sh "rsync -av --delete --no-perms --chmod=Dog+rx,Fog+r '${WORKSPACE}/build/sphinx/html/' 'doc@nav.uninett.no:/var/www/doc/${VERSION}/'"
             }
         }
     }
