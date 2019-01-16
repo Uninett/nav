@@ -35,5 +35,5 @@ licensed under the Apache License v2.0.
 Installation
 ------------
 For detailed instructions on how to install NAV, see
-``doc/intro/install.rst``. See the file ``NOTES.rst`` for release notes and
+`<doc/intro/install.rst>`_. See the file `<NOTES.rst>`_ for release notes and
 upgrade instructions.
