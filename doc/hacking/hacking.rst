@@ -5,8 +5,6 @@ Hacker's guide to NAV
 If you are contributing code to Network Administration Visualized,
 please read this first.
 
-.. contents::
-
 
 Contributing to NAV
 ===================
