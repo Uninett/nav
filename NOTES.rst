@@ -163,6 +163,19 @@ does not work for interfaces in Access mode - which is the default mode for the
 interfaces. Thus to properly interact with Access mode support for Dells
 DNOS-SWITCHING-MIB was implemented.
 
+Partial support for IT WatchDogs / Geist V4 generation products
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The newest environment probes from IT WatchDogs / Geist have moved to new MIB
+versions. The University of Tromsø has contributed partial support for
+detecting sensors from these MIBs:
+
+* ``IT-WATCHDOGS-V4-MIB``
+* ``GEIST-V4-MIB``
+
+"Partial" here means only internal sensors are supported - external sensors are
+not, thus far.
+
 
 NAV 4.8
 ========
