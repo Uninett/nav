@@ -363,13 +363,7 @@ class Crontab(object):
                 init_block.append('%s="%s"' % (var, val))
 
         # Set up a default MAILTO directive
-        mailto = 'root@localhost'
-        try:
-            nav_conf = read_flat_config('nav.conf')
-            if 'ADMIN_MAIN' in nav_conf:
-                mailto = nav_conf['ADMIN_MAIL']
-        except IOError:
-            pass
+        mailto = NAV_CONFIG.get('ADMIN_MAIL', 'root@localhost')
 
         init_block.append('MAILTO=' + mailto)
         if '__init__' not in self:
