@@ -266,7 +266,7 @@ to configure some options before letting NAV send data to Graphite.
 2. You should add the suggested *storage-schema* configurations for the
    various ``nav`` prefixes listed in :file:`etc/graphite/storage-schemas.conf`:
 
-   .. literalinclude:: ../../etc/graphite/storage-schemas.conf
+   .. literalinclude:: ../../python/nav/etc/graphite/storage-schemas.conf
 
    The highest precision retention archives are the most important ones here,
    as their data point interval must correspond with the collection intervals
@@ -281,7 +281,7 @@ to configure some options before letting NAV send data to Graphite.
 3. You should add the suggested *storage-aggregation* configurations listed in
    the file :file:`etc/graphite/storage-aggregation.conf`:
 
-   .. literalinclude:: ../../etc/graphite/storage-aggregation.conf
+   .. literalinclude:: ../../python/nav/etc/graphite/storage-aggregation.conf
 
    These will ensure that time-series data sent to Graphite by NAV will be
    aggregated properly when Graphite rolls them into lower-precision archives.
