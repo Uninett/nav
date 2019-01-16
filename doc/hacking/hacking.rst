@@ -289,7 +289,7 @@ SQL, you would be best served by accessing the database via the Django
 ORM.
 
 Most of these models are defined in submodules in in the
-:model:`nav.models` package (since NAV was not originally divided into
+:py:mod:`nav.models` package (since NAV was not originally divided into
 separate "Django applications").
 
 
