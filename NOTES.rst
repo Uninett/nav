@@ -76,6 +76,7 @@ The version requirements have changed for these dependencies:
 * :mod:`django-crispy-forms` must be any version of the *1.7* series.
 * :mod:`crispy-forms-foundation` must be any version of the *0.6* series.
 * :mod:`python-ldap` must be any version of the *3.0* series.
+* :mod:`sphinx` must now be at least *1.8.0*.
 
 Obsolete dependencies
 ~~~~~~~~~~~~~~~~~~~~~
