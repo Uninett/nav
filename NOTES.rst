@@ -177,6 +177,14 @@ detecting sensors from these MIBs:
 "Partial" here means only internal sensors are supported - external sensors are
 not, thus far.
 
+Partial support for Powertek PDUs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The University of Tromsø has contributed partial support for collecting inlet
+sensor data from Powertek PDUs. The implemented proprietary MIB is:
+
+* ``PWTv1-MIB``
+
 
 NAV 4.8
 ========
