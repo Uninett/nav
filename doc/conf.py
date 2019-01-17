@@ -101,7 +101,7 @@ html_theme = 'bootstrap'
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = [os.path.join(os.path.abspath(os.path.dirname(__file__)), "templates")]
 
-html_logo = "nav-logo.svg"
+html_logo = "templates/bootstrap/static/nav-logo.svg"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
