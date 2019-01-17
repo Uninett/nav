@@ -35,7 +35,8 @@ Other contributors and previous maintainers
   detentions (Arnold), the web interface and the API.
 
 * Ruben Andreassen (University of Tromsø)
-  Contributed the initial support for IT-WATCHDOGS-V4-MIB and GEIST-V4-MIB.
+  Contributed the initial support for IT-WATCHDOGS-V4-MIB, GEIST-V4-MIB and
+  PowerTek PDUs (PWTv1-MIB).
 
 * Bård Schjander Flugon <bflugon at gmail.com>
   During his internship at Uninett, he wrote support for pluggable NAVbar
