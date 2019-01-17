@@ -26,7 +26,12 @@
           <tr>
             <td>
               {% if result.subject_url %}
-                <a href="{{ result.subject_url }}">{{ result.subject }}</a>
+                {# check for interface #}
+                {% if result.subject_type == 'Interface' %}
+                  <a href="{{ result.subject_url }}" class="toooltip" data-url="{% url 'api:interface-detail' result.subid %}">{{ result.subject }}</a>
+                {% else %}
+                  <a href="{{ result.subject_url }}">{{ result.subject }}</a>
+                {% endif %}
               {% else %}
                 {{ result.subject }}
               {% endif %}
@@ -71,5 +76,12 @@
     </div>
 
   {% endif %}
+
+  <script>
+   var navletid = "{{ navlet.account_navlet.pk }}";
+   require(['plugins/delegate_tooltip'], function(dgt) {
+       dgt($('[data-id=' + navletid + '] .status2table'), '.toooltip');
+   });
+  </script>
 
 {% endblock %}

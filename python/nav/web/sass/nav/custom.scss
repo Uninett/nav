@@ -403,7 +403,9 @@ select[multiple] {
     line-height: inherit;
 }
 
-.tooltip > h5 {
+.tooltip h3,
+.tooltip > h5
+{
     color: white;
 }
 

@@ -400,6 +400,11 @@ class InterfaceFilterClass(filters.FilterSet):
                   'ifadminstatus', 'iftype', 'baseport', 'module__name', 'vlan')
 
 
+class InterfaceFragmentRenderer(TemplateHTMLRenderer):
+    media_type = 'text/x-nav-html'
+    template_name = 'ipdevinfo/port-details-api-frag.html'
+
+
 class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Lists all interfaces.
 
@@ -441,6 +446,11 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
             return serializers.InterfaceWithCamSerializer
         else:
             return serializers.InterfaceSerializer
+
+    def get_renderers(self):
+        if self.action == 'retrieve':
+            self.renderer_classes += (InterfaceFragmentRenderer,)
+        return super(InterfaceViewSet, self).get_renderers()
 
     @detail_route()
     def metrics(self, _request, pk=None):

@@ -1,0 +1,42 @@
+<div>
+  <h3>Interface {{ ifname }}</h3>
+
+  {% if ifalias %}
+    <p>{{ ifalias }}</p>
+  {% endif %}
+
+  <ul class="inline-list">
+    <li>
+      {% if ifoperstatus == 1 %}
+        <div class="label success">Has link</div>
+      {% else %}
+        <div class="label warning">No link</div>
+      {% endif %}
+    </li>
+
+    <li>
+      {% if ifadminstatus == 1 %}
+        <div class="label success">Enabled</div>
+      {% else %}
+        <div class="label warning">Disabled</div>
+      {% endif %}
+    </li>
+
+    {% if trunk %}
+      <li>
+        <div class="label label-info">Trunk</div>
+      </li>
+    {% endif %}
+  </ul>
+
+  <ul class="no-bullet">
+    <li><strong>Speed</strong>: {{ speed }}</li>
+    <li><strong>Vlan</strong>: {{ vlan }}</li>
+    {% if to_interface %}
+      <li><strong>To interface</strong>: {{ to_interface.ifname }}</li>
+    {% endif %}
+    {% if to_netbox %}
+      <li><strong>To netbox</strong>: {{ to_netbox.sysname }}</li>
+    {% endif %}
+  </ul>
+</div>
