@@ -15,7 +15,7 @@ xmpppy==0.5.0rc1  # optional, for alerting via Jabber
 Pillow==3.0.0
 pyrad==2.1
 python-ldap==3.0.0 # optional for LDAP authentication, requires libldap (OpenLDAP) to build
-sphinx>=1.0
+sphinx>=1.8.0
 feedparser>=5.1.2,<5.2
 markdown==2.5.1
 dnspython==1.15.0
