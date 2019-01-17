@@ -72,7 +72,7 @@ The version requirements have changed for these dependencies:
 
 * :mod:`django` must be any version from the *1.8* series.
 * :mod:`djangorestframework` must be any version in either the *3.5* or *3.6* series.
-* :mod:`django-filter` must be any version of the *1.1* series.
+* :mod:`django-filter` must be any version of the *1.0* series.
 * :mod:`django-crispy-forms` must be any version of the *1.7* series.
 * :mod:`crispy-forms-foundation` must be any version of the *0.6* series.
 * :mod:`python-ldap` must be any version of the *3.0* series.
