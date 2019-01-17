@@ -1,0 +1,32 @@
+{% extends "alertmsg/base.html" %}
+{% block event-content %}
+    {% with interface=alert.get_subject %}
+
+        <p>
+        Link is down on interface
+        <a href="{{ interface.get_absolute_url }}">{{ interface.ifname }}
+
+        {% if interface.ifalias %}({{ interface.ifalias }}){% endif %}
+
+        at {{ interface.netbox }}</a>.
+        </p>
+
+        {% if interface.to_netbox %}
+            <p>
+            Connected to
+                {% if interface.to_interface %}
+
+                    interface <a href="{{ interface.to_interface.get_absolute_url }}">{{ interface.to_interface.ifname }}
+                    {% if interface.to_interface.ifalias %}({{ interface.to_interface.ifalias }}){% endif %}
+                    at {{ interface.to_interface.netbox }}</a>.
+
+                {% else %}
+
+                    <a href="{{ interface.to_netbox.get_absolute_url }}">{{ interface.to_netbox }}</a>.
+
+                {% endif %}
+            </p>
+        {% endif %}
+
+    {% endwith %}
+{% endblock %}
