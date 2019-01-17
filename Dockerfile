@@ -72,4 +72,6 @@ ADD tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 VOLUME ["/source"]
 ENV    DJANGO_SETTINGS_MODULE nav.django.settings
 EXPOSE 80
-CMD    ["/source/tools/docker/run.sh"]
+
+ENTRYPOINT ["/source/tools/docker/entrypoint.sh"]
+CMD        ["/source/tools/docker/run.sh"]
