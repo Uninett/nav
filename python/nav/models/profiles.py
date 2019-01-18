@@ -1242,6 +1242,9 @@ class NetmapView(models.Model):
     display_elinks = models.BooleanField(default=False)
     display_orphans = models.BooleanField(default=False)
     location_room_filter = models.CharField(max_length=255, blank=True)
+    categories = models.ManyToManyField(Category,
+                                        through='NetmapViewCategories',
+                                        related_name='netmap_views')
 
     def __str__(self):
         return u'%s (%s)' % (self.viewid, self.title)
