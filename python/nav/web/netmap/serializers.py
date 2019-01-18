@@ -60,6 +60,7 @@ class SimpleCategorySerializer(serializers.ModelSerializer):
     """Simple serializer to represent categories as strings based on their PK"""
     class Meta:
         model = manage.Category
+        fields = ('id',)
 
     def to_representation(self, instance):
         return instance.pk
@@ -71,50 +72,53 @@ class SimpleCategorySerializer(serializers.ModelSerializer):
 
 class NetmapViewSerializer(serializers.Serializer):
     """Serializer for NetmapView"""
-    viewid = serializers.Field()
-    owner = serializers.RelatedField(read_only=True)
+    viewid = serializers.IntegerField(required=False, read_only=True)
+    owner = serializers.StringRelatedField(read_only=True)
     title = serializers.CharField()
     description = serializers.CharField(required=False)
     topology = serializers.ChoiceField(choices=profiles.LINK_TYPES)
     zoom = serializers.CharField(required=False)
     last_modified = serializers.DateTimeField()
     is_public = serializers.BooleanField()
-    # Cannot set choices to actual data here, breaks import of models
-    categories = serializers.MultipleChoiceField([])
-    location_room_filter = serializers.CharField(max_length=255, required=False)
+    categories = SimpleCategorySerializer(many=True)
+    location_room_filter = serializers.CharField(max_length=255, required=False,
+                                                 allow_blank=True)
     display_orphans = serializers.BooleanField()
     display_elinks = serializers.BooleanField()
 
-    def __init__(self, *args, **kwargs):
-        super(NetmapViewSerializer, self).__init__(*args, **kwargs)
-        self.fields['categories'].choices = [
-            (category, category)
-            for category in Category.objects.values_list('id', flat=True)
-        ]
+    def update(self, instance, validated_data):
+        new_categories = set(validated_data.pop('categories'))
 
-    def restore_object(self, attrs, instance=None):
+        for key, value in iteritems(validated_data):
+            setattr(instance, key, value)
+        instance.save()
 
-        if instance is not None:
-
-            for key, value in iteritems(attrs):
-                setattr(instance, key, value)
-            return instance
-
-        categories = attrs.pop('categories')
-        instance = profiles.NetmapView(**attrs)
-        setattr(instance, 'categories', categories)
+        self._update_categories(instance, new_categories)
         return instance
 
-    def to_native(self, obj):
-        if obj:
-            categories = [
-                view_category.category.id
-                for view_category in obj.categories_set.all().select_related(
-                    'category'
-                )
-            ]
-            setattr(obj, 'categories', categories)
-        return super(NetmapViewSerializer, self).to_native(obj)
+    def create(self, validated_data):
+        categories = set(validated_data.pop('categories'))
+        instance = profiles.NetmapView(**validated_data)
+        instance.save()
+
+        self._update_categories(instance, categories)
+
+        return instance
+
+    @staticmethod
+    def _update_categories(instance, new_categories):
+        old_categories = set(instance.categories.all())
+        add_categories = new_categories - old_categories
+        del_categories = old_categories - new_categories
+
+        # Delete removed categories
+        instance.categories_set.filter(category__in=del_categories).delete()
+
+        # Create added categories
+        profiles.NetmapViewCategories.objects.bulk_create([
+            profiles.NetmapViewCategories(view=instance, category=cat)
+            for cat in add_categories
+        ])
 
 
 class NetmapViewDefaultViewSerializer(serializers.ModelSerializer):
@@ -123,3 +127,4 @@ class NetmapViewDefaultViewSerializer(serializers.ModelSerializer):
 
     class Meta(object):
         model = profiles.NetmapViewDefaultView
+        fields = ('view',)
