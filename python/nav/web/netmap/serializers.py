@@ -20,7 +20,7 @@ from django.utils.six import iteritems
 
 from rest_framework import serializers
 
-from nav.models import profiles
+from nav.models import profiles, manage
 from nav.models.manage import Category
 
 
@@ -54,6 +54,19 @@ class InstanceRelatedField(serializers.RelatedField):
             return get_object_or_404(self.related_class, pk=value)
 
         return super(InstanceRelatedField, self).from_native(value)
+
+
+class SimpleCategorySerializer(serializers.ModelSerializer):
+    """Simple serializer to represent categories as strings based on their PK"""
+    class Meta:
+        model = manage.Category
+
+    def to_representation(self, instance):
+        return instance.pk
+
+    @staticmethod
+    def to_internal_value(data):
+        return manage.Category.objects.get(pk=data)
 
 
 class NetmapViewSerializer(serializers.Serializer):
