@@ -1300,6 +1300,12 @@ class NetmapViewDefaultView(models.Model):
     class Meta(object):
         db_table = u'netmap_view_defaultview'
 
+    def __repr__(self):
+        return "{name}{args!r}".format(
+            name=self.__class__.__name__,
+            args=(self.id, self.view, self.owner)
+        )
+
 
 @python_2_unicode_compatible
 class NetmapViewCategories(models.Model):
