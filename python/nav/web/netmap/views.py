@@ -21,6 +21,7 @@ from django.views.generic import TemplateView, ListView
 from django.shortcuts import get_object_or_404
 
 from rest_framework import status, generics, views
+from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 
@@ -33,6 +34,7 @@ from nav.models.profiles import (
     Account,
 )
 from nav.models.manage import Category, Netbox, Room, Location
+from nav.web.api.v1.auth import NavBaseAuthentication
 
 from .mixins import DefaultNetmapViewMixin, AdminRequiredMixin
 from .serializers import (
@@ -163,19 +165,19 @@ class NetmapViewCreate(generics.CreateAPIView):
     """View for creating a NetmapView"""
     serializer_class = NetmapViewSerializer
 
-    def pre_save(self, obj):
-        user = get_account(self.request)
-        obj.owner = user
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.account)
 
-    def post_save(self, obj, created=False):
-        if created:
-            NetmapViewCategories.objects.bulk_create([
-                NetmapViewCategories(
-                    view=obj,
-                    category=Category.objects.get(id=category)
-                )
-                for category in obj.categories
-            ])
+
+class OwnerOrAdminPermission(BasePermission):
+    """Verifies that the current user owns the object or is an admin"""
+    message = "You do not have permission to change this object"
+
+    def has_object_permission(self, request, view, obj):
+        user = request.account
+        owner = obj.owner
+
+        return user == owner or user.is_admin()
 
 
 class NetmapViewEdit(generics.RetrieveUpdateDestroyAPIView):
@@ -190,79 +192,31 @@ class NetmapViewEdit(generics.RetrieveUpdateDestroyAPIView):
         else:
             return NetmapView.objects.filter(owner=user)
 
-    def post_save(self, obj, created=False):
-        old_categories = set(
-            obj.categories_set.values_list('category', flat=True))
-        new_categories = set(obj.categories)
-        to_delete = old_categories - new_categories
-        to_save = new_categories - old_categories
-
-        # Delete removed categories
-        obj.categories_set.filter(category__in=to_delete).delete()
-
-        # Create added categories
-        NetmapViewCategories.objects.bulk_create([
-            NetmapViewCategories(view=obj, category=Category(id=category))
-            for category in to_save
-        ])
-
-    def get_object_or_none(self):
-        try:
-            return self.get_object()
-        except Http404:
-            # Models should not be created in this view.
-            # Overridden to raise exception on PUT requests
-            # as well as on PATCH
-            raise
-
 
 class NetmapViewDefaultViewUpdate(generics.RetrieveUpdateAPIView):
     """View for setting the default NetmapView of an account"""
     lookup_field = 'owner'
-    queryset = NetmapViewDefaultView.objects.all()
     serializer_class = NetmapViewDefaultViewSerializer
+    authentication_classes = (NavBaseAuthentication,)
+    permission_classes = (OwnerOrAdminPermission, )
 
-    def pre_save(self, obj):
-        # For some reason beyond my understanding, using a lookup_field
-        # that is a foreign key relation causes the parent implementation
-        # of this method to raise an exception.
-        pass
+    def get_queryset(self):
+        return NetmapViewDefaultView.objects.all()
 
-    def post_save(self, obj, created=False):
+    def get_object(self):
+        try:
+            return super(NetmapViewDefaultViewUpdate, self).get_object()
+        except Http404:
+            return NetmapViewDefaultView(owner=self.request.account)
+
+    def perform_update(self, serializer):
+        obj = serializer.save()
+
         # If a non-public view was set to be the global default, change
         # that view's visibility to public.
         if obj.owner.id is Account.DEFAULT_ACCOUNT and not obj.view.is_public:
             obj.view.is_public = True
             obj.view.save()
-
-    def update(self, request, *args, **kwargs):
-
-        if not self._is_owner_or_admin():
-            return Response(status.HTTP_401_UNAUTHORIZED)
-
-        return super(NetmapViewDefaultViewUpdate, self).update(
-            request,
-            args,
-            kwargs,
-        )
-
-    def retrieve(self, request, *args, **kwargs):
-
-        if not self._is_owner_or_admin():
-            return Response(status.HTTP_401_UNAUTHORIZED)
-
-        return super(NetmapViewDefaultViewUpdate, self).retrieve(
-            request,
-            args,
-            kwargs,
-        )
-
-    def _is_owner_or_admin(self):
-
-        user = get_account(self.request)
-        ownerid = self.kwargs.get(self.lookup_field, Account.DEFAULT_ACCOUNT)
-
-        return user.id == ownerid or user.is_admin()
 
 
 class NodePositionUpdate(generics.UpdateAPIView):
@@ -270,7 +224,7 @@ class NodePositionUpdate(generics.UpdateAPIView):
     def update(self, request, *args, **kwargs):
 
         viewid = kwargs.pop('viewid')
-        data = request.DATA.get('data', [])
+        data = request.data.get('data', [])
         # nodes to be updated in the topology cache
         cache_updates = []
         for d in data:
