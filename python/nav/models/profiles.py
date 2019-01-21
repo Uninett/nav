@@ -1259,27 +1259,6 @@ class NetmapView(models.Model):
         """URL for admin django view to set a default view"""
         return reverse('netmap-api-netmap-defaultview-global')
 
-    def to_json_dict(self):
-        """Presents a NetmapView as JSON"""
-        categories = [{'name': six.text_type(x.category.id), 'is_selected': True}
-                      for x in self.categories_set.all()]
-        if self.display_elinks:
-            categories.append({'name': 'ELINK', 'is_selected': True})
-
-        return {
-            'viewid': self.viewid,
-            'owner': self.owner.id,
-            'title': self.title,
-            'description': self.description,
-            'topology': self.topology,
-            'zoom': self.zoom,
-            'last_modified': six.text_type(self.last_modified),
-            'is_public': self.is_public,
-            'categories': categories,
-            'display_orphans': self.display_orphans,
-            'location_room_filter': self.location_room_filter,
-        }
-
     class Meta(object):
         db_table = u'netmap_view'
 
@@ -1289,16 +1268,6 @@ class NetmapViewDefaultView(models.Model):
     id = models.AutoField(primary_key=True)
     view = models.ForeignKey(NetmapView, db_column='viewid')
     owner = models.ForeignKey(Account, db_column='ownerid')
-
-    def to_json_dict(self):
-        """
-        Convert a default view entry for a netmap to json
-        :return: JSON of a default netmap view entry
-        """
-        return {
-            'viewid': self.view.viewid,
-            'ownerid': self.owner.id
-        }
 
     class Meta(object):
         db_table = u'netmap_view_defaultview'
