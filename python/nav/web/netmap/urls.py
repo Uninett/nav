@@ -20,8 +20,10 @@ from django.views.decorators.cache import never_cache
 
 from .views import (
     IndexView,
-    TrafficView,
     NetmapAdminView,
+)
+from nav.web.netmap.api import (
+    TrafficView,
     NetmapViewList,
     NetmapViewEdit,
     NetmapViewCreate,
