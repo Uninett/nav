@@ -149,6 +149,20 @@ These configuration files changed:
 News
 ----
 
+Interface browser
+~~~~~~~~~~~~~~~~~
+
+A new tool for browsing and searching interface information across all devices
+in NAV has been added to the toolbox. Inspired by the new per-device interface
+tab in IP Device Info, this more or less supplants the existing interface
+reports in the report tool with a more dynamic tool based on NAV's already
+existing REST API.
+
+Interfaces can be filtered by device name, port type, port names and
+descriptions, link status or VLAN. Thec olumns of the paged search results can
+be customized, and can include sparklines of interface traffic counters.
+
+
 Support for DNOS-SWITCHING MIB in PortAdmin
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
