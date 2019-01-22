@@ -1242,6 +1242,9 @@ class NetmapView(models.Model):
     display_elinks = models.BooleanField(default=False)
     display_orphans = models.BooleanField(default=False)
     location_room_filter = models.CharField(max_length=255, blank=True)
+    categories = models.ManyToManyField(Category,
+                                        through='NetmapViewCategories',
+                                        related_name='netmap_views')
 
     def __str__(self):
         return u'%s (%s)' % (self.viewid, self.title)
@@ -1256,27 +1259,6 @@ class NetmapView(models.Model):
         """URL for admin django view to set a default view"""
         return reverse('netmap-api-netmap-defaultview-global')
 
-    def to_json_dict(self):
-        """Presents a NetmapView as JSON"""
-        categories = [{'name': six.text_type(x.category.id), 'is_selected': True}
-                      for x in self.categories_set.all()]
-        if self.display_elinks:
-            categories.append({'name': 'ELINK', 'is_selected': True})
-
-        return {
-            'viewid': self.viewid,
-            'owner': self.owner.id,
-            'title': self.title,
-            'description': self.description,
-            'topology': self.topology,
-            'zoom': self.zoom,
-            'last_modified': six.text_type(self.last_modified),
-            'is_public': self.is_public,
-            'categories': categories,
-            'display_orphans': self.display_orphans,
-            'location_room_filter': self.location_room_filter,
-        }
-
     class Meta(object):
         db_table = u'netmap_view'
 
@@ -1287,18 +1269,14 @@ class NetmapViewDefaultView(models.Model):
     view = models.ForeignKey(NetmapView, db_column='viewid')
     owner = models.ForeignKey(Account, db_column='ownerid')
 
-    def to_json_dict(self):
-        """
-        Convert a default view entry for a netmap to json
-        :return: JSON of a default netmap view entry
-        """
-        return {
-            'viewid': self.view.viewid,
-            'ownerid': self.owner.id
-        }
-
     class Meta(object):
         db_table = u'netmap_view_defaultview'
+
+    def __repr__(self):
+        return "{name}{args!r}".format(
+            name=self.__class__.__name__,
+            args=(self.id, self.view, self.owner)
+        )
 
 
 @python_2_unicode_compatible
