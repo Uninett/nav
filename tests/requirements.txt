@@ -1,12 +1,10 @@
 astroid==1.5.3
-coverage>=3.6
 gunicorn==19.7.1
 lxml==4.0.0
 mock==2.0.0
 pylint==1.7.2
-pytest<3.3.0
-pytest-catchlog
-pytest-cov==2.6.0
+pytest==4.1.1
+pytest-cov==2.6.1
 pytest-selenium
 pytest-twisted>=1.6
 pytidylib==0.2.4
