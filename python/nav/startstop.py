@@ -103,7 +103,7 @@ class DaemonService(Service):
     def load_services(cls):
         try:
             with open_configfile(DAEMON_CONFIG) as ymldata:
-                cfg = yaml.load(ymldata)
+                cfg = yaml.safe_load(ymldata)
         except OSError:
             cfg = {'daemons': {}}
 
