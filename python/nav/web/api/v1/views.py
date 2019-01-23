@@ -171,7 +171,7 @@ class RelatedOrderingFilter(filters.OrderingFilter):
         except FieldDoesNotExist:
             return False
 
-    def remove_invalid_fields(self, queryset, ordering, view):
+    def remove_invalid_fields(self, queryset, ordering, view, request):
         return [term for term in ordering
                 if self.is_valid_field(queryset.model, term.lstrip('-'))]
 
