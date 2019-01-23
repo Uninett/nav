@@ -36,5 +36,3 @@ services:
     volumes_from:
       - nav
     command: sudo -u nav /source/tools/docker/doc-watch.sh
-    depends_on:
-      - nav
