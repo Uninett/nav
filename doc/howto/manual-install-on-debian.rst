@@ -2,8 +2,9 @@
 Manual install from source
 ==========================
 
-This details what the debian package does for you automatically. Adapt this if
-you can't or won't use an official .deb.
+This details what the debian package does for you automatically.
+Adapt this if you can't use an official .deb or ned to install on
+something that isn't debian-based.
 
 1. Get the source
 =================
@@ -14,8 +15,13 @@ Get the source::
 
 cd into the directory created, named ``nav``.
 
-2. OS dependencies, exmplified by stretch
-=========================================
+You might want to choose your version now, otherwise you'll be
+installing `master`. The versions all have git tags.
+
+2. OS dependencies
+==================
+
+Debian Stretch already comes with `Python 2.7.x` so no need to touch that.
 
 First get the following OS pacakges::
 
@@ -60,11 +66,16 @@ The config-files are now in ``/etc/nav``.
 7. Initialize the database
 ==========================
 
-In ``/etc/nav/db.conf`` there should be a line starting with ``userpw_nav``. Append a password here, then run::
+In ``/etc/nav/db.conf`` there should be a line starting with
+``userpw_nav``. Append a password here, then as the `postgres`
+user run::
 
     navsyncdb -c
 
 You should now have a database ``nav`` with a user ``nav``.
+
+For more details on setting up PostgreSQL and initializing the
+schema, please refer to the :file:`sql/README` file.
 
 8. Install the static resources
 ===============================
@@ -95,7 +106,7 @@ the path.
 9. Configure apache
 ===================
 
-Copy the file ``/etc/nav/apache/apache.conf.example`` somewhere apache is allowed to read it.
+Copy the file ``/etc/nav/apache/apache.conf.example`` somewhere apache is allowed to read it, for instance to ``/usr/local/nav/etc/apache/apache.conf``.
 
 Edit the defines inside the copy.
 
@@ -105,9 +116,22 @@ Edit the defines inside the copy.
 
 Leave the rest.
 
+Inside a ``VirtualHost``-directive, add:
+
+.. code-block:: apacheconf
+
+  ServerName nav.example.org
+  ServerAdmin webmaster@example.org
+
+  Include /usr/local/nav/etc/apache/apache.conf
+
+.. important:: You should always protect your NAV web site using SSL!
+
 .. _creating-users-and-groups:
 10. Create users and groups
 ===========================
+
+NAV should never run as ``root``.
 
 ::
 

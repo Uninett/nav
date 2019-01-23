@@ -4,6 +4,15 @@
 
 .. highlight:: sh
 
+NAV releases official debian packages. We recommend using these if you can. If
+you cannot, read on.
+
+Install from source on Debian 9
+-------------------------------
+
+See `Manual install from source <howto/manual-install-on-debian.rst>`_
+
+
 Dependencies
 ============
 
@@ -80,145 +89,6 @@ To build and install NAV and all its Python dependencies::
 This will build and install NAV in the default system-wide directories for your
 system. If you wish to customize the install locations, please consult the
 output of ``python setup.py install --help``.
-
-
-On Debian 9 (Stretch)
----------------------
-
-On Debian 9, a full installation of NAV, mostly via PyPi, and with
-configuration files in :file:`/etc/nav/` can be obtained thus::
-
-  apt-get install -y python-pip git-core
-  apt-get install -y libpq-dev libjpeg-dev libz-dev libldap2-dev libsasl2-dev
-  pip install -r requirements.txt .
-  nav config install /etc/nav
-
-Building the documentation
---------------------------
-
-This HTML documentation can be built separately using this step::
-
-  python setup.py build_sphinx
-
-Initializing the configuration
-------------------------------
-
-NAV will look for its configuration files in various locations on your file
-system. These locations can be listed by running::
-
-  nav config path
-
-To install a set of pristine NAV configuration files into one of these locations,
-e.g. in :file:`/etc/nav`, run::
-
-  nav config install /etc/nav
-
-To verify that NAV can find its main configuration file, run::
-
-  nav config where
-
-
-.. note:: Running the ``nav`` command at this stage may print strange crontab
-          warnings about non-existant users. These can be ignored for now: This
-          is just because you haven't made it to the :ref:`step where the nav
-          system account is created <creating-users-and-groups>` yet.
-
-
-Initializing the database
--------------------------
-
-Before NAV can run, the database schema must be installed in your PostgreSQL
-server.  NAV can create a database user and a database schema for you.
-
-Choose a password for your NAV database user and set this in the ``userpw_nav``
-in the :file:`db.conf` config file. As the `postgres` superuser, run the following
-command::
-
-  navsyncdb -c
-
-This will attempt to create a new database user, a new database and initialize
-it with NAV's schema.
-
-For more details on setting up PostgreSQL and initializing the schema, please
-refer to the :file:`sql/README` file.
-
-
-Configuring the web interface
------------------------------
-
-NAV's web interface is implemented using the Django framework, and can be
-served in any web server environment supported by Django (chiefly, any
-environment that supports *WSGI*). This guide is primarily concerned with
-Apache 2.
-
-An example configuration file for Apache2 is provided the configuration
-directory, :file:`apache/apache.conf.example`. This configuration uses
-``mod_wsgi`` to serve the NAV web application, and can be modified to suit your
-installation paths. Once complete, it can be included in your virtualhost
-config, which needn't contain much more than this:
-
-.. code-block:: apacheconf
-
-  ServerName nav.example.org
-  ServerAdmin webmaster@example.org
-
-  Include /usr/local/nav/etc/apache/apache.conf
-
-.. important:: You should always protect your NAV web site using SSL!
-
-Installing static resources
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You want your web server to be able to serve all of NAV's static resources. You
-can install all of them by issuing the following command:
-
-.. code-block:: console
-
-  # django-admin collectstatic --settings=nav.django.settings
-  You have requested to collect static files at the destination
-  location as specified in your settings:
-
-      /usr/share/nav/www/static
-
-  This will overwrite existing files!
-  Are you sure you want to do this?
-
-  Type 'yes' to continue, or 'no' to cancel:
-
-In this example, type :kbd:`yes`, hit Enter, and ensure your web server's
-document root points to :file:`/usr/share/nav/www`, because that is where the
-:file:`static` directory is located. If that doesn't suit you, you will at
-least need an Alias to point the ``/static`` URL to the :file:`static`
-directory.
-
-.. _creating-users-and-groups:
-
-Create users and groups
------------------------
-
-NAV processes should run as a non-privileged user, whose name is configurable
-in :file:`nav.conf` (the default value being ``navcron``). Preferably, this
-user should also have a separate system group as well::
-
-  sudo addgroup --system nav
-  sudo adduser --system --no-create-home --home /usr/local/nav \
-               --shell /bin/sh --ingroup nav navcron;
-
-If you want to use NAV's SMS functionality in conjunction with Gammu, you
-should make sure the `navcron` user is allowed to write to the serial device
-you've connected your GSM device to. Often, this device has a group ownership
-set to the `dialout` group, so the easieast route is to add the `navcron` user
-to the dialout group::
-
-  sudo addgroup navcron dialout
-
-You should also make sure `navcron` has permission to write log files, pid
-files and various other state information. You can configure the log and pid
-file directories in :file:`nav.conf`. Then make sure these directories exist
-and are writable for the ``navcron`` user::
-
-  sudo chown -R navcron:nav /path/to/log/directory
-  sudo chown -R navcron:nav /path/to/pid/directory
 
 .. _integrating-graphite-with-nav:
 
