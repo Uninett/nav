@@ -78,6 +78,9 @@
             What if
           </a>
         </li>
+
+        {% try_to_include "ipdevinfo/custom-tabs.html" %}
+
       </ul>
       {% include "ipdevinfo/frag-ipdevinfo.html" %}
       <div id="neighbors"></div>
@@ -93,6 +96,9 @@
 
       {% include "ipdevinfo/frag-poe.html" %}
       <div id="affected"></div>
+
+      {% try_to_include "ipdevinfo/custom-fragments.html" %}
+
     {% else %}
 
       <ul>
