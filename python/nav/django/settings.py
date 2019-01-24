@@ -91,12 +91,15 @@ STATICFILES_FINDERS = (
 UPLOAD_DIR = nav_config.get(
     'UPLOAD_DIR',
     os.path.join(nav.buildconf.localstatedir, 'uploads'))
+
+STATICFILES_DIRS = [
+    ('uploads', UPLOAD_DIR),
+]
+# Mount the NAV docs if running under the Django development server
 _base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
 _doc_dir = os.path.join(_base_dir, 'build/sphinx/html')
-if os.path.isdir(_doc_dir):  # No point unless docs have actually been built
-    STATICFILES_DIRS = [
-        ('doc', _doc_dir),
-    ]
+if os.path.isdir(_doc_dir):
+    STATICFILES_DIRS.append(('doc', _doc_dir))
 
 
 # Templates
