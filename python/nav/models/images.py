@@ -5,9 +5,7 @@ from django.db import models
 from nav.models.profiles import Account
 from nav.models.manage import Location, Room
 from nav.models.fields import VarcharField
-from nav.buildconf import localstatedir
-
-ROOTPATH = join(localstatedir, 'uploads', 'images')
+from django.conf import settings
 
 
 class Image(models.Model):
@@ -54,7 +52,7 @@ class Image(models.Model):
         return 'locations'
 
     def _get_basepath(self):
-        return join(ROOTPATH, self._type())
+        return join(settings.UPLOAD_DIR, 'images', self._type())
 
     def _get_fullpath(self):
         return join(self.basepath, self.path, self.name)

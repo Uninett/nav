@@ -87,6 +87,10 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
+# This is a custom NAV setting for upload directory location:
+UPLOAD_DIR = nav_config.get(
+    'UPLOAD_DIR',
+    os.path.join(nav.buildconf.localstatedir, 'uploads'))
 _base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
 _doc_dir = os.path.join(_base_dir, 'build/sphinx/html')
 if os.path.isdir(_doc_dir):  # No point unless docs have actually been built
