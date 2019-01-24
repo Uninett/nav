@@ -6,7 +6,7 @@ This is NAV - Network Administration Visualized - an advanced software suite
 to monitor small and large computer networks.
 
 :Homepage: https://nav.uninett.no/
-:Documentation: https://nav.uninett.no/latest/
+:Documentation: https://nav.uninett.no/doc/latest/
 :Bug tracker and release management: https://github.com/Uninett/nav
 
 
