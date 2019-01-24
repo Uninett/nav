@@ -1,18 +1,16 @@
 #!/bin/sh
 # Update the package version number
 GIT=`which git`
-M4FILE=version.m4
 
 show_help() {
     cat <<EOF
-$0 [-h] [-d] [-r]
+$0 [-h] [-r]
 
 This script is used to bump NAV version numbers.
 
 Options:
 
   -h   Print this help.
-  -d   Sets a development version number from Git tags
   -t   Sets and git-tags a production version from the
        latest changelog entry
 EOF
@@ -27,23 +25,11 @@ do_describe() {
 }
 
 get_version() {
-  if [ -f ${M4FILE} ]; then
-    m4 -P ${M4FILE} - <<EOF | tr -d "\n"
-VERSION_NUMBER
-EOF
-    echo
-  else
-    echo unknown
-  fi
+    do_describe
 }
 
 get_version_from_changelog() {
     head CHANGES | awk '/^Version/ { print $2 }'
-}
-
-bump_version() {
-    local version="$1"
-    echo "m4_define(VERSION_NUMBER, ${version})" > ${M4FILE}
 }
 
 git_tag_exists() {
@@ -64,24 +50,10 @@ tag_from_changelog() {
 	${GIT} tag -v "$version"
 	exit 3
     else
-        echo "Bumping and tagging version ${version}"
+        echo "Tagging version ${version}"
     fi
-    bump_version "$version"
-    ${GIT} add --force  "$M4FILE"
-    ${GIT} commit -m "Bump version to ${version}"
     ${GIT} tag --annotate --sign -m "Tag release ${version}" "$version"
     ${GIT} tag -v "$version"
-}
-
-set_dev_version() {
-    if in_git_repo; then
-        local version="$(do_describe)"
-        echo "Bumping version to ${version}"
-        bump_version "$version"
-    else
-        local version="$(get_version)"
-        echo "Not in a Git repo. Keeping version at ${version}"
-    fi
 }
 
 # Parse options
@@ -90,9 +62,6 @@ while getopts "hdt" opt; do
     case "$opt" in
     h)
         show_help
-        exit 0
-        ;;
-    d)  set_dev_version
         exit 0
         ;;
     t)  tag_from_changelog
