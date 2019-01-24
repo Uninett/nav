@@ -76,7 +76,9 @@ RUN cd /tmp && \
 RUN pip install tox
 
 # Add a build user
-RUN adduser --system --group --home=/source --shell=/bin/bash build
+RUN adduser --system --group --home=/source --shell=/bin/bash build && \
+    mkdir -p /usr/share/nav/var/uploads && \
+    chown -R build /usr/share/nav
 
 ENV WORKSPACE /source
 ENV HOME /source
