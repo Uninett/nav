@@ -97,7 +97,8 @@ configuration files in :file:`/etc/nav/` can be obtained thus::
 Building the documentation
 --------------------------
 
-This HTML documentation can be built separately using this step::
+This HTML documentation can be built separately using this step, and will
+typically be generated in :file:`build/sphinx/html/`::
 
   python setup.py build_sphinx
 
