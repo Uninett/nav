@@ -101,6 +101,9 @@ This HTML documentation can be built separately using this step::
 
   python setup.py build_sphinx
 
+
+.. _initializing-the-configuration-files:
+
 Initializing the configuration
 ------------------------------
 
