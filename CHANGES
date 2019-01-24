@@ -1,3 +1,48 @@
+Version 4.9.0
+(released DD MMM 2019)
+
+#############################################################
+##                 NOTICE OF LICENSE CHANGE                ##
+#############################################################
+##                                                         ##
+## NAV's copyright license has changed from GPL v2 to GPL  ##
+## v3. Please refer to the release notes for details.      ##
+##                                                         ##
+#############################################################
+
+ User-visible features and improvements:
+
+  * #1423 (Add API endpoint for accounts and account groups)
+  * #1509 (Add active alerts tab for port details page)
+  * #1646 (Add event/alert details page)
+  * #1615 (Room view - want device/interface count)
+  * #1624 (Add support for Dell DNOS-SWITCHING-MIB)
+  * #1659 (Add an interface browser tool)
+  * #1662 (Business reports, device availability - filter for
+           maintenance)
+  * #1667 (More interface information for linkState alerts in status
+           tool/widget)
+  * #1705 (Enable use of api endpoint without specifying version)
+  * #1706 (Audit log when users operates as other user)
+  * #1739 (PortAdmin - users should not be able to set trunk on port)
+  * #1758 (Writable vlan and prefix endpoints)
+  * #1761 (API netbox endpoint: filter on type__name)
+  * #1791 (Implement IT-WATCHDOGS-V4-MIB and GEIST-V4-MIB)
+  * #1807 (Implement support for Powertek PDU inlet status)
+  * #1817 (Add hook to customize tabs in ipdevinfo and info/room)
+
+ Fixed GitHub issues in this release:
+
+  * #1683 (Avoid "magic" Django bootstrapping in nav.models)
+  * #1703 (Upgrade Django Rest Framework)
+  * #1709 (Rename verb for changing interface admin status)
+  * #1728 (Upgrade python-ldap)
+  * #1744 (Replace automake toolchain with setuptools)
+  * #1752 (No warnings for Django 1.8)
+  * #1786 (Make middlewares work correctly on Django 1.10+)
+  * #1814 (Change the NAV license from GPLv2 to GPLv3)
+
+
 Version 4.8.6
 (released 25 Oct 2018)
 
