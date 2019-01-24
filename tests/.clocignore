@@ -1,6 +1,7 @@
 python/nav/smidumps
 python/nav/enterprise
 python/nav/web/sass
+python/nav/web/static/css
 python/nav/web/static/js/geomap/projdefs
 python/nav/web/static/js/geomap/proj4js-compressed.js
 python/nav/web/static/fonts
