@@ -4,11 +4,11 @@
 
 .. highlight:: sh
 
-NAV releases official debian packages. We recommend using these if you can. If
+NAV releases official Debian packages. We recommend using these if you can. If
 you cannot, read on.
 
-Install from source on Debian 9
-===============================
+Install from source on Debian 9 (Stretch)
+=========================================
 
 See :doc:`/howto/manual-install-on-debian`.
 
