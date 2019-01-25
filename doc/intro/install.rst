@@ -5,12 +5,13 @@
 .. highlight:: sh
 
 NAV releases official Debian packages. We recommend using these if you can. If
-you cannot, read on.
+you can't, or won't, please read on.
 
-Install from source on Debian 9 (Stretch)
-=========================================
+Install from source on
+======================
 
-See :doc:`/howto/manual-install-on-debian`.
+See :doc:`/howto/manual-install-on-debian` for more complete, Debian-centric
+guide to installation of a full NAV system from source.
 
 
 Dependencies
@@ -91,15 +92,6 @@ system. If you wish to customize the install locations, please consult the
 output of ``python setup.py install --help``.
 
 
-Building the documentation
---------------------------
-
-This HTML documentation can be built separately using this step, and will
-typically be generated in :file:`build/sphinx/html/`::
-
-  python setup.py build_sphinx
-
-
 .. _initializing-the-configuration-files:
 
 Initializing the configuration
@@ -120,12 +112,6 @@ To verify that NAV can find its main configuration file, run::
   nav config where
 
 
-.. note:: Running the ``nav`` command at this stage may print strange crontab
-          warnings about non-existant users. These can be ignored for now: This
-          is just because you haven't made it to the :ref:`step where the nav
-          system account is created <creating-users-and-groups>` yet.
-
-
 Initializing the database
 -------------------------
 
@@ -133,16 +119,13 @@ Before NAV can run, the database schema must be installed in your PostgreSQL
 server.  NAV can create a database user and a database schema for you.
 
 Choose a password for your NAV database user and set this in the ``userpw_nav``
-in the :file:`db.conf` config file. As the `postgres` superuser, run the following
+in the :file:`db.conf` config file. As the ``postgres`` superuser, run the following
 command::
 
   navsyncdb -c
 
 This will attempt to create a new database user, a new database and initialize
 it with NAV's schema.
-
-For more details on setting up PostgreSQL and initializing the schema, please
-refer to the :file:`sql/README` file.
 
 
 Configuring the web interface
@@ -164,7 +147,7 @@ config, which needn't contain much more than this:
   ServerName nav.example.org
   ServerAdmin webmaster@example.org
 
-  Include /usr/local/nav/etc/apache/apache.conf
+  Include /path/to/your/nav/apache.conf
 
 .. important:: You should always protect your NAV web site using SSL!
 
@@ -187,40 +170,41 @@ can install all of them by issuing the following command:
 
   Type 'yes' to continue, or 'no' to cancel:
 
-In this example, type :kbd:`yes`, hit Enter, and ensure your web server's
+In this example, type :kbd:`yes`, hit :kbd:`Enter`, and ensure your web server's
 document root points to :file:`/usr/share/nav/www`, because that is where the
 :file:`static` directory is located. If that doesn't suit you, you will at
 least need an Alias to point the ``/static`` URL to the :file:`static`
 directory.
 
-.. _creating-users-and-groups:
+Users and privileges
+--------------------
 
-Create users and groups
------------------------
+Apart from the ``pping`` and ``snmptrapd`` daemons, no NAV processes should
+ever be run as ``root``. You should create a non-privileged system user and
+group, and ensure the ``NAV_USER`` option in :file:`nav.conf` is set
+accordingly. Also make sure this user has permissions to write to your
+configured PID-file and log directories.
 
-NAV processes should run as a non-privileged user, whose name is configurable
-in :file:`nav.conf` (the default value being ``navcron``). Preferably, this
-user should also have a separate system group as well::
+.. note:: The ``pping`` and ``snmptrapd`` daemons must be started as ``root``
+          to be able to create privileged communication sockets. Both daemons
+          will drop privileges and run as the configured non-privileged user as
+          soon as the sockets have been acquired.
 
-  sudo addgroup --system nav
-  sudo adduser --system --no-create-home --home /usr/local/nav \
-               --shell /bin/sh --ingroup nav navcron;
+Building the documentation
+--------------------------
 
-If you want to use NAV's SMS functionality in conjunction with Gammu, you
-should make sure the `navcron` user is allowed to write to the serial device
-you've connected your GSM device to. Often, this device has a group ownership
-set to the `dialout` group, so the easieast route is to add the `navcron` user
-to the dialout group::
+If you wish, this HTML documentation can be built separately using this step::
 
-  sudo addgroup navcron dialout
+  python setup.py build_sphinx
 
-You should also make sure `navcron` has permission to write log files, pid
-files and various other state information. You can configure the log and pid
-file directories in :file:`nav.conf`. Then make sure these directories exist
-and are writable for the ``navcron`` user::
+The resulting files will typically be placed in :file:`build/sphinx/html/`.
 
-  sudo chown -R navcron:nav /path/to/log/directory
-  sudo chown -R navcron:nav /path/to/pid/directory
+If you want to serve this documentation on your NAV web server, you should copy
+the :file:`html` directory to a suitable location and make sure that location is served
+as ``/doc`` on the web server.  If using the example Apache configuration
+(:file:`apache.conf.example`), there is a define named ``documentation_path``,
+which can be set to point to this file system location.
+
 
 .. _integrating-graphite-with-nav:
 
