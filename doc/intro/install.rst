@@ -8,9 +8,9 @@ NAV releases official debian packages. We recommend using these if you can. If
 you cannot, read on.
 
 Install from source on Debian 9
--------------------------------
+===============================
 
-See `Manual install from source <howto/manual-install-on-debian.rst>`_
+See :doc:`/howto/manual-install-on-debian`.
 
 
 Dependencies
