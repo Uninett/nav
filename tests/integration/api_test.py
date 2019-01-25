@@ -102,6 +102,14 @@ def test_page_size(db, api_client, token):
     assert len(response.data.get('results')) == 1
 
 
+def test_ordering_should_not_crash(db, api_client, token):
+    endpoint = 'room'
+    create_token_endpoint(token, endpoint)
+    response = api_client.get('/api/1/room/?ordering=whatever')
+    print(response.data)
+    assert response.status_code == 200
+
+
 # Account specific tests
 
 def test_update_org_on_account(db, api_client, token):

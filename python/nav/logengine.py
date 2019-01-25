@@ -219,7 +219,7 @@ def find_month(textual):
 
 def delete_old_messages(config):
     """Delete old messages from db, according to config settings."""
-    _logger.info("Deleting old messages from db")
+    _logger.debug("Deleting old messages from db")
 
     conn = db.getConnection('logger', 'logger')
     cursor = conn.cursor()
@@ -457,7 +457,7 @@ def logengine(config, options):
      exceptiontypeorigin) = get_exception_dicts(config)
 
     ## add new records
-    _logger.info("Reading new log entries")
+    _logger.debug("Reading new log entries")
     my_parse_and_insert = swallow_all_but_db_exceptions(parse_and_insert)
     for line in read_log_lines(config):
         my_parse_and_insert(line, database,

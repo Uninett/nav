@@ -15,3 +15,4 @@
    /api/searchproviders
    adding-environment-probe-support
    /howto/using_the_api
+   web-interface-customization

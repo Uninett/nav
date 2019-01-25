@@ -71,6 +71,8 @@ urlpatterns = [
         RedirectView.as_view(url='/static/doc/%(path)s', permanent=True)),
     url(r'^doc/$',
         RedirectView.as_view(url='/static/doc/index.html', permanent=True)),
+    url(r'^uploads/(?P<path>.*)$',
+        RedirectView.as_view(url='/static/uploads/%(path)s', permanent=True)),
     url(r'^toolbox/$',
         views.toolbox,
         name='webfront-toolbox'),

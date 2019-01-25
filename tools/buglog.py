@@ -25,7 +25,7 @@ import textwrap
 import operator
 from argparse import ArgumentParser
 
-from github import Github
+from github import Github  # pip install PyGithub
 
 
 def main():
