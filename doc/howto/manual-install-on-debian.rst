@@ -16,7 +16,6 @@ something that isn't Debian-based.
 First get the following OS packages::
 
   apt-get install -y python-pip python-wheel git postgresql apache2 libapache2-mod-wsgi libsnmp30
-  apt-get install -y libpq-dev libjpeg-dev libz-dev libldap2-dev libsasl2-dev
 
 
 2. Get the source
@@ -38,6 +37,7 @@ are not valid for versions of NAV prior to 4.9).
 
 To install NAV's Python requirements::
 
+  apt-get install -y libpq-dev libjpeg-dev libz-dev libldap2-dev libsasl2-dev
   pip install -r requirements.txt
 
 4. Install NAV itself
