@@ -28,16 +28,13 @@ Debian Stretch already comes with *Python 2.7*, so no need to touch that.
 First get the following OS packages::
 
   apt-get install -y python-pip python-wheel git postgresql
+  apt-get install -y libpq-dev libjpeg-dev libz-dev libldap2-dev libsasl2-dev
 
-See the ``Dockerfile`` for other OS dependencies to be installed with
-:program:`apt`.  Note the build dependencies!
 
-The list changes often enough that the Dockerfile has the canonical answer.
+3. NAV/Python dependencies
+==========================
 
-3. NAV dependencies
-===================
-
-Python requirements::
+To install NAV's Python requirements::
 
   pip install -r requirements.txt
 
@@ -49,12 +46,12 @@ cd into the :file:`nav/` directory you got from git, then run::
   pip install .
   nav config install /etc/nav
 
-The configuration files are now in :file:`/etc/nav/`.
+The configuration files are now found in :file:`/etc/nav/`.
 
 5. Build the docs
 =================
 
-::
+If you like, you can build the complete HTML documentation thus::
 
     python setup.py build_sphinx
 
@@ -69,10 +66,9 @@ The configuration files are now in :file:`/etc/nav/`.
 ==========================
 
 In :file:`/etc/nav/db.conf` there should be a line starting with
-``userpw_nav``. Append a password here, then, as the ``postgres``
-user, run::
+``userpw_nav``. Choose a password and append it here, then run::
 
-    navsyncdb -c
+    sudo -u postgres navsyncdb -c
 
 You should now have a database ``nav`` with a user ``nav``.
 
@@ -126,23 +122,10 @@ Inside a ``VirtualHost``-directive, add:
 
 .. important:: You should always protect your NAV web site using SSL!
 
-.. _creating-users-and-groups:
 10. Create users and groups
 ===========================
 
-NAV processes should run as a *non-privileged* user, whose name is configurable
-in :file:`nav.conf` (the default value being ``navcron``). Preferably, this
-user should also have a separate system group as well.  Most NAV programs
-should never run as ``root``. The only exceptions are:
-
-1. The ``pping`` daemon, which needs root privileges to create a raw ICMP socket.
-2. The ``snmptrapd`` daemon, which needs root privileges to open a socket
-   listening on UDP port 162.
-
-Both of these daemons will drop privileges and run as the configured
-non-privileged user as soon as the sockets have been acquired.
-
-Create a user and a corresponding group thus::
+Create a ``navcron`` user and a corresponding group for NAV to run as::
 
   sudo addgroup --system nav
   sudo adduser --system --no-create-home --home /usr/local/nav \
