@@ -3,7 +3,7 @@
 ===============================
 
 This details what the Debian package does for you automatically.
-Adapt this if you can't use an official .deb or ned to install on
+Adapt this if you can't use an official ``.deb`` or need to install on
 something that isn't Debian-based.
 
 .. note:: This howto is based on Debian 9 (Stretch).
@@ -150,3 +150,18 @@ to the ``dialout`` group::
 
   sudo addgroup navcron dialout
 
+
+11. Installing and configuring Graphite
+=======================================
+
+NAV uses Graphite_ to store and retrieve time-series data. A `somewhat outdated
+guide for installing Graphite for use with NAV on a Debian system can be found
+in the wiki <https://nav.uninett.no/wiki/graphite_on_debian>`_.  This guide
+will be updated and included in the official documentation.
+
+.. _Graphite: http://graphite.readthedocs.org/
+
+12. Start using NAV
+===================
+
+You should now move on the the :doc:`/intro/getting-started` guide.
