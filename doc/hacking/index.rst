@@ -7,7 +7,6 @@
 
    hacking
    hacking-with-pycharm
-   virtual-machines
    using-docker
    javascript
    release-procedure
