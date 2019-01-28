@@ -75,6 +75,29 @@ A simple customization example
    </div>
 
 
+Adding custom buttons to ipdevinfo
+----------------------------------
+
+On the device details page, there is a row of action buttons, just above the
+information tabs:
+
+.. image:: ipdevinfo-button-row.png
+
+You can add custom content (more buttons) to this row by creating a
+``ipdevinfo/custom-header-button-extras.html`` template. Here's a simple
+example, adding a button that takes the user to a a third party web page:
+
+.. code-block:: html+django
+   :caption: ipdevinfo/custom-header-button-extras.html
+
+   <li>
+       <a href="https://cmdb.example.org/device/{{ netbox.sysname }}"
+          class="button small secondary">
+           Lookup device in company CMDB
+       </a>
+   </li>
+
+
 Adding custom tabs to the room overview page
 --------------------------------------------
 
