@@ -40,6 +40,19 @@ Version 4.9.0
   * #1744 (Replace automake toolchain with setuptools)
   * #1752 (No warnings for Django 1.8)
   * #1786 (Make middlewares work correctly on Django 1.10+)
+  * #1796 (A crashing search provider will crash the entire search ui)
+  * #1798 (Environment sensor rack API crashes on missing sensors)
+  * #1799 (Portadmin errors out if making changes after using browser
+           back button)
+  * #1800 (Alert profile listing "Remove selected" button needn't be
+           visible when there are no profiles to select.)
+  * #1801 (Network Explorer MAC search always crashes)
+  * #1802 (Saving a threshold rule without a target crashes with a
+           KeyError)
+  * #1803 (ipdevpoll should be able to perform reverse DNS lookups using
+           /etc/hosts file)
+  * #1804 (Unrecognized neighbors report crashes with 'bogus escape (end
+           of line)')
   * #1814 (Change the NAV license from GPLv2 to GPLv3)
 
 
