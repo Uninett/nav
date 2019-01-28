@@ -38,7 +38,7 @@ from rest_framework.renderers import (JSONRenderer, BrowsableAPIRenderer,
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, get_object_or_404
 from nav.models.api import APIToken
 from nav.models import manage, event, cabling, rack, profiles
 from nav.models.fields import INFINITY, UNRESOLVED
@@ -834,7 +834,7 @@ class PrefixUsageDetail(NAVAPIMixin, APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
         starttime, endtime = get_times(request)
-        db_prefix = manage.Prefix.objects.get(net_address=prefix)
+        db_prefix = get_object_or_404(manage.Prefix, net_address=prefix)
         serializer = serializers.PrefixUsageSerializer(
             prefix_collector.fetch_usage(db_prefix, starttime, endtime))
 

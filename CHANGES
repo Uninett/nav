@@ -54,6 +54,8 @@ Version 4.9.0
   * #1804 (Unrecognized neighbors report crashes with 'bogus escape (end
            of line)')
   * #1814 (Change the NAV license from GPLv2 to GPLv3)
+  * #1819 (/prefix/usage API endpoint crashes instead of returning 404 on
+           non-existent prefixes)
 
 
 Version 4.8.6
