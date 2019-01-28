@@ -11,7 +11,8 @@
    javascript
    release-procedure
    writing-a-servicemon-plugin
-   /api/searchproviders
    adding-environment-probe-support
    /howto/using_the_api
+   extending-nav-locally
    web-interface-customization
+   /api/searchproviders
