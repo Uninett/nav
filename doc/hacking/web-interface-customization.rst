@@ -27,7 +27,7 @@ There are two ways to do this:
 1. The simple way: NAV includes a :file:`templates/` directory, relative to its
    config directory, in its template search patch. If your NAV config is
    located in :file:`/etc/nav/`, you can create the directory
-   :file:`/etc/nav/tempaltes/` and have Django find your custom templates
+   :file:`/etc/nav/templates/` and have Django find your custom templates
    there.
 
 2. The "proper" way: You write your own Django application and include into
@@ -55,14 +55,14 @@ include the ``div`` elements with their corresponding contents.
 A simple customization example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: html
+.. code-block:: html+django
    :caption: ipdevinfo/custom-tabs.html
 
    <li><a href="#foobar">Foobar</a></li>
    <li><a href="#frobnicate">Frobnication</a></li>
 
 
-.. code-block:: html
+.. code-block:: html+django
    :caption: ipdevinfo/custom-fragments.html
 
    <div id="foobar">
@@ -98,7 +98,7 @@ be placeholders for the dynamically fetched content.
 A simple customization example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: html
+.. code-block:: html+django
    :caption: info/room/custom-tabs.html
 
    <li aria-controls="foobar">
@@ -106,7 +106,7 @@ A simple customization example
    </li>
 
 
-.. code-block:: html
+.. code-block:: html+django
    :caption: info/room/custom-fragments.html
 
    <div id="foobar"></div>
