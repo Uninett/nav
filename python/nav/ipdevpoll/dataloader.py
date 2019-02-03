@@ -90,7 +90,7 @@ class NetboxLoader(dict):
 
         """
         related = ('room__location', 'type__vendor',
-                   'category', 'organization', 'device')
+                   'category', 'organization')
         snmp_down = set(event.AlertHistory.objects.unresolved(
             'snmpAgentState').values_list('netbox__id', flat=True))
         self._logger.debug("These netboxes have active snmpAgentStates: %r",
