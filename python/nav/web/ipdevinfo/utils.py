@@ -118,7 +118,7 @@ def _cache_vlan_data_in_ports(ports):
     swpvlans = SwPortVlan.objects.filter(
         interface__in=ports).select_related('vlan')
     blocked_vlans = SwPortBlocked.objects.filter(
-        interface__in=ports).select_related('vlan')
+        interface__in=ports)
 
     for port in ports:
         port._vlan_cache = set(swpvlan.vlan.vlan for swpvlan in swpvlans
