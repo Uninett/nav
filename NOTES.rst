@@ -145,6 +145,20 @@ These configuration files changed:
 * :file:`alertengine.conf`: The ``loglevel`` option is no longer supported. Use
   :file:`logging.conf` to configure log levels.
 
+Changed daemon startup configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each of NAV's daemons had a corresponding shell script for controlling process
+start/stop/reload in :file:`etc/init.d`, which were all invoked by the ``nav
+start/stop`` set of commands. This has been *deprecated* in favor of a new YAML
+configuration file, :file:`etc/daemons.yml`.
+
+It was a common pattern for users to modify ipdevpoll's startup options inside
+:file:`etc/init.d/ipdevpoll`, e.g. to enable :ref:`multiprocess mode
+<ipdevpoll-multiprocess>`. If you previously did so, please migrate these start
+options to the appropriate command section of :file:`daemons.yml`.
+
+
 
 News
 ----
