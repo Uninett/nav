@@ -18,6 +18,7 @@ from __future__ import absolute_import, print_function
 
 import errno
 import os
+import shlex
 import signal
 import subprocess
 import sys
@@ -205,7 +206,7 @@ class DaemonService(Service):
             else:
                 stdout = stderr = None
 
-            self.status = subprocess.call(command,
+            self.status = subprocess.call(list(shlex.split(command)),
                                           stdout=stdout, stderr=stderr)
             return self.status == 0
 
