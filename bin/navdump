@@ -249,7 +249,7 @@ class Handlers(object):
             SEPARATOR = ";"
         header("#ip/sysname:handler[:arg=value[:arg=value]]")
         all_services = nav.models.service.Service.objects.all()
-        for service in all_services.select_related('ServiceProperty'):
+        for service in all_services.prefetch_related('serviceproperty_set'):
             line = [service.netbox.sysname, service.handler]
             properties = ["%s=%s" % (p.property, p.value)
                           for p in service.serviceproperty_set.all()]
