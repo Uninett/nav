@@ -791,9 +791,9 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
     def get_queryset(self):
         """Filter for ip family"""
         if 'scope' in self.request.GET:
-            queryset = (manage.Prefix.objects.within(
-                self.request.GET.get('scope')).select_related('vlan')
-                        .order_by('net_address'))
+            queryset = manage.Prefix.objects.within(
+                self.request.GET.get('scope')
+            ).order_by('net_address')
         elif self.request.GET.get('family'):
             queryset = manage.Prefix.objects.extra(
                 where=['family(netaddr)=%s'],
