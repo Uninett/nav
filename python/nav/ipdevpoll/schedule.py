@@ -27,6 +27,7 @@ from twisted.python.failure import Failure
 from twisted.internet import task, reactor
 from twisted.internet.defer import Deferred
 from twisted.internet.task import LoopingCall
+from twisted.python.log import err
 
 from django.utils.six import iteritems
 
@@ -351,8 +352,16 @@ class JobScheduler(object):
             self.netbox_reload_loop = task.LoopingCall(self._reload_netboxes)
         if self.netbox_reload_loop.running:
             self.netbox_reload_loop.stop()
-        self.netbox_reload_loop.start(
+
+        def die_on_unhandled_failure(failure):
+            err(failure,
+                "Unhandled failure in data reload loop, stopping ipdevpoll")
+            if reactor.running:
+                reactor.callLater(0, reactor.stop)
+
+        deferred = self.netbox_reload_loop.start(
             interval=self.netbox_reload_interval, now=True)
+        deferred.addErrback(die_on_unhandled_failure)
 
     def on_netbox_type_changed(self, netbox_id, new_type, **_kwargs):
         """Performs various cleanup and reload actions on a netbox type change
