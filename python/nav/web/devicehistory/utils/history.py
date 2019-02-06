@@ -99,7 +99,7 @@ def fetch_history(selection, form):
     #   - selected locations
     #   - selected organizations
     #   - selected categories
-    netbox = Netbox.objects.select_related('device')
+    netbox = Netbox.objects.all()
     selection_filter = make_selection_filter(
         selection['mode'] and selection['mode'][0] == 'and')
     if selection_filter:
@@ -119,7 +119,6 @@ def fetch_history(selection, form):
         'netbox__organization', 'netbox__category'
     ).filter(
         Q(netbox__in=[n.id for n in netbox]) |
-        Q(device__in=[n.device.id for n in netbox if n.device]) |
         Q(device__in=[d.id for d in device]),
         *type_filter
     ).extra(

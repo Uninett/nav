@@ -92,7 +92,7 @@ def register_error_events(request, **kwargs):
             ).filter(id__in=selection[type])
         elif type == 'netbox':
             devices = Netbox.objects.select_related(
-                'device', 'room', 'room__location'
+                'room', 'room__location'
             ).filter(id__in=selection[type])
         elif type == 'module':
             devices = Module.objects.select_related(
@@ -113,7 +113,6 @@ def register_error_events(request, **kwargs):
                 eventqvar_data['locationid'] = device.location.id
             elif type == 'netbox':
                 eventq_data['netbox'] = device
-                eventq_data['device'] = device.device
                 eventqvar_data['roomid'] = device.room.id
                 eventqvar_data['locationid'] = device.room.location.id
             elif type == 'module':
