@@ -2361,8 +2361,8 @@ def matchfield_remove(request):
         )
         return HttpResponseRedirect(reverse('alertprofiles-matchfields'))
     else:
-        matchfields = MatchField.objects.select_related(
-            'expression'
+        matchfields = MatchField.objects.prefetch_related(
+            'expression_set'
         ).filter(pk__in=request.POST.getlist('matchfield'))
 
         if len(matchfields) == 0:
