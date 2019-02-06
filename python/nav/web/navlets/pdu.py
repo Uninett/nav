@@ -51,7 +51,7 @@ class PduWidget(Navlet):
         room = Room.objects.get(pk=roomid)
         pdus = room.netbox_set.filter(category='POWER').filter(
             sensor__internal_name__startswith='rPDULoadStatusLoad'
-        ).select_related('sensor').distinct()
+        ).prefetch_related('sensor_set').distinct()
         sorted_pdus = sorted(pdus, key=lambda x: nav.natsort.split(x.sysname))
         metrics = [s.get_metric_name() for pdu in pdus
                    for s in pdu.sensor_set.filter(
