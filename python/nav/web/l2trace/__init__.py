@@ -201,7 +201,7 @@ def get_vlan_downlink_to_netbox(netbox, vlan=None):
         interface__to_netbox=netbox,
         direction=SwPortVlan.DIRECTION_DOWN,
         vlan=vlan,
-    ).select_related('interface', 'netbox')
+    ).select_related('interface', 'interface__netbox')
     if swpvlans:
         return swpvlans[0]
 
@@ -222,7 +222,7 @@ def get_vlan_downlink_to_host(host):
         swpvlans = SwPortVlan.objects.filter(
             interface__netbox=cam.netbox,
             interface__ifindex=cam.ifindex
-        ).select_related('interface', 'netbox')
+        ).select_related('interface', 'interface__netbox')
         if swpvlans:
             return swpvlans[0]
 
