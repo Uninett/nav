@@ -14,7 +14,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
+import io
 import os
 from datetime import datetime
 import logging
@@ -98,9 +98,13 @@ def tool_list(account):
 
     def parse_tool(tool_file):
         """Parse the tool file and return a Tool object"""
-        lines = open(tool_file).read().splitlines()
-        return Tool(**dict(
-            [[y.strip() for y in x.split('=')] for x in lines if x]))
+        attrs = (
+            line.split('=', 1)
+            for line in io.open(tool_file, encoding='utf-8')
+            if line.strip()
+        )
+        attrs = {key.strip(): value.strip() for key, value in attrs}
+        return Tool(**attrs)
 
     paths = [os.path.join(path, 'toolbox') for path in CONFIG_LOCATIONS]
     if webfrontConfig.has_option('toolbox', 'path'):
