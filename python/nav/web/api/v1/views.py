@@ -580,15 +580,16 @@ class MachineTrackerViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
 
 class CamViewSet(MachineTrackerViewSet):
-    """Lists all cam records.
+    """Lists CAM records.
 
-    *Because the number of cam records often is huge, the API does not support
+    *Because the number of CAM records often is huge, the API does not support
     fetching all and will ask you to use a filter if you try.*
 
     Filters
     -------
-    - `active`: *set this to list only records that has not ended. This will
-      then ignore any start and endtimes set*
+    - `active`: *set this to list only records that are still active. Enabling
+    this will **ignore** any start- and endtime filters present in the same
+    request.*
     - `starttime`: *if set without endtime: lists all active records at that
       timestamp*
     - `endtime`: *must be set with starttime: lists all active records in the
@@ -617,16 +618,17 @@ class CamViewSet(MachineTrackerViewSet):
 
 
 class ArpViewSet(MachineTrackerViewSet):
-    """Lists all arp records.
+    """Lists ARP records.
 
-    *Because the number of arp records often is huge, the API does not support
+    *Because the number of ARP records often is huge, the API does not support
     fetching all and will ask you to use a filter if you try.*
 
     Filters
     -------
 
-    - `active`: *set this to list only records that has not ended. This will
-      then ignore any start and endtimes set*
+    - `active`: *set this to list only records that are still active. Enabling
+    this will **ignore** any start- and endtime filters present in the same
+    request.*
     - `starttime`: *if set without endtime: lists all active records at that
       timestamp*
     - `endtime`: *must be set with starttime: lists all active records in the
