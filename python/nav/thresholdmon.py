@@ -83,9 +83,17 @@ def evaluate_rule(rule, alerts):
     _logger.debug("evaluating rule %r", rule)
 
     evaluator = rule.get_evaluator()
-    if not evaluator.get_values():
-        _logger.warning("did not find any matching values for rule %r %s",
-                        rule.target, rule.alert)
+    try:
+        if not evaluator.get_values():
+            _logger.warning(
+                "did not find any matching values for rule %r %s",
+                rule.target, rule.alert
+            )
+    except Exception:
+        _logger.exception(
+            "Unhandled exception while getting values for rule: %r", rule
+        )
+        return
 
     # post new exceed events
     try:
