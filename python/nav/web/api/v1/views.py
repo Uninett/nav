@@ -556,17 +556,27 @@ class MachineTrackerViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
                 where=[SQL_OVERLAPS.format(starttime, endtime)])
 
         # Support wildcard filtering on mac
-        mac = self.request.query_params.get('mac')
-        if mac:
-            try:
-                mac = MacPrefix(mac, min_prefix_len=2)
-            except ValueError as e:
-                raise exceptions.ParseError("mac: %s" % e)
-            # convert to text and use like to filter
-            queryset = queryset.extra(where=["mac::text like %s"],
-                                      params=[str(mac) + '%'])
+        queryset = self._parse_mac_to_queryset(
+            self.request.query_params.get('mac'), queryset
+        )
 
         return queryset
+
+    @staticmethod
+    def _parse_mac_to_queryset(mac, queryset):
+        if not mac:
+            return queryset
+
+        try:
+            mac = MacPrefix(mac, min_prefix_len=2)
+        except ValueError as e:
+            raise exceptions.ParseError("mac: %s" % e)
+
+        low, high = mac[0], mac[-1]
+        return queryset.extra(
+            where=["mac BETWEEN %s AND %s"],
+            params=[str(low), str(high)]
+        )
 
 
 class CamViewSet(MachineTrackerViewSet):
