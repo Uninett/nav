@@ -8,9 +8,9 @@ if [[ ! -f "/source/setup.py" ]]; then
 fi
 
 cd /source
-sudo -u nav python setup.py build
-python setup.py develop
-sudo -u nav python setup.py build_sass
+sudo -u nav python3 setup.py build
+python3 setup.py develop
+sudo -u nav python3 setup.py build_sass
 
 if [[ ! -d "/etc/nav" ]]; then
     echo "Copying initial NAV config files into this container"

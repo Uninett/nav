@@ -4,5 +4,5 @@
 cd /source
 while inotifywait -e modify -e move -e create -e delete -r --exclude \# /source/python/nav/web/sass
 do
-  python setup.py build_sass
+  python3 setup.py build_sass
 done
