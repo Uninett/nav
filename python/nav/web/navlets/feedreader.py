@@ -45,8 +45,7 @@ class FeedReaderNavlet(Navlet):
             maxposts = int(navlet.preferences.get('maxposts', maxposts))
 
         if self.mode == NAVLET_MODE_VIEW and blogurl:
-            feed = feedparser.parse(blogurl)
-            feed['maxentries'] = feed['entries'][:maxposts]
+            feed = self._get_feed(blogurl, maxposts)
 
         context.update({
             'feed': feed,
@@ -54,6 +53,12 @@ class FeedReaderNavlet(Navlet):
             'maxposts': maxposts
         })
         return context
+
+    @staticmethod
+    def _get_feed(feedurl, maxposts):
+        feed = feedparser.parse(feedurl)
+        feed['maxentries'] = feed['entries'][:maxposts]
+        return feed
 
     def post(self, request):
         """Receive blogurl and save it in preferences

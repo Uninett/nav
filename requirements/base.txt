@@ -16,7 +16,7 @@ Pillow==3.0.0
 pyrad==2.1
 python-ldap==3.0.0 # optional for LDAP authentication, requires libldap (OpenLDAP) to build
 sphinx>=1.8.0
-feedparser>=5.1.2,<5.2
+feedparser>=5.2.1,<5.3
 markdown==2.5.1
 dnspython==1.15.0
 
