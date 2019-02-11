@@ -477,7 +477,14 @@ def group_privilege_remove(request, group_id, privilege_id):
 # The Django generic views are heavy on mixins - disable warning about ancestors
 # pylint: disable=too-many-ancestors
 
-class TokenList(generic.ListView):
+class ProcessorMixin(object):
+    def get_context_data(self, **kwargs):
+        context = super(ProcessorMixin, self).get_context_data(**kwargs)
+        context.update(custom_processor(None))
+        return context
+
+
+class TokenList(ProcessorMixin, generic.ListView):
     """Class based view for a token listing"""
 
     model = APIToken
@@ -489,7 +496,7 @@ class TokenList(generic.ListView):
         return context
 
 
-class TokenCreate(generic.CreateView):
+class TokenCreate(ProcessorMixin, generic.CreateView):
     """Class based view for creating a new token"""
 
     model = APIToken
@@ -503,7 +510,7 @@ class TokenCreate(generic.CreateView):
         return response
 
 
-class TokenEdit(generic.UpdateView):
+class TokenEdit(ProcessorMixin, generic.UpdateView):
     """Class based view for editing a token"""
 
     model = APIToken
@@ -537,7 +544,7 @@ class TokenDelete(generic.DeleteView):
         return response
 
 
-class TokenDetail(generic.DetailView):
+class TokenDetail(ProcessorMixin, generic.DetailView):
     """Display details for a token"""
 
     model = APIToken
