@@ -205,7 +205,9 @@ class InterfaceSerializer(serializers.ModelSerializer):
 
 class InterfaceWithCamSerializer(InterfaceSerializer):
     last_used = CamSerializer(source='get_last_cam_record')
+
     class Meta(object):
+        model = manage.Interface
         fields = '__all__'
 
 
