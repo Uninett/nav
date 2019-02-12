@@ -1383,6 +1383,7 @@ class AccountNavlet(models.Model):
         ordering = ['order']
 
 
+@python_2_unicode_compatible
 class ReportSubscription(models.Model):
     """Subscriptions for availability reports"""
 
@@ -1404,7 +1405,7 @@ class ReportSubscription(models.Model):
     class Meta(object):
         db_table = u'report_subscription'
 
-    def __unicode__(self):
+    def __str__(self):
         if self.report_type == self.LINK:
             return u"{} report for {} sent to {}".format(
                 self.get_period_description(self.period),
