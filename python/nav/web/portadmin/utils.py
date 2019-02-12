@@ -18,9 +18,7 @@ import re
 import configparser
 import logging
 
-import django.template
-
-from django.template.loaders.filesystem import Loader
+from django.template import loader
 
 from nav.config import find_configfile
 from nav.django.utils import is_admin
@@ -273,12 +271,21 @@ def get_ifaliasformat(config=None):
 
 def get_aliastemplate():
     """Fetch template for displaying ifalias format as help to user"""
-    templatepath = find_configfile("portadmin")
-    templatename = "aliasformat.html"
-    loader = Loader()
-    rawdata, _ = loader.load_template_source(templatename, [templatepath])
-    tmpl = django.template.Template(rawdata)
+    _hack_template_into_templates_dir()
+    tmpl = loader.get_template("aliasformat.html")
     return tmpl
+
+
+def _hack_template_into_templates_dir():
+    # Works for Django 1.8 and up
+    # Pray that we can find a cleaner, saner way :-)
+    from django.conf import settings
+    templatepath = find_configfile("portadmin")
+    for config in settings.TEMPLATES:
+        if (config.get('BACKEND') ==
+                'django.template.backends.django.DjangoTemplates'
+                and templatepath not in config['DIRS']):
+            config['DIRS'] += (templatepath,)
 
 
 def save_to_database(interfaces):
