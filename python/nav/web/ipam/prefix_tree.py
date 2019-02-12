@@ -349,7 +349,7 @@ class PrefixNode(IpNodeFacade):
         self._vlan_number = vlan.vlan
         self._net_ident = vlan.net_ident
         # Export usage field of VLAN
-        if getattr(vlan, "usage"):
+        if getattr(vlan, "usage", None):
             self.vlan_usage = prefix.vlan.usage.description
             self.FIELDS.append("vlan_usage")
 
