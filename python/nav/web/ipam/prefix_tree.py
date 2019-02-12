@@ -20,12 +20,13 @@ contains ad-hoc serializer methods (self.fields) for API purposes.
 
 """
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 import json
 import logging
 from IPy import IP, IPSet
 
 from django.core.urlresolvers import reverse, NoReverseMatch
+from django.utils import six
 
 from nav.web.ipam.util import get_available_subnets
 from nav.models.manage import Prefix
@@ -191,7 +192,7 @@ class IpNodeFacade(IpNode):
     @property
     def empty_ranges(self):
         "Ranges within the node not spanned by its children"
-        return [str(prefix) for prefix in self.not_in_use()]
+        return [six.text_type(prefix) for prefix in self.not_in_use()]
 
     @property
     def net_ident(self):
@@ -255,7 +256,7 @@ class IpNodeFacade(IpNode):
     @property
     def prefix(self):
         "Return the prefix (as a string)"
-        return str(self.ip)
+        return six.text_type(self.ip)
 
     @property
     def children_pks(self):
@@ -273,7 +274,7 @@ class IpNodeFacade(IpNode):
     @property
     def organization(self):
         "The name of the organization connected to the prefix"
-        return str(getattr(self, "_organization", ""))
+        return six.text_type(getattr(self, "_organization", ""))
 
     @property
     def description(self):
@@ -342,7 +343,7 @@ class PrefixNode(IpNodeFacade):
                 "Prefix % id=% does not have a VLAN relation",
                 prefix.net_address, prefix.id)
             vlan = FakeVLAN()
-        net_type = str(vlan.net_type)
+        net_type = six.text_type(vlan.net_type)
         super(PrefixNode, self).__init__(ip_addr, primary_key, net_type, sort_fn)
         self._description = vlan.description
         self._organization = vlan.organization
