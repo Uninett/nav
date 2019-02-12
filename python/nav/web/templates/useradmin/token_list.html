@@ -88,11 +88,13 @@
 
                 {# Token endpoints #}
                 <td class="show-for-medium-up">
+                {% if token.endpoints %}
                   {% for key, value in token.endpoints|sortdict %}
                     <span class="label endpoint" title="{{ value }}">
                       {{ key }}
                     </span>
                   {% endfor %}
+                {% endif %}
                 </td>
 
                 {# Token comment #}

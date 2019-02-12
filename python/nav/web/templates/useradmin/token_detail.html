@@ -51,13 +51,15 @@
 
         <h5>Endpoints</h5>
         <p>
+        {% if object.endpoints %}
           {% for key, value in object.endpoints|sortdict  %}
             <span class="label" title="{{ value }}">
               {{ key }}
             </span>
-          {% empty %}
-            No endpoints set
           {% endfor %}
+        {% else %}
+            No endpoints set
+        {% endif %}
         </p>
 
         <ul class="no-bullet">
