@@ -21,7 +21,7 @@ from datetime import datetime
 from django.contrib import messages
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect
 from django.template import RequestContext
 from django.views import generic
 from django.views.decorators.http import require_POST
@@ -36,31 +36,19 @@ from nav.django.auth import sudo
 from nav.web.useradmin import forms
 
 
-class UserAdminContext(RequestContext):
-    """Context container for the useradmin requests"""
-    def __init__(self, *args, **kwargs):
-        # account_processor is in the settings file.
-        if 'processors' not in kwargs:
-            kwargs['processors'] = [custom_processor]
-        super(UserAdminContext, self).__init__(*args, **kwargs)
-
-
-def custom_processor(_request):
-    """Return some always available variables"""
-    return {'navpath': [('Home', '/'), ('User Administration', )]}
+DEFAULT_NAVPATH = {'navpath': [('Home', '/'), ('User Administration', )]}
 
 
 def account_list(request):
     """Controller for displaying the account list"""
     accounts = Account.objects.all()
-    return render_to_response(
-        'useradmin/account_list.html',
-        {
-            'active': {'account_list': 1},
-            'accounts': accounts,
-            'auditlog_api_parameters': {'object_model': 'account'}
-        },
-        UserAdminContext(request))
+    context = {
+        'active': {'account_list': 1},
+        'accounts': accounts,
+        'auditlog_api_parameters': {'object_model': 'account'}
+    }
+    context.update(DEFAULT_NAVPATH)
+    return render(request, 'useradmin/account_list.html', context)
 
 
 @sensitive_post_parameters('password1', 'password2')
@@ -101,15 +89,16 @@ def account_detail(request, account_id=None):
         'object_pk': account.pk
     } if account else {}
 
-    return render_to_response('useradmin/account_detail.html',
-                  {
-                      'auditlog_api_parameters': auditlog_api_parameters,
-                      'active': active,
-                      'account': account,
-                      'account_form': account_form,
-                      'org_form': org_form,
-                      'group_form': group_form,
-                  }, UserAdminContext(request))
+    context = {
+        'auditlog_api_parameters': auditlog_api_parameters,
+        'active': active,
+        'account': account,
+        'account_form': account_form,
+        'org_form': org_form,
+        'group_form': group_form,
+    }
+    context.update(DEFAULT_NAVPATH)
+    return render(request, 'useradmin/account_detail.html', context)
 
 
 def save_account(request, account_form, old_account):
@@ -210,14 +199,14 @@ def account_delete(request, account_id):
                          'Account %s has been deleted.' % (account.name))
         return HttpResponseRedirect(reverse('useradmin-account_list'))
 
-    return render_to_response('useradmin/delete.html',
-                        {
-                            'name': '%s (%s)' % (account.name, account.login),
-                            'type': 'account',
-                            'action': 'delete account',
-                            'back': reverse('useradmin-account_detail',
-                                            args=[account.id]),
-                        }, UserAdminContext(request))
+    context = {
+        'name': '%s (%s)' % (account.name, account.login),
+        'type': 'account',
+        'action': 'delete account',
+        'back': reverse('useradmin-account_detail', args=[account.id]),
+    }
+    context.update(DEFAULT_NAVPATH)
+    return render(request, 'useradmin/delete.html', context)
 
 
 def account_organization_remove(request, account_id, org_id):
@@ -253,14 +242,14 @@ def account_organization_remove(request, account_id, org_id):
         return HttpResponseRedirect(reverse('useradmin-account_detail',
                                             args=[account.id]))
 
-    return render_to_response('useradmin/delete.html',
-                        {
-                            'name': 'in %s from %s' % (organization, account),
-                            'type': 'organization',
-                            'action': 'remove organization membership',
-                            'back': reverse('useradmin-account_detail',
-                                            args=[account.id]),
-                        }, UserAdminContext(request))
+    context = {
+        'name': 'in %s from %s' % (organization, account),
+        'type': 'organization',
+        'action': 'remove organization membership',
+        'back': reverse('useradmin-account_detail', args=[account.id]),
+    }
+    context.update(DEFAULT_NAVPATH)
+    return render(request, 'useradmin/delete.html', context)
 
 
 def account_group_remove(request, account_id, group_id, caller='account'):
@@ -317,22 +306,25 @@ def account_group_remove(request, account_id, group_id, caller='account'):
 
         return detail_redirect
 
-    return render_to_response('useradmin/delete.html',
-        {
-            'name': '%s from the group %s' % (account, group),
-            'type': 'account',
-            'action': 'remove group member',
-            'back': back_url,
-        }, UserAdminContext(request))
+    context = {
+        'name': '%s from the group %s' % (account, group),
+        'type': 'account',
+        'action': 'remove group member',
+        'back': back_url,
+    }
+    context.update(DEFAULT_NAVPATH)
+    return render(request, 'useradmin/delete.html', context)
 
 
 def group_list(request):
     """Controller for listing all user groups in NAV"""
     groups = AccountGroup.objects.all()
-    return render_to_response('useradmin/group_list.html',
-                              {'active': {'group_list': True},
-                               'groups': groups},
-                              UserAdminContext(request))
+    context = {
+      'active': {'group_list': True},
+       'groups': groups,
+    }
+    context.update(DEFAULT_NAVPATH)
+    return render(request, 'useradmin/group_list.html', context)
 
 
 def group_detail(request, group_id=None):
@@ -396,14 +388,15 @@ def group_detail(request, group_id=None):
 
     active = {'group_detail': True} if group else {'group_new': True}
 
-    return render_to_response('useradmin/group_detail.html',
-        {
+    context = {
             'active': active,
             'group': group,
             'group_form': group_form,
             'account_form': account_form,
             'privilege_form': privilege_form,
-        }, UserAdminContext(request))
+    }
+    context.update(DEFAULT_NAVPATH)
+    return render(request, 'useradmin/group_detail.html', context)
 
 
 def group_delete(request, group_id):
@@ -426,13 +419,14 @@ def group_delete(request, group_id):
         messages.success(request, 'Group %s has been deleted.' % (group))
         return HttpResponseRedirect(reverse('useradmin-group_list'))
 
-    return render_to_response('useradmin/delete.html',
-        {
-            'name': group,
-            'type': 'group',
-            'action': 'delete group',
-            'back': reverse('useradmin-group_detail', args=[group.id]),
-        }, UserAdminContext(request))
+    context = {
+        'name': group,
+        'type': 'group',
+        'action': 'delete group',
+        'back': reverse('useradmin-group_detail', args=[group.id]),
+    }
+    context.update(DEFAULT_NAVPATH)
+    return render(request, 'useradmin/delete.html', context)
 
 
 def group_account_remove(request, group_id, account_id):
@@ -465,26 +459,27 @@ def group_privilege_remove(request, group_id, privilege_id):
         return HttpResponseRedirect(reverse('useradmin-group_detail',
                                             args=[group.id]))
 
-    return render_to_response('useradmin/delete.html',
-        {
-            'name': '%s from %s' % (privilege, group),
-            'type': 'privilege',
-            'action': 'revoke privilege',
-            'back': reverse('useradmin-group_detail', args=[group.id]),
-        }, UserAdminContext(request))
+    context = {
+        'name': '%s from %s' % (privilege, group),
+        'type': 'privilege',
+        'action': 'revoke privilege',
+        'back': reverse('useradmin-group_detail', args=[group.id]),
+    }
+    context.update(DEFAULT_NAVPATH)
+    return render(request, 'useradmin/delete.html', context)
 
 
 # The Django generic views are heavy on mixins - disable warning about ancestors
 # pylint: disable=too-many-ancestors
 
-class ProcessorMixin(object):
+class NavPathMixin(object):
     def get_context_data(self, **kwargs):
-        context = super(ProcessorMixin, self).get_context_data(**kwargs)
-        context.update(custom_processor(None))
+        context = super(NavPathMixin, self).get_context_data(**kwargs)
+        context.update(DEFAULT_NAVPATH)
         return context
 
 
-class TokenList(ProcessorMixin, generic.ListView):
+class TokenList(NavPathMixin, generic.ListView):
     """Class based view for a token listing"""
 
     model = APIToken
@@ -496,7 +491,7 @@ class TokenList(ProcessorMixin, generic.ListView):
         return context
 
 
-class TokenCreate(ProcessorMixin, generic.CreateView):
+class TokenCreate(NavPathMixin, generic.CreateView):
     """Class based view for creating a new token"""
 
     model = APIToken
@@ -510,7 +505,7 @@ class TokenCreate(ProcessorMixin, generic.CreateView):
         return response
 
 
-class TokenEdit(ProcessorMixin, generic.UpdateView):
+class TokenEdit(NavPathMixin, generic.UpdateView):
     """Class based view for editing a token"""
 
     model = APIToken
@@ -544,7 +539,7 @@ class TokenDelete(generic.DeleteView):
         return response
 
 
-class TokenDetail(ProcessorMixin, generic.DetailView):
+class TokenDetail(NavPathMixin, generic.DetailView):
     """Display details for a token"""
 
     model = APIToken
