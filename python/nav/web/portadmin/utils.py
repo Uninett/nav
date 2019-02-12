@@ -271,21 +271,7 @@ def get_ifaliasformat(config=None):
 
 def get_aliastemplate():
     """Fetch template for displaying ifalias format as help to user"""
-    _hack_template_into_templates_dir()
-    tmpl = loader.get_template("aliasformat.html")
-    return tmpl
-
-
-def _hack_template_into_templates_dir():
-    # Works for Django 1.8 and up
-    # Pray that we can find a cleaner, saner way :-)
-    from django.conf import settings
-    templatepath = find_configfile("portadmin")
-    for config in settings.TEMPLATES:
-        if (config.get('BACKEND') ==
-                'django.template.backends.django.DjangoTemplates'
-                and templatepath not in config['DIRS']):
-            config['DIRS'] += [templatepath,]
+    return loader.get_template("portadmin/aliasformat.html")
 
 
 def save_to_database(interfaces):
