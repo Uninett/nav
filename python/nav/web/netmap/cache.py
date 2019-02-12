@@ -113,7 +113,7 @@ def _cache_key(*args):
 
     """
     def stringify(thing):
-        if type(thing) is str:
+        if isinstance(thing, six.binary_type):
             return thing.decode('utf-8')
         else:
             return six.text_type(thing)
