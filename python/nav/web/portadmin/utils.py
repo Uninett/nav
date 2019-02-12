@@ -285,7 +285,7 @@ def _hack_template_into_templates_dir():
         if (config.get('BACKEND') ==
                 'django.template.backends.django.DjangoTemplates'
                 and templatepath not in config['DIRS']):
-            config['DIRS'] += (templatepath,)
+            config['DIRS'] += [templatepath,]
 
 
 def save_to_database(interfaces):
