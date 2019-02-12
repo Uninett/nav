@@ -318,11 +318,11 @@ class SNMPHandler(object):
     @staticmethod
     def _get_last_number(oid):
         """Get the last index for an OID."""
-        if not (isinstance(oid, str) or isinstance(oid, unicode)):
+        if not (isinstance(oid, six.string_types)):
             raise TypeError('Illegal value for oid')
         splits = oid.split('.')
         last = splits[-1]
-        if isinstance(last, str):
+        if isinstance(last, six.string_types):
             if last.isdigit():
                 last = int(last)
         return last
