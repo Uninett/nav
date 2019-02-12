@@ -89,7 +89,7 @@ def _json_layer2(load_traffic=False, view=None):
 @cache_topology("layer 3")
 def _json_layer3(load_traffic=False, view=None):
     topology_without_metadata = vlan.build_layer3_graph(
-        ('prefix__vlan__net_type', 'gwportprefix__prefix__vlan__net_type',)
+        ('prefix__vlan__net_type',)
     )
 
     vlans_map = _get_vlans_map_layer3(topology_without_metadata)
