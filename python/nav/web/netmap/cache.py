@@ -63,9 +63,12 @@ def cache_topology(layer):
                 cache_key = _cache_key("topology", "global_view", layer)
             else:
                 cache_key = _cache_key("topology", view.pk, layer)
-            cached = cache.get(cache_key)
-            if cached is not None:
-                return cached
+            try:
+                cached = cache.get(cache_key)
+                if cached is not None:
+                    return cached
+            except ValueError:
+                pass
             result = func(*args, **kwargs)
             cache.set(cache_key, result, CACHE_TIMEOUT)
             return result
