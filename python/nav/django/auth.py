@@ -15,7 +15,6 @@
 #
 """NAV authentication and authorization middleware for Django"""
 import os
-import urllib
 from logging import getLogger
 
 from nav.models.profiles import Account
@@ -30,6 +29,7 @@ try:
 except ImportError:  # Django <= 1.9
     MiddlewareMixin = object
 
+from six.moves.urllib import parse
 
 _logger = getLogger(__name__)
 
@@ -86,7 +86,7 @@ class AuthorizationMiddleware(MiddlewareMixin):
 
         new_url = '{0}?origin={1}&noaccess'.format(
             LOGIN_URL,
-            urllib.quote(request.get_full_path()))
+            parse.quote(request.get_full_path()))
         return HttpResponseRedirect(new_url)
 
 
