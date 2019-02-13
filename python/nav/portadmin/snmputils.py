@@ -836,9 +836,16 @@ class Dell(SNMPHandler):
     # Overriding members
     VlAN_OID = mib['nodes']['agentPortAccessVlanID']['oid']
     VLAN_EGRESS_PORTS = mib['nodes']['agentVlanSwitchportTrunkStaticEgressPorts']['oid']
+    WRITE_MEM_OID = mib['nodes']['agentSaveConfig']['oid'] + '.0'
 
     def __init__(self, netbox, **kwargs):
         super(Dell, self).__init__(netbox, **kwargs)
+
+    def write_mem(self):
+        """Use DNOS-SWITCHING-MIB agentSaveConfig to write to memory.
+        Write configuration into non-volatile memory."""
+        handle = self._get_read_write_handle()
+        return handle.set(self.WRITE_MEM_OID, 'i', 1)
 
     def set_vlan(self, interface, vlan):
         baseport = interface.baseport
