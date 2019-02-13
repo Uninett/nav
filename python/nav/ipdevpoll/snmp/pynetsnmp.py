@@ -17,9 +17,10 @@
 # pylint: disable=C0103,C0111,W0703,R0903,W0611
 
 from __future__ import absolute_import
-import sys
 import inspect
 import os
+
+from django.utils import six
 
 # pylint: disable=wrong-import-position
 # don't have NET-SNMP load and parse MIB modules, we don't use them
@@ -57,7 +58,7 @@ class AgentProxy(common.AgentProxyMixIn, twistedsnmp.AgentProxy):
     if pynetsnmp_limits_results():
         def getTable(self, *args, **kwargs):
             if 'limit' not in kwargs:
-                kwargs['limit'] = sys.maxint
+                kwargs['limit'] = six.MAXSIZE
             return super(AgentProxy, self).getTable(*args, **kwargs)
 
     def open(self):
