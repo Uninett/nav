@@ -113,14 +113,14 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.core.context_processors.request',
+                'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
                 'nav.django.context_processors.debug',
                 'nav.django.context_processors.account_processor',
                 'nav.django.context_processors.nav_version',
                 'nav.django.context_processors.graphite_base',
                 'nav.django.context_processors.footer_info',
-                'django.core.context_processors.static',
+                'django.template.context_processors.static',
             ],
             'debug': DEBUG,
         },
