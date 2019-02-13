@@ -118,7 +118,8 @@ class MIBObject(object):
         SNMPv2-TC::TruthValue, it will be translated from int to bool.
 
         """
-        if self.enum and isinstance(value, (int, long)) and value in self.enum:
+        if (self.enum and isinstance(value, six.integer_types)
+                and value in self.enum):
             value = self.enum[value]
         return value
 
