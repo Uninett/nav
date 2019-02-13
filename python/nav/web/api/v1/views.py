@@ -917,7 +917,7 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         """Gets an AlertHistory QuerySet"""
         if self.is_single_alert_by_primary_key():
             return event.AlertHistory.objects.all().select_related()
-        elif self.request.query_params.get('stateless', False):
+        elif not self.request.query_params.get('stateless', False):
             return event.AlertHistory.objects.unresolved().select_related()
         else:
             return self._get_stateless_queryset()
