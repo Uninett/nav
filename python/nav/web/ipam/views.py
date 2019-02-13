@@ -15,8 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from nav.models.manage import NetType, Organization, Usage, Prefix
 
 NAVBAR = [('Home', '/'), ('IPAM', None)]
@@ -25,12 +24,12 @@ DEFAULT_VALUES = {'title': "IPAM", 'navpath': NAVBAR}
 
 def index(request):
     ctx = generate_context()
-    return render_to_response("ipam/index.html", ctx, RequestContext(request))
+    return render(request, "ipam/index.html", ctx)
 
 
 def matrix(request):
     ctx = {}
-    return render_to_response("ipam/matrix.html", ctx, RequestContext(request))
+    return render(request, "ipam/matrix.html", ctx)
 
 
 def generate_context():

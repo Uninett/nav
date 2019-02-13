@@ -25,11 +25,10 @@
 # the operation is the owner
 
 from django.http import HttpResponseRedirect
-from django.template import RequestContext
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.utils import six
 
 from nav.web.utils import SubListView
@@ -118,11 +117,7 @@ def overview(request):
         ],
         'title': 'NAV - Alert profiles',
     }
-    return render_to_response(
-        'alertprofiles/account_detail.html',
-        info_dict,
-        RequestContext(request),
-    )
+    return render(request, 'alertprofiles/account_detail.html', info_dict)
 
 
 def show_profile(request):
@@ -219,11 +214,7 @@ def profile_show_form(request, profile_id=None, profile_form=None,
         ],
         'title': 'NAV - Alert profiles',
     }
-    return render_to_response(
-        'alertprofiles/profile_detail.html',
-        info_dict,
-        RequestContext(request),
-    )
+    return render(request, 'alertprofiles/profile_detail.html', info_dict)
 
 
 def profile_detail(request, profile_id=None):
@@ -406,11 +397,7 @@ def profile_remove(request):
             ],
             'title': 'NAV - Alert profiles',
         }
-        return render_to_response(
-            'alertprofiles/confirmation_list.html',
-            info_dict,
-            RequestContext(request),
-        )
+        return render(request, 'alertprofiles/confirmation_list.html', info_dict)
 
 
 @requires_post('alertprofiles-profile', ('activate',))
@@ -494,11 +481,7 @@ def profile_time_period(request, time_period_id, time_period_form=None):
         ],
         'title': 'NAV - Alert profiles',
     }
-    return render_to_response(
-        'alertprofiles/timeperiod_edit.html',
-        info_dict,
-        RequestContext(request),
-    )
+    return render(request, 'alertprofiles/timeperiod_edit.html', info_dict)
 
 
 @requires_post('alertprofiles-profile', ('profile',))
@@ -650,11 +633,7 @@ def profile_time_period_remove(request):
             ],
             'title': 'NAV - Alert profiles',
         }
-        return render_to_response(
-            'alertprofiles/confirmation_list.html',
-            info_dict,
-            RequestContext(request),
-        )
+        return render(request, 'alertprofiles/confirmation_list.html', info_dict)
 
 
 def profile_time_period_setup(request, time_period_id=None):
@@ -712,11 +691,7 @@ def profile_time_period_setup(request, time_period_id=None):
         'title': 'NAV - Alert profiles',
         'profile': profile
     }
-    return render_to_response(
-        'alertprofiles/subscription_form.html',
-        info_dict,
-        RequestContext(request),
-    )
+    return render(request, 'alertprofiles/subscription_form.html', info_dict)
 
 
 @requires_post('alertprofiles-profile')
@@ -807,11 +782,7 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
         'title': 'NAV - Alert profiles',
         'profile': profile
     }
-    return render_to_response(
-        'alertprofiles/subscription_form.html',
-        info_dict,
-        RequestContext(request),
-    )
+    return render(request, 'alertprofiles/subscription_form.html',  info_dict)
 
 
 @requires_post('alertprofiles-profile')
@@ -914,11 +885,8 @@ def profile_time_period_subscription_remove(request):
             ],
             'title': 'NAV - Alert profiles',
         }
-        return render_to_response(
-            'alertprofiles/confirmation_list.html',
-            info_dict,
-            RequestContext(request),
-        )
+        return render(request, 'alertprofiles/confirmation_list.html',
+                      info_dict)
 
 
 def address_list(request):
@@ -1001,11 +969,7 @@ def address_show_form(request, address_id=None, address_form=None):
         ],
         'title': 'NAV - Alert profiles',
     }
-    return render_to_response(
-        'alertprofiles/address_form.html',
-        info_dict,
-        RequestContext(request),
-    )
+    return render(request, 'alertprofiles/address_form.html', info_dict)
 
 
 def address_detail(request, address_id=None):
@@ -1154,11 +1118,8 @@ def address_remove(request):
             ],
             'title': 'NAV - Alert profiles',
         }
-        return render_to_response(
-            'alertprofiles/confirmation_list.html',
-            info_dict,
-            RequestContext(request),
-        )
+        return render(request, 'alertprofiles/confirmation_list.html',
+                      info_dict)
 
 
 @requires_post('alertprofiles-profile', ('language',))
@@ -1328,7 +1289,8 @@ def filter_show_form(request, filter_id=None, filter_form=None):
     else:
         subsection = {'new': True}
 
-    return render_to_response(
+    return render(
+        request,
         'alertprofiles/filter_form.html',
         {
             'active': active,
@@ -1344,8 +1306,7 @@ def filter_show_form(request, filter_id=None, filter_form=None):
                 (page_name, None),
             ],
             'title': 'NAV - Alert profiles',
-        },
-        RequestContext(request),
+        }
     )
 
 
@@ -1466,11 +1427,8 @@ def filter_remove(request):
             ],
             'title': 'NAV - Alert profiles',
         }
-        return render_to_response(
-            'alertprofiles/confirmation_list.html',
-            info_dict,
-            RequestContext(request),
-        )
+        return render(request, 'alertprofiles/confirmation_list.html',
+                      info_dict)
 
 
 @requires_post('alertprofiles-filters', ('id', 'matchfield'))
@@ -1516,11 +1474,7 @@ def filter_addexpression(request):
         ],
         'title': 'NAV - Alert profiles',
     }
-    return render_to_response(
-        'alertprofiles/expression_form.html',
-        info_dict,
-        RequestContext(request),
-    )
+    return render(request, 'alertprofiles/expression_form.html', info_dict)
 
 
 @requires_post('alertprofiles-filters')
@@ -1638,11 +1592,8 @@ def filter_removeexpression(request):
             ],
             'title': 'NAV - Alert profiles',
         }
-        return render_to_response(
-            'alertprofiles/confirmation_list.html',
-            info_dict,
-            RequestContext(request),
-        )
+        return render(request, 'alertprofiles/confirmation_list.html',
+                      info_dict)
 
 
 def filter_group_list(request):
@@ -1788,11 +1739,7 @@ def filter_group_show_form(request, filter_group_id=None,
         ],
         'title': 'NAV - Alert profiles',
     }
-    return render_to_response(
-        'alertprofiles/filter_group_form.html',
-        info_dict,
-        RequestContext(request),
-    )
+    return render(request, 'alertprofiles/filter_group_form.html', info_dict)
 
 
 def filter_group_detail(request, filter_group_id=None):
@@ -1921,10 +1868,10 @@ def filter_group_remove(request):
             ],
             'title': 'NAV - Alert profiles',
         }
-        return render_to_response(
+        return render(
+            request,
             'alertprofiles/confirmation_list.html',
             info_dict,
-            RequestContext(request),
         )
 
 
@@ -2101,10 +2048,10 @@ def filter_group_removefilter(request):
             ],
             'title': 'NAV - Alert profiles',
         }
-        return render_to_response(
+        return render(
+            request,
             'alertprofiles/confirmation_list.html',
             info_dict,
-            RequestContext(request),
         )
 
 
@@ -2290,11 +2237,7 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
         'title': 'NAV - Alert profiles',
     }
 
-    return render_to_response(
-        'alertprofiles/matchfield_form.html',
-        info_dict,
-        RequestContext(request),
-    )
+    return render(request, 'alertprofiles/matchfield_form.html', info_dict)
 
 
 def matchfield_detail(request, matchfield_id=None):
@@ -2407,10 +2350,10 @@ def matchfield_remove(request):
             ],
             'title': 'NAV - Alert profiles',
         }
-        return render_to_response(
+        return render(
+            request,
             'alertprofiles/confirmation_list.html',
             info_dict,
-            RequestContext(request),
         )
 
 
@@ -2451,11 +2394,7 @@ def permission_list(request, group_id=None):
         'title': 'NAV - Alert profiles',
     }
 
-    return render_to_response(
-        'alertprofiles/permissions.html',
-        info_dict,
-        RequestContext(request),
-    )
+    return render(request, 'alertprofiles/permissions.html', info_dict)
 
 
 @requires_post('alertprofiles-permissions')

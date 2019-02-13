@@ -21,8 +21,7 @@ from collections import OrderedDict
 import logging
 
 from django.db.models import Q
-from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.utils import six
 
 from nav.models.manage import Arp, Cam, Netbios
@@ -60,11 +59,7 @@ def ip_search(request):
 
     info_dict = {'form': forms.IpTrackerForm()}
     info_dict.update(IP_DEFAULTS)
-    return render_to_response(
-        'machinetracker/ip_search.html',
-        info_dict,
-        RequestContext(request)
-    )
+    return render(request, 'machinetracker/ip_search.html', info_dict)
 
 
 def ip_do_search(request):
@@ -110,11 +105,7 @@ def ip_do_search(request):
     }
     info_dict.update(IP_DEFAULTS)
 
-    return render_to_response(
-        'machinetracker/ip_search.html',
-        info_dict,
-        RequestContext(request)
-    )
+    return render(request, 'machinetracker/ip_search.html', info_dict)
 
 
 def get_result(days, from_ip, to_ip, get_netbios=False):
@@ -235,11 +226,7 @@ def mac_search(request):
         'form': forms.MacTrackerForm()
     }
     info_dict.update(MAC_DEFAULTS)
-    return render_to_response(
-        'machinetracker/mac_search.html',
-        info_dict,
-        RequestContext(request)
-    )
+    return render(request, 'machinetracker/mac_search.html', info_dict)
 
 
 def mac_do_search(request):
@@ -320,11 +307,7 @@ def mac_do_search(request):
 
     info_dict.update(MAC_DEFAULTS)
     _logger.debug("mac_do_search: rendering")
-    return render_to_response(
-        'machinetracker/mac_search.html',
-        info_dict,
-        RequestContext(request)
-    )
+    return render(request, 'machinetracker/mac_search.html', info_dict)
 
 
 def switch_search(request):
@@ -335,11 +318,7 @@ def switch_search(request):
         'form': forms.SwitchTrackerForm(),
     }
     info_dict.update(SWP_DEFAULTS)
-    return render_to_response(
-        'machinetracker/switch_search.html',
-        info_dict,
-        RequestContext(request)
-    )
+    return render(request, 'machinetracker/switch_search.html', info_dict)
 
 
 def switch_do_search(request):
@@ -405,11 +384,7 @@ def switch_do_search(request):
         })
 
     info_dict.update(SWP_DEFAULTS)
-    return render_to_response(
-        'machinetracker/switch_search.html',
-        info_dict,
-        RequestContext(request)
-    )
+    return render(request, 'machinetracker/switch_search.html', info_dict)
 
 
 def get_netbios_query(separator=', '):
@@ -439,11 +414,7 @@ def netbios_search(request):
         'form': forms.NetbiosTrackerForm()
     }
     info_dict.update(NBT_DEFAULTS)
-    return render_to_response(
-        'machinetracker/netbios_search.html',
-        info_dict,
-        RequestContext(request)
-    )
+    return render(request, 'machinetracker/netbios_search.html', info_dict)
 
 
 def netbios_do_search(request):
@@ -483,8 +454,4 @@ def netbios_do_search(request):
         })
 
     info_dict.update(NBT_DEFAULTS)
-    return render_to_response(
-        'machinetracker/netbios_search.html',
-        info_dict,
-        RequestContext(request)
-    )
+    return render(request, 'machinetracker/netbios_search.html', info_dict)

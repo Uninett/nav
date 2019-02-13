@@ -20,8 +20,7 @@ from operator import attrgetter
 from django.core.urlresolvers import reverse
 from django.db import connection, transaction
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 
 from nav.models.fields import INFINITY
 from nav.models.manage import Netbox, Module
@@ -76,11 +75,7 @@ def devicehistory_search(request):
         'title': 'NAV - Device History',
         'form': form
     }
-    return render_to_response(
-        'devicehistory/history_search.html',
-        info_dict,
-        RequestContext(request)
-    )
+    return render(request, 'devicehistory/history_search.html', info_dict)
 
 
 def devicehistory_view(request):
@@ -132,11 +127,7 @@ def devicehistory_view(request):
         ],
         'form': form
     }
-    return render_to_response(
-        'devicehistory/history_view.html',
-        info_dict,
-        RequestContext(request)
-    )
+    return render(request, 'devicehistory/history_view.html', info_dict)
 
 
 def error_form(request):
@@ -144,7 +135,8 @@ def error_form(request):
     device_quickselect = QuickSelect(**DEVICEQUICKSELECT_POST_ERROR_KWARGS)
     error_comment = request.POST.get('error_comment', "")
 
-    return render_to_response(
+    return render(
+        request,
         'devicehistory/register_error.html',
         {
             'active': {'error': True},
@@ -157,7 +149,6 @@ def error_form(request):
                 ('Register error event', ''),
             ]
         },
-        RequestContext(request)
     )
 
 
@@ -173,7 +164,8 @@ def confirm_error_form(request):
     ).filter(id__in=selection['netbox'])
     module = Module.objects.filter(id__in=selection['module'])
 
-    return render_to_response(
+    return render(
+        request,
         'devicehistory/confirm_error.html',
         {
             'active': {'error': True},
@@ -187,7 +179,6 @@ def confirm_error_form(request):
                  reverse('devicehistory-registererror')),
             ],
         },
-        RequestContext(request)
     )
 
 
@@ -249,11 +240,7 @@ def delete_module(request):
         'title': 'NAV - Device History - Delete module',
         'navpath': [('Home', '/'), ('Delete module', '')],
     }
-    return render_to_response(
-        'devicehistory/delete_module.html',
-        info_dict,
-        RequestContext(request)
-    )
+    return render(request, 'devicehistory/delete_module.html', info_dict)
 
 
 @transaction.atomic()

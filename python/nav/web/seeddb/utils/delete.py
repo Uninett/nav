@@ -21,8 +21,7 @@ import logging
 
 from django.db import connection, transaction, IntegrityError
 from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from django.http import HttpResponseRedirect
 
 from nav.django.utils import get_model_and_name, get_all_related_objects
@@ -113,8 +112,7 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None,
         'sub_active': {'list': True},
     }
     extra_context.update(info_dict)
-    return render_to_response('seeddb/delete.html',
-        extra_context, RequestContext(request))
+    return render(request, 'seeddb/delete.html', extra_context)
 
 
 def log_deleted(account, objects, template):
