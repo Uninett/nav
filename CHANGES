@@ -1,3 +1,24 @@
+Version 4.9.1
+(released 07 Feb 2019)
+
+ Fixed GitHub issues in this release:
+
+  * #1820 (ipdevpoll will not schedule jobs under NAV 4.9.0)
+  * #1822 (Command line argument support for nav daemon startup config)
+  * #1823 (Old switch port layout screen is blank in NAV 4.9.0)
+  * #1824 (navdump crashes when dumping service table)
+  * #1825 (Alertprofiles crashes when attempting to delete matchfield)
+  * #1826 (Device history crashes when attempting to browse the history
+           of an IP Device)
+  * #1827 (Any l2trace search will crash with a Django FieldError)
+  * #1828 (PDU dashboard widget crashes under NAV 4.9.0)
+  * #1829 (Any toolbox descriptor file containing superfluous equal
+           signs will be silently ignored by the web interface)
+  * #1830 (MAC address prefix filters are horribly slow in arp and cam
+           API endpoints)
+  * #1831 (Threshold monitor crashes if rule returns Graphite error)
+
+
 Version 4.9.0
 (released 31 Jan 2019)
 

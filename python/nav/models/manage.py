@@ -1550,8 +1550,12 @@ class Interface(models.Model):
 
     def get_last_cam_record(self):
         """Returns the newest cam record gotten from this switch port."""
-        return self.netbox.cam_set.filter(ifindex=self.ifindex).latest(
-            'end_time')
+        try:
+            return self.netbox.cam_set.filter(
+                ifindex=self.ifindex
+            ).latest('end_time')
+        except Cam.DoesNotExist:
+            return None
 
     def get_active_time(self, interval=600):
         """

@@ -184,7 +184,6 @@ class PrefixFinderSet(viewsets.ViewSet):
             prefix_size = int(prefix_size)
             result = [prefix for prefix in result if prefix.prefixlen() <=
                       prefix_size]
-        payload = [p.strNormal() for p in result]
         payload = {
             "prefix": prefix,
             "prefixlen": prefix.split("/")[1],

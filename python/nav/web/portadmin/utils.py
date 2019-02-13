@@ -18,9 +18,7 @@ import re
 import configparser
 import logging
 
-import django.template
-
-from django.template.loaders.filesystem import Loader
+from django.template import loader
 
 from nav.config import find_configfile
 from nav.django.utils import is_admin
@@ -273,12 +271,7 @@ def get_ifaliasformat(config=None):
 
 def get_aliastemplate():
     """Fetch template for displaying ifalias format as help to user"""
-    templatepath = find_configfile("portadmin")
-    templatename = "aliasformat.html"
-    loader = Loader()
-    rawdata, _ = loader.load_template_source(templatename, [templatepath])
-    tmpl = django.template.Template(rawdata)
-    return tmpl
+    return loader.get_template("portadmin/aliasformat.html")
 
 
 def save_to_database(interfaces):

@@ -158,7 +158,7 @@ DEFAULT_FROM_EMAIL = nav_config.get('DEFAULT_FROM_EMAIL', 'nav@localhost')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 EMAIL_HOST = nav_config.get('EMAIL_HOST', 'localhost')
-EMAIL_PORT = nav_config.get('EMAIL_PORT', 25)
+EMAIL_PORT = int(nav_config.get('EMAIL_PORT', 25))
 
 EMAIL_HOST_USER = nav_config.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = nav_config.get('EMAIL_HOST_PASSWORD', '')
@@ -234,6 +234,7 @@ INSTALLED_APPS = (
     'nav.auditlog',
     'nav.web.macwatch',
     'nav.web.geomap',
+    'nav.web.portadmin',
 )
 
 if tuple(django.VERSION[:2]) == (1, 7):

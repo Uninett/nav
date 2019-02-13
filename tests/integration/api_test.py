@@ -309,6 +309,17 @@ def test_alert_should_be_visible_in_api(db, api_client, token,
     assert str(alert.netbox.id) in content
 
 
+# Interface specific tests
+
+def test_interface_with_last_used_should_be_listable(db, api_client, token,
+                                                     serializer_models):
+    endpoint = 'interface'
+    create_token_endpoint(token, endpoint)
+    response = api_client.get('/api/1/interface/?last_used=on')
+    print(response.data)
+    assert response.status_code == 200
+
+
 # Helpers
 
 def create_token_endpoint(token, name):
