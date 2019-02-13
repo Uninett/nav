@@ -550,7 +550,9 @@ class AlertHistory(models.Model, EventMixIn):
         db_table = 'alerthist'
 
     def __str__(self):
-        return u'Source %s, severity %d' % (self.source, self.severity)
+        return u'Id %s Source %s, severity %d' % (
+            self.id, self.source, self.severity
+        )
 
     def is_stateful(self):
         """Returns true if the alert is stateful."""
