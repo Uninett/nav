@@ -18,8 +18,7 @@ import datetime
 from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.template import RequestContext
-from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect
 
 from nav.django.utils import get_account
 from nav.models.msgmaint import Message
@@ -63,8 +62,7 @@ def active(request):
     info_dict = {'messages': active_messages}
     info_dict.update(ACTIVE_DEFAULTS)
 
-    return render_to_response('messages/list.html', info_dict,
-                              context_instance=RequestContext(request))
+    return render(request, 'messages/list.html', info_dict)
 
 
 def planned(request):
@@ -78,8 +76,7 @@ def planned(request):
     info_dict = {'messages': planned_messages}
     info_dict.update(PLANNED_DEFAULTS)
 
-    return render_to_response('messages/list.html', info_dict,
-                              context_instance=RequestContext(request))
+    return render(request, 'messages/list.html', info_dict)
 
 
 def historic(request):
@@ -91,8 +88,7 @@ def historic(request):
     info_dict = {'messages': historic_messages}
     info_dict.update(HISTORIC_DEFAULTS)
 
-    return render_to_response('messages/list.html', info_dict,
-                              context_instance=RequestContext(request))
+    return render(request, 'messages/list.html', info_dict)
 
 
 def view(request, message_id):
@@ -105,8 +101,7 @@ def view(request, message_id):
                             (message,)]
     info_dict['title'] += message.title
 
-    return render_to_response('messages/view.html', info_dict,
-                              context_instance=RequestContext(request))
+    return render(request, 'messages/view.html', info_dict)
 
 
 def expire(_request, message_id):
@@ -174,7 +169,4 @@ def save(request, message_id=None, replaces=None):
     if replaces:
         info_dict['replaces'] = replaces
 
-    return render_to_response(
-        'messages/save.html',
-        info_dict,
-        context_instance=RequestContext(request))
+    return render(request, 'messages/save.html', info_dict)

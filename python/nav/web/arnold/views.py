@@ -18,8 +18,7 @@
 
 import logging
 from IPy import IP
-from django.shortcuts import render_to_response, redirect
-from django.template import RequestContext
+from django.shortcuts import render, redirect
 from django.db.models import Q
 
 from datetime import datetime, timedelta
@@ -65,13 +64,13 @@ def render_history(request):
     identities = Identity.objects.filter(
         last_changed__gte=datetime.now() - timedelta(days=days))
 
-    return render_to_response(
+    return render(
+        request,
         'arnold/history.html',
         create_context('History',
                        {'active': {'history': True},
                         'form': form,
                         'identities': identities}),
-        context_instance=RequestContext(request)
     )
 
 
@@ -80,12 +79,12 @@ def render_detained_ports(request):
     identities = Identity.objects.filter(
         Q(status='disabled') | Q(status='quarantined'))
 
-    return render_to_response(
+    return render(
+        request,
         'arnold/detainedports.html',
         create_context('Detentions',
                        {'active': {'detentions': True},
                         'identities': identities}),
-        context_instance=RequestContext(request)
     )
 
 
@@ -100,13 +99,15 @@ def render_search(request):
         form = SearchForm(initial={'searchtype': 'ip', 'status': 'any',
                                    'days': 7})
 
-    return render_to_response('arnold/search.html',
-                              create_context('Search', {
-                                  'form': form,
-                                  'search_result': search_result,
-                                  'active': {'search': True}
-                              }),
-                              RequestContext(request))
+    return render(
+        request,
+        'arnold/search.html',
+        create_context('Search', {
+            'form': form,
+            'search_result': search_result,
+            'active': {'search': True}
+        })
+    )
 
 
 def process_searchform(form):
@@ -154,13 +155,13 @@ def render_justifications(request, jid=None):
     for justification in justifications:
         justification.deletable = is_deletable(justification)
 
-    return render_to_response(
+    return render(
+        request,
         'arnold/justifications.html',
         create_context('Justifications',
                        {'active': {'justifications': True},
                         'form': form,
                         'justifications': justifications}),
-        context_instance=RequestContext(request)
     )
 
 
@@ -224,12 +225,15 @@ def render_manual_detention_step_one(request):
     else:
         form = ManualDetentionTargetForm()
 
-    return render_to_response('arnold/manualdetain.html',
-                              create_context('Manual detention', {
-                                  'active': {'manualdetention': True},
-                                  'form': form,
-                                  'error': error
-                              }), RequestContext(request))
+    return render(
+        request,
+        'arnold/manualdetain.html',
+        create_context('Manual detention', {
+            'active': {'manualdetention': True},
+            'form': form,
+            'error': error
+        })
+    )
 
 
 def render_manual_detention_step_two(request, target):
@@ -250,15 +254,18 @@ def render_manual_detention_step_two(request, target):
     else:
         form = ManualDetentionForm(initial={'target': target})
 
-    return render_to_response('arnold/manualdetain-step2.html',
-                              create_context('Manual detention', {
-                                  'active': {'manualdetention': True},
-                                  'target': target,
-                                  'candidates': candidates,
-                                  'form': form,
-                                  'now': datetime.now(),
-                                  'error': error
-                              }), RequestContext(request))
+    return render(
+        request,
+        'arnold/manualdetain-step2.html',
+        create_context('Manual detention', {
+            'active': {'manualdetention': True},
+            'target': target,
+            'candidates': candidates,
+            'form': form,
+            'now': datetime.now(),
+            'error': error
+        })
+    )
 
 
 def humanize(candidate):
@@ -319,10 +326,12 @@ def choose_detentions(request, did):
     detentions = Identity.objects.filter(
         mac=detention.mac, status__in=['disabled', 'quarantined'])
 
-    return render_to_response('arnold/choose_detentions.html',
-                              create_context('Enable',
-                                             {'detentions': detentions}),
-                              RequestContext(request))
+    return render(
+        request,
+        'arnold/choose_detentions.html',
+        create_context('Enable',
+                       {'detentions': detentions}),
+    )
 
 
 def lift_detentions(request):
@@ -343,12 +352,14 @@ def render_detention_profiles(request):
     for profile in profiles:
         profile.active = True if profile.active == 'y' else False
 
-    return render_to_response('arnold/detention_profiles.html',
-                              create_context('Detention Profiles',
-                                             {'active': {
-                                                 'detentionprofiles': True},
-                                              'profiles': profiles}),
-                              RequestContext(request))
+    return render(
+        request,
+        'arnold/detention_profiles.html',
+        create_context('Detention Profiles',
+                       {'active': {
+                           'detentionprofiles': True},
+                        'profiles': profiles}),
+    )
 
 
 def render_edit_detention_profile(request, did=None):
@@ -385,11 +396,14 @@ def render_edit_detention_profile(request, did=None):
     else:
         form = DetentionProfileForm()
 
-    return render_to_response('arnold/edit_detention_profile.html',
-                              create_context('Detention Profile',
-                                             {'form': form,
-                                              'profile': profile}),
-                              RequestContext(request))
+    return render(
+        request,
+        'arnold/edit_detention_profile.html',
+        create_context('Detention Profile',
+                       {'form': form,
+                        'profile': profile}),
+
+    )
 
 
 def process_detention_profile_form(form, account):
@@ -439,13 +453,13 @@ def render_quarantine_vlans(request, qid=None):
 
     qvlans = QuarantineVlan.objects.all()
 
-    return render_to_response(
+    return render(
+        request,
         'arnold/quarantinevlans.html',
         create_context('Quarantine Vlans',
                        {'active': {'quarantinevlans': True},
                         'form': form,
                         'qvlans': qvlans}),
-        context_instance=RequestContext(request)
     )
 
 
@@ -476,8 +490,10 @@ def render_details(request, did):
     except Interface.DoesNotExist:
         error = "Could not find interface, maybe switch is replaced?"
 
-    return render_to_response('arnold/details.html',
-                              create_context('Details',
-                                             {'identity': identity,
-                                              'error': error}),
-                              RequestContext(request))
+    return render(
+        request,
+        'arnold/details.html',
+        create_context('Details',
+                       {'identity': identity,
+                        'error': error}),
+    )

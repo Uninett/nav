@@ -32,8 +32,7 @@ import re
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
-from django.shortcuts import render_to_response, render
-from django.template import RequestContext
+from django.shortcuts import render
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.utils.six import iteritems, text_type
 
@@ -70,8 +69,7 @@ def index(request):
     with open(FRONT_FILE, 'r') as f:
         context['index'] = f.read()
 
-    return render_to_response("report/index.html", context,
-                              RequestContext(request))
+    return render(request, "report/index.html", context)
 
 
 def get_report_for_widget(request, report_name):
@@ -101,8 +99,7 @@ def get_report(request, report_name):
     context['add_sort_links'] = True
     context['page_sizes'] = PAGE_SIZES
 
-    return render_to_response('report/report.html', context,
-                              RequestContext(request))
+    return render(request, 'report/report.html', context)
 
 
 def _strip_empty_arguments(request):
@@ -184,10 +181,7 @@ def matrix_report(request):
         'hide_for': hide_content_for_colspan
     })
 
-    return render_to_response(
-        'report/matrix.html',
-        context,
-        context_instance=RequestContext(request))
+    return render(request, 'report/matrix.html', context)
 
 
 def group_scopes(scopes):
@@ -268,8 +262,7 @@ def report_list(request):
         'report_list_local': reports_local
     }
 
-    return render_to_response('report/report_list.html', context,
-                              RequestContext(request))
+    return render(request, 'report/report_list.html', context)
 
 
 def make_report(request, report_name, export_delimiter, query_dict,
