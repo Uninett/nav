@@ -21,6 +21,7 @@ from collections import namedtuple
 from ctypes import (c_int, sizeof, byref, cast, POINTER, c_char, c_char_p,
                     c_uint, c_ulong, c_uint64)
 
+from django.utils import six
 from IPy import IP
 from pynetsnmp import netsnmp
 from pynetsnmp.netsnmp import (Session, SNMP_MSG_GETNEXT, mkoid, lib,
@@ -373,6 +374,8 @@ def asn_object_id(value):
 
 @converts(netsnmp.ASN_OCTET_STR)
 def asn_octet_str(value):
+    if not isinstance(value, six.binary_type):
+        raise TypeError("Byte string expected")
     string = c_char_p(value)
     return string, len(value)
 
