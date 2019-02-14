@@ -32,7 +32,7 @@ from django.views.decorators.http import require_POST
 from nav.auditlog.models import LogEntry
 
 from nav.django.utils import get_account
-from nav.ip import IP
+from nav.util import is_valid_ip
 from nav.web.utils import create_title
 from nav.models.manage import Netbox, Interface
 from nav.web.portadmin.utils import (get_and_populate_livedata,
@@ -110,11 +110,8 @@ def search(query):
     netbox_filters = [
         Q(sysname__icontains=query),
     ]
-    try:
-        IP(query)
+    if is_valid_ip(query):
         netbox_filters.append(Q(ip=query))
-    except ValueError:
-        pass
     netboxes = Netbox.objects.filter(
         reduce(OR, netbox_filters)).order_by('sysname')
     interfaces = Interface.objects.filter(
