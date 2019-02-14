@@ -287,10 +287,10 @@ def add_navlet(account, navlet, preferences=None, dashboard=None):
                                   dashboard=dashboard)
     accountnavlet.column, accountnavlet.order = find_new_placement()
 
-    default_preferences = get_default_preferences(
+    accountnavlet.preferences = get_default_preferences(
         get_navlet_from_name(navlet)) or {}
-    accountnavlet.preferences = dict(preferences.items() +
-                                     default_preferences.items())
+    accountnavlet.preferences.update(preferences)
+
     accountnavlet.save()
     return accountnavlet
 
