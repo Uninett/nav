@@ -35,7 +35,7 @@ from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.http import HttpResponse, Http404, HttpResponseRedirect
-from django.utils.six import iteritems, text_type
+from django.utils.six import PY2, iteritems, text_type
 
 from nav.models.manage import Prefix
 
@@ -432,7 +432,7 @@ def find_page_range(page_number, page_range, visible_pages=5):
 def generate_export(report, report_name, export_delimiter):
     """Generates a CSV export version of a report"""
     def _cellformatter(cell):
-        if isinstance(cell.text, unicode):
+        if PY2 and isinstance(cell.text, text_type):
             return cell.text.encode('utf-8')
         else:
             return cell.text

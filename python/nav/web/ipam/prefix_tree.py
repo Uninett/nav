@@ -22,6 +22,7 @@ contains ad-hoc serializer methods (self.fields) for API purposes.
 
 from __future__ import unicode_literals, absolute_import
 import json
+import functools
 import logging
 from IPy import IP, IPSet
 
@@ -33,6 +34,7 @@ from nav.models.manage import Prefix
 
 
 LOGGER = logging.getLogger('nav.web.ipam.prefix_tree')
+
 
 class PrefixHeap(object):
     "Pseudo-heap ordered topologically by prefixes"
@@ -107,6 +109,7 @@ class PrefixHeap(object):
 # exposes a clean, non-nested attribute contract (we promise that the field 'x'
 # will exist and be populated with some value) etc.
 
+@functools.total_ordering
 class IpNode(PrefixHeap):
     "PrefixHeap node class"
     def __init__(self, ip_addr, net_type):
@@ -143,6 +146,16 @@ class IpNode(PrefixHeap):
         assert isinstance(other, IpNode), \
             "Can only compare with other IpNode elements"
         return self.ip.__cmp__(other.ip)
+
+    def __eq__(self, other):
+        assert isinstance(other, IpNode), \
+            "Can only compare with other IpNode elements"
+        return self.ip == other.ip
+
+    def __lt__(self, other):
+        assert isinstance(other, IpNode), \
+            "Can only compare with other IpNode elements"
+        return self.ip < other.ip
 
 
 class IpNodeFacade(IpNode):

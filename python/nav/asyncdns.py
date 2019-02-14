@@ -23,6 +23,8 @@ support.
 
 """
 
+from __future__ import absolute_import
+
 import socket
 from itertools import cycle
 from collections import defaultdict
@@ -39,6 +41,8 @@ from twisted.names.error import DomainError, AuthoritativeDomainError
 from twisted.names.error import DNSQueryTimeoutError, DNSFormatError
 from twisted.names.error import DNSServerError, DNSNameError
 from twisted.names.error import DNSNotImplementedError, DNSQueryRefusedError
+
+from django.utils import six
 
 
 def reverse_lookup(addresses):
@@ -128,7 +132,7 @@ class ForwardResolver(Resolver):
     def lookup(self, name):
         """Returns a deferred object with all records related to hostname"""
 
-        if type(name) is unicode:
+        if isinstance(name, six.text_type):
             name = name.encode('idna')
 
         resolver = next(self._resolvers)
