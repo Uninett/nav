@@ -142,7 +142,7 @@ def snmp_write_test(ip, community, snmp_version):
         except UnicodeDecodeError:
             testresult['custom_error'] = 'UnicodeDecodeError'
 
-        testresult['error_message'] = error.message
+        testresult['error_message'] = error.args
         testresult['status'] = False
     else:
         testresult['status'] = True
