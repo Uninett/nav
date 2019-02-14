@@ -104,6 +104,20 @@ def passwd(args):
         sys.exit(3)
 
 
+def verify(args):
+    account = args.login
+    if sys.stdin.isatty():
+        try:
+            password = getpass('Password: ', stream=sys.stderr)
+        except KeyboardInterrupt:
+            sys.exit("Interrupted")
+    else:
+        password = sys.stdin.readline().strip('\n')
+
+    if not account.check_password(password):
+        sys.exit("Password could not be verified")
+
+
 def lock(args):
     args.login.locked = True
     if args.login.locked:
@@ -158,6 +172,12 @@ def parse_args():
     passwdparser.add_argument('--noverify', '-n', action='store_true',
                               help="Do not verify existing password")
     passwdparser.set_defaults(func=passwd)
+
+    verifyparser = subparsers.add_parser(
+        'verify', help='Verifies the password of a user account')
+    verifyparser.add_argument('login', type=usergetter,
+                              help="The login name of the user")
+    verifyparser.set_defaults(func=verify)
 
     addparser = subparsers.add_parser(
         'add', help='Adds a new user account')
