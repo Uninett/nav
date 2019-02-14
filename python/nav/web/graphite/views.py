@@ -58,7 +58,7 @@ def index(request, uri):
         headers = proxy.info()
         output = proxy.read()
 
-    content_type = headers.getheader('Content-Type', 'text/html')
+    content_type = headers.get('Content-Type', 'text/html')
 
     if request.method == 'HEAD':
         response = HttpResponse(content_type=content_type, status=status)
