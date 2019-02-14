@@ -1,3 +1,35 @@
+Version 4.9.2
+(released 14 Feb 2019)
+
+ User-visible features and improvements:
+
+  * #1837 (Save config to non volatile memory in portadmin for dell
+           switches)
+  * #1853 (The navuser command should have an option to verify a user's
+           passord)
+
+ Fixed GitHub issues in this release:
+
+  * #1784 (Breadcrumb missing from /useradmin/tokens/)
+  * #1834 (AlertEngine fails to send email if EMAIL_PORT is present in
+           nav.conf)
+  * #1839 (The interfaces API endpoint crashes when using the last_used
+           filter)
+  * #1841 (Useradmin Token listing crashes on NAV 4.9.1 if any tokens
+           are created with no endpoint list)
+  * #1842 (Netmap layer 3 graph API endpoint crashes on NAV 4.9.1)
+  * #1844 (PortAdmin crashes with TypeError if an ifaliasformat is
+           configured)
+  * #1846 (IPAM fails under NAV 4.9.1 if any Organization object has
+           non-ASCII characters in description)
+  * #1847 ("Rooms with active alerts" widget fails under NAV 4.9.1)
+  * #1848 (Stateless alerts are shown in status widget even when
+           checkbox is left unchecked)
+  * #1851 (Fix searching for other things than ip addresses in
+           portadmin)
+  * #1852 (Empty NAVbar search results in ValueError crash)
+
+
 Version 4.9.1
 (released 07 Feb 2019)
 
