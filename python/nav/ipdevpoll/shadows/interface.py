@@ -18,6 +18,7 @@ import datetime
 import operator
 from itertools import groupby
 
+from nav.Snmp import safestring
 from nav.models import manage
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 from nav.models.event import AlertHistory
@@ -351,8 +352,7 @@ class Interface(Shadow):
         self.gone_since = None
         # Sometimes, people are able to sneak non-ASCII strings into interface
         # descriptions; fix that before saving to the db
-        if isinstance(self.ifalias, str):
-            self.ifalias = self.ifalias.decode('utf-8', errors='replace')
+        self.ifalias = safestring(self.ifalias)
 
     def _set_netbox_if_unset(self, containers):
         """Sets this Interface's netbox reference if unset by plugins."""
