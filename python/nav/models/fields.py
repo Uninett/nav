@@ -166,22 +166,18 @@ class LegacyGenericForeignKey(object):
     def __init__(self, model_name_field, model_fk_field):
         self.mn_field = model_name_field
         self.fk_field = model_fk_field
-        if django.VERSION >= (1, 8):
-            self.is_relation = True
-            self.many_to_many = False
-            self.one_to_many = True
-            self.related_model = None
-            self.auto_created = False
+        self.is_relation = True
+        self.many_to_many = False
+        self.one_to_many = True
+        self.related_model = None
+        self.auto_created = False
 
     def contribute_to_class(self, cls, name):
         """Add things to the model class using this descriptor"""
         self.name = name
         self.model = cls
         self.cache_attr = "_%s_cache" % name
-        if django.VERSION >= (1, 8):
-            cls._meta.virtual_fields.append(self)
-        else:
-            cls._meta.add_virtual_field(self)
+        cls._meta.virtual_fields.append(self)
 
         setattr(cls, name, self)
 

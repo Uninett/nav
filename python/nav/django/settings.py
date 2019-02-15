@@ -229,12 +229,8 @@ INSTALLED_APPS = (
     'nav.web.macwatch',
     'nav.web.geomap',
     'nav.web.portadmin',
+    'django.contrib.postgres',
 )
-
-if tuple(django.VERSION[:2]) == (1, 7):
-    INSTALLED_APPS = INSTALLED_APPS + ('django_hstore',)
-else:
-    INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.postgres',)
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
