@@ -63,9 +63,9 @@ class SnmptrapdPluginTest(TestCase):
         assert loader == [self.plugin_a, self.plugin_b]
 
     def test_plugin_raises_module_load_error_on_bad_plugin(self):
-        pytest.raises(ModuleLoadError,
-                      "load_handler_modules([self.bad_plugin])")
+        with pytest.raises(ModuleLoadError):
+            load_handler_modules([self.bad_plugin])
 
     def test_plugin_raises_module_load_error_import_error(self):
-        pytest.raises(ModuleLoadError,
-                      "load_handler_modules(['nav.snmptrapd.handlers.non_existent'])")
+        with pytest.raises(ModuleLoadError):
+            load_handler_modules(['nav.snmptrapd.handlers.non_existent'])
