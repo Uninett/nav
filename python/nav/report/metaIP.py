@@ -59,7 +59,7 @@ class MetaIP:
 
     def _getTreeNetIpv6(self):
         netaddr = self.netaddr
-        index = self.netaddr.prefixlen() / 4  # Index for where the addresses start
+        index = self.netaddr.prefixlen() // 4  # Index for where the addresses start
         address_part = netaddr.strFullsize().replace(':', '')[:index]
         ipstr = ":".join([address_part[i:i+4].lstrip('0')
                           for i in range(0, len(address_part), 4)])
