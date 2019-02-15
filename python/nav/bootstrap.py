@@ -21,7 +21,6 @@ import sys
 
 import django
 from django.apps import apps
-from django.utils.timezone import now
 
 
 __all__ = ['bootstrap_django']

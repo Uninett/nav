@@ -15,7 +15,6 @@
 
 """Controllers for the event info pages"""
 
-import datetime
 import operator
 import itertools
 

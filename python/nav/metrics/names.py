@@ -18,7 +18,6 @@
 from collections import OrderedDict
 import itertools
 import json
-from django.utils import six
 from django.utils.six.moves.urllib.parse import urlencode, urljoin
 from django.utils.six.moves.urllib.request import Request, urlopen
 from django.utils.six.moves.urllib.error import URLError

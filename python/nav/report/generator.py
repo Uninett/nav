@@ -18,7 +18,6 @@ from __future__ import unicode_literals
 import io
 import re
 
-import nav
 from nav.report.dbresult import DatabaseResult
 from nav.report.report import Report
 
