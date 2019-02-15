@@ -162,7 +162,7 @@ def get_max_leaf(tree, max_prefix_length=128):
                     maxval = result
         return maxval
 
-    root = tree.keys()[0]
+    root = next(iter(tree.keys()))
     return _dfs(tree, root)
 
 
