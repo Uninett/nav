@@ -106,7 +106,7 @@ class PrefixViewSet(viewsets.ViewSet):
         if not params.is_valid():
             return Response(data=params.errors,
                             status=status.HTTP_400_BAD_REQUEST)
-        params = params.object
+        params = params.validated_data
         payload = suggest_range(params["prefix"], offset=params["offset"],
                                 size=params["size"], n=params["n"])
         return Response(payload, status=status.HTTP_200_OK)

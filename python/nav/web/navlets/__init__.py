@@ -400,7 +400,8 @@ def render_base_template(request):
                                           account=account, pk=navlet_id)
         _logger.error(accountnavlet)
         cls = get_navlet_from_name(accountnavlet.navlet)
-        return render_to_response('navlets/base.html', {'navlet': cls},
+        navlet = cls(request=request)
+        return render_to_response('navlets/base.html', {'navlet': navlet},
                                   RequestContext(request))
 
 
