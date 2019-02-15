@@ -12,9 +12,9 @@ class IgnoredPrefixConfigTest(TestCase):
         config.get.return_value = '127.0.0.0/8'
 
         result = prefix.get_ignored_prefixes(config)
-        self.assertEquals(len(result), 1)
+        self.assertEqual(len(result), 1)
         self.assertTrue(result[0] is not None)
-        self.assertEquals(result[0], IP('127.0.0.0/8'))
+        self.assertEqual(result[0], IP('127.0.0.0/8'))
 
     def test_two_prefixes(self):
         config = Mock()
@@ -23,7 +23,7 @@ class IgnoredPrefixConfigTest(TestCase):
         expected = [IP('127.0.0.0/8'), IP('fe80::/16')]
         result = prefix.get_ignored_prefixes(config)
 
-        self.assertEquals(len(result), 2)
+        self.assertEqual(len(result), 2)
         self.assertTrue(result[0] is not None)
         self.assertTrue(result[1] is not None)
         self.assertTrue(result[0] in expected)
@@ -34,17 +34,17 @@ class IgnoredPrefixConfigTest(TestCase):
         config.get.return_value = '127.0.0.1/8, fe80::/16'
 
         result = prefix.get_ignored_prefixes(config)
-        self.assertEquals(len(result), 1)
+        self.assertEqual(len(result), 1)
         self.assertTrue(result[0] is not None)
-        self.assertEquals(result[0], IP('fe80::/16'))
+        self.assertEqual(result[0], IP('fe80::/16'))
 
     def test_prefix_with_match_specifier_should_parse(self):
         config = Mock()
         config.get.return_value = '=10.0.0.0/23'
 
         result = prefix.get_ignored_prefixes(config)
-        self.assertEquals(len(result), 1)
-        self.assertEquals(result[0], IP('10.0.0.0/23'))
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0], IP('10.0.0.0/23'))
 
     def test_prefix_with_match_specifier_should_parse2(self):
         config = Mock()
@@ -52,7 +52,7 @@ class IgnoredPrefixConfigTest(TestCase):
 
         expected = [IP('10.0.0.0/23'), IP('10.1.0.0/23')]
         result = prefix.get_ignored_prefixes(config)
-        self.assertEquals(len(result), 2)
+        self.assertEqual(len(result), 2)
         self.assertIn(result[0], expected)
         self.assertIn(result[1], expected)
 
@@ -87,12 +87,12 @@ class VlanPatternTest(TestCase):
 
     def test_cisco_long_names_should_match(self):
         match = prefix.VLAN_PATTERN.match("VLAN" + self.vlan)
-        self.assertEquals(match.group('vlan'), self.vlan)
+        self.assertEqual(match.group('vlan'), self.vlan)
 
     def test_cisco_short_names_should_match(self):
         match = prefix.VLAN_PATTERN.match("Vl" + self.vlan)
-        self.assertEquals(match.group('vlan'), self.vlan)
+        self.assertEqual(match.group('vlan'), self.vlan)
 
     def test_juniper_names_names_should_match(self):
         match = prefix.VLAN_PATTERN.match("irb." + self.vlan)
-        self.assertEquals(match.group('vlan'), self.vlan)
+        self.assertEqual(match.group('vlan'), self.vlan)

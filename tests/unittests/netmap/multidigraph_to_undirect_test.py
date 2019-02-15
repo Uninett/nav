@@ -22,17 +22,17 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
 
     # [1 / 2]
     def test_nodes_length_of_orignal_graph_consists_with_nav_topology_behavior(self):
-        self.assertEquals(4, len(self.nav_graph.nodes()), msg="Original NAV graph should only contain 2 nodes, it contains: "+six.text_type(self.nav_graph.nodes()))
+        self.assertEqual(4, len(self.nav_graph.nodes()), msg="Original NAV graph should only contain 2 nodes, it contains: "+six.text_type(self.nav_graph.nodes()))
 
     # [2 / 2]
     def test_edges_length_of_orginal_graph_consists_with_nav_topology_behavior(self):
-        self.assertEquals(6, len(self.nav_graph.edges()))
+        self.assertEqual(6, len(self.nav_graph.edges()))
 
     # netmap graphs tests below
 
     def test_nodes_length_of_netmap_graph_is_reduced_properly(self):
         # four nodes, A, B, C and D
-        self.assertEquals(4, len(self.netmap_graph.nodes()))
+        self.assertEqual(4, len(self.netmap_graph.nodes()))
 
     def test_edges_length_of_netmap_graph_is_reduced_properly(self):
         # one LINE between A and B.

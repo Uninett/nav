@@ -10,4 +10,4 @@ class IPtoolTest(TestCase):
         mask = IP('fe80:5678::/64')
         expected = IP('fe80:1230::/64')
 
-        self.assertEquals(andIpMask(ip, mask), expected)
+        self.assertEqual(andIpMask(ip, mask), expected)

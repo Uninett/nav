@@ -36,21 +36,21 @@ class MetaClassesJsonTests(MetaClassTestCase):
         group.gw_ip = '192.168.42.254'
         json = group.to_json()
         self.assertTrue('gw_ip' in json)
-        self.assertEquals('192.168.42.254', json['gw_ip'])
+        self.assertEqual('192.168.42.254', json['gw_ip'])
 
     def test_group_renders_virtual_if_included_and_value_is_true(self):
         group = Group(self.netbox)
         group.virtual = True
         json = group.to_json()
         self.assertTrue('virtual' in json)
-        self.assertEquals(True, json['virtual'])
+        self.assertEqual(True, json['virtual'])
 
     def test_group_renders_virtual_if_included_and_value_is_false(self):
         group = Group(self.netbox)
         group.virtual = False
         json = group.to_json()
         self.assertTrue('virtual' in json)
-        self.assertEquals(False, json['virtual'])
+        self.assertEqual(False, json['virtual'])
 
 
 class SharedJsonMetadataTests():
@@ -66,7 +66,7 @@ class SharedJsonMetadataTests():
 
         results = Edge((self.a, self.b), (self.a1, self.b1)).to_json()
 
-        self.assertEquals(results['link_speed'], 'N/A')
+        self.assertEqual(results['link_speed'], 'N/A')
 
     def test_stubbed_netbox_always_gives_is_elink(self):
         netbox = stubs.Netbox()

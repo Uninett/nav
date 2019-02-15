@@ -37,12 +37,12 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         _line_num, objects = six.next(importer)
 
         (netbox, ) = objects
-        self.assertEquals(netbox.ip, '10.0.90.252')
-        self.assertEquals(netbox.room_id, 'myroom')
-        self.assertEquals(netbox.organization_id, 'myorg')
-        self.assertEquals(netbox.category_id, 'SW')
-        self.assertEquals(netbox.snmp_version, '1')
-        self.assertEquals(netbox.read_only, 'public')
+        self.assertEqual(netbox.ip, '10.0.90.252')
+        self.assertEqual(netbox.room_id, 'myroom')
+        self.assertEqual(netbox.organization_id, 'myorg')
+        self.assertEqual(netbox.category_id, 'SW')
+        self.assertEqual(netbox.snmp_version, '1')
+        self.assertEqual(netbox.read_only, 'public')
 
     def test_invalid_room_gives_error(self):
         data = 'invalid:10.0.90.252:myorg:SW:1:public::'
@@ -66,8 +66,8 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         netboxinfo = importer._get_netboxinfo_from_function(netbox, 'hella')
         self.assertTrue(isinstance(netboxinfo, manage.NetboxInfo))
         self.assertTrue(netboxinfo.key is None)
-        self.assertEquals(netboxinfo.variable, 'function')
-        self.assertEquals(netboxinfo.value, 'hella')
+        self.assertEqual(netboxinfo.variable, 'function')
+        self.assertEqual(netboxinfo.value, 'hella')
 
     def test_netbox_groups_are_set(self):
         data = 'myroom:10.0.90.10:myorg:SRV:::::fileserver::WEB:UNIX:MAIL'
@@ -91,7 +91,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         for netboxgroup, ncategory in zip(netboxgroups, ncategories):
             self.assertTrue(isinstance(ncategory, manage.NetboxCategory),
                             ncategory)
-            self.assertEquals(ncategory.category_id, netboxgroup)
+            self.assertEqual(ncategory.category_id, netboxgroup)
 
     def test_duplicate_locations_should_give_error(self):
         netbox = manage.Netbox(
@@ -138,7 +138,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
         objects = self.parse_to_objects(data)
         self.assertTrue(len(objects) == 1, repr(objects))
         self.assertTrue(isinstance(objects[0], manage.Location))
-        self.assertEquals(objects[0].id, 'somewhere')
+        self.assertEqual(objects[0].id, 'somewhere')
 
     def test_import_no_description(self):
         """Description field was previously mandatory, not optional"""
@@ -146,7 +146,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
         objects = self.parse_to_objects(data)
         self.assertTrue(len(objects) == 1, repr(objects))
         self.assertTrue(isinstance(objects[0], manage.Location))
-        self.assertEquals(objects[0].id, 'somewhere')
+        self.assertEqual(objects[0].id, 'somewhere')
 
     def test_imported_objects_can_be_saved(self):
         data = "somewhere::Over the rainbow"
@@ -170,10 +170,10 @@ class TestLocationImporter(DjangoTransactionTestCase):
 
         data = "otherplace:somewhere:descr"
         objects = self.parse_to_objects(data)
-        self.assertEquals(len(objects), 1)
-        self.assertEquals(objects[0].pk, 'otherplace')
-        self.assertEquals(objects[0].parent, parent)
-        self.assertEquals(objects[0].description, 'descr')
+        self.assertEqual(len(objects), 1)
+        self.assertEqual(objects[0].pk, 'otherplace')
+        self.assertEqual(objects[0].parent, parent)
+        self.assertEqual(objects[0].description, 'descr')
 
     def test_location_nodescr_can_have_parent(self):
         parent, _created = manage.Location.objects.get_or_create(
@@ -181,9 +181,9 @@ class TestLocationImporter(DjangoTransactionTestCase):
 
         data = "otherplace:somewhere"
         objects = self.parse_to_objects(data)
-        self.assertEquals(len(objects), 1)
-        self.assertEquals(objects[0].pk, 'otherplace')
-        self.assertEquals(objects[0].parent, parent)
+        self.assertEqual(len(objects), 1)
+        self.assertEqual(objects[0].pk, 'otherplace')
+        self.assertEqual(objects[0].parent, parent)
         self.assertFalse(objects[0].description)
 
     def test_too_long_locationid_should_raise_error(self):
@@ -216,6 +216,6 @@ class TestPrefixImporter(DjangoTransactionTestCase):
 
         if isinstance(objects, Exception):
             raise objects
-        self.assertEquals(len(objects), 2)
+        self.assertEqual(len(objects), 2)
         self.assertTrue(isinstance(objects[0], manage.Vlan))
         self.assertTrue(isinstance(objects[1], manage.Prefix))

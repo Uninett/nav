@@ -33,22 +33,22 @@ class UtilTestCase(unittest.TestCase):
                                               self.gradient_steps)
 
     def test_gradient_size(self):
-        self.assertEquals(self.gradient_steps, len(self.gradient))
+        self.assertEqual(self.gradient_steps, len(self.gradient))
 
     def test_gradient_end_points(self):
-        self.assertEquals(self.gradient_start, self.gradient[0])
-        self.assertEquals(self.gradient_stop, self.gradient[-1])
+        self.assertEqual(self.gradient_start, self.gradient[0])
+        self.assertEqual(self.gradient_stop, self.gradient[-1])
 
     def test_gradient_order(self):
         ordered = sorted(self.gradient)
-        self.assertEquals(ordered, self.gradient)
+        self.assertEqual(ordered, self.gradient)
 
         ordered = sorted(self.reverse_gradient)
         ordered.reverse()
-        self.assertEquals(ordered, self.reverse_gradient)
+        self.assertEqual(ordered, self.reverse_gradient)
 
     def test_colortohex(self):
-        self.assertEquals('ea702a', util.colortohex((234, 112, 42)))
+        self.assertEqual('ea702a', util.colortohex((234, 112, 42)))
 
     def test_is_valid_ip(self):
         valid_ips = ['129.241.75.1', '10.0.25.62', '2001:700:1::abcd',
@@ -67,15 +67,15 @@ class UtilTestCase(unittest.TestCase):
 class IPRangeTests(unittest.TestCase):
     def test_ipv4_range_length_should_be_correct(self):
         i = IPRange(IP('10.0.42.0'), IP('10.0.42.127'))
-        self.assertEquals(len(i), 128)
+        self.assertEqual(len(i), 128)
 
     def test_ipv6_range_length_should_be_correct(self):
         i = IPRange(IP('fe80:700:1::'), IP('fe80:700:1::f'))
-        self.assertEquals(len(i), 16)
+        self.assertEqual(len(i), 16)
 
     def test_indexed_access_should_work(self):
         i = IPRange(IP('10.0.42.0'), IP('10.0.42.127'))
-        self.assertEquals(i[5], IP('10.0.42.5'))
+        self.assertEqual(i[5], IP('10.0.42.5'))
 
     def test_out_of_bounds_positive_index_should_raise(self):
         i = IPRange(IP('10.0.42.0'), IP('10.0.42.127'))
@@ -89,33 +89,33 @@ class IPRangeTests(unittest.TestCase):
 class IPRangeStringTests(unittest.TestCase):
     def test_simple_ipv4_range_should_parse(self):
         i = IPRange.from_string('10.0.42.0-10.0.42.63')
-        self.assertEquals(i[0], IP('10.0.42.0'))
-        self.assertEquals(i[-1], IP('10.0.42.63'))
+        self.assertEqual(i[0], IP('10.0.42.0'))
+        self.assertEqual(i[-1], IP('10.0.42.63'))
 
     def test_simple_ipv6_range_should_parse(self):
         i = IPRange.from_string('fe80:700:1::-fe80:700:1::f')
-        self.assertEquals(i[0], IP('fe80:700:1::'))
-        self.assertEquals(i[-1], IP('fe80:700:1::f'))
+        self.assertEqual(i[0], IP('fe80:700:1::'))
+        self.assertEqual(i[-1], IP('fe80:700:1::f'))
 
     def test_assembled_ipv4_range_should_parse(self):
         i = IPRange.from_string('10.0.42.0-127')
-        self.assertEquals(i[0], IP('10.0.42.0'))
-        self.assertEquals(i[-1], IP('10.0.42.127'))
+        self.assertEqual(i[0], IP('10.0.42.0'))
+        self.assertEqual(i[-1], IP('10.0.42.127'))
 
     def test_assembled_ipv6_range_should_parse(self):
         i = IPRange.from_string('fe80:700:1::aaa-fff')
-        self.assertEquals(i[0], IP('fe80:700:1::aaa'))
-        self.assertEquals(i[-1], IP('fe80:700:1::fff'))
+        self.assertEqual(i[0], IP('fe80:700:1::aaa'))
+        self.assertEqual(i[-1], IP('fe80:700:1::fff'))
 
     def test_ipv4_subnet_should_parse(self):
         i = IPRange.from_string('10.0.99.0/24')
-        self.assertEquals(i[0], IP('10.0.99.0'))
-        self.assertEquals(i[-1], IP('10.0.99.255'))
+        self.assertEqual(i[0], IP('10.0.99.0'))
+        self.assertEqual(i[-1], IP('10.0.99.255'))
 
     def test_ipv4_short_subnet_should_parse(self):
         i = IPRange.from_string('10.0.99/24')
-        self.assertEquals(i[0], IP('10.0.99.0'))
-        self.assertEquals(i[-1], IP('10.0.99.255'))
+        self.assertEqual(i[0], IP('10.0.99.0'))
+        self.assertEqual(i[-1], IP('10.0.99.255'))
 
     def test_ipv4_with_unspecified_mask_should_parse(self):
         i = IPRange.from_string('192.168.63/')

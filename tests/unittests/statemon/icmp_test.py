@@ -18,20 +18,20 @@ class ICMPPacketTestcase(TestCase):
         v6_packet = PacketV6(packet, False)
 
         #Check if ICMP_ECHO
-        self.assertEquals(v6_packet.type, PacketV6.ICMP_ECHO)
+        self.assertEqual(v6_packet.type, PacketV6.ICMP_ECHO)
 
         #Check sequence number
-        self.assertEquals(v6_packet.sequence, 3)
+        self.assertEqual(v6_packet.sequence, 3)
 
         #Check payload
-        self.assertEquals(v6_packet.data, b'Testing')
+        self.assertEqual(v6_packet.data, b'Testing')
 
         #Check if Id of the packet is process id
-        self.assertEquals(os.getpid(), v6_packet.id)
+        self.assertEqual(os.getpid(), v6_packet.id)
 
         #Check if the checksum is correct
         unpacked_packet = packet[v6_packet.packet_slice]
-        self.assertEquals(inet_checksum(unpacked_packet), 0)
+        self.assertEqual(inet_checksum(unpacked_packet), 0)
 
     def test_assemble_v4_packet_echo(self):
 
@@ -50,17 +50,17 @@ class ICMPPacketTestcase(TestCase):
         v4_packet = PacketV4(packet, False)
 
         #Check if ICMP_ECHO
-        self.assertEquals(v4_packet.type, PacketV4.ICMP_ECHO)
+        self.assertEqual(v4_packet.type, PacketV4.ICMP_ECHO)
 
         #Check sequence number
-        self.assertEquals(v4_packet.sequence, 3)
+        self.assertEqual(v4_packet.sequence, 3)
 
         #Check if Id of the packet is process id
-        self.assertEquals(os.getpid(), v4_packet.id)
+        self.assertEqual(os.getpid(), v4_packet.id)
 
         #Check payload
-        self.assertEquals(v4_packet.data, b'Testing')
+        self.assertEqual(v4_packet.data, b'Testing')
 
         #Check if the checksum is correct
         unpacked_packet = packet[v4_packet.packet_slice]
-        self.assertEquals(inet_checksum(unpacked_packet), 0)
+        self.assertEqual(inet_checksum(unpacked_packet), 0)

@@ -21,11 +21,11 @@ class HostTestcase(TestCase):
 
         self.assertTrue(packet)
         self.assertTrue(cookie)
-        self.assertEquals(len(packet), 64)
-        self.assertEquals(len(cookie), 16)
+        self.assertEqual(len(packet), 64)
+        self.assertEqual(len(cookie), 16)
 
-        self.assertEquals(host.packet.sequence, 0)
-        self.assertEquals(host.packet.id, pid)
+        self.assertEqual(host.packet.sequence, 0)
+        self.assertEqual(host.packet.id, pid)
 
     def test_make_v6_packet(self):
         """
@@ -42,11 +42,11 @@ class HostTestcase(TestCase):
 
         self.assertTrue(packet)
         self.assertTrue(cookie)
-        self.assertEquals(len(packet), 64)
-        self.assertEquals(len(cookie), 16)
+        self.assertEqual(len(packet), 64)
+        self.assertEqual(len(cookie), 16)
 
-        self.assertEquals(host.packet.sequence, 0)
-        self.assertEquals(host.packet.id, pid)
+        self.assertEqual(host.packet.sequence, 0)
+        self.assertEqual(host.packet.id, pid)
 
     def test_ip_validation(self):
         """

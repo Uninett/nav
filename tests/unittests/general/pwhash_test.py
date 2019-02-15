@@ -27,17 +27,17 @@ class PwHashTestCase(unittest.TestCase):
 
     def test_sha1_hash(self):
         hash = pwhash.Hash('sha1', 'e7MaFMQE', 'foobar')
-        self.assertEquals('{sha1}e7MaFMQE$cCqMIINS5t85J0MIgNwMprXBfLA=',
+        self.assertEqual('{sha1}e7MaFMQE$cCqMIINS5t85J0MIgNwMprXBfLA=',
                           str(hash))
 
     def test_md5_hash(self):
         hash = pwhash.Hash('md5', 'e7MaFMQE', 'foobar')
-        self.assertEquals('{md5}e7MaFMQE$wbzoUnM9Jju9ob9bY29+hA==',
+        self.assertEqual('{md5}e7MaFMQE$wbzoUnM9Jju9ob9bY29+hA==',
                           str(hash))
 
     def test_pbkdf25_hash(self):
         hash = pwhash.Hash('pbkdf2', 'e7MaFMQE', 'foobar')
-        self.assertEquals(
+        self.assertEqual(
             '{pbkdf2}e7MaFMQE$7j7bgQb8xED7mEY+8g1QM2zs/ispKZVeNEv/nMCYPX0=',
             str(hash))
 

@@ -29,9 +29,9 @@ class TestBulkParser(TestCase):
         try:
             list(b)
         except bulkparse.InvalidFieldValue as error:
-            self.assertEquals(error.line_num, 2)
-            self.assertEquals(error.field, 'one')
-            self.assertEquals(error.value, 'once')
+            self.assertEqual(error.line_num, 2)
+            self.assertEqual(error.field, 'one')
+            self.assertEqual(error.value, 'once')
         else:
             self.fail("No exception raised")
 
@@ -54,16 +54,16 @@ class TestNetboxBulkParser(TestCase):
         b = bulkparse.NetboxBulkParser(data)
         out_data = six.next(b)
         self.assertTrue(isinstance(out_data, dict), out_data)
-        self.assertEquals(out_data['roomid'], 'room1')
-        self.assertEquals(out_data['ip'], '10.0.0.186')
-        self.assertEquals(out_data['orgid'], 'myorg')
-        self.assertEquals(out_data['catid'], 'SW')
-        self.assertEquals(out_data['master'], 'amaster')
-        self.assertEquals(out_data['data'], 'key=value')
-        self.assertEquals(out_data['netboxgroup'], ['blah1', 'blah2'])
+        self.assertEqual(out_data['roomid'], 'room1')
+        self.assertEqual(out_data['ip'], '10.0.0.186')
+        self.assertEqual(out_data['orgid'], 'myorg')
+        self.assertEqual(out_data['catid'], 'SW')
+        self.assertEqual(out_data['master'], 'amaster')
+        self.assertEqual(out_data['data'], 'key=value')
+        self.assertEqual(out_data['netboxgroup'], ['blah1', 'blah2'])
 
     def test_get_header(self):
-        self.assertEquals(
+        self.assertEqual(
             bulkparse.NetboxBulkParser.get_header(),
             "#roomid:ip:orgid:catid"
             "[:snmp_version:ro:rw:master:function:data:netboxgroup:...]")
@@ -74,7 +74,7 @@ class TestNetboxBulkParser(TestCase):
                 b"room1:10.0.0.187:myorg:OTHER::parrot::\n")
         b = bulkparse.NetboxBulkParser(data)
         out_data = list(b)
-        self.assertEquals(len(out_data), 2)
+        self.assertEqual(len(out_data), 2)
 
     def test_three_lines_with_two_rows_should_be_counted_as_three(self):
         data = (b"room1:10.0.0.186:myorg:SW:1:public:parrot::\n"
@@ -82,7 +82,7 @@ class TestNetboxBulkParser(TestCase):
                 b"room1:10.0.0.187:myorg:OTHER::parrot::\n")
         b = bulkparse.NetboxBulkParser(data)
         out_data = list(b)
-        self.assertEquals(b.line_num, 3)
+        self.assertEqual(b.line_num, 3)
 
     def test_short_line_should_raise_error(self):
         data = b"room1:10.0.0.8"
@@ -100,15 +100,15 @@ class TestNetboxBulkParser(TestCase):
         try:
             six.next(b)
         except bulkparse.RequiredFieldMissing as error:
-            self.assertEquals(error.line_num, 1)
-            self.assertEquals(error.missing_field, 'orgid')
+            self.assertEqual(error.line_num, 1)
+            self.assertEqual(error.missing_field, 'orgid')
         else:
             self.fail("No exception raised")
 
 
 class TestUsageBulkParser(TestCase):
     def test_get_header(self):
-        self.assertEquals(
+        self.assertEqual(
             bulkparse.UsageBulkParser.get_header(),
             "#usageid:descr")
 
@@ -116,7 +116,7 @@ class TestUsageBulkParser(TestCase):
         data = b"#comment\nsby:student village"
         b = bulkparse.UsageBulkParser(data)
         first_row = six.next(b)
-        self.assertEquals(first_row['usageid'], 'sby')
+        self.assertEqual(first_row['usageid'], 'sby')
 
 
 class TestPrefixBulkParser(TestCase):
@@ -147,14 +147,14 @@ class TestCommentStripper(TestCase):
     def test_leading_comment_should_be_stripped(self):
         data = iter(['#leadingcomment\n', 'something\n'])
         stripper = bulkparse.CommentStripper(data)
-        self.assertEquals(six.next(stripper), '\n')
-        self.assertEquals(six.next(stripper), 'something\n')
+        self.assertEqual(six.next(stripper), '\n')
+        self.assertEqual(six.next(stripper), 'something\n')
 
     def test_suffix_comment_should_be_stripped(self):
         data = iter(['somedata\n', 'otherdata    # ignore this\n'])
         stripper = bulkparse.CommentStripper(data)
-        self.assertEquals(six.next(stripper), 'somedata\n')
-        self.assertEquals(six.next(stripper), 'otherdata\n')
+        self.assertEqual(six.next(stripper), 'somedata\n')
+        self.assertEqual(six.next(stripper), 'otherdata\n')
 
 
 class TestHeaderGenerator(TestCase):
@@ -163,21 +163,21 @@ class TestHeaderGenerator(TestCase):
             format = ('one', 'two', 'three')
             required = 3
 
-        self.assertEquals(C.get_header(), "#one:two:three")
+        self.assertEqual(C.get_header(), "#one:two:three")
 
     def test_one_optional(self):
         class C(bulkparse.BulkParser):
             format = ('one', 'two', 'three', 'optional')
             required = 3
 
-        self.assertEquals(C.get_header(), "#one:two:three[:optional]")
+        self.assertEqual(C.get_header(), "#one:two:three[:optional]")
 
     def test_two_optional(self):
         class C(bulkparse.BulkParser):
             format = ('one', 'two', 'three', 'opt1', 'opt2')
             required = 3
 
-        self.assertEquals(C.get_header(), "#one:two:three[:opt1:opt2]")
+        self.assertEqual(C.get_header(), "#one:two:three[:opt1:opt2]")
 
     def test_optional_with_restkey(self):
         class C(bulkparse.BulkParser):
@@ -185,7 +185,7 @@ class TestHeaderGenerator(TestCase):
             restkey = 'arg'
             required = 3
 
-        self.assertEquals(C.get_header(), "#one:two:three[:optional:arg:...]")
+        self.assertEqual(C.get_header(), "#one:two:three[:optional:arg:...]")
 
     def test_two_required_plus_restkey(self):
         class C(bulkparse.BulkParser):
@@ -193,7 +193,7 @@ class TestHeaderGenerator(TestCase):
             restkey = 'rest'
             required = 2
 
-        self.assertEquals(C.get_header(), "#one:two[:rest:...]")
+        self.assertEqual(C.get_header(), "#one:two[:rest:...]")
 
     def test_two_required_plus_restkey_format(self):
         class C(bulkparse.BulkParser):
@@ -202,4 +202,4 @@ class TestHeaderGenerator(TestCase):
             restkey_format = 'thing=value'
             required = 2
 
-        self.assertEquals(C.get_header(), "#one:two[:thing=value:...]")
+        self.assertEqual(C.get_header(), "#one:two[:thing=value:...]")
