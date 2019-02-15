@@ -107,7 +107,7 @@ class Snmp(object):
         """Performs an SNMP GET query.
 
         :param query: OID to query for.
-        :returns: The response value as a string.
+        :returns: The response value
 
         """
         oid = OID(query)
@@ -115,11 +115,10 @@ class Snmp(object):
         if response:
             value = response.get(oid, None)
             if isinstance(value, tuple):
-                return str(OID(value))[1:]
-            else:
-                return value
+                return OID(value)
+            return value
         else:
-            return ''
+            return None
 
     @staticmethod
     def translate_type(type):
