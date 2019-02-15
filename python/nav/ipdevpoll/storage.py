@@ -190,7 +190,7 @@ class Shadow(object):
         return False
 
     def __hash__(self):
-        return repr(self).__hash__()
+        return hash(id(self))
 
     def __ne__(self, other):
         return not (self == other)
