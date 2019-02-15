@@ -18,6 +18,7 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
+import json
 
 from twisted.internet import defer
 
@@ -101,9 +102,12 @@ class TimestampChecker(object):
             except manage.NetboxInfo.DoesNotExist:
                 return None
             try:
-                return pickle.loads(str(info.value))
+                return json.loads(info.value)
             except Exception:
-                return None
+                try:
+                    return pickle.loads(info.value)
+                except Exception:
+                    return None
 
         self.loaded_times = yield db.run_in_thread(_unpickle)
         defer.returnValue(self.loaded_times)
@@ -116,7 +120,7 @@ class TimestampChecker(object):
         info.netbox = netbox
         info.key = INFO_KEY_NAME
         info.variable = self.var_name
-        info.value = pickle.dumps(self.collected_times)
+        info.value = json.dumps(self.collected_times)
 
     def _get_netbox(self):
         return self.containers.factory(None, shadows.Netbox)
